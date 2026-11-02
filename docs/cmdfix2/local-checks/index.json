@@ -20,6 +20,11 @@
     "sha256": "88e70f8dd876d99711280d8d3b9338032166129e37c845a0f1419060c0a89802"
   },
   {
+    "file": "final-supplemental-v2.json",
+    "bytes": 189,
+    "sha256": "836a98830d10f7dac94a8f809dd517a8d27be798d4047075d3d1fb51033e7d71"
+  },
+  {
     "file": "fresh-blockfix-cost.log",
     "bytes": 0,
     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
@@ -108,6 +113,11 @@
     "file": "redis-tcl-test.log",
     "bytes": 1923,
     "sha256": "02ebb1fae3f621a810e25b74644f3a298dc37d39ce86384198f1acbb6799500e"
+  },
+  {
+    "file": "related-jobs-v2.json",
+    "bytes": 5072,
+    "sha256": "3e5f7342d784ae3163c965cead7d287e89262051d0e84ceaab64d96b53d31143"
   },
   {
     "file": "whitespace-control-build.log",

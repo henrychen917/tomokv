@@ -5014,6 +5014,82 @@
     ]
   },
   {
+    "label": "post-v2-fused-uring",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.yby4LQ",
+    "complete": false,
+    "archived_only": false,
+    "passed": 11,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "10.830000",
+        "label": "plain-write lost updates (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.480000",
+        "label": "lbsignals battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "1.570000",
+        "label": "slowlog battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.310000",
+        "label": "atomfix battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.300000",
+        "label": "scriptatomic battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "14.580000",
+        "label": "execatomic battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "11.970000",
+        "label": "execiso battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.540000",
+        "label": "execfix battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.130000",
+        "label": "multires battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.850000",
+        "label": "multirace battery (atomic 0)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
     "label": "post-v2-main-epoll",
     "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.QcKx3L",
     "complete": true,
@@ -6240,7 +6316,7 @@
     "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.EcuSmH",
     "complete": false,
     "archived_only": false,
-    "passed": 33,
+    "passed": 134,
     "failed": 0,
     "rows": [
       {
@@ -6280,6 +6356,18 @@
         "label": "Redis 7.4 differential part (armed fused, atomic 0)"
       },
       {
+        "job": "differ-armed-1",
+        "status": "ok",
+        "seconds": "527.490000",
+        "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+      },
+      {
+        "job": "differ-equivalence",
+        "status": "ok",
+        "seconds": "21.940000",
+        "label": "mode equivalence part (all execution modes and knobs)"
+      },
+      {
         "job": "differ-split-0",
         "status": "ok",
         "seconds": "559.710000",
@@ -6290,6 +6378,600 @@
         "status": "ok",
         "seconds": "565.490000",
         "label": "Redis 7.4 differential part (split, atomic 1)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "0.260000",
+        "label": "fused+armed boot line (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "1.240000",
+        "label": "fused+armed s6 battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "2.100000",
+        "label": "fused+armed multi_exec battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "1.640000",
+        "label": "fused+armed blocking battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "0.490000",
+        "label": "fused+armed blockmulti battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "0.780000",
+        "label": "fused+armed stream battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "0.070000",
+        "label": "fused+armed streamgroups battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "1.180000",
+        "label": "fused+armed pubsub battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "fused+armed lua_scripting battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "0.070000",
+        "label": "fused+armed scriptsurf battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "14.760000",
+        "label": "fused+armed limits battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "0.060000",
+        "label": "fused+armed resp3 battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "0.060000",
+        "label": "fused+armed bitfield battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "0.090000",
+        "label": "fused+armed dumprestore battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "0.080000",
+        "label": "fused+armed zsetops battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "fused+armed geo battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "1.160000",
+        "label": "fused+armed climon battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "3.880000",
+        "label": "fused+armed climon2 battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "13.310000",
+        "label": "fused+armed tracking battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "3.080000",
+        "label": "fused+armed hexpire battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "0.590000",
+        "label": "fused+armed servertail battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "0.180000",
+        "label": "fused+armed lcs battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "3.100000",
+        "label": "fused+armed concur battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "0.740000",
+        "label": "fused+armed edgeproto battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "0.410000",
+        "label": "fused+armed edgeenc battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "3.860000",
+        "label": "fused+armed edgetime battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "fused+armed arity battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "fused+armed contarity battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "fused+armed cmdgap battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "fused+armed aclsel battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "45.130000",
+        "label": "fused+armed expwide battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "4.170000",
+        "label": "fused+armed infofix battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "3.000000",
+        "label": "fused+armed pushtear battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "0.060000",
+        "label": "fused+armed netcmd battery (atomic 0)"
+      },
+      {
+        "job": "feature-armed-0",
+        "status": "ok",
+        "seconds": "1.170000",
+        "label": "fused+armed shutdown report + lane fired (hits=N, atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "4.180000",
+        "label": "s6 battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "2.130000",
+        "label": "multi_exec battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "1.600000",
+        "label": "blocking battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "0.480000",
+        "label": "blockmulti battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "0.800000",
+        "label": "stream battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "0.070000",
+        "label": "streamgroups battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "1.000000",
+        "label": "pubsub battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "0.060000",
+        "label": "lua_scripting battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "0.090000",
+        "label": "scriptsurf battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "15.310000",
+        "label": "limits battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "0.060000",
+        "label": "resp3 battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "0.060000",
+        "label": "bitfield battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "0.090000",
+        "label": "dumprestore battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "0.080000",
+        "label": "zsetops battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "geo battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "1.140000",
+        "label": "climon battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "3.820000",
+        "label": "climon2 battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "13.310000",
+        "label": "tracking battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "3.080000",
+        "label": "hexpire battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "0.590000",
+        "label": "servertail battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "0.180000",
+        "label": "lcs battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "3.400000",
+        "label": "concur battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "0.620000",
+        "label": "edgeproto battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "0.390000",
+        "label": "edgeenc battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "3.850000",
+        "label": "edgetime battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "arity battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "contarity battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "cmdgap battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "0.060000",
+        "label": "aclsel battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "54.500000",
+        "label": "expwide battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "4.220000",
+        "label": "infofix battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "5.470000",
+        "label": "pushtear battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "0.060000",
+        "label": "netcmd battery (atomic 0)"
+      },
+      {
+        "job": "feature-split-0",
+        "status": "ok",
+        "seconds": "0.020000",
+        "label": "feature shutdown invariants (atomic 0)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "2.780000",
+        "label": "s6 battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "2.100000",
+        "label": "multi_exec battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "1.570000",
+        "label": "blocking battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "0.490000",
+        "label": "blockmulti battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "0.790000",
+        "label": "stream battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "0.080000",
+        "label": "streamgroups battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "1.520000",
+        "label": "pubsub battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "lua_scripting battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "0.070000",
+        "label": "scriptsurf battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "15.020000",
+        "label": "limits battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "0.060000",
+        "label": "resp3 battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "0.060000",
+        "label": "bitfield battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "0.090000",
+        "label": "dumprestore battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "0.070000",
+        "label": "zsetops battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "geo battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "1.150000",
+        "label": "climon battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "3.830000",
+        "label": "climon2 battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "13.410000",
+        "label": "tracking battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "3.320000",
+        "label": "hexpire battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "0.600000",
+        "label": "servertail battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "0.180000",
+        "label": "lcs battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "2.950000",
+        "label": "concur battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "0.600000",
+        "label": "edgeproto battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "0.330000",
+        "label": "edgeenc battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "3.920000",
+        "label": "edgetime battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "arity battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "0.060000",
+        "label": "contarity battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "cmdgap battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "aclsel battery (atomic 1)"
+      },
+      {
+        "job": "feature-split-1",
+        "status": "ok",
+        "seconds": "66.230000",
+        "label": "expwide battery (atomic 1)"
       },
       {
         "job": "multifix-1s-epoll",
@@ -6444,11 +7126,219 @@
     ]
   },
   {
+    "label": "post-v2-notify-epoll-1s",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.tpKZw0",
+    "complete": true,
+    "archived_only": false,
+    "passed": 7,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "2.520000",
+        "label": "MULTI feature battery"
+      },
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "1.770000",
+        "label": "blocking feature battery"
+      },
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "1.580000",
+        "label": "pubsub feature battery"
+      },
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "0.040000",
+        "label": "Lua feature battery"
+      },
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "47.580000",
+        "label": "keyspace notification battery (atomic 0/1)"
+      },
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "0.020000",
+        "label": "feature battery shutdown invariants"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "post-v2-notify-epoll-2s",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.qStjsd",
+    "complete": true,
+    "archived_only": false,
+    "passed": 7,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "2.070000",
+        "label": "MULTI feature battery"
+      },
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "1.520000",
+        "label": "blocking feature battery"
+      },
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "1.820000",
+        "label": "pubsub feature battery"
+      },
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "0.030000",
+        "label": "Lua feature battery"
+      },
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "47.490000",
+        "label": "keyspace notification battery (atomic 0/1)"
+      },
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "0.020000",
+        "label": "feature battery shutdown invariants"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "post-v2-notify-uring-1s",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.STUJrD",
+    "complete": true,
+    "archived_only": false,
+    "passed": 7,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "2.280000",
+        "label": "MULTI feature battery"
+      },
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "1.620000",
+        "label": "blocking feature battery"
+      },
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "1.430000",
+        "label": "pubsub feature battery"
+      },
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "0.080000",
+        "label": "Lua feature battery"
+      },
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "47.170000",
+        "label": "keyspace notification battery (atomic 0/1)"
+      },
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "0.020000",
+        "label": "feature battery shutdown invariants"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "post-v2-notify-uring-2s",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.trUwaM",
+    "complete": true,
+    "archived_only": false,
+    "passed": 7,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "2.080000",
+        "label": "MULTI feature battery"
+      },
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "1.550000",
+        "label": "blocking feature battery"
+      },
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "0.990000",
+        "label": "pubsub feature battery"
+      },
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "0.020000",
+        "label": "Lua feature battery"
+      },
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "47.530000",
+        "label": "keyspace notification battery (atomic 0/1)"
+      },
+      {
+        "job": "notify",
+        "status": "ok",
+        "seconds": "0.090000",
+        "label": "feature battery shutdown invariants"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
     "label": "post-v2-related",
     "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.vyG45s",
-    "complete": false,
+    "complete": true,
     "archived_only": false,
-    "passed": 80,
+    "passed": 82,
     "failed": 0,
     "rows": [
       {
@@ -6926,10 +7816,22 @@
         "label": "rootcompat redact vs Redis 7.4"
       },
       {
+        "job": "rootcompat-setpast",
+        "status": "ok",
+        "seconds": "25.590000",
+        "label": "rootcompat setpast vs Redis 7.4"
+      },
+      {
         "job": "rootcompat-sort-acl",
         "status": "ok",
         "seconds": "1.210000",
         "label": "rootcompat sort-acl vs Redis 7.4"
+      },
+      {
+        "job": "rootcompat-xsnotify",
+        "status": "ok",
+        "seconds": "459.480000",
+        "label": "rootcompat xsnotify vs Redis 7.4"
       }
     ]
   },

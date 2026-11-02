@@ -1,0 +1,13 @@
+[
+  {
+    "command": [
+      "python3",
+      "tools/cmdfix2_related_jobs.py"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "CMDFIX2_RUN_TAG": "v2"
+    },
+    "exit_code": 0
+  }
+]

@@ -98,11 +98,13 @@ original logs and receipts for **every run, including failed controls**.
 These are selected correctness jobs, not a full-gate receipt. Final broad-job
 totals and build freshness are recorded below when all scheduled jobs finish.
 
-Both engines are running the gate's standard differential seeds 7, 19, 20 and
-23, plus the standard rotating seed (25 for uring, 24 for epoll). Final totals
-will be recorded after both runs complete. The exact observed/unobserved
-command inventory is retained in `docs/cmdfix2/differential.json` and the
-original differential receipts.
+Both engines complete the gate's standard differential seeds 7, 19, 20 and
+23, plus the standard rotating seed (25 for uring, 24 for epoll). Each engine
+has **941 passing rows, zero failures**, including mode equivalence. The eight
+command matrices record **8,501,392 comparison witnesses** in total and each
+observes 232 of the 245 registered commands. The exact observed/unobserved
+inventory is retained in `docs/cmdfix2/differential.json` and the original
+receipts; these counts do not claim universal command coverage.
 
 The additional `rootcompat-stringlimit` job reported exactly the same 24
 failures on PRE and the first POST (SETRANGE/APPEND/SETBIT above the 32-bit representation,
@@ -265,6 +267,9 @@ rows.
   231 fused/atomic=0, 235 fused/atomic=1, one mode-equivalence row), with zero
   failures. Final uring and supplemental fused/notification/Tcl selections
   are running; their exact rows and failures will be recorded before delivery.
+* The final related selection passes **82 rows, zero failures**. Each of the
+  four notification selections (uring/epoll × 1s/2s) passes **7 rows**, 28
+  total, with zero failures.
 * `git diff 9d6ab5526 --check`, gate shell syntax, and Python syntax checks
   pass. Debug compression of unit artifacts preserves every allocated ELF
   section; it does not alter any delivered arm. `build/` is about 14 GiB.

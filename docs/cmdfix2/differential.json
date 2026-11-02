@@ -12,7 +12,17 @@
     "run": "post-v2-main-uring",
     "job": "differ-armed-1",
     "verdict": [
-      "DIFFER matrix: atomic={1} seeds={7 19 20 23 25} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.EcuSmH/jobs/differ-armed-1/differ"
+      "DIFFER matrix: atomic={1} seeds={7 19 20 23 25} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.EcuSmH/jobs/differ-armed-1/differ",
+      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1059847 recorded comparison witnesses, 234 legs)",
+      "DIFFER GATE: pass=235 fail=0 runtime=8m47s"
+    ]
+  },
+  {
+    "run": "post-v2-main-uring",
+    "job": "differ-equivalence",
+    "verdict": [
+      "DIFFER matrix: atomic={} seeds={7 19 20 23 25} legs=0 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.EcuSmH/jobs/differ-equivalence/differ",
+      "DIFFER GATE: pass=1 fail=0 runtime=0m21s"
     ]
   },
   {
