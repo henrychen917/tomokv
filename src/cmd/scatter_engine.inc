@@ -51,6 +51,8 @@ struct ObjectImage {
     // GEO STORE replaces the value like Redis setKey: retain the destination's LRU/LFU.
     // Read it only on the applying owner, never from a coordinator snapshot.
     bool preserve_eviction_meta = false;
+    // CD5.4: an atomic-0 RENAME/RENAMENX/MOVE destination; its source may already be erased.
+    bool mover_install = false;
     uint32_t entries = 0;
     int64_t expire_at_ms = -1;
     std::vector<uint8_t> payload;
@@ -363,6 +365,22 @@ SnapshotHookStatus load_object_image(Slice key, const ObjectImage& image,
     return SnapshotHookStatus::Ok;
 }
 
+// CD5.4. Redis takes the OOM decision once, before a command changes anything (DENYOOM), and
+// never refuses a running command half way; SMOVE, RENAME, RENAMENX and MOVE have no DENYOOM at
+// all. A two-key mover's owner task therefore installs with this shard's budget lifted, so a
+// refused destination can never follow an applied source change. The eviction cycle and the
+// next gated write pay any overshoot back, exactly as for an admitted FUNCTION.
+class MoverMemoryScope {
+    FlatStore& store_;
+    uint64_t previous_;
+public:
+    explicit MoverMemoryScope(FlatStore& store)
+        : store_(store), previous_(store.script_exchange_memory_limit(UINT64_MAX)) {}
+    ~MoverMemoryScope() { store_.script_exchange_memory_limit(previous_); }
+    MoverMemoryScope(const MoverMemoryScope&) = delete;
+    MoverMemoryScope& operator=(const MoverMemoryScope&) = delete;
+};
+
 template <bool kNotify>
 WorkError apply_image(Shard& shard, Slice key, uint64_t hash, const ObjectImage& image,
                       bool suppress_del = false) {
@@ -372,6 +390,8 @@ WorkError apply_image(Shard& shard, Slice key, uint64_t hash, const ObjectImage&
         else shard.store().erase(hash, key);
         return WorkError::None;
     }
+    std::optional<MoverMemoryScope> mover_memory;
+    if (image.mover_install) mover_memory.emplace(shard.store());
     KvObj* object = nullptr;
     const SnapshotHookStatus loaded = load_object_image(key, image, shard.type_limits(), object);
     if (loaded == SnapshotHookStatus::Oom) return WorkError::Oom;
@@ -424,22 +444,6 @@ WorkError store_xstring_selected(bool notify, Shard& shard, Slice key, uint64_t 
 bool is_element_mover(Kind kind) {
     return kind == Kind::Smove || kind == Kind::Lmove || kind == Kind::Rpoplpush;
 }
-
-// CD5.4. Redis takes the OOM decision once, before a command changes anything (DENYOOM), and
-// never refuses a running command half way; SMOVE, RENAME, RENAMENX and MOVE have no DENYOOM at
-// all. A two-key mover's owner task therefore installs with this shard's budget lifted, so a
-// refused destination can never follow an applied source change. The eviction cycle and the
-// next gated write pay any overshoot back, exactly as for an admitted FUNCTION.
-class MoverMemoryScope {
-    FlatStore& store_;
-    uint64_t previous_;
-public:
-    explicit MoverMemoryScope(FlatStore& store)
-        : store_(store), previous_(store.script_exchange_memory_limit(UINT64_MAX)) {}
-    ~MoverMemoryScope() { store_.script_exchange_memory_limit(previous_); }
-    MoverMemoryScope(const MoverMemoryScope&) = delete;
-    MoverMemoryScope& operator=(const MoverMemoryScope&) = delete;
-};
 
 bool is_two_key_mover(Kind kind) {
     return is_element_mover(kind) || kind == Kind::Rename || kind == Kind::Renamenx;
@@ -3399,10 +3403,6 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 return execute_live_pop(task, shard, op);
             if (!state.atomic_apply && is_element_mover(state.kind))
                 return execute_plain_element_mover(task, shard, op);
-            // CD5.4: a RENAME/RENAMENX/MOVE source erase may already have run on its own owner.
-            std::optional<MoverMemoryScope> mover_memory;
-            if (state.kind == Kind::Rename || state.kind == Kind::Renamenx)
-                mover_memory.emplace(shard.store());
             for (uint32_t i = 0; i < group.count; i++) {
                 const uint32_t pos = state.key_order[group.begin + i];
                 const KeyRef& key = state.keys[pos];

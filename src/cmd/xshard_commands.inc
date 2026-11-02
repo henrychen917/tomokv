@@ -1298,6 +1298,8 @@ bool finish_phase1(ScatterState& state, Op& op) {
             } catch (const std::bad_alloc&) {
                 state.final_reply = FinalReply::Work; state.final_error = WorkError::Oom; return true;
             }
+            // CD5.4: hop two may erase the source before this install; never refuse it for memory.
+            state.apply[1].mover_install = true;
             state.final_integer = state.kind == Kind::Renamenx ? 1 : -1;
             state.hop2[0] = 1; state.hop2[1] = 0; state.hop2_count = 2;
             return false;
