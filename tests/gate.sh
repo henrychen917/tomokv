@@ -1010,6 +1010,7 @@ job_label(){
 job_body(){
   local name=$1 label; label=$(job_label "$name")
   case "$name" in
+    netfix2-*) job_netfix2 "$name";;
     iofix-deferred) job_iofix_deferred "$name";;
     iofix-hz) job_iofix_hz "$name";;
     iofix-sleep) job_iofix_sleep "$name";;
@@ -1180,6 +1181,7 @@ plan_jobs(){
   fi
   JOB_NAMES+=(rootcore-inbox rootcore-eval rootcore-segments rootcore-notify rootcore-functions rootcore-waitaof rootcore-misconf)
   JOB_NAMES+=(wave14_functions)
+  JOB_NAMES+=(netfix2-tls-watch netfix2-exclusive netfix2-fds netfix2-tls-idle netfix2-boot)
   local atomic mode section slot FM FR FO FQ FF
   for section in lruclock lfu; do
     for atomic in 0 1; do for mode in split armed; do JOB_NAMES+=("evict-$section-$mode-$atomic"); done; done
@@ -2416,6 +2418,16 @@ row_begin "NET1 serverless bounds + scan + reclamation"
 unit_ready netcap-unit && taskset -c "$CORES" ./build/netcap-unit >"$TMPDIR/gate-netcap-unit.txt" 2>&1 \
     && ok "NET1 serverless bounds + scan + reclamation" \
     || bad "NET1 serverless bounds + scan + reclamation" "see $TMPDIR/gate-netcap-unit.txt"
+}
+
+job_netfix2(){
+  local case=${1#netfix2-} label="netfix2 ${1#netfix2-}"
+  row_begin "$label"
+  py tests/netfix2.py --case "$case" --binary "$CANDIDATE_BINARY" \
+      --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --output "$TMPDIR/proof" \
+      >"$TMPDIR/proof.log" 2>&1 \
+    && ok "$label" || bad "$label" "see $TMPDIR/proof.log"
 }
 
 job_netfix_query_stats(){
@@ -6575,6 +6587,8 @@ collect_job netfix_unix
 collect_job netfix_config
 collect_job netfix_tls
 collect_job netfix_idle_buffers
+# Round-5 S1: five rows BEFORE the quick-tier exit; DQ=DF=+5.
+for CASE in tls-watch exclusive fds tls-idle boot; do collect_job "netfix2-$CASE"; done
 
 # respcompat: +1 quick / +1 full, counted here before the quick-tier exit.
 # EXPECT counts and ledger fixtures are maintained by the owner.
