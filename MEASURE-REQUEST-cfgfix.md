@@ -175,7 +175,10 @@ and binary. These final arms are built from source through
 `80a7559fda` (later commits change tests/documentation only). `tests/gate.sh` EXPECT constants remain untouched.
 Final hashes, text extents, instruction deltas and the row calculation are checked
 again in `docs/cfgfix/artifact-verification.json`. No owned correctness server or
-runner remains, and no listener remains on ports 20100–20199.
+runner remains, and no listener remains on ports 20100–20199. The final build
+footprint is 12.315 GiB. Superseded payloads/arm trees were removed
+after their receipts; 300 large completed logs are retained as lossless gzip
+archives with original/compressed hashes (`docs/cfgfix/delivery-cleanup.json`).
 
 One public cfgfix row is collected at `tests/gate.sh:6336`, before the quick-tier
 exit at line 6574: DQ=+1, DF=+1.
