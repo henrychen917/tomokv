@@ -1,0 +1,10985 @@
+{
+  "results": [
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "set",
+          1
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "oracle-normal-db16-a1",
+      "matches": {
+        "sequence": true,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "set",
+          1
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "oracle-normal-db16-a1",
+      "matches": {
+        "sequence": true,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "set",
+          1
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ]
+      ],
+      "slowlog": [
+        "LPUSH",
+        "SET",
+        "LLEN",
+        "BLPOP"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "oracle-normal-db16-a1",
+      "matches": {
+        "sequence": true,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "set",
+          1
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "oracle-normal-db16-a1",
+      "matches": {
+        "sequence": true,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "set",
+          1
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "oracle-normal-db16-a1",
+      "matches": {
+        "sequence": true,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "set",
+          1
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ]
+      ],
+      "slowlog": [
+        "LPUSH",
+        "SET",
+        "LLEN",
+        "BLPOP"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "oracle-normal-db16-a1",
+      "matches": {
+        "sequence": true,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "set",
+          1
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "oracle-normal-db16-a1",
+      "matches": {
+        "sequence": true,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "set",
+          1
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "oracle-normal-db16-a1",
+      "matches": {
+        "sequence": true,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "set",
+          1
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ]
+      ],
+      "slowlog": [
+        "LPUSH",
+        "SET",
+        "LLEN",
+        "BLPOP"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "oracle-normal-db16-a1",
+      "matches": {
+        "sequence": true,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "LPUSH",
+        "BLPOP",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "LPUSH",
+        "SET",
+        "LLEN",
+        "BLPOP"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "LPUSH",
+        "SET",
+        "LLEN",
+        "BLPOP"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "LPUSH",
+        "SET",
+        "LLEN",
+        "BLPOP"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "LPUSH",
+        "SET",
+        "LLEN",
+        "BLPOP"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "LPUSH",
+        "BLPOP",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "LPUSH",
+        "SET",
+        "LLEN",
+        "BLPOP"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "LPUSH",
+        "SET",
+        "LLEN",
+        "BLPOP"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    }
+  ],
+  "failures": [
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "LPUSH",
+        "BLPOP",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "LPUSH",
+        "SET",
+        "LLEN",
+        "BLPOP"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "1s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "1s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "LPUSH",
+        "SET",
+        "LLEN",
+        "BLPOP"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "LPUSH",
+        "SET",
+        "LLEN",
+        "BLPOP"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-uring-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "LPUSH",
+        "SET",
+        "LLEN",
+        "BLPOP"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db1-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "LPUSH",
+        "BLPOP",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db1-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "LPUSH",
+        "SET",
+        "LLEN",
+        "BLPOP"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db16-a0",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVAL"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "lpop",
+          0
+        ],
+        [
+          "del",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "EVALSHA"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "shard",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "owner",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "BLPOP",
+        "LPUSH",
+        "SET",
+        "LLEN"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": false,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVAL",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVAL",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EVALSHA",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "EVALSHA",
+        "BLPOP"
+      ],
+      "reply": 1,
+      "leg": "2s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    },
+    {
+      "shape": "cross",
+      "kind": "EXEC",
+      "sequence": [
+        [
+          "invalidate",
+          0
+        ],
+        [
+          "invalidate",
+          1
+        ],
+        [
+          "lpush",
+          0
+        ],
+        [
+          "set",
+          1
+        ]
+      ],
+      "slowlog": [
+        "LPUSH",
+        "SET",
+        "LLEN",
+        "BLPOP"
+      ],
+      "reply": [
+        1,
+        "OK",
+        1
+      ],
+      "leg": "2s-epoll-db16-a1",
+      "matches": {
+        "sequence": false,
+        "slowlog": true,
+        "reply": true
+      }
+    }
+  ]
+}

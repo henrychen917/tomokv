@@ -265,9 +265,17 @@ attempt already pass both read-local settings.
 
 The feature group records 299 passing rows and five failures: the four superseded
 fixture-link failures above, plus `wave14_order` publication-order assertions.
-The latter's PRE control is queued to distinguish the base behavior; it is not
-waived and no ordering assertion was weakened. This lane does not alter the
-CD5.5/CD5.6 publication mechanisms assigned to txnfix4.
+The full PRE control reproduces all 144 candidate-case failures. Both PRE and
+POST have 144 sequence mismatches, 74 slowlog-order mismatches and zero reply
+mismatches; their nine Redis oracle cases pass. Five candidate event orderings
+differ between runs, so these are matching failure counts, not identical traces.
+`publication-order-comparison.json` retains the differences. This baseline issue
+remains unresolved; this lane does not alter the CD5.5/CD5.6 publication mechanisms
+assigned to txnfix4. No ordering assertion was weakened.
+
+The default persistence group passes 228/228 rows, including both AOF and snapshot
+engines, BGSAVE under scripts/EXEC, save/restart, FLUSH, AOF frame/commit order,
+fsync/rewrite matrices and WAIT AOF. Its fused generic-boot follow-up is in progress.
 
 Completed passing persistence jobs retained about 2 GB of dump/AOF test data.
 Those generated data files were hashed and retired after job completion to keep
