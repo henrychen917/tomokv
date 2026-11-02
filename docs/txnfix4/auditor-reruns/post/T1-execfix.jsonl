@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix4/build/txnfix4/auditor/live_audit.py", line 156, in <module>
+    assert set(os.sched_getaffinity(0))<=set(range(61, 69)), 'pin audit clients inside 61-73'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: pin audit clients inside 61-73

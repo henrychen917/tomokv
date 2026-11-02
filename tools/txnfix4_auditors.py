@@ -40,6 +40,9 @@ Z_T6 = [('lmpop-watch-then-tracking', '1s', 1, 0), ('mpop-nowatch-tracking', '1s
 
 def retarget(text, name):
     text = re.sub(r'\b232(\d\d)\b', r'214\1', text)
+    # live_audit's client-affinity guard spans the auditor's whole 80-111 block: map it to the
+    # lane's 61-73 before the generic server-range substitution below can claim it.
+    text = text.replace('set(range(80,112))', 'set(range(61,74))')
     text = re.sub(r'range\((80|96|104), ?(88|104|112)\)', 'range(61, 69)', text)
     if name == 'audit.py':
         text = text.replace("TARGET='/home/user/Projects/bench-bins/tomokv-headline-105c5818cc'",
