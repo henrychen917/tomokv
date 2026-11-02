@@ -256,6 +256,8 @@ uint64_t tracking_clock_commit();
 void tracking_observe_read(Shard& shard, Op& op);
 void tracking_execute_read(Shard& shard, Op& op);
 void tracking_observe_local(Server& server, Op& op);
+// A parked XREAD's owner found it ready and captured its reply: that capture's certificate.
+void tracking_observe_wake(Shard& shard, Op& op);
 void notify_tracking_commit(Op& op);
 
 // IO retirement.  Special states surrender their batch before their existing destructor runs.

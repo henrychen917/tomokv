@@ -42,6 +42,8 @@
         std::vector<std::string> keys;
         std::vector<uint32_t> shards;
         std::vector<uint64_t> observed;
+        // Stream reads only: per shard, the wake probe that captured a parked XREAD's reply.
+        std::vector<uint64_t> woken;
         bool canceled = false;
         TrackingRead(const CommandSpec* spec, uint64_t stamp, uint64_t epoch, size_t shards)
             : CommandSpec(*spec), original(spec), dispatch_stamp(stamp), dispatch_epoch(epoch),
@@ -174,6 +176,7 @@
     friend void tracking_observe_read(Shard&, Op&);
     friend void tracking_execute_read(Shard&, Op&);
     friend void tracking_observe_local(Server&, Op&);
+    friend void tracking_observe_wake(Shard&, Op&);
     void tracking_reply_trackinginfo(Client* client, Op& op);
     ClimonStartResult tracking_client_subcommand(Client* client, Op& op);
     void tracking_register_read(Client* client, ClimonConn& state, Op& op);

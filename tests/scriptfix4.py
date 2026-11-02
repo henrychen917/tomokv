@@ -649,7 +649,12 @@ def probe_server(engine):
                 assert row['reply_ok'], row
                 # Redis enrolls at park time (the waking XADD invalidates it) and again
                 # when it re-runs the woken read (the later XADD invalidates that one).
-                assert row['inv_from_waking_xadd'] == [[f'tb{n}']], row
+                # TomoKV may omit only the waking frame, when its broadcast arrives after
+                # the woken read enrolled with a certificate that already covers it.
+                if engine == 'redis':
+                    assert row['inv_from_waking_xadd'] == [[f'tb{n}']], row
+                else:
+                    assert row['inv_from_waking_xadd'] in ([[f'tb{n}']], []), row
                 assert row['inv_from_later_xadd'] == [[f'tb{n}']], row
 
 
