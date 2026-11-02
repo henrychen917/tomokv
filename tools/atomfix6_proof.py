@@ -14,6 +14,7 @@ GROUPS = {
     'fifo': ['txnorder_fifo_live'],
     'park': ['atomfix6_units'],
     'order': ['wave14_order'],
+    'notify': ['notify'],
     'units': '''atomic_units core_units exbatch_units splitlocal_units lbplanner_units
         flip_unit flipfix_units flipfix5_units flipfix6_units flushfix2_units flushfix3_units'''.split(),
     'atomic': '''atomic_batteries atomic_floor atomfix5_watch atomfix5_accounting
@@ -78,6 +79,7 @@ if a.fused:
         'atomic': ['release_batteries', 'atomic_batteries', 'debug-0', 'debug-1'],
         'persistence': ['snapshot-epoll', 'snapshot-uring', 'aof-epoll',
                         'aof-uring', 'aof_frame', 'dump_restore', 'asan_batteries', 'replyoff', 'zc'],
+        'notify': ['notify'],
     }
     if a.group not in fused_jobs:
         p.error('--fused applies only to the generic atomic/persistence boots')
@@ -104,4 +106,7 @@ with (out / 'gate.log').open('w') as log:
 (out / 'exit.json').write_text(json.dumps(dict(rc=result.returncode)) + '\n')
 print(label, 'exit', result.returncode, 'log', out / 'gate.log', flush=True)
 subprocess.run(['taskset', '-c', '86', 'python3', 'tools/atomfix6_retire.py'], check=True)
+if a.group == 'placement':
+    subprocess.run(['python3', __file__, 'notify', '--fused',
+                    '--label', 'notify-fused'], check=False)
 raise SystemExit(result.returncode)
