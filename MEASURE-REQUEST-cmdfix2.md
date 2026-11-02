@@ -2,6 +2,11 @@
 
 ## cmdfix2
 
+**Proof refresh in progress:** final review found a GEO unit-conversion boundary
+in the first POST. The new witness fails that arm in all 32 legs. The adapter is
+corrected; final arms, instruction counts and broad job receipts are being
+refreshed. The tables below still describe the earlier arm until that completes.
+
 Branch `cx-cmdfix2`, PRE `9d6ab5526f8fff0c8617e94cf20fa837e15ab0f8`.
 The six production fixes end at `77c64b44ae`; subsequent commits contain proof,
 test integration, this report and whitespace-only GEO cleanup. Recompiling
@@ -212,8 +217,16 @@ Both begin at `0x2cad0`.
 Maintainer: run the **14 generic cells plus 2s GET/SET at p1/p32** with the
 gate's own instrument and these arms on the quiet scheduled box. Retain
 matched offered load and the same geometry for every arm. Report PRE/POST/
-PAD-A/PAD-B cycles/op, IPC, instructions/op and rate. Rate at matched offered
-load decides regression; instructions and IPC explain it. Ordinary-command
+PAD-A/PAD-B cycles/op, IPC, instructions/op, rate and the declared latency score.
+`docs/cmdfix2/measure-cells.txt` preserves the 14 existing rows from
+`tests/wbland_merit_cells.txt` and adds four split companions with the same
+workload fields. The generic IDs are h05, h06, p8g, p8s, d1g_l0, d1s_l0,
+m8g_l0, v1g_l0, d128g_l0, d32g_l1, d8s_l1, d32s_l1, x9_32_l1 and x9_32_l0.
+Use eight server CPUs, 16 shards and split ratio 6:2; retain the instrument's
+normal payloads, connections and load placement. Begin with a PRE/PRE null
+and preserve the gate's ABBA ordering and acceptance bands per cell.
+Rate at matched offered load, or the cell's declared latency score, decides
+regression; instructions and IPC explain it. Ordinary-command
 serverless counts above establish zero added instructions only. No measurement
 has been run by this lane.
 

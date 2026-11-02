@@ -42,9 +42,11 @@ struct GeoSearchOptions {
     double longitude = 0;
     double latitude = 0;
     GeoShape shape = GeoShape::Radius;
-    double radius_m = 0;
-    double width_m = 0;
-    double height_m = 0;
+    // Preserve the requested unit through Redis's cover calculation. Converting
+    // box sides before computing their diagonal can change the geohash step.
+    double radius = 0;
+    double width = 0;
+    double height = 0;
     double unit_m = 1;
     GeoOrder order = GeoOrder::None;
     uint64_t count = 0;
@@ -180,6 +182,8 @@ double radians(double degrees) { return degrees * (kPi / 180.0); }
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#pragma GCC push_options
+#pragma GCC optimize ("fp-contract=off")
 struct GeoHashRange { double min, max; };
 struct GeoHashBits { uint64_t bits; uint8_t step; };
 struct GeoHashArea { GeoHashBits hash; GeoHashRange longitude, latitude; };
@@ -579,6 +583,8 @@ int geohashGetDistanceIfInRectangle(double width_m, double height_m, double x1, 
     return 1;
 }
 
+#pragma GCC pop_options
+
 double geo_distance(double lon1, double lat1, double lon2, double lat2) {
     return geohashGetDistance(lon1, lat1, lon2, lat2);
 }
@@ -590,9 +596,9 @@ std::vector<ScoreInterval> geo_neighbor_intervals(const GeoSearchOptions& option
     SearchShape shape{};
     shape.circular = options.shape == GeoShape::Radius;
     shape.xy[0] = longitude; shape.xy[1] = latitude;
-    shape.conversion = 1;
-    shape.t.radius = options.radius_m;
-    shape.t.r.width = options.width_m; shape.t.r.height = options.height_m;
+    shape.conversion = options.unit_m;
+    shape.t.radius = options.radius;
+    shape.t.r.width = options.width; shape.t.r.height = options.height;
     const GeoHashRadius cover = geohashCalculateAreasByShapeWGS84(&shape);
     const GeoHashBits neighbors[] = {cover.hash, cover.neighbors.north, cover.neighbors.south,
         cover.neighbors.east, cover.neighbors.west, cover.neighbors.north_east,
@@ -649,14 +655,13 @@ bool parse_search(Op& op, GeoSearchOptions& options, const std::vector<ZsetEntry
         return true;
     };
     auto radius = [&](uint32_t arg) {
-        if (!parse_double(op.arg(arg), options.radius_m)) {
+        if (!parse_double(op.arg(arg), options.radius)) {
             reply_err(op.sink(), "ERR need numeric radius"); return false;
         }
-        if (options.radius_m < 0) {
+        if (options.radius < 0) {
             reply_err(op.sink(), "ERR radius cannot be negative"); return false;
         }
         if (!parse_unit(op.arg(arg + 1), options.unit_m)) { reply_bad_unit(op); return false; }
-        options.radius_m *= options.unit_m;
         options.shape = GeoShape::Radius;
         return true;
     };
@@ -703,18 +708,16 @@ bool parse_search(Op& op, GeoSearchOptions& options, const std::vector<ZsetEntry
             if (!radius(arg + 1)) return false;
             arg += 2; byradius = true;
         } else if (search && !byradius && token.eq_icase("bybox") && arg + 3 < op.argc()) {
-            if (!parse_double(op.arg(arg + 1), options.width_m)) {
+            if (!parse_double(op.arg(arg + 1), options.width)) {
                 reply_err(op.sink(), "ERR need numeric width"); return false;
             }
-            if (!parse_double(op.arg(arg + 2), options.height_m)) {
+            if (!parse_double(op.arg(arg + 2), options.height)) {
                 reply_err(op.sink(), "ERR need numeric height"); return false;
             }
-            if (options.width_m < 0 || options.height_m < 0) {
+            if (options.width < 0 || options.height < 0) {
                 reply_err(op.sink(), "ERR height or width cannot be negative"); return false;
             }
             if (!parse_unit(op.arg(arg + 3), options.unit_m)) { reply_bad_unit(op); return false; }
-            options.width_m *= options.unit_m;
-            options.height_m *= options.unit_m;
             options.shape = GeoShape::Box;
             arg += 3; bybox = true;
         } else { reply_syntax(op.sink()); return false; }
@@ -761,6 +764,9 @@ GeoBuildResult run_search(const GeoSearchOptions& options,
     try {
         const std::vector<ScoreInterval> intervals =
             geo_neighbor_intervals(options, center_lon, center_lat);
+        const double radius_m = options.radius * options.unit_m;
+        const double width_m = options.width * options.unit_m;
+        const double height_m = options.height * options.unit_m;
         output.reserve(source.size());
         bool early = false;
         for (const ScoreInterval& interval : intervals) {
@@ -779,8 +785,8 @@ GeoBuildResult run_search(const GeoSearchOptions& options,
                 double distance = 0;
                 const bool inside = options.shape == GeoShape::Radius
                     ? geohashGetDistanceIfInRadius(center_lon, center_lat, longitude, latitude,
-                                                   options.radius_m, &distance)
-                    : geohashGetDistanceIfInRectangle(options.width_m, options.height_m,
+                                                   radius_m, &distance)
+                    : geohashGetDistanceIfInRectangle(width_m, height_m,
                         center_lon, center_lat, longitude, latitude, &distance);
                 if (inside)
                     output.push_back({entry->member, entry->score, longitude, latitude, distance});

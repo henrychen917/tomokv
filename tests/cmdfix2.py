@@ -50,6 +50,18 @@ def geo(p):
     p.cmd('GEOADD', 'random', *[v for row in points for v in row])
     options = [[], ['ASC'], ['DESC'], ['COUNT', 7], ['COUNT', 7, 'ANY'],
                ['ASC', 'COUNT', 7, 'ANY'], ['DESC', 'COUNT', 7, 'ANY']]
+    # Redis computes the box diagonal in the requested unit, then converts it.
+    # Converting the sides first crosses a geohash-step boundary for these
+    # representable values and changes traversal/COUNT ANY and stored subsets.
+    for unit, side in [('km', 3542.2030489468757),
+                       ('ft', 11621401.079222033), ('mi', 2201.0284022934097)]:
+        for lat in (-45, 45):
+            search = ['FROMLONLAT', 13, lat, 'BYBOX', side, side, unit]
+            for opts in options:
+                p.cmd('GEOSEARCH', 'random', *search, *opts)
+                for dist in ([], ['STOREDIST']):
+                    p.cmd('GEOSEARCHSTORE', 'random-dst', 'random', *search, *opts, *dist)
+                    stored(p, 'random-dst')
     for lat in [-85, -80, -66, -55, -30, 0, 30, 55, 66, 78, 84, 85] + [rng.uniform(-85, 85) for _ in range(12)]:
         lon = rng.uniform(-180, 180)
         meters = rng.choice([50000, 500000, 1000000, 2000000, 5000000, 10000000])
