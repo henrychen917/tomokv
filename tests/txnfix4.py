@@ -21,7 +21,10 @@ oom        CD5.4. SMOVE, LMOVE, RPOPLPUSH, BLMOVE, BRPOPLPUSH, RENAME, RENAMENX 
            anything when the server is over budget, SMOVE/RENAME/RENAMENX/MOVE have no DENYOOM and
            always run, and no command applies only half of a move. `edge` may leave a TomoKV shard
            just under budget, where a DENYOOM mover may run; it may never lose or duplicate the
-           element.
+           element. TomoKV legs add `record` (RENAME, RENAMENX, MOVE; same-owner and cross-owner):
+           the destination or the source holds a committed MULTI/EXEC record that a parked
+           cross-shard read keeps from collapsing while maxmemory 1 is in force; the move must run
+           whole (Redis: no DENYOOM), exactly once.
 watch      CD5.5. A watched key popped by a two-key LMPOP/ZMPOP/BLMPOP/BZMPOP aborts the watcher's
            EXEC. Controls: a pop that takes the OTHER key, and a pop of an empty key, commit it.
 crash      CD5.6. The six aborting Z-T6 shapes (WATCH, a two-key pop of the watched key, then a
@@ -45,6 +48,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import select
 import signal
 import subprocess
 import sys
@@ -76,6 +80,7 @@ class Server:
 
     def __init__(self, a, label, oracle, mode='2s', atomic=0, databases=16, read_local=0):
         self.a, self.label, self.oracle = a, label, oracle
+        self.read_local = read_local
         self.port = a.port + int(oracle)
         self.dir = Path(tempfile.mkdtemp(prefix=f'{label}-', dir=a.output))
         self.log = self.dir / 'server.log'
@@ -347,7 +352,109 @@ def case_oom(c, server, leg, emit):
                     checks += 1
                     if not oom_case(c, server, verb, placement, policy, trigger, prefix, emit):
                         failures.append(f'{verb} {placement} {policy} {trigger}')
+    if not server.oracle:
+        for verb in ('RENAME', 'RENAMENX', 'MOVE'):
+            if verb == 'MOVE' and leg[2] == 1:
+                continue
+            for side in ('dst', 'src'):
+                for placement in ('same-owner', 'cross-owner'):
+                    checks += 1
+                    if not record_case(c, server, verb, side, placement, emit):
+                        failures.append(f'{verb} record-{side} {placement}')
     return checks, failures
+
+
+def pending(conn):
+    """True when a reply is already waiting on this connection's socket (nothing read yet)."""
+    return bool(select.select([conn.sock], [], [], 0)[0])
+
+
+def record_case(c, server, verb, side, placement, emit):
+    """CD5.4 at its owner apply: a two-hop RENAME/RENAMENX/MOVE whose destination (side 'dst') or
+    source (side 'src') holds a decided MVCC record when hop two runs, under maxmemory 1 and
+    noeviction. A committed MULTI/EXEC write leaves the record; a cross-shard read parked by
+    DEBUG ATOMIC-FANOUT-DEFER (routed through its owners by WATCH) pins the read floor, so the
+    record cannot collapse. Redis: these commands have no DENYOOM, run whole and move the value
+    exactly once. The window is proved per attempt (the cut registered, the parked read still
+    unanswered when the mover replied); a missed window is re-rolled on fresh keys, at most three
+    times, and a window that never opened fails."""
+    cut_counter = ('read_local_mget_fallback_watch' if server.read_local else
+                   'atomic_fanout_cuts')
+    moved_reply = b'OK' if verb == 'RENAME' else 1
+    for attempt in range(3):
+        prefix = f'txnfix4:record:{verb}:{side}:{placement}:{attempt}'
+        c.must('CONFIG', 'SET', 'maxmemory', 0)
+        c.must('FLUSHALL')
+        other = None
+        if verb == 'MOVE':
+            other = server.connect()
+            other.must('SELECT', 1)
+        reader = server.connect()
+        writer = server.connect()
+        try:
+            src, dst, where = placement_pair(c, prefix, placement, other)
+            used = {where[0][0], where[1][0]}
+            names = [f'{prefix}:read:{i}' for i in range(256)]
+            rows = shards_of(c, names)
+            free = [(name, row) for name, row in zip(names, rows) if row[0] not in used]
+            r1, w1 = free[0]
+            r2, w2 = next((n, r) for n, r in free if r[1] != w1[1] and r[0] != w1[0])
+            dst_conn = other or c
+            c.must('SET', r1, 'r')
+            c.must('SET', r2, 'r')
+            c.must('SET', src, 'payload')
+            if verb == 'RENAME' or side == 'dst':
+                dst_conn.must('SET', dst, 'old')
+            c.must('DEBUG', 'ATOMIC-FANOUT-DEFER', 3000000)
+            try:
+                reader.must('WATCH', r1)
+                cuts = int(info_fields(c, 'stats').get(cut_counter, 0))
+                reader.send('MGET', r1, r2)
+                deadline = time.monotonic() + 2
+                while int(info_fields(c, 'stats').get(cut_counter, 0)) == cuts:
+                    if time.monotonic() > deadline:
+                        break
+                    time.sleep(0.002)
+                registered = int(info_fields(c, 'stats').get(cut_counter, 0)) > cuts
+            finally:
+                c.must('DEBUG', 'ATOMIC-FANOUT-DEFER', 0)
+            # The committed write that leaves the decided record on the chosen side.
+            if side == 'dst':
+                if verb == 'MOVE':
+                    writer.must('SELECT', 1)
+                writer.must('MULTI')
+                writer.must('SET', dst, 'x') if verb == 'RENAME' else writer.must('DEL', dst)
+            else:
+                writer.must('MULTI')
+                writer.must('SET', src, 'payload')
+            txn = writer.cmd('EXEC')
+            c.must('CONFIG', 'SET', 'maxmemory', 1, 'maxmemory-policy', 'noeviction')
+            args = ('MOVE', src, '1') if verb == 'MOVE' else (verb, src, dst)
+            reply = c.cmd(*args)
+            held = registered and not pending(reader)
+            c.must('CONFIG', 'SET', 'maxmemory', 0)
+            read = reader.read()
+            reader.must('UNWATCH')
+            after = (c.cmd('GET', src), dst_conn.cmd('GET', dst))
+        finally:
+            reader.close()
+            writer.close()
+            if other:
+                other.close()
+        conserved = after.count(b'payload') == 1
+        moved = reply == moved_reply and after == (None, b'payload')
+        passed = held and moved and conserved
+        emit(case='CD5.4-record', verb=verb, side=side, placement=placement, attempt=attempt,
+             locations=where, reader=[r1, r2, list(w1), list(w2)], cut_registered=registered,
+             window_held=held, exec=txn, reply=reply, parked_read=read, after=after,
+             conserved=conserved, outcome='moved' if moved else
+             'refused' if isinstance(reply, RespError) else 'BROKEN',
+             expected='runs whole and moves the value exactly once', passed=passed)
+        if held or not (moved and conserved):
+            return passed
+    emit(case='CD5.4-record', verb=verb, side=side, placement=placement,
+         failure='the record window never opened in three attempts', passed=False)
+    return False
 
 
 # ---- CD5.5: multi-key pops and WATCH ------------------------------------------------------------

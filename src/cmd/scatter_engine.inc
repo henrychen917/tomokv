@@ -449,6 +449,13 @@ bool is_two_key_mover(Kind kind) {
     return is_element_mover(kind) || kind == Kind::Rename || kind == Kind::Renamenx;
 }
 
+// Phase-two kinds with an out-of-line atomic-0 owner apply: RENAME, RENAMENX (and MOVE), COPY
+// and the element movers. One contiguous range, so the phase-two dispatch keeps its shape.
+bool is_plain_hop_kind(Kind kind) {
+    static_assert(static_cast<unsigned>(Kind::Rpoplpush) - static_cast<unsigned>(Kind::Rename) == 5);
+    return static_cast<unsigned>(kind) - static_cast<unsigned>(Kind::Rename) <= 5;
+}
+
 WorkError element_work_error(XshardElementResult result) {
     switch (result) {
         case XshardElementResult::Ok:
@@ -3402,7 +3409,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
         if (state.phase == 2) {
             if (state.kind == Kind::Lmpop || state.kind == Kind::Zmpop)
                 return execute_live_pop(task, shard, op);
-            if (!state.atomic_apply && is_element_mover(state.kind))
+            if (!state.atomic_apply && is_plain_hop_kind(state.kind))
                 return execute_plain_element_mover(task, shard, op);
             for (uint32_t i = 0; i < group.count; i++) {
                 const uint32_t pos = state.key_order[group.begin + i];

@@ -30,8 +30,49 @@ void admit_denyoom_mover(Shard& shard, Op& op, ScatterState& state, const ShardG
     }
 }
 
+// Atomic-0 phase two of RENAME, RENAMENX (MOVE) and COPY: the ordinary image apply, out of line.
+// CD5.4: a RENAME's source erase and destination install run on their two owners with no order
+// between them, so (no DENYOOM, like Redis) neither half may be refused for memory, including the
+// plain-version clone a key with an MVCC record takes first. COPY changes no source and keeps
+// every budget check.
+[[gnu::noinline, gnu::cold]] ScatterTaskResult execute_plain_image_hop(const Task& task,
+                                                                      Shard& shard, Op& op) {
+    auto& state = *task.scatter;
+    auto& group = *group_for(state, shard.id());
+    const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0 || shard.has_watches();
+    const bool rename = state.kind != Kind::Copy;
+    std::optional<MoverMemoryScope> mover_memory;
+    if (rename) mover_memory.emplace(shard.store());
+    for (uint32_t i = 0; i < group.count; i++) {
+        const uint32_t pos = state.key_order[group.begin + i];
+        const KeyRef& key = state.keys[pos];
+        bool plain_active = false;
+        if (shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
+            const WorkError prepared = begin_plain_version(
+                *state.server, shard, op.arg(key.arg), key.hash, UINT64_MAX,
+                state.origin_conn_id);
+            if (prepared != WorkError::None) {
+                state.status[pos] = static_cast<uint8_t>(prepared);
+                continue;
+            }
+            plain_active = true;
+        }
+        const bool watch_present = shard.has_watches() &&
+            shard.store().find_no_touch(key.hash, op.arg(key.arg));
+        const WorkError result = apply_image_selected(
+            notify, shard, op.arg(key.arg), key.hash, state.apply[pos], rename && pos == 0);
+        state.status[pos] = static_cast<uint8_t>(result);
+        if (result == WorkError::None && shard.has_watches() &&
+            (watch_present || state.apply[pos].present))
+            watch_record_modified(shard, op.arg(key.arg));
+        if (plain_active) shard.store().atomic_finish_plain();
+    }
+    return ScatterTaskResult::Complete;
+}
+
 ScatterTaskResult execute_plain_element_mover(const Task& task, Shard& shard, Op& op) {
     auto& state = *task.scatter;
+    if (!is_element_mover(state.kind)) return execute_plain_image_hop(task, shard, op);
     auto& group = *group_for(state, shard.id());
     // Both tasks were posted together. A destination arriving first parks in
     // the deferred queue, leaving this owner free to run the source of another
