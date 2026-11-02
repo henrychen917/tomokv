@@ -289,7 +289,7 @@ def storm(args, directory, mode, engine, atomic, oracle):
     expected_aof = None
     sentinels = {}
     counts = dict(flushes=0, work=0, saves=0, flips=0, flip_refusals=0, cancelled_saves=0)
-    with s.Boot(args, directory, mode, engine, atomic, oracle, extra=extra) as b:
+    with s.Boot(args, directory, mode, engine, atomic, oracle, extra=extra) as b, contextlib.ExitStack() as clients:
         if aof:
             for db in range(args.databases):
                 b.c.must('SELECT', db)
@@ -306,8 +306,15 @@ def storm(args, directory, mode, engine, atomic, oracle):
                 sentinels[db] = list(by_shard.values())
             b.c.must('SELECT', 0)
         pair, _ = s.keys_for(b.c, 'flushfix2:storm', oracle, 2)
+        # Stopping a worker must not close a connection that the other worker's
+        # final FLIP still pins. The live-flip fixture owns both sockets until
+        # run_storm has joined the workers; deliberate close races are exercised
+        # by flipfix6's independent exec-close legs.
+        retained = {}
+        if args.case == 'live-flip' and not oracle:
+            retained = {role: clients.enter_context(conn(b, args)) for role in ('flush', 'flip')}
         def flush(stop):
-            with conn(b, args) as c:
+            with contextlib.nullcontext(retained['flush']) if retained else conn(b, args) as c:
                 while not stop.is_set():
                     if args.case == 'live-flip':
                         # Test FLUSH+FLIP without a retained MULTI session. The
@@ -368,7 +375,7 @@ def storm(args, directory, mode, engine, atomic, oracle):
                         stop.wait()
                         return
         def flipper(stop):
-            with conn(b, args) as c:
+            with contextlib.nullcontext(retained['flip']) if retained else conn(b, args) as c:
                 while not stop.is_set():
                     target = 4 if counts['flips'] % 2 == 0 else 6
                     reply = c.cmd('FLIP', target, 8-target)
@@ -384,6 +391,10 @@ def storm(args, directory, mode, engine, atomic, oracle):
             workers.append(flipper)
         errors = s.run_storm(args.seconds, workers, args.stall)
         assert not errors and counts['flushes'], (counts, errors)
+        for role, client in retained.items():
+            assert client.must('PING') == b'PONG', f'{role} client closed before the workers joined'
+        if retained:
+            counts['clients_alive_after_join'] = len(retained)
         assert args.case == 'live-flip' or counts['work'], counts
         assert not save or counts['saves'] or (oracle and counts['cancelled_saves']), counts
         assert args.case not in ('live-flip', 'live-flip-cut') or oracle or counts['flips'], counts
