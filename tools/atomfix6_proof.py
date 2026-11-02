@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import time
 
 ROOT = Path(__file__).resolve().parents[1]
 GROUPS = {
@@ -17,6 +18,7 @@ GROUPS = {
     'notify': ['notify'],
     'coverage': '''blockfix2 blockfix4 datafix2_notouch infofix_compat-loadaof
         notifycompat rootcore-misconf dbdefault witness_contracts'''.split(),
+    'flipcheck': ['flipfix6'],
     'units': '''atomic_units core_units exbatch_units splitlocal_units lbplanner_units
         flip_unit flipfix_units flipfix5_units flipfix6_units flushfix2_units flushfix3_units'''.split(),
     'atomic': '''atomic_batteries atomic_floor atomfix5_watch atomfix5_accounting
@@ -76,6 +78,14 @@ if a.group == 'persistence' and a.fused:
 if a.group == 'differ' and a.engine == 'uring':
     subprocess.run(['python3', __file__, 'notify', '--fused',
                     '--label', 'notify-fused'], check=False)
+if a.group == 'differ' and a.engine == 'epoll':
+    subprocess.run(['python3', __file__, 'flipcheck', '--binary', str(ROOT / 'build/pre/tomokv'),
+                    '--label', 'flipfix6-PRE-original'], check=False)
+    while not (ROOT / 'docs/atomfix6/flipfix6-fixture-ready').exists():
+        time.sleep(2)
+    for arm, binary in [('PRE', ROOT / 'build/pre/tomokv'), ('POST', ROOT / 'build/tomokv')]:
+        subprocess.run(['python3', __file__, 'flipcheck', '--binary', str(binary),
+                        '--label', f'flipfix6-{arm}-topology'], check=False)
 jobs = GROUPS[a.group]
 if a.fused:
     # These jobs use txn_proof_boot. Other selected jobs already enumerate
