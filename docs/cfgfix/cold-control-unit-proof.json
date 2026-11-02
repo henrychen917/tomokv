@@ -1,8 +1,8 @@
 {
-  "gate_job": "build/gate-run.Y9qgQ7/jobs/netcmd_units",
-  "verdict": "ok\t0.070000\tnetcmd config regression",
+  "gate_job": "build/gate-run.bgE6rS/jobs/netcmd_units",
+  "verdict": "ok\t0.040000\tnetcmd config regression",
   "binary": "build/netcmd-unit",
-  "binary_sha256": "14808917bde17271f575850ea13669c766decf5587be44e3a23d51e2ed8a0a1c",
+  "binary_sha256": "9b92552fd74586a3dbcec6bb3679a3b70e35913a2fdabe40d1348d14a09dff35",
   "production_source_sha256": "b9ad785360435a8e164aff081dd82ffe3bce0ddc87f00c2dc990a5fb77a4f649",
   "test_source_sha256": "9f9dcdc486693e3e68ba7fcd82b3d517e8554feb72b9d9c563087e69cb6fbfbc",
   "checks": [
@@ -13,9 +13,11 @@
     "Negative -8 matches the Redis debugDelay seeded rand() sampling rule over 128 calls; fixture asserts both sleeping and non-sleeping outcomes."
   ],
   "logs": {
-    "build/gate-run.Y9qgQ7/jobs/netcmd_units/gate-netcmd-config.txt": {
+    "build/gate-run.bgE6rS/jobs/netcmd_units/gate-netcmd-config.txt": {
       "sha256": "b6c827134d2f58f8bbd65f57b8dfdd7631d18a8036f663fbdd127d1963f0f7ac",
       "text": "ok: atomic fingerprint boot=0, three runtime toggles with active work\nok: atomic fingerprint boot=1, three runtime toggles with active work\nsignal wake 2s uring tls=0: nonwriter=1 late-drained=1 terminal=1\nsignal wake 2s uring tls=1: nonwriter=1 late-drained=1 terminal=1\nsignal wake 2s epoll tls=0: nonwriter=1 late-drained=1 terminal=1\nsignal wake 1s uring tls=0: nonwriter=1 late-drained=1 terminal=1\nsignal wake 1s uring tls=1: nonwriter=1 late-drained=1 terminal=1\nsignal wake 1s epoll tls=0: nonwriter=1 late-drained=1 terminal=1\nok: netcmd config\n"
     }
-  }
+  },
+  "server_binary_sha256": "01813fe2a5534ffcce92bb03992d648c74125e7281949c53dad6b125b69526a3",
+  "source_tree": "db7a16b7e2bd23fb8e53d48a46b9a898fdf14ad4"
 }
