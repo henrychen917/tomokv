@@ -1,11 +1,42 @@
 #include "netcmd_unit.h"
 #include "src/cmd/server_tail.cc"
+#include "src/core/fliplisten.cc"
 #include <filesystem>
 #include <thread>
 #include <barrier>
 #include <sys/stat.h>
 
 namespace {
+void listener_completion_filter() {
+    using namespace tomo;
+    // Invoke the production filter with terminal successes and errors. In
+    // particular a FLIP-transferred UNIX accept must keep its rearm obligation.
+    unsigned cases = 0;
+    auto probe = [&](uint64_t tag, bool replaced) {
+        for (int result : {-EMFILE, 20197}) {
+            io_uring_cqe cqe{};
+            cqe.user_data = tag; cqe.res = result;
+            FlipListenerState::fence_rebound_accept(cqe);
+            check(cqe.res == result, "CONFIG preserves accept result/fd");
+            check(cqe.user_data == (replaced && result < 0
+                      ? ur_tag(static_cast<UrKind>(255), nullptr) : tag),
+                  "CONFIG fences only replaced TCP/TLS completion tags");
+            check(cqe.flags == (replaced && result >= 0 ? IORING_CQE_F_MORE : 0),
+                  "unreplaced UNIX/client/persistence completions keep their rearm obligation");
+            ++cases;
+        }
+    };
+    for (UrKind kind : {UrKind::Accept, UrKind::TlsAccept, UrKind::UnixAccept}) {
+        const bool replaced = kind != UrKind::UnixAccept;
+        probe(ur_tag(kind, nullptr), replaced);
+        FlipListenerState::Listener transferred;
+        transferred.kind = kind;
+        probe(ur_tag(kListenerAccept, &transferred), replaced);
+    }
+    for (UrKind kind : {UrKind::Recv, UrKind::AofIo, UrKind::SnapshotIo})
+        probe(ur_tag(kind, nullptr), false);
+    check(cases == 18, "all CONFIG completion-filter cases ran");
+}
 std::atomic<bool> rewrite_arm{false};
 std::atomic<unsigned> rewrite_opens{0};
 std::barrier rewrite_opened(2);
@@ -239,6 +270,7 @@ void test_config_bounds(const char* only) {
 }
 
 void test_config_rewrite() {
+    listener_completion_filter();
     knob_matrix();
     check(tomo::config_quote("77") == "77", "simple scalar keeps its original spelling");
     const std::string value = "pass with spaces\n\r\t\"'\\tail";

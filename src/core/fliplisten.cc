@@ -131,6 +131,19 @@ struct FlipListenerState {
             return result;
         }
     };
+    static void fence_rebound_accept(io_uring_cqe& cqe) {
+        const auto kind = ur_kind(cqe.user_data);
+        bool replaced = kind == UrKind::Accept || kind == UrKind::TlsAccept;
+        if (kind == kListenerAccept) {
+            const auto& listener = *ur_ptr<Listener>(cqe.user_data);
+            replaced = listener.kind == UrKind::Accept || listener.kind == UrKind::TlsAccept;
+        }
+        // A transferred UNIX listener uses kListenerAccept too. Its terminal
+        // CQE still owes the normal loop a rearm; CONFIG did not cancel it.
+        if (!replaced) return;
+        if (cqe.res < 0) cqe.user_data = ur_tag(static_cast<UrKind>(255), nullptr);
+        else cqe.flags |= IORING_CQE_F_MORE;
+    }
     static void aof_worker(Rebind& plan, IoLoop* loop, unsigned tid) {
         if (plan.old_aof == plan.want_aof) return;
         if (!plan.all_okay()) return;
@@ -231,13 +244,7 @@ struct FlipListenerState {
                 loop->ring_.submit_and_reap();
                 unsigned head;
                 io_uring_cqe* cqe;
-                io_uring_for_each_cqe(loop->ring_.raw(), head, cqe) {
-                    const auto kind = ur_kind(cqe->user_data);
-                    if (kind == UrKind::Accept || kind == UrKind::TlsAccept || kind == kListenerAccept) {
-                        if (cqe->res < 0) cqe->user_data = ur_tag(static_cast<UrKind>(255), nullptr);
-                        else cqe->flags |= IORING_CQE_F_MORE;
-                    }
-                }
+                io_uring_for_each_cqe(loop->ring_.raw(), head, cqe) fence_rebound_accept(*cqe);
             }
         }
         plan.join.arrive_and_wait();
