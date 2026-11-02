@@ -1757,6 +1757,49 @@ private:
     // Inline into the existing wrappers so factoring does not add a call boundary.
     // ReadLocal selects retirement at compile time: a detached armed value must
     // reach the owner's QSBR sink before its storage can be reclaimed or reused.
+    // A collapsed winner becomes an epoch-less base. It must not leave a
+    // lower-ticket candidate for the same key in the retained suffix: that
+    // candidate would outrank the base, both in reads and in the next collapse.
+    // Inspect the entire suffix, including occurrences beyond its first match.
+    // Holding the whole prefix is conservative and leaves every existing floor,
+    // cutoff, winner-selection and QSBR rule unchanged.
+    __attribute__((noinline)) bool atomic_collapse_preserves_tickets(
+            const AtomicEntry* boundary) const {
+        if (!boundary) return true;
+        auto decided = [](const AtomicEntry& entry) {
+            return entry.group_epoch && entry.group_aborted &&
+                entry.group_aborted->load(std::memory_order_acquire)
+                    ? uint64_t{0} : atomic_epoch(entry);
+        };
+        uint64_t maximum = 0, minimum = UINT64_MAX;
+        for (auto* entry = atomic_pending_->head; entry != boundary; entry = entry->next)
+            maximum = std::max(maximum, decided(*entry));
+        for (auto* entry = boundary; entry; entry = entry->next) {
+            const uint64_t epoch = decided(*entry);
+            if (epoch) minimum = std::min(minimum, epoch);
+        }
+        if (minimum >= maximum) return true;
+        for (auto* later = boundary; later; later = later->next) {
+            const uint64_t epoch = decided(*later);
+            if (!epoch || epoch >= maximum) continue;
+            for (auto* earlier = atomic_pending_->head; earlier != boundary;
+                 earlier = earlier->next) {
+                if (decided(*earlier) <= epoch ||
+                    !(earlier->membership & later->membership)) continue;
+                for (uint32_t i = 0; i < earlier->count; ++i) {
+                    const auto hash = atomic_entry_hash(*earlier, i);
+                    if (!(later->membership & atomic_membership_bit(hash))) continue;
+                    const auto key = atomic_entry_key(*earlier, i);
+                    if (later->namespace_range && atomic_range_covers(*later, key)) return false;
+                    for (uint32_t j = 0; j < later->count; ++j)
+                        if (atomic_entry_hash(*later, j) == hash &&
+                            atomic_entry_key(*later, j).key_eq(key)) return false;
+                }
+            }
+        }
+        return true;
+    }
+
     template <bool ReadLocal>
     __attribute__((always_inline)) bool atomic_collapse_impl(uint64_t floor,
                                                            uint64_t cleanup_cutoff,
@@ -1784,6 +1827,7 @@ private:
             first_unselected = entry->next;
         }
         if (!occurrences) return false;
+        if (!atomic_collapse_preserves_tickets(first_unselected)) return false;
 
         // Only an actual key overlap whose commit tickets invert needs argmax collapse. Masks reject
         // almost all inverted entry pairs; when no such pair exists, the prefix reduces to freeing
