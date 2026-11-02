@@ -94,13 +94,16 @@ Hash-index probe costs can vary with allocation addresses. Completed contended o
 for the maintainer's matched-load measurement.
 
 Gate inventory: 12 serverless rows (6 collapse, 4 parked-head, 2 index-lifetime)
-plus 8 live rows, all collected before the quick-tier exit. Normal-namespace
+plus 8 live rows, all collected before the quick-tier exit. Both namespaces'
 parked-head rows additionally run the complete instrumented owner/scatter code
-under ASAN/UBSAN and TSAN; these are assertions within those existing rows.
+with read-local 0/1 under ASAN/UBSAN and TSAN; these are assertions within those
+existing rows. The final expanded unit job passes 13/13 including its build row;
+all 24 parked-head runs report 64 polls, zero follower scans and 256 held tasks.
+Per-run logs and counts are in `proof/expanded-units-final/park-results.json`.
 **DQ=+20, DF=+20**. Maintainer-owned EXPECT_QUICK=1046 and EXPECT_FULL=1063
 are untouched; the new totals should be **1066 / 1083**. Collection is at
 `tests/gate.sh`'s `collect_job atomfix6_units` and following eight-arm loop,
-at lines 6563-6566, above the quick-tier exit at line 6907. The gate planner now permits one unchanged
+at lines 6575-6578, above the quick-tier exit at line 6919. The gate planner now permits one unchanged
 8-server/2-load slot for selected correctness jobs on this 13-core allocation;
 complete/performance gates retain their 16-core minimum. Its positive and
 negative planner tests and `tests/gates_test.py` cover that distinction.
@@ -256,6 +259,18 @@ The first expanded sanitizer attempt exposed a fixture link omission: DB0's
 scripting objects delegate Lua's process-wide implementation to the normal
 namespace. The DB0 sanitizer link now includes that namespace's fully instrumented
 objects, while linking the C helpers only once. The failed link attempt and its
-four red parked-head rows remain in the feature-group record; a complete unit-job
-rerun is scheduled with the corrected link. Normal-namespace sanitizer runs in
-that attempt already pass both read-local settings.
+four red parked-head rows remain in the feature-group record; the corrected
+complete unit job passes 13/13. Normal-namespace sanitizer runs in that earlier
+attempt already pass both read-local settings.
+
+The feature group records 299 passing rows and five failures: the four superseded
+fixture-link failures above, plus `wave14_order` publication-order assertions.
+The latter's PRE control is queued to distinguish the base behavior; it is not
+waived and no ordering assertion was weakened. This lane does not alter the
+CD5.5/CD5.6 publication mechanisms assigned to txnfix4.
+
+Completed passing persistence jobs retained about 2 GB of dump/AOF test data.
+Those generated data files were hashed and retired after job completion to keep
+`build/` near 14 GB; all logs, results, required binaries and source objects remain.
+`retired-persistence-data.json` records the paths, sizes, hashes and passing job
+completion status for every removed payload.

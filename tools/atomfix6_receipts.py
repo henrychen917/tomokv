@@ -40,6 +40,22 @@ for folder in sorted((DOC / 'proof').iterdir()):
             if job.name == 'wave14_order':
                 for source, name in [('proof/results.json', 'results.json'), ('proof.log', 'proof.log')]:
                     if (job / source).exists(): shutil.copyfile(job / source, dest / name)
+            if job.name == 'atomfix6_units':
+                parked = []
+                for source in sorted(job.glob('*.log')):
+                    if source.name == 'build.log': continue
+                    shutil.copyfile(source, dest / source.name)
+                    for match in re.finditer(
+                        r'atomfix6 park mode=(\S+) namespace=(\S+) read-local=(\d+) '
+                        r'tasks=(\d+) passes=(\d+) polls=(\d+) scans=(\d+)',
+                        source.read_text()):
+                        mode, namespace, read_local, tasks, passes, polls, scans = match.groups()
+                        parked.append(dict(log=source.name, mode=mode, namespace=namespace,
+                            sanitizer='asan-ubsan' if 'asan' in source.name else
+                                      'tsan' if 'tsan' in source.name else 'plain',
+                            read_local=int(read_local), tasks=int(tasks), passes=int(passes),
+                            polls=int(polls), scans=int(scans)))
+                if parked: save(folder / 'park-results.json', parked)
             completion = (job / 'done').read_text().strip() if (job / 'done').exists() else 'MISSING'
             record['jobs'].append(dict(name=job.name, completion=completion))
         live = []
