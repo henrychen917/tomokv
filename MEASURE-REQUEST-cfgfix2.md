@@ -145,12 +145,20 @@ unchanged across each run (`tools/cfgfix2_gate.py`). Receipts under
   `collect_job` rows and `JOB_NAMES` edits keep `gate.sh` well-formed (feature
   rows precede the quick exit, independent-failure rows, instrument helpers).
 - `redis_tcl` passing subset on POST: **green in both modes** (`post-tcl`, 2s
-  225 s / 1s 229 s). Every config/ACL/INFO/latency file passes
-  (introspection, acl, info, latency-monitor, slowlog). The per-file "1 fail"
-  the raw runtest prints for `unit/type/list` and `unit/type/stream-cgroups`
-  is the manifest's predeclared known setup error (list-compression config /
-  appendonly setup), reconciled by `validate_passing`; no assertion count or
-  skip was changed, and no Tcl promotion was made.
+  225 s / 1s 229 s). Its 37 files include the configuration-facing ones
+  (`unit/introspection` with CONFIG SET/GET/REWRITE, `unit/introspection-2`,
+  `unit/latency-monitor`, `unit/slowlog`, `unit/info-command`), all passing.
+  The subset has no `unit/acl`, `unit/info` or `unit/auth` file, so ACL and
+  auth (items 2 and 5) are covered only by the `cfgfix2-acl`/`cfgfix2-auth`
+  witnesses and the `authfix`/`auth`/`acl_metadata` jobs. The raw per-file
+  fail counts (`unit/type/list` 1, `unit/type/list-3` 1,
+  `unit/type/stream-cgroups` 1, `unit/scripting` 2) are exactly the manifest's
+  named `known_setup_errors` -- unsupported `CONFIG SET list-compress-depth`,
+  `aof-use-rdb-preamble no` and `DEBUG SET-DISABLE-DENY-SCRIPTS` -- which
+  `validate_passing` requires to match by command, reply and count; those
+  CONFIG SET error replies still match byte for byte, so this lane changed no
+  CONFIG SET error grammar. The manifest and `tests/redis_tcl.py` are unchanged
+  from PRE; no assertion count or skip changed and no Tcl promotion was made.
 - The declared job list for this lane is `docs/cfgfix2/required-jobs.txt`.
 
 ### Not run in this lane (reasons)
