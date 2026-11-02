@@ -83,9 +83,8 @@ if a.group == 'differ' and a.engine == 'epoll':
                     '--label', 'flipfix6-PRE-original'], check=False)
     while not (ROOT / 'docs/atomfix6/flipfix6-fixture-ready').exists():
         time.sleep(2)
-    for arm, binary in [('PRE', ROOT / 'build/pre/tomokv'), ('POST', ROOT / 'build/tomokv')]:
-        subprocess.run(['python3', __file__, 'flipcheck', '--binary', str(binary),
-                        '--label', f'flipfix6-{arm}-topology'], check=False)
+    subprocess.run(['python3', __file__, 'flipcheck', '--label', 'flipfix6-POST-topology'],
+                   check=False)
 jobs = GROUPS[a.group]
 if a.fused:
     # These jobs use txn_proof_boot. Other selected jobs already enumerate
