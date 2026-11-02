@@ -14,6 +14,28 @@ def main():
             path = target / 'src/core' / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text((root / 'src/core' / name).read_text())
+        # clientcompat lets owners publish TRACKING acknowledgements during
+        # LB's IoDrain. The armed copy must retain that same progress rule;
+        # otherwise the pending acknowledgement can prevent the drain itself.
+        copied = target / 'src/core/reorder.cc'
+        original_copy = copied.read_text()
+        freeze = 'const bool lb_frozen = lb_controller_armed_ && srv_->lb_stage() == LbStage::ExDrain;'
+        assert original_copy.count(freeze) == 1
+        copied.write_text(original_copy.replace(freeze,
+            'const bool lb_frozen = lb_controller_armed_ && srv_->lb_dispatch_paused();', 1))
+        sync.ROOT = target
+        try:
+            bodies, _ = sync.envelopes()
+            try:
+                sync.base.update(copied, bodies, False)
+            except ValueError as error:
+                assert 'stale R7 envelope' in str(error)
+            else:
+                raise AssertionError('stale tracking/LB freeze negative control passed')
+            sync.base.update(copied, bodies, True)
+            assert copied.read_text() == original_copy
+        finally:
+            sync.ROOT = root
         io = target / 'src/core/io_loop.h'
         original = io.read_text()
         needle = 'self_->sample_depth(pass_ns / 1000)'
@@ -42,7 +64,7 @@ def main():
                 sync.base.update(target / 'src/core' / name, generated, False)
         finally:
             sync.ROOT = root
-    print('PASS stale R7 envelope rejected; updated accounting regenerates and checks')
+    print('PASS stale R7 envelope rejected; tracking/LB freeze and accounting regenerate and check')
 
 
 if __name__ == '__main__':

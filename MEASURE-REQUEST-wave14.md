@@ -2,6 +2,16 @@
 
 ## wave14 integration
 
+**Late validation correction in progress:** the broad sweep caught a stale R7
+generated owner envelope. Clientcompat changed the ordinary owner's LB freeze
+condition to `ExDrain` so TRACKING acknowledgements can progress during
+`IoDrain`, but its generated R7 copy still froze during both stages. The copy
+is now regenerated from the ordinary owner; the existing parity row has a
+directed stale-condition negative control. The earlier frozen-arm receipts
+below remain historical until the replacement binary, identity/budget checks,
+instruction binding and correctness jobs finish. No EXPECT or public row
+count changes accompany this correction.
+
 Integrated on `cx-wave14`, based on `105c5818cc`. No push. All six
 lane reports were read before integration. Merge order: witnessfix, rootcore,
 blockfix4, rootcompat, clientcompat, execfifo3. The maintainer's two merit

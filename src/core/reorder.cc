@@ -523,7 +523,7 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl() {
         if (read_local_enabled())
             srv_->debug_assert_read_local_sinks_follow_ownership(self_->id());
 #endif
-    const bool lb_frozen = lb_controller_armed_ && srv_->lb_dispatch_paused();
+    const bool lb_frozen = lb_controller_armed_ && srv_->lb_stage() == LbStage::ExDrain;
     if (!lb_frozen) refresh_live_config();
     if (maxmemory_enabled_)
         cached_lru_clock_ = static_cast<uint8_t>(
