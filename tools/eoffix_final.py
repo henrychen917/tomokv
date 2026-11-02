@@ -26,6 +26,15 @@ def sha(path):
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
+def assert_release_identity():
+    if sha(FINAL) == sha(ROOT/'build/tomokv'):
+        return
+    proof = json.loads((DOC/'source-sync-identity.json').read_text())
+    assert proof['equivalent']
+    assert sha(FINAL) == proof['before_sha256']
+    assert sha(ROOT/'build/tomokv') == proof['after_sha256']
+
+
 def run(command, tag, env=None, required=False):
     tag = tag_for_pass(tag)
     receipt = DOC/(tag+'-driver.json')
@@ -95,7 +104,7 @@ def main():
     assert os.sched_getaffinity(0) <= set(range(8))
     os.environ.update(LC_ALL='C', CXX='g++ -gz=zlib', CC='cc -gz=zlib')
     if a.phase=='artifacts': artifacts(); return
-    assert sha(FINAL)==sha(ROOT/'build/tomokv')
+    assert_release_identity()
     if a.phase=='cold':
         gate('final-eof-aof', 'wave14_epoll_eof eoffix_aof wave14_eof_data netio-1s netio-2s',
              env=dict(WAVE14_EOF_DIRECTORY=str(ROOT/f'build/eoffix/{PASS}-eof-native'),
@@ -117,6 +126,10 @@ def main():
             gate('txn-final-'+engine, 'txnorder-fused-0', engine, repeat=50, capture=True)
             maintenance()
     elif a.phase=='harness':
+        if PASS == 'complete':
+            run(['python3', 'tools/eoffix_source_sync.py'],
+                'complete-comment-sync', required=True)
+            gate('complete-source-sync', 'wbland_units reorder_sync')
         run(['python3','tests/gates_test.py'],'gates-test-release-complete',
             env=dict(GATE_CORES='0-7'),required=True)
         previous=json.loads((DOC/'build-freshness-final.json').read_text())
@@ -146,7 +159,7 @@ def main():
                 jobs=f'release_batteries atomic_floor replyoff aof_frame aof-{engine} snapshot-{engine}'
                 gate(f'final-mode-{engine}-{fused}',jobs,engine,dict(GATE_TXN_FUSED=fused))
                 maintenance()
-    assert sha(FINAL)==sha(ROOT/'build/tomokv')
+    assert_release_identity()
 
 
 if __name__=='__main__': main()

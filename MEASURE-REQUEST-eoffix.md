@@ -190,6 +190,15 @@ blockfix2 targets pass (`complete-build.json`). Final `make -q` freshness and
 `python3 tests/gates_test.py` are queued after the remaining jobs. Earlier
 freshness and 14 + 77 harness tests passed; those receipts remain retained.
 
+The broader `complete-internal` run found a source-parity failure in
+`wbland_units`: the generated R7 receive method omitted two explanatory comments
+present in the ordinary method. All 50 native clause outcomes and all 16 path
+outcomes passed before the exact source check rejected that drift. Regeneration,
+a fresh build, byte comparisons of the allocated sections and loaded segments,
+and the unchanged `wbland_units`/`reorder_sync` jobs are queued at the final build
+boundary. No runtime-equivalence or resolved-failure claim is made until those
+checks complete; the original red receipt will remain retained.
+
 **Gate accounting.** DQ=0, DF=0. The existing netio rows are strengthened at their
 existing collection lines before the quick exit; private wave14 EOF jobs remain
 partial-only. The netio collection remains at line 6568, before the quick exit at line
