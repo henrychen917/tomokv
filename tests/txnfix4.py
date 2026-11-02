@@ -375,9 +375,12 @@ def record_case(c, server, verb, side, placement, emit):
     noeviction. A committed MULTI/EXEC write leaves the record; a cross-shard read parked by
     DEBUG ATOMIC-FANOUT-DEFER (routed through its owners by WATCH) pins the read floor, so the
     record cannot collapse. Redis: these commands have no DENYOOM, run whole and move the value
-    exactly once. The window is proved per attempt (the cut registered, the parked read still
-    unanswered when the mover replied); a missed window is re-rolled on fresh keys, at most three
-    times, and a window that never opened fails."""
+    exactly once. The window is proved per attempt, in every mode, by execiso's pinned-old
+    oracle: the same EXEC also rewrites both keys of the parked read, so a parked read that is
+    still unanswered when the mover replies and then returns the OLD pair kept its cut below the
+    record throughout. The cut counter (it moves only while atomic tracking is off) is a
+    diagnostic. A missed window is re-rolled on fresh keys, at most three times, and a window
+    that never opened fails."""
     cut_counter = ('read_local_mget_fallback_watch' if server.read_local else
                    'atomic_fanout_cuts')
     moved_reply = b'OK' if verb == 'RENAME' else 1
@@ -410,31 +413,35 @@ def record_case(c, server, verb, side, placement, emit):
                 reader.must('WATCH', r1)
                 cuts = int(info_fields(c, 'stats').get(cut_counter, 0))
                 reader.send('MGET', r1, r2)
-                deadline = time.monotonic() + 2
-                while int(info_fields(c, 'stats').get(cut_counter, 0)) == cuts:
-                    if time.monotonic() > deadline:
-                        break
-                    time.sleep(0.002)
+                time.sleep(0.1)
                 registered = int(info_fields(c, 'stats').get(cut_counter, 0)) > cuts
             finally:
                 c.must('DEBUG', 'ATOMIC-FANOUT-DEFER', 0)
-            # The committed write that leaves the decided record on the chosen side.
-            if side == 'dst':
-                if verb == 'MOVE':
-                    writer.must('SELECT', 1)
+            # The committed write that leaves the decided record on the chosen side; it also
+            # rewrites the parked read's keys (the pinned-old oracle).
+            if side == 'dst' and verb == 'MOVE':
                 writer.must('MULTI')
-                writer.must('SET', dst, 'x') if verb == 'RENAME' else writer.must('DEL', dst)
+                writer.must('SET', r1, 'new')
+                writer.must('SET', r2, 'new')
+                writer.must('SELECT', 1)
+                writer.must('DEL', dst)
             else:
                 writer.must('MULTI')
-                writer.must('SET', src, 'payload')
+                writer.must('SET', r1, 'new')
+                writer.must('SET', r2, 'new')
+                if side == 'dst':
+                    writer.must('SET', dst, 'x') if verb == 'RENAME' else writer.must('DEL', dst)
+                else:
+                    writer.must('SET', src, 'payload')
             txn = writer.cmd('EXEC')
             c.must('CONFIG', 'SET', 'maxmemory', 1, 'maxmemory-policy', 'noeviction')
             args = ('MOVE', src, '1') if verb == 'MOVE' else (verb, src, dst)
             reply = c.cmd(*args)
-            held = registered and not pending(reader)
+            unanswered = not pending(reader)
             c.must('CONFIG', 'SET', 'maxmemory', 0)
             read = reader.read()
             reader.must('UNWATCH')
+            held = unanswered and read == [b'r', b'r']
             after = (c.cmd('GET', src), dst_conn.cmd('GET', dst))
         finally:
             reader.close()
@@ -445,8 +452,9 @@ def record_case(c, server, verb, side, placement, emit):
         moved = reply == moved_reply and after == (None, b'payload')
         passed = held and moved and conserved
         emit(case='CD5.4-record', verb=verb, side=side, placement=placement, attempt=attempt,
-             locations=where, reader=[r1, r2, list(w1), list(w2)], cut_registered=registered,
-             window_held=held, exec=txn, reply=reply, parked_read=read, after=after,
+             locations=where, reader=[r1, r2, list(w1), list(w2)], cut_counter=cut_counter,
+             cut_registered=registered, read_unanswered_at_reply=unanswered, window_held=held,
+             exec=txn, reply=reply, parked_read=read, after=after,
              conserved=conserved, outcome='moved' if moved else
              'refused' if isinstance(reply, RespError) else 'BROKEN',
              expected='runs whole and moves the value exactly once', passed=passed)
