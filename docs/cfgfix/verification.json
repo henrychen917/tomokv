@@ -3817,6 +3817,559 @@
       "differ_inventory_note": "Read-only gate fold validates all planned legs and equivalence replies; this is not a full-tier timeout or receipt claim."
     },
     {
+      "phase": "differ-epoll",
+      "command": [
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "32-39",
+        "--load-cores",
+        "40-47",
+        "--load-smt",
+        "",
+        "--ports",
+        "20100-20149"
+      ],
+      "environment": {
+        "GATE_ONLY_JOBS": "differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence",
+        "GATE_DIFFER_NET_IO": "epoll"
+      },
+      "binary_sha256": "01813fe2a5534ffcce92bb03992d648c74125e7281949c53dad6b125b69526a3",
+      "log": "build/cfgfix/parallel-differ-epoll.log",
+      "started": 1793593159.1263778,
+      "note": "Independent correctness jobs on two eight-core server pools; no rate scoring.",
+      "returncode": 0,
+      "finished": 1793595295.3956294,
+      "log_sha256": "d176e5fc1cd3759611fc5a2d6d6dcc4dd6a265726ff876f08a3aa77b88421a91",
+      "run": "build/gate-run.Wdg8qM",
+      "jobs": [
+        {
+          "job": "differ-armed-0",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+            }
+          ],
+          "ledger_sha256": "83cea6f2003d8a9f0c0ee10fecad9d32f82696dccf7bd689c0e3dc647e5cfb34",
+          "output_sha256": "274b6f1b64e2b96b3fc4cd9c32455e9fb809b541e3d1be75c2b4e42806dcc436",
+          "differ_completion": {
+            "schema": 1,
+            "part": "armed-0",
+            "run": "full:gate-run.Wdg8qM",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              22
+            ],
+            "comparisons": 230,
+            "complete": true
+          },
+          "differ_completion_sha256": "1af1a1170cd9edde37a1f5e79b8cb693b7801dedc7d808395378f012cd49d0b9",
+          "differ_leg_count": 230,
+          "differ_legs_sha256": "cbc981944a39a5ac41db6ce8f296c622a916c0be247df60940cee43a3dfdd217"
+        },
+        {
+          "job": "differ-armed-1",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+            }
+          ],
+          "ledger_sha256": "1d81445af14453e933bd4d09e2e12f56d114e0c736489006114cd9bc7092c2f5",
+          "output_sha256": "bb1c8dec67591da05ce9e605a8d38978c37f1c1bd4d8cbd0ebb02b187840ef0d",
+          "differ_completion": {
+            "schema": 1,
+            "part": "armed-1",
+            "run": "full:gate-run.Wdg8qM",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              22
+            ],
+            "comparisons": 234,
+            "complete": true
+          },
+          "differ_completion_sha256": "1f7a51ff24e780b393e2070d7e006dc718c217a453a7b67d0cbaedc3e77bb650",
+          "differ_leg_count": 234,
+          "differ_legs_sha256": "e06776ef54611de88b4f9bd5d97a3ef58615dc15cbe1e182b7d4f46503176d0a"
+        },
+        {
+          "job": "differ-equivalence",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "mode equivalence part (all execution modes and knobs)"
+            }
+          ],
+          "ledger_sha256": "9bdb4d55893b498268c287782a6ff645d54dbee756398c1a0f8aaf132dc26d13",
+          "output_sha256": "54ecd0d42e622e1bf3041a8a06fb6540078d34c0aec32be38dbb4607dfc0d49f",
+          "differ_completion": {
+            "schema": 1,
+            "part": "equivalence",
+            "run": "full:gate-run.Wdg8qM",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              22
+            ],
+            "comparisons": 16,
+            "complete": true
+          },
+          "differ_completion_sha256": "5711f67c3a80036329e2d0e71d59ae205f9e6d1a0771c45687744948588b5e67",
+          "differ_leg_count": 0,
+          "differ_legs_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "job": "differ-split-0",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "Redis 7.4 differential part (split, atomic 0)"
+            }
+          ],
+          "ledger_sha256": "53152c260872c72180aca879eae75ef5197aafee393fda9874ca7edf528214aa",
+          "output_sha256": "23e72d2a8e22930535f1d2d003124e1c82460dfea9204c7074f37c73b4436453",
+          "differ_completion": {
+            "schema": 1,
+            "part": "split-0",
+            "run": "full:gate-run.Wdg8qM",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              22
+            ],
+            "comparisons": 235,
+            "complete": true
+          },
+          "differ_completion_sha256": "03f209fd6e103215d40c55eb17d82fc3783f87ffa1c92f3f456b39b87979f049",
+          "differ_leg_count": 235,
+          "differ_legs_sha256": "1dc33d999f26af5537daa75b303dccc46327a76e3c30cff311f89b4094af35af"
+        },
+        {
+          "job": "differ-split-1",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "Redis 7.4 differential part (split, atomic 1)"
+            }
+          ],
+          "ledger_sha256": "01e94cf2ac8ce4af2e0f5ecdf18e8d5bfc2c28a37342e8258dd617238c828baf",
+          "output_sha256": "0ccad62c1f86e1cc4588b316ae5a206083bb4bea90f9537f30c4e86c46ab98aa",
+          "differ_completion": {
+            "schema": 1,
+            "part": "split-1",
+            "run": "full:gate-run.Wdg8qM",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              22
+            ],
+            "comparisons": 239,
+            "complete": true
+          },
+          "differ_completion_sha256": "1c70f1ff417fa40f5c9e125803163c8ce79b9eba032993b3985a005f558cfc23",
+          "differ_leg_count": 239,
+          "differ_legs_sha256": "f6e4120f6ec425731c167c7bf4b6fedd4e664196a6e46cab3597a6d14bd20089"
+        },
+        {
+          "job": "release",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "release build (+footprint locks)"
+            }
+          ],
+          "ledger_sha256": "bd0492a9e284e7d3b6f8b74ab489c7a63c36601da9c659934e747cd62aa02d4f",
+          "output_sha256": "5a148f30bdfedaacb37136535336c4450e95898a38c9d9fdc33ec355fae184c5"
+        }
+      ],
+      "private_job_row_totals": {
+        "ok": 6
+      },
+      "differ_plan": {
+        "schema": 1,
+        "manifest": {
+          "run": "full:gate-run.Wdg8qM",
+          "permanent": [
+            7,
+            19,
+            20,
+            23
+          ],
+          "failed": [],
+          "rotating": 22,
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            22
+          ],
+          "history": "/home/user/Projects/cx-cfgfix/.gate-history/differ"
+        },
+        "suites": [
+          "string",
+          "list",
+          "set",
+          "zset",
+          "hash",
+          "hexpire",
+          "edgetime",
+          "xshard",
+          "xmove",
+          "bitmap",
+          "hll",
+          "bitfield",
+          "cgaps",
+          "stream",
+          "script",
+          "streamgrp",
+          "zsetops",
+          "geo",
+          "doubles",
+          "scan",
+          "multi",
+          "encodingfix",
+          "edgeenc",
+          "edgeproto",
+          "cmdgap",
+          "cmdgap2",
+          "sort",
+          "servertail",
+          "arity",
+          "storeorder",
+          "infofix",
+          "multidb",
+          "blocking",
+          "pubsub",
+          "fanout",
+          "spubsub",
+          "notify",
+          "wiredump",
+          "climon",
+          "compatintro",
+          "aclsel",
+          "aclkeys",
+          "cmdmeta",
+          "s6fix",
+          "ccfix",
+          "psfix",
+          "monitor"
+        ],
+        "repeats": 4,
+        "equivalence_seeds": [
+          22
+        ]
+      },
+      "differ_plan_sha256": "c053909e6f1eb35b3125b5035dbf62ab7aa8fafa841461ff9506120e8b4cea13",
+      "differ_inventory_checks": {
+        "split": {
+          "schema": 1,
+          "group": "split",
+          "parts": [
+            "split-0",
+            "split-1",
+            "equivalence"
+          ],
+          "start": 1793593160.0572116,
+          "end": 1793595294.9275303,
+          "seconds": 2134.8703186511993,
+          "comparisons": 490,
+          "complete": true
+        },
+        "armed": {
+          "schema": 1,
+          "group": "armed",
+          "parts": [
+            "armed-0",
+            "armed-1"
+          ],
+          "start": 1793594221.9493313,
+          "end": 1793595272.9941,
+          "seconds": 1051.0447688102722,
+          "comparisons": 464,
+          "complete": true
+        }
+      },
+      "differ_inventory_note": "Read-only gate fold validates all planned legs and equivalence replies; this is not a full-tier timeout or receipt claim."
+    },
+    {
+      "phase": "gates_test",
+      "command": [
+        "python3",
+        "tests/gates_test.py"
+      ],
+      "log": "build/cfgfix/gates-test-quiet.log",
+      "returncode": 1,
+      "log_sha256": "a698cddd83cbff2c656fa1f07231b0394f098a4863ebd45545288afddf43e9d1",
+      "framework_tests": 83,
+      "framework_seconds": 150.498,
+      "framework_failure_artifacts": [
+        "/home/user/Projects/cx-cfgfix/build/scheduler-failure-p8bhiaia"
+      ],
+      "framework_note": "Serverless scheduler/watchdog negative controls, not production gate rows."
+    },
+    {
+      "phase": "epoll-notify-multidb",
+      "command": [
+        "tests/gate.sh",
+        "quick",
+        "--server-cores",
+        "32-39",
+        "--load-cores",
+        "40-47",
+        "--load-smt",
+        "",
+        "--ports",
+        "20100-20199"
+      ],
+      "environment": {
+        "GATE_ONLY_JOBS": "notify multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1",
+        "GATE_PROOF_NET_IO": "epoll"
+      },
+      "binary_sha256": "01813fe2a5534ffcce92bb03992d648c74125e7281949c53dad6b125b69526a3",
+      "started": 1793595447.5879254,
+      "returncode": 0,
+      "finished": 1793595567.0375206,
+      "log": "build/cfgfix/epoll-notify-multidb.log",
+      "log_sha256": "d2153443c1701ab759d8ef52f223d4e2f0e5ce792c185d54a80570f28f630870",
+      "run": "build/gate-run.rB4Xw8",
+      "jobs": [
+        {
+          "job": "multidb-1s-0-0",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "multidb (1s, read-local 0, atomic 0)"
+            },
+            {
+              "status": "ok",
+              "label": "multidb (1s, read-local 0, atomic 0) SWAPDB serial order"
+            },
+            {
+              "status": "ok",
+              "label": "multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB"
+            }
+          ],
+          "ledger_sha256": "d4a62ad209b17489059019c64c70a1200c031ea82a9fc87d0d588d4ab2b6fb47",
+          "output_sha256": "01cc39178964babd78e2cb10448a50583a4659676cc60664fb07571fd471a2e7"
+        },
+        {
+          "job": "multidb-1s-0-1",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "multidb (1s, read-local 0, atomic 1)"
+            },
+            {
+              "status": "ok",
+              "label": "multidb (1s, read-local 0, atomic 1) SWAPDB serial order"
+            },
+            {
+              "status": "ok",
+              "label": "multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB"
+            }
+          ],
+          "ledger_sha256": "9af5e0265185a2f42c0534dc122f4fe4845ffb54fb21ae4743366db7473766cd",
+          "output_sha256": "2dc0ccf0d08f129d9254d65d70ff3851f5088ca21062f05bd56d2f33474b99e0"
+        },
+        {
+          "job": "multidb-1s-1-0",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "multidb (1s, read-local 1, atomic 0)"
+            },
+            {
+              "status": "ok",
+              "label": "multidb (1s, read-local 1, atomic 0) SWAPDB serial order"
+            },
+            {
+              "status": "ok",
+              "label": "multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB"
+            }
+          ],
+          "ledger_sha256": "6b1d63bb3660a767bb9584278e15453f866eb63aee80c62b7d48bb7edb58d5cb",
+          "output_sha256": "80bd3664ee05efb0b0724bcd478de082ecae5b6966b1d469e806a3b2b0d511c5"
+        },
+        {
+          "job": "multidb-1s-1-1",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "multidb (1s, read-local 1, atomic 1)"
+            },
+            {
+              "status": "ok",
+              "label": "multidb (1s, read-local 1, atomic 1) SWAPDB serial order"
+            },
+            {
+              "status": "ok",
+              "label": "multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB"
+            }
+          ],
+          "ledger_sha256": "9560af2bbce2d6bcbb76fe1a937457d190c1dc6d0c0a73ab14c8e293fc16aa95",
+          "output_sha256": "aeede1be1aa90e88068bd1475f9e29f96bdd3d460a21be51a0e7486cfb9f3bd3"
+        },
+        {
+          "job": "multidb-2s-0-0",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "multidb (2s, read-local 0, atomic 0)"
+            },
+            {
+              "status": "ok",
+              "label": "multidb (2s, read-local 0, atomic 0) SWAPDB serial order"
+            },
+            {
+              "status": "ok",
+              "label": "multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB"
+            }
+          ],
+          "ledger_sha256": "b0832995ce16479065f1a68772843474d736a444218f43b023a1ed01f7590524",
+          "output_sha256": "7c4275b6481abc79408c5b6ee93a0bfae8522f3eb5061a7eea3b9357b741d986"
+        },
+        {
+          "job": "multidb-2s-0-1",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "multidb (2s, read-local 0, atomic 1)"
+            },
+            {
+              "status": "ok",
+              "label": "multidb (2s, read-local 0, atomic 1) SWAPDB serial order"
+            },
+            {
+              "status": "ok",
+              "label": "multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB"
+            }
+          ],
+          "ledger_sha256": "799b5c6344ec954e97b654d5de8ae00103ac8404c9c4be4857c9a849fbec5d07",
+          "output_sha256": "0d30e0ec127192a711c9760778f6d011a6722ec0b061e25e2ab2788bb4fccd8e"
+        },
+        {
+          "job": "multidb-2s-1-0",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "multidb (2s, read-local 1, atomic 0)"
+            },
+            {
+              "status": "ok",
+              "label": "multidb (2s, read-local 1, atomic 0) SWAPDB serial order"
+            },
+            {
+              "status": "ok",
+              "label": "multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB"
+            }
+          ],
+          "ledger_sha256": "0e705bb6d5ad00dae910b20fd4dd59ae374386f749ef98b537ae65a02bede92e",
+          "output_sha256": "14b82c7180d4b2e5506f4eb269465c94a54f28d2da036cd2c033128dc36170e6"
+        },
+        {
+          "job": "multidb-2s-1-1",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "multidb (2s, read-local 1, atomic 1)"
+            },
+            {
+              "status": "ok",
+              "label": "multidb (2s, read-local 1, atomic 1) SWAPDB serial order"
+            },
+            {
+              "status": "ok",
+              "label": "multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB"
+            }
+          ],
+          "ledger_sha256": "237250e4181475728294aff364aa692a1c6acdd8e75be1c1bf6e22c1c6898f20",
+          "output_sha256": "a89f86c1cd2c76db9e39b2464a2711d050ad1492c8d478a89c3922b5e6a94807"
+        },
+        {
+          "job": "notify",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "MULTI feature battery"
+            },
+            {
+              "status": "ok",
+              "label": "blocking feature battery"
+            },
+            {
+              "status": "ok",
+              "label": "pubsub feature battery"
+            },
+            {
+              "status": "ok",
+              "label": "Lua feature battery"
+            },
+            {
+              "status": "ok",
+              "label": "keyspace notification battery (atomic 0/1)"
+            },
+            {
+              "status": "ok",
+              "label": "feature battery shutdown invariants"
+            }
+          ],
+          "ledger_sha256": "df73ea69ff61bcc176e4744580bb0b95ebe4d65ed8400bbd7670c2022ac57cc0",
+          "output_sha256": "f44419564da4e273b3edf5ad11c940cc9ea94fb1c3bff81acc874698d0f2ca5d"
+        },
+        {
+          "job": "production_units",
+          "done": true,
+          "rows": [],
+          "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "job": "release",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "release build (+footprint locks)"
+            }
+          ],
+          "ledger_sha256": "bd0492a9e284e7d3b6f8b74ab489c7a63c36601da9c659934e747cd62aa02d4f",
+          "output_sha256": "5a148f30bdfedaacb37136535336c4450e95898a38c9d9fdc33ec355fae184c5"
+        }
+      ],
+      "private_job_row_totals": {
+        "ok": 31
+      }
+    },
+    {
       "phase": "tls-collision-fixed",
       "command": [
         "tests/gate.sh",
