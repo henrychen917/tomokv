@@ -1020,6 +1020,7 @@ job_body(){
     rootcore-*) job_rootcore "${name#rootcore-}";;
     wave14_order) job_wave14_order;;
     wave14_epoll_eof) job_wave14_epoll_eof;;
+    wave14_eof_data) job_wave14_eof_data;;
     rootcompat) job_rootcompat all;;
     rootcompat-*) job_rootcompat "${name#rootcompat-}";;
     multifix-*) job_multifix "$name";;
@@ -1212,7 +1213,7 @@ plan_jobs(){
   # One complete-gate worker retains all nine rows. Named partial jobs keep the
   # directed interface without adding nine shells to the serial scheduler.
   if [ "${GATE_PARTIAL:-0}" = 1 ]; then
-    JOB_NAMES+=(wave14_order wave14_epoll_eof)
+    JOB_NAMES+=(wave14_order wave14_epoll_eof wave14_eof_data)
     for section in proc password replication sort-acl redact xsnotify tracking hscan setpast stringlimit hx3 errorstats xsexpiry; do JOB_NAMES+=("rootcompat-$section"); done
   fi
   JOB_NAMES+=(feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto)
@@ -5831,6 +5832,15 @@ job_wave14_epoll_eof(){
     taskset -c "$CORES" "$binary" >"$TMPDIR/$namespace.log" 2>&1 \
       && ok "$label" || bad "$label" "see $TMPDIR/$namespace.log"
   done
+}
+
+job_wave14_eof_data(){
+  local label="wave14 half-close accepted input"
+  row_begin "$label"
+  py tests/wave14_eof_data.py --binary "$CANDIDATE_BINARY" \
+      --oracle "$REDIS74_ROOT/src/redis-server" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/half-close" >"$TMPDIR/half-close.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/half-close.log"
 }
 
 job_rootcore(){

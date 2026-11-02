@@ -26,17 +26,17 @@ The supplied headline path omits one hash character. The existing frozen image
 is `/home/user/Projects/bench-bins/tomokv-headline-105c5818cc`.
 
 The exact source census is **1090 quick / 1107 full**, against 1046/1063:
-**DQ=DF=44**. All additions precede the quick exit at line **6810**.
+**DQ=DF=44**. All additions precede the quick exit at line **6820**.
 
 | Source | Delta | Collector line(s) |
 |---|---:|---|
-| witnessfix | +2 | 6553–6554 |
-| rootcore | +7 | 6464 |
-| blockfix4 | +5 | 6616 |
-| rootcompat | +9 | 6661 |
-| clientcompat | +5 | 6510 |
-| execfifo3, including execfifo2 | +15 | 6680–6682 |
-| Integration FUNCTION capture/replay witness | +1 | 6465 |
+| witnessfix | +2 | 6563–6564 |
+| rootcore | +7 | 6474 |
+| blockfix4 | +5 | 6626 |
+| rootcompat | +9 | 6671 |
+| clientcompat | +5 | 6520 |
+| execfifo3, including execfifo2 | +15 | 6690–6692 |
+| Integration FUNCTION capture/replay witness | +1 | 6475 |
 
 The lane-only sum is 43, giving 1089/1106; the integration witness gives the
 final 1090/1107. The label multiset has 45 additions and one removal because
@@ -61,7 +61,7 @@ linked-body equality is not achieved, and the final epoll Tcl run found a
 parked connection left after peer close. Details and controls are below. Broad
 correctness validation is still running. No throughput claim is made.
 
-### Epoll EOF investigation in progress
+### Epoll EOF finding; trial rejected
 
 The final full Tcl run fails two required list assertions in split epoll.
 Isolated assertion probes and three complete-list samples per arm/mode pass on
@@ -78,8 +78,31 @@ The short read consumes the bytes, sets `recv_armed`, and leaves no next edge
 to expose EOF. Both namespaces fail exactly at the missing teardown assertion;
 both open-peer mode controls pass. `jobs/epoll-eof-before.json` records the
 gate's private diagnostic job. An isolated candidate preserves FIN in the
-existing deferred-close queue; it is still under review and is **not** part
-of the frozen release below. `epoll-eof-candidate.patch` records that trial.
+existing deferred-close queue. That trial is **not landed**. Its native
+counterexample passes, but its full Tcl run has unrelated tracking-order
+failures, and a further half-close control does not establish preservation of
+all queued input across close. `epoll-eof-candidate.patch` records the rejected
+trial; none of its source or six selected budget changes enter production.
+
+The extra control sends 1/32/65/256/4096 INCR frames, half-closes only the write
+side, waits for the exact client to retire, and checks every applied write.
+Redis applies all frames. The unpatched integration and headline also discard
+frames beyond the ROB window; these observations **do not attribute that
+failure to the trial**. A headline leg additionally fails to retire. The first
+headline attempt stopped that leg after its failure; a separate complete
+attempt retains every per-case verdict. No failed attempt is replaced.
+The ordinary `epoll_recv`, `epoll_pass`, and deferred-close implementations
+are text-identical to the headline. This supports a pre-existing EOF defect,
+not a lane interaction. `epoll-eof-decision.json` binds the source comparison,
+trial decision and controls. The parked-close and half-close issues remain
+unresolved release findings. Private diagnostic jobs add no public rows.
+
+Compile-only trial receipts retain 20 initial and 38 nearby compilations plus
+40 distinct linked selections. The best rejected trial preserved all ten
+GET/SET/MGET/MSET groups and all parser groups relative to the frozen merged
+POST, with seven other changed hot groups; those results are not evidence for
+the landed image. The release's own census and identity receipts below remain
+the applicable proof.
 
 ### FUNCTION rewrite interaction (confirmed and fixed)
 

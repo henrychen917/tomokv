@@ -1,0 +1,1029 @@
+{
+  "status": "REJECTED TRIAL; production remains a0e4d122e8",
+  "reason": "The trial repairs the forced retained-FIN window, but does not establish complete preservation of queued input across close. The half-close deficit also occurs on headline and unpatched integration; these samples do not attribute it to the trial.",
+  "regions": {
+    "epoll_recv": {
+      "equal": true,
+      "headline_sha256": "f70778a353ee72903d77adc03012cfa24a2180df72c9fc7347cd2b24d064d121",
+      "merged_sha256": "f70778a353ee72903d77adc03012cfa24a2180df72c9fc7347cd2b24d064d121"
+    },
+    "epoll_pass": {
+      "equal": true,
+      "headline_sha256": "a98b60e651b485f32862b18d426d47881e4970e51fd1601724e67e703a7007e0",
+      "merged_sha256": "a98b60e651b485f32862b18d426d47881e4970e51fd1601724e67e703a7007e0"
+    },
+    "deferred_close": {
+      "equal": true,
+      "headline_sha256": "5e41356bb72d65975ecb6e18603ee5600a293aa1cf890e97d80b7229efd6a934",
+      "merged_sha256": "5e41356bb72d65975ecb6e18603ee5600a293aa1cf890e97d80b7229efd6a934"
+    }
+  },
+  "controls": [
+    {
+      "tag": "epoll-eof-data-trial",
+      "binary_sha256": "6715b7c999665aca91259efd2074e47e462176385588ddb1cd13a5be2d9e5172",
+      "rows": [
+        {
+          "leg": "oracle-normal-db1",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "oracle-normal-db1",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "oracle-normal-db1",
+          "count": 65,
+          "applied": 65
+        },
+        {
+          "leg": "oracle-normal-db1",
+          "count": 256,
+          "applied": 256
+        },
+        {
+          "leg": "oracle-normal-db1",
+          "count": 4096,
+          "applied": 4096
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 4096,
+          "applied": 4096
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 4096,
+          "applied": 3409
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 256,
+          "applied": 32
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 4096,
+          "applied": 3313
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 4096,
+          "applied": 4096
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 4096,
+          "applied": 64
+        }
+      ],
+      "failures": [
+        {
+          "leg": "1s-uring-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 4096,
+          "applied": 3409
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 256,
+          "applied": 32
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 4096,
+          "applied": 3313
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 4096,
+          "applied": 64
+        }
+      ]
+    },
+    {
+      "tag": "epoll-eof-data-r7",
+      "binary_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+      "rows": [
+        {
+          "leg": "oracle-normal-db1",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "oracle-normal-db1",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "oracle-normal-db1",
+          "count": 65,
+          "applied": 65
+        },
+        {
+          "leg": "oracle-normal-db1",
+          "count": 256,
+          "applied": 256
+        },
+        {
+          "leg": "oracle-normal-db1",
+          "count": 4096,
+          "applied": 4096
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 4096,
+          "applied": 4096
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 4096,
+          "applied": 3313
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 4096,
+          "applied": 3452
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 4096,
+          "applied": 4096
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 4096,
+          "applied": 64
+        }
+      ],
+      "failures": [
+        {
+          "leg": "1s-uring-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 4096,
+          "applied": 3313
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 4096,
+          "applied": 3452
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 4096,
+          "applied": 64
+        }
+      ]
+    },
+    {
+      "tag": "epoll-eof-data-headline",
+      "binary_sha256": "2404be4919172bd5b273d8cb6bda720eeae176ea3e0bb151c9fe768ee96f0991",
+      "rows": [
+        {
+          "leg": "oracle-normal-db1",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "oracle-normal-db1",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "oracle-normal-db1",
+          "count": 65,
+          "applied": 65
+        },
+        {
+          "leg": "oracle-normal-db1",
+          "count": 256,
+          "applied": 256
+        },
+        {
+          "leg": "oracle-normal-db1",
+          "count": 4096,
+          "applied": 4096
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 4096,
+          "applied": 3345
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 4096,
+          "applied": 3313
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 4096,
+          "applied": 3377
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 4096,
+          "applied": 4096
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 256,
+          "applied": 96
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 4096,
+          "applied": 64
+        }
+      ],
+      "failures": [
+        {
+          "leg": "1s-uring-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 4096,
+          "applied": 3345
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 4096,
+          "applied": 3313
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "error": "AssertionError('required state not observed: half-closed client retired')"
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 4096,
+          "applied": 3377
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 256,
+          "applied": 96
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 4096,
+          "applied": 64
+        }
+      ]
+    }
+  ],
+  "public_rows_added": 0,
+  "trial_patch": "docs/wave14/epoll-eof-candidate.patch",
+  "selected_budget_receipt": "docs/wave14/eof-budgets/selected.json"
+}
