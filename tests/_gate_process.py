@@ -36,10 +36,19 @@ def cpu_spec(values):
     return ','.join(map(str, sorted(values)))
 
 
-def pin_driver(server_cpus, load_cpus):
-    require(not set(cpus(server_cpus)) & set(cpus(load_cpus)),
-            'server and load CPUs overlap')
-    os.sched_setaffinity(0, cpus(load_cpus))
+def pin_driver(server_cpus, load_cpus, *, allow_shared_correctness=False):
+    servers, loads = set(cpus(server_cpus)), set(cpus(load_cpus))
+    if servers & loads:
+        require(allow_shared_correctness and servers == loads and len(servers) == 8
+                and os.getenv('GATE_SHARED_CORRECTNESS_CPUS') == '1'
+                and bool(os.getenv('GATE_ONLY_JOBS'))
+                and os.getenv('GATE_PROOF_NO_RATES') == '1',
+                'server and load CPUs overlap')
+        for cpu in servers:
+            siblings = set(cpus(Path(f'/sys/devices/system/cpu/cpu{cpu}/topology/thread_siblings_list')
+                                .read_text().strip()))
+            require(len(siblings & servers) == 1, 'shared correctness CPUs must be physical cores')
+    os.sched_setaffinity(0, sorted(loads))
 
 
 def fields(raw):

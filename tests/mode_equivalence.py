@@ -166,9 +166,13 @@ def validate_geometry(server_cpus, load_cpus):
     # taskset mask is not the cgroup's allowed CPU set; probe and restore it just
     # as the main planner does, before the child server takes its own slot.
     require((servers | loads) <= permitted_cpus(servers | loads), 'requested CPUs unavailable')
+    shared = (os.getenv('GATE_SHARED_CORRECTNESS_CPUS') == '1' and
+              bool(os.getenv('GATE_ONLY_JOBS')) and os.getenv('GATE_PROOF_NO_RATES') == '1'
+              and servers == loads)
     for cpu in servers:
         siblings = set(cpus(Path(f'/sys/devices/system/cpu/cpu{cpu}/topology/thread_siblings_list').read_text().strip()))
-        require(not siblings & loads, 'server/load CPUs share a physical core (including SMT siblings)')
+        require(shared or not siblings & loads,
+                'server/load CPUs share a physical core (including SMT siblings)')
         require(len(siblings & servers) == 1, 'server CPUs must name distinct physical cores')
 
 
@@ -221,6 +225,26 @@ def self_test():
             require('share a physical core' in str(exc), 'wrong SMT rejection')
         else:
             raise AssertionError('server SMT sibling was accepted as a load CPU')
+        with mock.patch.dict(os.environ, {'GATE_SHARED_CORRECTNESS_CPUS': '1',
+                                          'GATE_ONLY_JOBS': 'differ-equivalence',
+                                          'GATE_PROOF_NO_RATES': '1'}, clear=True):
+            validate_geometry('0-7', '0-7')
+            with mock.patch('os.sched_setaffinity') as pin:
+                pin_driver('0-7', '0-7', allow_shared_correctness=True)
+                pin.assert_called_once_with(0, list(range(8)))
+                try:
+                    pin_driver('0-7', '0-7')
+                except AssertionError:
+                    pass
+                else:
+                    raise AssertionError('ordinary driver accepted shared CPUs')
+        with mock.patch.dict(os.environ, {'GATE_SHARED_CORRECTNESS_CPUS': '1'}, clear=True):
+            try:
+                validate_geometry('0-7', '0-7')
+            except AssertionError:
+                pass
+            else:
+                raise AssertionError('shared CPUs escaped the selected correctness guard')
     print('MODE EQUIVALENCE self-test: seed/matrix/raw replay/divergence controls passed; no servers')
 
 
@@ -259,7 +283,7 @@ def main(argv=None):
                   f'{failed} failing streams')
             return int(failed != 0)
     validate_geometry(args.server_cpus, args.load_cpus)
-    pin_driver(args.server_cpus, args.load_cpus)
+    pin_driver(args.server_cpus, args.load_cpus, allow_shared_correctness=True)
     install_signals()
     args.output.mkdir(parents=True, exist_ok=False)
     operations = command_stream(args.seed)

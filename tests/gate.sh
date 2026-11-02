@@ -39,6 +39,8 @@
 #   With one slot, unused selected server cores remain available to prerequisite builds.
 #   Commas are accepted too. Output is a separate PARTIAL ledger, never counted
 #   against EXPECT and never eligible for a receipt; ABBA/NIC do not run.
+#   --shared-correctness-cpus permits one selected correctness slot to share eight explicit
+#   server/load CPUs, only with GATE_PROOF_NO_RATES=1. Complete gates and perf reject it.
 #   Push/release/full also require a source/binary-bound local receipt. GATE_RECEIPT_BASELINE
 #   selects a trusted full ledger; GATE_RECEIPT_NULL selects a recent full byte-identical ABBA
 #   control. The ledger default comes from a certified receipt; explicit promote-null
@@ -95,6 +97,7 @@ case "${GATE_PROOF_NO_RATES:-0}:$GATE_PARTIAL" in
 esac
 PLAN=$(python3 tests/gateplan.py "$@") || exit $?
 eval "$PLAN"
+export GATE_SHARED_CORRECTNESS_CPUS
 if [ "${GATE_PARTIAL:-0}" = 1 ] && [ "$TIER" = perf ]; then
   echo 'GATE_ONLY_JOBS selects correctness jobs; perf has no selectable jobs' >&2
   exit 2
@@ -1161,7 +1164,7 @@ plan_jobs(){
   # Correctness traffic is modest and stays on each slot's two or more physical load cores.
   # Compilers use that slot's server+load cores. The release build alone unlocks release jobs;
   # ASAN and standalone units do not delay boots, and full-only builds start immediately too.
-  JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build pubtrackfix maxmemrace)
+  JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build pubtrackfix maxmemrace storefix5)
   JOB_NAMES+=(clientcompat-pause clientcompat-disconnect clientcompat-multi-tracking clientcompat-multi-controls clientcompat-enable-race)
   for MF_MODE in 1s 2s; do for MF_ENGINE in uring epoll; do
     JOB_NAMES+=("multifix-$MF_MODE-$MF_ENGINE")
@@ -5911,6 +5914,30 @@ job_maxmemrace(){
     && ok "$label" || bad "$label" "see $TMPDIR/maxmemrace.log"
 }
 
+# SO5.2/SO5.3/SO5.6: two rows before the quick exit (DQ=DF=+2).
+# Each row preserves the full engine/atomic/read-local/namespace product.
+job_storefix5(){
+  local mode engine atomic read_local databases boot_fn failed label
+  for mode in 1s 2s; do
+    label="storefix5 randomkey append idle accounting ($mode)"
+    row_begin "$label"; failed=0
+    boot_fn=boot; [ "$mode" != 1s ] || boot_fn=boot_fused
+    for engine in uring epoll; do for atomic in 0 1; do
+      for read_local in 0 1; do for databases in 1 16; do
+        if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" --atomic "$atomic" \
+            --read-local "$read_local" --databases "$databases" --save '' \
+            --enable-debug-command yes; then
+          py tests/storefix5.py 127.0.0.1 "$PORT" all \
+              >"$TMPDIR/$mode-$engine-a$atomic-r$read_local-db$databases.log" 2>&1 || failed=1
+        else failed=1; fi
+        stop
+        shutdown_clean || failed=1
+      done; done
+    done; done
+    [ "$failed" = 0 ] && ok "$label" || bad "$label" "see $TMPDIR/$mode-*.log"
+  done
+}
+
 # infofix: each directed row owns both modes/engines and both database runtimes.
 job_infofix_latency(){
   local passed=1 mode tracking batch label="Redis 7.4 infofix exact latency batch witness"
@@ -6474,6 +6501,7 @@ fi
 for root in inbox eval segments notify functions waitaof misconf; do collect_job "rootcore-$root"; done
 collect_job wave14_functions
 collect_job release
+collect_job storefix5
 
 collect_job asan
 collect_job config_unit

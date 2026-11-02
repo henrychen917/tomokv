@@ -328,7 +328,7 @@ def main():
     which.add_argument('--matrix', action='store_true')
     args = parser.parse_args()
     install_signals()
-    pin_driver(args.server_cpus, args.load_cpus)
+    pin_driver(args.server_cpus, args.load_cpus, allow_shared_correctness=True)
     inventory(args.server_cpus, args.ratio)
     results = [run_cell(args, cell) for cell in (CELLS if args.matrix else [args.cell])]
     return 0 if all(results) else 1

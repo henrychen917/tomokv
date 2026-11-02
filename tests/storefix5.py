@@ -5,7 +5,7 @@ import json
 import time
 import threading
 from collections import Counter
-from _lib import Conn, encode, info
+from _lib import Conn, RespError, encode, info
 
 
 def populate(c, count, value=b'v'):
@@ -45,6 +45,14 @@ def randomkey(c, strict=True):
     assert c.cmd('RANDOMKEY') is None
     assert c.cmd('DEBUG', 'SET-ACTIVE-EXPIRE', 1) == b'OK'
     assert c.cmd('FLUSHALL') == b'OK'
+    # WRITE pause holds logical expiry even for a read-only RANDOMKEY. A new
+    # connection is unnecessary: CLIENT UNPAUSE itself is allowed through.
+    assert c.cmd('SET', 'pause-image', 'v', 'PX', 1000) == b'OK'
+    assert c.cmd('CLIENT', 'PAUSE', 10000, 'WRITE') == b'OK'
+    time.sleep(1.1)
+    assert c.cmd('RANDOMKEY') == b'pause-image'
+    assert c.cmd('CLIENT', 'UNPAUSE') == b'OK'
+    assert c.cmd('RANDOMKEY') is None
     keys = [f'uniform:{i}'.encode() for i in range(32)]
     for key in keys:
         assert c.cmd('SET', key, 'v') == b'OK'
@@ -87,25 +95,33 @@ def randomkey(c, strict=True):
 
 def append(c):
     result = {}
+    previous_slowlog = c.cmd('CONFIG', 'GET', 'slowlog-log-slower-than')[1]
+    assert c.cmd('CONFIG', 'SET', 'slowlog-log-slower-than', 0) == b'OK'
     for length in (16, 1024, 65536, 1 << 20, 4 << 20):
         original = b'x' * length
         assert c.cmd('SET', 'append', original, 'PX', 60000) == b'OK'
         times = []
+        command_times = []
         for i in range(5):
             start = time.perf_counter_ns()
             assert c.cmd('APPEND', 'append', 'z') == length + i + 1
             times.append((time.perf_counter_ns() - start) / 1000)
+            entries = c.cmd('SLOWLOG', 'GET', 1)
+            assert entries and entries[0][3][0].upper() == b'APPEND', entries
+            command_times.append(entries[0][2])
         assert c.cmd('GET', 'append') == original + b'z' * 5
         assert 0 < c.cmd('PTTL', 'append') <= 60000
         assert c.cmd('OBJECT', 'ENCODING', 'append') == b'raw'
         assert c.cmd('APPEND', 'append', '') == length + 5
-        result[length] = dict(single_call_us=times, value_and_ttl=True)
+        result[length] = dict(single_call_us=times, slowlog_command_us=command_times,
+                              value_and_ttl=True)
         assert c.cmd('DEL', 'append') == 1
     for original in (b'', b'123', b'a\0b'):
         assert c.cmd('SET', 'append', original) == b'OK'
         assert c.cmd('APPEND', 'append', b'\0z') == len(original) + 2
         assert c.cmd('GET', 'append') == original + b'\0z'
     assert c.cmd('DEL', 'append') == 1
+    assert c.cmd('CONFIG', 'SET', 'slowlog-log-slower-than', previous_slowlog) == b'OK'
     print(json.dumps(result), flush=True)
     return result
 
@@ -167,13 +183,51 @@ def idle(c, strict=True):
     return result
 
 
+def memory_limit(c, limit, value_size, policy):
+    """Finite population to pressure, including rejected writes; never a rate."""
+    value = b'x' * value_size
+    before = {k: int(v) for k, v in info(c, 'memory').items()
+              if k in ('used_memory', 'used_memory_rss')}
+    offered = max(10000, 2 * limit // (value_size + 32))
+    accepted = refused = consecutive_refused = 0
+    for start in range(0, offered, 256):
+        commands = [('SET', f'memory:{i:012d}', value)
+                    for i in range(start, min(start + 256, offered))]
+        c.raw(b''.join(encode(*args) for args in commands))
+        for _ in commands:
+            reply = c.read()
+            if reply == b'OK':
+                accepted += 1
+                consecutive_refused = 0
+            else:
+                assert isinstance(reply, RespError) and str(reply).startswith('OOM'), reply
+                refused += 1
+                consecutive_refused += 1
+        if policy == 'noeviction' and consecutive_refused >= 1024: break
+    time.sleep(.25)
+    memory = {k: int(v) for k, v in info(c, 'memory').items()
+              if k in ('used_memory', 'used_memory_rss')}
+    keys = c.cmd('DBSIZE')
+    evicted = int(info(c, 'stats')['evicted_keys'])
+    result = dict(limit=limit, value_size=value_size, policy=policy, keys=keys,
+                  accepted=accepted, refused=refused, evicted=evicted, before=before,
+                  after=memory, rss_over_limit=memory['used_memory_rss']/limit)
+    print(json.dumps(result), flush=True)
+    assert keys > 0 and memory['used_memory'] >= limit * .8, result
+    assert memory['used_memory'] <= limit + 16 * 18432, result
+    assert refused if policy == 'noeviction' else evicted, result
+    assert c.cmd('FLUSHALL') == b'OK'
+    return result
+
+
 if __name__ == '__main__':
     p = argparse.ArgumentParser()
     p.add_argument('host'); p.add_argument('port', type=int)
-    p.add_argument('case', choices=('randomkey', 'randomkey_footprint', 'append', 'idle'))
+    p.add_argument('case', choices=('randomkey', 'randomkey_footprint', 'append', 'idle', 'all'))
     a = p.parse_args()
     c = Conn(a.host, a.port, timeout=120)
     try:
-        globals()[a.case](c)
+        for case in (('randomkey', 'append') if a.case == 'all' else (a.case,)):
+            globals()[case](c)
     finally:
         c.close()

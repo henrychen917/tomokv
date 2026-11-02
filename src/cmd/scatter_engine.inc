@@ -1687,7 +1687,9 @@ template<bool ScriptOnly>
             return ScatterPrepare::Backpressure;
     }
 
-    if constexpr (!ScriptOnly) if (op.cmd_name().eq_icase("move")) {
+    // MOVE is classified as Renamenx. Keep its name decoding in that cold
+    // branch so RANDOMKEY's extra setup cannot enlarge ordinary read scopes.
+    if constexpr (!ScriptOnly) if (kind == Kind::Renamenx && op.cmd_name().eq_icase("move")) {
         // Both ordinary dispatch and EXEC already identified this operation's
         // keys from one map. Never resolve a second map during lowering.
         if (!multidb_prepare_move(server, op)) return ScatterPrepare::Error;
