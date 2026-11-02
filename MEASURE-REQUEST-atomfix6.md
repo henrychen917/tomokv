@@ -49,6 +49,10 @@ update both indexes. Removal precedes execution/forwarding, so no index follows 
 task into another owner or outlives its ROB. State is allocated only on a park;
 the queue retains the old deque's size/alignment and empty-test field offsets.
 The two shutdown-only park diagnostics occupy existing Exec1sCounters tail padding.
+All layout assertions still pass: Op 336, Client 1984, ThreadCtx 1408, Shard 1440,
+FlatStore 944, Rob<64> 192, AtomicEntry 144 and Config 624 bytes. ExLoop remains
+5856 bytes and FusedExLoop 5864; the indexed queue remains 80 bytes and its
+counter block remains 128 bytes.
 
 The PRE park fixture compiles the unchanged PRE scheduler with only two observation
 increments in a private source copy. Renamed fixture instantiations prevent linked
