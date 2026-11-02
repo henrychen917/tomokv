@@ -972,6 +972,14 @@ public:
     uint64_t flip_clients_transferred() const {
         return flip_clients_transferred_.load(std::memory_order_relaxed);
     }
+    uint64_t flip_skipped_class(unsigned kind) const {
+        return flip_skipped_class_[kind].load(std::memory_order_relaxed);
+    }
+    uint64_t flip_refused_class(unsigned kind) const {
+        return flip_refused_class_[kind].load(std::memory_order_relaxed);
+    }
+    void flip_note_immovable_refusal(unsigned kind, const char* reason);
+    bool flip_blocked_dispatch_allowed(uint32_t tid) const;
     uint64_t flip_late_output() const { return flip_late_output_.load(std::memory_order_relaxed); }
     uint64_t flip_output_transferred() const { return flip_output_transferred_.load(std::memory_order_relaxed); }
     uint64_t flip_session_clients_transferred() const {
@@ -3912,6 +3920,8 @@ private:
     std::atomic<uint64_t> flip_refused_close_{0};
     std::atomic<uint64_t> flip_late_output_{0};
     std::atomic<uint64_t> flip_output_transferred_{0};
+    std::atomic<uint64_t> flip_skipped_class_[3]{};
+    std::atomic<uint64_t> flip_refused_class_[3]{};
 
 };
 

@@ -781,6 +781,8 @@ public:
     bool flip_migration_protocol_idle() const;
     bool flip_session_pending() const;
     bool flip_execution_idle() const;
+    bool flip_stationary_idle() const;
+    bool flip_borrowed_output() const;
     bool flip_held_output_idle() const;
     bool flip_drain_idle() const {
         // Global dispatch is paused, but connections which remain on this IO may retain durable

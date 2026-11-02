@@ -1764,13 +1764,22 @@ private:
     bool flip_output_held(const Client* client) const;
     void flip_output_observe();
     bool flip_post_drain() const;
+    uint8_t flip_immovable_kind(const Client* client) const;
+    bool flip_immovable_refused();
+    bool flip_client_drained(const Client* client, bool coordinator) const;
+    bool flip_timers_drained() const;
+    void flip_skip_stayers();
+    bool flip_client_stays(const Client* client) const;
+    void flip_borrow_hold();
+    void flip_borrow_resume();
+    void flip_borrow_release();
     bool flip_session_drain_refused() const;
     bool flip_session_close_held();
     bool closing_client_ready(Client* client);
 
     bool flip_io_drained() const {
         if (!pending_serve_.empty() || !pending_releases_.empty() ||
-            !pending_handoffs_.empty() || !deferred_timers_.empty() ||
+            !pending_handoffs_.empty() || !flip_timers_drained() ||
             !client_migrations_.empty() || !epoll_closes_.empty() ||
             !dead_next_.empty() || !dead_ready_.empty() ||
             !multi_deferred_.empty() || !pending_multi_cleanups_.empty() ||
@@ -1792,16 +1801,8 @@ private:
             if (flip_close_pin_ && client->closing()) continue;
             const bool coordinator_op = self_->id() == srv_->flip_coordinator() &&
                 client == flip_client_ && flip_epoch_local_ == srv_->flip_epoch();
-            if (coordinator_op) {
-                if (client->rob().in_flight() != 1 ||
-                    (!flip_post_drain() && (client->send_inflight() ||
-                     client->serve_pending() || !client->nothing_to_write())) ||
-                    !wb_.migration_ready(*client)) return false;
-            } else if (!(flip_post_drain() ? client->flip_execution_idle()
-                                          : client->flip_drain_idle()) ||
-                       !wb_.migration_ready(*client)) {
-                return false;
-            }
+            if (!flip_client_drained(client, coordinator_op) ||
+                !wb_.migration_ready(*client)) return false;
         }
         return true;
     }
@@ -1810,7 +1811,8 @@ private:
         const uint32_t planned = srv_->flip_source_clients(self_->id());
         for (uint32_t ordinal = 0; ordinal < planned; ordinal++) {
             Client* client = srv_->flip_client_at(self_->id(), ordinal);
-            if (!client || client == flip_client_ || client->ifid_thread() != self_->id()) {
+            if (!client) continue; // this source retained a durable blocker in its plan row
+            if (client == flip_client_ || client->ifid_thread() != self_->id()) {
                 error = "the weighted FLIP connection set changed after planning";
                 return false;
             }
@@ -2197,6 +2199,7 @@ private:
         }
         if constexpr (!kSingleDatabase)
             if (stage <= FlipStage::DatabaseRun) return database_control_pass();
+        flip_borrow_resume();
         fliplisten_resume();
         flip_output_prepare();
         // A pinned close may have refused this epoch earlier in this IO pass.
@@ -2215,7 +2218,7 @@ private:
             // A pin left by an earlier FLIP must not hide a detached close from this drain.
             flip_close_pin_ = false;
             fliplisten_quiesce();
-            if (!flip_session_drain_refused() && accepts_quiesced() &&
+            if (!flip_session_drain_refused() && !flip_immovable_refused() && accepts_quiesced() &&
                 flip_io_drained() && flip_io_drain_ordered() && flip_output_hold()) {
                 // From this acknowledgement the plan reads this IO's client vector: hold every
                 // close before it leaves ThreadCtx::clients until the FLIP retires (a converting
@@ -2240,6 +2243,7 @@ private:
             const uint32_t planned = srv_->flip_source_clients(self_->id());
             if (planned &&
                 flip_prepare_epoch_ != srv_->flip_epoch()) {
+                flip_skip_stayers();
                 std::string ready_error;
                 if (!flip_candidate_clients_ready(ready_error)) {
                     // A saturated pipelined connection is momentarily busy at ANY instant, so a
@@ -2256,14 +2260,14 @@ private:
                     }
                 } else {
                     flip_prepare_epoch_ = srv_->flip_epoch();
-                    flip_dropped_local_ = 0;
+                    flip_dropped_local_ = flip_skipped_local_;
                     if (!reserve_client_transfer_state(planned)) {
                         srv_->flip_note_failure(
                             "ERR FLIP could not reserve source connection state");
                     } else {
                         for (uint32_t ordinal = 0; ordinal < planned; ordinal++) {
                             Client* client = srv_->flip_client_at(self_->id(), ordinal);
-                            if (!client) std::abort();
+                            if (!client) continue; // retained on this surviving source
                             if (client->closing()) continue; // dropped below, never detached
                             std::string error;
                             if (!prepare_client_transfer(
@@ -5460,6 +5464,12 @@ public:
     // A cold deferred-serve queue. serve_pending is its existing lifetime and
     // deduplication pin, so ordinary command/send paths acquire no new branch.
     std::vector<Client*> flip_held_output_;
+    std::vector<Client*> flip_stayers_;
+    std::vector<BorrowRelease> flip_borrow_releases_;
+    uint64_t flip_stay_epoch_ = UINT64_MAX;
+    bool flip_borrow_held_ = false;
+    uint64_t flip_skip_epoch_ = UINT64_MAX;
+    uint32_t flip_skipped_local_ = 0;
 };
 
 }  // namespace tomo

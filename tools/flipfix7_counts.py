@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""flipfix6 serverless instruction scopes, using the established production fixture.
+"""flipfix7 serverless instruction scopes, using the established production fixture.
 
 Two probes, each linked against an arm's production objects (fixture COMDATs last, so production
 definitions keep precedence) and single-stepped by tools/crlffix_step.c, which owns its finite
 child: no server, listener, debugger attach, core dump, throughput or timing measurement.
 
-  command  tests/txnorder_command_scope.cc: GET/SET/INCR/MGET/MSET, batch 1/32, both modes,
+  command  tests/flipfix6_command_scope.cc: GET/SET/INCR/MGET/MSET, batch 1/32, both modes,
            both namespaces, atomic 0/1 (the flushfix2 command-scope grid).
   control  tests/flipfix6_control_scope.cc: one ExLoopT<false>/IoLoop FLIP control pass in a
            selected stage state, through the linked production symbol.

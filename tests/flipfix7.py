@@ -54,8 +54,10 @@ def thread_read(c, out, key):
 
 
 def trial(args, directory, engine, atomic, case, attempt):
-    extra = ['--save', '3600 1'] if case == 'signal' else []
-    if case == 'tls':
+    stays = case.endswith('-stay')
+    base = case.removesuffix('-stay')
+    extra = ['--save', '3600 1'] if base == 'signal' else []
+    if base == 'tls':
         cert = ROOT / 'build/flipfix7/certs'
         if not (cert / 'server.crt').exists():
             tls.generate(str(cert))
@@ -74,12 +76,12 @@ def trial(args, directory, engine, atomic, case, attempt):
                     return c
             raise AssertionError('IO placement never armed')
         try:
-            held = conn(4 if case in ('blocked', 'tls') else 1, True)
+            held = conn(4 if base in ('blocked', 'blmove', 'tls') else 1, True)
             control, probe, writer = conn(0), conn(0), conn(5)
             observer = conn(0)
             if args.arm == 'post':
                 assert 'flip_late_output' in s.stats(observer), 'POST binary lacks the liveness fix'
-            if case == 'tls':
+            if base == 'tls':
                 for _ in range(96):
                     c = stack.enter_context(contextlib.closing(tls.Conn('127.0.0.1', args.port+1,
                                 tls.context(str(cert)), timeout=30)))
@@ -91,13 +93,23 @@ def trial(args, directory, engine, atomic, case, attempt):
             control.raw(b''.join(encode('SET', f'flipfix7:ack:{i}', 'saved') for i in range(1000)))
             assert [control.read() for _ in range(1000)] == [b'OK'] * 1000
             result['acknowledged'] = 1000
-            target = (1, 7) if case in ('blocked', 'tls', 'late-move') else (7, 1)
+            target = ((7, 1) if base == 'tls' else (5, 3)) if stays else ((1, 7) if base in (
+                'blocked', 'tls', 'output', 'borrow', 'late-move') else (7, 1))
+            before_io = s.io_thread(held) if base != 'tls' else int(held.command('DEBUG', 'IO-THREAD'))
             keys = []
-            if case == 'blocked':
-                held.send('BLPOP', 'flipfix7:list', 0)
+            if base in ('blocked', 'blmove'):
+                if base == 'blmove':
+                    held.send('BLMOVE', 'flipfix7:list', 'flipfix7:dest', 'LEFT', 'RIGHT', 0)
+                else:
+                    held.send('BLPOP', 'flipfix7:list', 0)
                 s.wait(lambda: s.stats(control, 'clients').get('blocked_clients') == 1,
                        'BLPOP never blocked')
-            elif case in ('late', 'late-move', 'signal', 'output'):
+            elif base == 'borrow':
+                value = b'b' * (8 << 20)
+                assert control.must('SET', 'flipfix7:borrow', value) == b'OK'
+                held.send('GET', 'flipfix7:borrow')
+                time.sleep(.05)
+            elif base in ('late', 'late-move', 'signal', 'output'):
                 keys = [(f'flipfix7:{i:04}:'.encode() + b'x' * 8192)[:8192] for i in range(1024)]
                 elements = [f'e{x}' for x in range(3000)]
                 for i in range(0, len(keys), 16):
@@ -109,7 +121,7 @@ def trial(args, directory, engine, atomic, case, attempt):
                 writer.send('DEL', *keys)
                 result['delete_thread'] = None
                 delete = thread_read(writer, result, 'deleted')
-                if case == 'output':
+                if base == 'output':
                     delete.join(30)
                     assert result['deleted'] == 1024
                     time.sleep(.05)
@@ -182,12 +194,36 @@ def trial(args, directory, engine, atomic, case, attempt):
                 ft.join(10)
                 pt.join(10)
                 assert not ft.is_alive() and not pt.is_alive(), result
-                if case == 'blocked':
+                if base in ('blocked', 'blmove'):
                     assert writer.must('LPUSH', 'flipfix7:list', 'v') == 1
-                    assert held.read() == [b'flipfix7:list', b'v']
-                elif case == 'tls':
+                    assert held.read() == ([b'flipfix7:list', b'v'] if base == 'blocked' else b'v')
+                    if base == 'blmove':
+                        assert writer.must('LRANGE', 'flipfix7:dest', 0, -1) == [b'v']
+                elif base == 'tls':
                     assert held.command('PING') == b'PONG'
+                if base == 'borrow':
+                    held.sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 4 << 20)
+                    held.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_WINDOW_CLAMP, 4 << 20)
+                    assert held.read() == value
+                    result['borrow_bytes'] = len(value)
+                if keys:
+                    held.send('UNSUBSCRIBE')
+                    assert held.read() == [b'unsubscribe', b'__keyevent@0__:del', 0]
+                result['held_io_after'] = (s.io_thread(held) if base != 'tls' else
+                                           int(held.command('DEBUG', 'IO-THREAD')))
+                if stays or base in ('blocked', 'tls', 'output', 'borrow'):
+                    assert result['held_io_after'] == before_io, result
                 assert writer.must('GET', 'flipfix7:ack:0') == b'saved'
+            if args.arm == 'post' and base in ('blocked', 'blmove', 'tls', 'output', 'borrow'):
+                kind = 'blocked' if base == 'blmove' else 'output' if base == 'borrow' else base
+                counter = 'flip_' + ('skipped_' if stays else 'refused_') + kind
+                assert result['counters'].get(counter, 0) > 0, (counter, result)
+                if stays:
+                    assert result['flip'] == b'OK', result
+                else:
+                    phrase = {'blocked': 'blocked connection', 'tls': 'TLS connection',
+                              'output': 'non-draining output'}[kind]
+                    assert phrase in str(result['flip']), result
             result['elapsed'] = time.monotonic() - start
         finally:
             # PRE signal witness may require SIGKILL; that result is evidence, never a pass.

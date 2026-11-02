@@ -1682,6 +1682,7 @@ bool blocking_resume_move_impl(Server& server, ThreadCtx& self, Ring& ring, Clie
 
 bool blocking_resume_move(Server& server, ThreadCtx& self, Ring& ring, Client& client,
                           ScatterArenaPool& pool) {
+    if (!server.flip_blocked_dispatch_allowed(self.id())) return false;
     return blocking_resume_move_impl<false>(server, self, ring, client, pool);
 }
 

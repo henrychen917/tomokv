@@ -1,5 +1,6 @@
 // FLIP-only connection liveness. Included after MultiSession and BlockingState.
-// No command, parse, retirement, or socket-send body calls these helpers.
+// Ordinary commands never call these helpers. Blocking continuations alone
+// consult the existing FLIP acknowledgement before publishing new owner work.
 
 // PAD-A patches only this immediate in each namespace. PRE behavior then runs
 // with exactly the candidate's text/layout; this is not a runtime option.
@@ -36,18 +37,33 @@ bool IoLoop::flip_output_hold() {
     // IoDrain proved no socket send or serve is outstanding. Reserve before
     // installing any pin; a failed allocation cannot leave a partially held IO.
     if (!flip_held_output_.empty()) std::abort();
-    try { flip_held_output_.reserve(self_->clients().size()); }
+    flip_stay_epoch_ = srv_->flip_epoch();
+    flip_stayers_.clear();
+    try {
+        flip_held_output_.reserve(self_->clients().size());
+        flip_stayers_.reserve(self_->clients().size());
+    }
     catch (const std::bad_alloc&) {
         srv_->flip_note_failure("ERR FLIP could not reserve socket-output holds");
         return false;
     }
     for (Client* client : self_->clients()) {
-        if (client == flip_client_ || client->closing() || client->is_tls()) continue;
+        if (client->closing()) continue;
+        const auto kind = flip_immovable_kind(client);
+        if (kind) {
+            flip_stayers_.push_back(client);
+            srv_->flip_skipped_class_[kind - 1].fetch_add(1, std::memory_order_relaxed);
+            continue;
+        }
+        if (client == flip_client_) continue;
         if (client->send_inflight() || client->serve_pending()) std::abort();
         client->set_serve_pending(true);
         flip_held_output_.push_back(client);
     }
     std::sort(flip_held_output_.begin(), flip_held_output_.end(), std::less<Client*>{});
+    std::sort(flip_stayers_.begin(), flip_stayers_.end(), std::less<Client*>{});
+    for (const Client* client : flip_stayers_)
+        if (client->flip_borrowed_output()) { flip_borrow_hold(); break; }
     return true;
 }
 
@@ -75,6 +91,7 @@ bool IoLoop::flip_output_plan() {
 }
 
 void IoLoop::flip_output_release() {
+    flip_borrow_release();
     for (Client* client : flip_held_output_) {
         // A pinned close dropped from the plan still belongs to this source.
         client->set_serve_pending(false);
@@ -135,4 +152,149 @@ void IoLoop::flip_output_unhold(Client* client) {
     flip_held_output_.erase(at);
     client->set_serve_pending(false);
     enqueue_serve(client);
+}
+
+bool Client::flip_borrowed_output() const { return segments_.has_borrow(); }
+
+bool Client::flip_stationary_idle() const {
+    if (!blocked())
+        return rob_.quiesced() && !retire_queued_.load(std::memory_order_acquire) &&
+               barrier_owners_ == 0 && atomic_groups_io_ == 0;
+    if (retire_queued_.load(std::memory_order_acquire) || atomic_groups_io_ ||
+        rob_.in_flight() != 1) return false;
+    const Op& op = rob_.at(rob_.flush_id());
+    // The blocking/WAIT dispatcher publishes its ROB range with the reset Free
+    // marker; it does not use ordinary owner dispatch's Issued marker.
+    const auto status = op.state.load(std::memory_order_acquire);
+    if (status != OpState::Free && status != OpState::Issued) return false;
+    if (barrier_owners_ == static_cast<uint8_t>(BarrierOwner::Wait)) return true;
+    if (barrier_owners_ != static_cast<uint8_t>(BarrierOwner::Blocking)) return false;
+    const BlockingState* state = op.blocking_state();
+    if (!state) return false;
+    const auto phase = state->phase.load(std::memory_order_acquire);
+    // A parked registry moves with its Shard. A wake-up may hand a continuation
+    // back after this IO acknowledged; that IO-owned continuation remains here
+    // and cannot publish until Idle (flip_blocked_dispatch_allowed).
+    return (phase == BlockingPhase::Parked || phase == BlockingPhase::MoveRequested) &&
+           state->active_tasks.load(std::memory_order_acquire) == 0;
+}
+
+uint8_t IoLoop::flip_immovable_kind(const Client* client) const {
+    if (client->closing()) return 0;
+    if (client->blocked()) return 1;
+    if (client->is_tls()) return 2;
+    if (flip_output_held(client)) return 0; // late owned output travels under its send hold
+    if (client->send_inflight() || !client->nothing_to_write()) {
+        pollfd socket{client->fd(), POLLOUT, 0};
+        // A ready socket may complete its existing send during normal drain.
+        // A full socket has no local progress condition: never wait for its peer.
+        if (::poll(&socket, 1, 0) == 0) return 3;
+    }
+    return 0;
+}
+
+void Server::flip_note_immovable_refusal(unsigned kind, const char* reason) {
+    std::lock_guard<std::mutex> lock(flip_error_mu_);
+    const auto stage = flip_stage();
+    if (stage < FlipStage::IoDrain || stage >= FlipStage::ClientCommit) return;
+    bool expected = false;
+    if (!flip_failed_.compare_exchange_strong(expected, true, std::memory_order_acq_rel)) return;
+    flip_error_ = reason;
+    flip_refused_class_[kind - 1].fetch_add(1, std::memory_order_relaxed);
+}
+
+bool IoLoop::flip_immovable_refused() {
+    if (!flip_liveness_enabled()) return false;
+    const bool converting = srv_->flip_candidate_target(self_->id()) == Role::Ex;
+    for (const Client* client : self_->clients()) {
+        const uint8_t kind = flip_immovable_kind(client);
+        if (!kind) continue;
+        if (!converting) continue;
+        const char* error = kind == 1 ? "ERR FLIP refused: converting IO owns a blocked connection" :
+                            kind == 2 ? "ERR FLIP refused: converting IO owns a TLS connection" :
+                                        "ERR FLIP refused: converting IO owns non-draining output";
+        srv_->flip_note_immovable_refusal(kind, error);
+        return true;
+    }
+    return false;
+}
+
+bool IoLoop::flip_client_drained(const Client* client, bool coordinator) const {
+    const bool enabled = flip_liveness_enabled();
+    const bool post = enabled && srv_->flip_stage() == FlipStage::ClientInstall;
+    const bool stays = enabled && (flip_client_stays(client) ||
+        (srv_->flip_stage() == FlipStage::IoDrain &&
+         srv_->flip_candidate_target(self_->id()) != Role::Ex && flip_immovable_kind(client)));
+    if (coordinator)
+        return client->rob().in_flight() == 1 &&
+               (stays || (post ? !client->flip_borrowed_output() :
+                !client->send_inflight() && !client->serve_pending() && client->nothing_to_write()));
+    if (stays) return client->flip_stationary_idle();
+    return post ? client->flip_execution_idle() : client->flip_drain_idle();
+}
+
+bool IoLoop::flip_timers_drained() const {
+    if (deferred_timers_.empty()) return true;
+    if (!flip_liveness_enabled() || srv_->flip_candidate_target(self_->id()) == Role::Ex) return false;
+    for (const auto& timer : deferred_timers_)
+        if (timer.kind != DeferredTimerKind::WaitZero || !timer.client->flip_stationary_idle())
+            return false;
+    return true;
+}
+
+void IoLoop::flip_skip_stayers() {
+    if (!flip_liveness_enabled()) { flip_skipped_local_ = 0; return; }
+    if (flip_skip_epoch_ == srv_->flip_epoch()) return;
+    flip_skip_epoch_ = srv_->flip_epoch();
+    flip_skipped_local_ = 0;
+    for (uint32_t i = 0, n = srv_->flip_source_clients(self_->id()); i < n; ++i) {
+        Client* client = srv_->flip_client_at(self_->id(), i);
+        if (!std::binary_search(flip_stayers_.begin(), flip_stayers_.end(), client,
+                                std::less<Client*>{})) continue;
+        if (srv_->flip_candidate_target(self_->id()) == Role::Ex) std::abort();
+        srv_->flip_drop_planned_client(self_->id(), srv_->flip_client_destination(self_->id(), i), true);
+        srv_->flip_forget_planned_client(self_->id(), i);
+        ++flip_skipped_local_;
+    }
+}
+
+bool IoLoop::flip_client_stays(const Client* client) const {
+    return flip_stay_epoch_ == srv_->flip_epoch() &&
+        std::binary_search(flip_stayers_.begin(), flip_stayers_.end(), client,
+                           std::less<const Client*>{});
+}
+
+bool Server::flip_blocked_dispatch_allowed(uint32_t tid) const {
+    const auto stage = flip_stage();
+    if (stage < FlipStage::IoDrain || !flip_liveness_enabled()) return true;
+    return stage == FlipStage::IoDrain && !flip_acked(tid, stage);
+}
+
+void IoLoop::flip_borrow_hold() {
+    if (flip_borrow_held_) std::abort();
+    flip_borrow_held_ = true;
+    wb_.bind_release(this, [](void* context, int32_t shard, const char* ptr) {
+        static_cast<IoLoop*>(context)->flip_borrow_releases_.push_back({shard, ptr});
+    });
+}
+
+void IoLoop::flip_borrow_release() {
+    if (!flip_borrow_held_) return;
+    wb_.bind_release(this, [](void* context, int32_t shard, const char* ptr) {
+        static_cast<IoLoop*>(context)->queue_borrow_release(shard, ptr);
+    });
+    flip_borrow_held_ = false;
+    for (const BorrowRelease& release : flip_borrow_releases_)
+        queue_borrow_release(release.shard, release.ptr);
+    flip_borrow_releases_.clear();
+}
+
+void IoLoop::flip_borrow_resume() {
+    if (!flip_borrow_held_ || srv_->flip_stage() != FlipStage::ExInstall ||
+        !srv_->flip_all_role_acked(Role::Ex, FlipStage::ExInstall)) return;
+    // All consumers have installed their final masks. This runs before the
+    // existing listener-admission acknowledgement on EVERY surviving IO, so
+    // Idle (and the next FLIP) cannot overtake a deferred release callback.
+    // Shard storage and its borrow metadata moved together; route by the new map.
+    flip_borrow_release();
 }
