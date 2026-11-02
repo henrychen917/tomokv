@@ -107,6 +107,15 @@ struct FlatStoreRegressionTest {
     static bool capturing_record(const FlatStore& s, const KvObj* o) {
         return s.snapshot_record_.active && s.snapshot_record_.value.object == o;
     }
+    static ReadLocalRetireSink retire_sink(const FlatStore& s) {
+        return s.read_local_store_state_required().retire_sink;
+    }
+    static uint32_t first_random_slot(FlatStore& s) {
+        s.random_state_ = 1;
+        const uint32_t slot = s.next_random() % s.capacity();
+        s.random_state_ = 1;
+        return slot;
+    }
     static uint32_t field_index_size(const FlatStore& s) { return s.field_expires_.size(); }
 };
 } // namespace tomo
@@ -214,7 +223,59 @@ static void unlinked() {
     }
 }
 
+// The same resumable sampler called by the production scatter Kind::RandomKey.
+static KvObj* randomkey_result(FlatStore& store, bool census = false) {
+    FlatStore::RandomKeyCursor sample;
+    for (unsigned turn = 0; turn < 10000; ++turn) {
+        if (!store.random_live(sample, 0, census)) continue;
+        if (!sample.seen) return nullptr;
+        Slice key(sample.key);
+        auto* object = store.find(FlatStore::hash_key(key), key);
+        require(object != nullptr, "RANDOMKEY must not return a logically invisible key");
+        return object;
+    }
+    require(false, "RANDOMKEY exhausted bounded owner turns");
+    return nullptr;
+}
+
 static void randomkey() {
+    for (bool census : {false, true}) {
+        struct FullRing { bool full = true; unsigned checks = 0; } ring;
+        FlatStore s; arm(s, true); s.set_cached_now_ms(100);
+        const auto key = keys_at_slots(FlatStoreRegressionTest::cap(s),
+            FlatStoreRegressionTest::first_random_slot(s), 1, "full-ring-").front();
+        KvObj* old = put(s, key, "expired", 200);
+        auto sink = FlatStoreRegressionTest::retire_sink(s);
+        sink.context = &ring;
+        sink.available = [](void* context) {
+            auto& ring = *static_cast<FullRing*>(context);
+            ++ring.checks;
+            return !ring.full;
+        };
+        sink.defer = [](void* context, void* owner, void* payload, size_t bytes,
+                        ReadLocalRetireSink::ReclaimFn reclaim) {
+            require(!static_cast<FullRing*>(context)->full,
+                    "RANDOMKEY entered a full retirement sink");
+            reclaim(owner, payload, bytes);
+        };
+        s.rebind_read_local_retire_sink(sink);
+        const auto before = s.object_bytes();
+        const auto notices = notifications;
+        const auto records = deletes.size();
+        s.set_cached_now_ms(201);
+        require(randomkey_result(s, census) == nullptr, "full-ring expiry is logically absent");
+        require(ring.checks != 0, "full-ring availability window fired");
+        require(s.size() == 1 && s.object_bytes() == before &&
+                s.find_resident(hash(key), slice(key)) == old,
+                "full-ring read retains the physical object");
+        require(notifications == notices && deletes.size() == records,
+                "deferred expiry emits no premature notification or AOF delete");
+        ring.full = false;
+        require(randomkey_result(s, census) == nullptr && s.size() == 0,
+                "expiry completes when retirement becomes available");
+        require(notifications == notices + 1 && deletes.size() == records + 1,
+                "eventual physical expiry emits exactly once");
+    }
     for (bool armed : {false, true}) {
         {
             FlatStore s; arm(s, armed); s.set_cached_now_ms(100);
@@ -225,7 +286,7 @@ static void randomkey() {
             s.snapshot_progress(1, 2048);
             require(FlatStoreRegressionTest::capturing_record(s, o), "record held partway through serialization");
             const size_t before = s.object_bytes(); s.set_cached_now_ms(201);
-            require(s.random_live() == nullptr, "RANDOMKEY logically excludes expired snapshot key");
+            require(randomkey_result(s) == nullptr, "RANDOMKEY logically excludes expired snapshot key");
             require(s.size() == 1 && s.object_bytes() == before &&
                     s.find_resident(hash("snapshot-ttl"), slice(std::string("snapshot-ttl"))) == o,
                     "RANDOMKEY retains serializer's object");
@@ -240,14 +301,14 @@ static void randomkey() {
             KvObj* value = string_object("private"); require(s.atomic_admit(slice(g.state.keys[0]), value), "admit private key");
             g.install(s, 0, value); g.publish(s);
             require(s.size() == 1 && g.epoch.load() == 0, "fresh undecided physical candidate");
-            require(s.random_live() == nullptr, "RANDOMKEY hides undecided candidate"); g.finish(s);
-            require(s.random_live() == value, "RANDOMKEY sees committed candidate");
+            require(randomkey_result(s) == nullptr, "RANDOMKEY hides undecided candidate"); g.finish(s);
+            require(randomkey_result(s) == value, "RANDOMKEY sees committed candidate");
         }
         {
             Group g({"deleted"}); FlatStore s; arm(s, armed); KvObj* old = put(s, "deleted");
             g.prepare(s); g.install(s, 0, nullptr); g.publish(s);
             require(s.size() == 0 && s.atomic_pending_entries() == 1, "only visible key is parked");
-            require(s.random_live() == old, "RANDOMKEY samples parked predecessor"); g.finish(s, true);
+            require(randomkey_result(s) == old, "RANDOMKEY samples parked predecessor"); g.finish(s, true);
         }
     }
 }

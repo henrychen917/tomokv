@@ -3290,12 +3290,6 @@ void cmd_flush(Shard& sh, Op& op) {
     sh.publish_size();
 }
 
-void cmd_randomkey(Shard& sh, Op& op) {
-    KvObj* obj = sh.store().random_live();
-    if (!obj) reply_null(op.sink(), op.resp3());
-    else reply_bulk(op.sink(), obj->key());
-}
-
 const char* object_type(const KvObj* obj) {
     switch (static_cast<Type>(obj->type)) {
         case Type::String: return "string";
@@ -3417,7 +3411,7 @@ static const CommandSpec kTable[] = {
     {"DBSIZE",     1,  2, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_dbsize,     0,  0, 0},
     {"FLUSHALL",   1,  2, CmdFlags::Write | CmdFlags::Admin | CmdFlags::AllShards,cmd_flush,      0,  0, 0},
     {"FLUSHDB",    1,  2, CmdFlags::Write | CmdFlags::Admin | CmdFlags::AllShards,cmd_flush,      0,  0, 0},
-    {"RANDOMKEY",  1,  1, CmdFlags::Readonly | CmdFlags::AllShards,               cmd_randomkey,  0,  0, 0},
+    {"RANDOMKEY",  1,  1, CmdFlags::Readonly | CmdFlags::AllShards,               cmd_xshard_only,  0,  0, 0},
     {"SCAN",       2, -1, CmdFlags::Readonly | CmdFlags::CursorShard,             cmd_scan,       0,  0, 0},
     {"KEYS",       2,  2, CmdFlags::Readonly | CmdFlags::Admin | CmdFlags::MultiShard,cmd_xshard_only,0,0,0},
     {"SORT",       2, -1, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,cmd_xshard_only,1,1,1},

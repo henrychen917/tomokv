@@ -1889,48 +1889,7 @@ public:
         field_ttl_index_incomplete_ = false;
     }
 
-    // RANDOMKEY starts from an owner-private draw, independent of the IO-side draw that selected
-    // this shard. Reusing that routing draw correlates its low bits with the shard id and leaves
-    // physical-slot residue classes unreachable when table capacities are powers of two. Reservoir
-    // selection across the one wrapped walk keeps adjacent live slots from inheriting a tiny share
-    // of a sparse table's probability. Resolve the owner's read cut before sampling, including
-    // predecessors whose candidate is a physical deletion. Frozen snapshot objects stay resident.
-    KvObj* random_live() {
-        const bool paused = client_pause_expiry_held();
-        struct ExpiryClock {
-            int64_t& clock;
-            int64_t saved;
-            ~ExpiryClock() { clock = saved; }
-        } expiry_clock{cached_now_ms_, cached_now_ms_};
-        if (paused) cached_now_ms_ = -1;
-        const uint64_t total = static_cast<uint64_t>(cap_[0]) + cap_[1];
-        if (!total) return nullptr;
-        const uint64_t start_pos = next_random() % total;
-        KvObj* chosen = nullptr;
-        uint64_t live_seen = 0;
-        for (uint64_t step = 0; step < total; step++) {
-            uint64_t pos = start_pos + step;
-            if (pos >= total) pos -= total;
-            const int t = pos < cap_[0] ? 0 : 1;
-            const uint32_t slot = static_cast<uint32_t>(pos - (t ? cap_[0] : 0));
-            KvObj* o = ptr_of(tab_[t][slot]);
-            if (!o) continue;
-            const uint64_t h = hash_key(o->key());
-            if (atomic_pending_ && atomic_pending_->live) {
-                o = atomic_resolve(h, o->key(), atomic_read_epoch_);
-            } else if (!paused) {
-                if (deadline_elapsed(h, o, cached_now_ms_) && !(snapshot_active_ && t == 1))
-                    notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, o->key());
-                o = live_or_expire(t, h, o->key(), o);
-            }
-            if (o && next_random() % ++live_seen == 0) chosen = o;
-        }
-        atomic_for_each_side_key(atomic_read_epoch_, [&](Slice key) {
-            KvObj* o = atomic_resolve(hash_key(key), key, atomic_read_epoch_);
-            if (o && next_random() % ++live_seen == 0) chosen = o;
-        });
-        return chosen;
-    }
+    #include "flatstore_random.inc"
 
     // The cursor is a bit-reversed HOME index (see scan_cursor_next above), not a physical slot and
     // not a table selector -- there is nothing left in it that a resize can invalidate. One step
@@ -2619,6 +2578,9 @@ private:
             // Report the key logically absent but leave its slot for snapshot traversal, just
             // like find()/active_expire().  KEYS uses this bounded scan while capture runs.
             if (snapshot_active_ && t == 1) return;
+            // Logical expiry remains absent while a reader holds up reclamation.
+            // A scan must not enter the full retire ring's grace-period wait.
+            if (!read_retirement_available()) return;
             notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, o->key());
             (void)aof_.record_delete(o->key());
             erase_in(t, h, o->key());
