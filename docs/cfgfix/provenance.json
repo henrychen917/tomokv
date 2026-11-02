@@ -2,7 +2,7 @@
   "/home/user/Projects/redis/src/redis-server": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
   "/home/user/Projects/redis/src/config.c": "8f1f6b0b27ca4753b75b41ba2b74529944373d49e72ff963090fff28f49af1af",
   "tests/gate.sh": "630e05493c2b9c2b204475fac4a1780931945e5695a98a73adbb58f24f62492c",
-  "tests/cfgfix.py": "ff300dc3e76d3eb436fc6548d6e675e6e90f5854a00a1b714536b62b198fe5c4",
+  "tests/cfgfix.py": "36c286321a71ac271c81e11bd5f9e0ac8f9aaecca661e35a18965130a129c621",
   "tests/redis_tcl_passing.json": "e5061161be43bc74dfdd707cc68f269842df2086cbf0ec3dec82afb61d67d020",
   "docs/cfgfix/merit.cells.txt": "9ad88eb5d0afb0e8619be9adc5135e30691376f85b98292317b48a70bf479ed1",
   "Makefile": "4c0d28b5a015c882c104efe1d1e4da9119bdc508dfe24a0585ac4331ae9e6cf5",

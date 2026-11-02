@@ -724,6 +724,81 @@
       "SET",
       "maxmemory",
       "12345678",
+      "bind",
+      "127.0.0.2"
+    ],
+    {
+      "error": "ERR CONFIG SET failed (possibly related to argument 'bind') - Failed to bind to specified addresses."
+    }
+  ],
+  [
+    [
+      "CONFIG",
+      "GET",
+      "maxmemory",
+      "bind"
+    ],
+    [
+      [
+        "bind",
+        "127.0.0.1"
+      ],
+      [
+        "maxmemory",
+        "0"
+      ]
+    ]
+  ],
+  [
+    [
+      "CONFIG",
+      "SET",
+      "bind",
+      "127.0.0.2"
+    ],
+    "OK"
+  ],
+  [
+    [
+      "CONFIG",
+      "GET",
+      "bind"
+    ],
+    [
+      [
+        "bind",
+        "127.0.0.2"
+      ]
+    ]
+  ],
+  [
+    [
+      "CONFIG",
+      "SET",
+      "bind",
+      "127.0.0.1"
+    ],
+    "OK"
+  ],
+  [
+    [
+      "CONFIG",
+      "GET",
+      "bind"
+    ],
+    [
+      [
+        "bind",
+        "127.0.0.1"
+      ]
+    ]
+  ],
+  [
+    [
+      "CONFIG",
+      "SET",
+      "maxmemory",
+      "12345678",
       "appendonly",
       "yes",
       "port",
