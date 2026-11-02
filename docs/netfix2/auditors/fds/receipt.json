@@ -2,7 +2,7 @@
   {
     "source": "/home/user/Projects/round5-read/tests/net/netlib.py",
     "source_sha256": "7709080e3b5f4a04b138026f3f53794c4f811c2acb50caa80b80e39c3c2e857f",
-    "adapted_sha256": "766feedfb56520ef79ead24f50d3b2c5679766b11b98d44d717e51b049d2a18b"
+    "adapted_sha256": "efb873c6d4850290995aed664dcb66aaa607a4b411a45bdfbb4d122079201dea"
   },
   {
     "source": "/home/user/Projects/round5-read/tests/net/t12_maxclients_fdlimit.py",
@@ -26,7 +26,7 @@
       "-c",
       "8-15",
       "python3",
-      "/home/user/Projects/cx-netfix2/build/netfix2/auditors/fds/t12_maxclients_fdlimit.py"
+      "/home/user/Projects/cx-netfix2/build/netfix2/final-auditors/fds/t12_maxclients_fdlimit.py"
     ],
     "exit": 0
   },
@@ -37,7 +37,7 @@
       "-c",
       "8-15",
       "python3",
-      "/home/user/Projects/cx-netfix2/build/netfix2/auditors/fds/t12b_fd_reserve.py"
+      "/home/user/Projects/cx-netfix2/build/netfix2/final-auditors/fds/t12b_fd_reserve.py"
     ],
     "exit": 0
   },
@@ -48,7 +48,7 @@
       "-c",
       "8-15",
       "python3",
-      "/home/user/Projects/cx-netfix2/build/netfix2/auditors/fds/t12c_fd_reserve_hang.py"
+      "/home/user/Projects/cx-netfix2/build/netfix2/final-auditors/fds/t12c_fd_reserve_hang.py"
     ],
     "exit": 0
   }

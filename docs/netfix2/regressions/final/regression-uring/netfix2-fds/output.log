@@ -1,0 +1,2 @@
+  row budget: 900s; median=6.98s; correctness-plan-fallback; netfix2 fds
+  netfix2 fds                                          ok

@@ -1,0 +1,4 @@
+ok	1.360000	zc borrow battery
+ok	0.020000	zc fired (zc_sends=N)
+ok	1.390000	zc borrow battery under ASAN
+ok	0.020000	zc ASAN clean

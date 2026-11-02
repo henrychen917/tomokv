@@ -1,0 +1,8 @@
+  row budget: 900s; median=0.33s; correctness-plan-fallback; NET1 inline + query cap (1s, uring)
+  NET1 inline + query cap (1s, uring)                  ok
+  row budget: 900s; median=0.31s; correctness-plan-fallback; NET1 inline + query cap (1s, epoll)
+  NET1 inline + query cap (1s, epoll)                  ok
+  row budget: 900s; median=0.31s; correctness-plan-fallback; NET1 inline + query cap (2s, uring)
+  NET1 inline + query cap (2s, uring)                  ok
+  row budget: 900s; median=0.34s; correctness-plan-fallback; NET1 inline + query cap (2s, epoll)
+  NET1 inline + query cap (2s, epoll)                  ok

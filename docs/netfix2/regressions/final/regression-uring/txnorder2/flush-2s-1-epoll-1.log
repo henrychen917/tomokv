@@ -1,0 +1,16 @@
+PASS FLUSHDB () absent [b'PONG']
+PASS FLUSHDB () present None
+PASS FLUSHDB ('SYNC',) absent [b'PONG']
+PASS FLUSHDB ('SYNC',) present None
+PASS FLUSHDB ('ASYNC',) absent [b'PONG']
+PASS FLUSHDB ('ASYNC',) present None
+PASS FLUSHALL () absent [b'PONG']
+PASS FLUSHALL () present None
+PASS FLUSHALL ('SYNC',) absent [b'PONG']
+PASS FLUSHALL ('SYNC',) present None
+PASS FLUSHALL ('ASYNC',) absent [b'PONG']
+PASS FLUSHALL ('ASYNC',) present None
+PASS FLUSHDB key expired before WATCH [b'PONG']
+PASS FLUSHDB key expires after WATCH None
+PASS FLUSHALL key expired before WATCH [b'PONG']
+PASS FLUSHALL key expires after WATCH None

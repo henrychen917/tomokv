@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/zc.py", line 25, in <module>
+    w = conn(); wf = w.makefile("rb")
+        ^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/zc.py", line 7, in conn
+    s = socket.create_connection((HOST, PORT), timeout=60)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "/usr/lib/python3.12/socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 111] Connection refused

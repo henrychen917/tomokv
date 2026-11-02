@@ -75,6 +75,10 @@ int main() {
             link = arms / namespace
             if link.is_symlink(): link.unlink()
             link.symlink_to(binary)
+            # Frozen production objects and the compile/link receipts suffice
+            # to regenerate these temporary fixture/linker copies.
+            for name in ('probe.o', 'original-main.o'):
+                (binary.parent / name).unlink()
         dest = DOC / arm
         dest.mkdir(exist_ok=True)
         candidate = ROOT / 'build/netfix2' / arm

@@ -1,0 +1,17 @@
+GATE(quick): PARTIAL correctness: 8 physical CPUs, one slot with 8 server threads at ratio 6:2, shared client CPUs; no rates or receipt
+  artifacts: /home/user/Projects/cx-netfix2/build/gate-run.KYRzMr
+PARTIAL jobs (including prerequisites): release netfix2-tls-watch netfix2-exclusive netfix2-fds netfix2-tls-idle netfix2-boot
+PARTIAL jobs (including prerequisites): release netfix2-tls-watch netfix2-exclusive netfix2-fds netfix2-tls-idle netfix2-boot
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=2.65s; correctness-plan-fallback; netfix2 tls-watch
+  netfix2 tls-watch                                    ok
+  row budget: 900s; median=2.535s; correctness-plan-fallback; netfix2 exclusive
+  netfix2 exclusive                                    ok
+  row budget: 900s; median=7.13s; correctness-plan-fallback; netfix2 fds
+  netfix2 fds                                          ok
+  row budget: 900s; median=33.9s; correctness-plan-fallback; netfix2 tls-idle
+  netfix2 tls-idle                                     ok
+  row budget: 900s; median=3.52s; correctness-plan-fallback; netfix2 boot
+  netfix2 boot                                         ok
+GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-netfix2/build/gate-run.KYRzMr/ledger.partial

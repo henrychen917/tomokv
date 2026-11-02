@@ -1,0 +1,2 @@
+  row budget: 900s; median=6.09s; correctness-plan-fallback; writeback policies 0/1: 22 standard fixtures
+  writeback policies 0/1: 22 standard fixtures         ok

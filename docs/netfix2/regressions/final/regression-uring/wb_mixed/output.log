@@ -1,0 +1,8 @@
+  row budget: 900s; median=12.34s; correctness-plan-fallback; writeback mixed replies and live knob bounds (1s, epoll)
+  writeback mixed replies and live knob bounds (1s, epoll) ok
+  row budget: 900s; median=12.31s; correctness-plan-fallback; writeback mixed replies and live knob bounds (1s, uring)
+  writeback mixed replies and live knob bounds (1s, uring) ok
+  row budget: 900s; median=12.54s; correctness-plan-fallback; writeback mixed replies and live knob bounds (2s, epoll)
+  writeback mixed replies and live knob bounds (2s, epoll) ok
+  row budget: 900s; median=12.56s; correctness-plan-fallback; writeback mixed replies and live knob bounds (2s, uring)
+  writeback mixed replies and live knob bounds (2s, uring) ok

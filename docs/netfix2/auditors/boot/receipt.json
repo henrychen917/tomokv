@@ -2,7 +2,7 @@
   {
     "source": "/home/user/Projects/round5-read/tests/io-loop/resp.py",
     "source_sha256": "b6925c67ee19a29fd3d3120ddd08698e56973cddfdf65a324f2d71f8dc578e5b",
-    "adapted_sha256": "c3c40fe6967701abf54cdbad06e6fb2684ed2a2118ad1142ba672796bc9a98c0"
+    "adapted_sha256": "51fef06f4b4ce288c1aa428b4b0e78b8847d3bb38dd151e4ed448be8e144e8c7"
   },
   {
     "source": "/home/user/Projects/round5-read/tests/io-loop/t02_aof_bind_failure.py",
@@ -12,7 +12,7 @@
   {
     "source": "/home/user/Projects/round5-read/tests/io-loop/t02b_aof_bind_banner.sh",
     "source_sha256": "234de4e9ae3275fe60dc899a31c453b48cae30bcc3327fe29a5a176b1392ea66",
-    "adapted_sha256": "c14bb7760bb274f8a94fb9eec0843fcce6dc42dda356804d587af85a8abb2d30"
+    "adapted_sha256": "aacceffd1fb9a419b75fb2fa74320117c95f3e4ca36ec5bb91e21efc47a58766"
   },
   {
     "source": "/home/user/Projects/round5-read/tests/io-loop/t03_banner_race.py",
@@ -26,7 +26,7 @@
       "-c",
       "8-15",
       "python3",
-      "/home/user/Projects/cx-netfix2/build/netfix2/audit-extra-boot/t02_aof_bind_failure.py"
+      "/home/user/Projects/cx-netfix2/build/netfix2/final-auditors/boot/t02_aof_bind_failure.py"
     ],
     "exit": 0
   },
@@ -37,7 +37,7 @@
       "-c",
       "8-15",
       "bash",
-      "/home/user/Projects/cx-netfix2/build/netfix2/audit-extra-boot/t02b_aof_bind_banner.sh"
+      "/home/user/Projects/cx-netfix2/build/netfix2/final-auditors/boot/t02b_aof_bind_banner.sh"
     ],
     "exit": 0
   },
@@ -48,7 +48,7 @@
       "-c",
       "8-15",
       "python3",
-      "/home/user/Projects/cx-netfix2/build/netfix2/audit-extra-boot/t03_banner_race.py"
+      "/home/user/Projects/cx-netfix2/build/netfix2/final-auditors/boot/t03_banner_race.py"
     ],
     "exit": 0
   }

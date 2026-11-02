@@ -1,0 +1,3 @@
+Redis 7.4.10: 148/148 exact bytes + connection states
+TomoKV: 148/148 exact bytes + connection states
+decoded-key read-local witness: 117 hits

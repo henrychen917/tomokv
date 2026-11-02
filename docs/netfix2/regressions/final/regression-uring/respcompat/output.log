@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; correctness-plan-fallback; RESP protocol error compatibility
+  RESP protocol error compatibility                    ok

@@ -7,6 +7,11 @@ structure layout changed. Correctness work uses CPUs 8–15, ports 21100–21199
 `LC_ALL=C`, eight-thread 16-shard 6:2 split geometry unless an original auditor
 test explicitly chooses another geometry. No throughput measurement was run.
 
+The requested S1 witnesses pass. **The broader proof is not entirely green:**
+existing EOF/retirement and INFO error-stat diagnostics fail on PRE and POST,
+and one CLIENT KILL count mismatch did not reproduce in bounded repeats.
+Those results are retained below; they are not waived or represented as passes.
+
 ### Directed witnesses
 
 The five `netfix2-*` gate jobs each cover 1s/2s × uring/epoll × databases 1/16.
@@ -167,8 +172,8 @@ exercised with real process-local EMFILE on both engines.
 exit (`tests/gate.sh`, collection line 6605; quick exit line 6849).
 The base constants are 1046/1063, so the maintainer's new counts should be
 1051/1068. `EXPECT_QUICK` and `EXPECT_FULL` were not edited. The maxclients Tcl
-promotion adds six assertions per mode/engine/namespace inside the existing
-Tcl job, not another public row.
+promotion adds six directed checks per mode/engine/namespace, plus a restore
+check, inside the existing Tcl job, not another public row.
 
 The standard gate planner requires disjoint server/load CPU sets, unavailable
 inside this lane's eight-CPU allocation. Its explicit
@@ -181,6 +186,13 @@ The first io_uring equivalence invocation rejected CPU overlap before boot; its
 corrected selected-job rerun is reported separately. Partial ledgers are reported
 as partial.
 
+The standard Redis differential suites completed four legs per engine:
+938 comparison rows on io_uring and 938 on epoll, **1,876 total with zero
+differences**. Permanent seeds were 7, 19, 20 and 23, with rotating seed 21
+on io_uring and 22 on epoll. Mode equivalence passed all 16 cells on each
+engine; the corrected io_uring selected-job rerun took 21.67 seconds and
+replaces only the earlier pre-boot CPU-plan rejection.
+
 The pre-existing epoll closed-blocking-pipeline retirement check (`netio.py`
 F5) remains intermittent: four bounded repeats failed in 3/4 PRE runs and
 1/4 POST runs, in either mode. These are correctness incidences, not rates or
@@ -189,8 +201,76 @@ LIST after peer closure. The [unchanged PRE/POST logs](docs/netfix2/regressions/
 are retained; this row is not reported green or suppressed. It lies outside the
 five audited mechanisms fixed by this lane.
 
+Final partial-ledger counts follow. The first batch contains jobs that enumerate
+both engines themselves; the epoll batch repeats the environment-selected jobs.
+These counts include prerequisites and optional diagnostics, not a full-gate
+landing inventory. [Raw ledgers and job logs](docs/netfix2/regressions/final).
+
+| Selection | Passing / failing collected rows | Result |
+| --- | ---: | --- |
+| Main batch, 102 jobs | 360 / 21 | Failures classified below; original ledger retained. |
+| Epoll follow-up, 13 jobs | 62 / 2 | Both failures came from one ASAN boot refused by the quiet-CPU preflight. |
+| [Core units + corrected Unix/transaction jobs](docs/netfix2/regressions/core-units) | 27 / 0 | ASAN/UBSAN and TSAN core checks, Unix pathname cases, all transaction WATCH rows pass. |
+| [Epoll split zero-copy rerun](docs/netfix2/regressions/zc-epoll-rerun) | 6 / 0 | Quiet preflight unchanged; ordinary and ASAN borrow batteries pass. |
+| Fused TLS/zero-copy/reply suppression, each engine | 28 / 0 each | Both selections pass, including ASAN. |
+| Five witnesses with fused reorder enabled | 6 / 0 | Both engines and namespaces pass; engagement checked. |
+| Common-image POST-layout | 6 / 0 | All five S1 witnesses pass. |
+| Common-image PAD-A | 1 / 5 | All five S1 witnesses fail as required; release prerequisite passes. |
+
+Three setup problems in the main batch are accounted for explicitly. The
+legacy Unix adapter omitted the new helper's `reorder` setting; it now supplies
+zero and passes all 20 pathname cases. Fifteen transaction rows could not find
+native units beside the frozen POST copy; all 16 transaction rows pass using
+`build/tomokv`, verified byte-identical to POST, beside the matching production
+units. The native EOF diagnostic initially lacked its required fixture directory;
+the fixtures are now built from each arm's own headers and production objects.
+Its valid PRE/POST results remain failures, as described below. The earlier
+io_uring equivalence setup rejection and the epoll ASAN preflight refusal also
+have passing reruns. No original failed ledger was rewritten.
+
+The [optional PRE/POST diagnostics](docs/netfix2/regressions/optional-diagnostics)
+each collect 1 passing prerequisite and 4 failed diagnostic rows:
+
+| Existing diagnostic | PRE | POST | Residual |
+| --- | --- | --- | --- |
+| Native epoll coalesced EOF | 4 open-peer controls pass; 4 EOF checks fail. | Same, both modes/namespaces. | A short read sharing EPOLLRDHUP can lose the parked client's teardown edge; consistent with F5. |
+| Accepted input followed by FIN | Redis 5/5; TomoKV 18 truncated-input cases and 1 retirement timeout out of 40. | Redis 5/5; TomoKV 15 truncated-input cases out of 40. | Input sent before FIN can be discarded before execution. These finite incidences are not an improvement claim. |
+| INFO error statistics | 56 failed counter checks. | Same 56 failed checks. | Missing total/prefix error counters; INFO belongs to cfgfix2. |
+
+The native EOF fixture keeps the original assertions and runs each case in a
+fresh child so the first failure cannot hide the other mode. The EOF defects
+are outside the five requested mechanisms. A separate fix must preserve EOF
+state through a short read and drain already accepted input/operations before
+retiring a half-closed client; this lane does not change that lifetime algorithm.
+
+The main batch's CLIENT KILL failure was `5` killed versus `4` expected in the
+first iteration of `1s-uring-db1-a1-r0`. The server accepted six connections,
+including the readiness probe. That suggests a fixture boundary issue but does
+not establish the cause. [Four unchanged PRE and four unchanged POST repeats](docs/netfix2/regressions/disconnect-repeats)
+all pass. The initial observation remains unresolved and is retained with its
+exact failed leg and server log; it is not classified as a proven baseline issue.
+
+Tcl passes in all four mode/engine runs: each has 37 manifest files, 39 validated
+rows including two isolated cases, and 1,876 passing assertions with zero
+unexpected failures. Each retains the existing five named setup diagnostics
+and 431 skips. The manifest was unchanged. The new maxclients Tcl checks pass
+in all eight mode/engine/namespace configurations, repeated by both engine
+selections. The earlier pre-R7 Tcl socket-bind setup failures also cleared on
+these complete reruns.
+
+`python3 tests/gates_test.py` passes 78/78; gateplan and mode-equivalence helper
+self-tests pass. `make all` and every `job_production_units` target build;
+[all 60 final freshness checks](docs/netfix2/production-freshness.json) return zero.
+Locked layouts remain unchanged. Final build usage is `14G` by `du -sh`
+(14,884,536,320 allocated bytes): completed test executables had debug
+information stripped with identical `.text`, and large
+completed test data/objdumps were losslessly compressed with verified hashes.
+The four frozen arm hashes remain unchanged; [final checks](docs/netfix2/final-checks.json)
+record their verification and the unchanged production source tree.
+
 The reproducible selected-job driver is
-[`tools/netfix2_proof.sh`](tools/netfix2_proof.sh). Broader job ledgers, Tcl and
-differential results, production target freshness, and the final disk size
-will be appended after those checks finish. Current completed harness check:
-`python3 tests/gates_test.py`: 78/78 tests pass; gateplan self-tests pass.
+[`tools/netfix2_proof.sh`](tools/netfix2_proof.sh); native EOF and optional
+diagnostic controls are prepared by
+[`tools/netfix2_diagnostics.py`](tools/netfix2_diagnostics.py). The driver verifies
+that the colocated production binary equals frozen POST before using its units.
+No performance benchmark, load generator, full iteration, push, or merge was run.

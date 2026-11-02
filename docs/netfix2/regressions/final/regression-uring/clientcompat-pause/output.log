@@ -1,0 +1,2 @@
+  row budget: 900s; median=208.21s; correctness-plan-fallback; clientcompat pause
+  clientcompat pause                                   ok

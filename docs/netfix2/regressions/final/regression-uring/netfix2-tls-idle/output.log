@@ -1,0 +1,2 @@
+  row budget: 900s; median=34.03s; correctness-plan-fallback; netfix2 tls-idle
+  netfix2 tls-idle                                     ok

@@ -1,0 +1,10 @@
+{"command": ["taskset", "-c", "8-15", "/home/user/Projects/cx-netfix2/build/netfix2/POST", "--bind", "127.0.0.1", "--port", "21100", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-netfix2/build/clientfix/runtime/clientfix-p6y2jqpx", "--databases", "1", "--shards", "16", "--thread-mode", "2s", "--read-local", "0", "--atomic", "0", "--flip-auto", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "lifecycle": "start", "load": "19.09 15.34 12.75 8/3602 2142832", "pid": 2142832}
+{"case": "tracking-cap", "invalidated": 1100, "missing": 0, "sample": [], "tracked": 1100}
+{"exit": 0, "lifecycle": "stop", "load": "19.09 15.34 12.75 10/3601 2143381", "pid": 2142832}
+{"command": ["taskset", "-c", "8-15", "/home/user/Projects/cx-netfix2/build/netfix2/POST", "--bind", "127.0.0.1", "--port", "21100", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-netfix2/build/clientfix/runtime/clientfix-xmm4ja45", "--databases", "1", "--shards", "16", "--thread-mode", "2s", "--read-local", "0", "--atomic", "1", "--flip-auto", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "lifecycle": "start", "load": "19.09 15.34 12.75 13/3601 2143444", "pid": 2143443}
+{"case": "tracking-cap", "invalidated": 1100, "missing": 0, "sample": [], "tracked": 1100}
+{"exit": 0, "lifecycle": "stop", "load": "19.09 15.34 12.75 14/3601 2144482", "pid": 2143443}
+{"command": ["taskset", "-c", "8-15", "/home/user/Projects/cx-netfix2/build/netfix2/POST", "--bind", "127.0.0.1", "--port", "21100", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-netfix2/build/clientfix/runtime/clientfix-j1otiebf", "--databases", "1", "--shards", "16", "--thread-mode", "2s", "--read-local", "1", "--atomic", "1", "--flip-auto", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "lifecycle": "start", "load": "19.09 15.34 12.75 13/3602 2144495", "pid": 2144495}
+{"case": "tracking-cap", "invalidated": 1100, "missing": 0, "sample": [], "tracked": 1100}
+{"exit": 0, "lifecycle": "stop", "load": "18.52 15.29 12.74 29/3633 2145411", "pid": 2144495}
+{"axes": [[0, 0], [1, 0], [1, 1]], "case": "tracking-cap", "mode": "2s", "result": "PASS"}

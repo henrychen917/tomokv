@@ -1,0 +1,10 @@
+  row budget: 900s; median=1.35s; correctness-plan-fallback; zc borrow battery
+  zc borrow battery                                    ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; zc fired (zc_sends=N)
+  zc fired (zc_sends=20)                               ok
+boot preflight: cores/port not quiet: quietcheck: assigned cores busy: cpu13=80%
+  zc ASAN boot                                         FAIL
+  row budget: 900s; median=1.4s; correctness-plan-fallback; zc borrow battery under ASAN
+  zc borrow battery under ASAN                         FAIL
+  row budget: 900s; median=0.02s; correctness-plan-fallback; zc ASAN clean
+  zc ASAN clean                                        ok

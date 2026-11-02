@@ -1,0 +1,4 @@
+ok	1.380000	inline quoted argument decoding (1s, epoll)
+ok	1.380000	inline quoted argument decoding (1s, uring)
+ok	1.380000	inline quoted argument decoding (2s, epoll)
+ok	1.380000	inline quoted argument decoding (2s, uring)

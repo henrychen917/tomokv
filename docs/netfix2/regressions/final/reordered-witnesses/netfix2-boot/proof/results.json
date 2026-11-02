@@ -1,0 +1,6 @@
+{
+  "boot-1s-uring-db1": "AOF and elected-writer bind failures exit 1 without ready banner; 5/5 immediate banner connects",
+  "boot-1s-uring-db16": "AOF and elected-writer bind failures exit 1 without ready banner; 5/5 immediate banner connects",
+  "boot-1s-epoll-db1": "AOF and elected-writer bind failures exit 1 without ready banner; 5/5 immediate banner connects",
+  "boot-1s-epoll-db16": "AOF and elected-writer bind failures exit 1 without ready banner; 5/5 immediate banner connects"
+}

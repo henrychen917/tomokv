@@ -1,0 +1,8 @@
+  row budget: 900s; median=4.17s; correctness-plan-fallback; pubtrackfix TRACK-BCAST-BATCH
+  pubtrackfix TRACK-BCAST-BATCH                        ok
+  row budget: 900s; median=12.35s; correctness-plan-fallback; pubtrackfix PUBSUB-REPLY-OFF-PUSH
+  pubtrackfix PUBSUB-REPLY-OFF-PUSH                    ok
+  row budget: 900s; median=8.9s; correctness-plan-fallback; pubtrackfix PUBSUB-IMPLICIT-CONSUMER-EVENT
+  pubtrackfix PUBSUB-IMPLICIT-CONSUMER-EVENT           ok
+  row budget: 900s; median=19.63s; correctness-plan-fallback; pubtrackfix PUBSUB-EVICT-ON-MAXMEMORY
+  pubtrackfix PUBSUB-EVICT-ON-MAXMEMORY                ok

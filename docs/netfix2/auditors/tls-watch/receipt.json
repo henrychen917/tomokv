@@ -2,7 +2,7 @@
   {
     "source": "/home/user/Projects/round5-read/tests/ex-path/lib.py",
     "source_sha256": "a3dbb4f11c159e472f6a94929cf1463e435cd2b086ce47282535cc543e304e57",
-    "adapted_sha256": "bd9f5cbcf0c96a4cdcd5f4b4456f92d1aceabae6ff0173344c849bfc93f3fa4a"
+    "adapted_sha256": "07b4bc6860f89b08f43e833f2d2f7df1788c2cd2e4c08e5bea27c70d38f319e9"
   },
   {
     "source": "/home/user/Projects/round5-read/tests/ex-path/t02_tls_watch_borrow.py",
@@ -31,7 +31,7 @@
       "-c",
       "8-15",
       "python3",
-      "/home/user/Projects/cx-netfix2/build/netfix2/auditors/tls-watch/t02_tls_watch_borrow.py"
+      "/home/user/Projects/cx-netfix2/build/netfix2/final-auditors/tls-watch/t02_tls_watch_borrow.py"
     ],
     "exit": 0
   },
@@ -42,7 +42,7 @@
       "-c",
       "8-15",
       "python3",
-      "/home/user/Projects/cx-netfix2/build/netfix2/auditors/tls-watch/t20_tls_tracking_watch_crash.py"
+      "/home/user/Projects/cx-netfix2/build/netfix2/final-auditors/tls-watch/t20_tls_tracking_watch_crash.py"
     ],
     "exit": 0
   },
@@ -53,7 +53,7 @@
       "-c",
       "8-15",
       "python3",
-      "/home/user/Projects/cx-netfix2/build/netfix2/auditors/tls-watch/t20b_tls_single_conn_crash.py"
+      "/home/user/Projects/cx-netfix2/build/netfix2/final-auditors/tls-watch/t20b_tls_single_conn_crash.py"
     ],
     "exit": 0
   },
@@ -64,7 +64,7 @@
       "-c",
       "8-15",
       "python3",
-      "/home/user/Projects/cx-netfix2/build/netfix2/auditors/tls-watch/t20d_tls12_ktls_crash.py"
+      "/home/user/Projects/cx-netfix2/build/netfix2/final-auditors/tls-watch/t20d_tls12_ktls_crash.py"
     ],
     "exit": 0
   }

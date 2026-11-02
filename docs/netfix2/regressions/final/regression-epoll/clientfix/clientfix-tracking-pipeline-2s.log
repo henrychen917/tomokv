@@ -1,0 +1,10 @@
+{"command": ["taskset", "-c", "8-15", "/home/user/Projects/cx-netfix2/build/netfix2/POST", "--bind", "127.0.0.1", "--port", "21100", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-netfix2/build/clientfix/runtime/clientfix-jz8lf5iz", "--databases", "1", "--shards", "16", "--thread-mode", "2s", "--read-local", "0", "--atomic", "0", "--flip-auto", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "lifecycle": "start", "load": "18.52 15.29 12.74 28/3633 2145666", "pid": 2145664}
+{"attempts": 20, "case": "tracking-pipeline", "failures": []}
+{"exit": 0, "lifecycle": "stop", "load": "18.52 15.29 12.74 9/3601 2146320", "pid": 2145664}
+{"command": ["taskset", "-c", "8-15", "/home/user/Projects/cx-netfix2/build/netfix2/POST", "--bind", "127.0.0.1", "--port", "21100", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-netfix2/build/clientfix/runtime/clientfix-r0x7dowr", "--databases", "1", "--shards", "16", "--thread-mode", "2s", "--read-local", "0", "--atomic", "1", "--flip-auto", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "lifecycle": "start", "load": "18.52 15.29 12.74 9/3602 2146322", "pid": 2146322}
+{"attempts": 20, "case": "tracking-pipeline", "failures": []}
+{"exit": 0, "lifecycle": "stop", "load": "17.44 15.11 12.70 6/3570 2146561", "pid": 2146322}
+{"command": ["taskset", "-c", "8-15", "/home/user/Projects/cx-netfix2/build/netfix2/POST", "--bind", "127.0.0.1", "--port", "21100", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-netfix2/build/clientfix/runtime/clientfix-5xvznm56", "--databases", "1", "--shards", "16", "--thread-mode", "2s", "--read-local", "1", "--atomic", "1", "--flip-auto", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "lifecycle": "start", "load": "17.44 15.11 12.70 6/3579 2146571", "pid": 2146571}
+{"attempts": 20, "case": "tracking-pipeline", "failures": []}
+{"exit": 0, "lifecycle": "stop", "load": "17.44 15.11 12.70 6/3594 2146973", "pid": 2146571}
+{"axes": [[0, 0], [1, 0], [1, 1]], "case": "tracking-pipeline", "mode": "2s", "result": "PASS"}

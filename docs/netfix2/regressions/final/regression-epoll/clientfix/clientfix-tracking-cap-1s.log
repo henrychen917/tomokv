@@ -1,0 +1,10 @@
+{"command": ["taskset", "-c", "8-15", "/home/user/Projects/cx-netfix2/build/netfix2/POST", "--bind", "127.0.0.1", "--port", "21100", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-netfix2/build/clientfix/runtime/clientfix-mf4vh6z2", "--databases", "1", "--shards", "16", "--thread-mode", "1s", "--read-local", "0", "--atomic", "0", "--flip-auto", "0", "--enable-debug-command", "yes"], "lifecycle": "start", "load": "19.95 15.13 12.61 22/3627 2137656", "pid": 2137656}
+{"case": "tracking-cap", "invalidated": 1100, "missing": 0, "sample": [], "tracked": 1100}
+{"exit": 0, "lifecycle": "stop", "load": "19.95 15.13 12.61 20/3636 2137719", "pid": 2137656}
+{"command": ["taskset", "-c", "8-15", "/home/user/Projects/cx-netfix2/build/netfix2/POST", "--bind", "127.0.0.1", "--port", "21100", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-netfix2/build/clientfix/runtime/clientfix-qdrjl5wv", "--databases", "1", "--shards", "16", "--thread-mode", "1s", "--read-local", "0", "--atomic", "1", "--flip-auto", "0", "--enable-debug-command", "yes"], "lifecycle": "start", "load": "19.95 15.13 12.61 21/3628 2137722", "pid": 2137722}
+{"case": "tracking-cap", "invalidated": 1100, "missing": 0, "sample": [], "tracked": 1100}
+{"exit": 0, "lifecycle": "stop", "load": "19.95 15.13 12.61 25/3630 2137792", "pid": 2137722}
+{"command": ["taskset", "-c", "8-15", "/home/user/Projects/cx-netfix2/build/netfix2/POST", "--bind", "127.0.0.1", "--port", "21100", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-netfix2/build/clientfix/runtime/clientfix-08arymop", "--databases", "1", "--shards", "16", "--thread-mode", "1s", "--read-local", "1", "--atomic", "1", "--flip-auto", "0", "--enable-debug-command", "yes"], "lifecycle": "start", "load": "19.95 15.13 12.61 25/3630 2137794", "pid": 2137794}
+{"case": "tracking-cap", "invalidated": 1100, "missing": 0, "sample": [], "tracked": 1100}
+{"exit": 0, "lifecycle": "stop", "load": "19.95 15.21 12.65 23/3620 2137853", "pid": 2137794}
+{"axes": [[0, 0], [1, 0], [1, 1]], "case": "tracking-cap", "mode": "1s", "result": "PASS"}

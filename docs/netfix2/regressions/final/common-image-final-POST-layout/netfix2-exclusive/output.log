@@ -1,0 +1,2 @@
+  row budget: 900s; median=2.535s; correctness-plan-fallback; netfix2 exclusive
+  netfix2 exclusive                                    ok

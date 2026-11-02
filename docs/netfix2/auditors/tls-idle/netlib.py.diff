@@ -15,7 +15,7 @@
  import time
  
 -TOMO = "/home/user/Projects/bench-bins/tomokv-headline-105c5818cc"
-+TOMO = "/home/user/Projects/cx-netfix2/build/tomokv"
++TOMO = "/home/user/Projects/cx-netfix2/build/netfix2/POST"
  REDIS = "/home/user/Projects/redis/src/redis-server"
 -CORES = "64-79"
 +CORES = "8-15"

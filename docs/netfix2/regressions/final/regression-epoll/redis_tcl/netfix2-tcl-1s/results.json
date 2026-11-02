@@ -1,0 +1,6 @@
+{
+  "tcl-fds-1s-uring-db1": "PASS netfix2 Tcl maxclients: 6 assertions",
+  "tcl-fds-1s-uring-db16": "PASS netfix2 Tcl maxclients: 6 assertions",
+  "tcl-fds-1s-epoll-db1": "PASS netfix2 Tcl maxclients: 6 assertions",
+  "tcl-fds-1s-epoll-db16": "PASS netfix2 Tcl maxclients: 6 assertions"
+}

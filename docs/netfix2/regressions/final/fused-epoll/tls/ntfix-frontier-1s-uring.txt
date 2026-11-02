@@ -1,0 +1,2 @@
+PASS ntfix frontier: 4 exact cases, tls=False
+PASS ntfix frontier: 4 exact cases, tls=True

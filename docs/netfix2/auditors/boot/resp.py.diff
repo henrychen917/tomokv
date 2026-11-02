@@ -18,7 +18,7 @@
 -SCRATCH = '/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/r5-ioloop'
 +CORES = '8-15'
 +PORT_MIN, PORT_MAX = 21100, 21199
-+SCRATCH = '/home/user/Projects/cx-netfix2/build/netfix2/audit-extra-boot/work'
++SCRATCH = '/home/user/Projects/cx-netfix2/build/netfix2/final-auditors/boot/work'
  
  
  def pin_self():

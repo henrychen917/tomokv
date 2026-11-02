@@ -16,7 +16,7 @@
       "-c",
       "8-15",
       "python3",
-      "/home/user/Projects/cx-netfix2/build/netfix2/audit-extra-banner/t08_banner_race.py"
+      "/home/user/Projects/cx-netfix2/build/netfix2/final-auditors/boot-banner-net/t08_banner_race.py"
     ],
     "exit": 0
   }
