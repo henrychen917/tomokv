@@ -12,8 +12,10 @@ test explicitly chooses another geometry. No throughput measurement was run.
 The five `netfix2-*` gate jobs each cover 1s/2s × uring/epoll × databases 1/16.
 The scripts assert that kTLS, descriptor exhaustion and suppression actually
 occur; absent windows fail. The byte-counter witness covers plaintext, TLS 1.3 fd BIO, TLS 1.2 kTLS, and
-TLS 1.2 CBC memory BIO (32 exact byte-accounting legs). Raw gate results are in
-[`docs/netfix2/witnesses`](docs/netfix2/witnesses).
+TLS 1.2 CBC memory BIO (32 exact byte-accounting legs). Stepwise PRE/negative
+receipts are in [`docs/netfix2/witnesses`](docs/netfix2/witnesses). Final frozen-arm
+receipts, including both common-image controls, are in
+[`docs/netfix2/regressions/final`](docs/netfix2/regressions/final).
 
 | Item | PRE witness | POST result | Mechanism changed | Residual |
 | --- | --- | --- | --- | --- |
@@ -30,6 +32,10 @@ with a genuinely unwritable directory. An initial FD stress attempt lowered
 RLIMIT after io_uring submission; that did not arm its captured-limit path.
 The final witness passes held FDs at exec time and requires nonzero EMFILE on
 every engine. Those initial attempts are not counted as proof.
+An earlier byte-counter witness subtracted two asynchronous INFO samples and
+once included a late seven-byte readiness PONG. The final witness instead uses
+a fresh server per transport, no readiness PING, and exact absolute wire-byte
+accounting with bounded convergence; it neither skips nor widens a tolerance.
 
 A follow-up boot injection fails the elected AOF writer's reuseport bind after
 its exclusive probe. The initial IO5.2 candidate hung in 2/8 legs because peer
@@ -39,10 +45,23 @@ with no ready banner, in addition to the 8 unwritable-directory checks and
 40 banner connections. This is cancellation of an existing wait, not a new
 persistence protocol. The negative and corrected gate receipts are retained.
 
+The broader source-consistency job caught a stale generated R7/fused IO envelope.
+Regeneration carries the same TLS input accounting, accept retry and exclusive
+boot probes into that existing call graph. The gate also runs the five witnesses
+with `--reorder 1` in fused mode on both engines/namespaces. This adds no public
+rows and introduces no new scheduling algorithm.
+
 The TLS registry audit found GET is the only ordinary command with a
 FlatStore-borrowing special TLS row; both rows are changed. Other handlers
 copied into TLS registries are copy-only. Existing normal TLS serve paths
 already copy borrows; suppressing serve was the missing arm.
+The borrowing inventory also checks scatter MGET (`scatter_engine.inc` /
+`xshard_commands.inc`), which already copies/releases TLS value slots, and
+MULTI/EXEC (`multi.inc`), which has its own TLS borrow conversion. Scripting
+consumes and releases nested GET borrows before returning its copied reply.
+The `l4prebuild.cc` use of `op.zc_ptr` is a tagged SET construction sidecar
+with zero length, not a reply borrow. No other ordinary TLS registry row
+needs a handler substitution.
 
 Redis 7.4 refuses occupied TCP ports. Its Unix listener unlinks even a live
 socket: this lane deliberately follows the task's stricter requirement to
@@ -53,6 +72,11 @@ listening socket ...: Address already in use`, exit 1. Maxclients rejection
 uses Redis's `ERR CONFIG SET failed (possibly related to argument 'maxclients')
 - The operating system is not able to handle the specified number of clients,
 try with N` text, where N includes TomoKV's worker reserve.
+
+The canonical oracle is `/home/user/Projects/redis/src/redis-server` (7.4.10).
+Existing TLS-specific gate oracle jobs additionally use the gate's TLS-enabled
+7.4.10 build at `/home/user/Projects/redis74-tls/src/redis-server`; both versions
+and digests are recorded in [oracles.json](docs/netfix2/oracles.json).
 
 ### Auditor reruns
 
@@ -67,11 +91,11 @@ remain. T02b's shell now records the server's PIPESTATUS, not grep's status.
 | --- | --- |
 | EX T2 / T20 / T20b / T20d | 28/28, 15/15, 4/4, 2/2 assertions. |
 | NET T17 | All four Redis/TomoKV first/second combinations reject the second TCP server, exit 1. |
-| NET T12 | Redis: 268 PONG + 112 maxclients errors. TomoKV uring: 252 + 128; epoll: 247 + 133. Each totals 380, zero hung. Impossible CONFIG SET rejected, old cap retained. |
+| NET T12 | Redis: 268 PONG + 112 maxclients errors. TomoKV uring: 252 + 128; epoll: 246 + 134. Each totals 380, zero hung. Impossible CONFIG SET rejected, old cap retained. |
 | NET T12b | Five descriptor inventories completed: split/fused × engines plus split epoll TLS. |
-| NET T12c | Epoll+TLS: 119 PONG + 11 errors out of 130; uring: 135 + 11 out of 146; zero hung. |
+| NET T12c | Epoll+TLS: 119 PONG + 11 errors out of 130; uring: 136 + 10 out of 146; zero hung. |
 | NET T01 | Plain/TLS 1.2/TLS 1.3 stay connected under busy timeout traffic, on both engines; idle samples all zero. |
-| NET T21 | All five oracle/plain/TLS byte paths complete; TomoKV application input is +100240 and output +100109/+100110 including the audit INFO overhead. The promoted gate witness subtracts the actual preceding INFO wire length and asserts exact equality. |
+| NET T21 | All five oracle/plain/TLS byte paths complete; TomoKV application input is +100240 and output +100109/+100110 including the audit INFO overhead. The promoted gate witness starts a fresh server per transport and requires exact absolute application-byte totals, including each preceding INFO wire reply, within a bounded wait. |
 | IO T02 / T02b | Oracle plus four TomoKV configurations exit 1; shell reproduction exits 1, no ready banner, port closed. |
 | IO T03 / NET T08 | 60/60 and 40/40 immediate banner connections succeed; zero refusals. |
 
@@ -99,16 +123,19 @@ These are server instruction counts only: POST replaces a borrow with a 20 KB
 copy. Library memcpy/encryption and TLS send/clock/counter work lie outside
 this command scope. The negative counts are **not a throughput or total CPU
 cost claim**. Successful userspace TLS read/write operations now additionally
-stamp activity and add application bytes; the plaintext path is unchanged.
+stamp activity and add application bytes. The plaintext suppression slow path
+also gains a TLS-kind test when an operation already holds a store borrow;
+writeback/IO loops are outside the command scope. Thus this proves the requested
+ordinary-command instruction null, not whole-loop byte identity or a rate null.
 
 ### Arms and maintainer measurement
 
 | Arm | SHA-256 | .text bytes |
 | --- | --- | ---: |
 | `build/netfix2/PRE` | `bf7a8a616072d0c238117c0361cb189f7ed50ecc9232546c51c175c048b32c51` | 9021623 |
-| `build/netfix2/POST` | `7a533c7c46101494ddca402d484e775e531c6a6e2ca05dab48675fd32f00ca04` | 9028727 |
-| `build/netfix2/POST-layout` | `a66153b4a0c7ee945650503f53bb6fc320f85b9715206ce1d940ea23858bbce8` | 18049975 |
-| `build/netfix2/PAD-A` | `5b9b1734a58e655de5648646fed123852cc046263e7168b4169b45701ef67778` | 18049975 |
+| `build/netfix2/POST` | `f9c45811063331942f58bc927aa6a1a343e201041e55b1f60b44b504a3020838` | 9029159 |
+| `build/netfix2/POST-layout` | `7966cfd05ad29704d349fb0b675a9ea4aced172978ff789db2ef2d3b1e33d18f` | 18050407 |
+| `build/netfix2/PAD-A` | `e26d2dab5b22c2df49a990bea8a49460fee8824d1adac0222e80a16c005dc810` | 18050407 |
 
 **PAD-A is type A, a behaviour twin: PRE behaviour with the common-image
 candidate's text size/layout.** The existing common-image linker places POST
@@ -116,7 +143,7 @@ first and symbol-isolated PRE second. POST-layout and PAD-A differ only in the
 five-byte entry jump selecting the implementation; symbols and sections have
 identical layout. PAD-A is the exact twin of POST-layout, **not** the smaller
 production POST. [Link receipt](docs/netfix2/pad-a.json) records this limitation.
-Production .text grows 7104 bytes; no claim that plain instruction counts rule
+Production .text grows 7536 bytes; no claim that plain instruction counts rule
 out instruction-cache/layout effects. [Hashes](docs/netfix2/SHA256SUMS).
 
 Maintainer: use the gate's quiet-box instrument on the unchanged
@@ -130,11 +157,14 @@ matched offered load, cycles/op, instructions/op and IPC per cell and arm.
 Apply the maintainer's existing per-cell regression rule; do not average away
 a failed cell. Performance benchmarks, load generators, full iteration and
 these measurements are **NOT RUN: reserved to the maintainer**.
+System-wide ENFILE exhaustion is **NOT RUN**: it would require host-wide
+pressure outside this lane's resource allocation. The shared retry branch is
+exercised with real process-local EMFILE on both engines.
 
 ### Gate arithmetic and broader proof
 
 `DQ = +5`, `DF = +5`. The five-row collection loop is before the quick-tier
-exit (`tests/gate.sh`, collection near line 6602; quick exit near 6848).
+exit (`tests/gate.sh`, collection line 6605; quick exit line 6849).
 The base constants are 1046/1063, so the maintainer's new counts should be
 1051/1068. `EXPECT_QUICK` and `EXPECT_FULL` were not edited. The maxclients Tcl
 promotion adds six assertions per mode/engine/namespace inside the existing
@@ -145,7 +175,19 @@ inside this lane's eight-CPU allocation. Its explicit
 `GATE_CORRECTNESS_SHARED_CPUS=1` mode requires selected jobs plus
 `GATE_PROOF_NO_RATES=1`, permits only the eight physical server CPUs and their
 load subset, and cannot issue a full-gate receipt or run ABBA. No gate geometry
-or failure expectation was weakened. Partial ledgers are reported as partial.
+or failure expectation was weakened. The equivalence and shared process helpers
+use the same guarded exception, with negative controls for every required guard.
+The first io_uring equivalence invocation rejected CPU overlap before boot; its
+corrected selected-job rerun is reported separately. Partial ledgers are reported
+as partial.
+
+The pre-existing epoll closed-blocking-pipeline retirement check (`netio.py`
+F5) remains intermittent: four bounded repeats failed in 3/4 PRE runs and
+1/4 POST runs, in either mode. These are correctness incidences, not rates or
+a performance comparison. Each failing connection remained visible to CLIENT
+LIST after peer closure. The [unchanged PRE/POST logs](docs/netfix2/regressions/netio-repeats)
+are retained; this row is not reported green or suppressed. It lies outside the
+five audited mechanisms fixed by this lane.
 
 The reproducible selected-job driver is
 [`tools/netfix2_proof.sh`](tools/netfix2_proof.sh). Broader job ledgers, Tcl and
