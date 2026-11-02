@@ -1,0 +1,83 @@
+PARTIAL	0	GATE_ONLY_JOBS=fused-0 fused-1 txn_group_fused rootcore-notify rootcompat-xsnotify rootcompat-tracking rootcompat-xsexpiry clientfix compat2 wb_mixed feature-cell-1s-0-0-0-0 feature-cell-1s-0-0-0-1 feature-cell-1s-0-0-1-0 feature-cell-1s-0-0-1-1 feature-cell-1s-0-1-0-0 feature-cell-1s-0-1-0-1 feature-cell-1s-0-1-1-0 feature-cell-1s-0-1-1-1 feature-cell-1s-1-0-0-0 feature-cell-1s-1-0-0-1 feature-cell-1s-1-0-1-0 feature-cell-1s-1-0-1-1 feature-cell-1s-1-1-0-0 feature-cell-1s-1-1-0-1 feature-cell-1s-1-1-1-0 feature-cell-1s-1-1-1-1 feature-cell-2s-0-0-0-0 feature-cell-2s-0-0-0-1 feature-cell-2s-0-0-1-0 feature-cell-2s-0-0-1-1 feature-cell-2s-0-1-0-0 feature-cell-2s-0-1-0-1 feature-cell-2s-0-1-1-0 feature-cell-2s-0-1-1-1 feature-cell-2s-1-0-0-0 feature-cell-2s-1-0-0-1 feature-cell-2s-1-0-1-0 feature-cell-2s-1-0-1-1 feature-cell-2s-1-1-0-0 feature-cell-2s-1-1-0-1 feature-cell-2s-1-1-1-0 feature-cell-2s-1-1-1-1 feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	224.700000	Redis 7.4.10 Tcl passing subset (2s)
+ok	229.620000	Redis 7.4.10 Tcl passing subset (1s)
+ok	15.080000	rootcore notify
+ok	12.490000	writeback mixed replies and live knob bounds (1s, epoll)
+ok	12.290000	writeback mixed replies and live knob bounds (1s, uring)
+ok	12.540000	writeback mixed replies and live knob bounds (2s, epoll)
+ok	12.530000	writeback mixed replies and live knob bounds (2s, uring)
+ok	1.780000	clientfix tracking-cap (1s)
+ok	6.930000	clientfix tracking-pipeline (1s)
+ok	13.830000	clientfix reply-skip (1s)
+ok	0.300000	clientfix pattern-cleanup (1s)
+ok	1.120000	clientfix pause-deadline (1s)
+ok	0.100000	clientfix geo-count (1s)
+ok	0.100000	clientfix geo-store (1s)
+ok	1.750000	clientfix tracking-cap (2s)
+ok	6.910000	clientfix tracking-pipeline (2s)
+ok	11.600000	clientfix reply-skip (2s)
+ok	0.300000	clientfix pattern-cleanup (2s)
+ok	1.120000	clientfix pause-deadline (2s)
+ok	0.100000	clientfix geo-count (2s)
+ok	0.110000	clientfix geo-store (2s)
+ok	1.770000	compat2 autharity
+ok	6.790000	compat2 expire_notify
+ok	1.880000	compat2 ktls_lifetime
+ok	0.270000	fused boot line (atomic 0)
+ok	1.130000	fused s6 battery (atomic 0)
+ok	2.100000	fused multi_exec battery (atomic 0)
+ok	0.740000	fused edgeproto battery (atomic 0)
+ok	0.070000	fused atomfix battery (atomic 0)
+ok	2.240000	fused spinprobe battery (atomic 0)
+ok	1.170000	fused shutdown report (atomic 0)
+ok	1.490000	fused txn_nx battery (atomic 0)
+ok	8.530000	fused txniso battery (atomic 0)
+ok	0.260000	fused boot line (atomic 1)
+ok	1.160000	fused s6 battery (atomic 1)
+ok	2.110000	fused multi_exec battery (atomic 1)
+ok	0.770000	fused edgeproto battery (atomic 1)
+ok	0.080000	fused atomfix battery (atomic 1)
+ok	2.230000	fused spinprobe battery (atomic 1)
+ok	1.170000	fused shutdown report (atomic 1)
+ok	2.550000	fused txn_nx battery (atomic 1)
+ok	9.240000	fused txniso battery (atomic 1)
+ok	12.890000	fused txngroup battery (atomic 1)
+ok	1.250000	feature 1s-0-0-0-0
+ok	0.110000	feature 1s-0-0-0-1
+ok	1.240000	feature 1s-0-0-1-0
+ok	0.110000	feature 1s-0-0-1-1
+ok	1.230000	feature 1s-0-1-0-0
+ok	0.110000	feature 1s-0-1-0-1
+ok	2.350000	feature 1s-0-1-1-0
+ok	0.110000	feature 1s-0-1-1-1
+ok	1.230000	feature 1s-1-0-0-0
+ok	0.110000	feature 1s-1-0-0-1
+ok	1.250000	feature 1s-1-0-1-0
+ok	0.120000	feature 1s-1-0-1-1
+ok	1.240000	feature 1s-1-1-0-0
+ok	0.110000	feature 1s-1-1-0-1
+ok	1.240000	feature 1s-1-1-1-0
+ok	0.110000	feature 1s-1-1-1-1
+ok	1.240000	feature 2s-0-0-0-0
+ok	1.250000	feature 2s-0-0-0-1
+ok	1.240000	feature 2s-0-0-1-0
+ok	1.230000	feature 2s-0-0-1-1
+ok	2.360000	feature 2s-0-1-0-0
+ok	2.360000	feature 2s-0-1-0-1
+ok	1.240000	feature 2s-0-1-1-0
+ok	1.240000	feature 2s-0-1-1-1
+ok	1.250000	feature 2s-1-0-0-0
+ok	1.240000	feature 2s-1-0-0-1
+ok	1.250000	feature 2s-1-0-1-0
+ok	1.250000	feature 2s-1-0-1-1
+ok	1.250000	feature 2s-1-1-0-0
+ok	1.250000	feature 2s-1-1-0-1
+ok	1.250000	feature 2s-1-1-1-0
+ok	1.240000	feature 2s-1-1-1-1
+ok	459.410000	rootcompat xsnotify vs Redis 7.4
+ok	744.850000	rootcompat tracking vs Redis 7.4
+ok	177.090000	rootcompat xsexpiry vs Redis 7.4
+ok	1.240000	feature split-home-min
+ok	1.250000	feature fused-home-max-nopin
+ok	1.240000	feature split-shards-auto
