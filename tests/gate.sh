@@ -1010,6 +1010,7 @@ job_label(){
 job_body(){
   local name=$1 label; label=$(job_label "$name")
   case "$name" in
+    txnfix4-*) job_txnfix4 "${name#txnfix4-}";;
     iofix-deferred) job_iofix_deferred "$name";;
     iofix-hz) job_iofix_hz "$name";;
     iofix-sleep) job_iofix_sleep "$name";;
@@ -1161,6 +1162,7 @@ plan_jobs(){
   # Compilers use that slot's server+load cores. The release build alone unlocks release jobs;
   # ASAN and standalone units do not delay boots, and full-only builds start immediately too.
   JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build pubtrackfix maxmemrace)
+  JOB_NAMES+=(txnfix4-oom txnfix4-watch txnfix4-crash txnfix4-placement)
   JOB_NAMES+=(clientcompat-pause clientcompat-disconnect clientcompat-multi-tracking clientcompat-multi-controls clientcompat-enable-race)
   for MF_MODE in 1s 2s; do for MF_ENGINE in uring epoll; do
     JOB_NAMES+=("multifix-$MF_MODE-$MF_ENGINE")
@@ -3208,6 +3210,23 @@ job_bugs5(){
     if [ "$failed" = 0 ]; then ok "$label"
     else bad "$label" "see $TMPDIR/$test-*.log"; fi
   done
+}
+
+job_txnfix4(){
+  local item=$1 mode atomic db boot_fn passed=1 label="txnfix4 $1"
+  row_begin "$label"
+  for mode in 1s 2s; do for atomic in 0 1; do for db in 1 16; do
+    boot_fn=boot
+    [ "$mode" != 1s ] || boot_fn=boot_fused
+    if "$boot_fn" "$CANDIDATE_BINARY" --atomic "$atomic" --databases "$db" \
+        --read-local 0 --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes; then
+      py tests/txnfix4.py 127.0.0.1 "$PORT" --case "$item" \
+          >"$TMPDIR/$item-$mode-a$atomic-db$db.log" 2>&1 || passed=0
+    else passed=0; fi
+    stop
+    shutdown_clean || passed=0
+  done; done; done
+  [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/$item-*.log"
 }
 
 job_debug(){
@@ -6673,6 +6692,8 @@ collect_job datafix1_bitfield
 collect_job datafix1_randscan
 collect_job datafix1_hexpire
 
+# txnfix4: four directed rows before the quick exit; EXPECT remains owner-owned.
+for ITEM in oom watch crash placement; do collect_job "txnfix4-$ITEM"; done
 for AT in 0 1; do collect_job "debug-$AT"; done
 collect_job txn_group_split
 collect_job execfair
