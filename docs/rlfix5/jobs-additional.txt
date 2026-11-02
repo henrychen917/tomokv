@@ -3,6 +3,8 @@ splitlocal_units
 exbatch_units
 exbatch_live
 atomic_floor
+txnorder2
+txnorder_wake
 rlfix5-monotonic
 rlfix5-yes-no
 rlfix5-no-yes

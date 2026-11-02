@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 
 import blockfix2_receipts as receipts
@@ -28,6 +29,15 @@ def main():
     DOC.mkdir(parents=True, exist_ok=True)
     assert not (DOC / (a.tag + '.json')).exists(), 'use a fresh attempt tag'
     binary = a.binary.resolve(); digest = sha(binary)
+    boot_binary = binary
+    if binary == ROOT / 'build/rlfix5/POST':
+        # Legacy transaction jobs locate matching native helpers beside the
+        # server. Keep the three delivery arms separate, and boot an immutable
+        # byte-identical POST copy beside job_production_units' real outputs.
+        boot_binary = ROOT / 'build' / ('rlfix5-POST-' + digest[:12])
+        if not boot_binary.exists():
+            shutil.copy2(binary, boot_binary)
+        assert sha(boot_binary) == digest
     env = dict(os.environ, LC_ALL='C', REDIS74_ROOT='/home/user/Projects/redis',
         GATE_DIFFER_ORACLE_BIN='/home/user/Projects/redis/src/redis-server',
         GATE_DIFFER_REDIS_CLI='/home/user/Projects/redis/src/redis-cli',
@@ -39,8 +49,9 @@ def main():
         env['GATE_TXN_FUSED'] = '1'
     cmd = ['taskset', '-c', '24-31', 'tests/gate.sh', 'full', '--shared-correctness-cpus',
            '--server-cores', '24-31', '--load-cores', '24-31', '--server-smt', '', '--load-smt', '',
-           '--ports', '21500-21599', '--candidate-binary', str(binary)]
+           '--ports', '21500-21599', '--candidate-binary', str(boot_binary)]
     metadata = dict(command=cmd, binary_sha256=digest, engine=a.engine,
+        frozen_binary=str(binary), boot_binary=str(boot_binary),
         env={k: v for k, v in env.items() if k.startswith('GATE_') or k in ('LC_ALL', 'CXX', 'CC', 'REDIS74_ROOT')})
     (DOC / (a.tag + '-started.json')).write_text(json.dumps(metadata, indent=2) + '\n')
     with (DOC / (a.tag + '.log')).open('w') as log:
@@ -51,6 +62,7 @@ def main():
     record = receipts.collect(a.tag, root, DOC)
     record.update(metadata, exit_code=result.returncode)
     assert sha(binary) == digest, 'candidate changed during proof'
+    assert sha(boot_binary) == digest, 'boot copy changed during proof'
     (DOC / (a.tag + '.json')).write_text(json.dumps(record, indent=2) + '\n')
     print(a.tag, 'exit', result.returncode, 'passed', sum(j['passed'] for j in record['jobs']),
           'failed', sum(j['failed'] for j in record['jobs']), flush=True)
