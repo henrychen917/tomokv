@@ -1,4 +1,6 @@
 notify
+exbatch_live
+atomic_floor
 evict-lfu-split-0
 evict-lfu-split-1
 evict-lfu-armed-0

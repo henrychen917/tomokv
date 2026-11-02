@@ -3,3 +3,5 @@ atomic_batteries
 asan_batteries
 datafix2_watch
 notify
+debug-0
+debug-1
