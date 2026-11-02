@@ -120,11 +120,17 @@ PAD-A stays flat relative to PRE. All performance cells, the full iteration,
 (open-loop generator) are **NOT RUN** here: they remain maintainer-owned.
 
 The first broad run completed 484 passing and 53 failing rows. Of the failures,
-52 are test setup problems being retried: the R7 generated comment, native
+52 were test setup problems resolved by the 104/104 retry run: the R7 generated comment, native
 transaction helpers expected beside the candidate, and feature drivers refusing
 the shared CPU allocation before boot. The FIFO live-fairness row fails its
 derived p99 bound; a complete matching PRE control is queued. These failures
-remain in the archived receipts. `docs/rlfix5/coverage.md` maps every requested
+remain in the archived receipts. `setup-retry-verdict.json` matches every one of
+the 52 setup failures to its passing retry row. `docs/rlfix5/coverage.md` maps every requested
 family and names the excluded performance checks. Broader retry, differential,
 control and freshness results remain in progress; no full-gate or throughput
 verdict is claimed.
+
+The new gate jobs reject failed or stale native-fixture builds; five serverless
+controls exercise the actual fixture-selection branch. An explicit PRE/PAD
+fixture remains supported. The final POST family run repeats all six ordering
+rows through that hardened interface.

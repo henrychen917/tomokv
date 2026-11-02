@@ -61,6 +61,8 @@ def main():
     DOC.mkdir(parents=True, exist_ok=True)
     assert not (DOC / (a.tag + '.json')).exists(), 'use a fresh attempt tag'
     binary = a.binary.resolve(); digest = sha(binary)
+    feature_output = ROOT / 'build' / ('gate-feature.rlfix5-' + a.tag)
+    assert not feature_output.exists(), 'feature evidence needs a fresh attempt directory'
     boot_binary = binary
     if binary == ROOT / 'build/rlfix5/POST':
         # Legacy transaction jobs locate matching native helpers beside the
@@ -75,6 +77,7 @@ def main():
         GATE_DIFFER_REDIS_CLI='/home/user/Projects/redis/src/redis-cli',
         GATE_PROOF_NO_RATES='1', GATE_NET_IO=a.engine, GATE_PROOF_NET_IO=a.engine,
         GATE_DIFFER_NET_IO=a.engine, GATE_ONLY_JOBS=' '.join(names),
+        GATE_FEATURE_OUTPUT=str(feature_output),
         GATE_TEST_PORT='21598', GATE_LEDGER=str(DOC / a.tag),
         CXX='g++ -gz=zlib', CC='cc -gz=zlib')
     if a.fused:
@@ -96,8 +99,8 @@ def main():
     output = (DOC / (a.tag + '.log')).read_text()
     for path in root.glob('jobs/feature-cell-*/output.log'):
         output += path.read_text()
-    feature_roots = sorted(set(re.findall(re.escape(str(ROOT / 'build')) +
-                                         r'/gate-feature\.[A-Za-z0-9]+', output)))
+    feature_roots = sorted({str(feature_output), *re.findall(re.escape(str(ROOT / 'build')) +
+                                         r'/gate-feature\.[A-Za-z0-9]+', output)})
     for name in feature_roots:
         directory = Path(name)
         assert directory.parent == ROOT / 'build'
