@@ -2,6 +2,7 @@
 """CONFIG oracle receipts; called by gate.sh's cfgfix job, with all engine/mode legs."""
 from contextlib import closing, contextmanager
 import ctypes
+import itertools
 import json
 import os
 from pathlib import Path
@@ -89,7 +90,11 @@ def supervisor_trial(a, mode, engine):
     # protocol on private filesystem and abstract sockets, including their
     # different sockaddr lengths. No host supervisor is contacted.
     messages = {}
-    for abstract in (False, True):
+    variants = [('base', ()), ('armed', ('--read-local', '1'))]
+    if mode == '1s':
+        variants += [('reorder', ('--reorder', '1')),
+                     ('armed-reorder', ('--read-local', '1', '--reorder', '1'))]
+    for abstract, (variant, extra) in itertools.product((False, True), variants):
         short = Path('build/cfgfix') / f'notify-{os.getpid()}-{mode}-{engine}.sock'
         address = '@cfgfix-' + str(os.getpid()) + '-' + mode + '-' + engine if abstract else str(short.resolve())
         wire_address = '\0' + address[1:] if abstract else address
@@ -98,13 +103,13 @@ def supervisor_trial(a, mode, engine):
             receiver.settimeout(5)
             try:
                 with environment(NOTIFY_SOCKET=address, UPSTART_JOB=None):
-                    with n.server(a, f'supervisor-{mode}-{engine}-{abstract}', mode=mode, engine=engine,
-                                  extra=('--supervised', 'auto')):
+                    with n.server(a, f'supervisor-{mode}-{engine}-{variant}-{abstract}', mode=mode, engine=engine,
+                                  extra=('--supervised', 'auto', *extra)):
                         lines = []
                         while 'READY=1' not in lines:
                             lines += receiver.recv(4096).decode().splitlines()
                         assert any(line.startswith('STATUS=') for line in lines), lines
-                        messages[str(abstract)] = lines
+                        messages[f'{variant}:{abstract}'] = lines
             finally:
                 if not abstract:
                     short.unlink()
