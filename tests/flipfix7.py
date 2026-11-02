@@ -108,6 +108,9 @@ def trial(args, directory, engine, atomic, case, attempt):
                 value = b'b' * (8 << 20)
                 assert control.must('SET', 'flipfix7:borrow', value) == b'OK'
                 held.send('GET', 'flipfix7:borrow')
+                s.wait(lambda: control.must('DEBUG', 'BORROWCOUNT') > 0,
+                       'large GET never armed an outstanding borrow')
+                result['borrow_armed'] = True
                 time.sleep(.05)
             elif base in ('late', 'late-move', 'signal', 'output'):
                 keys = [(f'flipfix7:{i:04}:'.encode() + b'x' * 8192)[:8192] for i in range(1024)]
@@ -210,6 +213,9 @@ def trial(args, directory, engine, atomic, case, attempt):
                     held.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_WINDOW_CLAMP, 4 << 20)
                     assert held.read() == value
                     result['borrow_bytes'] = len(value)
+                    s.wait(lambda: writer.must('DEBUG', 'BORROWCOUNT') == 0,
+                           'borrow release did not reach the installed owner')
+                    result['borrow_released'] = True
                 if keys:
                     held.send('UNSUBSCRIBE')
                     assert held.read() == [b'unsubscribe', b'__keyevent@0__:del', 0]
@@ -228,6 +234,9 @@ def trial(args, directory, engine, atomic, case, attempt):
                     phrase = {'blocked': 'blocked connection', 'tls': 'TLS connection',
                               'output': 'non-draining output'}[kind]
                     assert phrase in str(result['flip']), result
+                    result['refusal_stage'] = 'IoDrain'
+                    result['refusal_stage_source'] = 'flip_immovable_refused production call site'
+                    result['failing_clause'] = phrase
             result['elapsed'] = time.monotonic() - start
         finally:
             # PRE signal witness may require SIGKILL; that result is evidence, never a pass.

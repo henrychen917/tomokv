@@ -1,0 +1,24 @@
+{
+  "kind": "A: behaviour twin",
+  "post": "build/flipfix7/POST",
+  "post_sha256": "603b92f52daca1cc71dac2bd1815846be13ebb810f275c1e4110f0d23579e8bf",
+  "pad_a": "build/flipfix7/PAD-A",
+  "pad_a_sha256": "306eba3e6aeab058aeead4b103b7a6c4a2979176d2112d34e9cfcd794dfcff04",
+  "changed_bytes": 2,
+  "patches": [
+    {
+      "symbol": "_ZN4tomo21flip_liveness_enabledEv",
+      "address": 5702165,
+      "offset": 5702165,
+      "before": "01",
+      "after": "00"
+    },
+    {
+      "symbol": "_ZN8tomo_db021flip_liveness_enabledEv",
+      "address": 1407701,
+      "offset": 1407701,
+      "before": "01",
+      "after": "00"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "probe": "command",
+  "arm": "post",
+  "namespace": "normal",
+  "argv": [
+    "INCR",
+    "2s",
+    "1",
+    "1",
+    "-1"
+  ],
+  "steps": 2113,
+  "clock_calls": 1,
+  "excluded_calls": 3,
+  "total": 2104,
+  "functions": {
+    "unsigned long tomo::kvobj_external_bytes<false>(tomo::KvObj const*, void const*, tomo::KvObj const*) [clone .isra.0]": 4,
+    "tomo::FlatStore::track_expire(unsigned long, tomo::KvObj*) [clone .isra.0]": 25,
+    "tomo::KvObj::key() const": 13,
+    "tomo::kvobj_capacity(tomo::KvObj const*)": 31,
+    "tomo::kvobj_size(tomo::KvObj const*)": 35,
+    "tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)": 19,
+    "void tomo::reply_int<tomo::Op::Sink>(tomo::Op::Sink&&, long long)": 86,
+    "tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)": 161,
+    "tomo::ExLoopT<false>::flush_notify_batch()": 94,
+    "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)": 221,
+    "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 121,
+    "tomo::multi_task_tagged(tomo::Task const&)": 4,
+    "tomo::Slice::key_eq(tomo::Slice const&) const": 29,
+    "tomo::kvobj_init_int(void*, tomo::Slice, long, long, bool)": 66,
+    "tomo::FlatStore::find(unsigned long, tomo::Slice)": 82,
+    "tomo::FlatStore::insert(unsigned long, tomo::KvObj*)": 49,
+    "void tomo::(anonymous namespace)::incr_decr<false>(tomo::Shard&, tomo::Op&, long)": 97,
+    "void tomo::(anonymous namespace)::cmd_incr<false>(tomo::Shard&, tomo::Op&)": 3,
+    "tomo::Op::key() const": 11,
+    "tomo::FlatStore::make_set_int(tomo::Slice, long, long, bool)": 50,
+    "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)::{lambda(tomo::KvObj const*, bool)#1}::operator()(tomo::KvObj const*, bool) const": 59,
+    "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)": 24,
+    "tomo::FlatStore::publish_database_counts() const": 588,
+    "tomo::Shard::publish_size()": 232
+  },
+  "probe_sha256": "7523b1eb1ff5d8e7af3f810518f2c42f939b24f7c11ae6bc083a8e22906c2a8c"
+}
