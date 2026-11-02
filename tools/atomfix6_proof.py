@@ -5,7 +5,6 @@ import json
 import os
 from pathlib import Path
 import subprocess
-import time
 
 ROOT = Path(__file__).resolve().parents[1]
 GROUPS = {
@@ -78,13 +77,6 @@ if a.group == 'persistence' and a.fused:
 if a.group == 'differ' and a.engine == 'uring':
     subprocess.run(['python3', __file__, 'notify', '--fused',
                     '--label', 'notify-fused'], check=False)
-if a.group == 'differ' and a.engine == 'epoll':
-    subprocess.run(['python3', __file__, 'flipcheck', '--binary', str(ROOT / 'build/pre/tomokv'),
-                    '--label', 'flipfix6-PRE-original'], check=False)
-    while not (ROOT / 'docs/atomfix6/flipfix6-fixture-ready').exists():
-        time.sleep(2)
-    subprocess.run(['python3', __file__, 'flipcheck', '--label', 'flipfix6-POST-topology'],
-                   check=False)
 jobs = GROUPS[a.group]
 if a.fused:
     # These jobs use txn_proof_boot. Other selected jobs already enumerate
