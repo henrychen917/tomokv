@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Selected gate jobs on the assigned lane only. No iteration or rate tier."""
-import argparse, hashlib, json, os, subprocess
+import argparse, hashlib, itertools, json, os, subprocess
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 JOBS='''flip fliplisten flipctl flipfix5 flipfix6 lb-stationary-1s lb-stationary-2s moverfix
@@ -25,11 +25,20 @@ notify tls climonfix wb_policy aof_frame aoforder'''.split()
 NEW=['flipfix7_output','flipfix7_blocked','flipfix7_tls']
 UNITS=['core_units','flipfix_units','flipfix5_units','flipfix6_units','flipfix7_units','lbplanner_units','persistfix_units','flip_unit']
 CONTROLS=['wbland_units','reorder_sync','reorder_engagement','reorder_identity']
+SCOPE=['fused-0','fused-1','txn_group_fused','rootcore-notify',
+       'rootcompat-xsnotify','rootcompat-tracking','rootcompat-xsexpiry',
+       'clientfix','compat2','wb_mixed']
+SCOPE += ['feature-cell-' + '-'.join(map(str, (mode, *switches)))
+          for mode in ('1s','2s') for switches in itertools.product((0,1), repeat=4)]
+SCOPE += ['feature-cell-' + cell for cell in
+          ('split-home-min','fused-home-max-nopin','split-shards-auto')]
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('phase',choices=['new','regression','differ','units','controls']);p.add_argument('--engine',choices=['uring','epoll'],default='uring');args=p.parse_args()
- jobs=NEW if args.phase=='new' else JOBS if args.phase=='regression' else ['differ-split','differ-armed'] if args.phase=='differ' else CONTROLS if args.phase=='controls' else UNITS
+ p=argparse.ArgumentParser();p.add_argument('phase',choices=['new','regression','differ','units','controls','scope']);p.add_argument('--engine',choices=['uring','epoll'],default='uring');args=p.parse_args()
+ jobs={'new':NEW,'regression':JOBS,'differ':['differ-split','differ-armed'],
+       'controls':CONTROLS,'scope':SCOPE,'units':UNITS}[args.phase]
  if args.phase=='regression' and args.engine=='epoll':jobs=EPOLL
+ if args.phase=='scope' and args.engine=='epoll':jobs=['fused-0','fused-1','txn_group_fused']
  out=ROOT/'build/flipfix7';tag=f'gate-{args.phase}-{args.engine}'
  if args.phase=='regression':
   assert hashlib.sha256((ROOT/'build/tomokv').read_bytes()).digest()==hashlib.sha256((out/'POST').read_bytes()).digest()
