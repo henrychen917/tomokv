@@ -15,9 +15,9 @@ struct CoreConcurrencyTest {
     static void need(bool ok, const char* why) {
         if (!ok) { std::fprintf(stderr, "FAIL atomfix6 park: %s\n", why); std::exit(1); }
     }
-    template<bool Fused> static bool run() {
+    template<bool Fused> static bool run(bool read_local) {
         Config cfg;
-        cfg.atomic = 1; cfg.databases = kSingleDatabase ? 1 : 16;
+        cfg.atomic = 1; cfg.read_local = read_local; cfg.databases = kSingleDatabase ? 1 : 16;
         cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
         cfg.thread_mode = Fused ? ThreadMode::Fused : ThreadMode::Split;
         cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0; cfg.save.clear();
@@ -93,8 +93,8 @@ struct CoreConcurrencyTest {
         for (auto* state : states) xshard_abandon_unpublished(state, pool, 0);
         pool.reap_deferred();
         command_bind_server(nullptr);
-        std::printf("atomfix6 park mode=%s namespace=%s tasks=%u passes=%u polls=%llu scans=%llu\n",
-            Fused ? "1s" : "2s", kSingleDatabase ? "db0" : "normal", connections * depth, passes,
+        std::printf("atomfix6 park mode=%s namespace=%s read-local=%u tasks=%u passes=%u polls=%llu scans=%llu\n",
+            Fused ? "1s" : "2s", kSingleDatabase ? "db0" : "normal", read_local, connections * depth, passes,
             (unsigned long long)polls, (unsigned long long)visits);
         return polls == connections * passes && visits == 0;
     }
@@ -102,6 +102,12 @@ struct CoreConcurrencyTest {
 }
 int main(int argc, char** argv) {
     if (argc != 2 || !command_registry_init(false)) return 2;
-    return (std::string(argv[1]) == "1s" ? CoreConcurrencyTest::run<true>()
-                                        : CoreConcurrencyTest::run<false>()) ? 0 : 1;
+    bool passed = true;
+    for (bool read_local : {false, true}) {
+        const bool result = std::string(argv[1]) == "1s"
+            ? CoreConcurrencyTest::run<true>(read_local)
+            : CoreConcurrencyTest::run<false>(read_local);
+        passed = result && passed;
+    }
+    return passed ? 0 : 1;
 }

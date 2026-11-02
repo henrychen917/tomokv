@@ -22,7 +22,7 @@ GROUPS = {
     'features': ['feature-split-0', 'feature-split-1', 'feature-armed-0', 'feature-armed-1',
                  'datafix2_watch', 'moverfix', 'wave14_order', 'clientcompat-multi-tracking',
                  'clientcompat-multi-controls', 'wb_rule_units', 'wbland_units',
-                 'storage_units', 'bugs5', 'ring_unit', 'filter_unit', 'wait_units',
+                 'storage_units', 'bugs5', 'atomfix6_units', 'ring_unit', 'filter_unit', 'wait_units',
                  'asan_batteries', 'script_bounds', 'scriptfix', 'scriptfix2', 'lualibs']
         + [f'multifix-{m}-{e}' for m in ('1s', '2s') for e in ('uring', 'epoll')]
         + [f'multidb-{m}-{r}-{a}' for m in ('1s', '2s') for r in (0, 1) for a in (0, 1)],
@@ -56,6 +56,8 @@ if a.group == 'atomic' and a.fused:
     for arm, binary in [('PRE', ROOT / 'build/pre/tomokv'), ('POST', ROOT / 'build/tomokv')]:
         subprocess.run(['python3', __file__, 'fifo', '--binary', str(binary),
                         '--label', f'fifo-{arm}-idle'], check=False)
+if a.group == 'features':
+    subprocess.run(['python3', 'tools/atomfix6_park_pre.py'], check=True)
 jobs = GROUPS[a.group]
 if a.fused:
     # These jobs use txn_proof_boot. Other selected jobs already enumerate

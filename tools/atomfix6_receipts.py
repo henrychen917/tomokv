@@ -43,6 +43,21 @@ for folder in sorted((DOC / 'proof').iterdir()):
         for path in sorted((run / 'jobs').glob('atomfix6-live-*/proof/result.json')):
             live.append(json.loads(path.read_text()))
         if live: save(folder / 'live-results.json', live)
+        fifo = []
+        for path in sorted((run / 'jobs/txnorder_fifo_live').glob('fifo-*.json')):
+            data = json.loads(path.read_text())
+            raw = path.with_suffix('.log').read_text()
+            errors = re.findall(r'^AssertionError: (.*)$', raw, re.M)
+            fifo.append(dict(leg=path.stem, passed=data.get('pass', False),
+                order_violations=data.get('deltas', {}).get('atomic_txn_order_violations'),
+                exact_final_values=('actual' in data and 'expected' in data
+                                    and data['actual'] == data['expected']),
+                completions=sum(data.get('completions', [])),
+                fifo=data.get('fifo', {}), assertions=errors))
+            if errors:
+                dest = folder / 'jobs/txnorder_fifo_live'
+                shutil.copyfile(path.with_suffix('.log'), dest / path.with_suffix('.log').name)
+        if fifo: save(folder / 'fifo-results.json', fifo)
     proof.append(record)
 save(DOC / 'proof-summary.json', proof)
 

@@ -1448,7 +1448,7 @@ pausable taskset -c "$BUILD_CORES" tests/parbuild.sh $ASAN "$PWD/build/gate-cach
 # atomfix6: 12 serverless rows + 8 live rows, collected before quick exit.
 # DQ=+20, DF=+20. EXPECT_QUICK / EXPECT_FULL remain maintainer-owned.
 job_atomfix6_units(){
-  local ns flavor target label mode source park_sanitized=1
+  local ns flavor target label mode source park_sanitized=1 park_db0_sanitized=1
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" \
       build/atomfix6-unit build/atomfix6-db0-unit build/atomfix6-asan build/atomfix6-db0-asan \
       build/atomfix6-tsan build/atomfix6-db0-tsan build/atomfix6-park-unit \
@@ -1465,6 +1465,15 @@ job_atomfix6_units(){
       '-std=c++20 -O1 -g -march=native -pthread -fsanitize=thread -fno-omit-frame-pointer -no-pie -DTOMO_CORE_CONCURRENCY_TEST -I.' \
       '-luring -pthread -lssl -lcrypto -lm -Wl,--compress-debug-sections=zlib' \
       tests/atomfix6_park_unit.cc "${sources[@]}" >>"$TMPDIR/build.log" 2>&1 || park_sanitized=0
+  for flavor in asan tsan; do
+    local sanitizer='-fsanitize=address,undefined'
+    [ "$flavor" != tsan ] || sanitizer='-fsanitize=thread'
+    pausable taskset -c "$BUILD_CORES" tests/parbuild.sh "build/atomfix6-park-db0-$flavor" \
+        "$PWD/build/gate-cache/obj-atomfix6-db0-$flavor" \
+        "-std=c++20 -O1 -g -gz=zlib -march=native -pthread $sanitizer -fno-omit-frame-pointer -no-pie -DTOMO_CORE_CONCURRENCY_TEST -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I." \
+        '-luring -pthread -lssl -lcrypto -lm -Wl,--compress-debug-sections=zlib' \
+        tests/atomfix6_park_unit.cc "${sources[@]}" >>"$TMPDIR/build.log" 2>&1 || park_db0_sanitized=0
+  done
   for ns in normal db0; do
     for flavor in unit asan tsan; do
       target="build/atomfix6-${ns/normal/}-$flavor"
@@ -1483,15 +1492,20 @@ job_atomfix6_units(){
     for mode in 1s 2s; do
       label="atomfix6 parked MSET8 heads ($mode, $ns)"
       row_begin "$label"
-      if make -q "$target" && taskset -c "$CORES" "$target" "$mode" >"$TMPDIR/park-$ns-$mode.log" 2>&1 && \
-          { [ "$ns" != normal ] || { [ "$park_sanitized" = 1 ] && \
-            make -f Makefile -f tools/atomfix6.mk -q build/atomfix6-park-asan && \
-            ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1 \
-              taskset -c "$CORES" build/atomfix6-park-asan "$mode" >"$TMPDIR/park-asan-$mode.log" 2>&1 && \
-            TSAN_OPTIONS=halt_on_error=1:exitcode=66 setarch x86_64 -R \
-              taskset -c "$CORES" build/atomfix6-park-tsan "$mode" >"$TMPDIR/park-tsan-$mode.log" 2>&1; }; }; then
-        ok "$label"
-      else bad "$label" "see $TMPDIR/park-$ns-$mode.log and build.log"; fi
+      local park_ok=1 suffix=''
+      [ "$ns" != db0 ] || suffix=-db0
+      make -q "$target" && taskset -c "$CORES" "$target" "$mode" \
+          >"$TMPDIR/park-$ns-$mode.log" 2>&1 || park_ok=0
+      [ "$park_sanitized" = 1 ] && [ "$park_db0_sanitized" = 1 ] && \
+          make -f Makefile -f tools/atomfix6.mk -q build/atomfix6-park-asan || park_ok=0
+      ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1 \
+          taskset -c "$CORES" "build/atomfix6-park$suffix-asan" "$mode" \
+          >"$TMPDIR/park-asan-$ns-$mode.log" 2>&1 || park_ok=0
+      TSAN_OPTIONS=halt_on_error=1:exitcode=66 setarch x86_64 -R \
+          taskset -c "$CORES" "build/atomfix6-park$suffix-tsan" "$mode" \
+          >"$TMPDIR/park-tsan-$ns-$mode.log" 2>&1 || park_ok=0
+      [ "$park_ok" = 1 ] && ok "$label" \
+          || bad "$label" "see $TMPDIR/park-*-$ns-$mode.log and build.log"
     done
   done
   for flavor in asan tsan; do
