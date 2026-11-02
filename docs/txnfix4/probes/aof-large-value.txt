@@ -1,0 +1,6 @@
+SETRANGE big <N MiB - 1> x with appendonly yes, 2s 6:2 on CPUs 61-68, fresh server per row; a second
+connection PINGs every 10-15 s with a 5 s timeout (docs/txnfix4/probes/aof-large-value.py).
+POST e23c2fb37cd0:   8 MiB reply 8388608 after 0.0 s;  32 MiB reply after 0.1 s;  64 MiB reply after 0.2 s;
+POST e23c2fb37cd0: 128 MiB no reply in 300 s; every PING from 15 s on times out (server-wide).
+PRE  737dd31040e3: 128 MiB no reply in 60 s; PINGs time out likewise.
+The supplementary aofrw probe (two 128 MiB values with AOF on) stopped at this step on PRE and POST.
