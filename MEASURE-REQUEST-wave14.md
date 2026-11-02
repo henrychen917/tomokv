@@ -232,6 +232,25 @@ legs. All 16 exec-close cases arm real close refusals. The original red
 receipt and all 64 detailed session witnesses remain in
 `flip-refusal-contract.json`. No public row or EXPECT change is needed.
 
+### XACCT correctness-only policy correction
+
+The fused uring debug job reports a failed MULTI-prepare timing ratio:
+18.31 against the unchanged bound below 15. All its data, WATCH arming,
+deduplication and stream-accounting checks pass. This also exposes a harness
+mistake: XACCT evaluated two timing ratios despite `GATE_PROOF_NO_RATES=1`.
+Those earlier timing observations did run; they are preserved and are not
+performance merit evidence. `xacct-timing-policy.json` binds the original
+failure and six synthetic release-threshold controls.
+
+XACCT now follows the existing stream/xmove `--release-build` convention. The
+ordinary maintainer gate supplies that flag and retains both original bounds.
+Selected correctness-only jobs retain every original operation and repeat,
+all PEL/WATCH arming checks, and exact final accounting; they do not read a
+clock and explicitly print NOT RUN for the two timing assertions. No threshold
+is widened, no production code changes, and no public row changes. Complete
+debug jobs in both modes and engines and a fresh throwaway landing selftest
+are running against this corrected test policy. The earlier red row remains.
+
 ### FIFO live allocation controls
 
 The broad final FIFO live row completes all sixteen 60-second legs, all 68
