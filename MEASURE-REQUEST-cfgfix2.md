@@ -144,6 +144,13 @@ unchanged across each run (`tools/cfgfix2_gate.py`). Receipts under
 - `python3 tests/gates_test.py`: **83/83** (149 s), confirming the six new
   `collect_job` rows and `JOB_NAMES` edits keep `gate.sh` well-formed (feature
   rows precede the quick exit, independent-failure rows, instrument helpers).
+- `redis_tcl` passing subset on POST: **green in both modes** (`post-tcl`, 2s
+  225 s / 1s 229 s). Every config/ACL/INFO/latency file passes
+  (introspection, acl, info, latency-monitor, slowlog). The per-file "1 fail"
+  the raw runtest prints for `unit/type/list` and `unit/type/stream-cgroups`
+  is the manifest's predeclared known setup error (list-compression config /
+  appendonly setup), reconciled by `validate_passing`; no assertion count or
+  skip was changed, and no Tcl promotion was made.
 - The declared job list for this lane is `docs/cfgfix2/required-jobs.txt`.
 
 ### Not run in this lane (reasons)
