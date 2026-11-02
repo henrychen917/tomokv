@@ -1,0 +1,42 @@
+[
+  {
+    "name": "tomo::SnapshotManager::start(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, tomo::AofManager*, char const*, char const*, bool)",
+    "reason": "Integration 2d32493948: capture FUNCTION libraries after AOF increment rotation; includes the corresponding cold error paths."
+  },
+  {
+    "name": "tomo::SnapshotManager::start(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, tomo::AofManager*, char const*, char const*, bool) [clone .cold]",
+    "reason": "Integration 2d32493948: capture FUNCTION libraries after AOF increment rotation; includes the corresponding cold error paths."
+  },
+  {
+    "name": "tomo_db0::SnapshotManager::start(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, tomo_db0::AofManager*, char const*, char const*, bool)",
+    "reason": "Integration 2d32493948: capture FUNCTION libraries after AOF increment rotation; includes the corresponding cold error paths."
+  },
+  {
+    "name": "tomo_db0::SnapshotManager::start(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, tomo_db0::AofManager*, char const*, char const*, bool) [clone .cold]",
+    "reason": "Integration 2d32493948: capture FUNCTION libraries after AOF increment rotation; includes the corresponding cold error paths."
+  },
+  {
+    "name": "unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+    "reason": "Integration a0e4d122e8: regenerate the R7 owner with clientcompat's ExDrain-only freeze; its inline/caller propagation changes this envelope."
+  },
+  {
+    "name": "unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()",
+    "reason": "Integration a0e4d122e8: regenerate the R7 owner with clientcompat's ExDrain-only freeze; its inline/caller propagation changes this envelope."
+  },
+  {
+    "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+    "reason": "Integration a0e4d122e8: regenerate the R7 owner with clientcompat's ExDrain-only freeze; its inline/caller propagation changes this envelope."
+  },
+  {
+    "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()",
+    "reason": "Integration a0e4d122e8: regenerate the R7 owner with clientcompat's ExDrain-only freeze; its inline/caller propagation changes this envelope."
+  },
+  {
+    "name": "void tomo::IoLoop::r7_run_loop<true, true, true, true, false>()",
+    "reason": "Integration a0e4d122e8: regenerate the R7 owner with clientcompat's ExDrain-only freeze; its inline/caller propagation changes this envelope."
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<false, true, false, true, false>()",
+    "reason": "Integration a0e4d122e8: regenerate the R7 owner with clientcompat's ExDrain-only freeze; its inline/caller propagation changes this envelope."
+  }
+]

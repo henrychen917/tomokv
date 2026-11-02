@@ -253,12 +253,13 @@ six R7 bodies. `r7-budget-trials.json` records every trial and the decision.
 All **10 GET/SET/MGET/MSET handler groups equal the headline**. The complete
 inventory contains 10,730 groups: 8,270 equal headline, 1,721 changed groups equal
 an isolated lane POST, and **739 residual groups**. Of the wider 89 command-hot
-helper groups, 42 equal headline, 16 equal a lane, and 31 remain composite or
+helper groups, 42 equal headline, 16 equal a lane, and 31 remain integration, composite or
 compiler differences. The inventory does not hide these behind address,
 source-line, member-offset, register or opcode masking. Every changed body,
 size and attribution is in `identity-release-r7/changed-bodies.md` and its JSON
-companion. Single-lane mismatches and unisolated compiler changes remain
-explicit; universal lane-POST equality is an **unmet criterion**, not a pass.
+companion. Ten groups explicitly name the FUNCTION-capture and generated-R7
+integration corrections, while retaining the lane comparison reason. Single-lane
+mismatches and unisolated compiler changes remain explicit; universal lane-POST equality is an **unmet criterion**, not a pass.
 
 The rebuilt PRE is source `105c5818cc`. All 718 hot groups and 88 command-hot
 groups equal the supplied headline. Its two remaining differences are cold
@@ -414,7 +415,9 @@ because witnessfix removes seven tests of the retired Tcl retry and adds
 one no-retry check; every other lane test method remains. The method inventory
 is recorded in `gates-test-method-inventory.json`. `abba_selftest` passed again in
 a fresh throwaway landing copy with 1090/1107, the final known-difference
-labels and both private EOF diagnostics (`abba-r7-final-copy.json`). The final
+labels, both private EOF diagnostics, and the final complete-case netio
+harness (`jobs/abba-landing-complete.json`). Earlier selftest receipts remain
+in `abba-r7-final-copy.json`. The final
 standalone harness run again passes 77/77 tests; all 12 Tcl observer controls
 pass (`gate-unit-final.json`). Source identity lint passed for all 59 C++ units in both namespaces
 and six shared C units, including the stable-assertion failure checks. The

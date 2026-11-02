@@ -39,6 +39,39 @@ def references():
     install(identity.audit)
     return identity
 
+def integration_reasons(directory, binary):
+    """Name integration edits separately from unchanged identity verdicts."""
+    ready = DOC / 'r7-final-ready.json'
+    if not ready.exists() or sha(binary) != json.loads(ready.read_text())['sha256']:
+        return
+    r7 = {r['name'] for r in json.loads(
+        (DOC/'r7-final-release-differences.json').read_text())['changed']}
+    path = directory / 'changed-bodies.json'
+    rows = json.loads(path.read_text())
+    annotations = []
+    for row in rows:
+        reason = None
+        if '::SnapshotManager::start(' in row['name']:
+            reason = ('Integration 2d32493948: capture FUNCTION libraries after AOF '
+                      'increment rotation; includes the corresponding cold error paths.')
+        elif row['name'] in r7:
+            reason = ('Integration a0e4d122e8: regenerate the R7 owner with clientcompat\'s '
+                      'ExDrain-only freeze; its inline/caller propagation changes this envelope.')
+        if reason:
+            row.setdefault('lane_comparison_reason', row['reason'])
+            row['reason'] = reason + ' Lane comparison: ' + row['lane_comparison_reason']
+            annotations.append(dict(name=row['name'], reason=reason))
+    assert len(annotations) == 10
+    save(path, rows)
+    save(directory/'integration-annotations.json', annotations)
+    lines = ['# Linked body differences', '',
+        'Strict gate instruction/address normalization; local clone multiplicity retained. Identity is a proxy.', '',
+        '| Function | Headline sizes | Merged sizes | Reason |', '|---|---|---|---|']
+    for row in rows:
+        lines.append('| `'+row['name'].replace('|', '\\|')+'` | '+str(row['headline_sizes'])+
+            ' | '+str(row['post_sizes'])+' | '+row['reason'].replace('|', '\\|')+' |')
+    (directory/'changed-bodies.md').write_text('\n'.join(lines)+'\n')
+
 def inventory():
     from gate_ledger_fixture import source_labels
     gate = (ROOT / 'tests/gate.sh').read_text()
@@ -175,6 +208,7 @@ def main():
         identity = references()
         sys.argv = ['identity', str(a.binary), str(DOC/a.tag)]
         identity.main()
+        integration_reasons(DOC/a.tag, a.binary)
     elif a.phase == 'jobs': raise SystemExit(jobs(a))
     elif a.phase == 'landing-selftest': raise SystemExit(landing_selftest(a))
 
