@@ -58,6 +58,9 @@ if a.group == 'atomic' and a.fused:
                         '--label', f'fifo-{arm}-idle'], check=False)
 if a.group == 'features':
     subprocess.run(['python3', 'tools/atomfix6_park_pre.py'], check=True)
+    with (ROOT / 'docs/atomfix6/gates-test-expanded.log').open('w') as log:
+        subprocess.run(['python3', 'tests/gates_test.py'], stdout=log,
+                       stderr=subprocess.STDOUT, check=True)
 jobs = GROUPS[a.group]
 if a.fused:
     # These jobs use txn_proof_boot. Other selected jobs already enumerate

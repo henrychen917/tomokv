@@ -68,6 +68,18 @@ increased GCC's initial IPA size by 158 (131034 -> 131192); changing that unit's
 budget from 165926 to 166084 restores the PRE xshard_execute body and all scopes.
 The derived budget and both neighbouring trials are retained in `budgets/`.
 
+Atomic-1 uncontended executable instructions, per complete traced batch (the
+scopes exclude fixture glue and shared-library internals as above):
+
+| Namespace | Command | Mode | Batch 1 PRE / POST | Batch 32 PRE / POST |
+|---|---|---|---:|---:|
+| normal | MGET | 1s / 2s | 10,174 / 10,174 | 324,390 / 324,390 |
+| normal | MSET | 1s | 16,991 / 16,991 | 962,174 / 962,174 |
+| normal | MSET | 2s | 16,659 / 16,659 | 951,550 / 951,550 |
+| db0 | MGET | 1s / 2s | 10,044 / 10,044 | 320,230 / 320,230 |
+| db0 | MSET | 1s | 16,376 / 16,376 | 897,854 / 897,854 |
+| db0 | MSET | 2s | 16,030 / 16,030 | 886,782 / 886,782 |
+
 `docs/atomfix6/contended/comparison.json` prices a separate held-predecessor
 scheduler slice, using actual MGET8/MSET8 groups, eight connections and eight
 owner passes. It is not a completed-command count: no held command can finish.
