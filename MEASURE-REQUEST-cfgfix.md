@@ -3,9 +3,10 @@
 Lane: `cx-cfgfix`, frozen PRE `105c5818cc20e3ede50fbe4849915ef72ee1732e`.
 No push. Correctness boots/builds use CPUs 32–47, eight-thread gate server
 geometry with 16 shards and 6:2 for split, ports 20100–20199, and `LC_ALL=C`.
-The main jobs use server CPUs 32–39. The independent epoll control jobs overlap
-the long clock waits on server CPUs 40–47 and ports 20150–20199; client work
-uses the opposite eight CPUs. All are correctness jobs, with no rate scoring.
+The main jobs use server CPUs 32–39. Independent correctness phases use server
+CPUs 40–47 and ports 20150–20199; client work uses the opposite eight CPUs.
+The two pools overlap clock waits and the remaining fused/differential work.
+Builds use `-j16` within CPUs 32–47. All jobs omit rate scoring.
 No performance workload or full `iteration` gate was run.
 
 This is a partial compatibility implementation, not a claim of complete Redis
