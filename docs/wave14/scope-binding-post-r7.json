@@ -1,0 +1,102 @@
+[
+  {
+    "arm": "post",
+    "kind": "ordinary",
+    "namespace": "normal",
+    "server_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+    "probe_sha256": "d783718bcdd553e7a92a33314d0d8a963541960715c02054f82548c1b2033c25",
+    "entered_groups": 125,
+    "matched": 125,
+    "unmatched": []
+  },
+  {
+    "arm": "post",
+    "kind": "ordinary",
+    "namespace": "db0",
+    "server_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+    "probe_sha256": "9750cc78dcca3886ec76bc9e1bb0408dc20ff2b821f69c044e8ff095d07f535c",
+    "entered_groups": 120,
+    "matched": 120,
+    "unmatched": []
+  },
+  {
+    "arm": "post",
+    "kind": "scripts",
+    "namespace": "normal",
+    "server_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+    "probe_sha256": "e222e808b8e4038c858d508143321c979a9df55ef04115c628b47b1657dffa95",
+    "entered_groups": 197,
+    "matched": 197,
+    "unmatched": []
+  },
+  {
+    "arm": "post",
+    "kind": "scripts",
+    "namespace": "db0",
+    "server_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+    "probe_sha256": "1bb0e43b580e7d3a3c4e68324983c554be1d2522d55d3cad37552b7eb0f47932",
+    "entered_groups": 209,
+    "matched": 209,
+    "unmatched": []
+  },
+  {
+    "arm": "post",
+    "kind": "session",
+    "namespace": "normal",
+    "server_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+    "probe_sha256": "567ed0f68c8d8fd7db97aea784249e2ddfb8acba5126465b3f614378d4df1a10",
+    "entered_groups": 178,
+    "matched": 178,
+    "unmatched": []
+  },
+  {
+    "arm": "post",
+    "kind": "session",
+    "namespace": "db0",
+    "server_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+    "probe_sha256": "5ecb49b445bf40d78168c91718774e6a287dd40afb3889bba32197c6bff3f1d0",
+    "entered_groups": 164,
+    "matched": 164,
+    "unmatched": []
+  },
+  {
+    "arm": "post",
+    "kind": "other",
+    "namespace": "normal",
+    "server_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+    "probe_sha256": "e222e808b8e4038c858d508143321c979a9df55ef04115c628b47b1657dffa95",
+    "entered_groups": 116,
+    "matched": 116,
+    "unmatched": []
+  },
+  {
+    "arm": "post",
+    "kind": "other",
+    "namespace": "db0",
+    "server_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+    "probe_sha256": "1bb0e43b580e7d3a3c4e68324983c554be1d2522d55d3cad37552b7eb0f47932",
+    "entered_groups": 106,
+    "matched": 106,
+    "unmatched": []
+  },
+  {
+    "arm": "post",
+    "kind": "parser",
+    "namespace": "normal",
+    "server_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+    "probe_sha256": "fb7ce732d2afb26c4f07dd8d70ddd69da635b8abe6f517878b6a1c12e03b743d",
+    "entered_groups": 26,
+    "matched": 26,
+    "unmatched": []
+  },
+  {
+    "arm": "post",
+    "kind": "parser",
+    "namespace": "db0",
+    "server_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+    "probe_sha256": "2674b6cde599052cd89d5dac902952703bda76d25e614aa454455da76017c905",
+    "entered_groups": 23,
+    "matched": 23,
+    "unmatched": []
+  }
+]

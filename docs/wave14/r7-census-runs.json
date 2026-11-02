@@ -1,0 +1,67 @@
+[
+  {
+    "kind": "ordinary",
+    "command": [
+      "python3",
+      "tools/wave14_counts.py",
+      "post",
+      "--kind",
+      "ordinary",
+      "--tag",
+      "r7"
+    ],
+    "exit_code": 0
+  },
+  {
+    "kind": "scripts",
+    "command": [
+      "python3",
+      "tools/wave14_counts.py",
+      "post",
+      "--kind",
+      "scripts",
+      "--tag",
+      "r7"
+    ],
+    "exit_code": 0
+  },
+  {
+    "kind": "session",
+    "command": [
+      "python3",
+      "tools/wave14_counts.py",
+      "post",
+      "--kind",
+      "session",
+      "--tag",
+      "r7"
+    ],
+    "exit_code": 0
+  },
+  {
+    "kind": "other",
+    "command": [
+      "python3",
+      "tools/wave14_counts.py",
+      "post",
+      "--kind",
+      "other",
+      "--tag",
+      "r7"
+    ],
+    "exit_code": 0
+  },
+  {
+    "kind": "parser",
+    "command": [
+      "python3",
+      "tools/wave14_counts.py",
+      "post",
+      "--kind",
+      "parser",
+      "--tag",
+      "r7"
+    ],
+    "exit_code": 0
+  }
+]

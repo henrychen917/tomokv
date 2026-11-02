@@ -12,7 +12,7 @@ from wave14 import ROOT, DOC, save, sha
 
 def planned():
     names = ['merged-uring-consumers', 'merged-epoll']
-    for filename in ('followthrough-plan.json', 'blockfix4-supplement-plan.json'):
+    for filename in ('final-uring-plan.json', 'final-epoll-plan.json'):
         names.extend(p['tag'] for p in json.loads((DOC / filename).read_text())['plans'])
     return names
 
@@ -74,8 +74,9 @@ def differential(phases):
     sys.path.insert(0, str(ROOT / 'tests'))
     import differ_fanout as fanout
     results = []
-    for phase in phases[:2]:
-        if 'run_directory' not in phase:
+    for phase in phases:
+        if 'run_directory' not in phase or not any(
+                name.startswith('differ-') for name in phase['requested']):
             continue
         root = Path(phase['run_directory'])
         plan = fanout.load_plan(root / 'differ-plan.json')

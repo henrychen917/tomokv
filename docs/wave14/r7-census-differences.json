@@ -1,0 +1,243 @@
+{
+  "differences": [
+    {
+      "kind": "scripts",
+      "cell": [
+        "normal",
+        "EVAL-single",
+        "1s",
+        1,
+        0,
+        -1
+      ],
+      "old": 13715,
+      "new": 13720,
+      "delta": 5,
+      "function_deltas": {
+        "luaH_get": 5
+      }
+    },
+    {
+      "kind": "scripts",
+      "cell": [
+        "normal",
+        "EVAL-single",
+        "1s",
+        1,
+        1,
+        -1
+      ],
+      "old": 13720,
+      "new": 13715,
+      "delta": -5,
+      "function_deltas": {
+        "luaH_get": -5
+      }
+    },
+    {
+      "kind": "scripts",
+      "cell": [
+        "normal",
+        "EVAL-single",
+        "2s",
+        1,
+        0,
+        -1
+      ],
+      "old": 14259,
+      "new": 14254,
+      "delta": -5,
+      "function_deltas": {
+        "luaH_get": -5
+      }
+    },
+    {
+      "kind": "scripts",
+      "cell": [
+        "normal",
+        "EVAL-cross",
+        "1s",
+        1,
+        0,
+        -1
+      ],
+      "old": 40400,
+      "new": 40405,
+      "delta": 5,
+      "function_deltas": {
+        "luaH_get": 5
+      }
+    },
+    {
+      "kind": "scripts",
+      "cell": [
+        "normal",
+        "EVALSHA-single",
+        "2s",
+        1,
+        0,
+        -1
+      ],
+      "old": 14077,
+      "new": 14082,
+      "delta": 5,
+      "function_deltas": {
+        "luaH_get": 5
+      }
+    },
+    {
+      "kind": "scripts",
+      "cell": [
+        "normal",
+        "EVALSHA-single",
+        "2s",
+        1,
+        1,
+        -1
+      ],
+      "old": 14077,
+      "new": 14082,
+      "delta": 5,
+      "function_deltas": {
+        "luaH_get": 5
+      }
+    },
+    {
+      "kind": "scripts",
+      "cell": [
+        "normal",
+        "EVALSHA-cross",
+        "1s",
+        1,
+        0,
+        -1
+      ],
+      "old": 40303,
+      "new": 40308,
+      "delta": 5,
+      "function_deltas": {
+        "luaH_get": 5
+      }
+    },
+    {
+      "kind": "scripts",
+      "cell": [
+        "normal",
+        "EVALSHA-cross",
+        "2s",
+        1,
+        1,
+        -1
+      ],
+      "old": 40315,
+      "new": 40320,
+      "delta": 5,
+      "function_deltas": {
+        "luaH_get": 5
+      }
+    },
+    {
+      "kind": "scripts",
+      "cell": [
+        "db0",
+        "EVAL-single",
+        "1s",
+        1,
+        0,
+        -1
+      ],
+      "old": 14340,
+      "new": 14335,
+      "delta": -5,
+      "function_deltas": {
+        "luaH_get": -5
+      }
+    },
+    {
+      "kind": "scripts",
+      "cell": [
+        "db0",
+        "EVAL-single",
+        "2s",
+        1,
+        0,
+        -1
+      ],
+      "old": 14561,
+      "new": 14556,
+      "delta": -5,
+      "function_deltas": {
+        "luaH_get": -5
+      }
+    },
+    {
+      "kind": "scripts",
+      "cell": [
+        "db0",
+        "EVAL-single",
+        "2s",
+        1,
+        1,
+        -1
+      ],
+      "old": 14556,
+      "new": 14561,
+      "delta": 5,
+      "function_deltas": {
+        "luaH_get": 5
+      }
+    },
+    {
+      "kind": "scripts",
+      "cell": [
+        "db0",
+        "EVAL-cross",
+        "1s",
+        1,
+        0,
+        -1
+      ],
+      "old": 38728,
+      "new": 38723,
+      "delta": -5,
+      "function_deltas": {
+        "luaH_get": -5
+      }
+    },
+    {
+      "kind": "scripts",
+      "cell": [
+        "db0",
+        "EVAL-cross",
+        "2s",
+        1,
+        0,
+        -1
+      ],
+      "old": 38746,
+      "new": 38741,
+      "delta": -5,
+      "function_deltas": {
+        "luaH_get": -5
+      }
+    },
+    {
+      "kind": "scripts",
+      "cell": [
+        "db0",
+        "EVALSHA-cross",
+        "1s",
+        1,
+        1,
+        -1
+      ],
+      "old": 38629,
+      "new": 38634,
+      "delta": 5,
+      "function_deltas": {
+        "luaH_get": 5
+      }
+    }
+  ],
+  "note": "All 14 changed counts are warm Lua scopes differing by exactly five instructions in luaH_get; ordinary commands, parser, EXEC, read-local GET and FLUSH scopes are identical to the prior attempt. The final census retains the actual fresh counts; no count is rounded or replaced."
+}
