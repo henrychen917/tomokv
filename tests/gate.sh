@@ -2934,21 +2934,25 @@ local AT=${1##*-}
 }
 
 job_rlfix5(){
-  local case=$1 mode ns engine boot_fn passed label unit_root
+  local case=$1 mode ns engine boot_fn passed label unit_root controls=1
   local oracle_port=$((PORT+1)) oracle_ready=0 oracle_dir
   local oracle_bin=${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}
+  py tests/rlfix5_gate_test.py >"$TMPDIR/fixture-controls.log" 2>&1 || controls=0
   unit_root=${GATE_RLFIX5_UNITS:-$PWD/build/rlfix5/counts/scopes/post}
   if [ -z "${GATE_RLFIX5_UNITS:-}" ]; then
     if make -q all && cmp -s "$CANDIDATE_BINARY" build/tomokv; then
-      pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" -f Makefile -f tools/rlfix5.mk build/rlfix5-scopes \
-          >"$TMPDIR/build.log" 2>&1 || true
+      if ! pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" -f Makefile -f tools/rlfix5.mk build/rlfix5-scopes \
+          >"$TMPDIR/build.log" 2>&1 ||
+          ! make -f Makefile -f tools/rlfix5.mk -q build/rlfix5-scopes; then
+        unit_root="$TMPDIR/missing"
+      fi
     else
       echo 'External candidate needs matching GATE_RLFIX5_UNITS' >"$TMPDIR/build.log"
       unit_root="$TMPDIR/missing"
     fi
   fi
   for mode in 1s 2s; do
-    label="rlfix5 $case ($mode)"; passed=1; row_begin "$label"
+    label="rlfix5 $case ($mode)"; passed=$controls; row_begin "$label"
     guard_port "$oracle_port"
     oracle_dir=$(mktemp -d "$TMPDIR/oracle.XXXXXX")
     taskset -c "$CORES" "$oracle_bin" --port "$oracle_port" --bind 127.0.0.1 \
