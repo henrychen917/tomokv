@@ -8,9 +8,10 @@ The `final-*` candidate below was superseded during cleanup review: an EOF-state
 allocation failure could retain the synthetic receive hold used during handoff
 rollback. `eof-oom-before` fails that exact assertion in both namespaces;
 `eof-oom-after` passes after clearing the hold in the cold allocation-error path.
-The `complete-*` arms are frozen and pass the directed EOF/AOF checks; the broader final proof is running. Earlier successful
-runs are retained as intermediate evidence, including all twelve Tcl legs and
-the complete epoll differential matrix; they are not passes for the new arm.
+The `complete-*` arms are frozen and pass the directed EOF/AOF checks and all
+12 required Tcl legs. The differential and broader final proof is running.
+Earlier `final-*` receipts remain intermediate evidence, including their
+successful Tcl and epoll differential runs.
 
 The EOF production change is in `src/core/eof.cc`, with receive, timer and teardown
 wiring in `io_loop.h` and `reorder.cc`. The independent AOF deadlock fix is in
@@ -37,7 +38,7 @@ its existing transport shutdown behavior.
 | Epoll loses EOF | `pre-fin-complete`: both namespaces fail the missing-teardown assertion; open-peer controls pass. `pre-netio-coalesced`: both public epoll rows fail with the exact closed BRPOPLPUSH client still registered. | `complete-eof-aof`: native controls and all four public mode/engine legs pass, 101 checks per netio leg. | Retain RDHUP independently of a short read; use deferred receive/retirement. | Full Tcl ordering results are separate below. |
 | Half-close input loss | `pre-half-replies`: data/reply failures in 1s/2s, uring/epoll, databases 1/16. Redis applies and replies to every original 1/32/65/256/4096 frame. | `complete-eof-aof`: all 90 controls pass (80 TomoKV, 10 Redis), including depth 65,536, a truncated final frame, exact reply order, applied values, client retirement, a non-reading peer and two synchronous-control prefixes. | Drain buffered commands and replies before normal close; bound stalled output. | The non-reading-peer grace is explicit above. |
 | Transaction-AOF timeout | `txn-pre-epoll-cont-14`: row d TimeoutError and 30-second shutdown failure, with failure-only GDB stacks; deterministic `pre-aof-progress-complete` fails all eight pressure/self-writer cases and passes all four open-channel controls. | `complete-eof-aof` passes all 12 native controls; final whole-job repetition is pending. | Publish coarse QSBR progress while an AOF producer waits on its full channel; let GCMT use the existing writer-drain hook. | Independent of EOF. Final whole-job loops remain pending. |
-| Public regression jobs | Public netio fails PRE; the full PRE Tcl run also fails on tracking order, independently of this patch. | EOF/netio checks pass. All 12 earlier Tcl legs passed; the replacement-arm Tcl, differential and broader job matrices are in progress. | Tests retain all 32 wave-14 EOF cases; the first queues data and FIN while every owned server thread is observably stopped. | Intermediate POST tracking failures are retained separately; no assertion or manifest has been weakened. |
+| Public regression jobs | Public netio fails PRE; the full PRE Tcl run also fails on tracking order, independently of this patch. | EOF/netio checks pass. All 12 final Tcl legs pass (three runs per mode/engine); differential and broader job matrices are in progress. | Tests retain all 32 wave-14 EOF cases; the first queues data and FIN while every owned server thread is observably stopped. | Intermediate POST tracking failures are retained separately; no assertion or manifest has been weakened. |
 
 PRE data-loss examples from `pre-half-replies` (both database namespaces):
 
@@ -96,9 +97,9 @@ assertion on PRE. `pre-tcl-attribution-02` and `-05` reproduce the original two
 list-fairness assertions. Other retained PRE runs reproduce BCAST and shared
 redirection order failures, pubsub PUNSUBSCRIBE failures, and the scripting
 50,000-load loop's Tcl timeout. These are attribution receipts, not green full
-suite claims. The earlier candidate passed the full manifest three times per engine in both modes: all
-12 legs, 39 files per leg, serially on CPUs 0–7. See
-`final-tcl-{epoll,uring}-{1,2,3}.json` and their raw archives. Replacement-arm repeats are in progress. No Tcl expectation or manifest was
+suite claims. The final arm passed the full manifest three times per engine in both modes:
+all 12 legs, 39 files per leg, serially on CPUs 0–7. See
+`complete-tcl-{epoll,uring}-{1,2,3}.json` and their raw archives. No Tcl expectation or manifest was
 relaxed. All intermediate POST failures remain in `validation-summary.json`.
 
 **Differential proof.** The earlier candidate passes epoll with the standard seeds 7/19/20/23/24:
@@ -218,6 +219,8 @@ behavior and public count are unchanged. The existing partial `NO_RATES`
 switch omits the throughput floor and records that row as NOT RUN; no load
 generator runs in this lane.
 
-The final AOF coverage also selects the existing rootcore functions, segments,
-WAITAOF and MISCONF jobs, plus `infofix_compat-loadaof`; their own mode/engine
-matrices and assertions are unchanged.
+The final AOF coverage also selects the wave-14 function snapshot/journal job,
+rootcore functions, segments, WAITAOF and MISCONF jobs, plus
+`infofix_compat-loadaof`; their own mode/engine matrices and assertions are
+unchanged. The function history checks cover the existing persistence drain's
+interaction with snapshot sealing.

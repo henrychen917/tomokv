@@ -38,3 +38,15 @@ cells 144 command/parser nonzero 0 receive deltas [2]
 complete-eof-aof exit 0
 complete-layout exit 0
 complete-pad exit 1
+complete-tcl-epoll-1 exit 0
+identical private tool copies shared: 510
+complete-tcl-epoll-2 exit 0
+identical private tool copies shared: 518
+complete-tcl-epoll-3 exit 0
+identical private tool copies shared: 526
+complete-tcl-uring-1 exit 0
+identical private tool copies shared: 534
+complete-tcl-uring-2 exit 0
+identical private tool copies shared: 542
+complete-tcl-uring-3 exit 0
+identical private tool copies shared: 550

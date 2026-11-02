@@ -59,6 +59,66 @@
       "captures": []
     },
     {
+      "tag": "complete-tcl-epoll-1",
+      "arm": "POST",
+      "engine": "epoll",
+      "jobs": "redis_tcl",
+      "binary_sha256": "4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501",
+      "exit_code": 0,
+      "failures": [],
+      "captures": []
+    },
+    {
+      "tag": "complete-tcl-epoll-2",
+      "arm": "POST",
+      "engine": "epoll",
+      "jobs": "redis_tcl",
+      "binary_sha256": "4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501",
+      "exit_code": 0,
+      "failures": [],
+      "captures": []
+    },
+    {
+      "tag": "complete-tcl-epoll-3",
+      "arm": "POST",
+      "engine": "epoll",
+      "jobs": "redis_tcl",
+      "binary_sha256": "4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501",
+      "exit_code": 0,
+      "failures": [],
+      "captures": []
+    },
+    {
+      "tag": "complete-tcl-uring-1",
+      "arm": "POST",
+      "engine": "uring",
+      "jobs": "redis_tcl",
+      "binary_sha256": "4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501",
+      "exit_code": 0,
+      "failures": [],
+      "captures": []
+    },
+    {
+      "tag": "complete-tcl-uring-2",
+      "arm": "POST",
+      "engine": "uring",
+      "jobs": "redis_tcl",
+      "binary_sha256": "4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501",
+      "exit_code": 0,
+      "failures": [],
+      "captures": []
+    },
+    {
+      "tag": "complete-tcl-uring-3",
+      "arm": "POST",
+      "engine": "uring",
+      "jobs": "redis_tcl",
+      "binary_sha256": "4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501",
+      "exit_code": 0,
+      "failures": [],
+      "captures": []
+    },
+    {
       "tag": "eof-oom-after",
       "arm": "POST",
       "engine": "epoll",
@@ -3154,6 +3214,222 @@
     }
   ],
   "tcl": [
+    {
+      "tag": "complete-tcl-epoll-1",
+      "arm": "POST",
+      "engine": "epoll",
+      "mode": "1s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "complete-tcl-epoll-1",
+      "arm": "POST",
+      "engine": "epoll",
+      "mode": "2s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "complete-tcl-epoll-2",
+      "arm": "POST",
+      "engine": "epoll",
+      "mode": "1s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "complete-tcl-epoll-2",
+      "arm": "POST",
+      "engine": "epoll",
+      "mode": "2s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "complete-tcl-epoll-3",
+      "arm": "POST",
+      "engine": "epoll",
+      "mode": "1s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "complete-tcl-epoll-3",
+      "arm": "POST",
+      "engine": "epoll",
+      "mode": "2s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "complete-tcl-uring-1",
+      "arm": "POST",
+      "engine": "uring",
+      "mode": "1s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "complete-tcl-uring-1",
+      "arm": "POST",
+      "engine": "uring",
+      "mode": "2s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "complete-tcl-uring-2",
+      "arm": "POST",
+      "engine": "uring",
+      "mode": "1s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "complete-tcl-uring-2",
+      "arm": "POST",
+      "engine": "uring",
+      "mode": "2s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "complete-tcl-uring-3",
+      "arm": "POST",
+      "engine": "uring",
+      "mode": "1s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "complete-tcl-uring-3",
+      "arm": "POST",
+      "engine": "uring",
+      "mode": "2s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
     {
       "tag": "final-tcl-epoll-1",
       "arm": "intermediate",
