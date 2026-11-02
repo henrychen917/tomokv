@@ -25,6 +25,21 @@ if {[info exists ::env(TOMO_TCL_ACL_FIRST_BLOCK)] && $::env(TOMO_TCL_ACL_FIRST_B
         return [uplevel 1 [list cmdfix2_start_server $options $code]]
     }
 }
+# Upstream's empty-channel helper sends PUNSUBSCRIBE but consumes zero replies.
+# This one assertion then publishes from another connection. Require all three
+# actual removal acknowledgments before its unchanged zero-recipient checks.
+if {[info exists ::env(TOMO_TCL_PUBSUB_FENCES)] && $::env(TOMO_TCL_PUBSUB_FENCES) eq "1"} {
+    rename punsubscribe cmdfix2_punsubscribe
+    proc punsubscribe {client {channels {}}} {
+        set result [uplevel 1 [list cmdfix2_punsubscribe $client $channels]]
+        if {$channels eq {} && $::cur_test eq "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl"} {
+            set counts [consume_subscribe_messages $client punsubscribe {chan1.* chan2.* chan3.*}]
+            assert_equal 0 [lindex $counts end]
+            puts "CMDFIX2-PUBSUB-FENCE acknowledged=3 remaining=0"
+        }
+        return $result
+    }
+}
 # Receipt observer only: forwards every original packet unchanged.
 rename send_data_packet harness5_send_data_packet
 proc send_data_packet {fd status data {elapsed 0}} {
@@ -185,6 +200,7 @@ def run_file(args, tree, unit, only=None, extra=(), server_args=()):
             # bind their decoding so the same assertion inventory survives it.
             test=subprocess.Popen(client,cwd=tree,env=dict(os.environ,HARNESS5_TCL_EVENTS=str(event_path),
                                   TOMO_TCL_ACL_FIRST_BLOCK='1' if unit == 'unit/acl' else '0',
+                                  TOMO_TCL_PUBSUB_FENCES='1' if unit == 'unit/pubsub' else '0',
                                   LANG='C.UTF-8', LC_ALL='C.UTF-8'),
                                   stdout=tl,stderr=subprocess.STDOUT,start_new_session=True)
             try: rc=test.wait(timeout=args.file_timeout)
@@ -197,6 +213,8 @@ def run_file(args, tree, unit, only=None, extra=(), server_args=()):
     row=dict(file=unit,mode=args.mode,**totals,complete=complete,exit_code=rc,error=failure,
              seconds=time.monotonic()-start,server_argv=command,suite_argv=client,
              server_exit=server.returncode if server else None,smove_layout_attempts=layout_attempts,events=observed,
+             pubsub_fences=(folder/"suite.log").read_text(errors="replace").count(
+                 "CMDFIX2-PUBSUB-FENCE acknowledged=3 remaining=0\n"),
              setup_stdout=(folder/"suite.log").read_text(errors="replace") if unit == "unit/printver" else "")
     (folder/'result.json').write_text(json.dumps(row,indent=2)+'\n')
     return row
@@ -231,6 +249,9 @@ def validate_passing(row, expected, known_setup_errors=(), setup_only=False):
     # Exactly the named block-setup errors, no other failure of any kind. runtest
     # exits 1 whenever it recorded any failure, including a named setup error.
     expected_rc = 1 if observed else 0
+    fenced = 'PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl'
+    if row.get('file') == 'unit/pubsub' and fenced in expected and row.get('pubsub_fences') != 1:
+        raise ValueError('PUNSUBSCRIBE completion fence missing or duplicated')
     if setup_only:
         # printver has no test{} block. Require its successful body output;
         # an empty or skipped file may never satisfy this explicit witness.
