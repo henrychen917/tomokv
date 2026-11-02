@@ -1,0 +1,48 @@
+{
+  "phase": "pre-maxmemory",
+  "command": [
+    "taskset",
+    "-c",
+    "32-47",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "32-39",
+    "--load-cores",
+    "40-47",
+    "--load-smt",
+    "",
+    "--ports",
+    "21800-21849",
+    "--candidate-binary",
+    "/home/user/Projects/cx-cfgfix2/build/cfgfix2/arms/tomokv-PRE"
+  ],
+  "environment": {
+    "GATE_ONLY_JOBS": "cfgfix2-maxmemory",
+    "GATE_PROOF_NO_RATES": "1"
+  },
+  "binary": "/home/user/Projects/cx-cfgfix2/build/cfgfix2/arms/tomokv-PRE",
+  "binary_sha256": "81aa6c321760aa92568c9b4430b12274ab2ada92091e54a77d497d2293bcd329",
+  "returncode": 1,
+  "started": 1793605106.131574,
+  "finished": 1793605109.640161,
+  "run": "/home/user/Projects/cx-cfgfix2/build/gate-run.y3QBgz",
+  "log": "build/cfgfix2/gate-logs/pre-maxmemory.log",
+  "log_sha256": "4e13b728f84e1ad79c4891f97101b292675748aafe0f46c619c9ac6257ae609a",
+  "rows": [
+    {
+      "status": "ok",
+      "seconds": 0.0,
+      "label": "release build (+footprint locks)"
+    },
+    {
+      "status": "FAIL",
+      "seconds": 2.03,
+      "label": "cfgfix2 maxmemory (oracle, both modes and engines)"
+    }
+  ],
+  "summary": {
+    "ok": 1,
+    "fail": 1
+  }
+}

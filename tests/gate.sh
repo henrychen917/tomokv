@@ -1150,7 +1150,7 @@ plan_jobs(){
     JOB_NAMES+=("climonfix4-$MF_MODE-$MF_ENGINE")
   done; done
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
-  JOB_NAMES+=(datafix1_randscan datafix1_hexpire datafix1_bitfield datafix1_locale datafix1_lists datafix1_spop datafix1_geo cfgfix cfgfix2-file cfgfix2-acl cfgfix2-latency cfgfix2-auth cfgfix2-shutdown config_unit flip_unit filter_unit ring_unit storage_units
+  JOB_NAMES+=(datafix1_randscan datafix1_hexpire datafix1_bitfield datafix1_locale datafix1_lists datafix1_spop datafix1_geo cfgfix cfgfix2-file cfgfix2-acl cfgfix2-latency cfgfix2-auth cfgfix2-shutdown cfgfix2-maxmemory config_unit flip_unit filter_unit ring_unit storage_units
               production_units source_identity acl_metadata cmd_metadata abba_selftest redis_tcl bugs5)
   # Start long waits and whole boot families early; short jobs occupy the slots they release.
   if [ "$TIER" = full ]; then
@@ -6350,6 +6350,7 @@ collect_job cfgfix2-acl
 collect_job cfgfix2-latency
 collect_job cfgfix2-auth
 collect_job cfgfix2-shutdown
+collect_job cfgfix2-maxmemory
 collect_job netfix_tls
 collect_job netfix_idle_buffers
 

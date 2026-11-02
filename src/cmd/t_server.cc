@@ -40,6 +40,7 @@
 
 #include <algorithm>
 #include <arpa/inet.h>
+#include <barrier>
 #include <cctype>
 #include <cmath>
 #include <cstdarg>
@@ -1722,14 +1723,96 @@ using ConfigUpdates = std::vector<std::pair<ConfigValue*, std::string>>;
 struct ConfigApplyResult { const Op* op; std::string error; };
 std::vector<ConfigApplyResult> g_config_apply_results; // g_config_mu; retired at reply assembly
 
+// SO5.1: enabling maxmemory makes every owner allocate an object idle clock over its stores.
+// That allocation is the only fallible part of a maxmemory change, so it runs before anything
+// is published, inside the cold configuration rendezvous: every worker is parked, the origin
+// publishes the new family to the owner mailboxes, and each owner applies it on its own thread.
+// One failed allocation makes every owner apply the restored previous family, which retires
+// its clock, before the CONFIG SET fails like any other apply error. No other thread runs
+// meanwhile, so no command observes the refused value. A rendezvous that cannot start (a busy
+// owner, a DEBUG SLEEP, a role change) leaves the enable to each owner's own fragment, where a
+// failed allocation keeps the limit and reports the store's missing clock.
+struct MemoryEnablePlan {
+    Server& server;
+    uint32_t origin;
+    LiveConfigSnapshot next, previous;
+    std::barrier<> join;
+    std::atomic<bool> failed{false};
+    MemoryEnablePlan(Server& s, uint32_t caller, const LiveConfigSnapshot& current)
+        : server(s), origin(caller), next(current), previous(current), join(s.nthreads()) {}
+};
+
+void config_memory_enable_worker(void* context, unsigned tid) {
+    auto& plan = *static_cast<MemoryEnablePlan*>(context);
+    if (tid == plan.origin)
+        plan.server.set_maxmemory_config(plan.next.maxmemory, plan.next.policy, plan.next.samples);
+    plan.join.arrive_and_wait();
+    // This thread's own executor, if it owns stores (IO threads in 2s have none).
+    const OwnerMemoryConfigHook hook = owner_memory_config_hook;
+    if (hook.apply && !hook.apply(hook.owner)) plan.failed.store(true, std::memory_order_relaxed);
+    plan.join.arrive_and_wait();
+    if (!plan.failed.load(std::memory_order_relaxed)) return;
+    if (tid == plan.origin)
+        plan.server.set_maxmemory_config(plan.previous.maxmemory, plan.previous.policy,
+                                         plan.previous.samples);
+    plan.join.arrive_and_wait();
+    if (hook.apply) hook.apply(hook.owner);  // disabling allocates nothing and retires the clock
+}
+
+// Under g_config_mu, in the fragment that decides this CONFIG SET's apply verdict. False
+// means every owner kept the previous family; `error` is the CONFIG SET reply. `applied`
+// reports that every owner now runs the new family, which a later apply error must undo.
+bool config_prepare_memory_enable(Shard& sh, const ConfigUpdates& updates, std::string& error,
+                                  LiveConfigSnapshot& previous, bool& applied) {
+    const uint32_t caller = g_server->worker_of_shard(sh.id());
+    MemoryEnablePlan plan(*g_server, caller, g_server->live_config_snapshot(caller));
+    previous = plan.previous;
+    for (const auto& update : updates) {
+        const Slice text(update.second.data(), static_cast<uint32_t>(update.second.size()));
+        if (!std::strcmp(update.first->name, "maxmemory")) {
+            parse_u64(text, plan.next.maxmemory);
+        } else if (!std::strcmp(update.first->name, "maxmemory-policy")) {
+            parse_maxmemory_policy(text.sv(), plan.next.policy);
+        } else if (!std::strcmp(update.first->name, "maxmemory-samples")) {
+            uint64_t samples = 0;
+            parse_u64(text, samples);
+            plan.next.samples = static_cast<uint32_t>(samples);
+        }
+    }
+    applied = g_server->debug_sleep_coordinator().exclusive(caller, g_server->nthreads(), &plan,
+                                                             config_memory_enable_worker);
+    if (!applied || !plan.failed.load(std::memory_order_relaxed)) return true;
+    applied = false;
+    std::fprintf(stderr, "CONFIG maxmemory: an owner could not allocate its object idle clock; "
+                 "every owner kept the previous maxmemory configuration\n");
+    error = "ERR CONFIG SET failed (possibly related to argument 'maxmemory') - "
+            "Out of memory building the object idle clock. Check server logs.";
+    return false;
+}
+
+// A later apply error of the same CONFIG SET (listeners, AOF) refuses all of it: restore the
+// previous family the same way. Disabling allocates nothing. Without a rendezvous, the version
+// bump makes every owner restore it at its next pass entry instead.
+void config_revert_memory_enable(Shard& sh, const LiveConfigSnapshot& previous) {
+    const uint32_t caller = g_server->worker_of_shard(sh.id());
+    MemoryEnablePlan plan(*g_server, caller, previous);
+    if (!g_server->debug_sleep_coordinator().exclusive(caller, g_server->nthreads(), &plan,
+                                                        config_memory_enable_worker))
+        g_server->set_maxmemory_config(previous.maxmemory, previous.policy, previous.samples);
+}
+
 bool config_apply_listeners(Shard& sh, Op& op, const ConfigUpdates& updates) {
-    bool listeners = false, locale = false, aof = false;
+    bool listeners = false, locale = false, aof = false, memory = false;
     for (const auto& update : updates) {
         listeners |= !std::strcmp(update.first->name, "port") || !std::strcmp(update.first->name, "bind");
         locale |= !std::strcmp(update.first->name, "locale-collate");
         aof |= !std::strcmp(update.first->name, "appendonly");
+        // Only 0 -> N allocates (the idle clocks); the table still holds the committed value.
+        memory |= !std::strcmp(update.first->name, "maxmemory") && update.second != "0" &&
+                  update.first->value == "0";
     }
-    if ((!(listeners || aof) || !g_server) && !locale) return true;
+    memory = memory && g_server;
+    if ((!(listeners || aof) || !g_server) && !locale && !memory) return true;
     for (const auto& result : g_config_apply_results)
         if (result.op == &op) return result.error.empty();
     // Reserve the shared verdict before any apply action. All fragments see
@@ -1758,6 +1841,13 @@ bool config_apply_listeners(Shard& sh, Op& op, const ConfigUpdates& updates) {
             }
         }
     }
+    LiveConfigSnapshot memory_previous{};
+    bool memory_applied = false;
+    if (memory && !config_prepare_memory_enable(sh, updates, result.error, memory_previous,
+                                                memory_applied)) {
+        if (!op.has_scatter_state()) reply_err(op.sink(), result.error.c_str());
+        return false;
+    }
     std::string reason;
     if (!(listeners || aof) || !g_server ||
         cfgfix_rebind(*g_server, g_server->worker_of_shard(sh.id()), port, bind, reason, appendonly)) {
@@ -1765,6 +1855,7 @@ bool config_apply_listeners(Shard& sh, Op& op, const ConfigUpdates& updates) {
         if (prepared.value) sort_locale_install(std::exchange(prepared.value, nullptr));
         return true;
     }
+    if (memory_applied) config_revert_memory_enable(sh, memory_previous);
     if (aof && (!listeners || reason.starts_with("appendonly:"))) parameter = "appendonly";
     std::fprintf(stderr, "CONFIG %s: %s\n", parameter, reason.c_str());
     result.error = std::string("ERR CONFIG SET failed (possibly related to argument '") + parameter +
@@ -1955,7 +2046,10 @@ void cmd_config(Shard& sh, Op& op) {
         // least its own. The +OK waits for all fragments, so it cannot precede any owner's switch.
         if (memory_update) {
             const OwnerMemoryConfigHook hook = owner_memory_config_hook;
-            if (hook.apply) hook.apply(hook.owner);
+            // Only the unprepared fallback can fail here; it keeps the limit (see above).
+            if (hook.apply && !hook.apply(hook.owner))
+                std::fprintf(stderr, "WARNING: maxmemory idle clock allocation failed on owner %u; "
+                             "OBJECT IDLETIME reports 0 for its keys\n", g_config_worker);
         }
 
         // CONFIG is already a barrier over every shard owner. Apply the notification sink on
@@ -3324,7 +3418,9 @@ void cmd_info(Shard&, Op& op) {
         const bool enabled = g_server && g_server->latency_tracking();
         std::vector<double> percentiles;
         if (enabled) {
-            std::lock_guard lock(g_config_mu);
+            // ConfigLock, not a blocking mutex wait: a waiting IO thread still parks for a
+            // configuration rendezvous that the lock holder may be running.
+            ConfigLock lock;
             percentiles = g_latency_percentiles_explicit
                 ? g_latency_percentiles : std::vector<double>{50, 99, 99.9};
         }

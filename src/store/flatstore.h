@@ -1466,15 +1466,20 @@ public:
         }
         return clock->install(object, stamp);
     }
-    [[gnu::noinline, gnu::cold]] void configure_object_idle(bool enabled) {
+    // False only when enabling cannot allocate the clock (SO5.1). Nothing escapes: the partial
+    // clock is freed here and the slot stays empty, so OBJECT IDLETIME reads 0 for this store.
+    [[gnu::noinline, gnu::cold]] bool configure_object_idle(bool enabled) {
         auto* current = object_idle_slot()->load(std::memory_order_relaxed);
-        if (enabled == (current != nullptr)) return;
+        if (enabled == (current != nullptr)) return true;
         if (enabled) {
-            auto fresh = std::make_unique<ObjectIdleClock>();
+            std::unique_ptr<ObjectIdleClock> fresh(new (std::nothrow) ObjectIdleClock);
+            if (!fresh) return false;
             const auto now = ObjectIdleClock::clock(cached_now_ms_);
+            bool complete = true;
             for_each([&](KvObj* object) {
-                if (!fresh->install(object, now)) throw std::bad_alloc();
+                if (complete) complete = fresh->install(object, now);
             });
+            if (!complete) return false;
             object_idle_slot()->store(fresh.release(), std::memory_order_release);
         } else {
             auto* retired = object_idle_slot()->exchange(nullptr, std::memory_order_acq_rel);
@@ -1483,14 +1488,18 @@ public:
                     [](void*, void* payload, size_t) { delete static_cast<ObjectIdleClock*>(payload); });
             else delete retired;
         }
+        return true;
     }
-    void configure_maxmemory(bool enabled, uint64_t shard_limit, MaxmemoryPolicy policy,
+    // Returns the idle clock's allocation result. The limit and policy always apply: CONFIG SET
+    // refuses a failed enable before publishing it; other paths degrade to OBJECT IDLETIME 0.
+    bool configure_maxmemory(bool enabled, uint64_t shard_limit, MaxmemoryPolicy policy,
                              uint32_t samples) {
-        configure_object_idle(enabled);
+        const bool clock = configure_object_idle(enabled);
         maxmemory_enabled_ = enabled;
         maxmemory_limit_ = shard_limit;
         maxmemory_policy_ = policy;
         maxmemory_samples_ = samples == 0 ? 1 : (samples > 64 ? 64 : samples);
+        return clock;
     }
 
     // An atomic script can roll back every declared key, but an eviction victim is deliberately

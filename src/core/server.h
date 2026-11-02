@@ -2268,8 +2268,10 @@ public:
         // the writer's mutable committed copy nor the destination's consumer slot is safe here.
         const LiveConfigSnapshot config =
             live_config_mailboxes_[nthreads()].read(live_config_version_).live;
-        shard.configure_maxmemory(config.maxmemory != 0, config.maxmemory / nshards(),
-                                  config.policy, config.samples);
+        if (!shard.configure_maxmemory(config.maxmemory != 0, config.maxmemory / nshards(),
+                                       config.policy, config.samples))
+            std::fprintf(stderr, "WARNING: maxmemory idle clock allocation failed for shard %d; "
+                         "OBJECT IDLETIME reports 0 for its keys\n", shard.id());
         shard.set_notify_mask(config.notify_events |
                               (config.tracking_armed ? NOTIFY_TRACKING : 0u) |
                               (config.save_armed ? NOTIFY_SAVE : 0u));

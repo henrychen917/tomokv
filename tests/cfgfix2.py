@@ -11,6 +11,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import resource
 import signal
 import socket
@@ -23,7 +24,8 @@ import _netfix as n
 
 
 class Server:
-    def __init__(self, a, label, mode, engine, *, config=None, extra=(), directory=None, shards=16):
+    def __init__(self, a, label, mode, engine, *, config=None, extra=(), directory=None, shards=16,
+                 env=None):
         self.a, self.label = a, label
         self.directory = (directory or a.output / label).resolve()
         self.directory.mkdir(parents=True, exist_ok=True)
@@ -42,7 +44,7 @@ class Server:
         self.logpath = self.directory / (label + '.log')
         self.log = self.logpath.open('w')
         self.p = subprocess.Popen(cmd, stdout=self.log, stderr=subprocess.STDOUT,
-                                  env=dict(os.environ, LC_ALL='C'),
+                                  env=dict(os.environ, LC_ALL='C', **(env or {})),
                                   preexec_fn=lambda: resource.setrlimit(resource.RLIMIT_CORE, (0, 0)))
         self.record['pid'] = self.p.pid
 
@@ -558,9 +560,136 @@ def shutdown_case(a, mode, engine):
                 acknowledged=aof['acknowledged'])
 
 
+def cpu_list(text):
+    cpus = []
+    for part in text.split(','):
+        first, _, last = part.partition('-')
+        cpus += list(range(int(first), int(last or first) + 1))
+    return cpus
+
+
+def clock_ranges(binary):
+    """Load-relative ranges of the functions that allocate ObjectIdleClock nodes."""
+    out = subprocess.run(['nm', '-C', '--defined-only', '-S', binary], check=True,
+                         capture_output=True, text=True).stdout
+    ranges = []
+    for line in out.splitlines():
+        parts = line.split(None, 3)
+        if len(parts) != 4:
+            continue
+        address, size, _, name = parts
+        if name.endswith('FlatStore::configure_object_idle(bool)') or 'ObjectIdleClock::install(' in name:
+            first = int(address, 16)
+            ranges.append(f'{first:x}-{first + int(size, 16):x}')
+    assert ranges, 'no ObjectIdleClock construction sites found'
+    return ','.join(sorted(set(ranges)))
+
+
+def maxmemory_case(a, mode, engine):
+    """SO5.1: a failed idle-clock allocation refuses CONFIG SET maxmemory 0 -> N.
+
+    TomoKV legs preload tests/cfgfix2_alloc_fail.cc, which fails one clock allocation
+    on one owner after every owner has started building its clock. The CONFIG SET must
+    fail with an apply error, every allocated node must be freed, maxmemory must stay 0
+    and the server must keep serving; disarmed, the same CONFIG SET then succeeds. PRE
+    either aborts on std::bad_alloc or answers ERR out of memory with the new value already
+    published. The oracle has no per-key allocation to fail.
+    """
+    hook = a.output / 'cfgfix2_alloc_fail.so'
+    if mode != 'redis' and not hook.exists():
+        subprocess.run(['g++', '-std=c++20', '-O2', '-shared', '-fPIC', '-o', str(hook),
+                        str(Path(__file__).with_name('cfgfix2_alloc_fail.cc'))], check=True)
+    cpus = cpu_list(a.cores)
+    owners = int(a.ratio.split(':')[1]) if mode == '2s' else len(cpus)
+    target = cpus[-1]
+    keys = 60000
+    results = []
+    for databases in (1, 16):
+        label = f'maxmemory-{mode}-{engine}-db{databases}'
+        extra = ['--databases', str(databases)]
+        if mode != 'redis' and databases == 16:
+            extra += ['--read-local', '1', '--atomic', '1', '--reorder', '1']
+        directory = a.output / label
+        directory.mkdir(parents=True, exist_ok=True)
+        marker, receipt = directory / 'armed', directory / 'allocations.txt'
+        marker.unlink(missing_ok=True)
+        receipt.unlink(missing_ok=True)
+        env = None
+        if mode != 'redis':
+            env = dict(LD_PRELOAD=str(hook), CFGFIX2_FAIL_ARM=str(marker),
+                       CFGFIX2_FAIL_RECEIPT=str(receipt), CFGFIX2_FAIL_RANGES=clock_ranges(a.binary),
+                       CFGFIX2_FAIL_CPU=str(target), CFGFIX2_FAIL_OWNERS=str(owners))
+        result = dict(databases=databases, owners=None if mode == 'redis' else owners,
+                      target_cpu=None if mode == 'redis' else target)
+        with Server(a, label, mode, engine, extra=extra, directory=directory, env=env) as child:
+            if mode != 'redis':
+                layout = re.findall(r'thread t\d+: role=\S+ cpu=(\d+) .*?shards=(\d+)',
+                                    child.logpath.read_text())
+                owning = sorted(int(cpu) for cpu, shards in layout if int(shards))
+                assert len(owning) == owners and target in owning, ('owner geometry', layout)
+            with closing(n.connect(a.port)) as c:
+                c.sock.settimeout(120)
+                for first in range(0, keys, 1000):
+                    pairs = []
+                    for i in range(first, first + 1000):
+                        pairs += [f'so51:{i}', f'v{i}']
+                    c.must('MSET', *pairs)
+                assert c.must('DBSIZE') == keys
+                if mode == 'redis':
+                    result['set'] = repr(c.cmd('CONFIG', 'SET', 'maxmemory', '100mb'))
+                    result['get'] = repr(c.must('CONFIG', 'GET', 'maxmemory'))
+                    assert c.must('CONFIG', 'SET', 'maxmemory', '0') == b'OK'
+                    results.append(result)
+                    continue
+                marker.write_text('armed\n')
+                try:
+                    reply = c.cmd('CONFIG', 'SET', 'maxmemory', '100mb')
+                except (OSError, EOFError) as error:
+                    reply = error
+                finally:
+                    marker.unlink(missing_ok=True)
+                result['refused'] = repr(reply)
+                try:  # Retained for PRE: an OOM reply can coexist with a published value.
+                    result['after_get'] = repr(c.cmd('CONFIG', 'GET', 'maxmemory'))
+                except (OSError, EOFError) as error:
+                    result['after_get'] = type(error).__name__
+                assert getattr(reply, 'message', None) == (
+                    b"ERR CONFIG SET failed (possibly related to argument 'maxmemory') - "
+                    b"Out of memory building the object idle clock. Check server logs."), result
+                # Every allocated clock node is freed; read-local retirement may defer it.
+                deadline = time.monotonic() + 20
+                while True:
+                    events = [line.split() for line in receipt.read_text().splitlines()]
+                    allocated = {e[1] for e in events if e[0] == '+'}
+                    freed = {e[1] for e in events if e[0] == '-'}
+                    if allocated <= freed or time.monotonic() > deadline:
+                        break
+                    c.must('PING')
+                    time.sleep(0.05)
+                result.update(failures=sum(e[0] == 'F' for e in events), allocated=len(allocated),
+                              freed=len(allocated & freed),
+                              owner_cpus=len({e[2] for e in events if e[0] == '+'}))
+                assert result['failures'] == 1 and allocated <= freed, result
+                assert result['owner_cpus'] >= owners, result
+                assert c.must('PING') == b'PONG'
+                assert c.must('CONFIG', 'GET', 'maxmemory') == [b'maxmemory', b'0'], result
+                assert c.must('DBSIZE') == keys and c.must('GET', 'so51:7') == b'v7'
+                # Disarmed, the same change succeeds and builds every clock.
+                assert c.must('CONFIG', 'SET', 'maxmemory', '100mb') == b'OK'
+                assert c.must('CONFIG', 'GET', 'maxmemory') == [b'maxmemory', b'104857600']
+                assert isinstance(c.must('OBJECT', 'IDLETIME', 'so51:7'), int)
+                assert c.must('CONFIG', 'SET', 'maxmemory', '0') == b'OK'
+        results.append(result)
+    (a.output / f'maxmemory-{mode}-{engine}-observations.json').write_text(json.dumps(results, indent=2))
+    if mode == 'redis':
+        assert all(r['set'] == "b'OK'" for r in results), results
+    return results
+
+
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('--case', required=True, choices=['file', 'acl', 'latency', 'auth', 'shutdown'])
+    p.add_argument('--case', required=True,
+                   choices=['file', 'acl', 'latency', 'auth', 'shutdown', 'maxmemory'])
     p.add_argument('--binary', required=True)
     p.add_argument('--oracle', required=True)
     p.add_argument('--cores', required=True)
