@@ -1,0 +1,24 @@
+[
+  {
+    "pid": 185278,
+    "run": "vkLRmF",
+    "completed": {
+      "differ-armed-0": "0\t1\t0",
+      "differ-split-0": "0\t1\t0",
+      "differ-split-1": "0\t1\t0",
+      "release": "0\t1\t0"
+    },
+    "reason": "Superseded by final db0 string compiler budget; rerun complete standard inventory on frozen POST 09367b85."
+  },
+  {
+    "pid": 185447,
+    "run": "jN7LOR",
+    "completed": {
+      "differ-armed-0": "0\t1\t0",
+      "differ-split-0": "0\t1\t0",
+      "differ-split-1": "0\t1\t0",
+      "release": "0\t1\t0"
+    },
+    "reason": "Superseded by final db0 string compiler budget; rerun complete standard inventory on frozen POST 09367b85."
+  }
+]

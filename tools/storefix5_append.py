@@ -22,9 +22,9 @@ recipe = subprocess.check_output(['make', '-C', str(source), 'BUILD_ROOT='+str(o
 link = shlex.split(next(l for l in recipe.splitlines() if ' -o '+str(objects/'tomokv')+' ' in l))
 link = [x for x in link if x != str(objects/'db0/src/main.o')]
 link[link.index('-o')+1] = str(dest/'probe')
-compile = ['g++', '-std=c++20', '-O2', '-g', '-march=native', '-pthread', '-DTOMO_JEMALLOC',
+compile = ['g++', '-std=c++20', '-O2', '-g', '-gz=zlib', '-march=native', '-pthread', '-DTOMO_JEMALLOC',
            '-I'+str(source), '-c', str(census.ROOT/'tests/storefix5_append.cc'), '-o', str(dest/'probe.o')]
-link += [str(dest/'probe.o'), '-Wl,--wrap=malloc,--wrap=memcpy']
+link += [str(dest/'probe.o'), '-Wl,--wrap=malloc,--wrap=memcpy', '-Wl,--compress-debug-sections=zlib']
 with (dest/'build.log').open('w') as log:
     for cmd in (compile, link):
         subprocess.run(cmd, cwd=source, stdout=log, stderr=subprocess.STDOUT, check=True)

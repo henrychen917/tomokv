@@ -205,7 +205,11 @@ static void unlinked() {
     for (bool armed : {false, true}) {
         Group g({"candidate-a", "candidate-b"}); FlatStore s(64); arm(s, armed);
         KvObj* a = string_object(g.state.keys[0]); KvObj* b = string_object(g.state.keys[1]);
-        s.configure_maxmemory(true, kvobj_size(a) + 12, MaxmemoryPolicy::AllKeysRandom, 64);
+        s.configure_maxmemory(true, 1 << 20, MaxmemoryPolicy::AllKeysRandom, 64);
+        require(s.object_idle_install(hash(g.state.keys[0]), a) &&
+                s.object_idle_install(hash(g.state.keys[1]), b), "precharge candidate clock paths");
+        s.configure_maxmemory(true, s.object_bytes() + kvobj_size(a) + 12,
+                              MaxmemoryPolicy::AllKeysRandom, 64);
         require(s.atomic_prepare_capacity(2), "candidate pass capacity"); g.prepare(s);
         require(s.atomic_admit(slice(g.state.keys[0]), a), "first candidate admitted");
         g.install(s, 0, a);
@@ -442,12 +446,64 @@ static void lru_sample_order() {
     }
 }
 
+static void idle_clock_accounting() {
+    static_assert(sizeof(ObjectIdleClock) == sizeof(void*), "idle-clock layout unchanged");
+    ObjectIdleClock clock;
+    size_t charged = sizeof(clock);
+    const void* first = reinterpret_cast<void*>(0x1000);
+    const void* second = reinterpret_cast<void*>(0x2000);
+    require(clock.allocated_bytes() == charged, "empty clock object accounted");
+    const size_t needed = clock.allocation_bytes(first);
+    require(needed == 4 * 4096 + 2048 && clock.allocation_bytes(first) == needed &&
+            clock.allocated_bytes() == charged, "allocation estimate is exact and side-effect-free");
+    require(clock.install(first, 17, charged) && charged == sizeof(clock) + needed &&
+            clock.allocated_bytes() == charged, "every installed branch and leaf charged");
+    require(clock.allocation_bytes(first) == 0 && clock.allocation_bytes(second) == 2048,
+            "existing path costs zero; adjacent page needs only a leaf");
+    const size_t before = charged;
+    require(clock.install(first, 18, charged) && charged == before &&
+            clock.timestamp(first, 0) == 18, "existing-node write does not recharge");
+
+    struct Retire {
+        void* owner; void* payload; size_t bytes; ReadLocalRetireSink::ReclaimFn reclaim;
+    };
+    std::vector<Retire> retired;
+    FlatStore store;
+    KvBlockCache blocks;
+    require(store.prepare_read_local(), "prepare clock reader lifetime");
+    store.configure_read_local(true, {&retired,
+        [](void* context, void* owner, void* payload, size_t bytes,
+           ReadLocalRetireSink::ReclaimFn reclaim) {
+            static_cast<std::vector<Retire>*>(context)->push_back({owner, payload, bytes, reclaim});
+        }, &blocks});
+    KvObj* object = put(store, "clock-owner");
+    const size_t objects = store.object_bytes();
+    store.configure_maxmemory(true, 1 << 20, MaxmemoryPolicy::NoEviction, 1);
+    const size_t armed = store.object_bytes();
+    require(armed >= objects + needed + sizeof(clock), "store includes clock nodes");
+    auto* active = store.object_idle_slot()->load();
+    for (unsigned i = 0; i < 8; ++i)
+        require(active->allocated_bytes() == armed - objects &&
+                active->allocation_bytes(object) == 0 && store.object_bytes() == armed,
+                "accounting walk leaves store and clock unchanged");
+    store.configure_maxmemory(false, 0, MaxmemoryPolicy::NoEviction, 1);
+    require(retired.size() == 1 && store.object_bytes() == armed,
+            "retired clock remains charged until its grace period");
+    for (const auto& record : retired) record.reclaim(record.owner, record.payload, record.bytes);
+    retired.clear();
+    require(store.object_bytes() == objects, "clock free removes exactly its charge");
+    blocks.release_all();
+}
+
 static void aof_eviction() {
+    idle_clock_accounting();
     lru_sample_order();
     for (bool armed : {false, true}) {
         FlatStore s(64); arm(s, armed); KvObj* old = put(s, "victim");
         KvObj* incoming = string_object("new");
-        s.configure_maxmemory(true, kvobj_size(old) + 12, MaxmemoryPolicy::AllKeysRandom, 64);
+        s.configure_maxmemory(true, 1 << 20, MaxmemoryPolicy::AllKeysRandom, 64);
+        require(s.object_idle_install(hash("new"), incoming), "precharge incoming clock path");
+        s.configure_maxmemory(true, s.object_bytes() + 12, MaxmemoryPolicy::AllKeysRandom, 64);
         uint64_t evicted = 0; s.bind_evicted_counter(&evicted); deletes.clear();
         require(s.atomic_admit(slice(std::string("new")), incoming), "atomic admission succeeds through eviction");
         require(evicted == 1 && s.size() == 0, "unrelated victim actually evicted");
@@ -460,6 +516,7 @@ static void intents() {
     for (bool armed : {false, true}) {
         FlatStore s(64); arm(s, armed); KvObj* o = put(s, "pinned");
         s.configure_maxmemory(true, 1, MaxmemoryPolicy::AllKeysRandom, 64);
+        s.configure_maxmemory(true, s.object_bytes() - kvobj_size(o), MaxmemoryPolicy::AllKeysRandom, 64);
         require(FlatStoreRegressionTest::candidate(s) == o, "victim sampling positive control");
         require(s.atomic_script_pin(hash("pinned"), slice(std::string("pinned"))), "script pin created");
         require(s.atomic_has_script_intent(hash("pinned"), slice(std::string("pinned"))) &&

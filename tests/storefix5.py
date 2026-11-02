@@ -227,7 +227,7 @@ if __name__ == '__main__':
     a = p.parse_args()
     c = Conn(a.host, a.port, timeout=120)
     try:
-        for case in (('randomkey', 'append') if a.case == 'all' else (a.case,)):
+        for case in (('randomkey', 'append', 'idle') if a.case == 'all' else (a.case,)):
             globals()[case](c)
     finally:
         c.close()

@@ -655,17 +655,29 @@
 
     bool atomic_admit(Slice protected_key, const KvObj* incoming) {
         const size_t bytes = incoming ? kvobj_size(incoming) : 0;
-        if (__builtin_expect(maxmemory_enabled_, false) && incoming &&
-            !object_idle_install(hash_key(protected_key), incoming)) return false;
-        if (!__builtin_expect(maxmemory_enabled_, false) || snapshot_active_) {
+        if (!__builtin_expect(maxmemory_enabled_, false)) {
             atomic_version_bytes_ += bytes;
             return true;
         }
+        return atomic_admit_with_idle(protected_key, incoming, bytes);
+    }
+
+    [[gnu::noinline]] bool atomic_admit_with_idle(Slice protected_key, const KvObj* incoming,
+                                                 size_t bytes) {
+        const size_t extra = incoming ? object_idle_allocation_bytes(incoming) : 0;
+        if (bytes > SIZE_MAX - extra) return false;
+        const size_t total = bytes + extra;
+        const auto admit = [&] {
+            if (incoming && !object_idle_install(hash_key(protected_key), incoming)) return false;
+            atomic_version_bytes_ += bytes;
+            return true;
+        };
+        if (snapshot_active_) return admit();
         auto fits = [&] {
             const size_t used = accounted_bytes();
-            return bytes <= maxmemory_limit_ && used <= maxmemory_limit_ - bytes;
+            return total <= maxmemory_limit_ && used <= maxmemory_limit_ - total;
         };
-        if (fits()) { atomic_version_bytes_ += bytes; return true; }
+        if (fits()) return admit();
         if (maxmemory_policy_ == MaxmemoryPolicy::NoEviction) return false;
         // Earlier candidates in this owner pass are absent from the pending list. Refuse further
         // growth under pressure until the whole installed prefix is published (also on abort).
@@ -686,8 +698,7 @@
             if (live && evicted_counter_) (*evicted_counter_)++;
         }
         if (!fits()) return false;
-        atomic_version_bytes_ += bytes;
-        return true;
+        return admit();
     }
 
     void atomic_unadmit(const KvObj* incoming) {

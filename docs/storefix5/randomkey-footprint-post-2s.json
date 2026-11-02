@@ -1,0 +1,71 @@
+{
+  "binary": "/home/user/Projects/cx-storefix5/build/storefix5/tomokv-without-idle",
+  "sha256": "64dbcf54922f3448bea0002f922e4f5c35e2e5e230c4ff524cdcb028db55aa0e",
+  "argv": [
+    "/home/user/Projects/cx-storefix5/build/storefix5/tomokv-without-idle",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "21600",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--enable-debug-command",
+    "yes",
+    "--dir",
+    "/home/user/Projects/cx-storefix5/build/storefix5/tmp0qllokqt",
+    "--thread-mode",
+    "2s",
+    "--shards",
+    "16",
+    "--databases",
+    "16",
+    "--net-io",
+    "uring",
+    "--ratio",
+    "6:2"
+  ],
+  "affinity": [
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23
+  ],
+  "locale": "C",
+  "cases": {
+    "randomkey_footprint": {
+      "result": {
+        "keys": 1000000,
+        "single_call_ms": [
+          0.493512,
+          1.811136,
+          0.988213,
+          0.271921,
+          0.08434
+        ],
+        "before": {
+          "used_memory": 44000000,
+          "used_memory_rss": 74743808,
+          "used_memory_peak": 44000000
+        },
+        "single": {
+          "used_memory": 44000000,
+          "used_memory_rss": 74792960,
+          "used_memory_peak": 44000000
+        },
+        "after_four_clients_16_calls": {
+          "used_memory": 44000000,
+          "used_memory_rss": 75415552,
+          "used_memory_peak": 44000000
+        }
+      },
+      "passed": true
+    }
+  },
+  "exit": 0
+}

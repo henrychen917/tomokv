@@ -73,5 +73,47 @@ elif sys.argv[1] == 'scan':
         print(row['object'],row['budget'],'find',row['find_equal'],
               'changed',row['changed_common_bodies'],flush=True)
     (DOC/'scan.json').write_text(json.dumps(rows,indent=2)+'\n')
+elif sys.argv[1] == 'strings':
+    objects = ('src/cmd/t_string.o', 'db0/src/cmd/t_string.o')
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        initial = list(pool.map(lambda job:compile(*job), [(a,o) for a in ('pre','post') for o in objects]))
+    by = {(r['arm'],r['object']):r for r in initial}
+    jobs = []
+    for obj in objects:
+        old, new = by['pre',obj], by['post',obj]
+        center = old['budget'] + new['unit'] - old['unit']
+        for value in sorted({center-32,center-8,center,center+8,center+32}):
+            jobs.append(('post',obj,value))
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        rows = list(pool.map(lambda job:compile(*job),jobs))
+    rows += initial
+    for row in rows:
+        pre = audit.Elf(Path(by['pre',row['object']]['output']))
+        post = audit.Elf(Path(row['output']))
+        a,b=pre.functions(),post.functions()
+        names = [name for name in a if '12store_stringE' in name]
+        row['store_string_equal'] = {name: name in b and pre.canonical(a[name]) == post.canonical(b[name]) for name in names}
+    (DOC/'strings.json').write_text(json.dumps(rows,indent=2)+'\n')
+elif sys.argv[1] in ('retirement', 'retirement-wide'):
+    obj = 'db0/src/cmd/xshard.o'
+    values = ((166757, 166789, 166853, 166981, 167237) if sys.argv[1] == 'retirement'
+              else (168000, 170000, 175000, 180000))
+    jobs = [('retirement', obj, value) for value in values]
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        rows = list(pool.map(lambda job: compile(*job), jobs))
+    prior = json.loads((DOC/'pre-db0_src_cmd_xshard.o-165926.json').read_text())
+    pre = audit.Elf(Path(prior['output']))
+    a = pre.functions()
+    find = next(name for name in a if '9FlatStore4findE' in name)
+    for row in rows:
+        post = audit.Elf(Path(row['output']))
+        b = post.functions()
+        row['find_equal'] = find in b and pre.canonical(a[find]) == post.canonical(b[find])
+        row['find_key_eq_call'] = 'key_eq' in str(post.canonical(b[find]))
+        row['changed_common_bodies'] = sum(pre.canonical(a[name]) != post.canonical(b[name])
+                                           for name in a.keys() & b.keys())
+        print(row['budget'], row['unit'], row['find_equal'], row['find_key_eq_call'],
+              row['changed_common_bodies'], flush=True)
+    (DOC/(sys.argv[1]+'.json')).write_text(json.dumps(rows, indent=2)+'\n')
 else:
     raise SystemExit('initial or scan required')

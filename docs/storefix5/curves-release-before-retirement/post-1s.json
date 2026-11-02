@@ -1,0 +1,159 @@
+{
+  "binary": "/home/user/Projects/cx-storefix5/build/storefix5/arms/string14099/tomokv",
+  "sha256": "09367b85f035faa74f3f8ba70c14e475d1c05e87d814cb5bba51bb8c933c94a6",
+  "argv": [
+    "/home/user/Projects/cx-storefix5/build/storefix5/arms/string14099/tomokv",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "21600",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--enable-debug-command",
+    "yes",
+    "--dir",
+    "/home/user/Projects/cx-storefix5/build/storefix5/tmps1s692fs",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--databases",
+    "16",
+    "--net-io",
+    "uring"
+  ],
+  "affinity": [
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23
+  ],
+  "locale": "C",
+  "cases": {
+    "append": {
+      "result": {
+        "16": {
+          "single_call_us": [
+            76.19,
+            497.522,
+            273.331,
+            36.25,
+            40.591
+          ],
+          "slowlog_command_us": [
+            1,
+            1,
+            1,
+            0,
+            0
+          ],
+          "value_and_ttl": true
+        },
+        "1024": {
+          "single_call_us": [
+            1002.984,
+            1010.043,
+            635.593,
+            901.003,
+            166.271
+          ],
+          "slowlog_command_us": [
+            8,
+            0,
+            1,
+            0,
+            0
+          ],
+          "value_and_ttl": true
+        },
+        "65536": {
+          "single_call_us": [
+            215.831,
+            109.76,
+            37.82,
+            170.031,
+            923.083
+          ],
+          "slowlog_command_us": [
+            29,
+            24,
+            2,
+            3,
+            3
+          ],
+          "value_and_ttl": true
+        },
+        "1048576": {
+          "single_call_us": [
+            1749.836,
+            1304.774,
+            161.201,
+            106.111,
+            86.01
+          ],
+          "slowlog_command_us": [
+            342,
+            345,
+            51,
+            32,
+            29
+          ],
+          "value_and_ttl": true
+        },
+        "4194304": {
+          "single_call_us": [
+            2709.919,
+            2793.86,
+            1881.846,
+            2000.507,
+            1310.415
+          ],
+          "slowlog_command_us": [
+            1525,
+            1248,
+            330,
+            329,
+            373
+          ],
+          "value_and_ttl": true
+        }
+      },
+      "passed": true
+    },
+    "randomkey_footprint": {
+      "result": {
+        "keys": 1000000,
+        "single_call_ms": [
+          2.125808,
+          0.927654,
+          0.08398,
+          0.926103,
+          0.983074
+        ],
+        "before": {
+          "used_memory": 44000000,
+          "used_memory_rss": 76881920,
+          "used_memory_peak": 44000000
+        },
+        "single": {
+          "used_memory": 44000000,
+          "used_memory_rss": 76976128,
+          "used_memory_peak": 44000000
+        },
+        "after_four_clients_16_calls": {
+          "used_memory": 44000000,
+          "used_memory_rss": 77025280,
+          "used_memory_peak": 44000000
+        }
+      },
+      "passed": true
+    }
+  },
+  "exit": 0
+}

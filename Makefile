@@ -188,7 +188,11 @@ $(BUILD_ROOT)/db0/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-gro
 # bodies still move GCC just past the default large-unit threshold. 10600 restores the same inlining
 # decisions as the base-420b4d492 translation unit; the objdump gate locks cmd_get/cmd_set to base.
 $(BUILD_ROOT)/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-insns=10626
-$(BUILD_ROOT)/db0/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-insns=10633
+# storefix5: include the cold APPEND/accounting growth in the db0 unit budget.
+# The 14099 trial retains PRE fresh-key SET counts; the old budget spilled one
+# extra register per insert. Both replacement and insert scopes (batches 1/32,
+# both modes/atomic settings) are recorded in docs/storefix5/counts/string14099-*.
+$(BUILD_ROOT)/db0/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-insns=14099
 # Armed handlers include the same implementation; incremental builds must see its edits.
 $(BUILD_ROOT)/src/cmd/t_string_notify.o $(BUILD_ROOT)/db0/src/cmd/t_string_notify.o: src/cmd/t_string.cc
 # ACLKEYS4's physical namespace argument changes only blocking list publication.

@@ -1,0 +1,15 @@
+{
+  "base": "ea48a6b2721a1d9e5964ab24a32e8b54df611bd5",
+  "header_sha256": "762ee47853f7611f04d9a86ce4468cb5a0500bfdd04c5e99f7f3b62f66b69ab0",
+  "fixture_sha256": "0ff36c982dabc6998773981094a27802bed95ae6d23572ff73f8e0d435e48f83",
+  "note": "Test-only adapter directly calls PRE executed SCAN primitive, preserving original expiry/retire implementation.",
+  "argv": [
+    "make",
+    "-C",
+    "build/storefix5/pre-source",
+    "-j8",
+    "build/store-regression",
+    "STORE_REGRESSION_SRC=tests/store_regression.cc src/cmd/t_hash.cc src/cmd/t_hash_ttl.cc src/cmd/hexpread.cc src/cmd/storesize.cc src/store/flush.cc"
+  ],
+  "binary_sha256": "1f741bb403a06b91c6fe2e6558914c57ff69950b4e17e9777497f7fc71e7e478"
+}

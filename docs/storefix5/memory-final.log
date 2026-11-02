@@ -1,0 +1,16 @@
+release 1s-30mb-allkeys-lru-100b 0
+release 1s-30mb-allkeys-lru-1000b 0
+release 1s-30mb-noeviction-100b 0
+release 1s-30mb-noeviction-1000b 0
+release 1s-100mb-allkeys-lru-100b 0
+release 1s-100mb-allkeys-lru-1000b 0
+release 1s-100mb-noeviction-100b 0
+release 1s-100mb-noeviction-1000b 0
+release 2s-30mb-allkeys-lru-100b 0
+release 2s-30mb-allkeys-lru-1000b 0
+release 2s-30mb-noeviction-100b 0
+release 2s-30mb-noeviction-1000b 0
+release 2s-100mb-allkeys-lru-100b 0
+release 2s-100mb-allkeys-lru-1000b 0
+release 2s-100mb-noeviction-100b 0
+release 2s-100mb-noeviction-1000b 0

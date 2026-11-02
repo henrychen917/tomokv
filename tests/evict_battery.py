@@ -87,7 +87,19 @@ def check(name, ok, detail=""):
     print("  %-52s %s %s" % (name, "ok" if ok else "FAIL", detail))
     P, F = P + (1 if ok else 0), F + (0 if ok else 1)
 
-MM = "1048576"   # 1MB / 16 shards = 64KB/shard; ~124B per 100B-value key => ~8.4k-key ceiling
+MM = "1048576"   # fixed limit for admission/config scenarios; includes idle-clock nodes
+
+def clock_cohort_budget(prefix, count, target, value_size):
+    # Clock metadata now counts toward maxmemory. Measure a fresh cohort with
+    # eviction disabled by headroom, then derive pressure for the same intended
+    # live-key population as the original fixture. Every mechanism assertion
+    # below is unchanged; pressure must still fire, never silently skip.
+    must("CONFIG", "SET", "maxmemory", str(1 << 30))
+    fill(prefix, count, sz=value_size)
+    assert dbsize() == count and info_num("evicted_keys") == 0, "cohort evicted during setup"
+    used = info_num("used_memory")
+    assert used and used > value_size * count, used
+    return (used * target + count - 1) // count
 
 if SECTION == "off":
     fill("off", 3000)
@@ -163,9 +175,15 @@ elif SECTION == "vttl":
     check("volatile-ttl: permanents survive", alive("perm", range(300)) == 300)
 
 elif SECTION == "lfu":
-    must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "allkeys-lfu")
+    must("CONFIG", "SET", "maxmemory-policy", "allkeys-lfu")
+    # External strings keep the retained address-tree cost below the evictable
+    # value budget for this long pressure sequence. The 100-byte footprint
+    # matrix separately exercises the metadata-dominated small-value case.
+    value_size = 1000
+    limit = clock_cohort_budget("lfucalibration", 3000, 8000, value_size)
+    must("CONFIG", "SET", "maxmemory", str(limit))
     lane_armed = info_num("read_local") == 1
-    fill("lfuhot", 20)
+    fill("lfuhot", 20, sz=value_size)
     lane0 = info_num("read_local_keyspace_hits") or 0
     # The hot set is read THROUGH the pressure, not in a burst before each fill, and that is what
     # makes this row deterministic instead of a coin flip. Our LFU counter has five header bits and
@@ -192,7 +210,7 @@ elif SECTION == "lfu":
                 for k in HOT:
                     s.sendall(enc(["GET", k])); rr()
                 hot_reads += len(HOT)
-            fill("lfucold", 500, start=r * 3000 + c * 500)
+            fill("lfucold", 500, sz=value_size, start=r * 3000 + c * 500)
     lane_hot = (info_num("read_local_keyspace_hits") or 0) - lane0
     ev = info_num("evicted_keys")
     survivors = [k for k in HOT if cmd("EXISTS", k) == b":1"]
@@ -239,7 +257,7 @@ elif SECTION == "lfu":
 
 elif SECTION == "lruclock":
     # The production clock is fixed at 256 seconds per bucket.
-    must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "allkeys-lru")
+    must("CONFIG", "SET", "maxmemory", str(1 << 30)); must("CONFIG", "SET", "maxmemory-policy", "allkeys-lru")
     # LRU reads metadata without aging it. However, these are 64 draws WITH REPLACEMENT,
     # deduplicated after drawing, not an exhaustive scan (flatstore.h choose_victim*).
     # Even with old keys remaining, a sample can contain only newer keys. No finite old-cohort
@@ -251,6 +269,7 @@ elif SECTION == "lruclock":
     must("SET", "lruc:probe", "v")
     must("SET", "lruc:no-touch", "v")
     fill("lruold", 3000)
+    assert dbsize() == 3002 and info_num("evicted_keys") == 0, "old cohort evicted before aging"
     # Age all three cohorts together. Poll the last-created key without touching it, so the
     # whole cohort must cross a real production bucket; an unchanged clock must fail this arm.
     deadline = time.monotonic() + 260
@@ -325,6 +344,10 @@ elif SECTION == "lruclock":
               "lane hits %d of %d" % (lane_hot, reads))
     # Exercise real pressure as well, but judge its exact accounting identity. Survivor counts
     # are diagnostics: the sampler's contract is oldest IN THE SAMPLE, not oldest in the shard.
+    # The complete cohort has now proved its touch behavior. Start pressure at
+    # its measured footprint, including retained clock pages, instead of the
+    # former object-only 1 MB ceiling that evicted the witness during setup.
+    must("CONFIG", "SET", "maxmemory", str(info_num("used_memory")))
     ooms = 0
     for c in range(15):
         for k in HOT:

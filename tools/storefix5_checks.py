@@ -28,6 +28,8 @@ def run(a):
             args += ['--thread-mode', a.mode, '--shards', '16',
                      '--databases', str(a.databases), '--net-io', a.engine]
             if a.mode == '2s': args += ['--ratio', '6:2']
+        if a.maxmemory:
+            args += ['--maxmemory', str(a.maxmemory), '--maxmemory-policy', a.policy]
         result = dict(binary=binary, sha256=hashlib.file_digest(open(binary, 'rb'), 'sha256').hexdigest(),
                       argv=args, affinity=sorted(os.sched_getaffinity(0)), locale='C', cases={})
         with a.output.with_suffix('.server.log').open('w') as log:
@@ -48,6 +50,8 @@ def run(a):
                 for name in a.cases.split(','):
                     try:
                         kw = dict(strict=False) if a.redis and name == 'randomkey' else {}
+                        if name == 'memory_limit':
+                            kw = dict(limit=a.maxmemory, value_size=a.value_size, policy=a.policy)
                         result['cases'][name] = dict(result=getattr(storefix5, name)(c, **kw), passed=True)
                     except AssertionError as exc:
                         result['cases'][name] = dict(passed=False, error=str(exc))
@@ -59,6 +63,7 @@ def run(a):
                     proc.kill(); proc.wait(); result['forced_stop'] = True
                 result['exit'] = proc.returncode
                 a.output.write_text(json.dumps(result, indent=2) + '\n')
+        assert result['exit'] == 0 and not result.get('forced_stop'), result
         assert all(row['passed'] for row in result['cases'].values()), result['cases']
 
 
@@ -70,6 +75,9 @@ if __name__ == '__main__':
     p.add_argument('--databases', type=int, default=16)
     p.add_argument('--port', type=int, default=21600)
     p.add_argument('--redis', action='store_true')
+    p.add_argument('--maxmemory', type=int, default=0)
+    p.add_argument('--value-size', type=int, default=100)
+    p.add_argument('--policy', choices=('allkeys-lru', 'noeviction'), default='allkeys-lru')
     p.add_argument('--cases', default='randomkey,append,idle')
     p.add_argument('--output', type=Path, required=True)
     run(p.parse_args())

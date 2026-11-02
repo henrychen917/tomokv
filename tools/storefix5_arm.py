@@ -13,6 +13,7 @@ p = argparse.ArgumentParser()
 p.add_argument('arm')
 p.add_argument('--normal', type=Path, required=True)
 p.add_argument('--db0', type=Path, required=True)
+p.add_argument('--string-db0', type=Path)
 a = p.parse_args()
 assert os.sched_getaffinity(0) <= set(range(16, 24))
 output = ROOT/'build/storefix5/arms'/a.arm
@@ -25,7 +26,8 @@ for i, arg in enumerate(link):
         relative = Path(arg).relative_to('build')
         dest = output/relative
         dest.parent.mkdir(parents=True, exist_ok=True)
-        source = (a.normal if str(relative)=='src/cmd/xshard.o' else
+        source = (a.string_db0 if str(relative)=='db0/src/cmd/t_string.o' and a.string_db0 else
+                  a.normal if str(relative)=='src/cmd/xshard.o' else
                   a.db0 if str(relative)=='db0/src/cmd/xshard.o' else ROOT/arg).resolve()
         dest.unlink(missing_ok=True)
         dest.symlink_to(source)

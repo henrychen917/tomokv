@@ -1475,24 +1475,37 @@ public:
             if (old && !deadline_elapsed(hash, old, cached_now_ms_))
                 stamp = clock->timestamp(old, stamp);
         }
-        return clock->install(object, stamp);
+        return clock->install(object, stamp, obj_bytes_);
+    }
+    [[gnu::noinline]] size_t object_idle_allocation_bytes(const KvObj* object) const {
+        const auto* clock = object_idle_slot()->load(std::memory_order_relaxed);
+        return clock ? clock->allocation_bytes(object) : 0;
+    }
+    static void reclaim_object_idle(void* owner, void* payload, size_t bytes) {
+        // The owner drains its retire ring before shard migration or teardown.
+        // Keep the charge until the last foreign reader has passed its grace.
+        delete static_cast<ObjectIdleClock*>(payload);
+        static_cast<FlatStore*>(owner)->obj_bytes_ -= bytes;
     }
     [[gnu::noinline, gnu::cold]] void configure_object_idle(bool enabled) {
         auto* current = object_idle_slot()->load(std::memory_order_relaxed);
         if (enabled == (current != nullptr)) return;
         if (enabled) {
             auto fresh = std::make_unique<ObjectIdleClock>();
+            size_t bytes = sizeof(ObjectIdleClock);
             const auto now = ObjectIdleClock::clock(cached_now_ms_);
             for_each([&](KvObj* object) {
-                if (!fresh->install(object, now)) throw std::bad_alloc();
+                if (!fresh->install(object, now, bytes)) throw std::bad_alloc();
             });
+            obj_bytes_ += bytes;
             object_idle_slot()->store(fresh.release(), std::memory_order_release);
         } else {
             auto* retired = object_idle_slot()->exchange(nullptr, std::memory_order_acq_rel);
+            const size_t bytes = retired->allocated_bytes();
             if (read_local_enabled_)
-                read_local_store_state_required().retire_sink.retire(nullptr, retired, 0,
-                    [](void*, void* payload, size_t) { delete static_cast<ObjectIdleClock*>(payload); });
-            else delete retired;
+                read_local_store_state_required().retire_sink.retire(
+                    this, retired, bytes, reclaim_object_idle);
+            else reclaim_object_idle(this, retired, bytes);
         }
     }
     void configure_maxmemory(bool enabled, uint64_t shard_limit, MaxmemoryPolicy policy,
@@ -1736,9 +1749,11 @@ public:
         // snapshot write-gate pre-images only the incoming command's key — an evicted, unvisited
         // frozen victim would vanish from the dump.  The capture window is short and bounded.
         if (__builtin_expect(maxmemory_enabled_, false)) {
+            if (!snapshot_active_ && !make_room_for(o->key(),
+                    kvobj_size(o) + object_idle_allocation_bytes(o)))
+                return InsertResult::MaxmemoryOom;
             if (!object_idle_install(h, o)) return InsertResult::Failed;
             if (!snapshot_active_) {
-                if (!make_room_for(o->key(), kvobj_size(o))) return InsertResult::MaxmemoryOom;
                 if (o->eviction_meta() == 0) initialize_meta(o);
             }
         }
@@ -2766,16 +2781,7 @@ private:
             return rewrite_expire_read_local(h, old, expire_at_ms);
         KvObj* replacement = kvobj_reheader(old, expire_at_ms);
         if (!replacement) return TtlResult::Oom;
-        if (maxmemory_enabled_) {
-            replacement->set_eviction_meta(old->eviction_meta());
-            if (!object_idle_install(h, replacement)) {
-                if (replacement->type != static_cast<uint8_t>(Type::String) &&
-                    replacement->encoding() == Enc::Extern)
-                    replacement->flags &= static_cast<uint8_t>(~KvObjFlags::OwnsExtern);
-                kvobj_free(replacement);
-                return TtlResult::Oom;
-            }
-        }
+        if (maxmemory_enabled_) replacement->set_eviction_meta(old->eviction_meta());
 
         const bool moves_collection = static_cast<Type>(old->type) != Type::String &&
                                       static_cast<Enc>(old->enc) == Enc::Extern;
@@ -2965,9 +2971,11 @@ private:
                 return InsertResult::Failed;
         }
         if (__builtin_expect(maxmemory_enabled_, false)) {
+            if (!snapshot_active_ && !make_room_for(o->key(),
+                    kvobj_size(o) + object_idle_allocation_bytes(o)))
+                return InsertResult::MaxmemoryOom;
             if (!object_idle_install(h, o)) return InsertResult::Failed;
             if (!snapshot_active_) {
-                if (!make_room_for(o->key(), kvobj_size(o))) return InsertResult::MaxmemoryOom;
                 if (o->eviction_meta() == 0) initialize_meta_read_local(o);
             }
         }
@@ -3231,16 +3239,7 @@ private:
     TtlResult rewrite_expire_read_local(uint64_t h, KvObj* old, int64_t expire_at_ms) {
         KvObj* replacement = kvobj_reheader(old, expire_at_ms);
         if (!replacement) return TtlResult::Oom;
-        if (maxmemory_enabled_) {
-            replacement->set_eviction_meta(old->eviction_meta());
-            if (!object_idle_install(h, replacement)) {
-                if (replacement->type != static_cast<uint8_t>(Type::String) &&
-                    replacement->encoding() == Enc::Extern)
-                    replacement->flags &= static_cast<uint8_t>(~KvObjFlags::OwnsExtern);
-                kvobj_free(replacement);
-                return TtlResult::Oom;
-            }
-        }
+        if (maxmemory_enabled_) replacement->set_eviction_meta(old->eviction_meta());
 
         const bool moves_collection = static_cast<Type>(old->type) != Type::String &&
                                       static_cast<Enc>(old->enc) == Enc::Extern;

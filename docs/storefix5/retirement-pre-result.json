@@ -1,0 +1,9 @@
+{
+  "argv": [
+    "build/storefix5/pre-source/build/store-regression",
+    "randomkey"
+  ],
+  "exit": 1,
+  "stdout": "",
+  "stderr": "FAIL: RANDOMKEY entered a full retirement sink\n"
+}

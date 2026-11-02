@@ -1,0 +1,1 @@
+{"limit": 104857600, "value_size": 100, "policy": "noeviction", "keys": 388467, "accepted": 388467, "refused": 6285, "evicted": 0, "before": {"used_memory": 0, "used_memory_rss": 14995456}, "after": {"used_memory": 104852324, "used_memory_rss": 130854912}, "rss_over_limit": 1.2479296875}
