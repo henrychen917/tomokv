@@ -11,6 +11,7 @@ import netfix2
 
 def main():
     a = n.arguments()
+    a.reorder = 0  # This legacy job uses the ordinary runtime in both modes.
     results, failures = {}, []
     for oracle, mode, engine in [(True, 'oracle', 'oracle')] + [
             (False, m, e) for m in ('1s', '2s') for e in ('epoll', 'uring')]:
