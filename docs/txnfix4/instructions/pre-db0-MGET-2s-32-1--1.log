@@ -1,5 +1,5 @@
 Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/pre-db0-MGET-2s-32-1--1.log
-SHA-256: 39c52ca3af23a0675e29708485b3da0e6665af1822367edd816d0d2c840ae306
+SHA-256: d8d647fd63676738db3963363f33f2a8335fb3ec3bd9dc714d0f5f296cda32e2
 Exit: 0
 2355	}
 0x00005555556c8bbd	2355	}
@@ -19,5 +19,5 @@ Exit: 0
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
 23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 2147647) exited normally]
+[Inferior 1 (process 854712) exited normally]
 COUNT 318662

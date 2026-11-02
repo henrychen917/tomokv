@@ -1,5 +1,5 @@
 Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/pre-normal-SET-2s-1-1--1.log
-SHA-256: edf52222f2771290a374ea4329e39ea20cf287945226b5ba9b6fb68ec15021af
+SHA-256: 455e69e12e1535e8765d33de924211326569fa05ebb7d58513a8f22e99a1c452
 Exit: 0
 2483	    }
 0x0000555555a6c068	2483	    }
@@ -19,5 +19,5 @@ mo::CoreConcurrencyTest::run<false> (command=..., n=..., atomic=..., slowlog=...
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
 23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 2100033) exited normally]
+[Inferior 1 (process 814090) exited normally]
 COUNT 1647

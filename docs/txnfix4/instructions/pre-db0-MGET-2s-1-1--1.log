@@ -1,5 +1,5 @@
 Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/pre-db0-MGET-2s-1-1--1.log
-SHA-256: 5cd2e096e58ca47d7596e52d89eac145ae65cb3197ca37937c8708648cf03c6c
+SHA-256: fc027c3bab44a82fede5b5b94cff9d4bb27d3d85dcb1c61a3a149e1a44652421
 Exit: 0
 0x00005555556c8bbe	2355	}
 0x00005555556c8bc0	2355	}
@@ -19,5 +19,5 @@ Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/TomoKV 1.0-cp
 PASS bounded production command scope
 txnfix4_scope.cc:23
 23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 2147176) exited normally]
+[Inferior 1 (process 854632) exited normally]
 COUNT 9995

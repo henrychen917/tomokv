@@ -1,5 +1,5 @@
 Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/pre-normal-SMOVE-1s-1-0--1.log
-SHA-256: 45ca52de44dc9e53888926e72884aa30517b9bae997f35f1995f08a67aeeadd3
+SHA-256: 987c437ae0ecb95f493eb79935464634bb3b368f448daab1241a91c3bcfc3db9
 Exit: 0
 1604	    cached_[0] = ptr;
 1605	    ++count_;
@@ -19,5 +19,5 @@ Exit: 0
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
 23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 4089355) exited normally]
+[Inferior 1 (process 845833) exited normally]
 COUNT 2515

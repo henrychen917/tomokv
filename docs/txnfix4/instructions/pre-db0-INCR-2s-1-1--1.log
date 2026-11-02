@@ -1,5 +1,5 @@
 Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/pre-db0-INCR-2s-1-1--1.log
-SHA-256: 70a79aa45fb6d0dd1c406da175cf3cbd6694e938047cf625d820cc08640d3264
+SHA-256: 726e163a646747605e969f618b859c4f527acc3c285b90de9e22f7a122197806
 Exit: 0
 0x000055555565bb38	2480	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
 0x000055555565ba03 in tomo_db0::ExLoopT<false>::exec_batch_prefetched<false> (this=..., batch=..., n=...) at src/core/ex_loop.h:2483
@@ -19,5 +19,5 @@ Exit: 0
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
 23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 2140396) exited normally]
+[Inferior 1 (process 854261) exited normally]
 COUNT 1477

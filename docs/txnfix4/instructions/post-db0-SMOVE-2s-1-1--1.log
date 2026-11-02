@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/post-db0-SMOVE-2s-1-1--1.log
-SHA-256: b84e6b8c3c02da5b21a86649dea58b0f1260efcfa37df5b51c67a8f09744e375
+SHA-256: 16cc4a3552b0cdfe828463b6183b54772bf01e42dea3902df36f7882ed87e3f4
 Exit: 0
-0x00005555556aa27d	1288		    ++this->_M_impl._M_finish;
-0x00005555556aa284 in tomo_db0::ScatterArenaPool::defer_destroy (this=..., state=...) at src/cmd/atomics_glue.inc:583
 583	}
-0x00005555556aa288	583	}
-0x00005555556aa289	583	}
-0x00005555556aa28a	583	}
-0x00005555556aa28c	583	}
-0x00005555556aa28e	583	}
-0x00005555556aa290	583	}
-0x0000555555e31218 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=..., atomic=..., slowlog=...) at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:167
+0x00005555556aaa18	583	}
+0x00005555556aaa19	583	}
+0x00005555556aaa1a	583	}
+0x00005555556aaa1c	583	}
+0x00005555556aaa1e	583	}
+0x00005555556aaa20	583	}
+0x0000555555e31968 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=..., atomic=..., slowlog=...) at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:167
 167	    if(activation)scope_end();
-0x0000555555e3121e	166	    xshard_retire(server,server.thread(io),ring,client,*op,pool,io,nullptr,nullptr,nullptr);
-0x0000555555e31222	167	    if(activation)scope_end();
-0x0000555555e31224	167	    if(activation)scope_end();
-0x0000555555e31226	167	    if(activation)scope_end();
+0x0000555555e3196e	166	    xshard_retire(server,server.thread(io),ring,client,*op,pool,io,nullptr,nullptr,nullptr);
+0x0000555555e31972	167	    if(activation)scope_end();
+0x0000555555e31974	167	    if(activation)scope_end();
+0x0000555555e31976	167	    if(activation)scope_end();
 
-Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
+Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+cc:23
 23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 3303863) exited normally]
-COUNT 3674
+[Inferior 1 (process 2297984) exited normally]
+COUNT 3643

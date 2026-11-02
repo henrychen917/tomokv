@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/post-db0-LMPOP-2s-1-0--1.log
-SHA-256: c2f003c8fb36c778b8a076f3b361a7b9892b6c899d2e2005e22b0e661fc34788
+SHA-256: ee775753e43e55558a629c0bcc95994f6f5ce63f2f26d8bb487eb08fa1119028
 Exit: 0
-1630	    cached_[0] = ptr;
-1631	    ++count_;
-0x00005555556c8e1c in tomo_db0::xshard_destroy (state=..., pool=..., owner_io=...) at src/cmd/scatter_engine.inc:2381
-2381	}
-0x00005555556c8e1d	2381	}
-0x00005555556c8e1e	2381	}
-0x00005555556c8e20	2381	}
-0x00005555556c8e22	2381	}
-0x00005555556c8e24	2381	}
-0x0000555555e31218 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=..., atomic=..., slowlog=...) at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:167
+1637	    cached_[0] = ptr;
+1638	    ++count_;
+0x00005555556c959c in tomo_db0::xshard_destroy (state=..., pool=..., owner_io=...) at src/cmd/scatter_engine.inc:2388
+2388	}
+0x00005555556c959d	2388	}
+0x00005555556c959e	2388	}
+0x00005555556c95a0	2388	}
+0x00005555556c95a2	2388	}
+0x00005555556c95a4	2388	}
+0x0000555555e31968 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=..., atomic=..., slowlog=...) at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:167
 167	    if(activation)scope_end();
-0x0000555555e3121e	166	    xshard_retire(server,server.thread(io),ring,client,*op,pool,io,nullptr,nullptr,nullptr);
-0x0000555555e31222	167	    if(activation)scope_end();
-0x0000555555e31224	167	    if(activation)scope_end();
-0x0000555555e31226	167	    if(activation)scope_end();
+0x0000555555e3196e	166	    xshard_retire(server,server.thread(io),ring,client,*op,pool,io,nullptr,nullptr,nullptr);
+0x0000555555e31972	167	    if(activation)scope_end();
+0x0000555555e31974	167	    if(activation)scope_end();
+0x0000555555e31976	167	    if(activation)scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
 23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 3300865) exited normally]
+[Inferior 1 (process 2294476) exited normally]
 COUNT 3283

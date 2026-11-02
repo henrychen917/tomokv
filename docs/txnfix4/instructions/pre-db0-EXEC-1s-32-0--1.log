@@ -1,8 +1,6 @@
 Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/pre-db0-EXEC-1s-32-0--1.log
-SHA-256: 20dc3692df725801ec97ff66b699f27e4dfa6c05473f46560c664f86f0002fff
+SHA-256: f29e2e11e37c6e3c939945dd578bd9af4ef95626c98442b5884eea95f3c87ec7
 Exit: 0
-3293	    for (size_t i = 0; i < deferred.size();) {
-0x00005555556ca17e	3293	    for (size_t i = 0; i < deferred.size();) {
 0x00005555556ca1ab	3302	}
 0x00005555556ca1af	3302	}
 0x00005555556ca1b2	3302	}
@@ -18,6 +16,8 @@ tomo_db0::CoreConcurrencyTest::need (v=...) at /home/user/Projects/cx-txnfix4/te
 214	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
-23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 4094529) exited normally]
+23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "mTomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+emory");}
+[Inferior 1 (process 863949) exited normally]
 COUNT 170821

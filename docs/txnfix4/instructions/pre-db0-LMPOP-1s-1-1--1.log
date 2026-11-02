@@ -1,5 +1,5 @@
 Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/pre-db0-LMPOP-1s-1-1--1.log
-SHA-256: 6b624f16465d30d88c5fd0aaba034e0dd7c405ea05b1caa36ed835130d266bfc
+SHA-256: 5099d7dbcb4ee701d67d3b4110409f7e5d605af9f34e12b4a0010b23a94c848e
 Exit: 0
 1604	    cached_[0] = ptr;
 1605	    ++count_;
@@ -19,5 +19,5 @@ Exit: 0
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
 23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 4120776) exited normally]
+[Inferior 1 (process 897721) exited normally]
 COUNT 3576

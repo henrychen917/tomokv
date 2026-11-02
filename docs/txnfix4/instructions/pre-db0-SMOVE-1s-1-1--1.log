@@ -1,5 +1,5 @@
 Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/pre-db0-SMOVE-1s-1-1--1.log
-SHA-256: 41c3165ed7cac199a38b2daaf3d467e01c8db4b2f8d6dcbbce603c8ca91d47f4
+SHA-256: 70d1ac1b827d0a1aebbf970c3a2b1221cdbf99f6def3b80ad10f3d73789921be
 Exit: 0
 0x00005555556aa05d	1288		    ++this->_M_impl._M_finish;
 0x00005555556aa064 in tomo_db0::ScatterArenaPool::defer_destroy (this=..., state=...) at src/cmd/atomics_glue.inc:569
@@ -19,5 +19,5 @@ Exit: 0
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
 23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 4121027) exited normally]
+[Inferior 1 (process 898776) exited normally]
 COUNT 3670

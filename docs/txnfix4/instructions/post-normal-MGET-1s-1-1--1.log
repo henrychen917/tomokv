@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/post-normal-MGET-1s-1-1--1.log
-SHA-256: 65f1271f068929b6cebd696492ccaeb9635bef6e3f949fb77c488124021badbe
+SHA-256: b8977dcb5149f9ced8509eb6700dc354ae8ec8cba250c778e5357dc66422b7f6
 Exit: 0
-0x0000555555ae3a3d	2381	}
-0x0000555555ae3a3e	2381	}
-0x0000555555ae3a40	2381	}
-0x0000555555ae3a42	2381	}
-0x0000555555ae3a44	2381	}
-0x0000555555e2b4c3 in tomo::CoreConcurrencyTest::run<true> (command=..., n=..., atomic=..., slowlog=...) at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:294
+0x0000555555ae41cd	2388	}
+0x0000555555ae41ce	2388	}
+0x0000555555ae41d0	2388	}
+0x0000555555ae41d2	2388	}
+0x0000555555ae41d4	2388	}
+0x0000555555e2bc13 in tomo::CoreConcurrencyTest::run<true> (command=..., n=..., atomic=..., slowlog=...) at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:294
 294	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
 277	   for(unsigned i=0;i<n;i++){
-0x0000555555e2b4ca	277	   for(unsigned i=0;i<n;i++){
+0x0000555555e2bc1a	277	   for(unsigned i=0;i<n;i++){
 277	   for(unsigned i=0;i<n;i++){
-0x0000555555e2aa80	277	   for(unsigned i=0;i<n;i++){
-0x0000555555e2aa83	277	   for(unsigned i=0;i<n;i++){
-0x0000555555e2b4cf	297	   std::string want="+OK\r\n";
-0x0000555555e2b4d6	297	   std::string want="+OK\r\n";
-0x0000555555e2b4dd	296	   scope_end();
+0x0000555555e2b1d0	277	   for(unsigned i=0;i<n;i++){
+0x0000555555e2b1d3	277	   for(unsigned i=0;i<n;i++){
+0x0000555555e2bc1f	297	   std::string want="+OK\r\n";
+0x0000555555e2bc26	297	   std::string want="+OK\r\n";
+0x0000555555e2bc2d	296	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
 23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 2736822) exited normally]
+[Inferior 1 (process 2180913) exited normally]
 COUNT 10125

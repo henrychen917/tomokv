@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/post-db0-EXEC-1s-32-0--1.log
-SHA-256: e925f9f699f79db548f79180adc795cabca326e3923feee0afe9c479d038dd25
+SHA-256: 2a00542272784455f6579624fd9e42ebaae3720ee3dad1606e32610972149914
 Exit: 0
 3293	    for (size_t i = 0; i < deferred.size();) {
-0x00005555556ca3de	3293	    for (size_t i = 0; i < deferred.size();) {
-0x00005555556ca40b	3302	}
-0x00005555556ca40f	3302	}
-0x00005555556ca412	3302	}
-0x00005555556ca413	3302	}
-0x00005555556ca414	3302	}
-0x00005555556ca416	3302	}
-0x00005555556ca418	3302	}
+0x00005555556cab5e	3293	    for (size_t i = 0; i < deferred.size();) {
+0x00005555556cab8b	3302	}
+0x00005555556cab8f	3302	}
+0x00005555556cab92	3302	}
+0x00005555556cab93	3302	}
+0x00005555556cab94	3302	}
+0x00005555556cab96	3302	}
+0x00005555556cab98	3302	}
 tomo_db0::CoreConcurrencyTest::need (v=...) at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:26
 26	 static void need(bool v){if(!v)std::abort();}
-0x0000555555e2b5c2	26	 static void need(bool v){if(!v)std::abort();}
-0x0000555555e2b5c9	26	 static void need(bool v){if(!v)std::abort();}
-0x0000555555e2b5cf in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=..., atomic=..., slowlog=...) at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:214
+0x0000555555e2bd12	26	 static void need(bool v){if(!v)std::abort();}
+0x0000555555e2bd19	26	 static void need(bool v){if(!v)std::abort();}
+0x0000555555e2bd1f in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=..., atomic=..., slowlog=...) at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:214
 214	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
 23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 3153305) exited normally]
+[Inferior 1 (process 2229080) exited normally]
 COUNT 170758

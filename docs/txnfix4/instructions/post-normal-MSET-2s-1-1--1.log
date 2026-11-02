@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/post-normal-MSET-2s-1-1--1.log
-SHA-256: b02467ef0dd54750f7b5f18f1b149f78824fe70bff33452d84d11bdb74bd37ac
+SHA-256: 2ae67ebd5f96e45ecd74fcb67cd6e55c942d1ca7afc578d72d112ca8c5095a37
 Exit: 0
-0x0000555555abf632	583	}
-0x0000555555abf634	583	}
-0x0000555555abf636	583	}
-0x0000555555abf638	583	}
-0x0000555555e30672 in tomo::CoreConcurrencyTest::run<false> (command=..., n=..., atomic=..., slowlog=...) at /usr/include/c++/13/bits/unique_ptr.h:199
+0x0000555555abfdc2	583	}
+0x0000555555abfdc4	583	}
+0x0000555555abfdc6	583	}
+0x0000555555abfdc8	583	}
+0x0000555555e30dc2 in tomo::CoreConcurrencyTest::run<false> (command=..., n=..., atomic=..., slowlog=...) at /usr/include/c++/13/bits/unique_ptr.h:199
 199	      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
 277	   for(unsigned i=0;i<n;i++){
-0x0000555555e30679	277	   for(unsigned i=0;i<n;i++){
+0x0000555555e30dc9	277	   for(unsigned i=0;i<n;i++){
 277	   for(unsigned i=0;i<n;i++){
-0x0000555555e3048f	277	   for(unsigned i=0;i<n;i++){
-0x0000555555e3067e	297	   std::string want="+OK\r\n";
-0x0000555555e30685	297TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+0x0000555555e30bdf	277	   for(unsigned i=0;i<n;i++){
+0x0000555555e30dce	297	   std::string want="+OK\r\n";
+0x0000555555TomoKV 1.0-cpp (Redis 7.4.10 compatible)
 PASS bounded production command scope
-	   std::string want="+OK\r\n";
-0x0000555555e3068c	296	   scope_end();
+e30dd5	297	   std::string want="+OK\r\n";
+0x0000555555e30ddc	296	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
 23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 2860827) exited normally]
+[Inferior 1 (process 2182907) exited normally]
 COUNT 16584

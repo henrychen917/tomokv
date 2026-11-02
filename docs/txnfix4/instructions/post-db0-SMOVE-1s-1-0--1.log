@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/post-db0-SMOVE-1s-1-0--1.log
-SHA-256: eeac960560ae21628a2ce6fe9931dbb540865300f45a9f5af60e70ec959ee1b8
+SHA-256: 0b7cb5d5e00f85a356a9d53d6437d89bb5f6a1e382df29af95f16d6727c27278
 Exit: 0
-1630	    cached_[0] = ptr;
-1631	    ++count_;
-0x00005555556c8e1c in tomo_db0::xshard_destroy (state=..., pool=..., owner_io=...) at src/cmd/scatter_engine.inc:2381
-2381	}
-0x00005555556c8e1d	2381	}
-0x00005555556c8e1e	2381	}
-0x00005555556c8e20	2381	}
-0x00005555556c8e22	2381	}
-0x00005555556c8e24	2381	}
-0x0000555555e2a210 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=..., atomic=..., slowlog=...) at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:167
+1637	    cached_[0] = ptr;
+1638	    ++count_;
+0x00005555556c959c in tomo_db0::xshard_destroy (state=..., pool=..., owner_io=...) at src/cmd/scatter_engine.inc:2388
+2388	}
+0x00005555556c959d	2388	}
+0x00005555556c959e	2388	}
+0x00005555556c95a0	2388	}
+0x00005555556c95a2	2388	}
+0x00005555556c95a4	2388	}
+0x0000555555e2a960 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=..., atomic=..., slowlog=...) at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:167
 167	    if(activation)scope_end();
-0x0000555555e2a216	166	    xshard_retire(server,server.thread(io),ring,client,*op,pool,io,nullptr,nullptr,nullptr);
-0x0000555555e2a21a	167	    if(activation)scope_end();
-0x0000555555e2a21c	167	    if(activation)scope_end();
-0x0000555555e2a21e	167	    if(activation)scope_end();
+0x0000555555e2a966	166	    xshard_retire(server,server.thread(io),ring,client,*op,pool,io,nullptr,nullptr,nullptr);
+0x0000555555e2a96a	167	    if(activation)scope_end();
+0x0000555555e2a96c	167	    if(activation)scope_end();
+0x0000555555e2a96e	167	    if(activation)scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
 23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 3302118) exited normally]
-COUNT 2557
+[Inferior 1 (process 2296364) exited normally]
+COUNT 2526

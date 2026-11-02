@@ -1,5 +1,5 @@
 Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/pre-db0-INCR-1s-32-1--1.log
-SHA-256: d8020879f3afd57faf425788e1296beb8d59405c0bda593f707dd0c8ad821080
+SHA-256: c6fd331899e96fbbe8aafc268e7e72b301de573ede88c2ec5cc445ac4470a038
 Exit: 0
 2483	    }
 0x00005555558fde78	2483	    }
@@ -19,5 +19,5 @@ PASS bounded production command scope
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
 23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 2138789) exited normally]
+[Inferior 1 (process 853729) exited normally]
 COUNT 32866

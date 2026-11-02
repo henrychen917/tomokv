@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/post-normal-SET-1s-1-1--1.log
-SHA-256: e2e5d23b7d11e0a29e36aa668732047770b3227984604f4a19f59a2e9a463701
+SHA-256: 7e7b5295181e505591420340fcf9344a23844ccdaf0edc1075587c62517f0e15
 Exit: 0
-0x0000555555d16c98	2480	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
-0x0000555555d16b63 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=..., batch=..., n=...) at src/core/ex_loop.h:2483
+0x0000555555d173e8	2480	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
+0x0000555555d172b3 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=..., batch=..., n=...) at src/core/ex_loop.h:2483
 2483	    }
-0x0000555555d16b68	2483	    }
-0x0000555555d16b71	2483	    }
-0x0000555555d16b77	2483	    }
-0x0000555555d16b7b	2483	    }
-0x0000555555d16b7c	2483	    }
-0x0000555555d16b7e	2483	    }
-0x0000555555d16b80	2483	    }
-0x0000555555d16b82	2483	    }
-0x0000555555d16b84	2483	    }
-0x0000555555d16b85	2483	    }
-0x0000555555e2965a in tomo::CoreConcurrencyTest::run<true> (command=..., n=..., atomic=..., slowlog=...) at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:254
+0x0000555555d172b8	2483	    }
+0x0000555555d172c1	2483	    }
+0x0000555555d172c7	2483	    }
+0x0000555555d172cb	2483	    }
+0x0000555555d172cc	2483	    }
+0x0000555555d172ce	2483	    }
+0x0000555555d172d0	2483	    }
+0x0000555555d172d2	2483	    }
+0x0000555555d172d4	2483	    }
+0x0000555555d172d5	2483	    }
+0x0000555555e29daa in tomo::CoreConcurrencyTest::run<true> (command=..., n=..., atomic=..., slowlog=...) at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:254
 254	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
 23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 2710821) exited normally]
+[Inferior 1 (process 2176527) exited normally]
 COUNT 1027

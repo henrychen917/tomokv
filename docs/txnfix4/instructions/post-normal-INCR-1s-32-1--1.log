@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/post-normal-INCR-1s-32-1--1.log
-SHA-256: 6e967153494c0fda7167856c739098358a336296970f0b75c45d9e54f15ab981
+SHA-256: 41226891d3634fa888c7bc018df9a633695af637f2b9bd981770c1c289a2218e
 Exit: 0
 2483	    }
-0x0000555555d16b68	2483	    }
-0x0000555555d16b71	2483	    }
-0x0000555555d16b77	2483	    }
-0x0000555555d16b7b	2483	    }
-0x0000555555d16b7c	2483	    }
-0x0000555555d16b7e	2483	    }
-0x0000555555d16b80	2483	    }
-0x0000555555d16b82	2483	    }
-0x0000555555d16b84	2483	    }
-0x0000555555d16b85	2483	    }
+0x0000555555d172b8	2483	    }
+0x0000555555d172c1	2483	    }
+0x0000555555d172c7	2483	    }
+0x0000555555d172cb	2483	    }
+0x0000555555d172cc	2483	    }
+0x0000555555d172ce	2483	    }
+0x0000555555d172d0	2483	    }
+0x0000555555d172d2	2483	    }
+0x0000555555d172d4	2483	    }
+0x0000555555d172d5	2483	    }
 0x0000555555eTomoKV 1.0-cpp (Redis 7.4.10 compatible)
 PASS bounded production command scope
-2965a in tomo::CoreConcurrencyTest::run<true> (command=..., n=..., atomic=..., slowlog=...) at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:254
+29daa in tomo::CoreConcurrencyTest::run<true> (command=..., n=..., atomic=..., slowlog=...) at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:254
 254	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
 23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 2729896) exited normally]
+[Inferior 1 (process 2176490) exited normally]
 COUNT 36547

@@ -1,5 +1,5 @@
 Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/pre-normal-EXEC-2s-32-1--1.log
-SHA-256: 8345644cb893027fa81d164b5eebf2c2f3cff90fdbbbffdbd7eaad2ebeb27bbf
+SHA-256: b7d5b6e67349317081284a239277726b42f8f5e043a8144bf9610f218967cff0
 Exit: 0
 3293	    for (size_t i = 0; i < deferred.size();) {
 0x0000555555ae4c6e	3293	    for (size_t i = 0; i < deferred.size();) {
@@ -19,5 +19,5 @@ tomo::CoreConcurrencyTest::need (v=...) at /home/user/Projects/cx-txnfix4/tests/
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
 23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 4065555) exited normally]
+[Inferior 1 (process 826297) exited normally]
 COUNT 184086
