@@ -1,0 +1,2 @@
+1s sigint: PASS (restart, save=True, snapshot=7c38960be0bdc8246be873056332ab26df4f5e16a08bdf7a496af11351b87e14)
+1s sigint-off: PASS (restart, save=False, snapshot=absent)

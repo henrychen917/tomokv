@@ -1,0 +1,3 @@
+PASS once: completed header poison, compaction, growth, owner edge, reset
+PASS corpus: every small split; large seeds 7/19/20/23; 1Mi boundaries
+PASS limits: pre-AUTH count/bulk bounds and close reset

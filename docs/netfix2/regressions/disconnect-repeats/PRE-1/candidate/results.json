@@ -1,0 +1,167 @@
+{
+  "binary": "/home/user/Projects/cx-netfix2/build/netfix2/PRE",
+  "sha256": "bf7a8a616072d0c238117c0361cb189f7ed50ecc9232546c51c175c048b32c51",
+  "checks": [
+    {
+      "label": "1s-uring-db1-a0-r0",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db1-a0-r1",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db1-a1-r0",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db1-a1-r1",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db16-a0-r0",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db16-a0-r1",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db16-a1-r0",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db16-a1-r1",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db1-a0-r0",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db1-a0-r1",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db1-a1-r0",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db1-a1-r1",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db16-a0-r0",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db16-a0-r1",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db16-a1-r0",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db16-a1-r1",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db1-a0-r0",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db1-a0-r1",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db1-a1-r0",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db1-a1-r1",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db16-a0-r0",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db16-a0-r1",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db16-a1-r0",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db16-a1-r1",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db1-a0-r0",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db1-a0-r1",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db1-a1-r0",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db1-a1-r1",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db16-a0-r0",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db16-a0-r1",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db16-a1-r0",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db16-a1-r1",
+      "passed": true,
+      "actual": true
+    }
+  ],
+  "slowlog": {}
+}

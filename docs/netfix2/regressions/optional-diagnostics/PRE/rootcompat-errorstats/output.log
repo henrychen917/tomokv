@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; correctness-plan-fallback; rootcompat errorstats vs Redis 7.4
+  rootcompat errorstats vs Redis 7.4                   FAIL (see /home/user/Projects/cx-netfix2/build/gate-run.EBWhiN/jobs/rootcompat-errorstats/rootcompat.log and proof)

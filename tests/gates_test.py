@@ -2070,6 +2070,31 @@ CORES=112-127; PORT=17991; GATE_RATIO=6:2
 
 
 class TlsBootGeometry(unittest.TestCase):
+    def test_partial_mode_engine_defaults_allow_explicit_overrides(self):
+        root = Path(__file__).resolve().parents[1]
+        gate = (root / 'tests/gate.sh').read_text()
+        helper = gate[gate.index('tlsboot(){'):].split('\n}', 1)[0] + '\n}\n'
+        with tempfile.TemporaryDirectory(dir=root / 'build') as directory:
+            for args, mode, engine in [([], 'fused', 'epoll'),
+                    (['--thread-mode', '2s', '--net-io', 'uring'], '2s', 'uring')]:
+                script = '''
+quiet_wait(){ :; }
+guard_port(){ :; }
+seq(){ :; }
+taskset(){ printf '%s\\0' "$@" > "$TMPDIR/argv"; }
+CORES=8-15; PORT=21100; TLS_PORT=21101; GATE_RATIO=6:2
+CANDIDATE_BINARY=/unused/tomokv; TLS_DIR=/unused/tls
+''' + helper + '\ntlsboot no "$@"\nwait "$SRV"\n'
+                run = subprocess.run(['bash', '-c', script, 'tlsboot', *args],
+                    capture_output=True, text=True, timeout=5,
+                    env=dict(os.environ, TMPDIR=directory, GATE_TXN_FUSED='1', GATE_NET_IO='epoll'))
+                self.assertEqual(run.returncode, 0, run.stderr)
+                argv = (Path(directory) / 'argv').read_bytes().decode().split('\0')[:-1]
+                values = lambda flag: [argv[i+1] for i, word in enumerate(argv) if word == flag]
+                self.assertEqual(values('--thread-mode')[-1], mode)
+                self.assertEqual(values('--net-io')[-1], engine)
+                self.assertEqual(values('--ratio'), ['6:2'] if mode == '2s' else [])
+
     def test_ratio_follows_thread_mode_value_and_preserves_other_arguments(self):
         root = Path(__file__).resolve().parents[1]
         gate = (root / 'tests/gate.sh').read_text()

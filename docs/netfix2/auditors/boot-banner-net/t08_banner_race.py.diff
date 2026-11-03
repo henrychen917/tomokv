@@ -1,0 +1,11 @@
+--- audit/t08_banner_race.py
++++ confined-POST/t08_banner_race.py
+@@ -5,7 +5,7 @@
+ import os, signal, socket, subprocess, sys, time
+ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+ import netlib as nl
+-PORT = 22558
++PORT = 21158
+ def one(mode):
+     p = subprocess.Popen(["taskset", "-c", nl.CORES, nl.TOMO, "--bind", "127.0.0.1", "--port", str(PORT),
+                           "--save", "", "--appendonly", "no", "--thread-mode", mode],

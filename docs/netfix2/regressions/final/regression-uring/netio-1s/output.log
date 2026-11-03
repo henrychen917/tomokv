@@ -1,0 +1,2 @@
+  row budget: 900s; median=2.99s; correctness-plan-fallback; epoll directed correctness (1s)
+  epoll directed correctness (1s)                      FAIL (see /home/user/Projects/cx-netfix2/build/gate-run.J82pCu/jobs/netio-1s/{uring,epoll}.log)

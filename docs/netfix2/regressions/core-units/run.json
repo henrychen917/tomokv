@@ -1,0 +1,21 @@
+{
+  "exit": 0,
+  "run": "/home/user/Projects/cx-netfix2/build/gate-run.W5tzc2",
+  "command": [
+    "taskset",
+    "-c",
+    "8-15",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "8-15",
+    "--load-cores",
+    "8-15",
+    "--load-smt",
+    "",
+    "--ports",
+    "21100-21199",
+    "--candidate-binary",
+    "/home/user/Projects/cx-netfix2/build/tomokv"
+  ]
+}

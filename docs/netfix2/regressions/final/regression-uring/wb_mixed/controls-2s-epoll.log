@@ -1,0 +1,4 @@
+CONTROL FAIL WB: leaked SKIP reply: writeback reply parity: SKIP
+CONTROL FAIL WB: corrupted borrowed bytes: writeback reply parity: borrow
+CONTROL FAIL WB: ignored complete-pipe hold: small complete pipe did not hold
+CONTROL FAIL WB: ignored boot knob: writeback reply parity: wb-small-pipe

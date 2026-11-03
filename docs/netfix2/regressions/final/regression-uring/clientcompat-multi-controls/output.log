@@ -1,0 +1,2 @@
+  row budget: 900s; median=444.1s; correctness-plan-fallback; clientcompat multi-controls
+  clientcompat multi-controls                          ok

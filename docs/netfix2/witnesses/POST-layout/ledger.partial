@@ -1,0 +1,7 @@
+PARTIAL	0	GATE_ONLY_JOBS=netfix2-tls-watch netfix2-exclusive netfix2-fds netfix2-tls-idle netfix2-boot; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	2.650000	netfix2 tls-watch
+ok	2.800000	netfix2 exclusive
+ok	7.340000	netfix2 fds
+ok	33.760000	netfix2 tls-idle
+ok	4.070000	netfix2 boot

@@ -2295,6 +2295,13 @@ public:
     std::atomic<bool>&     shutting_down()  { return shutting_down_; }
 
     uint32_t maxclients() const { return live_maxclients_.load(std::memory_order_relaxed); }
+    [[gnu::cold, gnu::noinline]] bool validate_maxclients(uint32_t value, std::string& error) const {
+        const uint64_t capacity = open_file_client_capacity(value);
+        if (value <= capacity) return true;
+        error = "The operating system is not able to handle the specified number of clients, try with " +
+                std::to_string(capacity);
+        return false;
+    }
     void set_maxclients(uint32_t value) {
         live_maxclients_.store(value, std::memory_order_relaxed);
     }
@@ -3442,14 +3449,40 @@ public:
     }
 
 private:
+    // Reserve Redis's 32 transient/persistence/log descriptors in addition to
+    // our per-worker resources: two rings (eventfds under epoll), an IO epoll
+    // set, a database doorbell, and both possible listeners. Count all physical
+    // workers so later role conversion cannot consume client capacity. TLS
+    // certificate opens, the signal fd, stdio, AOF/rewrite/manifest and snapshot
+    // files fit within the shared 32-fd reserve, including a rejected accept.
+    uint64_t reserved_file_descriptors() const {
+        return 32 + placement_.total_threads() *
+            (2ull + (cfg_.net_io == NetIoEngine::Epoll) + !kSingleDatabase +
+             (cfg_.port != 0) + (cfg_.tls_port != 0)) +
+             (cfg_.unixsocket && *cfg_.unixsocket ? 1 : 0);
+    }
+
+    [[gnu::cold, gnu::noinline]] uint64_t open_file_client_capacity(uint32_t requested) const {
+        rlimit limit{};
+        if (::getrlimit(RLIMIT_NOFILE, &limit) != 0) return 0;
+        const uint64_t reserve = reserved_file_descriptors();
+        const uint64_t wanted = static_cast<uint64_t>(requested) + reserve;
+        if (limit.rlim_cur < wanted) {
+            rlimit raised = limit;
+            raised.rlim_cur = static_cast<rlim_t>(std::min<uint64_t>(wanted, limit.rlim_max));
+            if (::setrlimit(RLIMIT_NOFILE, &raised) == 0)
+                (void)::getrlimit(RLIMIT_NOFILE, &limit);
+        }
+        return limit.rlim_cur > reserve ? limit.rlim_cur - reserve : 0;
+    }
+
     bool adjust_open_files_limit() {
         rlimit limit{};
         if (::getrlimit(RLIMIT_NOFILE, &limit) != 0) {
             std::perror("getrlimit(RLIMIT_NOFILE)");
             return false;
         }
-        const uint64_t reserve = 32 + placement_.ifid_threads().size() * 2 +
-            (kSingleDatabase ? 0 : placement_.total_threads()); // database doorbells
+        const uint64_t reserve = reserved_file_descriptors();
         const uint64_t wanted = static_cast<uint64_t>(cfg_.maxclients) + reserve;
         if (limit.rlim_cur < wanted) {
             rlimit raised = limit;

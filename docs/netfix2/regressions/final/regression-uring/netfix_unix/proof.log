@@ -1,0 +1,79 @@
+PASS oracle-oracle-regular
+PASS oracle-oracle-stale
+PASS oracle-oracle-live
+PASS oracle-oracle-symlink
+PASS 1s-epoll-regular
+PASS 1s-epoll-stale
+FAIL 1s-epoll-live Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix_unix.py", line 40, in main
+    with netfix2.process(a, label, mode, engine,
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 96, in process
+    cmd = argv(a, directory, mode, engine, db, extra, oracle)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 86, in argv
+    '--databases', str(db), '--client-lb', '0', '--reorder', str(a.reorder)]
+                                                                 ^^^^^^^^^
+AttributeError: 'Namespace' object has no attribute 'reorder'
+
+PASS 1s-epoll-symlink
+PASS 1s-uring-regular
+PASS 1s-uring-stale
+FAIL 1s-uring-live Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix_unix.py", line 40, in main
+    with netfix2.process(a, label, mode, engine,
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 96, in process
+    cmd = argv(a, directory, mode, engine, db, extra, oracle)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 86, in argv
+    '--databases', str(db), '--client-lb', '0', '--reorder', str(a.reorder)]
+                                                                 ^^^^^^^^^
+AttributeError: 'Namespace' object has no attribute 'reorder'
+
+PASS 1s-uring-symlink
+PASS 2s-epoll-regular
+PASS 2s-epoll-stale
+FAIL 2s-epoll-live Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix_unix.py", line 40, in main
+    with netfix2.process(a, label, mode, engine,
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 96, in process
+    cmd = argv(a, directory, mode, engine, db, extra, oracle)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 86, in argv
+    '--databases', str(db), '--client-lb', '0', '--reorder', str(a.reorder)]
+                                                                 ^^^^^^^^^
+AttributeError: 'Namespace' object has no attribute 'reorder'
+
+PASS 2s-epoll-symlink
+PASS 2s-uring-regular
+PASS 2s-uring-stale
+FAIL 2s-uring-live Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix_unix.py", line 40, in main
+    with netfix2.process(a, label, mode, engine,
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 96, in process
+    cmd = argv(a, directory, mode, engine, db, extra, oracle)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 86, in argv
+    '--databases', str(db), '--client-lb', '0', '--reorder', str(a.reorder)]
+                                                                 ^^^^^^^^^
+AttributeError: 'Namespace' object has no attribute 'reorder'
+
+PASS 2s-uring-symlink
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix_unix.py", line 77, in <module>
+    main()
+  File "/home/user/Projects/cx-netfix2/tests/netfix_unix.py", line 73, in main
+    assert not failures, failures
+           ^^^^^^^^^^^^
+AssertionError: ['1s-epoll-live', '1s-uring-live', '2s-epoll-live', '2s-uring-live']

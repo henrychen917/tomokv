@@ -1010,6 +1010,7 @@ job_label(){
 job_body(){
   local name=$1 label; label=$(job_label "$name")
   case "$name" in
+    netfix2-*) job_netfix2 "$name";;
     iofix-deferred) job_iofix_deferred "$name";;
     cfgfix2-*) job_cfgfix2 "${name#cfgfix2-}";;
     iofix-hz) job_iofix_hz "$name";;
@@ -1181,6 +1182,7 @@ plan_jobs(){
   fi
   JOB_NAMES+=(rootcore-inbox rootcore-eval rootcore-segments rootcore-notify rootcore-functions rootcore-waitaof rootcore-misconf)
   JOB_NAMES+=(wave14_functions)
+  JOB_NAMES+=(netfix2-tls-watch netfix2-exclusive netfix2-fds netfix2-tls-idle netfix2-boot)
   local atomic mode section slot FM FR FO FQ FF
   for section in lruclock lfu; do
     for atomic in 0 1; do for mode in split armed; do JOB_NAMES+=("evict-$section-$mode-$atomic"); done; done
@@ -2436,6 +2438,19 @@ row_begin "NET1 serverless bounds + scan + reclamation"
 unit_ready netcap-unit && taskset -c "$CORES" ./build/netcap-unit >"$TMPDIR/gate-netcap-unit.txt" 2>&1 \
     && ok "NET1 serverless bounds + scan + reclamation" \
     || bad "NET1 serverless bounds + scan + reclamation" "see $TMPDIR/gate-netcap-unit.txt"
+}
+
+job_netfix2(){
+  local case=${1#netfix2-} label="netfix2 ${1#netfix2-}"
+  local reordered=()
+  [ "${GATE_NETFIX2_REORDER:-0}" != 1 ] || reordered=(--mode 1s --reorder 1)
+  row_begin "$label"
+  py tests/netfix2.py --case "$case" --binary "$CANDIDATE_BINARY" \
+      --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --output "$TMPDIR/proof" \
+      "${reordered[@]}" \
+      >"$TMPDIR/proof.log" 2>&1 \
+    && ok "$label" || bad "$label" "see $TMPDIR/proof.log"
 }
 
 job_netfix_query_stats(){
@@ -5527,7 +5542,11 @@ reject_boot --port 0 --tls-port "$TLS_PORT" --tls-cert-file "$TLS_DIR/server.crt
 
 tlsboot(){ # auth-mode [extra TLS knobs]
   local auth=$1 arg previous= thread_mode=; shift
-  local -a ratio=(--ratio "$GATE_RATIO")
+  local -a ratio=(--ratio "$GATE_RATIO") default_shape=() engine_args=()
+  if [ "${GATE_TXN_FUSED:-0}" = 1 ]; then
+    thread_mode=fused; default_shape=(--thread-mode fused)
+  fi
+  [ -z "${GATE_NET_IO:-}" ] || engine_args=(--net-io "$GATE_NET_IO")
   # Only the value following --thread-mode selects the geometry; unrelated
   # values (for example a password of "fused") must retain the split argv.
   for arg in "$@"; do
@@ -5541,7 +5560,8 @@ tlsboot(){ # auth-mode [extra TLS knobs]
   guard_port "$TLS_PORT"
   SRVLOG=$(mktemp $TMPDIR/gate-tls-srv.XXXXXX)
   taskset -c $CORES "$CANDIDATE_BINARY" --databases 1 --port "$PORT" --tls-port "$TLS_PORT" \
-      --bind 127.0.0.1 --shards 16 "${ratio[@]}" --protected-mode no --dir "$TLS_DIR" --save '' \
+      --bind 127.0.0.1 --shards 16 "${default_shape[@]}" "${ratio[@]}" \
+      "${engine_args[@]}" --protected-mode no --dir "$TLS_DIR" --save '' \
       --tls-cert-file "$TLS_DIR/server.crt" --tls-key-file "$TLS_DIR/server.key" \
       --tls-ca-cert-file "$TLS_DIR/ca.crt" --tls-auth-clients "$auth" "$@" \
       >"$SRVLOG" 2>&1 &
@@ -6038,7 +6058,7 @@ job_clientcompat(){
 }
 
 job_redis_tcl(){
-  local mode passed=1 label manifest=${GATE_TCL_MANIFEST:-tests/redis_tcl_passing.json}
+  local mode passed=1 mode_passed label manifest=${GATE_TCL_MANIFEST:-tests/redis_tcl_passing.json}
   local selection=(--manifest "$manifest" --arm-smove)
   # Focused regression controls use this same runner/watchdog/ledger in a
   # PARTIAL job. Complete gates always require the checked-in full manifest.
@@ -6052,10 +6072,16 @@ job_redis_tcl(){
   for mode in 2s 1s; do
     label="Redis 7.4.10 Tcl passing subset ($mode)"
     row_begin "$label"
-    if py tests/redis_tcl.py --redis-root "$REDIS74_ROOT" --binary "$CANDIDATE_BINARY" \
+    mode_passed=1
+    py tests/redis_tcl.py --redis-root "$REDIS74_ROOT" --binary "$CANDIDATE_BINARY" \
         --mode "$mode" --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --controller-port "$((PORT+1))" \
         --baseport "$((PORT+2))" "${selection[@]}" \
-        --output "$TMPDIR/redis-tcl-$mode" >"$TMPDIR/redis-tcl-$mode.log" 2>&1; then
+        --output "$TMPDIR/redis-tcl-$mode" >"$TMPDIR/redis-tcl-$mode.log" 2>&1 || mode_passed=0
+    py tests/netfix2.py --case tcl-fds --mode "$mode" --binary "$CANDIDATE_BINARY" \
+          --oracle "$REDIS74_ROOT/src/redis-server" --cores "$CORES" --ratio "$GATE_RATIO" \
+          --port "$PORT" --output "$TMPDIR/netfix2-tcl-$mode" \
+          >"$TMPDIR/netfix2-tcl-$mode.log" 2>&1 || mode_passed=0
+    if [ "$mode_passed" = 1 ]; then
       say "$label" ok; ledger ok "$label" 0
     else
       passed=0; say "$label" FAIL; ledger FAIL "$label" 0
@@ -6618,6 +6644,8 @@ collect_job cfgfix2-shutdown
 collect_job cfgfix2-maxmemory
 collect_job netfix_tls
 collect_job netfix_idle_buffers
+# Round-5 S1: five rows BEFORE the quick-tier exit; DQ=DF=+5.
+for CASE in tls-watch exclusive fds tls-idle boot; do collect_job "netfix2-$CASE"; done
 
 # respcompat: +1 quick / +1 full, counted here before the quick-tier exit.
 # EXPECT counts and ledger fixtures are maintained by the owner.

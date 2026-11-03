@@ -1,0 +1,23 @@
+[
+  {
+    "source": "/home/user/Projects/round5-read/tests/net/netlib.py",
+    "source_sha256": "7709080e3b5f4a04b138026f3f53794c4f811c2acb50caa80b80e39c3c2e857f",
+    "adapted_sha256": "efb873c6d4850290995aed664dcb66aaa607a4b411a45bdfbb4d122079201dea"
+  },
+  {
+    "source": "/home/user/Projects/round5-read/tests/net/t08_banner_race.py",
+    "source_sha256": "a0b08868905cb465e10b0b87114f9bca593f56ebf07f06d0a1128e1c499a1f42",
+    "adapted_sha256": "f3983cae20b505dee019d49a9b4fea458d425ff798b755bd0e568ca0ac3cdd9c"
+  },
+  {
+    "script": "t08_banner_race.py",
+    "command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "python3",
+      "/home/user/Projects/cx-netfix2/build/netfix2/final-auditors/boot-banner-net/t08_banner_race.py"
+    ],
+    "exit": 0
+  }
+]

@@ -1,0 +1,50 @@
+[
+  {
+    "arm": "PRE",
+    "attempt": 1,
+    "run": "/home/user/Projects/cx-netfix2/build/gate-run.uob3Er",
+    "ledger": "PARTIAL\t0\tGATE_ONLY_JOBS=netio-1s netio-2s; NOT A RECEIPT\nok\t0.000000\trelease build (+footprint locks)\nok\t2.990000\tepoll directed correctness (1s)\nFAIL\t7.960000\tepoll directed correctness (2s)\n"
+  },
+  {
+    "arm": "PRE",
+    "attempt": 2,
+    "run": "/home/user/Projects/cx-netfix2/build/gate-run.6Zqko3",
+    "ledger": "PARTIAL\t0\tGATE_ONLY_JOBS=netio-1s netio-2s; NOT A RECEIPT\nok\t0.000000\trelease build (+footprint locks)\nok\t2.990000\tepoll directed correctness (1s)\nok\t2.960000\tepoll directed correctness (2s)\n"
+  },
+  {
+    "arm": "PRE",
+    "attempt": 3,
+    "run": "/home/user/Projects/cx-netfix2/build/gate-run.1uMrfc",
+    "ledger": "PARTIAL\t0\tGATE_ONLY_JOBS=netio-1s netio-2s; NOT A RECEIPT\nok\t0.000000\trelease build (+footprint locks)\nok\t2.980000\tepoll directed correctness (1s)\nFAIL\t7.950000\tepoll directed correctness (2s)\n"
+  },
+  {
+    "arm": "PRE",
+    "attempt": 4,
+    "run": "/home/user/Projects/cx-netfix2/build/gate-run.uEDVZM",
+    "ledger": "PARTIAL\t0\tGATE_ONLY_JOBS=netio-1s netio-2s; NOT A RECEIPT\nok\t0.000000\trelease build (+footprint locks)\nFAIL\t8.010000\tepoll directed correctness (1s)\nFAIL\t7.950000\tepoll directed correctness (2s)\n"
+  },
+  {
+    "arm": "POST",
+    "attempt": 1,
+    "run": "/home/user/Projects/cx-netfix2/build/gate-run.DJd16Z",
+    "ledger": "PARTIAL\t0\tGATE_ONLY_JOBS=netio-1s netio-2s; NOT A RECEIPT\nok\t0.000000\trelease build (+footprint locks)\nok\t2.980000\tepoll directed correctness (1s)\nok\t2.990000\tepoll directed correctness (2s)\n"
+  },
+  {
+    "arm": "POST",
+    "attempt": 2,
+    "run": "/home/user/Projects/cx-netfix2/build/gate-run.71MPdj",
+    "ledger": "PARTIAL\t0\tGATE_ONLY_JOBS=netio-1s netio-2s; NOT A RECEIPT\nok\t0.000000\trelease build (+footprint locks)\nok\t3.020000\tepoll directed correctness (1s)\nok\t2.970000\tepoll directed correctness (2s)\n"
+  },
+  {
+    "arm": "POST",
+    "attempt": 3,
+    "run": "/home/user/Projects/cx-netfix2/build/gate-run.aGFks2",
+    "ledger": "PARTIAL\t0\tGATE_ONLY_JOBS=netio-1s netio-2s; NOT A RECEIPT\nok\t0.000000\trelease build (+footprint locks)\nFAIL\t12.990000\tepoll directed correctness (1s)\nFAIL\t7.960000\tepoll directed correctness (2s)\n"
+  },
+  {
+    "arm": "POST",
+    "attempt": 4,
+    "run": "/home/user/Projects/cx-netfix2/build/gate-run.OqLGIz",
+    "ledger": "PARTIAL\t0\tGATE_ONLY_JOBS=netio-1s netio-2s; NOT A RECEIPT\nok\t0.000000\trelease build (+footprint locks)\nok\t2.990000\tepoll directed correctness (1s)\nok\t2.960000\tepoll directed correctness (2s)\n"
+  }
+]

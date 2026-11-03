@@ -1,0 +1,4 @@
+{"command": ["taskset", "-c", "8-15", "/home/user/Projects/cx-netfix2/build/netfix2/POST", "--bind", "127.0.0.1", "--port", "21100", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-netfix2/build/clientfix/runtime/clientfix-z3oc9h3d", "--databases", "1", "--shards", "16", "--thread-mode", "1s", "--read-local", "0", "--atomic", "0", "--flip-auto", "0", "--enable-debug-command", "yes"], "lifecycle": "start", "load": "19.09 15.34 12.75 9/3602 2142808", "pid": 2142808}
+{"case": "geo-store", "centers": 20, "failures": 0, "sample": []}
+{"exit": 0, "lifecycle": "stop", "load": "19.09 15.34 12.75 9/3601 2142816", "pid": 2142808}
+{"axes": [[0, 0]], "case": "geo-store", "mode": "1s", "result": "PASS"}

@@ -3,6 +3,10 @@
 #pragma once
 
 #include <cstdio>
+#include <cerrno>
+#include <cstring>
+#include <arpa/inet.h>
+#include <sys/socket.h>
 #include <unistd.h>
 
 #include "../base/alloc.h"
@@ -62,13 +66,41 @@ void print_boot_presentation(ServerState& srv, std::FILE* out = stdout) {
 
 // Only the temporary probe fd belongs to this helper. In particular it cannot
 // attach/release a Unix listener or start/stop workers. Port 0 opens nothing.
+// The real per-owner listeners use REUSEPORT. The boot probe must not join an
+// existing process's group. Closing this probe before activation leaves a
+// concurrent-start window; it is not a process-lifetime port reservation.
+[[gnu::cold, gnu::noinline]]
+inline int make_exclusive_boot_listener(const char* addr, uint16_t port,
+                                         uint32_t backlog, bool) {
+    const int fd = ::socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
+    if (fd < 0) return -1;
+    int one = 1;
+    ::setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
+    sockaddr_in sa{};
+    sa.sin_family = AF_INET;
+    sa.sin_port = htons(port);
+    if (::inet_pton(AF_INET, addr, &sa.sin_addr) != 1) {
+        ::close(fd); errno = EINVAL; return -1;
+    }
+    if (::bind(fd, reinterpret_cast<sockaddr*>(&sa), sizeof(sa)) != 0 ||
+        ::listen(fd, static_cast<int>(backlog)) != 0) {
+        const int error = errno;
+        ::close(fd); errno = error; return -1;
+    }
+    return fd;
+}
+
 template <typename OpenListener, typename CloseListener = int (*)(int)>
 [[gnu::cold, gnu::noinline]]
 bool probe_boot_listener(const Config& cfg, uint32_t port, bool tls,
                          OpenListener open_listener, CloseListener close_listener = ::close) {
     if (!port) return true;
     const int fd = open_listener(cfg.bind_addr, port, cfg.tcp_backlog, tls);
-    if (fd < 0) return false;
+    if (fd < 0) {
+        std::fprintf(stderr, "Could not create server TCP listening socket %s:%u: %s\n",
+                     cfg.bind_addr, port, std::strerror(errno));
+        return false;
+    }
     close_listener(fd);
     return true;
 }

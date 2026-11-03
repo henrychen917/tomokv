@@ -1,0 +1,10 @@
+{"command": ["taskset", "-c", "8-15", "/home/user/Projects/cx-netfix2/build/netfix2/POST", "--bind", "127.0.0.1", "--port", "21100", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-netfix2/build/clientfix/runtime/clientfix-8o8qhhxr", "--databases", "1", "--shards", "16", "--thread-mode", "1s", "--read-local", "0", "--atomic", "0", "--flip-auto", "0", "--enable-debug-command", "yes"], "lifecycle": "start", "load": "19.95 15.21 12.65 23/3631 2137895", "pid": 2137895}
+{"attempts": 20, "case": "tracking-pipeline", "failures": []}
+{"exit": 0, "lifecycle": "stop", "load": "19.95 15.21 12.65 21/3619 2139716", "pid": 2137895}
+{"command": ["taskset", "-c", "8-15", "/home/user/Projects/cx-netfix2/build/netfix2/POST", "--bind", "127.0.0.1", "--port", "21100", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-netfix2/build/clientfix/runtime/clientfix-355uaalx", "--databases", "1", "--shards", "16", "--thread-mode", "1s", "--read-local", "0", "--atomic", "1", "--flip-auto", "0", "--enable-debug-command", "yes"], "lifecycle": "start", "load": "19.95 15.21 12.65 19/3623 2139747", "pid": 2139747}
+{"attempts": 20, "case": "tracking-pipeline", "failures": []}
+{"exit": 0, "lifecycle": "stop", "load": "20.11 15.33 12.70 20/3635 2141619", "pid": 2139747}
+{"command": ["taskset", "-c", "8-15", "/home/user/Projects/cx-netfix2/build/netfix2/POST", "--bind", "127.0.0.1", "--port", "21100", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-netfix2/build/clientfix/runtime/clientfix-edsuesam", "--databases", "1", "--shards", "16", "--thread-mode", "1s", "--read-local", "1", "--atomic", "1", "--flip-auto", "0", "--enable-debug-command", "yes"], "lifecycle": "start", "load": "20.11 15.33 12.70 19/3636 2141621", "pid": 2141621}
+{"attempts": 20, "case": "tracking-pipeline", "failures": []}
+{"exit": 0, "lifecycle": "stop", "load": "20.11 15.33 12.70 16/3620 2141919", "pid": 2141621}
+{"axes": [[0, 0], [1, 0], [1, 1]], "case": "tracking-pipeline", "mode": "1s", "result": "PASS"}

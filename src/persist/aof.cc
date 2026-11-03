@@ -1386,7 +1386,16 @@ bool AofManager::bind_writer(ThreadCtx& writer, Ring& ring, std::string& error) 
     if (!configured_) return true;
     if (writer.id() != writer_tid_) {
         while (!writer_ready_.load(std::memory_order_acquire) &&
-               !failed_.load(std::memory_order_acquire)) std::this_thread::yield();
+               !failed_.load(std::memory_order_acquire)) {
+            // The elected writer can fail listener activation before reaching
+            // bind_writer. Boot then stops every worker; do not trap their join
+            // waiting for a writer that will never publish ready or AOF failure.
+            if (writer.stop_flag().load(std::memory_order_relaxed)) {
+                error = "AOF writer initialization cancelled";
+                return false;
+            }
+            std::this_thread::yield();
+        }
         if (failed()) error = last_error_;
         return !failed();
     }

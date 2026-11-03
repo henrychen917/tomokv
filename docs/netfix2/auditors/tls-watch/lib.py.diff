@@ -1,0 +1,43 @@
+--- audit/lib.py
++++ confined-POST/lib.py
+@@ -1,6 +1,6 @@
+ """Round-5 ex-path black-box test helpers: raw RESP client + server lifecycle.
+ 
+-Rules (PROMPT-ex-path.md, round 5): cores 64-79, ports 22200-22299,
++Rules (PROMPT-ex-path.md, round 5): cores 8-15, ports 21100-21199,
+ --bind 127.0.0.1 --save "" --appendonly no, record the server PID (taskset execs the binary, so the
+ Popen PID is the server itself), stop with `kill <pid>`, confirm the port closed with `ss -ltn`.
+ Every boot runs with LC_ALL=C (harness locale pin).
+@@ -11,9 +11,9 @@
+ import subprocess
+ import time
+ 
+-TOMO = "/home/user/Projects/bench-bins/tomokv-headline-105c5818cc"
++TOMO = "/home/user/Projects/cx-netfix2/build/netfix2/POST"
+ REDIS = "/home/user/Projects/redis/src/redis-server"
+-CORES = "64-79"
++CORES = "8-15"
+ LOGDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+ os.makedirs(LOGDIR, exist_ok=True)
+ ENV = dict(os.environ, LC_ALL="C")
+@@ -139,8 +139,8 @@
+     def __init__(self, port, args=(), binary=TOMO, tag=None, cores=CORES, ready_timeout=40.0,
+                  base=True, expect_fail=False, extra_ports=()):
+         for p in (port,) + tuple(extra_ports):
+-            if not 22200 <= p <= 22299:
+-                raise ValueError("port outside 22200-22299")
++            if not 21100 <= p <= 21199:
++                raise ValueError("port outside 21100-21199")
+             if port_listening(p):
+                 raise RuntimeError("port %d already listening" % p)
+         self.port = port
+@@ -304,7 +304,8 @@
+     def summary(self):
+         bad = [r for r in self.rows if not r[1]]
+         print("== %s: %d checks, %d failed" % (self.name, len(self.rows), len(bad)), flush=True)
+-        return not bad
++        assert not bad, bad
++        return True
+ 
+ 
+ def tls_certs(directory):

@@ -1,0 +1,28 @@
+PARTIAL	0	GATE_ONLY_JOBS=core_units netfix_unix txnorder2; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	0.120000	core concurrency watch
+ok	0.330000	core concurrency lifetime
+ok	0.120000	core concurrency drain
+ok	7.060000	core concurrency route
+ok	0.120000	core concurrency snapshot
+ok	0.180000	core concurrency config
+ok	0.180000	core concurrency notify
+ok	0.590000	read-local topology demotion (1s)
+ok	0.590000	read-local topology demotion (2s)
+ok	1.050000	netfix NT4.11 Unix pathname parity
+ok	0.040000	txnorder2 writer episode R1
+ok	0.020000	txnorder2 writer episode R2
+ok	0.030000	txnorder2 writer episode R3
+ok	0.020000	txnorder2 writer episode R4
+ok	0.030000	txnorder2 writer episode R5
+ok	0.020000	txnorder2 writer episode R6
+ok	0.020000	txnorder2 writer episode R7
+ok	0.100000	txnorder2 writer episode R8
+ok	0.020000	txnorder2 writer episode R9
+ok	0.030000	txnorder2 writer episode R10
+ok	0.020000	txnorder2 writer episode R11
+ok	4.570000	txnorder2 writer episode R12
+ok	0.050000	txnorder2 direct RENAME owner join
+ok	22.630000	txnorder2 WATCH serve
+ok	30.320000	txnorder2 WATCH flush
+ok	27.220000	txnorder2 WATCH readonly

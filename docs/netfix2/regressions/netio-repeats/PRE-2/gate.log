@@ -1,0 +1,11 @@
+GATE(quick): PARTIAL correctness: 8 physical CPUs, one slot with 8 server threads at ratio 6:2, shared client CPUs; no rates or receipt
+  artifacts: /home/user/Projects/cx-netfix2/build/gate-run.6Zqko3
+PARTIAL jobs (including prerequisites): release netio-1s netio-2s
+PARTIAL jobs (including prerequisites): release netio-1s netio-2s
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=2.99s; correctness-plan-fallback; epoll directed correctness (1s)
+  epoll directed correctness (1s)                      ok
+  row budget: 900s; median=2.96s; correctness-plan-fallback; epoll directed correctness (2s)
+  epoll directed correctness (2s)                      ok
+GATE(PARTIAL): 3 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-netfix2/build/gate-run.6Zqko3/ledger.partial

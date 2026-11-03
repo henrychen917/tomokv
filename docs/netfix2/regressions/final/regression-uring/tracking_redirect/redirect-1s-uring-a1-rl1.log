@@ -1,0 +1,13 @@
+{"target": false, "resp": 2, "reset": false, "attempt": 0, "target_id": 111, "flags": "[b'on', b'broken_redirect']", "frames": "[]", "wire_hex": ""}
+{"target": false, "resp": 2, "reset": true, "attempt": 0, "target_id": 114, "flags": "[b'on']", "frames": "[]", "wire_hex": ""}
+{"target": false, "resp": 3, "reset": false, "attempt": 0, "target_id": 117, "flags": "[b'on', b'broken_redirect']", "frames": "[[b'tracking-redir-broken', 117]]", "wire_hex": "3e320d0a2432310d0a747261636b696e672d72656469722d62726f6b656e0d0a3a3131370d0a"}
+{"target": false, "resp": 3, "reset": true, "attempt": 0, "target_id": 120, "flags": "[b'on']", "frames": "[]", "wire_hex": ""}
+HELD {"origin": 1, "target": 3, "client": 9}
+{"target": true, "resp": 2, "reset": false, "attempt": 2, "target_id": 9, "flags": "[b'on', b'broken_redirect']", "frames": "[]", "wire_hex": ""}
+HELD {"origin": 3, "target": 6, "client": 12}
+{"target": true, "resp": 2, "reset": true, "attempt": 0, "target_id": 12, "flags": "[b'on']", "frames": "[]", "wire_hex": ""}
+HELD {"origin": 2, "target": 0, "client": 15}
+{"target": true, "resp": 3, "reset": false, "attempt": 0, "target_id": 15, "flags": "[b'on', b'broken_redirect']", "frames": "[[b'tracking-redir-broken', 15]]", "wire_hex": "3e320d0a2432310d0a747261636b696e672d72656469722d62726f6b656e0d0a3a31350d0a"}
+HELD {"origin": 0, "target": 3, "client": 18}
+{"target": true, "resp": 3, "reset": true, "attempt": 0, "target_id": 18, "flags": "[b'on']", "frames": "[]", "wire_hex": ""}
+PASS redirect

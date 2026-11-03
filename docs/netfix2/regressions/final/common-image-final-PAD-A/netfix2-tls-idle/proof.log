@@ -1,0 +1,144 @@
+FAIL tls-idle-2s-uring-db1 Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 431, in main
+    results[label] = test(a, label, mode, engine, db)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 305, in tls_idle
+    assert c.must('PING') == b'PONG'
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 204, in must
+    reply = self.cmd(*args)
+            ^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 201, in cmd
+    return self.read()
+           ^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 163, in read
+    raise EOFError("server closed the connection")
+EOFError: server closed the connection
+
+FAIL tls-idle-2s-uring-db16 Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 431, in main
+    results[label] = test(a, label, mode, engine, db)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 305, in tls_idle
+    assert c.must('PING') == b'PONG'
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 204, in must
+    reply = self.cmd(*args)
+            ^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 201, in cmd
+    return self.read()
+           ^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 163, in read
+    raise EOFError("server closed the connection")
+EOFError: server closed the connection
+
+FAIL tls-idle-2s-epoll-db1 Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 431, in main
+    results[label] = test(a, label, mode, engine, db)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 305, in tls_idle
+    assert c.must('PING') == b'PONG'
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 204, in must
+    reply = self.cmd(*args)
+            ^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 201, in cmd
+    return self.read()
+           ^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 163, in read
+    raise EOFError("server closed the connection")
+EOFError: server closed the connection
+
+FAIL tls-idle-2s-epoll-db16 Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 431, in main
+    results[label] = test(a, label, mode, engine, db)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 305, in tls_idle
+    assert c.must('PING') == b'PONG'
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 204, in must
+    reply = self.cmd(*args)
+            ^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 201, in cmd
+    return self.read()
+           ^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 163, in read
+    raise EOFError("server closed the connection")
+EOFError: server closed the connection
+
+FAIL tls-idle-1s-uring-db1 Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 431, in main
+    results[label] = test(a, label, mode, engine, db)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 305, in tls_idle
+    assert c.must('PING') == b'PONG'
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 204, in must
+    reply = self.cmd(*args)
+            ^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 201, in cmd
+    return self.read()
+           ^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 163, in read
+    raise EOFError("server closed the connection")
+EOFError: server closed the connection
+
+FAIL tls-idle-1s-uring-db16 Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 431, in main
+    results[label] = test(a, label, mode, engine, db)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 305, in tls_idle
+    assert c.must('PING') == b'PONG'
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 204, in must
+    reply = self.cmd(*args)
+            ^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 201, in cmd
+    return self.read()
+           ^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 163, in read
+    raise EOFError("server closed the connection")
+EOFError: server closed the connection
+
+FAIL tls-idle-1s-epoll-db1 Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 431, in main
+    results[label] = test(a, label, mode, engine, db)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 305, in tls_idle
+    assert c.must('PING') == b'PONG'
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 204, in must
+    reply = self.cmd(*args)
+            ^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 201, in cmd
+    return self.read()
+           ^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 163, in read
+    raise EOFError("server closed the connection")
+EOFError: server closed the connection
+
+FAIL tls-idle-1s-epoll-db16 Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 431, in main
+    results[label] = test(a, label, mode, engine, db)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 305, in tls_idle
+    assert c.must('PING') == b'PONG'
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 204, in must
+    reply = self.cmd(*args)
+            ^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 201, in cmd
+    return self.read()
+           ^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/_lib.py", line 163, in read
+    raise EOFError("server closed the connection")
+EOFError: server closed the connection
+
+tls-idle: 0/8 legs passed
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 443, in <module>
+    main()
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 439, in main
+    assert not failed, failed
+           ^^^^^^^^^^
+AssertionError: ['tls-idle-2s-uring-db1', 'tls-idle-2s-uring-db16', 'tls-idle-2s-epoll-db1', 'tls-idle-2s-epoll-db16', 'tls-idle-1s-uring-db1', 'tls-idle-1s-uring-db16', 'tls-idle-1s-epoll-db1', 'tls-idle-1s-epoll-db16']

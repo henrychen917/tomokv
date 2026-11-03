@@ -1,0 +1,4 @@
+ok	2.120000	slotless remote completions (1s, epoll)
+ok	2.070000	slotless remote completions (1s, uring)
+ok	1.950000	slotless remote completions (2s, epoll)
+ok	1.960000	slotless remote completions (2s, uring)

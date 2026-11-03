@@ -864,6 +864,17 @@ bool collect_config_updates(Op& op,
             msg += "' for CONFIG SET '"; msg += item->name; msg.push_back('\'');
             reply_err(op.sink(), msg.c_str()); return false;
         }
+        if (g_server && !std::strcmp(item->name, "maxclients")) {
+            uint64_t requested = 0;
+            parse_u64(Slice(value.data(), value.size()), requested);
+            std::string error;
+            if (!g_server->validate_maxclients(static_cast<uint32_t>(requested), error)) {
+                const std::string message =
+                    "ERR CONFIG SET failed (possibly related to argument 'maxclients') - " + error;
+                reply_err(op.sink(), message.c_str());
+                return false;
+            }
+        }
         updates.emplace_back(item, std::move(value));
     }
     return true;

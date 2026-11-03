@@ -1,0 +1,8 @@
+  row budget: 900s; median=-s; no-history-conservative-default; slotless remote completions (1s, epoll)
+  slotless remote completions (1s, epoll)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; slotless remote completions (1s, uring)
+  slotless remote completions (1s, uring)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; slotless remote completions (2s, epoll)
+  slotless remote completions (2s, epoll)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; slotless remote completions (2s, uring)
+  slotless remote completions (2s, uring)              ok
