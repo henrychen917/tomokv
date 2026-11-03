@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Finite AOF liveness/restart witnesses; selected gate jobs, never rate work."""
 import argparse
+from contextlib import closing
 import itertools
 import json
 import os
@@ -96,7 +97,7 @@ def transaction(b, scenario, oracle):
             expected_state = (['ZRANGE', dest, 0, -1], [b'm'])
     if scenario == 'watch':
         assert c.must('WATCH', watch) == b'OK'
-    before = s.stats(c).get('aof_groups_committed', 0)
+    before = int(s.persistence(c).get('aof_groups_committed', 0))
     assert c.must('MULTI') == b'OK'
     assert c.must(*command) == b'QUEUED'
     # Save the placement before EXEC: a wedged reply gate cannot return INFO.
@@ -104,10 +105,10 @@ def transaction(b, scenario, oracle):
     (b.directory / 'armed.json').write_text(json.dumps(evidence, indent=2) + '\n')
     actual = c.cmd('EXEC')
     assert actual == expected, (scenario, actual, expected)
-    with Conn('127.0.0.1', b.port, timeout=3) as probe:
+    with closing(Conn('127.0.0.1', b.port, timeout=3)) as probe:
         assert probe.must('PING') == b'PONG'
-    if not oracle and (scenario.startswith(('lmpop', 'zmpop')) or scenario in ('watch', 'nosync')):
-        s.wait(lambda: s.stats(c).get('aof_groups_committed', 0) > before,
+    if not oracle and (scenario.startswith(('lmpop', 'zmpop')) or scenario == 'watch') and scenario != 'nosync':
+        s.wait(lambda: int(s.persistence(c).get('aof_groups_committed', 0)) > before,
                'EXEC never committed its AOF participant group', timeout=3)
     if expected_state:
         assert c.cmd(*expected_state[0]) == expected_state[1], expected_state
@@ -136,9 +137,12 @@ def large(b, oracle, scenario):
     evidence = dict(geometry=geometry, size=size, before=before)
     (b.directory / 'armed.json').write_text(json.dumps(evidence, indent=2) + '\n')
     assert c.cmd('SETRANGE', key, size - 1, 'x') == size
-    with Conn('127.0.0.1', b.port, timeout=3) as probe:
+    with closing(Conn('127.0.0.1', b.port, timeout=3)) as probe:
         assert probe.must('PING') == b'PONG'
-    s.wait(lambda: settled(c), 'rewrite did not finish', timeout=60)
+    requires_rewrite = not oracle and scenario in ('rewrite32', 'original128', 'writer-owner')
+    s.wait(lambda: settled(c) and (not requires_rewrite or
+           int(s.persistence(c)['aof_rewrites']) > int(before['aof_rewrites'])),
+           'rewrite did not finish', timeout=60)
     after = s.persistence(c)
     if not oracle and scenario in ('rewrite32', 'original128', 'writer-owner'):
         assert int(after['aof_rewrites']) > int(before['aof_rewrites']), (before, after)
@@ -170,16 +174,24 @@ def run(args, directory, mode, engine, atomic, db, scenario, oracle):
         evidence, expected = (large(b, oracle, scenario) if args.case == 'large' else
                               transaction(b, scenario, oracle))
         record.update(evidence)
-        b.stop()
-        b.c.close()
+        stop_error = None
+        try:
+            b.stop()
+        except AssertionError as exc:
+            # Acknowledged appendfsync=no effects must survive even if PRE's
+            # phantom GCMT makes its shutdown drain fail. Inspect replay first.
+            if scenario != 'nosync':
+                raise
+            stop_error = repr(exc)
+            record['stop_error'] = stop_error
         if expected:
             b = s.Boot(args, directory, mode, engine, atomic, oracle, extra=extra, name='restart')
             assert b.c.cmd(*expected[0]) == expected[1], ('acknowledged effect lost on restart', expected)
             if not oracle:
-                assert s.stats(b.c).get('aof_groups_skipped_on_replay', 0) == 0
+                assert int(s.persistence(b.c).get('aof_groups_skipped_on_replay', 0)) == 0
             record['restart'] = plain(b.c.cmd(*expected[0]))
             b.stop()
-            b.c.close()
+        assert stop_error is None, stop_error
         record['verdict'] = 'PASS'
     except Exception as exc:
         record.update(verdict='FAIL', error=repr(exc), traceback=traceback.format_exc())
@@ -192,7 +204,8 @@ def run(args, directory, mode, engine, atomic, db, scenario, oracle):
     finally:
         if b:
             b.kill()
-            b.c.close()
+            if b.c is not None:
+                b.c.close()
         directory.mkdir(parents=True, exist_ok=True)
         (directory / 'result.json').write_text(json.dumps(record, indent=2) + '\n')
     print(record['verdict'], mode, engine, atomic, db, scenario, record.get('error', ''), flush=True)

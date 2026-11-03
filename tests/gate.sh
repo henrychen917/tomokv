@@ -1212,7 +1212,7 @@ plan_jobs(){
   for mode in 1s 2s; do
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
-  JOB_NAMES+=(blockfix4 blockfix2 blockfix_structure blockfix_registry blockfix_mkstream persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables debug-0 debug-1
+  JOB_NAMES+=(wave15_aof_participants wave15_aof_large blockfix4 blockfix2 blockfix_structure blockfix_registry blockfix_mkstream persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables debug-0 debug-1
               iofix-deferred iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               atomfix5_watch atomfix5_accounting core_units flipfix_units flipfix5_units flipfix6_units flipfix7_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat crlffix boot_grammar dbdefault wait_units readonly
@@ -4496,6 +4496,22 @@ snapfix_case(){
       --output "$TMPDIR/snapfix-$1" >"$TMPDIR/snapfix-$1.log" 2>&1 \
       && ok "$2" || bad "$2" "see $TMPDIR/snapfix-$1.log"
 }
+job_wave15_aof_participants(){
+  local label='wave15 AOF EXEC task participants (oracle, both modes, engines, atomic and namespaces)'
+  row_begin "$label"
+  py tests/wave15_aof.py --case participants --binary "$CANDIDATE_BINARY" \
+      --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --cores "$CORES" --port "$PORT" --output "$TMPDIR/proof" \
+      >"$TMPDIR/proof.log" 2>&1 && ok "$label" || bad "$label" "see $TMPDIR/proof.log"
+}
+job_wave15_aof_large(){
+  local label='wave15 AOF snapshot producer progress (oracle, both modes, engines, atomic and namespaces)'
+  row_begin "$label"
+  py tests/wave15_aof.py --case large --binary "$CANDIDATE_BINARY" \
+      --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --cores "$CORES" --port "$PORT" --output "$TMPDIR/proof" \
+      >"$TMPDIR/proof.log" 2>&1 && ok "$label" || bad "$label" "see $TMPDIR/proof.log"
+}
 job_snapfix_shutdown(){
   local label='snapfix XS-SHUT-1 SHUTDOWN NOSAVE in script storm (both modes, both engines, atomic 0/1)'
   row_begin "$label"
@@ -7100,6 +7116,8 @@ collect_job persistfix2_commands
 collect_job persistfix2_errors
 for NET_IO in epoll uring; do collect_job "snapshot-$NET_IO"; done
 # snapfix: three rows before the quick exit (DQ=+3, DF=+3); EXPECT stays maintainer-owned.
+collect_job wave15_aof_participants
+collect_job wave15_aof_large
 collect_job snapfix_shutdown
 collect_job snapfix_bgsave_script
 collect_job snapfix_bgsave_exec

@@ -269,6 +269,9 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
                                                      std::string& error, AofManager* rewrite,
                                                      const char* target_dir,
                                                      const char* target_filename, bool shutdown) {
+    // An owner may still be sealing a record into its bounded AOF channel.
+    // Every wait below must service that channel before asking it to acknowledge
+    // the snapshot. Reuse the writer-only drain; it cannot start another rewrite.
     // SAVE can run while Redis's AOF child is active. The native format shares
     // one snapshot coordinator, so finish that capture before taking SAVE's cut.
     // The caller may own its IO ring or a fused shard and must advance both.
@@ -276,6 +279,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         server.aof().rewrite_in_progress();
     while (finish_rewrite && (server.aof().rewrite_in_progress() || in_progress())) {
         writer.progress_fused_executor();
+        server.aof().drain_for_producer(writer.id(), writer_ring);
         if (writer_is(writer.id())) {
             writer_pass(writer, writer_ring, true);
             if (engine_ == PersistIoEngine::Uring) pump_io_completions(writer, writer_ring);
@@ -352,6 +356,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
             while (io_inflight_) {
                 writer_ring.submit_and_reap();
                 pump_io_completions(writer, writer_ring);
+                server.aof().drain_for_producer(writer.id(), writer_ring);
                 std::this_thread::yield();
             }
             abort_file();
@@ -427,6 +432,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         Ring* target = server.thread(tid).ring();
         while (!target && !server.shutting_down().load(std::memory_order_relaxed)) {
             if (shutdown_expired()) break;
+            server.aof().drain_for_producer(writer.id(), writer_ring);
             std::this_thread::yield();
             target = server.thread(tid).ring();
         }
@@ -450,6 +456,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
            ready_owners_.load(std::memory_order_acquire) != executor_count_) {
         if (shutdown_expired()) return StartResult::Failed;
         writer.progress_fused_executor();
+        server.aof().drain_for_producer(writer.id(), writer_ring);
         std::this_thread::yield();
     }
     if (phase() == Phase::Preparing) {
@@ -468,6 +475,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
            frozen_owners_.load(std::memory_order_acquire) != executor_count_) {
         if (shutdown_expired()) return StartResult::Failed;
         writer.progress_fused_executor();
+        server.aof().drain_for_producer(writer.id(), writer_ring);
         std::this_thread::yield();
     }
     if (phase() == Phase::Freeze) {
@@ -486,6 +494,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
            marked_owners_.load(std::memory_order_acquire) != executor_count_) {
         if (shutdown_expired()) return StartResult::Failed;
         writer.progress_fused_executor();
+        server.aof().drain_for_producer(writer.id(), writer_ring);
         std::this_thread::yield();
     }
 
@@ -523,6 +532,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
                    finished_owners_.load(std::memory_order_acquire) != executor_count_) {
             if (shutdown_expired()) return StartResult::Failed;
             writer.progress_fused_executor();
+            server.aof().drain_for_producer(writer.id(), writer_ring);
             std::this_thread::yield();
         }
         abort_file();
@@ -550,6 +560,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
                    finished_owners_.load(std::memory_order_acquire) != executor_count_) {
             if (shutdown_expired()) return StartResult::Failed;
             writer.progress_fused_executor();
+            server.aof().drain_for_producer(writer.id(), writer_ring);
             std::this_thread::yield();
         }
         discard_chunks();
@@ -566,6 +577,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     while (phase() == Phase::Capture) {
         if (shutdown_expired()) return StartResult::Failed;
         writer.progress_fused_executor();
+        server.aof().drain_for_producer(writer.id(), writer_ring);
         writer_pass(writer, writer_ring, true);
         writer_ring.submit_and_reap();
         if (engine_ == PersistIoEngine::Uring)
@@ -578,6 +590,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
                io_inflight_ != 0) {
             if (shutdown_expired()) return StartResult::Failed;
             writer.progress_fused_executor();
+            server.aof().drain_for_producer(writer.id(), writer_ring);
             writer_pass(writer, writer_ring, true);
             writer_ring.submit_and_reap();
             if (engine_ == PersistIoEngine::Uring)
@@ -620,6 +633,8 @@ bool SnapshotManager::drain_atomic_groups(Server& server, ThreadCtx& writer, uin
         if (deadline_ns && now_ns() >= deadline_ns) return false;
         xshard_flush_snapshot_progress(server, writer);
         writer.progress_fused_executor();
+        if (Ring* ring = writer_ring_.load(std::memory_order_acquire))
+            server.aof().drain_for_producer(writer.id(), *ring);
         std::this_thread::yield();
     }
     return true;

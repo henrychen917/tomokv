@@ -2432,7 +2432,10 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
             try {
                 participants.reserve(state->write_keys.size());
                 for (const MultiWriteKey& write : state->write_keys)
-                    participants.push_back(static_cast<uint32_t>(write.shard));
+                    // Registry ranges may include option words. Only task
+                    // shards can emit a fragment satisfying the GCMT.
+                    if (contains_shard(state->shards, write.shard))
+                        participants.push_back(static_cast<uint32_t>(write.shard));
                 if (state->database_publish) participants.push_back(0);
             } catch (const std::bad_alloc&) {
                 destroy_multi_state(state);
@@ -2441,8 +2444,9 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
                 session->clear_queue();
                 return MultiIoAction::LocalDone;
             }
-            state->aof_group = aof_create_group(server.aof(), participants, state->origin_conn_id);
-            if (!state->aof_group) {
+            if (!participants.empty())
+                state->aof_group = aof_create_group(server.aof(), participants, state->origin_conn_id);
+            if (!participants.empty() && !state->aof_group) {
                 destroy_multi_state(state);
                 reply_err(op.sink(), "ERR out of memory");
                 session->active = false;
@@ -2753,10 +2757,13 @@ MultiExecState* multi_rebuild_attempt(MultiExecState& previous) {
         for (const auto& key : next->watched) add_state_shard(*next, key.shard);
         if ((!next->write_keys.empty() || next->database_publish) && server.aof().recording()) {
             std::vector<uint32_t> participants;
-            for (const auto& write : next->write_keys) participants.push_back(write.shard);
+            for (const auto& write : next->write_keys)
+                if (contains_shard(next->shards, write.shard)) participants.push_back(write.shard);
             if (next->database_publish) participants.push_back(0);
-            next->aof_group = aof_create_group(server.aof(), participants, next->origin_conn_id);
-            if (!next->aof_group) throw std::bad_alloc();
+            if (!participants.empty()) {
+                next->aof_group = aof_create_group(server.aof(), participants, next->origin_conn_id);
+                if (!next->aof_group) throw std::bad_alloc();
+            }
         }
     } catch (const std::bad_alloc&) {
         destroy_multi_state(next);
