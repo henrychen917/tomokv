@@ -11,6 +11,82 @@ from redis_tcl import counts, load_manifest, sha, validate_passing, ROOT
 
 
 class Controls(unittest.TestCase):
+    def test_pubsub_assertion_cannot_pass_without_its_fence_receipt(self):
+        name = 'PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl'
+        row = dict(file='unit/pubsub', events=[dict(status='ok', test=name)],
+                   failed=0, error=None, complete=True, exit_code=0, pubsub_fences=1)
+        validate_passing(row, [name])
+        for count in (0, 2, None):
+            with self.subTest(count=count), self.assertRaises(ValueError):
+                validate_passing(dict(row, pubsub_fences=count), [name])
+
+
+    def test_pubsub_fence_requires_the_actual_zero_count_acknowledgment(self):
+        from redis_tcl import HOOK
+        setup = r'''
+set ::cur_test "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl"
+set ::reads 0
+set ::last_count 0
+proc send_data_packet {args} {}
+proc punsubscribe {client {channels {}}} {return original}
+proc assert_equal {expected actual} {
+    if {$expected ne $actual} {error "acknowledgment count mismatch"}
+}
+proc consume_subscribe_messages {client type channels} {
+    if {$client ne "owned" || $type ne "punsubscribe" || $channels ne {chan1.* chan2.* chan3.*}} {
+        error "wrong acknowledgment inventory"
+    }
+    incr ::reads 3
+    return [list 2 1 $::last_count]
+}
+'''
+        check = r'''
+if {[catch {
+    if {[punsubscribe owned] ne "original" || $::reads != 3} {error "missing acknowledgment fence"}
+    set ::last_count 1
+    if {![catch {punsubscribe owned} failure] || $failure ne "acknowledgment count mismatch"} {
+        error "unremoved subscription passed"
+    }
+    set ::cur_test other
+    if {[punsubscribe owned] ne "original" || $::reads != 6} {error "unrelated helper changed"}
+} error]} {puts stderr $error; exit 1}
+'''
+        result = subprocess.run(['tclsh'], input=setup + HOOK + check, text=True,
+            capture_output=True, env=dict(os.environ, TOMO_TCL_PUBSUB_FENCES='1'))
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+
+    def test_acl_only_admits_the_first_live_api_block_without_changing_bodies(self):
+        from redis_tcl import HOOK
+        setup = r'''
+set ::calls {}
+proc send_data_packet {args} {}
+proc start_server {options {code undefined}} {
+    lappend ::calls [list $options $code]
+    uplevel 1 $code
+}
+'''
+        check = r'''
+if {[catch {
+    set witness 0
+    start_server {tags {"acl external:skip"}} {incr witness}
+    start_server {overrides {user "default on"} tags {acl external:skip}} {incr witness}
+    if {$witness != 2 || [lindex $::calls 0] ne {{tags acl} {incr witness}} ||
+        [lindex $::calls 1] ne {{overrides {user "default on"} tags {acl external:skip}} {incr witness}}} {
+        error "ACL adapter changed a body, scope, or later block"
+    }
+    set ::cmdfix2_acl_first_block 1
+    if {![catch {start_server {tags other} {incr witness}} failure] ||
+        $failure ne "unit/acl first-block setup changed" || $witness != 2} {
+        error "changed upstream setup was accepted"
+    }
+} error]} {puts stderr $error; exit 1}
+'''
+        result = subprocess.run(['tclsh'], input=setup + HOOK + check, text=True,
+            capture_output=True, env=dict(os.environ, TOMO_TCL_ACL_FIRST_BLOCK='1'))
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+
     def test_reply_receipt_preserves_reads_errors_and_defers_output(self):
         from redis_tcl import HOOK
         setup = r'''

@@ -1,0 +1,4 @@
+/home/user/Projects/cx-cmdfix2/build/cmdfix2/counts/trace /home/user/Projects/cx-cmdfix2/build/cmdfix2/counts/scopes/PRE-normal/probe /home/user/Projects/cx-cmdfix2/build/cmdfix2/counts/scopes/PRE-normal/lua.ranges 8c95d0 8c95e0 000000000002bb30 INCR 1s 1 0 -1
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+COUNT 1484

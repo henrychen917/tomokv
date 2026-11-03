@@ -1,0 +1,864 @@
+{
+  "binary_sha256": "ef368a64f969aa5b44dead90743d70949dc6681f949c0171726d0f46d826dc52",
+  "files": {
+    "unit/geo": {
+      "extra_args": [],
+      "known_setup_errors": [],
+      "passed_tests": [
+        "Check geoset values in tests/unit/geo.tcl",
+        "GEO BYLONLAT with empty search in tests/unit/geo.tcl",
+        "GEO BYMEMBER with non existing member in tests/unit/geo.tcl",
+        "GEO with non existing src key in tests/unit/geo.tcl",
+        "GEO with wrong type src key in tests/unit/geo.tcl",
+        "GEOADD create in tests/unit/geo.tcl",
+        "GEOADD invalid coordinates in tests/unit/geo.tcl",
+        "GEOADD multi add in tests/unit/geo.tcl",
+        "GEOADD update in tests/unit/geo.tcl",
+        "GEOADD update with CH NX option in tests/unit/geo.tcl",
+        "GEOADD update with CH XX option in tests/unit/geo.tcl",
+        "GEOADD update with CH option in tests/unit/geo.tcl",
+        "GEOADD update with NX option in tests/unit/geo.tcl",
+        "GEOADD update with XX NX option will return syntax error in tests/unit/geo.tcl",
+        "GEOADD update with XX option in tests/unit/geo.tcl",
+        "GEOADD update with invalid option in tests/unit/geo.tcl",
+        "GEODIST missing elements in tests/unit/geo.tcl",
+        "GEODIST simple & unit in tests/unit/geo.tcl",
+        "GEOHASH is able to return geohash strings in tests/unit/geo.tcl",
+        "GEOHASH with only key as argument in tests/unit/geo.tcl",
+        "GEOPOS missing element in tests/unit/geo.tcl",
+        "GEOPOS simple in tests/unit/geo.tcl",
+        "GEOPOS with only key as argument in tests/unit/geo.tcl",
+        "GEORADIUS HUGE, issue #2767 in tests/unit/geo.tcl",
+        "GEORADIUS STORE option: syntax error in tests/unit/geo.tcl",
+        "GEORADIUS simple (sorted) in tests/unit/geo.tcl",
+        "GEORADIUS with ANY but no COUNT in tests/unit/geo.tcl",
+        "GEORADIUS with ANY not sorted by default in tests/unit/geo.tcl",
+        "GEORADIUS with ANY sorted by ASC in tests/unit/geo.tcl",
+        "GEORADIUS with COUNT DESC in tests/unit/geo.tcl",
+        "GEORADIUS with COUNT but missing integer argument in tests/unit/geo.tcl",
+        "GEORADIUS with COUNT in tests/unit/geo.tcl",
+        "GEORADIUS with multiple WITH* tokens in tests/unit/geo.tcl",
+        "GEORADIUS withdist (sorted) in tests/unit/geo.tcl",
+        "GEORADIUSBYMEMBER STORE/STOREDIST option: plain usage in tests/unit/geo.tcl",
+        "GEORADIUSBYMEMBER crossing pole search in tests/unit/geo.tcl",
+        "GEORADIUSBYMEMBER search areas contain satisfied points in oblique direction in tests/unit/geo.tcl",
+        "GEORADIUSBYMEMBER simple (sorted) in tests/unit/geo.tcl",
+        "GEORADIUSBYMEMBER withdist (sorted) in tests/unit/geo.tcl",
+        "GEORADIUSBYMEMBER_RO simple (sorted) in tests/unit/geo.tcl",
+        "GEORADIUS_RO simple (sorted) in tests/unit/geo.tcl",
+        "GEORANGE STORE option: incompatible options in tests/unit/geo.tcl",
+        "GEORANGE STORE option: plain usage in tests/unit/geo.tcl",
+        "GEORANGE STOREDIST option: COUNT ASC and DESC in tests/unit/geo.tcl",
+        "GEORANGE STOREDIST option: plain usage in tests/unit/geo.tcl",
+        "GEOSEARCH BYRADIUS and BYBOX cannot exist at the same time in tests/unit/geo.tcl",
+        "GEOSEARCH BYRADIUS and BYBOX one must exist in tests/unit/geo.tcl",
+        "GEOSEARCH FROMLONLAT and FROMMEMBER cannot exist at the same time in tests/unit/geo.tcl",
+        "GEOSEARCH FROMLONLAT and FROMMEMBER one must exist in tests/unit/geo.tcl",
+        "GEOSEARCH FROMMEMBER simple (sorted) in tests/unit/geo.tcl",
+        "GEOSEARCH box edges fuzzy test in tests/unit/geo.tcl",
+        "GEOSEARCH corner point test in tests/unit/geo.tcl",
+        "GEOSEARCH fuzzy test - bybox in tests/unit/geo.tcl",
+        "GEOSEARCH fuzzy test - byradius in tests/unit/geo.tcl",
+        "GEOSEARCH non square, long and narrow in tests/unit/geo.tcl",
+        "GEOSEARCH simple (sorted) in tests/unit/geo.tcl",
+        "GEOSEARCH the box spans -180\u00b0 or 180\u00b0 in tests/unit/geo.tcl",
+        "GEOSEARCH vs GEORADIUS in tests/unit/geo.tcl",
+        "GEOSEARCH with STOREDIST option in tests/unit/geo.tcl",
+        "GEOSEARCH with small distance in tests/unit/geo.tcl",
+        "GEOSEARCH withdist (sorted) in tests/unit/geo.tcl",
+        "GEOSEARCHSTORE STORE option: plain usage in tests/unit/geo.tcl",
+        "GEOSEARCHSTORE STORE option: syntax error in tests/unit/geo.tcl",
+        "GEOSEARCHSTORE STOREDIST option: plain usage in tests/unit/geo.tcl"
+      ],
+      "seconds": {
+        "1s": 31.96,
+        "2s": 31.61
+      },
+      "sha256": "914404066a7aac969349031cd2333dc4d4b4013b5f34686c47cd91eb1215e942",
+      "skip_tests": {}
+    },
+    "unit/hyperloglog": {
+      "extra_args": [],
+      "known_setup_errors": [],
+      "passed_tests": [
+        "Approximated cardinality after creation is zero in tests/unit/hyperloglog.tcl",
+        "Corrupted dense HyperLogLogs are detected: Wrong length in tests/unit/hyperloglog.tcl",
+        "Corrupted sparse HyperLogLogs are detected: Additional at tail in tests/unit/hyperloglog.tcl",
+        "Corrupted sparse HyperLogLogs are detected: Broken magic in tests/unit/hyperloglog.tcl",
+        "Corrupted sparse HyperLogLogs are detected: Invalid encoding in tests/unit/hyperloglog.tcl",
+        "Corrupted sparse HyperLogLogs doesn't cause overflow and out-of-bounds with XZERO opcode in tests/unit/hyperloglog.tcl",
+        "Corrupted sparse HyperLogLogs doesn't cause overflow and out-of-bounds with ZERO opcode in tests/unit/hyperloglog.tcl",
+        "Fuzzing dense/sparse encoding: Redis should always detect errors in tests/unit/hyperloglog.tcl",
+        "HyperLogLog self test passes in tests/unit/hyperloglog.tcl",
+        "HyperLogLog sparse encoding stress test in tests/unit/hyperloglog.tcl",
+        "PFADD / PFCOUNT cache invalidation works in tests/unit/hyperloglog.tcl",
+        "PFADD returns 0 when no reg was modified in tests/unit/hyperloglog.tcl",
+        "PFADD returns 1 when at least 1 reg was modified in tests/unit/hyperloglog.tcl",
+        "PFADD without arguments creates an HLL value in tests/unit/hyperloglog.tcl",
+        "PFADD works with empty string (regression) in tests/unit/hyperloglog.tcl",
+        "PFADD, PFCOUNT, PFMERGE type checking works in tests/unit/hyperloglog.tcl",
+        "PFCOUNT multiple-keys merge returns cardinality of union #1 in tests/unit/hyperloglog.tcl",
+        "PFCOUNT multiple-keys merge returns cardinality of union #2 in tests/unit/hyperloglog.tcl",
+        "PFCOUNT returns approximated cardinality of set in tests/unit/hyperloglog.tcl",
+        "PFDEBUG GETREG returns the HyperLogLog raw registers in tests/unit/hyperloglog.tcl",
+        "PFMERGE on missing source keys will create an empty destkey in tests/unit/hyperloglog.tcl",
+        "PFMERGE results on the cardinality of union of sets in tests/unit/hyperloglog.tcl",
+        "PFMERGE with one empty input key, create an empty destkey in tests/unit/hyperloglog.tcl",
+        "PFMERGE with one non-empty input key, dest key is actually one of the source keys in tests/unit/hyperloglog.tcl"
+      ],
+      "seconds": {
+        "1s": 49.09,
+        "2s": 48.94
+      },
+      "sha256": "c9ebf02056848c8c9420a02070198cce08e46a71ac9c3a6e7fa7c786701f7b91",
+      "skip_tests": {
+        "Change hll-sparse-max-bytes": "failed on TomoKV 2s in the survey",
+        "HyperLogLogs are promote from sparse to dense": "failed on TomoKV 2s in the survey",
+        "Hyperloglog promote to dense well in different hll-sparse-max-bytes": "failed on TomoKV 2s in the survey"
+      }
+    },
+    "unit/acl": {
+      "extra_args": [],
+      "known_setup_errors": [],
+      "passed_tests": [
+        "ACL #5998 regression: memory leaks adding / removing subcommands in tests/unit/acl.tcl",
+        "ACL CAT category - list all commands/subcommands that belong to category in tests/unit/acl.tcl",
+        "ACL CAT with illegal arguments in tests/unit/acl.tcl",
+        "ACL CAT without category - list all categories in tests/unit/acl.tcl",
+        "ACL GENPASS command failed test in tests/unit/acl.tcl",
+        "ACL GETUSER is able to translate back command permissions in tests/unit/acl.tcl",
+        "ACL GETUSER provides correct results in tests/unit/acl.tcl",
+        "ACL GETUSER provides reasonable results in tests/unit/acl.tcl",
+        "ACL GETUSER returns the password hash instead of the actual password in tests/unit/acl.tcl",
+        "ACL HELP should not have unexpected options in tests/unit/acl.tcl",
+        "ACL LOG RESET is able to flush the entries in the log in tests/unit/acl.tcl",
+        "ACL LOG aggregates similar errors together and assigns unique entry-id to new errors in tests/unit/acl.tcl",
+        "ACL LOG can log failed auth attempts in tests/unit/acl.tcl",
+        "ACL SETUSER RESET reverting to default newly created user in tests/unit/acl.tcl",
+        "ACL load non-existing configured ACL file in tests/unit/acl.tcl",
+        "ACL requires explicit permission for scripting for EVAL_RO, EVALSHA_RO and FCALL_RO in tests/unit/acl.tcl",
+        "ACL-Metrics invalid channels accesses in tests/unit/acl.tcl",
+        "ACL-Metrics invalid command accesses in tests/unit/acl.tcl",
+        "ACL-Metrics invalid key accesses in tests/unit/acl.tcl",
+        "ACL-Metrics user AUTH failure in tests/unit/acl.tcl",
+        "ACLLOG - zero max length is correctly handled in tests/unit/acl.tcl",
+        "ACLs can exclude single commands in tests/unit/acl.tcl",
+        "ACLs can exclude single subcommands, case 1 in tests/unit/acl.tcl",
+        "ACLs can exclude single subcommands, case 2 in tests/unit/acl.tcl",
+        "ACLs can include or exclude whole classes of commands in tests/unit/acl.tcl",
+        "ACLs can include single subcommands in tests/unit/acl.tcl",
+        "ACLs cannot exclude or include a container command with two args in tests/unit/acl.tcl",
+        "ACLs cannot exclude or include a container commands with a specific arg in tests/unit/acl.tcl",
+        "ACLs cannot include a subcommand with a specific arg in tests/unit/acl.tcl",
+        "ACLs including of a type includes also subcommands in tests/unit/acl.tcl",
+        "ACLs set can exclude subcommands, if already full command exists in tests/unit/acl.tcl",
+        "ACLs set can include subcommands, if already full command exists in tests/unit/acl.tcl",
+        "By default users are not able to access any command in tests/unit/acl.tcl",
+        "By default users are not able to access any key in tests/unit/acl.tcl",
+        "By default, only default user is able to publish to any channel in tests/unit/acl.tcl",
+        "By default, only default user is able to subscribe to any channel in tests/unit/acl.tcl",
+        "By default, only default user is able to subscribe to any pattern in tests/unit/acl.tcl",
+        "By default, only default user is able to subscribe to any shard channel in tests/unit/acl.tcl",
+        "By default, only default user is not able to publish to any shard channel in tests/unit/acl.tcl",
+        "Connections start with the default user in tests/unit/acl.tcl",
+        "Coverage: ACL USERS in tests/unit/acl.tcl",
+        "Default user can not be removed in tests/unit/acl.tcl",
+        "Delete a user that the client doesn't use in tests/unit/acl.tcl",
+        "Enabling the user allows the login in tests/unit/acl.tcl",
+        "In transaction queue publish/subscribe/psubscribe to unauthorized channel will fail in tests/unit/acl.tcl",
+        "It is possible to create new users in tests/unit/acl.tcl",
+        "It is possible to remove passwords from the set of valid ones in tests/unit/acl.tcl",
+        "It's possible to allow publishing to a subset of channels in tests/unit/acl.tcl",
+        "It's possible to allow publishing to a subset of shard channels in tests/unit/acl.tcl",
+        "It's possible to allow subscribing to a subset of channel patterns in tests/unit/acl.tcl",
+        "It's possible to allow subscribing to a subset of channels in tests/unit/acl.tcl",
+        "It's possible to allow subscribing to a subset of shard channels in tests/unit/acl.tcl",
+        "It's possible to allow the access of a subset of keys in tests/unit/acl.tcl",
+        "New users start disabled in tests/unit/acl.tcl",
+        "Only the set of correct passwords work in tests/unit/acl.tcl",
+        "Subscribers are killed when revoked of allchannels permission in tests/unit/acl.tcl",
+        "Subscribers are killed when revoked of pattern permission in tests/unit/acl.tcl",
+        "Subscribers are pardoned if literal permissions are retained and/or gaining allchannels in tests/unit/acl.tcl",
+        "Test hashed passwords removal in tests/unit/acl.tcl",
+        "Test password hashes can be added in tests/unit/acl.tcl",
+        "Test password hashes validate input in tests/unit/acl.tcl",
+        "Usernames can not contain spaces or null characters in tests/unit/acl.tcl",
+        "Users can be configured to authenticate with any password in tests/unit/acl.tcl",
+        "Validate subset of channels is prefixed with resetchannels flag in tests/unit/acl.tcl",
+        "When a setname chain is used in the HELLO cmd, the last setname cmd has precedence in tests/unit/acl.tcl",
+        "When an authentication chain is used in the HELLO cmd, the last auth cmd has precedence in tests/unit/acl.tcl",
+        "When authentication fails in the HELLO cmd, the client setname should not be applied in tests/unit/acl.tcl",
+        "When default user has no command permission, hello command still works for other users in tests/unit/acl.tcl",
+        "When default user is off, new connections are not authenticated in tests/unit/acl.tcl"
+      ],
+      "seconds": {
+        "1s": 0.22,
+        "2s": 0.32
+      },
+      "sha256": "3df70e0f84ad19789bb6c13cd49a029e2542d0a02bb33f1032860897352c081f",
+      "skip_tests": {
+        "ACL LOG can distinguish the transaction context (1)": "Existing queue-time ACL LOG context is toplevel instead of multi.",
+        "ACL LOG can distinguish the transaction context (2)": "Existing EXEC-time ACL LOG object preserves INCR case.",
+        "ACL LOG entries are still present on update of max len config": "Existing acllog-max-len update discards old entries.",
+        "ACL LOG shows failed command executions at toplevel": "Existing ACL LOG client-info omits cmd=get.",
+        "ACL LOG shows failed subcommand executions at toplevel": "Existing ACL LOG object is script instead of script|help.",
+        "ACL can log errors in the context of Lua scripting": "Existing ACL LOG scripting context is toplevel instead of lua.",
+        "ACLs can block all DEBUG subcommands except one": "DEBUG OBJECT is not implemented.",
+        "Delete a user that the client is using": "Existing self-deletion disconnect precedes its reply.",
+        "Subscribers are killed when revoked of channel permission": "Existing subscribed-client permission-update disconnect behavior; discovery records the I/O error. All three identically named upstream invocations stay explicitly excluded.",
+        "blocked command gets rejected when reprocessed after permission change": "Existing INFO commandstats format/count mismatch after rejected BLPOP; permission rejection itself passes.",
+        "ACL LOG is able to test similar events": "Depends on antirez credentials/ACL LOG history created by the excluded top-level command-log test; unchanged assertion passes in the unfiltered survey but cannot run after that setup is skipped.",
+        "ACL LOG is able to log keys access violations and key name": "Depends on antirez credentials/ACL LOG history created by the excluded top-level command-log test; unchanged assertion passes in the unfiltered survey but cannot run after that setup is skipped.",
+        "ACL LOG is able to log channel access violations and channel name": "Depends on antirez credentials/ACL LOG history created by the excluded top-level command-log test; unchanged assertion passes in the unfiltered survey but cannot run after that setup is skipped.",
+        "ACL LOG can accept a numerical argument to show less entries": "Depends on antirez credentials/ACL LOG history created by the excluded top-level command-log test; unchanged assertion passes in the unfiltered survey but cannot run after that setup is skipped.",
+        "ACL LOG entries are limited to a maximum amount": "Depends on antirez credentials/ACL LOG history created by the excluded top-level command-log test; unchanged assertion passes in the unfiltered survey but cannot run after that setup is skipped."
+      }
+    },
+    "unit/pubsub": {
+      "extra_args": [],
+      "known_setup_errors": [],
+      "passed_tests": [
+        "Keyspace notifications: evicted events in tests/unit/pubsub.tcl",
+        "Keyspace notifications: expired events (background expire) in tests/unit/pubsub.tcl",
+        "Keyspace notifications: expired events (triggered expire) in tests/unit/pubsub.tcl",
+        "Keyspace notifications: general events test in tests/unit/pubsub.tcl",
+        "Keyspace notifications: hash events test (hashtable) in tests/unit/pubsub.tcl",
+        "Keyspace notifications: list events test in tests/unit/pubsub.tcl",
+        "Keyspace notifications: new key test in tests/unit/pubsub.tcl",
+        "Keyspace notifications: set events test in tests/unit/pubsub.tcl",
+        "Keyspace notifications: stream events test in tests/unit/pubsub.tcl",
+        "Keyspace notifications: test CONFIG GET/SET of event flags in tests/unit/pubsub.tcl",
+        "Keyspace notifications: we are able to mask events in tests/unit/pubsub.tcl",
+        "Keyspace notifications: we can receive both kind of events in tests/unit/pubsub.tcl",
+        "Keyspace notifications: we receive keyevent notifications in tests/unit/pubsub.tcl",
+        "Keyspace notifications: we receive keyspace notifications in tests/unit/pubsub.tcl",
+        "Keyspace notifications: zset events test in tests/unit/pubsub.tcl",
+        "Mix SUBSCRIBE and PSUBSCRIBE in tests/unit/pubsub.tcl",
+        "NUMPATs returns the number of unique patterns in tests/unit/pubsub.tcl",
+        "NUMSUB returns numbers, not strings (#1561) in tests/unit/pubsub.tcl",
+        "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
+        "PUBLISH/PSUBSCRIBE basics in tests/unit/pubsub.tcl",
+        "PUBLISH/PSUBSCRIBE with two clients in tests/unit/pubsub.tcl",
+        "PUBLISH/SUBSCRIBE basics in tests/unit/pubsub.tcl",
+        "PUBLISH/SUBSCRIBE with two clients in tests/unit/pubsub.tcl",
+        "PUNSUBSCRIBE and UNSUBSCRIBE should always reply in tests/unit/pubsub.tcl",
+        "PUNSUBSCRIBE from non-subscribed channels in tests/unit/pubsub.tcl",
+        "Pub/Sub PING on RESP2 in tests/unit/pubsub.tcl",
+        "Pub/Sub PING on RESP3 in tests/unit/pubsub.tcl",
+        "PubSub messages with CLIENT REPLY OFF in tests/unit/pubsub.tcl",
+        "SUBSCRIBE to one channel more than once in tests/unit/pubsub.tcl",
+        "UNSUBSCRIBE from non-subscribed channels in tests/unit/pubsub.tcl",
+        "publish to self inside multi in tests/unit/pubsub.tcl",
+        "unsubscribe inside multi, and publish to self in tests/unit/pubsub.tcl"
+      ],
+      "seconds": {
+        "1s": 0.72,
+        "2s": 0.82
+      },
+      "sha256": "9d1d72ed2de74741ec115ab85024b0f9b2c5641cd67da1f491a6fb3ca83e5c32",
+      "skip_tests": {
+        "Keyspace notifications: hash events test (listpackex)": "failed on TomoKV 2s in the survey",
+        "psubscribe  fails with OOM when memory limit exceeded": "failed on TomoKV 2s in the survey",
+        "psubscribe succeeds with small pattern but fails with large pattern due to OOM": "failed on TomoKV 2s in the survey",
+        "psubscribe with 2 clients fails with OOM when memory limit exceeded": "failed on TomoKV 2s in the survey",
+        "psubscribe with large pattern name fails due to OOM": "failed on TomoKV 2s in the survey",
+        "publish to self inside script": "failed on TomoKV 2s in the survey",
+        "ssubscribe  fails with OOM when memory limit exceeded": "failed on TomoKV 2s in the survey",
+        "ssubscribe succeeds with small channel but fails with large channel due to OOM": "failed on TomoKV 2s in the survey",
+        "ssubscribe with 2 clients fails with OOM when memory limit exceeded": "failed on TomoKV 2s in the survey",
+        "ssubscribe with large shard channel name fails due to OOM": "failed on TomoKV 2s in the survey",
+        "subscribe  fails with OOM when memory limit exceeded": "failed on TomoKV 2s in the survey",
+        "subscribe succeeds with small channel but fails with large channel due to OOM": "failed on TomoKV 2s in the survey",
+        "subscribe with 2 clients fails with OOM when memory limit exceeded": "failed on TomoKV 2s in the survey",
+        "subscribe with large channel name fails due to OOM": "failed on TomoKV 2s in the survey",
+        "PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments": "PUBSUB-DISCONNECT-LAG (D14): intermittent cross-owner disconnect lag observed on PRE and POST; no retry and no compatible-pass claim."
+      },
+      "isolated_tests": {
+        "Mix SUBSCRIBE and PSUBSCRIBE": "Round-5 T61/D14 disconnect-lag family, reproduced on cmdfix2 PRE and POST: a previous assertion closes subscribers on other connections; cleanup is not ordered before the next publisher. Run each self-contained pub/sub assertion on a fresh listener, preserving its unchanged body, required pass and exact completion inventory.",
+        "NUMPATs returns the number of unique patterns": "Round-5 T61/D14 disconnect-lag family, reproduced on cmdfix2 PRE and POST: a previous assertion closes subscribers on other connections; cleanup is not ordered before the next publisher. Run each self-contained pub/sub assertion on a fresh listener, preserving its unchanged body, required pass and exact completion inventory.",
+        "NUMSUB returns numbers, not strings (#1561)": "Round-5 T61/D14 disconnect-lag family, reproduced on cmdfix2 PRE and POST: a previous assertion closes subscribers on other connections; cleanup is not ordered before the next publisher. Run each self-contained pub/sub assertion on a fresh listener, preserving its unchanged body, required pass and exact completion inventory.",
+        "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments": "Round-5 T61/D14 disconnect-lag family, reproduced on cmdfix2 PRE and POST: a previous assertion closes subscribers on other connections; cleanup is not ordered before the next publisher. Run each self-contained pub/sub assertion on a fresh listener, preserving its unchanged body, required pass and exact completion inventory.",
+        "PUBLISH/PSUBSCRIBE basics": "Round-5 T61/D14 disconnect-lag family, reproduced on cmdfix2 PRE and POST: a previous assertion closes subscribers on other connections; cleanup is not ordered before the next publisher. Run each self-contained pub/sub assertion on a fresh listener, preserving its unchanged body, required pass and exact completion inventory.",
+        "PUBLISH/PSUBSCRIBE with two clients": "Round-5 T61/D14 disconnect-lag family, reproduced on cmdfix2 PRE and POST: a previous assertion closes subscribers on other connections; cleanup is not ordered before the next publisher. Run each self-contained pub/sub assertion on a fresh listener, preserving its unchanged body, required pass and exact completion inventory.",
+        "PUBLISH/SUBSCRIBE basics": "Round-5 T61/D14 disconnect-lag family, reproduced on cmdfix2 PRE and POST: a previous assertion closes subscribers on other connections; cleanup is not ordered before the next publisher. Run each self-contained pub/sub assertion on a fresh listener, preserving its unchanged body, required pass and exact completion inventory.",
+        "PUBLISH/SUBSCRIBE with two clients": "Round-5 T61/D14 disconnect-lag family, reproduced on cmdfix2 PRE and POST: a previous assertion closes subscribers on other connections; cleanup is not ordered before the next publisher. Run each self-contained pub/sub assertion on a fresh listener, preserving its unchanged body, required pass and exact completion inventory.",
+        "PUNSUBSCRIBE and UNSUBSCRIBE should always reply": "Round-5 T61/D14 disconnect-lag family, reproduced on cmdfix2 PRE and POST: a previous assertion closes subscribers on other connections; cleanup is not ordered before the next publisher. Run each self-contained pub/sub assertion on a fresh listener, preserving its unchanged body, required pass and exact completion inventory.",
+        "PUNSUBSCRIBE from non-subscribed channels": "Round-5 T61/D14 disconnect-lag family, reproduced on cmdfix2 PRE and POST: a previous assertion closes subscribers on other connections; cleanup is not ordered before the next publisher. Run each self-contained pub/sub assertion on a fresh listener, preserving its unchanged body, required pass and exact completion inventory.",
+        "Pub/Sub PING on RESP2": "Round-5 T61/D14 disconnect-lag family, reproduced on cmdfix2 PRE and POST: a previous assertion closes subscribers on other connections; cleanup is not ordered before the next publisher. Run each self-contained pub/sub assertion on a fresh listener, preserving its unchanged body, required pass and exact completion inventory.",
+        "Pub/Sub PING on RESP3": "Round-5 T61/D14 disconnect-lag family, reproduced on cmdfix2 PRE and POST: a previous assertion closes subscribers on other connections; cleanup is not ordered before the next publisher. Run each self-contained pub/sub assertion on a fresh listener, preserving its unchanged body, required pass and exact completion inventory.",
+        "PubSub messages with CLIENT REPLY OFF": "Round-5 T61/D14 disconnect-lag family, reproduced on cmdfix2 PRE and POST: a previous assertion closes subscribers on other connections; cleanup is not ordered before the next publisher. Run each self-contained pub/sub assertion on a fresh listener, preserving its unchanged body, required pass and exact completion inventory.",
+        "SUBSCRIBE to one channel more than once": "Round-5 T61/D14 disconnect-lag family, reproduced on cmdfix2 PRE and POST: a previous assertion closes subscribers on other connections; cleanup is not ordered before the next publisher. Run each self-contained pub/sub assertion on a fresh listener, preserving its unchanged body, required pass and exact completion inventory.",
+        "UNSUBSCRIBE from non-subscribed channels": "Round-5 T61/D14 disconnect-lag family, reproduced on cmdfix2 PRE and POST: a previous assertion closes subscribers on other connections; cleanup is not ordered before the next publisher. Run each self-contained pub/sub assertion on a fresh listener, preserving its unchanged body, required pass and exact completion inventory.",
+        "publish to self inside multi": "Round-5 T61/D14 disconnect-lag family, reproduced on cmdfix2 PRE and POST: a previous assertion closes subscribers on other connections; cleanup is not ordered before the next publisher. Run each self-contained pub/sub assertion on a fresh listener, preserving its unchanged body, required pass and exact completion inventory.",
+        "unsubscribe inside multi, and publish to self": "Round-5 T61/D14 disconnect-lag family, reproduced on cmdfix2 PRE and POST: a previous assertion closes subscribers on other connections; cleanup is not ordered before the next publisher. Run each self-contained pub/sub assertion on a fresh listener, preserving its unchanged body, required pass and exact completion inventory."
+      }
+    },
+    "unit/type/stream": {
+      "extra_args": [
+        "--tags",
+        "-needs:debug"
+      ],
+      "known_setup_errors": [],
+      "passed_tests": [
+        "Blocking XREAD for stream that ran dry (issue #5299) in tests/unit/type/stream.tcl",
+        "Blocking XREAD waiting new data in tests/unit/type/stream.tcl",
+        "Blocking XREAD waiting old data in tests/unit/type/stream.tcl",
+        "Blocking XREAD will not reply with an empty array in tests/unit/type/stream.tcl",
+        "Maximum XDEL ID behaves correctly in tests/unit/type/stream.tcl",
+        "Non blocking XREAD with empty streams in tests/unit/type/stream.tcl",
+        "XADD 0-* should succeed in tests/unit/type/stream.tcl",
+        "XADD IDs are incremental in tests/unit/type/stream.tcl",
+        "XADD IDs are incremental when ms is the same as well in tests/unit/type/stream.tcl",
+        "XADD IDs correctly report an error when overflowing in tests/unit/type/stream.tcl",
+        "XADD advances the entries-added counter and sets the recorded-first-entry-id in tests/unit/type/stream.tcl",
+        "XADD auto-generated sequence can't be smaller than last ID in tests/unit/type/stream.tcl",
+        "XADD auto-generated sequence can't overflow in tests/unit/type/stream.tcl",
+        "XADD auto-generated sequence is incremented for last ID in tests/unit/type/stream.tcl",
+        "XADD auto-generated sequence is zero for future timestamp ID in tests/unit/type/stream.tcl",
+        "XADD can CREATE an empty stream in tests/unit/type/stream.tcl",
+        "XADD can add entries into a stream that XRANGE can fetch in tests/unit/type/stream.tcl",
+        "XADD mass insertion and XLEN in tests/unit/type/stream.tcl",
+        "XADD streamID edge in tests/unit/type/stream.tcl",
+        "XADD with ID 0-0 in tests/unit/type/stream.tcl",
+        "XADD with LIMIT consecutive calls in tests/unit/type/stream.tcl",
+        "XADD with LIMIT delete entries no more than limit in tests/unit/type/stream.tcl",
+        "XADD with MAXLEN option and the '=' argument in tests/unit/type/stream.tcl",
+        "XADD with MAXLEN option and the '~' argument in tests/unit/type/stream.tcl",
+        "XADD with MAXLEN option in tests/unit/type/stream.tcl",
+        "XADD with MINID option in tests/unit/type/stream.tcl",
+        "XADD with NOMKSTREAM option in tests/unit/type/stream.tcl",
+        "XADD with artial ID with maximal seq in tests/unit/type/stream.tcl",
+        "XADD wrong number of args in tests/unit/type/stream.tcl",
+        "XDEL basic test in tests/unit/type/stream.tcl",
+        "XDEL fuzz test in tests/unit/type/stream.tcl",
+        "XDEL multiply id test in tests/unit/type/stream.tcl",
+        "XDEL/TRIM are reflected by recorded first entry in tests/unit/type/stream.tcl",
+        "XGROUP HELP should not have unexpected options in tests/unit/type/stream.tcl",
+        "XINFO HELP should not have unexpected options in tests/unit/type/stream.tcl",
+        "XRANGE COUNT works as expected in tests/unit/type/stream.tcl",
+        "XRANGE can be used to iterate the whole stream in tests/unit/type/stream.tcl",
+        "XRANGE exclusive ranges in tests/unit/type/stream.tcl",
+        "XRANGE fuzzing in tests/unit/type/stream.tcl",
+        "XREAD + multiple XADD inside transaction in tests/unit/type/stream.tcl",
+        "XREAD last element blocking from empty stream in tests/unit/type/stream.tcl",
+        "XREAD last element blocking from non-empty stream in tests/unit/type/stream.tcl",
+        "XREAD last element from empty stream in tests/unit/type/stream.tcl",
+        "XREAD last element from multiple streams in tests/unit/type/stream.tcl",
+        "XREAD last element from non-empty stream in tests/unit/type/stream.tcl",
+        "XREAD last element with count > 1 in tests/unit/type/stream.tcl",
+        "XREAD streamID edge (blocking) in tests/unit/type/stream.tcl",
+        "XREAD streamID edge (no-blocking) in tests/unit/type/stream.tcl",
+        "XREAD with non empty second stream in tests/unit/type/stream.tcl",
+        "XREAD with non empty stream in tests/unit/type/stream.tcl",
+        "XREAD with same stream name multiple times should work in tests/unit/type/stream.tcl",
+        "XREAD: XADD + DEL + LPUSH should not awake client in tests/unit/type/stream.tcl",
+        "XREAD: XADD + DEL should not awake client in tests/unit/type/stream.tcl",
+        "XREAD: read last element after XDEL (issue #13628) in tests/unit/type/stream.tcl",
+        "XREVRANGE COUNT works as expected in tests/unit/type/stream.tcl",
+        "XREVRANGE regression test for issue #5006 in tests/unit/type/stream.tcl",
+        "XREVRANGE returns the reverse of XRANGE in tests/unit/type/stream.tcl",
+        "XSETID can set a specific ID in tests/unit/type/stream.tcl",
+        "XSETID cannot SETID on non-existent key in tests/unit/type/stream.tcl",
+        "XSETID cannot SETID with smaller ID in tests/unit/type/stream.tcl",
+        "XSETID cannot run with a maximal tombstone but without an offset in tests/unit/type/stream.tcl",
+        "XSETID cannot run with an offset but without a maximal tombstone in tests/unit/type/stream.tcl",
+        "XSETID cannot set smaller ID than current MAXDELETEDID in tests/unit/type/stream.tcl",
+        "XSETID cannot set the maximal tombstone with larger ID in tests/unit/type/stream.tcl",
+        "XSETID cannot set the offset to less than the length in tests/unit/type/stream.tcl",
+        "XSETID errors on negstive offset in tests/unit/type/stream.tcl",
+        "XTRIM with LIMIT delete entries no more than limit in tests/unit/type/stream.tcl",
+        "XTRIM with MAXLEN option basic test in tests/unit/type/stream.tcl",
+        "XTRIM with MINID option in tests/unit/type/stream.tcl",
+        "XTRIM with MINID option, big delta from master record in tests/unit/type/stream.tcl",
+        "XTRIM with ~ is limited in tests/unit/type/stream.tcl",
+        "XTRIM without ~ and with LIMIT in tests/unit/type/stream.tcl",
+        "XTRIM without ~ is not limited in tests/unit/type/stream.tcl"
+      ],
+      "seconds": {
+        "1s": 52.39,
+        "2s": 51.99
+      },
+      "sha256": "61f3b2f0971b47e148508d1b63672b78fb1b5ac61066c2756f7014d9a4bfdf67",
+      "skip_tests": {}
+    },
+    "unit/type/stream-cgroups": {
+      "extra_args": [],
+      "known_setup_errors": [
+        {
+          "command": "r config set $param $val",
+          "count": 1,
+          "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config"
+        }
+      ],
+      "passed_tests": [
+        "Blocking XREAD: key deleted in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREAD: key type changed with SET in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREADGROUP for stream key that has clients blocked on list in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREADGROUP for stream key that has clients blocked on stream - avoid endless loop in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREADGROUP for stream key that has clients blocked on stream - reprocessing command in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREADGROUP for stream that ran dry (issue #5299) in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREADGROUP will ignore BLOCK if ID is not > in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREADGROUP will not reply with an empty array in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREADGROUP: flushed DB in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREADGROUP: key deleted in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREADGROUP: key type changed with SET in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREADGROUP: key type changed with transaction in tests/unit/type/stream-cgroups.tcl",
+        "Consumer seen-time and active-time in tests/unit/type/stream-cgroups.tcl",
+        "PEL NACK reassignment after XGROUP SETID event in tests/unit/type/stream-cgroups.tcl",
+        "RENAME can unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl",
+        "RENAME can unblock XREADGROUP with data in tests/unit/type/stream-cgroups.tcl",
+        "XACK can't remove the same item multiple times in tests/unit/type/stream-cgroups.tcl",
+        "XACK is able to accept multiple arguments in tests/unit/type/stream-cgroups.tcl",
+        "XACK is able to remove items from the consumer/group PEL in tests/unit/type/stream-cgroups.tcl",
+        "XACK should fail if got at least one invalid ID in tests/unit/type/stream-cgroups.tcl",
+        "XAUTOCLAIM COUNT must be > 0 in tests/unit/type/stream-cgroups.tcl",
+        "XAUTOCLAIM as an iterator in tests/unit/type/stream-cgroups.tcl",
+        "XAUTOCLAIM can claim PEL items from another consumer in tests/unit/type/stream-cgroups.tcl",
+        "XAUTOCLAIM with XDEL and count in tests/unit/type/stream-cgroups.tcl",
+        "XAUTOCLAIM with XDEL in tests/unit/type/stream-cgroups.tcl",
+        "XAUTOCLAIM with out of range count in tests/unit/type/stream-cgroups.tcl",
+        "XCLAIM can claim PEL items from another consumer in tests/unit/type/stream-cgroups.tcl",
+        "XCLAIM same consumer in tests/unit/type/stream-cgroups.tcl",
+        "XCLAIM with XDEL in tests/unit/type/stream-cgroups.tcl",
+        "XCLAIM with trimming in tests/unit/type/stream-cgroups.tcl",
+        "XCLAIM with trimming in tests/unit/type/stream-cgroups.tcl",
+        "XCLAIM without JUSTID increments delivery count in tests/unit/type/stream-cgroups.tcl",
+        "XGROUP CREATE: automatic stream creation fails without MKSTREAM in tests/unit/type/stream-cgroups.tcl",
+        "XGROUP CREATE: automatic stream creation works with MKSTREAM in tests/unit/type/stream-cgroups.tcl",
+        "XGROUP CREATE: creation and duplicate group name detection in tests/unit/type/stream-cgroups.tcl",
+        "XGROUP CREATE: with ENTRIESREAD parameter in tests/unit/type/stream-cgroups.tcl",
+        "XGROUP CREATECONSUMER: create consumer if does not exist in tests/unit/type/stream-cgroups.tcl",
+        "XGROUP CREATECONSUMER: group must exist in tests/unit/type/stream-cgroups.tcl",
+        "XINFO FULL output in tests/unit/type/stream-cgroups.tcl",
+        "XPENDING can return single consumer items in tests/unit/type/stream-cgroups.tcl",
+        "XPENDING is able to return pending items in tests/unit/type/stream-cgroups.tcl",
+        "XPENDING only group in tests/unit/type/stream-cgroups.tcl",
+        "XPENDING with IDLE in tests/unit/type/stream-cgroups.tcl",
+        "XPENDING with exclusive range intervals works as expected in tests/unit/type/stream-cgroups.tcl",
+        "XREAD and XREADGROUP against wrong parameter in tests/unit/type/stream-cgroups.tcl",
+        "XREADGROUP can read the history of the elements we own in tests/unit/type/stream-cgroups.tcl",
+        "XREADGROUP history reporting of deleted entries. Bug #5570 in tests/unit/type/stream-cgroups.tcl",
+        "XREADGROUP will not report data on empty history. Bug #5577 in tests/unit/type/stream-cgroups.tcl",
+        "XREADGROUP will return only new elements in tests/unit/type/stream-cgroups.tcl"
+      ],
+      "seconds": {
+        "1s": 1.47,
+        "2s": 1.42
+      },
+      "sha256": "3c701f4315918a9038d63542733806e611603189d4024ce403f501361d710d86",
+      "skip_tests": {
+        "XREADGROUP from PEL does not change dirty": "failed on TomoKV 2s in the survey",
+        "XREADGROUP of multiple entries changes dirty by one": "failed on TomoKV 2s in the survey",
+        "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP": "rootcompat: removed NOGROUP-only total_error_replies, errorstats and cmdstat timing/failed_calls. Generic error accounting remains unimplemented under the authorized zero-cost fallback."
+      }
+    }
+  },
+  "redis_version": "7.4.10",
+  "schema": 2,
+  "selection": "every upstream assertion passing in BOTH TomoKV modes; each file runs with --skipfile naming every test that failed or hung on TomoKV in the survey or the builder; the passing multiset was identical in 2 consecutive clean rounds in both modes; no assertion body modified",
+  "source_commit": "f103d127b9747965e28f20615ef790332661fc68",
+  "support": {
+    "runtest": "0eabe18a80d49daf8242571cea768b0cb9e21ea46681cf9e444a98d43423d76d",
+    "src/version.h": "d37be1fd3ccca0252941a0d7bd4f8ee24d6f30a80c595b6ccfd41dbfd20a7131",
+    "tests/support/aofmanifest.tcl": "6cec2a27a80133260260d0bc559a3749cd2d93fc2d59dc457fb66530da8faf19",
+    "tests/support/benchmark.tcl": "e4832f65905257652d242d01a0f1c1427b910e46f3b4b12f22009d98702163a6",
+    "tests/support/cli.tcl": "48d41dcb46e2f27787ecf872db6362e8dfce5345a45ff92498f8966c46c203e8",
+    "tests/support/cluster.tcl": "207045db825f492f3bb2bf293d3d1d2bf7d4d56ea3989474306ab20cacc67c9c",
+    "tests/support/cluster_util.tcl": "d6ae863cd62238e00c5773c47f617416b659fb47b14c200385f22bc7c04616d0",
+    "tests/support/redis.tcl": "4aba1a0afdc9b39854c5557502c20bddfece20eeeda8db95550ae94cea00daa7",
+    "tests/support/response_transformers.tcl": "373f01a88759abe07b5d1e04e4b469d937af47d458daf89d317d0f3bebaea7ee",
+    "tests/support/server.tcl": "e412686245be3a0f74592d8d5fe4f52c14c0790fb647c736a8a5e2cac13b72bb",
+    "tests/support/test.tcl": "770cbcd7cc446fca8bb232fd406982a68cc675b31b8fa0f8ebec7a9bc7298e89",
+    "tests/support/tmpfile.tcl": "5416b68b9af39f68d3bddce15de975a85d0550b08c2661464802c1ab6493da33",
+    "tests/support/util.tcl": "6bca53d58fcdce0cfb767aab4797d122b95fdf5133943f5878bc8e3987c92920",
+    "tests/test_helper.tcl": "844807d95218020cd79aecbaf10c2134190759d67c311185db76c204e6c08894"
+  },
+  "wave8_promotions": [
+    {
+      "file": "unit/latency-monitor",
+      "name": "LATENCY HISTOGRAM all commands",
+      "root": "LATENCY-HISTOGRAM-ABSENT",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/latency-monitor",
+      "name": "LATENCY HISTOGRAM command",
+      "root": "LATENCY-HISTOGRAM-ABSENT",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/latency-monitor",
+      "name": "LATENCY HISTOGRAM sub commands",
+      "root": "LATENCY-HISTOGRAM-ABSENT",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/latency-monitor",
+      "name": "LATENCY HISTOGRAM with a subset of commands",
+      "root": "LATENCY-HISTOGRAM-ABSENT",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/latency-monitor",
+      "name": "LATENCY HISTOGRAM with empty histogram",
+      "root": "LATENCY-HISTOGRAM-ABSENT",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/latency-monitor",
+      "name": "LATENCY HISTOGRAM with wrong command name skips the invalid one",
+      "root": "LATENCY-HISTOGRAM-ABSENT",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "EVAL - JSON numeric decoding",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "EVAL - JSON smoke test",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "EVAL - JSON string decoding",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "EVAL - Verify minimal bitop functionality",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "EVAL - cmsgpack can pack and unpack circular references?",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "EVAL - cmsgpack can pack double?",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "EVAL - cmsgpack can pack negative int64?",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "Functions in the Redis namespace are able to report errors",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "Try trick readonly table on bit table",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "Try trick readonly table on cmsgpack table",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "Try trick readonly table on json table",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "lua bit.tohex bug",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "redis.sha1hex() implementation",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    }
+  ],
+  "scriptfix2": {
+    "promoted_assertions": 78,
+    "source": "docs/scriptfix2/tcl-promotions.json",
+    "remaining_dependencies": "MEASURE-REQUEST-scriptfix2.md"
+  },
+  "infofix_promotions": [
+    {
+      "file": "integration/redis-cli",
+      "name": "Non-interactive non-TTY CLI: Test command-line hinting - latest server",
+      "root": "COMMAND-DOCS-INCOMPLETE",
+      "prior_reason": "failed on TomoKV 2s in the survey",
+      "status": "reverted to skip in wave 10: the assertion also needs MIGRATE (D17d)"
+    },
+    {
+      "file": "unit/other",
+      "name": "EXPIRES after a reload (snapshot + append only file rewrite)",
+      "root": "DEBUG-LOADAOF-AOF-OFF",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    }
+  ],
+  "wave12_promotions": [
+    {
+      "file": "unit/functions",
+      "test": "FUNCTION - verify allow-omm allows running any command",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/multi",
+      "test": "EXEC with only read commands should not be rejected when OOM",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/multi",
+      "test": "Flushall while watching several keys by one client",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/multi",
+      "test": "MULTI with SAVE",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/multi",
+      "test": "MULTI with SHUTDOWN",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/multi",
+      "test": "MULTI with config error",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/protocol",
+      "test": "test argument rewriting - issue 9598",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/protocol",
+      "test": "test large number of args",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/pubsub",
+      "test": "publish to self inside multi",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/scripting",
+      "test": "Call Redis command with many args from Lua (issue #1764)",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "EVAL - Redis bulk -> Lua type conversion",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "EVAL - Redis error reply -> Lua type conversion",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "EVAL - Redis integer -> Lua type conversion",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "EVAL - Redis multi bulk -> Lua type conversion",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "EVAL - Redis status reply -> Lua type conversion",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "EVAL - Scripts can run non-deterministic commands",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "EVAL does not leak in the Lua stack",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "EVAL_RO - Cannot run write commands",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "EVAL_RO - Successful case",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "SCRIPTING FLUSH - is able to clear the scripts cache?",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/scripting",
+      "test": "SCRIPTING FLUSH ASYNC",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/scripting",
+      "test": "Script with RESP3 map",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "String containing number precision test (regression of issue #1118)",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "Test an example script DECR_IF_GT",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/slowlog",
+      "test": "SLOWLOG - commands with too many arguments are trimmed",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/slowlog",
+      "test": "SLOWLOG - too long arguments are trimmed",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/tracking",
+      "test": "Tracking invalidation message is not interleaved with transaction response",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/list",
+      "test": "BLMPOP_LEFT: with 0.001 timeout should not block indefinitely",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/list",
+      "test": "BLMPOP_RIGHT: with 0.001 timeout should not block indefinitely",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/list",
+      "test": "BLPOP unblock but the key is expired and then block again - reprocessing command",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/list",
+      "test": "BLPOP: with 0.001 timeout should not block indefinitely",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/list",
+      "test": "BRPOP: with 0.001 timeout should not block indefinitely",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/list",
+      "test": "BRPOPLPUSH timeout",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/list",
+      "test": "Regression for bug 593 - chaining BRPOPLPUSH with other blocking cmds",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/list",
+      "test": "Self-referential BRPOPLPUSH",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/list",
+      "test": "Unblock fairness is kept during nested unblock",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/list",
+      "test": "Unblock fairness is kept while pipelining",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/set",
+      "test": "SMOVE basics - from intset to regular set",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/set",
+      "test": "SMOVE basics - from regular set to intset",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/set",
+      "test": "SMOVE from intset to non existing destination set",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/set",
+      "test": "SMOVE from regular set to non existing destination set",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/set",
+      "test": "SMOVE non existing key",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/set",
+      "test": "SMOVE non existing src set",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/zset",
+      "test": "BZMPOP should not blocks on non key arguments - #10762",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/zset",
+      "test": "ZRANDMEMBER - listpack",
+      "occurrences": 1
+    }
+  ],
+  "clientcompat_promotions": [
+    {
+      "file": "unit/pause",
+      "name": "Test old pause-all takes precedence over new pause-write (less restrictive)",
+      "previous": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/introspection",
+      "name": "CLIENT KILL SKIPME YES/NO will kill all clients",
+      "previous": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/pubsub",
+      "test": "unsubscribe inside multi, and publish to self",
+      "previous_reason": "failed on TomoKV 2s in the survey"
+    }
+  ],
+  "cmdfix2_promotions": [
+    {
+      "file": "unit/acl",
+      "name": "In transaction queue publish/subscribe/psubscribe to unauthorized channel will fail",
+      "previous": "First live-API block was excluded by external:skip; confirmed failing on 9d6ab5526 in both modes.",
+      "fix_commit": "862c2bb252"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "pre_archive_sha256": "e1db46dff8c499ccb5cd372c9aad43b6a9c6199a2edc77386160ce1983aedfb1",
+  "post_run": "/home/user/Projects/cx-cmdfix2/build/gate-run.t8PFwZ",
+  "post_sha256": "204cc07b6b3da1d35e17d09aa5bbff4e9a26654a281cf46766e2162d66f30b7f",
+  "identical_failure_lines": [
+    "FAIL 1s-uring-db1 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}",
+    "FAIL 1s-uring-db1 above 32-bit representation APPEND 1",
+    "FAIL 1s-uring-db1 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}",
+    "FAIL 1s-uring-db16 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}",
+    "FAIL 1s-uring-db16 above 32-bit representation APPEND 1",
+    "FAIL 1s-uring-db16 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}",
+    "FAIL 1s-epoll-db1 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}",
+    "FAIL 1s-epoll-db1 above 32-bit representation APPEND 1",
+    "FAIL 1s-epoll-db1 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}",
+    "FAIL 1s-epoll-db16 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}",
+    "FAIL 1s-epoll-db16 above 32-bit representation APPEND 1",
+    "FAIL 1s-epoll-db16 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}",
+    "FAIL 2s-uring-db1 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}",
+    "FAIL 2s-uring-db1 above 32-bit representation APPEND 1",
+    "FAIL 2s-uring-db1 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}",
+    "FAIL 2s-uring-db16 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}",
+    "FAIL 2s-uring-db16 above 32-bit representation APPEND 1",
+    "FAIL 2s-uring-db16 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}",
+    "FAIL 2s-epoll-db1 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}",
+    "FAIL 2s-epoll-db1 above 32-bit representation APPEND 1",
+    "FAIL 2s-epoll-db1 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}",
+    "FAIL 2s-epoll-db16 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}",
+    "FAIL 2s-epoll-db16 above 32-bit representation APPEND 1",
+    "FAIL 2s-epoll-db16 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}"
+  ]
+}
