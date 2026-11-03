@@ -1018,6 +1018,7 @@ job_body(){
     txnfix4-*) job_txnfix4 "${name#txnfix4-}";;
     iofix-deferred) job_iofix_deferred "$name";;
     cfgfix2-*) job_cfgfix2 "${name#cfgfix2-}";;
+    wave15-block-*) job_wave15_block_repeat "$name";;
     iofix-hz) job_iofix_hz "$name";;
     iofix-sleep) job_iofix_sleep "$name";;
     iofix-signal) job_iofix_signal "$name";;
@@ -1212,7 +1213,7 @@ plan_jobs(){
   for mode in 1s 2s; do
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
-  JOB_NAMES+=(wave15_errorstats wave15_aof_participants wave15_aof_large blockfix4 blockfix2 blockfix_structure blockfix_registry blockfix_mkstream persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables debug-0 debug-1
+  JOB_NAMES+=(wave15_rebind wave15_idle wave15_errorstats wave15_aof_participants wave15_aof_large blockfix4 blockfix2 blockfix_structure blockfix_registry blockfix_mkstream persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables debug-0 debug-1
               iofix-deferred iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               atomfix5_watch atomfix5_accounting core_units flipfix_units flipfix5_units flipfix6_units flipfix7_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat crlffix boot_grammar dbdefault wait_units readonly
@@ -1233,6 +1234,12 @@ plan_jobs(){
   # directed interface without adding nine shells to the serial scheduler.
   if [ "${GATE_PARTIAL:-0}" = 1 ]; then
     JOB_NAMES+=(wave14_order wave14_epoll_eof wave14_eof_data eoffix_aof)
+    for mode in 1s 2s; do for resp_engine in epoll uring; do
+      for FR in 0 1; do
+        [ "$mode" != 2s ] || [ "$FR" = 0 ] || continue
+        for section in 1 16; do JOB_NAMES+=("wave15-block-$mode-$resp_engine-$FR-$section"); done
+      done
+    done; done
     for section in proc password replication sort-acl redact xsnotify tracking hscan setpast stringlimit hx3 errorstats xsexpiry; do JOB_NAMES+=("rootcompat-$section"); done
   fi
   JOB_NAMES+=(feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto)
@@ -4496,6 +4503,24 @@ snapfix_case(){
       --output "$TMPDIR/snapfix-$1" >"$TMPDIR/snapfix-$1.log" 2>&1 \
       && ok "$2" || bad "$2" "see $TMPDIR/snapfix-$1.log"
 }
+job_wave15_rebind(){
+  local label='wave15 CONFIG listener exclusivity and rollback (oracle, both modes, engines and namespaces)'
+  row_begin "$label"
+  py tests/wave15_rebind.py --binary "$CANDIDATE_BINARY" \
+      --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --output "$TMPDIR/proof" \
+      >"$TMPDIR/proof.log" 2>&1 && ok "$label" || bad "$label" "see $TMPDIR/proof.log"
+}
+job_wave15_idle(){
+  local label='wave15 idle-clock failure accounting and grace (both namespaces)' passed=1 unit
+  row_begin "$label"
+  for unit in wave15-idle-unit wave15-idle-db0-unit; do
+    if unit_ready "$unit"; then
+      taskset -c "$CORES" "build/$unit" >"$TMPDIR/$unit.log" 2>&1 || passed=0
+    else passed=0; fi
+  done
+  [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/wave15-idle*"
+}
 job_wave15_errorstats(){
   local label='wave15 generic errorstats (Redis oracle, both modes, engines, atomic and namespaces)'
   row_begin "$label"
@@ -4669,6 +4694,17 @@ blockfix2_case(){
 
 # Seven rows before quick exit; blockfix3 restores the removed-stream row (+1/+1).
 # EXPECT_QUICK/FULL remain maintainer-owned.
+job_wave15_block_repeat(){
+  local prefix kind mode engine read_local databases label
+  IFS=- read -r prefix kind mode engine read_local databases <<< "$1"
+  label="wave15 deleted-stream repeated 200 times ($mode $engine read-local $read_local db $databases)"
+  row_begin "$label"
+  py tests/wave15_block_repeat.py --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+      --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --mode "$mode" --engine "$engine" \
+      --read-local "$read_local" --databases "$databases" --output "$TMPDIR/proof" \
+      >"$TMPDIR/repeat.log" 2>&1 && ok "$label" || bad "$label" "see $TMPDIR/repeat.log"
+}
+
 job_blockfix2(){
   row_begin "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE"
   blockfix2_case rename && ok "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE" || bad "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE"
@@ -6673,14 +6709,14 @@ job_production_units(){
   local target
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
-      build/expire-notify-unit build/ktls-lifetime-unit build/moverfix-unit build/moverfix-db0-unit build/publishfix-unit build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/exec1s-unit build/exec1s-word-tsan build/at412-owner build/txnorder-fifo-unit build/txnorder-fifo-db0-unit build/txnorder-chain-unit build/txnorder-chain-db0-unit build/txnorder-index-unit build/txnorder-index-db0-unit build/txnorder-retry-unit build/txnorder-wound-unit build/txnorder-wound-db0-unit build/txnorder-wake-unit build/txnorder-episodes build/txnorder-episodes-debug build/txnorder-watch-unit build/txnorder-watch-db0-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
+      build/wave15-idle-unit build/wave15-idle-db0-unit build/expire-notify-unit build/ktls-lifetime-unit build/moverfix-unit build/moverfix-db0-unit build/publishfix-unit build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/exec1s-unit build/exec1s-word-tsan build/at412-owner build/txnorder-fifo-unit build/txnorder-fifo-db0-unit build/txnorder-chain-unit build/txnorder-chain-db0-unit build/txnorder-index-unit build/txnorder-index-db0-unit build/txnorder-retry-unit build/txnorder-wound-unit build/txnorder-wound-db0-unit build/txnorder-wake-unit build/txnorder-episodes build/txnorder-episodes-debug build/txnorder-watch-unit build/txnorder-watch-db0-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit build/storesize-unit build/respresume-unit build/respresume-migration \
       build/gaterows5-units build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 build/racefix-climon build/aoforder-scheduled >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
   make -q build/respresume-unit && : > "$RUN_DIR/unit-ready/respresume-unit"
   make -q build/respresume-migration && : > "$RUN_DIR/unit-ready/respresume-migration"
-  for target in gaterows5-units expire-notify-unit ktls-lifetime-unit moverfix-unit moverfix-db0-unit publishfix-unit at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit exec1s-unit exec1s-word-tsan at412-owner txnorder-fifo-unit txnorder-fifo-db0-unit txnorder-chain-unit txnorder-chain-db0-unit txnorder-index-unit txnorder-index-db0-unit txnorder-retry-unit txnorder-wound-unit txnorder-wound-db0-unit txnorder-wake-unit txnorder-episodes txnorder-episodes-debug txnorder-watch-unit txnorder-watch-db0-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon aoforder-scheduled; do
+  for target in wave15-idle-unit wave15-idle-db0-unit gaterows5-units expire-notify-unit ktls-lifetime-unit moverfix-unit moverfix-db0-unit publishfix-unit at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit exec1s-unit exec1s-word-tsan at412-owner txnorder-fifo-unit txnorder-fifo-db0-unit txnorder-chain-unit txnorder-chain-db0-unit txnorder-index-unit txnorder-index-db0-unit txnorder-retry-unit txnorder-wound-unit txnorder-wound-db0-unit txnorder-wake-unit txnorder-episodes txnorder-episodes-debug txnorder-watch-unit txnorder-watch-db0-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon aoforder-scheduled; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -6773,7 +6809,7 @@ job_dependencies(){
     racefix_counters) echo racefix_tsan_build;;
     racefix_climon) echo production_units;;
     compat2) echo 'release production_units redis_tcl';;
-    tls|blockfix_registry|slotless|blockfix2) echo 'release production_units';;
+    wave15_idle|tls|blockfix_registry|slotless|blockfix2) echo 'release production_units';;
     respresume-*) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
     debug-*|fused-*|txn_group_*|exec1s|txnorder_fifo|txnorder_chain|txnorder_index|txnorder_wound|txnorder2|txnorder_wake|txnorder-*|at412-owner|aof_frame|aoforder|moverfix) echo 'release production_units';;
@@ -7124,6 +7160,8 @@ collect_job persistfix2_commands
 collect_job persistfix2_errors
 for NET_IO in epoll uring; do collect_job "snapshot-$NET_IO"; done
 # snapfix: three rows before the quick exit (DQ=+3, DF=+3); EXPECT stays maintainer-owned.
+collect_job wave15_rebind
+collect_job wave15_idle
 collect_job wave15_errorstats
 collect_job wave15_aof_participants
 collect_job wave15_aof_large

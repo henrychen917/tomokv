@@ -3,6 +3,11 @@
 #include "io_loop.h"
 #include <sys/resource.h>
 #include <barrier>
+#include <linux/inet_diag.h>
+#include <linux/netlink.h>
+#include <linux/sock_diag.h>
+#include <linux/rtnetlink.h>
+#include <sys/stat.h>
 
 namespace tomo {
 namespace {
@@ -306,6 +311,96 @@ struct FlipListenerState {
     }
 };
 
+namespace {
+// CONFIG may replace an overlapping address on our own port, so an ordinary
+// exclusive bind would reject our old listeners as well. Inspect the kernel's
+// listening sockets, excluding only the descriptors owned by this server. Like
+// the boot probe this is a preflight, not a process-lifetime port reservation.
+bool rebind_exclusive(const FlipListenerState& state, const char* address,
+                      uint16_t port, std::string& error) {
+    if (!port) return true;
+    in_addr wanted{};
+    if (::inet_pton(AF_INET, address, &wanted) != 1) { error = "invalid address"; return false; }
+    std::array<ino_t, kListeners> owned{};
+    unsigned count = 0;
+    for (const auto& listener : state.listeners) if (listener.fd >= 0) {
+        struct stat info{};
+        if (::fstat(listener.fd, &info) != 0) { error = std::strerror(errno); return false; }
+        owned[count++] = info.st_ino;
+    }
+    const int fd = ::socket(AF_NETLINK, SOCK_DGRAM | SOCK_CLOEXEC, NETLINK_SOCK_DIAG);
+    if (fd < 0) { error = std::strerror(errno); return false; }
+    struct Close { int fd; ~Close() { ::close(fd); } } close{fd};
+    timeval timeout{2, 0};
+    if (::setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) != 0) {
+        error = std::strerror(errno); return false;
+    }
+    struct Request { nlmsghdr header; inet_diag_req_v2 body; } request{};
+    request.header.nlmsg_len = sizeof(request);
+    request.header.nlmsg_type = SOCK_DIAG_BY_FAMILY;
+    request.header.nlmsg_flags = NLM_F_REQUEST | NLM_F_DUMP;
+    request.header.nlmsg_seq = 1;
+    request.body.sdiag_protocol = IPPROTO_TCP;
+    request.body.idiag_states = 1u << 10; // TCP_LISTEN
+    sockaddr_nl kernel{}; kernel.nl_family = AF_NETLINK;
+    for (const uint8_t family : {AF_INET, AF_INET6}) {
+    request.body.sdiag_family = family;
+    request.header.nlmsg_seq = family;
+    if (::sendto(fd, &request, sizeof(request), 0, reinterpret_cast<sockaddr*>(&kernel),
+                 sizeof(kernel)) != sizeof(request)) { error = std::strerror(errno); return false; }
+    for (;;) {
+        alignas(nlmsghdr) char buffer[16384];
+        const auto received = ::recv(fd, buffer, sizeof(buffer), MSG_TRUNC);
+        if (received < 0 && errno == EINTR) continue;
+        if (received <= 0 || received > static_cast<ssize_t>(sizeof(buffer))) {
+            error = "could not inspect listener ownership"; return false;
+        }
+        int remaining = static_cast<int>(received);
+        for (auto* header = reinterpret_cast<nlmsghdr*>(buffer); NLMSG_OK(header, remaining);
+             header = NLMSG_NEXT(header, remaining)) {
+            if (header->nlmsg_flags & NLM_F_DUMP_INTR) {
+                error = "listener ownership changed during inspection"; return false;
+            }
+            if (header->nlmsg_type == NLMSG_DONE) goto family_done;
+            if (header->nlmsg_type != SOCK_DIAG_BY_FAMILY ||
+                header->nlmsg_len < NLMSG_LENGTH(sizeof(inet_diag_msg))) {
+                error = "could not inspect listener ownership"; return false;
+            }
+            const auto* socket = static_cast<const inet_diag_msg*>(NLMSG_DATA(header));
+            if (ntohs(socket->id.idiag_sport) != port) continue;
+            uint32_t bound = socket->id.idiag_src[0];
+            if (family == AF_INET6) {
+                // IPv6-only sockets do not reserve any IPv4 endpoint. A dual
+                // stack wildcard or mapped address does, including REUSEPORT.
+                int length = header->nlmsg_len - NLMSG_LENGTH(sizeof(*socket));
+                auto* attr = reinterpret_cast<const rtattr*>(socket + 1);
+                bool known = false, only = false;
+                for (; RTA_OK(attr, length); attr = RTA_NEXT(attr, length)) {
+                    if (attr->rta_type == INET_DIAG_SKV6ONLY && RTA_PAYLOAD(attr) >= 1) {
+                        known = true;
+                        only = *static_cast<const uint8_t*>(RTA_DATA(attr));
+                    }
+                }
+                if (!known) { error = "could not inspect IPv6 listener ownership"; return false; }
+                if (only) continue;
+                const auto* source = socket->id.idiag_src;
+                if (source[0] || source[1] || (source[2] && source[2] != htonl(0xffff))) continue;
+                if (!source[2] && source[3]) continue;
+                bound = source[3];
+            }
+            if (wanted.s_addr && bound && wanted.s_addr != bound) continue;
+            if (std::find(owned.begin(), owned.begin() + count, socket->idiag_inode) != owned.begin() + count)
+                continue;
+            error = std::strerror(EADDRINUSE);
+            return false;
+        }
+    }
+family_done:;
+    }
+    return true;
+}
+}
+
 bool cfgfix_rebind(Server& server, uint32_t caller, uint16_t port,
                    const std::string& bind, std::string& error, int appendonly) {
     if (port == server.cfg().port && bind == server.cfg().bind_addr &&
@@ -323,6 +418,9 @@ bool cfgfix_rebind(Server& server, uint32_t caller, uint16_t port,
     } finish{server};
     if (!fliplisten_reserve(server, error)) return false;
     auto& state = *server.flip_listeners_;
+    if ((port != server.cfg().port || bind != server.cfg().bind_addr) &&
+        (!rebind_exclusive(state, bind.c_str(), port, error) ||
+         !rebind_exclusive(state, bind.c_str(), server.cfg().tls_port, error))) return false;
     FlipListenerState::Rebind plan(server, state, port, bind, appendonly);
     for (unsigned i = 0; plan.listeners && i < 3 * server.nthreads(); ++i) {
         auto& listener = state.listeners[i];

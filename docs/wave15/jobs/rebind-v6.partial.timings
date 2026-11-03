@@ -1,0 +1,2 @@
+ok	0.000000	release build (+footprint locks)
+ok	4.510000	wave15 CONFIG listener exclusivity and rollback (oracle, both modes, engines and namespaces)

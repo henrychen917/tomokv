@@ -28,49 +28,46 @@ def save(path, data):
 def references():
     import identity
     identity.OUT = BUILD / 'identity-cache'
-    identity.REFS = {'headline': '/home/user/Projects/bench-bins/tomokv-headline-105c5818cc'}
-    for lane, digest in [('rootcore', 'd8cdb1df'), ('blockfix4', 'cb7a70bb'),
-                         ('rootcompat', 'f3511f86'), ('clientcompat', '346d035c'),
-                         ('execfifo3', '6f9af8cd')]:
-        identity.REFS[lane] = f'/home/user/Projects/bins/{lane}-post-{digest}'
-        base = 'e32b04a44' if lane == 'execfifo3' else '7d2f8a205'
-        identity.REFS['baseline_' + lane] = f'/home/user/Projects/bench-bins/tomokv-headline-{base}'
+    identity.ROOT = ROOT
+    identity.REFS = {
+        'headline': '/home/user/Projects/bench-bins/tomokv-headline-105c5818cc',
+        'wave14': '/home/user/Projects/bins/wave14-post-c1ed04ec',
+    }
+    for lane in ('cfgfix', 'cfgfix2', 'eoffix', 'netfix2', 'flipfix7', 'rlfix5',
+                 'storefix5', 'cmdfix2', 'txnfix4', 'scriptfix4', 'atomfix6'):
+        for arm, prefix in (('post', ''), ('pre', 'baseline_')):
+            found = list(Path('/home/user/Projects/bins').glob(lane + '-' + arm + '-*'))
+            assert len(found) == 1, (lane, arm, found)
+            identity.REFS[prefix + lane] = str(found[0])
     from wave12_normalize import install
     install(identity.audit)
     return identity
 
 def integration_reasons(directory, binary):
-    """Name integration edits separately from unchanged identity verdicts."""
-    ready = DOC / 'r7-final-ready.json'
-    if not ready.exists() or sha(binary) != json.loads(ready.read_text())['sha256']:
-        return
-    r7 = {r['name'] for r in json.loads(
-        (DOC/'r7-final-release-differences.json').read_text())['changed']}
     path = directory / 'changed-bodies.json'
     rows = json.loads(path.read_text())
-    annotations = []
     for row in rows:
-        reason = None
-        if '::SnapshotManager::start(' in row['name']:
-            reason = ('Integration 2d32493948: capture FUNCTION libraries after AOF '
-                      'increment rotation; includes the corresponding cold error paths.')
-        elif row['name'] in r7:
-            reason = ('Integration a0e4d122e8: regenerate the R7 owner with clientcompat\'s '
-                      'ExDrain-only freeze; its inline/caller propagation changes this envelope.')
-        if reason:
-            row.setdefault('lane_comparison_reason', row['reason'])
-            row['reason'] = reason + ' Lane comparison: ' + row['lane_comparison_reason']
-            annotations.append(dict(name=row['name'], reason=reason))
-    assert len(annotations) == 10
+        name = row['name']
+        if any(word in name for word in ('error_stats', 'reply_err', 'reply_wrongtype',
+                                         'reply_syntax', 'reply_outofrange')):
+            reason = 'Integration: cold Redis afterErrorReply counting and Lua de-duplication.'
+        elif any(word in name for word in ('SnapshotManager::start(', 'SnapshotManager::drain_atomic_groups(',
+                                           'SnapshotManager::cancel_for_shutdown(')):
+            reason = 'Integration: service the existing AOF writer drain during snapshot owner waits.'
+        elif any(word in name for word in ('prepare_commands(', 'normalize_multi_blocking_pop(',
+                                           'multi_rebuild_attempt(', 'multi_prepare_io(')):
+            reason = 'Integration: EXEC task-only AOF participants, normalized pop key positions and no-STORE GEO owner route.'
+        elif 'configure_object_idle(' in name:
+            reason = 'Integration: combine SO5.1 graceful allocation failure with ST5.3 staged byte accounting.'
+        else:
+            continue
+        row['reason'] = reason + ' ' + row['reason']
     save(path, rows)
-    save(directory/'integration-annotations.json', annotations)
-    lines = ['# Linked body differences', '',
-        'Strict gate instruction/address normalization; local clone multiplicity retained. Identity is a proxy.', '',
-        '| Function | Headline sizes | Merged sizes | Reason |', '|---|---|---|---|']
-    for row in rows:
-        lines.append('| `'+row['name'].replace('|', '\\|')+'` | '+str(row['headline_sizes'])+
-            ' | '+str(row['post_sizes'])+' | '+row['reason'].replace('|', '\\|')+' |')
-    (directory/'changed-bodies.md').write_text('\n'.join(lines)+'\n')
+    (directory/'changed-bodies.md').write_text('\n'.join([
+        '# Linked body differences', '', 'Strict instruction/address normalization; identity is a proxy.', '',
+        '| Function | Headline sizes | Merged sizes | Reason |', '|---|---|---|---|',
+        *['| `'+r['name'].replace('|', '\\|')+'` | '+str(r['headline_sizes'])+' | '+str(r['post_sizes'])+
+          ' | '+r['reason'].replace('|', '\\|')+' |' for r in rows]])+'\n')
 
 def inventory():
     from gate_ledger_fixture import source_labels
@@ -114,7 +111,7 @@ def jobs(a):
         GATE_LEDGER=str(out / a.tag), CXX='g++ -gz=zlib', CC='cc -gz=zlib')
     if a.fused:
         env['GATE_TXN_FUSED'] = '1'
-    command = ['taskset', '-c', '0-63', 'tests/gate.sh', 'full',
+    command = ['taskset', '-c', a.server_cores+','+a.load_cores, 'tests/gate.sh', 'full',
         '--server-cores', a.server_cores, '--load-cores', a.load_cores,
         '--server-smt', '', '--load-smt', '', '--ports', a.ports,
         '--candidate-binary', str(binary)]
@@ -152,7 +149,9 @@ def landing_selftest(a):
     gate = source / 'tests/gate.sh'
     before = sha(gate)
     text = gate.read_text()
-    for name, old, new in [('EXPECT_QUICK', 1046, 1090), ('EXPECT_FULL', 1063, 1107)]:
+    inventory()
+    counts = json.loads((DOC/'row-inventory.json').read_text())
+    for name, old, new in [('EXPECT_QUICK', 1046, counts['quick']), ('EXPECT_FULL', 1063, counts['full'])]:
         text, count = re.subn(r'(?m)^'+name+'='+str(old)+r'\b', name+'='+str(new), text)
         assert count == 1
     gate.write_text(text)
@@ -160,7 +159,7 @@ def landing_selftest(a):
         GATE_PROOF_NO_RATES='1', GATE_LEDGER=str(source/'ledger'),
         GATE_TEST_PORT=str(int(a.ports.split('-')[0]) + 2),
         REDIS74_ROOT='/home/user/Projects/redis', CXX='g++ -gz=zlib', CC='cc -gz=zlib')
-    command = ['taskset', '-c', '0-63', 'tests/gate.sh', 'full',
+    command = ['taskset', '-c', a.server_cores+','+a.load_cores, 'tests/gate.sh', 'full',
         '--server-cores', a.server_cores, '--load-cores', a.load_cores, '--server-smt', '',
         '--load-smt', '', '--ports', a.ports, '--candidate-binary', str(a.binary.resolve())]
     logfile = source / 'selftest.log'
@@ -172,7 +171,7 @@ def landing_selftest(a):
     record.update(revision=revision, command=command, exit_code=result.returncode,
         binary_sha256=sha(a.binary), gate_before_sha256=before,
         gate_after_sha256=sha(gate), checked_in_gate_sha256=sha(ROOT/'tests/gate.sh'),
-        expected_quick=1090, expected_full=1107)
+        expected_quick=counts['quick'], expected_full=counts['full'])
     record['unit_listener_port'] = env['GATE_TEST_PORT']
     save(DOC/'jobs'/(a.tag+'.json'), record)
     assert sha(ROOT/'tests/gate.sh') == before, 'checked-in EXPECT source changed'
@@ -205,7 +204,7 @@ def main():
     jp.add_argument('--ports', default='20000-20089')
     lp = sub.add_parser('landing-selftest')
     lp.add_argument('--tag', required=True)
-    lp.add_argument('--binary', type=Path, default=BUILD/'post-r7/tomokv')
+    lp.add_argument('--binary', type=Path, default=BUILD/'POST')
     lp.add_argument('--server-cores', default='16-23')
     lp.add_argument('--load-cores', default='0-7')
     lp.add_argument('--ports', default='20093-20095')

@@ -537,6 +537,10 @@ build/rlfence-unit: tests/rlfence_unit.cc $(wildcard src/*/*.h) $(wildcard src/c
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. tests/rlfence_unit.cc -o $@
 STORE_REGRESSION_SRC := tests/store_regression.cc src/cmd/t_hash.cc src/cmd/t_hash_ttl.cc src/cmd/hexpread.cc src/cmd/storesize.cc src/store/flush.cc
+build/wave15-idle-unit build/wave15-idle-db0-unit: tests/wave15_idle_unit.cc $(STORE_REGRESSION_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -ffunction-sections -fdata-sections -DTOMO_STORE_REGRESSION_TEST $(if $(findstring db0,$@),-DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0) -I. \
+	  tests/wave15_idle_unit.cc $(filter-out tests/store_regression.cc,$(STORE_REGRESSION_SRC)) $(if $(findstring db0,$@),src/cmd/multidb.cc) -Wl,--gc-sections -o $@
 build/store-regression: $(STORE_REGRESSION_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -ffunction-sections -fdata-sections -DTOMO_STORE_REGRESSION_TEST -I. \

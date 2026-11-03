@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=wave15_rebind; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	1.600000	wave15 CONFIG listener exclusivity and rollback (oracle, both modes, engines and namespaces)

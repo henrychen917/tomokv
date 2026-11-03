@@ -1,0 +1,981 @@
+{
+  "quick": 1170,
+  "full": 1187,
+  "quick_exit_line": 7260,
+  "additions": [
+    "scriptfix4 cap (1s, uring)",
+    "scriptfix4 cap (1s, epoll)",
+    "scriptfix4 cap (2s, uring)",
+    "scriptfix4 cap (2s, epoll)",
+    "scriptfix4 tracking (1s, uring)",
+    "scriptfix4 tracking (1s, epoll)",
+    "scriptfix4 tracking (2s, uring)",
+    "scriptfix4 tracking (2s, epoll)",
+    "scriptfix4 blocked (1s, uring)",
+    "scriptfix4 blocked (1s, epoll)",
+    "scriptfix4 blocked (2s, uring)",
+    "scriptfix4 blocked (2s, epoll)",
+    "scriptfix4 shutdown (1s, uring)",
+    "scriptfix4 shutdown (1s, epoll)",
+    "scriptfix4 shutdown (2s, uring)",
+    "scriptfix4 shutdown (2s, epoll)",
+    "scriptfix4 dirty (1s, uring)",
+    "scriptfix4 dirty (1s, epoll)",
+    "scriptfix4 dirty (2s, uring)",
+    "scriptfix4 dirty (2s, epoll)",
+    "storefix5 randomkey append idle accounting (1s)",
+    "storefix5 randomkey append idle accounting (2s)",
+    "atomfix6 collapse (normal, unit)",
+    "atomfix6 collapse (normal, asan)",
+    "atomfix6 collapse (normal, tsan)",
+    "atomfix6 parked MSET8 heads (1s, normal)",
+    "atomfix6 parked MSET8 heads (2s, normal)",
+    "atomfix6 collapse (db0, unit)",
+    "atomfix6 collapse (db0, asan)",
+    "atomfix6 collapse (db0, tsan)",
+    "atomfix6 parked MSET8 heads (1s, db0)",
+    "atomfix6 parked MSET8 heads (2s, db0)",
+    "atomfix6 park index lifetime (asan)",
+    "atomfix6 park index lifetime (tsan)",
+    "atomfix6 MSET pairs/capture/restart (1s, read-local 0, databases 1)",
+    "atomfix6 MSET pairs/capture/restart (1s, read-local 0, databases 16)",
+    "atomfix6 MSET pairs/capture/restart (1s, read-local 1, databases 1)",
+    "atomfix6 MSET pairs/capture/restart (1s, read-local 1, databases 16)",
+    "atomfix6 MSET pairs/capture/restart (2s, read-local 0, databases 1)",
+    "atomfix6 MSET pairs/capture/restart (2s, read-local 0, databases 16)",
+    "atomfix6 MSET pairs/capture/restart (2s, read-local 1, databases 1)",
+    "atomfix6 MSET pairs/capture/restart (2s, read-local 1, databases 16)",
+    "FLIP socket drain and stationary-client fences (ASAN+UBSAN+TSAN)",
+    "cfgfix CONFIG oracle parity (all modes and engines)",
+    "cfgfix2 file (oracle, both modes and engines)",
+    "cfgfix2 acl (oracle, both modes and engines)",
+    "cfgfix2 latency (oracle, both modes and engines)",
+    "cfgfix2 auth (oracle, both modes and engines)",
+    "cfgfix2 shutdown (oracle, both modes and engines)",
+    "cfgfix2 maxmemory (oracle, both modes and engines)",
+    "netfix2 tls-watch",
+    "netfix2 exclusive",
+    "netfix2 fds",
+    "netfix2 tls-idle",
+    "netfix2 boot",
+    "rlfix5 monotonic (1s)",
+    "rlfix5 monotonic (2s)",
+    "rlfix5 yes-no (1s)",
+    "rlfix5 yes-no (2s)",
+    "rlfix5 no-yes (1s)",
+    "rlfix5 no-yes (2s)",
+    "cmdfix2 geo vs Redis 7.4 (all legs)",
+    "cmdfix2 scores vs Redis 7.4 (all legs)",
+    "cmdfix2 hll vs Redis 7.4 (all legs)",
+    "cmdfix2 lcs vs Redis 7.4 (all legs)",
+    "cmdfix2 channels vs Redis 7.4 (all legs)",
+    "cmdfix2 xsetid vs Redis 7.4 (all legs)",
+    "txnfix4 CD5.4 movers under maxmemory change nothing or run (all legs)",
+    "txnfix4 CD5.5 multi-key pops abort a WATCH (all legs)",
+    "txnfix4 CD5.6 WATCH, multi-key pop, CLIENT TRACKING (all legs)",
+    "txnfix4 CD5.3 lapsed hash fields during a capture (all legs)",
+    "txnfix4 TM5.1 execfix proves two owners (all legs)",
+    "wave15 CONFIG listener exclusivity and rollback (oracle, both modes, engines and namespaces)",
+    "wave15 idle-clock failure accounting and grace (both namespaces)",
+    "wave15 generic errorstats (Redis oracle, both modes, engines, atomic and namespaces)",
+    "wave15 AOF EXEC task participants (oracle, both modes, engines, atomic and namespaces)",
+    "wave15 AOF snapshot producer progress (oracle, both modes, engines, atomic and namespaces)",
+    "FLIP late and non-draining output (all 2s legs)",
+    "FLIP blocked connection liveness (all 2s legs)",
+    "FLIP TLS connection liveness (all 2s legs)"
+  ],
+  "removals": [],
+  "collectors": [
+    {
+      "line": 6878,
+      "declaration": "for root in inbox eval segments notify functions waitaof misconf; do collect_job \"rootcore-$root\"; done"
+    },
+    {
+      "line": 6879,
+      "declaration": "collect_job wave14_functions"
+    },
+    {
+      "line": 6880,
+      "declaration": "for SF4_CASE in cap tracking blocked shutdown dirty; do collect_job \"scriptfix4-$SF4_CASE\"; done"
+    },
+    {
+      "line": 6881,
+      "declaration": "collect_job release"
+    },
+    {
+      "line": 6882,
+      "declaration": "collect_job storefix5"
+    },
+    {
+      "line": 6884,
+      "declaration": "collect_job asan"
+    },
+    {
+      "line": 6885,
+      "declaration": "collect_job config_unit"
+    },
+    {
+      "line": 6886,
+      "declaration": "collect_job source_identity"
+    },
+    {
+      "line": 6887,
+      "declaration": "collect_job atomfix6_units"
+    },
+    {
+      "line": 6889,
+      "declaration": "collect_job \"atomfix6-live-$atomfix6_mode-$atomfix6_rl-$atomfix6_db\""
+    },
+    {
+      "line": 6891,
+      "declaration": "collect_job flushfix3"
+    },
+    {
+      "line": 6892,
+      "declaration": "collect_job flushfix3_units"
+    },
+    {
+      "line": 6893,
+      "declaration": "collect_job flushfix2"
+    },
+    {
+      "line": 6894,
+      "declaration": "collect_job flushfix2_units"
+    },
+    {
+      "line": 6897,
+      "declaration": "collect_job iofix-deferred"
+    },
+    {
+      "line": 6898,
+      "declaration": "collect_job iofix-hz"
+    },
+    {
+      "line": 6899,
+      "declaration": "collect_job iofix-sleep"
+    },
+    {
+      "line": 6900,
+      "declaration": "collect_job iofix-signal"
+    },
+    {
+      "line": 6902,
+      "declaration": "collect_job flip_unit"
+    },
+    {
+      "line": 6904,
+      "declaration": "collect_job filter_unit"
+    },
+    {
+      "line": 6906,
+      "declaration": "collect_job ring_unit"
+    },
+    {
+      "line": 6909,
+      "declaration": "collect_job climonfix"
+    },
+    {
+      "line": 6911,
+      "declaration": "collect_job \"climonfix4-$CM_MODE-$CM_ENGINE\""
+    },
+    {
+      "line": 6913,
+      "declaration": "collect_job racefix_counters"
+    },
+    {
+      "line": 6914,
+      "declaration": "collect_job racefix_climon"
+    },
+    {
+      "line": 6915,
+      "declaration": "collect_job lbplanner_units"
+    },
+    {
+      "line": 6919,
+      "declaration": "collect_job exbatch_units"
+    },
+    {
+      "line": 6920,
+      "declaration": "collect_job exbatch_live"
+    },
+    {
+      "line": 6922,
+      "declaration": "collect_job persistfix_units"
+    },
+    {
+      "line": 6923,
+      "declaration": "collect_job perfex_units"
+    },
+    {
+      "line": 6924,
+      "declaration": "collect_job perfex_live"
+    },
+    {
+      "line": 6925,
+      "declaration": "collect_job ntnew4_live"
+    },
+    {
+      "line": 6926,
+      "declaration": "collect_job clientfix"
+    },
+    {
+      "line": 6930,
+      "declaration": "collect_job \"clientcompat-$CC_CASE\""
+    },
+    {
+      "line": 6933,
+      "declaration": "collect_job atomfix5_watch"
+    },
+    {
+      "line": 6935,
+      "declaration": "collect_job atomfix5_accounting"
+    },
+    {
+      "line": 6936,
+      "declaration": "collect_job core_units"
+    },
+    {
+      "line": 6938,
+      "declaration": "collect_job flipfix_units"
+    },
+    {
+      "line": 6940,
+      "declaration": "collect_job flipfix5_units"
+    },
+    {
+      "line": 6942,
+      "declaration": "collect_job flipfix6_units"
+    },
+    {
+      "line": 6944,
+      "declaration": "collect_job flipfix7_units"
+    },
+    {
+      "line": 6946,
+      "declaration": "collect_job wb_rule_units"
+    },
+    {
+      "line": 6949,
+      "declaration": "collect_job wbland_units"
+    },
+    {
+      "line": 6954,
+      "declaration": "collect_job witness_contracts"
+    },
+    {
+      "line": 6955,
+      "declaration": "collect_job reorder_bounds"
+    },
+    {
+      "line": 6956,
+      "declaration": "collect_job rob_portable"
+    },
+    {
+      "line": 6957,
+      "declaration": "collect_job inline_quoted"
+    },
+    {
+      "line": 6958,
+      "declaration": "collect_job slotless"
+    },
+    {
+      "line": 6959,
+      "declaration": "collect_job wb_mixed"
+    },
+    {
+      "line": 6961,
+      "declaration": "collect_job reorder_sync"
+    },
+    {
+      "line": 6962,
+      "declaration": "collect_job reorder_engagement"
+    },
+    {
+      "line": 6963,
+      "declaration": "collect_job reorder_identity"
+    },
+    {
+      "line": 6964,
+      "declaration": "collect_job wb_policy"
+    },
+    {
+      "line": 6965,
+      "declaration": "for MODE in 1s 2s; do collect_job \"lb-stationary-$MODE\"; done"
+    },
+    {
+      "line": 6966,
+      "declaration": "for MODE in 1s 2s; do collect_job \"netio-$MODE\"; done"
+    },
+    {
+      "line": 6967,
+      "declaration": "collect_job perfio_stream"
+    },
+    {
+      "line": 6970,
+      "declaration": "collect_job splitlocal_units"
+    },
+    {
+      "line": 6972,
+      "declaration": "collect_job storage_units"
+    },
+    {
+      "line": 6974,
+      "declaration": "collect_job atomic_units"
+    },
+    {
+      "line": 6975,
+      "declaration": "collect_job aclkeys_wake"
+    },
+    {
+      "line": 6976,
+      "declaration": "collect_job list_namespace"
+    },
+    {
+      "line": 6978,
+      "declaration": "collect_job netcmd_units"
+    },
+    {
+      "line": 6982,
+      "declaration": "collect_job netcap"
+    },
+    {
+      "line": 6985,
+      "declaration": "collect_job netfix_query_stats"
+    },
+    {
+      "line": 6986,
+      "declaration": "collect_job netfix_unix"
+    },
+    {
+      "line": 6987,
+      "declaration": "collect_job netfix_config"
+    },
+    {
+      "line": 6989,
+      "declaration": "collect_job cfgfix"
+    },
+    {
+      "line": 6991,
+      "declaration": "collect_job cfgfix2-file"
+    },
+    {
+      "line": 6992,
+      "declaration": "collect_job cfgfix2-acl"
+    },
+    {
+      "line": 6993,
+      "declaration": "collect_job cfgfix2-latency"
+    },
+    {
+      "line": 6994,
+      "declaration": "collect_job cfgfix2-auth"
+    },
+    {
+      "line": 6995,
+      "declaration": "collect_job cfgfix2-shutdown"
+    },
+    {
+      "line": 6996,
+      "declaration": "collect_job cfgfix2-maxmemory"
+    },
+    {
+      "line": 6997,
+      "declaration": "collect_job netfix_tls"
+    },
+    {
+      "line": 6998,
+      "declaration": "collect_job netfix_idle_buffers"
+    },
+    {
+      "line": 7000,
+      "declaration": "for CASE in tls-watch exclusive fds tls-idle boot; do collect_job \"netfix2-$CASE\"; done"
+    },
+    {
+      "line": 7004,
+      "declaration": "collect_job respcompat"
+    },
+    {
+      "line": 7005,
+      "declaration": "collect_job crlffix"
+    },
+    {
+      "line": 7006,
+      "declaration": "collect_job ntfix_input"
+    },
+    {
+      "line": 7010,
+      "declaration": "for RESP_ENGINE in epoll uring; do collect_job \"respresume-$RESP_CASE-$RESP_MODE-$RESP_ENGINE\"; done"
+    },
+    {
+      "line": 7013,
+      "declaration": "collect_job acl_metadata"
+    },
+    {
+      "line": 7016,
+      "declaration": "collect_job boot_grammar"
+    },
+    {
+      "line": 7017,
+      "declaration": "collect_job dbdefault"
+    },
+    {
+      "line": 7019,
+      "declaration": "collect_job cmd_metadata"
+    },
+    {
+      "line": 7022,
+      "declaration": "collect_job wait_units"
+    },
+    {
+      "line": 7024,
+      "declaration": "collect_job readonly"
+    },
+    {
+      "line": 7026,
+      "declaration": "collect_job release_batteries"
+    },
+    {
+      "line": 7028,
+      "declaration": "collect_job atomic_batteries"
+    },
+    {
+      "line": 7029,
+      "declaration": "collect_job moverfix"
+    },
+    {
+      "line": 7032,
+      "declaration": "collect_job hexpread"
+    },
+    {
+      "line": 7035,
+      "declaration": "collect_job \"multifix-$MF_MODE-$MF_ENGINE\""
+    },
+    {
+      "line": 7037,
+      "declaration": "collect_job compat2"
+    },
+    {
+      "line": 7038,
+      "declaration": "collect_job bugs5"
+    },
+    {
+      "line": 7040,
+      "declaration": "collect_job compat3"
+    },
+    {
+      "line": 7042,
+      "declaration": "collect_job streamfix"
+    },
+    {
+      "line": 7044,
+      "declaration": "collect_job blockfix_registry"
+    },
+    {
+      "line": 7045,
+      "declaration": "collect_job blockfix_mkstream"
+    },
+    {
+      "line": 7046,
+      "declaration": "collect_job blockfix_structure"
+    },
+    {
+      "line": 7049,
+      "declaration": "collect_job blockfix4"
+    },
+    {
+      "line": 7050,
+      "declaration": "collect_job blockfix2"
+    },
+    {
+      "line": 7051,
+      "declaration": "collect_job dispatch_arity"
+    },
+    {
+      "line": 7052,
+      "declaration": "collect_job dispatch_errors"
+    },
+    {
+      "line": 7053,
+      "declaration": "collect_job dispatch_children"
+    },
+    {
+      "line": 7054,
+      "declaration": "collect_job acl_subcommands"
+    },
+    {
+      "line": 7055,
+      "declaration": "collect_job router_uniform"
+    },
+    {
+      "line": 7057,
+      "declaration": "collect_job datafix2_notouch"
+    },
+    {
+      "line": 7058,
+      "declaration": "collect_job datafix2_encoding"
+    },
+    {
+      "line": 7059,
+      "declaration": "collect_job datafix2_subkeys"
+    },
+    {
+      "line": 7060,
+      "declaration": "collect_job datafix2_watch"
+    },
+    {
+      "line": 7061,
+      "declaration": "collect_job datafix2_idle"
+    },
+    {
+      "line": 7064,
+      "declaration": "for AT in 0 1; do collect_job \"feature-split-$AT\"; done"
+    },
+    {
+      "line": 7066,
+      "declaration": "for AT in 0 1; do collect_job \"fused-$AT\"; done"
+    },
+    {
+      "line": 7067,
+      "declaration": "collect_job txn_group_fused"
+    },
+    {
+      "line": 7070,
+      "declaration": "for AT in 0 1; do collect_job \"feature-armed-$AT\"; done"
+    },
+    {
+      "line": 7083,
+      "declaration": "collect_job \"evict-$EVSEC-split-$AT\""
+    },
+    {
+      "line": 7084,
+      "declaration": "collect_job \"evict-$EVSEC-armed-$AT\""
+    },
+    {
+      "line": 7088,
+      "declaration": "collect_job bplus"
+    },
+    {
+      "line": 7089,
+      "declaration": "collect_job rlfix3_zc"
+    },
+    {
+      "line": 7091,
+      "declaration": "collect_job infofix_latency"
+    },
+    {
+      "line": 7092,
+      "declaration": "for CASE in missing docs loadaof; do collect_job \"infofix_compat-$CASE\"; done"
+    },
+    {
+      "line": 7094,
+      "declaration": "collect_job rootcompat"
+    },
+    {
+      "line": 7095,
+      "declaration": "collect_job rlfix3_info"
+    },
+    {
+      "line": 7097,
+      "declaration": "collect_job rlfix5-monotonic"
+    },
+    {
+      "line": 7098,
+      "declaration": "collect_job rlfix5-yes-no"
+    },
+    {
+      "line": 7099,
+      "declaration": "collect_job rlfix5-no-yes"
+    },
+    {
+      "line": 7101,
+      "declaration": "collect_job acl_recheck"
+    },
+    {
+      "line": 7102,
+      "declaration": "collect_job aclfix"
+    },
+    {
+      "line": 7104,
+      "declaration": "collect_job sort"
+    },
+    {
+      "line": 7105,
+      "declaration": "collect_job datafix1_geo"
+    },
+    {
+      "line": 7107,
+      "declaration": "for case in geo scores hll lcs channels xsetid; do collect_job \"cmdfix2-$case\"; done"
+    },
+    {
+      "line": 7108,
+      "declaration": "collect_job datafix1_spop"
+    },
+    {
+      "line": 7109,
+      "declaration": "collect_job datafix1_lists"
+    },
+    {
+      "line": 7110,
+      "declaration": "collect_job datafix1_locale"
+    },
+    {
+      "line": 7111,
+      "declaration": "collect_job datafix1_bitfield"
+    },
+    {
+      "line": 7112,
+      "declaration": "collect_job datafix1_randscan"
+    },
+    {
+      "line": 7113,
+      "declaration": "collect_job datafix1_hexpire"
+    },
+    {
+      "line": 7116,
+      "declaration": "for ITEM in oom watch crash hash placement; do collect_job \"txnfix4-$ITEM\"; done"
+    },
+    {
+      "line": 7117,
+      "declaration": "for AT in 0 1; do collect_job \"debug-$AT\"; done"
+    },
+    {
+      "line": 7118,
+      "declaration": "collect_job txn_group_split"
+    },
+    {
+      "line": 7119,
+      "declaration": "collect_job execfair"
+    },
+    {
+      "line": 7120,
+      "declaration": "collect_job exec1s"
+    },
+    {
+      "line": 7121,
+      "declaration": "collect_job txnorder_fifo"
+    },
+    {
+      "line": 7122,
+      "declaration": "collect_job txnorder_fifo_live"
+    },
+    {
+      "line": 7123,
+      "declaration": "collect_job txnorder_chain"
+    },
+    {
+      "line": 7124,
+      "declaration": "collect_job txnorder_index"
+    },
+    {
+      "line": 7125,
+      "declaration": "collect_job txnorder_wound"
+    },
+    {
+      "line": 7126,
+      "declaration": "collect_job txnorder2"
+    },
+    {
+      "line": 7127,
+      "declaration": "collect_job txnorder_wake"
+    },
+    {
+      "line": 7128,
+      "declaration": "for TM in fused split; do for AT in 0 1; do collect_job \"txnorder-$TM-$AT\"; done; done"
+    },
+    {
+      "line": 7130,
+      "declaration": "collect_job script_bounds"
+    },
+    {
+      "line": 7131,
+      "declaration": "collect_job scriptfix"
+    },
+    {
+      "line": 7132,
+      "declaration": "collect_job scriptfix2"
+    },
+    {
+      "line": 7133,
+      "declaration": "collect_job lualibs"
+    },
+    {
+      "line": 7134,
+      "declaration": "for AT412_CASE in T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11a T11b T12 T13 T14 T15 T16 owner; do collect_job \"at412-$AT412_CASE\"; done"
+    },
+    {
+      "line": 7136,
+      "declaration": "collect_job efficiency"
+    },
+    {
+      "line": 7138,
+      "declaration": "collect_job dump_restore"
+    },
+    {
+      "line": 7139,
+      "declaration": "collect_job persistfmt"
+    },
+    {
+      "line": 7140,
+      "declaration": "collect_job persistfmt_aof_error"
+    },
+    {
+      "line": 7142,
+      "declaration": "collect_job auth"
+    },
+    {
+      "line": 7143,
+      "declaration": "collect_job authfix"
+    },
+    {
+      "line": 7144,
+      "declaration": "collect_job serverfix_lines"
+    },
+    {
+      "line": 7145,
+      "declaration": "collect_job serverfix_scalar"
+    },
+    {
+      "line": 7146,
+      "declaration": "collect_job latencyfix_grammar"
+    },
+    {
+      "line": 7147,
+      "declaration": "collect_job latencyfix_shape"
+    },
+    {
+      "line": 7148,
+      "declaration": "collect_job latencyfix_off"
+    },
+    {
+      "line": 7149,
+      "declaration": "collect_job wave8b_off"
+    },
+    {
+      "line": 7150,
+      "declaration": "collect_job serverfix_config"
+    },
+    {
+      "line": 7151,
+      "declaration": "collect_job serverfix_hello"
+    },
+    {
+      "line": 7152,
+      "declaration": "collect_job serverfix_waitaof"
+    },
+    {
+      "line": 7153,
+      "declaration": "collect_job serverfix_hll"
+    },
+    {
+      "line": 7154,
+      "declaration": "collect_job serverfix_slowlog"
+    },
+    {
+      "line": 7155,
+      "declaration": "collect_job serverfix_acllog"
+    },
+    {
+      "line": 7157,
+      "declaration": "collect_job persistfix2_lastsave"
+    },
+    {
+      "line": 7158,
+      "declaration": "collect_job persistfix2_shutdown"
+    },
+    {
+      "line": 7159,
+      "declaration": "collect_job persistfix2_commands"
+    },
+    {
+      "line": 7160,
+      "declaration": "collect_job persistfix2_errors"
+    },
+    {
+      "line": 7161,
+      "declaration": "for NET_IO in epoll uring; do collect_job \"snapshot-$NET_IO\"; done"
+    },
+    {
+      "line": 7163,
+      "declaration": "collect_job wave15_rebind"
+    },
+    {
+      "line": 7164,
+      "declaration": "collect_job wave15_idle"
+    },
+    {
+      "line": 7165,
+      "declaration": "collect_job wave15_errorstats"
+    },
+    {
+      "line": 7166,
+      "declaration": "collect_job wave15_aof_participants"
+    },
+    {
+      "line": 7167,
+      "declaration": "collect_job wave15_aof_large"
+    },
+    {
+      "line": 7168,
+      "declaration": "collect_job snapfix_shutdown"
+    },
+    {
+      "line": 7169,
+      "declaration": "collect_job snapfix_bgsave_script"
+    },
+    {
+      "line": 7170,
+      "declaration": "collect_job snapfix_bgsave_exec"
+    },
+    {
+      "line": 7172,
+      "declaration": "collect_job snapfix2_tables"
+    },
+    {
+      "line": 7174,
+      "declaration": "collect_job notify"
+    },
+    {
+      "line": 7176,
+      "declaration": "collect_job pubtrackfix"
+    },
+    {
+      "line": 7178,
+      "declaration": "collect_job maxmemrace"
+    },
+    {
+      "line": 7180,
+      "declaration": "collect_job trackfix_order"
+    },
+    {
+      "line": 7181,
+      "declaration": "collect_job trackfix_accounting"
+    },
+    {
+      "line": 7183,
+      "declaration": "collect_job notifycompat"
+    },
+    {
+      "line": 7184,
+      "declaration": "collect_job tracking_redirect"
+    },
+    {
+      "line": 7185,
+      "declaration": "collect_job trackorder"
+    },
+    {
+      "line": 7186,
+      "declaration": "collect_job notify_order"
+    },
+    {
+      "line": 7187,
+      "declaration": "collect_job notify_aof"
+    },
+    {
+      "line": 7189,
+      "declaration": "collect_job flip"
+    },
+    {
+      "line": 7190,
+      "declaration": "collect_job fliplisten"
+    },
+    {
+      "line": 7192,
+      "declaration": "collect_job flipctl"
+    },
+    {
+      "line": 7193,
+      "declaration": "collect_job flip_saturated"
+    },
+    {
+      "line": 7195,
+      "declaration": "collect_job flipfix5"
+    },
+    {
+      "line": 7197,
+      "declaration": "collect_job flipfix6"
+    },
+    {
+      "line": 7199,
+      "declaration": "collect_job flipfix7_output"
+    },
+    {
+      "line": 7200,
+      "declaration": "collect_job flipfix7_blocked"
+    },
+    {
+      "line": 7201,
+      "declaration": "collect_job flipfix7_tls"
+    },
+    {
+      "line": 7203,
+      "declaration": "collect_job atomic_floor"
+    },
+    {
+      "line": 7205,
+      "declaration": "for NET_IO in epoll uring; do collect_job \"aof-$NET_IO\"; done"
+    },
+    {
+      "line": 7207,
+      "declaration": "collect_job aof_frame"
+    },
+    {
+      "line": 7209,
+      "declaration": "collect_job aoforder"
+    },
+    {
+      "line": 7211,
+      "declaration": "collect_job tls"
+    },
+    {
+      "line": 7225,
+      "declaration": "collect_job \"feature-cell-$FEATURE_CELL\""
+    },
+    {
+      "line": 7229,
+      "declaration": "collect_job \"feature-cell-$FEATURE_CELL\""
+    },
+    {
+      "line": 7232,
+      "declaration": "collect_job abba_selftest"
+    },
+    {
+      "line": 7238,
+      "declaration": "collect_job \"multidb-$MD_MODE-$MD_RL-$MD_AT\""
+    },
+    {
+      "line": 7280,
+      "declaration": "collect_job asan_batteries"
+    },
+    {
+      "line": 7282,
+      "declaration": "collect_job replyoff"
+    },
+    {
+      "line": 7284,
+      "declaration": "collect_job zc"
+    },
+    {
+      "line": 7286,
+      "declaration": "collect_job rldbg"
+    },
+    {
+      "line": 7288,
+      "declaration": "collect_job rlcache"
+    },
+    {
+      "line": 7293,
+      "declaration": "collect_job differ-split"
+    },
+    {
+      "line": 7304,
+      "declaration": "collect_job differ-armed"
+    },
+    {
+      "line": 7306,
+      "declaration": "collect_job globcase"
+    }
+  ],
+  "missing_fixture": [],
+  "extra_fixture": [],
+  "gate_sha256": "c6b620658f3f8d51e301af1d3fbb96785681b65ad0b699878126c20f596958e3"
+}

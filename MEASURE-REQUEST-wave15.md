@@ -17,7 +17,7 @@ Correctness and builds use CPUs 0–63, ports 20000–20099 and LC_ALL=C. Perfor
 - netfix2: EOF timers and accept-backoff timers coexist as distinct kinds; process both cold branches before dereferencing a client. Keep both mode-equivalence guard controls. The guarded partial-only shared-CPU adapter accepts netfix2’s client subset; normal disjoint placement remains unchanged.
 
 - flipfix7 and rlfix5: retain production fixes and both guarded harness interfaces.
-- storefix5 ST5.3 + cfgfix2 SO5.1: construct the clock with nothrow allocation; count all staged nodes in a local byte total; publish the charge only after every install succeeds. A failed partial clock is destroyed without charging the store. Disable retains ST5.3’s deferred subtraction after grace. Directed allocation-failure accounting verification remains pending. Conflicting xshard budgets are provisional until compile-only trials.
+- storefix5 ST5.3 + cfgfix2 SO5.1: construct the clock with nothrow allocation; count all staged nodes in a local byte total; publish the charge only after every install succeeds. A failed partial clock is destroyed without charging the store. Disable retains ST5.3’s deferred subtraction after grace. The serverless directed unit exercises all six allocation boundaries with and without readers, retains an old clock charge through grace, and checks that failed replacement frees exactly its uncharged allocations. Both namespace units pass; the first gate invocation exposed and corrected missing unit prerequisites. Conflicting xshard budgets are provisional until compile-only trials.
 
 - cmdfix2, txnfix4, scriptfix4: retain every declared job and both Tcl adapter test inventories; production edits merge without conflict.
 - atomfix6: retain dynamic IO-role discovery, both socket-retention approaches, and wave14’s exact refusal reasons, subsecond bounds, and counter reconciliation. Preserve every planner negative control. xshard budgets remain provisional.
@@ -42,7 +42,7 @@ HANG-2: the merged twelve-lane binary still hangs on the deterministic 32 MiB/1 
 
 Two directed rows are collected before the quick exit, bringing the current declaration to **1167/1184**. Full POST oracle/restart matrices are running through the gate job interface. Initial probe harness defects (Conn context manager, an extra close, reading a persistence counter from INFO stats) are corrected and the defective receipts are retained as such; replay loss checks continue past PRE shutdown failure.
 
-Corrected cfgfix2 PRE gate jobs both fail on `/home/user/Projects/bins/cfgfix2-pre-81aa6c32`; receipts are in `docs/wave15/jobs/cfgfix2-corrected-pre*`. POST reruns remain pending.
+Corrected cfgfix2 PRE gate jobs both fail on `/home/user/Projects/bins/cfgfix2-pre-81aa6c32`; receipts are in `docs/wave15/jobs/cfgfix2-corrected-pre*`. Merged POST auth and shutdown reruns pass all declared legs in `integration-directed-1` (binary SHA `8ef611bf980cd5f9afeb8909c45fb41fa0ed5b766e266c6105f80cfb8a604741`).
 
 ### Generic error accounting
 
@@ -55,3 +55,11 @@ The errorstats row is before the quick exit: current counts **1168/1185** (+75 l
 The expanded EXEC/restart matrix found stale argv indexes after blocking-pop normalization: BLMPOP emitted a postimage for the direction word under the real key's shard and restart rejected it. The normalizer now updates only key positions, preserving the classified shards. Read-only GEORADIUS/GEORADIUSBYMEMBER (without the `_RO` spelling) previously reached a STORE-only reducer and returned an internal error after the participant hang was removed. Their no-STORE form now selects its one real key before classification. This narrow key-classification correction is required for the demonstrated wrong reply; LMPOP/ZMPOP and other generic range classification remain unchanged. The same integration row checks these paths and their durable effects.
 
 The deterministic HANG-2 POST gate matrix passes. PRE appendfsync=no acknowledges the pop and loses it on restart, now reproduced and retained in `aof-participants-pre-final`. `_RO` GEO spellings pass PRE; writable-spelling GEO reads and STORE forms hang PRE. Fresh probe boots now require exclusive listener release after waitpid, accounting for delayed io_uring cancellation after SIGKILL without relaxing any result assertion.
+
+### Listener interaction and completed AOF matrices
+
+CONFIG's REUSEPORT replacements could join another process's listener group despite netfix2's exclusive boot check. The cold rebind path now inspects kernel listener ownership, excluding only its own descriptors, before preparing replacements. Failure retains both old listener and all multi-argument CONFIG values. The original candidate fails all eight TomoKV legs; Redis passes. The first fixed POST passes all eight legs; The expanded `rebind-v6` oracle matrix also passes dual-stack conflict and IPv6-only coexistence controls, plus same-port wildcard expansion against a foreign dual-stack listener. Own address/port transitions remain accepted.
+
+`integration-directed-1` passes the corrected cfgfix2 auth/shutdown, mixed generic errorstats, all EXEC participant/restart siblings, and 32 MiB/1 MiB plus original 128 MiB AOF progress matrices. Defective initial harness attempts remain labelled in receipts, not counted as evidence. Runtime payloads are SHA-recorded before pruning; logs and JSON receipts remain.
+
+Two further integration rows (idle accounting and runtime rebind exclusivity) are collected before the quick exit, for **1170/1187** currently: wave14 1090/1107 +75 lane rows +5 integration rows. EXPECT constants remain unchanged.
