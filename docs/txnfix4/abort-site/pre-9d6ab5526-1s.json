@@ -1,0 +1,107 @@
+{
+  "label": "pre-9d6ab5526-1s",
+  "binary": "build/txnfix4/pre-source/build/tomokv",
+  "mode": "1s",
+  "binary_sha256": "737dd31040e35a371456af6775ebb07f001e719b7102cd12d6c188be9649e1fb",
+  "iterations": 200,
+  "died": false,
+  "sigabrt": false,
+  "exec_committed": 200,
+  "backtrace": [
+    "#0  0x00007ffff6f1b79d in __GI___poll (fds=fds@entry=0x7ffffffa6d50, nfds=nfds@entry=1, timeout=timeout@entry=50) at ../sysdeps/unix/sysv/linux/poll.c:29",
+    "#1  0x0000555555d8c78c in poll (__timeout=50, __nfds=1, __fds=0x7ffffffa6d50) at /usr/include/x86_64-linux-gnu/bits/poll2.h:39",
+    "#2  tomo::signal_doorbell_wait (timeout_ms=<optimized out>) at src/core/../store/../persist/../core/../net/../core/signal_doorbell.h:97",
+    "#3  tomo::Server::monitor_controllers (this=this@entry=0x7ffffffafa00) at src/core/lbplanner.cc:582",
+    "#4  0x00005555555c9632 in tomo::run_fused_server (srv=..., aof_base_plan=<optimized out>, aof_plans=std::vector of length 0, capacity 0, load_plan=<optimized out>, tls_context=<optimized out>, unix_listener=..., final_report=...) at src/core/genthread.cc:262",
+    "#5  0x0000555555db6dd3 in tomo::run_fused_server_selected (srv=..., aof_base_plan=<optimized out>, aof_plans=std::vector of length 0, capacity 0, load_plan=<optimized out>, tls_context=<optimized out>, unix_listener=..., final_report=...) at src/core/reorder.cc:3262",
+    "#6  0x0000555555a08b00 in tomokv_multidb_main (argc=argc@entry=25, argv=argv@entry=0x7fffffffd8f8) at /usr/include/c++/13/bits/unique_ptr.h:199",
+    "#7  0x00005555555d9dcf in main (argc=25, argv=0x7fffffffd8f8) at src/main.cc:215"
+  ],
+  "rows": [
+    {
+      "iteration": 0,
+      "locations": [
+        [
+          7,
+          7
+        ],
+        [
+          6,
+          6
+        ]
+      ],
+      "pop": "[b'cd56:0:1', [[b'a', b'1']]]",
+      "exec": "[b'PONG']",
+      "tracked_read": "[b'a', b'b', b'c']",
+      "alive": true
+    },
+    {
+      "iteration": 1,
+      "locations": [
+        [
+          15,
+          7
+        ],
+        [
+          8,
+          0
+        ]
+      ],
+      "pop": "[b'cd56:1:1', [[b'a', b'1']]]",
+      "exec": "[b'PONG']",
+      "tracked_read": "[b'a', b'b', b'c']",
+      "alive": true
+    },
+    {
+      "iteration": 2,
+      "locations": [
+        [
+          6,
+          6
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "pop": "[b'cd56:2:1', [[b'a', b'1']]]",
+      "exec": "[b'PONG']",
+      "tracked_read": "[b'a', b'b', b'c']",
+      "alive": true
+    },
+    {
+      "iteration": 198,
+      "locations": [
+        [
+          12,
+          4
+        ],
+        [
+          8,
+          0
+        ]
+      ],
+      "pop": "[b'cd56:198:1', [[b'a', b'1']]]",
+      "exec": "[b'PONG']",
+      "tracked_read": "[b'a', b'b', b'c']",
+      "alive": true
+    },
+    {
+      "iteration": 199,
+      "locations": [
+        [
+          15,
+          7
+        ],
+        [
+          13,
+          5
+        ]
+      ],
+      "pop": "[b'cd56:199:1', [[b'a', b'1']]]",
+      "exec": "[b'PONG']",
+      "tracked_read": "[b'a', b'b', b'c']",
+      "alive": true
+    }
+  ]
+}

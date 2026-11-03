@@ -1300,6 +1300,8 @@ bool finish_phase1(ScatterState& state, Op& op) {
             } catch (const std::bad_alloc&) {
                 state.final_reply = FinalReply::Work; state.final_error = WorkError::Oom; return true;
             }
+            // CD5.4: hop two may erase the source before this install; never refuse it for memory.
+            state.apply[1].mover_install = true;
             state.final_integer = state.kind == Kind::Renamenx ? 1 : -1;
             state.hop2[0] = 1; state.hop2[1] = 0; state.hop2_count = 2;
             return false;
@@ -2290,6 +2292,8 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         if (kind == Kind::Renamenx && images[2].present) { reply_int(op.sink(), 0); return; }
         try { apply[2] = images[1]; apply[1] = ObjectImage{}; }
         catch (const std::bad_alloc&) { set_oom(op); return; }
+        // CD5.4: RENAME/RENAMENX have no DENYOOM; neither half may be refused for memory.
+        MoverMemoryScope mover_memory(shard.store());
         local_apply<kNotify>(shard, op, apply, {2, 1}, error, 1);
         if (error != WorkError::None) reply_work_error(op, error);
         else {
@@ -2345,6 +2349,8 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
                              images[2].present && images[2].reserve_ttl_slot)) {
             set_oom(op); return;
         }
+        // CD5.4: SMOVE has no DENYOOM; the destination install follows the source removal.
+        MoverMemoryScope mover_memory(shard.store());
         local_apply<kNotify>(shard, op, apply,
             add_destination ? std::initializer_list<uint32_t>{1, 2}
                             : std::initializer_list<uint32_t>{1}, error);
@@ -2373,6 +2379,8 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         const bool to_left = kind == Kind::Lmove ? op.arg(4).eq_icase("left") : true;
         std::string moved = from_left ? src.front() : src.back();
         if (from_left) src.erase(src.begin()); else src.pop_back();
+        // CD5.4: the DENYOOM gate admitted this command before it ran; never refuse half way.
+        MoverMemoryScope mover_memory(shard.store());
         if (same_key(op)) {
             if (to_left) src.insert(src.begin(), moved); else src.push_back(moved);
             if (!encode_elements(src, apply[1], Type::List, images[1].expire_at_ms,

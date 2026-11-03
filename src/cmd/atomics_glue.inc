@@ -231,6 +231,20 @@ ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
     if (state.aborted.load(std::memory_order_acquire))
         return ScatterTaskResult::Complete;
 
+    // CD5.4: a mover is admitted once, before any visible change. A DENYOOM mover is admitted on
+    // every participating owner here, while the group is still undecided, so a refusal aborts it
+    // whole; every mover then installs with the shard budget lifted (no DENYOOM: never refused).
+    std::optional<MoverMemoryScope> mover_memory;
+    if (is_two_key_mover(state.kind)) {
+        if ((op.spec->flags & CmdFlags::DenyOom) && !store.budget_admit(
+                op.arg(state.keys[state.key_order[group.begin]].arg))) {
+            group.error = WorkError::Maxmemory;
+            state.aborted.store(true, std::memory_order_release);
+            return ScatterTaskResult::Complete;
+        }
+        mover_memory.emplace(store);
+    }
+
     if (!store.atomic_prepare_capacity(group.count)) {
         group.error = WorkError::InsertFailed;
         state.aborted.store(true, std::memory_order_release);

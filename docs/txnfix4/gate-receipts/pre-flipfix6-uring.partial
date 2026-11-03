@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=flipfix6 ; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	520.690000	FLIP MULTI WATCH session storm (all legs)

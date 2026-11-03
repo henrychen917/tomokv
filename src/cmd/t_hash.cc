@@ -808,7 +808,9 @@ const HashFieldTtl* hash_ttls_of(const KvObj* object) {
 // shard that has never seen HEXPIRE pays one load and one predicted-false test per hash command and
 // reaches no field-TTL code at all. Reaping (rather than filtering at each read site) is also what
 // keeps the ordinary handlers below on live fields. A parked read branches to hexpread.cc
-// before this lookup; its borrowed version must never reach this eager reaper.
+// before this lookup; its borrowed version must never reach this eager reaper. A read during a
+// snapshot capture must not reap either: the reaper answers it from hexpread's view and returns
+// false, exactly as for an error reply (CD5.3).
 template <bool kNotify>
 inline bool hash_lookup(Shard& shard, Op& op, KvObj*& object) {
     object = (op.spec->flags & CmdFlags::Readonly)
@@ -816,7 +818,7 @@ inline bool hash_lookup(Shard& shard, Op& op, KvObj*& object) {
         : shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return false;
     if (__builtin_expect(shard.store().field_expire_count() != 0, false) && object)
-        object = hash_ttl_on_access(shard, op, object, kNotify);
+        return hash_ttl_on_access(shard, op, object, kNotify);
     return true;
 }
 

@@ -1,0 +1,60 @@
+{
+  "label": "headline-105c5818cc-2s",
+  "binary": "/home/user/Projects/bench-bins/tomokv-headline-105c5818cc",
+  "mode": "2s",
+  "binary_sha256": "2404be4919172bd5b273d8cb6bda720eeae176ea3e0bb151c9fe768ee96f0991",
+  "iterations": 1,
+  "died": true,
+  "sigabrt": true,
+  "exec_committed": 1,
+  "backtrace": [
+    "#0  __pthread_kill_implementation (no_tid=0, signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:44",
+    "#1  __pthread_kill_internal (signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:78",
+    "#2  __GI___pthread_kill (threadid=<optimized out>, signo=signo@entry=6) at ./nptl/pthread_kill.c:89",
+    "#3  0x00007ffff6e4527e in __GI_raise (sig=sig@entry=6) at ../sysdeps/posix/raise.c:26",
+    "#4  0x00007ffff6e288ff in __GI_abort () at ./stdlib/abort.c:79",
+    "#5  0x00005555555c36c8 in tomo::(anonymous namespace)::tracking_read_marker () at src/cmd/tracking.cc:69",
+    "#6  0x0000555555aaf2e7 in tomo::watch_execute_handler (shard=..., op=...) at src/cmd/watch_modified.inc:45",
+    "#7  0x00005555555af7d2 in tomo::ExLoopT<false>::execute_timed<false, false> (this=this@entry=0x7ffff6277420, t=...) at src/core/ex_execute.inc:239",
+    "#8  0x00005555555afa8b in tomo::ExLoopT<false>::exec_batch_exact<false> (this=this@entry=0x7ffff6277420, batch=batch@entry=0x7ffff587cab0, n=n@entry=1, arm=..., now_ms=now_ms@entry=1793589298660) at src/core/ex_loop.h:2347",
+    "#9  0x00005555555afc3f in tomo::ExLoopT<false>::exec_batch_timed<false> (loop=0x7ffff6277420, batch=0x7ffff587cab0, n=1) at src/core/ex_loop.h:2378",
+    "#10 0x0000555555a59972 in tomo::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff6277420, batch=0x7ffff587cab0, n=<optimized out>) at src/core/ex_loop.h:2462",
+    "#11 0x0000555555a5ecc1 in tomo::ExLoopT<false>::exec_batch<false, 32ul> (n=<optimized out>, batch=..., this=0x7ffff6277420) at src/core/ex_loop.h:2495"
+  ],
+  "rows": [
+    {
+      "iteration": 0,
+      "locations": [
+        [
+          12,
+          6
+        ],
+        [
+          13,
+          7
+        ]
+      ],
+      "pop": "[b'cd56:0:4', [[b'a', b'1']]]",
+      "exec": "[b'PONG']",
+      "tracked_read": "\"EOFError('server closed the connection')\"",
+      "alive": false
+    },
+    {
+      "iteration": 0,
+      "locations": [
+        [
+          12,
+          6
+        ],
+        [
+          13,
+          7
+        ]
+      ],
+      "pop": "[b'cd56:0:4', [[b'a', b'1']]]",
+      "exec": "[b'PONG']",
+      "tracked_read": "\"EOFError('server closed the connection')\"",
+      "alive": false
+    }
+  ]
+}

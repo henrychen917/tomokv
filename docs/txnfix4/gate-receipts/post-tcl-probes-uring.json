@@ -1,0 +1,885 @@
+{
+  "label": "post-tcl-probes-uring",
+  "source": "/home/user/Projects/cx-txnfix4/build/gate-run.KsiL4R",
+  "archive": "/home/user/Projects/cx-txnfix4/docs/txnfix4/gate-receipts/post-tcl-probes-uring.tar.gz",
+  "archive_sha256": "d77dd306c0c90bd11c782cf022c02fdc3597bb0f1bb67aa6f5d5d4ff3c7a3d67",
+  "files": [
+    {
+      "path": "families.tsv",
+      "size": 106,
+      "sha256": "8f2ac1fb0234086f59f7ce898000bc6a4d5f98733929cad646ca4b5cf1474297"
+    },
+    {
+      "path": "jobs/redis_tcl/done",
+      "size": 6,
+      "sha256": "a77898b9ae386952ccd27957c57d452e9183c722002e39f7ff32cbba6f720860"
+    },
+    {
+      "path": "jobs/redis_tcl/family.tsv",
+      "size": 54,
+      "sha256": "1f778b42f6a26bec806c120eca4766bcb5ceba8178f06f9eb01bfcbbe151db4c"
+    },
+    {
+      "path": "jobs/redis_tcl/ledger",
+      "size": 102,
+      "sha256": "2aec7f2b9a9170408c05e4f837871ef14641e3756e98fe699cddfd15f755f789"
+    },
+    {
+      "path": "jobs/redis_tcl/output.log",
+      "size": 321,
+      "sha256": "ededb825d429bfbf5b52c59edff4c437269aba243702a26dbd02856ea5f0e090"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/02d32ea9bba6586a/1/unit/type/list/events.tsv",
+      "size": 33263,
+      "sha256": "165f7883b07a7a7552fd43016f36e18aa21c5e04c95bacdcbfc8ef3914d645bd"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/02d32ea9bba6586a/1/unit/type/list/result.json",
+      "size": 56701,
+      "sha256": "b7529a433826df64c74b49c923b4bee92b2b1a10f57a038ad9fbc2c495fa20b9"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/02d32ea9bba6586a/1/unit/type/list/server.log",
+      "size": 10857,
+      "sha256": "a80d07e9f340232c2619271661ccffaa3e9c064ec5b02b9e5549f8442dfc647a"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/02d32ea9bba6586a/1/unit/type/list/suite.log",
+      "size": 21456,
+      "sha256": "9c7f2e216989f91161028a130558026210a250884cd44d4e0570bfe818ce7f42"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/02d32ea9bba6586a/2/unit/type/list/events.tsv",
+      "size": 33263,
+      "sha256": "db7fb6b172f1fc90a2abcce68ab5b2a4adee7b6a8758e0f91776e191b1876b88"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/02d32ea9bba6586a/2/unit/type/list/result.json",
+      "size": 56702,
+      "sha256": "71c3e671ef2420c3c350d73da22316c08105c451efab4805c8d9e88598433969"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/02d32ea9bba6586a/2/unit/type/list/server.log",
+      "size": 10853,
+      "sha256": "a907a18426302d8c0a4e218c1fb604f70e974072c5018174f98801122c0fab89"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/02d32ea9bba6586a/2/unit/type/list/suite.log",
+      "size": 21456,
+      "sha256": "f226bf0f80ef294337846b9cfe570e992bbf85743fa6491b483c0a32da58b469"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/02d32ea9bba6586a/3/unit/type/list/events.tsv",
+      "size": 33263,
+      "sha256": "9ece8875c9914aad700596e5ad26b0ea5245b39635af2dae2fb9aff33f25d091"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/02d32ea9bba6586a/3/unit/type/list/result.json",
+      "size": 56702,
+      "sha256": "e6e6033053cca32a7ddd3a28154bf4f5d66b6646b3bf4a38040c86c7d2235bcf"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/02d32ea9bba6586a/3/unit/type/list/server.log",
+      "size": 10856,
+      "sha256": "3303947a72ad2c01380b75a05faa8719fed3bb2f03974a88c9f2cd67c8ee83a4"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/02d32ea9bba6586a/3/unit/type/list/suite.log",
+      "size": 21456,
+      "sha256": "85857af2ab2c0cbf22292653007b785e59c6ce6bd1bf81a97da2cfa4e62a98c6"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/22211086b917a2b7/1/unit/type/list/events.tsv",
+      "size": 32142,
+      "sha256": "6eb0ed3b2808a40aae973cd94f1927bb59f83083894d1fd2c5b03f15dfcae590"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/22211086b917a2b7/1/unit/type/list/result.json",
+      "size": 55739,
+      "sha256": "98fd82916765275bb193d24e185411c1c7b662233b801a6e63d255e524a854c1"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/22211086b917a2b7/1/unit/type/list/server.log",
+      "size": 10871,
+      "sha256": "4f4e0fad0304e0cd784f549561cd6e50006a1c32f6d8be904a4fc4f7ffd5e9a1"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/22211086b917a2b7/1/unit/type/list/suite.log",
+      "size": 19857,
+      "sha256": "d1d4eb0676037782124297c391ea74a033e94e30b8254c0585ca39b68617609b"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/22211086b917a2b7/2/unit/type/list/events.tsv",
+      "size": 32142,
+      "sha256": "508a071cb1fdb007d1e082540d7d365e9940aa36e4171e49796dc1f23748e4ec"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/22211086b917a2b7/2/unit/type/list/result.json",
+      "size": 55738,
+      "sha256": "3b30809c73ca1b27bd76817e07b6bc0093c6f822a9a5b4d8397ea2be281a2244"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/22211086b917a2b7/2/unit/type/list/server.log",
+      "size": 10872,
+      "sha256": "3293daa72a58231afda7dc5e7f14656d290989ab21b7b3f40554a77778f310c6"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/22211086b917a2b7/2/unit/type/list/suite.log",
+      "size": 19857,
+      "sha256": "c2f7fb59ccfa8f6c528148c621a7d9ee4cc581027cae4674e3cb72068aa9a477"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/22211086b917a2b7/3/unit/type/list/events.tsv",
+      "size": 32142,
+      "sha256": "1dc67a1789f48006a0922bd43f201d8f9e6f5063fec4671776fbeed610eb6660"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/22211086b917a2b7/3/unit/type/list/result.json",
+      "size": 55738,
+      "sha256": "f54d99d71c105561570dcab6b2d0009676f65d24439c4602aa78770fa4ec78bd"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/22211086b917a2b7/3/unit/type/list/server.log",
+      "size": 10876,
+      "sha256": "e17d68f5d9eef6744390111aa78a46dcc72e406dfae3efe2687020a4fd3a20fc"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/22211086b917a2b7/3/unit/type/list/suite.log",
+      "size": 19857,
+      "sha256": "bb4ad4f1b27b42004934df1e1cccfa0af9fcefa9864184ea79c4569bff4052c1"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/2f7cb56e674dd709/1/unit/type/list/events.tsv",
+      "size": 31986,
+      "sha256": "516fe8eeb7cc36ae5d59b6adcc6dc0531d65c9cabfdf5a5bb149915dd9c06c06"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/2f7cb56e674dd709/1/unit/type/list/result.json",
+      "size": 55582,
+      "sha256": "c11b6fbcd6de9568ccc932b3c79f876fad5dcd0bac5bdabb44789f6af67816e3"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/2f7cb56e674dd709/1/unit/type/list/server.log",
+      "size": 10858,
+      "sha256": "341e89a37c5ae55c6706fbcebd2e59262a6431b0792bbd40b466a87f5fd591aa"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/2f7cb56e674dd709/1/unit/type/list/suite.log",
+      "size": 19857,
+      "sha256": "c861f00d6a6c7137ec31d740e2e11c129a1c88892c44b6e6872fbb01d699e963"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/2f7cb56e674dd709/2/unit/type/list/events.tsv",
+      "size": 31986,
+      "sha256": "fd5da99cfd8496d7930b9de1857144b353622e3ffc1816f57c370b027e6d962c"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/2f7cb56e674dd709/2/unit/type/list/result.json",
+      "size": 55582,
+      "sha256": "2e4ed65d53a3c10050e6f1b113d05249e5e1c18e1c4fdeaa59a781de4191d229"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/2f7cb56e674dd709/2/unit/type/list/server.log",
+      "size": 10852,
+      "sha256": "1837f2a00572a82026b2e9497a14b69cbd2423e3935c5c5d5057cd56d352311b"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/2f7cb56e674dd709/2/unit/type/list/suite.log",
+      "size": 19857,
+      "sha256": "63646ca3eb25aa6b47a3075b575aaebe9f7c2586d39be570e8d784ff114c9823"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/2f7cb56e674dd709/3/unit/type/list/events.tsv",
+      "size": 31986,
+      "sha256": "93ae5e81eae46242112027fe76680eb831d5bb2ea863eea17ce825e6732c2515"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/2f7cb56e674dd709/3/unit/type/list/result.json",
+      "size": 55582,
+      "sha256": "94d0044993b60249ec78637f169c56aaa72d05a37ac091514012c74fccc2b604"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/2f7cb56e674dd709/3/unit/type/list/server.log",
+      "size": 10856,
+      "sha256": "aa57885012b5beb1bbe4d660e2095efbc69b14d73a13f36eb0e1ca7cc8c284b2"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/2f7cb56e674dd709/3/unit/type/list/suite.log",
+      "size": 19857,
+      "sha256": "1673c967505b42b82e6a6113ff64ba9c688007f4b60204204bcd8cd5f2c9a4e1"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/76f3d556d6dac231/1/unit/multi/events.tsv",
+      "size": 7347,
+      "sha256": "37d75af057a464154e8552c983cf760f9e7dbe328e1e1fbedb2341df66ee5e3a"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/76f3d556d6dac231/1/unit/multi/result.json",
+      "size": 13609,
+      "sha256": "23d1c95da8e4c19bcb2229b3b1659937da3799b4045b37f128798beb377e9056"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/76f3d556d6dac231/1/unit/multi/server.log",
+      "size": 10676,
+      "sha256": "c191be12c2a3ebd66358af5a57f1eaa49a224a4d3cf216bf1c59ffa6643d5e66"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/76f3d556d6dac231/1/unit/multi/suite.log",
+      "size": 4676,
+      "sha256": "68364cad3e282ff158ccd4f14bd917f3f261a24f2f839d5b2f7e6bc9ea73adc3"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/76f3d556d6dac231/2/unit/multi/events.tsv",
+      "size": 7347,
+      "sha256": "6849af621856ed0b959de8d68bc42280358ba770267bf8443313096ebb1effec"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/76f3d556d6dac231/2/unit/multi/result.json",
+      "size": 13609,
+      "sha256": "49099a7ba8fcbedc6c6914a93b26f0387bbfc905a531e8d2e840e62691f23136"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/76f3d556d6dac231/2/unit/multi/server.log",
+      "size": 10670,
+      "sha256": "ded779ed020653072c4efcafdbb1abd4de0d51aef5dad61b62e0372cbd104e31"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/76f3d556d6dac231/2/unit/multi/suite.log",
+      "size": 4676,
+      "sha256": "078496f8f034d0d20d34450eab0dc7868a17a8370adedc694f58dc3a23f3c5ec"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/76f3d556d6dac231/3/unit/multi/events.tsv",
+      "size": 7347,
+      "sha256": "8c71f5c58fbb7c8523b5f719dfd04ba97e1f4d28aa3a6851948b8f8b07aece9e"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/76f3d556d6dac231/3/unit/multi/result.json",
+      "size": 13610,
+      "sha256": "45f7b16fea657728e261d69bacb4bf4536457ef55bf543875f00646b8d0a4539"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/76f3d556d6dac231/3/unit/multi/server.log",
+      "size": 10674,
+      "sha256": "b97d02d1e7722f3bf80ad21e59fb65fc2647a5302409fa24b7600b9aff82590d"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/76f3d556d6dac231/3/unit/multi/suite.log",
+      "size": 4676,
+      "sha256": "8ab4bf451cfbf458b8b50e9e92020563d0bbe66f3c841dd8e73a192ad4a37d69"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/b0680b90f0cdea95/1/unit/type/list/events.tsv",
+      "size": 32106,
+      "sha256": "17cbe5052b21c68f7ad530c816e7297a7714b049d0f871316e049577dc513cfa"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/b0680b90f0cdea95/1/unit/type/list/result.json",
+      "size": 55700,
+      "sha256": "4662f746ebbb3d874a03aebb8116c1bd41b91437db26f4e8ad953fb24917460c"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/b0680b90f0cdea95/1/unit/type/list/server.log",
+      "size": 10868,
+      "sha256": "1fcb657e585e58e6e469532fb567ac16122f94474a2948a72be90ff869b58a01"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/b0680b90f0cdea95/1/unit/type/list/suite.log",
+      "size": 19857,
+      "sha256": "26a0e44aabe6a4d05607328a85e8c1949ccc105e9747f49dd68d812304d5644c"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/b0680b90f0cdea95/2/unit/type/list/events.tsv",
+      "size": 32106,
+      "sha256": "0a351b48f41acb80cc0bbf45e48bb2628409cc8cf3f99ddcd7362e485dd2d738"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/b0680b90f0cdea95/2/unit/type/list/result.json",
+      "size": 55703,
+      "sha256": "d2608f831b1c0480067776236e74ca23e409ce99417a2580a08d3a8581c9bf68"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/b0680b90f0cdea95/2/unit/type/list/server.log",
+      "size": 10867,
+      "sha256": "7d5cd10d32e69547e015e0ff3650c7fff8e25eff6d6f3ddae32692e0d4aae486"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/b0680b90f0cdea95/2/unit/type/list/suite.log",
+      "size": 19857,
+      "sha256": "ec4358ad0416ecb0bce899491fb97f78fa7354211140ed0649327f5bc823ea12"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/b0680b90f0cdea95/3/unit/type/list/events.tsv",
+      "size": 32106,
+      "sha256": "be409f50aaec64deae2f1c336d1b9287e6da2e2f49eda27d575d3594be320502"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/b0680b90f0cdea95/3/unit/type/list/result.json",
+      "size": 55703,
+      "sha256": "1a47b68dfef1f7dcf88e4fd8837bab53376d7683cceecc33891ef235957b765f"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/b0680b90f0cdea95/3/unit/type/list/server.log",
+      "size": 10871,
+      "sha256": "4579f69929b8060aa279076570cdcd037a4c6eee0f69e943e528b532848eb507"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/b0680b90f0cdea95/3/unit/type/list/suite.log",
+      "size": 19857,
+      "sha256": "b7fb6f4c6424dfcd9206ff2ed4be5ea9df9d39d4c63921b751aadcb856a4bb0a"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/dfbeef8c223cca7a/1/unit/type/set/events.tsv",
+      "size": 13528,
+      "sha256": "4f750e0faad2f1ec713e87229b3fdff638061d06ed6c1b5366b457b5a1b8005a"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/dfbeef8c223cca7a/1/unit/type/set/result.json",
+      "size": 24073,
+      "sha256": "bec4d4910a9842aecbc83723e6b15774c63c5a5160882288ab2c2e64f7cd511a"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/dfbeef8c223cca7a/1/unit/type/set/server.log",
+      "size": 10864,
+      "sha256": "ff96743aabf26679694921d0ac11439989a2191aa8de4c64e8e75171e56495ae"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/dfbeef8c223cca7a/1/unit/type/set/suite.log",
+      "size": 8342,
+      "sha256": "6793f444dc60300794aaa49b10e4792fd202990685b05a73302bad4852204fa3"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/dfbeef8c223cca7a/2/unit/type/set/events.tsv",
+      "size": 13528,
+      "sha256": "4d47a17bd20de7b6a7ee4c6c6f9fe716787531cfecadf0aa0763c8a2194e6551"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/dfbeef8c223cca7a/2/unit/type/set/result.json",
+      "size": 24072,
+      "sha256": "3387faa98ecfe62a6bfc0cde635a5422f1f6d1c255c9245b6540ff91d3564baa"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/dfbeef8c223cca7a/2/unit/type/set/server.log",
+      "size": 10876,
+      "sha256": "88886a3c006886dc4e0c3b4e4492c34f2ed6a6db44dc214c8bed127d22755b4e"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/dfbeef8c223cca7a/2/unit/type/set/suite.log",
+      "size": 8342,
+      "sha256": "56c35ba92e3b7b9397b1ccf34005c6a75ded6abda3833ab42cada4767ec9171c"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/dfbeef8c223cca7a/3/unit/type/set/events.tsv",
+      "size": 13528,
+      "sha256": "720f1c6fedf2c8df10c86387689d63629c76769505d9684f50a77536c4c9a994"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/dfbeef8c223cca7a/3/unit/type/set/result.json",
+      "size": 24073,
+      "sha256": "6363d7790bfae4388362a41144fef4ab8119b5516c85b8ece115569c7938cd96"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/dfbeef8c223cca7a/3/unit/type/set/server.log",
+      "size": 10874,
+      "sha256": "104ddc1e997479f2757cc9a71fd0a16b7c8d34a556ff8dc939d587fb554ff7e3"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/probes/dfbeef8c223cca7a/3/unit/type/set/suite.log",
+      "size": 8342,
+      "sha256": "15132bd22f28e1a0be457d296214815477e264e62530961f0f08cee7248edaff"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/summary.json",
+      "size": 919167,
+      "sha256": "f2334535d4a877626469cd6175991e1dd353f74fea3b8a8ff7276f2725b9e915"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s.log",
+      "size": 2097,
+      "sha256": "02c2adfdc5290a7ff0ed5e43bb84a29aac393e0ae387d1f7ec6a95e18c5de57c"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/02d32ea9bba6586a/1/unit/type/list/events.tsv",
+      "size": 33263,
+      "sha256": "8b1e6369c06ae6e753985646d6b861d17f25977290b98b249445b17ed8c813ea"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/02d32ea9bba6586a/1/unit/type/list/result.json",
+      "size": 56728,
+      "sha256": "6107923c2bc3389724dea8edfc6718dea0e916726255907458b43840004edc42"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/02d32ea9bba6586a/1/unit/type/list/server.log",
+      "size": 9832,
+      "sha256": "ec35d61ed767b7a54e2590a18b714325b57c86337606cde1a47f15edc6d784d7"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/02d32ea9bba6586a/1/unit/type/list/suite.log",
+      "size": 21456,
+      "sha256": "b379f9d7ad4737a3a8eee3fd7776394b35daf33d48d2c44fda5c3eb88f6538dc"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/02d32ea9bba6586a/2/unit/type/list/events.tsv",
+      "size": 33263,
+      "sha256": "bf81fcc797a201bcd07a497014838e4be5a001b7675a3e3a773d58bee97caa29"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/02d32ea9bba6586a/2/unit/type/list/result.json",
+      "size": 56728,
+      "sha256": "9344c40651b8e2573672f4e1ff3875a76b3ed6f839b5b1326c00dc162693b479"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/02d32ea9bba6586a/2/unit/type/list/server.log",
+      "size": 9836,
+      "sha256": "45a1c4767549f41b7cc0bcc4f17098e1bb7e13c869b4de92409d5142477f1d6c"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/02d32ea9bba6586a/2/unit/type/list/suite.log",
+      "size": 21456,
+      "sha256": "ef7c16ea5f5d19a45d361a84c1fba4607196d1729e0dc228633871acaff4d11e"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/02d32ea9bba6586a/3/unit/type/list/events.tsv",
+      "size": 33263,
+      "sha256": "6952809b0018103509e1e0f8e213912606990617b1e332c4b60ce862ad2e3c1e"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/02d32ea9bba6586a/3/unit/type/list/result.json",
+      "size": 56728,
+      "sha256": "66369ab691ac0bc4167729441e3769fde018b5df3867085ee8cdba9746db4bc9"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/02d32ea9bba6586a/3/unit/type/list/server.log",
+      "size": 9854,
+      "sha256": "48757a5d6782ba6a4d170a93538fc3447210ab32663ab904154c4092547a51c9"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/02d32ea9bba6586a/3/unit/type/list/suite.log",
+      "size": 21456,
+      "sha256": "c48e5de43dd57b8d6846b76ca6ad4faef3c2fe2de0d2b55967f141e3b8337081"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/22211086b917a2b7/1/unit/type/list/events.tsv",
+      "size": 32142,
+      "sha256": "17ec951c22f7b234dedee7653269591a39fd8d798741c5e310dc77c5e2dd7070"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/22211086b917a2b7/1/unit/type/list/result.json",
+      "size": 55765,
+      "sha256": "ad6bf4d6e4e90b437acb860e796c45e3fe19187ad96fd1048a47f19146684edd"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/22211086b917a2b7/1/unit/type/list/server.log",
+      "size": 9839,
+      "sha256": "e547f96b79e3397d99f89deae3288d57170483059081d17fbec9a489a3595898"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/22211086b917a2b7/1/unit/type/list/suite.log",
+      "size": 19857,
+      "sha256": "49a851670e8b3f96e3d0fcdec06f3cd65273cb4fb76e0f5534e2286c65b067e5"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/22211086b917a2b7/2/unit/type/list/events.tsv",
+      "size": 32142,
+      "sha256": "2088d779dde576f0eb2c13ebf8b787afbf488dc2404885ad9773e36a8a2a249d"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/22211086b917a2b7/2/unit/type/list/result.json",
+      "size": 55765,
+      "sha256": "bd60b6f9b2334da14c4e71101afcf6d24f40470f6be7da9395ec2813a3a60388"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/22211086b917a2b7/2/unit/type/list/server.log",
+      "size": 9834,
+      "sha256": "1e89f22f6fecbe01711f61293b81df22f4ac2e4e750c4cb36efc32d53fa2b3ee"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/22211086b917a2b7/2/unit/type/list/suite.log",
+      "size": 19857,
+      "sha256": "ea083d93d0420886aab225a1f78b370df2752b47674c38c695354dd95196943d"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/22211086b917a2b7/3/unit/type/list/events.tsv",
+      "size": 32142,
+      "sha256": "2d9dcaaf2df6bbac6c95ed26fb320ce3c3e67363a31ed2ee11e6f5647f227e7c"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/22211086b917a2b7/3/unit/type/list/result.json",
+      "size": 55765,
+      "sha256": "2a93e694fa66137c1294080ff42802c2ee5fb84934063ff988a6f65474e94de8"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/22211086b917a2b7/3/unit/type/list/server.log",
+      "size": 9846,
+      "sha256": "0efd5f9c817ec5ce0b0bccb1b4973d1a6bdc3ff4b7d12a488a48d32b05e4265b"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/22211086b917a2b7/3/unit/type/list/suite.log",
+      "size": 19857,
+      "sha256": "1e6356d5cb1706009bc327ddc99c438de5dd281ebcf1a69bd5d0c96290b8ab6e"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/2f7cb56e674dd709/1/unit/type/list/events.tsv",
+      "size": 31986,
+      "sha256": "795cf90226a798f5af9e790f7d9756f5a0566e7ca3a811f330bb84c55adbafb5"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/2f7cb56e674dd709/1/unit/type/list/result.json",
+      "size": 55609,
+      "sha256": "4e17d0e5e1a424a97316e25b4b1b537cae4e80584dd3f05fc932094f68a79e78"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/2f7cb56e674dd709/1/unit/type/list/server.log",
+      "size": 9851,
+      "sha256": "125c6653ede2d257ecd1130509a666d44a00de3dbc0d26b29a51c092400b0df1"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/2f7cb56e674dd709/1/unit/type/list/suite.log",
+      "size": 19857,
+      "sha256": "0dd91c64a10282136250417a5db4cff46b22b914a12f7b0331e2c4aba64cf8cd"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/2f7cb56e674dd709/2/unit/type/list/events.tsv",
+      "size": 31986,
+      "sha256": "a7eff0418d0ae02311e649f91b14603bc2fd11c5ed30bb23b15ad970f2073a15"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/2f7cb56e674dd709/2/unit/type/list/result.json",
+      "size": 55609,
+      "sha256": "6993969f24b94733c8dff314785909319c026a3b2c9bda122e2681b14154231c"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/2f7cb56e674dd709/2/unit/type/list/server.log",
+      "size": 9823,
+      "sha256": "2b65918a02a662a65b839953e4bdb5d378c33c30c1d523e538564761532207ed"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/2f7cb56e674dd709/2/unit/type/list/suite.log",
+      "size": 19857,
+      "sha256": "0f54333a5663734a4b7c183cc0d539308a86e21afb21fd27620f56857e03675b"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/2f7cb56e674dd709/3/unit/type/list/events.tsv",
+      "size": 31986,
+      "sha256": "21b6fd48c947b977fe8c82b6f4ad662055adb577975a60c86a6ce27bb7f34a7e"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/2f7cb56e674dd709/3/unit/type/list/result.json",
+      "size": 55609,
+      "sha256": "7083664b9abd7a33690065cb28014ea38531eb4eeb85d3f209531cd682717a68"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/2f7cb56e674dd709/3/unit/type/list/server.log",
+      "size": 9829,
+      "sha256": "fc01ded9dd93d841339f0ac64e0777c8e75f417475823a92b15cc587093c287d"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/2f7cb56e674dd709/3/unit/type/list/suite.log",
+      "size": 19857,
+      "sha256": "6f77b131f88141398cfef65fc5d0725f8efefdeef28f50611bd157d1d0f00f53"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/76f3d556d6dac231/1/unit/multi/events.tsv",
+      "size": 7347,
+      "sha256": "dbd40845135effe3db32263080a04a76e3ddcc13c78cfeeba1927634ede59bb9"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/76f3d556d6dac231/1/unit/multi/result.json",
+      "size": 13636,
+      "sha256": "8e07e248c69741f63b0bc7c79aab237b37b24cd5a661579a4b59eeb16fbaf7c3"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/76f3d556d6dac231/1/unit/multi/server.log",
+      "size": 9746,
+      "sha256": "12e96f8f739e446d084aaaf4f7eb3de9d8fffe470f48161653981fc31f5fa2a2"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/76f3d556d6dac231/1/unit/multi/suite.log",
+      "size": 4676,
+      "sha256": "6ddea72665cddf1fc6fff46c5b690ed0ae8aff9ea99110a84471158fe72c3556"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/76f3d556d6dac231/2/unit/multi/events.tsv",
+      "size": 7347,
+      "sha256": "a79dae464ede15f078696cd795d0a50c6ef7cf327497844fe862b9b979cdc60f"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/76f3d556d6dac231/2/unit/multi/result.json",
+      "size": 13636,
+      "sha256": "00f8cfc1ff2584d169f4950e8357bff37e37d9fccc2f917b064bbc33af38807d"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/76f3d556d6dac231/2/unit/multi/server.log",
+      "size": 9736,
+      "sha256": "d877a2a7f94e1a13372cb79dd43dae3fc6d949e7afa77399d28e34f1256ef782"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/76f3d556d6dac231/2/unit/multi/suite.log",
+      "size": 4676,
+      "sha256": "dcae7f2821ca3b6ce65f45bde151d7305de006e935be10c476995f93908c7951"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/76f3d556d6dac231/3/unit/multi/events.tsv",
+      "size": 7347,
+      "sha256": "2b20517c6ff1b08005a6d85528d1771c98fa6ea77be637ced1dffe901487b619"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/76f3d556d6dac231/3/unit/multi/result.json",
+      "size": 13635,
+      "sha256": "f69c1cdba0955fdb84cc4cd7bd1ddfac9ea44187cf54c9f283d09935277e252a"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/76f3d556d6dac231/3/unit/multi/server.log",
+      "size": 9749,
+      "sha256": "4be6a0d2b94dea33475b09bfab1550fbcdfb4b7ebe2e0263dfc122e74d1449af"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/76f3d556d6dac231/3/unit/multi/suite.log",
+      "size": 4676,
+      "sha256": "b88ab082e504453a1cdceff235f7076cd1e0d6664feb0a3e3df32a3cb49886d3"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/b0680b90f0cdea95/1/unit/type/list/events.tsv",
+      "size": 32106,
+      "sha256": "bcb776b37a55f3cceb9f586543c39ef3035062a413b8d92c63d1b3f3e0a429d0"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/b0680b90f0cdea95/1/unit/type/list/result.json",
+      "size": 55729,
+      "sha256": "a024d8082efb9e41c54a810c166b3fd90e9763b1d66490151acfddb2d2d50deb"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/b0680b90f0cdea95/1/unit/type/list/server.log",
+      "size": 9839,
+      "sha256": "7bec2f21ce3d4702078d8aa7548cad385abe0d1dd94547200af679659ffed72a"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/b0680b90f0cdea95/1/unit/type/list/suite.log",
+      "size": 19857,
+      "sha256": "bf59c89b95a3cb1f5e7176ef42553027f06283ae06b9ceb4f41a508cc3d877a9"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/b0680b90f0cdea95/2/unit/type/list/events.tsv",
+      "size": 32106,
+      "sha256": "d44a8fffe2a30e7133812b483b01786f8a7e828cdbb6397e5f2de29563f5afa3"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/b0680b90f0cdea95/2/unit/type/list/result.json",
+      "size": 55728,
+      "sha256": "040211a8d51c09cba6695c50fd916e0e39d2e27618236054e3c7fb60225da7df"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/b0680b90f0cdea95/2/unit/type/list/server.log",
+      "size": 9847,
+      "sha256": "ceb36326294b134eef440edd8e9134b3c9643eac8a2aa847864a3bb423fbf8ba"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/b0680b90f0cdea95/2/unit/type/list/suite.log",
+      "size": 19857,
+      "sha256": "eb3c1269fdcf2f46bb5df6280770c25e61cdf4eb2f586e137e22986ffe35e82c"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/b0680b90f0cdea95/3/unit/type/list/events.tsv",
+      "size": 32106,
+      "sha256": "8f6cd47a1b9fe3d2b33914fc399b3661bb6ac0374b30c1fc344807eb0e318f89"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/b0680b90f0cdea95/3/unit/type/list/result.json",
+      "size": 55729,
+      "sha256": "cb306e888edd9e4c96e43fe9e88ef80c2e54cbab1dc2479407bfb5c9443dbf28"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/b0680b90f0cdea95/3/unit/type/list/server.log",
+      "size": 9849,
+      "sha256": "99517b6f34dd7201fceb1ee31bbcec4679151dd1d8c73af626f69ab58d386cf0"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/b0680b90f0cdea95/3/unit/type/list/suite.log",
+      "size": 19857,
+      "sha256": "5f41c5b150059acfd382a57d9ba24f07c906a8ba6a4abff2ecafd2c62a1c2d5a"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/dfbeef8c223cca7a/1/unit/type/set/events.tsv",
+      "size": 13528,
+      "sha256": "939cf16471a727d7f8e4846e2449e2b1dd089bd1500c543a6b1362a69972bd91"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/dfbeef8c223cca7a/1/unit/type/set/result.json",
+      "size": 24098,
+      "sha256": "949e8f6a4ca5246218be4a3939ea8ffd45ea057e1bc4ef8df9eeb30d873b209a"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/dfbeef8c223cca7a/1/unit/type/set/server.log",
+      "size": 9843,
+      "sha256": "ef6cdc5fd135f56080c340782e0c9241b44d8190201410e545d350efea529acb"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/dfbeef8c223cca7a/1/unit/type/set/suite.log",
+      "size": 8342,
+      "sha256": "32d73220824563cf929c245874fbb2c61656e489a44ff1e80cabb45beab205e1"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/dfbeef8c223cca7a/2/unit/type/set/events.tsv",
+      "size": 13528,
+      "sha256": "dc17d06b762222f4bea73d7b729f8c0b9c9f499d9ab95a54e9506bfdd0f618c7"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/dfbeef8c223cca7a/2/unit/type/set/result.json",
+      "size": 24099,
+      "sha256": "5e56891b8b06db79acf2606a3d653988875d0ab2cb505f6f79e4674ff00b4aa7"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/dfbeef8c223cca7a/2/unit/type/set/server.log",
+      "size": 9849,
+      "sha256": "f72f1e4c8565a9a5def012469035111f2df5cc98784ef45940c742603fc075d7"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/dfbeef8c223cca7a/2/unit/type/set/suite.log",
+      "size": 8342,
+      "sha256": "780d19bc8a7a259af0a54502d02836675d2aa3540fc32fd3a2361d1ab2166eeb"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/dfbeef8c223cca7a/3/unit/type/set/events.tsv",
+      "size": 13528,
+      "sha256": "423cb0b8ac9ab2206fdb1c75c35255f9e394fbde40882161788e793aa8f35b3d"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/dfbeef8c223cca7a/3/unit/type/set/result.json",
+      "size": 24099,
+      "sha256": "d584f5f938b709b7b306a2665a5cbc8f7d3106c87d155c0b78006830f8addfd4"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/dfbeef8c223cca7a/3/unit/type/set/server.log",
+      "size": 9844,
+      "sha256": "c11072198e5b533b080a0c53b6f38925fd0ada44bcf8913260036b6be30ece19"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/probes/dfbeef8c223cca7a/3/unit/type/set/suite.log",
+      "size": 8342,
+      "sha256": "76fc48f96d4fe1dbfb3576f0ac4dde8e3741f97f85282fd26b70316e7dd05a38"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/summary.json",
+      "size": 919788,
+      "sha256": "6bff940e0a5a580380d9744c4ac94fcdaf8f25ea2294fbab8bd7ead5105deaed"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s.log",
+      "size": 2097,
+      "sha256": "53d48f152da3670da4d116a21cf59c4e77a0339b520468897f7347c63d7cabbb"
+    },
+    {
+      "path": "jobs/redis_tcl/timings",
+      "size": 102,
+      "sha256": "2aec7f2b9a9170408c05e4f837871ef14641e3756e98fe699cddfd15f755f789"
+    },
+    {
+      "path": "jobs/release/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "size": 52,
+      "sha256": "b074740d68deb382b7a79d6a73b2a313eb1f8d35db20a83f316ea3328e9f97bd"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "size": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "phases.tsv",
+      "size": 88,
+      "sha256": "986b3a8f97af256911fa83fcf63a593ca628697c75fd905fa78fa0f681e07bd9"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1174,
+      "sha256": "9ef364c89a6d17eaac85f0a1c5ebece50e8b597f6ab1f2f2ee77c4def7080745"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 174669,
+      "sha256": "bf0d193df6d25ef42f4caf862a97809fb8931224eda2f8718375926a3f510877"
+    }
+  ],
+  "jobs": [
+    {
+      "job": "redis_tcl",
+      "done": "0\t0\t2",
+      "passed": 0,
+      "failed": 2,
+      "rows": [
+        {
+          "status": "FAIL",
+          "seconds": "3.850000",
+          "label": "Redis 7.4.10 Tcl passing subset (2s)"
+        },
+        {
+          "status": "FAIL",
+          "seconds": "3.850000",
+          "label": "Redis 7.4.10 Tcl passing subset (1s)"
+        }
+      ]
+    },
+    {
+      "job": "release",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    }
+  ],
+  "command": [
+    "taskset",
+    "-c",
+    "61-73",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "61-68",
+    "--load-cores",
+    "69-73",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "21400-21499",
+    "--candidate-binary",
+    "/home/user/Projects/cx-txnfix4/build/tomokv"
+  ],
+  "env": {
+    "GATE_TCL_PROBE_TESTS": "/home/user/Projects/cx-txnfix4/docs/txnfix4/tcl-probes.json",
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_ONLY_JOBS": "redis_tcl ",
+    "GATE_LEDGER": "/home/user/Projects/cx-txnfix4/docs/txnfix4/gate-receipts/post-tcl-probes-uring"
+  },
+  "binary": "/home/user/Projects/cx-txnfix4/build/tomokv",
+  "binary_sha256": "e23c2fb37cd0137a9287bcc7330ebb61d19796e0b7299b1d7e107e9018376198",
+  "exit_code": 1
+}

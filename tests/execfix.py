@@ -50,7 +50,8 @@ not a runtime switch.
 import socket
 import sys
 
-HOST, PORT = sys.argv[1], int(sys.argv[2])
+SELF_TEST = sys.argv[1:] == ["--self-test"]
+HOST, PORT = (None, None) if SELF_TEST else (sys.argv[1], int(sys.argv[2]))
 ROUNDS = 120
 TAG = "execfix"
 
@@ -161,17 +162,103 @@ def shard_of(conn, key):
     return int(reply)
 
 
+def placements(conn, keys):
+    """[(shard, owner thread)] for these exact names on THIS boot (DEBUG SHARDS)."""
+    reply = conn.command("DEBUG", "SHARDS", *keys)
+    if isinstance(reply, RespError) or not isinstance(reply, list) or len(reply) != len(keys):
+        raise AssertionError(
+            f"DEBUG SHARDS is unavailable ({reply!r}): boot with --enable-debug-command yes. "
+            "A shard id alone cannot prove an owner span")
+    return [(int(row[0]), int(row[1])) for row in reply]
+
+
+def candidates(conn, prefix, limit=8192, batch=128):
+    for start in range(0, limit, batch):
+        names = [f"{TAG}:{prefix}:{index:05d}" for index in range(start, start + batch)]
+        yield from zip(names, placements(conn, names))
+
+
 def two_owner_keys(conn, prefix, count=2):
-    """Distinct keys on distinct shards, proved on THIS boot's hash seed."""
-    seen = {}
-    index = 0
-    while len(seen) < count and index < 4000:
-        key = f"{TAG}:{prefix}:{index:04d}"
-        seen.setdefault(shard_of(conn, key), key)
-        index += 1
-    if len(seen) < count:
-        raise AssertionError(f"could not find {count} keys on distinct shards")
-    return [seen[s] for s in sorted(seen)[:count]]
+    """Keys on distinct shards spanning two owners (TM5.1), proved on THIS boot's hash seed.
+
+    Distinct shards are not distinct owners: a whole-key hash may put both shards on one owner
+    thread. The first two keys always have different owners."""
+    chosen, shards, owners = [], set(), []
+    for key, (shard, owner) in candidates(conn, prefix):
+        if shard in shards:
+            continue
+        new_owner = owner not in owners
+        if len(chosen) == 1 and not new_owner:
+            continue
+        chosen.append(key)
+        shards.add(shard)
+        if new_owner:
+            owners.append(owner)
+        if len(chosen) == count:
+            break
+    if len(chosen) < count or len(owners) < 2:
+        raise AssertionError(f"could not find {count} keys on distinct shards of two owners "
+                             f"(found owners {owners})")
+    return chosen
+
+
+def owner_pairs(conn, prefix, count):
+    """`count` fresh (a, b) FINAL key-name pairs, each spanning two owners (TM5.1).
+
+    A suffix appended after a placement check moves the key: TomoKV hashes the whole name. Every
+    returned name is used exactly as probed."""
+    by_owner = {}
+    pairs = []
+    for key, (shard, owner) in candidates(conn, prefix, limit=1 << 16):
+        by_owner.setdefault(owner, []).append(key)
+        ready = [o for o, keys in by_owner.items() if keys]
+        if len(ready) >= 2:
+            ready.sort(key=lambda o: -len(by_owner[o]))
+            pairs.append((by_owner[ready[0]].pop(0), by_owner[ready[1]].pop(0)))
+            if len(pairs) == count:
+                return pairs
+    raise AssertionError(f"could not find {count} key pairs spanning two owners")
+
+
+class PlantedGeometry:
+    """Serverless DEBUG SHARD(S) oracle: every shard on one owner, or alternate two owners."""
+
+    def __init__(self, owners):
+        self.owners = owners
+
+    def command(self, *args):
+        def shard(key):
+            return sum(key.encode()) % 16
+        if args[:2] == ("DEBUG", "SHARD"):
+            return shard(args[2])
+        if args[:2] == ("DEBUG", "SHARDS"):
+            return [[shard(key), 6 + shard(key) % self.owners] for key in args[2:]]
+        raise AssertionError(f"planted geometry received {args!r}")
+
+
+def planted_single_owner_control():
+    """TM5.1: the geometry helpers must refuse distinct shards that share one owner."""
+    failures = []
+    for label, helper in (("two_owner_keys", lambda c: two_owner_keys(c, "planted")),
+                          ("two_owner_keys/3", lambda c: two_owner_keys(c, "planted", 3)),
+                          ("owner_pairs", lambda c: owner_pairs(c, "planted", ROUNDS))):
+        try:
+            helper(PlantedGeometry(1))
+            failures.append(f"{label} accepted a planted single-owner placement")
+        except AssertionError:
+            pass
+        try:
+            selected = helper(PlantedGeometry(2))
+        except AssertionError as error:
+            failures.append(f"{label} refused a planted two-owner placement: {error}")
+            continue
+        groups = selected if label == "owner_pairs" else [selected]
+        for group in groups:
+            rows = PlantedGeometry(2).command("DEBUG", "SHARDS", *group)
+            if len({row[1] for row in rows}) < 2 or len({row[0] for row in rows}) != len(group):
+                failures.append(f"{label} selected {group} -> {rows}")
+                break
+    return failures
 
 
 def set_atomic(conn, value):
@@ -196,18 +283,21 @@ FAMILIES = {
 
 
 def arm_lost_write(conn, mode):
-    a, b = two_owner_keys(conn, "loss")
-    sa, sb = shard_of(conn, a), shard_of(conn, b)
-    check(sa != sb, f"geometry: the seeding transaction spans two owners (atomic {mode})",
-          f"both keys landed on shard {sa}")
     for family, (writer, reader, want_reply) in FAMILIES.items():
+        # TM5.1: probe the FINAL names. Suffixing a checked pair re-hashes both keys.
+        pairs = owner_pairs(conn, f"loss:{family}", ROUNDS)
+        rows = placements(conn, [key for pair in pairs for key in pair])
+        one_owner = sum(rows[i][1] == rows[i + 1][1] for i in range(0, len(rows), 2))
+        check(one_owner == 0,
+              f"{family}: geometry: every seeding transaction spans two owners (atomic {mode})",
+              f"{one_owner}/{ROUNDS} pairs share one owner")
         conn.command("FLUSHALL")
         before_reads = counter(conn, "atomic_predecessor_reads")
         before_entries = counter(conn, "atomic_entries")
         lost = 0
         wrong_reply = 0
         for i in range(ROUNDS):
-            ka, kb = f"{a}:{family}:{i}", f"{b}:{family}:{i}"
+            ka, kb = pairs[i]
             conn.command("MULTI")
             conn.command(*writer(kb, "v"))
             conn.command(*writer(ka, "v"))
@@ -238,11 +328,14 @@ def arm_lost_write(conn, mode):
 
 def arm_lost_append(conn, mode):
     """APPEND is the string face of the same loss: it clones from what the resolver returns."""
-    a, b = two_owner_keys(conn, "append")
+    pairs = owner_pairs(conn, "append", ROUNDS)
+    rows = placements(conn, [key for pair in pairs for key in pair])
+    check(all(rows[i][1] != rows[i + 1][1] for i in range(0, len(rows), 2)),
+          f"string APPEND geometry: every pair spans two owners (atomic {mode})")
     conn.command("FLUSHALL")
     wrong = 0
     for i in range(ROUNDS):
-        ka, kb = f"{a}:s:{i}", f"{b}:s:{i}"
+        ka, kb = pairs[i]
         conn.command("MULTI")
         conn.command("SET", kb, "v")
         conn.command("SET", ka, "v")
@@ -399,8 +492,10 @@ LCS_SHAPES = [
 
 def arm_lcs(conn, mode):
     a, b = two_owner_keys(conn, "lcs")
-    check(shard_of(conn, a) != shard_of(conn, b),
-          f"geometry: the LCS key pair spans two owners (atomic {mode})")
+    (sa, oa), (sb, ob) = placements(conn, [a, b])
+    check(sa != sb and oa != ob,
+          f"geometry: the LCS key pair spans two owners (atomic {mode})",
+          f"shards {sa}/{sb}, owners {oa}/{ob}")
     conn.command("FLUSHALL")
     conn.command("SET", a, "ohmytext")
     conn.command("SET", b, "mynewtext")
@@ -510,6 +605,16 @@ def arm_breadth(conn, mode):
 
 
 def main():
+    planted = planted_single_owner_control()
+    for failure in planted:
+        FAILURES.append(failure)
+        print(f"  FAIL {failure}", flush=True)
+    if not planted:
+        ok("TM5.1 control: a planted single-owner placement is refused")
+    if SELF_TEST:
+        print(f"execfix self-test: {'PASS' if not FAILURES else 'FAIL (%d)' % len(FAILURES)}",
+              flush=True)
+        return 1 if FAILURES else 0
     conn = Conn()
     admin = Conn()
     try:

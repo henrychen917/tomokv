@@ -1,0 +1,36 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 2 L3 domain(s)
+  domain  0: 3 cpus [61,62,63]
+  domain  1: 5 cpus [64,65,66,67,68]
+tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=0
+  thread t0: role=unified cpu=61 L3=0 shards=2 send=self
+  thread t1: role=unified cpu=62 L3=0 shards=2 send=self
+  thread t2: role=unified cpu=63 L3=0 shards=2 send=self
+  thread t3: role=unified cpu=64 L3=1 shards=2 send=self
+  thread t4: role=unified cpu=65 L3=1 shards=2 send=self
+  thread t5: role=unified cpu=66 L3=1 shards=2 send=self
+  thread t6: role=unified cpu=67 L3=1 shards=2 send=self
+  thread t7: role=unified cpu=68 L3=1 shards=2 send=self
+[New Thread 0x7ffff607f6c0 (LWP 257059)]
+[New Thread 0x7ffff587e6c0 (LWP 257060)]
+[New Thread 0x7ffff4dff6c0 (LWP 257061)]
+[New Thread 0x7ffff41ff6c0 (LWP 257062)]
+[New Thread 0x7ffff35ff6c0 (LWP 257063)]
+[New Thread 0x7ffff25ff6c0 (LWP 257064)]
+[New Thread 0x7ffff15ff6c0 (LWP 257065)]
+[New Thread 0x7ffff05ff6c0 (LWP 257066)]
+listening on 127.0.0.1:21460
+
+Thread 1 "tomokv" received signal SIGTERM, Terminated.
+0x00007ffff6f1b79d in __GI___poll (fds=fds@entry=0x7ffffffa6d10, nfds=nfds@entry=1, timeout=timeout@entry=50) at ../sysdeps/unix/sysv/linux/poll.c:29
+warning: 29	../sysdeps/unix/sysv/linux/poll.c: No such file or directory
+#0  0x00007ffff6f1b79d in __GI___poll (fds=fds@entry=0x7ffffffa6d10, nfds=nfds@entry=1, timeout=timeout@entry=50) at ../sysdeps/unix/sysv/linux/poll.c:29
+#1  0x0000555555d6e54c in poll (__timeout=50, __nfds=1, __fds=0x7ffffffa6d10) at /usr/include/x86_64-linux-gnu/bits/poll2.h:39
+#2  tomo::signal_doorbell_wait (timeout_ms=<optimized out>) at src/core/../store/../persist/../core/../net/../core/signal_doorbell.h:97
+#3  tomo::Server::monitor_controllers (this=this@entry=0x7ffffffaf9c0) at src/core/lbplanner.cc:582
+#4  0x00005555555c700d in tomo::run_fused_server (srv=..., aof_base_plan=<optimized out>, aof_plans=std::vector of length 0, capacity 0, load_plan=<optimized out>, tls_context=<optimized out>, unix_listener=..., final_report=...) at src/core/genthread.cc:262
+#5  0x0000555555d98883 in tomo::run_fused_server_selected (srv=..., aof_base_plan=<optimized out>, aof_plans=std::vector of length 0, capacity 0, load_plan=<optimized out>, tls_context=<optimized out>, unix_listener=..., final_report=...) at src/core/reorder.cc:3262
+#6  0x00005555559f79ec in tomokv_multidb_main (argc=argc@entry=25, argv=argv@entry=0x7fffffffd8c8) at /usr/include/c++/13/bits/unique_ptr.h:199
+#7  0x00005555555d7623 in main (argc=25, argv=0x7fffffffd8c8) at src/main.cc:215

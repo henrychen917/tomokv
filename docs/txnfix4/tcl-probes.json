@@ -1,0 +1,10 @@
+{
+  "unit/type/list": [
+    "PUSH resulting from BRPOPLPUSH affect WATCH",
+    "BRPOPLPUSH does not affect WATCH while still blocked",
+    "Linked LMOVEs",
+    "Test LMOVE on plain nodes"
+  ],
+  "unit/type/set": ["SMOVE wrong dst key type"],
+  "unit/multi": ["DISCARD should not fail during OOM"]
+}

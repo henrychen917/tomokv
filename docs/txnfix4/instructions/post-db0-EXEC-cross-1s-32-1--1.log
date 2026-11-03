@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/post-db0-EXEC-cross-1s-32-1--1.log
+SHA-256: ab4ddbd9bb8141d5c8f44f0c6f2f41c1b6b33b3682716acb58b2f14b903f5452
+Exit: 0
+3293	    for (size_t i = 0; i < deferred.size();) {
+0x00005555556cab5e	3293	    for (size_t i = 0; i < deferred.size();) {
+0x00005555556cab8b	3302	}
+0x00005555556cab8f	3302	}
+0x00005555556cab92	3302	}
+0x00005555556cab93	3302	}
+0x00005555556cab94	3302	}
+0x00005555556cab96	3302	}
+0x00005555556cab98	3302	}
+tomo_db0::CoreConcurrencyTest::need (v=...) at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:26
+26	 static void need(bool v){if(!v)std::abort();}
+0x0000555555e2bd12	26	 static void need(bool v){if(!v)std::abort();}
+0x0000555555e2bd19	26	 static void need(bool v){if(!v)std::abort();}
+0x0000555555e2bd1f in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=..., atomic=..., slowlog=...) at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:214
+214	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
+23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 2272955) exited normally]
+COUNT 206548

@@ -1015,6 +1015,7 @@ job_body(){
   case "$name" in
     netfix2-*) job_netfix2 "$name";;
     cmdfix2-*) job_cmdfix2 "${name#cmdfix2-}";;
+    txnfix4-*) job_txnfix4 "${name#txnfix4-}";;
     iofix-deferred) job_iofix_deferred "$name";;
     cfgfix2-*) job_cfgfix2 "${name#cfgfix2-}";;
     iofix-hz) job_iofix_hz "$name";;
@@ -1169,6 +1170,7 @@ plan_jobs(){
   # Compilers use that slot's server+load cores. The release build alone unlocks release jobs;
   # ASAN and standalone units do not delay boots, and full-only builds start immediately too.
   JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build pubtrackfix maxmemrace storefix5)
+  JOB_NAMES+=(txnfix4-oom txnfix4-watch txnfix4-crash txnfix4-hash txnfix4-placement)
   JOB_NAMES+=(clientcompat-pause clientcompat-disconnect clientcompat-multi-tracking clientcompat-multi-controls clientcompat-enable-race)
   JOB_NAMES+=(cmdfix2-geo cmdfix2-scores cmdfix2-hll cmdfix2-lcs cmdfix2-channels cmdfix2-xsetid)
   for MF_MODE in 1s 2s; do for MF_ENGINE in uring epoll; do
@@ -3351,6 +3353,33 @@ job_bugs5(){
     if [ "$failed" = 0 ]; then ok "$label"
     else bad "$label" "see $TMPDIR/$test-*.log"; fi
   done
+}
+
+# txnfix4: round-5 CD5.3/CD5.4/CD5.5/CD5.6/TM5.1. tests/txnfix4.py boots every leg itself
+# (2s and 1s, atomic 0/1, DB 1/16, the 1s DB16 legs with read-local armed) plus the Redis 7.4
+# oracle on $PORT+1, pinned to $CORES. The hash row also runs its serverless capture fixture
+# against the source build's own objects.
+job_txnfix4(){
+  local case=$1 label failed=0
+  case "$case" in
+    oom) label='txnfix4 CD5.4 movers under maxmemory change nothing or run (all legs)';;
+    watch) label='txnfix4 CD5.5 multi-key pops abort a WATCH (all legs)';;
+    crash) label='txnfix4 CD5.6 WATCH, multi-key pop, CLIENT TRACKING (all legs)';;
+    hash) label='txnfix4 CD5.3 lapsed hash fields during a capture (all legs)';;
+    placement) label='txnfix4 TM5.1 execfix proves two owners (all legs)';;
+    *) echo "unknown txnfix4 case $case" >&2; return 2;;
+  esac
+  row_begin "$label"
+  if [ "$case" = hash ] && [ "$CANDIDATE_BINARY" = "$PWD/build/tomokv" ]; then
+    { taskset -c "$BUILD_CORES" make -f Makefile -f tests/txnfix4.mk -j"$BUILD_JOBS" \
+          build/txnfix4-hash-unit build/txnfix4-hash-db0-unit &&
+      taskset -c "$CORES" build/txnfix4-hash-unit &&
+      taskset -c "$CORES" build/txnfix4-hash-db0-unit; } >"$TMPDIR/hash-unit.log" 2>&1 || failed=1
+  fi
+  py tests/txnfix4.py --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+      --cores "$CORES" --port "$PORT" --engine "${GATE_NET_IO:-uring}" --ratio "$GATE_RATIO" \
+      --case "$case" --output "$TMPDIR/$case" >"$TMPDIR/$case.log" 2>&1 || failed=1
+  [ "$failed" = 0 ] && ok "$label" || bad "$label" "see $TMPDIR/$case.log and $TMPDIR/$case/"
 }
 
 job_debug(){
@@ -6898,6 +6927,8 @@ collect_job datafix1_bitfield
 collect_job datafix1_randscan
 collect_job datafix1_hexpire
 
+# txnfix4: five directed rows before the quick-tier exit (DQ=+5, DF=+5); EXPECT is owner-owned.
+for ITEM in oom watch crash hash placement; do collect_job "txnfix4-$ITEM"; done
 for AT in 0 1; do collect_job "debug-$AT"; done
 collect_job txn_group_split
 collect_job execfair
