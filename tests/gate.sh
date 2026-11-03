@@ -1048,6 +1048,7 @@ job_body(){
     snapshot-*) job_snapshot "$name";;
     aof-*) job_aof "$name";;
     atomfix6-live-*) job_atomfix6_live "$name";;
+    atomwake-live-*) job_atomwake_live "$name";;
     txnorder2) job_txnorder2;;
     txnorder_wake) job_txnorder_wake;;
     at412-*) job_at412 "${name#at412-}";;
@@ -1211,6 +1212,7 @@ plan_jobs(){
   for mode in 1s 2s; do for FR in 0 1; do for section in 1 16; do
     JOB_NAMES+=("atomfix6-live-$mode-$FR-$section")
   done; done; done
+  for mode in 2s 1s; do for section in uring epoll; do JOB_NAMES+=("atomwake-live-$mode-$section"); done; done
   for section in T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11a T11b T12 T13 T14 T15 T16 owner; do JOB_NAMES+=("at412-$section"); done
   local resp_case resp_engine
   for resp_case in fragment cpu neighbour; do for mode in 1s 2s; do
@@ -1586,6 +1588,21 @@ job_atomfix6_live(){
   if py tests/atomfix6.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
       --ratio "$GATE_RATIO" --mode "$mode" --read-local "$read_local" --databases "$databases" \
       --engine "${GATE_PROOF_NET_IO:-${GATE_NET_IO:-uring}}" --output "$TMPDIR/proof" \
+      >"$TMPDIR/proof.log" 2>&1; then ok "$label"
+  else bad "$label" "see $TMPDIR/proof.log and proof/result.json"; fi
+}
+
+# mset8fix: a lone IO connection refused by the global atomic window must be woken by a credit
+# retirement, not by the 50 ms ring timeout. Four rows (2s/1s x uring/epoll), each over
+# read-local 0/1 x databases 1/16 x three fresh placements, collected before the quick exit.
+# DQ=+4, DF=+4. EXPECT_QUICK / EXPECT_FULL remain maintainer-owned.
+job_atomwake_live(){
+  local prefix family mode engine label
+  IFS=- read -r prefix family mode engine <<< "$1"
+  label="atomwake lone-IO credit wake ($mode, $engine)"
+  row_begin "$label"
+  if py tests/atomwake.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+      --ratio "$GATE_RATIO" --mode "$mode" --engine "$engine" --output "$TMPDIR/proof" \
       >"$TMPDIR/proof.log" 2>&1; then ok "$label"
   else bad "$label" "see $TMPDIR/proof.log and proof/result.json"; fi
 }
@@ -6956,6 +6973,10 @@ collect_job atomfix6_units
 for atomfix6_mode in 1s 2s; do for atomfix6_rl in 0 1; do for atomfix6_db in 1 16; do
   collect_job "atomfix6-live-$atomfix6_mode-$atomfix6_rl-$atomfix6_db"
 done; done; done
+# mset8fix: four rows before the quick-tier exit (DQ=+4, DF=+4); EXPECT stays maintainer-owned.
+for atomwake_mode in 2s 1s; do for atomwake_engine in uring epoll; do
+  collect_job "atomwake-live-$atomwake_mode-$atomwake_engine"
+done; done
 collect_job flushfix3
 collect_job flushfix3_units
 collect_job flushfix2
