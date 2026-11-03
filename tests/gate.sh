@@ -1268,7 +1268,10 @@ start_workers(){
   # driver process per load CPU; its FIFO share is only meaningful when those drivers
   # keep every client outstanding, as in its validated eight-load-CPU geometry. The
   # planner's wide slot runs it first and exclusively; no other slot may claim it.
-  if [ "${GATE_WIDE_SLOT:--1}" != -1 ] && [[ " ${JOB_NAMES[*]} " == *' txnorder_fifo_live '* ]]; then
+  # A single slot is already exclusive and must still run the job's prerequisites
+  # (release): holding it for the FIFO job would wait on itself forever.
+  if [ "${GATE_WIDE_SLOT:--1}" != -1 ] && [ "$GATE_SLOTS" -gt 1 ] &&
+      [[ " ${JOB_NAMES[*]} " == *' txnorder_fifo_live '* ]]; then
     wide_job=txnorder_fifo_live
   fi
   for ((slot=0; slot<GATE_SLOTS; slot++)); do
