@@ -290,6 +290,9 @@ def storm(args, directory, mode, engine, atomic, oracle):
     expected_aof = None
     sentinels = {}
     counts = dict(flushes=0, work=0, saves=0, flips=0, flip_refusals=0, cancelled_saves=0)
+    # A successful FLIP storm must finish its last request before its FLUSH peer
+    # closes. Otherwise teardown itself can produce the approved close refusal.
+    # Keep the existing strict reply checks; do not broaden accepted errors.
     flip_drained = threading.Event() if args.case == 'live-flip' and not oracle else None
     flip_observed = dict(flip_refused_s2=0, flip_refused_close=0)
     flip_max_seconds = 0
@@ -381,23 +384,26 @@ def storm(args, directory, mode, engine, atomic, oracle):
                         stop.wait()
                         return
         def flipper(stop):
-    flip_drained = threading.Event() if args.case == 'live-flip' and not oracle else None
             nonlocal flip_max_seconds
-            with contextlib.nullcontext(retained['flip']) if retained else conn(b, args) as c:
-                before = s.stats(c)
-                while not stop.is_set():
-                    target = 4 if counts['flips'] % 2 == 0 else 6
-                    began = time.monotonic()
-                    reply = c.cmd('FLIP', target, 8-target)
-                    elapsed = time.monotonic() - began
-                    flip_max_seconds = max(flip_max_seconds, elapsed)
-                    reason = post_flip_reply(reply, elapsed)
-                    if reason is not None:
-                        flip_observed[reason] += 1
-                        counts['flip_refusals'] += 1
-                        continue
-                    counts['flips'] += 1
-                refusal_counters(flip_observed, before, s.stats(c))
+            try:
+                with contextlib.nullcontext(retained['flip']) if retained else conn(b, args) as c:
+                    before = s.stats(c)
+                    while not stop.is_set():
+                        target = 4 if counts['flips'] % 2 == 0 else 6
+                        began = time.monotonic()
+                        reply = c.cmd('FLIP', target, 8-target)
+                        elapsed = time.monotonic() - began
+                        flip_max_seconds = max(flip_max_seconds, elapsed)
+                        reason = post_flip_reply(reply, elapsed)
+                        if reason is not None:
+                            flip_observed[reason] += 1
+                            counts['flip_refusals'] += 1
+                            continue
+                        counts['flips'] += 1
+                    refusal_counters(flip_observed, before, s.stats(c))
+            finally:
+                if flip_drained is not None:
+                    flip_drained.set()
         workers = [flush] + ([] if args.case == 'live-flip' else [worker]) + ([saver] if save else [])
         if args.case in ('live-flip', 'live-flip-cut') and not oracle:
             assert mode == '2s'
