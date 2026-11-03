@@ -8,10 +8,13 @@ do it parks, and PRE has no path from another IO's credit retirement to the park
 PRE every such stall costs a full 50 ms.
 
 Each repetition boots a fresh server (--shards 16: a 256-credit window) and places, through
-DEBUG IO-THREAD, exactly one PROBE connection alone on one IO thread and HOG connections on every
-other IO thread. Every connection runs batch-synchronous pipelines of 32 MSET8 over its own eight
-keys, which DEBUG SHARDS proves cover eight distinct shards (so every MSET is an admitted group).
-The hogs keep far more than 256 MSETs outstanding.
+DEBUG IO-THREAD, exactly one PROBE connection alone on one IO thread and four HOG connections on
+every other IO thread. Every connection runs batch-synchronous pipelines of 32 MSET8 over its own
+eight keys, which DEBUG SHARDS proves cover eight distinct shards (so every MSET is an admitted
+group). The hogs keep 2.5-3.5x the window outstanding (640 MSETs in 2s, 896 in 1s). Six hogs per IO
+thread were tried first: the hogs' own credit contention then reached 20-94 ms per batch, and
+once the probe's (24 ms, 1 of 288 POST legs), which says nothing about a timer rescue; four keeps
+the window saturated with batch maxima near 4 ms on POST while PRE still starves the probe.
 
 A repetition PASSES iff all of these hold:
   * the window really refused admissions: INFO atomic_window_stalls grew (otherwise the leg is a
@@ -26,6 +29,7 @@ import argparse
 import json
 import multiprocessing
 import os
+import resource
 from pathlib import Path
 import selectors
 import socket
@@ -73,7 +77,7 @@ def driver(role, slots, start_at, seconds, pipe, cpu):
             state = dict(sock=sock, name=slot['name'], keys=slot['keys'], buf=bytearray(),
                          batches=0, sent=0, max_ns=0, latencies=[], error=None, done=False,
                          payload=batch(slot['keys'], 'h') if role == 'hog' else None,
-                         next_payload=None)
+                         next_payload=None, chunks=[], switches=0, slow=[])
             if role == 'probe':
                 state['next_payload'] = batch(slot['keys'], 'p:0')
             selector.register(sock, selectors.EVENT_READ, state)
@@ -88,6 +92,11 @@ def driver(role, slots, start_at, seconds, pipe, cpu):
             else:
                 payload = state['payload']
             state['sent'] = time.monotonic_ns()
+            if role == 'probe':
+                # Diagnostics only: involuntary context switches and reply arrival times of a
+                # slow batch tell a client-side preemption from a server-side delay.
+                state['switches'] = resource.getrusage(resource.RUSAGE_THREAD).ru_nivcsw
+                state['chunks'] = []
             state['sock'].sendall(payload)
             if role == 'probe':
                 state['next_payload'] = batch(state['keys'], f"p:{state['batches'] + 1}")
@@ -105,6 +114,8 @@ def driver(role, slots, start_at, seconds, pipe, cpu):
                 if not data:
                     raise EOFError(f"{state['name']}: server closed the connection")
                 state['buf'] += data
+                if role == 'probe':
+                    state['chunks'].append((time.monotonic_ns() - state['sent'], len(data)))
                 while True:
                     have = len(state['buf'])
                     if bytes(state['buf'][:min(have, len(EXPECT))]) != EXPECT[:min(have, len(EXPECT))]:
@@ -118,6 +129,12 @@ def driver(role, slots, start_at, seconds, pipe, cpu):
                     state['max_ns'] = max(state['max_ns'], elapsed)
                     if role == 'probe':
                         state['latencies'].append(elapsed)
+                        if elapsed >= 10_000_000 and len(state['slow']) < 16:
+                            state['slow'].append(dict(
+                                batch=state['batches'] - 1, ms=round(elapsed / 1e6, 3),
+                                involuntary_switches=resource.getrusage(resource.RUSAGE_THREAD).ru_nivcsw
+                                - state['switches'],
+                                reply_chunks_ms=[(round(t / 1e6, 3), n) for t, n in state['chunks'][:40]]))
                     if time.monotonic() < deadline:
                         send(state)
                     else:
@@ -129,7 +146,7 @@ def driver(role, slots, start_at, seconds, pipe, cpu):
                     raise AssertionError(f"{state['name']}: bytes after the final batch")
         pipe.send(dict(role=role, results=[
             dict(name=s['name'], batches=s['batches'], max_ms=s['max_ns'] / 1e6,
-                 latencies_ms=[x / 1e6 for x in s['latencies']]) for s in states]))
+                 latencies_ms=[x / 1e6 for x in s['latencies']], slow=s['slow']) for s in states]))
     except BaseException as error:  # the parent turns this into a FAIL verdict
         pipe.send(dict(role=role, error=repr(error)))
     finally:
@@ -286,6 +303,9 @@ def repetition(a, read_local, databases, rep):
             probe_p99_ms=lat[min(len(lat) - 1, int(.99 * len(lat)))] if lat else None,
             probe_batches_ge_20ms=sum(x >= 20 for x in lat),
             probe_batches_ge_45ms=sum(x >= 45 for x in lat),
+            # Diagnostics only (no verdict): where in the run the slow probe batches fell.
+            probe_slow_batches=[(i, round(x, 3)) for i, x in enumerate(probe_row['latencies_ms']) if x >= 10][:32],
+            probe_slow_detail=probe_row.get('slow', []),
             hog_max_ms=max(r['max_ms'] for r in rows if r['name'] != 'probe'),
             moved=moved, probe_final=[v.decode() if isinstance(v, bytes) else v for v in final],
             probe_expected=want.decode())
@@ -334,7 +354,7 @@ def main():
     p.add_argument('--databases', default='1,16')
     p.add_argument('--repeats', type=int, default=3)
     p.add_argument('--seconds', type=float, default=5.0)
-    p.add_argument('--hogs', type=int, default=6, help='hog connections per non-probe IO thread (>= 4)')
+    p.add_argument('--hogs', type=int, default=4, help='hog connections per non-probe IO thread (>= 4)')
     p.add_argument('--max-ms', type=float, default=20.0)
     p.add_argument('--min-share', type=float, default=.25)
     p.add_argument('--output', type=Path, required=True)
