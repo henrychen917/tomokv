@@ -20,7 +20,8 @@ bool IoLoop::receive_eof_pending(const Client* client) const {
 // own timer pass during the drain (a ReceiveFin keeps reading, so late input is seen on a
 // later pass), and a pinned close keeps its approved refusal. Unconsumed input, or work
 // which may need the paused admission, cannot drain behind this FLIP: refuse before commit.
-bool IoLoop::receive_eof_blocks_flip(const Client* client) const {
+// Cold: only FLIP's precommit check calls it; keep it out of this unit's inline budget.
+[[gnu::cold]] bool IoLoop::receive_eof_blocks_flip(const Client* client) const {
     return receive_eof_pending(client) &&
            (client->rpos() < client->rlen() || !client->flip_drain_idle());
 }

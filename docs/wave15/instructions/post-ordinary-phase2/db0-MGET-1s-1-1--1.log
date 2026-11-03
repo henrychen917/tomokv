@@ -1,0 +1,3 @@
+/home/user/Projects/cx-wave15/build/wave15/counts/trace /home/user/Projects/cx-wave15/build/wave15/counts/scopes/post-ordinary-phase2-db0/probe /home/user/Projects/cx-wave15/build/wave15/counts/scopes/post-ordinary-phase2-db0/lua.ranges 8fcc10 8fcc20 000000000002cc40 MGET 1s 1 1 -1
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope

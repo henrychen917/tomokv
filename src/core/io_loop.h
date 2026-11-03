@@ -1383,14 +1383,14 @@ private:
             }
             ::close(fd);
             srv_->note_rejected_connection();
-            srv_->client_released();
+            srv_->client_reserve_cancel();
             return;
         }
         auto* c = new (std::nothrow) Client(fd);
         if (!c) {
             ::close(fd);
             self_->sig().accept_err++;
-            srv_->client_released();
+            srv_->client_reserve_cancel();
             return;
         }
         // NOTHING READ-LOCAL IS ALLOCATED HERE ANY MORE. The RYOW write-ring
@@ -1403,7 +1403,7 @@ private:
             delete c;
             ::close(fd);
             self_->sig().accept_err++;
-            srv_->client_released();
+            srv_->client_reserve_cancel();
             return;
         }
         c->set_authenticated(!srv_->requirepass_enabled());

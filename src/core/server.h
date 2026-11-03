@@ -2327,6 +2327,8 @@ public:
         } while (!live_clients_.compare_exchange_weak(live, live + 1, std::memory_order_relaxed));
         return true;
     }
+    // A refused admission returns its reservation. Cold: only refusal paths reach it.
+    [[gnu::cold, gnu::noinline]] void client_reserve_cancel() { client_released(); }
     void client_released() {
         if (live_clients_.fetch_sub(1, std::memory_order_relaxed) == 0) std::abort();
     }
