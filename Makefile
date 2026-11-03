@@ -590,6 +590,7 @@ build/encodingfix-unit: build/tests/encodingfix_unit.o $(CORE_TEST_OBJ)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 DB0_TEST_OBJ := $(filter-out build/db0/src/main.o,$(DB0_OBJ))
+include tools/wave15_stream.mk
 build/wave15-flip-eof-unit build/wave15-flip-eof-db0-unit: tests/wave15_flip_eof_unit.cc tests/core_concurrency_unit.cc $(CORE_TEST_OBJ) $(DB0_TEST_OBJ) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) $(if $(findstring db0,$@),-DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0) -I. $< $(if $(findstring db0,$@),$(DB0_TEST_OBJ)) $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 build/rlfix3-info-db0-unit: build/db0/tests/rlfix3_info_unit.o $(DB0_TEST_OBJ) $(CORE_TEST_OBJ)

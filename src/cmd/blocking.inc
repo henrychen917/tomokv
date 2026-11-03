@@ -1465,6 +1465,12 @@ void blocking_script_publication_finished(bool previous) {
 
 void blocking_plain_mutation_published(Shard& shard, Op& op) {
     if (!shard.has_blocking_waiters()) return;
+    // A preceding atomic decision is visible before its coordinator posts the
+    // owner's dirty notification. The executor calls here before preparing the
+    // next plain view: probe that decided state even in this notification gap,
+    // so CREATE cannot replace a deleted group before its old waiter fails.
+    // This hook is confined to the existing MVCC/foreign-write slow path.
+    shard.set_blocking_dirty();
     if (op.spec->flags & CmdFlags::ScriptRoute) {
         // The outer plain view, if present, must close before these reads.
         blocking_script_publication_finished(blocking_tls_defer_plain);
