@@ -96,6 +96,7 @@ def supervisor_trial(a, mode, engine):
                      ('armed-reorder', ('--read-local', '1', '--reorder', '1'))]
     for abstract, (variant, extra) in itertools.product((False, True), variants):
         short = Path('build/cfgfix') / f'notify-{os.getpid()}-{mode}-{engine}.sock'
+        short.parent.mkdir(parents=True, exist_ok=True)
         address = '@cfgfix-' + str(os.getpid()) + '-' + mode + '-' + engine if abstract else str(short.resolve())
         wire_address = '\0' + address[1:] if abstract else address
         with closing(socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)) as receiver:

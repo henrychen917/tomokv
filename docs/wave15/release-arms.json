@@ -1,0 +1,26 @@
+[
+  {
+    "arm": "PRE",
+    "path": "/home/user/Projects/cx-wave15/build/wave15/PRE-ea48a6b27",
+    "bytes": 99553736,
+    "sha256": "79fe1f181e26e823e70129a0d6903c1fae5597d4498faee38d3c08fdf713622e"
+  },
+  {
+    "arm": "POST",
+    "path": "/home/user/Projects/cx-wave15/build/wave15/POST-1babe0d58a-final",
+    "bytes": 104917984,
+    "sha256": "d36e1c43dd89691747ff5714d7dfe8dec32af88d85e0afc8fd9fe29c2e4c3b0a"
+  },
+  {
+    "arm": "PAD-A",
+    "path": "/home/user/Projects/cx-wave15/build/wave15/pad/PAD-A",
+    "bytes": 467659600,
+    "sha256": "bb28e302d98f889a687a853960831e9510086b80505b22ce687859726d3b4ecc"
+  },
+  {
+    "arm": "POST-layout",
+    "path": "/home/user/Projects/cx-wave15/build/wave15/pad/POST-layout",
+    "bytes": 467659600,
+    "sha256": "75681dab0168e5758053cde8e4a569d7e194a2bf55411c63058dbc3ed3c0a07c"
+  }
+]

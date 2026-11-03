@@ -1,0 +1,22 @@
+{
+  "revision": "11ed55b2634b501376fd48a26a172c6d8774204d",
+  "receipt": "jobs/landing-selftest-final.json",
+  "archive_sha256": "3f4435865f4e07d998aa46e380a889a118c1c31066900785fb5b4cc36512ceea",
+  "files": [
+    {
+      "path": "build/wave15/landing-selftest-final/tests/gate.sh",
+      "bytes": 389910,
+      "sha256": "330844753cf4ee84604d11c02a05940b25354ac2f1579ffd9ce7bf709632aee6"
+    },
+    {
+      "path": "build/wave15/landing-selftest-final/tests/fixtures/nullrefresh-ledger-labels.json",
+      "bytes": 76661,
+      "sha256": "b5c870da16ca71adf3cbf92382aec5a10cbba309dd488265c551ab1706bcfad3"
+    },
+    {
+      "path": "build/wave15/landing-selftest-final/selftest.log",
+      "bytes": 1056,
+      "sha256": "629deaf53536d1e07c6a3b251e624f58fcf10b21259bd3cafd91f6f6f4b133c7"
+    }
+  ]
+}

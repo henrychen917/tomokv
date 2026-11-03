@@ -150,6 +150,7 @@ def jobs(a):
     env = dict(os.environ, LC_ALL='C', REDIS74_ROOT='/home/user/Projects/redis',
         GATE_DIFFER_ORACLE_BIN='/home/user/Projects/redis/src/redis-server',
         GATE_PROOF_NO_RATES='1', GATE_TEST_PORT='20098', GATE_NET_IO=a.engine, GATE_PROOF_NET_IO=a.engine,
+        GATE_ZC_NET_IO=a.engine,
         GATE_DIFFER_NET_IO=a.engine, GATE_ONLY_JOBS=names,
         GATE_LEDGER=str(out / a.tag), CXX='g++ -gz=zlib', CC='cc -gz=zlib')
     if a.fused:

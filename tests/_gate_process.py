@@ -47,7 +47,7 @@ def shared_correctness_cpus(server_cpus, load_cpus):
     require(os.getenv('GATE_PROOF_NO_RATES') == '1' and os.getenv('GATE_ONLY_JOBS'),
             'shared CPUs require selected correctness jobs without rate assertions')
     require(len(servers) == 8 and loads and loads <= servers and (legacy or loads == servers),
-            'shared correctness requires eight server CPUs and an authorized load mask')
+            'shared correctness requires eight server CPUs and the same eight CPUs or an authorized load mask')
     for cpu in servers:
         siblings = set(cpus(Path(f'/sys/devices/system/cpu/cpu{cpu}/topology/thread_siblings_list').read_text().strip()))
         require(len(siblings & servers) == 1, 'shared correctness requires distinct physical server cores')
