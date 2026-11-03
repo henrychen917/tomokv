@@ -1689,7 +1689,8 @@ private:
         if constexpr (OwnsShards) {
             const uint64_t shard_limit = snapshot.maxmemory / srv_->nshards();
             for (Shard* sh : self_->shards()) {
-                sh->configure_maxmemory(enabled, shard_limit, snapshot.policy, snapshot.samples);
+                if (!sh->configure_maxmemory(enabled, shard_limit, snapshot.policy, snapshot.samples))
+                    report_idle_clock_unavailable(*sh);
                 // CLIENT TRACKING and periodic SAVE need the same per-write observation points as
                 // keyspace notifications, so they ride the shard mask as synthetic observer bits.
                 // notify_record expands those observers over NOTIFY_ALL without adding those class
@@ -1735,7 +1736,8 @@ private:
         const bool enabled = snapshot.maxmemory != 0;
         const uint64_t shard_limit = snapshot.maxmemory / srv_->nshards();
         for (Shard* sh : self_->shards())
-            sh->configure_maxmemory(enabled, shard_limit, snapshot.policy, snapshot.samples);
+            if (!sh->configure_maxmemory(enabled, shard_limit, snapshot.policy, snapshot.samples))
+                report_idle_clock_unavailable(*sh);
         maxmemory_enabled_ = enabled;
         foreign_touch_policy_ =
             !enabled                                    ? kForeignTouchNone
@@ -1751,6 +1753,13 @@ private:
             if (read_local_enabled())
                 set_read_local_point_writes_precise(
                     !enabled || snapshot.policy == MaxmemoryPolicy::NoEviction);
+    }
+
+    // A failed idle-clock allocation cannot refuse anything here: keep the limit (eviction uses
+    // the five-bit LRU meta) and report that this store's OBJECT IDLETIME is degraded to 0.
+    [[gnu::cold, gnu::noinline]] static void report_idle_clock_unavailable(const Shard& sh) {
+        std::fprintf(stderr, "WARNING: maxmemory idle clock allocation failed for shard %u; "
+                     "OBJECT IDLETIME reports 0 for its keys\n", static_cast<unsigned>(sh.id()));
     }
 
     // Binds this executor as the thread's CONFIG maxmemory hook for one loop tenure.

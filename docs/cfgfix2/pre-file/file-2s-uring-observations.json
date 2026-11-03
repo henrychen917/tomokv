@@ -1,0 +1,20 @@
+[
+  {
+    "booted": true,
+    "unauth_set": "b'OK'",
+    "requirepass": "[b'requirepass', b'']",
+    "exit_code": 0
+  },
+  {
+    "booted": true,
+    "unauth_set": "b'OK'",
+    "requirepass": "[b'requirepass', b'']",
+    "exit_code": 0
+  },
+  {
+    "booted": true,
+    "unauth_set": "b'OK'",
+    "requirepass": "[b'requirepass', b'']",
+    "exit_code": 0
+  }
+]

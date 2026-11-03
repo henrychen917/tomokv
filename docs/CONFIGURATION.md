@@ -54,8 +54,8 @@ the allowed CPU set and complete SMT sibling units (`src/core/placement.h:73`).
 | `read-local` | T | u32, 0 or 1 | `0` | Boot/GET | `read_local` | Eligible GET/MGET on the parsing thread in both modes; `src/core/config.h:801`, `src/main.cc:325`. |
 | `reorder` | T | u32, 0 or 1 | `0` | Boot/GET | `reorder`, `reorder_retired` | 1s shadow priority; 2s resolves to 0; `src/core/config.h:437`, `:836`. |
 | `wb-policy` | T | Literal `0` or `1` | `1` | Boot/GET | `wb_policy` (Writeback) | Flush-all or composite half rule; `src/core/config.h:843`, `src/core/wb_rule.h:25`. |
-| `wb-small-pipe` | T | Canonical decimal 0..64 | `16` | Boot/GET | `wb_small_pipe` (Writeback) | 0 = half rule, no completion; measured default, ledger addendum 12; `src/core/config.h:625`. |
-| `wb-complete-visits` | T | Canonical decimal 0..255 | `3` | Boot/GET | `wb_complete_visits` (Writeback) | 0 = unbounded completion; measured default, ledger addendum 12; `src/core/config.h:626`. |
+| `wb-small-pipe` | T | Canonical decimal 0..64 | `16` | Boot/GET | `wb_small_pipe` (Writeback) | 0 = half rule, no completion; measured default, ledger addendum 12; `src/core/config.h:626`. |
+| `wb-complete-visits` | T | Canonical decimal 0..255 | `3` | Boot/GET | `wb_complete_visits` (Writeback) | 0 = unbounded completion; measured default, ledger addendum 12; `src/core/config.h:627`. |
 | `key-lb` | T | u32, 0 or 1 | `1` | Boot/GET | `key_lb` | Sample key demand and rebalance shard ownership; `src/core/config.h:851`, `src/core/server.h:1272`. |
 | `key-lb-damping` | T | canonical signed decimal, -1..2147483647 | `-1` | Boot/GET | `tomokv_keylb_damping_band_pct`, `tomokv_keylb_damping_fire_pct`, `tomokv_keylb_damping_ticks` | 0 keeps the original key planner and allocates no damping sidecar; -1 derives damping from the decision window; positive N sets the level. Residual-band objective and bounded recent-move damping; `src/core/lbplanner.cc`. |
 | `client-lb` | T | u32, 0 or 1 | `1` | Boot/GET | `client_lb` | Census client demand and move connections between IO owners; `src/core/config.h:857`, `src/core/server.h:529`. |
@@ -235,7 +235,7 @@ by CONFIG SET even though their table entries lack the immutable flag
 | `dbfilename` | R | Nonempty filename without `/` | `dump.tomo` | Boot/GET | — | Snapshot filename; `<dir>/<dbfilename>` auto-loads at boot when AOF recovery supplied no base or increment plan; `src/core/config.h:954`, `src/main.cc:249`. |
 | `save` | R | Repeatable positive seconds / u64 changes pairs; empty string disables | `3600 1 300 100 60 10000` | Live | Related: `rdb_changes_since_last_save`, `rdb_scheduled_saves` | Periodic snapshot clauses; first clause in a new source replaces prior source's schedule; `src/core/config.h:145`, `:905`. |
 | `shutdown-on-sigint` | R | Space-separated `default`, `save`, `nosave`, `now`, `force` (case-insensitive); `save` and `nosave` conflict | `default` | Live | — | SIGINT shutdown policy; default follows the configured persistence policy, force permits exit after a failed final save; `src/core/config.h:337`, `:1142`. |
-| `shutdown-on-sigterm` | R | Space-separated `default`, `save`, `nosave`, `now`, `force` (case-insensitive); `save` and `nosave` conflict | `default` | Live | — | SIGTERM shutdown policy, with the same modifier grammar as SIGINT; `src/core/config.h:337`, `:1142`. |
+| `shutdown-on-sigterm` | R | Space-separated `default`, `save`, `nosave`, `now`, `force` (case-insensitive); `save` and `nosave` conflict | `default` | Live | — | SIGTERM shutdown policy, with the same modifier grammar as SIGINT. As on Redis, a command already running delays the shutdown until it completes; `src/core/config.h:337`, `:1142`. |
 | `appendonly` | R | `yes` or `no` (case-insensitive) | `no` | Live | `aof_enabled` | ON starts an initial background rewrite; OFF drains, fsyncs and closes. Active atomic/persistence/topology transitions currently refuse the switch; see `docs/cfgfix/inventory.md`. |
 | `appendfsync` | R | `always`, `everysec`, `no` (case-insensitive) | `everysec` | Live | Related: `aof_fsyncs` | AOF batch sync policy; `src/core/config.h:964`, `tomokv.conf:273`. |
 | `appendfilename` | R | Nonempty name without `/` | `appendonly.aof` | Boot/GET | — | AOF name prefix; `src/core/config.h:983`, `:1216`. |
@@ -249,7 +249,7 @@ by CONFIG SET even though their table entries lack the immutable flag
 | `databases` | R | Integer 1..256 | `16` | Boot/GET | Related: `dbN` (Keyspace) | Logical namespaces in the shared store; SELECT 0..N−1; `src/core/config.h:933`, `src/cmd/t_server.cc:395`. |
 | `proto-max-bulk-len` | R | Memory, 1048576..9223372036854775807 bytes | `512mb` (536870912) | Live | — | Redis configuration range; individual frames remain bounded by TomoKV's 32-bit Slice ABI; `src/core/config.h:140`, `:941`. |
 | `client-query-buffer-limit` | R | Memory syntax, 1048576..9223372036854775807; zero is rejected | `1gb` (1073741824) | Live | — | Bound on pending input plus queued MULTI arguments; overflow closes the connection without a reply, before AUTH too; `src/core/config.h:965`, `tomokv.conf:306`. |
-| `maxmemory` | R | Memory, u64 bytes | `0` | Live | — | Store memory ceiling, 0 unlimited; not a process RSS cap; `src/core/config.h:869`. |
+| `maxmemory` | R | Memory, u64 bytes | `0` | Live | — | Store memory ceiling, 0 unlimited; not a process RSS cap. Enabling it (0 to N) builds each store's OBJECT IDLETIME clock; if a store cannot allocate its clock the change still succeeds (like Redis) and never aborts, and that store's OBJECT IDLETIME reads 0 (eviction is unaffected); `src/core/config.h:869`. |
 | `maxmemory-policy` | R | `noeviction`, `allkeys-lru`, `allkeys-lfu`, `allkeys-random`, `volatile-lru`, `volatile-lfu`, `volatile-random`, `volatile-ttl` | `noeviction` | Live | — | Eviction policy; `src/core/config.h:875`, `src/store/eviction.h:36`. |
 | `maxmemory-samples` | R | Integer 1..64 | `5` | Live | — | Eviction sample width; `src/core/config.h:882`. |
 
@@ -311,23 +311,23 @@ at u32; a CONFIG update does not eagerly rebuild existing collections.
 
 | Name | Kind | Type / grammar | Default | Change | INFO field | Semantics / parser anchor |
 | --- | --- | --- | --- | --- | --- | --- |
-| `hash-max-listpack-entries` | R | Count64 | `512` | Live | — | Compact hash entry ceiling; `src/core/config.h:390`. |
-| `hash-max-listpack-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Compact hash field/value byte ceiling; `src/core/config.h:391`. |
-| `list-max-listpack-size` | R | Canonical signed 32-bit decimal | `-2` | Live | — | -1..-5: 4/8/16/32/64 KiB; smaller negatives clamp to 64 KiB; nonnegative count with 8 KiB ceiling, 0 allows one element; `src/core/config.h:392`. |
-| `set-max-listpack-entries` | R | Count64 | `128` | Live | — | Compact string-set entry ceiling; `src/core/config.h:393`. |
-| `set-max-listpack-value` | R | Count64, no memory suffix | `64` | Live | — | Compact string-set element byte ceiling; `src/core/config.h:394`. |
-| `zset-max-listpack-entries` | R | Count64 | `128` | Live | — | Compact sorted-set entry ceiling; `src/core/config.h:395`. |
-| `zset-max-listpack-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Compact sorted-set member byte ceiling; `src/core/config.h:396`. |
-| `set-max-intset-entries` | R | Count64 | `512` | Live | — | Integer-set entry ceiling; 0 disables intsets; internal cap 1073741824; `src/core/config.h:397`. |
-| `hash-max-ziplist-entries` | R | Count64 | `512` | Live | — | Alias of hash-max-listpack-entries; `src/core/config.h:390`. |
-| `hash-max-ziplist-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Alias of hash-max-listpack-value; `src/core/config.h:391`. |
-| `list-max-ziplist-size` | R | Canonical signed 32-bit decimal | `-2` | Live | — | Alias of list-max-listpack-size; `src/core/config.h:392`. |
-| `zset-max-ziplist-entries` | R | Count64 | `128` | Live | — | Alias of zset-max-listpack-entries; `src/core/config.h:395`. |
-| `zset-max-ziplist-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Alias of zset-max-listpack-value; `src/core/config.h:396`. |
-| `hash-max-compact-entries` | T | u32 decimal | `512` | Live | — | Legacy alias of hash-max-listpack-entries; `src/core/config.h:390`. |
-| `hash-max-compact-value` | T | u32 decimal bytes | `64` | Live | — | Legacy alias of hash-max-listpack-value; `src/core/config.h:391`. |
-| `zset-max-compact-entries` | T | u32 decimal | `128` | Live | — | Legacy alias of zset-max-listpack-entries; `src/core/config.h:395`. |
-| `zset-max-compact-value` | T | u32 decimal bytes | `64` | Live | — | Legacy alias of zset-max-listpack-value; `src/core/config.h:396`. |
+| `hash-max-listpack-entries` | R | Count64 | `512` | Live | — | Compact hash entry ceiling; `src/core/config.h:391`. |
+| `hash-max-listpack-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Compact hash field/value byte ceiling; `src/core/config.h:392`. |
+| `list-max-listpack-size` | R | Canonical signed 32-bit decimal | `-2` | Live | — | -1..-5: 4/8/16/32/64 KiB; smaller negatives clamp to 64 KiB; nonnegative count with 8 KiB ceiling, 0 allows one element; `src/core/config.h:393`. |
+| `set-max-listpack-entries` | R | Count64 | `128` | Live | — | Compact string-set entry ceiling; `src/core/config.h:394`. |
+| `set-max-listpack-value` | R | Count64, no memory suffix | `64` | Live | — | Compact string-set element byte ceiling; `src/core/config.h:395`. |
+| `zset-max-listpack-entries` | R | Count64 | `128` | Live | — | Compact sorted-set entry ceiling; `src/core/config.h:396`. |
+| `zset-max-listpack-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Compact sorted-set member byte ceiling; `src/core/config.h:397`. |
+| `set-max-intset-entries` | R | Count64 | `512` | Live | — | Integer-set entry ceiling; 0 disables intsets; internal cap 1073741824; `src/core/config.h:398`. |
+| `hash-max-ziplist-entries` | R | Count64 | `512` | Live | — | Alias of hash-max-listpack-entries; `src/core/config.h:391`. |
+| `hash-max-ziplist-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Alias of hash-max-listpack-value; `src/core/config.h:392`. |
+| `list-max-ziplist-size` | R | Canonical signed 32-bit decimal | `-2` | Live | — | Alias of list-max-listpack-size; `src/core/config.h:393`. |
+| `zset-max-ziplist-entries` | R | Count64 | `128` | Live | — | Alias of zset-max-listpack-entries; `src/core/config.h:396`. |
+| `zset-max-ziplist-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Alias of zset-max-listpack-value; `src/core/config.h:397`. |
+| `hash-max-compact-entries` | T | u32 decimal | `512` | Live | — | Legacy alias of hash-max-listpack-entries; `src/core/config.h:391`. |
+| `hash-max-compact-value` | T | u32 decimal bytes | `64` | Live | — | Legacy alias of hash-max-listpack-value; `src/core/config.h:392`. |
+| `zset-max-compact-entries` | T | u32 decimal | `128` | Live | — | Legacy alias of zset-max-listpack-entries; `src/core/config.h:396`. |
+| `zset-max-compact-value` | T | u32 decimal bytes | `64` | Live | — | Legacy alias of zset-max-listpack-value; `src/core/config.h:397`. |
 | `hll-sparse-max-bytes` | R | Memory, 0..4294967295 bytes | `3000` | Boot/GET | — | Sparse HLL promotion cutoff; 0 forces dense on sparse growth; `src/core/config.h:1022`, `tomokv.conf:333`. |
 | `stream-node-max-bytes` | R | Memory, 0..4294967295; empty/bare unit = 0 | `4096` | Live | — | Stream macro-node byte rollover, 0 disables this axis; `src/core/config.h:503`, `:1031`, `src/store/typeval.h:50`. |
 | `stream-node-max-entries` | R | Canonical decimal 0..4294967295 | `100` | Live | — | Stream macro-node entry rollover, 0 disables this axis; `src/core/config.h:1031`, `src/store/typeval.h:50`. |
@@ -351,7 +351,7 @@ reference: `tomokv.conf:202`, `:344`, `:376`.
 | `protected-mode` | R | `yes`, `no` (case insensitive) | `yes` | Live | — | Refuse non-loopback clients without a configured password; GET emits yes/no; `src/core/config.h:762`. |
 | `enable-debug-command` | R | `no`, `yes`, `local` (boot literals) | `no` | Boot/GET | — | DEBUG access policy; local allows loopback/Unix clients; `src/core/config.h:773`. |
 | `aclfile` | R | Path string | Unset | Boot/GET | — | ACL LOAD/SAVE path; mutually exclusive with inline users; `src/core/config.h:705`, `:1203`. |
-| `user` | R | Repeatable `name rule...` | No inline definitions | Boot | — | Redis root ACL rules; selectors are unsupported; use ACL SETUSER live; `src/core/config.h:706`, `tomokv.conf:356`. |
+| `user` | R | Repeatable `name rule...` | No inline definitions | Boot | — | Redis root ACL rules; selectors are unsupported; use ACL SETUSER live. CONFIG REWRITE writes the live ACL registry in ACL LIST form, or no user lines when `aclfile` owns the users; `src/core/config.h:706`, `tomokv.conf:356`. |
 | `acl-pubsub-default` | R | `allchannels` or `resetchannels` (case-insensitive) | `resetchannels` | Live | — | Channel permission of new/reset users; `src/core/config.h:724`. |
 | `acllog-max-len` | R | u64 | `128` | Live | — | ACL LOG capacity per IO thread; 0 disables storage; `src/core/config.h:733`. |
 | `notify-keyspace-events` | R | Flag string: `K E g $ l s h z x e t d m n A`; empty off | Empty | Live | — | K/E channel kinds, event classes; A expands to g$lshzxetd and excludes m/n; `src/core/config.h:889`, `src/cmd/notify.h:66`. |
@@ -366,7 +366,9 @@ reference: `tomokv.conf:202`, `:344`, `:376`.
 
 CONFIG GET/SET use the table in `src/cmd/t_server.cc:308`. REWRITE requires a
 startup file (`src/cmd/server_tail.cc:674`), preserves its directives outside
-that table (`:681`), canonicalizes encoding aliases (`:694`), and quotes/escapes
+that table (`:681`) except inline `user` lines, which it replaces with the live
+ACL registry as Redis's rewriteConfigUserOption does (none when `aclfile` is
+set), canonicalizes encoding aliases (`:694`), and quotes/escapes
 values (`:653`, `:723`). It writes save clauses separately and skips the fixed
 AOF preamble declaration (`:643`, `:707`). This is not an export of CLI-only
 placement overrides. See [FINDINGS](FINDINGS.md#configuration-round-tripping).

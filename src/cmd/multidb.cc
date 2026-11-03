@@ -279,14 +279,27 @@ void DatabaseMap::join_workers(Server& server, std::vector<std::thread>& workers
             auto& s = *state_;
             uint64_t stop_since = 0;
             uint64_t stop_bound = 3 * grace_bound_ms();
+            // Last epoch seen per worker. An odd epoch is one pass in progress; the same odd
+            // value on a later tick is one pass (one long command, as on Redis) still running.
+            std::array<uint64_t, kMaxThreads> seen{};
             while (s.exited.load(std::memory_order_acquire) < workers.size()) {
                 monitor(server); // also supervises a stalled physical t0
                 const uint64_t now = now_ns() / 1000000;
                 if (stopping(server)) {
                     if (!stop_since) stop_since = now;
+                    // A command in flight delays shutdown and never aborts it. Only workers
+                    // idle at a boundary, or cycling passes without exiting, consume the bound.
+                    bool in_command = false;
+                    for (uint32_t tid = 0; tid < s.count && tid < server.nthreads(); ++tid) {
+                        if (s.participants[tid].exited.load(std::memory_order_acquire)) continue;
+                        const uint64_t epoch = server.client_work_epoch(tid);
+                        in_command |= (epoch & 1) && epoch == seen[tid];
+                        seen[tid] = epoch;
+                    }
+                    if (in_command) stop_since = now;
                     // Latch the extended grace: finalization becoming Idle must
                     // not instantly expire a worker still leaving its save stack.
-                    // stop_since never moves, including across save/rewrite epochs.
+                    // Only a command in flight moves stop_since, never a save/rewrite epoch.
                     stop_bound = std::max(stop_bound, s.wait_bound_ms(3 * grace_bound_ms(), now));
                     if (now - stop_since >= stop_bound)
                         overdue(server, "worker shutdown", now - stop_since);

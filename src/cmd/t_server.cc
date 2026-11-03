@@ -1918,6 +1918,20 @@ void cmd_config(Shard& sh, Op& op) {
                         if (!std::strcmp(update.first->name, "latency-tracking") &&
                             update.second == "yes") latency_enable_start = now_ns();
                 for (auto& update : updates) {
+                    if (update.first->kind == ConfigKind::LatencyPercentiles) {
+                        // INFO copies this side vector under the same lock as
+                        // the table. Preserve the input doubles, and publish
+                        // the complete list together with its serialized value.
+                        for (uint32_t i = 2; i < op.argc(); i += 2)
+                            if (op.arg(i).eq_icase("latency-tracking-info-percentiles")) {
+                                std::vector<double> next;
+                                const char* error = nullptr;
+                                if (!cfg_latency_percentiles(op.arg(i + 1), next, error)) std::abort();
+                                g_latency_percentiles.swap(next);
+                                g_latency_percentiles_explicit = true;
+                                break;
+                            }
+                    }
                     // The maxmemory family's entries belong to its single publication above.
                     if (!config_memory_parameter(*update.first)) {
                         if (update.first->kind == ConfigKind::NotifyFlags) {
@@ -2021,16 +2035,6 @@ void cmd_config(Shard& sh, Op& op) {
                 if (!std::strcmp(update.first->name, "requirepass")) {
                     auth_publish_requirepass(
                         *g_server, Slice(update.second.data(), update.second.size()));
-                    continue;
-                }
-                if (!std::strcmp(update.first->name, "latency-tracking-info-percentiles")) {
-                    for (uint32_t i = 2; i < op.argc(); i += 2)
-                        if (op.arg(i).eq_icase("latency-tracking-info-percentiles")) {
-                            const char* error = nullptr;
-                            cfg_latency_percentiles(op.arg(i + 1), g_latency_percentiles, error);
-                            g_latency_percentiles_explicit = true;
-                            break;
-                        }
                     continue;
                 }
                 if (!std::strcmp(update.first->name, "latency-tracking")) {

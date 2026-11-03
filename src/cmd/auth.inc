@@ -135,9 +135,11 @@ void auth_publish_requirepass(Server& server, Slice password) {
         return std::memcmp(digest.data(), kAbcDigest, sizeof(kAbcDigest)) == 0;
     }();
     if (!kSha256Verified) std::abort();
-    const bool required = !password.empty();
-    server.set_auth_config(required);
-    acl_update_default_requirepass(server, password);
+    // CC5.7: compute the final admission state, then publish it once. With ACLs live the
+    // default user decides it under g_acl_mu (a disabled default still requires AUTH);
+    // clearing the bit first let a connection accepted meanwhile skip authentication.
+    if (!acl_update_default_requirepass(server, password))
+        server.set_auth_config(!password.empty());
 }
 
 }  // namespace tomo

@@ -69,7 +69,9 @@ enum class AclLogContext : uint8_t { Toplevel, Multi, Lua, Module };
 
 bool acl_initialize(Server& server, const Config& config, std::string& error);
 void acl_shutdown();
-void acl_update_default_requirepass(Server& server, Slice password);
+void acl_config_rewrite(std::string& output);
+// True when the initialized ACL registry published the resulting admission state itself.
+bool acl_update_default_requirepass(Server& server, Slice password);
 bool acl_authenticate(Slice username, Slice password, uint32_t& user_index);
 bool acl_find_user(Slice username, uint32_t& user_index);
 bool acl_default_nopass();

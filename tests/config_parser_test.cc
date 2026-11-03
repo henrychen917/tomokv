@@ -98,14 +98,13 @@ void documented_example() {
         fail("writing documented config example failed");
     if (std::fclose(file)) fail("closing documented config example failed");
     std::vector<std::string> storage;
-    const bool loaded = tomo::load_conf_file(path, storage);
+    std::vector<size_t> line_ends;
+    const bool loaded = tomo::load_conf_file(path, storage, &line_ends);
     ::unlink(path);
     if (!loaded) fail("documented config example did not tokenize");
-    std::vector<const char*> tokens;
-    for (const auto& token : storage) tokens.push_back(token.c_str());
     tomo::Config config;
     tomo::ConfigParseState state;
-    if (tomo::parse_config_args(tokens, config, state, 1, "docs-example") != tomo::kConfigParsed ||
+    if (tomo::parse_config_file(storage, line_ends, config, state, "docs-example") != tomo::kConfigParsed ||
         tomo::parse_config_args({"--ratio", "6:2", "--dir", "/tmp"}, config, state, 2,
                                 "docs-example") != tomo::kConfigParsed ||
         tomo::validate_config(config) != tomo::kConfigParsed)

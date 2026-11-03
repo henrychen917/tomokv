@@ -1,0 +1,72 @@
+[
+  {
+    "mode": "redis",
+    "engine": "oracle",
+    "result": {
+      "members": 6000000,
+      "calibrated_seconds": 4.53,
+      "waited": [
+        4.32,
+        4.32
+      ],
+      "acknowledged": 20021
+    },
+    "passed": true
+  },
+  {
+    "mode": "1s",
+    "engine": "uring",
+    "result": {
+      "members": 300000,
+      "calibrated_seconds": 4.83,
+      "waited": [
+        4.52,
+        4.72
+      ],
+      "acknowledged": 20023
+    },
+    "passed": true
+  },
+  {
+    "mode": "1s",
+    "engine": "epoll",
+    "result": {
+      "members": 300000,
+      "calibrated_seconds": 4.74,
+      "waited": [
+        4.62,
+        4.67
+      ],
+      "acknowledged": 20050
+    },
+    "passed": true
+  },
+  {
+    "mode": "2s",
+    "engine": "uring",
+    "result": {
+      "members": 300000,
+      "calibrated_seconds": 4.76,
+      "waited": [
+        4.57,
+        4.72
+      ],
+      "acknowledged": 20042
+    },
+    "passed": true
+  },
+  {
+    "mode": "2s",
+    "engine": "epoll",
+    "result": {
+      "members": 300000,
+      "calibrated_seconds": 4.85,
+      "waited": [
+        4.47,
+        4.67
+      ],
+      "acknowledged": 20044
+    },
+    "passed": true
+  }
+]

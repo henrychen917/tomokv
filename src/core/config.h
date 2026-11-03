@@ -37,6 +37,7 @@
 
 #include "wb_rule.h"
 #include "client_hz.h"
+#include "version.h"
 #include "../base/slice.h"       // Slice (notify flag parsing)
 #include "../cmd/notify.h"       // parse_notify_flags
 #include "../store/eviction.h"   // MaxmemoryPolicy + parse_maxmemory_policy
@@ -840,7 +841,8 @@ enum : int { kConfigParsed = 0, kConfigError = 1, kConfigHelp = 2 };
 // Prints its own error messages; the caller adds file context on conf failures.
 inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                              ConfigParseState& st, int source, const char* prog,
-                             const std::vector<size_t>* lengths = nullptr) {
+                             const std::vector<size_t>* lengths = nullptr,
+                             std::FILE* diagnostics = stderr) {
     const int argc = static_cast<int>(args.size());
     for (int i = 0; i < argc; i++) {
         auto next = [&](const char* d) { return (i + 1 < argc) ? args[++i] : d; };
@@ -855,7 +857,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             const char* value = next(nullptr);
             std::string normalized, error;
             if (!value || !cfg_process_normalize(process, value_slice(value), normalized, error)) {
-                std::fprintf(stderr, "%s: %s\n", a, value ? error.c_str() : "wrong number of arguments");
+                std::fprintf(diagnostics, "%s: %s\n", a, value ? error.c_str() : "wrong number of arguments");
                 return kConfigError;
             }
             cfg_process_store(cfg, process, std::move(normalized));
@@ -868,7 +870,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             int64_t parsed = 0;
             if (!value || !EncodingConfig::parse(encoding, value_slice(value), parsed,
                                                 EncodingConfig::legacy(encoding, Slice(a + 2, std::strlen(a + 2))))) {
-                std::fprintf(stderr, "%s has an invalid encoding limit\n", a);
+                std::fprintf(diagnostics, "%s has an invalid encoding limit\n", a);
                 return kConfigError;
             }
             cfg.encodings.values[encoding] = parsed;
@@ -877,7 +879,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         if      (!std::strcmp(a, "--port")) {
             uint32_t value = 0;
             if (!cfg_parse_redis_unsigned(next_integer(), value) || value > UINT16_MAX) {
-                std::fprintf(stderr, "--port must be between 0 and %u\n", UINT16_MAX);
+                std::fprintf(diagnostics, "--port must be between 0 and %u\n", UINT16_MAX);
                 return kConfigError;
             }
             cfg.port = static_cast<uint16_t>(value);
@@ -885,7 +887,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         else if (!std::strcmp(a, "--tls-port")) {
             uint32_t value = 0;
             if (!cfg_parse_redis_unsigned(next_integer(), value) || value > UINT16_MAX) {
-                std::fprintf(stderr, "--tls-port must be between 0 and %u\n", UINT16_MAX);
+                std::fprintf(diagnostics, "--tls-port must be between 0 and %u\n", UINT16_MAX);
                 return kConfigError;
             }
             cfg.tls_port = static_cast<uint16_t>(value);
@@ -901,7 +903,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             else if (cfg_eq_icase(value, "optional"))
                 cfg.tls_auth_clients = TlsAuthClients::Optional;
             else {
-                std::fprintf(stderr, "--tls-auth-clients wants yes, no or optional\n");
+                std::fprintf(diagnostics, "--tls-auth-clients wants yes, no or optional\n");
                 return kConfigError;
             }
         }
@@ -913,7 +915,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             if (cfg_eq_icase(value, "yes")) cfg.tls_prefer_server_ciphers = true;
             else if (cfg_eq_icase(value, "no")) cfg.tls_prefer_server_ciphers = false;
             else {
-                std::fprintf(stderr, "--tls-prefer-server-ciphers wants yes or no\n");
+                std::fprintf(diagnostics, "--tls-prefer-server-ciphers wants yes or no\n");
                 return kConfigError;
             }
         }
@@ -921,19 +923,19 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         else if (!std::strcmp(a, "--unixsocket")) cfg.unixsocket = next("");
         else if (!std::strcmp(a, "--unixsocketperm")) {
             if (!cfg_parse_unixsocketperm(next(nullptr), cfg.unixsocketperm)) {
-                std::fprintf(stderr, "--unixsocketperm wants an octal mode between 0 and 777\n");
+                std::fprintf(diagnostics, "--unixsocketperm wants an octal mode between 0 and 777\n");
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--maxclients")) {
             if (!cfg_parse_redis_unsigned(next_integer(), cfg.maxclients) || cfg.maxclients == 0) {
-                std::fprintf(stderr, "--maxclients must be between 1 and %u\n", UINT32_MAX);
+                std::fprintf(diagnostics, "--maxclients must be between 1 and %u\n", UINT32_MAX);
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--timeout")) {
             if (!cfg_parse_redis_unsigned(next_integer(), cfg.timeout) || cfg.timeout > INT_MAX) {
-                std::fprintf(stderr, "--timeout must be between 0 and %d\n", INT_MAX);
+                std::fprintf(diagnostics, "--timeout must be between 0 and %d\n", INT_MAX);
                 return kConfigError;
             }
         }
@@ -941,7 +943,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             const char* value = next(nullptr);
             const char* error = "wrong number of arguments";
             if (!value || !ClientHz::parse(value_slice(value), cfg.hz, error)) {
-                std::fprintf(stderr, "--hz: %s\n", error);
+                std::fprintf(diagnostics, "--hz: %s\n", error);
                 return kConfigError;
             }
         }
@@ -950,26 +952,26 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             if (cfg_eq_icase(value, "yes")) cfg.dynamic_hz = 1;
             else if (cfg_eq_icase(value, "no")) cfg.dynamic_hz = 0;
             else {
-                std::fprintf(stderr, "--dynamic-hz: argument must be 'yes' or 'no'\n");
+                std::fprintf(diagnostics, "--dynamic-hz: argument must be 'yes' or 'no'\n");
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--tcp-keepalive")) {
             if (!cfg_parse_redis_unsigned(next_integer(), cfg.tcp_keepalive) || cfg.tcp_keepalive > INT_MAX) {
-                std::fprintf(stderr, "--tcp-keepalive must be between 0 and %d\n", INT_MAX);
+                std::fprintf(diagnostics, "--tcp-keepalive must be between 0 and %d\n", INT_MAX);
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--tcp-backlog")) {
             if (!cfg_parse_redis_unsigned(next_integer(), cfg.tcp_backlog) || cfg.tcp_backlog > INT_MAX) {
-                std::fprintf(stderr, "--tcp-backlog must be between 0 and %d\n", INT_MAX);
+                std::fprintf(diagnostics, "--tcp-backlog must be between 0 and %d\n", INT_MAX);
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--client-output-buffer-limit")) {
             const int begin = i + 1;
             int end = begin;
-            while (end < argc && std::strncmp(args[end], "--", 2) != 0) end++;
+            while (end < argc && (source == 1 || std::strncmp(args[end], "--", 2) != 0)) end++;
             std::vector<std::string> words;
             for (int arg = begin; arg < end; arg++) {
                 const char* p = args[arg];
@@ -987,7 +989,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             const char* error = nullptr;
             if (!cfg_parse_client_output_buffer_limit(values.data(), values.size(),
                                                        cfg.client_output_buffer_limits, error)) {
-                std::fprintf(stderr, "--client-output-buffer-limit: %s\n", error);
+                std::fprintf(diagnostics, "--client-output-buffer-limit: %s\n", error);
                 return kConfigError;
             }
             i = end - 1;
@@ -995,7 +997,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         else if (!std::strcmp(a, "--requirepass")) {
             const char* value = next(nullptr);
             if (!value) {
-                std::fprintf(stderr, "wrong number of arguments\n");
+                std::fprintf(diagnostics, "wrong number of arguments\n");
                 return kConfigError;
             }
             cfg.requirepass = value;
@@ -1005,9 +1007,9 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         else if (!std::strcmp(a, "--user")) {
             const int begin = i + 1;
             int end = begin;
-            while (end < argc && std::strncmp(args[end], "--", 2) != 0) end++;
+            while (end < argc && (source == 1 || std::strncmp(args[end], "--", 2) != 0)) end++;
             if (end - begin < 1) {
-                std::fprintf(stderr, "--user requires a username\n");
+                std::fprintf(diagnostics, "--user requires a username\n");
                 return kConfigError;
             }
             std::vector<std::string> definition;
@@ -1016,7 +1018,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                     definition.emplace_back(args[arg], lengths ? (*lengths)[arg] : std::strlen(args[arg]));
                 cfg.acl_users.push_back(std::move(definition));
             } catch (const std::bad_alloc&) {
-                std::fprintf(stderr, "out of memory parsing --user\n");
+                std::fprintf(diagnostics, "out of memory parsing --user\n");
                 return kConfigError;
             }
             i = end - 1;
@@ -1026,27 +1028,27 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             if (value && cfg_eq_icase(value, "allchannels")) cfg.acl_pubsub_allchannels = 1;
             else if (value && cfg_eq_icase(value, "resetchannels")) cfg.acl_pubsub_allchannels = 0;
             else {
-                std::fprintf(stderr, "--acl-pubsub-default wants allchannels or resetchannels\n");
+                std::fprintf(diagnostics, "--acl-pubsub-default wants allchannels or resetchannels\n");
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--acllog-max-len")) {
             if (!cfg_parse_redis_unsigned(next_integer(), cfg.acllog_max_len)) {
-                std::fprintf(stderr, "--acllog-max-len wants an unsigned integer\n");
+                std::fprintf(diagnostics, "--acllog-max-len wants an unsigned integer\n");
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--slowlog-log-slower-than")) {
             if (!cfg_parse_redis_i64(next_integer(), cfg.slowlog_log_slower_than) ||
                 cfg.slowlog_log_slower_than < -1) {
-                std::fprintf(stderr,
+                std::fprintf(diagnostics,
                              "--slowlog-log-slower-than wants microseconds, -1 to disable\n");
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--slowlog-max-len")) {
             if (!cfg_parse_redis_unsigned(next_integer(), cfg.slowlog_max_len)) {
-                std::fprintf(stderr, "--slowlog-max-len wants an unsigned integer\n");
+                std::fprintf(diagnostics, "--slowlog-max-len wants an unsigned integer\n");
                 return kConfigError;
             }
         }
@@ -1055,18 +1057,18 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             if (cfg_eq_icase(value, "yes")) cfg.latency_tracking = true;
             else if (cfg_eq_icase(value, "no")) cfg.latency_tracking = false;
             else {
-                std::fprintf(stderr, "%s: argument must be 'yes' or 'no'\n", a);
+                std::fprintf(diagnostics, "%s: argument must be 'yes' or 'no'\n", a);
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--latency-tracking-info-percentiles")) {
             const int begin = i + 1;
             int end = begin;
-            while (end < argc && std::strncmp(args[end], "--", 2)) ++end;
+            while (end < argc && (source == 1 || std::strncmp(args[end], "--", 2))) ++end;
             std::vector<std::string> tokens;
             if (end == begin + 1 && args[begin][0]) {
                 if (!cfg_split_args(args[begin], tokens)) {
-                    std::fprintf(stderr, "%s: Invalid latency-tracking-info-percentiles parameters\n", a);
+                    std::fprintf(diagnostics, "%s: Invalid latency-tracking-info-percentiles parameters\n", a);
                     return kConfigError;
                 }
             } else for (int j = begin; j < end; ++j)
@@ -1078,7 +1080,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 const char* error = nullptr;
                 if (!cfg_latency_percentiles(Slice(token.data(), token.size()), one, error) ||
                     one.size() != 1) {
-                    std::fprintf(stderr, "%s: %s\n", a, error ? error :
+                    std::fprintf(diagnostics, "%s: %s\n", a, error ? error :
                         "Invalid latency-tracking-info-percentiles parameters");
                     return kConfigError;
                 }
@@ -1092,7 +1094,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             const char* error = nullptr;
             if (!cfg_parse_u32_limit(value_slice(value), false,
                                      cfg.latency_monitor_threshold, error)) {
-                std::fprintf(stderr, "%s: %s\n", a, error);
+                std::fprintf(diagnostics, "%s: %s\n", a, error);
                 return kConfigError;
             }
         }
@@ -1103,7 +1105,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             else if (cfg_eq_icase(value, "no"))
                 cfg.protected_mode = 0;
             else {
-                std::fprintf(stderr, "--protected-mode wants yes or no\n");
+                std::fprintf(diagnostics, "--protected-mode wants yes or no\n");
                 return kConfigError;
             }
         }
@@ -1113,7 +1115,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             else if (value && !std::strcmp(value, "yes")) cfg.enable_debug_command = DebugCommandMode::Yes;
             else if (value && !std::strcmp(value, "local")) cfg.enable_debug_command = DebugCommandMode::Local;
             else {
-                std::fprintf(stderr, "--enable-debug-command wants no, yes or local\n");
+                std::fprintf(diagnostics, "--enable-debug-command wants no, yes or local\n");
                 return kConfigError;
             }
         }
@@ -1124,14 +1126,14 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             else if (value && (!std::strcmp(value, "1s") || !std::strcmp(value, "fused")))
                 cfg.thread_mode = ThreadMode::Fused;
             else {
-                std::fprintf(stderr,
+                std::fprintf(diagnostics,
                              "--thread-mode wants 2s or 1s (split/fused are aliases)\n");
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--read-local")) {
             if (!cfg_parse_u32(next(nullptr), cfg.read_local) || cfg.read_local > 1) {
-                std::fprintf(stderr, "--read-local wants 0 or 1\n");
+                std::fprintf(diagnostics, "--read-local wants 0 or 1\n");
                 return kConfigError;
             }
         }
@@ -1140,7 +1142,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         // flip controller will drive: counts in, placement out, no per-node arithmetic.
         else if (!std::strcmp(a, "--ratio")) {
             if (st.place_source == source) {
-                std::fprintf(stderr, "--ratio and --place are mutually exclusive\n");
+                std::fprintf(diagnostics, "--ratio and --place are mutually exclusive\n");
                 return kConfigError;
             }
             if (st.place_source) { cfg.place = nullptr; st.place_source = 0; }
@@ -1149,7 +1151,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             unsigned a2 = 0, b = 0, c = 0;
             const int got = std::sscanf(v, "%u:%u:%u", &a2, &b, &c);
             if (got != 2 || a2 == 0 || b == 0) {
-                std::fprintf(stderr, "--ratio wants global ifid:ex (e.g. 30:34); 3s was deleted 2026-08-24\n");
+                std::fprintf(diagnostics, "--ratio wants global ifid:ex (e.g. 30:34); 3s was deleted 2026-08-24\n");
                 return kConfigError;
             }
             cfg.even_ifid = a2; cfg.even_ex = b;
@@ -1160,21 +1162,21 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             const char* value = next(nullptr);
             if (value && !std::strcmp(value, "-1")) cfg.shards = Config::kShardsAuto;
             else if (!cfg_parse_u32(value, cfg.shards) || cfg.shards == 0 || cfg.shards > 256) {
-                std::fprintf(stderr, "--shards wants -1 (auto) or 1..256\n");
+                std::fprintf(diagnostics, "--shards wants -1 (auto) or 1..256\n");
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--reorder")) {
             const char* value = next(nullptr);
             if (!cfg_parse_u32(value, cfg.reorder) || cfg.reorder > 1) {
-                std::fprintf(stderr, "--reorder wants 0 or 1\n");
+                std::fprintf(diagnostics, "--reorder wants 0 or 1\n");
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--wb-policy")) {
             const char* value = next(nullptr);
             if (!value || (std::strcmp(value, "0") && std::strcmp(value, "1"))) {
-                std::fprintf(stderr, "--wb-policy wants 0 or 1\n");
+                std::fprintf(diagnostics, "--wb-policy wants 0 or 1\n");
                 return kConfigError;
             }
             cfg.wb_policy = std::atoi(value);
@@ -1187,52 +1189,52 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             const unsigned limit = small ? kRobWindow : UINT8_MAX;
             if (!value || !cfg_parse_u32_limit(value_slice(value), false, parsed, error) ||
                 parsed > limit) {
-                std::fprintf(stderr, "%s wants an integer in 0..%u\n", a, limit);
+                std::fprintf(diagnostics, "%s wants an integer in 0..%u\n", a, limit);
                 return kConfigError;
             }
             (small ? cfg.wb_small_pipe : cfg.wb_complete_visits) = parsed;
         }
         else if (!std::strcmp(a, "--key-lb")) {
             if (!cfg_parse_u32(next(nullptr), cfg.key_lb) || cfg.key_lb > 1) {
-                std::fprintf(stderr, "--key-lb wants 0 or 1\n");
+                std::fprintf(diagnostics, "--key-lb wants 0 or 1\n");
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--key-lb-damping")) {
             if (!cfg_parse_key_lb_damping(next(nullptr), cfg.key_lb_damping)) {
-                std::fprintf(stderr, "--key-lb-damping wants -1, 0 or a positive integer\n");
+                std::fprintf(diagnostics, "--key-lb-damping wants -1, 0 or a positive integer\n");
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--client-lb")) {
             if (!cfg_parse_u32(next(nullptr), cfg.client_lb) || cfg.client_lb > 1) {
-                std::fprintf(stderr, "--client-lb wants 0 or 1\n");
+                std::fprintf(diagnostics, "--client-lb wants 0 or 1\n");
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--flip-auto")) {
             if (!cfg_parse_u32(next(nullptr), cfg.flip_auto) || cfg.flip_auto > 1) {
-                std::fprintf(stderr, "--flip-auto wants 0 or 1\n");
+                std::fprintf(diagnostics, "--flip-auto wants 0 or 1\n");
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--maxmemory")) {
             if (!cfg_parse_memory(next(nullptr), cfg.maxmemory)) {
-                std::fprintf(stderr, "--maxmemory wants a Redis memory value (0 disables)\n");
+                std::fprintf(diagnostics, "--maxmemory wants a Redis memory value (0 disables)\n");
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--maxmemory-policy")) {
             const char* value = next(nullptr);
             if (!value || !parse_maxmemory_policy(value, cfg.maxmemory_policy)) {
-                std::fprintf(stderr, "--maxmemory-policy wants a Redis maxmemory policy\n");
+                std::fprintf(diagnostics, "--maxmemory-policy wants a Redis maxmemory policy\n");
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--maxmemory-samples")) {
             if (!cfg_parse_redis_unsigned(next_integer(), cfg.maxmemory_samples) ||
                 cfg.maxmemory_samples == 0 || cfg.maxmemory_samples > 64) {
-                std::fprintf(stderr, "--maxmemory-samples must be between 1 and 64\n");
+                std::fprintf(diagnostics, "--maxmemory-samples must be between 1 and 64\n");
                 return kConfigError;
             }
         }
@@ -1241,23 +1243,23 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             const Slice input(value ? value : "", value ? std::strlen(value) : 0);
             uint32_t parsed = 0;
             if (!value || !parse_notify_flags(input, parsed)) {
-                std::fprintf(stderr, "--notify-keyspace-events contains an invalid flag\n");
+                std::fprintf(diagnostics, "--notify-keyspace-events contains an invalid flag\n");
                 return kConfigError;
             }
             cfg.notify_events = parsed;
         }
         else if (!std::strcmp(a, "--tracking-table-max-keys")) {
             if (!cfg_parse_redis_unsigned(next_integer(), cfg.tracking_table_max_keys)) {
-                std::fprintf(stderr, "--tracking-table-max-keys wants an unsigned key count\n");
+                std::fprintf(diagnostics, "--tracking-table-max-keys wants an unsigned key count\n");
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--save")) {
             const int begin = i + 1;
             int end = begin;
-            while (end < argc && std::strncmp(args[end], "--", 2) != 0) end++;
+            while (end < argc && (source == 1 || std::strncmp(args[end], "--", 2) != 0)) end++;
             if (begin == end) {
-                std::fprintf(stderr, "--save wants an empty value or seconds/changes pairs\n");
+                std::fprintf(diagnostics, "--save wants an empty value or seconds/changes pairs\n");
                 return kConfigError;
             }
             std::string flat;
@@ -1267,7 +1269,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             }
             std::vector<SaveClause> parsed;
             if (!cfg_parse_save_schedule(flat.data(), flat.size(), parsed)) {
-                std::fprintf(stderr, "--save wants positive seconds and unsigned changes pairs\n");
+                std::fprintf(diagnostics, "Invalid save parameters\n");
                 return kConfigError;
             }
             if (st.save_source != source) {
@@ -1283,7 +1285,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         else if (!std::strcmp(a, "--databases")) {
             uint32_t value = 0;
             if (!cfg_parse_redis_unsigned(next_integer(), value) || (value < 1 || value > 256)) {
-                std::fprintf(stderr, "--databases must be between 1 and 256\n");
+                std::fprintf(diagnostics, "--databases must be between 1 and 256\n");
                 return kConfigError;
             }
             cfg.databases = value;
@@ -1293,7 +1295,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             const char* error = "argument must be a memory value";
             if (!input || !cfg_parse_query_buffer_limit(input, std::strlen(input),
                                                         cfg.client_query_buffer_limit, error)) {
-                std::fprintf(stderr, "--client-query-buffer-limit: %s\n", error);
+                std::fprintf(diagnostics, "--client-query-buffer-limit: %s\n", error);
                 return kConfigError;
             }
         }
@@ -1305,7 +1307,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             uint64_t value = 0;
             if (!cfg_parse_memory(next(nullptr), value) || value < kProtoMinBulkLen ||
                 value > kProtoMaxBulkLenSupported) {
-                std::fprintf(stderr,
+                std::fprintf(diagnostics,
                     "--proto-max-bulk-len must be between %llu and %llu bytes\n",
                     static_cast<unsigned long long>(kProtoMinBulkLen),
                     static_cast<unsigned long long>(kProtoMaxBulkLenSupported));
@@ -1318,13 +1320,13 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         else if (!std::strcmp(a, "--shutdown-on-sigint") || !std::strcmp(a, "--shutdown-on-sigterm")) {
             const char* value = next(nullptr);
             std::string words = value ? value : "";
-            while (i + 1 < argc && std::strncmp(args[i + 1], "--", 2)) {
+            while (i + 1 < argc && (source == 1 || std::strncmp(args[i + 1], "--", 2))) {
                 words += ' '; words += args[++i];
             }
             uint8_t flags = 0;
             const char* error = nullptr;
             if (!cfg_shutdown_flags(Slice(words.data(), words.size()), flags, error)) {
-                std::fprintf(stderr, "%s: %s\n", a, error);
+                std::fprintf(diagnostics, "%s: %s\n", a, error);
                 return kConfigError;
             }
             (!std::strcmp(a, "--shutdown-on-sigint") ? cfg.shutdown_on_sigint : cfg.shutdown_on_sigterm) = flags;
@@ -1334,7 +1336,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             if (cfg_eq_icase(value, "yes")) cfg.appendonly = true;
             else if (cfg_eq_icase(value, "no")) cfg.appendonly = false;
             else {
-                std::fprintf(stderr, "--appendonly wants yes or no\n");
+                std::fprintf(diagnostics, "--appendonly wants yes or no\n");
                 return kConfigError;
             }
         }
@@ -1344,7 +1346,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             else if (cfg_eq_icase(value, "everysec")) cfg.appendfsync = AppendFsyncPolicy::Everysec;
             else if (cfg_eq_icase(value, "no")) cfg.appendfsync = AppendFsyncPolicy::No;
             else {
-                std::fprintf(stderr, "--appendfsync wants always, everysec or no\n");
+                std::fprintf(diagnostics, "--appendfsync wants always, everysec or no\n");
                 return kConfigError;
             }
         }
@@ -1353,7 +1355,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             if (cfg_eq_icase(value, "uring")) cfg.net_io = NetIoEngine::Uring;
             else if (cfg_eq_icase(value, "epoll")) cfg.net_io = NetIoEngine::Epoll;
             else {
-                std::fprintf(stderr, "--net-io wants uring or epoll\n");
+                std::fprintf(diagnostics, "--net-io wants uring or epoll\n");
                 return kConfigError;
             }
         }
@@ -1361,21 +1363,21 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         else if (!std::strcmp(a, "--appenddirname")) cfg.appenddirname = next("appendonlydir");
         else if (!std::strcmp(a, "--auto-aof-rewrite-percentage")) {
             if (!cfg_parse_redis_unsigned(next_integer(), cfg.auto_aof_rewrite_percentage) || cfg.auto_aof_rewrite_percentage > INT_MAX) {
-                std::fprintf(stderr, "--auto-aof-rewrite-percentage wants an unsigned integer\n");
+                std::fprintf(diagnostics, "--auto-aof-rewrite-percentage wants an unsigned integer\n");
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--auto-aof-rewrite-min-size")) {
             if (!cfg_parse_memory(next(nullptr), cfg.auto_aof_rewrite_min_size) ||
                 cfg.auto_aof_rewrite_min_size > INT64_MAX) {
-                std::fprintf(stderr, "--auto-aof-rewrite-min-size wants a byte count\n");
+                std::fprintf(diagnostics, "--auto-aof-rewrite-min-size wants a byte count\n");
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--aof-use-rdb-preamble")) {
             const char* value = next(nullptr);
             if (!cfg_eq_icase(value, "yes")) {
-                std::fprintf(stderr, "aof-use-rdb-preamble no is unsupported: the AOF base file is a TomoKV snapshot\n");
+                std::fprintf(diagnostics, "aof-use-rdb-preamble no is unsupported: the AOF base file is a TomoKV snapshot\n");
                 return kConfigError;
             }
         }
@@ -1384,7 +1386,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             if (cfg_eq_icase(value, "yes")) cfg.aof_timestamp_enabled = true;
             else if (cfg_eq_icase(value, "no")) cfg.aof_timestamp_enabled = false;
             else {
-                std::fprintf(stderr, "--aof-timestamp-enabled wants yes or no\n");
+                std::fprintf(diagnostics, "--aof-timestamp-enabled wants yes or no\n");
                 return kConfigError;
             }
         }
@@ -1393,14 +1395,14 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             if (cfg_eq_icase(value, "yes")) cfg.aof_load_truncated = true;
             else if (cfg_eq_icase(value, "no")) cfg.aof_load_truncated = false;
             else {
-                std::fprintf(stderr, "--aof-load-truncated wants yes or no\n");
+                std::fprintf(diagnostics, "--aof-load-truncated wants yes or no\n");
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--hll-sparse-max-bytes")) {
             uint64_t value = 0;
             if (!cfg_parse_memory(next(nullptr), value) || value > UINT32_MAX) {
-                std::fprintf(stderr, "--hll-sparse-max-bytes wants a byte count between 0 and %u\n",
+                std::fprintf(diagnostics, "--hll-sparse-max-bytes wants a byte count between 0 and %u\n",
                              UINT32_MAX);
                 return kConfigError;
             }
@@ -1413,20 +1415,20 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             const char* error = "missing argument";
             uint32_t& limit = memory ? cfg.stream_limits.node_max_bytes : cfg.stream_limits.node_max_entries;
             if (!value || !cfg_parse_u32_limit(value_slice(value), memory, limit, error)) {
-                std::fprintf(stderr, "%s: %s\n", a, error);
+                std::fprintf(diagnostics, "%s: %s\n", a, error);
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--zc-min")) {
             const char* v = next(nullptr);
             if (!cfg_parse_u32(v, cfg.zc_min)) {
-                std::fprintf(stderr, "--zc-min wants a uint32 byte count (0 disables; 16384 suggested when enabled)\n");
+                std::fprintf(diagnostics, "--zc-min wants a uint32 byte count (0 disables; 16384 suggested when enabled)\n");
                 return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--atomic")) {
             if (!cfg_parse_u32(next(nullptr), cfg.atomic) || cfg.atomic > 1) {
-                std::fprintf(stderr, "--atomic wants 0 or 1\n");
+                std::fprintf(diagnostics, "--atomic wants 0 or 1\n");
                 return kConfigError;
             }
         }
@@ -1436,11 +1438,11 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             const char* h = next("mix64");
             if      (!std::strcmp(h, "mix64"))   g_hash_kind = HashKind::Mix64Seeded;
             else if (!std::strcmp(h, "siphash")) g_hash_kind = HashKind::SipHash12;
-            else { std::fprintf(stderr, "--hash must be mix64 | siphash\n"); return kConfigError; }
+            else { std::fprintf(diagnostics, "--hash must be mix64 | siphash\n"); return kConfigError; }
         }
         else if (!std::strcmp(a, "--place")) {
             if (st.ratio_source == source) {
-                std::fprintf(stderr, "--ratio and --place are mutually exclusive\n");
+                std::fprintf(diagnostics, "--ratio and --place are mutually exclusive\n");
                 return kConfigError;
             }
             if (st.ratio_source) { cfg.even_ifid = cfg.even_ex = 0; st.ratio_source = 0; }
@@ -1515,7 +1517,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             return kConfigHelp;
         }
         else {
-            std::fprintf(stderr, "unknown argument '%s' (see --help)\n", a);
+            std::fprintf(diagnostics, "unknown argument '%s' (see --help)\n", a);
             return kConfigError;
         }
     }
@@ -1698,12 +1700,24 @@ inline bool cfg_split_args(const char* line, std::vector<std::string>& out) {
     }
 }
 
-// Conf-file loader: translates `name value...` lines into the exact --flag token stream the CLI
-// parser consumes, so the file cannot drift from the flag grammar. `pin yes|no` maps to the
+struct ConfigFileLine {
+    int number;
+    std::string text;
+};
+
+inline void config_file_error(int number, const char* line, const char* error) {
+    std::fprintf(stderr, "\n*** FATAL CONFIG FILE ERROR (Redis %s) ***\n"
+                         "Reading the configuration file, at line %d\n>>> '%s'\n%s\n",
+                 kRedisCompatVersion, number, line, error);
+}
+
+// Conf-file loader: each physical line is one directive. The typed value parsers are shared
+// with CLI, but -- inside a file argument never starts another option. `pin yes|no` maps to the
 // valueless --no-pin. Token storage lives in `store` (must outlive parsing — Config keeps
 // const char* views into it).
 inline bool load_conf_file(const char* path, std::vector<std::string>& store,
-                           std::vector<size_t>* line_ends = nullptr) {
+                           std::vector<size_t>* line_ends = nullptr,
+                           std::vector<ConfigFileLine>* lines = nullptr) {
     std::FILE* f = std::fopen(path, "r");
     if (!f) {
         std::fprintf(stderr, "cannot open conf file '%s'\n", path);
@@ -1737,21 +1751,27 @@ inline bool load_conf_file(const char* path, std::vector<std::string>& store,
         if (*first == '#' || !*first) continue;
         std::vector<std::string> words;
         if (!cfg_split_args(first, words)) {
-            std::fprintf(stderr, "%s:%d: Unbalanced quotes in configuration line\n", path,
-                         lineno);
+            config_file_error(lineno, first, "Unbalanced quotes in configuration line");
             ok = false;
             continue;
         }
         if (words.empty()) continue;
         for (char& c : words[0])
             if (c >= 'A' && c <= 'Z') c += 'a' - 'A';
+        // CLI-only: Redis has no such directive, and a file must never exit successfully.
+        if (words[0] == "help") {
+            config_file_error(lineno, first, "Bad directive or wrong number of arguments");
+            ok = false;
+            continue;
+        }
         if (words[0] == "pin") {
             if (words.size() != 2 || (words[1] != "yes" && words[1] != "no")) {
-                std::fprintf(stderr, "%s:%d: pin wants yes|no\n", path, lineno);
+                config_file_error(lineno, first, "pin wants yes|no");
                 ok = false;
             } else if (words[1] == "no") {
                 store.emplace_back("--no-pin");
                 if (line_ends) line_ends->push_back(store.size());
+                if (lines) lines->push_back({lineno, first});
             }
             continue;
         }
@@ -1767,13 +1787,14 @@ inline bool load_conf_file(const char* path, std::vector<std::string>& store,
             (!valueless && ((words.size() < 2 &&
                              words[0] != "latency-tracking-info-percentiles") ||
                             (!variadic && words.size() != 2)))) {
-            std::fprintf(stderr, "%s:%d: wrong number of arguments\n", path, lineno);
+            config_file_error(lineno, first, "wrong number of arguments");
             ok = false;
             continue;
         }
         store.emplace_back("--" + words[0]);
         for (size_t w = 1; w < words.size(); w++) store.emplace_back(words[w]);
         if (line_ends) line_ends->push_back(store.size());
+        if (lines) lines->push_back({lineno, first});
     }
     return ok;
 }
@@ -1783,8 +1804,9 @@ inline bool load_conf_file(const char* path, std::vector<std::string>& store,
 // their existing semantics. The string store outlives Config's borrowed pointers.
 __attribute__((noipa)) inline int parse_config_file(const std::vector<std::string>& store,
         const std::vector<size_t>& line_ends, Config& cfg, ConfigParseState& st,
-        const char* prog) {
+        const char* prog, const std::vector<ConfigFileLine>* lines = nullptr) {
     size_t begin = 0;
+    size_t line_index = 0;
     for (size_t end : line_ends) {
         std::vector<const char*> args;
         std::vector<size_t> lengths;
@@ -1792,9 +1814,27 @@ __attribute__((noipa)) inline int parse_config_file(const std::vector<std::strin
             args.push_back(store[i].c_str());
             lengths.push_back(store[i].size());
         }
-        const int rc = parse_config_args(args, cfg, st, 1, prog, &lengths);
+        // Retain the parser's specific reason behind Redis's file/line diagnostic.
+        char* reason = nullptr;
+        size_t size = 0;
+        std::FILE* diagnostics = ::open_memstream(&reason, &size);
+        if (!diagnostics) return kConfigError;
+        const int rc = parse_config_args(args, cfg, st, 1, prog, &lengths, diagnostics);
+        std::fclose(diagnostics);
+        if (rc != kConfigParsed) {
+            // Redis prints the setter's reason alone: drop the CLI-shaped "--name: " prefix.
+            std::string text = reason && *reason ? reason : "Invalid configuration\n";
+            const std::string prefix = std::string(args.empty() ? "" : args[0]) + ": ";
+            if (text.compare(0, prefix.size(), prefix) == 0) text.erase(0, prefix.size());
+            while (!text.empty() && text.back() == '\n') text.pop_back();
+            if (lines) config_file_error((*lines)[line_index].number,
+                (*lines)[line_index].text.c_str(), text.c_str());
+            else if (reason) std::fputs(reason, stderr);
+        }
+        std::free(reason);
         if (rc != kConfigParsed) return rc;
         begin = end;
+        ++line_index;
     }
     return kConfigParsed;
 }

@@ -1011,6 +1011,7 @@ job_body(){
   local name=$1 label; label=$(job_label "$name")
   case "$name" in
     iofix-deferred) job_iofix_deferred "$name";;
+    cfgfix2-*) job_cfgfix2 "${name#cfgfix2-}";;
     iofix-hz) job_iofix_hz "$name";;
     iofix-sleep) job_iofix_sleep "$name";;
     iofix-signal) job_iofix_signal "$name";;
@@ -1168,7 +1169,7 @@ plan_jobs(){
     JOB_NAMES+=("climonfix4-$MF_MODE-$MF_ENGINE")
   done; done
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
-  JOB_NAMES+=(datafix1_randscan datafix1_hexpire datafix1_bitfield datafix1_locale datafix1_lists datafix1_spop datafix1_geo cfgfix config_unit flip_unit filter_unit ring_unit storage_units
+  JOB_NAMES+=(datafix1_randscan datafix1_hexpire datafix1_bitfield datafix1_locale datafix1_lists datafix1_spop datafix1_geo cfgfix cfgfix2-file cfgfix2-acl cfgfix2-latency cfgfix2-auth cfgfix2-shutdown cfgfix2-maxmemory config_unit flip_unit filter_unit ring_unit storage_units
               production_units aclkeys_wake list_namespace source_identity acl_metadata cmd_metadata abba_selftest redis_tcl bugs5)
   # Start long waits and whole boot families early; short jobs occupy the slots they release.
   if [ "$TIER" = full ]; then
@@ -1529,6 +1530,15 @@ job_cfgfix(){
       >"$TMPDIR/proof.log" 2>&1 \
       && ok "cfgfix CONFIG oracle parity (all modes and engines)" \
       || bad "cfgfix CONFIG oracle parity (all modes and engines)" "see $TMPDIR/proof.log"
+}
+
+job_cfgfix2(){
+  local label="cfgfix2 $1 (oracle, both modes and engines)"
+  row_begin "$label"
+  py tests/cfgfix2.py --case "$1" --binary "$CANDIDATE_BINARY" \
+      --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --output "$TMPDIR/proof" \
+      >"$TMPDIR/proof.log" 2>&1 && ok "$label" || bad "$label" "see $TMPDIR/proof.log"
 }
 
 job_config_unit(){
@@ -6585,6 +6595,13 @@ collect_job netfix_unix
 collect_job netfix_config
 # cfgfix: one row before the quick exit, DQ=+1 / DF=+1. EXPECT is maintainer-owned.
 collect_job cfgfix
+# cfgfix2: collected before the quick-tier exit; EXPECT remains maintainer-owned.
+collect_job cfgfix2-file
+collect_job cfgfix2-acl
+collect_job cfgfix2-latency
+collect_job cfgfix2-auth
+collect_job cfgfix2-shutdown
+collect_job cfgfix2-maxmemory
 collect_job netfix_tls
 collect_job netfix_idle_buffers
 
