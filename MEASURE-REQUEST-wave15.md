@@ -43,3 +43,15 @@ HANG-2: the merged twelve-lane binary still hangs on the deterministic 32 MiB/1 
 Two directed rows are collected before the quick exit, bringing the current declaration to **1167/1184**. Full POST oracle/restart matrices are running through the gate job interface. Initial probe harness defects (Conn context manager, an extra close, reading a persistence counter from INFO stats) are corrected and the defective receipts are retained as such; replay loss checks continue past PRE shutdown failure.
 
 Corrected cfgfix2 PRE gate jobs both fail on `/home/user/Projects/bins/cfgfix2-pre-81aa6c32`; receipts are in `docs/wave15/jobs/cfgfix2-corrected-pre*`. POST reruns remain pending.
+
+### Generic error accounting
+
+Fixed-capacity, mutex-protected cold error builders count total and prefix, with Redis's 32-wire-byte prefix search, 128-prefix disable limit, INFO escaping and RESETSTAT re-enable. Successful reply builders never enter the counter. Lua nested command/admission errors carry Redis's `ignore_error_stats_update` certificate through caught/returned/raised error tables. Direct pre-client admission writes remain outside afterErrorReply accounting, as in Redis networking.c. The new oracle row covers ordinary errors, MULTI queue/EXEC errors, caught Lua failures, EVAL/EVALSHA, arbitrary prefixes, cap and reset in both modes, engines, namespaces and atomic settings. The first complete corrected oracle matrix passes. Source instruction/cost proof remains pending.
+
+The errorstats row is before the quick exit: current counts **1168/1185** (+75 lane rows, +3 integration rows over wave14). No EXPECT edits.
+
+### Additional AOF witness findings
+
+The expanded EXEC/restart matrix found stale argv indexes after blocking-pop normalization: BLMPOP emitted a postimage for the direction word under the real key's shard and restart rejected it. The normalizer now updates only key positions, preserving the classified shards. Read-only GEORADIUS/GEORADIUSBYMEMBER (without the `_RO` spelling) previously reached a STORE-only reducer and returned an internal error after the participant hang was removed. Their no-STORE form now selects its one real key before classification. This narrow key-classification correction is required for the demonstrated wrong reply; LMPOP/ZMPOP and other generic range classification remain unchanged. The same integration row checks these paths and their durable effects.
+
+The deterministic HANG-2 POST gate matrix passes. PRE appendfsync=no acknowledges the pop and loses it on restart, now reproduced and retained in `aof-participants-pre-final`. `_RO` GEO spellings pass PRE; writable-spelling GEO reads and STORE forms hang PRE. Fresh probe boots now require exclusive listener release after waitpid, accounting for delayed io_uring cancellation after SIGKILL without relaxing any result assertion.

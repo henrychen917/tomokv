@@ -16,6 +16,7 @@
 #include "../base/numeric.h"
 #include "../base/slice.h"
 #include "../exec/op.h"
+#include "errorstats.h"
 
 namespace tomo {
 
@@ -35,13 +36,19 @@ template <bool Trim = true, typename Buf> inline void reply_line_text(Buf&& b, c
     if (start < len) b.append(text + start, len - start);
 }
 template <typename Buf> [[gnu::cold, gnu::noinline]]
-void reply_err(Buf&& b, const char* msg, size_t len, bool trim = true) {
+void reply_err_unaccounted(Buf&& b, const char* msg, size_t len, bool trim = true) {
     b.push_back('-');
     if (trim) reply_line_text(b, msg, len);
     else reply_line_text<false>(b, msg, len);
     b.append("\r\n", 2);
 }
+template <typename Buf> [[gnu::cold, gnu::noinline]]
+void reply_err(Buf&& b, const char* msg, size_t len, bool trim = true) {
+    error_stats_record(msg, len, trim);
+    reply_err_unaccounted(b, msg, len, trim);
+}
 template <typename Buf> inline void reply_err(Buf&& b, const char* msg) {
+    error_stats_record(msg, std::strlen(msg));
     b.push_back('-'); reply_line_text(b, msg, std::strlen(msg)); b.append("\r\n", 2);
 }
 template <typename Buf> [[gnu::cold, gnu::noinline]]
@@ -674,12 +681,15 @@ template <typename Buf> __attribute__((always_inline)) inline void reply_emptyst
     b.append("$0\r\n\r\n");
 }
 template <typename Buf> inline void reply_wrongtype(Buf&& b) {
+    error_stats_record("WRONGTYPE ", 10);
     b.append("-WRONGTYPE Operation against a key holding the wrong kind of value\r\n", 68);
 }
 template <typename Buf> inline void reply_syntax(Buf&& b) {
+    error_stats_record("ERR ", 4);
     b.append("-ERR syntax error\r\n", 19);
 }
 template <typename Buf> inline void reply_outofrange(Buf&& b) {
+    error_stats_record("ERR ", 4);
     // Redis's getRangeLongFromObject names the bounds it enforces; every caller of this helper
     // (SRANDMEMBER / ZRANDMEMBER / HRANDFIELD counts) is one of those sites.
     static constexpr char kMsg[] =

@@ -271,9 +271,10 @@ void reply_text_error(Op& op, std::string_view kind, std::string_view detail,
 }
 
 // A script error already carries its own code word ("ERR ...", "WRONGTYPE ...", "My Error").
-void reply_raw_error(Op& op, std::string_view message) {
+void reply_raw_error(Op& op, std::string_view message, bool accounted) {
     // Runtime errors use Redis's safe-SDS path (map without trimming).
-    reply_err(op.sink(), message.data(), message.size(), false);
+    if (accounted) reply_err_unaccounted(op.sink(), message.data(), message.size(), false);
+    else reply_err(op.sink(), message.data(), message.size(), false);
 }
 
 std::string clean_error(const char* text, size_t length) {
@@ -598,6 +599,10 @@ bool push_resp_value(lua_State* state, const char* data, size_t size, size_t& po
         lua_createtable(state, 0, 1);
         lua_pushlstring(state, data + begin, length);
         lua_setfield(state, -2, marker == '+' ? "ok" : "err");
+        if (marker == '-') {
+            lua_pushboolean(state, 1);
+            lua_setfield(state, -2, "ignore_error_stats_update");
+        }
         return true;
     }
     if (marker == ':') {
@@ -772,6 +777,8 @@ int redis_dispatch(lua_State* state, bool protected_call) {
     // is consumed. Successful calls need neither its bytes nor a 2 KiB clear.
     char deferred_error[2100];
     bool failed = false;
+    bool accounted = false;
+    bool admission = false;
     {
         const int argc = lua_gettop(state);
         Op nested;
@@ -816,6 +823,7 @@ int redis_dispatch(lua_State* state, bool protected_call) {
             }
         }
 
+        admission = !failed;
         const CommandSpec* spec = failed ? nullptr : command_lookup(nested.cmd_name());
         if (!failed && (!spec || !command_arity_ok(*spec, nested.argc()))) {
             std::snprintf(deferred_error, sizeof(deferred_error),
@@ -900,6 +908,7 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                                                           : parse_error.c_str());
                         failed = true;
                     } else if (server_error) {
+                        accounted = true;
                         const std::string safe = clean_error(parse_error.data(), parse_error.size());
                         std::snprintf(deferred_error, sizeof(deferred_error), "%s", safe.c_str());
                         failed = true;
@@ -910,9 +919,17 @@ int redis_dispatch(lua_State* state, bool protected_call) {
     }
 
     if (!failed) return 1;
+    if (admission && !accounted) {
+        error_stats_record(deferred_error, std::strlen(deferred_error));
+        accounted = true;
+    }
     lua_createtable(state, 0, 1);
     lua_pushstring(state, deferred_error);
     lua_setfield(state, -2, "err");
+    if (accounted) {
+        lua_pushboolean(state, 1);
+        lua_setfield(state, -2, "ignore_error_stats_update");
+    }
     if (protected_call) return 1;
     // RAISE A TABLE, not a string. Lua prepends `user_script:N: ` to a raised string; Redis's
     // wire error for a failed redis.call has no position prefix (the position appears only in the
@@ -1317,7 +1334,11 @@ bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& outp
         size_t length = 0;
         const char* value = lua_tolstring(state, -1, &length);
         if (!value) { lua_pop(state, 1); error = "invalid redis error table"; return false; }
-        reply_err(output, value, length);
+        result_raw_field(state, index, "ignore_error_stats_update");
+        const bool accounted = lua_toboolean(state, -1);
+        lua_pop(state, 1);
+        if (accounted) reply_err_unaccounted(output, value, length);
+        else reply_err(output, value, length);
         lua_pop(state, 1);
         return true;
     }
@@ -1665,6 +1686,12 @@ void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
     if (status != 0 || context.timed_out) {
         const std::string error = context.timed_out ? std::string{}
             : script_runtime_error(state, context, call);
+        bool accounted = false;
+        if (!context.timed_out && lua_istable(state, -1)) {
+            result_raw_field(state, -1, "ignore_error_stats_update");
+            accounted = lua_toboolean(state, -1);
+            lua_pop(state, 1);
+        }
         lua_settop(state, 0);
         engine.current = nullptr;
         // Effects already applied STAND, and the notifications they fired stand with them. Both
@@ -1676,7 +1703,7 @@ void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
             std::snprintf(busy, sizeof(busy), "script exceeded the %llu instruction limit",
                           static_cast<unsigned long long>(kInstructionLimit));
             reply_text_error(op, "BUSY", busy);
-        } else reply_raw_error(op, error);
+        } else reply_raw_error(op, error, accounted);
         return;
     }
 
