@@ -3,6 +3,7 @@
 #include <array>
 #include <atomic>
 #include <cstdint>
+#include <cstddef>
 #include <new>
 
 namespace tomo {
@@ -25,6 +26,14 @@ class ObjectIdleClock {
         for (auto& child : branch->child) destroy(child.load(std::memory_order_relaxed), level - 1);
         delete branch;
     }
+    static size_t node_bytes(const void* raw, unsigned level) {
+        if (!raw) return 0;
+        if (!level) return sizeof(Leaf);
+        size_t bytes = sizeof(Branch);
+        for (const auto& child : static_cast<const Branch*>(raw)->child)
+            bytes += node_bytes(child.load(std::memory_order_relaxed), level - 1);
+        return bytes;
+    }
     std::atomic<uint32_t>* cell(const void* object) const {
         void* node = root_.load(std::memory_order_acquire);
         const uint64_t bits = index(object);
@@ -36,11 +45,27 @@ class ObjectIdleClock {
 public:
     ~ObjectIdleClock() { destroy(root_.load(std::memory_order_relaxed), 4); }
     static uint32_t clock(int64_t now_ms) { return (uint64_t(now_ms) / 1000) & mask; }
-    bool install(const void* object, uint32_t timestamp) {
+    // Owner-only accounting queries never install nodes or change timestamps.
+    size_t allocated_bytes() const {
+        return sizeof(*this) + node_bytes(root_.load(std::memory_order_relaxed), 4);
+    }
+    size_t allocation_bytes(const void* object) const {
+        void* node = root_.load(std::memory_order_relaxed);
+        if (!node) return 4 * sizeof(Branch) + sizeof(Leaf);
+        const uint64_t bits = index(object);
+        for (unsigned level = 4; level; --level) {
+            node = static_cast<Branch*>(node)->child[(bits >> (9 * level)) & 511]
+                .load(std::memory_order_relaxed);
+            if (!node) return (level - 1) * sizeof(Branch) + sizeof(Leaf);
+        }
+        return 0;
+    }
+    bool install(const void* object, uint32_t timestamp, size_t& accounted) {
         auto* root = root_.load(std::memory_order_relaxed);
         if (!root) {
             root = new (std::nothrow) Branch;
             if (!root) return false;
+            accounted += sizeof(Branch);
             root_.store(root, std::memory_order_release);
         }
         void* node = root;
@@ -52,6 +77,7 @@ public:
                 next = level == 1 ? static_cast<void*>(new (std::nothrow) Leaf)
                                   : static_cast<void*>(new (std::nothrow) Branch);
                 if (!next) return false;
+                accounted += level == 1 ? sizeof(Leaf) : sizeof(Branch);
                 link.store(next, std::memory_order_release);
             }
             node = next;

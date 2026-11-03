@@ -1,0 +1,31 @@
+{
+  "name": "no-scan-guard",
+  "argv": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-gz=zlib",
+    "-march=native",
+    "-pthread",
+    "-ffunction-sections",
+    "-fdata-sections",
+    "-DTOMO_STORE_REGRESSION_TEST",
+    "-I.",
+    "tests/store_regression.cc",
+    "src/cmd/t_hash.cc",
+    "src/cmd/t_hash_ttl.cc",
+    "src/cmd/hexpread.cc",
+    "src/cmd/storesize.cc",
+    "src/store/flush.cc",
+    "-Wl,--gc-sections",
+    "-Wl,--compress-debug-sections=zlib",
+    "-o",
+    "probe"
+  ],
+  "exit": 1,
+  "stdout": "",
+  "stderr": "FAIL: RANDOMKEY entered a full retirement sink\n",
+  "expected_failure": "RANDOMKEY entered a full retirement sink",
+  "source_sha256": "6a5c354e41e8dd766627bdf48f28f701cef0569ecc58c21c90e7304a4b85c9bd"
+}

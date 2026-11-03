@@ -1,0 +1,49 @@
+{
+  "waiting_for": [],
+  "stages": [
+    {
+      "log": "gate-quiet-release.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21610-21612",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/POST"
+      ],
+      "jobs": "zc splitlocal_units",
+      "engine": "uring",
+      "started": 1793606463.5065691,
+      "exit": 0,
+      "finished": 1793606482.1827025
+    },
+    {
+      "log": "gate-differ-uring-serial.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21660-21662",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/POST"
+      ],
+      "jobs": "differ-split differ-armed",
+      "engine": "uring",
+      "started": 1793606482.1829646
+    }
+  ]
+}

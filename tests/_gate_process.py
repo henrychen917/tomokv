@@ -54,9 +54,10 @@ def shared_correctness_cpus(server_cpus, load_cpus):
     return True
 
 
-def pin_driver(server_cpus, load_cpus, *, correctness_only=False):
+def pin_driver(server_cpus, load_cpus, *, correctness_only=False, allow_shared_correctness=False):
     servers, loads = set(cpus(server_cpus)), set(cpus(load_cpus))
-    require(not servers & loads or shared_correctness_cpus(servers, loads),
+    allowed = correctness_only or allow_shared_correctness or os.getenv('GATE_CORRECTNESS_SHARED_CPUS') == '1'
+    require(not servers & loads or (allowed and shared_correctness_cpus(servers, loads)),
             'server and load CPUs overlap')
     os.sched_setaffinity(0, cpus(load_cpus))
 

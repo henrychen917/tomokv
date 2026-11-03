@@ -94,6 +94,7 @@ struct GroupAux {
     AtomicEntry* flush_range = nullptr;
     bool flush_changed = false;
     std::unique_ptr<DatabaseStatsTable> database_stats;
+    FlatStore::RandomKeyCursor randomkey;
 };
 
 // Groups are dense (one record per touched shard), and each owns one range in key_order[].
@@ -674,6 +675,8 @@ static_assert(sizeof(ScatterState) + 8 * (sizeof(ShardGroup) + sizeof(KeyRef) +
               "MGET-8 ScatterState no longer fits ScatterArenaPool::kCommonBytes");
 
 namespace {
+
+#include "randomkey.inc"
 
 #if TOMO_SINGLE_DATABASE
 [[gnu::noinline]]
@@ -1423,6 +1426,8 @@ bool publish_sort_deref(Server& server, ThreadCtx& self, Ring& ring, const Task&
 template <bool IofusedPrivateQueue>
 bool publish_phase2(Server& server, ThreadCtx& self, Ring& ring, const Task& task, Op& op,
                     ScatterState& state) {
+    if (state.kind == Kind::RandomKey)
+        return publish_sort_deref<IofusedPrivateQueue>(server, self, ring, task, state);
     reset_groups(state);
     build_groups(state, state.hop2, state.hop2_count);
     uint32_t needed[kMaxThreads] = {};
@@ -1682,7 +1687,9 @@ template<bool ScriptOnly>
             return ScatterPrepare::Backpressure;
     }
 
-    if constexpr (!ScriptOnly) if (op.cmd_name().eq_icase("move")) {
+    // MOVE is classified as Renamenx. Keep its name decoding in that cold
+    // branch so RANDOMKEY's extra setup cannot enlarge ordinary read scopes.
+    if constexpr (!ScriptOnly) if (kind == Kind::Renamenx && op.cmd_name().eq_icase("move")) {
         // Both ordinary dispatch and EXEC already identified this operation's
         // keys from one map. Never resolve a second map during lowering.
         if (!multidb_prepare_move(server, op)) return ScatterPrepare::Error;
@@ -1994,7 +2001,7 @@ template<bool ScriptOnly>
     if (kind == Kind::AllShards || kind == Kind::DebugReload || kind == Kind::DebugLoadAof ||
         kind == Kind::DebugBorrowCount || kind == Kind::DbsizeExact || kind == Kind::Keys ||
         kind == Kind::RandomKey || kind == Kind::DatabaseInfo || kind == Kind::Swapdb) {
-        group_cap = server.nshards();
+        group_cap = kind == Kind::RandomKey && !force_atomic ? 1 : server.nshards();
     } else if (atomic_write) {
         bool seen[256] = {};
         for (uint32_t i = phase1_first; i < key_count; i++)
@@ -2215,11 +2222,14 @@ template<bool ScriptOnly>
     if (prepared_kind == Kind::AllShards || prepared_kind == Kind::DebugReload || prepared_kind == Kind::DebugLoadAof ||
         prepared_kind == Kind::DebugBorrowCount || prepared_kind == Kind::DbsizeExact || prepared_kind == Kind::Keys ||
         prepared_kind == Kind::RandomKey || prepared_kind == Kind::DatabaseInfo || prepared_kind == Kind::Swapdb) {
-        state->nsub = server.nshards();
-        for (uint32_t sid = 0; sid < state->nsub; sid++) {
-            state->groups[sid].shard = sid;
-            if (state->shard_groups)
-                state->shard_groups[sid] = static_cast<uint16_t>(sid);
+        if (prepared_kind == Kind::RandomKey && !force_atomic) randomkey_begin(*state, op);
+        else {
+            state->nsub = server.nshards();
+            for (uint32_t sid = 0; sid < state->nsub; sid++) {
+                state->groups[sid].shard = sid;
+                if (state->shard_groups)
+                    state->shard_groups[sid] = static_cast<uint16_t>(sid);
+            }
         }
     } else {
         build_initial_groups(*state);
@@ -3613,14 +3623,14 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 return ScatterTaskResult::Complete;
             }
             case Kind::RandomKey:
-            case Kind::Keys: {
-                // Redis RANDOMKEY can return an expired resident key while
-                // PAUSE suppresses physical expiry. Retain the MVCC read cut;
-                // only this cold command's expiry clock sees the resident set.
-                PinnedNowMs paused_randomkey(shard,
-                    state.kind == Kind::RandomKey && client_pause_expiry_held() ? -1 : 0);
                 if (!group.aux) group.aux = new GroupAux;
-                const Slice pattern = state.kind == Kind::RandomKey ? Slice("*", 1) : op.arg(1);
+                // EXEC already owns an all-shard transaction image; retain its
+                // fixed participant mask and reservoir counts, one key per shard.
+                return shard.store().random_live(group.aux->randomkey, op.physical_db, state.multi_child)
+                    ? ScatterTaskResult::Complete : ScatterTaskResult::Retry;
+            case Kind::Keys: {
+                if (!group.aux) group.aux = new GroupAux;
+                const Slice pattern = op.arg(1);
                 group.scan_cursor = shard.store().scan(group.scan_cursor, 256, [&](KvObj* object) {
                     const Slice key = object->key();
                     const uint64_t hash = FlatStore::hash_key(key);

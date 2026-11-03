@@ -1,0 +1,31 @@
+{
+  "name": "no-notification-guard",
+  "argv": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-gz=zlib",
+    "-march=native",
+    "-pthread",
+    "-ffunction-sections",
+    "-fdata-sections",
+    "-DTOMO_STORE_REGRESSION_TEST",
+    "-I.",
+    "tests/store_regression.cc",
+    "src/cmd/t_hash.cc",
+    "src/cmd/t_hash_ttl.cc",
+    "src/cmd/hexpread.cc",
+    "src/cmd/storesize.cc",
+    "src/store/flush.cc",
+    "-Wl,--gc-sections",
+    "-Wl,--compress-debug-sections=zlib",
+    "-o",
+    "probe"
+  ],
+  "exit": 1,
+  "stdout": "",
+  "stderr": "FAIL: deferred expiry emits no premature notification or AOF delete\n",
+  "expected_failure": "deferred expiry emits no premature notification or AOF delete",
+  "source_sha256": "872b5bf6585dc9d761fefc1a26525439f102a1e307c44bb6266a066d9d3862ef"
+}

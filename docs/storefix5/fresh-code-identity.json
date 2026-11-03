@@ -1,0 +1,28 @@
+{
+  "candidate": {
+    "sha256": "55b996cce85eb8a7762278258620064df1389c290fe0288d80288661018cdd32",
+    "sections": {
+      ".text": {
+        "size": 9037607,
+        "sha256": "c19470b3d3be6212aadc05117efbbea83b915709ce299e21de4a5aadeb3f42c7"
+      },
+      ".rlfence": {
+        "size": 112,
+        "sha256": "117e5f3872b7349a803f8a63f3d85fff1af777defbcaea0b4da17351ea5193c8"
+      }
+    }
+  },
+  "fresh": {
+    "sha256": "a2c6df57594425381b6ae4ca8454326e8a688b928a5cbf7f002a1aa5b4ea2998",
+    "sections": {
+      ".text": {
+        "size": 9037607,
+        "sha256": "c19470b3d3be6212aadc05117efbbea83b915709ce299e21de4a5aadeb3f42c7"
+      },
+      ".rlfence": {
+        "size": 112,
+        "sha256": "117e5f3872b7349a803f8a63f3d85fff1af777defbcaea0b4da17351ea5193c8"
+      }
+    }
+  }
+}

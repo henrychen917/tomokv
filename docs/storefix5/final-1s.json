@@ -1,0 +1,143 @@
+{
+  "binary": "/home/user/Projects/cx-storefix5/build/tomokv",
+  "sha256": "64dbcf54922f3448bea0002f922e4f5c35e2e5e230c4ff524cdcb028db55aa0e",
+  "argv": [
+    "/home/user/Projects/cx-storefix5/build/tomokv",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "21600",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--enable-debug-command",
+    "yes",
+    "--dir",
+    "/home/user/Projects/cx-storefix5/build/storefix5/tmpcar5ldu1",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--databases",
+    "16",
+    "--net-io",
+    "uring"
+  ],
+  "affinity": [
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23
+  ],
+  "locale": "C",
+  "cases": {
+    "idle": {
+      "passed": false,
+      "error": "idle clock missing from used_memory"
+    },
+    "append": {
+      "result": {
+        "16": {
+          "single_call_us": [
+            23.81,
+            20.41,
+            17.56,
+            16.62,
+            17.73
+          ],
+          "value_and_ttl": true
+        },
+        "1024": {
+          "single_call_us": [
+            17.75,
+            11.82,
+            18.01,
+            17.2,
+            17.21
+          ],
+          "value_and_ttl": true
+        },
+        "65536": {
+          "single_call_us": [
+            49.96,
+            65.01,
+            24.93,
+            24.92,
+            18.49
+          ],
+          "value_and_ttl": true
+        },
+        "1048576": {
+          "single_call_us": [
+            829.36,
+            419.97,
+            49.68,
+            46.94,
+            46.08
+          ],
+          "value_and_ttl": true
+        },
+        "4194304": {
+          "single_call_us": [
+            1879.469,
+            1624.319,
+            355.11,
+            172.49,
+            155.89
+          ],
+          "value_and_ttl": true
+        }
+      },
+      "passed": true
+    },
+    "randomkey": {
+      "result": {
+        "expired_reaped_by_one_call": 28,
+        "chi2": 34.73046875,
+        "df": 31,
+        "samples": 16384,
+        "counts": {
+          "uniform:0": 520,
+          "uniform:1": 455,
+          "uniform:2": 533,
+          "uniform:3": 500,
+          "uniform:4": 531,
+          "uniform:5": 525,
+          "uniform:6": 478,
+          "uniform:7": 558,
+          "uniform:8": 516,
+          "uniform:9": 499,
+          "uniform:10": 467,
+          "uniform:11": 500,
+          "uniform:12": 523,
+          "uniform:13": 526,
+          "uniform:14": 530,
+          "uniform:15": 487,
+          "uniform:16": 548,
+          "uniform:17": 499,
+          "uniform:18": 510,
+          "uniform:19": 515,
+          "uniform:20": 525,
+          "uniform:21": 543,
+          "uniform:22": 518,
+          "uniform:23": 497,
+          "uniform:24": 525,
+          "uniform:25": 492,
+          "uniform:26": 543,
+          "uniform:27": 531,
+          "uniform:28": 498,
+          "uniform:29": 501,
+          "uniform:30": 475,
+          "uniform:31": 516
+        }
+      },
+      "passed": true
+    }
+  },
+  "exit": 0
+}

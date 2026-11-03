@@ -1,0 +1,49 @@
+{
+  "reason": "New full-retirement-ring witness requires a corrected POST arm; preserve completed differential first leg",
+  "processes": [
+    {
+      "pid": 141183,
+      "cmd": "timeout 900 python3 tests/differ.py 127.0.0.1 21660 127.0.0.1 21661 climon 20 "
+    },
+    {
+      "pid": 141188,
+      "cmd": "python3 tests/differ.py 127.0.0.1 21660 127.0.0.1 21661 climon 20 "
+    },
+    {
+      "pid": 3129311,
+      "cmd": "python3 tools/storefix5_serial_proof.py "
+    },
+    {
+      "pid": 3857025,
+      "cmd": "python3 tools/storefix5_inventory_proof.py "
+    },
+    {
+      "pid": 4005789,
+      "cmd": "/bin/bash tests/gate.sh iteration --server-cores 16-23 --load-cores 16-23 --load-smt  --ports 21660-21662 --shared-correctness-cpus --candidate-binary build/storefix5/POST "
+    },
+    {
+      "pid": 4005848,
+      "cmd": "/bin/bash tests/gate.sh iteration --server-cores 16-23 --load-cores 16-23 --load-smt  --ports 21660-21662 --shared-correctness-cpus --candidate-binary build/storefix5/POST "
+    },
+    {
+      "pid": 4133781,
+      "cmd": "/bin/bash tests/gate.sh iteration --server-cores 16-23 --load-cores 16-23 --load-smt  --ports 21660-21662 --shared-correctness-cpus --candidate-binary build/storefix5/POST "
+    },
+    {
+      "pid": 4133975,
+      "cmd": "python3 tests/gate_history.py watch --pid 4133781 --parent-start 526311393 --seconds 900 --marker /home/user/Projects/cx-storefix5/build/gate-run.WIc1be/jobs/differ-split-1/row-timeout-4133781.json --generation 4133781.526311393.1 --cancel-request /home/user/Projects/cx-storefix5/build/gate-run.WIc1be/jobs/differ-split-1/row-timeout-4133781.4133781.526311393.1.cancel --cancel-receipt /home/user/Projects/cx-storefix5/build/gate-run.WIc1be/jobs/differ-split-1/row-timeout-4133781.4133781.526311393.1.cancelled "
+    },
+    {
+      "pid": 4133979,
+      "cmd": "/bin/bash tests/differ_gate.sh /home/user/Projects/cx-storefix5/build/storefix5/arms/string14099/tomokv 21660 21661 16-23 6:2 "
+    },
+    {
+      "pid": 4134272,
+      "cmd": "/home/user/Projects/redis/src/redis-server 127.0.0.1:21661                                                                                                                                                                                                                                                                                             "
+    },
+    {
+      "pid": 4134500,
+      "cmd": "/home/user/Projects/cx-storefix5/build/storefix5/arms/string14099/tomokv --port 21660 --bind 127.0.0.1 --shards 16 --ratio 6:2 --net-io uring --databases 16 --atomic 1 --save  --dir /home/user/Projects/cx-storefix5/build/gate-run.WIc1be/jobs/differ-split-1/differ/target-atomic-1 --enable-debug-command yes --aclfile /home/user/Projects/cx-storefix5/build/gate-run.WIc1be/jobs/differ-split-1/differ/ccfix.acl "
+    }
+  ]
+}

@@ -507,18 +507,34 @@ try:
 
     # Maxmemory eviction uses the same keyless copied-key lane with the e class/name.
     setup()
+    expect(admin.command("FLUSHALL"), b"OK", "fresh eviction cohort")
+    expect(admin.command("CONFIG", "SET", "maxmemory-policy", "allkeys-lru"),
+           b"OK", "eviction policy")
+    expect(admin.command("CONFIG", "SET", "maxmemory", str(1 << 30)),
+           b"OK", "accounted eviction setup budget")
     payload = "x" * 1024
+    setup_evicted = info_stats()["evicted_keys"]
     for i in range(160):
-        driver.command("SET", f"evict:seed:{i}", payload)
-    admin.command("CONFIG", "SET", "maxmemory-policy", "allkeys-lru")
-    admin.command("CONFIG", "SET", "maxmemory", "16384")
+        expect(driver.command("SET", f"evict:seed:{i}", payload), b"OK", "eviction seed")
+    expect(driver.command("DBSIZE"), 160, "complete eviction cohort")
+    expect(info_stats()["evicted_keys"], setup_evicted, "setup did not evict")
+    used = info_stats("MEMORY")["used_memory"]
+    if used <= len(payload):
+        raise AssertionError("eviction cohort is absent from memory accounting")
+    # Clock nodes are real, retained memory. Arm delivery before lowering a
+    # budget derived from the charged cohort: a fixed 16 KiB can be below the
+    # metadata alone and can evict every seed before notifications are enabled.
     config("Ee")
     drain()
     before_fired = info_stats()["notify_events_fired"]
     before_evicted = info_stats()["evicted_keys"]
+    expect(admin.command("CONFIG", "SET", "maxmemory", str(used - len(payload))),
+           b"OK", "apply eviction pressure")
     evicted_frames = []
     for i in range(64):
-        driver.command("SET", f"evict:trigger:{i}", payload)
+        reply = driver.command("SET", f"evict:trigger:{i}", payload)
+        if reply != b"OK" and not (isinstance(reply, RespError) and str(reply).startswith("OOM ")):
+            raise AssertionError(f"unexpected eviction trigger reply: {reply!r}")
         evicted_frames.extend(drain(0.05))
         if evicted_frames:
             break

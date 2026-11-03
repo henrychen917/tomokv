@@ -168,10 +168,11 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
     # The iteration budget changes only the measured cells. Normalize every complete gate to
     # the existing full correctness path, so a new purpose cannot bypass full-only batteries.
     purpose = args.tier
-    shared = args.shared_correctness_cpus
-    if shared and (purpose == "perf" or not os.getenv("GATE_ONLY_JOBS") or
-                   os.getenv("GATE_PROOF_NO_RATES") != "1"):
-        raise ValueError("--shared-correctness-cpus requires selected correctness jobs and GATE_PROOF_NO_RATES=1")
+    shared = getattr(args, 'shared_correctness_cpus', False)
+    if shared and (purpose not in ('quick', 'iteration') or not os.getenv('GATE_ONLY_JOBS')
+                   or os.getenv('GATE_PROOF_NO_RATES') != '1'):
+        raise ValueError('--shared-correctness-cpus requires selected quick/iteration jobs '
+                         'and GATE_PROOF_NO_RATES=1; no complete gate or performance use')
     correctness_ratio = measured_ratio("correctness", SERVER_PER_SLOT)
     if os.getenv("GATE_RATIO", correctness_ratio) != correctness_ratio:
         raise ValueError("GATE_RATIO differs from the reviewed correctness geometry; update gate_measurements.json")
@@ -360,6 +361,9 @@ def parser():
     result.add_argument("--ports", default=os.getenv("GATE_PORTS", "7899-7998"))
     result.add_argument("--reference-binary", default="")
     result.add_argument("--candidate-binary", "--candidate", default="")
+    result.add_argument('--shared-correctness-cpus', action='store_true',
+                        help='selected correctness jobs only: share exactly eight explicit '
+                             'server/load CPUs; requires GATE_PROOF_NO_RATES=1')
     result.add_argument("--json", action="store_true")
     result.add_argument("--self-test", action="store_true")
     return result
@@ -396,10 +400,11 @@ def self_test():
                     make_plan(parser().parse_args(['perf'] + flags[1:]), topology=topology,
                               available=set(topology), check_available=False)
 
-        def plan(self, *flags, only_jobs=""):
+        def plan(self, *flags, only_jobs="", no_rates="0"):
             # Gate workers export their own slice of GATE_*; validation of the planner must use
             # its synthetic topology even when called from one of those workers.
-            with mock.patch.dict(os.environ, {"GATE_ONLY_JOBS": only_jobs}, clear=True):
+            with mock.patch.dict(os.environ, {"GATE_ONLY_JOBS": only_jobs,
+                                             "GATE_PROOF_NO_RATES": no_rates}, clear=True):
                 args = parser().parse_args(list(flags))
                 return make_plan(args, topology=topology, available=set(topology), check_available=False)
 
@@ -413,6 +418,26 @@ def self_test():
             with self.assertRaisesRegex(ValueError, "requires 10"):
                 self.plan("quick", "--server-cores", "48-55", "--load-cores", "56",
                           only_jobs="flipfix7_blocked")
+        def test_shared_partial_stays_inside_eight_cpus(self):
+            flags = ('--server-cores', '16-23', '--load-cores', '16-23',
+                     '--shared-correctness-cpus')
+            plan = self.plan(*flags, only_jobs='storage_units', no_rates='1')
+            self.assertEqual(plan['physical_cores'], 8)
+            self.assertEqual(plan['build_jobs'], 8)
+            self.assertEqual(plan['slot_count'], 1)
+            self.assertEqual(plan['slots'][0]['server_cores'], '16-23')
+            self.assertEqual(plan['slots'][0]['load_cpus'], '16-23')
+            self.assertEqual(plan['perf']['load_smt'], '')
+            self.assertEqual(plan['perf']['split_ratio'], '')
+            for tier in ('perf', 'full', 'push', 'release'):
+                with self.assertRaises(ValueError):
+                    self.plan(tier, *flags, only_jobs='storage_units', no_rates='1')
+            for jobs, rates in (('', '1'), ('storage_units', '0')):
+                with self.assertRaises(ValueError):
+                    self.plan(*flags, only_jobs=jobs, no_rates=rates)
+            with self.assertRaises(ValueError):
+                self.plan('--server-cores', '16-23', '--load-cores', '16-22',
+                          '--shared-correctness-cpus', only_jobs='storage_units', no_rates='1')
 
         def test_default_full_box(self):
             plan = self.plan()

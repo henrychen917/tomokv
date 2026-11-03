@@ -1,0 +1,4 @@
+/home/user/Projects/cx-storefix5/build/storefix5/counts/trace /home/user/Projects/cx-storefix5/build/storefix5/counts/scopes/budget1-normal/probe /home/user/Projects/cx-storefix5/build/storefix5/counts/scopes/budget1-normal/complete.ranges 8cd0b0 8cd0c0 000000000002bb30 GET 2s 32 0 -1
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+COUNT 18327

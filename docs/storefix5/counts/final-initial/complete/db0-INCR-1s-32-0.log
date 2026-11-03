@@ -1,0 +1,4 @@
+/home/user/Projects/cx-storefix5/build/storefix5/counts/trace /home/user/Projects/cx-storefix5/build/storefix5/counts/scopes/final-initial-db0/probe /home/user/Projects/cx-storefix5/build/storefix5/counts/scopes/final-initial-db0/complete.ranges 8cc9d0 8cc9e0 000000000002bb30 INCR 1s 32 0 -1
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+COUNT 33986

@@ -1,0 +1,94 @@
+{
+  "waiting_for": null,
+  "stages": [
+    {
+      "log": "gate-notify-pre-2s-final.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21620-21622",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/PRE"
+      ],
+      "mode": "2s",
+      "started": 1793625231.3838181,
+      "exit": 0,
+      "finished": 1793625286.2310228
+    },
+    {
+      "log": "gate-notify-pre-1s-final.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21620-21622",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/PRE"
+      ],
+      "mode": "1s",
+      "started": 1793625286.231247,
+      "exit": 0,
+      "finished": 1793625340.7212713
+    },
+    {
+      "log": "gate-notify-post-2s-final.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21620-21622",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/POST"
+      ],
+      "mode": "2s",
+      "started": 1793625340.721502,
+      "exit": 0,
+      "finished": 1793625395.3140464
+    },
+    {
+      "log": "gate-notify-post-1s-final.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21620-21622",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/POST"
+      ],
+      "mode": "1s",
+      "started": 1793625395.3143053,
+      "exit": 0,
+      "finished": 1793625449.856138
+    }
+  ],
+  "complete": true
+}

@@ -1475,7 +1475,17 @@ public:
             if (old && !deadline_elapsed(hash, old, cached_now_ms_))
                 stamp = clock->timestamp(old, stamp);
         }
-        return clock->install(object, stamp);
+        return clock->install(object, stamp, obj_bytes_);
+    }
+    [[gnu::noinline]] size_t object_idle_allocation_bytes(const KvObj* object) const {
+        const auto* clock = object_idle_slot()->load(std::memory_order_relaxed);
+        return clock ? clock->allocation_bytes(object) : 0;
+    }
+    static void reclaim_object_idle(void* owner, void* payload, size_t bytes) {
+        // The owner drains its retire ring before shard migration or teardown.
+        // Keep the charge until the last foreign reader has passed its grace.
+        delete static_cast<ObjectIdleClock*>(payload);
+        static_cast<FlatStore*>(owner)->obj_bytes_ -= bytes;
     }
     // False only when enabling cannot allocate the clock (SO5.1). Nothing escapes: the partial
     // clock is freed here and the slot stays empty, so OBJECT IDLETIME reads 0 for this store.
@@ -1486,19 +1496,22 @@ public:
         if (enabled) {
             std::unique_ptr<ObjectIdleClock> fresh(new (std::nothrow) ObjectIdleClock);
             if (!fresh) return false;
+            size_t bytes = sizeof(ObjectIdleClock);
             const auto now = ObjectIdleClock::clock(cached_now_ms_);
             bool complete = true;
             for_each([&](KvObj* object) {
-                if (complete) complete = fresh->install(object, now);
+                if (complete) complete = fresh->install(object, now, bytes);
             });
             if (!complete) return false;
+            obj_bytes_ += bytes;
             object_idle_slot()->store(fresh.release(), std::memory_order_release);
         } else {
             auto* retired = object_idle_slot()->exchange(nullptr, std::memory_order_acq_rel);
+            const size_t bytes = retired->allocated_bytes();
             if (read_local_enabled_)
-                read_local_store_state_required().retire_sink.retire(nullptr, retired, 0,
-                    [](void*, void* payload, size_t) { delete static_cast<ObjectIdleClock*>(payload); });
-            else delete retired;
+                read_local_store_state_required().retire_sink.retire(
+                    this, retired, bytes, reclaim_object_idle);
+            else reclaim_object_idle(this, retired, bytes);
         }
         return true;
     }
@@ -1746,9 +1759,11 @@ public:
         // snapshot write-gate pre-images only the incoming command's key — an evicted, unvisited
         // frozen victim would vanish from the dump.  The capture window is short and bounded.
         if (__builtin_expect(maxmemory_enabled_, false)) {
+            if (!snapshot_active_ && !make_room_for(o->key(),
+                    kvobj_size(o) + object_idle_allocation_bytes(o)))
+                return InsertResult::MaxmemoryOom;
             if (!object_idle_install(h, o)) return InsertResult::Failed;
             if (!snapshot_active_) {
-                if (!make_room_for(o->key(), kvobj_size(o))) return InsertResult::MaxmemoryOom;
                 if (o->eviction_meta() == 0) initialize_meta(o);
             }
         }
@@ -1899,48 +1914,7 @@ public:
         field_ttl_index_incomplete_ = false;
     }
 
-    // RANDOMKEY starts from an owner-private draw, independent of the IO-side draw that selected
-    // this shard. Reusing that routing draw correlates its low bits with the shard id and leaves
-    // physical-slot residue classes unreachable when table capacities are powers of two. Reservoir
-    // selection across the one wrapped walk keeps adjacent live slots from inheriting a tiny share
-    // of a sparse table's probability. Resolve the owner's read cut before sampling, including
-    // predecessors whose candidate is a physical deletion. Frozen snapshot objects stay resident.
-    KvObj* random_live() {
-        const bool paused = client_pause_expiry_held();
-        struct ExpiryClock {
-            int64_t& clock;
-            int64_t saved;
-            ~ExpiryClock() { clock = saved; }
-        } expiry_clock{cached_now_ms_, cached_now_ms_};
-        if (paused) cached_now_ms_ = -1;
-        const uint64_t total = static_cast<uint64_t>(cap_[0]) + cap_[1];
-        if (!total) return nullptr;
-        const uint64_t start_pos = next_random() % total;
-        KvObj* chosen = nullptr;
-        uint64_t live_seen = 0;
-        for (uint64_t step = 0; step < total; step++) {
-            uint64_t pos = start_pos + step;
-            if (pos >= total) pos -= total;
-            const int t = pos < cap_[0] ? 0 : 1;
-            const uint32_t slot = static_cast<uint32_t>(pos - (t ? cap_[0] : 0));
-            KvObj* o = ptr_of(tab_[t][slot]);
-            if (!o) continue;
-            const uint64_t h = hash_key(o->key());
-            if (atomic_pending_ && atomic_pending_->live) {
-                o = atomic_resolve(h, o->key(), atomic_read_epoch_);
-            } else if (!paused) {
-                if (deadline_elapsed(h, o, cached_now_ms_) && !(snapshot_active_ && t == 1))
-                    notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, o->key());
-                o = live_or_expire(t, h, o->key(), o);
-            }
-            if (o && next_random() % ++live_seen == 0) chosen = o;
-        }
-        atomic_for_each_side_key(atomic_read_epoch_, [&](Slice key) {
-            KvObj* o = atomic_resolve(hash_key(key), key, atomic_read_epoch_);
-            if (o && next_random() % ++live_seen == 0) chosen = o;
-        });
-        return chosen;
-    }
+    #include "flatstore_random.inc"
 
     // The cursor is a bit-reversed HOME index (see scan_cursor_next above), not a physical slot and
     // not a table selector -- there is nothing left in it that a resize can invalidate. One step
@@ -2629,6 +2603,9 @@ private:
             // Report the key logically absent but leave its slot for snapshot traversal, just
             // like find()/active_expire().  KEYS uses this bounded scan while capture runs.
             if (snapshot_active_ && t == 1) return;
+            // Logical expiry remains absent while a reader holds up reclamation.
+            // A scan must not enter the full retire ring's grace-period wait.
+            if (!read_retirement_available()) return;
             notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, o->key());
             (void)aof_.record_delete(o->key());
             erase_in(t, h, o->key());
@@ -2814,16 +2791,7 @@ private:
             return rewrite_expire_read_local(h, old, expire_at_ms);
         KvObj* replacement = kvobj_reheader(old, expire_at_ms);
         if (!replacement) return TtlResult::Oom;
-        if (maxmemory_enabled_) {
-            replacement->set_eviction_meta(old->eviction_meta());
-            if (!object_idle_install(h, replacement)) {
-                if (replacement->type != static_cast<uint8_t>(Type::String) &&
-                    replacement->encoding() == Enc::Extern)
-                    replacement->flags &= static_cast<uint8_t>(~KvObjFlags::OwnsExtern);
-                kvobj_free(replacement);
-                return TtlResult::Oom;
-            }
-        }
+        if (maxmemory_enabled_) replacement->set_eviction_meta(old->eviction_meta());
 
         const bool moves_collection = static_cast<Type>(old->type) != Type::String &&
                                       static_cast<Enc>(old->enc) == Enc::Extern;
@@ -3013,9 +2981,11 @@ private:
                 return InsertResult::Failed;
         }
         if (__builtin_expect(maxmemory_enabled_, false)) {
+            if (!snapshot_active_ && !make_room_for(o->key(),
+                    kvobj_size(o) + object_idle_allocation_bytes(o)))
+                return InsertResult::MaxmemoryOom;
             if (!object_idle_install(h, o)) return InsertResult::Failed;
             if (!snapshot_active_) {
-                if (!make_room_for(o->key(), kvobj_size(o))) return InsertResult::MaxmemoryOom;
                 if (o->eviction_meta() == 0) initialize_meta_read_local(o);
             }
         }
@@ -3279,16 +3249,7 @@ private:
     TtlResult rewrite_expire_read_local(uint64_t h, KvObj* old, int64_t expire_at_ms) {
         KvObj* replacement = kvobj_reheader(old, expire_at_ms);
         if (!replacement) return TtlResult::Oom;
-        if (maxmemory_enabled_) {
-            replacement->set_eviction_meta(old->eviction_meta());
-            if (!object_idle_install(h, replacement)) {
-                if (replacement->type != static_cast<uint8_t>(Type::String) &&
-                    replacement->encoding() == Enc::Extern)
-                    replacement->flags &= static_cast<uint8_t>(~KvObjFlags::OwnsExtern);
-                kvobj_free(replacement);
-                return TtlResult::Oom;
-            }
-        }
+        if (maxmemory_enabled_) replacement->set_eviction_meta(old->eviction_meta());
 
         const bool moves_collection = static_cast<Type>(old->type) != Type::String &&
                                       static_cast<Enc>(old->enc) == Enc::Extern;

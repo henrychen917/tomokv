@@ -254,6 +254,26 @@ def self_test():
                             pass
                         else:
                             raise AssertionError(f'unguarded shared CPUs accepted by {check.__name__}')
+        with mock.patch.dict(os.environ, {'GATE_SHARED_CORRECTNESS_CPUS': '1',
+                                          'GATE_ONLY_JOBS': 'differ-equivalence',
+                                          'GATE_PROOF_NO_RATES': '1'}, clear=True):
+            validate_geometry('0-7', '0-7')
+            with mock.patch('os.sched_setaffinity') as pin:
+                pin_driver('0-7', '0-7', allow_shared_correctness=True)
+                pin.assert_called_once_with(0, list(range(8)))
+                try:
+                    pin_driver('0-7', '0-7')
+                except AssertionError:
+                    pass
+                else:
+                    raise AssertionError('ordinary driver accepted shared CPUs')
+        with mock.patch.dict(os.environ, {'GATE_SHARED_CORRECTNESS_CPUS': '1'}, clear=True):
+            try:
+                validate_geometry('0-7', '0-7')
+            except AssertionError:
+                pass
+            else:
+                raise AssertionError('shared CPUs escaped the selected correctness guard')
     print('MODE EQUIVALENCE self-test: seed/matrix/raw replay/divergence controls passed; no servers')
 
 

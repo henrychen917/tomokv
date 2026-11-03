@@ -1262,6 +1262,8 @@ bool finish_phase1(ScatterState& state, Op& op) {
     }
 
     switch (state.kind) {
+        case Kind::RandomKey:
+            return !randomkey_next(state);
         case Kind::Pfmerge:
             if (!compute_pfmerge(state)) return true;
             state.hop2[0] = 0;
@@ -1930,20 +1932,23 @@ void assemble_final(Client& client, Op& op, ScatterState& state, void* release_c
             break;
         }
         case Kind::RandomKey:
+        {
+            uint64_t count = 0;
+            for (uint32_t i = 0; i < state.nsub; ++i)
+                if (state.groups[i].aux) count += state.groups[i].aux->randomkey.seen;
+            if (!count) { reply_null(op.sink(), op.resp3()); break; }
+            uint64_t selected = multidb_random(count);
+            for (uint32_t i = 0; i < state.nsub; ++i) if (state.groups[i].aux) {
+                const auto& sample = state.groups[i].aux->randomkey;
+                if (selected < sample.seen) { reply_bulk(op.sink(), Slice(sample.key)); break; }
+                selected -= sample.seen;
+            }
+            break;
+        }
         case Kind::Keys: {
             uint64_t count = 0;
             for (uint32_t i = 0; i < state.nsub; i++)
                 if (state.groups[i].aux) count += state.groups[i].aux->keys_result.size();
-            if (state.kind == Kind::RandomKey) {
-                if (!count) { reply_null(op.sink(), op.resp3()); break; }
-                uint64_t selected = multidb_random(count);
-                for (uint32_t i = 0; i < state.nsub; ++i) if (state.groups[i].aux) {
-                    const auto& keys = state.groups[i].aux->keys_result;
-                    if (selected < keys.size()) { reply_bulk(op.sink(), Slice(keys[selected])); break; }
-                    selected -= keys.size();
-                }
-                break;
-            }
             reply_array_header(op.sink(), count);
             for (uint32_t i = 0; i < state.nsub; i++)
                 if (state.groups[i].aux)

@@ -1,0 +1,230 @@
+{
+  "stages": [
+    {
+      "log": "gate-equivalence-uring-final.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21620-21622",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/POST"
+      ],
+      "jobs": "differ-equivalence",
+      "environment": {
+        "GATE_DIFFER_NET_IO": "uring"
+      },
+      "started": 1793621467.9850214,
+      "exit": 0,
+      "finished": 1793621493.7276294
+    },
+    {
+      "log": "gate-sampler-final.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21620-21622",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/POST"
+      ],
+      "jobs": "storage_units",
+      "environment": {},
+      "started": 1793621494.096453,
+      "exit": 0,
+      "finished": 1793621504.4056735
+    },
+    {
+      "log": "gate-txn-pairing-final.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21620-21622",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/POST"
+      ],
+      "jobs": "txnorder_wake txnorder2",
+      "environment": {},
+      "started": 1793621504.7702928,
+      "exit": 0,
+      "finished": 1793621600.1868377
+    },
+    {
+      "log": "gate-flush-deadline-pre-final.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21620-21622",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/PRE"
+      ],
+      "jobs": "flushfix3",
+      "environment": {},
+      "started": 1793621600.5508974,
+      "exit": 0,
+      "finished": 1793621696.0609496
+    },
+    {
+      "log": "gate-flush-deadline-post-final.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21620-21622",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/POST"
+      ],
+      "jobs": "flushfix3",
+      "environment": {},
+      "started": 1793621696.4252927,
+      "exit": 0,
+      "finished": 1793621791.5553353
+    },
+    {
+      "log": "gate-fifo-pre-final.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21620-21622",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/PRE"
+      ],
+      "jobs": "txnorder_fifo_live",
+      "environment": {},
+      "started": 1793621791.9220004,
+      "exit": 1,
+      "finished": 1793622780.9996135
+    },
+    {
+      "log": "gate-inventory-final.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21620-21622",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/POST"
+      ],
+      "jobs": "bugs5 moverfix hexpread multifix-1s-uring multifix-1s-epoll multifix-2s-uring multifix-2s-epoll pubtrackfix compat2 globcase sort rootcompat-setpast rootcompat-hscan rootcompat-xsexpiry notify notifycompat notify_order clientcompat-pause rootcore-notify debug-0 debug-1 replyoff",
+      "environment": {},
+      "started": 1793622781.3647168,
+      "exit": 1,
+      "finished": 1793624935.1344955
+    },
+    {
+      "log": "gate-inventory-fused-final.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21620-21622",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/POST"
+      ],
+      "jobs": "sort debug-0 debug-1 replyoff asan_batteries zc",
+      "environment": {
+        "GATE_TXN_FUSED": "1"
+      },
+      "started": 1793624935.5493271,
+      "exit": 0,
+      "finished": 1793625175.3563647
+    },
+    {
+      "log": "gate-feature-product-final.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21620-21622",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/POST"
+      ],
+      "jobs": "feature-cell-1s-0-0-0-0 feature-cell-1s-0-0-0-1 feature-cell-1s-0-0-1-0 feature-cell-1s-0-0-1-1 feature-cell-1s-0-1-0-0 feature-cell-1s-0-1-0-1 feature-cell-1s-0-1-1-0 feature-cell-1s-0-1-1-1 feature-cell-1s-1-0-0-0 feature-cell-1s-1-0-0-1 feature-cell-1s-1-0-1-0 feature-cell-1s-1-0-1-1 feature-cell-1s-1-1-0-0 feature-cell-1s-1-1-0-1 feature-cell-1s-1-1-1-0 feature-cell-1s-1-1-1-1 feature-cell-2s-0-0-0-0 feature-cell-2s-0-0-0-1 feature-cell-2s-0-0-1-0 feature-cell-2s-0-0-1-1 feature-cell-2s-0-1-0-0 feature-cell-2s-0-1-0-1 feature-cell-2s-0-1-1-0 feature-cell-2s-0-1-1-1 feature-cell-2s-1-0-0-0 feature-cell-2s-1-0-0-1 feature-cell-2s-1-0-1-0 feature-cell-2s-1-0-1-1 feature-cell-2s-1-1-0-0 feature-cell-2s-1-1-0-1 feature-cell-2s-1-1-1-0 feature-cell-2s-1-1-1-1 feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto",
+      "environment": {},
+      "started": 1793625175.7614884,
+      "exit": 0,
+      "finished": 1793625228.0244482
+    }
+  ],
+  "paired_units": [
+    {
+      "unit": "moverfix-unit",
+      "source": "/home/user/Projects/cx-storefix5/build/moverfix-unit",
+      "paired": "/home/user/Projects/cx-storefix5/build/storefix5/arms/retirement168000/moverfix-unit",
+      "sha256": "49a68efaf68a772b376a9d28ef1e19c4d2e74223819bb332fd8e6c03e2c208a8"
+    },
+    {
+      "unit": "moverfix-db0-unit",
+      "source": "/home/user/Projects/cx-storefix5/build/moverfix-db0-unit",
+      "paired": "/home/user/Projects/cx-storefix5/build/storefix5/arms/retirement168000/moverfix-db0-unit",
+      "sha256": "cde05127e224c17d98ad6c9b77a5d2b44cb5523b0a996b96c8a252fe725bae3f"
+    }
+  ],
+  "complete": true
+}

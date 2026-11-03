@@ -1,0 +1,373 @@
+[
+  {
+    "path": "build/storefix5/append/pre",
+    "bytes": 230031425,
+    "reason": "Completed superseded build or private Tcl checkout; receipts retained"
+  },
+  {
+    "path": "build/storefix5/append/post",
+    "bytes": 230122201,
+    "reason": "Completed superseded build or private Tcl checkout; receipts retained"
+  },
+  {
+    "path": "build/storefix5/tcl-required-1s/checkout",
+    "bytes": 63539391,
+    "reason": "Completed superseded build or private Tcl checkout; receipts retained"
+  },
+  {
+    "path": "build/storefix5/tcl-2s/checkout",
+    "bytes": 63539391,
+    "reason": "Completed superseded build or private Tcl checkout; receipts retained"
+  },
+  {
+    "path": "build/gate-cache/obj-core-tsan",
+    "bytes": 382837771,
+    "reason": "Completed superseded probe or completed sanitizer/debug object cache; executable and receipts retained."
+  },
+  {
+    "path": "build/gate-cache/obj-rlcachedbg",
+    "bytes": 352597554,
+    "reason": "Completed superseded probe or completed sanitizer/debug object cache; executable and receipts retained."
+  },
+  {
+    "path": "build/storefix5/append/post-frozen",
+    "bytes": 90267593,
+    "reason": "Superseded APPEND probe removed; frozen PRE and final POST probes and build/result receipts retained."
+  },
+  {
+    "path": "build/gate-run.1A2Y6V/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-cli",
+    "bytes": 3897368,
+    "sha256": "e4b0838e4d9689927f5d9934bc63db1854769db50536652cc2af379bf0513964",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.1A2Y6V/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-check-rdb",
+    "bytes": 9918592,
+    "sha256": "c6e83a4b6cfad07113ebc996d49455cda13f4ff1dffc9147fc428953527e67d3",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.1A2Y6V/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-server",
+    "bytes": 9918592,
+    "sha256": "c6e83a4b6cfad07113ebc996d49455cda13f4ff1dffc9147fc428953527e67d3",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.1A2Y6V/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-check-aof",
+    "bytes": 9918592,
+    "sha256": "c6e83a4b6cfad07113ebc996d49455cda13f4ff1dffc9147fc428953527e67d3",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.1A2Y6V/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-cli",
+    "bytes": 3897368,
+    "sha256": "e4b0838e4d9689927f5d9934bc63db1854769db50536652cc2af379bf0513964",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.1A2Y6V/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-check-rdb",
+    "bytes": 9918592,
+    "sha256": "c6e83a4b6cfad07113ebc996d49455cda13f4ff1dffc9147fc428953527e67d3",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.1A2Y6V/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-server",
+    "bytes": 9918592,
+    "sha256": "c6e83a4b6cfad07113ebc996d49455cda13f4ff1dffc9147fc428953527e67d3",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.1A2Y6V/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-check-aof",
+    "bytes": 9918592,
+    "sha256": "c6e83a4b6cfad07113ebc996d49455cda13f4ff1dffc9147fc428953527e67d3",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.mzS0Uv/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-cli",
+    "bytes": 7735744,
+    "sha256": "da8b5b5001a481a8fe9e7be07f30cca872bafb9a15be2eeee5a82ccccd41ff9e",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.mzS0Uv/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-check-rdb",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.mzS0Uv/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-server",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.mzS0Uv/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-check-aof",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.mzS0Uv/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-cli",
+    "bytes": 7735744,
+    "sha256": "da8b5b5001a481a8fe9e7be07f30cca872bafb9a15be2eeee5a82ccccd41ff9e",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.mzS0Uv/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-check-rdb",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.mzS0Uv/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-server",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.mzS0Uv/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-check-aof",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.E7C9U9/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-cli",
+    "bytes": 7735744,
+    "sha256": "da8b5b5001a481a8fe9e7be07f30cca872bafb9a15be2eeee5a82ccccd41ff9e",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.E7C9U9/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-check-rdb",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.E7C9U9/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-server",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.E7C9U9/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-check-aof",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.E7C9U9/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-cli",
+    "bytes": 7735744,
+    "sha256": "da8b5b5001a481a8fe9e7be07f30cca872bafb9a15be2eeee5a82ccccd41ff9e",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.E7C9U9/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-check-rdb",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.E7C9U9/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-server",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.E7C9U9/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-check-aof",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.AR7uTv/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-cli",
+    "bytes": 7735744,
+    "sha256": "da8b5b5001a481a8fe9e7be07f30cca872bafb9a15be2eeee5a82ccccd41ff9e",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.AR7uTv/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-check-rdb",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.AR7uTv/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-server",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.AR7uTv/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-check-aof",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.AR7uTv/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-cli",
+    "bytes": 7735744,
+    "sha256": "da8b5b5001a481a8fe9e7be07f30cca872bafb9a15be2eeee5a82ccccd41ff9e",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.AR7uTv/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-check-rdb",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.AR7uTv/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-server",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.AR7uTv/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-check-aof",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.8doq3H/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-cli",
+    "bytes": 7735744,
+    "sha256": "da8b5b5001a481a8fe9e7be07f30cca872bafb9a15be2eeee5a82ccccd41ff9e",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.8doq3H/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-check-rdb",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.8doq3H/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-server",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.8doq3H/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-check-aof",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.8doq3H/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-cli",
+    "bytes": 7735744,
+    "sha256": "da8b5b5001a481a8fe9e7be07f30cca872bafb9a15be2eeee5a82ccccd41ff9e",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.8doq3H/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-check-rdb",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.8doq3H/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-server",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.8doq3H/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-check-aof",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.kC7J7o/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-cli",
+    "bytes": 7735744,
+    "sha256": "da8b5b5001a481a8fe9e7be07f30cca872bafb9a15be2eeee5a82ccccd41ff9e",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.kC7J7o/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-check-rdb",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.kC7J7o/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-server",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.kC7J7o/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-check-aof",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.kC7J7o/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-cli",
+    "bytes": 7735744,
+    "sha256": "da8b5b5001a481a8fe9e7be07f30cca872bafb9a15be2eeee5a82ccccd41ff9e",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.kC7J7o/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-check-rdb",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.kC7J7o/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-server",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.kC7J7o/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-check-aof",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.CXIxZ4/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-cli",
+    "bytes": 7735744,
+    "sha256": "da8b5b5001a481a8fe9e7be07f30cca872bafb9a15be2eeee5a82ccccd41ff9e",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.CXIxZ4/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-check-rdb",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.CXIxZ4/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-server",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.CXIxZ4/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-check-aof",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.CXIxZ4/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-cli",
+    "bytes": 7735744,
+    "sha256": "da8b5b5001a481a8fe9e7be07f30cca872bafb9a15be2eeee5a82ccccd41ff9e",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.CXIxZ4/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-check-rdb",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.CXIxZ4/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-server",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  },
+  {
+    "path": "build/gate-run.CXIxZ4/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-check-aof",
+    "bytes": 17663696,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "reason": "completed Tcl job private copy; original Redis oracle remains intact"
+  }
+]

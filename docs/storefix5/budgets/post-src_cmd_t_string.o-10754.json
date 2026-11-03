@@ -1,0 +1,29 @@
+{
+  "arm": "post",
+  "object": "src/cmd/t_string.o",
+  "budget": 10754,
+  "unit": 14311,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "large-unit-insns=10754",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/t_string.cc",
+    "-o",
+    "/home/user/Projects/cx-storefix5/build/storefix5/budgets/post-src_cmd_t_string.o-10754.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-storefix5/build/storefix5/budgets/post-src_cmd_t_string.o-10754"
+  ],
+  "output": "/home/user/Projects/cx-storefix5/build/storefix5/budgets/post-src_cmd_t_string.o-10754.o",
+  "sha256": "446bfdf21dc4b47874c450ed9e45e812dc15fb2981a7011ad975a7c2785d9b29"
+}

@@ -1,0 +1,9 @@
+gate-equivalence-uring-final 0
+gate-sampler-final 0
+gate-txn-pairing-final 0
+gate-flush-deadline-pre-final 0
+gate-flush-deadline-post-final 0
+gate-fifo-pre-final 1
+gate-inventory-final 1
+gate-inventory-fused-final 0
+gate-feature-product-final 0
