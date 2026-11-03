@@ -1048,6 +1048,7 @@ job_body(){
     snapshot-*) job_snapshot "$name";;
     aof-*) job_aof "$name";;
     atomfix6-live-*) job_atomfix6_live "$name";;
+    atomwake-live-*) job_atomwake_live "$name";;
     txnorder2) job_txnorder2;;
     txnorder_wake) job_txnorder_wake;;
     at412-*) job_at412 "${name#at412-}";;
@@ -1211,6 +1212,8 @@ plan_jobs(){
   for mode in 1s 2s; do for FR in 0 1; do for section in 1 16; do
     JOB_NAMES+=("atomfix6-live-$mode-$FR-$section")
   done; done; done
+  for mode in 2s 1s; do for section in uring epoll; do JOB_NAMES+=("atomwake-live-$mode-$section"); done; done
+  JOB_NAMES+=(atomwake_unit)
   for section in T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11a T11b T12 T13 T14 T15 T16 owner; do JOB_NAMES+=("at412-$section"); done
   local resp_case resp_engine
   for resp_case in fragment cpu neighbour; do for mode in 1s 2s; do
@@ -1265,7 +1268,10 @@ start_workers(){
   # driver process per load CPU; its FIFO share is only meaningful when those drivers
   # keep every client outstanding, as in its validated eight-load-CPU geometry. The
   # planner's wide slot runs it first and exclusively; no other slot may claim it.
-  if [ "${GATE_WIDE_SLOT:--1}" != -1 ] && [[ " ${JOB_NAMES[*]} " == *' txnorder_fifo_live '* ]]; then
+  # A single slot is already exclusive and must still run the job's prerequisites
+  # (release): holding it for the FIFO job would wait on itself forever.
+  if [ "${GATE_WIDE_SLOT:--1}" != -1 ] && [ "$GATE_SLOTS" -gt 1 ] &&
+      [[ " ${JOB_NAMES[*]} " == *' txnorder_fifo_live '* ]]; then
     wide_job=txnorder_fifo_live
   fi
   for ((slot=0; slot<GATE_SLOTS; slot++)); do
@@ -1588,6 +1594,36 @@ job_atomfix6_live(){
       --engine "${GATE_PROOF_NET_IO:-${GATE_NET_IO:-uring}}" --output "$TMPDIR/proof" \
       >"$TMPDIR/proof.log" 2>&1; then ok "$label"
   else bad "$label" "see $TMPDIR/proof.log and proof/result.json"; fi
+}
+
+# mset8fix: a lone IO connection refused by the global atomic window must be woken by a credit
+# retirement, not by the 50 ms ring timeout. Four rows (2s/1s x uring/epoll), each over
+# read-local 0/1 x databases 1/16 x three fresh placements, collected before the quick exit.
+# DQ=+4, DF=+4. EXPECT_QUICK / EXPECT_FULL remain maintainer-owned.
+job_atomwake_live(){
+  local prefix family mode engine label
+  IFS=- read -r prefix family mode engine <<< "$1"
+  label="atomwake lone-IO credit wake ($mode, $engine)"
+  row_begin "$label"
+  if py tests/atomwake.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+      --ratio "$GATE_RATIO" --mode "$mode" --engine "$engine" --output "$TMPDIR/proof" \
+      >"$TMPDIR/proof.log" 2>&1; then ok "$label"
+  else bad "$label" "see $TMPDIR/proof.log and proof/result.json"; fi
+}
+# mset8fix: one serverless row, collected before the quick exit with the live rows (DQ=+1, DF=+1).
+# Deterministic doorbell schedules on real rings in both engines: publish/retire in both orders,
+# one wake per credit in turn, an awake holder skipped, and the snapshot barrier clear.
+job_atomwake_unit(){
+  local label="atomwake credit doorbell unit (uring, epoll)" passed=1 engine
+  pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/atomwake-unit >"$TMPDIR/build.log" 2>&1
+  row_begin "$label"
+  if make -q build/atomwake-unit; then
+    for engine in uring epoll; do
+      taskset -c "$CORES" build/atomwake-unit "$engine" >>"$TMPDIR/unit.log" 2>&1 || passed=0
+    done
+    [ "$(grep -c '^PASS atomwake doorbell' "$TMPDIR/unit.log")" = 2 ] || passed=0
+  else passed=0; fi
+  [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/unit.log and build.log"
 }
 
 job_flushfix3(){
@@ -6956,6 +6992,11 @@ collect_job atomfix6_units
 for atomfix6_mode in 1s 2s; do for atomfix6_rl in 0 1; do for atomfix6_db in 1 16; do
   collect_job "atomfix6-live-$atomfix6_mode-$atomfix6_rl-$atomfix6_db"
 done; done; done
+# mset8fix: five rows before the quick-tier exit (DQ=+5, DF=+5); EXPECT stays maintainer-owned.
+for atomwake_mode in 2s 1s; do for atomwake_engine in uring epoll; do
+  collect_job "atomwake-live-$atomwake_mode-$atomwake_engine"
+done; done
+collect_job atomwake_unit
 collect_job flushfix3
 collect_job flushfix3_units
 collect_job flushfix2

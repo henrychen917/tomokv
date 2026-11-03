@@ -1,0 +1,51 @@
+{
+  "binary": "build/mset8fix/pre-source/build/tomokv",
+  "ratio": "24:8",
+  "read_local": 0,
+  "server_cpus": "0-31",
+  "load_cpus": "32-95",
+  "visits": [
+    {
+      "p50_ms": 1.978367,
+      "p99_ms": 4.972543,
+      "p999_ms": 145.752063,
+      "max_ms": 462.39199,
+      "requests_ge_20ms": 9054,
+      "connections_stalled": 19,
+      "connections_starved": 2,
+      "slowest_connection": 1344,
+      "median_connection": 34512.0,
+      "slowest_over_median": 0.03894297635605007,
+      "window_stalls": 876997,
+      "requests": 2224032
+    },
+    {
+      "p50_ms": 2.027519,
+      "p99_ms": 4.968447,
+      "p999_ms": 150.208511,
+      "max_ms": 800.121141,
+      "requests_ge_20ms": 6713,
+      "connections_stalled": 38,
+      "connections_starved": 4,
+      "slowest_connection": 1056,
+      "median_connection": 36464.0,
+      "slowest_over_median": 0.028960070206230804,
+      "window_stalls": 1105032,
+      "requests": 2196832
+    },
+    {
+      "p50_ms": 1.926143,
+      "p99_ms": 4.698111,
+      "p999_ms": 131.727359,
+      "max_ms": 600.748113,
+      "requests_ge_20ms": 10469,
+      "connections_stalled": 37,
+      "connections_starved": 3,
+      "slowest_connection": 1216,
+      "median_connection": 37072.0,
+      "slowest_over_median": 0.03280103582218386,
+      "window_stalls": 972493,
+      "requests": 2299072
+    }
+  ]
+}

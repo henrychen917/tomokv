@@ -2686,7 +2686,9 @@ public:
         return atomic_mode_state() != 0;
     }
     bool atomic_can_admit(uint32_t /*owner_io*/, bool force = false) const {
-        if (snapshot_atomic_barrier_.load(std::memory_order_acquire)) return false;
+        // seq_cst, like AtomicAdmissionCredits::can_admit(): atomic_credit_wait_arm() re-checks
+        // through this predicate after publishing its waiter bit (same mov on x86-64).
+        if (snapshot_atomic_barrier_.load(std::memory_order_seq_cst)) return false;
         if (!force && !(atomic_mode_state() & kAtomicEnabledBit)) return true;
         return atomic_credits_.can_admit();
     }
@@ -2719,7 +2721,7 @@ public:
     }
     void set_snapshot_atomic_barrier(bool enabled) {
         if (enabled) snapshot_atomic_barrier_.fetch_or(1, std::memory_order_acq_rel);
-        else snapshot_atomic_barrier_.fetch_and(uint8_t{0xfe}, std::memory_order_acq_rel);
+        else snapshot_atomic_barrier_.fetch_and(uint8_t{0xfe}, std::memory_order_seq_cst);
     }
     void atomic_retire_group(uint32_t owner_io, uint64_t admission_token) {
         AtomicAdmissionState& local = thread(owner_io).atomic_admission_state();
@@ -2727,6 +2729,68 @@ public:
         local.active--;
         atomic_credits_.retire();
         if (!local.active) atomic_activity_.fetch_sub(1, std::memory_order_release);
+    }
+    // CREDIT DOORBELL, retirer half: call right after atomic_retire_group() wherever an admitted
+    // group finishes (xshard_destroy, EXEC's release_admission). A frame refused by the window
+    // stays unconsumed on its IO, and that IO may have nothing else that will ever wake it: its
+    // client is waiting for replies and its own groups have retired. This retirement is the event
+    // it waits for. One load of the word beside atomic_credits_ (the line retire() just wrote) and
+    // one predicted-false branch; the ring runs only while an IO is published. The OOM rollbacks
+    // of a just-admitted group do not ring: a waiter that saw the window full also saw at least
+    // fifteen other admitted groups (the window is at least 16), and each of those rings here.
+    void atomic_credit_doorbell(uint32_t owner_io) {
+        if (__builtin_expect(atomic_credit_waiters_.load(std::memory_order_seq_cst) != 0, false))
+            atomic_ring_credit_waiters(owner_io);
+    }
+    // CREDIT DOORBELL, waiter half. An IO calls this on its park path, AFTER arm_blocked(), only
+    // when its pre-park sweep left a connection refused by the window. Publish, then re-check:
+    // either the re-check observes a retirement (or barrier clear) that preceded the publication,
+    // or that retirement's seq_cst load of the waiter word observes the bit and rings this IO.
+    // True means room (or no barrier) already exists: the caller must not park. Out of line: it
+    // runs once per park, never per command. There is no disarm: a ringer consumes the bit, and a
+    // bit left by an IO that woke on its own costs the next retirement one claim and at most one
+    // spurious Wake.
+    [[gnu::cold, gnu::noinline]] bool atomic_credit_wait_arm(uint32_t io) {
+        atomic_credit_waiters_.fetch_or(uint64_t{1} << (io & 63), std::memory_order_seq_cst);
+        return atomic_can_admit(io);
+    }
+    // Runs on self_tid's own thread (a retiring IO, whose AtomicAdmissionState is owner-written,
+    // or the snapshot writer), so the Wake is prepared on that thread's own ring and leaves with
+    // its next submit. A retirement frees one credit, so it rings one published bit; `all` rings
+    // every one (the snapshot barrier clear releases them all at once). Bit b stands for thread
+    // ids b and b+64, and every parked holder of a claimed bit is woken. The scan starts one past
+    // the bit this thread rang last, so waiters are rung in turn and one that re-publishes quickly
+    // cannot take every wake from another. A claimed bit whose holders are all awake (timeout or
+    // another CQE) needs no wake, since they re-check on their own next pass; it passes on.
+    [[gnu::cold, gnu::noinline]] void atomic_ring_credit_waiters(uint32_t self_tid,
+                                                                 Ring* mine = nullptr,
+                                                                 bool all = false) {
+        ThreadCtx& self = thread(self_tid);
+        if (!mine) mine = self.ring();
+        if (!mine) return;
+        uint8_t& cursor = self.atomic_admission_state().credit_ring_cursor;
+        const uint32_t shift = cursor & 63u;
+        const uint64_t raw = atomic_credit_waiters_.load(std::memory_order_seq_cst);
+        uint64_t bits = shift ? (raw >> shift) | (raw << (64u - shift)) : raw;
+        while (bits) {
+            const uint32_t pos = (static_cast<uint32_t>(__builtin_ctzll(bits)) + shift) & 63u;
+            bits &= bits - 1;
+            const uint64_t bit = uint64_t{1} << pos;
+            if (!(atomic_credit_waiters_.fetch_and(~bit, std::memory_order_acq_rel) & bit))
+                continue;  // another ringer consumed it
+            bool rang = false;
+            for (uint32_t io = pos; io < nthreads(); io += 64) {
+                ThreadCtx& waiter = thread(io);
+                if (io == self_tid || !waiter.ring() || !waiter.parked()) continue;
+                // The existing wake: one msg_ring Wake (an eventfd mail under epoll) to the
+                // parked thread, prepared on this thread's ring and counted in wakes_sent.
+                waiter.wake_if_parked(*mine, self.sig());
+                rang = true;
+            }
+            if (!rang) continue;
+            cursor = static_cast<uint8_t>(pos + 1);
+            if (!all) return;
+        }
     }
     // GROUP COMMIT IS TWO STEPS AND A READER MUST NEVER SEE THE FIRST WITHOUT THE SECOND.
     // A cross-shard group installs its versions on every owner while the shared epoch word still
@@ -3837,8 +3901,13 @@ private:
     std::atomic<uint64_t> atomic_fanout_cuts_{0};
     std::atomic<uint64_t> atomic_exec_read_cuts_{0};
     AtomicAdmissionCredits atomic_credits_;
-    // Preserve every following cache-line offset formerly occupied by pool/debt/credit_ops.
-    uint32_t atomic_credit_layout_padding_[3] = {};
+    // IOs parked behind a frame the window refused: bit b for thread ids b and b+64. The word and
+    // the remaining padding fill exactly the 16 bytes the former uint32_t[3] layout padding and its
+    // alignment hole held before atomic_activity_, so every following offset is preserved, and the
+    // word shares atomic_credits_'s cache line: the retirer loads the line its RMW just wrote.
+    std::atomic<uint64_t> atomic_credit_waiters_{0};
+    uint32_t atomic_credit_layout_padding_[2] = {};
+    static_assert(kMaxThreads <= 128, "atomic_credit_waiters_ maps two thread ids to each bit");
     // Enabled is the high bit; every IO with admitted groups and every live record contributes
     // one low-bit unit. Exact group counts belong to atomic_credits_.
     // Dispatch therefore decides OFF/ON/draining with one acquire load and one predictable test.

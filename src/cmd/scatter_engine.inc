@@ -2373,6 +2373,7 @@ void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_
     if (state->admitted && state->server) {
         state->server->atomic_retire_group(state->owner_io, state->admission_generation);
         state->admitted = false;
+        state->server->atomic_credit_doorbell(state->owner_io);
     }
     if (state->script_certifier && state->server) {
         state->server->script_finish_certification();
