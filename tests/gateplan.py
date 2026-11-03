@@ -14,6 +14,10 @@ from gate_measurements import ratio as measured_ratio
 
 SERVER_PER_SLOT = 8
 LOAD_PER_SLOT = 2
+# Load-bound correctness rows (txnorder FIFO live fairness: 64 EXEC clients plus four
+# plain writers on per-CPU driver processes) were validated with eight load CPUs. The
+# planner reserves one such slot whenever the other slots keep their two-CPU minimum.
+WIDE_LOAD_PER_SLOT = 8
 PORTS_PER_SLOT = 3
 MIN_PHYSICAL = 16
 MAX_PHYSICAL = 128
@@ -171,8 +175,10 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
     shared = getattr(args, 'shared_correctness_cpus', False)
     if shared and (purpose not in ('quick', 'iteration') or not os.getenv('GATE_ONLY_JOBS')
                    or os.getenv('GATE_PROOF_NO_RATES') != '1'):
-        raise ValueError('--shared-correctness-cpus requires selected quick/iteration jobs '
-                         'and GATE_PROOF_NO_RATES=1; no complete gate or performance use')
+        # Both merged adapters' descriptions are retained (storefix5 and rlfix5 diagnostics).
+        raise ValueError('--shared-correctness-cpus requires selected correctness jobs (selected '
+                         'quick/iteration jobs) and GATE_PROOF_NO_RATES=1; no complete gate or '
+                         'performance use')
     # Selected correctness proofs need one real 8+2 slot, not the full gate's
     # measurement headroom. Keep the complete/performance budget unchanged.
     minimum_physical = (SERVER_PER_SLOT + LOAD_PER_SLOT
@@ -251,14 +257,28 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
         raise ValueError(f"--ports {args.ports} has {last-first+1} ports; {count} correctness slots "
                          f"need {required} ({PORTS_PER_SLOT} per slot); widen the port range")
     slots = []
+    # The last slot owns exactly WIDE_LOAD_PER_SLOT load cores when the others still keep
+    # LOAD_PER_SLOT each; a single slot keeps every load core and is wide if it has enough.
+    wide = None
+    if count > 1 and len(load) - WIDE_LOAD_PER_SLOT >= LOAD_PER_SLOT * (count - 1):
+        wide = count - 1
+    shared_loads = load[:len(load) - WIDE_LOAD_PER_SLOT] if wide is not None else load
+    shared_count = count - 1 if wide is not None else count
     for index in range(count):
         servers = server[index * SERVER_PER_SLOT:(index + 1) * SERVER_PER_SLOT]
-        loads = load[index * len(load) // count:(index + 1) * len(load) // count]
+        if index == wide:
+            loads = load[len(load) - WIDE_LOAD_PER_SLOT:]
+        else:
+            loads = shared_loads[index * len(shared_loads) // shared_count:
+                                 (index + 1) * len(shared_loads) // shared_count]
         groups = {topology[cpu] for cpu in loads}
         smt = [cpu for cpu in axes["load_smt"] if topology[cpu] in groups]
         slots.append({"server_cores": cpu_string(servers), "load_cores": cpu_string(loads),
                       "load_smt": cpu_string(smt), "load_cpus": cpu_string(loads + smt),
                       "port": first + PORTS_PER_SLOT * index})
+    if wide is None and count == 1 and len(load) >= WIDE_LOAD_PER_SLOT:
+        wide = 0
+    wide_slot = -1 if wide is None else wide
     # Correctness partitions and the headline measurement have different geometry. Once every
     # correctness child has exited, the measurement keeps at most 32 physical server cores and
     # gives every other selected physical core to its load generators. Correctness needs protocol
@@ -315,6 +335,7 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
             "physical_cores": total, "slot_count": count, "correctness_ratio": correctness_ratio,
             "server_per_slot": SERVER_PER_SLOT, "load_min_per_slot": LOAD_PER_SLOT,
             "ports_per_slot": PORTS_PER_SLOT, "ports_first": first, "ports_last": last,
+            "wide_slot": wide_slot, "wide_load_per_slot": WIDE_LOAD_PER_SLOT,
             "axes": {key: cpu_string(value) for key, value in axes.items()}, "slots": slots,
             "perf": perf, "candidate_binary": candidate or str(ROOT / "build/tomokv"),
             "reference_binary": reference, "build_candidate": int(not candidate),
@@ -326,7 +347,8 @@ def shell_plan(plan):
     scalars = {"TIER": plan["tier"], "GATE_PURPOSE": plan["purpose"],
                "GATE_SHARED_CORRECTNESS_CPUS": int(plan.get("shared_correctness", False)),
                "GATE_PHYSICAL_CORES": plan["physical_cores"], "GATE_RATIO": plan["correctness_ratio"],
-               "GATE_SLOTS": plan["slot_count"], "GATE_PORT_FIRST": plan["ports_first"],
+               "GATE_SLOTS": plan["slot_count"], "GATE_WIDE_SLOT": plan.get("wide_slot", -1),
+               "GATE_PORT_FIRST": plan["ports_first"],
                "GATE_PORT_LAST": plan["ports_last"], "CANDIDATE_BINARY": plan["candidate_binary"],
                "REFERENCE_BINARY": plan["reference_binary"], "PERF_THREADS": plan["perf"]["threads"],
                "BUILD_CANDIDATE": plan["build_candidate"], "BUILD_CORES": plan["build_cores"],
@@ -566,6 +588,30 @@ def self_test():
                  mock.patch.object(sys, "argv", ["abbagate.py", *argv]):
                 parsed = abbagate.parse_args()
             self.assertEqual(abbagate.select_port(parsed.ports, parsed.port), (9000, (9000, 9011)))
+
+        def test_wide_load_slot(self):
+            # The 10-slot landing iteration: the last slot owns eight load cores, the
+            # other nine keep at least two each, and nothing overlaps.
+            plan = self.plan("--server-cores", "0-83", "--load-cores", "84-111")
+            self.assertEqual((plan["slot_count"], plan["wide_slot"]), (10, 9))
+            self.assertEqual(plan["slots"][9]["load_cores"], "104-111")
+            loads = [len(parse_cpu_range(slot["load_cores"])) for slot in plan["slots"][:9]]
+            self.assertTrue(all(n >= LOAD_PER_SLOT for n in loads), loads)
+            self.assertEqual(sum(loads), 28 - WIDE_LOAD_PER_SLOT)
+            script = shell_plan(plan) + 'printf "%s" "$GATE_WIDE_SLOT"'
+            self.assertEqual(subprocess.run(["bash", "-uc", script], check=True,
+                                            capture_output=True).stdout.decode(), "9")
+            # One slot keeps every load core; it is wide only with eight of them.
+            one = self.plan("quick", "--server-cores", "0-7", "--load-cores", "8-15")
+            self.assertEqual((one["slot_count"], one["wide_slot"], one["slots"][0]["load_cores"]),
+                             (1, 0, "8-15"))
+            narrow = self.plan("quick", "--server-cores", "48-55", "--load-cores", "56-60",
+                               only_jobs="txnorder_fifo_live")
+            self.assertEqual(narrow["wide_slot"], -1)
+            # Too few load cores to keep the others' minimum: no wide slot, even split.
+            even = self.plan("--server-cores", "0-79", "--load-cores", "80-99")
+            self.assertEqual((even["slot_count"], even["wide_slot"]), (10, -1))
+            self.assertTrue(all(len(parse_cpu_range(s["load_cores"])) == 2 for s in even["slots"]))
 
         def test_slots_own_disjoint_resources(self):
             plan = self.plan("--server-cores", "0-31,64-95", "--load-cores", "32-47,96-111")

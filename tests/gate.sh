@@ -1252,8 +1252,15 @@ start_workers(){
     python3 tests/differ_fanout.py plan --run "${ROW_RUN_ID:-$RUN_DIR}" --output "$RUN_DIR/differ-plan.json" \
         --repeats "${GATE_DIFFER_MULTI_REPEATS:-4}" || true
   fi
-  local slot name selected pending queue_fd
+  local slot name selected pending queue_fd wide_job=
   mkdir -p "$RUN_DIR/claimed"
+  # txnorder FIFO live fairness drives 64 EXEC clients and four plain writers from one
+  # driver process per load CPU; its FIFO share is only meaningful when those drivers
+  # keep every client outstanding, as in its validated eight-load-CPU geometry. The
+  # planner's wide slot runs it first and exclusively; no other slot may claim it.
+  if [ "${GATE_WIDE_SLOT:--1}" != -1 ] && [[ " ${JOB_NAMES[*]} " == *' txnorder_fifo_live '* ]]; then
+    wide_job=txnorder_fifo_live
+  fi
   for ((slot=0; slot<GATE_SLOTS; slot++)); do
     (
       WORKER_PIDS=(); SRV=0; GLOBCASE_ORACLE=0; MMPID=0; PAUSABLE_PID=0
@@ -1262,15 +1269,25 @@ start_workers(){
         exec {queue_fd}>"$RUN_DIR/queue.lock"
         flock "$queue_fd"
         selected=; pending=0
-        for name in "${JOB_NAMES[@]}"; do
-          [ ! -d "$RUN_DIR/claimed/$name" ] || continue
+        if [ -n "$wide_job" ] && [ "$slot" = "$GATE_WIDE_SLOT" ] && [ ! -d "$RUN_DIR/claimed/$wide_job" ]; then
+          # Hold the wide slot for its job until that job's dependencies have finished.
           pending=1
-          if job_ready "$name"; then
-            selected=$name
-            mkdir "$RUN_DIR/claimed/$name"
-            break
+          if job_ready "$wide_job"; then
+            selected=$wide_job
+            mkdir "$RUN_DIR/claimed/$wide_job"
           fi
-        done
+        else
+          for name in "${JOB_NAMES[@]}"; do
+            [ ! -d "$RUN_DIR/claimed/$name" ] || continue
+            pending=1
+            [ "$name" != "$wide_job" ] || continue
+            if job_ready "$name"; then
+              selected=$name
+              mkdir "$RUN_DIR/claimed/$name"
+              break
+            fi
+          done
+        fi
         flock -u "$queue_fd"; exec {queue_fd}>&-
         if [ -n "$selected" ]; then
           run_job "$selected" "$slot"
@@ -3673,8 +3690,15 @@ job_txnorder_fifo(){
   done
 }
 job_txnorder_fifo_live(){
-  local label="txnorder FIFO live fairness" passed=1 mode atomic engine databases boot_fn log
+  local label="txnorder FIFO live fairness" passed=1 mode atomic engine databases boot_fn log load_cpus
   row_begin "$label"
+  # The FIFO share was validated with eight driver CPUs (see start_workers and the
+  # planner's wide slot). A narrower slot measures its drivers, not the server.
+  load_cpus=$(taskset -c "$LOAD_CORES" nproc)
+  if [ "$load_cpus" -lt 8 ]; then
+    bad "$label" "needs the planner's wide slot (8 load CPUs); this slot has $load_cpus ($LOAD_CORES)"
+    return
+  fi
   for databases in 1 16; do for mode in 1s 2s; do for atomic in 0 1; do for engine in uring epoll; do
     boot_fn=boot; [ "$mode" != 1s ] || boot_fn=boot_fused
     log="$TMPDIR/fifo-$databases-$mode-$atomic-$engine"
