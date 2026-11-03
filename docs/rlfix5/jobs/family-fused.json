@@ -1,0 +1,984 @@
+{
+  "label": "family-fused",
+  "source": "/home/user/Projects/cx-rlfix5/build/gate-run.x5Lvjy",
+  "archive": "/home/user/Projects/cx-rlfix5/docs/rlfix5/jobs/family-fused.tar.gz",
+  "archive_sha256": "dfeae9df5ab9cbe911634d79105c373d83ae44c9de423064b43225720827b049",
+  "files": [
+    {
+      "path": "families.tsv",
+      "size": 170,
+      "sha256": "f40b352ae9c2c42a982b6772a5ac0e8cfd83c633d04f2d5b01200ff0113da272"
+    },
+    {
+      "path": "jobs/release/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "size": 52,
+      "sha256": "098d4eafcf458147b9e78acce95615d53376e2a96d653d5e2745cbbcaf6776da"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "size": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/snapshot-epoll/done",
+      "size": 7,
+      "sha256": "1cffb1a7ecf9ac5cb12677e7b137c5088e5ab5a67129183a61a1cefe64cb4b89"
+    },
+    {
+      "path": "jobs/snapshot-epoll/family.tsv",
+      "size": 59,
+      "sha256": "950400522e1c14f7deed81e3e8623bdcfa1ad2cadb859c79f9f3849d27201be9"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-snap-state-21500.txt",
+      "size": 166285,
+      "sha256": "ddbb07f19d8ebbc9c54c7b0d03e0f4e002f328aafce3480d6ff5e800cf0af75d"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-snapshot-cut-epoll.txt",
+      "size": 235,
+      "sha256": "4dabc03131c22c8ce531938a8818c2768e1ffef5a030c0010f5bede6b1791f3e"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-snapshot-groups-exec-epoll.txt",
+      "size": 896,
+      "sha256": "19cf4d24b1ef59b2cb1ea09cda88279d61ae9164ace1574df79b354271833d3d"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-snapshot-groups-mset-epoll.txt",
+      "size": 1008,
+      "sha256": "efcdf2efbf21425ed30e6afe62b644cafc54d02d551ecf951f813939fecfe684"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-snapshot-race-epoll.n53eN1/race.tomo.oracle.json",
+      "size": 20059,
+      "sha256": "7b3d4c8de3e15bd5a7af5ebd41774f597c157e7dcb6551fe411f892a8280ff83"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-snapshot-race-epoll.txt",
+      "size": 185,
+      "sha256": "90687cf0c3336ae0d46ae86433346f3be7801bda3c81a2a6263187e0de0ef023"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-snapshot-typed-epoll.txt",
+      "size": 68,
+      "sha256": "cd1893cd43d13c063784f690a204de8aa22ee78c6d6c5475cb0d5f8e7a48478e"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-srv-fused.E67tFf",
+      "size": 11101,
+      "sha256": "ad2ad25e8d691f6cb86d3a51013dab79b794199762859e97ba69d92dcfcd5209"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-srv-fused.GL8Vzh",
+      "size": 11010,
+      "sha256": "c4efc4f4d10406f119e6042cb400ec63f8e13f60bec513254434553b10054389"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-srv-fused.L2GZYR",
+      "size": 10795,
+      "sha256": "ed24c3eb6a320c3ba589f1f0b70d6f863fec52cd14205cf78e54e804f5f39246"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-srv-fused.UBxnT7",
+      "size": 11289,
+      "sha256": "f6ba681b3a8284ba730f0b0284f3968b2066261349358087d5f86d5a9506d41f"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-srv-fused.VRr9Hf",
+      "size": 10850,
+      "sha256": "27d70f2068e7e65a36e59baaca012feccbef064467723b3654900cc89736b756"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-srv-fused.c28FJM",
+      "size": 10893,
+      "sha256": "990437cd2d0e7dcccc3583ce68f731d84a1881dc2e3d30021b044e4c6917dce3"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-srv-fused.cKEFUb",
+      "size": 10728,
+      "sha256": "917403ab7f2aa4a58f090e7d46633c37035daa6e3acb280bd4c54ae8b23185be"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-srv-fused.y5D1z6",
+      "size": 10899,
+      "sha256": "ec1a5aaeecb04a014172387da3ae490cffd99399de89425e28bd55afc6d4107b"
+    },
+    {
+      "path": "jobs/snapshot-epoll/ledger",
+      "size": 952,
+      "sha256": "0dd1803719fc96f371e548984dfef6149fdfa4823963fb5dfdbe55fa6ff4ee83"
+    },
+    {
+      "path": "jobs/snapshot-epoll/output.log",
+      "size": 2703,
+      "sha256": "42a560e644fd7f04708f919f83c62dd62b35c7cef684c859497f57e5263133a8"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-1s-command/attempt-1/replay.argv.json",
+      "size": 564,
+      "sha256": "030eea27d9972c374f23c50104ca3fd8a38d77960e10eb3737f1d5ad6f2cb5b3"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-1s-command/attempt-1/replay.log",
+      "size": 10645,
+      "sha256": "51f2d5beb13077431232b410ef50b0032d3e4b05ec4ed786f9d42ffb368af669"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-1s-command/attempt-1/result.json",
+      "size": 2221,
+      "sha256": "38bef36777eeb654715d083991ebeab1363a64b612cf0288cfe22255f132c6a8"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-1s-command/attempt-1/write.argv.json",
+      "size": 570,
+      "sha256": "0a10c6e9583925c017b77684a2b6c5da8c1f1f6e3e32c487bcede12116ede6d8"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-1s-command/attempt-1/write.log",
+      "size": 10915,
+      "sha256": "8831e78690ebc14a45b362a3f78cf2c6b45d46b35a0f7e901ed23f6f8b15b06d"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-1s-command.log",
+      "size": 7194,
+      "sha256": "a55da3cf71d6e4a3cfca5d41ee425751e535c035f46a7794fd229247533cd3cf"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-1s-sigterm/attempt-1/replay.argv.json",
+      "size": 564,
+      "sha256": "04179cc05f64cf0ddc1447a1263d6b8e1897c4b086e381948a9edfec5210e31f"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-1s-sigterm/attempt-1/replay.log",
+      "size": 10646,
+      "sha256": "4bd271de27bd7cd412b8e62230df097a94a07bae23d2ef9b04f660f169172838"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-1s-sigterm/attempt-1/result.json",
+      "size": 2220,
+      "sha256": "51cd8da764054843c229acbc35182aff68ad5e5046ce9835c9290d9531e58721"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-1s-sigterm/attempt-1/write.argv.json",
+      "size": 570,
+      "sha256": "87178cc9459d86283a0d7901912cbae4e534ab0f688771164ce890bd2c3741a2"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-1s-sigterm/attempt-1/write.log",
+      "size": 10908,
+      "sha256": "5a17bd610ffc2639c7d17a582c420fc4b29988a29cb50665de6630689c68e573"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-1s-sigterm.log",
+      "size": 7189,
+      "sha256": "1b8a64ebcd4c50200ff2a98626cbd5c0c0cf28489333fd8196934da0c294243e"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-2s-command/attempt-1/replay.argv.json",
+      "size": 582,
+      "sha256": "166e416bb8389ed3e30efe714178a8da7b7c8e5b5c5a7696dea0ea002faedef8"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-2s-command/attempt-1/replay.log",
+      "size": 9739,
+      "sha256": "539b1869d61e563b4f115a3d5b80f18821ebe52404916a532c1ef153f6670670"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-2s-command/attempt-1/result.json",
+      "size": 2219,
+      "sha256": "61aed07643f4336f70f1773e5e74351ef0928f627ba9e2a37c3d5b97d40db941"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-2s-command/attempt-1/write.argv.json",
+      "size": 588,
+      "sha256": "13de43c985d1f8145a7bc80b4474ac6be81e83068a18b8c13545f1a18e8064cd"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-2s-command/attempt-1/write.log",
+      "size": 9871,
+      "sha256": "e11c34c97e3c647f9981152cae313f28bf8dcc323164470b84628b7681cca92c"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-2s-command.log",
+      "size": 7223,
+      "sha256": "8474987508a7084d38f213e6282cc96c76ca7e32cd96034dced6ecb20cdfe1ad"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-2s-sigterm/attempt-1/replay.argv.json",
+      "size": 582,
+      "sha256": "63353353a26a3fe3b700ceee563a452dd603e23d9d2da2007d936e150e3b5600"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-2s-sigterm/attempt-1/replay.log",
+      "size": 9739,
+      "sha256": "bbc323965dab1a8e182835c56d54c0722dabf045a8e842834ecb62d21978d4da"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-2s-sigterm/attempt-1/result.json",
+      "size": 2218,
+      "sha256": "70fdf1531b7e2a38f74bdf794827f4b1cd04816d7d8af4e1b80eb07263fe1afb"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-2s-sigterm/attempt-1/write.argv.json",
+      "size": 588,
+      "sha256": "0f147f2e23ce8811932baef7efc88e9e993b1e1ccae8b8f7d0853734f904c4f4"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-2s-sigterm/attempt-1/write.log",
+      "size": 9882,
+      "sha256": "d73d3d4b9ba8761ada476cf3d7a56c2ae51e3d1b6b424626e7fc87e0538ca597"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-acks-2s-sigterm.log",
+      "size": 7224,
+      "sha256": "2bdb755d8671ceba4d12f5fa80452f4f5fb65894151b69b66c67f15ef86cb239"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-bgsave-1s-0/attempt-1/result.json",
+      "size": 1944,
+      "sha256": "083d02824300bc348e88e3e8ebdcad4444c49a6b829b72be65bc1d939e655c15"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-bgsave-1s-0/attempt-1/write.argv.json",
+      "size": 560,
+      "sha256": "7ea6cb4d1a52b6e2052dc6593d87cfd29823db60c6af44c4ce296e03aaa6a2e0"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-bgsave-1s-0/attempt-1/write.log",
+      "size": 10961,
+      "sha256": "bf0e8e56dcb40dc05749a29ff8dcc2a2dd2c25510ecb96d8e4456d18926ea2cb"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-bgsave-1s-0.log",
+      "size": 6973,
+      "sha256": "4c31117f7a153a8072c30015877792c92167a0b9ecf2cbf302dd527b6dcb0488"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-bgsave-1s-1/attempt-1/result.json",
+      "size": 1939,
+      "sha256": "2a79835d742784f16effeb431a50813d140ea3eb996e9419ef63194289e32a2c"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-bgsave-1s-1/attempt-1/write.argv.json",
+      "size": 560,
+      "sha256": "23b7164609af29e231067754e3bc4c61d40a4e33f398f66e1f81487e568ce8d2"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-bgsave-1s-1/attempt-1/write.log",
+      "size": 10908,
+      "sha256": "3095da48add75a42a8761e377117b2cb7bc67ba518354de6706c7a8bb5dffaf2"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-bgsave-1s-1.log",
+      "size": 6963,
+      "sha256": "1b55385dab1cf5ab8a411efbf3cfa8bc3b98883c07f11fa5f64812892555536a"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-bgsave-2s-0/attempt-1/result.json",
+      "size": 1945,
+      "sha256": "73581000a7954ce7745764be5e1ff0eeab9599d9768467958eb31b5fa6b1b197"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-bgsave-2s-0/attempt-1/write.argv.json",
+      "size": 578,
+      "sha256": "3289fc24e9f0faa128f97a3d4fe31d1253492730b041a52d0c97d38e2f943e34"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-bgsave-2s-0/attempt-1/write.log",
+      "size": 9901,
+      "sha256": "e4e8d647f8eb18a12729960ec92d775840ce4480d95e87f42425275de5ad617d"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-bgsave-2s-0.log",
+      "size": 6995,
+      "sha256": "7fa858ea832821af861e6e419174fad68fba1114b6c99cfac6aa3343f937713c"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-bgsave-2s-1/attempt-1/result.json",
+      "size": 1936,
+      "sha256": "24baadf2c350ba8c624c0b6da3a690b2bc438bab43731723111b7a85ced73942"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-bgsave-2s-1/attempt-1/write.argv.json",
+      "size": 578,
+      "sha256": "5b385521b0dd5082e71bb71526a56358dbee658da97d1c84a387af55fd5e1b0e"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-bgsave-2s-1/attempt-1/write.log",
+      "size": 9889,
+      "sha256": "73971d7a40e7173cb96081e7052d99425f33b836bd5235f9047e6e2cb1197ead"
+    },
+    {
+      "path": "jobs/snapshot-epoll/savefix-bgsave-2s-1.log",
+      "size": 6974,
+      "sha256": "c7d75f602f3358bef79754a11bcc8e88fa77772f34e6cc9411751e0f8ca7dd15"
+    },
+    {
+      "path": "jobs/snapshot-epoll/timings",
+      "size": 952,
+      "sha256": "0dd1803719fc96f371e548984dfef6149fdfa4823963fb5dfdbe55fa6ff4ee83"
+    },
+    {
+      "path": "jobs/snapshot-uring/done",
+      "size": 7,
+      "sha256": "1cffb1a7ecf9ac5cb12677e7b137c5088e5ab5a67129183a61a1cefe64cb4b89"
+    },
+    {
+      "path": "jobs/snapshot-uring/family.tsv",
+      "size": 59,
+      "sha256": "e367fee99fa14f76d3ef55afdbe4222e9bbdaa1c0d6426e544896cfcb42e78cf"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-snap-state-21500.txt",
+      "size": 166285,
+      "sha256": "ddbb07f19d8ebbc9c54c7b0d03e0f4e002f328aafce3480d6ff5e800cf0af75d"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-snapshot-cut-uring.txt",
+      "size": 235,
+      "sha256": "4dabc03131c22c8ce531938a8818c2768e1ffef5a030c0010f5bede6b1791f3e"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-snapshot-groups-exec-uring.txt",
+      "size": 896,
+      "sha256": "e860d1c3f9f44a9bad4b984366f2b7391bb4ce0d5000150e210f9baec8c542c9"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-snapshot-groups-mset-uring.txt",
+      "size": 1008,
+      "sha256": "8425bc7f837faab28585d88648d6e7e00f99a27b98a449305a00cdd52a00126b"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-snapshot-race-uring.EEshbR/race.tomo.oracle.json",
+      "size": 20058,
+      "sha256": "3d62401003a4886fce178610a576f47cbca39f48c7fa42e34c4bc8741aa7791b"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-snapshot-race-uring.txt",
+      "size": 185,
+      "sha256": "f84bf4895a8d2b99d8aba2a252b533afd8ceb285da091e1afb0ee9a375fe0394"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-snapshot-typed-uring.txt",
+      "size": 68,
+      "sha256": "cd1893cd43d13c063784f690a204de8aa22ee78c6d6c5475cb0d5f8e7a48478e"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-srv-fused.0oCQHv",
+      "size": 11183,
+      "sha256": "00fecb2de878ba9fe643d0c8058c4475bbc693f25f50782870c62a9e604adbf8"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-srv-fused.1MOwLv",
+      "size": 11016,
+      "sha256": "2540b992d2c17a05ed8e93117abd1dab37696e319a662525d2f8460b435fb3ba"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-srv-fused.67GZHa",
+      "size": 10762,
+      "sha256": "73069b0792ee11de1db65be826571043b815ee685fa2c82d72c2ab02050672cb"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-srv-fused.8k3WyM",
+      "size": 10918,
+      "sha256": "bb06463a724d540e45d57a4c654beed92133fcc06456cb2afd35f9f2f1b784ef"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-srv-fused.8qB5kS",
+      "size": 10662,
+      "sha256": "21ecf26f4557a10953476bf5542a916f62439c23e0d0d777cff5d70223ab63db"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-srv-fused.TxEJO5",
+      "size": 10828,
+      "sha256": "901698b6f495901f50ad2d2a6568951cfc3b5520ef6eeadf6804b8bed1933b35"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-srv-fused.Z110sp",
+      "size": 11317,
+      "sha256": "d654395f0be674cb57ed01b00fd7cc5f665f34ffa03dcaaa94a428eae9151823"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-srv-fused.zQqVAb",
+      "size": 10908,
+      "sha256": "7bfcadde3f31e6047f5ed06fca0ce68f01a9587ef41a7952f4eba86e34776e84"
+    },
+    {
+      "path": "jobs/snapshot-uring/ledger",
+      "size": 952,
+      "sha256": "ca5680413265c441fa161609ca06cb2b61912a74db09785bc31e4af445cfaa4f"
+    },
+    {
+      "path": "jobs/snapshot-uring/output.log",
+      "size": 2702,
+      "sha256": "e17e6e3392a645780375b5f4e3e5338ebef8214847a6e9928bb2b2ee304111b6"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-1s-command/attempt-1/replay.argv.json",
+      "size": 564,
+      "sha256": "d96068d6dedeb2ab958943c3a6736c275ea9fb7267b3ee3258de26475eb9662b"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-1s-command/attempt-1/replay.log",
+      "size": 10563,
+      "sha256": "d5b1e8d4f800b901e6be453f7e003f00f8bbf0e738be3f226a623b598ec74270"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-1s-command/attempt-1/result.json",
+      "size": 2217,
+      "sha256": "3a3164267511c9088315abff36c61eb55d79abf30de9a9e2305fc1c3452defbb"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-1s-command/attempt-1/write.argv.json",
+      "size": 570,
+      "sha256": "5ace6e3e1185a82ce880ae068e6228c880dd4ba6bcb0a1caf573af7778fa741e"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-1s-command/attempt-1/write.log",
+      "size": 10938,
+      "sha256": "c22910056e927d9f4cec51b437b18b811fc9ba977a7f5e4a028b16b7591d384b"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-1s-command.log",
+      "size": 7184,
+      "sha256": "7e512de9b25eebdf0b64808808f16b616db3147607d8e2957c967b9c58ef1f8e"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-1s-sigterm/attempt-1/replay.argv.json",
+      "size": 564,
+      "sha256": "b8d2537f5694750ae005d9cb605a3d0ddc3a98858f5f6626ce30b16f901c3954"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-1s-sigterm/attempt-1/replay.log",
+      "size": 10564,
+      "sha256": "bf36a0ab58de1a837e378e699e29bc8f47c2e8c50f1be857027d42444d90f0cb"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-1s-sigterm/attempt-1/result.json",
+      "size": 2220,
+      "sha256": "62f38aba7d02e41681c0b6969fa981d2b53a5d7f7853c682f2594468b1e22d16"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-1s-sigterm/attempt-1/write.argv.json",
+      "size": 570,
+      "sha256": "6e786f0326149ceb7d152a72913ced13b19aaeecc4592c32914d08b1386a6440"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-1s-sigterm/attempt-1/write.log",
+      "size": 10931,
+      "sha256": "47a8eb33cba12edcd948ae689af802599926baa15d9d3ca48012e58cdd8ac33d"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-1s-sigterm.log",
+      "size": 7192,
+      "sha256": "099ecee766bf312b58f83bcba6d26ef6da1a85e11333f36d036b4267ee5c77a5"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-2s-command/attempt-1/replay.argv.json",
+      "size": 582,
+      "sha256": "d0d3a782688428fdecb49064efb38927d2f8cb89d5076f355aba8d6f75780047"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-2s-command/attempt-1/replay.log",
+      "size": 9658,
+      "sha256": "5a5c8a6b02ae0d124dfa23c95cc07386b8226adefddb5e4565a7cef9d5744c47"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-2s-command/attempt-1/result.json",
+      "size": 2220,
+      "sha256": "8409d6053e86f6cf2f38a4d8ba5e56e3cdf1e6e0620daf3bb32a9b73367893dc"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-2s-command/attempt-1/write.argv.json",
+      "size": 588,
+      "sha256": "302130059217591692ca483718076d131256d0dee2f463b45a0fbeee2d09c50e"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-2s-command/attempt-1/write.log",
+      "size": 9815,
+      "sha256": "d3830a9b02bcd2658c19978ff26d20ae6126988cd9b5ae811b1e169c9ff1fc28"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-2s-command.log",
+      "size": 7225,
+      "sha256": "952bcfc01a6fbc14b1dd3002362f764cdc6f78eda64fe34e269a35a1dfa9aa7f"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-2s-sigterm/attempt-1/replay.argv.json",
+      "size": 582,
+      "sha256": "db2f5c801be10411f585f1f88a25a16a239887cefeb3af2809e5ded294c3214b"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-2s-sigterm/attempt-1/replay.log",
+      "size": 9656,
+      "sha256": "f9c7e3324ab88d3b3c2858013dbf2ae8b827896979d261769d7ef189e266cfdc"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-2s-sigterm/attempt-1/result.json",
+      "size": 2220,
+      "sha256": "7e746e77376fea8c2f7f227ec786aae92e49a7c2caf97e633dabd33f95d9d036"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-2s-sigterm/attempt-1/write.argv.json",
+      "size": 588,
+      "sha256": "5a2059e65884866899f0b0dd28cf30e708c20b2fac284ebadb60364595cdc9b2"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-2s-sigterm/attempt-1/write.log",
+      "size": 9821,
+      "sha256": "fe331225e5ba6f226256fe70e5fb30db84a63504192a3d799d77b19859266423"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-acks-2s-sigterm.log",
+      "size": 7228,
+      "sha256": "1faec67221ef1f8eacb27530eafa4f87e2bf44b4b5b837c35c7955d0acc26b53"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-bgsave-1s-0/attempt-1/result.json",
+      "size": 1944,
+      "sha256": "606c7f45ac27b69fb87274b5678e6dc895774e92fcd02cb4a560a163c4438ac9"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-bgsave-1s-0/attempt-1/write.argv.json",
+      "size": 560,
+      "sha256": "62233ebbd8f8ee53663b6be4eda676b5ddb775e4a01faab4b7542a1ad420cb8a"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-bgsave-1s-0/attempt-1/write.log",
+      "size": 10977,
+      "sha256": "f2047cc93a46bd3580622cf4a2cc63f9e1623d7691cd95c59a6991ce490a707b"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-bgsave-1s-0.log",
+      "size": 6974,
+      "sha256": "d38f30472a45e5be86193899fb2acfcb4c245bc358a7d3eeafe9e6df92944977"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-bgsave-1s-1/attempt-1/result.json",
+      "size": 1945,
+      "sha256": "163df89217f00dfef2da40ed298c8164def314baa89b88aea734272a8f6cfdbe"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-bgsave-1s-1/attempt-1/write.argv.json",
+      "size": 560,
+      "sha256": "6cfcf326d6d11a14398deaeb1cad59da06def31c878a39bf1e7fdb8b82179f0f"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-bgsave-1s-1/attempt-1/write.log",
+      "size": 10925,
+      "sha256": "4558ed95f95310262891942e219cc119cf60aaaeef629a4c0178985ff840cf89"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-bgsave-1s-1.log",
+      "size": 6978,
+      "sha256": "a210318f507093afb05277545a288c1698beb9bde9d637bc4c1cab663cd67703"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-bgsave-2s-0/attempt-1/result.json",
+      "size": 1944,
+      "sha256": "bc592d5eda2e0bacd8b76c3ece5df1ee2727c5e1afac7cef243f80ab255d8a70"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-bgsave-2s-0/attempt-1/write.argv.json",
+      "size": 578,
+      "sha256": "45f867e77b1925403743a900b819c94d851db414bdaa43adba45c931e58df716"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-bgsave-2s-0/attempt-1/write.log",
+      "size": 9861,
+      "sha256": "b09cc5d5613ddb27ad029ec0cef0a4842308c0fb665d4716c297e095cd96911d"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-bgsave-2s-0.log",
+      "size": 6994,
+      "sha256": "a1090436ce76747b205ed8bd57a582ea7d25b3892018b7b01b95da8e56d40c3a"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-bgsave-2s-1/attempt-1/result.json",
+      "size": 1935,
+      "sha256": "8725c98d21856559c1775d0ff1f4b778ea97c78d5958f3040a24da9fd5e8d148"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-bgsave-2s-1/attempt-1/write.argv.json",
+      "size": 578,
+      "sha256": "4e54a4e64c5d3e9ad5f1ee52916ecaad99f264851831add78aeb8a4282ab53f5"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-bgsave-2s-1/attempt-1/write.log",
+      "size": 9844,
+      "sha256": "92a0f1b15abe6e29cef68565a0443c0c69b754fa54c10a04173e42d0d8802790"
+    },
+    {
+      "path": "jobs/snapshot-uring/savefix-bgsave-2s-1.log",
+      "size": 6971,
+      "sha256": "75e5030d789487ad6d548220519d7c0e2176ee7c4ebb61b496c2c36c9e519112"
+    },
+    {
+      "path": "jobs/snapshot-uring/timings",
+      "size": 952,
+      "sha256": "ca5680413265c441fa161609ca06cb2b61912a74db09785bc31e4af445cfaa4f"
+    },
+    {
+      "path": "phases.tsv",
+      "size": 88,
+      "sha256": "81a2f0e64a334b089ac56c150e595bf6d8cffc57289359ada1344158ea17a221"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1039,
+      "sha256": "0b3f42119d39a1ef5f1dcef703a7ee312afb37123984db0098023b381613cb04"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 170509,
+      "sha256": "8780110ffdfd0357f1ac4504c6d5917bb8e8e803ddbbb2f2b1a51f7c48499db2"
+    }
+  ],
+  "jobs": [
+    {
+      "job": "release",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    },
+    {
+      "job": "snapshot-epoll",
+      "done": "0\t16\t0",
+      "passed": 16,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.660000",
+          "label": "snapshot concurrent cut (epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.210000",
+          "label": "snapshot cut reload (epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.740000",
+          "label": "snapshot never tears a cross-shard MSET group (epoll, atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "5.360000",
+          "label": "snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "typed snapshot save (epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "typed snapshot reload (epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.170000",
+          "label": "typed snapshot preimage race (epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.060000",
+          "label": "typed snapshot race reload (epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.650000",
+          "label": "shutdown keeps acknowledged writes (1s, sigterm, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.680000",
+          "label": "shutdown keeps acknowledged writes (1s, command, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.820000",
+          "label": "shutdown cancels BGSAVE capture (1s, atomic 0, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.820000",
+          "label": "shutdown cancels BGSAVE capture (1s, atomic 1, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.680000",
+          "label": "shutdown keeps acknowledged writes (2s, sigterm, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.690000",
+          "label": "shutdown keeps acknowledged writes (2s, command, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.880000",
+          "label": "shutdown cancels BGSAVE capture (2s, atomic 0, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.910000",
+          "label": "shutdown cancels BGSAVE capture (2s, atomic 1, epoll)"
+        }
+      ]
+    },
+    {
+      "job": "snapshot-uring",
+      "done": "0\t16\t0",
+      "passed": 16,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.660000",
+          "label": "snapshot concurrent cut (uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.210000",
+          "label": "snapshot cut reload (uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.720000",
+          "label": "snapshot never tears a cross-shard MSET group (uring, atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "5.220000",
+          "label": "snapshot never tears a MULTI/EXEC group (uring, default atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.060000",
+          "label": "typed snapshot save (uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "typed snapshot reload (uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.200000",
+          "label": "typed snapshot preimage race (uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.070000",
+          "label": "typed snapshot race reload (uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.680000",
+          "label": "shutdown keeps acknowledged writes (1s, sigterm, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.710000",
+          "label": "shutdown keeps acknowledged writes (1s, command, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.840000",
+          "label": "shutdown cancels BGSAVE capture (1s, atomic 0, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.840000",
+          "label": "shutdown cancels BGSAVE capture (1s, atomic 1, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.690000",
+          "label": "shutdown keeps acknowledged writes (2s, sigterm, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.690000",
+          "label": "shutdown keeps acknowledged writes (2s, command, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.920000",
+          "label": "shutdown cancels BGSAVE capture (2s, atomic 0, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.910000",
+          "label": "shutdown cancels BGSAVE capture (2s, atomic 1, uring)"
+        }
+      ]
+    }
+  ],
+  "command": [
+    "taskset",
+    "-c",
+    "24-31",
+    "tests/gate.sh",
+    "full",
+    "--shared-correctness-cpus",
+    "--server-cores",
+    "24-31",
+    "--load-cores",
+    "24-31",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "21500-21599",
+    "--candidate-binary",
+    "/home/user/Projects/cx-rlfix5/build/rlfix5-POST-dbef1b730d29"
+  ],
+  "binary_sha256": "dbef1b730d298fda419e9d1787870837354d6c692bff99e1953da72d574ea5ab",
+  "engine": "uring",
+  "frozen_binary": "/home/user/Projects/cx-rlfix5/build/rlfix5/POST",
+  "boot_binary": "/home/user/Projects/cx-rlfix5/build/rlfix5-POST-dbef1b730d29",
+  "env": {
+    "LC_ALL": "C",
+    "CXX": "g++ -gz=zlib",
+    "CC": "cc -gz=zlib",
+    "GATE_TEST_PORT": "21598",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_ONLY_JOBS": "snapshot-uring snapshot-epoll",
+    "GATE_FEATURE_OUTPUT": "/home/user/Projects/cx-rlfix5/build/gate-feature.rlfix5-family-fused",
+    "GATE_LEDGER": "/home/user/Projects/cx-rlfix5/docs/rlfix5/jobs/family-fused",
+    "GATE_TXN_FUSED": "1"
+  },
+  "exit_code": 0,
+  "retired_artifacts": [
+    {
+      "kind": "generated-server-data",
+      "path": "jobs/snapshot-uring/gate-data-fused.aaUnYQ",
+      "bytes": 0,
+      "files": 0
+    },
+    {
+      "kind": "generated-server-data",
+      "path": "jobs/snapshot-uring/gate-data-fused.ojp0MU",
+      "bytes": 0,
+      "files": 0
+    },
+    {
+      "kind": "generated-server-data",
+      "path": "jobs/snapshot-uring/gate-data-fused.AQpa08",
+      "bytes": 0,
+      "files": 0
+    },
+    {
+      "kind": "generated-server-data",
+      "path": "jobs/snapshot-uring/gate-data-fused.ozXgWJ",
+      "bytes": 0,
+      "files": 0
+    },
+    {
+      "kind": "generated-server-data",
+      "path": "jobs/snapshot-uring/gate-data-fused.qw1A4R",
+      "bytes": 0,
+      "files": 0
+    },
+    {
+      "kind": "generated-server-data",
+      "path": "jobs/snapshot-uring/gate-data-fused.Jyax3t",
+      "bytes": 0,
+      "files": 0
+    },
+    {
+      "kind": "generated-server-data",
+      "path": "jobs/snapshot-uring/gate-data-fused.aR1Emw",
+      "bytes": 0,
+      "files": 0
+    },
+    {
+      "kind": "generated-server-data",
+      "path": "jobs/snapshot-uring/gate-data-fused.HefzCs",
+      "bytes": 0,
+      "files": 0
+    },
+    {
+      "kind": "generated-server-data",
+      "path": "jobs/snapshot-epoll/gate-data-fused.txhM02",
+      "bytes": 0,
+      "files": 0
+    },
+    {
+      "kind": "generated-server-data",
+      "path": "jobs/snapshot-epoll/gate-data-fused.ebe2TJ",
+      "bytes": 0,
+      "files": 0
+    },
+    {
+      "kind": "generated-server-data",
+      "path": "jobs/snapshot-epoll/gate-data-fused.2Br7Tx",
+      "bytes": 0,
+      "files": 0
+    },
+    {
+      "kind": "generated-server-data",
+      "path": "jobs/snapshot-epoll/gate-data-fused.S3T0Ff",
+      "bytes": 0,
+      "files": 0
+    },
+    {
+      "kind": "generated-server-data",
+      "path": "jobs/snapshot-epoll/gate-data-fused.BMWH7A",
+      "bytes": 0,
+      "files": 0
+    },
+    {
+      "kind": "generated-server-data",
+      "path": "jobs/snapshot-epoll/gate-data-fused.Z9RpNp",
+      "bytes": 0,
+      "files": 0
+    },
+    {
+      "kind": "generated-server-data",
+      "path": "jobs/snapshot-epoll/gate-data-fused.GBWYa4",
+      "bytes": 0,
+      "files": 0
+    },
+    {
+      "kind": "generated-server-data",
+      "path": "jobs/snapshot-epoll/gate-data-fused.OLB4F2",
+      "bytes": 0,
+      "files": 0
+    }
+  ]
+}

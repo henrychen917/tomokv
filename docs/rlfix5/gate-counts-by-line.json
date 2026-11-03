@@ -1,0 +1,27 @@
+{
+  "pre": {
+    "quick": 1090,
+    "full": 1107,
+    "quick_exit_line": 6821,
+    "collect_lines": []
+  },
+  "post": {
+    "quick": 1096,
+    "full": 1113,
+    "quick_exit_line": 6887,
+    "collect_lines": [
+      {
+        "line": 6736,
+        "text": "collect_job rlfix5-monotonic"
+      },
+      {
+        "line": 6737,
+        "text": "collect_job rlfix5-yes-no"
+      },
+      {
+        "line": 6738,
+        "text": "collect_job rlfix5-no-yes"
+      }
+    ]
+  }
+}

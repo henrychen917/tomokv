@@ -1,0 +1,32 @@
+[
+  {
+    "path": "jobs/filter_unit/tomokv-foreign-read-safety-test",
+    "bytes": 21512,
+    "sha256": "6666142e1e909e3e76582f6948f185d2e09600c44c68a01858c4b4fa13ad7ace"
+  },
+  {
+    "path": "jobs/flip_unit/tomokv-flipctl-unit",
+    "bytes": 137936,
+    "sha256": "ec73257ab974b6d4e895a32a07927ff840a184b93a6bd79ce6cc9f00f53b37c8"
+  },
+  {
+    "path": "jobs/reorder_engagement/db0/fifo-twin",
+    "bytes": 94638032,
+    "sha256": "190c88dec118faf776d69dd30eeebd89ed4d6be111c306c210a8efe4f29f483f"
+  },
+  {
+    "path": "jobs/reorder_engagement/multi/fifo-twin",
+    "bytes": 49474952,
+    "sha256": "e343d73c87c351362789f6f95edc82ce803914e394f16cf4ca380bfcd9b080a5"
+  },
+  {
+    "path": "jobs/ring_unit/tomokv-read-local-write-ring-unit",
+    "bytes": 46928,
+    "sha256": "f10ef876f3c47ad8644e8b8fa2f061d246b3027517afe9645b68e5cd89d97f02"
+  },
+  {
+    "path": "jobs/rlfix3_zc/rlfix3-lifetime",
+    "bytes": 17144,
+    "sha256": "aab66817b340744397ef9be9d6dfc0522d02c21ce88c98c1952cde25adb6dcf3"
+  }
+]

@@ -2,6 +2,7 @@
 """Serverless controls for the owned server's connection/shutdown fence."""
 import contextlib
 import json
+import os
 from pathlib import Path
 import socket
 import tempfile
@@ -9,6 +10,25 @@ import unittest
 from unittest.mock import patch
 
 import _gate_process as gate
+
+
+class SharedCorrectnessAllocation(unittest.TestCase):
+    def test_only_explicit_correctness_can_share_eight_cpus(self):
+        env = dict(GATE_SHARED_CORRECTNESS_CPUS='1', GATE_PROOF_NO_RATES='1',
+                   GATE_ONLY_JOBS='feature-cell-2s-1-0-0-0')
+        with patch.dict(os.environ, env, clear=True), patch.object(gate.os, 'sched_setaffinity') as pin:
+            with self.assertRaisesRegex(AssertionError, 'overlap'):
+                gate.pin_driver('24-31', '24-31')
+            gate.pin_driver('24-31', '24-31', correctness_only=True)
+            pin.assert_called_once_with(0, list(range(24, 32)))
+            for servers, loads in [('24-30', '24-30'), ('24-31', '25-32')]:
+                with self.assertRaisesRegex(AssertionError, 'same eight'):
+                    gate.pin_driver(servers, loads, correctness_only=True)
+        for missing in env:
+            incomplete = dict(env); del incomplete[missing]
+            with self.subTest(missing=missing), patch.dict(os.environ, incomplete, clear=True), \
+                    self.assertRaises(AssertionError):
+                gate.pin_driver('24-31', '24-31', correctness_only=True)
 
 
 class Clock:

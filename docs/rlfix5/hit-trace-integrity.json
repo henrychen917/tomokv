@@ -1,0 +1,1926 @@
+{
+  "hit_traces": 32,
+  "owner_controls": 96,
+  "rows": [
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 91
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 116
+      }
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 370
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 3712
+      }
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 121
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 116
+      }
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 400
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 3712
+      }
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 91
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 116
+      }
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 370
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 3712
+      }
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 121
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 116
+      }
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 400
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 3712
+      }
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "b2bbd908dfa6ba3b0dce223979f6ca03fd67cede275ac6bce7f9876d92857767",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 91
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 172
+      }
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 370
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 5504
+      }
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 121
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 172
+      }
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 400
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 5504
+      }
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 91
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 172
+      }
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 370
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 5504
+      }
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 121
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 172
+      }
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 400
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 5504
+      }
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 91
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 116
+      }
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 370
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 3712
+      }
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 121
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 116
+      }
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 400
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 3712
+      }
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 91
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 116
+      }
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 370
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 3712
+      }
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 121
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 116
+      }
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 400
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 3712
+      }
+    },
+    {
+      "arm": "post",
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "f9745a0ead9f9212a28d2e932b2dd71489e16ffedc51fe7f488e8dcc7323f786",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 91
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 172
+      }
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 370
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 5504
+      }
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 121
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 172
+      }
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 400
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 5504
+      }
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 91
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 172
+      }
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 370
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 5504
+      }
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 82
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 121
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 172
+      }
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 1,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 0,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 400
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 0,
+      "tracking": 1,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 0,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": true,
+      "owner_instructions": {},
+      "lane_capture_instructions": {
+        "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 5504
+      }
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 32,
+      "local": 1,
+      "tracking": 1,
+      "probe_sha256": "1bd50aac0b7ad6badf8f69048bef670836da8422fed19128b322a3f5b46089fb",
+      "expected_lane_hit": false,
+      "owner_instructions": {
+        "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 112
+      },
+      "lane_capture_instructions": {}
+    }
+  ]
+}

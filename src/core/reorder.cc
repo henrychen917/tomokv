@@ -1980,7 +1980,7 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
     static constexpr bool Fused = SplitLocal || (
         BatchOps == kGenthreadIfidBatchOps);
     [[maybe_unused]] const bool read_local_enabled =
-        Fused && __builtin_expect(latency_reads_local_, false);
+        Fused && __builtin_expect(read_local_bookkeeping_, false);
     Client& conn = *c;
     if (__builtin_expect(query_buffer_exceeded(conn), false)) {
         close_client(c); // Redis query-buffer overflow closes without a protocol reply.
@@ -2870,9 +2870,10 @@ ordinary_shard_ready:
                 }
                 read_local_demotion.commit_reads();
             }
+            // The shared classifier sets this exactly for armed GET/MGET. No intervening
+            // path changes spec; reuse that result instead of testing its flags again.
             if (read_local_enabled &&
-                __builtin_expect(spec->flags & CmdFlags::ReadLocalEligible, false)) {
-                if (!read_local_eligible_decided) std::abort();
+                __builtin_expect(read_local_eligible_decided, false)) {
                 if (read_local_eligible) {
                     if (head_candidate) {
                         head_candidate = false;

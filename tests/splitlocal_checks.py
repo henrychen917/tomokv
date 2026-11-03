@@ -6,6 +6,7 @@ recorder. This proves template selection, not TLS callback reachability.
 """
 import argparse
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -109,7 +110,7 @@ def check(binary, output):
         makefile = dest / 'Makefile'
         makefile.write_text('unit: unit.cc\n\t$(CXX) -std=c++20 -O2 -Wall -Wextra unit.cc -o unit\n')
         # The gate owns CPU placement; a unit must not escape its caller's affinity.
-        result = subprocess.run(['make', '-j16', '-C', str(dest.resolve())],
+        result = subprocess.run(['make', '-j' + str(len(os.sched_getaffinity(0))), '-C', str(dest.resolve())],
                                 text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         (dest / 'compile.log').write_text(result.stdout)
         assert result.returncode != 0 and marker in result.stdout, (name, result.stdout)

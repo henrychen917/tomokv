@@ -161,13 +161,10 @@ def configuration(cell):
 
 
 def validate_geometry(server_cpus, load_cpus):
+    from _gate_process import shared_correctness_cpus
     servers, loads = set(cpus(server_cpus)), set(cpus(load_cpus))
+    shared = shared_correctness_cpus(server_cpus, load_cpus)
     require(len(servers) == 8, 'equivalence fixture requires eight server CPUs and split ratio 6:2')
-    shared = os.getenv('GATE_CORRECTNESS_SHARED_CPUS') == '1'
-    if shared:
-        require(os.getenv('GATE_ONLY_JOBS') and os.getenv('GATE_PROOF_NO_RATES') == '1' and
-                servers == loads,
-                'shared CPUs require selected correctness jobs, no rates and identical eight-core masks')
     # The coordinator deliberately inherits only its load slot. That temporary
     # taskset mask is not the cgroup's allowed CPU set; probe and restore it just
     # as the main planner does, before the child server takes its own slot.
@@ -294,10 +291,8 @@ def main(argv=None):
             print(f'MODE EQUIVALENCE CORPUS: {len(seeds)} permanent streams, {len(seeds) * 16} cells, '
                   f'{failed} failing streams')
             return int(failed != 0)
-    if validate_geometry(args.server_cpus, args.load_cpus):
-        os.sched_setaffinity(0, cpus(args.load_cpus))
-    else:
-        pin_driver(args.server_cpus, args.load_cpus)
+    validate_geometry(args.server_cpus, args.load_cpus)
+    pin_driver(args.server_cpus, args.load_cpus, correctness_only=True)
     install_signals()
     args.output.mkdir(parents=True, exist_ok=False)
     operations = command_stream(args.seed)

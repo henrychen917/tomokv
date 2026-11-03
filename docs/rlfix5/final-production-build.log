@@ -1,0 +1,104 @@
+COMMAND ['make', '-k', '-j8', 'all', 'build/expire-notify-unit', 'build/ktls-lifetime-unit', 'build/moverfix-unit', 'build/moverfix-db0-unit', 'build/publishfix-unit', 'build/at15-unit', 'build/at15-db0-unit', 'build/execabort-watch-unit', 'build/execabort-watch-db0-unit', 'build/core-concurrency-unit', 'build/atomic-survivors-unit', 'build/exec1s-unit', 'build/exec1s-word-tsan', 'build/at412-owner', 'build/txnorder-fifo-unit', 'build/txnorder-fifo-db0-unit', 'build/txnorder-chain-unit', 'build/txnorder-chain-db0-unit', 'build/txnorder-index-unit', 'build/txnorder-index-db0-unit', 'build/txnorder-retry-unit', 'build/txnorder-wound-unit', 'build/txnorder-wound-db0-unit', 'build/txnorder-wake-unit', 'build/txnorder-episodes', 'build/txnorder-episodes-debug', 'build/txnorder-watch-unit', 'build/txnorder-watch-db0-unit', 'build/netcmd-unit', 'build/encodingfix-unit', 'build/netcap-unit', 'build/waits-unit', 'build/rehash-waits-unit', 'build/multidb-unit', 'build/multidb-boundary-unit', 'build/storesize-unit', 'build/respresume-unit', 'build/respresume-migration', 'build/gaterows5-units', 'build/exbatch-unit', 'build/exbatch-db0-unit', 'build/wb-rule-units', 'build/wbland-units', 'build/rltopo-unit', 'build/lbplanner-units', 'build/shutdown-unit', 'build/persistfix-units', 'build/ktls-keyupdate', 'build/ktls-keyupdate-unit', 'build/flushfix-units', 'build/splitlocal-unit', 'build/reorder-engagement-unit', 'build/reorder-engagement-unit-db0', 'build/racefix-climon', 'build/aoforder-scheduled']
+make: Nothing to be done for 'all'.
+make: 'build/expire-notify-unit' is up to date.
+make: 'build/ktls-lifetime-unit' is up to date.
+make: 'build/moverfix-unit' is up to date.
+make: 'build/moverfix-db0-unit' is up to date.
+make: 'build/publishfix-unit' is up to date.
+make: 'build/at15-unit' is up to date.
+make: 'build/at15-db0-unit' is up to date.
+make: 'build/execabort-watch-unit' is up to date.
+make: 'build/execabort-watch-db0-unit' is up to date.
+make: 'build/core-concurrency-unit' is up to date.
+make: 'build/atomic-survivors-unit' is up to date.
+make: 'build/exec1s-unit' is up to date.
+make: 'build/exec1s-word-tsan' is up to date.
+make: 'build/at412-owner' is up to date.
+make: 'build/txnorder-fifo-unit' is up to date.
+make: 'build/txnorder-fifo-db0-unit' is up to date.
+make: 'build/txnorder-chain-unit' is up to date.
+make: 'build/txnorder-chain-db0-unit' is up to date.
+make: 'build/txnorder-index-unit' is up to date.
+make: 'build/txnorder-index-db0-unit' is up to date.
+make: 'build/txnorder-retry-unit' is up to date.
+make: 'build/txnorder-wound-unit' is up to date.
+make: 'build/txnorder-wound-db0-unit' is up to date.
+make: 'build/txnorder-wake-unit' is up to date.
+make: 'build/txnorder-episodes' is up to date.
+make: 'build/txnorder-episodes-debug' is up to date.
+make: 'build/txnorder-watch-unit' is up to date.
+make: 'build/txnorder-watch-db0-unit' is up to date.
+make: 'build/netcmd-unit' is up to date.
+make: 'build/encodingfix-unit' is up to date.
+make: 'build/netcap-unit' is up to date.
+make: 'build/waits-unit' is up to date.
+make: 'build/rehash-waits-unit' is up to date.
+make: 'build/multidb-unit' is up to date.
+make: 'build/multidb-boundary-unit' is up to date.
+make: 'build/storesize-unit' is up to date.
+make: 'build/respresume-unit' is up to date.
+make: 'build/respresume-migration' is up to date.
+make: 'build/gaterows5-units' is up to date.
+make: 'build/exbatch-unit' is up to date.
+make: 'build/exbatch-db0-unit' is up to date.
+make: 'build/wb-rule-units' is up to date.
+make: 'build/wbland-units' is up to date.
+make: 'build/rltopo-unit' is up to date.
+make: 'build/lbplanner-units' is up to date.
+make: 'build/shutdown-unit' is up to date.
+make: 'build/persistfix-units' is up to date.
+make: 'build/ktls-keyupdate' is up to date.
+make: 'build/ktls-keyupdate-unit' is up to date.
+make: 'build/flushfix-units' is up to date.
+make: 'build/splitlocal-unit' is up to date.
+make: 'build/reorder-engagement-unit' is up to date.
+make: 'build/reorder-engagement-unit-db0' is up to date.
+make: 'build/racefix-climon' is up to date.
+make: 'build/aoforder-scheduled' is up to date.
+COMMAND ['make', '-j8', 'mdbqsbr-live-arms']
+make BUILD_ROOT=build/mdbqsbr2-park CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK' all
+make[1]: Entering directory '/home/user/Projects/cx-rlfix5'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/user/Projects/cx-rlfix5'
+make BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all
+make[1]: Entering directory '/home/user/Projects/cx-rlfix5'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/user/Projects/cx-rlfix5'
+COMMAND ['make', '-f', 'Makefile', '-f', 'tools/blockfix_cost.mk', '-j8', 'build/blockfix-cost']
+make: 'build/blockfix-cost' is up to date.
+COMMAND ['make', '-f', 'Makefile', '-f', 'tools/blockfix2.mk', '-j8', 'build/blockfix2-unit', 'build/blockfix2-db0-unit']
+make: 'build/blockfix2-unit' is up to date.
+make: 'build/blockfix2-db0-unit' is up to date.
+COMMAND ['python3', 'tests/gates_test.py']
+...................................test_banner_without_owned_listener_is_not_ready (persistfix.self_test.<locals>.IdentityTests.test_banner_without_owned_listener_is_not_ready) ... ok
+test_both_boots_guard_and_record_distinct_identities (persistfix.self_test.<locals>.IdentityTests.test_both_boots_guard_and_record_distinct_identities) ... ok
+test_empty_and_wrong_logs_never_probe (persistfix.self_test.<locals>.IdentityTests.test_empty_and_wrong_logs_never_probe) ... ok
+test_exercise_wraps_boot_get_and_report_failures (persistfix.self_test.<locals>.IdentityTests.test_exercise_wraps_boot_get_and_report_failures) ... ok
+test_foreign_arrival_after_handshake_is_fatal (persistfix.self_test.<locals>.IdentityTests.test_foreign_arrival_after_handshake_is_fatal) ... ok
+test_foreign_info_is_fatal_without_ping_or_retry (persistfix.self_test.<locals>.IdentityTests.test_foreign_info_is_fatal_without_ping_or_retry) ... ok
+test_foreign_listener_fails_before_connection (persistfix.self_test.<locals>.IdentityTests.test_foreign_listener_fails_before_connection) ... ok
+test_half_open_and_reset_probes_never_count_as_ready (persistfix.self_test.<locals>.IdentityTests.test_half_open_and_reset_probes_never_count_as_ready) ... ok
+test_live_assertion_and_reaped_report_failures_keep_original_reason (persistfix.self_test.<locals>.IdentityTests.test_live_assertion_and_reaped_report_failures_keep_original_reason) ... ok
+test_missing_identity_and_bad_ping_fail (persistfix.self_test.<locals>.IdentityTests.test_missing_identity_and_bad_ping_fail) ... ok
+test_own_banner_and_info_ping_keep_the_same_connection (persistfix.self_test.<locals>.IdentityTests.test_own_banner_and_info_ping_keep_the_same_connection) ... ok
+test_preflight_foreign_owner_never_spawns_at_either_boot (persistfix.self_test.<locals>.IdentityTests.test_preflight_foreign_owner_never_spawns_at_either_boot) ... ok
+test_real_socket_owner_reports_pid_cmdline_and_refuses_boot (persistfix.self_test.<locals>.IdentityTests.test_real_socket_owner_reports_pid_cmdline_and_refuses_boot) ... ok
+test_reload_crashes_show_status_and_tail_even_when_exit_is_delayed (persistfix.self_test.<locals>.IdentityTests.test_reload_crashes_show_status_and_tail_even_when_exit_is_delayed) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.124s
+
+OK
+..........................................
+----------------------------------------------------------------------
+Ran 77 tests in 238.940s
+
+OK
+COMMAND ['make', '-q', 'all', 'build/expire-notify-unit', 'build/ktls-lifetime-unit', 'build/moverfix-unit', 'build/moverfix-db0-unit', 'build/publishfix-unit', 'build/at15-unit', 'build/at15-db0-unit', 'build/execabort-watch-unit', 'build/execabort-watch-db0-unit', 'build/core-concurrency-unit', 'build/atomic-survivors-unit', 'build/exec1s-unit', 'build/exec1s-word-tsan', 'build/at412-owner', 'build/txnorder-fifo-unit', 'build/txnorder-fifo-db0-unit', 'build/txnorder-chain-unit', 'build/txnorder-chain-db0-unit', 'build/txnorder-index-unit', 'build/txnorder-index-db0-unit', 'build/txnorder-retry-unit', 'build/txnorder-wound-unit', 'build/txnorder-wound-db0-unit', 'build/txnorder-wake-unit', 'build/txnorder-episodes', 'build/txnorder-episodes-debug', 'build/txnorder-watch-unit', 'build/txnorder-watch-db0-unit', 'build/netcmd-unit', 'build/encodingfix-unit', 'build/netcap-unit', 'build/waits-unit', 'build/rehash-waits-unit', 'build/multidb-unit', 'build/multidb-boundary-unit', 'build/storesize-unit', 'build/respresume-unit', 'build/respresume-migration', 'build/gaterows5-units', 'build/exbatch-unit', 'build/exbatch-db0-unit', 'build/wb-rule-units', 'build/wbland-units', 'build/rltopo-unit', 'build/lbplanner-units', 'build/shutdown-unit', 'build/persistfix-units', 'build/ktls-keyupdate', 'build/ktls-keyupdate-unit', 'build/flushfix-units', 'build/splitlocal-unit', 'build/reorder-engagement-unit', 'build/reorder-engagement-unit-db0', 'build/racefix-climon', 'build/aoforder-scheduled']
+COMMAND ['make', 'BUILD_ROOT=build/mdbqsbr2-park', '-q', 'all']
+COMMAND ['make', 'BUILD_ROOT=build/mdbqsbr2-no-wake', '-q', 'all']
+COMMAND ['make', '-f', 'Makefile', '-f', 'tools/blockfix_cost.mk', '-q', 'build/blockfix-cost']
+COMMAND ['make', '-f', 'Makefile', '-f', 'tools/blockfix2.mk', '-q', 'build/blockfix2-unit', 'build/blockfix2-db0-unit']
+COMMAND ['make', '-f', 'Makefile', '-f', 'tools/rlfix5.mk', '-q', 'build/rlfix5-scopes']
+COMMAND ['python3', 'tests/r7shadow_sync.py']
+R7 shadow production envelopes: current

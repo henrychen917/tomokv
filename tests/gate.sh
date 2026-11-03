@@ -1017,6 +1017,7 @@ job_body(){
     iofix-sleep) job_iofix_sleep "$name";;
     iofix-signal) job_iofix_signal "$name";;
     infofix_compat-*) job_infofix_compat "$name";;
+    rlfix5-*) job_rlfix5 "${name#rlfix5-}";;
     rootcore-waitaof) job_rootcore "waitaof known difference WAITAOF-NOOP-RECEIPT";;
     rootcore-misconf) job_rootcore "misconf known difference MISCONF-NEVER-CLEARS";;
     rootcore-*) job_rootcore "${name#rootcore-}";;
@@ -1213,6 +1214,7 @@ plan_jobs(){
   done
   JOB_NAMES+=(infofix_latency infofix_compat-missing infofix_compat-docs infofix_compat-loadaof)
   JOB_NAMES+=(rootcompat)
+  JOB_NAMES+=(rlfix5-monotonic rlfix5-yes-no rlfix5-no-yes)
   # One complete-gate worker retains all nine rows. Named partial jobs keep the
   # directed interface without adding nine shells to the serial scheduler.
   if [ "${GATE_PARTIAL:-0}" = 1 ]; then
@@ -2995,6 +2997,66 @@ local AT=${1##*-}
       && ok "fused txniso battery (atomic $AT)" \
       || bad "fused txniso battery (atomic $AT)" "see $TMPDIR/gate-fused-txniso-$AT.txt"
   stop
+}
+
+job_rlfix5(){
+  local case=$1 mode ns engine boot_fn passed label unit_root controls=1
+  local oracle_port=$((PORT+1)) oracle_ready=0 oracle_dir
+  local oracle_bin=${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}
+  py tests/rlfix5_gate_test.py >"$TMPDIR/fixture-controls.log" 2>&1 || controls=0
+  unit_root=${GATE_RLFIX5_UNITS:-$PWD/build/rlfix5/counts/scopes/post}
+  if [ -z "${GATE_RLFIX5_UNITS:-}" ]; then
+    if make -q all && cmp -s "$CANDIDATE_BINARY" build/tomokv; then
+      if ! pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" -f Makefile -f tools/rlfix5.mk build/rlfix5-scopes \
+          >"$TMPDIR/build.log" 2>&1 ||
+          ! make -f Makefile -f tools/rlfix5.mk -q build/rlfix5-scopes; then
+        unit_root="$TMPDIR/missing"
+      fi
+    else
+      echo 'External candidate needs matching GATE_RLFIX5_UNITS' >"$TMPDIR/build.log"
+      unit_root="$TMPDIR/missing"
+    fi
+  fi
+  for mode in 1s 2s; do
+    label="rlfix5 $case ($mode)"; passed=$controls; row_begin "$label"
+    guard_port "$oracle_port"
+    oracle_dir=$(mktemp -d "$TMPDIR/oracle.XXXXXX")
+    taskset -c "$CORES" "$oracle_bin" --port "$oracle_port" --bind 127.0.0.1 \
+        --save '' --appendonly no --dir "$oracle_dir" >"$TMPDIR/oracle-$mode.log" 2>&1 &
+    GLOBCASE_ORACLE=$!; oracle_ready=0
+    for _ in $(seq 100); do
+      kill -0 "$GLOBCASE_ORACLE" 2>/dev/null || break
+      if [ "$(port_listeners "$oracle_port")" = "$GLOBCASE_ORACLE" ] &&
+          (exec 3<>/dev/tcp/127.0.0.1/"$oracle_port") 2>/dev/null; then oracle_ready=1; break; fi
+      sleep .1
+    done
+    if [ "$oracle_ready" = 1 ]; then
+      py tests/rlfix5.py 127.0.0.1 "$oracle_port" --case "$case" --oracle \
+          >"$TMPDIR/oracle-proof-$mode.log" 2>&1 || passed=0
+    else passed=0; fi
+    kill -TERM "$GLOBCASE_ORACLE" 2>/dev/null
+    if ! timeout --kill-after=1 10 tail --sleep-interval=.1 --pid="$GLOBCASE_ORACLE" -f /dev/null; then
+      passed=0; kill -KILL "$GLOBCASE_ORACLE" 2>/dev/null
+    fi
+    wait "$GLOBCASE_ORACLE" 2>/dev/null || passed=0; GLOBCASE_ORACLE=0
+    for ns in normal db0; do
+      "${unit_root}-$ns/probe" "witness-$case" "$mode" 1 1 0 \
+          >"$TMPDIR/unit-$case-$mode-$ns.log" 2>&1 || passed=0
+      if [ "$case" = no-yes ]; then
+        "${unit_root}-$ns/probe" witness-mget-no-yes "$mode" 1 1 0 \
+            >"$TMPDIR/unit-mget-$mode-$ns.log" 2>&1 || passed=0
+      fi
+    done
+    boot_fn=boot; [ "$mode" != 1s ] || boot_fn=boot_fused
+    for engine in uring epoll; do
+      if "$boot_fn" "$CANDIDATE_BINARY" --thread-mode "$mode" --net-io "$engine" \
+          --read-local 1 --atomic 1 --enable-debug-command yes --key-lb 0 --client-lb 0 --flip-auto 0 &&
+          py tests/rlfix5.py 127.0.0.1 "$PORT" --case "$case" \
+              >"$TMPDIR/live-$case-$mode-$engine.log" 2>&1; then :; else passed=0; fi
+      stop
+    done
+    [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/unit-* and live-* logs"
+  done
 }
 
 job_rlfix3_info(){
@@ -6775,6 +6837,10 @@ for CASE in missing docs loadaof; do collect_job "infofix_compat-$CASE"; done
 # rootcompat directed rows, before quick exit; EXPECT remains maintainer-owned.
 collect_job rootcompat
 collect_job rlfix3_info
+# RL5.7: three ordering witnesses x both modes, above the quick exit: DQ=+6, DF=+6.
+collect_job rlfix5-monotonic
+collect_job rlfix5-yes-no
+collect_job rlfix5-no-yes
 
 collect_job acl_recheck
 collect_job aclfix
