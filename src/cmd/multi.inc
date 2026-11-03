@@ -508,6 +508,7 @@ void release_admission(MultiExecState& state) {
     if (!state.admitted) return;
     state.server->atomic_retire_group(state.owner_io, state.admission_generation);
     state.admitted = false;
+    state.server->atomic_credit_doorbell(state.owner_io);
 }
 
 // Does `group_epoch` name a word THIS transaction publishes through? A transaction is one logical

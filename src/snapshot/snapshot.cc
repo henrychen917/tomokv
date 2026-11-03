@@ -417,6 +417,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         record_bgsave_failure(rewrite_);
         error = "could not create snapshot temporary file";
         server.set_snapshot_atomic_barrier(false);
+        server.atomic_ring_credit_waiters(writer.id(), &writer_ring, true);
         phase_.store(Phase::Idle, std::memory_order_release);
         writer_tid_.store(UINT32_MAX, std::memory_order_relaxed);
         return StartResult::Failed;
@@ -538,6 +539,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         }
         abort_file();
         server.set_snapshot_atomic_barrier(false);
+        server.atomic_ring_credit_waiters(writer.id(), &writer_ring, true);
         phase_.store(Phase::Idle, std::memory_order_release);
         std::lock_guard<std::mutex> lock(error_mu_);
         error = error_.empty() ? "snapshot start failed" : error_;
@@ -549,6 +551,8 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     // its loop can drain a frame.
     phase_.store(Phase::Capture, std::memory_order_release);
     server.set_snapshot_atomic_barrier(false);
+    // Every IO parked behind the barrier can admit again; nothing else wakes it.
+    server.atomic_ring_credit_waiters(writer.id(), &writer_ring, true);
     for (uint32_t tid : server.placement().ex_threads())
         if (Ring* target = server.thread(tid).ring())
             writer_ring.msg_to(*target, ur_tag(UrKind::Wake, nullptr));
@@ -567,6 +571,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         discard_chunks();
         abort_file();
         server.set_snapshot_atomic_barrier(false);
+        server.atomic_ring_credit_waiters(writer.id(), &writer_ring, true);
         phase_.store(Phase::Idle, std::memory_order_release);
         std::lock_guard<std::mutex> lock(error_mu_);
         error = error_.empty() ? "snapshot start failed" : error_;

@@ -66,6 +66,13 @@ enum class Role : uint8_t { Idle = 0, Ifid = 1, Ex = 2 };
 // The first/last group arms/disarms atomic_activity_. Keep the former lease's cache-line footprint.
 struct alignas(64) AtomicAdmissionState {
     uint32_t active = 0;
+    // IO-owned, never read by another thread. Set by script_window_resume when one of this
+    // thread's connections still holds a frame the global window refused; cleared before every
+    // pre-park sweep, which recomputes it. The park then publishes a credit-doorbell bit.
+    bool credit_wait = false;
+    // Owner-written: the waiter bit this thread's next doorbell scan starts from, one past the
+    // bit it rang last (Server::atomic_ring_credit_waiters), so waiters are rung in turn.
+    uint8_t credit_ring_cursor = 0;
 };
 static_assert(sizeof(AtomicAdmissionState) == 64);
 

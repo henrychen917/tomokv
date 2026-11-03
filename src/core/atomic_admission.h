@@ -13,7 +13,10 @@ public:
     void init(uint32_t window) { state_.store(pack(window, 0), std::memory_order_relaxed); }
     uint32_t active() const { return used(state_.load(std::memory_order_acquire)); }
 
-    bool can_admit() const { return has_room(state_.load(std::memory_order_acquire)); }
+    // seq_cst: the credit doorbell (Server::atomic_credit_wait_arm / atomic_credit_doorbell) pairs
+    // this re-check with retire() below and the waiter-word accesses in one total order. On
+    // x86-64 the load is the same mov and retire() the same lock xadd as acquire / acq_rel.
+    bool can_admit() const { return has_room(state_.load(std::memory_order_seq_cst)); }
 
     Attempt try_admit() {
         uint64_t state = state_.load(std::memory_order_acquire);
@@ -27,7 +30,7 @@ public:
     }
 
     void retire() {
-        if (!used(state_.fetch_sub(1, std::memory_order_acq_rel))) std::abort();
+        if (!used(state_.fetch_sub(1, std::memory_order_seq_cst))) std::abort();
     }
 
     uint32_t pool() const {

@@ -1213,6 +1213,7 @@ plan_jobs(){
     JOB_NAMES+=("atomfix6-live-$mode-$FR-$section")
   done; done; done
   for mode in 2s 1s; do for section in uring epoll; do JOB_NAMES+=("atomwake-live-$mode-$section"); done; done
+  JOB_NAMES+=(atomwake_unit)
   for section in T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11a T11b T12 T13 T14 T15 T16 owner; do JOB_NAMES+=("at412-$section"); done
   local resp_case resp_engine
   for resp_case in fragment cpu neighbour; do for mode in 1s 2s; do
@@ -1605,6 +1606,21 @@ job_atomwake_live(){
       --ratio "$GATE_RATIO" --mode "$mode" --engine "$engine" --output "$TMPDIR/proof" \
       >"$TMPDIR/proof.log" 2>&1; then ok "$label"
   else bad "$label" "see $TMPDIR/proof.log and proof/result.json"; fi
+}
+# mset8fix: one serverless row, collected before the quick exit with the live rows (DQ=+1, DF=+1).
+# Deterministic doorbell schedules on real rings in both engines: publish/retire in both orders,
+# one wake per credit in turn, an awake holder skipped, and the snapshot barrier clear.
+job_atomwake_unit(){
+  local label="atomwake credit doorbell unit (uring, epoll)" passed=1 engine
+  pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/atomwake-unit >"$TMPDIR/build.log" 2>&1
+  row_begin "$label"
+  if make -q build/atomwake-unit; then
+    for engine in uring epoll; do
+      taskset -c "$CORES" build/atomwake-unit "$engine" >>"$TMPDIR/unit.log" 2>&1 || passed=0
+    done
+    [ "$(grep -c '^PASS atomwake doorbell' "$TMPDIR/unit.log")" = 2 ] || passed=0
+  else passed=0; fi
+  [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/unit.log and build.log"
 }
 
 job_flushfix3(){
@@ -6973,10 +6989,11 @@ collect_job atomfix6_units
 for atomfix6_mode in 1s 2s; do for atomfix6_rl in 0 1; do for atomfix6_db in 1 16; do
   collect_job "atomfix6-live-$atomfix6_mode-$atomfix6_rl-$atomfix6_db"
 done; done; done
-# mset8fix: four rows before the quick-tier exit (DQ=+4, DF=+4); EXPECT stays maintainer-owned.
+# mset8fix: five rows before the quick-tier exit (DQ=+5, DF=+5); EXPECT stays maintainer-owned.
 for atomwake_mode in 2s 1s; do for atomwake_engine in uring epoll; do
   collect_job "atomwake-live-$atomwake_mode-$atomwake_engine"
 done; done
+collect_job atomwake_unit
 collect_job flushfix3
 collect_job flushfix3_units
 collect_job flushfix2

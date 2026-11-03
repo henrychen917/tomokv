@@ -92,6 +92,10 @@ build/atomfix6-park-unit: tests/atomfix6_park_unit.cc $(filter-out build/src/mai
 build/atomfix6-park-db0-unit: tests/atomfix6_park_unit.cc $(filter-out build/db0/src/main.o,$(DB0_OBJ)) $(filter-out build/src/main.o,$(OBJ)) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< $(filter-out build/db0/src/main.o,$(DB0_OBJ)) $(filter-out build/src/main.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
 
+# mset8fix: credit-doorbell schedules on real rings (uring and epoll engines); no server or worker.
+build/atomwake-unit: tests/atomwake_unit.cc $(filter-out build/src/main.o,$(OBJ)) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(filter-out build/src/main.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+
 build/atomfix6-queue-asan build/atomfix6-queue-tsan: tests/atomfix6_queue_unit.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	$(CXX) $(CXXFLAGS) -O1 $(if $(findstring asan,$@),$(ATOMFIX6_ASAN_FLAGS),-fsanitize=thread -fno-omit-frame-pointer -no-pie) -I. $< -o $@
 

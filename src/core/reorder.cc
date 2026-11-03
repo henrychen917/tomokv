@@ -959,6 +959,9 @@ void IoLoop::r7_run_loop() {
         // not be the only thing that can find queued work, or one lost bit wedges a connection
         // forever. Runs only when this thread has already concluded it has nothing to do.
         uint32_t sweep_work = 0;
+        // The sweep's resume visits recompute this: true iff a connection still holds a
+        // frame the global atomic window refused (script_window_resume).
+        self_->atomic_admission_state().credit_wait = false;
         sweep_work = r7_sweep<HasUnix, HasTls, kEp, Fused, SplitLocal>();
         if (sweep_work) {
             {
@@ -980,18 +983,24 @@ void IoLoop::r7_run_loop() {
                 self_->publish_read_local_parked(srv_->read_local_epoch());
         }
         self_->arm_blocked();
+        // CREDIT DOORBELL, waiter half. No inbound channel announces a retired window credit,
+        // so a refused frame used to sleep until this park's timeout. Publish this IO after
+        // arm_blocked(), then re-check; a retirement's Server::atomic_credit_doorbell() rings it.
+        const bool credit_room =
+            __builtin_expect(self_->atomic_admission_state().credit_wait, false) &&
+            srv_->atomic_credit_wait_arm(self_->id());
         if constexpr (kEp) {
             // The park. Same 50ms ceiling as the ring wait, and for the same reason: the stop
             // flag is only re-read at the top of the loop, so an unbounded block would make
             // shutdown depend on a connection arriving.
             if constexpr (Fused) {
-                if (!self_->any_fused_inbound()) {
+                if (!credit_room && !self_->any_fused_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
                     r7_epoll_pass<HasUnix, HasTls, Fused>(wait_ms);
                 }
-            } else if (!self_->any_io_inbound()) {
+            } else if (!credit_room && !self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                 tenure.park();
 #endif
@@ -999,14 +1008,14 @@ void IoLoop::r7_run_loop() {
             }
         } else {
             if constexpr (Fused) {
-                if (!self_->any_fused_inbound()) {
+                if (!credit_room && !self_->any_fused_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
                     ring_.submit_and_wait(1, wait_ms);
                 } else                            ring_.submit_and_reap();
             } else {
-                if (!self_->any_io_inbound()) {
+                if (!credit_room && !self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
