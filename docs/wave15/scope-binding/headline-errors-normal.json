@@ -1,0 +1,10 @@
+{
+  "arm": "headline",
+  "kind": "errors",
+  "namespace": "normal",
+  "server_sha256": "6ebbaa184693fc06a437764329ed49b52e5c3e0a39105c32fecd963c39a225c6",
+  "probe_sha256": "e031605c97f135ecf7fd9824e103d4e0e6aefb163a35a1e98dff5b705a70570c",
+  "entered_groups": 22,
+  "matched": 22,
+  "unmatched": []
+}

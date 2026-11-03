@@ -48,6 +48,14 @@ def integration_reasons(directory, binary):
     rows = json.loads(path.read_text())
     for row in rows:
         name = row['name']
+        if row['matches']:
+            row['reason'] = 'Exact linked body from ' + ', '.join(row['matches']) + '; lane change retained.'
+        elif len(row['changed_lanes']) > 1:
+            row['reason'] = 'Composition of ' + ', '.join(row['changed_lanes']) + '; residual instructions/layout require merit review.'
+        elif row['changed_lanes']:
+            row['reason'] = row['changed_lanes'][0] + ' changes this body; merged compiler propagation differs from isolated POST.'
+        else:
+            row['reason'] = 'Residual compiler/inlining propagation; no single optimizer decision isolated.'
         if any(word in name for word in ('error_stats', 'reply_err', 'reply_wrongtype',
                                          'reply_syntax', 'reply_outofrange')):
             reason = 'Integration: cold Redis afterErrorReply counting and Lua de-duplication.'
@@ -59,6 +67,29 @@ def integration_reasons(directory, binary):
             reason = 'Integration: EXEC task-only AOF participants, normalized pop key positions and no-STORE GEO owner route.'
         elif 'configure_object_idle(' in name:
             reason = 'Integration: combine SO5.1 graceful allocation failure with ST5.3 staged byte accounting.'
+        elif any(word in name for word in ('blocking_plain_mutation_published(',
+                                           'blocking_cleanup_published(')):
+            reason = 'Integration: sweep a decided stream deletion before CREATE even before the owner dirty notification arrives.'
+        elif any(word in name for word in ('flip_drain_ready(', 'flip_precommit',
+                                           'flip_execution_idle(', 'flip_retain')):
+            reason = 'Integration: bounded refusal for a pending EOF and retained-client postcommit drain, preserving executor/ROB/borrow checks.'
+        elif any(word in name for word in ('listener_port_occupied', 'listener_address',
+                                           'listener_rebind', 'config_listener')):
+            reason = 'Integration: exclude own socket inodes while rejecting foreign IPv4/IPv6 reuseport listeners before CONFIG publication.'
+        elif re.search(r'::cmd_(?:get|set|incr)(?:<|\()', name):
+            reason = ('Integration: these handlers retain cold generic error-accounting exits. '
+                      'The finite successful owner-command census adds zero instructions; full-body equality is not claimed.')
+        elif 'parse_and_dispatch<' in name:
+            reason = ('Parser composition includes cfgfix2 admission and rlfix5 ordering. '
+                      'Constructor, touch_worker and local-MGET-fence outlining remains visible in the per-function census; '
+                      'the residual parser body is not identical to a reference.')
+        elif any(word in name for word in ('::handle_recv', '::recv_client', '::process_input',
+                                           '::on_recv', '::receive_fin', '::drain_client')):
+            reason = ('Receive composition retains eoffix EOF/input draining and netfix2 activation. '
+                      'Remaining inlining/layout differences are listed for the landing null; no cycle or rate equivalence is inferred.')
+        elif 'read_local_owner_conflicts_before' in name:
+            reason = ('Read-local ordering retains the rlfix5 predecessor/conflict checks. '
+                      'Merged outlining differs from isolated lane objects and remains a counted read-local cost.')
         else:
             continue
         row['reason'] = reason + ' ' + row['reason']
@@ -68,6 +99,15 @@ def integration_reasons(directory, binary):
         '| Function | Headline sizes | Merged sizes | Reason |', '|---|---|---|---|',
         *['| `'+r['name'].replace('|', '\\|')+'` | '+str(r['headline_sizes'])+' | '+str(r['post_sizes'])+
           ' | '+r['reason'].replace('|', '\\|')+' |' for r in rows]])+'\n')
+    focus = [r for r in rows if r['hot'] and not r['matches']]
+    save(directory/'hot-residuals.json', focus)
+    (directory/'hot-residuals.md').write_text('\n'.join([
+        '# Remaining hot-body differences', '',
+        'Every row below differs from the headline and all supplied lane/reference POSTs. '
+        'These are residuals, not a claim of restored identity.', '',
+        '| Function | Headline bytes | POST bytes | Reason |', '|---|---|---|---|',
+        *['| `'+r['name'].replace('|', '\\|')+'` | '+str(r['headline_sizes'])+' | '+str(r['post_sizes'])+
+          ' | '+r['reason'].replace('|', '\\|')+' |' for r in focus]])+'\n')
 
 def inventory():
     from gate_ledger_fixture import source_labels
@@ -101,6 +141,9 @@ def jobs(a):
     assert not (out / (a.tag + '.json')).exists(), 'never overwrite an attempt'
     names = a.jobs or Path(a.jobs_file).read_text().strip()
     assert names and not {'flip_saturated', 'efficiency'} & set(names.split())
+    if 'eoffix_aof' in names.split():
+        # The lane's native writer fixture uses this private mkstemp parent.
+        (ROOT / 'build/eoffix').mkdir(parents=True, exist_ok=True)
     # atomic_floor already honors GATE_PROOF_NO_RATES below: retain its finite
     # tripwire and 400-roll ordering checks without starting the rate workload.
     binary = a.binary.resolve()
@@ -155,6 +198,12 @@ def landing_selftest(a):
         text, count = re.subn(r'(?m)^'+name+'='+str(old)+r'\b', name+'='+str(new), text)
         assert count == 1
     gate.write_text(text)
+    # EXPECT changes alter the source digest even though the declared labels
+    # stay identical. Keep this binding local to the disposable copy.
+    fixture = source / 'tests/fixtures/nullrefresh-ledger-labels.json'
+    fixture_data = json.loads(fixture.read_text())
+    fixture_data['source_sha256'] = sha(gate)
+    save(fixture, fixture_data)
     env = dict(os.environ, LC_ALL='C', GATE_ONLY_JOBS='abba_selftest',
         GATE_PROOF_NO_RATES='1', GATE_LEDGER=str(source/'ledger'),
         GATE_TEST_PORT=str(int(a.ports.split('-')[0]) + 2),

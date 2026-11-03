@@ -1,0 +1,14 @@
+ok	0.000000	release build (+footprint locks)
+ok	0.030000	wave15 decided stream deletion before owner notification (both modes and namespaces)
+ok	3.960000	wave15 half-close input across FLIP (both engines, atomic and namespaces)
+ok	0.000000	wave15 idle-clock failure accounting and grace (both namespaces)
+ok	0.120000	core concurrency watch
+ok	0.330000	core concurrency lifetime
+ok	0.120000	core concurrency drain
+ok	7.290000	core concurrency route
+ok	0.120000	core concurrency snapshot
+ok	0.180000	core concurrency config
+ok	0.180000	core concurrency notify
+ok	0.580000	read-local topology demotion (1s)
+ok	0.580000	read-local topology demotion (2s)
+ok	3.810000	wave15 survey harness selftests (native and six Python entry points)

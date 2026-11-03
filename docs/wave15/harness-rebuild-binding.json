@@ -1,0 +1,40 @@
+{
+  "frozen": "d36e1c43dd89691747ff5714d7dfe8dec32af88d85e0afc8fd9fe29c2e4c3b0a",
+  "rebuild": "d9cd65382f5a2647a2bb3d5f081b192de99c74a52983df6b476be8426c3a91e8",
+  "changed_groups": [
+    {
+      "name": "tomo::info_stats_build_fields(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "frozen": [
+        {
+          "size": 981,
+          "address": "0x7c3600",
+          "digest": "425443d36a17344195bceeb02d2ddc285098117d2a6c8c759ecc0cde3b8d51ee"
+        }
+      ],
+      "rebuild": [
+        {
+          "size": 981,
+          "address": "0x7c3600",
+          "digest": "6a207c4ad82fba0169fb0a393e29774f6af56171ab2de3b8959178969c2aed3d"
+        }
+      ]
+    },
+    {
+      "name": "tomo_db0::info_stats_build_fields(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "frozen": [
+        {
+          "size": 981,
+          "address": "0x3a20f0",
+          "digest": "d4cca6c32b02dc0718b7c91842b854e2240271185a1670ac4c6eec07212d64d1"
+        }
+      ],
+      "rebuild": [
+        {
+          "size": 981,
+          "address": "0x3a20f0",
+          "digest": "b76820c878e06c048d8497f11a0b9abdcd3339d39415b98611678931ede2113d"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "arm": "post",
+  "kind": "session",
+  "namespace": "normal",
+  "server_sha256": "d36e1c43dd89691747ff5714d7dfe8dec32af88d85e0afc8fd9fe29c2e4c3b0a",
+  "probe_sha256": "471857a4802c0c40858e49a7a6a95c240981e41da5cb7c54bcc09b7acfb26dcf",
+  "entered_groups": 182,
+  "matched": 182,
+  "unmatched": []
+}

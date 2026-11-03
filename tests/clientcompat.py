@@ -142,6 +142,18 @@ def probe(case, port, rows, oracle, mode=None):
                         break
                 check(f'{pause_mode} {command}: pause window opened', opened, True)
         elif case == 'disconnect':
+            # Server.__enter__ closes its PING readiness connection. Its EOF
+            # may still be queued on another IO when this probe begins. Arm
+            # the four-victim check only after that unrelated boot peer is
+            # gone; failure to reap it is a failure, never a skipped attempt.
+            deadline = time.monotonic() + 1
+            while True:
+                body = a.cmd('INFO', 'clients')
+                count = int(re.search(rb'connected_clients:(\d+)', body)[1])
+                if count == 1 or time.monotonic() >= deadline:
+                    break
+                time.sleep(.001)
+            check('readiness peer reaped before victims', count, 1)
             # The KILL acknowledgement is the observable disconnect boundary.
             # Pipeline INFO immediately behind it to expose delayed reclamation.
             for attempt in range(80):

@@ -1,0 +1,10 @@
+{
+  "arm": "pre",
+  "kind": "tls",
+  "namespace": "normal",
+  "server_sha256": "79fe1f181e26e823e70129a0d6903c1fae5597d4498faee38d3c08fdf713622e",
+  "probe_sha256": "ec76bc86459a7070e5f265b894b0ae0abf8708cd27821e80b2a245dab8f4173d",
+  "entered_groups": 26,
+  "matched": 26,
+  "unmatched": []
+}

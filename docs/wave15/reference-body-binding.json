@@ -1,0 +1,18 @@
+[
+  {
+    "arm": "pre",
+    "rebuilt_sha256": "79fe1f181e26e823e70129a0d6903c1fae5597d4498faee38d3c08fdf713622e",
+    "supplied_path": "/home/user/Projects/bins/wave14-post-c1ed04ec",
+    "supplied_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+    "entered_groups": 859,
+    "changed": []
+  },
+  {
+    "arm": "headline",
+    "rebuilt_sha256": "6ebbaa184693fc06a437764329ed49b52e5c3e0a39105c32fecd963c39a225c6",
+    "supplied_path": "/home/user/Projects/bench-bins/tomokv-headline-105c5818cc",
+    "supplied_sha256": "2404be4919172bd5b273d8cb6bda720eeae176ea3e0bb151c9fe768ee96f0991",
+    "entered_groups": 833,
+    "changed": []
+  }
+]

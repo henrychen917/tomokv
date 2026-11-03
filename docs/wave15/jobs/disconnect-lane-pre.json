@@ -1,0 +1,640 @@
+{
+  "label": "disconnect-lane-pre",
+  "source": "/home/user/Projects/cx-wave15/build/gate-run.dCHIzv",
+  "archive": "/home/user/Projects/cx-wave15/docs/wave15/jobs/disconnect-lane-pre.tar.gz",
+  "archive_sha256": "a596c35bc2237622346a95c6f3cf3c0106df4fdd67ff6ef6f8ed337ac3b79b59",
+  "files": [
+    {
+      "path": "families.tsv",
+      "size": 120,
+      "sha256": "b634d7f9c64e8b533fe11b7cd034945bd8a7c748bfa16e5b1b778e44a93d2199"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db1-a0-r0/lifecycle.json",
+      "size": 730,
+      "sha256": "42184289b6099c4f87b2777dff89fb6e02ff2eb2c9e3f4304dd78f4f65d703a8"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db1-a0-r0/server.log",
+      "size": 10777,
+      "sha256": "3443e141076c487f6fdd9f714052671326993166b525c8bfb2c7d6959b9ef26f"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db1-a0-r0.json",
+      "size": 38410,
+      "sha256": "e712eff22b54b6330702e2d34adad6df7cbdd2859e5df64c3f1a9a26175901c8"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db1-a0-r1/lifecycle.json",
+      "size": 730,
+      "sha256": "0429534b5d946d834623748c1d35acccd8883e982fa907ccfcfc1e8e499541ff"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db1-a0-r1/server.log",
+      "size": 10780,
+      "sha256": "303645d95a158fc117bf36db784a01705b1ba7dacc87099786d47fb0cfdbb746"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db1-a0-r1.json",
+      "size": 38410,
+      "sha256": "e712eff22b54b6330702e2d34adad6df7cbdd2859e5df64c3f1a9a26175901c8"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db1-a1-r0/lifecycle.json",
+      "size": 730,
+      "sha256": "d53aa94c5c1764fced455fe09998f585e7f522c55608c0f0c024e97f4d48e474"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db1-a1-r0/server.log",
+      "size": 10699,
+      "sha256": "e2b0142ed16ca2a1fc2414daf85d62d5973b8836ab3a18a85f6d88fa1fb80d20"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db1-a1-r0.json",
+      "size": 6796,
+      "sha256": "c0cbba19224b77f037f6201a3dd14ef33547785f70a2c0b03051e17818f04c87"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db1-a1-r1/lifecycle.json",
+      "size": 730,
+      "sha256": "838cb3fbbdddb1643d0dc5d6c7ca40861abbc21eec34714b2c557fea55204a50"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db1-a1-r1/server.log",
+      "size": 10756,
+      "sha256": "1b1d9723e717c8479115f6f9cdd029543d5ce3831d70e314a57224979ce3a471"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db1-a1-r1.json",
+      "size": 27393,
+      "sha256": "e49fede919c73d79efd45d188701d93cb04cc0beb4529a97d7639e655f034ffe"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db16-a0-r0/lifecycle.json",
+      "size": 732,
+      "sha256": "a239a9e7ecbe3170f45af3b9a7c2a201d0c206fc6e7edbfe936092bf1fd0aec0"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db16-a0-r0/server.log",
+      "size": 10652,
+      "sha256": "3aeb8aa304ba3bb18a013d1f5ff647878562b140d9f89fe0f0577a8a78771fea"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db16-a0-r0.json",
+      "size": 578,
+      "sha256": "e76b803d8bfc0dccb753a7874e7f6e14780f009a192badbaadab4f785c3a05a6"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db16-a0-r1/lifecycle.json",
+      "size": 732,
+      "sha256": "f4147e28e926e6d33a589b31ad832b8a9b603ef97d406c1ed6dac4896aba6463"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db16-a0-r1/server.log",
+      "size": 10664,
+      "sha256": "b52e9c6ad6c880a99023b1d0e7aebca2730a1705aebf52ea15a6408ba5079034"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db16-a0-r1.json",
+      "size": 578,
+      "sha256": "e76b803d8bfc0dccb753a7874e7f6e14780f009a192badbaadab4f785c3a05a6"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db16-a1-r0/lifecycle.json",
+      "size": 732,
+      "sha256": "ea1848e707037b0d24b4ffff53931c2e333162e0f3f0121ea78b45b287a01898"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db16-a1-r0/server.log",
+      "size": 10655,
+      "sha256": "1d7b22b44eca12a2a389e3502ef9751de262b4b5dde5784e4b4be854c40a6a9a"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db16-a1-r0.json",
+      "size": 578,
+      "sha256": "e76b803d8bfc0dccb753a7874e7f6e14780f009a192badbaadab4f785c3a05a6"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db16-a1-r1/lifecycle.json",
+      "size": 732,
+      "sha256": "edc2c743828e0fb1a2d427810ebbb51722f155fbe3be6ea1aa538984465dc619"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db16-a1-r1/server.log",
+      "size": 10656,
+      "sha256": "5d2202d06e080c49c476bec0c26396ed166d90faa0a830d2914f1c3693ecdf92"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-epoll-db16-a1-r1.json",
+      "size": 578,
+      "sha256": "e76b803d8bfc0dccb753a7874e7f6e14780f009a192badbaadab4f785c3a05a6"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db1-a0-r0/lifecycle.json",
+      "size": 730,
+      "sha256": "c0f22754957bfc190fcdade115d0e6bd79a4b7b6b89be7ff3490575a3f9830b5"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db1-a0-r0/server.log",
+      "size": 10605,
+      "sha256": "48cde6dea1755773e66650ccbfbf995fcf55d1e30aab8b2d88c58109ad8b9f06"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db1-a0-r0.json",
+      "size": 2012,
+      "sha256": "ee5f37f3b84074f4c635522f2aa661ac65b99830cf7c5aee2cd7b789e24cb280"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db1-a0-r1/lifecycle.json",
+      "size": 730,
+      "sha256": "bddba153d68416f92b10c304612efc393fe44394d81eef3e46c3dd2b52f56968"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db1-a0-r1/server.log",
+      "size": 10743,
+      "sha256": "0bfa7ce93f1c5a22626eba7673d7a0b08ff0b40b35ed3a67d178edfd081f5574"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db1-a0-r1.json",
+      "size": 38410,
+      "sha256": "e712eff22b54b6330702e2d34adad6df7cbdd2859e5df64c3f1a9a26175901c8"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db1-a1-r0/lifecycle.json",
+      "size": 730,
+      "sha256": "a930ac7c67ac3319cb74406b672272d653c38721c423968b1185c4befb4bd510"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db1-a1-r0/server.log",
+      "size": 10742,
+      "sha256": "32c318fd9790d4cc88d3a8d97b8b4ec34adf526765fd171a4e2d985bd5d5c961"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db1-a1-r0.json",
+      "size": 38410,
+      "sha256": "e712eff22b54b6330702e2d34adad6df7cbdd2859e5df64c3f1a9a26175901c8"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db1-a1-r1/lifecycle.json",
+      "size": 730,
+      "sha256": "cedea703c7d7ad191ca8ef39e8e394dbbd82ab88a2dfe993b25ba9e3342042c0"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db1-a1-r1/server.log",
+      "size": 10746,
+      "sha256": "e0e409a093bfa3d452d70c6bf0b9720a2d3f2ad5d1276e6368210b43deb08c17"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db1-a1-r1.json",
+      "size": 38410,
+      "sha256": "e712eff22b54b6330702e2d34adad6df7cbdd2859e5df64c3f1a9a26175901c8"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db16-a0-r0/lifecycle.json",
+      "size": 732,
+      "sha256": "6e578d0a1cdc8233d7c7eb3856e01bce5ee97e6421573fca2aa8d5299f1f83d7"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db16-a0-r0/server.log",
+      "size": 10580,
+      "sha256": "cd4d3d6323183691e22aca4b653a7e533eb76b1d41d86a44e4c5214d3bcb1c0c"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db16-a0-r0.json",
+      "size": 578,
+      "sha256": "e76b803d8bfc0dccb753a7874e7f6e14780f009a192badbaadab4f785c3a05a6"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db16-a0-r1/lifecycle.json",
+      "size": 732,
+      "sha256": "f45b878b14f929ba08b02e52a7123637cec1ce449f01e6364fc4b0df737849bc"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db16-a0-r1/server.log",
+      "size": 10574,
+      "sha256": "680cc8002cca9531d88e14ad095d5d542811da71198aa56e74e54f3db9b78213"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db16-a0-r1.json",
+      "size": 578,
+      "sha256": "023c18467c46cb63dd6eee0f912483079cf081786758f4736e65b11e1ed1f7c3"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db16-a1-r0/lifecycle.json",
+      "size": 732,
+      "sha256": "ae2c63ea13c9c263225c40016cbd0f5f1f52a78c8d049b87242dac00c8dc2a3f"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db16-a1-r0/server.log",
+      "size": 10575,
+      "sha256": "7c6e0be71f96a8515c15fa89ffdbe3e2c21607f8ae9eb6caef4dc13bbd939331"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db16-a1-r0.json",
+      "size": 578,
+      "sha256": "e76b803d8bfc0dccb753a7874e7f6e14780f009a192badbaadab4f785c3a05a6"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db16-a1-r1/lifecycle.json",
+      "size": 732,
+      "sha256": "2c921fdf8a4f67ad9bd6c9154d84a11156f52d7035a9c84344832db59b2692cc"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db16-a1-r1/server.log",
+      "size": 10570,
+      "sha256": "475640d5ff41199905892b66d577cc0fe5255ca5573a3848cf14fc943522d478"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/1s-uring-db16-a1-r1.json",
+      "size": 578,
+      "sha256": "023c18467c46cb63dd6eee0f912483079cf081786758f4736e65b11e1ed1f7c3"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db1-a0-r0/lifecycle.json",
+      "size": 756,
+      "sha256": "f9c65204099c237cf8defd7c3871ab3628a8f1a0f1bf3e27127ccf31ebc8c7a1"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db1-a0-r0/server.log",
+      "size": 9831,
+      "sha256": "5159a9f8b9f782d4c6fce450110ea3b5245d27ea1dfac41bf0cd326dc9812248"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db1-a0-r0.json",
+      "size": 38410,
+      "sha256": "e712eff22b54b6330702e2d34adad6df7cbdd2859e5df64c3f1a9a26175901c8"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db1-a0-r1/lifecycle.json",
+      "size": 756,
+      "sha256": "6b01091ec32de3fddec814b433509698d9b48b1fff5111f2bbe7b15b34ee48bf"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db1-a0-r1/server.log",
+      "size": 9938,
+      "sha256": "c8ec8db3fff36b87822615f4e76f76e35ec158f5a6f35360d294af84f1529db4"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db1-a0-r1.json",
+      "size": 38410,
+      "sha256": "e712eff22b54b6330702e2d34adad6df7cbdd2859e5df64c3f1a9a26175901c8"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db1-a1-r0/lifecycle.json",
+      "size": 756,
+      "sha256": "d058423a66dd5d896a9353b95a7f55edb9f9576039d98ac0dadde139942530f7"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db1-a1-r0/server.log",
+      "size": 9834,
+      "sha256": "ae5fc9e2d6b1a6d2aba23a7c781fff070d63165fa3b70a9257bcdbd0cec81cbb"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db1-a1-r0.json",
+      "size": 38410,
+      "sha256": "e712eff22b54b6330702e2d34adad6df7cbdd2859e5df64c3f1a9a26175901c8"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db1-a1-r1/lifecycle.json",
+      "size": 756,
+      "sha256": "fc518afa2ab99ba3b079e8db6048e9677bd23c33d817d864b6581956a28d3171"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db1-a1-r1/server.log",
+      "size": 9938,
+      "sha256": "6f0cb1e5cfe518ae153bfb113e5216f9830b28b39a886f961745ee3b17cc9b65"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db1-a1-r1.json",
+      "size": 38410,
+      "sha256": "e712eff22b54b6330702e2d34adad6df7cbdd2859e5df64c3f1a9a26175901c8"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db16-a0-r0/lifecycle.json",
+      "size": 758,
+      "sha256": "ebd8d337abfea8bc62ff9291a055affe287a4ffb6c8a4076b4ba2b1110dbfb78"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db16-a0-r0/server.log",
+      "size": 9748,
+      "sha256": "500360494c0d8b07f44e41ed57bef6c68f595ea54569e73a0595862bd21c388a"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db16-a0-r0.json",
+      "size": 578,
+      "sha256": "e76b803d8bfc0dccb753a7874e7f6e14780f009a192badbaadab4f785c3a05a6"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db16-a0-r1/lifecycle.json",
+      "size": 758,
+      "sha256": "3bdbd6d0084982ad705aaef9e68052d9702bc6b6f53c425ce1039b4c3aaa4ced"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db16-a0-r1/server.log",
+      "size": 9854,
+      "sha256": "8881df4a57e79b8fa92bbcfff750b5fcba7c72da5a4a4f0297a6c044d406d1a9"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db16-a0-r1.json",
+      "size": 578,
+      "sha256": "e76b803d8bfc0dccb753a7874e7f6e14780f009a192badbaadab4f785c3a05a6"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db16-a1-r0/lifecycle.json",
+      "size": 758,
+      "sha256": "e627861d6dc1803ba6bc690c91b3648782982d6b24b0c60e144bcdc1a8c0ed28"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db16-a1-r0/server.log",
+      "size": 9744,
+      "sha256": "4de85dfdd9b1212f0e2b9805af34abeafb7c614919ad26d09cf13bede84eddd7"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db16-a1-r0.json",
+      "size": 578,
+      "sha256": "e76b803d8bfc0dccb753a7874e7f6e14780f009a192badbaadab4f785c3a05a6"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db16-a1-r1/lifecycle.json",
+      "size": 758,
+      "sha256": "fa8af9090e8715560dff6f15805d3fbc2530455124a1b1c651f1ef25e35c7188"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db16-a1-r1/server.log",
+      "size": 9852,
+      "sha256": "d4b1586af2d927d746d6c7383db96116b53ad413047414d6f9ba3a6d0956f14f"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-epoll-db16-a1-r1.json",
+      "size": 578,
+      "sha256": "e76b803d8bfc0dccb753a7874e7f6e14780f009a192badbaadab4f785c3a05a6"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db1-a0-r0/lifecycle.json",
+      "size": 756,
+      "sha256": "cc79c177cd57b8a618793818a0367a001b6651007287752c53746a101dc67b82"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db1-a0-r0/server.log",
+      "size": 9790,
+      "sha256": "6a489b79df7673cd3c174e17fd53f21ff70f73dbee02de17d883cbe28d286454"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db1-a0-r0.json",
+      "size": 38410,
+      "sha256": "e712eff22b54b6330702e2d34adad6df7cbdd2859e5df64c3f1a9a26175901c8"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db1-a0-r1/lifecycle.json",
+      "size": 756,
+      "sha256": "1845cda742e4ba12ab48e593c114f393264d8411a7bea7f5fee3f9d0f647b7dc"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db1-a0-r1/server.log",
+      "size": 9893,
+      "sha256": "f168821a2f9e3cffcfa809b92f6bdec29ad058c7a079d8de49bf84a5b3899f45"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db1-a0-r1.json",
+      "size": 38410,
+      "sha256": "e712eff22b54b6330702e2d34adad6df7cbdd2859e5df64c3f1a9a26175901c8"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db1-a1-r0/lifecycle.json",
+      "size": 756,
+      "sha256": "3a8d96544741cad7d8572dcb33009f2004ea7726bcc42b27e87b7fa32b23b231"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db1-a1-r0/server.log",
+      "size": 9790,
+      "sha256": "d298b84526819e93a6b6ba56f061e01d5c3c8a8d18a153c378372a6f3ebf681f"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db1-a1-r0.json",
+      "size": 38410,
+      "sha256": "e712eff22b54b6330702e2d34adad6df7cbdd2859e5df64c3f1a9a26175901c8"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db1-a1-r1/lifecycle.json",
+      "size": 756,
+      "sha256": "09100a3deeda7725e157aecc691f5f7fc39d3d53c0e13bef603c3aa843d51708"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db1-a1-r1/server.log",
+      "size": 9893,
+      "sha256": "c75d468598126e19660aaf71087cd35ef694edcc49b05cd0f19ad700c39731cc"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db1-a1-r1.json",
+      "size": 38410,
+      "sha256": "e712eff22b54b6330702e2d34adad6df7cbdd2859e5df64c3f1a9a26175901c8"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db16-a0-r0/lifecycle.json",
+      "size": 758,
+      "sha256": "9c4155fca4b8f739cc550715932dfaee8d54807e2c91244049c92fae6dd3f9ba"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db16-a0-r0/server.log",
+      "size": 9675,
+      "sha256": "9158263f1def05e70a118b4f2bf68737db4bf2181489539d807ee475e2e78ca4"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db16-a0-r0.json",
+      "size": 578,
+      "sha256": "e76b803d8bfc0dccb753a7874e7f6e14780f009a192badbaadab4f785c3a05a6"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db16-a0-r1/lifecycle.json",
+      "size": 758,
+      "sha256": "380d8d785b83ab123d1c2bcfac15b8b3aca0b0a3e0f21267bed33aba2607e8ca"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db16-a0-r1/server.log",
+      "size": 9783,
+      "sha256": "e9c12fad5fc69e3f72acbde20199e249fb639ce92109be73a660564474e4c823"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db16-a0-r1.json",
+      "size": 578,
+      "sha256": "e76b803d8bfc0dccb753a7874e7f6e14780f009a192badbaadab4f785c3a05a6"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db16-a1-r0/lifecycle.json",
+      "size": 758,
+      "sha256": "02deaadbf09aa5bdad4ed31fc8a5cf3b7910c6472ced4b48c2044a668d2aa00c"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db16-a1-r0/server.log",
+      "size": 9677,
+      "sha256": "97f9f1cc45545af3a0b9329190720a79e20fe45c57c0eba8d058ec3916c40a26"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db16-a1-r0.json",
+      "size": 578,
+      "sha256": "e76b803d8bfc0dccb753a7874e7f6e14780f009a192badbaadab4f785c3a05a6"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db16-a1-r1/lifecycle.json",
+      "size": 758,
+      "sha256": "1029ad6c183d312411eb53045cdfeff3b45d8a94bf738e75ea213b04ac891e80"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db16-a1-r1/server.log",
+      "size": 9779,
+      "sha256": "c070162d8957a6969d1a973329cc8d367a9e8e53963f7f157283163de3b61f6c"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/2s-uring-db16-a1-r1.json",
+      "size": 578,
+      "sha256": "e76b803d8bfc0dccb753a7874e7f6e14780f009a192badbaadab4f785c3a05a6"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/candidate/results.json",
+      "size": 3214,
+      "sha256": "4c6f372966de66ad0b5dd6118727bc59db5619444437ae65ff407f6b9957418f"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/oracle/redis-oracle-db16-a1-r0/lifecycle.json",
+      "size": 528,
+      "sha256": "979667d8ab387ca10be47430f60132462457b63bda7a991562e1cb996b8f230e"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/oracle/redis-oracle-db16-a1-r0/server.log",
+      "size": 1203,
+      "sha256": "076f636cabcfa9442cafe5f1224cde631e1a3250fc495773a4939d249c0e0b10"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/oracle/redis-oracle-db16-a1-r0.json",
+      "size": 38410,
+      "sha256": "e712eff22b54b6330702e2d34adad6df7cbdd2859e5df64c3f1a9a26175901c8"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect/oracle/results.json",
+      "size": 274,
+      "sha256": "314436ff01ecc2b48de447985e6e4e7fd30d1fa19892eb5eac2ca9d1068ed617"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/clientcompat-disconnect.log",
+      "size": 10905,
+      "sha256": "b5b7b420809bbacf71cc3662e97195038bc8f5e625cd46db0ea0094b760b80e1"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/done",
+      "size": 6,
+      "sha256": "77f2bf63a33e80566057a01fcbee2fadd85fd349ed26ca760071ba574f50e2d6"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/family.tsv",
+      "size": 68,
+      "sha256": "0f302823bfdd8d56fe9c4dfa49f5b433e166dcf6f9459fce3be0a1d90b0aaffc"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/ledger",
+      "size": 38,
+      "sha256": "929e45535f9990883ef5aa8788cba72fc7b281041dcf0ff4dcabec00aa66d570"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/output.log",
+      "size": 260,
+      "sha256": "fec8c495e159ad0fb13bb8df4e6680367e0ca957bf741ea743079095875847c2"
+    },
+    {
+      "path": "jobs/clientcompat-disconnect/timings",
+      "size": 38,
+      "sha256": "929e45535f9990883ef5aa8788cba72fc7b281041dcf0ff4dcabec00aa66d570"
+    },
+    {
+      "path": "jobs/release/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "size": 52,
+      "sha256": "ec120cb96b0aa688ee0295a2ad5195505efb3791cf204fc76a916a67cac43bbf"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "size": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "phases.tsv",
+      "size": 88,
+      "sha256": "2e1e0402ff8b88850b657e6166e08861a5a082502873a66a98735d1c126a0156"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1255,
+      "sha256": "373fb9d16bc298440b77e6b242eb9b5d59c91a283b8d8b7a3e956b8fc0b4e817"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 23802,
+      "sha256": "dceb7fa6dd6260914317f0745ebc85584e0cd9823c6b4ff95a5ff6213e44936c"
+    }
+  ],
+  "jobs": [
+    {
+      "job": "clientcompat-disconnect",
+      "done": "0\t0\t1",
+      "passed": 0,
+      "failed": 1,
+      "rows": [
+        {
+          "status": "FAIL",
+          "seconds": "4.640000",
+          "label": "clientcompat disconnect"
+        }
+      ]
+    },
+    {
+      "job": "release",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    }
+  ],
+  "command": [
+    "taskset",
+    "-c",
+    "48-55,56-63",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "48-55",
+    "--load-cores",
+    "56-63",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20080-20089",
+    "--candidate-binary",
+    "/home/user/Projects/bins/clientcompat-pre-b0811d7f"
+  ],
+  "binary_sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+  "exit_code": 1,
+  "run_directory": "/home/user/Projects/cx-wave15/build/gate-run.dCHIzv",
+  "engine": "uring",
+  "fused": false
+}
