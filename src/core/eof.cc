@@ -28,6 +28,14 @@ bool IoLoop::receive_eof_pending(const Client* client) const {
 
 void IoLoop::receive_fin(Client* client, bool input_ended) {
     if (client->dead() || client->closing()) return;
+    // From its drain acknowledgement this IO's FLIP pin holds every close, and a close
+    // before the ownership commit refuses the FLIP at once (flipfix6). A FIN is that close
+    // for a draining connection, but its EOF timer cannot finish behind the FLIP: the
+    // pinned output's serve stays pending and complete input waits for admission, while a
+    // planned connection with a pending EOF is never transferable. Refuse the same way now
+    // rather than at the five-second deadline; the drain completes after rollback. After
+    // the commit this notes nothing and the timer resumes at Idle as before.
+    if (flip_close_pin_) (void)flip_session_close_held();
     for (auto& timer : deferred_timers_) {
         if (timer.client != client || (timer.kind != DeferredTimerKind::ReceiveFin &&
                                       timer.kind != DeferredTimerKind::ReceiveEof)) continue;

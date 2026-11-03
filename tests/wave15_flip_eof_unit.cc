@@ -51,6 +51,37 @@ struct NetcmdRegression {
                     f.server.flip_stage_.store(FlipStage::IoDrain);
                     client.advance_parse(sizeof(input)-1);
                     T::require(!f.io.flip_immovable_refused(), "consumed idle EOF drains instead of refusing");
+                    // After this IO's drain acknowledgement the FLIP pin holds every close. A FIN
+                    // is that close: it refuses at once with the counted pinned-close reason and
+                    // keeps its own drain; after the commit it only starts that drain.
+                    const auto reset_failure = [&] {
+                        f.server.flip_failed_.store(false);
+                        std::lock_guard<std::mutex> lock(f.server.flip_error_mu_);
+                        f.server.flip_error_.clear();
+                    };
+                    const bool ended = kind == IoLoop::DeferredTimerKind::ReceiveEof;
+                    f.io.deferred_timers_.clear();
+                    reset_failure();
+                    f.server.flip_stage_.store(FlipStage::ClientPrepare);
+                    f.io.flip_close_pin_ = true;
+                    const uint64_t closes = f.server.flip_refused_close();
+                    f.io.receive_fin(&client, ended);
+                    T::require(f.server.flip_failed(error) &&
+                        error == "ERR FLIP refused: a pinned connection closed" &&
+                        f.server.flip_refused_close() == closes + 1, "pinned FIN refuses before commit");
+                    T::require(f.io.receive_eof_pending(&client), "refused FLIP keeps the EOF drain");
+                    f.io.deferred_timers_.clear();
+                    reset_failure();
+                    f.server.flip_stage_.store(FlipStage::ClientInstall);
+                    f.io.receive_fin(&client, ended);
+                    T::require(!f.server.flip_failed(error) && f.server.flip_refused_close() == closes + 1 &&
+                        f.io.receive_eof_pending(&client), "committed FIN only starts its drain");
+                    f.io.flip_close_pin_ = false;
+                    client.set_recv_armed(false);
+                    if (client.in_active()) {
+                        client.set_in_active(false);
+                        f.io.active_.erase(&client);
+                    }
                 }
                 f.io.deferred_timers_.clear();
                 f.server.flip_stage_.store(FlipStage::Idle);
