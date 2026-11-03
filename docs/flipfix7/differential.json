@@ -1,0 +1,426 @@
+{
+  "uring": {
+    "engine": "uring",
+    "run": "gate-run.xuUi4m",
+    "post_sha256": "d443b95831da51c41d8095a529d4e1d3db8ec3fd7dd802c1a3ef34926c47fd21",
+    "plan": {
+      "schema": 1,
+      "manifest": {
+        "run": "full:gate-run.xuUi4m",
+        "permanent": [
+          7,
+          19,
+          20,
+          23
+        ],
+        "failed": [],
+        "rotating": 21,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          21
+        ],
+        "history": "/home/user/Projects/cx-flipfix7/.gate-history/differ"
+      },
+      "suites": [
+        "string",
+        "list",
+        "set",
+        "zset",
+        "hash",
+        "hexpire",
+        "edgetime",
+        "xshard",
+        "xmove",
+        "bitmap",
+        "hll",
+        "bitfield",
+        "cgaps",
+        "stream",
+        "script",
+        "streamgrp",
+        "zsetops",
+        "geo",
+        "doubles",
+        "scan",
+        "multi",
+        "encodingfix",
+        "edgeenc",
+        "edgeproto",
+        "cmdgap",
+        "cmdgap2",
+        "sort",
+        "servertail",
+        "arity",
+        "storeorder",
+        "infofix",
+        "multidb",
+        "blocking",
+        "pubsub",
+        "fanout",
+        "spubsub",
+        "notify",
+        "wiredump",
+        "climon",
+        "compatintro",
+        "aclsel",
+        "aclkeys",
+        "cmdmeta",
+        "s6fix",
+        "ccfix",
+        "psfix",
+        "monitor"
+      ],
+      "repeats": 4,
+      "equivalence_seeds": [
+        21
+      ]
+    },
+    "parts": {
+      "split-0": {
+        "comparisons": 235,
+        "complete": true,
+        "coverage": {
+          "registered": 245,
+          "compared": 232,
+          "missing": [
+            "BGREWRITEAOF",
+            "FLIP",
+            "HELLO",
+            "LOLWUT",
+            "MONITOR",
+            "QUIT",
+            "REPLICAOF",
+            "SHUTDOWN",
+            "SLAVEOF",
+            "TIME",
+            "UNWATCH",
+            "WATCH",
+            "ZREVRANGE"
+          ],
+          "artifacts": 235
+        },
+        "sort_legs": 5
+      },
+      "split-1": {
+        "comparisons": 239,
+        "complete": true,
+        "coverage": {
+          "registered": 245,
+          "compared": 232,
+          "missing": [
+            "BGREWRITEAOF",
+            "FLIP",
+            "HELLO",
+            "LOLWUT",
+            "MONITOR",
+            "QUIT",
+            "REPLICAOF",
+            "SHUTDOWN",
+            "SLAVEOF",
+            "TIME",
+            "UNWATCH",
+            "WATCH",
+            "ZREVRANGE"
+          ],
+          "artifacts": 239
+        },
+        "sort_legs": 5
+      },
+      "armed-0": {
+        "comparisons": 230,
+        "complete": true,
+        "coverage": {
+          "registered": 245,
+          "compared": 232,
+          "missing": [
+            "BGREWRITEAOF",
+            "FLIP",
+            "HELLO",
+            "LOLWUT",
+            "MONITOR",
+            "QUIT",
+            "REPLICAOF",
+            "SHUTDOWN",
+            "SLAVEOF",
+            "TIME",
+            "UNWATCH",
+            "WATCH",
+            "ZREVRANGE"
+          ],
+          "artifacts": 230
+        },
+        "sort_legs": 0
+      },
+      "armed-1": {
+        "comparisons": 234,
+        "complete": true,
+        "coverage": {
+          "registered": 245,
+          "compared": 232,
+          "missing": [
+            "BGREWRITEAOF",
+            "FLIP",
+            "HELLO",
+            "LOLWUT",
+            "MONITOR",
+            "QUIT",
+            "REPLICAOF",
+            "SHUTDOWN",
+            "SLAVEOF",
+            "TIME",
+            "UNWATCH",
+            "WATCH",
+            "ZREVRANGE"
+          ],
+          "artifacts": 234
+        },
+        "sort_legs": 0
+      },
+      "equivalence": {
+        "comparisons": 16,
+        "complete": true,
+        "cells": [
+          "1s-0-0-0",
+          "1s-0-0-1",
+          "1s-0-1-0",
+          "1s-0-1-1",
+          "1s-1-0-0",
+          "1s-1-0-1",
+          "1s-1-1-0",
+          "1s-1-1-1",
+          "2s-0-0-0",
+          "2s-0-0-1",
+          "2s-0-1-0",
+          "2s-0-1-1",
+          "2s-1-0-0",
+          "2s-1-0-1",
+          "2s-1-1-0",
+          "2s-1-1-1"
+        ]
+      }
+    },
+    "suite_seed_legs": 938,
+    "mode_equivalence_cells": 16,
+    "selected_gate_rows": {
+      "passed": 6,
+      "failed": 0
+    },
+    "exclusions": "SORT requires split 6:2 and is not run in armed fused mode; five seeds in each split atomic mode are verified.",
+    "archive_sha256": "7d4af59aa8fbd7d1f354a762cb253d420ff8a9c8bc5bbb8216a195014d4926e5"
+  },
+  "epoll": {
+    "engine": "epoll",
+    "run": "gate-run.kMUOGT",
+    "post_sha256": "d443b95831da51c41d8095a529d4e1d3db8ec3fd7dd802c1a3ef34926c47fd21",
+    "plan": {
+      "schema": 1,
+      "manifest": {
+        "run": "full:gate-run.kMUOGT",
+        "permanent": [
+          7,
+          19,
+          20,
+          23
+        ],
+        "failed": [],
+        "rotating": 22,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          22
+        ],
+        "history": "/home/user/Projects/cx-flipfix7/.gate-history/differ"
+      },
+      "suites": [
+        "string",
+        "list",
+        "set",
+        "zset",
+        "hash",
+        "hexpire",
+        "edgetime",
+        "xshard",
+        "xmove",
+        "bitmap",
+        "hll",
+        "bitfield",
+        "cgaps",
+        "stream",
+        "script",
+        "streamgrp",
+        "zsetops",
+        "geo",
+        "doubles",
+        "scan",
+        "multi",
+        "encodingfix",
+        "edgeenc",
+        "edgeproto",
+        "cmdgap",
+        "cmdgap2",
+        "sort",
+        "servertail",
+        "arity",
+        "storeorder",
+        "infofix",
+        "multidb",
+        "blocking",
+        "pubsub",
+        "fanout",
+        "spubsub",
+        "notify",
+        "wiredump",
+        "climon",
+        "compatintro",
+        "aclsel",
+        "aclkeys",
+        "cmdmeta",
+        "s6fix",
+        "ccfix",
+        "psfix",
+        "monitor"
+      ],
+      "repeats": 4,
+      "equivalence_seeds": [
+        22
+      ]
+    },
+    "parts": {
+      "split-0": {
+        "comparisons": 235,
+        "complete": true,
+        "coverage": {
+          "registered": 245,
+          "compared": 232,
+          "missing": [
+            "BGREWRITEAOF",
+            "FLIP",
+            "HELLO",
+            "LOLWUT",
+            "MONITOR",
+            "QUIT",
+            "REPLICAOF",
+            "SHUTDOWN",
+            "SLAVEOF",
+            "TIME",
+            "UNWATCH",
+            "WATCH",
+            "ZREVRANGE"
+          ],
+          "artifacts": 235
+        },
+        "sort_legs": 5
+      },
+      "split-1": {
+        "comparisons": 239,
+        "complete": true,
+        "coverage": {
+          "registered": 245,
+          "compared": 232,
+          "missing": [
+            "BGREWRITEAOF",
+            "FLIP",
+            "HELLO",
+            "LOLWUT",
+            "MONITOR",
+            "QUIT",
+            "REPLICAOF",
+            "SHUTDOWN",
+            "SLAVEOF",
+            "TIME",
+            "UNWATCH",
+            "WATCH",
+            "ZREVRANGE"
+          ],
+          "artifacts": 239
+        },
+        "sort_legs": 5
+      },
+      "armed-0": {
+        "comparisons": 230,
+        "complete": true,
+        "coverage": {
+          "registered": 245,
+          "compared": 232,
+          "missing": [
+            "BGREWRITEAOF",
+            "FLIP",
+            "HELLO",
+            "LOLWUT",
+            "MONITOR",
+            "QUIT",
+            "REPLICAOF",
+            "SHUTDOWN",
+            "SLAVEOF",
+            "TIME",
+            "UNWATCH",
+            "WATCH",
+            "ZREVRANGE"
+          ],
+          "artifacts": 230
+        },
+        "sort_legs": 0
+      },
+      "armed-1": {
+        "comparisons": 234,
+        "complete": true,
+        "coverage": {
+          "registered": 245,
+          "compared": 232,
+          "missing": [
+            "BGREWRITEAOF",
+            "FLIP",
+            "HELLO",
+            "LOLWUT",
+            "MONITOR",
+            "QUIT",
+            "REPLICAOF",
+            "SHUTDOWN",
+            "SLAVEOF",
+            "TIME",
+            "UNWATCH",
+            "WATCH",
+            "ZREVRANGE"
+          ],
+          "artifacts": 234
+        },
+        "sort_legs": 0
+      },
+      "equivalence": {
+        "comparisons": 16,
+        "complete": true,
+        "cells": [
+          "1s-0-0-0",
+          "1s-0-0-1",
+          "1s-0-1-0",
+          "1s-0-1-1",
+          "1s-1-0-0",
+          "1s-1-0-1",
+          "1s-1-1-0",
+          "1s-1-1-1",
+          "2s-0-0-0",
+          "2s-0-0-1",
+          "2s-0-1-0",
+          "2s-0-1-1",
+          "2s-1-0-0",
+          "2s-1-0-1",
+          "2s-1-1-0",
+          "2s-1-1-1"
+        ]
+      }
+    },
+    "suite_seed_legs": 938,
+    "mode_equivalence_cells": 16,
+    "selected_gate_rows": {
+      "passed": 6,
+      "failed": 0
+    },
+    "exclusions": "SORT requires split 6:2 and is not run in armed fused mode; five seeds in each split atomic mode are verified.",
+    "archive_sha256": "a9c11db21050bf776e25fab9da7210aa102848aef4a420caaa7f1e465f0a22d5"
+  }
+}

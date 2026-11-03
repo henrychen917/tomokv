@@ -1056,6 +1056,7 @@ struct CoreConcurrencyTest {
 #include "flipfix_checks.inc"
 #include "flipfix5_checks.inc"
 #include "flipfix6_checks.inc"
+#include "flipfix7_checks.inc"
 #include "wave13_checks.inc"
 #include "wave14_checks.inc"
 
@@ -1218,6 +1219,11 @@ int main(int argc, char** argv) {
     else if (row == "flipfix-plan-lifetime") T::flipfix_plan_lifetime();
     else if (row == "flipfix-fingerprint") T::flipfix_fingerprint();
     else if (row == "flipfix5") T::flipfix5_all();
+    else if (row == "flipfix7") { for (unsigned db : {1u, 16u}) {
+            T::flipfix7_readiness(db);
+            T::flipfix7_output(db); T::flipfix7_borrow(db); T::flipfix7_coordinator(db);
+            for (unsigned atomic : {0u, 1u}) T::flipfix7_blocked(db, atomic);
+        } }
     else if (row == "flipfix6-watch") { T::flipfix6_watch(1); T::flipfix6_watch(16); }
     else if (row == "flipfix6") {
         for (auto db : {1u, 16u}) {

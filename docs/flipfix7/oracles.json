@@ -1,0 +1,20 @@
+[
+  {
+    "path": "/home/user/Projects/redis/src/redis-server",
+    "resolved": "/home/user/Projects/redis/src/redis-server",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "version": "Redis server v=7.4.10 sha=f103d127:0 malloc=jemalloc-5.3.0 bits=64 build=f39586913084a746"
+  },
+  {
+    "path": "/tmp/claude-1000/redis74/src/redis-server",
+    "resolved": "/home/user/Projects/redis/src/redis-server",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "version": "Redis server v=7.4.10 sha=f103d127:0 malloc=jemalloc-5.3.0 bits=64 build=f39586913084a746"
+  },
+  {
+    "path": "/home/user/Projects/redis74-tls/src/redis-server",
+    "resolved": "/home/user/Projects/redis74-tls/src/redis-server",
+    "sha256": "d252b67e403e74226c06a3239c4be64e87798c685b2f316cbb6689eb6a9d67ff",
+    "version": "Redis server v=7.4.10 sha=1ec206d0:0 malloc=jemalloc-5.3.0 bits=64 build=1825c41dbab26d51"
+  }
+]

@@ -1,0 +1,44 @@
+[
+  {
+    "path": "build/gate-run.ksydPR/jobs/reorder_identity/receipt/fifo-twin",
+    "sha256": "4fbbf76ee749dfde6fb9941befa7f33d07b1262574f7c6c76bc315007ba1bd2c",
+    "bytes": 235650992,
+    "receipt": "build/gate-run.ksydPR/jobs/reorder_identity/receipt/twin.json",
+    "reason": "completed control; exact selector patch receipt and source binaries retained for deterministic regeneration"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/reorder_engagement/db0/fifo-twin",
+    "sha256": "25604e1040830c0db7c7538b127e6ddbf5f79fd2062f277eaf5322b173c5d0a3",
+    "bytes": 94873888,
+    "receipt": "build/gate-run.ksydPR/jobs/reorder_engagement/db0/twin.json",
+    "reason": "completed control; exact selector patch receipt and source binaries retained for deterministic regeneration"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/reorder_engagement/multi/fifo-twin",
+    "sha256": "a241204dad382373fcbe54537e37e3831fcd581acf1cb40e5006a0f27734d1da",
+    "bytes": 49594552,
+    "receipt": "build/gate-run.ksydPR/jobs/reorder_engagement/multi/twin.json",
+    "reason": "completed control; exact selector patch receipt and source binaries retained for deterministic regeneration"
+  },
+  {
+    "path": "build/gate-run.IWv7UP/jobs/reorder_identity/receipt/fifo-twin",
+    "sha256": "4fbbf76ee749dfde6fb9941befa7f33d07b1262574f7c6c76bc315007ba1bd2c",
+    "bytes": 235650992,
+    "receipt": "build/gate-run.IWv7UP/jobs/reorder_identity/receipt/twin.json",
+    "reason": "completed control; exact selector patch receipt and source binaries retained for deterministic regeneration"
+  },
+  {
+    "path": "build/gate-run.IWv7UP/jobs/reorder_engagement/db0/fifo-twin",
+    "sha256": "25604e1040830c0db7c7538b127e6ddbf5f79fd2062f277eaf5322b173c5d0a3",
+    "bytes": 94873888,
+    "receipt": "build/gate-run.IWv7UP/jobs/reorder_engagement/db0/twin.json",
+    "reason": "completed control; exact selector patch receipt and source binaries retained for deterministic regeneration"
+  },
+  {
+    "path": "build/gate-run.IWv7UP/jobs/reorder_engagement/multi/fifo-twin",
+    "sha256": "a241204dad382373fcbe54537e37e3831fcd581acf1cb40e5006a0f27734d1da",
+    "bytes": 49594552,
+    "receipt": "build/gate-run.IWv7UP/jobs/reorder_engagement/multi/twin.json",
+    "reason": "completed control; exact selector patch receipt and source binaries retained for deterministic regeneration"
+  }
+]

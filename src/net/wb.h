@@ -144,6 +144,13 @@ public:
         tls_signals_ = tls_signals;
     }
 
+    // FLIP changes only this already-indirect callback while executor lanes are
+    // frozen. Ordinary command retirement and send completion gain no branch.
+    void bind_release(void* context, ReleaseFn release) {
+        release_ctx_ = context;
+        release_fn_ = release;
+    }
+
     Ring&  ring()       { return *ring_; }
     // Only cold, non-templated send sites consult this boot-latched fallback. Hot paths carry the
     // pipeline-1 classifier as a template argument.

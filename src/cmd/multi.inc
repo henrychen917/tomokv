@@ -186,6 +186,7 @@ struct MultiSession {
 };
 
 #include "flip_session.inc"
+#include "flip_liveness.inc"
 
 struct MultiOwnerRecordRefs {
     // `nodes` is also the pointer retained by every AtomicEntry installed on this executor. Writer

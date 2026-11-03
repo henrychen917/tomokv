@@ -1,0 +1,1066 @@
+[
+  {
+    "path": "build/gate-run.ksydPR/jobs/aof-epoll/persistfix/2s-term-8229c1h8/acknowledged.json",
+    "bytes": 1085279,
+    "sha256": "0c03b483f4447489431479c3499a6b8a3cc4547d5dfaaacf21770ae69edf3982",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/aof-epoll/persistfix/2s-term-8229c1h8/acknowledged.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/aof-uring/persistfix/1s-term-8b745qxx/acknowledged.json",
+    "bytes": 1578561,
+    "sha256": "ad35f4b169a4dba02643737a72257eb8ef39259f362ed34c3cfaf6c34c461efc",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/aof-uring/persistfix/1s-term-8b745qxx/acknowledged.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/aof-uring/persistfix/2s-term-fq2w50ce/acknowledged.json",
+    "bytes": 1146809,
+    "sha256": "b869dea9ed6893534da8b83766a44ef7e278b9948c81888b14a7de8e0f9f31c1",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/aof-uring/persistfix/2s-term-fq2w50ce/acknowledged.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix5/flipfix5-row/2s-epoll-0-db1/attempt-0/server.log",
+    "bytes": 14158471,
+    "sha256": "81c65f4e0f49245fbcd5a422511b4620bbea62c3c78a10b49f2fa3b201d94b82",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix5/flipfix5-row/2s-epoll-0-db1/attempt-0/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix5/flipfix5-row/2s-epoll-0-db16/attempt-0/server.log",
+    "bytes": 13471846,
+    "sha256": "ec722ac71e5988b4b3a8453947f075325aede52bae8fc9ae2e91ee8061679de8",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix5/flipfix5-row/2s-epoll-0-db16/attempt-0/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix5/flipfix5-row/2s-epoll-1-db1/attempt-0/server.log",
+    "bytes": 15129061,
+    "sha256": "1b61032b50dcdbacc6f7f049bef683790fbe2b39d6ff2a7e8e84a1e5fb9e6812",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix5/flipfix5-row/2s-epoll-1-db1/attempt-0/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix5/flipfix5-row/2s-epoll-1-db16/attempt-0/server.log",
+    "bytes": 13468589,
+    "sha256": "df7693f7b37aecc9276f9a668bcc0f45e3118185403633e6f0d19fd2193a0fa8",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix5/flipfix5-row/2s-epoll-1-db16/attempt-0/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix5/flipfix5-row/2s-uring-0-db1/attempt-0/server.log",
+    "bytes": 13097290,
+    "sha256": "73dd014126c65dc780ed03a329a030096bf1c0b2addb865d32f37145927fcf1f",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix5/flipfix5-row/2s-uring-0-db1/attempt-0/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix5/flipfix5-row/2s-uring-0-db16/attempt-0/server.log",
+    "bytes": 11807425,
+    "sha256": "e56bd986c41614ed20dcbbc9929b6308fc79484bb2be7a42efbcd1aee2112b30",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix5/flipfix5-row/2s-uring-0-db16/attempt-0/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix5/flipfix5-row/2s-uring-1-db1/attempt-0/server.log",
+    "bytes": 13313903,
+    "sha256": "51bc78a35fc3655c31e50e846e59fe4e29c7701501808eba70db51168efbfd22",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix5/flipfix5-row/2s-uring-1-db1/attempt-0/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix5/flipfix5-row/2s-uring-1-db16/attempt-0/server.log",
+    "bytes": 11068372,
+    "sha256": "526f86dbbe042e3588db07b82e84a0ec872f1b023766d0d192b1c80006701d9d",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix5/flipfix5-row/2s-uring-1-db16/attempt-0/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db1-exec/server.log",
+    "bytes": 10618675,
+    "sha256": "b91dde3dbf04f9afe1dc37dd5b9c6af4596efea284a8c7e3d715802a6769f81a",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-exec/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db1-exec/witness.json",
+    "bytes": 2009898,
+    "sha256": "a5d49c53f3c3335011161e08507364a4899f39aa135c6f81477623348632d93a",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-exec/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db1-exec-close/server.log",
+    "bytes": 8761658,
+    "sha256": "f0ee6d1f219dbc7ee1d85eacdda53db001bc44cd8751124d09d697d0b03aec0b",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-exec-close/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db1-exec-close/witness.json",
+    "bytes": 1914838,
+    "sha256": "d58f3017bd90ae054d79a335d3654f96ebc0f2c8c7551b0938b6ca88e8feaa3e",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-exec-close/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db1-p1/server.log",
+    "bytes": 11020112,
+    "sha256": "fc1b0c04f35a90e58d3a2ee339dd7167bdb33d488ff6b20dd8f992a036a4c0f2",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-p1/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db1-p1/witness.json",
+    "bytes": 2089277,
+    "sha256": "91fa706fe3a4a408cd6ddc6b61d47f54b30d7f3031752182c9a1ad61bac1eda0",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-p1/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db1-p2/server.log",
+    "bytes": 11037059,
+    "sha256": "cc385554d6298f6127dcda1de2f59b2e7b5ea9a19c2cf5cf733739ff258b4af1",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-p2/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db1-p2/witness.json",
+    "bytes": 2092807,
+    "sha256": "7d1e016b02ff5c0e8f35f19476c17a32c7b76c49da068f7dd1077520290c638d",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-p2/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db1-p3/server.log",
+    "bytes": 11204114,
+    "sha256": "0e3d7e43a1e1553149cce8352c6c11c6b4f0eeab5a0ddc8c64d2a6679c5dc781",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-p3/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db1-p3/witness.json",
+    "bytes": 2124236,
+    "sha256": "e0d7348baff3356194016b3935836c1f3c9a0d50269753f5a7e79990344c0472",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-p3/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db1-watch/server.log",
+    "bytes": 11015965,
+    "sha256": "437acde95a9ef1c7dd7c74c945e0eb195b986a9a76a5b4cd046adb714bdb592f",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-watch/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db1-watch/witness.json",
+    "bytes": 2088592,
+    "sha256": "f8ceaffe1887ca7b0294d24fbd066ff22dff25098b87d0cef58df290150de078",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-watch/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db16-exec/server.log",
+    "bytes": 10006633,
+    "sha256": "2f238c94f5c27b2ad395119bd7d2c8bb3d17ef8b8d53b416c0f629bb53a15993",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-exec/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db16-exec/witness.json",
+    "bytes": 1893528,
+    "sha256": "3ce22f677e9c8b6bd7665a546f067ac0fccbc14af52018c4b2cb06e0defc1791",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-exec/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db16-exec-close/server.log",
+    "bytes": 8251745,
+    "sha256": "cf78e70d7813c98d0caeaf6f8ae25b9ccd9d77841989137d8968f422a75bc9c7",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-exec-close/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db16-exec-close/witness.json",
+    "bytes": 1842642,
+    "sha256": "538888312f07adae682673cb165a3ac08a1a0c1097820efd0f7a1f26be9e1670",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-exec-close/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db16-p1/server.log",
+    "bytes": 10797187,
+    "sha256": "346c535247627bd6967295297e0431e4d231d14b76763965e842326cd3a32dc9",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-p1/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db16-p1/witness.json",
+    "bytes": 2044390,
+    "sha256": "981082a1651cc9021612b33ccd16be2d9402459fec889a196458438150316594",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-p1/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db16-p2/server.log",
+    "bytes": 10816881,
+    "sha256": "6630ed2d324bbf7317b39cfb065bf1833a9e92144fd7c445a40fbf03f23213c2",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-p2/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db16-p2/witness.json",
+    "bytes": 2048374,
+    "sha256": "be8578d6cc335f0afbb4984fff28046e19c2a58cf6d1bddd3a670ad09d446701",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-p2/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db16-p3/server.log",
+    "bytes": 10771706,
+    "sha256": "91e9044c9a35744cc56944f5200d866882f78268cbe682c57233badf8556f415",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-p3/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db16-p3/witness.json",
+    "bytes": 2039146,
+    "sha256": "849255515c6077c2a97051c858e4406ec9f8e52da2edc5851a3f157350ffe7c1",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-p3/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db16-watch/server.log",
+    "bytes": 10809117,
+    "sha256": "1dc9972968a9827198250813f5ff13a109e65734e12eb6201cd3bf65656db775",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-watch/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-0-db16-watch/witness.json",
+    "bytes": 2046778,
+    "sha256": "8c73c653a1e0a4d549aa7b8302724d2d9658a08ae872aed3d82ebb9afbd02eaa",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-watch/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db1-exec/server.log",
+    "bytes": 10616074,
+    "sha256": "afdfd617612d7952b5a156424f5b31d3e9dcea11e3a4ae0daef3105d6ae64790",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-exec/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db1-exec/witness.json",
+    "bytes": 2009451,
+    "sha256": "1684795cf531d6aacb9beff38c00e629247a56136a4440817b0b6757ce3554e5",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-exec/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db1-exec-close/server.log",
+    "bytes": 8739009,
+    "sha256": "1b557390a52ba11df72b5f644c3df94a85ad8332d9fbdd523d9a162413ee4041",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-exec-close/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db1-exec-close/witness.json",
+    "bytes": 1914094,
+    "sha256": "cebc76fb09903d0b2ce101ec45518af0147b04c2735959a054e0439db394ee19",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-exec-close/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db1-p1/server.log",
+    "bytes": 11092202,
+    "sha256": "33e65608b95e5a81e8b5ab1a7d654c567655b96492565a3ff404fb0d9e9c2b70",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-p1/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db1-p1/witness.json",
+    "bytes": 2103195,
+    "sha256": "7006574767c5296744b2ca2b19a2dacb097ce205ccfd2349bbf4c81882d5c27e",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-p1/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db1-p2/server.log",
+    "bytes": 11049991,
+    "sha256": "8ccd5e43d77b2a5d87a0ffaa62f0e90cfb9084789f5f1441c59a0a0e4a748082",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-p2/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db1-p2/witness.json",
+    "bytes": 2095154,
+    "sha256": "b12fe4d1bec88e544ef043b9d1a9e510d33e67dc5f2b7e0ddca0e9af8ea152c3",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-p2/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db1-p3/server.log",
+    "bytes": 11072039,
+    "sha256": "6084d3f66effe36e13e6567c3cf38fa0bdab1a74f799d90faa1b66187a7f04e6",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-p3/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db1-p3/witness.json",
+    "bytes": 2098543,
+    "sha256": "15ce14912e1979e9e946182e051b1c3cdee4a69cdac4aa51ceaa4dd860704c47",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-p3/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db1-watch/server.log",
+    "bytes": 11046163,
+    "sha256": "16c2eb447cd26be8eac4f46e60d084f019a9eace6031fec5b30112a857ce319e",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-watch/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db1-watch/witness.json",
+    "bytes": 2094463,
+    "sha256": "e6f0416bfbd010df34bed98ffdbd145c99a51fad0673773bc04e90fb3da923e0",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-watch/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db16-exec/server.log",
+    "bytes": 10247915,
+    "sha256": "4207be1d8d36a79e4a460626ab409e639990df8e0f0a87d0886b099a68c66f11",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-exec/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db16-exec/witness.json",
+    "bytes": 1939370,
+    "sha256": "4c6be726d35717935fd83ada3f06b124f4da2c600d399ee5ac37bee0cbd285f4",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-exec/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db16-exec-close/server.log",
+    "bytes": 8394312,
+    "sha256": "95060a6da33a9edce76f1b585be291360f1eebad9ecd72f2d00038c0d2dfe7fa",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-exec-close/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db16-exec-close/witness.json",
+    "bytes": 1853676,
+    "sha256": "cd024e3f16173ab3afda5d0877e9af3229a393e4baca6e1905106785855816c5",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-exec-close/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db16-p1/server.log",
+    "bytes": 10642007,
+    "sha256": "0008f9f5c9c4d23ca10e073243fc984692fb08d83743cfea19e9416213d5617c",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-p1/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db16-p1/witness.json",
+    "bytes": 2014223,
+    "sha256": "a9d1ac72126ef9454ec9ec0ce08a8a3eff6b3e2ab60397a09c2ca49b0eca820a",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-p1/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db16-p2/server.log",
+    "bytes": 10659681,
+    "sha256": "7f4b8ef525b28fd1e862235a6a34d73029e69f6ce598d6c252cf3b3a6cdeb6ce",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-p2/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db16-p2/witness.json",
+    "bytes": 2017700,
+    "sha256": "5502c65a2e2852f3bbaee41ce755a3146fb55408e135d0feabae5ba55a6ccf2d",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-p2/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db16-p3/server.log",
+    "bytes": 10797500,
+    "sha256": "7b1219adfcbb014fce337cad2f67d434c0b7b7d826bfdbae8574c97cfc890f9c",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-p3/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db16-p3/witness.json",
+    "bytes": 2044278,
+    "sha256": "0b905891a0aeb8af9d9a1f9b3673e54f118de0f959e9465236f49ea4a2424eb6",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-p3/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db16-watch/server.log",
+    "bytes": 10662098,
+    "sha256": "bfd8f62e04402bf51fb67d0c5d44b40c72f667cf51cb4d8cd03d75bc0fddbf00",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-watch/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-epoll-1-db16-watch/witness.json",
+    "bytes": 2017954,
+    "sha256": "e46e0a417c979ab7516b12fd73f6c980cea20cc092b6a59a3e6c7b8e7a90c48c",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-watch/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db1-exec/server.log",
+    "bytes": 10375980,
+    "sha256": "bdf0a5314af1174a7981b1a791abf6ecf0ba15655757f1011b4a4afe56aa5f60",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db1-exec/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db1-exec/witness.json",
+    "bytes": 1964332,
+    "sha256": "7803779a5e098a79d2b20e7e60dd6d83a05c0b73b01993a5126cf2a6334556d2",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db1-exec/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db1-exec-close/server.log",
+    "bytes": 8642236,
+    "sha256": "6521fec9d99f875b38d1b2ecaef2204d7f796114ae6c9bca57216af1f536f0ac",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db1-exec-close/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db1-exec-close/witness.json",
+    "bytes": 1870524,
+    "sha256": "cda178292824ad1c8941b56a59384c825d29948bd5939b182e19783515e758e5",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db1-exec-close/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db1-p1/server.log",
+    "bytes": 10867586,
+    "sha256": "40ff3e7cdba4843a5bb1efcf9bb69d37938576a1228eb936679cce7e2bbc6923",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db1-p1/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db1-p1/witness.json",
+    "bytes": 2061898,
+    "sha256": "874a14962aabb7cae933968ba296408fc159e5ea56112a75ff36dd5dd7923e1a",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db1-p1/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db1-p2/server.log",
+    "bytes": 10844958,
+    "sha256": "a1f73a22ca0253d9928ae75b17cb6294681d90d4d4ff7e9ffc4bfcefd07f31fc",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db1-p2/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db1-p2/witness.json",
+    "bytes": 2057606,
+    "sha256": "1968701a8336524449b28dabcd2b97b5652d109a1e76c70e67a0a997e48c6617",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db1-p2/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db1-p3/server.log",
+    "bytes": 10821646,
+    "sha256": "a5d3ee76223772a25686c40083f1cd5f3dfcbe9ad05fdfae1b24e8032961d311",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db1-p3/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db1-p3/witness.json",
+    "bytes": 2051888,
+    "sha256": "d4dc39ddc843097e6ccae20d0626d64280d6f9d3de8963c690271455adbb901b",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db1-p3/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db1-watch/server.log",
+    "bytes": 10859073,
+    "sha256": "da6c4a83d6000420d4f6cfa5b101fd679d7f0aca8a5688b679ded2c0a77d32df",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db1-watch/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db1-watch/witness.json",
+    "bytes": 2059994,
+    "sha256": "fe1ee1eb9bb47b6fee98dc2f08f2893b0aa25fad006dc20e82d7163b30452131",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db1-watch/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db16-exec/server.log",
+    "bytes": 10001185,
+    "sha256": "87222198fb1889f9437355c24f0a4b590d398c205a3a61a5e8f7f8b889271750",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db16-exec/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db16-exec/witness.json",
+    "bytes": 1892506,
+    "sha256": "8d7a5baa5b6a72e7e8fc6d06e281cba195ecbe48a1fc00b8571e182162c22eab",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db16-exec/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db16-exec-close/server.log",
+    "bytes": 8141954,
+    "sha256": "3bc99f5d86050f677aa68caa336ed8493da7b9010ba0dd92622f8655f837f1f5",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db16-exec-close/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db16-exec-close/witness.json",
+    "bytes": 1804692,
+    "sha256": "ceffd53924ebaa30590ff1e8180a95f1cf0b6a91657e99148fc9c1e614d4ace0",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db16-exec-close/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db16-p1/server.log",
+    "bytes": 10538134,
+    "sha256": "28d304e9703b43a590affd8e952610dc94f480a5af9749029edd97cdc3de9eb4",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db16-p1/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db16-p1/witness.json",
+    "bytes": 1996651,
+    "sha256": "8f0f855b38243cba38a84231f4c6ac5f39999dbeaf6e21960388403379185e2a",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db16-p1/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db16-p2/server.log",
+    "bytes": 10640546,
+    "sha256": "0ff1faaa2815d723c147c64c44bfc5f834c39480bf9117829f555c8cc62d9c2b",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db16-p2/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db16-p2/witness.json",
+    "bytes": 2016803,
+    "sha256": "ff2180362d0236ae7ac4e6143aef8dd9b9d80156587ff564a5267050771c6624",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db16-p2/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db16-p3/server.log",
+    "bytes": 10571106,
+    "sha256": "75939baf943695f2ffda0c208bf3c15b9acfc38b5afa51563e80d4e0ace6bb56",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db16-p3/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db16-p3/witness.json",
+    "bytes": 2002250,
+    "sha256": "34d1efda845428acf3d4266a896c72aaaed8fe0495af2a2d133ef99c6a98ffa0",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db16-p3/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db16-watch/server.log",
+    "bytes": 10673215,
+    "sha256": "4d1138df2e2e1f482396a63703ae4aea771b08d6fb8f2d0714dd27e6fa1a830f",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db16-watch/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-0-db16-watch/witness.json",
+    "bytes": 2022813,
+    "sha256": "09c70b72a0aad355a3fab9b951c89768f33dff4119adbd068591d876e9f60dda",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-0-db16-watch/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db1-exec/server.log",
+    "bytes": 10375934,
+    "sha256": "bfc0168a144f011ef947f15ca6770029c3b09b57fc242546a35e744d8edd2ace",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db1-exec/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db1-exec/witness.json",
+    "bytes": 1964456,
+    "sha256": "39e4d544c324121a5bc9a16fc350da936fb5e7720741a5d1c67be35ed1638d0a",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db1-exec/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db1-exec-close/server.log",
+    "bytes": 8571287,
+    "sha256": "0356604bdafd75878e52c2eb09651e33b848fd2eabe9cf71e04a9a04a0748f8a",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db1-exec-close/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db1-exec-close/witness.json",
+    "bytes": 1862604,
+    "sha256": "fe0710af97a5442f33da333a1a3225e744443a1653943d0bcdbb618cbfe6024b",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db1-exec-close/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db1-p1/server.log",
+    "bytes": 10885727,
+    "sha256": "f040ba7cdb3340a305ac08e7f3b4a2c430c56559eda0060d4fb194c31007109d",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db1-p1/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db1-p1/witness.json",
+    "bytes": 2065256,
+    "sha256": "49d81e1d87d5908edc806ebc0ae12a9aaa995bab6c87599c6a43d3e6d5c85de3",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db1-p1/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db1-p2/server.log",
+    "bytes": 10894684,
+    "sha256": "b69855965cbc998e92a606124d0c0bf6a2fc2dc1297ca823d0dafe052acd8689",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db1-p2/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db1-p2/witness.json",
+    "bytes": 2067167,
+    "sha256": "772a9825e2614d93b76ec38f9243fd2b0b6274c34b9e5308855bbdb621d570fc",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db1-p2/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db1-p3/server.log",
+    "bytes": 10921796,
+    "sha256": "7654bd5116a26d21f2cd37a37ac6a0c6876842d536516d7ad51190679a02eaa6",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db1-p3/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db1-p3/witness.json",
+    "bytes": 2071707,
+    "sha256": "80ba7ee2401c6c5a7119bb70ba7b8803612428b003c844e97024c82694bc21d0",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db1-p3/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db1-watch/server.log",
+    "bytes": 10890800,
+    "sha256": "024c69bb72c769465c7ce91e35261d4a18b615764d5901e4e5bda8098a1e4341",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db1-watch/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db1-watch/witness.json",
+    "bytes": 2066548,
+    "sha256": "a0f7be2c7ff0a33a41e86d922971435f1b49f2e3093be3e8c27ffd5bc17bfc4d",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db1-watch/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db16-exec/server.log",
+    "bytes": 10108717,
+    "sha256": "eeb9a1abec0b25961101f70a4b756d61ba3ccdc388066eb1c611fad46635d8af",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db16-exec/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db16-exec/witness.json",
+    "bytes": 1913116,
+    "sha256": "d5a9a1be365af13e14133735f63bda72ef3dd0b32c0d1edca1b010c87b3c94e3",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db16-exec/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db16-exec-close/server.log",
+    "bytes": 8156631,
+    "sha256": "fc5023cfe2c651648ab74afb6b6d1acfc45f1f6f6c8423757e1f9d9ab0aecdc0",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db16-exec-close/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db16-exec-close/witness.json",
+    "bytes": 1812426,
+    "sha256": "94ec857e960457468f0fbaefb2148a6fb7e8e437cbd89308c6cfcfb5d35176f7",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db16-exec-close/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db16-p1/server.log",
+    "bytes": 10588720,
+    "sha256": "cd0bfed564594758dce85dc06c5118e03ed40a48b6fdc75b86366be193aee411",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db16-p1/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db16-p1/witness.json",
+    "bytes": 2006102,
+    "sha256": "dd28b66b8ca13c304c619c2a0ed8bc5ef705aba0b6f06fd6c1a3d234a7d9c1d8",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db16-p1/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db16-p2/server.log",
+    "bytes": 10661611,
+    "sha256": "6481c35ea64c685eb3c3352b45eb01153bf2b7c670d65e049983a2c8de71e79d",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db16-p2/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db16-p2/witness.json",
+    "bytes": 2020811,
+    "sha256": "338b05c03c8a2a5cbf3312906c003fa2b5b5d5642dacf4b89c28f4605363a0c2",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db16-p2/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db16-p3/server.log",
+    "bytes": 10498540,
+    "sha256": "c278e382fedf5d6e672dfeec3f861cb820fcb0905b489e08b9fad4a04d19a0f4",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db16-p3/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db16-p3/witness.json",
+    "bytes": 1988236,
+    "sha256": "ea50e216d95f3b973c766de4ccd125e8bd4193694f2040d85e2108ec82e95a45",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db16-p3/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db16-watch/server.log",
+    "bytes": 10610609,
+    "sha256": "621717d4b83e493ab3fc191d0cd5d3c1b1632111b5f5e4015ed3385022cf73c1",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db16-watch/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/2s-uring-1-db16-watch/witness.json",
+    "bytes": 2010600,
+    "sha256": "0c6daba7280a072cfc4c99cc16debf5381b8ad29c8c4f8ae17b8dc3b74fe8c56",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/2s-uring-1-db16-watch/witness.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6/results.json",
+    "bytes": 116826165,
+    "sha256": "6d563646174ed394b150ecdf45c59a5d96a5666cba34c3c24b4de924496bd7ad",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6/results.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6-scale/2s-epoll-0-db1-exec/server.log",
+    "bytes": 2478207,
+    "sha256": "7b25ea41765b92a17dcaed2c461e0d282ea0578290dd790cb0611ddb0e24b712",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6-scale/2s-epoll-0-db1-exec/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6-scale/2s-epoll-0-db1-exec-close/server.log",
+    "bytes": 2401242,
+    "sha256": "6103d83d2e110fd637f1a10afda4ac26898dce650b69a9f72163b9f3358a35f5",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6-scale/2s-epoll-0-db1-exec-close/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6-scale/2s-epoll-0-db16-exec/server.log",
+    "bytes": 2417788,
+    "sha256": "39072527f3781784cf1203f9201fa121dc35f6335e14700543cef8662d3d0f17",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6-scale/2s-epoll-0-db16-exec/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6-scale/2s-epoll-0-db16-exec-close/server.log",
+    "bytes": 2343158,
+    "sha256": "fc81973fd3c0c6a659df42943fb7cf04a35afda81ad22dc8d6212db1b95bf4b8",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6-scale/2s-epoll-0-db16-exec-close/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6-scale/2s-epoll-1-db1-exec/server.log",
+    "bytes": 2457370,
+    "sha256": "4754fcbc17367f12937e1c59de8d8f26148e1b1b71ba16d64942b2370e44d1f1",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6-scale/2s-epoll-1-db1-exec/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6-scale/2s-epoll-1-db1-exec-close/server.log",
+    "bytes": 2358282,
+    "sha256": "c689806532fdb2389c0914e19c1077e3ba0fd029d13154a2c7a48c781e507ca7",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6-scale/2s-epoll-1-db1-exec-close/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6-scale/2s-epoll-1-db16-exec/server.log",
+    "bytes": 2414016,
+    "sha256": "d52246fd54f76a9588ec7455eef8cd121129a6f42426431582727563eab39311",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6-scale/2s-epoll-1-db16-exec/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6-scale/2s-epoll-1-db16-exec-close/server.log",
+    "bytes": 2330844,
+    "sha256": "3f1ce51c2d1a0ef363a31a254888d0c37d997802ef6fc8e8b17b8bb243ea324e",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6-scale/2s-epoll-1-db16-exec-close/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6-scale/2s-uring-0-db1-exec/server.log",
+    "bytes": 2484666,
+    "sha256": "4dd6e27401ac487cbdf9eb2e78a5b9e47051576c49d4856788ba6f555069f40f",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6-scale/2s-uring-0-db1-exec/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6-scale/2s-uring-0-db1-exec-close/server.log",
+    "bytes": 2331961,
+    "sha256": "25e105ac984fd2f1ea27933febd74e882cb59e4e1868719b58bd4e342ba1592b",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6-scale/2s-uring-0-db1-exec-close/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6-scale/2s-uring-0-db16-exec/server.log",
+    "bytes": 2439955,
+    "sha256": "70d71c385bff7c1bc0eb00f94abcd95971613714d1806d08768e8139f5e11e5b",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6-scale/2s-uring-0-db16-exec/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6-scale/2s-uring-0-db16-exec-close/server.log",
+    "bytes": 2321663,
+    "sha256": "224c32aa4c39894057eab26924879314bc82ffaccfa8f21cb152ec4d98dc66ac",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6-scale/2s-uring-0-db16-exec-close/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6-scale/2s-uring-1-db1-exec/server.log",
+    "bytes": 2505555,
+    "sha256": "71e18adf043db609e4414625e308cf85a3e71a7e3ddc369127753155938867a7",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6-scale/2s-uring-1-db1-exec/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6-scale/2s-uring-1-db1-exec-close/server.log",
+    "bytes": 2346850,
+    "sha256": "05750f284e1c8e2c146d6fe6e897ed2f8f7548ec635cab6514f2353146203e46",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6-scale/2s-uring-1-db1-exec-close/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6-scale/2s-uring-1-db16-exec/server.log",
+    "bytes": 2430603,
+    "sha256": "2f70949604895389f84c86f7402e95bf93415452e493e462e1ac3c45286641f6",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6-scale/2s-uring-1-db16-exec/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6-scale/2s-uring-1-db16-exec-close/server.log",
+    "bytes": 2343364,
+    "sha256": "2ed127d7a910950284b3ac7ad1e6b43f69deef717350cddffbceef055d25b855",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6-scale/2s-uring-1-db16-exec-close/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flipfix6-scale/results.json",
+    "bytes": 9088610,
+    "sha256": "4f2d0331a7a11da5714dd2e0b503bb33f85a9496c55ff44b61a01e0b934401ff",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flipfix6-scale/results.json",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flush-live-flip-db1/2s-epoll-0/server.log",
+    "bytes": 11572901,
+    "sha256": "dd69f0e4afb77033429cc6fb045f5fbe37bef4bbf1ee87163d493adc53224646",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flush-live-flip-db1/2s-epoll-0/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flush-live-flip-db1/2s-epoll-1/server.log",
+    "bytes": 12058840,
+    "sha256": "3b8ee673a59e82e0080890e229761c9a4f7ae2ba3ceb5b284ec7fb0feaa29809",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flush-live-flip-db1/2s-epoll-1/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flush-live-flip-db1/2s-uring-0/server.log",
+    "bytes": 11312668,
+    "sha256": "a205a4b75718086f14516816cb71d9bdead43d628cbc4d43df395205abfa2a44",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flush-live-flip-db1/2s-uring-0/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flush-live-flip-db1/2s-uring-1/server.log",
+    "bytes": 11352204,
+    "sha256": "c89660b15728829e2e34b9ff0e19faa493931f368ded296eeac0c87d41e2ff1f",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flush-live-flip-db1/2s-uring-1/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flush-live-flip-db16/2s-epoll-0/server.log",
+    "bytes": 11767420,
+    "sha256": "96b665d5c8c17c37672f92366e272a2d873af8511238a5cdcf56e2be50258350",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flush-live-flip-db16/2s-epoll-0/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flush-live-flip-db16/2s-epoll-1/server.log",
+    "bytes": 11393204,
+    "sha256": "c552d4ba91451044675c9a3f4dd03d2a0469af43dfa0ba7d2b4d8072c83e76ba",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flush-live-flip-db16/2s-epoll-1/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flush-live-flip-db16/2s-uring-0/server.log",
+    "bytes": 11115603,
+    "sha256": "ad7d791eb38e9c26a17b84289645e3598ab23d707bf141ed9ad0f6e140f35bfa",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flush-live-flip-db16/2s-uring-0/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  },
+  {
+    "path": "build/gate-run.ksydPR/jobs/flipfix6/flush-live-flip-db16/2s-uring-1/server.log",
+    "bytes": 11050094,
+    "sha256": "73e97ac67c7a877f703215d72335904bc5ea69b22c5676c50aad551bb653c332",
+    "archive": "docs/flipfix7/gate-regression-uring-delivery-evidence.tar.gz",
+    "member": "jobs/flipfix6/flush-live-flip-db16/2s-uring-1/server.log",
+    "reason": "completed gate run; exact contents verified in retained evidence archive"
+  }
+]

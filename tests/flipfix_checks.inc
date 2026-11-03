@@ -20,6 +20,13 @@
                     "one non-coordinator IO converts");
             source.srv_ = &f.server;
             source.self_ = &f.server.thread(converting);
+            // FLIP can now retire held output in control passes. Bind the real
+            // WB policy even in this empty-ROB fixture; no socket/ring is opened.
+            source.wb_.bind(&source.ring_, nullptr,
+                [](void*, int32_t, const char*) { std::abort(); }, nullptr,
+                [](void*, Client&, Op&) { std::abort(); }, f.server.client_obuf_armed_ptr(),
+                nullptr, [](void*, Client&) { return false; },
+                &source.cached_now_s_, &source.self_->sig());
             for (uint32_t i = 0; i < count; i++) {
                 Client* client = new Client(-1);
                 client->set_id(100 + i);
@@ -81,6 +88,10 @@
                 require(client->dead(), "original IO finishes its closes after rollback");
             require(f.server.thread(converting).client_count() == 0 && f.server.live_clients() == 0,
                     "normal close conserves ownership and live counts");
+            // Rollback returned the serve pins to the ordinary FIFO. Exercise
+            // its dead-entry path before the original two-prologue lifetime cut.
+            (void)wb_rule::Phase2::serve<false, false, IoLoop>(source);
+            require(source.pending_serve_.empty(), "rollback output FIFO releases every dead pin");
             source.reap_dead(); source.reap_dead();
             std::printf("ARMED %s: %zu planned connections closed during FLIP 5 3, refused and reaped\n",
                         label, clients.size());

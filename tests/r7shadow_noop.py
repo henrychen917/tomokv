@@ -200,7 +200,12 @@ def wave8_inventory(binary):
     return Counter({'tomo': 164, 'tomo_db0': 162})
 
 
-def exec1s_inventory(binary, *, snapshot_capped=False, wave14=False):
+FLIPFIX7_CALLBACK = ('tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, '
+                     'tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}'
+                     '::operator()(tomo_db0::KvObj*) const')
+
+
+def exec1s_inventory(binary, *, snapshot_capped=False, wave14=False, flipfix7=False):
     """Keep wave8's inventory, explicitly account for fused sweep outlining.
 
     X1 emits one full fused sweep instead of two hot/cold clone pairs in each
@@ -246,10 +251,18 @@ def exec1s_inventory(binary, *, snapshot_capped=False, wave14=False):
                 ' [clone .constprop.0]')
         assert scan not in expected
         expected[scan] = 1
+    if flipfix7:
+        assert wave14
+        # The command-scope compiler budget retains all wave14 bodies and emits
+        # this additional DB0 scan callback. Compare its complete instructions
+        # too; accepting an arbitrary extra callback would weaken the receipt.
+        assert FLIPFIX7_CALLBACK not in expected
+        expected[FLIPFIX7_CALLBACK] = 1
     actual = {name: len(bodies) for name, bodies in binary.groups.items() if audit.category(name)}
-    label = 'wave14' if wave14 else 'wave10' if snapshot_capped else 'exec1s'
+    label = 'flipfix7' if flipfix7 else 'wave14' if wave14 else 'wave10' if snapshot_capped else 'exec1s'
     assert actual == expected, label + ' named inventory differs'
-    return Counter({'tomo': 163, 'tomo_db0': 162} if wave14 else
+    return Counter({'tomo': 163, 'tomo_db0': 163} if flipfix7 else
+                   {'tomo': 163, 'tomo_db0': 162} if wave14 else
                    {'tomo': 164, 'tomo_db0': 162} if snapshot_capped else
                    {'tomo': 162, 'tomo_db0': 160})
 
@@ -259,7 +272,7 @@ if __name__ == '__main__':
     parser.add_argument('pre')
     parser.add_argument('post')
     parser.add_argument('output')
-    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe', 'wave5', 'execfair', 'wave6', 'latencyfix', 'wave8', 'exec1s', 'wave10', 'wave14'), default='r7',
+    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe', 'wave5', 'execfair', 'wave6', 'latencyfix', 'wave8', 'exec1s', 'wave10', 'wave14', 'flipfix7'), default='r7',
                         help='wbrule/splitlocal retain historical inventories; overlapaxe requires the surviving bodies')
     args = parser.parse_args()
     out = Path(args.output)
@@ -339,10 +352,11 @@ if __name__ == '__main__':
         for binary in (pre, post): expected = latencyfix_inventory(binary)
     if args.inventory == 'wave8':
         for binary in (pre, post): expected = wave8_inventory(binary)
-    if args.inventory in ('exec1s', 'wave10', 'wave14'):
+    if args.inventory in ('exec1s', 'wave10', 'wave14', 'flipfix7'):
         for binary in (pre, post):
-            expected = exec1s_inventory(binary, snapshot_capped=args.inventory in ('wave10', 'wave14'),
-                                       wave14=args.inventory == 'wave14')
+            expected = exec1s_inventory(binary, snapshot_capped=args.inventory in ('wave10', 'wave14', 'flipfix7'),
+                                       wave14=args.inventory in ('wave14', 'flipfix7'),
+                                       flipfix7=args.inventory == 'flipfix7')
     counts = Counter('tomo_db0' if 'tomo_db0::' in row['name'] else 'tomo' for row in rows)
     assert counts == expected, f'off-path inventory changed: {counts}, expected {expected}'
     def inventory(binary):

@@ -212,8 +212,12 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
     axes = validate_axes(server, args.server_smt, load, args.load_smt or "",
                          topology=topology, check_available=check_available, shared_correctness=shared)
     total = len(set(server + load))
-    if not (SERVER_PER_SLOT if shared else MIN_PHYSICAL) <= total <= MAX_PHYSICAL:
-        raise ValueError(f"physical core budget is {total}; the gate requires {MIN_PHYSICAL}-"
+    # Selected correctness jobs retain an 8-server/2-driver slot. Shared CPU
+    # diagnostics have their stricter guards above; full/perf retains its floor.
+    minimum = (SERVER_PER_SLOT if shared else SERVER_PER_SLOT + LOAD_PER_SLOT
+               if purpose != "perf" and os.getenv("GATE_ONLY_JOBS") else MIN_PHYSICAL)
+    if not minimum <= total <= MAX_PHYSICAL:
+        raise ValueError(f"physical core budget is {total}; the gate requires {minimum}-"
                          f"{MAX_PHYSICAL} distinct physical cores")
     count = min(len(server) // SERVER_PER_SLOT, len(load) // LOAD_PER_SLOT)
     if count < 1:
@@ -378,6 +382,17 @@ def self_test():
             with mock.patch.dict(os.environ, {"GATE_ONLY_JOBS": only_jobs}, clear=True):
                 args = parser().parse_args(list(flags))
                 return make_plan(args, topology=topology, available=set(topology), check_available=False)
+
+        def test_selected_small_lane_preserves_geometry(self):
+            flags = ("quick", "--server-cores", "48-55", "--load-cores", "56-60")
+            plan = self.plan(*flags, only_jobs="flipfix7_blocked")
+            self.assertEqual((plan["physical_cores"], plan["slot_count"],
+                              plan["correctness_ratio"]), (13, 1, "6:2"))
+            with self.assertRaisesRegex(ValueError, "requires 16"):
+                self.plan(*flags)
+            with self.assertRaisesRegex(ValueError, "requires 10"):
+                self.plan("quick", "--server-cores", "48-55", "--load-cores", "56",
+                          only_jobs="flipfix7_blocked")
 
         def test_default_full_box(self):
             plan = self.plan()

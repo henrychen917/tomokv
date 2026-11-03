@@ -1,0 +1,44 @@
+{
+  "run": "/home/user/Projects/cx-flipfix7/build/gate-run.2OjXWw",
+  "jobs": {
+    "rlfix3_zc": {
+      "exit": 0,
+      "passed": 8,
+      "failed": 0
+    },
+    "release": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    }
+  },
+  "archive": "docs/flipfix7/gate-borrow-uring-delivery-evidence.tar.gz",
+  "archive_sha256": "7a2c5d75ca8b4b51ba027b10ffe2e8b4e2b9bf0f7e241fdd7450dfef7416a4d2",
+  "files": [
+    "families.tsv",
+    "jobs/release/done",
+    "jobs/release/family.tsv",
+    "jobs/release/ledger",
+    "jobs/release/output.log",
+    "jobs/release/timings",
+    "jobs/rlfix3_zc/done",
+    "jobs/rlfix3_zc/family.tsv",
+    "jobs/rlfix3_zc/ledger",
+    "jobs/rlfix3_zc/lifetime.log",
+    "jobs/rlfix3_zc/output.log",
+    "jobs/rlfix3_zc/timings",
+    "jobs/rlfix3_zc/zc-1s-epoll-0.log",
+    "jobs/rlfix3_zc/zc-1s-epoll-1.log",
+    "jobs/rlfix3_zc/zc-1s-uring-0.log",
+    "jobs/rlfix3_zc/zc-1s-uring-1.log",
+    "jobs/rlfix3_zc/zc-2s-epoll-0.log",
+    "jobs/rlfix3_zc/zc-2s-epoll-1.log",
+    "jobs/rlfix3_zc/zc-2s-uring-0.log",
+    "jobs/rlfix3_zc/zc-2s-uring-1.log",
+    "phases.tsv",
+    "plan.sh",
+    "row-timeouts.json"
+  ],
+  "runner_log_sha256": "7c29f2771669d18b9bb57b02ec3958b8c3245e11a96e829bb8223f41325dd9f0",
+  "post_sha256": "d443b95831da51c41d8095a529d4e1d3db8ec3fd7dd802c1a3ef34926c47fd21"
+}

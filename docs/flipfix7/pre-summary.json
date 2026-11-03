@@ -1,0 +1,2834 @@
+[
+  {
+    "case": "blocked",
+    "engine": "uring",
+    "atomic": 0,
+    "databases": 1,
+    "read_local": 0,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::IoDrain }",
+    "clauses": [
+      {
+        "io": 4,
+        "id_": 17,
+        "send_inflight_": 0,
+        "barrier_owners_": 2,
+        "connection_flags_": 128,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 0
+      }
+    ],
+    "flip": "ERR FLIP timed out before the ownership commit",
+    "flip_seconds": 5.0003953175619245,
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000328736379743,
+    "elapsed": 5.000827468931675,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "tls",
+    "engine": "uring",
+    "atomic": 0,
+    "databases": 1,
+    "read_local": 0,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientPrepare }",
+    "clauses": [
+      {
+        "io": 3,
+        "id_": 33,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 3,
+        "id_": 35,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 1,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 3,
+        "id_": 36,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 2,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 4,
+        "id_": 37,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 5,
+        "id_": 31,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 5,
+        "id_": 32,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 1,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 5,
+        "id_": 34,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 2,
+        "obuf_bytes_": 0
+      }
+    ],
+    "flip": "ERR FLIP cannot quiesce a connection: TLS connection has owner-local engine state",
+    "flip_seconds": 5.000195726752281,
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000148455612361,
+    "elapsed": 5.000639037229121,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "blocked",
+    "engine": "uring",
+    "atomic": 1,
+    "databases": 1,
+    "read_local": 0,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::IoDrain }",
+    "clauses": [
+      {
+        "io": 4,
+        "id_": 23,
+        "send_inflight_": 0,
+        "barrier_owners_": 2,
+        "connection_flags_": 128,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 0
+      }
+    ],
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000105384737253,
+    "flip": "ERR FLIP timed out before the ownership commit",
+    "flip_seconds": 5.000266125425696,
+    "elapsed": 5.00066598597914,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "tls",
+    "engine": "uring",
+    "atomic": 1,
+    "databases": 1,
+    "read_local": 0,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientPrepare }",
+    "clauses": [
+      {
+        "io": 0,
+        "id_": 15,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 0,
+        "id_": 22,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 1,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 0,
+        "id_": 23,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 2,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 1,
+        "id_": 18,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 2,
+        "id_": 16,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 2,
+        "id_": 20,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 1,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 3,
+        "id_": 12,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 3,
+        "id_": 13,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 1,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 3,
+        "id_": 17,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 2,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 3,
+        "id_": 19,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 3,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 4,
+        "id_": 25,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 5,
+        "id_": 11,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 5,
+        "id_": 14,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 1,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 5,
+        "id_": 21,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 2,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 5,
+        "id_": 24,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 3,
+        "obuf_bytes_": 0
+      }
+    ],
+    "ping": "b'PONG'",
+    "ping_seconds": 4.999982693232596,
+    "flip": "ERR FLIP cannot quiesce a connection: TLS connection has owner-local engine state",
+    "flip_seconds": 5.000129514373839,
+    "elapsed": 5.000566404312849,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "blocked",
+    "engine": "epoll",
+    "atomic": 0,
+    "databases": 1,
+    "read_local": 0,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::IoDrain }",
+    "clauses": [
+      {
+        "io": 4,
+        "id_": 36,
+        "send_inflight_": 0,
+        "barrier_owners_": 2,
+        "connection_flags_": 128,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 0
+      }
+    ],
+    "flip": "ERR FLIP timed out before the ownership commit",
+    "flip_seconds": 5.000107342377305,
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000096432864666,
+    "elapsed": 5.000535493716598,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "tls",
+    "engine": "epoll",
+    "atomic": 0,
+    "databases": 1,
+    "read_local": 0,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientPrepare }",
+    "clauses": [
+      {
+        "io": 0,
+        "id_": 51,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 0,
+        "id_": 55,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 1,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 0,
+        "id_": 59,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 2,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 1,
+        "id_": 52,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 2,
+        "id_": 54,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 3,
+        "id_": 53,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 4,
+        "id_": 60,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 5,
+        "id_": 56,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 5,
+        "id_": 57,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 1,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 5,
+        "id_": 58,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 2,
+        "obuf_bytes_": 0
+      }
+    ],
+    "flip": "ERR FLIP cannot quiesce a connection: TLS connection has owner-local engine state",
+    "flip_seconds": 5.000072910450399,
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000064002349973,
+    "elapsed": 5.000533604063094,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "blocked",
+    "engine": "epoll",
+    "atomic": 1,
+    "databases": 1,
+    "read_local": 0,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::IoDrain }",
+    "clauses": [
+      {
+        "io": 4,
+        "id_": 24,
+        "send_inflight_": 0,
+        "barrier_owners_": 2,
+        "connection_flags_": 128,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 0
+      }
+    ],
+    "flip": "ERR FLIP timed out before the ownership commit",
+    "flip_seconds": 5.000121441669762,
+    "ping": "b'PONG'",
+    "ping_seconds": 5.0000949604436755,
+    "elapsed": 5.0005445424467325,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "tls",
+    "engine": "epoll",
+    "atomic": 1,
+    "databases": 1,
+    "read_local": 0,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientPrepare }",
+    "clauses": [
+      {
+        "io": 0,
+        "id_": 24,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 2,
+        "id_": 26,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 3,
+        "id_": 25,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 4,
+        "id_": 27,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      }
+    ],
+    "ping": "b'PONG'",
+    "ping_seconds": 4.999998048879206,
+    "flip": "ERR FLIP cannot quiesce a connection: TLS connection has owner-local engine state",
+    "flip_seconds": 5.000132408924401,
+    "elapsed": 5.000544630922377,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "blocked",
+    "engine": "uring",
+    "atomic": 0,
+    "databases": 1,
+    "read_local": 1,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::IoDrain }",
+    "clauses": [
+      {
+        "io": 4,
+        "id_": 30,
+        "send_inflight_": 0,
+        "barrier_owners_": 2,
+        "connection_flags_": 128,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 0
+      }
+    ],
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000042958185077,
+    "flip": "ERR FLIP timed out before the ownership commit",
+    "flip_seconds": 5.0002260794863105,
+    "elapsed": 5.000628401525319,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "tls",
+    "engine": "uring",
+    "atomic": 0,
+    "databases": 1,
+    "read_local": 1,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientPrepare }",
+    "clauses": [
+      {
+        "io": 3,
+        "id_": 17,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 4,
+        "id_": 18,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      }
+    ],
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000436389818788,
+    "flip": "ERR FLIP timed out before the ownership commit",
+    "flip_seconds": 5.0005874605849385,
+    "elapsed": 5.001007221639156,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "blocked",
+    "engine": "uring",
+    "atomic": 1,
+    "databases": 1,
+    "read_local": 1,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::IoDrain }",
+    "clauses": [
+      {
+        "io": 4,
+        "id_": 29,
+        "send_inflight_": 0,
+        "barrier_owners_": 2,
+        "connection_flags_": 128,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 0
+      }
+    ],
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000083397142589,
+    "flip": "ERR FLIP timed out before the ownership commit",
+    "flip_seconds": 5.000233357772231,
+    "elapsed": 5.001019760966301,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "tls",
+    "engine": "uring",
+    "atomic": 1,
+    "databases": 1,
+    "read_local": 1,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientPrepare }",
+    "clauses": [
+      {
+        "io": 4,
+        "id_": 32,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      }
+    ],
+    "flip": "ERR FLIP cannot quiesce a connection: TLS connection has owner-local engine state",
+    "flip_seconds": 5.000224296934903,
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000240316614509,
+    "elapsed": 5.00070973765105,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "blocked",
+    "engine": "epoll",
+    "atomic": 0,
+    "databases": 1,
+    "read_local": 1,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::IoDrain }",
+    "clauses": [
+      {
+        "io": 4,
+        "id_": 18,
+        "send_inflight_": 0,
+        "barrier_owners_": 2,
+        "connection_flags_": 128,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 0
+      }
+    ],
+    "ping": "b'PONG'",
+    "ping_seconds": 5.00003803614527,
+    "flip": "ERR FLIP timed out before the ownership commit",
+    "flip_seconds": 5.000196426175535,
+    "elapsed": 5.000554967671633,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "tls",
+    "engine": "epoll",
+    "atomic": 0,
+    "databases": 1,
+    "read_local": 1,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientPrepare }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 29,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 4,
+        "id_": 30,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      }
+    ],
+    "flip": "ERR FLIP cannot quiesce a connection: TLS connection has owner-local engine state",
+    "flip_seconds": 5.000095154158771,
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000090464949608,
+    "elapsed": 5.0005574664101005,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "blocked",
+    "engine": "epoll",
+    "atomic": 1,
+    "databases": 1,
+    "read_local": 1,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::IoDrain }",
+    "clauses": [
+      {
+        "io": 4,
+        "id_": 18,
+        "send_inflight_": 0,
+        "barrier_owners_": 2,
+        "connection_flags_": 128,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 0
+      }
+    ],
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000059382990003,
+    "flip": "ERR FLIP timed out before the ownership commit",
+    "flip_seconds": 5.000204314477742,
+    "elapsed": 5.0005766451358795,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "tls",
+    "engine": "epoll",
+    "atomic": 1,
+    "databases": 1,
+    "read_local": 1,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientPrepare }",
+    "clauses": [
+      {
+        "io": 0,
+        "id_": 42,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 0,
+        "id_": 44,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 1,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 0,
+        "id_": 45,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 2,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 0,
+        "id_": 47,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 3,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 3,
+        "id_": 39,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 3,
+        "id_": 40,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 1,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 3,
+        "id_": 41,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 2,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 3,
+        "id_": 43,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 3,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 4,
+        "id_": 48,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 5,
+        "id_": 46,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      }
+    ],
+    "ping": "b'PONG'",
+    "ping_seconds": 4.999992231838405,
+    "flip": "ERR FLIP cannot quiesce a connection: TLS connection has owner-local engine state",
+    "flip_seconds": 5.000153312459588,
+    "elapsed": 5.000594483688474,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "blocked",
+    "engine": "uring",
+    "atomic": 0,
+    "databases": 16,
+    "read_local": 0,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::IoDrain }",
+    "clauses": [
+      {
+        "io": 4,
+        "id_": 24,
+        "send_inflight_": 0,
+        "barrier_owners_": 2,
+        "connection_flags_": 128,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 0
+      }
+    ],
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000359432771802,
+    "flip": "ERR FLIP timed out before the ownership commit",
+    "flip_seconds": 5.000560632906854,
+    "elapsed": 5.0014528557658195,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "tls",
+    "engine": "uring",
+    "atomic": 0,
+    "databases": 16,
+    "read_local": 0,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientPrepare }",
+    "clauses": [
+      {
+        "io": 2,
+        "id_": 39,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 3,
+        "id_": 40,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 3,
+        "id_": 41,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 1,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 4,
+        "id_": 42,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      }
+    ],
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000105760991573,
+    "flip": "ERR FLIP cannot quiesce a connection: TLS connection has owner-local engine state",
+    "flip_seconds": 5.000249692238867,
+    "elapsed": 5.000671322457492,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "blocked",
+    "engine": "uring",
+    "atomic": 1,
+    "databases": 16,
+    "read_local": 0,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::IoDrain }",
+    "clauses": [
+      {
+        "io": 4,
+        "id_": 18,
+        "send_inflight_": 0,
+        "barrier_owners_": 2,
+        "connection_flags_": 128,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 0
+      }
+    ],
+    "flip": "ERR FLIP timed out before the ownership commit",
+    "flip_seconds": 5.000196381472051,
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000185419805348,
+    "elapsed": 5.000623942352831,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "tls",
+    "engine": "uring",
+    "atomic": 1,
+    "databases": 16,
+    "read_local": 0,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientPrepare }",
+    "clauses": [
+      {
+        "io": 0,
+        "id_": 39,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 0,
+        "id_": 40,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 1,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 0,
+        "id_": 41,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 2,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 0,
+        "id_": 44,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 3,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 0,
+        "id_": 46,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 1,
+        "id_": 48,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 1,
+        "id_": 49,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 1,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 2,
+        "id_": 45,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 3,
+        "id_": 43,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 4,
+        "id_": 50,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 5,
+        "id_": 38,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 5,
+        "id_": 42,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 1,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 5,
+        "id_": 47,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 2,
+        "obuf_bytes_": 0
+      }
+    ],
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000010969117284,
+    "flip": "ERR FLIP cannot quiesce a connection: TLS connection has owner-local engine state",
+    "flip_seconds": 5.000147419050336,
+    "elapsed": 5.000552880577743,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "blocked",
+    "engine": "epoll",
+    "atomic": 0,
+    "databases": 16,
+    "read_local": 0,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::IoDrain }",
+    "clauses": [
+      {
+        "io": 4,
+        "id_": 22,
+        "send_inflight_": 0,
+        "barrier_owners_": 2,
+        "connection_flags_": 128,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 0
+      }
+    ],
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000010288320482,
+    "flip": "ERR FLIP timed out before the ownership commit",
+    "flip_seconds": 5.000153029337525,
+    "elapsed": 5.000562031753361,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "tls",
+    "engine": "epoll",
+    "atomic": 0,
+    "databases": 16,
+    "read_local": 0,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientPrepare }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 27,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 2,
+        "id_": 25,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 3,
+        "id_": 26,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 4,
+        "id_": 28,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      }
+    ],
+    "flip": "ERR FLIP cannot quiesce a connection: TLS connection has owner-local engine state",
+    "flip_seconds": 5.000101737678051,
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000074896961451,
+    "elapsed": 5.000569659285247,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "blocked",
+    "engine": "epoll",
+    "atomic": 1,
+    "databases": 16,
+    "read_local": 0,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::IoDrain }",
+    "clauses": [
+      {
+        "io": 4,
+        "id_": 29,
+        "send_inflight_": 0,
+        "barrier_owners_": 2,
+        "connection_flags_": 128,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 0
+      }
+    ],
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000022667460144,
+    "flip": "ERR FLIP timed out before the ownership commit",
+    "flip_seconds": 5.000156866386533,
+    "elapsed": 5.000525608658791,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "tls",
+    "engine": "epoll",
+    "atomic": 1,
+    "databases": 16,
+    "read_local": 0,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientPrepare }",
+    "clauses": [
+      {
+        "io": 4,
+        "id_": 13,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      }
+    ],
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000049977563322,
+    "flip": "ERR FLIP cannot quiesce a connection: TLS connection has owner-local engine state",
+    "flip_seconds": 5.0001931972801685,
+    "elapsed": 5.000589698553085,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "blocked",
+    "engine": "uring",
+    "atomic": 0,
+    "databases": 16,
+    "read_local": 1,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::IoDrain }",
+    "clauses": [
+      {
+        "io": 4,
+        "id_": 24,
+        "send_inflight_": 0,
+        "barrier_owners_": 2,
+        "connection_flags_": 128,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 0
+      }
+    ],
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000037744641304,
+    "flip": "ERR FLIP timed out before the ownership commit",
+    "flip_seconds": 5.00022111646831,
+    "elapsed": 5.000628677196801,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "tls",
+    "engine": "uring",
+    "atomic": 0,
+    "databases": 16,
+    "read_local": 1,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientPrepare }",
+    "clauses": [
+      {
+        "io": 0,
+        "id_": 14,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 0,
+        "id_": 16,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 1,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 1,
+        "id_": 20,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 1,
+        "id_": 21,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 1,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 2,
+        "id_": 15,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 3,
+        "id_": 17,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 3,
+        "id_": 18,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 1,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 4,
+        "id_": 23,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 5,
+        "id_": 19,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 5,
+        "id_": 22,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 1,
+        "obuf_bytes_": 0
+      }
+    ],
+    "flip": "ERR FLIP timed out before the ownership commit",
+    "flip_seconds": 5.014175685122609,
+    "ping": "b'PONG'",
+    "ping_seconds": 5.014154504053295,
+    "elapsed": 5.014708415605128,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "blocked",
+    "engine": "uring",
+    "atomic": 1,
+    "databases": 16,
+    "read_local": 1,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::IoDrain }",
+    "clauses": [
+      {
+        "io": 4,
+        "id_": 63,
+        "send_inflight_": 0,
+        "barrier_owners_": 2,
+        "connection_flags_": 128,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 0
+      }
+    ],
+    "flip": "ERR FLIP timed out before the ownership commit",
+    "flip_seconds": 5.000141874887049,
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000109734013677,
+    "elapsed": 5.000641876831651,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "tls",
+    "engine": "uring",
+    "atomic": 1,
+    "databases": 16,
+    "read_local": 1,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientPrepare }",
+    "clauses": [
+      {
+        "io": 2,
+        "id_": 29,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 4,
+        "id_": 30,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 5,
+        "id_": 28,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      }
+    ],
+    "flip": "ERR FLIP cannot quiesce a connection: TLS connection has owner-local engine state",
+    "flip_seconds": 5.000173983164132,
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000160383991897,
+    "elapsed": 5.0006376057863235,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "blocked",
+    "engine": "epoll",
+    "atomic": 0,
+    "databases": 16,
+    "read_local": 1,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::IoDrain }",
+    "clauses": [
+      {
+        "io": 4,
+        "id_": 17,
+        "send_inflight_": 0,
+        "barrier_owners_": 2,
+        "connection_flags_": 128,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 0
+      }
+    ],
+    "flip": "ERR FLIP timed out before the ownership commit",
+    "flip_seconds": 5.0001161228865385,
+    "ping": "b'PONG'",
+    "ping_seconds": 5.0001545725390315,
+    "elapsed": 5.000565364956856,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "tls",
+    "engine": "epoll",
+    "atomic": 0,
+    "databases": 16,
+    "read_local": 1,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientPrepare }",
+    "clauses": [
+      {
+        "io": 0,
+        "id_": 24,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 1,
+        "id_": 26,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 2,
+        "id_": 25,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 4,
+        "id_": 27,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      }
+    ],
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000001831911504,
+    "flip": "ERR FLIP cannot quiesce a connection: TLS connection has owner-local engine state",
+    "flip_seconds": 5.000141181983054,
+    "elapsed": 5.00056975428015,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "blocked",
+    "engine": "epoll",
+    "atomic": 1,
+    "databases": 16,
+    "read_local": 1,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::IoDrain }",
+    "clauses": [
+      {
+        "io": 4,
+        "id_": 13,
+        "send_inflight_": 0,
+        "barrier_owners_": 2,
+        "connection_flags_": 128,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 0
+      }
+    ],
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000043900683522,
+    "flip": "ERR FLIP timed out before the ownership commit",
+    "flip_seconds": 5.000178740359843,
+    "elapsed": 5.00054001249373,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "tls",
+    "engine": "epoll",
+    "atomic": 1,
+    "databases": 16,
+    "read_local": 1,
+    "attempt": 0,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientPrepare }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 24,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 2,
+        "id_": 22,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 2,
+        "id_": 25,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 1,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 3,
+        "id_": 23,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 4,
+        "id_": 26,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      },
+      {
+        "io": 5,
+        "id_": 21,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 0,
+        "obuf_bytes_": 0
+      }
+    ],
+    "ping": "b'PONG'",
+    "ping_seconds": 5.000000439584255,
+    "flip": "ERR FLIP cannot quiesce a connection: TLS connection has owner-local engine state",
+    "flip_seconds": 5.000141520984471,
+    "elapsed": 5.000578282400966,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "late",
+    "engine": "uring",
+    "atomic": 0,
+    "databases": 1,
+    "read_local": 0,
+    "attempt": 1,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.020119900815188885,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 4,
+        "send_inflight_": 1,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5352397
+      }
+    ],
+    "wedge": true,
+    "notifications": 1024,
+    "ping": "b'PONG'",
+    "ping_seconds": 13.404345558024943,
+    "flip": "b'OK'",
+    "flip_seconds": 13.404484638012946,
+    "elapsed": 13.404824810102582,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "signal",
+    "engine": "uring",
+    "atomic": 0,
+    "databases": 1,
+    "read_local": 0,
+    "attempt": 1,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.020250670611858368,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 8,
+        "send_inflight_": 1,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5352397
+      }
+    ],
+    "signal_exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "saved": false,
+    "elapsed": 14.553184404969215,
+    "exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "flip": "EOFError('server closed the connection')",
+    "flip_seconds": 14.555055472068489,
+    "ping": "EOFError('server closed the connection')",
+    "ping_seconds": 14.555021721869707,
+    "reloaded_acknowledged": 0
+  },
+  {
+    "case": "late",
+    "engine": "uring",
+    "atomic": 1,
+    "databases": 1,
+    "read_local": 0,
+    "attempt": 7,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.019493098370730877,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 3,
+        "send_inflight_": 1,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5352397
+      }
+    ],
+    "wedge": true,
+    "ping": "b'PONG'",
+    "ping_seconds": 13.398071643896401,
+    "flip": "b'OK'",
+    "flip_seconds": 13.398192463442683,
+    "notifications": 1024,
+    "elapsed": 13.403492352925241,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "signal",
+    "engine": "uring",
+    "atomic": 1,
+    "databases": 1,
+    "read_local": 0,
+    "attempt": 0,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.018803865648806095,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 10,
+        "send_inflight_": 1,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5352397
+      }
+    ],
+    "ping": "EOFError('server closed the connection')",
+    "ping_seconds": 14.541716913692653,
+    "signal_exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "saved": false,
+    "elapsed": 14.542296235449612,
+    "exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "flip": "EOFError('server closed the connection')",
+    "flip_seconds": 14.544200321659446,
+    "reloaded_acknowledged": 0
+  },
+  {
+    "case": "late",
+    "engine": "epoll",
+    "atomic": 0,
+    "databases": 1,
+    "read_local": 0,
+    "attempt": 4,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.017746051773428917,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 15,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5352397
+      }
+    ],
+    "wedge": true,
+    "ping": "b'PONG'",
+    "ping_seconds": 13.474936863407493,
+    "flip": "b'OK'",
+    "flip_seconds": 13.4750881139189,
+    "notifications": 1024,
+    "elapsed": 13.480276302434504,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "signal",
+    "engine": "epoll",
+    "atomic": 0,
+    "databases": 1,
+    "read_local": 0,
+    "attempt": 2,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.024026425555348396,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 9,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5344154
+      }
+    ],
+    "ping": "EOFError('server closed the connection')",
+    "ping_seconds": 14.772153079509735,
+    "flip": "EOFError('server closed the connection')",
+    "flip_seconds": 14.772336209192872,
+    "signal_exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "saved": false,
+    "elapsed": 14.773719433695078,
+    "exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "reloaded_acknowledged": 0
+  },
+  {
+    "case": "late",
+    "engine": "epoll",
+    "atomic": 1,
+    "databases": 1,
+    "read_local": 0,
+    "attempt": 0,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.021389334462583065,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 3,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5327872
+      }
+    ],
+    "wedge": true,
+    "flip": "b'OK'",
+    "flip_seconds": 13.400979028083384,
+    "ping": "b'PONG'",
+    "ping_seconds": 13.400959698483348,
+    "notifications": 1024,
+    "elapsed": 13.406099405139685,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "signal",
+    "engine": "epoll",
+    "atomic": 1,
+    "databases": 1,
+    "read_local": 0,
+    "attempt": 0,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.020727013237774372,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 8,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5327872
+      }
+    ],
+    "ping": "EOFError('server closed the connection')",
+    "ping_seconds": 14.566646583378315,
+    "flip": "EOFError('server closed the connection')",
+    "flip_seconds": 14.56679895427078,
+    "signal_exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "saved": false,
+    "elapsed": 14.567323465831578,
+    "exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "reloaded_acknowledged": 0
+  },
+  {
+    "case": "late",
+    "engine": "uring",
+    "atomic": 0,
+    "databases": 1,
+    "read_local": 1,
+    "attempt": 4,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.017235049977898598,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 22,
+        "send_inflight_": 1,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5344154
+      }
+    ],
+    "wedge": true,
+    "notifications": 1024,
+    "ping": "b'PONG'",
+    "ping_seconds": 13.560969091951847,
+    "flip": "b'OK'",
+    "flip_seconds": 13.561092933639884,
+    "elapsed": 13.561374983750284,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "signal",
+    "engine": "uring",
+    "atomic": 0,
+    "databases": 1,
+    "read_local": 1,
+    "attempt": 3,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.01943380758166313,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 4,
+        "send_inflight_": 1,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5344154
+      }
+    ],
+    "signal_exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "saved": false,
+    "elapsed": 14.485452589578927,
+    "exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "flip": "EOFError('server closed the connection')",
+    "flip_seconds": 14.487130445428193,
+    "ping": "EOFError('server closed the connection')",
+    "ping_seconds": 14.487081674858928,
+    "reloaded_acknowledged": 0
+  },
+  {
+    "case": "late",
+    "engine": "uring",
+    "atomic": 1,
+    "databases": 1,
+    "read_local": 1,
+    "attempt": 1,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.02262822911143303,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 9,
+        "send_inflight_": 1,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5327872
+      }
+    ],
+    "wedge": true,
+    "ping": "b'PONG'",
+    "ping_seconds": 13.479162288829684,
+    "flip": "b'OK'",
+    "flip_seconds": 13.479273940436542,
+    "notifications": 1024,
+    "elapsed": 13.483880465850234,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "signal",
+    "engine": "uring",
+    "atomic": 1,
+    "databases": 1,
+    "read_local": 1,
+    "attempt": 3,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.02023966982960701,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 8,
+        "send_inflight_": 1,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5344154
+      }
+    ],
+    "ping": "EOFError('server closed the connection')",
+    "ping_seconds": 14.460669346153736,
+    "signal_exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "saved": false,
+    "elapsed": 14.461277799680829,
+    "exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "flip": "EOFError('server closed the connection')",
+    "flip_seconds": 14.46331572625786,
+    "reloaded_acknowledged": 0
+  },
+  {
+    "case": "late",
+    "engine": "epoll",
+    "atomic": 0,
+    "databases": 1,
+    "read_local": 1,
+    "attempt": 2,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.01861672569066286,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 8,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5344154
+      }
+    ],
+    "wedge": true,
+    "flip": "b'OK'",
+    "flip_seconds": 13.540732908062637,
+    "ping": "b'PONG'",
+    "ping_seconds": 13.540698528289795,
+    "notifications": 1024,
+    "elapsed": 13.545743755064905,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "signal",
+    "engine": "epoll",
+    "atomic": 0,
+    "databases": 1,
+    "read_local": 1,
+    "attempt": 0,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.019438828341662884,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 4,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5327872
+      }
+    ],
+    "ping": "EOFError('server closed the connection')",
+    "ping_seconds": 14.477812280878425,
+    "flip": "EOFError('server closed the connection')",
+    "flip_seconds": 14.477960941381752,
+    "signal_exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "saved": false,
+    "elapsed": 14.478545623831451,
+    "exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "reloaded_acknowledged": 0
+  },
+  {
+    "case": "late",
+    "engine": "epoll",
+    "atomic": 1,
+    "databases": 1,
+    "read_local": 1,
+    "attempt": 0,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.0197770893573761,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 3,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5352397
+      }
+    ],
+    "wedge": true,
+    "flip": "b'OK'",
+    "flip_seconds": 13.432610255666077,
+    "ping": "b'PONG'",
+    "ping_seconds": 13.43259063642472,
+    "notifications": 1024,
+    "elapsed": 13.43768784403801,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "signal",
+    "engine": "epoll",
+    "atomic": 1,
+    "databases": 1,
+    "read_local": 1,
+    "attempt": 3,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.020030220039188862,
+    "stage": "std::atomic<enum tomo_db0::FlipStage> = { tomo_db0::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 8,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5352397
+      }
+    ],
+    "ping": "EOFError('server closed the connection')",
+    "ping_seconds": 14.475766610354185,
+    "flip": "EOFError('server closed the connection')",
+    "flip_seconds": 14.475950630381703,
+    "signal_exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "saved": false,
+    "elapsed": 14.476501941680908,
+    "exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "reloaded_acknowledged": 0
+  },
+  {
+    "case": "late",
+    "engine": "uring",
+    "atomic": 0,
+    "databases": 16,
+    "read_local": 0,
+    "attempt": 3,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.020283730700612068,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 7,
+        "send_inflight_": 1,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5352397
+      }
+    ],
+    "wedge": true,
+    "flip": "b'OK'",
+    "flip_seconds": 13.440814579837024,
+    "ping": "b'PONG'",
+    "ping_seconds": 13.440784049220383,
+    "notifications": 1024,
+    "elapsed": 13.4468316109851,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "signal",
+    "engine": "uring",
+    "atomic": 0,
+    "databases": 16,
+    "read_local": 0,
+    "attempt": 1,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.01874250639230013,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 8,
+        "send_inflight_": 1,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5352397
+      }
+    ],
+    "signal_exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "saved": false,
+    "elapsed": 14.57156889140606,
+    "exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "flip": "EOFError('server closed the connection')",
+    "flip_seconds": 14.573263466358185,
+    "ping": "EOFError('server closed the connection')",
+    "ping_seconds": 14.573233217932284,
+    "reloaded_acknowledged": 0
+  },
+  {
+    "case": "late",
+    "engine": "uring",
+    "atomic": 1,
+    "databases": 16,
+    "read_local": 0,
+    "attempt": 0,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.020257080905139446,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 7,
+        "send_inflight_": 1,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5327872
+      }
+    ],
+    "wedge": true,
+    "notifications": 1024,
+    "flip": "b'OK'",
+    "flip_seconds": 13.378675638698041,
+    "ping": "b'PONG'",
+    "ping_seconds": 13.37865089904517,
+    "elapsed": 13.384203559719026,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "signal",
+    "engine": "uring",
+    "atomic": 1,
+    "databases": 16,
+    "read_local": 0,
+    "attempt": 7,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.019940480589866638,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 3,
+        "send_inflight_": 1,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5352397
+      }
+    ],
+    "signal_exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "saved": false,
+    "elapsed": 14.555352258495986,
+    "exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "ping": "EOFError('server closed the connection')",
+    "ping_seconds": 14.557109706103802,
+    "flip": "EOFError('server closed the connection')",
+    "flip_seconds": 14.557246075943112,
+    "reloaded_acknowledged": 0
+  },
+  {
+    "case": "late",
+    "engine": "epoll",
+    "atomic": 0,
+    "databases": 16,
+    "read_local": 0,
+    "attempt": 6,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.019805878400802612,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 9,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5352397
+      }
+    ],
+    "wedge": true,
+    "flip": "b'OK'",
+    "flip_seconds": 13.064785943366587,
+    "ping": "b'PONG'",
+    "ping_seconds": 13.064539670944214,
+    "notifications": 1024,
+    "elapsed": 13.068543684668839,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "signal",
+    "engine": "epoll",
+    "atomic": 0,
+    "databases": 16,
+    "read_local": 0,
+    "attempt": 3,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.019401008263230324,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 9,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5327872
+      }
+    ],
+    "ping": "EOFError('server closed the connection')",
+    "ping_seconds": 14.54366037901491,
+    "flip": "EOFError('server closed the connection')",
+    "flip_seconds": 14.543795378878713,
+    "signal_exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "saved": false,
+    "elapsed": 14.54443939961493,
+    "exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "reloaded_acknowledged": 0
+  },
+  {
+    "case": "late",
+    "engine": "epoll",
+    "atomic": 1,
+    "databases": 16,
+    "read_local": 0,
+    "attempt": 0,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.020246997475624084,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 4,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5327872
+      }
+    ],
+    "wedge": true,
+    "flip": "b'OK'",
+    "flip_seconds": 13.170673410408199,
+    "ping": "b'PONG'",
+    "ping_seconds": 13.170645129866898,
+    "notifications": 1024,
+    "elapsed": 13.175966030918062,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "signal",
+    "engine": "epoll",
+    "atomic": 1,
+    "databases": 16,
+    "read_local": 0,
+    "attempt": 0,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.020428000018000603,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 2,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5352397
+      }
+    ],
+    "ping": "EOFError('server closed the connection')",
+    "ping_seconds": 14.521476618945599,
+    "flip": "EOFError('server closed the connection')",
+    "flip_seconds": 14.521611338481307,
+    "signal_exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "saved": false,
+    "elapsed": 14.522137588821352,
+    "exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "reloaded_acknowledged": 0
+  },
+  {
+    "case": "late",
+    "engine": "uring",
+    "atomic": 0,
+    "databases": 16,
+    "read_local": 1,
+    "attempt": 0,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.0193648524582386,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 3,
+        "send_inflight_": 1,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5327872
+      }
+    ],
+    "wedge": true,
+    "flip": "b'OK'",
+    "flip_seconds": 13.165199643932283,
+    "ping": "b'PONG'",
+    "ping_seconds": 13.165139184333384,
+    "notifications": 1024,
+    "elapsed": 13.170921265147626,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "signal",
+    "engine": "uring",
+    "atomic": 0,
+    "databases": 16,
+    "read_local": 1,
+    "attempt": 27,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.01832784339785576,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 15,
+        "send_inflight_": 1,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5344154
+      }
+    ],
+    "ping": "EOFError('server closed the connection')",
+    "ping_seconds": 14.464548553340137,
+    "signal_exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "saved": false,
+    "elapsed": 14.465162174776196,
+    "exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "flip": "EOFError('server closed the connection')",
+    "flip_seconds": 14.46660989522934,
+    "reloaded_acknowledged": 0
+  },
+  {
+    "case": "late",
+    "engine": "uring",
+    "atomic": 1,
+    "databases": 16,
+    "read_local": 1,
+    "attempt": 9,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.02106132172048092,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 7,
+        "send_inflight_": 1,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5352397
+      }
+    ],
+    "wedge": true,
+    "flip": "b'OK'",
+    "flip_seconds": 13.153059331700206,
+    "ping": "b'PONG'",
+    "ping_seconds": 13.153030819259584,
+    "notifications": 1024,
+    "elapsed": 13.158601276576519,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "signal",
+    "engine": "uring",
+    "atomic": 1,
+    "databases": 16,
+    "read_local": 1,
+    "attempt": 3,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.019186350516974926,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 14,
+        "send_inflight_": 1,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5352397
+      }
+    ],
+    "signal_exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "saved": false,
+    "elapsed": 14.473564790561795,
+    "exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "ping": "EOFError('server closed the connection')",
+    "ping_seconds": 14.47550726402551,
+    "flip": "EOFError('server closed the connection')",
+    "flip_seconds": 14.47562626376748,
+    "reloaded_acknowledged": 0
+  },
+  {
+    "case": "late",
+    "engine": "epoll",
+    "atomic": 0,
+    "databases": 16,
+    "read_local": 1,
+    "attempt": 0,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.020944594405591488,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 7,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5327872
+      }
+    ],
+    "wedge": true,
+    "ping": "b'PONG'",
+    "ping_seconds": 13.135373373515904,
+    "flip": "b'OK'",
+    "flip_seconds": 13.135525844991207,
+    "notifications": 1024,
+    "elapsed": 13.140650731511414,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "signal",
+    "engine": "epoll",
+    "atomic": 0,
+    "databases": 16,
+    "read_local": 1,
+    "attempt": 4,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.02000717632472515,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 7,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5352397
+      }
+    ],
+    "ping": "EOFError('server closed the connection')",
+    "ping_seconds": 14.481666560284793,
+    "flip": "EOFError('server closed the connection')",
+    "flip_seconds": 14.48185820132494,
+    "signal_exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "saved": false,
+    "elapsed": 14.482421202585101,
+    "exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "reloaded_acknowledged": 0
+  },
+  {
+    "case": "late",
+    "engine": "epoll",
+    "atomic": 1,
+    "databases": 16,
+    "read_local": 1,
+    "attempt": 0,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.020707909017801285,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 10,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5352397
+      }
+    ],
+    "wedge": true,
+    "flip": "b'OK'",
+    "flip_seconds": 13.071093934588134,
+    "ping": "b'PONG'",
+    "ping_seconds": 13.071062804199755,
+    "notifications": 1024,
+    "elapsed": 13.076097791083157,
+    "exit": {
+      "rc": 0,
+      "forced": false
+    }
+  },
+  {
+    "case": "signal",
+    "engine": "epoll",
+    "atomic": 1,
+    "databases": 16,
+    "read_local": 1,
+    "attempt": 3,
+    "acknowledged": 1000,
+    "delete_thread": null,
+    "deleted": 1024,
+    "deleted_seconds": 0.01864336710423231,
+    "stage": "std::atomic<enum tomo::FlipStage> = { tomo::FlipStage::ClientInstall }",
+    "clauses": [
+      {
+        "io": 1,
+        "id_": 4,
+        "send_inflight_": 0,
+        "barrier_owners_": 0,
+        "connection_flags_": 0,
+        "tls_slot_": 4294967295,
+        "obuf_bytes_": 5327872
+      }
+    ],
+    "ping": "EOFError('server closed the connection')",
+    "ping_seconds": 14.449906710535288,
+    "flip": "EOFError('server closed the connection')",
+    "flip_seconds": 14.450064930133522,
+    "signal_exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "saved": false,
+    "elapsed": 14.450695811770856,
+    "exit": {
+      "rc": -9,
+      "forced": true
+    },
+    "reloaded_acknowledged": 0
+  }
+]

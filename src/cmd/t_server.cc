@@ -3185,6 +3185,15 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->flip_conservation_violations() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->flip_stale_stage_refusals() : 0));
+        for (unsigned kind = 0; kind < 3; ++kind) {
+            const char* name = kind == 0 ? "blocked" : kind == 1 ? "tls" : "output";
+            appendf(body, "flip_skipped_%s:%llu\r\nflip_refused_%s:%llu\r\n", name,
+                    static_cast<unsigned long long>(g_server ? g_server->flip_skipped_class(kind) : 0), name,
+                    static_cast<unsigned long long>(g_server ? g_server->flip_refused_class(kind) : 0));
+        }
+        appendf(body, "flip_late_output:%llu\r\nflip_output_transferred:%llu\r\n",
+                static_cast<unsigned long long>(g_server ? g_server->flip_late_output() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->flip_output_transferred() : 0));
         appendf(body,
                 "flip_session_clients_transferred:%llu\r\n"
                 "flip_refused_s2:%llu\r\n"
