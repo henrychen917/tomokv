@@ -1,0 +1,27 @@
+{
+  "arm": "pre-ordinary",
+  "namespace": "normal",
+  "domain": "lua",
+  "command": "GET",
+  "mode": "2s",
+  "batch": 32,
+  "atomic": 0,
+  "probe_sha256": "00f5ba665c13c8e38a81a18ef73c384ae87d349ac35802c4a031440e2c50eaa0",
+  "tracer_sha256": "498a2801408ab46946e94f72777bd5498d5f8b29c4753f9019cb87e1be33f449",
+  "total": 18295,
+  "functions": {
+    "tomo::Slice::key_eq(tomo::Slice const&) const": 928,
+    "tomo::KvObj::key() const": 416,
+    "tomo::ExLoopT<false>::flush_notify_batch()": 435,
+    "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)": 6592,
+    "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 400,
+    "tomo::multi_task_tagged(tomo::Task const&)": 128,
+    "tomo::FlatStore::find(unsigned long, tomo::Slice)": 2624,
+    "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 3520,
+    "void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)": 2432,
+    "tomo::FlatStore::publish_database_counts() const": 588,
+    "tomo::Shard::publish_size()": 232
+  },
+  "clock_calls": 1,
+  "excluded_calls": 32
+}

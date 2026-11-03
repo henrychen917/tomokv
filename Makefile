@@ -256,8 +256,8 @@ $(BUILD_ROOT)/db0/src/persist/aof.o: override CXXFLAGS += --param inline-unit-gr
 # The normal unit needs one 128-insn neighbour step beyond that delta to retain
 # its load-loop register allocation. Serverless PRE/POST counts and the bounded
 # compile-only trials are recorded in docs/persistfmt/snapshot-ipa.json and counts/.
-$(BUILD_ROOT)/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=16732
-$(BUILD_ROOT)/db0/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=16171
+$(BUILD_ROOT)/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=16744
+$(BUILD_ROOT)/db0/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=16184
 # CD6/CD13 add cold scan/replacement work. Preserve GCC 13's ordinary set/zset bodies in
 # both database namespaces; tests/cdfix_checks.py audits every emitted function against PRE.
 # These are compile-time inlining budgets, with no runtime option or request-path branch.
@@ -323,12 +323,12 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # clientcompat: cold EXEC growth is isolated in clientcompat.cc. Bounded compile
 # and executed-count trials retain ordinary scopes at/below PRE; see
 # docs/clientcompat/budgets and the instruction census (including outlined STL).
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=168256 --param max-inline-insns-auto=14 --param early-inlining-insns=5
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=168287 --param max-inline-insns-auto=14 --param early-inlining-insns=5
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
 # perfex2: compensate the inline cold clear reset; every other emitted body is PRE-identical.
 # clientcompat notification capture adds cold code; the 161773 neighbour keeps
 # the ordinary hash routing inlined (finite trial receipts in budgets/).
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=171722 --param max-inline-insns-auto=18 --param early-inlining-insns=10
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=171751 --param max-inline-insns-auto=18 --param early-inlining-insns=10
 # ACL key extraction is isolated from the IO templates. Keep the merged baseline's
 # ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
 # aclfix grows the unit by 749/765 insns (+739/+750 here): the shared reply helpers this
@@ -418,6 +418,14 @@ $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 # compat2b: 29 reference recompiles and merged compile-only trials select the
 # per-unit budgets in docs/compat2b/selected.json. Preserve headline or compat2
 # hot bodies; composed C1/N3/N4 dispatchers remain explicit merit inputs.
+# mset8fix: the credit doorbell grows the IO units' initial IPA size by 126/129 (main, genthread,
+# rl2s, reorder), xshard by 27/29 and snapshot by 50 (src/db0). Compile-only scans over +/-40 around
+# each size-compensated value (tools/mset8fix_budgets.py, docs/mset8fix/budgets) select, per unit,
+# the fewest changed hot bodies, then the fewest unintended and total changes, centred on the widest
+# plateau of identical code: genthread 134842/135506, rl2s 168119/169904, reorder 152568 (kept)/
+# 153552, xshard 168287/171751, snapshot 16744/16184, db0 main 150687. src main keeps 152477: it is
+# the only scanned value that keeps the 2s parse_and_dispatch PRE-identical. Remaining compiler
+# spillover is inventoried in docs/mset8fix/identity; instruction scopes in docs/mset8fix/counts.
 $(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=152477
 # txnorder2: compile-only trials retained in docs/txnorder2/budgets; remaining spillover is explicit.
 # RL4.3/RL4.4 add only cold miss/delete work. Preserve the PRE hot-body inlining
@@ -427,8 +435,8 @@ $(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inli
 # body spillover; the remaining differences are reported for merit review.
 # wave4 merge (provisional, additive lane deltas over 8656f9fa9): genthread compat2 +29 and
 # clockcut +128; rl2s clockcut +256. The wave-4 budget commit re-derives these values.
-$(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=134722
-$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=168006
+$(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=134842
+$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=168119
 # Protofix late-listener bounds, subject to wave9 compile-only re-derivation.
 $(BUILD_ROOT)/src/core/fliplisten.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=48951
 $(BUILD_ROOT)/db0/src/core/fliplisten.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=48705
@@ -442,17 +450,17 @@ $(BUILD_ROOT)/db0/src/core/fliplisten.o: override CXXFLAGS += --param inline-uni
 # snapfix: see the note above $(BUILD_ROOT)/src/core/genthread.o.
 $(BUILD_ROOT)/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=152568
 # CC18/ST3 composition: smallest current hot-body delta; ccfix4 retains the search.
-$(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=150597 --param max-inline-insns-auto=18
+$(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=150687 --param max-inline-insns-auto=18
 # RL1: retain the measured ALT spelling and its fused GET placement controls.
 # docs/rlfence2/alt.patch and MEASURE-REQUEST-rlfence3.md record the byte proofs.
 # txnorder2: compile-only trials retained in docs/txnorder2/budgets; remaining spillover is explicit.
 # wave4 merge (provisional, additive lane deltas over 8656f9fa9): db0 genthread compat2 +27
 # and clockcut +64; db0 reorder compat2 +39 and clockcut +128. Re-derived by the budget commit.
-$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=135380 -Wa,--defsym,tomo_rlfence_text_pad=16
-$(BUILD_ROOT)/db0/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=169784
+$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=135506 -Wa,--defsym,tomo_rlfence_text_pad=16
+$(BUILD_ROOT)/db0/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=169904
 # Keep PRE's first (rather than second) tombstone-compaction call inlined in the
 # R7 fused sweep; the cold miss body otherwise changes GCC's tied call ordering.
-$(BUILD_ROOT)/db0/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=153458 --param max-inline-insns-auto=14
+$(BUILD_ROOT)/db0/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=153552 --param max-inline-insns-auto=14
 $(BUILD_ROOT)/db0/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
 # Separate C++ namespaces prevent accidental cross-variant inline/COMDAT binding.

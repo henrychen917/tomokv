@@ -1,0 +1,6136 @@
+[
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "pre_budget": 171722,
+    "compensated": 171751,
+    "budget": 171751,
+    "changed": [
+      "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "tomo_db0::(anonymous namespace)::release_admission(tomo_db0::MultiExecState&)",
+      "tomo_db0::(anonymous namespace)::release_admission(tomo_db0::MultiExecState&) [clone .cold]",
+      "tomo_db0::Server::atomic_ring_credit_waiters(unsigned int, tomo_db0::Ring*, bool)",
+      "tomo_db0::script_window_resume(tomo_db0::Server&, tomo_db0::ScatterArenaPool&, unsigned int, tomo_db0::Client&)",
+      "tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int)",
+      "tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int) [clone .cold]"
+    ],
+    "trials": [
+      {
+        "budget": 171711,
+        "unit": 136675,
+        "code_digest": "f45d3b14753ad7d735974859dabc30c6ee4fe22feefeb3f09c14c5f06e67e889",
+        "changed": 11
+      },
+      {
+        "budget": 171712,
+        "unit": 136675,
+        "code_digest": "3971ed15a7e668ded9efd97437e08ed98e04cbbd4c97d56d202017b54adb6ca8",
+        "changed": 14
+      },
+      {
+        "budget": 171713,
+        "unit": 136675,
+        "code_digest": "da799e2c5d5768f483d9c49cb0b9e5c9a6597cc182584ef90e4222d49a07b284",
+        "changed": 10
+      },
+      {
+        "budget": 171714,
+        "unit": 136675,
+        "code_digest": "74da3da0f1fe1d35fe8384de7f2a42e6ae4c55454960bae1c41e04af702bd64e",
+        "changed": 10
+      },
+      {
+        "budget": 171715,
+        "unit": 136675,
+        "code_digest": "fd95251dcebdb7bf163cc1b76ec65770919a155b21d7fd24c48a63786735f000",
+        "changed": 10
+      },
+      {
+        "budget": 171716,
+        "unit": 136675,
+        "code_digest": "70ac644c812ff4c52462d44a01118ddcfa3c77573726f987c3b4c0f8ef023f7f",
+        "changed": 10
+      },
+      {
+        "budget": 171717,
+        "unit": 136675,
+        "code_digest": "c094bf3c2bf5001238ba51b19b2acd3f86ea13e7ff12d0b710602ab64d3972d1",
+        "changed": 10
+      },
+      {
+        "budget": 171718,
+        "unit": 136675,
+        "code_digest": "f81585a2c005d8e83bea073b62bd447fd7b2f6e75c4ae0b2484272fe2f12fd9f",
+        "changed": 16
+      },
+      {
+        "budget": 171719,
+        "unit": 136675,
+        "code_digest": "361ba3013a4d0cfe3cf81dd49085e90fa704578088b701671fa84fbc601789be",
+        "changed": 16
+      },
+      {
+        "budget": 171720,
+        "unit": 136675,
+        "code_digest": "5b4146987e8fa7b0792a8a2484236922861110a6b2ebf1afe34f8d7ef5543bc5",
+        "changed": 12
+      },
+      {
+        "budget": 171721,
+        "unit": 136675,
+        "code_digest": "1a1e640b131420495ba7cf1b54828120c1d4be099b61703357578795e4969e6a",
+        "changed": 16
+      },
+      {
+        "budget": 171722,
+        "unit": 136675,
+        "code_digest": "b57db50a5448c56070c17a486c576289d39c791ef9743d17b7adda4ba1d8cbfa",
+        "changed": 12
+      },
+      {
+        "budget": 171723,
+        "unit": 136675,
+        "code_digest": "434b5d42894cefa25b8c3512fed1cc789b0af7460323fcde1580563de6d423c3",
+        "changed": 12
+      },
+      {
+        "budget": 171724,
+        "unit": 136675,
+        "code_digest": "471a977e48a6da569cf22834a8196dc7279f2e72ad3b1957210b5b929ecfb844",
+        "changed": 12
+      },
+      {
+        "budget": 171725,
+        "unit": 136675,
+        "code_digest": "d14c637b28e11a81ede448629750723255b44c0ca65ddf102c8b4b90e17aa391",
+        "changed": 12
+      },
+      {
+        "budget": 171726,
+        "unit": 136675,
+        "code_digest": "cd7511208aae1111d66e42415d5046357489f88c5a0309ea3a08892533496864",
+        "changed": 12
+      },
+      {
+        "budget": 171727,
+        "unit": 136675,
+        "code_digest": "a0f8cae4d35efa796ea725cc01b751f39b7f55275851bb8265bc4a859f04b2c7",
+        "changed": 14
+      },
+      {
+        "budget": 171728,
+        "unit": 136675,
+        "code_digest": "4e59e147bfd4dd7f48b64ca1e2289c3ce462f968658e076e34cfa1cf5b624601",
+        "changed": 10
+      },
+      {
+        "budget": 171729,
+        "unit": 136675,
+        "code_digest": "fb1744b5c67162ad4b49db70732f271cf5a6f092adac380a894842bc19e8eb17",
+        "changed": 10
+      },
+      {
+        "budget": 171730,
+        "unit": 136675,
+        "code_digest": "c14671d83aea98daa66aead8a5f3ec4eef7092544fe61ee8f77b03e2808264c7",
+        "changed": 10
+      },
+      {
+        "budget": 171731,
+        "unit": 136675,
+        "code_digest": "e0fdf8f7d2fb20bd6afa767ac4862ce83979c6f32cb943840a88d54718b3d6f6",
+        "changed": 10
+      },
+      {
+        "budget": 171732,
+        "unit": 136675,
+        "code_digest": "386d51cd96e8d9e17cd275538e91eec4a6a98798587b12deea72709c46df7022",
+        "changed": 10
+      },
+      {
+        "budget": 171733,
+        "unit": 136675,
+        "code_digest": "8a750ace39c79a2665904c579d8230a90642bb9254f9f8f5de295d108f6db1f4",
+        "changed": 13
+      },
+      {
+        "budget": 171734,
+        "unit": 136675,
+        "code_digest": "7e3a83dfd66a1445d9ec46d0e3311080955969065180ae8b2b1f6779edbf03b0",
+        "changed": 9
+      },
+      {
+        "budget": 171735,
+        "unit": 136675,
+        "code_digest": "9ca418149bb40a4a382aeb37660d60de5a7d06bcfd6420d8566b7468e545f787",
+        "changed": 13
+      },
+      {
+        "budget": 171736,
+        "unit": 136675,
+        "code_digest": "ea36008133a1dacabf5245804aeacfb0a6843789be0cf6bbcc81d91e49dc87f3",
+        "changed": 13
+      },
+      {
+        "budget": 171737,
+        "unit": 136675,
+        "code_digest": "b81c1b648c92e16d1f4395f729fe7a303cab820577399560bcd574b927e321e8",
+        "changed": 9
+      },
+      {
+        "budget": 171738,
+        "unit": 136675,
+        "code_digest": "31d50401d88437c3068c2f44c55331aadec7df3ca1e65e65e4911105aed1d849",
+        "changed": 9
+      },
+      {
+        "budget": 171739,
+        "unit": 136675,
+        "code_digest": "7adfd8a15abaa188f0e6af34cc8d38712123d496cf6ddbc2dffd02e3bdb4c285",
+        "changed": 9
+      },
+      {
+        "budget": 171740,
+        "unit": 136675,
+        "code_digest": "75d6216d1cbeea0f4952c944ff4e6c33133fc2eb5b8d4aca82a04925d5e40e79",
+        "changed": 9
+      },
+      {
+        "budget": 171741,
+        "unit": 136675,
+        "code_digest": "4dff4ef73ae927ed0d6afb88ed0c3911313a5fe0962fd1878ccf41b1306e03b4",
+        "changed": 9
+      },
+      {
+        "budget": 171742,
+        "unit": 136675,
+        "code_digest": "7b3f5629cd16568ccd4c4d526c5eb00589d7efd30545e1f5b4c1a7750c1101d9",
+        "changed": 12
+      },
+      {
+        "budget": 171743,
+        "unit": 136675,
+        "code_digest": "48d0dbbffdd4400a9c7ee3e4fb46e224b4b747bfa18686da8e37cbd9af5c1c46",
+        "changed": 8
+      },
+      {
+        "budget": 171744,
+        "unit": 136675,
+        "code_digest": "9fed8b6aa24ec54a7c3f8852c1b55f96ad8c2974f9ec3c573447ded985fa63b8",
+        "changed": 12
+      },
+      {
+        "budget": 171745,
+        "unit": 136675,
+        "code_digest": "d9056207f899be3f40ed9787259984f8a2fce6fadcad0860f08985e77a186f1d",
+        "changed": 8
+      },
+      {
+        "budget": 171746,
+        "unit": 136675,
+        "code_digest": "d7fcee2b28ca27059eb1b39832ca32ecacc41a329274a21bff66d60b7683f12e",
+        "changed": 8
+      },
+      {
+        "budget": 171747,
+        "unit": 136675,
+        "code_digest": "f716b23b3caef571d62c67e21c44e403397abdc65e354738ac4fb9b9106182b3",
+        "changed": 8
+      },
+      {
+        "budget": 171748,
+        "unit": 136675,
+        "code_digest": "805caa1c41af394a0e18c57ddb22b46527a58349c1268b7e0be043700e1312e2",
+        "changed": 8
+      },
+      {
+        "budget": 171749,
+        "unit": 136675,
+        "code_digest": "df1bd0d35aceffad99d6d012159b524822074364ec98054185a933b003fb11f2",
+        "changed": 8
+      },
+      {
+        "budget": 171750,
+        "unit": 136675,
+        "code_digest": "86813380e3760a8eb4b8618175c946156cefb8312c03ff64e21fff73bfcdcc38",
+        "changed": 11
+      },
+      {
+        "budget": 171751,
+        "unit": 136675,
+        "code_digest": "35343913d48be30aacd8c692d07252e3879f949d38e03af125c3d6fa7a5476c3",
+        "changed": 7
+      },
+      {
+        "budget": 171752,
+        "unit": 136675,
+        "code_digest": "bfd8d67383e7cc389c3065556412aefa8a5c2dbcb7f6572137de2617959c142e",
+        "changed": 7
+      },
+      {
+        "budget": 171753,
+        "unit": 136675,
+        "code_digest": "6911e2ff9a697c608d13ecd6b47581ba63821c0076a1021065671432616dd44a",
+        "changed": 7
+      },
+      {
+        "budget": 171754,
+        "unit": 136675,
+        "code_digest": "f04e63b491c9ebc9d55b5f976ec46d590b5a31dc7550479745be050bba9389d5",
+        "changed": 7
+      },
+      {
+        "budget": 171755,
+        "unit": 136675,
+        "code_digest": "c912f4de3e47647f36214d98def7ac11f58003b59799eea29e969cd9be397b5a",
+        "changed": 7
+      },
+      {
+        "budget": 171756,
+        "unit": 136675,
+        "code_digest": "70c2600a0ca0250f278b21a1dc0bfa11a548f9467bb288d6e6c7be9de4151575",
+        "changed": 13
+      },
+      {
+        "budget": 171757,
+        "unit": 136675,
+        "code_digest": "5f7c9ada4ec135f3e5b17ba8e5491bc72e89e1e15429481f53b9076f07d96498",
+        "changed": 15
+      },
+      {
+        "budget": 171758,
+        "unit": 136675,
+        "code_digest": "5988ae6dafbff17b346da5de835edea7b84df21ba94ad47d88b7793e7a4a0e70",
+        "changed": 11
+      },
+      {
+        "budget": 171759,
+        "unit": 136675,
+        "code_digest": "54588cd58b4f7600cd96f4d6dd6cb398623b821e10852ca933039e6500c5ff2b",
+        "changed": 11
+      },
+      {
+        "budget": 171760,
+        "unit": 136675,
+        "code_digest": "90f63ef554e8ff2337167d4a81404004278a58dcbf86fbbbfb49fb40646aae1a",
+        "changed": 11
+      },
+      {
+        "budget": 171761,
+        "unit": 136675,
+        "code_digest": "a541e5f175482f57f5b962864449a6716542410d0cd0658bc863f25c4ec1b355",
+        "changed": 11
+      },
+      {
+        "budget": 171762,
+        "unit": 136675,
+        "code_digest": "5cda6b85f86e48849c283c32da174457270175fb58bb759631e99db01582eee9",
+        "changed": 11
+      },
+      {
+        "budget": 171763,
+        "unit": 136675,
+        "code_digest": "d1649d60d4cb0f43a1930b1b2c9b94abd5637e7b2215f6fe7148cad4b3679fd5",
+        "changed": 14
+      },
+      {
+        "budget": 171764,
+        "unit": 136675,
+        "code_digest": "624292fa6804c0fec67121c7d0f76fd69289198bc5263ffd295a8a2002c09fd7",
+        "changed": 15
+      },
+      {
+        "budget": 171765,
+        "unit": 136675,
+        "code_digest": "74796db32e624954ec9f80db158ba6295c193072e4b4a763d1ab933544f40944",
+        "changed": 11
+      },
+      {
+        "budget": 171766,
+        "unit": 136675,
+        "code_digest": "c4050e1fc47380b1cf070e8d52d3b5f6eeed117898ba0bb5c1fd20bbcca06f20",
+        "changed": 11
+      },
+      {
+        "budget": 171767,
+        "unit": 136675,
+        "code_digest": "9504c66517ca9b6409aad8897e0b7a621be1e1519a33782e0b23df408549552e",
+        "changed": 11
+      },
+      {
+        "budget": 171768,
+        "unit": 136675,
+        "code_digest": "219f153d5572ffafc10188c4f0dd496411f2e6e3e0d0e7b710dd1cbe214509af",
+        "changed": 11
+      },
+      {
+        "budget": 171769,
+        "unit": 136675,
+        "code_digest": "8482f6b6910fcbc63646844a3c1c03a48e8d5f0387feb2d1fa541c520fba314f",
+        "changed": 11
+      },
+      {
+        "budget": 171770,
+        "unit": 136675,
+        "code_digest": "8917b53d9801dbc24414f34985784c00510054da22387241d9d7d96540f09836",
+        "changed": 14
+      },
+      {
+        "budget": 171771,
+        "unit": 136675,
+        "code_digest": "2b4c2e3e2cb2c815d5435c3fff2c6e38971518818c2b67efe2480c138101c2cb",
+        "changed": 10
+      },
+      {
+        "budget": 171772,
+        "unit": 136675,
+        "code_digest": "de236fba7a9d9efe9f8eb006f5e3669dcf4d3593de9acacd5d8c4486da41b749",
+        "changed": 10
+      },
+      {
+        "budget": 171773,
+        "unit": 136675,
+        "code_digest": "b92597c319e0f0e158cba3eec1a39a863b67d0d8299ed4696b0476b2755bf7f7",
+        "changed": 14
+      },
+      {
+        "budget": 171774,
+        "unit": 136675,
+        "code_digest": "e49b507ee8997d22c5a37ab966254ad9fc4add9ae6d5261209944ece9bb1ecf9",
+        "changed": 10
+      },
+      {
+        "budget": 171775,
+        "unit": 136675,
+        "code_digest": "ca6522cdd7161a3a05b7915051bd0468387875f267a1e2f6c6bd1a448bf4a040",
+        "changed": 10
+      },
+      {
+        "budget": 171776,
+        "unit": 136675,
+        "code_digest": "2e1a76cddfe8b85c8887e4e858cfdd52ff9503c8f4fb9a8d635e52f4d62ac52d",
+        "changed": 10
+      },
+      {
+        "budget": 171777,
+        "unit": 136675,
+        "code_digest": "57cf2ad5de7510edb79cbdc77e6ca17f2a42cbb7376fce725351ea9c12bceded",
+        "changed": 10
+      },
+      {
+        "budget": 171778,
+        "unit": 136675,
+        "code_digest": "8217ba1211c05e7202c9059eff598e89b90e03f30ba3ecfbb8e1d3507a8888d0",
+        "changed": 10
+      },
+      {
+        "budget": 171779,
+        "unit": 136675,
+        "code_digest": "8122458f51e353bff75a3a1f4d679ce00410d127224eed414ea43e2eee160f2a",
+        "changed": 13
+      },
+      {
+        "budget": 171780,
+        "unit": 136675,
+        "code_digest": "73405eb7a3560750e20ce65b2f50fc32be950906152789dc464a8fbb19dc814f",
+        "changed": 9
+      },
+      {
+        "budget": 171781,
+        "unit": 136675,
+        "code_digest": "34e694c926fa71a4b86579c50714eda22375da9b4ccf5e4fa7ac859e9e5efb5b",
+        "changed": 9
+      },
+      {
+        "budget": 171782,
+        "unit": 136675,
+        "code_digest": "40b8fb7906964f68313b838504ba3ffa0f8e4148c5602869bad2a683d4b8176d",
+        "changed": 9
+      },
+      {
+        "budget": 171783,
+        "unit": 136675,
+        "code_digest": "d7eed38697e5fd2533bae825f40f7d03bafa6b4468190f5fd06fea6ce17b3c97",
+        "changed": 9
+      },
+      {
+        "budget": 171784,
+        "unit": 136675,
+        "code_digest": "c5207883e9c7100069bd7e1662fdf923315e96ae67ccf81cf5675aa07409367a",
+        "changed": 9
+      },
+      {
+        "budget": 171785,
+        "unit": 136675,
+        "code_digest": "1a3751ea15f5d7665d98924a77d979246d2feef4817617998fd96a94ae6e9f49",
+        "changed": 15
+      },
+      {
+        "budget": 171786,
+        "unit": 136675,
+        "code_digest": "7cbc519aaf00cc8f2923e49e18c7d4184f8c70458c53bde52ef4bf8b57a1c430",
+        "changed": 15
+      },
+      {
+        "budget": 171787,
+        "unit": 136675,
+        "code_digest": "5f2c1cfd72c012f89412dec0074515b95468338c75f56066f79f44735ff8796a",
+        "changed": 11
+      },
+      {
+        "budget": 171788,
+        "unit": 136675,
+        "code_digest": "4a3478fbea08658e70894152ed1d255eb5a78b9a462fddac508b0b88614e24a2",
+        "changed": 15
+      },
+      {
+        "budget": 171789,
+        "unit": 136675,
+        "code_digest": "4cb137b3d369cbedf691d40881496484b6528158f60683e0d44200253c03774d",
+        "changed": 11
+      },
+      {
+        "budget": 171790,
+        "unit": 136675,
+        "code_digest": "7b63463bad91f2817da2d45f9e0300c79abdc94484d3100ff70458a97c1b1cbf",
+        "changed": 11
+      },
+      {
+        "budget": 171791,
+        "unit": 136675,
+        "code_digest": "005058b06474a2d19a3b1f82b15aaf2ef53bc102c1a8f121d6fd697e3f5ac1d7",
+        "changed": 11
+      }
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "pre_budget": 135380,
+    "compensated": 135506,
+    "budget": 135506,
+    "changed": [
+      "int tomo_db0::Ring::submit_and_wait<false>(unsigned int, unsigned int, int) [clone .isra.0]",
+      "tomo_db0::IoLoop::pubsub_notification_send(std::shared_ptr<tomo_db0::PubSubNotificationChain> const&)",
+      "tomo_db0::Server::atomic_credit_wait_arm(unsigned int)",
+      "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false, false>()",
+      "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, false, false>()",
+      "void tomo_db0::IoLoop::run_loop<false, false, false, true, false>()",
+      "void tomo_db0::IoLoop::run_loop<false, false, true, true, false>()",
+      "void tomo_db0::IoLoop::run_loop<false, true, false, true, false>()",
+      "void tomo_db0::IoLoop::run_loop<false, true, true, true, false>()",
+      "void tomo_db0::IoLoop::run_loop<true, false, false, true, false>()",
+      "void tomo_db0::IoLoop::run_loop<true, false, true, true, false>()",
+      "void tomo_db0::IoLoop::run_loop<true, true, false, true, false>()",
+      "void tomo_db0::IoLoop::run_loop<true, true, true, true, false>()"
+    ],
+    "trials": [
+      {
+        "budget": 135380,
+        "unit": 113423,
+        "code_digest": "90ce6e61700252db7693868043198397dc03b55f69fc93735e7b9cd67746fc22",
+        "changed": 17
+      },
+      {
+        "budget": 135466,
+        "unit": 113423,
+        "code_digest": "071bd5d2b6f4ea9c0946b08470546d3d321e74beaf485bf3088e7ed2a54e0f99",
+        "changed": 16
+      },
+      {
+        "budget": 135467,
+        "unit": 113423,
+        "code_digest": "071bd5d2b6f4ea9c0946b08470546d3d321e74beaf485bf3088e7ed2a54e0f99",
+        "changed": 16
+      },
+      {
+        "budget": 135468,
+        "unit": 113423,
+        "code_digest": "071bd5d2b6f4ea9c0946b08470546d3d321e74beaf485bf3088e7ed2a54e0f99",
+        "changed": 16
+      },
+      {
+        "budget": 135469,
+        "unit": 113423,
+        "code_digest": "dff5f4ffb87d8ebe310217f663ce3aa5aae2f3933a5427659f22dc43e1f6f282",
+        "changed": 13
+      },
+      {
+        "budget": 135470,
+        "unit": 113423,
+        "code_digest": "3b966b99f16c76d53e84e90a444e7ff2aff3d249e45a78791ac5f29ec8dee880",
+        "changed": 17
+      },
+      {
+        "budget": 135471,
+        "unit": 113423,
+        "code_digest": "3b966b99f16c76d53e84e90a444e7ff2aff3d249e45a78791ac5f29ec8dee880",
+        "changed": 17
+      },
+      {
+        "budget": 135472,
+        "unit": 113423,
+        "code_digest": "2cdeb8c8fbf15e4e1d4969a0b4215dbcd6b449024efae34d46e90ab2f16c24c4",
+        "changed": 16
+      },
+      {
+        "budget": 135473,
+        "unit": 113423,
+        "code_digest": "845d692e3fa58ba336c3379bc73a7b1d24fcc62ffd21677fb5c63a87224a00a0",
+        "changed": 17
+      },
+      {
+        "budget": 135474,
+        "unit": 113423,
+        "code_digest": "845d692e3fa58ba336c3379bc73a7b1d24fcc62ffd21677fb5c63a87224a00a0",
+        "changed": 17
+      },
+      {
+        "budget": 135475,
+        "unit": 113423,
+        "code_digest": "845d692e3fa58ba336c3379bc73a7b1d24fcc62ffd21677fb5c63a87224a00a0",
+        "changed": 17
+      },
+      {
+        "budget": 135476,
+        "unit": 113423,
+        "code_digest": "845d692e3fa58ba336c3379bc73a7b1d24fcc62ffd21677fb5c63a87224a00a0",
+        "changed": 17
+      },
+      {
+        "budget": 135477,
+        "unit": 113423,
+        "code_digest": "f645df076a654123fc93947df9ed47d7b7ceb3677733b2c2368959a3d32ef0a5",
+        "changed": 14
+      },
+      {
+        "budget": 135478,
+        "unit": 113423,
+        "code_digest": "0bdca44eb76e9edf148737259eed23830f57ba0a36e37dd13b79aea37bfc57a2",
+        "changed": 18
+      },
+      {
+        "budget": 135479,
+        "unit": 113423,
+        "code_digest": "0bdca44eb76e9edf148737259eed23830f57ba0a36e37dd13b79aea37bfc57a2",
+        "changed": 18
+      },
+      {
+        "budget": 135480,
+        "unit": 113423,
+        "code_digest": "4a7854789b13042d5899cf6a12ed64bf85a3eb89fed9f29e46d64d32404e5fd6",
+        "changed": 17
+      },
+      {
+        "budget": 135481,
+        "unit": 113423,
+        "code_digest": "4a7854789b13042d5899cf6a12ed64bf85a3eb89fed9f29e46d64d32404e5fd6",
+        "changed": 17
+      },
+      {
+        "budget": 135482,
+        "unit": 113423,
+        "code_digest": "4a7854789b13042d5899cf6a12ed64bf85a3eb89fed9f29e46d64d32404e5fd6",
+        "changed": 17
+      },
+      {
+        "budget": 135483,
+        "unit": 113423,
+        "code_digest": "1a1b43dde9bb67c3be8dc021ed561da6c3696445fea86b3a3d0f2e74b0bb233a",
+        "changed": 14
+      },
+      {
+        "budget": 135484,
+        "unit": 113423,
+        "code_digest": "72f89e60584cb07c8aaa6a447b5c7d58302ed2ee8c2f7e0d6377b2d0a7587658",
+        "changed": 18
+      },
+      {
+        "budget": 135485,
+        "unit": 113423,
+        "code_digest": "72f89e60584cb07c8aaa6a447b5c7d58302ed2ee8c2f7e0d6377b2d0a7587658",
+        "changed": 18
+      },
+      {
+        "budget": 135486,
+        "unit": 113423,
+        "code_digest": "a954cb9e2a3150ce1cecf60cf830f8839988e37b0516401fa131941f58401827",
+        "changed": 18
+      },
+      {
+        "budget": 135487,
+        "unit": 113423,
+        "code_digest": "a954cb9e2a3150ce1cecf60cf830f8839988e37b0516401fa131941f58401827",
+        "changed": 18
+      },
+      {
+        "budget": 135488,
+        "unit": 113423,
+        "code_digest": "a954cb9e2a3150ce1cecf60cf830f8839988e37b0516401fa131941f58401827",
+        "changed": 18
+      },
+      {
+        "budget": 135489,
+        "unit": 113423,
+        "code_digest": "a954cb9e2a3150ce1cecf60cf830f8839988e37b0516401fa131941f58401827",
+        "changed": 18
+      },
+      {
+        "budget": 135490,
+        "unit": 113423,
+        "code_digest": "ffb7f024eb4fd74d4bf585c7ca444ec4a9c6458b71242b4248b2637c456ff096",
+        "changed": 15
+      },
+      {
+        "budget": 135491,
+        "unit": 113423,
+        "code_digest": "db28e5fd716bbaaad2a46904292c958f9a512fe191a68ad9a41af8c21cfa546d",
+        "changed": 19
+      },
+      {
+        "budget": 135492,
+        "unit": 113423,
+        "code_digest": "db28e5fd716bbaaad2a46904292c958f9a512fe191a68ad9a41af8c21cfa546d",
+        "changed": 19
+      },
+      {
+        "budget": 135493,
+        "unit": 113423,
+        "code_digest": "55061beb452c16ac0f38bf4759eaad8c224b34fa82882fdcb7ad0a46430e7185",
+        "changed": 18
+      },
+      {
+        "budget": 135494,
+        "unit": 113423,
+        "code_digest": "55061beb452c16ac0f38bf4759eaad8c224b34fa82882fdcb7ad0a46430e7185",
+        "changed": 18
+      },
+      {
+        "budget": 135495,
+        "unit": 113423,
+        "code_digest": "55061beb452c16ac0f38bf4759eaad8c224b34fa82882fdcb7ad0a46430e7185",
+        "changed": 18
+      },
+      {
+        "budget": 135496,
+        "unit": 113423,
+        "code_digest": "55061beb452c16ac0f38bf4759eaad8c224b34fa82882fdcb7ad0a46430e7185",
+        "changed": 18
+      },
+      {
+        "budget": 135497,
+        "unit": 113423,
+        "code_digest": "ac1d314312dbde44a2f5d03a7ea19f8f5482c12f218ce83cf4c84979a745ea01",
+        "changed": 15
+      },
+      {
+        "budget": 135498,
+        "unit": 113423,
+        "code_digest": "610ac5bdec105c81380b251c9e48b296bcbf69d52616bde83aafcde1f7858902",
+        "changed": 19
+      },
+      {
+        "budget": 135499,
+        "unit": 113423,
+        "code_digest": "610ac5bdec105c81380b251c9e48b296bcbf69d52616bde83aafcde1f7858902",
+        "changed": 19
+      },
+      {
+        "budget": 135500,
+        "unit": 113423,
+        "code_digest": "d64b207089e9f108c87d26ee2ac85ab8da84ec2676c83125ed7118bdab522e3d",
+        "changed": 18
+      },
+      {
+        "budget": 135501,
+        "unit": 113423,
+        "code_digest": "d64b207089e9f108c87d26ee2ac85ab8da84ec2676c83125ed7118bdab522e3d",
+        "changed": 18
+      },
+      {
+        "budget": 135502,
+        "unit": 113423,
+        "code_digest": "c6ced4cc69ecf8e5d803d99d473f9dbcb629b84d26c062c777ff3110fc8853ce",
+        "changed": 16
+      },
+      {
+        "budget": 135503,
+        "unit": 113423,
+        "code_digest": "c6ced4cc69ecf8e5d803d99d473f9dbcb629b84d26c062c777ff3110fc8853ce",
+        "changed": 16
+      },
+      {
+        "budget": 135504,
+        "unit": 113423,
+        "code_digest": "c6ced4cc69ecf8e5d803d99d473f9dbcb629b84d26c062c777ff3110fc8853ce",
+        "changed": 16
+      },
+      {
+        "budget": 135505,
+        "unit": 113423,
+        "code_digest": "c6ced4cc69ecf8e5d803d99d473f9dbcb629b84d26c062c777ff3110fc8853ce",
+        "changed": 16
+      },
+      {
+        "budget": 135506,
+        "unit": 113423,
+        "code_digest": "4f4fee159189b32ce14834fd9dbc8f76478bbd05d14c43472c9a8462e05eeef0",
+        "changed": 13
+      },
+      {
+        "budget": 135507,
+        "unit": 113423,
+        "code_digest": "90afc54647a6ead151f5251a04f170f07ace4c423b938e88935c7885a02c4c13",
+        "changed": 17
+      },
+      {
+        "budget": 135508,
+        "unit": 113423,
+        "code_digest": "90afc54647a6ead151f5251a04f170f07ace4c423b938e88935c7885a02c4c13",
+        "changed": 17
+      },
+      {
+        "budget": 135509,
+        "unit": 113423,
+        "code_digest": "a9f6a80042a6e915b7fbe6cf10c7323caa3d0f0fb6d90661d0d5a586c4c54c32",
+        "changed": 17
+      },
+      {
+        "budget": 135510,
+        "unit": 113423,
+        "code_digest": "87ea30de526f107bef4407852a7dba8ba87cdcc4fbaf59c37566da81275f589d",
+        "changed": 17
+      },
+      {
+        "budget": 135511,
+        "unit": 113423,
+        "code_digest": "87ea30de526f107bef4407852a7dba8ba87cdcc4fbaf59c37566da81275f589d",
+        "changed": 17
+      },
+      {
+        "budget": 135512,
+        "unit": 113423,
+        "code_digest": "87ea30de526f107bef4407852a7dba8ba87cdcc4fbaf59c37566da81275f589d",
+        "changed": 17
+      },
+      {
+        "budget": 135513,
+        "unit": 113423,
+        "code_digest": "87ea30de526f107bef4407852a7dba8ba87cdcc4fbaf59c37566da81275f589d",
+        "changed": 17
+      },
+      {
+        "budget": 135514,
+        "unit": 113423,
+        "code_digest": "dcc6caffdb19c3fb2fbb8010696fce897987b69bfcc27dbd6278d567552c9831",
+        "changed": 14
+      },
+      {
+        "budget": 135515,
+        "unit": 113423,
+        "code_digest": "4efc7621ca8390d6563124adcf8678324d1750d2c8b048a564e9e05d2adbf0d0",
+        "changed": 18
+      },
+      {
+        "budget": 135516,
+        "unit": 113423,
+        "code_digest": "4efc7621ca8390d6563124adcf8678324d1750d2c8b048a564e9e05d2adbf0d0",
+        "changed": 18
+      },
+      {
+        "budget": 135517,
+        "unit": 113423,
+        "code_digest": "cf4339dc2cb0f070212ba10d9b83ab09460a97bf5b2f25a2bf72d3cec5e0e3f5",
+        "changed": 18
+      },
+      {
+        "budget": 135518,
+        "unit": 113423,
+        "code_digest": "cf4339dc2cb0f070212ba10d9b83ab09460a97bf5b2f25a2bf72d3cec5e0e3f5",
+        "changed": 18
+      },
+      {
+        "budget": 135519,
+        "unit": 113423,
+        "code_digest": "cf4339dc2cb0f070212ba10d9b83ab09460a97bf5b2f25a2bf72d3cec5e0e3f5",
+        "changed": 18
+      },
+      {
+        "budget": 135520,
+        "unit": 113423,
+        "code_digest": "cf4339dc2cb0f070212ba10d9b83ab09460a97bf5b2f25a2bf72d3cec5e0e3f5",
+        "changed": 18
+      },
+      {
+        "budget": 135521,
+        "unit": 113423,
+        "code_digest": "89c3b6782737e8014c83460a90845ad7ea304058678d872bc0eb4da9b599f7e1",
+        "changed": 15
+      },
+      {
+        "budget": 135522,
+        "unit": 113423,
+        "code_digest": "f382ab7961322227e22a76c18afd4d4bb7ecf35ad1400b2bcb4da3995cd1328f",
+        "changed": 19
+      },
+      {
+        "budget": 135523,
+        "unit": 113423,
+        "code_digest": "f382ab7961322227e22a76c18afd4d4bb7ecf35ad1400b2bcb4da3995cd1328f",
+        "changed": 19
+      },
+      {
+        "budget": 135524,
+        "unit": 113423,
+        "code_digest": "695d7659041f37e66e1fbd694607e63ab95e81fee243b7d851a738488ae4b654",
+        "changed": 18
+      },
+      {
+        "budget": 135525,
+        "unit": 113423,
+        "code_digest": "695d7659041f37e66e1fbd694607e63ab95e81fee243b7d851a738488ae4b654",
+        "changed": 18
+      },
+      {
+        "budget": 135526,
+        "unit": 113423,
+        "code_digest": "695d7659041f37e66e1fbd694607e63ab95e81fee243b7d851a738488ae4b654",
+        "changed": 18
+      },
+      {
+        "budget": 135527,
+        "unit": 113423,
+        "code_digest": "695d7659041f37e66e1fbd694607e63ab95e81fee243b7d851a738488ae4b654",
+        "changed": 18
+      },
+      {
+        "budget": 135528,
+        "unit": 113423,
+        "code_digest": "7e2d7a286c1c26ccb51f7af86fc8d1fcb39b98ff9dbf28d3d895ba2ec8056b64",
+        "changed": 15
+      },
+      {
+        "budget": 135529,
+        "unit": 113423,
+        "code_digest": "6d1860cd3e0ab158593f285d72b9a28c0d805c0774a15b698b9e973f48703687",
+        "changed": 19
+      },
+      {
+        "budget": 135530,
+        "unit": 113423,
+        "code_digest": "6d1860cd3e0ab158593f285d72b9a28c0d805c0774a15b698b9e973f48703687",
+        "changed": 19
+      },
+      {
+        "budget": 135531,
+        "unit": 113423,
+        "code_digest": "8f381425d5b0c339f52989591f766dc8fd7a5cdc93b4f087f29a48eaaf9dcf1d",
+        "changed": 18
+      },
+      {
+        "budget": 135532,
+        "unit": 113423,
+        "code_digest": "8f381425d5b0c339f52989591f766dc8fd7a5cdc93b4f087f29a48eaaf9dcf1d",
+        "changed": 18
+      },
+      {
+        "budget": 135533,
+        "unit": 113423,
+        "code_digest": "8f381425d5b0c339f52989591f766dc8fd7a5cdc93b4f087f29a48eaaf9dcf1d",
+        "changed": 18
+      },
+      {
+        "budget": 135534,
+        "unit": 113423,
+        "code_digest": "33b402706b9dd5bd18ee98d1e76c8963a3cf114a06c439ddde57683a4bc030be",
+        "changed": 15
+      },
+      {
+        "budget": 135535,
+        "unit": 113423,
+        "code_digest": "2da05a3bbee176650ce491ee430d548f134a0bd4a4bd3f74f430f711e20ebeb8",
+        "changed": 19
+      },
+      {
+        "budget": 135536,
+        "unit": 113423,
+        "code_digest": "2da05a3bbee176650ce491ee430d548f134a0bd4a4bd3f74f430f711e20ebeb8",
+        "changed": 19
+      },
+      {
+        "budget": 135537,
+        "unit": 113423,
+        "code_digest": "d8d4e6f5b4a6e78d229b2d684a58f3ae7cd099a15e756287840e7d94b7f51633",
+        "changed": 18
+      },
+      {
+        "budget": 135538,
+        "unit": 113423,
+        "code_digest": "d8d4e6f5b4a6e78d229b2d684a58f3ae7cd099a15e756287840e7d94b7f51633",
+        "changed": 18
+      },
+      {
+        "budget": 135539,
+        "unit": 113423,
+        "code_digest": "d8d4e6f5b4a6e78d229b2d684a58f3ae7cd099a15e756287840e7d94b7f51633",
+        "changed": 18
+      },
+      {
+        "budget": 135540,
+        "unit": 113423,
+        "code_digest": "f1986822d4a45efb34c171b85ec01cb30a17d0e8c64a0a2060b5dadad75cd5e7",
+        "changed": 15
+      },
+      {
+        "budget": 135541,
+        "unit": 113423,
+        "code_digest": "dfc2edf3ec559da7208c5db38dd01afcd1d7037824ca500f0f743e94cf5b7dba",
+        "changed": 19
+      },
+      {
+        "budget": 135542,
+        "unit": 113423,
+        "code_digest": "dfc2edf3ec559da7208c5db38dd01afcd1d7037824ca500f0f743e94cf5b7dba",
+        "changed": 19
+      },
+      {
+        "budget": 135543,
+        "unit": 113423,
+        "code_digest": "dfc2edf3ec559da7208c5db38dd01afcd1d7037824ca500f0f743e94cf5b7dba",
+        "changed": 19
+      },
+      {
+        "budget": 135544,
+        "unit": 113423,
+        "code_digest": "dfc2edf3ec559da7208c5db38dd01afcd1d7037824ca500f0f743e94cf5b7dba",
+        "changed": 19
+      },
+      {
+        "budget": 135545,
+        "unit": 113423,
+        "code_digest": "36f1741256ff7c20cdf668d8eaf00900ca3497aab5fc4697983af7e35466726e",
+        "changed": 16
+      },
+      {
+        "budget": 135546,
+        "unit": 113423,
+        "code_digest": "0e45a0c5e8e4b89588480faf72632055ac23c118bae58c8a3e5d9886ff662c6e",
+        "changed": 16
+      }
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "pre_budget": 153458,
+    "compensated": 153584,
+    "budget": 153556,
+    "changed": [
+      "tomo_db0::FlatStore::atomic_prepare_capacity_read_local(unsigned int)",
+      "tomo_db0::Server::atomic_credit_wait_arm(unsigned int)",
+      "void tomo_db0::IoLoop::r7_run_loop<false, false, false, true, false>()",
+      "void tomo_db0::IoLoop::r7_run_loop<false, false, true, true, false>()",
+      "void tomo_db0::IoLoop::r7_run_loop<false, true, false, true, false>()",
+      "void tomo_db0::IoLoop::r7_run_loop<false, true, true, true, false>()",
+      "void tomo_db0::IoLoop::r7_run_loop<true, false, false, true, false>()",
+      "void tomo_db0::IoLoop::r7_run_loop<true, false, true, true, false>()",
+      "void tomo_db0::IoLoop::r7_run_loop<true, true, false, true, false>()",
+      "void tomo_db0::IoLoop::r7_run_loop<true, true, true, true, false>()"
+    ],
+    "trials": [
+      {
+        "budget": 153458,
+        "unit": 125921,
+        "code_digest": "2d78a13469d62da7740c8488e13ee95679d2cd72e086f13a03df55bdb0345675",
+        "changed": 13
+      },
+      {
+        "budget": 153544,
+        "unit": 125921,
+        "code_digest": "0147c82219609b3d664c04cb1c3399bad964a6f08f37132a4634be964994ab49",
+        "changed": 11
+      },
+      {
+        "budget": 153545,
+        "unit": 125921,
+        "code_digest": "0147c82219609b3d664c04cb1c3399bad964a6f08f37132a4634be964994ab49",
+        "changed": 11
+      },
+      {
+        "budget": 153546,
+        "unit": 125921,
+        "code_digest": "0147c82219609b3d664c04cb1c3399bad964a6f08f37132a4634be964994ab49",
+        "changed": 11
+      },
+      {
+        "budget": 153547,
+        "unit": 125921,
+        "code_digest": "0147c82219609b3d664c04cb1c3399bad964a6f08f37132a4634be964994ab49",
+        "changed": 11
+      },
+      {
+        "budget": 153548,
+        "unit": 125921,
+        "code_digest": "384a68b97c45cec9591897aac6b516a95920cc96c67ec22d0fd9229eb98ecef6",
+        "changed": 13
+      },
+      {
+        "budget": 153549,
+        "unit": 125921,
+        "code_digest": "295346e81635ac4fda05668c2b835c9f1e27a902a48afd45359fa9e0baf4ced5",
+        "changed": 11
+      },
+      {
+        "budget": 153550,
+        "unit": 125921,
+        "code_digest": "295346e81635ac4fda05668c2b835c9f1e27a902a48afd45359fa9e0baf4ced5",
+        "changed": 11
+      },
+      {
+        "budget": 153551,
+        "unit": 125921,
+        "code_digest": "ac11cdb56c9c5d15aee8dcda457ff884bcfed2f523add18820ccc38a37e1aa2f",
+        "changed": 10
+      },
+      {
+        "budget": 153552,
+        "unit": 125921,
+        "code_digest": "ac11cdb56c9c5d15aee8dcda457ff884bcfed2f523add18820ccc38a37e1aa2f",
+        "changed": 10
+      },
+      {
+        "budget": 153553,
+        "unit": 125921,
+        "code_digest": "ac11cdb56c9c5d15aee8dcda457ff884bcfed2f523add18820ccc38a37e1aa2f",
+        "changed": 10
+      },
+      {
+        "budget": 153554,
+        "unit": 125921,
+        "code_digest": "ac11cdb56c9c5d15aee8dcda457ff884bcfed2f523add18820ccc38a37e1aa2f",
+        "changed": 10
+      },
+      {
+        "budget": 153555,
+        "unit": 125921,
+        "code_digest": "7eca778989132ed7634847c44104ca6de2e751fb033d035d8fd4174ba870dcc1",
+        "changed": 13
+      },
+      {
+        "budget": 153556,
+        "unit": 125921,
+        "code_digest": "535cc06e9ae8840ad9f34850089cd3abee96872bd7b1a1fda208eec2da76a9b2",
+        "changed": 10
+      },
+      {
+        "budget": 153557,
+        "unit": 125921,
+        "code_digest": "7ad2de1b8ba687b61b3801ae35549ae651e37b0cb3e368dd965dbca1aa9adf68",
+        "changed": 11
+      },
+      {
+        "budget": 153558,
+        "unit": 125921,
+        "code_digest": "7ad2de1b8ba687b61b3801ae35549ae651e37b0cb3e368dd965dbca1aa9adf68",
+        "changed": 11
+      },
+      {
+        "budget": 153559,
+        "unit": 125921,
+        "code_digest": "7ad2de1b8ba687b61b3801ae35549ae651e37b0cb3e368dd965dbca1aa9adf68",
+        "changed": 11
+      },
+      {
+        "budget": 153560,
+        "unit": 125921,
+        "code_digest": "7ad2de1b8ba687b61b3801ae35549ae651e37b0cb3e368dd965dbca1aa9adf68",
+        "changed": 11
+      },
+      {
+        "budget": 153561,
+        "unit": 125921,
+        "code_digest": "a6320af68b196c0bf8a8b3969db3c41d925033abd99f06baf0aab66a878b8c0d",
+        "changed": 13
+      },
+      {
+        "budget": 153562,
+        "unit": 125921,
+        "code_digest": "9e918aa1c3e09b583a08c6fc2f3fdbd35bef1bad65215df5f8df7f4c33ab591c",
+        "changed": 11
+      },
+      {
+        "budget": 153563,
+        "unit": 125921,
+        "code_digest": "9e918aa1c3e09b583a08c6fc2f3fdbd35bef1bad65215df5f8df7f4c33ab591c",
+        "changed": 11
+      },
+      {
+        "budget": 153564,
+        "unit": 125921,
+        "code_digest": "9e918aa1c3e09b583a08c6fc2f3fdbd35bef1bad65215df5f8df7f4c33ab591c",
+        "changed": 11
+      },
+      {
+        "budget": 153565,
+        "unit": 125921,
+        "code_digest": "2bfe62e16c9ff85a893b073089c12dbb0dfbe701a250ec03cf34ed9b0641e738",
+        "changed": 13
+      },
+      {
+        "budget": 153566,
+        "unit": 125921,
+        "code_digest": "d723436b41ea3df0067cc9eaff41e4490b261405d7557ca6e3f317cc08f3e706",
+        "changed": 11
+      },
+      {
+        "budget": 153567,
+        "unit": 125921,
+        "code_digest": "d723436b41ea3df0067cc9eaff41e4490b261405d7557ca6e3f317cc08f3e706",
+        "changed": 11
+      },
+      {
+        "budget": 153568,
+        "unit": 125921,
+        "code_digest": "d723436b41ea3df0067cc9eaff41e4490b261405d7557ca6e3f317cc08f3e706",
+        "changed": 11
+      },
+      {
+        "budget": 153569,
+        "unit": 125921,
+        "code_digest": "00c905c472bfdd560bf424873b4cdbc9112351d36174ccc132fcbe1f23fc39ca",
+        "changed": 13
+      },
+      {
+        "budget": 153570,
+        "unit": 125921,
+        "code_digest": "828b2cd654c861ec15efd6de336de377e843eeeafa3c3645b53a4749f7bbdcbf",
+        "changed": 11
+      },
+      {
+        "budget": 153571,
+        "unit": 125921,
+        "code_digest": "828b2cd654c861ec15efd6de336de377e843eeeafa3c3645b53a4749f7bbdcbf",
+        "changed": 11
+      },
+      {
+        "budget": 153572,
+        "unit": 125921,
+        "code_digest": "828b2cd654c861ec15efd6de336de377e843eeeafa3c3645b53a4749f7bbdcbf",
+        "changed": 11
+      },
+      {
+        "budget": 153573,
+        "unit": 125921,
+        "code_digest": "800c1bbf31db298e70c28349251694adc3e208d12d4d495f90729446b088221e",
+        "changed": 13
+      },
+      {
+        "budget": 153574,
+        "unit": 125921,
+        "code_digest": "4689dba9d51d8ce8ddc8417321dce7ea9be52efbcce00ae521f1015bc3659da2",
+        "changed": 11
+      },
+      {
+        "budget": 153575,
+        "unit": 125921,
+        "code_digest": "4689dba9d51d8ce8ddc8417321dce7ea9be52efbcce00ae521f1015bc3659da2",
+        "changed": 11
+      },
+      {
+        "budget": 153576,
+        "unit": 125921,
+        "code_digest": "4689dba9d51d8ce8ddc8417321dce7ea9be52efbcce00ae521f1015bc3659da2",
+        "changed": 11
+      },
+      {
+        "budget": 153577,
+        "unit": 125921,
+        "code_digest": "5d5fb09f2924dc6c24c2efaba86fd8b55d8bfa5bd33919182cdb0b1a810c9b05",
+        "changed": 13
+      },
+      {
+        "budget": 153578,
+        "unit": 125921,
+        "code_digest": "20218ec08118535d4b3eb7d0a62d43c61d83924c2e7bc6aaeb780ef7b586046a",
+        "changed": 11
+      },
+      {
+        "budget": 153579,
+        "unit": 125921,
+        "code_digest": "20218ec08118535d4b3eb7d0a62d43c61d83924c2e7bc6aaeb780ef7b586046a",
+        "changed": 11
+      },
+      {
+        "budget": 153580,
+        "unit": 125921,
+        "code_digest": "20218ec08118535d4b3eb7d0a62d43c61d83924c2e7bc6aaeb780ef7b586046a",
+        "changed": 11
+      },
+      {
+        "budget": 153581,
+        "unit": 125921,
+        "code_digest": "c78c70de118a333dd883aba68f18793e3b45d6fb4bef08b7329d682f5ca067c7",
+        "changed": 11
+      },
+      {
+        "budget": 153582,
+        "unit": 125921,
+        "code_digest": "c78c70de118a333dd883aba68f18793e3b45d6fb4bef08b7329d682f5ca067c7",
+        "changed": 11
+      },
+      {
+        "budget": 153583,
+        "unit": 125921,
+        "code_digest": "c78c70de118a333dd883aba68f18793e3b45d6fb4bef08b7329d682f5ca067c7",
+        "changed": 11
+      },
+      {
+        "budget": 153584,
+        "unit": 125921,
+        "code_digest": "c78c70de118a333dd883aba68f18793e3b45d6fb4bef08b7329d682f5ca067c7",
+        "changed": 11
+      },
+      {
+        "budget": 153585,
+        "unit": 125921,
+        "code_digest": "9aaf7f6647c4f0533f8453d7acb404ea9368788f0e1b65629cc69921cb51c268",
+        "changed": 14
+      },
+      {
+        "budget": 153586,
+        "unit": 125921,
+        "code_digest": "edc41b53bd8ea47480bfd31552e8673e5c9a58f2a625e2c3f91f9cf5d317784e",
+        "changed": 11
+      },
+      {
+        "budget": 153587,
+        "unit": 125921,
+        "code_digest": "a96b7781bf66bfce84671d57fa7447f5a470988841b527c5fb51c0d228fe068f",
+        "changed": 12
+      },
+      {
+        "budget": 153588,
+        "unit": 125921,
+        "code_digest": "a96b7781bf66bfce84671d57fa7447f5a470988841b527c5fb51c0d228fe068f",
+        "changed": 12
+      },
+      {
+        "budget": 153589,
+        "unit": 125921,
+        "code_digest": "a96b7781bf66bfce84671d57fa7447f5a470988841b527c5fb51c0d228fe068f",
+        "changed": 12
+      },
+      {
+        "budget": 153590,
+        "unit": 125921,
+        "code_digest": "a96b7781bf66bfce84671d57fa7447f5a470988841b527c5fb51c0d228fe068f",
+        "changed": 12
+      },
+      {
+        "budget": 153591,
+        "unit": 125921,
+        "code_digest": "7b6e6984581fa35dab664c73d0e4bf668c46ad4e2be461011659723f0950a074",
+        "changed": 14
+      },
+      {
+        "budget": 153592,
+        "unit": 125921,
+        "code_digest": "8ca4e1ae280ad7637f2608cb9d8316370c5c886797b76a3ae651a234cefc432f",
+        "changed": 12
+      },
+      {
+        "budget": 153593,
+        "unit": 125921,
+        "code_digest": "8ca4e1ae280ad7637f2608cb9d8316370c5c886797b76a3ae651a234cefc432f",
+        "changed": 12
+      },
+      {
+        "budget": 153594,
+        "unit": 125921,
+        "code_digest": "8ca4e1ae280ad7637f2608cb9d8316370c5c886797b76a3ae651a234cefc432f",
+        "changed": 12
+      },
+      {
+        "budget": 153595,
+        "unit": 125921,
+        "code_digest": "60f3ae46033018b2f30a00578015860f24f240691d618acea039857bd874a8ed",
+        "changed": 14
+      },
+      {
+        "budget": 153596,
+        "unit": 125921,
+        "code_digest": "7ffed2af77fafe7c68afa5c83351d4d5f1f56eb7f055d44bfe2fa332d9d99fb6",
+        "changed": 12
+      },
+      {
+        "budget": 153597,
+        "unit": 125921,
+        "code_digest": "7ffed2af77fafe7c68afa5c83351d4d5f1f56eb7f055d44bfe2fa332d9d99fb6",
+        "changed": 12
+      },
+      {
+        "budget": 153598,
+        "unit": 125921,
+        "code_digest": "7ffed2af77fafe7c68afa5c83351d4d5f1f56eb7f055d44bfe2fa332d9d99fb6",
+        "changed": 12
+      },
+      {
+        "budget": 153599,
+        "unit": 125921,
+        "code_digest": "42cab5796e1f31d698f38dcb1c68bff8e2c34ba77985878f88fdccf8d0617cd2",
+        "changed": 14
+      },
+      {
+        "budget": 153600,
+        "unit": 125921,
+        "code_digest": "84cb3a66f3deb19240843b3f504e0948f0163e92e24875a9b2abcf22b5082f32",
+        "changed": 12
+      },
+      {
+        "budget": 153601,
+        "unit": 125921,
+        "code_digest": "84cb3a66f3deb19240843b3f504e0948f0163e92e24875a9b2abcf22b5082f32",
+        "changed": 12
+      },
+      {
+        "budget": 153602,
+        "unit": 125921,
+        "code_digest": "84cb3a66f3deb19240843b3f504e0948f0163e92e24875a9b2abcf22b5082f32",
+        "changed": 12
+      },
+      {
+        "budget": 153603,
+        "unit": 125921,
+        "code_digest": "d162cf992b1edcb5fed2ee786670fcda00c36c2e202155a219d1b2de0c9b7584",
+        "changed": 14
+      },
+      {
+        "budget": 153604,
+        "unit": 125921,
+        "code_digest": "6bed38247afe541699ce92a8b1d37ad478d6995610b9444091068288dfd44f5f",
+        "changed": 12
+      },
+      {
+        "budget": 153605,
+        "unit": 125921,
+        "code_digest": "6bed38247afe541699ce92a8b1d37ad478d6995610b9444091068288dfd44f5f",
+        "changed": 12
+      },
+      {
+        "budget": 153606,
+        "unit": 125921,
+        "code_digest": "6bed38247afe541699ce92a8b1d37ad478d6995610b9444091068288dfd44f5f",
+        "changed": 12
+      },
+      {
+        "budget": 153607,
+        "unit": 125921,
+        "code_digest": "c3113112a84d76f163aa0c3210321e766710b946d85a30ea4da94bedd8c6469b",
+        "changed": 14
+      },
+      {
+        "budget": 153608,
+        "unit": 125921,
+        "code_digest": "09e7a97b016a0f4a548ddfac657695622aebde265615566b34bca695c8cd4821",
+        "changed": 12
+      },
+      {
+        "budget": 153609,
+        "unit": 125921,
+        "code_digest": "09e7a97b016a0f4a548ddfac657695622aebde265615566b34bca695c8cd4821",
+        "changed": 12
+      },
+      {
+        "budget": 153610,
+        "unit": 125921,
+        "code_digest": "09e7a97b016a0f4a548ddfac657695622aebde265615566b34bca695c8cd4821",
+        "changed": 12
+      },
+      {
+        "budget": 153611,
+        "unit": 125921,
+        "code_digest": "6bed38247afe541699ce92a8b1d37ad478d6995610b9444091068288dfd44f5f",
+        "changed": 12
+      },
+      {
+        "budget": 153612,
+        "unit": 125921,
+        "code_digest": "58bf83cacd891aa662ba34273d4a7f88fbbc273a1c16bd1aefef2e55a93e94b8",
+        "changed": 12
+      },
+      {
+        "budget": 153613,
+        "unit": 125921,
+        "code_digest": "58bf83cacd891aa662ba34273d4a7f88fbbc273a1c16bd1aefef2e55a93e94b8",
+        "changed": 12
+      },
+      {
+        "budget": 153614,
+        "unit": 125921,
+        "code_digest": "58bf83cacd891aa662ba34273d4a7f88fbbc273a1c16bd1aefef2e55a93e94b8",
+        "changed": 12
+      },
+      {
+        "budget": 153615,
+        "unit": 125921,
+        "code_digest": "e99a26768569d8f00d5f977ad4b46e5392edafc00d3ffa3e194f2e2ba3abc1f7",
+        "changed": 14
+      },
+      {
+        "budget": 153616,
+        "unit": 125921,
+        "code_digest": "eef2acdc642a9ee1323b9117f5a9e8f6cc1c9a602ceb813bcfc61522b4cf18f4",
+        "changed": 12
+      },
+      {
+        "budget": 153617,
+        "unit": 125921,
+        "code_digest": "eef2acdc642a9ee1323b9117f5a9e8f6cc1c9a602ceb813bcfc61522b4cf18f4",
+        "changed": 12
+      },
+      {
+        "budget": 153618,
+        "unit": 125921,
+        "code_digest": "eef2acdc642a9ee1323b9117f5a9e8f6cc1c9a602ceb813bcfc61522b4cf18f4",
+        "changed": 12
+      },
+      {
+        "budget": 153619,
+        "unit": 125921,
+        "code_digest": "58bf83cacd891aa662ba34273d4a7f88fbbc273a1c16bd1aefef2e55a93e94b8",
+        "changed": 12
+      },
+      {
+        "budget": 153620,
+        "unit": 125921,
+        "code_digest": "890d73f3820e1768c5353465f960e261ea21fc6e6b514e0dafb0a4b26dae0da6",
+        "changed": 12
+      },
+      {
+        "budget": 153621,
+        "unit": 125921,
+        "code_digest": "890d73f3820e1768c5353465f960e261ea21fc6e6b514e0dafb0a4b26dae0da6",
+        "changed": 12
+      },
+      {
+        "budget": 153622,
+        "unit": 125921,
+        "code_digest": "890d73f3820e1768c5353465f960e261ea21fc6e6b514e0dafb0a4b26dae0da6",
+        "changed": 12
+      },
+      {
+        "budget": 153623,
+        "unit": 125921,
+        "code_digest": "e884bb34ea78409ece5fb3a73047768e49339ebe5f43064d8d59e6b5e2739c14",
+        "changed": 13
+      },
+      {
+        "budget": 153624,
+        "unit": 125921,
+        "code_digest": "e884bb34ea78409ece5fb3a73047768e49339ebe5f43064d8d59e6b5e2739c14",
+        "changed": 13
+      }
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "pre_budget": 169784,
+    "compensated": 169910,
+    "budget": 169905,
+    "changed": [
+      "tomo_db0::Server::atomic_credit_wait_arm(unsigned int)",
+      "unsigned int tomo_db0::IoLoop::flip_control_pass<true>()",
+      "void tomo_db0::IoLoop::run_loop<false, false, false, true, true>()",
+      "void tomo_db0::IoLoop::run_loop<false, false, true, true, true>()",
+      "void tomo_db0::IoLoop::run_loop<false, true, false, true, true>()",
+      "void tomo_db0::IoLoop::run_loop<false, true, true, true, true>()",
+      "void tomo_db0::IoLoop::run_loop<true, false, false, true, true>()",
+      "void tomo_db0::IoLoop::run_loop<true, false, true, true, true>()",
+      "void tomo_db0::IoLoop::run_loop<true, true, false, true, true>()",
+      "void tomo_db0::IoLoop::run_loop<true, true, true, true, true>()"
+    ],
+    "trials": [
+      {
+        "budget": 169784,
+        "unit": 121906,
+        "code_digest": "0cfb3b68e7e61344af1e51a823891ef8725cc5e99a36fa3ca66d37ebd9fe1d37",
+        "changed": 22
+      },
+      {
+        "budget": 169870,
+        "unit": 121906,
+        "code_digest": "4daef2dda73ed60af4869ca3aed7ccc2fdb2b70cb578edfd66746ba4a3d9652a",
+        "changed": 16
+      },
+      {
+        "budget": 169871,
+        "unit": 121906,
+        "code_digest": "4daef2dda73ed60af4869ca3aed7ccc2fdb2b70cb578edfd66746ba4a3d9652a",
+        "changed": 16
+      },
+      {
+        "budget": 169872,
+        "unit": 121906,
+        "code_digest": "4daef2dda73ed60af4869ca3aed7ccc2fdb2b70cb578edfd66746ba4a3d9652a",
+        "changed": 16
+      },
+      {
+        "budget": 169873,
+        "unit": 121906,
+        "code_digest": "f029ea41694f8cbf022c8247c034833ddfb8d170cdb34d464e1e652e5e4c6657",
+        "changed": 18
+      },
+      {
+        "budget": 169874,
+        "unit": 121906,
+        "code_digest": "f029ea41694f8cbf022c8247c034833ddfb8d170cdb34d464e1e652e5e4c6657",
+        "changed": 18
+      },
+      {
+        "budget": 169875,
+        "unit": 121906,
+        "code_digest": "1aa25f28964082db46984ed421a30b9314bfcb6610974459946ac7ca657096e6",
+        "changed": 15
+      },
+      {
+        "budget": 169876,
+        "unit": 121906,
+        "code_digest": "1aa25f28964082db46984ed421a30b9314bfcb6610974459946ac7ca657096e6",
+        "changed": 15
+      },
+      {
+        "budget": 169877,
+        "unit": 121906,
+        "code_digest": "0f37e1aaf6a9b9c673e51e6f96b877c4237360834e9efa388ec9330d410814e6",
+        "changed": 16
+      },
+      {
+        "budget": 169878,
+        "unit": 121906,
+        "code_digest": "0f37e1aaf6a9b9c673e51e6f96b877c4237360834e9efa388ec9330d410814e6",
+        "changed": 16
+      },
+      {
+        "budget": 169879,
+        "unit": 121906,
+        "code_digest": "0f37e1aaf6a9b9c673e51e6f96b877c4237360834e9efa388ec9330d410814e6",
+        "changed": 16
+      },
+      {
+        "budget": 169880,
+        "unit": 121906,
+        "code_digest": "8d64576e40ee3cb7c223091535b7e4b311a1bcf726415b8e27ea483b53c76fd3",
+        "changed": 18
+      },
+      {
+        "budget": 169881,
+        "unit": 121906,
+        "code_digest": "8d64576e40ee3cb7c223091535b7e4b311a1bcf726415b8e27ea483b53c76fd3",
+        "changed": 18
+      },
+      {
+        "budget": 169882,
+        "unit": 121906,
+        "code_digest": "f6af02c1c1a1ae553fc35479a9f946cc2eb73c646662ddce6e7c4cc7438decb4",
+        "changed": 15
+      },
+      {
+        "budget": 169883,
+        "unit": 121906,
+        "code_digest": "f6af02c1c1a1ae553fc35479a9f946cc2eb73c646662ddce6e7c4cc7438decb4",
+        "changed": 15
+      },
+      {
+        "budget": 169884,
+        "unit": 121906,
+        "code_digest": "eeea5e060fc019ddf406f1e0e35747637c7c8c51fc1a9ef45c60ca1c58677e4e",
+        "changed": 15
+      },
+      {
+        "budget": 169885,
+        "unit": 121906,
+        "code_digest": "eeea5e060fc019ddf406f1e0e35747637c7c8c51fc1a9ef45c60ca1c58677e4e",
+        "changed": 15
+      },
+      {
+        "budget": 169886,
+        "unit": 121906,
+        "code_digest": "eeea5e060fc019ddf406f1e0e35747637c7c8c51fc1a9ef45c60ca1c58677e4e",
+        "changed": 15
+      },
+      {
+        "budget": 169887,
+        "unit": 121906,
+        "code_digest": "891c7a5c1feced4ba964df103baed642330468065f328b0d6c974c04550ecc96",
+        "changed": 17
+      },
+      {
+        "budget": 169888,
+        "unit": 121906,
+        "code_digest": "891c7a5c1feced4ba964df103baed642330468065f328b0d6c974c04550ecc96",
+        "changed": 17
+      },
+      {
+        "budget": 169889,
+        "unit": 121906,
+        "code_digest": "f3a359a09f4d564537190a75cd7cb569bf8d504fd750c7b661b62850965d18c1",
+        "changed": 14
+      },
+      {
+        "budget": 169890,
+        "unit": 121906,
+        "code_digest": "f3a359a09f4d564537190a75cd7cb569bf8d504fd750c7b661b62850965d18c1",
+        "changed": 14
+      },
+      {
+        "budget": 169891,
+        "unit": 121906,
+        "code_digest": "f3a359a09f4d564537190a75cd7cb569bf8d504fd750c7b661b62850965d18c1",
+        "changed": 14
+      },
+      {
+        "budget": 169892,
+        "unit": 121906,
+        "code_digest": "f3a359a09f4d564537190a75cd7cb569bf8d504fd750c7b661b62850965d18c1",
+        "changed": 14
+      },
+      {
+        "budget": 169893,
+        "unit": 121906,
+        "code_digest": "85e1740a85ea747a63351ab08aea8472f9a9fd6ef9bc0661623dc303adacfe4c",
+        "changed": 16
+      },
+      {
+        "budget": 169894,
+        "unit": 121906,
+        "code_digest": "85e1740a85ea747a63351ab08aea8472f9a9fd6ef9bc0661623dc303adacfe4c",
+        "changed": 16
+      },
+      {
+        "budget": 169895,
+        "unit": 121906,
+        "code_digest": "bf461498489203bffaceebc12012e2fd3c30bdf34603d53430a380b00a1c5268",
+        "changed": 13
+      },
+      {
+        "budget": 169896,
+        "unit": 121906,
+        "code_digest": "a888e04d6f2eba739c2aec7bbeda107b540dd8d024b9e4a5488d4df9d93c5db7",
+        "changed": 10
+      },
+      {
+        "budget": 169897,
+        "unit": 121906,
+        "code_digest": "a888e04d6f2eba739c2aec7bbeda107b540dd8d024b9e4a5488d4df9d93c5db7",
+        "changed": 10
+      },
+      {
+        "budget": 169898,
+        "unit": 121906,
+        "code_digest": "0d55e7d0a6c0669101d433bed488cce70b5c0829c406dd15153928537e56661d",
+        "changed": 11
+      },
+      {
+        "budget": 169899,
+        "unit": 121906,
+        "code_digest": "0d55e7d0a6c0669101d433bed488cce70b5c0829c406dd15153928537e56661d",
+        "changed": 11
+      },
+      {
+        "budget": 169900,
+        "unit": 121906,
+        "code_digest": "0d55e7d0a6c0669101d433bed488cce70b5c0829c406dd15153928537e56661d",
+        "changed": 11
+      },
+      {
+        "budget": 169901,
+        "unit": 121906,
+        "code_digest": "0d55e7d0a6c0669101d433bed488cce70b5c0829c406dd15153928537e56661d",
+        "changed": 11
+      },
+      {
+        "budget": 169902,
+        "unit": 121906,
+        "code_digest": "8039ef454a61ce3cd28144d1e8e12acfbddcb66fc9afa86cf163ed988031a115",
+        "changed": 13
+      },
+      {
+        "budget": 169903,
+        "unit": 121906,
+        "code_digest": "8039ef454a61ce3cd28144d1e8e12acfbddcb66fc9afa86cf163ed988031a115",
+        "changed": 13
+      },
+      {
+        "budget": 169904,
+        "unit": 121906,
+        "code_digest": "99c7ad5a18aadae9dd7aeaddd71db9d611ffd7b723f6baa6939fb9f4d67bb8c5",
+        "changed": 10
+      },
+      {
+        "budget": 169905,
+        "unit": 121906,
+        "code_digest": "99c7ad5a18aadae9dd7aeaddd71db9d611ffd7b723f6baa6939fb9f4d67bb8c5",
+        "changed": 10
+      },
+      {
+        "budget": 169906,
+        "unit": 121906,
+        "code_digest": "4028f8713ad0e71e43fc236fa6b0d866b0a7223f48cc0fbefe03bc174324e6f5",
+        "changed": 12
+      },
+      {
+        "budget": 169907,
+        "unit": 121906,
+        "code_digest": "4028f8713ad0e71e43fc236fa6b0d866b0a7223f48cc0fbefe03bc174324e6f5",
+        "changed": 12
+      },
+      {
+        "budget": 169908,
+        "unit": 121906,
+        "code_digest": "4028f8713ad0e71e43fc236fa6b0d866b0a7223f48cc0fbefe03bc174324e6f5",
+        "changed": 12
+      },
+      {
+        "budget": 169909,
+        "unit": 121906,
+        "code_digest": "4028f8713ad0e71e43fc236fa6b0d866b0a7223f48cc0fbefe03bc174324e6f5",
+        "changed": 12
+      },
+      {
+        "budget": 169910,
+        "unit": 121906,
+        "code_digest": "f7dae2392b589342b7f684e658f85670354406540d6c4ad7e7a2d0f0a13b9998",
+        "changed": 14
+      },
+      {
+        "budget": 169911,
+        "unit": 121906,
+        "code_digest": "f7dae2392b589342b7f684e658f85670354406540d6c4ad7e7a2d0f0a13b9998",
+        "changed": 14
+      },
+      {
+        "budget": 169912,
+        "unit": 121906,
+        "code_digest": "aa37c822c8df26d0d03a62254df27ee57d397cf7ea23965ceb3cca145baf1b84",
+        "changed": 11
+      },
+      {
+        "budget": 169913,
+        "unit": 121906,
+        "code_digest": "aa37c822c8df26d0d03a62254df27ee57d397cf7ea23965ceb3cca145baf1b84",
+        "changed": 11
+      },
+      {
+        "budget": 169914,
+        "unit": 121906,
+        "code_digest": "aa37c822c8df26d0d03a62254df27ee57d397cf7ea23965ceb3cca145baf1b84",
+        "changed": 11
+      },
+      {
+        "budget": 169915,
+        "unit": 121906,
+        "code_digest": "aa37c822c8df26d0d03a62254df27ee57d397cf7ea23965ceb3cca145baf1b84",
+        "changed": 11
+      },
+      {
+        "budget": 169916,
+        "unit": 121906,
+        "code_digest": "4400589b16367ce04b7323489a934f1a4a8aab4bb7ca932bba467baa8fcc2940",
+        "changed": 13
+      },
+      {
+        "budget": 169917,
+        "unit": 121906,
+        "code_digest": "4400589b16367ce04b7323489a934f1a4a8aab4bb7ca932bba467baa8fcc2940",
+        "changed": 13
+      },
+      {
+        "budget": 169918,
+        "unit": 121906,
+        "code_digest": "4400589b16367ce04b7323489a934f1a4a8aab4bb7ca932bba467baa8fcc2940",
+        "changed": 13
+      },
+      {
+        "budget": 169919,
+        "unit": 121906,
+        "code_digest": "22ff4881ad96ab94f00cf04203bf255185a1d6aed911c72013b3e29138897d91",
+        "changed": 14
+      },
+      {
+        "budget": 169920,
+        "unit": 121906,
+        "code_digest": "22ff4881ad96ab94f00cf04203bf255185a1d6aed911c72013b3e29138897d91",
+        "changed": 14
+      },
+      {
+        "budget": 169921,
+        "unit": 121906,
+        "code_digest": "22ff4881ad96ab94f00cf04203bf255185a1d6aed911c72013b3e29138897d91",
+        "changed": 14
+      },
+      {
+        "budget": 169922,
+        "unit": 121906,
+        "code_digest": "5d789622d1d256c2be1d65f27d30fe87ab6f55a5e12a22e9ddd489ac004e5aa7",
+        "changed": 15
+      },
+      {
+        "budget": 169923,
+        "unit": 121906,
+        "code_digest": "5d789622d1d256c2be1d65f27d30fe87ab6f55a5e12a22e9ddd489ac004e5aa7",
+        "changed": 15
+      },
+      {
+        "budget": 169924,
+        "unit": 121906,
+        "code_digest": "5d789622d1d256c2be1d65f27d30fe87ab6f55a5e12a22e9ddd489ac004e5aa7",
+        "changed": 15
+      },
+      {
+        "budget": 169925,
+        "unit": 121906,
+        "code_digest": "c5b1891120ab9ccdca5de34628068b8f1996f693ad1fe418e0d5e1ebe28ef461",
+        "changed": 17
+      },
+      {
+        "budget": 169926,
+        "unit": 121906,
+        "code_digest": "c5b1891120ab9ccdca5de34628068b8f1996f693ad1fe418e0d5e1ebe28ef461",
+        "changed": 17
+      },
+      {
+        "budget": 169927,
+        "unit": 121906,
+        "code_digest": "c5b1891120ab9ccdca5de34628068b8f1996f693ad1fe418e0d5e1ebe28ef461",
+        "changed": 17
+      },
+      {
+        "budget": 169928,
+        "unit": 121906,
+        "code_digest": "e03528bf4c2fd52ed95f2a17199e58b3b03978e67aeee4c8fa471e3857ae899a",
+        "changed": 19
+      },
+      {
+        "budget": 169929,
+        "unit": 121906,
+        "code_digest": "e03528bf4c2fd52ed95f2a17199e58b3b03978e67aeee4c8fa471e3857ae899a",
+        "changed": 19
+      },
+      {
+        "budget": 169930,
+        "unit": 121906,
+        "code_digest": "e03528bf4c2fd52ed95f2a17199e58b3b03978e67aeee4c8fa471e3857ae899a",
+        "changed": 19
+      },
+      {
+        "budget": 169931,
+        "unit": 121906,
+        "code_digest": "d5723057269ca990272257eeae602ba3ed517f89554b691f6f0b4e2d0a5e8681",
+        "changed": 19
+      },
+      {
+        "budget": 169932,
+        "unit": 121906,
+        "code_digest": "934df990406e2cd6b416ff0ee8f236a9c4e8fd47f63b0a0fd122143af44f251d",
+        "changed": 19
+      },
+      {
+        "budget": 169933,
+        "unit": 121906,
+        "code_digest": "cbf5bb4c29fde9403ea0995dd9de5cbe40e865f645a24de9a4eb3531e13d25de",
+        "changed": 19
+      },
+      {
+        "budget": 169934,
+        "unit": 121906,
+        "code_digest": "cbf5bb4c29fde9403ea0995dd9de5cbe40e865f645a24de9a4eb3531e13d25de",
+        "changed": 19
+      },
+      {
+        "budget": 169935,
+        "unit": 121906,
+        "code_digest": "cbf5bb4c29fde9403ea0995dd9de5cbe40e865f645a24de9a4eb3531e13d25de",
+        "changed": 19
+      },
+      {
+        "budget": 169936,
+        "unit": 121906,
+        "code_digest": "cbf5bb4c29fde9403ea0995dd9de5cbe40e865f645a24de9a4eb3531e13d25de",
+        "changed": 19
+      },
+      {
+        "budget": 169937,
+        "unit": 121906,
+        "code_digest": "2ba8238ee20454c963115c5c85446a2db7c97321c3064d61251a91f4161364f8",
+        "changed": 19
+      },
+      {
+        "budget": 169938,
+        "unit": 121906,
+        "code_digest": "96e05221a4cdf9e1e94a906417b007ecaf7b4bd797f0fc34aa3dd26600a0f22f",
+        "changed": 19
+      },
+      {
+        "budget": 169939,
+        "unit": 121906,
+        "code_digest": "9557c565d4f1b0f1334fcc0cc4d2eced2582380a19f29860bbb00d9f6e9fac62",
+        "changed": 19
+      },
+      {
+        "budget": 169940,
+        "unit": 121906,
+        "code_digest": "9557c565d4f1b0f1334fcc0cc4d2eced2582380a19f29860bbb00d9f6e9fac62",
+        "changed": 19
+      },
+      {
+        "budget": 169941,
+        "unit": 121906,
+        "code_digest": "9557c565d4f1b0f1334fcc0cc4d2eced2582380a19f29860bbb00d9f6e9fac62",
+        "changed": 19
+      },
+      {
+        "budget": 169942,
+        "unit": 121906,
+        "code_digest": "9557c565d4f1b0f1334fcc0cc4d2eced2582380a19f29860bbb00d9f6e9fac62",
+        "changed": 19
+      },
+      {
+        "budget": 169943,
+        "unit": 121906,
+        "code_digest": "63e06cdcc1c776bed60ce339764925570a6ad5d3935c019a0d8dd737ec42fb0b",
+        "changed": 19
+      },
+      {
+        "budget": 169944,
+        "unit": 121906,
+        "code_digest": "4a75c5c3efd4eaa79c01a57d03261f0af569e7c7f3785f5facb4eca171826558",
+        "changed": 19
+      },
+      {
+        "budget": 169945,
+        "unit": 121906,
+        "code_digest": "e0eef99c66fac389f2e4d5ca4684da6db10f6c2762479e1db49f80f31e0c0b60",
+        "changed": 19
+      },
+      {
+        "budget": 169946,
+        "unit": 121906,
+        "code_digest": "e0eef99c66fac389f2e4d5ca4684da6db10f6c2762479e1db49f80f31e0c0b60",
+        "changed": 19
+      },
+      {
+        "budget": 169947,
+        "unit": 121906,
+        "code_digest": "7d6ac6a72a2195d6a7d417c64372e93bde92a09cb4adb0f0c480cb59620b4fec",
+        "changed": 13
+      },
+      {
+        "budget": 169948,
+        "unit": 121906,
+        "code_digest": "7d6ac6a72a2195d6a7d417c64372e93bde92a09cb4adb0f0c480cb59620b4fec",
+        "changed": 13
+      },
+      {
+        "budget": 169949,
+        "unit": 121906,
+        "code_digest": "7d6ac6a72a2195d6a7d417c64372e93bde92a09cb4adb0f0c480cb59620b4fec",
+        "changed": 13
+      },
+      {
+        "budget": 169950,
+        "unit": 121906,
+        "code_digest": "7d6ac6a72a2195d6a7d417c64372e93bde92a09cb4adb0f0c480cb59620b4fec",
+        "changed": 13
+      }
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "pre_budget": 150597,
+    "compensated": 150726,
+    "budget": 150689,
+    "changed": [
+      "main",
+      "main.cold",
+      "std::__detail::_MakeUniq<tomo_db0::ThreadCtx>::__single_object std::make_unique<tomo_db0::ThreadCtx>()",
+      "tomo_db0::Server::atomic_credit_wait_arm(unsigned int)",
+      "tomo_db0::Server::init(tomo_db0::Config const&, tomo_db0::AofReplayPlan const*)",
+      "void tomo_db0::IoLoop::run_loop<false, false, false, false, false>()",
+      "void tomo_db0::IoLoop::run_loop<false, false, true, false, false>()",
+      "void tomo_db0::IoLoop::run_loop<false, true, false, false, false>()",
+      "void tomo_db0::IoLoop::run_loop<false, true, true, false, false>()",
+      "void tomo_db0::IoLoop::run_loop<true, false, false, false, false>()",
+      "void tomo_db0::IoLoop::run_loop<true, false, true, false, false>()",
+      "void tomo_db0::IoLoop::run_loop<true, true, false, false, false>()",
+      "void tomo_db0::IoLoop::run_loop<true, true, true, false, false>()"
+    ],
+    "trials": [
+      {
+        "budget": 150597,
+        "unit": 107589,
+        "code_digest": "9e0eb63bde2552d26d97a445046581353c8622958e89d571690c3fe4b8a5bbe8",
+        "changed": 23
+      },
+      {
+        "budget": 150686,
+        "unit": 107589,
+        "code_digest": "6ba800f670cb7f1c253a8eb88c7a3c2c951a9e11808ad5d1af091194d0443db3",
+        "changed": 13
+      },
+      {
+        "budget": 150687,
+        "unit": 107589,
+        "code_digest": "6ba800f670cb7f1c253a8eb88c7a3c2c951a9e11808ad5d1af091194d0443db3",
+        "changed": 13
+      },
+      {
+        "budget": 150688,
+        "unit": 107589,
+        "code_digest": "6ba800f670cb7f1c253a8eb88c7a3c2c951a9e11808ad5d1af091194d0443db3",
+        "changed": 13
+      },
+      {
+        "budget": 150689,
+        "unit": 107589,
+        "code_digest": "6ba800f670cb7f1c253a8eb88c7a3c2c951a9e11808ad5d1af091194d0443db3",
+        "changed": 13
+      },
+      {
+        "budget": 150690,
+        "unit": 107589,
+        "code_digest": "d32756c66a7f2a49d56841c26c47d41a1973d50fb2c0de6de3d009a757dab8fc",
+        "changed": 16
+      },
+      {
+        "budget": 150691,
+        "unit": 107589,
+        "code_digest": "d32756c66a7f2a49d56841c26c47d41a1973d50fb2c0de6de3d009a757dab8fc",
+        "changed": 16
+      },
+      {
+        "budget": 150692,
+        "unit": 107589,
+        "code_digest": "d32756c66a7f2a49d56841c26c47d41a1973d50fb2c0de6de3d009a757dab8fc",
+        "changed": 16
+      },
+      {
+        "budget": 150693,
+        "unit": 107589,
+        "code_digest": "d32756c66a7f2a49d56841c26c47d41a1973d50fb2c0de6de3d009a757dab8fc",
+        "changed": 16
+      },
+      {
+        "budget": 150694,
+        "unit": 107589,
+        "code_digest": "d32756c66a7f2a49d56841c26c47d41a1973d50fb2c0de6de3d009a757dab8fc",
+        "changed": 16
+      },
+      {
+        "budget": 150695,
+        "unit": 107589,
+        "code_digest": "d32756c66a7f2a49d56841c26c47d41a1973d50fb2c0de6de3d009a757dab8fc",
+        "changed": 16
+      },
+      {
+        "budget": 150696,
+        "unit": 107589,
+        "code_digest": "d32756c66a7f2a49d56841c26c47d41a1973d50fb2c0de6de3d009a757dab8fc",
+        "changed": 16
+      },
+      {
+        "budget": 150697,
+        "unit": 107589,
+        "code_digest": "3fd10c5f4a136d857633f1093c383c5469300cdd8e9e601d2f07e644948f7026",
+        "changed": 16
+      },
+      {
+        "budget": 150698,
+        "unit": 107589,
+        "code_digest": "1a21e8990b0578270e1a97aaec9b061b640cf928adc26696eb51d00bd512c970",
+        "changed": 15
+      },
+      {
+        "budget": 150699,
+        "unit": 107589,
+        "code_digest": "1a21e8990b0578270e1a97aaec9b061b640cf928adc26696eb51d00bd512c970",
+        "changed": 15
+      },
+      {
+        "budget": 150700,
+        "unit": 107589,
+        "code_digest": "1a21e8990b0578270e1a97aaec9b061b640cf928adc26696eb51d00bd512c970",
+        "changed": 15
+      },
+      {
+        "budget": 150701,
+        "unit": 107589,
+        "code_digest": "1a21e8990b0578270e1a97aaec9b061b640cf928adc26696eb51d00bd512c970",
+        "changed": 15
+      },
+      {
+        "budget": 150702,
+        "unit": 107589,
+        "code_digest": "1a21e8990b0578270e1a97aaec9b061b640cf928adc26696eb51d00bd512c970",
+        "changed": 15
+      },
+      {
+        "budget": 150703,
+        "unit": 107589,
+        "code_digest": "1a21e8990b0578270e1a97aaec9b061b640cf928adc26696eb51d00bd512c970",
+        "changed": 15
+      },
+      {
+        "budget": 150704,
+        "unit": 107589,
+        "code_digest": "1a21e8990b0578270e1a97aaec9b061b640cf928adc26696eb51d00bd512c970",
+        "changed": 15
+      },
+      {
+        "budget": 150705,
+        "unit": 107589,
+        "code_digest": "44064b151775e6419d06eb42fcee3a7ea6c5d338e6c2675ffa0067281c38501b",
+        "changed": 16
+      },
+      {
+        "budget": 150706,
+        "unit": 107589,
+        "code_digest": "44064b151775e6419d06eb42fcee3a7ea6c5d338e6c2675ffa0067281c38501b",
+        "changed": 16
+      },
+      {
+        "budget": 150707,
+        "unit": 107589,
+        "code_digest": "44064b151775e6419d06eb42fcee3a7ea6c5d338e6c2675ffa0067281c38501b",
+        "changed": 16
+      },
+      {
+        "budget": 150708,
+        "unit": 107589,
+        "code_digest": "44064b151775e6419d06eb42fcee3a7ea6c5d338e6c2675ffa0067281c38501b",
+        "changed": 16
+      },
+      {
+        "budget": 150709,
+        "unit": 107589,
+        "code_digest": "44064b151775e6419d06eb42fcee3a7ea6c5d338e6c2675ffa0067281c38501b",
+        "changed": 16
+      },
+      {
+        "budget": 150710,
+        "unit": 107589,
+        "code_digest": "44064b151775e6419d06eb42fcee3a7ea6c5d338e6c2675ffa0067281c38501b",
+        "changed": 16
+      },
+      {
+        "budget": 150711,
+        "unit": 107589,
+        "code_digest": "44064b151775e6419d06eb42fcee3a7ea6c5d338e6c2675ffa0067281c38501b",
+        "changed": 16
+      },
+      {
+        "budget": 150712,
+        "unit": 107589,
+        "code_digest": "bd1b4e12b6e352f9b792d4adf0de61cc7839aef0d9a4c53217a6d45aba8ce908",
+        "changed": 16
+      },
+      {
+        "budget": 150713,
+        "unit": 107589,
+        "code_digest": "c39e9dbec5dcae8b590b13dffd5170ab919fe16e6d08d6283c1d26ee412f5d0f",
+        "changed": 15
+      },
+      {
+        "budget": 150714,
+        "unit": 107589,
+        "code_digest": "c39e9dbec5dcae8b590b13dffd5170ab919fe16e6d08d6283c1d26ee412f5d0f",
+        "changed": 15
+      },
+      {
+        "budget": 150715,
+        "unit": 107589,
+        "code_digest": "c39e9dbec5dcae8b590b13dffd5170ab919fe16e6d08d6283c1d26ee412f5d0f",
+        "changed": 15
+      },
+      {
+        "budget": 150716,
+        "unit": 107589,
+        "code_digest": "c39e9dbec5dcae8b590b13dffd5170ab919fe16e6d08d6283c1d26ee412f5d0f",
+        "changed": 15
+      },
+      {
+        "budget": 150717,
+        "unit": 107589,
+        "code_digest": "c39e9dbec5dcae8b590b13dffd5170ab919fe16e6d08d6283c1d26ee412f5d0f",
+        "changed": 15
+      },
+      {
+        "budget": 150718,
+        "unit": 107589,
+        "code_digest": "c39e9dbec5dcae8b590b13dffd5170ab919fe16e6d08d6283c1d26ee412f5d0f",
+        "changed": 15
+      },
+      {
+        "budget": 150719,
+        "unit": 107589,
+        "code_digest": "c39e9dbec5dcae8b590b13dffd5170ab919fe16e6d08d6283c1d26ee412f5d0f",
+        "changed": 15
+      },
+      {
+        "budget": 150720,
+        "unit": 107589,
+        "code_digest": "7b57a97de77173b0998d7b09f4d6a9bcc26912d0582cfdcdbc044d50d1eb61f4",
+        "changed": 15
+      },
+      {
+        "budget": 150721,
+        "unit": 107589,
+        "code_digest": "f7b204adfbdf53df63ad099c9b880f9793053cc13f530b9ac27dd8e50c9636c0",
+        "changed": 14
+      },
+      {
+        "budget": 150722,
+        "unit": 107589,
+        "code_digest": "f7b204adfbdf53df63ad099c9b880f9793053cc13f530b9ac27dd8e50c9636c0",
+        "changed": 14
+      },
+      {
+        "budget": 150723,
+        "unit": 107589,
+        "code_digest": "f7b204adfbdf53df63ad099c9b880f9793053cc13f530b9ac27dd8e50c9636c0",
+        "changed": 14
+      },
+      {
+        "budget": 150724,
+        "unit": 107589,
+        "code_digest": "f7b204adfbdf53df63ad099c9b880f9793053cc13f530b9ac27dd8e50c9636c0",
+        "changed": 14
+      },
+      {
+        "budget": 150725,
+        "unit": 107589,
+        "code_digest": "f7b204adfbdf53df63ad099c9b880f9793053cc13f530b9ac27dd8e50c9636c0",
+        "changed": 14
+      },
+      {
+        "budget": 150726,
+        "unit": 107589,
+        "code_digest": "f7b204adfbdf53df63ad099c9b880f9793053cc13f530b9ac27dd8e50c9636c0",
+        "changed": 14
+      },
+      {
+        "budget": 150727,
+        "unit": 107589,
+        "code_digest": "f7b204adfbdf53df63ad099c9b880f9793053cc13f530b9ac27dd8e50c9636c0",
+        "changed": 14
+      },
+      {
+        "budget": 150728,
+        "unit": 107589,
+        "code_digest": "831c58040da633175adc1302c21fe85e2123db7e47474b2db7fc8bd879b898c4",
+        "changed": 17
+      },
+      {
+        "budget": 150729,
+        "unit": 107589,
+        "code_digest": "831c58040da633175adc1302c21fe85e2123db7e47474b2db7fc8bd879b898c4",
+        "changed": 17
+      },
+      {
+        "budget": 150730,
+        "unit": 107589,
+        "code_digest": "831c58040da633175adc1302c21fe85e2123db7e47474b2db7fc8bd879b898c4",
+        "changed": 17
+      },
+      {
+        "budget": 150731,
+        "unit": 107589,
+        "code_digest": "831c58040da633175adc1302c21fe85e2123db7e47474b2db7fc8bd879b898c4",
+        "changed": 17
+      },
+      {
+        "budget": 150732,
+        "unit": 107589,
+        "code_digest": "831c58040da633175adc1302c21fe85e2123db7e47474b2db7fc8bd879b898c4",
+        "changed": 17
+      },
+      {
+        "budget": 150733,
+        "unit": 107589,
+        "code_digest": "831c58040da633175adc1302c21fe85e2123db7e47474b2db7fc8bd879b898c4",
+        "changed": 17
+      },
+      {
+        "budget": 150734,
+        "unit": 107589,
+        "code_digest": "831c58040da633175adc1302c21fe85e2123db7e47474b2db7fc8bd879b898c4",
+        "changed": 17
+      },
+      {
+        "budget": 150735,
+        "unit": 107589,
+        "code_digest": "dca0a5a82959993662b7897d99a2daccc4075dbb74ed2ed268f79b14cf13a745",
+        "changed": 17
+      },
+      {
+        "budget": 150736,
+        "unit": 107589,
+        "code_digest": "75e120b87bce05c808db211a6e94a9198f8c94b851d92200839e95205ef0f7b7",
+        "changed": 16
+      },
+      {
+        "budget": 150737,
+        "unit": 107589,
+        "code_digest": "75e120b87bce05c808db211a6e94a9198f8c94b851d92200839e95205ef0f7b7",
+        "changed": 16
+      },
+      {
+        "budget": 150738,
+        "unit": 107589,
+        "code_digest": "75e120b87bce05c808db211a6e94a9198f8c94b851d92200839e95205ef0f7b7",
+        "changed": 16
+      },
+      {
+        "budget": 150739,
+        "unit": 107589,
+        "code_digest": "75e120b87bce05c808db211a6e94a9198f8c94b851d92200839e95205ef0f7b7",
+        "changed": 16
+      },
+      {
+        "budget": 150740,
+        "unit": 107589,
+        "code_digest": "75e120b87bce05c808db211a6e94a9198f8c94b851d92200839e95205ef0f7b7",
+        "changed": 16
+      },
+      {
+        "budget": 150741,
+        "unit": 107589,
+        "code_digest": "75e120b87bce05c808db211a6e94a9198f8c94b851d92200839e95205ef0f7b7",
+        "changed": 16
+      },
+      {
+        "budget": 150742,
+        "unit": 107589,
+        "code_digest": "75e120b87bce05c808db211a6e94a9198f8c94b851d92200839e95205ef0f7b7",
+        "changed": 16
+      },
+      {
+        "budget": 150743,
+        "unit": 107589,
+        "code_digest": "92af8cc67235473cd19d2b5d4c0abd7d7a8f0adce6f63bd717391b32a3e7c046",
+        "changed": 16
+      },
+      {
+        "budget": 150744,
+        "unit": 107589,
+        "code_digest": "c17e012d2feb0c13609ba74ddd901d16affe27cc2f88448a3efbc7eb33165d1c",
+        "changed": 15
+      },
+      {
+        "budget": 150745,
+        "unit": 107589,
+        "code_digest": "c17e012d2feb0c13609ba74ddd901d16affe27cc2f88448a3efbc7eb33165d1c",
+        "changed": 15
+      },
+      {
+        "budget": 150746,
+        "unit": 107589,
+        "code_digest": "c17e012d2feb0c13609ba74ddd901d16affe27cc2f88448a3efbc7eb33165d1c",
+        "changed": 15
+      },
+      {
+        "budget": 150747,
+        "unit": 107589,
+        "code_digest": "c17e012d2feb0c13609ba74ddd901d16affe27cc2f88448a3efbc7eb33165d1c",
+        "changed": 15
+      },
+      {
+        "budget": 150748,
+        "unit": 107589,
+        "code_digest": "c17e012d2feb0c13609ba74ddd901d16affe27cc2f88448a3efbc7eb33165d1c",
+        "changed": 15
+      },
+      {
+        "budget": 150749,
+        "unit": 107589,
+        "code_digest": "c17e012d2feb0c13609ba74ddd901d16affe27cc2f88448a3efbc7eb33165d1c",
+        "changed": 15
+      },
+      {
+        "budget": 150750,
+        "unit": 107589,
+        "code_digest": "c17e012d2feb0c13609ba74ddd901d16affe27cc2f88448a3efbc7eb33165d1c",
+        "changed": 15
+      },
+      {
+        "budget": 150751,
+        "unit": 107589,
+        "code_digest": "70ac230d5b282238e292cdab2900a8dee67a36e2cd32eb6d87f9562498412e47",
+        "changed": 18
+      },
+      {
+        "budget": 150752,
+        "unit": 107589,
+        "code_digest": "70ac230d5b282238e292cdab2900a8dee67a36e2cd32eb6d87f9562498412e47",
+        "changed": 18
+      },
+      {
+        "budget": 150753,
+        "unit": 107589,
+        "code_digest": "70ac230d5b282238e292cdab2900a8dee67a36e2cd32eb6d87f9562498412e47",
+        "changed": 18
+      },
+      {
+        "budget": 150754,
+        "unit": 107589,
+        "code_digest": "70ac230d5b282238e292cdab2900a8dee67a36e2cd32eb6d87f9562498412e47",
+        "changed": 18
+      },
+      {
+        "budget": 150755,
+        "unit": 107589,
+        "code_digest": "70ac230d5b282238e292cdab2900a8dee67a36e2cd32eb6d87f9562498412e47",
+        "changed": 18
+      },
+      {
+        "budget": 150756,
+        "unit": 107589,
+        "code_digest": "70ac230d5b282238e292cdab2900a8dee67a36e2cd32eb6d87f9562498412e47",
+        "changed": 18
+      },
+      {
+        "budget": 150757,
+        "unit": 107589,
+        "code_digest": "70ac230d5b282238e292cdab2900a8dee67a36e2cd32eb6d87f9562498412e47",
+        "changed": 18
+      },
+      {
+        "budget": 150758,
+        "unit": 107589,
+        "code_digest": "f8f58be78cbe21487f6a59424b75d99463983d1720a9a442d20258c9c86a6269",
+        "changed": 18
+      },
+      {
+        "budget": 150759,
+        "unit": 107589,
+        "code_digest": "56590e3b9c3bce59cbb36ab4b7512e6939ef7fdd95a3ea90015fa3e0b8e2ed23",
+        "changed": 17
+      },
+      {
+        "budget": 150760,
+        "unit": 107589,
+        "code_digest": "56590e3b9c3bce59cbb36ab4b7512e6939ef7fdd95a3ea90015fa3e0b8e2ed23",
+        "changed": 17
+      },
+      {
+        "budget": 150761,
+        "unit": 107589,
+        "code_digest": "56590e3b9c3bce59cbb36ab4b7512e6939ef7fdd95a3ea90015fa3e0b8e2ed23",
+        "changed": 17
+      },
+      {
+        "budget": 150762,
+        "unit": 107589,
+        "code_digest": "56590e3b9c3bce59cbb36ab4b7512e6939ef7fdd95a3ea90015fa3e0b8e2ed23",
+        "changed": 17
+      },
+      {
+        "budget": 150763,
+        "unit": 107589,
+        "code_digest": "56590e3b9c3bce59cbb36ab4b7512e6939ef7fdd95a3ea90015fa3e0b8e2ed23",
+        "changed": 17
+      },
+      {
+        "budget": 150764,
+        "unit": 107589,
+        "code_digest": "56590e3b9c3bce59cbb36ab4b7512e6939ef7fdd95a3ea90015fa3e0b8e2ed23",
+        "changed": 17
+      },
+      {
+        "budget": 150765,
+        "unit": 107589,
+        "code_digest": "56590e3b9c3bce59cbb36ab4b7512e6939ef7fdd95a3ea90015fa3e0b8e2ed23",
+        "changed": 17
+      },
+      {
+        "budget": 150766,
+        "unit": 107589,
+        "code_digest": "41394e9746be3e46deb542c2fd235086b02142f31aec03f2ea395eeee26daafa",
+        "changed": 17
+      }
+    ]
+  },
+  {
+    "object": "db0/src/snapshot/snapshot.o",
+    "pre_budget": 16171,
+    "compensated": 16221,
+    "budget": 16187,
+    "changed": [
+      "tomo_db0::Server::atomic_ring_credit_waiters(unsigned int, tomo_db0::Ring*, bool)",
+      "tomo_db0::Server::set_snapshot_atomic_barrier(bool)",
+      "tomo_db0::SnapshotManager::start(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, tomo_db0::AofManager*, char const*, char const*, bool)",
+      "tomo_db0::SnapshotManager::start(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, tomo_db0::AofManager*, char const*, char const*, bool) [clone .cold]"
+    ],
+    "trials": [
+      {
+        "budget": 16171,
+        "unit": 13635,
+        "code_digest": "f937a627081e544a8270ddb642f9fe6570bb5eac8fc65f5ba2de2cdcbe1c48c4",
+        "changed": 5
+      },
+      {
+        "budget": 16181,
+        "unit": 13635,
+        "code_digest": "fb6dfcece97f494770d769cca24c7625c2b10d9959b85cecc55aa2920946f60b",
+        "changed": 7
+      },
+      {
+        "budget": 16182,
+        "unit": 13635,
+        "code_digest": "ea0080eb6af1bb223b391bda166aa7264fd908a02b914cc944cd937b246d25a0",
+        "changed": 4
+      },
+      {
+        "budget": 16183,
+        "unit": 13635,
+        "code_digest": "ea0080eb6af1bb223b391bda166aa7264fd908a02b914cc944cd937b246d25a0",
+        "changed": 4
+      },
+      {
+        "budget": 16184,
+        "unit": 13635,
+        "code_digest": "ea0080eb6af1bb223b391bda166aa7264fd908a02b914cc944cd937b246d25a0",
+        "changed": 4
+      },
+      {
+        "budget": 16185,
+        "unit": 13635,
+        "code_digest": "ea0080eb6af1bb223b391bda166aa7264fd908a02b914cc944cd937b246d25a0",
+        "changed": 4
+      },
+      {
+        "budget": 16186,
+        "unit": 13635,
+        "code_digest": "ea0080eb6af1bb223b391bda166aa7264fd908a02b914cc944cd937b246d25a0",
+        "changed": 4
+      },
+      {
+        "budget": 16187,
+        "unit": 13635,
+        "code_digest": "ea0080eb6af1bb223b391bda166aa7264fd908a02b914cc944cd937b246d25a0",
+        "changed": 4
+      },
+      {
+        "budget": 16188,
+        "unit": 13635,
+        "code_digest": "334bdf65cde6d3cef347d103fe53671fb5266ae70e5a5e9f7e58d997a8f56f08",
+        "changed": 5
+      },
+      {
+        "budget": 16189,
+        "unit": 13635,
+        "code_digest": "d7f04f2d827ad9bbf6f3ebef42bec60215e9b9cbfdcd312817a0b2e9ae08a788",
+        "changed": 6
+      },
+      {
+        "budget": 16190,
+        "unit": 13635,
+        "code_digest": "e130bdf38324c81104dca53adae9a1ee3a9cd47f40002d4b724afa372f86cf34",
+        "changed": 7
+      },
+      {
+        "budget": 16191,
+        "unit": 13635,
+        "code_digest": "06bd83195fa0d2c292388851eb35d7802ccd7a27f855b4238a4369472a7a6a34",
+        "changed": 8
+      },
+      {
+        "budget": 16192,
+        "unit": 13635,
+        "code_digest": "06bd83195fa0d2c292388851eb35d7802ccd7a27f855b4238a4369472a7a6a34",
+        "changed": 8
+      },
+      {
+        "budget": 16193,
+        "unit": 13635,
+        "code_digest": "06bd83195fa0d2c292388851eb35d7802ccd7a27f855b4238a4369472a7a6a34",
+        "changed": 8
+      },
+      {
+        "budget": 16194,
+        "unit": 13635,
+        "code_digest": "06bd83195fa0d2c292388851eb35d7802ccd7a27f855b4238a4369472a7a6a34",
+        "changed": 8
+      },
+      {
+        "budget": 16195,
+        "unit": 13635,
+        "code_digest": "1459bfd2cc9d898b6d09417d444b2ec4ce6cd015d6c5d0c52e7700bfb155185a",
+        "changed": 6
+      },
+      {
+        "budget": 16196,
+        "unit": 13635,
+        "code_digest": "1459bfd2cc9d898b6d09417d444b2ec4ce6cd015d6c5d0c52e7700bfb155185a",
+        "changed": 6
+      },
+      {
+        "budget": 16197,
+        "unit": 13635,
+        "code_digest": "b3821afe6a773f1c63f457020182ec7e72780d9231ff7e3c201a7409ff22f58d",
+        "changed": 6
+      },
+      {
+        "budget": 16198,
+        "unit": 13635,
+        "code_digest": "b3821afe6a773f1c63f457020182ec7e72780d9231ff7e3c201a7409ff22f58d",
+        "changed": 6
+      },
+      {
+        "budget": 16199,
+        "unit": 13635,
+        "code_digest": "b3821afe6a773f1c63f457020182ec7e72780d9231ff7e3c201a7409ff22f58d",
+        "changed": 6
+      },
+      {
+        "budget": 16200,
+        "unit": 13635,
+        "code_digest": "b3821afe6a773f1c63f457020182ec7e72780d9231ff7e3c201a7409ff22f58d",
+        "changed": 6
+      },
+      {
+        "budget": 16201,
+        "unit": 13635,
+        "code_digest": "b3821afe6a773f1c63f457020182ec7e72780d9231ff7e3c201a7409ff22f58d",
+        "changed": 6
+      },
+      {
+        "budget": 16202,
+        "unit": 13635,
+        "code_digest": "b3821afe6a773f1c63f457020182ec7e72780d9231ff7e3c201a7409ff22f58d",
+        "changed": 6
+      },
+      {
+        "budget": 16203,
+        "unit": 13635,
+        "code_digest": "dff10910c048a294eaadd0fedf2dbc9748981c47c24dc97ac34d3b80f2627df7",
+        "changed": 7
+      },
+      {
+        "budget": 16204,
+        "unit": 13635,
+        "code_digest": "3c6b609921d5535133d934f24d326ad6770d9db788159cc00af2c3548a9b19af",
+        "changed": 8
+      },
+      {
+        "budget": 16205,
+        "unit": 13635,
+        "code_digest": "ad7db81cf7b528a6587ddfdb837ea8f7c3e472a756b56b13c0a743e19e011beb",
+        "changed": 5
+      },
+      {
+        "budget": 16206,
+        "unit": 13635,
+        "code_digest": "ad7db81cf7b528a6587ddfdb837ea8f7c3e472a756b56b13c0a743e19e011beb",
+        "changed": 5
+      },
+      {
+        "budget": 16207,
+        "unit": 13635,
+        "code_digest": "ad7db81cf7b528a6587ddfdb837ea8f7c3e472a756b56b13c0a743e19e011beb",
+        "changed": 5
+      },
+      {
+        "budget": 16208,
+        "unit": 13635,
+        "code_digest": "ad7db81cf7b528a6587ddfdb837ea8f7c3e472a756b56b13c0a743e19e011beb",
+        "changed": 5
+      },
+      {
+        "budget": 16209,
+        "unit": 13635,
+        "code_digest": "ad7db81cf7b528a6587ddfdb837ea8f7c3e472a756b56b13c0a743e19e011beb",
+        "changed": 5
+      },
+      {
+        "budget": 16210,
+        "unit": 13635,
+        "code_digest": "ad7db81cf7b528a6587ddfdb837ea8f7c3e472a756b56b13c0a743e19e011beb",
+        "changed": 5
+      },
+      {
+        "budget": 16211,
+        "unit": 13635,
+        "code_digest": "ce2248e8e0ad334072da0a47e16f445549439f9cb3fdaeb93fe6842975e2ef8c",
+        "changed": 6
+      },
+      {
+        "budget": 16212,
+        "unit": 13635,
+        "code_digest": "f2fbe08c012714d3fae8b2574ca8c3f8bac6f8483d80925972cee02625a73283",
+        "changed": 7
+      },
+      {
+        "budget": 16213,
+        "unit": 13635,
+        "code_digest": "9ea5da7702bd5429f9599633de4d373bdbcb25aeb156883e7e14508b65b0a819",
+        "changed": 8
+      },
+      {
+        "budget": 16214,
+        "unit": 13635,
+        "code_digest": "81898a6cf53c438f6d77764740d7e04b5aaccbfc9f38992c7f49ea6ef9231db2",
+        "changed": 9
+      },
+      {
+        "budget": 16215,
+        "unit": 13635,
+        "code_digest": "81898a6cf53c438f6d77764740d7e04b5aaccbfc9f38992c7f49ea6ef9231db2",
+        "changed": 9
+      },
+      {
+        "budget": 16216,
+        "unit": 13635,
+        "code_digest": "81898a6cf53c438f6d77764740d7e04b5aaccbfc9f38992c7f49ea6ef9231db2",
+        "changed": 9
+      },
+      {
+        "budget": 16217,
+        "unit": 13635,
+        "code_digest": "81898a6cf53c438f6d77764740d7e04b5aaccbfc9f38992c7f49ea6ef9231db2",
+        "changed": 9
+      },
+      {
+        "budget": 16218,
+        "unit": 13635,
+        "code_digest": "66a9921e6f7366edb1945af435e330247b74bcfdc6394592946aa6667928504d",
+        "changed": 7
+      },
+      {
+        "budget": 16219,
+        "unit": 13635,
+        "code_digest": "66a9921e6f7366edb1945af435e330247b74bcfdc6394592946aa6667928504d",
+        "changed": 7
+      },
+      {
+        "budget": 16220,
+        "unit": 13635,
+        "code_digest": "a6a7ea7754c2d51aa9f45ba855ecc6670167581d81912b1d90d87afdb9e27f92",
+        "changed": 7
+      },
+      {
+        "budget": 16221,
+        "unit": 13635,
+        "code_digest": "a6a7ea7754c2d51aa9f45ba855ecc6670167581d81912b1d90d87afdb9e27f92",
+        "changed": 7
+      },
+      {
+        "budget": 16222,
+        "unit": 13635,
+        "code_digest": "a6a7ea7754c2d51aa9f45ba855ecc6670167581d81912b1d90d87afdb9e27f92",
+        "changed": 7
+      },
+      {
+        "budget": 16223,
+        "unit": 13635,
+        "code_digest": "a6a7ea7754c2d51aa9f45ba855ecc6670167581d81912b1d90d87afdb9e27f92",
+        "changed": 7
+      },
+      {
+        "budget": 16224,
+        "unit": 13635,
+        "code_digest": "a6a7ea7754c2d51aa9f45ba855ecc6670167581d81912b1d90d87afdb9e27f92",
+        "changed": 7
+      },
+      {
+        "budget": 16225,
+        "unit": 13635,
+        "code_digest": "a6a7ea7754c2d51aa9f45ba855ecc6670167581d81912b1d90d87afdb9e27f92",
+        "changed": 7
+      },
+      {
+        "budget": 16226,
+        "unit": 13635,
+        "code_digest": "84cc6692195672e4ec87fcb8c0443f1fd6fcae7f778c762cb7bc9d26c9716b91",
+        "changed": 8
+      },
+      {
+        "budget": 16227,
+        "unit": 13635,
+        "code_digest": "38d84919a94bc4fa4ee99f4f1385ef5261c65a972242d418d5eeb012c2772c98",
+        "changed": 9
+      },
+      {
+        "budget": 16228,
+        "unit": 13635,
+        "code_digest": "7788433954b311e7af6e02c5287c8e166608013da293b04ccada52f36e84185c",
+        "changed": 6
+      },
+      {
+        "budget": 16229,
+        "unit": 13635,
+        "code_digest": "7788433954b311e7af6e02c5287c8e166608013da293b04ccada52f36e84185c",
+        "changed": 6
+      },
+      {
+        "budget": 16230,
+        "unit": 13635,
+        "code_digest": "7788433954b311e7af6e02c5287c8e166608013da293b04ccada52f36e84185c",
+        "changed": 6
+      },
+      {
+        "budget": 16231,
+        "unit": 13635,
+        "code_digest": "7788433954b311e7af6e02c5287c8e166608013da293b04ccada52f36e84185c",
+        "changed": 6
+      },
+      {
+        "budget": 16232,
+        "unit": 13635,
+        "code_digest": "7788433954b311e7af6e02c5287c8e166608013da293b04ccada52f36e84185c",
+        "changed": 6
+      },
+      {
+        "budget": 16233,
+        "unit": 13635,
+        "code_digest": "7788433954b311e7af6e02c5287c8e166608013da293b04ccada52f36e84185c",
+        "changed": 6
+      },
+      {
+        "budget": 16234,
+        "unit": 13635,
+        "code_digest": "41b48413d98b08684099122114fed020b573d79ff21988c6c8cb351c234bc2f8",
+        "changed": 7
+      },
+      {
+        "budget": 16235,
+        "unit": 13635,
+        "code_digest": "63436859bbb09ebfc99cc025d805da954fc2bbf7c8c81f12fb9364b4b8d3128a",
+        "changed": 8
+      },
+      {
+        "budget": 16236,
+        "unit": 13635,
+        "code_digest": "1dd4d2dc75492d2f9da3941c5e5328c896ae8747a9688bbf3fc303127c71a512",
+        "changed": 9
+      },
+      {
+        "budget": 16237,
+        "unit": 13635,
+        "code_digest": "bf937850d817e0d0eebd72c167c363d965c05ab89bf46eef56309145279ee449",
+        "changed": 10
+      },
+      {
+        "budget": 16238,
+        "unit": 13635,
+        "code_digest": "bf937850d817e0d0eebd72c167c363d965c05ab89bf46eef56309145279ee449",
+        "changed": 10
+      },
+      {
+        "budget": 16239,
+        "unit": 13635,
+        "code_digest": "bf937850d817e0d0eebd72c167c363d965c05ab89bf46eef56309145279ee449",
+        "changed": 10
+      },
+      {
+        "budget": 16240,
+        "unit": 13635,
+        "code_digest": "bf937850d817e0d0eebd72c167c363d965c05ab89bf46eef56309145279ee449",
+        "changed": 10
+      },
+      {
+        "budget": 16241,
+        "unit": 13635,
+        "code_digest": "344057603a625900d90811e01eb4f699359bbba9580efe884d142bbf342d80af",
+        "changed": 8
+      },
+      {
+        "budget": 16242,
+        "unit": 13635,
+        "code_digest": "344057603a625900d90811e01eb4f699359bbba9580efe884d142bbf342d80af",
+        "changed": 8
+      },
+      {
+        "budget": 16243,
+        "unit": 13635,
+        "code_digest": "344057603a625900d90811e01eb4f699359bbba9580efe884d142bbf342d80af",
+        "changed": 8
+      },
+      {
+        "budget": 16244,
+        "unit": 13635,
+        "code_digest": "344057603a625900d90811e01eb4f699359bbba9580efe884d142bbf342d80af",
+        "changed": 8
+      },
+      {
+        "budget": 16245,
+        "unit": 13635,
+        "code_digest": "344057603a625900d90811e01eb4f699359bbba9580efe884d142bbf342d80af",
+        "changed": 8
+      },
+      {
+        "budget": 16246,
+        "unit": 13635,
+        "code_digest": "344057603a625900d90811e01eb4f699359bbba9580efe884d142bbf342d80af",
+        "changed": 8
+      },
+      {
+        "budget": 16247,
+        "unit": 13635,
+        "code_digest": "8bb2531d8b7573bae20a8dd9d7192ef72e6fccd3c478ed3ccb38cb82925dbaa1",
+        "changed": 7
+      },
+      {
+        "budget": 16248,
+        "unit": 13635,
+        "code_digest": "8bb2531d8b7573bae20a8dd9d7192ef72e6fccd3c478ed3ccb38cb82925dbaa1",
+        "changed": 7
+      },
+      {
+        "budget": 16249,
+        "unit": 13635,
+        "code_digest": "cd70a89a155dd1eebece5df646b3ae36d824458cae3c7178ea881a2dd30ceafc",
+        "changed": 9
+      },
+      {
+        "budget": 16250,
+        "unit": 13635,
+        "code_digest": "cd70a89a155dd1eebece5df646b3ae36d824458cae3c7178ea881a2dd30ceafc",
+        "changed": 9
+      },
+      {
+        "budget": 16251,
+        "unit": 13635,
+        "code_digest": "b7dc5c66c14b676f5db35a6ac5f83ff3d8ffd45cdfa3ab060a7bd6b48cf78d3a",
+        "changed": 6
+      },
+      {
+        "budget": 16252,
+        "unit": 13635,
+        "code_digest": "c929e5bee8cc525b1e494b269433a88b6a720855f5d0aa251a8539d362c7a52c",
+        "changed": 7
+      },
+      {
+        "budget": 16253,
+        "unit": 13635,
+        "code_digest": "c929e5bee8cc525b1e494b269433a88b6a720855f5d0aa251a8539d362c7a52c",
+        "changed": 7
+      },
+      {
+        "budget": 16254,
+        "unit": 13635,
+        "code_digest": "c929e5bee8cc525b1e494b269433a88b6a720855f5d0aa251a8539d362c7a52c",
+        "changed": 7
+      },
+      {
+        "budget": 16255,
+        "unit": 13635,
+        "code_digest": "c929e5bee8cc525b1e494b269433a88b6a720855f5d0aa251a8539d362c7a52c",
+        "changed": 7
+      },
+      {
+        "budget": 16256,
+        "unit": 13635,
+        "code_digest": "c929e5bee8cc525b1e494b269433a88b6a720855f5d0aa251a8539d362c7a52c",
+        "changed": 7
+      },
+      {
+        "budget": 16257,
+        "unit": 13635,
+        "code_digest": "c929e5bee8cc525b1e494b269433a88b6a720855f5d0aa251a8539d362c7a52c",
+        "changed": 7
+      },
+      {
+        "budget": 16258,
+        "unit": 13635,
+        "code_digest": "03cbde3a72cfd025ef817f7158d4fb933a694d814c0343b10ca088f613faf8b4",
+        "changed": 8
+      },
+      {
+        "budget": 16259,
+        "unit": 13635,
+        "code_digest": "0772b9116a66b9277846b333c19cc0207491b806f293b0cf8984cc70f1c17c47",
+        "changed": 9
+      },
+      {
+        "budget": 16260,
+        "unit": 13635,
+        "code_digest": "25d18552bfd5142ca88e5223778cba46ab8e83ad160726049096cb136c648f7f",
+        "changed": 10
+      },
+      {
+        "budget": 16261,
+        "unit": 13635,
+        "code_digest": "8eb6dbbd69a1f3d4a9762df8be0f84e814fa3b2af23a7a72751206a3116f2857",
+        "changed": 11
+      }
+    ]
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "pre_budget": 168256,
+    "compensated": 168283,
+    "budget": 168287,
+    "changed": [
+      "std::vector<tomo::PubSubEventItem, std::allocator<tomo::PubSubEventItem> >::operator=(std::vector<tomo::PubSubEventItem, std::allocator<tomo::PubSubEventItem> > const&) [clone .isra.0]",
+      "tomo::(anonymous namespace)::release_admission(tomo::MultiExecState&)",
+      "tomo::(anonymous namespace)::release_admission(tomo::MultiExecState&) [clone .cold]",
+      "tomo::Server::atomic_ring_credit_waiters(unsigned int, tomo::Ring*, bool)",
+      "tomo::notify_reserve_chain(tomo::Server&, std::unique_ptr<tomo::PubSubNotificationChain, std::default_delete<tomo::PubSubNotificationChain> >, std::shared_ptr<tomo::NotifyExpiryCompletion>)",
+      "tomo::notify_reserve_chain(tomo::Server&, std::unique_ptr<tomo::PubSubNotificationChain, std::default_delete<tomo::PubSubNotificationChain> >, std::shared_ptr<tomo::NotifyExpiryCompletion>) [clone .cold]",
+      "tomo::script_window_resume(tomo::Server&, tomo::ScatterArenaPool&, unsigned int, tomo::Client&)",
+      "tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)",
+      "tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int) [clone .cold]",
+      "unsigned long tomo::FlatStore::scan<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}>(unsigned long, unsigned int, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}&&, bool) [clone .constprop.0]"
+    ],
+    "trials": [
+      {
+        "budget": 168243,
+        "unit": 136981,
+        "code_digest": "695fee48739d95acab62d56d8b9b403c9f1b49a67d862536c1371dc5c9836684",
+        "changed": 16
+      },
+      {
+        "budget": 168244,
+        "unit": 136981,
+        "code_digest": "b486d09dd8b30b7d9c986e3ac0059a5e9878fe3e69776505e99759e8ebd18837",
+        "changed": 17
+      },
+      {
+        "budget": 168245,
+        "unit": 136981,
+        "code_digest": "1e589b90adb11a8b498d548e64316596f0c026120bca4ff68c5ac873688b5504",
+        "changed": 16
+      },
+      {
+        "budget": 168246,
+        "unit": 136981,
+        "code_digest": "1e589b90adb11a8b498d548e64316596f0c026120bca4ff68c5ac873688b5504",
+        "changed": 16
+      },
+      {
+        "budget": 168247,
+        "unit": 136981,
+        "code_digest": "54d60d113a23ffb8af6dfed8355754fdff0d2e9980f6c471518c0691722b2f38",
+        "changed": 15
+      },
+      {
+        "budget": 168248,
+        "unit": 136981,
+        "code_digest": "1e589b90adb11a8b498d548e64316596f0c026120bca4ff68c5ac873688b5504",
+        "changed": 16
+      },
+      {
+        "budget": 168249,
+        "unit": 136981,
+        "code_digest": "1e589b90adb11a8b498d548e64316596f0c026120bca4ff68c5ac873688b5504",
+        "changed": 16
+      },
+      {
+        "budget": 168250,
+        "unit": 136981,
+        "code_digest": "4e99eb01b29a77874c0fb6d06701676abb101c9da1ad2b08f84e7a5b51e29b3a",
+        "changed": 17
+      },
+      {
+        "budget": 168251,
+        "unit": 136981,
+        "code_digest": "3c0a21c7891e1f7c47dc643951e0aef5141bfa1c22c567e7c837792aa1836d06",
+        "changed": 17
+      },
+      {
+        "budget": 168252,
+        "unit": 136981,
+        "code_digest": "3c0a21c7891e1f7c47dc643951e0aef5141bfa1c22c567e7c837792aa1836d06",
+        "changed": 17
+      },
+      {
+        "budget": 168253,
+        "unit": 136981,
+        "code_digest": "a895bc3cfcbc4ee2daa694b9cad5abb489edd9174fa54e723327476ca4aa78e9",
+        "changed": 15
+      },
+      {
+        "budget": 168254,
+        "unit": 136981,
+        "code_digest": "a895bc3cfcbc4ee2daa694b9cad5abb489edd9174fa54e723327476ca4aa78e9",
+        "changed": 15
+      },
+      {
+        "budget": 168255,
+        "unit": 136981,
+        "code_digest": "90da8eb0511e05b6bd12231036be6d3a1ccc3d56cd50e29d2125ccb0819df6e2",
+        "changed": 14
+      },
+      {
+        "budget": 168256,
+        "unit": 136981,
+        "code_digest": "a895bc3cfcbc4ee2daa694b9cad5abb489edd9174fa54e723327476ca4aa78e9",
+        "changed": 15
+      },
+      {
+        "budget": 168257,
+        "unit": 136981,
+        "code_digest": "83ba446a643ac506e5e7e75c495e8ab8218f1eb6487f2238c9bdb7cc5fd9c500",
+        "changed": 14
+      },
+      {
+        "budget": 168258,
+        "unit": 136981,
+        "code_digest": "83ba446a643ac506e5e7e75c495e8ab8218f1eb6487f2238c9bdb7cc5fd9c500",
+        "changed": 14
+      },
+      {
+        "budget": 168259,
+        "unit": 136981,
+        "code_digest": "35d6fa031d419f281c5a98d0a07a5b78c1d83fa9ae0be8affdc26bdbbb2b9985",
+        "changed": 13
+      },
+      {
+        "budget": 168260,
+        "unit": 136981,
+        "code_digest": "83ba446a643ac506e5e7e75c495e8ab8218f1eb6487f2238c9bdb7cc5fd9c500",
+        "changed": 14
+      },
+      {
+        "budget": 168261,
+        "unit": 136981,
+        "code_digest": "83ba446a643ac506e5e7e75c495e8ab8218f1eb6487f2238c9bdb7cc5fd9c500",
+        "changed": 14
+      },
+      {
+        "budget": 168262,
+        "unit": 136981,
+        "code_digest": "bf8b12e8748f6cf15b2ea15f6774fceaa17a9fc2db312a2d7dc32eb1efaf20b4",
+        "changed": 15
+      },
+      {
+        "budget": 168263,
+        "unit": 136981,
+        "code_digest": "d27bc92ccf19263c59b9a409c608909d92e4bfb1cd4977eba24dff5f1f02e339",
+        "changed": 15
+      },
+      {
+        "budget": 168264,
+        "unit": 136981,
+        "code_digest": "d27bc92ccf19263c59b9a409c608909d92e4bfb1cd4977eba24dff5f1f02e339",
+        "changed": 15
+      },
+      {
+        "budget": 168265,
+        "unit": 136981,
+        "code_digest": "83ba446a643ac506e5e7e75c495e8ab8218f1eb6487f2238c9bdb7cc5fd9c500",
+        "changed": 14
+      },
+      {
+        "budget": 168266,
+        "unit": 136981,
+        "code_digest": "fada5cd4eb121d9ec8af5b7549cb090ad8afcbc0eb23fc012e37a23bb5edf993",
+        "changed": 14
+      },
+      {
+        "budget": 168267,
+        "unit": 136981,
+        "code_digest": "fada5cd4eb121d9ec8af5b7549cb090ad8afcbc0eb23fc012e37a23bb5edf993",
+        "changed": 14
+      },
+      {
+        "budget": 168268,
+        "unit": 136981,
+        "code_digest": "cfe245d0f4f2dd4dcf1e1c5b984a9763736f5e6b0eae13ed8f43c10eddffa507",
+        "changed": 13
+      },
+      {
+        "budget": 168269,
+        "unit": 136981,
+        "code_digest": "fada5cd4eb121d9ec8af5b7549cb090ad8afcbc0eb23fc012e37a23bb5edf993",
+        "changed": 14
+      },
+      {
+        "budget": 168270,
+        "unit": 136981,
+        "code_digest": "7bd731bb6ba10f220c1767c72b629e48a9be5cddc7782aa2224c9316a175c474",
+        "changed": 13
+      },
+      {
+        "budget": 168271,
+        "unit": 136981,
+        "code_digest": "7bd731bb6ba10f220c1767c72b629e48a9be5cddc7782aa2224c9316a175c474",
+        "changed": 13
+      },
+      {
+        "budget": 168272,
+        "unit": 136981,
+        "code_digest": "37207b2d0c408c8fc1ecdc1960e3a782890e59f4f85d7730ba7befa6d26d854b",
+        "changed": 12
+      },
+      {
+        "budget": 168273,
+        "unit": 136981,
+        "code_digest": "7bd731bb6ba10f220c1767c72b629e48a9be5cddc7782aa2224c9316a175c474",
+        "changed": 13
+      },
+      {
+        "budget": 168274,
+        "unit": 136981,
+        "code_digest": "7bd731bb6ba10f220c1767c72b629e48a9be5cddc7782aa2224c9316a175c474",
+        "changed": 13
+      },
+      {
+        "budget": 168275,
+        "unit": 136981,
+        "code_digest": "62753ea16b5d7ac2fd3d7fde9482a6e04a6d030818aaa075a103b50097204a97",
+        "changed": 14
+      },
+      {
+        "budget": 168276,
+        "unit": 136981,
+        "code_digest": "730141e9589e61e22c43803280f4ed02cf85da18eac7ae500fc7ad515e88d1a7",
+        "changed": 14
+      },
+      {
+        "budget": 168277,
+        "unit": 136981,
+        "code_digest": "730141e9589e61e22c43803280f4ed02cf85da18eac7ae500fc7ad515e88d1a7",
+        "changed": 14
+      },
+      {
+        "budget": 168278,
+        "unit": 136981,
+        "code_digest": "7bd731bb6ba10f220c1767c72b629e48a9be5cddc7782aa2224c9316a175c474",
+        "changed": 13
+      },
+      {
+        "budget": 168279,
+        "unit": 136981,
+        "code_digest": "7bd731bb6ba10f220c1767c72b629e48a9be5cddc7782aa2224c9316a175c474",
+        "changed": 13
+      },
+      {
+        "budget": 168280,
+        "unit": 136981,
+        "code_digest": "37207b2d0c408c8fc1ecdc1960e3a782890e59f4f85d7730ba7befa6d26d854b",
+        "changed": 12
+      },
+      {
+        "budget": 168281,
+        "unit": 136981,
+        "code_digest": "7bd731bb6ba10f220c1767c72b629e48a9be5cddc7782aa2224c9316a175c474",
+        "changed": 13
+      },
+      {
+        "budget": 168282,
+        "unit": 136981,
+        "code_digest": "7bd731bb6ba10f220c1767c72b629e48a9be5cddc7782aa2224c9316a175c474",
+        "changed": 13
+      },
+      {
+        "budget": 168283,
+        "unit": 136981,
+        "code_digest": "62753ea16b5d7ac2fd3d7fde9482a6e04a6d030818aaa075a103b50097204a97",
+        "changed": 14
+      },
+      {
+        "budget": 168284,
+        "unit": 136981,
+        "code_digest": "730141e9589e61e22c43803280f4ed02cf85da18eac7ae500fc7ad515e88d1a7",
+        "changed": 14
+      },
+      {
+        "budget": 168285,
+        "unit": 136981,
+        "code_digest": "730141e9589e61e22c43803280f4ed02cf85da18eac7ae500fc7ad515e88d1a7",
+        "changed": 14
+      },
+      {
+        "budget": 168286,
+        "unit": 136981,
+        "code_digest": "d569ad741676aecb7101e220e8975568c15743ce11325898a38e6572615a6a6c",
+        "changed": 12
+      },
+      {
+        "budget": 168287,
+        "unit": 136981,
+        "code_digest": "03202636bb2f4d42af806f449b2aa2e8a3eea82a417e47df9c3a1b65c5c509f7",
+        "changed": 10
+      },
+      {
+        "budget": 168288,
+        "unit": 136981,
+        "code_digest": "046cd2fe009717a40b7799d030ecd3b125944ee2ae5c276716c2388cd67ecf4d",
+        "changed": 11
+      },
+      {
+        "budget": 168289,
+        "unit": 136981,
+        "code_digest": "3a3553a146751ac243859e01e26973fc3a579329dcd36371ce90c6bd3cde1777",
+        "changed": 14
+      },
+      {
+        "budget": 168290,
+        "unit": 136981,
+        "code_digest": "283fa22670edbe5224dc1e7d106ded162ee9dfafc599427e444e8c979183bca3",
+        "changed": 13
+      },
+      {
+        "budget": 168291,
+        "unit": 136981,
+        "code_digest": "3a3553a146751ac243859e01e26973fc3a579329dcd36371ce90c6bd3cde1777",
+        "changed": 14
+      },
+      {
+        "budget": 168292,
+        "unit": 136981,
+        "code_digest": "3a3553a146751ac243859e01e26973fc3a579329dcd36371ce90c6bd3cde1777",
+        "changed": 14
+      },
+      {
+        "budget": 168293,
+        "unit": 136981,
+        "code_digest": "30c67b0568629ea0dbc52f5f411b7f7f811435ab6365feebd94c6ef048beba6d",
+        "changed": 15
+      },
+      {
+        "budget": 168294,
+        "unit": 136981,
+        "code_digest": "fd4d130e0d5456e4eef3b88510cf22b93d501a20978c5acbc0fc7128d57cb5fc",
+        "changed": 15
+      },
+      {
+        "budget": 168295,
+        "unit": 136981,
+        "code_digest": "fd4d130e0d5456e4eef3b88510cf22b93d501a20978c5acbc0fc7128d57cb5fc",
+        "changed": 15
+      },
+      {
+        "budget": 168296,
+        "unit": 136981,
+        "code_digest": "c90d1e2db49948ea0cf2cd9b46926224af1cf85ce5bc8d4f5f3c03b676d3203b",
+        "changed": 16
+      },
+      {
+        "budget": 168297,
+        "unit": 136981,
+        "code_digest": "c90d1e2db49948ea0cf2cd9b46926224af1cf85ce5bc8d4f5f3c03b676d3203b",
+        "changed": 16
+      },
+      {
+        "budget": 168298,
+        "unit": 136981,
+        "code_digest": "e20344cb8b451c2d1e8afb6db7fa4f685a9ab2aaa7c422d048330dda5a961762",
+        "changed": 15
+      },
+      {
+        "budget": 168299,
+        "unit": 136981,
+        "code_digest": "c90d1e2db49948ea0cf2cd9b46926224af1cf85ce5bc8d4f5f3c03b676d3203b",
+        "changed": 16
+      },
+      {
+        "budget": 168300,
+        "unit": 136981,
+        "code_digest": "869c41a7dea521fe1c03892b9d7877c1d13f5e68c4020cbfd60dc8445de9ad88",
+        "changed": 15
+      },
+      {
+        "budget": 168301,
+        "unit": 136981,
+        "code_digest": "869c41a7dea521fe1c03892b9d7877c1d13f5e68c4020cbfd60dc8445de9ad88",
+        "changed": 15
+      },
+      {
+        "budget": 168302,
+        "unit": 136981,
+        "code_digest": "73e42d5e59f9707625e2ca63b40259173e133945af94f1a199baf611336ee075",
+        "changed": 14
+      },
+      {
+        "budget": 168303,
+        "unit": 136981,
+        "code_digest": "869c41a7dea521fe1c03892b9d7877c1d13f5e68c4020cbfd60dc8445de9ad88",
+        "changed": 15
+      },
+      {
+        "budget": 168304,
+        "unit": 136981,
+        "code_digest": "869c41a7dea521fe1c03892b9d7877c1d13f5e68c4020cbfd60dc8445de9ad88",
+        "changed": 15
+      },
+      {
+        "budget": 168305,
+        "unit": 136981,
+        "code_digest": "4dc6d4dbcd71ff50d4818d6f3571d53a1544cb64e33626b371f80960e674f8d0",
+        "changed": 16
+      },
+      {
+        "budget": 168306,
+        "unit": 136981,
+        "code_digest": "caf1e4ee440a5641507f35301596722045dc43ca724bb4b3c8a89cfe2ec78b25",
+        "changed": 16
+      },
+      {
+        "budget": 168307,
+        "unit": 136981,
+        "code_digest": "caf1e4ee440a5641507f35301596722045dc43ca724bb4b3c8a89cfe2ec78b25",
+        "changed": 16
+      },
+      {
+        "budget": 168308,
+        "unit": 136981,
+        "code_digest": "869c41a7dea521fe1c03892b9d7877c1d13f5e68c4020cbfd60dc8445de9ad88",
+        "changed": 15
+      },
+      {
+        "budget": 168309,
+        "unit": 136981,
+        "code_digest": "c2ca158d67a1cbaecf23c8e7829e8ad28ae61316fa0a8008f6c02fa9e556f25f",
+        "changed": 15
+      },
+      {
+        "budget": 168310,
+        "unit": 136981,
+        "code_digest": "c2ca158d67a1cbaecf23c8e7829e8ad28ae61316fa0a8008f6c02fa9e556f25f",
+        "changed": 15
+      },
+      {
+        "budget": 168311,
+        "unit": 136981,
+        "code_digest": "1d07cd7b7e1fc27530c2c31c0b960509a7a0dc8c934523f9d7072edd1eac86d8",
+        "changed": 14
+      },
+      {
+        "budget": 168312,
+        "unit": 136981,
+        "code_digest": "c2ca158d67a1cbaecf23c8e7829e8ad28ae61316fa0a8008f6c02fa9e556f25f",
+        "changed": 15
+      },
+      {
+        "budget": 168313,
+        "unit": 136981,
+        "code_digest": "23702464a634c81b496b03e4411f2bf47f607b41922321137eaa3bc9027531ff",
+        "changed": 14
+      },
+      {
+        "budget": 168314,
+        "unit": 136981,
+        "code_digest": "23702464a634c81b496b03e4411f2bf47f607b41922321137eaa3bc9027531ff",
+        "changed": 14
+      },
+      {
+        "budget": 168315,
+        "unit": 136981,
+        "code_digest": "92ed0ff1a1d20f6953ff51b5874c800894b7c6f0133855bf6a804da7faf1511e",
+        "changed": 13
+      },
+      {
+        "budget": 168316,
+        "unit": 136981,
+        "code_digest": "23702464a634c81b496b03e4411f2bf47f607b41922321137eaa3bc9027531ff",
+        "changed": 14
+      },
+      {
+        "budget": 168317,
+        "unit": 136981,
+        "code_digest": "23702464a634c81b496b03e4411f2bf47f607b41922321137eaa3bc9027531ff",
+        "changed": 14
+      },
+      {
+        "budget": 168318,
+        "unit": 136981,
+        "code_digest": "36ef3710452d3939aff2fc86ea158a0d742ec3a79f26c2091f70610f0e1a7c9b",
+        "changed": 15
+      },
+      {
+        "budget": 168319,
+        "unit": 136981,
+        "code_digest": "62cb14b9e4c4a402c92c67f0da04afad6300c91abe6e7f3086055dbe0023ab99",
+        "changed": 15
+      },
+      {
+        "budget": 168320,
+        "unit": 136981,
+        "code_digest": "62cb14b9e4c4a402c92c67f0da04afad6300c91abe6e7f3086055dbe0023ab99",
+        "changed": 15
+      },
+      {
+        "budget": 168321,
+        "unit": 136981,
+        "code_digest": "23702464a634c81b496b03e4411f2bf47f607b41922321137eaa3bc9027531ff",
+        "changed": 14
+      },
+      {
+        "budget": 168322,
+        "unit": 136981,
+        "code_digest": "23702464a634c81b496b03e4411f2bf47f607b41922321137eaa3bc9027531ff",
+        "changed": 14
+      },
+      {
+        "budget": 168323,
+        "unit": 136981,
+        "code_digest": "92ed0ff1a1d20f6953ff51b5874c800894b7c6f0133855bf6a804da7faf1511e",
+        "changed": 13
+      }
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "pre_budget": 134722,
+    "compensated": 134848,
+    "budget": 134844,
+    "changed": [
+      "tomo::Server::atomic_credit_wait_arm(unsigned int)",
+      "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true, false>()",
+      "unsigned long tomo::kvobj_external_bytes<true>(tomo::KvObj const*, void const*, tomo::KvObj const*)",
+      "void tomo::IoLoop::run_loop<false, false, false, true, false>()",
+      "void tomo::IoLoop::run_loop<false, false, true, true, false>()",
+      "void tomo::IoLoop::run_loop<false, true, false, true, false>()",
+      "void tomo::IoLoop::run_loop<false, true, true, true, false>()",
+      "void tomo::IoLoop::run_loop<true, false, false, true, false>()",
+      "void tomo::IoLoop::run_loop<true, false, true, true, false>()",
+      "void tomo::IoLoop::run_loop<true, true, false, true, false>()",
+      "void tomo::IoLoop::run_loop<true, true, true, true, false>()"
+    ],
+    "trials": [
+      {
+        "budget": 134722,
+        "unit": 114221,
+        "code_digest": "5d0f93a8bc4c97cbee5b1b26ef674b29dc060e1806fef1b4d285898ddd66e6a3",
+        "changed": 13
+      },
+      {
+        "budget": 134808,
+        "unit": 114221,
+        "code_digest": "5ac7f5f191f247bad71437b669ea92538e9f4c50a6deb8035ada4b487114ee0c",
+        "changed": 14
+      },
+      {
+        "budget": 134809,
+        "unit": 114221,
+        "code_digest": "e55aa3e7f93d8965bc7915fc0d8d005571aa98b1961a0280e3a682baf5c4d227",
+        "changed": 14
+      },
+      {
+        "budget": 134810,
+        "unit": 114221,
+        "code_digest": "e55aa3e7f93d8965bc7915fc0d8d005571aa98b1961a0280e3a682baf5c4d227",
+        "changed": 14
+      },
+      {
+        "budget": 134811,
+        "unit": 114221,
+        "code_digest": "f90861f49fb741cfa06dbcc7eac508c747ab940bc203ac1549cff5265463e3a9",
+        "changed": 14
+      },
+      {
+        "budget": 134812,
+        "unit": 114221,
+        "code_digest": "f90861f49fb741cfa06dbcc7eac508c747ab940bc203ac1549cff5265463e3a9",
+        "changed": 14
+      },
+      {
+        "budget": 134813,
+        "unit": 114221,
+        "code_digest": "f90861f49fb741cfa06dbcc7eac508c747ab940bc203ac1549cff5265463e3a9",
+        "changed": 14
+      },
+      {
+        "budget": 134814,
+        "unit": 114221,
+        "code_digest": "f90861f49fb741cfa06dbcc7eac508c747ab940bc203ac1549cff5265463e3a9",
+        "changed": 14
+      },
+      {
+        "budget": 134815,
+        "unit": 114221,
+        "code_digest": "4be73c17ef7ec8cab18867a67218eecc98d14862daedd04903a1535042e1dd62",
+        "changed": 15
+      },
+      {
+        "budget": 134816,
+        "unit": 114221,
+        "code_digest": "f21d5aa9aee5e78c9398ba52ef5a35901caf25c226054ab2b336809165bc094c",
+        "changed": 15
+      },
+      {
+        "budget": 134817,
+        "unit": 114221,
+        "code_digest": "f21d5aa9aee5e78c9398ba52ef5a35901caf25c226054ab2b336809165bc094c",
+        "changed": 15
+      },
+      {
+        "budget": 134818,
+        "unit": 114221,
+        "code_digest": "da8b9a1b84c75276a57b082a9d915d5ce9d87bec17afe81ba62e3a6e7d8dc623",
+        "changed": 15
+      },
+      {
+        "budget": 134819,
+        "unit": 114221,
+        "code_digest": "da8b9a1b84c75276a57b082a9d915d5ce9d87bec17afe81ba62e3a6e7d8dc623",
+        "changed": 15
+      },
+      {
+        "budget": 134820,
+        "unit": 114221,
+        "code_digest": "da8b9a1b84c75276a57b082a9d915d5ce9d87bec17afe81ba62e3a6e7d8dc623",
+        "changed": 15
+      },
+      {
+        "budget": 134821,
+        "unit": 114221,
+        "code_digest": "da8b9a1b84c75276a57b082a9d915d5ce9d87bec17afe81ba62e3a6e7d8dc623",
+        "changed": 15
+      },
+      {
+        "budget": 134822,
+        "unit": 114221,
+        "code_digest": "f13589899d6a27863f091c63d907b3cee7c837e7822910914a729923dc1a1495",
+        "changed": 13
+      },
+      {
+        "budget": 134823,
+        "unit": 114221,
+        "code_digest": "f13589899d6a27863f091c63d907b3cee7c837e7822910914a729923dc1a1495",
+        "changed": 13
+      },
+      {
+        "budget": 134824,
+        "unit": 114221,
+        "code_digest": "f13589899d6a27863f091c63d907b3cee7c837e7822910914a729923dc1a1495",
+        "changed": 13
+      },
+      {
+        "budget": 134825,
+        "unit": 114221,
+        "code_digest": "a120943aff42b92794056aa6c5935fd30fbfbbcbe338be97f9e3147d9c5dfe8f",
+        "changed": 14
+      },
+      {
+        "budget": 134826,
+        "unit": 114221,
+        "code_digest": "e09ad6149b1ea461d5b36f6dbda6122c9e9d2513185967fc88514738a9e69437",
+        "changed": 14
+      },
+      {
+        "budget": 134827,
+        "unit": 114221,
+        "code_digest": "809d71d0d3acf527a33a654d05727cdaba5dc9d9b7395f059ad8884de24d1313",
+        "changed": 11
+      },
+      {
+        "budget": 134828,
+        "unit": 114221,
+        "code_digest": "809d71d0d3acf527a33a654d05727cdaba5dc9d9b7395f059ad8884de24d1313",
+        "changed": 11
+      },
+      {
+        "budget": 134829,
+        "unit": 114221,
+        "code_digest": "809d71d0d3acf527a33a654d05727cdaba5dc9d9b7395f059ad8884de24d1313",
+        "changed": 11
+      },
+      {
+        "budget": 134830,
+        "unit": 114221,
+        "code_digest": "809d71d0d3acf527a33a654d05727cdaba5dc9d9b7395f059ad8884de24d1313",
+        "changed": 11
+      },
+      {
+        "budget": 134831,
+        "unit": 114221,
+        "code_digest": "34bffe467047558724649ca8a9c43d463d894d800f7ca22c9cfc034725261c1c",
+        "changed": 12
+      },
+      {
+        "budget": 134832,
+        "unit": 114221,
+        "code_digest": "80c58a7eba7e37caecbc38e869332ef62096bfab43c0992105fee969eef90388",
+        "changed": 12
+      },
+      {
+        "budget": 134833,
+        "unit": 114221,
+        "code_digest": "80c58a7eba7e37caecbc38e869332ef62096bfab43c0992105fee969eef90388",
+        "changed": 12
+      },
+      {
+        "budget": 134834,
+        "unit": 114221,
+        "code_digest": "1c88e100896d654e334650bc1eeeb96d2688aa12f5fef9d56b04c7f551d43ac6",
+        "changed": 12
+      },
+      {
+        "budget": 134835,
+        "unit": 114221,
+        "code_digest": "1c88e100896d654e334650bc1eeeb96d2688aa12f5fef9d56b04c7f551d43ac6",
+        "changed": 12
+      },
+      {
+        "budget": 134836,
+        "unit": 114221,
+        "code_digest": "1c88e100896d654e334650bc1eeeb96d2688aa12f5fef9d56b04c7f551d43ac6",
+        "changed": 12
+      },
+      {
+        "budget": 134837,
+        "unit": 114221,
+        "code_digest": "1c88e100896d654e334650bc1eeeb96d2688aa12f5fef9d56b04c7f551d43ac6",
+        "changed": 12
+      },
+      {
+        "budget": 134838,
+        "unit": 114221,
+        "code_digest": "7ecaa0c68c000fb0654948e911e0ab6080d3d290a3ccd66fed86424daf9e9cbe",
+        "changed": 13
+      },
+      {
+        "budget": 134839,
+        "unit": 114221,
+        "code_digest": "d925ba8edc12121410833074181222176dc7ec675a0c88d32bd271a087699656",
+        "changed": 13
+      },
+      {
+        "budget": 134840,
+        "unit": 114221,
+        "code_digest": "d925ba8edc12121410833074181222176dc7ec675a0c88d32bd271a087699656",
+        "changed": 13
+      },
+      {
+        "budget": 134841,
+        "unit": 114221,
+        "code_digest": "9f5ae4b8fd9238a0db826278ecf92394c472cf9ff7022233e611788a40c84016",
+        "changed": 11
+      },
+      {
+        "budget": 134842,
+        "unit": 114221,
+        "code_digest": "9f5ae4b8fd9238a0db826278ecf92394c472cf9ff7022233e611788a40c84016",
+        "changed": 11
+      },
+      {
+        "budget": 134843,
+        "unit": 114221,
+        "code_digest": "9f5ae4b8fd9238a0db826278ecf92394c472cf9ff7022233e611788a40c84016",
+        "changed": 11
+      },
+      {
+        "budget": 134844,
+        "unit": 114221,
+        "code_digest": "9f5ae4b8fd9238a0db826278ecf92394c472cf9ff7022233e611788a40c84016",
+        "changed": 11
+      },
+      {
+        "budget": 134845,
+        "unit": 114221,
+        "code_digest": "38b37b4c3b7b97579349589a8d3158227e9a53e97dbb969a4334c608ede7eebb",
+        "changed": 12
+      },
+      {
+        "budget": 134846,
+        "unit": 114221,
+        "code_digest": "a15816dc959c8378b10d283c9bfd6e7f8fda70fae5ef355640c194d80697b9a7",
+        "changed": 12
+      },
+      {
+        "budget": 134847,
+        "unit": 114221,
+        "code_digest": "a15816dc959c8378b10d283c9bfd6e7f8fda70fae5ef355640c194d80697b9a7",
+        "changed": 12
+      },
+      {
+        "budget": 134848,
+        "unit": 114221,
+        "code_digest": "32be8f5a42d07dfc87803b8b4eb9081f80fcd11ea805754733336b3b008237fe",
+        "changed": 12
+      },
+      {
+        "budget": 134849,
+        "unit": 114221,
+        "code_digest": "32be8f5a42d07dfc87803b8b4eb9081f80fcd11ea805754733336b3b008237fe",
+        "changed": 12
+      },
+      {
+        "budget": 134850,
+        "unit": 114221,
+        "code_digest": "32be8f5a42d07dfc87803b8b4eb9081f80fcd11ea805754733336b3b008237fe",
+        "changed": 12
+      },
+      {
+        "budget": 134851,
+        "unit": 114221,
+        "code_digest": "32be8f5a42d07dfc87803b8b4eb9081f80fcd11ea805754733336b3b008237fe",
+        "changed": 12
+      },
+      {
+        "budget": 134852,
+        "unit": 114221,
+        "code_digest": "2ce7fb1537fa4ae928cf6fb0c062cd5f523eaee1fa635200501d0d90f1be11c6",
+        "changed": 13
+      },
+      {
+        "budget": 134853,
+        "unit": 114221,
+        "code_digest": "4c79afcc60a9f497f5eb36aa518567b0a963e61e7b29cdbe8f56afab9b4d5df2",
+        "changed": 13
+      },
+      {
+        "budget": 134854,
+        "unit": 114221,
+        "code_digest": "4c79afcc60a9f497f5eb36aa518567b0a963e61e7b29cdbe8f56afab9b4d5df2",
+        "changed": 13
+      },
+      {
+        "budget": 134855,
+        "unit": 114221,
+        "code_digest": "4c79afcc60a9f497f5eb36aa518567b0a963e61e7b29cdbe8f56afab9b4d5df2",
+        "changed": 13
+      },
+      {
+        "budget": 134856,
+        "unit": 114221,
+        "code_digest": "4c79afcc60a9f497f5eb36aa518567b0a963e61e7b29cdbe8f56afab9b4d5df2",
+        "changed": 13
+      },
+      {
+        "budget": 134857,
+        "unit": 114221,
+        "code_digest": "27a98a9e5220b4407c504d521670a24684e2fd60c044f2b5d55ebd167378c302",
+        "changed": 14
+      },
+      {
+        "budget": 134858,
+        "unit": 114221,
+        "code_digest": "f696d0f8f82184a05249f8fedfa4dc1ade8d276d3c95c9542689cf44854c756a",
+        "changed": 14
+      },
+      {
+        "budget": 134859,
+        "unit": 114221,
+        "code_digest": "f696d0f8f82184a05249f8fedfa4dc1ade8d276d3c95c9542689cf44854c756a",
+        "changed": 14
+      },
+      {
+        "budget": 134860,
+        "unit": 114221,
+        "code_digest": "4d7a992be8f0e5b7f8bf3ab3e3dc40fa9c7f3b6b91a83ce39fee5cdd8d3d99f1",
+        "changed": 14
+      },
+      {
+        "budget": 134861,
+        "unit": 114221,
+        "code_digest": "4d7a992be8f0e5b7f8bf3ab3e3dc40fa9c7f3b6b91a83ce39fee5cdd8d3d99f1",
+        "changed": 14
+      },
+      {
+        "budget": 134862,
+        "unit": 114221,
+        "code_digest": "4d7a992be8f0e5b7f8bf3ab3e3dc40fa9c7f3b6b91a83ce39fee5cdd8d3d99f1",
+        "changed": 14
+      },
+      {
+        "budget": 134863,
+        "unit": 114221,
+        "code_digest": "4d7a992be8f0e5b7f8bf3ab3e3dc40fa9c7f3b6b91a83ce39fee5cdd8d3d99f1",
+        "changed": 14
+      },
+      {
+        "budget": 134864,
+        "unit": 114221,
+        "code_digest": "95afc1dcd8a42828dabd588ff2ea56330b8c0557b67c8fb1c561c2817bf14296",
+        "changed": 15
+      },
+      {
+        "budget": 134865,
+        "unit": 114221,
+        "code_digest": "92cdd23d2b4065a7648df94d136ea45e8ac5e353199c9afb43470f401bc4bb06",
+        "changed": 15
+      },
+      {
+        "budget": 134866,
+        "unit": 114221,
+        "code_digest": "92cdd23d2b4065a7648df94d136ea45e8ac5e353199c9afb43470f401bc4bb06",
+        "changed": 15
+      },
+      {
+        "budget": 134867,
+        "unit": 114221,
+        "code_digest": "e406903f9126edea12c6ef62874280cac5326d7be8571ccc1e300c9c8a797461",
+        "changed": 15
+      },
+      {
+        "budget": 134868,
+        "unit": 114221,
+        "code_digest": "e406903f9126edea12c6ef62874280cac5326d7be8571ccc1e300c9c8a797461",
+        "changed": 15
+      },
+      {
+        "budget": 134869,
+        "unit": 114221,
+        "code_digest": "e406903f9126edea12c6ef62874280cac5326d7be8571ccc1e300c9c8a797461",
+        "changed": 15
+      },
+      {
+        "budget": 134870,
+        "unit": 114221,
+        "code_digest": "e406903f9126edea12c6ef62874280cac5326d7be8571ccc1e300c9c8a797461",
+        "changed": 15
+      },
+      {
+        "budget": 134871,
+        "unit": 114221,
+        "code_digest": "5f0fcab49885a2d47016f25066d02a89c759f94c687e0436546d7ddf486adca3",
+        "changed": 16
+      },
+      {
+        "budget": 134872,
+        "unit": 114221,
+        "code_digest": "1dfed7a08aeaa84f2285eb477883741c5d9064819be945b885e622231151d9f3",
+        "changed": 16
+      },
+      {
+        "budget": 134873,
+        "unit": 114221,
+        "code_digest": "1dfed7a08aeaa84f2285eb477883741c5d9064819be945b885e622231151d9f3",
+        "changed": 16
+      },
+      {
+        "budget": 134874,
+        "unit": 114221,
+        "code_digest": "1dfed7a08aeaa84f2285eb477883741c5d9064819be945b885e622231151d9f3",
+        "changed": 16
+      },
+      {
+        "budget": 134875,
+        "unit": 114221,
+        "code_digest": "1dfed7a08aeaa84f2285eb477883741c5d9064819be945b885e622231151d9f3",
+        "changed": 16
+      },
+      {
+        "budget": 134876,
+        "unit": 114221,
+        "code_digest": "4b10acf8599262fdc0143d1c879468adfc226e2087b0f5e58f7d7f8af289332f",
+        "changed": 17
+      },
+      {
+        "budget": 134877,
+        "unit": 114221,
+        "code_digest": "7658c6bdfa87b3c9384f0b60eba40b78ecc2e5155fba633e465c77ee5104043e",
+        "changed": 18
+      },
+      {
+        "budget": 134878,
+        "unit": 114221,
+        "code_digest": "974867f78dee3a9e704ca719330e981eb5bbbf808f3acebbc9bcb89afc625671",
+        "changed": 17
+      },
+      {
+        "budget": 134879,
+        "unit": 114221,
+        "code_digest": "7371d1ac071f13f75de5923cff3285d63c93741574a454e8bf67ada13ddd90fa",
+        "changed": 15
+      },
+      {
+        "budget": 134880,
+        "unit": 114221,
+        "code_digest": "7371d1ac071f13f75de5923cff3285d63c93741574a454e8bf67ada13ddd90fa",
+        "changed": 15
+      },
+      {
+        "budget": 134881,
+        "unit": 114221,
+        "code_digest": "7371d1ac071f13f75de5923cff3285d63c93741574a454e8bf67ada13ddd90fa",
+        "changed": 15
+      },
+      {
+        "budget": 134882,
+        "unit": 114221,
+        "code_digest": "7371d1ac071f13f75de5923cff3285d63c93741574a454e8bf67ada13ddd90fa",
+        "changed": 15
+      },
+      {
+        "budget": 134883,
+        "unit": 114221,
+        "code_digest": "6be75db2b749169d9e7abe95e9df53d47998357d05a6a2a07e18f26ab53d9467",
+        "changed": 16
+      },
+      {
+        "budget": 134884,
+        "unit": 114221,
+        "code_digest": "b8a5ba522fccb86d8de43b04b58a1f62b77f9f5e76e8cf1580965bdec7745ae7",
+        "changed": 16
+      },
+      {
+        "budget": 134885,
+        "unit": 114221,
+        "code_digest": "b8a5ba522fccb86d8de43b04b58a1f62b77f9f5e76e8cf1580965bdec7745ae7",
+        "changed": 16
+      },
+      {
+        "budget": 134886,
+        "unit": 114221,
+        "code_digest": "b8a5ba522fccb86d8de43b04b58a1f62b77f9f5e76e8cf1580965bdec7745ae7",
+        "changed": 16
+      },
+      {
+        "budget": 134887,
+        "unit": 114221,
+        "code_digest": "b8a5ba522fccb86d8de43b04b58a1f62b77f9f5e76e8cf1580965bdec7745ae7",
+        "changed": 16
+      },
+      {
+        "budget": 134888,
+        "unit": 114221,
+        "code_digest": "f6dd12883927461d5717f35c5fc94bb9d70dfbd161661d26798f8ee9cbb683d8",
+        "changed": 17
+      }
+    ]
+  },
+  {
+    "object": "src/core/reorder.o",
+    "pre_budget": 152568,
+    "compensated": 152694,
+    "budget": 152568,
+    "changed": [
+      "int tomo::Ring::submit_and_wait<false>(unsigned int, unsigned int, int) [clone .isra.0]",
+      "tomo::IoLoop::pubsub_deliver_one(tomo::PubSubDelivery const&)",
+      "tomo::IoLoop::pubsub_finish_publish(tomo::PubSubResult const&)",
+      "tomo::Server::atomic_credit_wait_arm(unsigned int)",
+      "tomo::Server::flip_smt_pairing_error[abi:cxx11](unsigned int) const::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "tomo::ThreadCtx::set_read_local_lane_active(bool)",
+      "void tomo::IoLoop::r7_run_loop<false, false, false, true, false>()",
+      "void tomo::IoLoop::r7_run_loop<false, false, true, true, false>()",
+      "void tomo::IoLoop::r7_run_loop<false, true, false, true, false>()",
+      "void tomo::IoLoop::r7_run_loop<false, true, true, true, false>()",
+      "void tomo::IoLoop::r7_run_loop<true, false, false, true, false>()",
+      "void tomo::IoLoop::r7_run_loop<true, false, true, true, false>()",
+      "void tomo::IoLoop::r7_run_loop<true, true, false, true, false>()",
+      "void tomo::IoLoop::r7_run_loop<true, true, true, true, false>()"
+    ],
+    "trials": [
+      {
+        "budget": 152568,
+        "unit": 126850,
+        "code_digest": "cab9495d6829a6434df5306182d9189f4c00bb52e4d4e0206113fdd76f36051f",
+        "changed": 14
+      },
+      {
+        "budget": 152654,
+        "unit": 126850,
+        "code_digest": "15611c50abd9d6aac4d68618481848888c9d48ea2cc69ed85390c8da46e783e9",
+        "changed": 18
+      },
+      {
+        "budget": 152655,
+        "unit": 126850,
+        "code_digest": "15611c50abd9d6aac4d68618481848888c9d48ea2cc69ed85390c8da46e783e9",
+        "changed": 18
+      },
+      {
+        "budget": 152656,
+        "unit": 126850,
+        "code_digest": "0ed2ef85436584598b09379688d1d9ebac4ec93d70847baa1ed70369bbccbf8f",
+        "changed": 17
+      },
+      {
+        "budget": 152657,
+        "unit": 126850,
+        "code_digest": "1878755e57dbae68c321b43636f4b1102fe549850ab25a0b82edc830096beb67",
+        "changed": 18
+      },
+      {
+        "budget": 152658,
+        "unit": 126850,
+        "code_digest": "1878755e57dbae68c321b43636f4b1102fe549850ab25a0b82edc830096beb67",
+        "changed": 18
+      },
+      {
+        "budget": 152659,
+        "unit": 126850,
+        "code_digest": "1878755e57dbae68c321b43636f4b1102fe549850ab25a0b82edc830096beb67",
+        "changed": 18
+      },
+      {
+        "budget": 152660,
+        "unit": 126850,
+        "code_digest": "1878755e57dbae68c321b43636f4b1102fe549850ab25a0b82edc830096beb67",
+        "changed": 18
+      },
+      {
+        "budget": 152661,
+        "unit": 126850,
+        "code_digest": "2e89d80923e821314c75d06f44fa04b2dfe3a3b9693e43d8d5b0c1ed8ff2b625",
+        "changed": 19
+      },
+      {
+        "budget": 152662,
+        "unit": 126850,
+        "code_digest": "c2ad0b018dc0cd0552482729ec8d77cdbe34a4b4386d7a03ad1103e189634958",
+        "changed": 19
+      },
+      {
+        "budget": 152663,
+        "unit": 126850,
+        "code_digest": "c2ad0b018dc0cd0552482729ec8d77cdbe34a4b4386d7a03ad1103e189634958",
+        "changed": 19
+      },
+      {
+        "budget": 152664,
+        "unit": 126850,
+        "code_digest": "c2ad0b018dc0cd0552482729ec8d77cdbe34a4b4386d7a03ad1103e189634958",
+        "changed": 19
+      },
+      {
+        "budget": 152665,
+        "unit": 126850,
+        "code_digest": "9dc5f080eaa371cf76b7b0c836adcd49a7384f4694f73a14602da9221c1a4d5a",
+        "changed": 18
+      },
+      {
+        "budget": 152666,
+        "unit": 126850,
+        "code_digest": "59203ff3c6ec6b224ef5d85dcebcabf79a3030ff1368db1c3ec4550a48340d16",
+        "changed": 19
+      },
+      {
+        "budget": 152667,
+        "unit": 126850,
+        "code_digest": "59203ff3c6ec6b224ef5d85dcebcabf79a3030ff1368db1c3ec4550a48340d16",
+        "changed": 19
+      },
+      {
+        "budget": 152668,
+        "unit": 126850,
+        "code_digest": "59203ff3c6ec6b224ef5d85dcebcabf79a3030ff1368db1c3ec4550a48340d16",
+        "changed": 19
+      },
+      {
+        "budget": 152669,
+        "unit": 126850,
+        "code_digest": "59203ff3c6ec6b224ef5d85dcebcabf79a3030ff1368db1c3ec4550a48340d16",
+        "changed": 19
+      },
+      {
+        "budget": 152670,
+        "unit": 126850,
+        "code_digest": "943dd836a0c363e0b1e4b6f48ee8f86a6942fdad7b4689c554e653659376f459",
+        "changed": 20
+      },
+      {
+        "budget": 152671,
+        "unit": 126850,
+        "code_digest": "d6c3b213efabc081040369218643812b8e2a96f05090fefe95471968bbc7ea01",
+        "changed": 20
+      },
+      {
+        "budget": 152672,
+        "unit": 126850,
+        "code_digest": "d6c3b213efabc081040369218643812b8e2a96f05090fefe95471968bbc7ea01",
+        "changed": 20
+      },
+      {
+        "budget": 152673,
+        "unit": 126850,
+        "code_digest": "d6c3b213efabc081040369218643812b8e2a96f05090fefe95471968bbc7ea01",
+        "changed": 20
+      },
+      {
+        "budget": 152674,
+        "unit": 126850,
+        "code_digest": "889b76ad2f7177fa76a2b9dc02d538ea05edf21553e8dc1dc54c1fc145fe28c3",
+        "changed": 19
+      },
+      {
+        "budget": 152675,
+        "unit": 126850,
+        "code_digest": "f376d6cfa4df17dc8aaf092af2117b0b6e79e34e3783ab1efd377b2bfdd052dd",
+        "changed": 20
+      },
+      {
+        "budget": 152676,
+        "unit": 126850,
+        "code_digest": "f376d6cfa4df17dc8aaf092af2117b0b6e79e34e3783ab1efd377b2bfdd052dd",
+        "changed": 20
+      },
+      {
+        "budget": 152677,
+        "unit": 126850,
+        "code_digest": "f376d6cfa4df17dc8aaf092af2117b0b6e79e34e3783ab1efd377b2bfdd052dd",
+        "changed": 20
+      },
+      {
+        "budget": 152678,
+        "unit": 126850,
+        "code_digest": "f376d6cfa4df17dc8aaf092af2117b0b6e79e34e3783ab1efd377b2bfdd052dd",
+        "changed": 20
+      },
+      {
+        "budget": 152679,
+        "unit": 126850,
+        "code_digest": "bed542b54c8fc43dcdb567d63cdab48df3f973f4119e43014c7b9e6eca9db4d0",
+        "changed": 21
+      },
+      {
+        "budget": 152680,
+        "unit": 126850,
+        "code_digest": "197e3104272158d0f21da9d522d34bdb37d6be43939bf9e2c2fbee227e099c7d",
+        "changed": 21
+      },
+      {
+        "budget": 152681,
+        "unit": 126850,
+        "code_digest": "197e3104272158d0f21da9d522d34bdb37d6be43939bf9e2c2fbee227e099c7d",
+        "changed": 21
+      },
+      {
+        "budget": 152682,
+        "unit": 126850,
+        "code_digest": "197e3104272158d0f21da9d522d34bdb37d6be43939bf9e2c2fbee227e099c7d",
+        "changed": 21
+      },
+      {
+        "budget": 152683,
+        "unit": 126850,
+        "code_digest": "cccdafe9177e877c094d15d231ab171c82d6badfbcd936c448f9900ae9a694a2",
+        "changed": 20
+      },
+      {
+        "budget": 152684,
+        "unit": 126850,
+        "code_digest": "cccdafe9177e877c094d15d231ab171c82d6badfbcd936c448f9900ae9a694a2",
+        "changed": 20
+      },
+      {
+        "budget": 152685,
+        "unit": 126850,
+        "code_digest": "cccdafe9177e877c094d15d231ab171c82d6badfbcd936c448f9900ae9a694a2",
+        "changed": 20
+      },
+      {
+        "budget": 152686,
+        "unit": 126850,
+        "code_digest": "c78391ec45d93aabc171a319f1e60c5cc2615d85b9baf3fed9bc6d7a0df8b3e2",
+        "changed": 20
+      },
+      {
+        "budget": 152687,
+        "unit": 126850,
+        "code_digest": "c78391ec45d93aabc171a319f1e60c5cc2615d85b9baf3fed9bc6d7a0df8b3e2",
+        "changed": 20
+      },
+      {
+        "budget": 152688,
+        "unit": 126850,
+        "code_digest": "c78391ec45d93aabc171a319f1e60c5cc2615d85b9baf3fed9bc6d7a0df8b3e2",
+        "changed": 20
+      },
+      {
+        "budget": 152689,
+        "unit": 126850,
+        "code_digest": "c78391ec45d93aabc171a319f1e60c5cc2615d85b9baf3fed9bc6d7a0df8b3e2",
+        "changed": 20
+      },
+      {
+        "budget": 152690,
+        "unit": 126850,
+        "code_digest": "a006dc1c24ff5c4a0937f3044f552d994366c25f15635949564571bf1a143d0f",
+        "changed": 21
+      },
+      {
+        "budget": 152691,
+        "unit": 126850,
+        "code_digest": "a942972f8009b85fc49ace4348216ff6134a9871e2d6fa796fc04e9b8a35a7f7",
+        "changed": 21
+      },
+      {
+        "budget": 152692,
+        "unit": 126850,
+        "code_digest": "a942972f8009b85fc49ace4348216ff6134a9871e2d6fa796fc04e9b8a35a7f7",
+        "changed": 21
+      },
+      {
+        "budget": 152693,
+        "unit": 126850,
+        "code_digest": "a942972f8009b85fc49ace4348216ff6134a9871e2d6fa796fc04e9b8a35a7f7",
+        "changed": 21
+      },
+      {
+        "budget": 152694,
+        "unit": 126850,
+        "code_digest": "bd775181a40a2a407c2643bf51e04de6ca2ee521bdb6e7a1e48d8fd9e0386386",
+        "changed": 20
+      },
+      {
+        "budget": 152695,
+        "unit": 126850,
+        "code_digest": "bd775181a40a2a407c2643bf51e04de6ca2ee521bdb6e7a1e48d8fd9e0386386",
+        "changed": 20
+      },
+      {
+        "budget": 152696,
+        "unit": 126850,
+        "code_digest": "bd775181a40a2a407c2643bf51e04de6ca2ee521bdb6e7a1e48d8fd9e0386386",
+        "changed": 20
+      },
+      {
+        "budget": 152697,
+        "unit": 126850,
+        "code_digest": "fc5cbfc8e78957a01ee42d1bbf1cb2fcd96b40d34da5bb009af86d2d97e0ffdc",
+        "changed": 21
+      },
+      {
+        "budget": 152698,
+        "unit": 126850,
+        "code_digest": "4baf225c3fd279fcc20f106c0a10ff9b88cc8db7290f77f66ab6611dce430fb2",
+        "changed": 21
+      },
+      {
+        "budget": 152699,
+        "unit": 126850,
+        "code_digest": "4baf225c3fd279fcc20f106c0a10ff9b88cc8db7290f77f66ab6611dce430fb2",
+        "changed": 21
+      },
+      {
+        "budget": 152700,
+        "unit": 126850,
+        "code_digest": "4baf225c3fd279fcc20f106c0a10ff9b88cc8db7290f77f66ab6611dce430fb2",
+        "changed": 21
+      },
+      {
+        "budget": 152701,
+        "unit": 126850,
+        "code_digest": "2bbbfffaec000931b1332899f8046da2ce9e17e4d20927821af94776618769bf",
+        "changed": 21
+      },
+      {
+        "budget": 152702,
+        "unit": 126850,
+        "code_digest": "2bbbfffaec000931b1332899f8046da2ce9e17e4d20927821af94776618769bf",
+        "changed": 21
+      },
+      {
+        "budget": 152703,
+        "unit": 126850,
+        "code_digest": "2bbbfffaec000931b1332899f8046da2ce9e17e4d20927821af94776618769bf",
+        "changed": 21
+      },
+      {
+        "budget": 152704,
+        "unit": 126850,
+        "code_digest": "2bbbfffaec000931b1332899f8046da2ce9e17e4d20927821af94776618769bf",
+        "changed": 21
+      },
+      {
+        "budget": 152705,
+        "unit": 126850,
+        "code_digest": "ce8994c94651d19a736e956dc1e1140d4d29c385cc7a066e994a0d6099852dde",
+        "changed": 22
+      },
+      {
+        "budget": 152706,
+        "unit": 126850,
+        "code_digest": "c3dae3f6062196cefb662adb99b1149adb53c439ac688a625fc2792d82c3503c",
+        "changed": 22
+      },
+      {
+        "budget": 152707,
+        "unit": 126850,
+        "code_digest": "c3dae3f6062196cefb662adb99b1149adb53c439ac688a625fc2792d82c3503c",
+        "changed": 22
+      },
+      {
+        "budget": 152708,
+        "unit": 126850,
+        "code_digest": "c3dae3f6062196cefb662adb99b1149adb53c439ac688a625fc2792d82c3503c",
+        "changed": 22
+      },
+      {
+        "budget": 152709,
+        "unit": 126850,
+        "code_digest": "87834dac4e6d07b51fcd530b7767998aedf5450e8542c32a84007739be267e6a",
+        "changed": 22
+      },
+      {
+        "budget": 152710,
+        "unit": 126850,
+        "code_digest": "87834dac4e6d07b51fcd530b7767998aedf5450e8542c32a84007739be267e6a",
+        "changed": 22
+      },
+      {
+        "budget": 152711,
+        "unit": 126850,
+        "code_digest": "87834dac4e6d07b51fcd530b7767998aedf5450e8542c32a84007739be267e6a",
+        "changed": 22
+      },
+      {
+        "budget": 152712,
+        "unit": 126850,
+        "code_digest": "577c3b7a1f99b71163cfb38f967867a478235df5bcf050efc98de5f3f489b6ba",
+        "changed": 21
+      },
+      {
+        "budget": 152713,
+        "unit": 126850,
+        "code_digest": "577c3b7a1f99b71163cfb38f967867a478235df5bcf050efc98de5f3f489b6ba",
+        "changed": 21
+      },
+      {
+        "budget": 152714,
+        "unit": 126850,
+        "code_digest": "577c3b7a1f99b71163cfb38f967867a478235df5bcf050efc98de5f3f489b6ba",
+        "changed": 21
+      },
+      {
+        "budget": 152715,
+        "unit": 126850,
+        "code_digest": "577c3b7a1f99b71163cfb38f967867a478235df5bcf050efc98de5f3f489b6ba",
+        "changed": 21
+      },
+      {
+        "budget": 152716,
+        "unit": 126850,
+        "code_digest": "a743c02cf0c3bde07ef879993a614759e79ee5391170c6f407897fe478c769e2",
+        "changed": 22
+      },
+      {
+        "budget": 152717,
+        "unit": 126850,
+        "code_digest": "8b24510442f0ae69206976f9faf01d5e820feb872e3097ecc253a38801515dce",
+        "changed": 22
+      },
+      {
+        "budget": 152718,
+        "unit": 126850,
+        "code_digest": "8b24510442f0ae69206976f9faf01d5e820feb872e3097ecc253a38801515dce",
+        "changed": 22
+      },
+      {
+        "budget": 152719,
+        "unit": 126850,
+        "code_digest": "8b24510442f0ae69206976f9faf01d5e820feb872e3097ecc253a38801515dce",
+        "changed": 22
+      },
+      {
+        "budget": 152720,
+        "unit": 126850,
+        "code_digest": "882960ca73646ab3b8282a33b1b77a8ed331b195a9371d0e4950d52e80f29771",
+        "changed": 22
+      },
+      {
+        "budget": 152721,
+        "unit": 126850,
+        "code_digest": "882960ca73646ab3b8282a33b1b77a8ed331b195a9371d0e4950d52e80f29771",
+        "changed": 22
+      },
+      {
+        "budget": 152722,
+        "unit": 126850,
+        "code_digest": "882960ca73646ab3b8282a33b1b77a8ed331b195a9371d0e4950d52e80f29771",
+        "changed": 22
+      },
+      {
+        "budget": 152723,
+        "unit": 126850,
+        "code_digest": "e52f0bff3b33959284d6dd839443d5154754b0427e340a76fd659f1e1c809e53",
+        "changed": 21
+      },
+      {
+        "budget": 152724,
+        "unit": 126850,
+        "code_digest": "e52f0bff3b33959284d6dd839443d5154754b0427e340a76fd659f1e1c809e53",
+        "changed": 21
+      },
+      {
+        "budget": 152725,
+        "unit": 126850,
+        "code_digest": "e52f0bff3b33959284d6dd839443d5154754b0427e340a76fd659f1e1c809e53",
+        "changed": 21
+      },
+      {
+        "budget": 152726,
+        "unit": 126850,
+        "code_digest": "e52f0bff3b33959284d6dd839443d5154754b0427e340a76fd659f1e1c809e53",
+        "changed": 21
+      },
+      {
+        "budget": 152727,
+        "unit": 126850,
+        "code_digest": "7c14821fe1b2ea27f3adbd0206913930bc5cbcb5bdbad9d2e9988bb2accae57c",
+        "changed": 22
+      },
+      {
+        "budget": 152728,
+        "unit": 126850,
+        "code_digest": "cc7e78d122a982dc3c83eb7e630445aafe36db9635e0334dc1b852e10f44500c",
+        "changed": 22
+      },
+      {
+        "budget": 152729,
+        "unit": 126850,
+        "code_digest": "cc7e78d122a982dc3c83eb7e630445aafe36db9635e0334dc1b852e10f44500c",
+        "changed": 22
+      },
+      {
+        "budget": 152730,
+        "unit": 126850,
+        "code_digest": "cc7e78d122a982dc3c83eb7e630445aafe36db9635e0334dc1b852e10f44500c",
+        "changed": 22
+      },
+      {
+        "budget": 152731,
+        "unit": 126850,
+        "code_digest": "cc7e78d122a982dc3c83eb7e630445aafe36db9635e0334dc1b852e10f44500c",
+        "changed": 22
+      },
+      {
+        "budget": 152732,
+        "unit": 126850,
+        "code_digest": "a5c9ebb6473735237cc7e59898336ffe11d2962c985216acc610e494901c4be6",
+        "changed": 23
+      },
+      {
+        "budget": 152733,
+        "unit": 126850,
+        "code_digest": "e13f761299c6e6a19872257143609ff095db8f7fe2867e9f8bcf7c97c5d885cd",
+        "changed": 21
+      },
+      {
+        "budget": 152734,
+        "unit": 126850,
+        "code_digest": "e13f761299c6e6a19872257143609ff095db8f7fe2867e9f8bcf7c97c5d885cd",
+        "changed": 21
+      }
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "pre_budget": 168006,
+    "compensated": 168132,
+    "budget": 168121,
+    "changed": [
+      "tomo::Server::atomic_credit_wait_arm(unsigned int)",
+      "void tomo::IoLoop::run_loop<false, false, false, true, true>()",
+      "void tomo::IoLoop::run_loop<false, false, true, true, true>()",
+      "void tomo::IoLoop::run_loop<false, true, false, true, true>()",
+      "void tomo::IoLoop::run_loop<false, true, true, true, true>()",
+      "void tomo::IoLoop::run_loop<true, false, false, true, true>()",
+      "void tomo::IoLoop::run_loop<true, false, true, true, true>()",
+      "void tomo::IoLoop::run_loop<true, true, false, true, true>()",
+      "void tomo::IoLoop::run_loop<true, true, true, true, true>()"
+    ],
+    "trials": [
+      {
+        "budget": 168006,
+        "unit": 122841,
+        "code_digest": "2de4be79417928ee3d61f350869c38217de4af9b1afbe3cd286fa32d32105895",
+        "changed": 16
+      },
+      {
+        "budget": 168092,
+        "unit": 122841,
+        "code_digest": "15c7ef13ccbb1508b8105b88cc88a0e62424cf98552c172c348d6cc8a2278ca3",
+        "changed": 13
+      },
+      {
+        "budget": 168093,
+        "unit": 122841,
+        "code_digest": "1b1604d5f7a5ce6af6cf33638421d38ff106bc83df44d3ae8b71b35ed657de20",
+        "changed": 14
+      },
+      {
+        "budget": 168094,
+        "unit": 122841,
+        "code_digest": "1b1604d5f7a5ce6af6cf33638421d38ff106bc83df44d3ae8b71b35ed657de20",
+        "changed": 14
+      },
+      {
+        "budget": 168095,
+        "unit": 122841,
+        "code_digest": "1b1604d5f7a5ce6af6cf33638421d38ff106bc83df44d3ae8b71b35ed657de20",
+        "changed": 14
+      },
+      {
+        "budget": 168096,
+        "unit": 122841,
+        "code_digest": "1b1604d5f7a5ce6af6cf33638421d38ff106bc83df44d3ae8b71b35ed657de20",
+        "changed": 14
+      },
+      {
+        "budget": 168097,
+        "unit": 122841,
+        "code_digest": "71b861e4f8fb3da4a557e9abd72807ba5984afc870e60f05e24ba4d549718577",
+        "changed": 13
+      },
+      {
+        "budget": 168098,
+        "unit": 122841,
+        "code_digest": "30df88672034c382a4942d6c0204a84b84442f5b189e577fefdb5c035f5d7aa0",
+        "changed": 14
+      },
+      {
+        "budget": 168099,
+        "unit": 122841,
+        "code_digest": "3151353982d5d01cf59773c83a0142bafcdb72dff993760dca9ae19b08fff523",
+        "changed": 14
+      },
+      {
+        "budget": 168100,
+        "unit": 122841,
+        "code_digest": "b8e1329728b873f6a2f4f4ee7380b7e5468f36b81d3ca78c6ebea7e1ceba480d",
+        "changed": 12
+      },
+      {
+        "budget": 168101,
+        "unit": 122841,
+        "code_digest": "b8e1329728b873f6a2f4f4ee7380b7e5468f36b81d3ca78c6ebea7e1ceba480d",
+        "changed": 12
+      },
+      {
+        "budget": 168102,
+        "unit": 122841,
+        "code_digest": "b8e1329728b873f6a2f4f4ee7380b7e5468f36b81d3ca78c6ebea7e1ceba480d",
+        "changed": 12
+      },
+      {
+        "budget": 168103,
+        "unit": 122841,
+        "code_digest": "b8e1329728b873f6a2f4f4ee7380b7e5468f36b81d3ca78c6ebea7e1ceba480d",
+        "changed": 12
+      },
+      {
+        "budget": 168104,
+        "unit": 122841,
+        "code_digest": "c69106fc53756c5bfcb5a00dbf72edfd732a168213ef66b65b73be0cb2dd17cb",
+        "changed": 12
+      },
+      {
+        "budget": 168105,
+        "unit": 122841,
+        "code_digest": "c69106fc53756c5bfcb5a00dbf72edfd732a168213ef66b65b73be0cb2dd17cb",
+        "changed": 12
+      },
+      {
+        "budget": 168106,
+        "unit": 122841,
+        "code_digest": "c69106fc53756c5bfcb5a00dbf72edfd732a168213ef66b65b73be0cb2dd17cb",
+        "changed": 12
+      },
+      {
+        "budget": 168107,
+        "unit": 122841,
+        "code_digest": "c69106fc53756c5bfcb5a00dbf72edfd732a168213ef66b65b73be0cb2dd17cb",
+        "changed": 12
+      },
+      {
+        "budget": 168108,
+        "unit": 122841,
+        "code_digest": "eb1ee6d4cb35d45b12586cf9da11c0db3e888deadd20cf8a098db59255152f6b",
+        "changed": 14
+      },
+      {
+        "budget": 168109,
+        "unit": 122841,
+        "code_digest": "aff8fb3b01cd45b625e63c3bb3b1f5069f40a3d17c8fa6837e8d4b3a29a7c9f7",
+        "changed": 13
+      },
+      {
+        "budget": 168110,
+        "unit": 122841,
+        "code_digest": "1e4369514498979e2a99aed05394d5d4804340770b9f0cc464d9726cb790c037",
+        "changed": 15
+      },
+      {
+        "budget": 168111,
+        "unit": 122841,
+        "code_digest": "283f5c643898fe5bafa06da31fa3b094383af207daaf883811ff6bcbfbf51d8c",
+        "changed": 14
+      },
+      {
+        "budget": 168112,
+        "unit": 122841,
+        "code_digest": "283f5c643898fe5bafa06da31fa3b094383af207daaf883811ff6bcbfbf51d8c",
+        "changed": 14
+      },
+      {
+        "budget": 168113,
+        "unit": 122841,
+        "code_digest": "283f5c643898fe5bafa06da31fa3b094383af207daaf883811ff6bcbfbf51d8c",
+        "changed": 14
+      },
+      {
+        "budget": 168114,
+        "unit": 122841,
+        "code_digest": "283f5c643898fe5bafa06da31fa3b094383af207daaf883811ff6bcbfbf51d8c",
+        "changed": 14
+      },
+      {
+        "budget": 168115,
+        "unit": 122841,
+        "code_digest": "c8baf7e6be06dd5fc52ed3090b1215202c847d16b245acdbf6848aaaf6ed4c52",
+        "changed": 14
+      },
+      {
+        "budget": 168116,
+        "unit": 122841,
+        "code_digest": "c8baf7e6be06dd5fc52ed3090b1215202c847d16b245acdbf6848aaaf6ed4c52",
+        "changed": 14
+      },
+      {
+        "budget": 168117,
+        "unit": 122841,
+        "code_digest": "c8baf7e6be06dd5fc52ed3090b1215202c847d16b245acdbf6848aaaf6ed4c52",
+        "changed": 14
+      },
+      {
+        "budget": 168118,
+        "unit": 122841,
+        "code_digest": "c07560da53433793e4daf5a4b5be3829d6c8b69b2eac7ddeae0f06263f6e6ff0",
+        "changed": 9
+      },
+      {
+        "budget": 168119,
+        "unit": 122841,
+        "code_digest": "c07560da53433793e4daf5a4b5be3829d6c8b69b2eac7ddeae0f06263f6e6ff0",
+        "changed": 9
+      },
+      {
+        "budget": 168120,
+        "unit": 122841,
+        "code_digest": "c07560da53433793e4daf5a4b5be3829d6c8b69b2eac7ddeae0f06263f6e6ff0",
+        "changed": 9
+      },
+      {
+        "budget": 168121,
+        "unit": 122841,
+        "code_digest": "c07560da53433793e4daf5a4b5be3829d6c8b69b2eac7ddeae0f06263f6e6ff0",
+        "changed": 9
+      },
+      {
+        "budget": 168122,
+        "unit": 122841,
+        "code_digest": "209a9128e770159ee2112cbf22ac7a79d83bd3ea9b6c33f484e13cb4932c3bcb",
+        "changed": 10
+      },
+      {
+        "budget": 168123,
+        "unit": 122841,
+        "code_digest": "209a9128e770159ee2112cbf22ac7a79d83bd3ea9b6c33f484e13cb4932c3bcb",
+        "changed": 10
+      },
+      {
+        "budget": 168124,
+        "unit": 122841,
+        "code_digest": "209a9128e770159ee2112cbf22ac7a79d83bd3ea9b6c33f484e13cb4932c3bcb",
+        "changed": 10
+      },
+      {
+        "budget": 168125,
+        "unit": 122841,
+        "code_digest": "209a9128e770159ee2112cbf22ac7a79d83bd3ea9b6c33f484e13cb4932c3bcb",
+        "changed": 10
+      },
+      {
+        "budget": 168126,
+        "unit": 122841,
+        "code_digest": "e5648e133289418f66e1ffba840e90a44a25f7d1598d25486ba3e43a7979e842",
+        "changed": 11
+      },
+      {
+        "budget": 168127,
+        "unit": 122841,
+        "code_digest": "9d49d7cfd5d680dab1560182a7f3321deb07f726406ef4797168580aa89cc73f",
+        "changed": 11
+      },
+      {
+        "budget": 168128,
+        "unit": 122841,
+        "code_digest": "0f14cd05078294e065c2457825f3e90fabdf69468cc7bdd7ea73c2a072b6cf58",
+        "changed": 12
+      },
+      {
+        "budget": 168129,
+        "unit": 122841,
+        "code_digest": "ba4a22d0596cae6ce89719a14dbb69bded50e927d9e0695917c09f3f1d69b763",
+        "changed": 10
+      },
+      {
+        "budget": 168130,
+        "unit": 122841,
+        "code_digest": "ba4a22d0596cae6ce89719a14dbb69bded50e927d9e0695917c09f3f1d69b763",
+        "changed": 10
+      },
+      {
+        "budget": 168131,
+        "unit": 122841,
+        "code_digest": "ba4a22d0596cae6ce89719a14dbb69bded50e927d9e0695917c09f3f1d69b763",
+        "changed": 10
+      },
+      {
+        "budget": 168132,
+        "unit": 122841,
+        "code_digest": "ba4a22d0596cae6ce89719a14dbb69bded50e927d9e0695917c09f3f1d69b763",
+        "changed": 10
+      },
+      {
+        "budget": 168133,
+        "unit": 122841,
+        "code_digest": "c3feaf4384b74a3cc1e8d16ead80a1610acf59c0e6f193c0865f22f1edc04707",
+        "changed": 11
+      },
+      {
+        "budget": 168134,
+        "unit": 122841,
+        "code_digest": "c3feaf4384b74a3cc1e8d16ead80a1610acf59c0e6f193c0865f22f1edc04707",
+        "changed": 11
+      },
+      {
+        "budget": 168135,
+        "unit": 122841,
+        "code_digest": "c3feaf4384b74a3cc1e8d16ead80a1610acf59c0e6f193c0865f22f1edc04707",
+        "changed": 11
+      },
+      {
+        "budget": 168136,
+        "unit": 122841,
+        "code_digest": "c3feaf4384b74a3cc1e8d16ead80a1610acf59c0e6f193c0865f22f1edc04707",
+        "changed": 11
+      },
+      {
+        "budget": 168137,
+        "unit": 122841,
+        "code_digest": "f505de0cf0f0cbb5d9b5136af031d81fcc309291cb3f85cb956442c6b6eac29a",
+        "changed": 12
+      },
+      {
+        "budget": 168138,
+        "unit": 122841,
+        "code_digest": "c04d88de436e35a59c3b55b7e1cea65e81502875619abc04a72c60530e3a18b4",
+        "changed": 12
+      },
+      {
+        "budget": 168139,
+        "unit": 122841,
+        "code_digest": "cdda9e3c3d66e330ec431a8c5d82766f2cfe1b7c0ab909bf62f8c7295dd1c407",
+        "changed": 13
+      },
+      {
+        "budget": 168140,
+        "unit": 122841,
+        "code_digest": "411c787aa963191394dbf2d62609900852b265ed90acd41d1a6c07f3d8a67668",
+        "changed": 11
+      },
+      {
+        "budget": 168141,
+        "unit": 122841,
+        "code_digest": "411c787aa963191394dbf2d62609900852b265ed90acd41d1a6c07f3d8a67668",
+        "changed": 11
+      },
+      {
+        "budget": 168142,
+        "unit": 122841,
+        "code_digest": "411c787aa963191394dbf2d62609900852b265ed90acd41d1a6c07f3d8a67668",
+        "changed": 11
+      },
+      {
+        "budget": 168143,
+        "unit": 122841,
+        "code_digest": "411c787aa963191394dbf2d62609900852b265ed90acd41d1a6c07f3d8a67668",
+        "changed": 11
+      },
+      {
+        "budget": 168144,
+        "unit": 122841,
+        "code_digest": "51eb1d0cfe13e1ba0491750c292fe57a14d4360a0014b12f2bda681d4842e27d",
+        "changed": 11
+      },
+      {
+        "budget": 168145,
+        "unit": 122841,
+        "code_digest": "51eb1d0cfe13e1ba0491750c292fe57a14d4360a0014b12f2bda681d4842e27d",
+        "changed": 11
+      },
+      {
+        "budget": 168146,
+        "unit": 122841,
+        "code_digest": "51eb1d0cfe13e1ba0491750c292fe57a14d4360a0014b12f2bda681d4842e27d",
+        "changed": 11
+      },
+      {
+        "budget": 168147,
+        "unit": 122841,
+        "code_digest": "51eb1d0cfe13e1ba0491750c292fe57a14d4360a0014b12f2bda681d4842e27d",
+        "changed": 11
+      },
+      {
+        "budget": 168148,
+        "unit": 122841,
+        "code_digest": "4d5e3736528c1dc9d172c7708175d82e86a82bf96232e8ac82b53dcf1babe702",
+        "changed": 13
+      },
+      {
+        "budget": 168149,
+        "unit": 122841,
+        "code_digest": "933eefaba8214397d3524d9904475819976c699266e6affc13d611dd283bd97d",
+        "changed": 12
+      },
+      {
+        "budget": 168150,
+        "unit": 122841,
+        "code_digest": "e92bf7a5c23b8c61eb70df9061708a6b0407951be1364c8f777e494ac2f8c89e",
+        "changed": 14
+      },
+      {
+        "budget": 168151,
+        "unit": 122841,
+        "code_digest": "84e00bdaebe0acc4091e3b5a4ee48b740657beffc944296d07577f905f21ebf1",
+        "changed": 13
+      },
+      {
+        "budget": 168152,
+        "unit": 122841,
+        "code_digest": "84e00bdaebe0acc4091e3b5a4ee48b740657beffc944296d07577f905f21ebf1",
+        "changed": 13
+      },
+      {
+        "budget": 168153,
+        "unit": 122841,
+        "code_digest": "84e00bdaebe0acc4091e3b5a4ee48b740657beffc944296d07577f905f21ebf1",
+        "changed": 13
+      },
+      {
+        "budget": 168154,
+        "unit": 122841,
+        "code_digest": "84e00bdaebe0acc4091e3b5a4ee48b740657beffc944296d07577f905f21ebf1",
+        "changed": 13
+      },
+      {
+        "budget": 168155,
+        "unit": 122841,
+        "code_digest": "5ad5d18c0f38905d402ff30161154dfe80f77be23633a6fe45e03805d93b0aa6",
+        "changed": 13
+      },
+      {
+        "budget": 168156,
+        "unit": 122841,
+        "code_digest": "5ad5d18c0f38905d402ff30161154dfe80f77be23633a6fe45e03805d93b0aa6",
+        "changed": 13
+      },
+      {
+        "budget": 168157,
+        "unit": 122841,
+        "code_digest": "5ad5d18c0f38905d402ff30161154dfe80f77be23633a6fe45e03805d93b0aa6",
+        "changed": 13
+      },
+      {
+        "budget": 168158,
+        "unit": 122841,
+        "code_digest": "5ad5d18c0f38905d402ff30161154dfe80f77be23633a6fe45e03805d93b0aa6",
+        "changed": 13
+      },
+      {
+        "budget": 168159,
+        "unit": 122841,
+        "code_digest": "ff40c9d618a194adc4c8673e9d7970fdd094ae05ebb6e18b957d51b821cae667",
+        "changed": 15
+      },
+      {
+        "budget": 168160,
+        "unit": 122841,
+        "code_digest": "19059c4205a617e6f657b826e09ebba3d0b88bc0d56f603d01f636d0d114723b",
+        "changed": 14
+      },
+      {
+        "budget": 168161,
+        "unit": 122841,
+        "code_digest": "91a6155ad4dfd30d58ec30e3e008ced50208777d131cdb91a90301afe9ea7179",
+        "changed": 16
+      },
+      {
+        "budget": 168162,
+        "unit": 122841,
+        "code_digest": "b14afb7d3685c5657d448a42244522052c40d4605b3b2fb4b0207fcdf9e78de2",
+        "changed": 15
+      },
+      {
+        "budget": 168163,
+        "unit": 122841,
+        "code_digest": "b14afb7d3685c5657d448a42244522052c40d4605b3b2fb4b0207fcdf9e78de2",
+        "changed": 15
+      },
+      {
+        "budget": 168164,
+        "unit": 122841,
+        "code_digest": "b14afb7d3685c5657d448a42244522052c40d4605b3b2fb4b0207fcdf9e78de2",
+        "changed": 15
+      },
+      {
+        "budget": 168165,
+        "unit": 122841,
+        "code_digest": "b14afb7d3685c5657d448a42244522052c40d4605b3b2fb4b0207fcdf9e78de2",
+        "changed": 15
+      },
+      {
+        "budget": 168166,
+        "unit": 122841,
+        "code_digest": "ac912e31179747b413b98b279497dd59c74038091303f69b74ba327003951319",
+        "changed": 15
+      },
+      {
+        "budget": 168167,
+        "unit": 122841,
+        "code_digest": "ac912e31179747b413b98b279497dd59c74038091303f69b74ba327003951319",
+        "changed": 15
+      },
+      {
+        "budget": 168168,
+        "unit": 122841,
+        "code_digest": "ac912e31179747b413b98b279497dd59c74038091303f69b74ba327003951319",
+        "changed": 15
+      },
+      {
+        "budget": 168169,
+        "unit": 122841,
+        "code_digest": "ac912e31179747b413b98b279497dd59c74038091303f69b74ba327003951319",
+        "changed": 15
+      },
+      {
+        "budget": 168170,
+        "unit": 122841,
+        "code_digest": "21862848f69768c4533bafcf48153b35f18ac586fd828897c394a2c94f5d3a1d",
+        "changed": 17
+      },
+      {
+        "budget": 168171,
+        "unit": 122841,
+        "code_digest": "e2e24efd5d89844e69e8333e6db4d90d99d61edc5c966b156e546679527fda55",
+        "changed": 16
+      },
+      {
+        "budget": 168172,
+        "unit": 122841,
+        "code_digest": "d0750144441363ca1d1e2bdc230850cde69ea7b5732b29265d70dbdae2f16672",
+        "changed": 18
+      }
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "pre_budget": 152477,
+    "compensated": 152606,
+    "budget": 152572,
+    "changed": [
+      "std::__detail::_MakeUniq<tomo::ThreadCtx>::__single_object std::make_unique<tomo::ThreadCtx>()",
+      "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)",
+      "tomo::Server::atomic_credit_wait_arm(unsigned int)",
+      "tomo::Server::init(tomo::Config const&, tomo::AofReplayPlan const*)",
+      "tomokv_multidb_main(int, char**)",
+      "tomokv_multidb_main(int, char**) [clone .cold]",
+      "unsigned int tomo::IoLoop::flip_control_pass<false>()",
+      "void tomo::IoLoop::run_loop<false, false, false, false, false>()",
+      "void tomo::IoLoop::run_loop<false, false, true, false, false>()",
+      "void tomo::IoLoop::run_loop<false, true, false, false, false>()",
+      "void tomo::IoLoop::run_loop<false, true, true, false, false>()",
+      "void tomo::IoLoop::run_loop<true, false, false, false, false>()",
+      "void tomo::IoLoop::run_loop<true, false, true, false, false>()",
+      "void tomo::IoLoop::run_loop<true, true, false, false, false>()",
+      "void tomo::IoLoop::run_loop<true, true, true, false, false>()"
+    ],
+    "trials": [
+      {
+        "budget": 152477,
+        "unit": 108341,
+        "code_digest": "ce49bde792751a30baeac13d46eaf7a2f06598dbd9f81e191d7b81676715b07a",
+        "changed": 19
+      },
+      {
+        "budget": 152566,
+        "unit": 108341,
+        "code_digest": "2f944946dd9139546ecc41e8300f77866ef8b0b1448f30f4f82991fef83dd8e7",
+        "changed": 15
+      },
+      {
+        "budget": 152567,
+        "unit": 108341,
+        "code_digest": "2f944946dd9139546ecc41e8300f77866ef8b0b1448f30f4f82991fef83dd8e7",
+        "changed": 15
+      },
+      {
+        "budget": 152568,
+        "unit": 108341,
+        "code_digest": "2f944946dd9139546ecc41e8300f77866ef8b0b1448f30f4f82991fef83dd8e7",
+        "changed": 15
+      },
+      {
+        "budget": 152569,
+        "unit": 108341,
+        "code_digest": "2f944946dd9139546ecc41e8300f77866ef8b0b1448f30f4f82991fef83dd8e7",
+        "changed": 15
+      },
+      {
+        "budget": 152570,
+        "unit": 108341,
+        "code_digest": "6136f96f0271c3f09708dcf39a0c656b5421f5b9070bf0631f576fa0922b1c23",
+        "changed": 15
+      },
+      {
+        "budget": 152571,
+        "unit": 108341,
+        "code_digest": "6136f96f0271c3f09708dcf39a0c656b5421f5b9070bf0631f576fa0922b1c23",
+        "changed": 15
+      },
+      {
+        "budget": 152572,
+        "unit": 108341,
+        "code_digest": "6136f96f0271c3f09708dcf39a0c656b5421f5b9070bf0631f576fa0922b1c23",
+        "changed": 15
+      },
+      {
+        "budget": 152573,
+        "unit": 108341,
+        "code_digest": "0b3cb7bd59ffc56b255a1a5add748bbd6715024284232fd6c79049f30e051fc5",
+        "changed": 16
+      },
+      {
+        "budget": 152574,
+        "unit": 108341,
+        "code_digest": "0b3cb7bd59ffc56b255a1a5add748bbd6715024284232fd6c79049f30e051fc5",
+        "changed": 16
+      },
+      {
+        "budget": 152575,
+        "unit": 108341,
+        "code_digest": "0b3cb7bd59ffc56b255a1a5add748bbd6715024284232fd6c79049f30e051fc5",
+        "changed": 16
+      },
+      {
+        "budget": 152576,
+        "unit": 108341,
+        "code_digest": "0b3cb7bd59ffc56b255a1a5add748bbd6715024284232fd6c79049f30e051fc5",
+        "changed": 16
+      },
+      {
+        "budget": 152577,
+        "unit": 108341,
+        "code_digest": "7c0a79062af0d8703573f925b74a4de9492d5116789474ffd785304a84c7a3a9",
+        "changed": 16
+      },
+      {
+        "budget": 152578,
+        "unit": 108341,
+        "code_digest": "7c0a79062af0d8703573f925b74a4de9492d5116789474ffd785304a84c7a3a9",
+        "changed": 16
+      },
+      {
+        "budget": 152579,
+        "unit": 108341,
+        "code_digest": "7c0a79062af0d8703573f925b74a4de9492d5116789474ffd785304a84c7a3a9",
+        "changed": 16
+      },
+      {
+        "budget": 152580,
+        "unit": 108341,
+        "code_digest": "6c15b74bec1bfc72f192323d269d860c4e59a8cffd5082f72d1f2661c50fe61f",
+        "changed": 16
+      },
+      {
+        "budget": 152581,
+        "unit": 108341,
+        "code_digest": "6c15b74bec1bfc72f192323d269d860c4e59a8cffd5082f72d1f2661c50fe61f",
+        "changed": 16
+      },
+      {
+        "budget": 152582,
+        "unit": 108341,
+        "code_digest": "6c15b74bec1bfc72f192323d269d860c4e59a8cffd5082f72d1f2661c50fe61f",
+        "changed": 16
+      },
+      {
+        "budget": 152583,
+        "unit": 108341,
+        "code_digest": "6c15b74bec1bfc72f192323d269d860c4e59a8cffd5082f72d1f2661c50fe61f",
+        "changed": 16
+      },
+      {
+        "budget": 152584,
+        "unit": 108341,
+        "code_digest": "11d9006ad15ce5cf9411755497882b94115e4a3ea50cff59cc5184191e48c509",
+        "changed": 17
+      },
+      {
+        "budget": 152585,
+        "unit": 108341,
+        "code_digest": "11d9006ad15ce5cf9411755497882b94115e4a3ea50cff59cc5184191e48c509",
+        "changed": 17
+      },
+      {
+        "budget": 152586,
+        "unit": 108341,
+        "code_digest": "11d9006ad15ce5cf9411755497882b94115e4a3ea50cff59cc5184191e48c509",
+        "changed": 17
+      },
+      {
+        "budget": 152587,
+        "unit": 108341,
+        "code_digest": "11d9006ad15ce5cf9411755497882b94115e4a3ea50cff59cc5184191e48c509",
+        "changed": 17
+      },
+      {
+        "budget": 152588,
+        "unit": 108341,
+        "code_digest": "11d9006ad15ce5cf9411755497882b94115e4a3ea50cff59cc5184191e48c509",
+        "changed": 17
+      },
+      {
+        "budget": 152589,
+        "unit": 108341,
+        "code_digest": "28a4b3e1516a8648c2e0959d476ed5523b01e2051d26ca141bcb07ad24edbda3",
+        "changed": 17
+      },
+      {
+        "budget": 152590,
+        "unit": 108341,
+        "code_digest": "28a4b3e1516a8648c2e0959d476ed5523b01e2051d26ca141bcb07ad24edbda3",
+        "changed": 17
+      },
+      {
+        "budget": 152591,
+        "unit": 108341,
+        "code_digest": "28a4b3e1516a8648c2e0959d476ed5523b01e2051d26ca141bcb07ad24edbda3",
+        "changed": 17
+      },
+      {
+        "budget": 152592,
+        "unit": 108341,
+        "code_digest": "40b29b7f7dd6b5593a82623b96d9567dfcda9ecabd751b2c6f5684c03756b72d",
+        "changed": 17
+      },
+      {
+        "budget": 152593,
+        "unit": 108341,
+        "code_digest": "40b29b7f7dd6b5593a82623b96d9567dfcda9ecabd751b2c6f5684c03756b72d",
+        "changed": 17
+      },
+      {
+        "budget": 152594,
+        "unit": 108341,
+        "code_digest": "c94d55afaa19ddefc1a11934c856abf5da49f4a093153e54f5d2a6d511ed60c3",
+        "changed": 17
+      },
+      {
+        "budget": 152595,
+        "unit": 108341,
+        "code_digest": "c94d55afaa19ddefc1a11934c856abf5da49f4a093153e54f5d2a6d511ed60c3",
+        "changed": 17
+      },
+      {
+        "budget": 152596,
+        "unit": 108341,
+        "code_digest": "c94d55afaa19ddefc1a11934c856abf5da49f4a093153e54f5d2a6d511ed60c3",
+        "changed": 17
+      },
+      {
+        "budget": 152597,
+        "unit": 108341,
+        "code_digest": "c94d55afaa19ddefc1a11934c856abf5da49f4a093153e54f5d2a6d511ed60c3",
+        "changed": 17
+      },
+      {
+        "budget": 152598,
+        "unit": 108341,
+        "code_digest": "c94d55afaa19ddefc1a11934c856abf5da49f4a093153e54f5d2a6d511ed60c3",
+        "changed": 17
+      },
+      {
+        "budget": 152599,
+        "unit": 108341,
+        "code_digest": "8c606536c258a665ac40540a22177bf2658c8f8dcd09e9609e4df2db059a1cfb",
+        "changed": 17
+      },
+      {
+        "budget": 152600,
+        "unit": 108341,
+        "code_digest": "8c606536c258a665ac40540a22177bf2658c8f8dcd09e9609e4df2db059a1cfb",
+        "changed": 17
+      },
+      {
+        "budget": 152601,
+        "unit": 108341,
+        "code_digest": "8c606536c258a665ac40540a22177bf2658c8f8dcd09e9609e4df2db059a1cfb",
+        "changed": 17
+      },
+      {
+        "budget": 152602,
+        "unit": 108341,
+        "code_digest": "00474aaff4b03ab02703b1c79f3ef8a8d70fc48deef0df8f91e56eba2d4ef960",
+        "changed": 18
+      },
+      {
+        "budget": 152603,
+        "unit": 108341,
+        "code_digest": "00474aaff4b03ab02703b1c79f3ef8a8d70fc48deef0df8f91e56eba2d4ef960",
+        "changed": 18
+      },
+      {
+        "budget": 152604,
+        "unit": 108341,
+        "code_digest": "00474aaff4b03ab02703b1c79f3ef8a8d70fc48deef0df8f91e56eba2d4ef960",
+        "changed": 18
+      },
+      {
+        "budget": 152605,
+        "unit": 108341,
+        "code_digest": "00474aaff4b03ab02703b1c79f3ef8a8d70fc48deef0df8f91e56eba2d4ef960",
+        "changed": 18
+      },
+      {
+        "budget": 152606,
+        "unit": 108341,
+        "code_digest": "7e3a58948dc22a6d82070e9505f3f0decf24a56abd27760fbb3490df2e5b0277",
+        "changed": 18
+      },
+      {
+        "budget": 152607,
+        "unit": 108341,
+        "code_digest": "7e3a58948dc22a6d82070e9505f3f0decf24a56abd27760fbb3490df2e5b0277",
+        "changed": 18
+      },
+      {
+        "budget": 152608,
+        "unit": 108341,
+        "code_digest": "7e3a58948dc22a6d82070e9505f3f0decf24a56abd27760fbb3490df2e5b0277",
+        "changed": 18
+      },
+      {
+        "budget": 152609,
+        "unit": 108341,
+        "code_digest": "3033b10cba91e2034913a807f82d000b60424c62d3a6b95ea0bf82fdacf6b479",
+        "changed": 17
+      },
+      {
+        "budget": 152610,
+        "unit": 108341,
+        "code_digest": "3033b10cba91e2034913a807f82d000b60424c62d3a6b95ea0bf82fdacf6b479",
+        "changed": 17
+      },
+      {
+        "budget": 152611,
+        "unit": 108341,
+        "code_digest": "3033b10cba91e2034913a807f82d000b60424c62d3a6b95ea0bf82fdacf6b479",
+        "changed": 17
+      },
+      {
+        "budget": 152612,
+        "unit": 108341,
+        "code_digest": "3033b10cba91e2034913a807f82d000b60424c62d3a6b95ea0bf82fdacf6b479",
+        "changed": 17
+      },
+      {
+        "budget": 152613,
+        "unit": 108341,
+        "code_digest": "a26eb84f64ec1e3c3a0870f32890d17be0c841e8216c3ecfe5c7e8e35df8f872",
+        "changed": 17
+      },
+      {
+        "budget": 152614,
+        "unit": 108341,
+        "code_digest": "a26eb84f64ec1e3c3a0870f32890d17be0c841e8216c3ecfe5c7e8e35df8f872",
+        "changed": 17
+      },
+      {
+        "budget": 152615,
+        "unit": 108341,
+        "code_digest": "a26eb84f64ec1e3c3a0870f32890d17be0c841e8216c3ecfe5c7e8e35df8f872",
+        "changed": 17
+      },
+      {
+        "budget": 152616,
+        "unit": 108341,
+        "code_digest": "fd8a33105412f359c726a37a11f062429e844b55d4031f7685fe59d0cfa97255",
+        "changed": 18
+      },
+      {
+        "budget": 152617,
+        "unit": 108341,
+        "code_digest": "fd8a33105412f359c726a37a11f062429e844b55d4031f7685fe59d0cfa97255",
+        "changed": 18
+      },
+      {
+        "budget": 152618,
+        "unit": 108341,
+        "code_digest": "fd8a33105412f359c726a37a11f062429e844b55d4031f7685fe59d0cfa97255",
+        "changed": 18
+      },
+      {
+        "budget": 152619,
+        "unit": 108341,
+        "code_digest": "fd8a33105412f359c726a37a11f062429e844b55d4031f7685fe59d0cfa97255",
+        "changed": 18
+      },
+      {
+        "budget": 152620,
+        "unit": 108341,
+        "code_digest": "fb24869eaa9b0c9fe7b4719a65829c180af9bc99ca1d232c3bde4f91bc016b06",
+        "changed": 18
+      },
+      {
+        "budget": 152621,
+        "unit": 108341,
+        "code_digest": "fb24869eaa9b0c9fe7b4719a65829c180af9bc99ca1d232c3bde4f91bc016b06",
+        "changed": 18
+      },
+      {
+        "budget": 152622,
+        "unit": 108341,
+        "code_digest": "fb24869eaa9b0c9fe7b4719a65829c180af9bc99ca1d232c3bde4f91bc016b06",
+        "changed": 18
+      },
+      {
+        "budget": 152623,
+        "unit": 108341,
+        "code_digest": "ed47483327b25649522239e5f687df878c6e999c9ba4a63da7c7e8c5c6d99f21",
+        "changed": 18
+      },
+      {
+        "budget": 152624,
+        "unit": 108341,
+        "code_digest": "ed47483327b25649522239e5f687df878c6e999c9ba4a63da7c7e8c5c6d99f21",
+        "changed": 18
+      },
+      {
+        "budget": 152625,
+        "unit": 108341,
+        "code_digest": "ed47483327b25649522239e5f687df878c6e999c9ba4a63da7c7e8c5c6d99f21",
+        "changed": 18
+      },
+      {
+        "budget": 152626,
+        "unit": 108341,
+        "code_digest": "ed47483327b25649522239e5f687df878c6e999c9ba4a63da7c7e8c5c6d99f21",
+        "changed": 18
+      },
+      {
+        "budget": 152627,
+        "unit": 108341,
+        "code_digest": "fe3db216f42739270c87ba9fdeddfe81036f0bbd457617bcc0319824075c3e62",
+        "changed": 19
+      },
+      {
+        "budget": 152628,
+        "unit": 108341,
+        "code_digest": "fe3db216f42739270c87ba9fdeddfe81036f0bbd457617bcc0319824075c3e62",
+        "changed": 19
+      },
+      {
+        "budget": 152629,
+        "unit": 108341,
+        "code_digest": "fe3db216f42739270c87ba9fdeddfe81036f0bbd457617bcc0319824075c3e62",
+        "changed": 19
+      },
+      {
+        "budget": 152630,
+        "unit": 108341,
+        "code_digest": "fe3db216f42739270c87ba9fdeddfe81036f0bbd457617bcc0319824075c3e62",
+        "changed": 19
+      },
+      {
+        "budget": 152631,
+        "unit": 108341,
+        "code_digest": "fe3db216f42739270c87ba9fdeddfe81036f0bbd457617bcc0319824075c3e62",
+        "changed": 19
+      },
+      {
+        "budget": 152632,
+        "unit": 108341,
+        "code_digest": "d8b862d897f59161a0d7992a75acda9685781c95d21cb3e3df14f2e5dd4fda1d",
+        "changed": 19
+      },
+      {
+        "budget": 152633,
+        "unit": 108341,
+        "code_digest": "d8b862d897f59161a0d7992a75acda9685781c95d21cb3e3df14f2e5dd4fda1d",
+        "changed": 19
+      },
+      {
+        "budget": 152634,
+        "unit": 108341,
+        "code_digest": "d8b862d897f59161a0d7992a75acda9685781c95d21cb3e3df14f2e5dd4fda1d",
+        "changed": 19
+      },
+      {
+        "budget": 152635,
+        "unit": 108341,
+        "code_digest": "67ba4e84c4d9ec38c258fe3388d1be246d95525ba857c1cc5fe4b5a7e7c337a1",
+        "changed": 19
+      },
+      {
+        "budget": 152636,
+        "unit": 108341,
+        "code_digest": "67ba4e84c4d9ec38c258fe3388d1be246d95525ba857c1cc5fe4b5a7e7c337a1",
+        "changed": 19
+      },
+      {
+        "budget": 152637,
+        "unit": 108341,
+        "code_digest": "67ba4e84c4d9ec38c258fe3388d1be246d95525ba857c1cc5fe4b5a7e7c337a1",
+        "changed": 19
+      },
+      {
+        "budget": 152638,
+        "unit": 108341,
+        "code_digest": "67ba4e84c4d9ec38c258fe3388d1be246d95525ba857c1cc5fe4b5a7e7c337a1",
+        "changed": 19
+      },
+      {
+        "budget": 152639,
+        "unit": 108341,
+        "code_digest": "67ba4e84c4d9ec38c258fe3388d1be246d95525ba857c1cc5fe4b5a7e7c337a1",
+        "changed": 19
+      },
+      {
+        "budget": 152640,
+        "unit": 108341,
+        "code_digest": "ab291ca179e02e825d7ad9dbafb271d6a55b36c4bad1f895ca1ab98ed53951f3",
+        "changed": 19
+      },
+      {
+        "budget": 152641,
+        "unit": 108341,
+        "code_digest": "ab291ca179e02e825d7ad9dbafb271d6a55b36c4bad1f895ca1ab98ed53951f3",
+        "changed": 19
+      },
+      {
+        "budget": 152642,
+        "unit": 108341,
+        "code_digest": "ab291ca179e02e825d7ad9dbafb271d6a55b36c4bad1f895ca1ab98ed53951f3",
+        "changed": 19
+      },
+      {
+        "budget": 152643,
+        "unit": 108341,
+        "code_digest": "793474d8835cfe4e0d58c6002b36f9c7c80b8b8aca072f0ea2432f764f8f6c9c",
+        "changed": 19
+      },
+      {
+        "budget": 152644,
+        "unit": 108341,
+        "code_digest": "793474d8835cfe4e0d58c6002b36f9c7c80b8b8aca072f0ea2432f764f8f6c9c",
+        "changed": 19
+      },
+      {
+        "budget": 152645,
+        "unit": 108341,
+        "code_digest": "793474d8835cfe4e0d58c6002b36f9c7c80b8b8aca072f0ea2432f764f8f6c9c",
+        "changed": 19
+      },
+      {
+        "budget": 152646,
+        "unit": 108341,
+        "code_digest": "e31438e12c436ab30835bc6e0f38c29accad04c7589410193bc71784352fd2d9",
+        "changed": 19
+      }
+    ]
+  },
+  {
+    "object": "src/snapshot/snapshot.o",
+    "pre_budget": 16732,
+    "compensated": 16782,
+    "budget": 16746,
+    "changed": [
+      "tomo::Server::atomic_ring_credit_waiters(unsigned int, tomo::Ring*, bool)",
+      "tomo::Server::set_snapshot_atomic_barrier(bool)",
+      "tomo::SnapshotManager::start(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, tomo::AofManager*, char const*, char const*, bool)",
+      "tomo::SnapshotManager::start(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, tomo::AofManager*, char const*, char const*, bool) [clone .cold]",
+      "unsigned long tomo::kvobj_external_bytes<false>(tomo::KvObj const*, void const*, tomo::KvObj const*) [clone .isra.0]",
+      "unsigned long tomo::kvobj_external_bytes<true>(tomo::KvObj const*, void const*, tomo::KvObj const*)"
+    ],
+    "trials": [
+      {
+        "budget": 16732,
+        "unit": 13916,
+        "code_digest": "4827f53575a7a3ce796c05cef193332151ecf650b191e994e874efaf8eaa33a5",
+        "changed": 13
+      },
+      {
+        "budget": 16742,
+        "unit": 13916,
+        "code_digest": "6ec4e81b446c7fefdc3f6158179bc4513222d644de61939cd4044f1289174c9e",
+        "changed": 6
+      },
+      {
+        "budget": 16743,
+        "unit": 13916,
+        "code_digest": "6ec4e81b446c7fefdc3f6158179bc4513222d644de61939cd4044f1289174c9e",
+        "changed": 6
+      },
+      {
+        "budget": 16744,
+        "unit": 13916,
+        "code_digest": "6ec4e81b446c7fefdc3f6158179bc4513222d644de61939cd4044f1289174c9e",
+        "changed": 6
+      },
+      {
+        "budget": 16745,
+        "unit": 13916,
+        "code_digest": "6ec4e81b446c7fefdc3f6158179bc4513222d644de61939cd4044f1289174c9e",
+        "changed": 6
+      },
+      {
+        "budget": 16746,
+        "unit": 13916,
+        "code_digest": "6ec4e81b446c7fefdc3f6158179bc4513222d644de61939cd4044f1289174c9e",
+        "changed": 6
+      },
+      {
+        "budget": 16747,
+        "unit": 13916,
+        "code_digest": "b1089e990a7fba925e57b66b36509a80a2ccf9be695ec888ab204f04690e1b4c",
+        "changed": 7
+      },
+      {
+        "budget": 16748,
+        "unit": 13916,
+        "code_digest": "5911d91856fed740f8f6bb6d9fbfe29fff530a966368835b5b78042b35989836",
+        "changed": 8
+      },
+      {
+        "budget": 16749,
+        "unit": 13916,
+        "code_digest": "b20c7d3969b413d6e1d15b4389f7917b3d410a41099865c8ac345cf8a2ad9f7f",
+        "changed": 9
+      },
+      {
+        "budget": 16750,
+        "unit": 13916,
+        "code_digest": "cddfdd036a28d28ac3c07d22c61fe4b5405c553e1615b9725a0bcc1ab6217ce5",
+        "changed": 10
+      },
+      {
+        "budget": 16751,
+        "unit": 13916,
+        "code_digest": "cddfdd036a28d28ac3c07d22c61fe4b5405c553e1615b9725a0bcc1ab6217ce5",
+        "changed": 10
+      },
+      {
+        "budget": 16752,
+        "unit": 13916,
+        "code_digest": "cddfdd036a28d28ac3c07d22c61fe4b5405c553e1615b9725a0bcc1ab6217ce5",
+        "changed": 10
+      },
+      {
+        "budget": 16753,
+        "unit": 13916,
+        "code_digest": "cddfdd036a28d28ac3c07d22c61fe4b5405c553e1615b9725a0bcc1ab6217ce5",
+        "changed": 10
+      },
+      {
+        "budget": 16754,
+        "unit": 13916,
+        "code_digest": "c3af9b7b246be60c00f19a6f49057c8e9833c0832f451803e0c84676a7aa37a9",
+        "changed": 8
+      },
+      {
+        "budget": 16755,
+        "unit": 13916,
+        "code_digest": "c3af9b7b246be60c00f19a6f49057c8e9833c0832f451803e0c84676a7aa37a9",
+        "changed": 8
+      },
+      {
+        "budget": 16756,
+        "unit": 13916,
+        "code_digest": "c3af9b7b246be60c00f19a6f49057c8e9833c0832f451803e0c84676a7aa37a9",
+        "changed": 8
+      },
+      {
+        "budget": 16757,
+        "unit": 13916,
+        "code_digest": "c3af9b7b246be60c00f19a6f49057c8e9833c0832f451803e0c84676a7aa37a9",
+        "changed": 8
+      },
+      {
+        "budget": 16758,
+        "unit": 13916,
+        "code_digest": "c3af9b7b246be60c00f19a6f49057c8e9833c0832f451803e0c84676a7aa37a9",
+        "changed": 8
+      },
+      {
+        "budget": 16759,
+        "unit": 13916,
+        "code_digest": "c3af9b7b246be60c00f19a6f49057c8e9833c0832f451803e0c84676a7aa37a9",
+        "changed": 8
+      },
+      {
+        "budget": 16760,
+        "unit": 13916,
+        "code_digest": "2ef3e92e8bf1688cec141b8c8712c945618ed2864642258e992660d4d7ada1e3",
+        "changed": 7
+      },
+      {
+        "budget": 16761,
+        "unit": 13916,
+        "code_digest": "2ef3e92e8bf1688cec141b8c8712c945618ed2864642258e992660d4d7ada1e3",
+        "changed": 7
+      },
+      {
+        "budget": 16762,
+        "unit": 13916,
+        "code_digest": "37198f97e5fc2fee8363235c172d7ce8cff1c631a9da2319926e8709ca9c6ee1",
+        "changed": 9
+      },
+      {
+        "budget": 16763,
+        "unit": 13916,
+        "code_digest": "37198f97e5fc2fee8363235c172d7ce8cff1c631a9da2319926e8709ca9c6ee1",
+        "changed": 9
+      },
+      {
+        "budget": 16764,
+        "unit": 13916,
+        "code_digest": "37198f97e5fc2fee8363235c172d7ce8cff1c631a9da2319926e8709ca9c6ee1",
+        "changed": 9
+      },
+      {
+        "budget": 16765,
+        "unit": 13916,
+        "code_digest": "37198f97e5fc2fee8363235c172d7ce8cff1c631a9da2319926e8709ca9c6ee1",
+        "changed": 9
+      },
+      {
+        "budget": 16766,
+        "unit": 13916,
+        "code_digest": "37198f97e5fc2fee8363235c172d7ce8cff1c631a9da2319926e8709ca9c6ee1",
+        "changed": 9
+      },
+      {
+        "budget": 16767,
+        "unit": 13916,
+        "code_digest": "44b96e17219eb0c53c63700a9e6841a2f3e42418ec83b12152d59a7c15cc1c88",
+        "changed": 10
+      },
+      {
+        "budget": 16768,
+        "unit": 13916,
+        "code_digest": "c1bb7cf0531a0ae3b6e794cafb2dff090f611d77683b39952a02febfb5a86fdb",
+        "changed": 11
+      },
+      {
+        "budget": 16769,
+        "unit": 13916,
+        "code_digest": "9b60f81140500252b66b9ef0d274e83a2e087d9ba4575e8b0a4d84b2c94ac203",
+        "changed": 12
+      },
+      {
+        "budget": 16770,
+        "unit": 13916,
+        "code_digest": "8bfe966361b7b73a70617d351d2e24cd35b2b5a55ea885e880f926f577cf303d",
+        "changed": 13
+      },
+      {
+        "budget": 16771,
+        "unit": 13916,
+        "code_digest": "eabf56df21f7e7d7a33b15670398e79dc5b6d88b51985ff7307352f5bb2c0cce",
+        "changed": 7
+      },
+      {
+        "budget": 16772,
+        "unit": 13916,
+        "code_digest": "eabf56df21f7e7d7a33b15670398e79dc5b6d88b51985ff7307352f5bb2c0cce",
+        "changed": 7
+      },
+      {
+        "budget": 16773,
+        "unit": 13916,
+        "code_digest": "eabf56df21f7e7d7a33b15670398e79dc5b6d88b51985ff7307352f5bb2c0cce",
+        "changed": 7
+      },
+      {
+        "budget": 16774,
+        "unit": 13916,
+        "code_digest": "eabf56df21f7e7d7a33b15670398e79dc5b6d88b51985ff7307352f5bb2c0cce",
+        "changed": 7
+      },
+      {
+        "budget": 16775,
+        "unit": 13916,
+        "code_digest": "edca558bad3c51208b223d72a8ab9a77d1eb145751b5cb6e1504d5b014cf32e7",
+        "changed": 7
+      },
+      {
+        "budget": 16776,
+        "unit": 13916,
+        "code_digest": "edca558bad3c51208b223d72a8ab9a77d1eb145751b5cb6e1504d5b014cf32e7",
+        "changed": 7
+      },
+      {
+        "budget": 16777,
+        "unit": 13916,
+        "code_digest": "edca558bad3c51208b223d72a8ab9a77d1eb145751b5cb6e1504d5b014cf32e7",
+        "changed": 7
+      },
+      {
+        "budget": 16778,
+        "unit": 13916,
+        "code_digest": "edca558bad3c51208b223d72a8ab9a77d1eb145751b5cb6e1504d5b014cf32e7",
+        "changed": 7
+      },
+      {
+        "budget": 16779,
+        "unit": 13916,
+        "code_digest": "edca558bad3c51208b223d72a8ab9a77d1eb145751b5cb6e1504d5b014cf32e7",
+        "changed": 7
+      },
+      {
+        "budget": 16780,
+        "unit": 13916,
+        "code_digest": "0fc0d861803463fcfee223bf9073a157b14adad9fb8a1d06925c9297296066fd",
+        "changed": 8
+      },
+      {
+        "budget": 16781,
+        "unit": 13916,
+        "code_digest": "5c44c9599b99a50e528c9b66d84fd38d403aac94cb5dc9332698fa135b206b64",
+        "changed": 9
+      },
+      {
+        "budget": 16782,
+        "unit": 13916,
+        "code_digest": "d37b2285997ba14c24fc58bb3fc9ab02a9bf15c0cc014906fa1e79ecf5a3365a",
+        "changed": 9
+      },
+      {
+        "budget": 16783,
+        "unit": 13916,
+        "code_digest": "d37b2285997ba14c24fc58bb3fc9ab02a9bf15c0cc014906fa1e79ecf5a3365a",
+        "changed": 9
+      },
+      {
+        "budget": 16784,
+        "unit": 13916,
+        "code_digest": "d37b2285997ba14c24fc58bb3fc9ab02a9bf15c0cc014906fa1e79ecf5a3365a",
+        "changed": 9
+      },
+      {
+        "budget": 16785,
+        "unit": 13916,
+        "code_digest": "d37b2285997ba14c24fc58bb3fc9ab02a9bf15c0cc014906fa1e79ecf5a3365a",
+        "changed": 9
+      },
+      {
+        "budget": 16786,
+        "unit": 13916,
+        "code_digest": "d37b2285997ba14c24fc58bb3fc9ab02a9bf15c0cc014906fa1e79ecf5a3365a",
+        "changed": 9
+      },
+      {
+        "budget": 16787,
+        "unit": 13916,
+        "code_digest": "19d582bad61f74823fbb32a20551cea419dad37e02d41c53c37e89aa00aba4d2",
+        "changed": 9
+      },
+      {
+        "budget": 16788,
+        "unit": 13916,
+        "code_digest": "19d582bad61f74823fbb32a20551cea419dad37e02d41c53c37e89aa00aba4d2",
+        "changed": 9
+      },
+      {
+        "budget": 16789,
+        "unit": 13916,
+        "code_digest": "19d582bad61f74823fbb32a20551cea419dad37e02d41c53c37e89aa00aba4d2",
+        "changed": 9
+      },
+      {
+        "budget": 16790,
+        "unit": 13916,
+        "code_digest": "19d582bad61f74823fbb32a20551cea419dad37e02d41c53c37e89aa00aba4d2",
+        "changed": 9
+      },
+      {
+        "budget": 16791,
+        "unit": 13916,
+        "code_digest": "19d582bad61f74823fbb32a20551cea419dad37e02d41c53c37e89aa00aba4d2",
+        "changed": 9
+      },
+      {
+        "budget": 16792,
+        "unit": 13916,
+        "code_digest": "19d582bad61f74823fbb32a20551cea419dad37e02d41c53c37e89aa00aba4d2",
+        "changed": 9
+      },
+      {
+        "budget": 16793,
+        "unit": 13916,
+        "code_digest": "2bf27a95b22ae30cdded477f6de37ba215af6bee85acc5da254d2ab6324fa5ca",
+        "changed": 8
+      },
+      {
+        "budget": 16794,
+        "unit": 13916,
+        "code_digest": "2bf27a95b22ae30cdded477f6de37ba215af6bee85acc5da254d2ab6324fa5ca",
+        "changed": 8
+      },
+      {
+        "budget": 16795,
+        "unit": 13916,
+        "code_digest": "d16feb6a19b995837b1e3d9ef6f30c84e38cae9e3426a70f72c8d1795871b3d0",
+        "changed": 10
+      },
+      {
+        "budget": 16796,
+        "unit": 13916,
+        "code_digest": "d16feb6a19b995837b1e3d9ef6f30c84e38cae9e3426a70f72c8d1795871b3d0",
+        "changed": 10
+      },
+      {
+        "budget": 16797,
+        "unit": 13916,
+        "code_digest": "d16feb6a19b995837b1e3d9ef6f30c84e38cae9e3426a70f72c8d1795871b3d0",
+        "changed": 10
+      },
+      {
+        "budget": 16798,
+        "unit": 13916,
+        "code_digest": "d16feb6a19b995837b1e3d9ef6f30c84e38cae9e3426a70f72c8d1795871b3d0",
+        "changed": 10
+      },
+      {
+        "budget": 16799,
+        "unit": 13916,
+        "code_digest": "d16feb6a19b995837b1e3d9ef6f30c84e38cae9e3426a70f72c8d1795871b3d0",
+        "changed": 10
+      },
+      {
+        "budget": 16800,
+        "unit": 13916,
+        "code_digest": "d035e2fb5b9dd0e4f9b26ae967cf6d67ad08c3ce5567a262ca82925d15a86afa",
+        "changed": 11
+      },
+      {
+        "budget": 16801,
+        "unit": 13916,
+        "code_digest": "3180e4c96c144b057d0c3f56b61e8b9bdd7cd517389efc43d1d8bf2ebdc6ffe1",
+        "changed": 12
+      },
+      {
+        "budget": 16802,
+        "unit": 13916,
+        "code_digest": "2fb12c1e80fdeb178344240ed4abe5996b43784683836352dfbb13db2d807c9b",
+        "changed": 12
+      },
+      {
+        "budget": 16803,
+        "unit": 13916,
+        "code_digest": "2fb12c1e80fdeb178344240ed4abe5996b43784683836352dfbb13db2d807c9b",
+        "changed": 12
+      },
+      {
+        "budget": 16804,
+        "unit": 13916,
+        "code_digest": "45a9086c4d25db48afb973d7f8c8dbb9bd3880c738d38526d672a0ecd5d031f8",
+        "changed": 8
+      },
+      {
+        "budget": 16805,
+        "unit": 13916,
+        "code_digest": "45a9086c4d25db48afb973d7f8c8dbb9bd3880c738d38526d672a0ecd5d031f8",
+        "changed": 8
+      },
+      {
+        "budget": 16806,
+        "unit": 13916,
+        "code_digest": "45a9086c4d25db48afb973d7f8c8dbb9bd3880c738d38526d672a0ecd5d031f8",
+        "changed": 8
+      },
+      {
+        "budget": 16807,
+        "unit": 13916,
+        "code_digest": "45a9086c4d25db48afb973d7f8c8dbb9bd3880c738d38526d672a0ecd5d031f8",
+        "changed": 8
+      },
+      {
+        "budget": 16808,
+        "unit": 13916,
+        "code_digest": "45a9086c4d25db48afb973d7f8c8dbb9bd3880c738d38526d672a0ecd5d031f8",
+        "changed": 8
+      },
+      {
+        "budget": 16809,
+        "unit": 13916,
+        "code_digest": "45a9086c4d25db48afb973d7f8c8dbb9bd3880c738d38526d672a0ecd5d031f8",
+        "changed": 8
+      },
+      {
+        "budget": 16810,
+        "unit": 13916,
+        "code_digest": "6bee132a093d983053f6f46559e4336894ac4316242ef4d2b65be128d487353c",
+        "changed": 9
+      },
+      {
+        "budget": 16811,
+        "unit": 13916,
+        "code_digest": "b8afe97c2836035088eff00fdc51d98c80139d57675e539581f1026610c2318c",
+        "changed": 10
+      },
+      {
+        "budget": 16812,
+        "unit": 13916,
+        "code_digest": "6a540d6e3154ebb33da4240fe1aa87276f735e094f20244159d340857cdb925f",
+        "changed": 10
+      },
+      {
+        "budget": 16813,
+        "unit": 13916,
+        "code_digest": "6a540d6e3154ebb33da4240fe1aa87276f735e094f20244159d340857cdb925f",
+        "changed": 10
+      },
+      {
+        "budget": 16814,
+        "unit": 13916,
+        "code_digest": "6a540d6e3154ebb33da4240fe1aa87276f735e094f20244159d340857cdb925f",
+        "changed": 10
+      },
+      {
+        "budget": 16815,
+        "unit": 13916,
+        "code_digest": "2bd2742c50aab9f4f54d11062d8f14b0442ea35b23bab78cae106db8db97c42a",
+        "changed": 10
+      },
+      {
+        "budget": 16816,
+        "unit": 13916,
+        "code_digest": "2bd2742c50aab9f4f54d11062d8f14b0442ea35b23bab78cae106db8db97c42a",
+        "changed": 10
+      },
+      {
+        "budget": 16817,
+        "unit": 13916,
+        "code_digest": "2bd2742c50aab9f4f54d11062d8f14b0442ea35b23bab78cae106db8db97c42a",
+        "changed": 10
+      },
+      {
+        "budget": 16818,
+        "unit": 13916,
+        "code_digest": "2bd2742c50aab9f4f54d11062d8f14b0442ea35b23bab78cae106db8db97c42a",
+        "changed": 10
+      },
+      {
+        "budget": 16819,
+        "unit": 13916,
+        "code_digest": "2bd2742c50aab9f4f54d11062d8f14b0442ea35b23bab78cae106db8db97c42a",
+        "changed": 10
+      },
+      {
+        "budget": 16820,
+        "unit": 13916,
+        "code_digest": "2bd2742c50aab9f4f54d11062d8f14b0442ea35b23bab78cae106db8db97c42a",
+        "changed": 10
+      },
+      {
+        "budget": 16821,
+        "unit": 13916,
+        "code_digest": "5b519d38c151a9f7ed36eff62ba48ed89a0dc8f55146ecebb752293281c66234",
+        "changed": 11
+      },
+      {
+        "budget": 16822,
+        "unit": 13916,
+        "code_digest": "95b35109218e4c1d3e16e2baae926b68180866f08d0dfebc24ede39fdffc766c",
+        "changed": 12
+      }
+    ]
+  }
+]
