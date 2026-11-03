@@ -4820,6 +4820,7 @@ ordinary_shard_ready:
     // For these two kinds op_id/slow_started_ns snapshot flush_id/output bytes.
     void receive_fin(Client* client, bool input_ended);
     bool receive_eof_pending(const Client* client) const;
+    bool receive_eof_blocks_flip(const Client* client) const;
     void receive_eof_forget(Client* client);
     bool receive_eof_pass(size_t index, uint64_t now_ms);
 

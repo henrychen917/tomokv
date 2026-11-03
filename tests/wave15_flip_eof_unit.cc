@@ -45,6 +45,13 @@ struct NetcmdRegression {
                 f.io.deferred_timers_.pop_back();
                 T::require(client.rpos() == 0 && client.rlen() == sizeof(input)-1 &&
                     !std::memcmp(client.rbuf(), input, sizeof(input)-1), "complete accepted input retained exactly");
+                if (!post_only) {
+                    // Consumed input and idle work: this EOF closes through its own timer
+                    // pass during the drain, so ordinary closes keep their approved outcome.
+                    f.server.flip_stage_.store(FlipStage::IoDrain);
+                    client.advance_parse(sizeof(input)-1);
+                    T::require(!f.io.flip_immovable_refused(), "consumed idle EOF drains instead of refusing");
+                }
                 f.io.deferred_timers_.clear();
                 f.server.flip_stage_.store(FlipStage::Idle);
                 f.server.thread(f.io_id).remove_client(&client);

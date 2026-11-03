@@ -15,6 +15,16 @@ bool IoLoop::receive_eof_pending(const Client* client) const {
     return false;
 }
 
+// FLIP pauses dispatch before its IO drain acknowledges, and that drain waits for every
+// end-of-stream timer. A connection with consumed input and idle work closes through its
+// own timer pass during the drain (a ReceiveFin keeps reading, so late input is seen on a
+// later pass), and a pinned close keeps its approved refusal. Unconsumed input, or work
+// which may need the paused admission, cannot drain behind this FLIP: refuse before commit.
+bool IoLoop::receive_eof_blocks_flip(const Client* client) const {
+    return receive_eof_pending(client) &&
+           (client->rpos() < client->rlen() || !client->flip_drain_idle());
+}
+
 void IoLoop::receive_fin(Client* client, bool input_ended) {
     if (client->dead() || client->closing()) return;
     for (auto& timer : deferred_timers_) {

@@ -215,7 +215,8 @@ bool IoLoop::flip_immovable_refused() {
         // FIN may leave complete input behind a synchronous control or the
         // dispatch pause. Its EOF timer cannot drain until admission resumes.
         // Decide before commit instead of waiting on our own FLIP barrier.
-        if (receive_eof_pending(client)) {
+        // An idle, fully consumed EOF closes during the drain instead.
+        if (receive_eof_blocks_flip(client)) {
             srv_->flip_note_failure("ERR FLIP refused: a connection is draining its end of stream");
             return true;
         }
