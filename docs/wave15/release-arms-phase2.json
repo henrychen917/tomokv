@@ -1,0 +1,28 @@
+[
+  {
+    "arm": "PRE",
+    "path": "/home/user/Projects/bins/wave15-pre-79fe1f18",
+    "bytes": 99553736,
+    "sha256": "79fe1f181e26e823e70129a0d6903c1fae5597d4498faee38d3c08fdf713622e",
+    "source": "ea48a6b2721a1d9e5964ab24a32e8b54df611bd5 (reused frozen arm)"
+  },
+  {
+    "arm": "POST",
+    "path": "/home/user/Projects/cx-wave15/build/wave15/phase2/POST-34fa412040-f86a7ec9",
+    "bytes": 247186144,
+    "sha256": "f86a7ec9722d9f951f34c1805d632d65f5fc9541c2f6b6d1c45a7e30e3461bbc",
+    "source": "34fa412040 (src and Makefile as 66b5011c55)"
+  },
+  {
+    "arm": "PAD-A",
+    "path": "/home/user/Projects/cx-wave15/build/wave15/phase2/PAD-A",
+    "bytes": 467715296,
+    "sha256": "5cfdd89edfc3c7d09f32ad9757c878aee9ccd28e67c2d7205418b501cbe99b77"
+  },
+  {
+    "arm": "POST-layout",
+    "path": "/home/user/Projects/cx-wave15/build/wave15/phase2/POST-layout",
+    "bytes": 467715296,
+    "sha256": "ad95b1bd695c614df87368920c5880d8295e2ea6b836d78380c7434a02150bba"
+  }
+]
