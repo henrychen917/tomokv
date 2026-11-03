@@ -21,7 +21,8 @@ from r7shadow_pad import twin
 def controls(binary, output, inventory):
     def check_inventory(candidate):
         r7shadow_noop.exec1s_inventory(candidate, snapshot_capped=True, wave14=True,
-                                      flipfix7=inventory == 'flipfix7')
+                                      flipfix7=inventory in ('flipfix7', 'wave15'),
+                                      wave15=inventory == 'wave15')
     # These are disposable parsed instruction images, never executable mutants.
     post = copy.copy(binary)
     post.groups = copy.deepcopy(binary.groups)
@@ -64,13 +65,13 @@ def controls(binary, output, inventory):
             assert inventory + ' named inventory differs' in str(error), str(error)
         else:
             raise AssertionError('missing capped snapshot drain control passed: ' + name)
-    if inventory == 'flipfix7':
+    if inventory in ('flipfix7', 'wave15'):
         post.groups = copy.deepcopy(binary.groups)
         del post.groups[r7shadow_noop.FLIPFIX7_CALLBACK]
         try:
             check_inventory(post)
         except AssertionError as error:
-            assert 'flipfix7 named inventory differs' in str(error), str(error)
+            assert inventory + ' named inventory differs' in str(error), str(error)
         else:
             raise AssertionError('missing flipfix7 DB0 callback control passed')
         post.groups = copy.deepcopy(binary.groups)
@@ -78,23 +79,41 @@ def controls(binary, output, inventory):
         rows = audit.compare(binary, post, output)
         assert any(not row['equal'] and row['name'] == r7shadow_noop.FLIPFIX7_CALLBACK
                    for row in rows), 'changed flipfix7 DB0 callback opcode control passed'
-    # The added DB0 scan is a required production body, never an allowance.
-    scans = [name for name in binary.groups if name.startswith(
-        'unsigned long tomo_db0::FlatStore::scan<tomo_db0::xshard_execute(')]
-    assert len(scans) == 1
+    # The added DB0 scan is a required production body, never an allowance. storefix5's
+    # shared SCAN visitor adds its cold split and the same pair in the normal namespace.
+    prefixes = ('unsigned long tomo_db0::FlatStore::scan<tomo_db0::xshard_execute(',)
+    if inventory == 'wave15':
+        prefixes += ('unsigned long tomo::FlatStore::scan<tomo::xshard_execute(',)
+    scans = [name for name in binary.groups if name.startswith(prefixes)]
+    assert len(scans) == (4 if inventory == 'wave15' else 1), scans
+    for scan in scans:
+        post.groups = copy.deepcopy(binary.groups)
+        del post.groups[scan]
+        try:
+            check_inventory(post)
+        except AssertionError as error:
+            assert inventory + ' named inventory differs' in str(error), str(error)
+        else:
+            raise AssertionError('missing wave14/storefix5 scan control passed: ' + scan)
+    if inventory == 'wave15':
+        # Every wave15 addition is required: drop each and the strict inventory must fail.
+        for name in sorted(set(r7shadow_noop.wave15_added_bodies(binary))):
+            post.groups = copy.deepcopy(binary.groups)
+            del post.groups[name]
+            try:
+                check_inventory(post)
+            except AssertionError as error:
+                assert 'wave15 named inventory differs' in str(error), str(error)
+            else:
+                raise AssertionError('missing wave15 body control passed: ' + name)
     post.groups = copy.deepcopy(binary.groups)
-    del post.groups[scans[0]]
-    try:
-        check_inventory(post)
-    except AssertionError as error:
-        assert inventory + ' named inventory differs' in str(error), str(error)
-    else:
-        raise AssertionError('missing wave14 DB0 scan control passed')
-    post.groups = copy.deepcopy(binary.groups)
-    r7shadow_noop.splitlocal_inventory(post, ('tomo', 'tomo_db0'), overlap_removed=True, fliplisten=True, latencyfix=True)
+    wave15 = inventory == 'wave15'
+    r7shadow_noop.splitlocal_inventory(post, ('tomo', 'tomo_db0'), overlap_removed=True, fliplisten=True, latencyfix=True,
+                                       wave15=wave15)
     del post.groups['tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)']
     try:
-        r7shadow_noop.splitlocal_inventory(post, ('tomo', 'tomo_db0'), overlap_removed=True, fliplisten=True, latencyfix=True)
+        r7shadow_noop.splitlocal_inventory(post, ('tomo', 'tomo_db0'), overlap_removed=True, fliplisten=True, latencyfix=True,
+                                           wave15=wave15)
     except AssertionError as error:
         assert 'missing split-local parser bodies' in str(error), str(error)
     else:
@@ -123,12 +142,13 @@ def controls(binary, output, inventory):
     else:
         raise AssertionError('missing execfair promotion callback control passed')
     post.groups = copy.deepcopy(binary.groups)
-    scans = r7shadow_noop.notifycompat_inventory(post)
+    storefix5 = inventory == 'wave15'
+    scans = r7shadow_noop.notifycompat_inventory(post, storefix5=storefix5)
     for scan in scans:
         post.groups = copy.deepcopy(binary.groups)
         del post.groups[scan]
         try:
-            r7shadow_noop.notifycompat_inventory(post)
+            r7shadow_noop.notifycompat_inventory(post, storefix5=storefix5)
         except AssertionError as error:
             assert 'missing notifycompat scatter scan' in str(error), str(error)
         else:
@@ -165,7 +185,7 @@ if __name__ == '__main__':
     parser.add_argument('binary', type=Path)
     parser.add_argument('output', type=Path)
     parser.add_argument('--engagement', action='store_true')
-    parser.add_argument('--inventory', choices=('wave14', 'flipfix7'), default='flipfix7')
+    parser.add_argument('--inventory', choices=('wave14', 'flipfix7', 'wave15'), default='wave15')
     args = parser.parse_args()
     if args.engagement:
         engagement(args.binary, args.output)
