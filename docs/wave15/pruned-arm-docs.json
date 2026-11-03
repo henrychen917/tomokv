@@ -1,0 +1,6 @@
+{
+  "manifest": "pruned-arm-docs.json.gz",
+  "uncompressed_sha256": "8cef01ef03c08fce98326a3080b8a87c410be23b57566327821fa730da1d84b1",
+  "compressed_sha256": "f8a7f359c5b11f38618b0c69161d64b02a59db4a7c4eb517805c6776b808ecbe",
+  "note": "Per-file deletion receipts are preserved in the compressed manifest."
+}
