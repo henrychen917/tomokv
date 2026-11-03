@@ -1,0 +1,2 @@
+FAIL 1s uring 0 16 rewrite32 TypeError("'Conn' object does not support the context manager protocol")
+FAIL 1s uring 0 16 no-rewrite TypeError("'Conn' object does not support the context manager protocol")

@@ -1,0 +1,5 @@
+FAIL 1s uring 0 16 lmpop TypeError("'Conn' object does not support the context manager protocol")
+FAIL 1s uring 0 16 lmpop-same TypeError("'Conn' object does not support the context manager protocol")
+FAIL 1s uring 0 16 nosync TypeError("'Conn' object does not support the context manager protocol")
+FAIL 1s uring 0 16 zunion TypeError("'Conn' object does not support the context manager protocol")
+FAIL 1s uring 0 16 geo TypeError("'Conn' object does not support the context manager protocol")
