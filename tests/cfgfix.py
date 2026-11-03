@@ -164,7 +164,10 @@ def process_trial(a, mode, engine, oracle):
     pidfd = os.pidfd_open(pid)
     try:
         deadline = time.monotonic() + 15
-        while not pidfile.exists() and time.monotonic() < deadline:
+        # Redis 7.4's createPidFile() fopen()s the file and writes "<pid>\n" only before its
+        # fclose(), as cfgfix.cc does: the file can exist and still be empty. Wait for the line.
+        while not (pidfile.exists() and pidfile.read_text().endswith('\n')) and \
+                time.monotonic() < deadline:
             time.sleep(.01)
         assert pidfile.exists(), 'daemon never published its pid'
         assert int(pidfile.read_text()) == pid
