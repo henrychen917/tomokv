@@ -765,6 +765,21 @@ void IoLoop::fliplisten_retry_accept(UrKind kind) {
     if (pending) accept_quiescing_ = accept_pending_ = true;
 }
 
+// Issuer only, after shutdown cancellation. register_on() reserves listener file references
+// in this ring's fixed-file table. close(2) does not drop them, and the kernel frees a ring's
+// table only in its asynchronous exit work, which can finish after the process was reaped:
+// a restart then finds the port still bound. Drop them now; no request can use them.
+void IoLoop::fliplisten_release_files() {
+    if (epoll_ || !srv_ || !self_ || !srv_->flip_listeners_) return;
+    auto& own = srv_->flip_listeners_->local[self_->id()];
+    if (!own.files_registered) return;
+    const int rc = io_uring_unregister_files(ring_.raw());
+    if (rc < 0)
+        std::fprintf(stderr, "shutdown: listener file release failed: %s\n", std::strerror(-rc));
+    own.files_registered = false;
+    std::fill(std::begin(own.registered), std::end(own.registered), false);
+}
+
 void IoLoop::fliplisten_shutdown() {
     if (!srv_ || !self_ || !srv_->flip_listeners_) return;
     auto& state = *srv_->flip_listeners_;

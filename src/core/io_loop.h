@@ -5523,6 +5523,7 @@ public:
 
     // FLIP-only resource protocol; definitions stay out of hot translation units.
     void fliplisten_shutdown();
+    void fliplisten_release_files();
     void fliplisten_retain(int fd, UrKind kind);
     void fliplisten_stale(io_uring_cqe*, UrKind);
     void fliplisten_cqe(io_uring_cqe*);

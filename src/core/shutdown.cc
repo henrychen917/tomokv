@@ -21,6 +21,7 @@ void IoLoop::shutdown_on_issuer() {
             std::abort(); // Never free a buffer without its kernel lifetime fence.
         }
         (void)ring_.submit_and_reap();
+        fliplisten_release_files();
     }
 }
 
