@@ -391,6 +391,10 @@ def snapshot_batches(c, port, keys, call, oracle):
     return dict(replies=replies, saves=3, restored=[1, 11])
 
 
+class WoundNotObserved(AssertionError):
+    """T6's contention window never opened on this fresh boot: no group wound occurred."""
+
+
 def storm(c, port, keys, call, oracle, seconds=30, bgsave=False, flip=False, refusals=None):
     c.must('MSET', keys[0], 0, keys[1], 0)
     before = stats(c)
@@ -512,7 +516,8 @@ def storm(c, port, keys, call, oracle, seconds=30, bgsave=False, flip=False, ref
     if not oracle and (mix == {'scripts', 'execs', 'writers'} or flip):
         after = stats(c)
         if refusals is None and not flip:  # PRE controls have no escalated units to wound
-            assert after['atomic_group_wounds'] > before['atomic_group_wounds'], 'no group wound observed'
+            if after['atomic_group_wounds'] <= before['atomic_group_wounds']:
+                raise WoundNotObserved('no group wound observed')
         if refusals is None and flip:
             assert after['script_escalations'] > before['script_escalations'], 'no escalation during the FLIPs'
         if flip:
@@ -1019,26 +1024,38 @@ def main():
             for command in args.commands:
                 label = f'{mode}-{engine}-{atomic}-{command}'
                 result = dict(case=args.case, leg=label)
-                try:
-                    with boot(args, args.output/label, mode, engine, atomic, oracle,
-                              single, args.case == 'T12') as (c, port):
-                        result['value'] = run_case(args, c, port, oracle, mode, command)
-                    if args.case == 'T15':
-                        exited = json.loads((args.output/label/'exit.json').read_text())
-                        assert exited == dict(rc=0, forced=False), exited
-                    if args.case == 'T14':
-                        if oracle:
-                            references[command] = result['value']
-                        else:
-                            fields = ('wrongtype', 'oom', 'kept')
-                            reference = references[command]
-                            assert {f: result['value'][f] for f in fields} == {f: reference[f] for f in fields}, (
-                                result['value'], reference)
-                            if result['value']['oom_script_suffix'] != reference['oom_script_suffix']:
-                                result['deviation'] = 'XS-OOM-1'
-                    result['pass'] = True
-                except Exception:
-                    result.update(pass_=False, error=traceback.format_exc())
+                # PROJECT.md: a window that never opened is re-rolled on fresh state, bounded.
+                # Only T6's wound window qualifies (two extra fresh boots); every attempt
+                # asserts the wound again, and any other failure is never retried.
+                attempts = 3 if args.case == 'T6' else 1
+                for attempt in range(attempts):
+                    leg = label if attempt == 0 else f'{label}-reroll{attempt}'
+                    try:
+                        with boot(args, args.output/leg, mode, engine, atomic, oracle,
+                                  single, args.case == 'T12') as (c, port):
+                            result['value'] = run_case(args, c, port, oracle, mode, command)
+                        if args.case == 'T15':
+                            exited = json.loads((args.output/leg/'exit.json').read_text())
+                            assert exited == dict(rc=0, forced=False), exited
+                        if args.case == 'T14':
+                            if oracle:
+                                references[command] = result['value']
+                            else:
+                                fields = ('wrongtype', 'oom', 'kept')
+                                reference = references[command]
+                                assert {f: result['value'][f] for f in fields} == {f: reference[f] for f in fields}, (
+                                    result['value'], reference)
+                                if result['value']['oom_script_suffix'] != reference['oom_script_suffix']:
+                                    result['deviation'] = 'XS-OOM-1'
+                        result['pass'] = True
+                        break
+                    except WoundNotObserved:
+                        result.setdefault('unarmed_attempts', []).append(leg)
+                        if attempt + 1 == attempts:
+                            result.update(pass_=False, error=traceback.format_exc())
+                    except Exception:
+                        result.update(pass_=False, error=traceback.format_exc())
+                        break
                 results.append(result)
                 print(json.dumps(result), flush=True)
                 (args.output/'results.json').write_text(json.dumps(results, indent=2)+'\n')
