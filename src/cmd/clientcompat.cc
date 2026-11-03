@@ -134,6 +134,7 @@ void IoLoop::tracking_retire_exec_read(Client& client, Op& op, NotifyBatch* batc
             observed.push_back(own ? own : read.observed[read.shards[i]]);
         }
         read.observed.swap(observed);
+        read.woken.clear();   // per-key stamps above; EXEC children never park
         for (size_t i = 0; i < read.keys.size(); ++i) read.shards[i] = i;
     }
     // The transaction still uses the child's registry spec while assembling

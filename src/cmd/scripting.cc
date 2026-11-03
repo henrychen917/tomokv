@@ -46,7 +46,11 @@ extern "C" {
 #include "../../third_party/lua/lualib.h"
 #else
 #include "../../third_party/lua/lua_amalgamation.c"
+// The instruction cap raises past any pending message handler. luaD_pcall restores the
+// enclosing handler when its protected call unwinds. Defined once, beside Lua's private state.
+void tomo_lua_drop_message_handler(lua_State* state) { state->errfunc = 0; }
 #endif
+void tomo_lua_drop_message_handler(lua_State*);
 int luaopen_cjson(lua_State*);
 int luaopen_cmsgpack(lua_State*);
 int luaopen_bit(lua_State*);
@@ -474,12 +478,26 @@ ScriptContext* lua_context(lua_State* state) {
     return slot ? *slot : nullptr;
 }
 
-void instruction_hook(lua_State* state, lua_Debug*) {
+void instruction_hook(lua_State* state, lua_Debug* debug) {
     ScriptContext* context = lua_context(state);
     if (!context) return;
-    context->instructions += kHookInterval;
+    if (debug->event == LUA_HOOKCOUNT) {
+        context->instructions += kHookInterval;
+    } else if (!context->timed_out) {
+        // Each Lua thread owns its hook. A coroutine kept by a function library can still carry
+        // the line hook of an earlier activation that reached the cap; count this one normally.
+        lua_sethook(state, instruction_hook, LUA_MASKCOUNT, kHookInterval);
+        return;
+    }
     if (context->instructions > kInstructionLimit) {
         context->timed_out = true;
+        // pcall, xpcall and coroutine.resume catch an error raised from a COUNT hook, and a loop
+        // around them would retry forever. Once the cap trips, every later line, loop iteration
+        // and call raises again until the activation unwinds, as Redis's luaMaskCountHook does
+        // after SCRIPT KILL. No message handler runs: an xpcall handler would otherwise execute
+        // with hooks disabled (the raise happens inside this hook) and could loop unbounded.
+        lua_sethook(state, instruction_hook, LUA_MASKLINE, 0);
+        tomo_lua_drop_message_handler(state);
         luaL_error(state, "script exceeded the %llu instruction limit",
                    static_cast<unsigned long long>(kInstructionLimit));
     }
@@ -737,8 +755,13 @@ __attribute__((always_inline)) inline bool script_nested_execute(
 __attribute__((noinline)) void script_nested_notified(
         ScriptContext& context, Op& nested, const CommandSpec& spec, Slice key) {
     notify_execute_source(*context.shard, nested, context.call_index++ * 0x10000u);
-    if (script_nested_execute(context, nested, spec, key))
+    if (script_nested_execute(context, nested, spec, key)) {
         notify_monitor_script(*context.shard, *context.parent, nested, context.monitor_multi_order);
+        // CLIENT TRACKING enrolls the key of each read-only command the script runs. A tracked
+        // activation always takes this armed path (the IO selected the notify variant).
+        if ((spec.flags & CmdFlags::Readonly) && !(spec.flags & CmdFlags::Write))
+            tracking_note_script_read(*context.parent, key);
+    }
     notify_execute_source(*context.shard, *context.parent, 0);
 }
 

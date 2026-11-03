@@ -193,6 +193,10 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
         available = permitted_cpus(parse_cpu_range(args.server_cores, "--server-cores")
                                    if shared else topology)
     defaults = default_physical(available, topology)
+    # A selected correctness job needs one 8+2 slot. Full gates retain their
+    # 16-core minimum; a partial ledger cannot run ABBA or earn a receipt.
+    minimum = SERVER_PER_SLOT + LOAD_PER_SLOT if (
+        purpose != "perf" and os.getenv("GATE_ONLY_JOBS")) else MIN_PHYSICAL
     server = None if args.server_cores is None else parse_cpu_range(args.server_cores, "--server-cores")
     load = None if args.load_cores is None else parse_cpu_range(args.load_cores, "--load-cores")
     if shared:

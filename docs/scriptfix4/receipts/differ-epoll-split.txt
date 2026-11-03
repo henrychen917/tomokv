@@ -1,0 +1,9 @@
+DIFFER suites (47): string list set zset hash hexpire edgetime xshard xmove bitmap hll bitfield cgaps stream script streamgrp zsetops geo doubles scan multi encodingfix edgeenc edgeproto cmdgap cmdgap2 sort servertail arity storeorder infofix multidb blocking pubsub fanout spubsub notify wiredump climon compatintro aclsel aclkeys cmdmeta s6fix ccfix psfix monitor
+DIFFER geometry: split (--ratio 6:2 --net-io epoll)
+DIFFER matrix: atomic={0 1} seeds={7 19 20 23 24} legs=470 logs=/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/sf4/differ-epoll-split
+DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2148526 recorded comparison witnesses, 474 legs)
+  not observed in compared replies/properties: BGREWRITEAOF, FLIP, HELLO, LOLWUT, MONITOR, QUIT, REPLICAOF, SHUTDOWN, SLAVEOF, TIME, UNWATCH, WATCH, ZREVRANGE
+  mode equivalence: all execution/knob combinations          ok (exact replies and mechanism witnesses)
+DIFFER GATE: pass=475 fail=0 runtime=18m08s
+FAIL lines: 0
+ok legs: 474

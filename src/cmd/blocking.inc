@@ -1045,6 +1045,8 @@ private:
                 return work + 1;
             }
             if (state.kind == BlockingKind::Xread) {
+                if (__builtin_expect(state.server->climon_armed() & Server::kClimonTracking, false))
+                    tracking_observe_wake(shard, state.client->rob().at(state.op_id));
                 remove_at_from_shard(shard, queue, i);
                 blocking_request_move(state, self, ring);
                 work++;

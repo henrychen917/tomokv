@@ -1,0 +1,6 @@
+1s unit/tracking Tracking only occurs for scripts when a command calls a read-only command attempt 1: pass=0 fail=1 error=passing subset failed, incomplete, or assertion inventory changed
+1s unit/tracking Tracking only occurs for scripts when a command calls a read-only command attempt 2: pass=0 fail=1 error=passing subset failed, incomplete, or assertion inventory changed
+1s unit/tracking Tracking only occurs for scripts when a command calls a read-only command attempt 3: pass=0 fail=1 error=passing subset failed, incomplete, or assertion inventory changed
+2s unit/tracking Tracking only occurs for scripts when a command calls a read-only command attempt 1: pass=0 fail=1 error=passing subset failed, incomplete, or assertion inventory changed
+2s unit/tracking Tracking only occurs for scripts when a command calls a read-only command attempt 2: pass=0 fail=2 error=passing subset failed, incomplete, or assertion inventory changed
+2s unit/tracking Tracking only occurs for scripts when a command calls a read-only command attempt 3: pass=0 fail=0 error=passing subset failed, incomplete, or assertion inventory changed
