@@ -1328,7 +1328,9 @@ __attribute__((always_inline)) void IoLoop::r7_admit_retained_fd(int fd, UrKind 
     self_->sig().accepts++;
     if (tls_socket) self_->sig().tls_accepts++;
     else self_->sig().plain_accepts++;
-    if (srv_->live_clients() >= srv_->maxclients()) {
+    // Redis admits exactly maxclients. IO threads accept concurrently, so the slot is
+    // reserved before any other admission work and every later refusal releases it.
+    if (!srv_->client_reserve()) {
         static constexpr char kErr[] = "-ERR max number of clients reached\r\n";
         if (!tls_socket) {
             const ssize_t sent = ::send(fd, kErr, sizeof(kErr) - 1,
@@ -1350,12 +1352,14 @@ __attribute__((always_inline)) void IoLoop::r7_admit_retained_fd(int fd, UrKind 
         }
         ::close(fd);
         srv_->note_rejected_connection();
+        srv_->client_released();
         return;
     }
     auto* c = new (std::nothrow) Client(fd);
     if (!c) {
         ::close(fd);
         self_->sig().accept_err++;
+        srv_->client_released();
         return;
     }
     // NOTHING READ-LOCAL IS ALLOCATED HERE ANY MORE. The RYOW write-ring
@@ -1368,9 +1372,9 @@ __attribute__((always_inline)) void IoLoop::r7_admit_retained_fd(int fd, UrKind 
         delete c;
         ::close(fd);
         self_->sig().accept_err++;
+        srv_->client_released();
         return;
     }
-    srv_->client_accepted();
     c->set_authenticated(!srv_->requirepass_enabled());
     c->set_acl_user_idx(kAclDefaultUser);
     c->set_id(srv_->next_client_id().fetch_add(1, std::memory_order_relaxed));

@@ -2317,6 +2317,16 @@ public:
     }
     uint64_t live_clients() const { return live_clients_.load(std::memory_order_relaxed); }
     void client_accepted() { live_clients_.fetch_add(1, std::memory_order_relaxed); }
+    // Accept admission (Redis: listLength(server.clients) >= maxclients refuses). Every IO
+    // thread accepts concurrently, so a separate check and increment can admit more than
+    // maxclients. Reserve atomically; the caller releases the slot if admission later fails.
+    [[gnu::noinline]] bool client_reserve() {
+        uint64_t live = live_clients_.load(std::memory_order_relaxed);
+        do {
+            if (live >= maxclients()) return false;
+        } while (!live_clients_.compare_exchange_weak(live, live + 1, std::memory_order_relaxed));
+        return true;
+    }
     void client_released() {
         if (live_clients_.fetch_sub(1, std::memory_order_relaxed) == 0) std::abort();
     }
