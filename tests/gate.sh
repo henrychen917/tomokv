@@ -3159,11 +3159,13 @@ job_rlfix5(){
       passed=0; kill -KILL "$GLOBCASE_ORACLE" 2>/dev/null
     fi
     wait "$GLOBCASE_ORACLE" 2>/dev/null || passed=0; GLOBCASE_ORACLE=0
+    # The linked fixture declares the gate's 8-CPU 6:2 topology from its own affinity.
+    # Job shells inherit the slot's small load set, so pin it to the server cores.
     for ns in normal db0; do
-      "${unit_root}-$ns/probe" "witness-$case" "$mode" 1 1 0 \
+      taskset -c "$CORES" "${unit_root}-$ns/probe" "witness-$case" "$mode" 1 1 0 \
           >"$TMPDIR/unit-$case-$mode-$ns.log" 2>&1 || passed=0
       if [ "$case" = no-yes ]; then
-        "${unit_root}-$ns/probe" witness-mget-no-yes "$mode" 1 1 0 \
+        taskset -c "$CORES" "${unit_root}-$ns/probe" witness-mget-no-yes "$mode" 1 1 0 \
             >"$TMPDIR/unit-mget-$mode-$ns.log" 2>&1 || passed=0
       fi
     done
