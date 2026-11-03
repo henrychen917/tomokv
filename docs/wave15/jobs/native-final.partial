@@ -1,0 +1,1 @@
+PARTIAL	0	GATE_ONLY_JOBS=wave15_stream wave15_idle wave15_flip_eof core_units wave15_survey_harness; NOT A RECEIPT
