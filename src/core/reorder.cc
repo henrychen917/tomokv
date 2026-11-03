@@ -1694,6 +1694,7 @@ uint32_t IoLoop::r7_epoll_pass(int timeout_ms) {
                 // EPOLLERR/EPOLLHUP are folded into the read side on purpose: the recv that
                 // follows returns 0 or the real errno, and close_client is then reached through
                 // the one path that already knows how to tear a connection down.
+                if ((ev.events & EPOLLRDHUP) && !c->is_tls()) receive_fin(c, false);
                 if (ev.events & (EPOLLIN | EPOLLERR | EPOLLHUP | EPOLLRDHUP))
                     c->set_recv_armed(false);
                 if (ev.events & (EPOLLOUT | EPOLLERR | EPOLLHUP)) enqueue_serve(c);
@@ -1863,8 +1864,13 @@ void IoLoop::r7_on_recv(Client* c, int res) {
         } else if (res == -ECANCELED) {
             (void)finish_client_transfer<kEp>(c);
         } else {
+            // Rollback normally re-arms reception. EOF already released the
+            // original kernel pin; hold admission across that rollback.
+            const bool eof = res == 0 && !c->is_tls() && !c->closing();
+            if (eof) c->set_recv_armed(true);
             cancel_client_transfer<kEp>(c);
-            close_client(c);
+            if (eof) receive_fin(c, true);
+            else close_client(c);
         }
         return;
     }
@@ -1884,7 +1890,9 @@ void IoLoop::r7_on_recv(Client* c, int res) {
         connreset::note(*c, self_->id(), res == 0 ? "recv_eof" : "recv_error",
                         std::source_location::current(), res);
 #endif
-        close_client(c); return;
+        if (res == 0 && !c->is_tls() && !c->closing()) receive_fin(c, true);
+        else close_client(c);
+        return;
     }
     c->commit_read(static_cast<size_t>(res));
     if (query_buffer_exceeded(*c)) { close_client(c); return; }

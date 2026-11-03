@@ -1214,7 +1214,7 @@ plan_jobs(){
   # One complete-gate worker retains all nine rows. Named partial jobs keep the
   # directed interface without adding nine shells to the serial scheduler.
   if [ "${GATE_PARTIAL:-0}" = 1 ]; then
-    JOB_NAMES+=(wave14_order wave14_epoll_eof wave14_eof_data)
+    JOB_NAMES+=(wave14_order wave14_epoll_eof wave14_eof_data eoffix_aof)
     for section in proc password replication sort-acl redact xsnotify tracking hscan setpast stringlimit hx3 errorstats xsexpiry; do JOB_NAMES+=("rootcompat-$section"); done
   fi
   JOB_NAMES+=(feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto)
@@ -2219,7 +2219,7 @@ job_netio(){
   row_begin "$label"
   for engine in uring epoll; do
     if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" &&
-        py tests/netio.py 127.0.0.1 "$PORT" "$engine" >"$TMPDIR/$engine.log" 2>&1; then :; else rc=1; fi
+        py tests/netio.py 127.0.0.1 "$PORT" "$engine" --coalesced-eof >"$TMPDIR/$engine.log" 2>&1; then :; else rc=1; fi
     stop
   done
   [ "$rc" = 0 ] && ok "$label" || bad "$label" "see $TMPDIR/{uring,epoll}.log"
@@ -5102,7 +5102,7 @@ job_atomic_floor(){
 # rate. Floor = 120k on the oversubscribed gate cores; healthy measures ~600k (5x margin), the
 # regression class this catches lands under 70k. Boots the harness posture on purpose -- debug
 # enabled, tripwire NOT armed -- because that is the posture every bench and gate row runs in.
-boot "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes || bad "atomic mm floor boot"
+txn_proof_boot "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes || bad "atomic mm floor boot"
 local run_floor=1
 case "${GATE_PROOF_NO_RATES:-0}" in
   0) ;;
@@ -5861,6 +5861,20 @@ job_wave14_eof_data(){
       --oracle "$REDIS74_ROOT/src/redis-server" --port "$PORT" --cores "$CORES" \
       --ratio "$GATE_RATIO" --output "$TMPDIR/half-close" >"$TMPDIR/half-close.log" 2>&1 \
       && ok "$label" || bad "$label" "see $TMPDIR/half-close.log"
+}
+
+# Private lane proof, never included in EXPECT_QUICK/EXPECT_FULL.
+job_eoffix_aof(){
+  local namespace engine schedule label binary
+  for namespace in normal db0; do for engine in epoll uring; do
+    for schedule in open pressure writer; do
+      label="eoffix AOF QSBR ($namespace, $engine, $schedule)"
+      binary="${EOFFIX_AOF_DIRECTORY:?native AOF arm directory required}/$namespace"
+      row_begin "$label"
+      taskset -c "$CORES" "$binary" "$engine" "$schedule" >"$TMPDIR/$namespace-$engine-$schedule.log" 2>&1 \
+          && ok "$label" || bad "$label" "see $TMPDIR/$namespace-$engine-$schedule.log"
+    done
+  done; done
 }
 
 job_rootcore(){

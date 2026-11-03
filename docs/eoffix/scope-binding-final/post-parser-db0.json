@@ -1,0 +1,10 @@
+{
+  "arm": "post",
+  "kind": "parser",
+  "namespace": "db0",
+  "server_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
+  "probe_sha256": "78629fafbff9ecdfdc148949d96e3ac9464460e999380d9fbe2244091507b673",
+  "entered_groups": 32,
+  "matched": 32,
+  "unmatched": []
+}

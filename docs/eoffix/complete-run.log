@@ -1,0 +1,92 @@
+complete-aof-build exit 0
+complete-eof-build exit 0
+complete-census-ordinary exit 0
+complete-census-parser exit 0
+complete-census-receive exit 0
+complete-binding exit 0
+{
+  "kind": "A: PRE behaviour with the exact POST-layout image",
+  "release_candidate": "/home/user/Projects/cx-eoffix/build/tomokv",
+  "release_sha256": "4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501",
+  "post_layout": "/home/user/Projects/cx-eoffix/build/eoffix/layout-complete/POST-layout",
+  "post_sha256": "962a727251beab9c84ae6d288bc726b2b2a873aed1663b00fc698e3a19f3ac38",
+  "pad_a": "/home/user/Projects/cx-eoffix/build/eoffix/layout-complete/PAD-A",
+  "pad_sha256": "000ed013b20f8f6b0614f39ffda7f6ea823494a3df03ac44b8e7d9c40a874171",
+  "matching_sections": true,
+  "matching_symbols": true,
+  "patch_offset": 1042340,
+  "before": "4c8d542408",
+  "after": "e927d00000",
+  "changed_bytes": 5,
+  "entry_source": {
+    "name": "main",
+    "info": 18,
+    "sec": 16,
+    "value": 1042336,
+    "size": 8743
+  },
+  "entry_target": {
+    "name": "exec1s_pre_main",
+    "info": 18,
+    "sec": 16,
+    "value": 1095632,
+    "size": 8743
+  },
+  "limitation": "The exact twin is POST-layout, not the smaller release image. Measure the release null separately."
+}
+cells 144 command/parser nonzero 0 receive deltas [2]
+complete-eof-aof exit 0
+complete-layout exit 0
+complete-pad exit 1
+complete-tcl-epoll-1 exit 0
+identical private tool copies shared: 510
+complete-tcl-epoll-2 exit 0
+identical private tool copies shared: 518
+complete-tcl-epoll-3 exit 0
+identical private tool copies shared: 526
+complete-tcl-uring-1 exit 0
+identical private tool copies shared: 534
+complete-tcl-uring-2 exit 0
+identical private tool copies shared: 542
+complete-tcl-uring-3 exit 0
+identical private tool copies shared: 550
+complete-differ-epoll exit 0
+identical private tool copies shared: 550
+complete-differ-uring exit 0
+identical private tool copies shared: 550
+complete-internal exit 1
+data-gate-run.mWdVAh-persistfix2_commands.tar.gz preserved bytes 171677808
+identical private tool copies shared: 550
+complete-live-epoll exit 0
+data-gate-run.Sp1JIE-txnorder-fused-0.tar.gz preserved bytes 41903198
+data-gate-run.Sp1JIE-txnorder-fused-1.tar.gz preserved bytes 48651088
+data-gate-run.Sp1JIE-txnorder-split-0.tar.gz preserved bytes 50927556
+data-gate-run.Sp1JIE-txnorder-split-1.tar.gz preserved bytes 21315901
+identical private tool copies shared: 550
+complete-mode-epoll-0 exit 0
+data-gate-run.aVQDpt-aof-epoll.tar.gz preserved bytes 541583600
+data-gate-run.aVQDpt-aof_frame.tar.gz preserved bytes 35674362
+data-gate-run.aVQDpt-snapshot-epoll.tar.gz preserved bytes 130694632
+identical private tool copies shared: 550
+complete-mode-epoll-1 exit 0
+data-gate-run.wqcUMO-aof-epoll.tar.gz preserved bytes 541560806
+data-gate-run.wqcUMO-aof_frame.tar.gz preserved bytes 35674365
+data-gate-run.wqcUMO-snapshot-epoll.tar.gz preserved bytes 130694600
+identical private tool copies shared: 550
+complete-live-uring exit 0
+data-gate-run.uryRDw-txnorder-fused-0.tar.gz preserved bytes 42289432
+data-gate-run.uryRDw-txnorder-fused-1.tar.gz preserved bytes 43912540
+data-gate-run.uryRDw-txnorder-split-0.tar.gz preserved bytes 49908376
+data-gate-run.uryRDw-txnorder-split-1.tar.gz preserved bytes 19390509
+identical private tool copies shared: 550
+complete-mode-uring-0 exit 0
+data-gate-run.PBG3jG-aof-uring.tar.gz preserved bytes 541543672
+data-gate-run.PBG3jG-aof_frame.tar.gz preserved bytes 134300665
+data-gate-run.PBG3jG-snapshot-uring.tar.gz preserved bytes 130694600
+identical private tool copies shared: 550
+complete-mode-uring-1 exit 0
+data-gate-run.eYz4re-aof-uring.tar.gz preserved bytes 541570025
+data-gate-run.eYz4re-aof_frame.tar.gz preserved bytes 134300666
+data-gate-run.eYz4re-snapshot-uring.tar.gz preserved bytes 130694536
+identical private tool copies shared: 550
+pre-fifo-attribution exit 1

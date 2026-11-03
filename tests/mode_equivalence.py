@@ -162,14 +162,20 @@ def configuration(cell):
 def validate_geometry(server_cpus, load_cpus):
     servers, loads = set(cpus(server_cpus)), set(cpus(load_cpus))
     require(len(servers) == 8, 'equivalence fixture requires eight server CPUs and split ratio 6:2')
+    shared = os.getenv('GATE_CORRECTNESS_SHARED_CPUS') == '1'
+    if shared:
+        require(os.getenv('GATE_ONLY_JOBS') and os.getenv('GATE_PROOF_NO_RATES') == '1' and
+                servers == loads,
+                'shared CPUs require selected correctness jobs, no rates and identical eight-core masks')
     # The coordinator deliberately inherits only its load slot. That temporary
     # taskset mask is not the cgroup's allowed CPU set; probe and restore it just
     # as the main planner does, before the child server takes its own slot.
     require((servers | loads) <= permitted_cpus(servers | loads), 'requested CPUs unavailable')
     for cpu in servers:
         siblings = set(cpus(Path(f'/sys/devices/system/cpu/cpu{cpu}/topology/thread_siblings_list').read_text().strip()))
-        require(not siblings & loads, 'server/load CPUs share a physical core (including SMT siblings)')
+        require(shared or not siblings & loads, 'server/load CPUs share a physical core (including SMT siblings)')
         require(len(siblings & servers) == 1, 'server CPUs must name distinct physical cores')
+    return shared
 
 
 def self_test():
@@ -213,7 +219,8 @@ def self_test():
         return f'{cpu},{cpu + 128}'
     with mock.patch(__name__ + '.permitted_cpus', return_value=set(range(256))), \
          mock.patch.object(os, 'sched_getaffinity', return_value={8, 9}), \
-         mock.patch.object(Path, 'read_text', siblings):
+         mock.patch.object(Path, 'read_text', siblings), \
+         mock.patch.dict(os.environ, {}, clear=True):
         validate_geometry('0-7', '8-9')  # Coordinator inherits only its load CPUs.
         try:
             validate_geometry('0-7', '128')
@@ -221,6 +228,17 @@ def self_test():
             require('share a physical core' in str(exc), 'wrong SMT rejection')
         else:
             raise AssertionError('server SMT sibling was accepted as a load CPU')
+        with mock.patch.dict(os.environ, {'GATE_CORRECTNESS_SHARED_CPUS': '1',
+                             'GATE_ONLY_JOBS': 'differ-equivalence', 'GATE_PROOF_NO_RATES': '1'}):
+            require(validate_geometry('0-7', '0-7'), 'selected shared correctness allocation refused')
+            for key in ('GATE_ONLY_JOBS', 'GATE_PROOF_NO_RATES'):
+                with mock.patch.dict(os.environ, {key: ''}):
+                    try:
+                        validate_geometry('0-7', '0-7')
+                    except AssertionError as exc:
+                        require('shared CPUs require' in str(exc), 'wrong shared-CPU rejection')
+                    else:
+                        raise AssertionError('unrestricted CPU overlap was accepted')
     print('MODE EQUIVALENCE self-test: seed/matrix/raw replay/divergence controls passed; no servers')
 
 
@@ -258,8 +276,10 @@ def main(argv=None):
             print(f'MODE EQUIVALENCE CORPUS: {len(seeds)} permanent streams, {len(seeds) * 16} cells, '
                   f'{failed} failing streams')
             return int(failed != 0)
-    validate_geometry(args.server_cpus, args.load_cpus)
-    pin_driver(args.server_cpus, args.load_cpus)
+    if validate_geometry(args.server_cpus, args.load_cpus):
+        os.sched_setaffinity(0, cpus(args.load_cpus))
+    else:
+        pin_driver(args.server_cpus, args.load_cpus)
     install_signals()
     args.output.mkdir(parents=True, exist_ok=False)
     operations = command_stream(args.seed)

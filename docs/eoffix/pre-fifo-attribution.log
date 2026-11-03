@@ -1,0 +1,9 @@
+GATE(full): CORRECTNESS ONLY, shared CPUs 0-7; one slot, 8 server threads at ratio 6:2; no rates or measurements
+  artifacts: /home/user/Projects/cx-eoffix/build/gate-run.IZhLlm
+PARTIAL jobs (including prerequisites): release txnorder_fifo_live
+PARTIAL jobs (including prerequisites): release txnorder_fifo_live
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 1440s; median=-s; fifo-16-legs-60s-plus-30s-setup-each; txnorder FIFO live fairness
+  txnorder FIFO live fairness                          FAIL (see /home/user/Projects/cx-eoffix/build/gate-run.IZhLlm/jobs/txnorder_fifo_live/fifo-*)
+GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-eoffix/docs/eoffix/pre-fifo-attribution.partial

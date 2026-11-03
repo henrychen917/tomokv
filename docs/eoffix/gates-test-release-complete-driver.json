@@ -1,0 +1,11 @@
+{
+  "command": [
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "exit_code": 0,
+  "seconds": 290.90215441118926,
+  "env": {
+    "GATE_CORES": "0-7"
+  }
+}

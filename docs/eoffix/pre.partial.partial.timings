@@ -1,0 +1,4 @@
+ok	0.000000	release build (+footprint locks)
+ok	3.010000	epoll directed correctness (1s)
+ok	2.950000	epoll directed correctness (2s)
+FAIL	1.730000	wave14 half-close accepted input

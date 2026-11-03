@@ -1,0 +1,111 @@
+{
+  "note": "Conservative +/-15-second commit windows; do not use overlapping legs as uncontended latency controls.",
+  "commits": [
+    {
+      "commit": "8cc0c60c21f550042d0a50f631bfb765adb9eac1",
+      "timestamp": 1793622234,
+      "title": "Queue exact R7 comment synchronization and runtime identity proof",
+      "possible_overlapping_legs": [
+        "fifo-1-2s-1-epoll"
+      ]
+    }
+  ],
+  "legs": [
+    {
+      "leg": "fifo-1-1s-0-epoll",
+      "start_epoch": 1793621830.9183211,
+      "end_epoch": 1793621890.9183211,
+      "passed": true
+    },
+    {
+      "leg": "fifo-1-1s-0-uring",
+      "start_epoch": 1793621769.2513907,
+      "end_epoch": 1793621829.2513907,
+      "passed": true
+    },
+    {
+      "leg": "fifo-1-1s-1-epoll",
+      "start_epoch": 1793621954.2630727,
+      "end_epoch": 1793622014.2630727,
+      "passed": false
+    },
+    {
+      "leg": "fifo-1-1s-1-uring",
+      "start_epoch": 1793621892.5970144,
+      "end_epoch": 1793621952.5970144,
+      "passed": true
+    },
+    {
+      "leg": "fifo-1-2s-0-epoll",
+      "start_epoch": 1793622077.7709293,
+      "end_epoch": 1793622137.7709293,
+      "passed": false
+    },
+    {
+      "leg": "fifo-1-2s-0-uring",
+      "start_epoch": 1793622015.9939892,
+      "end_epoch": 1793622075.9939892,
+      "passed": false
+    },
+    {
+      "leg": "fifo-1-2s-1-epoll",
+      "start_epoch": 1793622201.2931223,
+      "end_epoch": 1793622261.2931223,
+      "passed": false
+    },
+    {
+      "leg": "fifo-1-2s-1-uring",
+      "start_epoch": 1793622139.5264041,
+      "end_epoch": 1793622199.5264041,
+      "passed": false
+    },
+    {
+      "leg": "fifo-16-1s-0-epoll",
+      "start_epoch": 1793622324.812906,
+      "end_epoch": 1793622384.812906,
+      "passed": false
+    },
+    {
+      "leg": "fifo-16-1s-0-uring",
+      "start_epoch": 1793622263.0694973,
+      "end_epoch": 1793622323.0694973,
+      "passed": false
+    },
+    {
+      "leg": "fifo-16-1s-1-epoll",
+      "start_epoch": 1793622448.230435,
+      "end_epoch": 1793622508.230435,
+      "passed": true
+    },
+    {
+      "leg": "fifo-16-1s-1-uring",
+      "start_epoch": 1793622386.5569453,
+      "end_epoch": 1793622446.5569453,
+      "passed": true
+    },
+    {
+      "leg": "fifo-16-2s-0-epoll",
+      "start_epoch": 1793622571.6485987,
+      "end_epoch": 1793622631.6485987,
+      "passed": false
+    },
+    {
+      "leg": "fifo-16-2s-0-uring",
+      "start_epoch": 1793622509.8971934,
+      "end_epoch": 1793622569.8971934,
+      "passed": false
+    },
+    {
+      "leg": "fifo-16-2s-1-epoll",
+      "start_epoch": 1793622695.1564715,
+      "end_epoch": 1793622755.1564715,
+      "passed": false
+    },
+    {
+      "leg": "fifo-16-2s-1-uring",
+      "start_epoch": 1793622633.401118,
+      "end_epoch": 1793622693.401118,
+      "passed": false
+    }
+  ]
+}

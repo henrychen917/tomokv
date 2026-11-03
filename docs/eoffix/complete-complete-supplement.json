@@ -1,0 +1,47 @@
+{
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "0-7",
+    "--load-cores",
+    "0-7",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "21900-21902",
+    "--candidate-binary",
+    "/home/user/Projects/cx-eoffix/build/eoffix/post-complete/tomokv"
+  ],
+  "native": "/home/user/Projects/cx-eoffix/build/eoffix/post-complete/tomokv",
+  "native_sha256": "4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501",
+  "launcher_sha256": "4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501",
+  "engine": "epoll",
+  "jobs": "wait_units racefix_climon perfio_stream lbplanner_units",
+  "env": {
+    "LC_ALL": "C",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_CORRECTNESS_SHARED_CPUS": "1",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_ONLY_JOBS": "wait_units racefix_climon perfio_stream lbplanner_units",
+    "GATE_NET_IO": "epoll",
+    "GATE_PROOF_NET_IO": "epoll",
+    "GATE_DIFFER_NET_IO": "epoll",
+    "GATE_LEDGER": "/home/user/Projects/cx-eoffix/docs/eoffix/complete-complete-supplement"
+  },
+  "exit_code": 0,
+  "directory": "/home/user/Projects/cx-eoffix/build/gate-run.XTR5V1",
+  "ledgers": {
+    "jobs/lbplanner_units/ledger": "ok\t0.210000\tLB sampler exceptional cleanup + negative control\nok\t0.190000\tLB monitor plan handoff + negative controls\n",
+    "jobs/production_units/ledger": "",
+    "jobs/perfio_stream/ledger": "ok\t0.400000\tperfio XREADGROUP bounded delivery + Redis metadata (1s)\nok\t0.390000\tperfio XREADGROUP bounded delivery + Redis metadata (2s)\n",
+    "jobs/wait_units/ledger": "ok\t0.050000\twaits config publication + admission unit\nok\t1.010000\treads never wait for retirement quiescence\n",
+    "jobs/waits_tsan_build/ledger": "",
+    "jobs/release/ledger": "ok\t0.000000\trelease build (+footprint locks)\n",
+    "jobs/racefix_climon/ledger": "ok\t1.020000\tClimon armed refresh + stale-store suppression control\n"
+  },
+  "captures": [],
+  "archive_sha256": "e18ae26bc398ae8fb61ca52401383562e9edeb044e781d43d8ac9fdfa95d604e"
+}

@@ -1,0 +1,2 @@
+ok	0.010000	release build (+footprint locks)
+FAIL	60.920000	txnorder battery (fused, atomic 0)

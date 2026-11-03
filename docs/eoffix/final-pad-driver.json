@@ -1,0 +1,20 @@
+{
+  "command": [
+    "python3",
+    "tools/eoffix.py",
+    "--tag",
+    "final-pad",
+    "--jobs",
+    "netio-1s netio-2s",
+    "--binary",
+    "/home/user/Projects/cx-eoffix/build/eoffix/layout-final/PAD-A",
+    "--engine",
+    "epoll",
+    "--port",
+    "21900",
+    "--keep-going"
+  ],
+  "exit_code": 1,
+  "seconds": 18.305303774774075,
+  "env": {}
+}

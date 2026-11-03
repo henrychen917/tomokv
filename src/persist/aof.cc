@@ -1204,6 +1204,11 @@ void Server::restore_aof_ticket_floor(uint64_t floor) {
 }
 
 void AofManager::drain_for_producer(uint32_t producer, Ring&) {
+    // AOF serialization runs after this owner's read-local captures have been
+    // copied. A full channel must not pin its old QSBR epoch while the writer
+    // waits for that same grace to reclaim an immutable replacement.
+    if (server_ && server_->read_local_enabled() && producer < server_->nthreads())
+        server_->thread(producer).refresh_read_local_quiescence(server_->read_local_epoch());
     if (!writer_is(producer)) return;
     ThreadCtx& writer = server_->thread(producer);
     Ring& ring = *writer_ring_.load(std::memory_order_acquire);
@@ -1265,6 +1270,7 @@ bool aof_commit_group(AofManager& manager, const std::shared_ptr<AofGroupDecisio
     }
     while (!manager.post_chunk(context.producer, chunk, *context.ring, *context.signals)) {
         if (manager.failed()) return false;
+        manager.drain_for_producer(context.producer, *context.ring);
         context.ring->submit_and_reap();
         std::this_thread::yield();
     }

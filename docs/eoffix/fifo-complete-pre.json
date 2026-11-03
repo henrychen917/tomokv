@@ -1,0 +1,210 @@
+[
+  {
+    "leg": "fifo-1-1s-0-epoll",
+    "passed": false,
+    "data_equal": true,
+    "fifo": {
+      "share": 0.053060998229906335,
+      "expected_share": 0.0625,
+      "plain_p99": 0.00296929944306612,
+      "plain_p100": 0.004817554727196693,
+      "bound99": 0.002180877945804452
+    },
+    "possible_commit_overlap": false
+  },
+  {
+    "leg": "fifo-1-1s-0-uring",
+    "passed": true,
+    "data_equal": true,
+    "fifo": {
+      "share": 0.06169952580022352,
+      "expected_share": 0.0625,
+      "plain_p99": 0.0015444951131939888,
+      "plain_p100": 0.0034624310210347176,
+      "bound99": 0.002633200628066289
+    },
+    "possible_commit_overlap": false
+  },
+  {
+    "leg": "fifo-1-1s-1-epoll",
+    "passed": false,
+    "data_equal": true,
+    "fifo": {
+      "share": 0.05246229122241479,
+      "expected_share": 0.0625,
+      "plain_p99": 0.0030128993093967438,
+      "plain_p100": 0.02102137729525566,
+      "bound99": 0.0022065209379365427
+    },
+    "possible_commit_overlap": true
+  },
+  {
+    "leg": "fifo-1-1s-1-uring",
+    "passed": true,
+    "data_equal": true,
+    "fifo": {
+      "share": 0.06411669522010209,
+      "expected_share": 0.0625,
+      "plain_p99": 0.0016750460490584373,
+      "plain_p100": 0.0037124110385775566,
+      "bound99": 0.002538802553625736
+    },
+    "possible_commit_overlap": false
+  },
+  {
+    "leg": "fifo-1-2s-0-epoll",
+    "passed": false,
+    "data_equal": true,
+    "fifo": {
+      "share": 0.05111604321826643,
+      "expected_share": 0.0625,
+      "plain_p99": 0.0027122199535369873,
+      "plain_p100": 0.004204663448035717,
+      "bound99": 0.0015968548640704946
+    },
+    "possible_commit_overlap": false
+  },
+  {
+    "leg": "fifo-1-2s-0-uring",
+    "passed": false,
+    "data_equal": true,
+    "fifo": {
+      "share": 0.04878834899853616,
+      "expected_share": 0.0625,
+      "plain_p99": 0.0028734784573316574,
+      "plain_p100": 0.0055683683604002,
+      "bound99": 0.001578967973340588
+    },
+    "possible_commit_overlap": false
+  },
+  {
+    "leg": "fifo-1-2s-1-epoll",
+    "passed": false,
+    "data_equal": true,
+    "fifo": {
+      "share": 0.051076203170960795,
+      "expected_share": 0.0625,
+      "plain_p99": 0.0027296291664242744,
+      "plain_p100": 0.0046955859288573265,
+      "bound99": 0.0016190336199735035
+    },
+    "possible_commit_overlap": false
+  },
+  {
+    "leg": "fifo-1-2s-1-uring",
+    "passed": false,
+    "data_equal": true,
+    "fifo": {
+      "share": 0.04963181268751451,
+      "expected_share": 0.0625,
+      "plain_p99": 0.0028867200016975403,
+      "plain_p100": 0.005900358781218529,
+      "bound99": 0.0016182924703348292
+    },
+    "possible_commit_overlap": false
+  },
+  {
+    "leg": "fifo-16-1s-0-epoll",
+    "passed": false,
+    "data_equal": true,
+    "fifo": {
+      "share": 0.05229122763522168,
+      "expected_share": 0.0625,
+      "plain_p99": 0.003025069832801819,
+      "plain_p100": 0.005262138321995735,
+      "bound99": 0.0022466024178462145
+    },
+    "possible_commit_overlap": false
+  },
+  {
+    "leg": "fifo-16-1s-0-uring",
+    "passed": true,
+    "data_equal": true,
+    "fifo": {
+      "share": 0.06251307678079222,
+      "expected_share": 0.0625,
+      "plain_p99": 0.0016544060781598091,
+      "plain_p100": 0.004727896302938461,
+      "bound99": 0.0029092404108304023
+    },
+    "possible_commit_overlap": false
+  },
+  {
+    "leg": "fifo-16-1s-1-epoll",
+    "passed": false,
+    "data_equal": true,
+    "fifo": {
+      "share": 0.053609523050530385,
+      "expected_share": 0.0625,
+      "plain_p99": 0.003027639351785183,
+      "plain_p100": 0.004209714010357857,
+      "bound99": 0.0024171352436005208
+    },
+    "possible_commit_overlap": false
+  },
+  {
+    "leg": "fifo-16-1s-1-uring",
+    "passed": true,
+    "data_equal": true,
+    "fifo": {
+      "share": 0.06174026238123142,
+      "expected_share": 0.0625,
+      "plain_p99": 0.0015580644831061363,
+      "plain_p100": 0.0036778822541236877,
+      "bound99": 0.0025696547619459722
+    },
+    "possible_commit_overlap": false
+  },
+  {
+    "leg": "fifo-16-2s-0-epoll",
+    "passed": false,
+    "data_equal": true,
+    "fifo": {
+      "share": 0.051687764320363476,
+      "expected_share": 0.0625,
+      "plain_p99": 0.00274456012994051,
+      "plain_p100": 0.0048923371359705925,
+      "bound99": 0.0016581715652337179
+    },
+    "possible_commit_overlap": false
+  },
+  {
+    "leg": "fifo-16-2s-0-uring",
+    "passed": false,
+    "data_equal": true,
+    "fifo": {
+      "share": 0.04994705411880952,
+      "expected_share": 0.0625,
+      "plain_p99": 0.0028738994151353836,
+      "plain_p100": 0.004616766236722469,
+      "bound99": 0.0016567733005402865
+    },
+    "possible_commit_overlap": false
+  },
+  {
+    "leg": "fifo-16-2s-1-epoll",
+    "passed": false,
+    "data_equal": true,
+    "fifo": {
+      "share": 0.050419577108215714,
+      "expected_share": 0.0625,
+      "plain_p99": 0.002681228332221508,
+      "plain_p100": 0.0049346257001161575,
+      "bound99": 0.0016237917947725597
+    },
+    "possible_commit_overlap": false
+  },
+  {
+    "leg": "fifo-16-2s-1-uring",
+    "passed": false,
+    "data_equal": true,
+    "fifo": {
+      "share": 0.04958845054689371,
+      "expected_share": 0.0625,
+      "plain_p99": 0.00288385059684515,
+      "plain_p100": 0.004923626780509949,
+      "bound99": 0.0016465216412357218
+    },
+    "possible_commit_overlap": false
+  }
+]

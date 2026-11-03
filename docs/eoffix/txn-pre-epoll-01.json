@@ -1,0 +1,45 @@
+{
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "0-7",
+    "--load-cores",
+    "0-7",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "21915-21917",
+    "--candidate-binary",
+    "/home/user/Projects/cx-eoffix/build/eoffix/capture/launch"
+  ],
+  "native": "/home/user/Projects/cx-eoffix/build/eoffix/pre-rebuilt",
+  "native_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
+  "launcher_sha256": "ff5e4d4c0f12122493fdddc2f1267b169b86bec13dda05264feff7bd3db03fd9",
+  "engine": "epoll",
+  "jobs": "txnorder-fused-0",
+  "env": {
+    "LC_ALL": "C",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_CORRECTNESS_SHARED_CPUS": "1",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_ONLY_JOBS": "txnorder-fused-0",
+    "GATE_NET_IO": "epoll",
+    "GATE_PROOF_NET_IO": "epoll",
+    "GATE_DIFFER_NET_IO": "epoll",
+    "WAVE14_TXNORDER_CAPTURE": "1",
+    "WAVE14_TXNORDER_NATIVE": "/home/user/Projects/cx-eoffix/build/eoffix/pre-rebuilt",
+    "GATE_LEDGER": "/home/user/Projects/cx-eoffix/docs/eoffix/txn-pre-epoll-01"
+  },
+  "exit_code": 1,
+  "directory": "/home/user/Projects/cx-eoffix/build/gate-run.lSBqST",
+  "ledgers": {
+    "jobs/production_units/ledger": "FAIL\t900.160000\tbuild dependency: make build/aoforder-scheduled,build/at15-db0-unit,build/at15-unit,build/at412-owner,build/atomic-survivors-unit,build/core-concurrency-unit,build/encodingfix-unit,build/exbatch-db0-unit,build/exbatch-unit,build/exec1s-unit,build/exec1s-word-tsan,build/execabort-watch-db0-unit,build/execabort-watch-unit,build/expire-notify-unit,build/flushfix-units,build/gaterows5-units,build/ktls-keyupdate,build/ktls-keyupdate-unit,build/ktls-lifetime-unit,build/lbplanner-units,build/moverfix-db0-unit,build/moverfix-unit,build/multidb-boundary-unit,build/multidb-unit,build/netcap-unit,build/netcmd-unit,build/persistfix-units,build/publishfix-unit,build/racefix-climon,build/rehash-waits-unit,build/reorder-engagement-unit,build/reorder-engagement-unit-db0,build/respresume-migration,build/respresume-unit,build/rltopo-unit,build/shutdown-unit,build/splitlocal-unit,build/storesize-unit,build/txnorder-chain-db0-unit,build/txnorder-chain-unit,build/txnorder-episodes,build/txnorder-episodes-debug,build/txnorder-fifo-db0-unit,build/txnorder-fifo-unit,build/txnorder-index-db0-unit,build/txnorder-index-unit,build/txnorder-retry-unit,build/txnorder-wake-unit,build/txnorder-watch-db0-unit,build/txnorder-watch-unit,build/txnorder-wound-db0-unit,build/txnorder-wound-unit,build/waits-unit,build/wb-rule-units,build/wbland-units\n",
+    "jobs/txnorder-fused-0/ledger": "FAIL\t50.440000\ttxnorder battery (fused, atomic 0)\n",
+    "jobs/release/ledger": "ok\t0.010000\trelease build (+footprint locks)\n"
+  },
+  "captures": [],
+  "archive_sha256": "7719e5d5690edccd54dd3d5fbb1684feb51441228a548600b5cfcd04218c073b"
+}

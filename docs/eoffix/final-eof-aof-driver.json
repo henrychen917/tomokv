@@ -1,0 +1,23 @@
+{
+  "command": [
+    "python3",
+    "tools/eoffix.py",
+    "--tag",
+    "final-eof-aof",
+    "--jobs",
+    "wave14_epoll_eof eoffix_aof wave14_eof_data netio-1s netio-2s",
+    "--binary",
+    "/home/user/Projects/cx-eoffix/build/eoffix/post-final/tomokv",
+    "--engine",
+    "epoll",
+    "--port",
+    "21900",
+    "--keep-going"
+  ],
+  "exit_code": 0,
+  "seconds": 32.72791240084916,
+  "env": {
+    "WAVE14_EOF_DIRECTORY": "/home/user/Projects/cx-eoffix/build/eoffix/final-eof-native",
+    "EOFFIX_AOF_DIRECTORY": "/home/user/Projects/cx-eoffix/build/eoffix/final-aof-native-v2"
+  }
+}

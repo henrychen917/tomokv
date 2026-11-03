@@ -1,0 +1,12 @@
+{
+  "command": [
+    "python3",
+    "tools/eoffix_receive_counts.py",
+    "post",
+    "--tag",
+    "complete"
+  ],
+  "exit_code": 0,
+  "seconds": 37.572349046356976,
+  "env": {}
+}

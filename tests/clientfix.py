@@ -105,6 +105,7 @@ def server(args, atomic=0, read_local=0):
                    '--appendonly', 'no', '--dir', directory]
         if not args.oracle:
             command += ['--databases', '1', '--shards', '16', '--thread-mode', args.mode,
+                        '--net-io', os.environ.get('GATE_NET_IO', 'uring'),
                         '--read-local', str(read_local), '--atomic', str(atomic),
                         '--flip-auto', '0', '--enable-debug-command', 'yes']
             if args.mode == '2s':

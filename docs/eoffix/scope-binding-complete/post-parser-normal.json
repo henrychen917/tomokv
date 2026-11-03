@@ -1,0 +1,10 @@
+{
+  "arm": "post",
+  "kind": "parser",
+  "namespace": "normal",
+  "server_sha256": "4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501",
+  "probe_sha256": "4bd55f32f51cd380211adad25ff9bd2c27abd431ba83b27efa9894faae68dd3f",
+  "entered_groups": 34,
+  "matched": 34,
+  "unmatched": []
+}
