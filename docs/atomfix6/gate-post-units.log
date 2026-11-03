@@ -1,0 +1,31 @@
+GATE(quick): 13 physical cores; 1 correctness slots = min(8/8 server, 5/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 5 load physical cores, 5 load SMT threads (automatic available siblings), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-atomfix6/build/gate-run.kmIjME
+PARTIAL jobs (including prerequisites): release atomfix6_units
+PARTIAL jobs (including prerequisites): release atomfix6_units
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomfix6 collapse (normal, unit)
+  atomfix6 collapse (normal, unit)                     FAIL (see /home/user/Projects/cx-atomfix6/build/gate-run.kmIjME/jobs/atomfix6_units/normal-unit.log and build.log)
+  row budget: 900s; median=-s; no-history-conservative-default; atomfix6 collapse (normal, asan)
+  atomfix6 collapse (normal, asan)                     FAIL (see /home/user/Projects/cx-atomfix6/build/gate-run.kmIjME/jobs/atomfix6_units/normal-asan.log and build.log)
+  row budget: 900s; median=-s; no-history-conservative-default; atomfix6 collapse (normal, tsan)
+  atomfix6 collapse (normal, tsan)                     FAIL (see /home/user/Projects/cx-atomfix6/build/gate-run.kmIjME/jobs/atomfix6_units/normal-tsan.log and build.log)
+  row budget: 900s; median=-s; no-history-conservative-default; atomfix6 parked MSET8 heads (1s, normal)
+  atomfix6 parked MSET8 heads (1s, normal)             FAIL (see /home/user/Projects/cx-atomfix6/build/gate-run.kmIjME/jobs/atomfix6_units/park-normal-1s.log and build.log)
+  row budget: 900s; median=-s; no-history-conservative-default; atomfix6 parked MSET8 heads (2s, normal)
+  atomfix6 parked MSET8 heads (2s, normal)             FAIL (see /home/user/Projects/cx-atomfix6/build/gate-run.kmIjME/jobs/atomfix6_units/park-normal-2s.log and build.log)
+  row budget: 900s; median=-s; no-history-conservative-default; atomfix6 collapse (db0, unit)
+  atomfix6 collapse (db0, unit)                        FAIL (see /home/user/Projects/cx-atomfix6/build/gate-run.kmIjME/jobs/atomfix6_units/db0-unit.log and build.log)
+  row budget: 900s; median=-s; no-history-conservative-default; atomfix6 collapse (db0, asan)
+  atomfix6 collapse (db0, asan)                        FAIL (see /home/user/Projects/cx-atomfix6/build/gate-run.kmIjME/jobs/atomfix6_units/db0-asan.log and build.log)
+  row budget: 900s; median=-s; no-history-conservative-default; atomfix6 collapse (db0, tsan)
+  atomfix6 collapse (db0, tsan)                        FAIL (see /home/user/Projects/cx-atomfix6/build/gate-run.kmIjME/jobs/atomfix6_units/db0-tsan.log and build.log)
+  row budget: 900s; median=-s; no-history-conservative-default; atomfix6 parked MSET8 heads (1s, db0)
+  atomfix6 parked MSET8 heads (1s, db0)                FAIL (see /home/user/Projects/cx-atomfix6/build/gate-run.kmIjME/jobs/atomfix6_units/park-db0-1s.log and build.log)
+  row budget: 900s; median=-s; no-history-conservative-default; atomfix6 parked MSET8 heads (2s, db0)
+  atomfix6 parked MSET8 heads (2s, db0)                FAIL (see /home/user/Projects/cx-atomfix6/build/gate-run.kmIjME/jobs/atomfix6_units/park-db0-2s.log and build.log)
+  row budget: 900s; median=-s; no-history-conservative-default; atomfix6 park index lifetime (asan)
+  atomfix6 park index lifetime (asan)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomfix6 park index lifetime (tsan)
+  atomfix6 park index lifetime (tsan)                  ok
+GATE(PARTIAL): 3 ok, 10 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: docs/atomfix6/gate-post-units.tsv.partial

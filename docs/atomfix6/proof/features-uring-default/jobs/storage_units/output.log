@@ -1,0 +1,26 @@
+  row budget: 900s; median=-s; no-history-conservative-default; storage unlinked regression
+  storage unlinked regression                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage randomkey regression
+  storage randomkey regression                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage rehash regression
+  storage rehash regression                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage rollback regression
+  storage rollback regression                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage snapshot-eviction regression
+  storage snapshot-eviction regression                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage flags regression
+  storage flags regression                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage aof-eviction regression
+  storage aof-eviction regression                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage intents regression
+  storage intents regression                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage imported-hash regression
+  storage imported-hash regression                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage field-index-failure regression
+  storage field-index-failure regression               ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage hash-bytes regression
+  storage hash-bytes regression                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage deadline-allocation-failure regression
+  storage deadline-allocation-failure regression       ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage flush-prepared-capacity regression
+  storage flush-prepared-capacity regression           ok

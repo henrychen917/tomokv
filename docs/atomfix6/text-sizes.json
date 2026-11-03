@@ -1,0 +1,18 @@
+[
+  {
+    "arm": "PRE",
+    "text_bytes": 9021623
+  },
+  {
+    "arm": "POST",
+    "text_bytes": 9027287
+  },
+  {
+    "arm": "POST-layout",
+    "text_bytes": 18048551
+  },
+  {
+    "arm": "PAD-A",
+    "text_bytes": 18048551
+  }
+]

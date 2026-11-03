@@ -1,0 +1,3 @@
+cleanup_slow 224699 cleanup_fast 5072676 groups 2648715 predecessor_reads 178382
+mode=2s W=4 R=2 extra=[] stats={'mset': 2825136, 'mget': 1670144, 'torn': 0}
+server rc 0

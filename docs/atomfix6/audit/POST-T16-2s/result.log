@@ -1,0 +1,8 @@
+BGSAVE -> Background saving started
+stats during capture: {'mset': 39472, 'mget': 42016, 'torn': 0, 'one_nil': 0, 'diff': 0} | bgsave status: ok in_progress: 0
+torn samples: []
+IN MEMORY AT REST: 0 of 16 pairs differ []
+server rc 0
+dump files: ['t16.rdb']
+RESTORED FROM DUMP: dbsize 1500544; 0 of 16 pairs differ []
+restart rc 0

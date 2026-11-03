@@ -1,0 +1,26 @@
+PARTIAL	0	GATE_ONLY_JOBS=blockfix2 blockfix4 datafix2_notouch infofix_compat-loadaof notifycompat rootcore-misconf dbdefault witness_contracts; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	41.670000	rootcore misconf known difference MISCONF-NEVER-CLEARS
+ok	0.680000	witness falsification contracts (testmap + placement)
+ok	18.040000	blockfix4 scripts (all modes, read-local and atomic)
+ok	44.340000	blockfix4 moves (all modes, read-local and atomic)
+ok	5.740000	blockfix4 creators (all modes, read-local and atomic)
+ok	10.020000	blockfix4 removed (all modes, read-local and atomic)
+ok	6.700000	blockfix4 mpop (all modes, read-local and atomic)
+ok	34.540000	blockfix2 BLOCK-WAKE-RENAME-SORTSTORE
+ok	37.740000	blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK
+ok	34.580000	blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS
+ok	34.040000	blockfix2 MULTI-XREADGROUP-BLOCK-HANG
+ok	34.390000	blockfix2 INFO-TOTAL-BLOCKING-KEYS
+ok	36.180000	blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED
+ok	0.050000	blockfix2 BLOCK-SERVE-REFUSED-DROP
+ok	0.330000	Redis default databases 16 (both modes)
+ok	37.270000	datafix2 CD4.7 no-touch lookups vs Redis 7.4
+ok	23.570000	notification compatibility setbit vs Redis 7.4
+ok	43.230000	notification compatibility setpast vs Redis 7.4
+ok	52.060000	notification compatibility emptystore vs Redis 7.4
+ok	43.970000	notification compatibility writemiss vs Redis 7.4
+ok	45.060000	notification compatibility objectmiss vs Redis 7.4
+ok	145.190000	notification compatibility expiredstore vs Redis 7.4
+ok	57.150000	notification compatibility flush vs Redis 7.4
+ok	1.320000	Redis 7.4 infofix loadaof (both modes/engines/runtimes)

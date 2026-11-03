@@ -1,0 +1,80 @@
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt stream-roundtrip (1s, epoll)
+  persistfmt stream-roundtrip (1s, epoll)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt stream-interchange (1s, epoll)
+  persistfmt stream-interchange (1s, epoll)            ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt stream-options (1s, epoll)
+  persistfmt stream-options (1s, epoll)                ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt wire-values (1s, epoll)
+  persistfmt wire-values (1s, epoll)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt save (1s, epoll)
+  persistfmt save (1s, epoll)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt bgsave (1s, epoll)
+  persistfmt bgsave (1s, epoll)                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt shutdown (1s, epoll)
+  persistfmt shutdown (1s, epoll)                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt reload (1s, epoll)
+  persistfmt reload (1s, epoll)                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt aof-yes (1s, epoll)
+  persistfmt aof-yes (1s, epoll)                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt aof-failure (1s, epoll)
+  persistfmt aof-failure (1s, epoll)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt stream-roundtrip (1s, uring)
+  persistfmt stream-roundtrip (1s, uring)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt stream-interchange (1s, uring)
+  persistfmt stream-interchange (1s, uring)            ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt stream-options (1s, uring)
+  persistfmt stream-options (1s, uring)                ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt wire-values (1s, uring)
+  persistfmt wire-values (1s, uring)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt save (1s, uring)
+  persistfmt save (1s, uring)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt bgsave (1s, uring)
+  persistfmt bgsave (1s, uring)                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt shutdown (1s, uring)
+  persistfmt shutdown (1s, uring)                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt reload (1s, uring)
+  persistfmt reload (1s, uring)                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt aof-yes (1s, uring)
+  persistfmt aof-yes (1s, uring)                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt aof-failure (1s, uring)
+  persistfmt aof-failure (1s, uring)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt stream-roundtrip (2s, epoll)
+  persistfmt stream-roundtrip (2s, epoll)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt stream-interchange (2s, epoll)
+  persistfmt stream-interchange (2s, epoll)            ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt stream-options (2s, epoll)
+  persistfmt stream-options (2s, epoll)                ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt wire-values (2s, epoll)
+  persistfmt wire-values (2s, epoll)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt save (2s, epoll)
+  persistfmt save (2s, epoll)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt bgsave (2s, epoll)
+  persistfmt bgsave (2s, epoll)                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt shutdown (2s, epoll)
+  persistfmt shutdown (2s, epoll)                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt reload (2s, epoll)
+  persistfmt reload (2s, epoll)                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt aof-yes (2s, epoll)
+  persistfmt aof-yes (2s, epoll)                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt aof-failure (2s, epoll)
+  persistfmt aof-failure (2s, epoll)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt stream-roundtrip (2s, uring)
+  persistfmt stream-roundtrip (2s, uring)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt stream-interchange (2s, uring)
+  persistfmt stream-interchange (2s, uring)            ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt stream-options (2s, uring)
+  persistfmt stream-options (2s, uring)                ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt wire-values (2s, uring)
+  persistfmt wire-values (2s, uring)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt save (2s, uring)
+  persistfmt save (2s, uring)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt bgsave (2s, uring)
+  persistfmt bgsave (2s, uring)                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt shutdown (2s, uring)
+  persistfmt shutdown (2s, uring)                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt reload (2s, uring)
+  persistfmt reload (2s, uring)                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt aof-yes (2s, uring)
+  persistfmt aof-yes (2s, uring)                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfmt aof-failure (2s, uring)
+  persistfmt aof-failure (2s, uring)                   ok

@@ -1,0 +1,14 @@
+{
+  "branch": "cx-atomfix6",
+  "pre": "9d6ab5526f8fff0c8617e94cf20fa837e15ab0f8",
+  "build_allocated_bytes": 16030830592,
+  "build_gib": 14.929874420166016,
+  "protected_constants": {
+    "EXPECT_QUICK": "EXPECT_QUICK=1046",
+    "EXPECT_FULL": "EXPECT_FULL=1063                 # ABBA reports only; self-test remains counted."
+  },
+  "remaining_worktree_executables": [],
+  "remaining_listeners_21700_21799": [],
+  "proof_groups": 22,
+  "final_checks": 76
+}

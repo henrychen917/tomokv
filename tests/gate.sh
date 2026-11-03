@@ -1039,6 +1039,7 @@ job_body(){
     feature-cell-*) job_feature_cell "$name";;
     snapshot-*) job_snapshot "$name";;
     aof-*) job_aof "$name";;
+    atomfix6-live-*) job_atomfix6_live "$name";;
     txnorder2) job_txnorder2;;
     txnorder_wake) job_txnorder_wake;;
     at412-*) job_at412 "${name#at412-}";;
@@ -1198,6 +1199,10 @@ plan_jobs(){
     for atomic in 0 1; do for mode in split armed; do JOB_NAMES+=("evict-$section-$mode-$atomic"); done; done
   done
   JOB_NAMES+=(flushfix3 flushfix3_units flushfix2 flushfix2_units flipctl witness_contracts reorder_bounds rob_portable slotless wb_mixed inline_quoted)
+  JOB_NAMES+=(atomfix6_units)
+  for mode in 1s 2s; do for FR in 0 1; do for section in 1 16; do
+    JOB_NAMES+=("atomfix6-live-$mode-$FR-$section")
+  done; done; done
   for section in T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11a T11b T12 T13 T14 T15 T16 owner; do JOB_NAMES+=("at412-$section"); done
   local resp_case resp_engine
   for resp_case in fragment cpu neighbour; do for mode in 1s 2s; do
@@ -1455,6 +1460,105 @@ pausable taskset -c "$BUILD_CORES" tests/parbuild.sh $ASAN "$PWD/build/gate-cach
 
 # readability-a0: one row collected before quick exit (DQ=+1, DF=+1).
 # EXPECT constants remain maintainer-owned.
+# atomfix6: 12 serverless rows + 8 live rows, collected before quick exit.
+# DQ=+20, DF=+20. EXPECT_QUICK / EXPECT_FULL remain maintainer-owned.
+job_atomfix6_units(){
+  local ns flavor target label mode source park_sanitized=1 park_db0_sanitized=1
+  pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" \
+      build/atomfix6-unit build/atomfix6-db0-unit build/atomfix6-asan build/atomfix6-db0-asan \
+      build/atomfix6-tsan build/atomfix6-db0-tsan build/atomfix6-park-unit \
+      build/atomfix6-park-db0-unit build/atomfix6-queue-asan build/atomfix6-queue-tsan \
+      >"$TMPDIR/build.log" 2>&1
+  pausable taskset -c "$BUILD_CORES" make -f Makefile -f tools/atomfix6.mk \
+      -j"$BUILD_JOBS" build/atomfix6-park-asan >>"$TMPDIR/build.log" 2>&1 || park_sanitized=0
+  local sources=()
+  for source in src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc src/store/*.cc third_party/lua/helpers/*.c; do
+    [ "$source" = src/core/version.cc ] || sources+=("$source")
+  done
+  pausable taskset -c "$BUILD_CORES" tests/parbuild.sh build/atomfix6-park-tsan \
+      "$PWD/build/gate-cache/obj-core-tsan" \
+      '-std=c++20 -O1 -g -march=native -pthread -fsanitize=thread -fno-omit-frame-pointer -no-pie -DTOMO_CORE_CONCURRENCY_TEST -I.' \
+      '-luring -pthread -lssl -lcrypto -lm -Wl,--compress-debug-sections=zlib' \
+      tests/atomfix6_park_unit.cc "${sources[@]}" >>"$TMPDIR/build.log" 2>&1 || park_sanitized=0
+  for flavor in asan tsan; do
+    local sanitizer='-fsanitize=address,undefined'
+    [ "$flavor" != tsan ] || sanitizer='-fsanitize=thread'
+    # DB0 delegates the process-wide Lua VM to the normal namespace, exactly as
+    # the release link does. Both namespaces remain fully instrumented; helper C
+    # objects are already in this parbuild and must be linked only once.
+    local -a normal_objects=()
+    if [ "$flavor" = asan ]; then
+      normal_objects=(build/mdbqsbr-asan/src/*/*.o)
+    else
+      for source in build/gate-cache/obj-core-tsan/src_*.o; do
+        case "$source" in *_main.o|*_version.o) continue;; esac
+        normal_objects+=("$source")
+      done
+    fi
+    pausable taskset -c "$BUILD_CORES" tests/parbuild.sh "build/atomfix6-park-db0-$flavor" \
+        "$PWD/build/gate-cache/obj-atomfix6-db0-$flavor" \
+        "-std=c++20 -O1 -g -gz=zlib -march=native -pthread $sanitizer -fno-omit-frame-pointer -no-pie -DTOMO_CORE_CONCURRENCY_TEST -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I." \
+        "${normal_objects[*]} -luring -pthread -lssl -lcrypto -lm -Wl,--compress-debug-sections=zlib" \
+        tests/atomfix6_park_unit.cc "${sources[@]}" >>"$TMPDIR/build.log" 2>&1 || park_db0_sanitized=0
+  done
+  for ns in normal db0; do
+    for flavor in unit asan tsan; do
+      target="build/atomfix6-${ns/normal/}-$flavor"
+      [ "$ns" != normal ] || target="build/atomfix6-$flavor"
+      label="atomfix6 collapse ($ns, $flavor)"
+      row_begin "$label"
+      local -a run=(taskset -c "$CORES" "$target")
+      [ "$flavor" != tsan ] || run=(setarch x86_64 -R "${run[@]}")
+      if make -q "$target" && ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1 \
+          TSAN_OPTIONS=halt_on_error=1:exitcode=66 "${run[@]}" >"$TMPDIR/$ns-$flavor.log" 2>&1; then
+        ok "$label"
+      else bad "$label" "see $TMPDIR/$ns-$flavor.log and build.log"; fi
+    done
+    target=build/atomfix6-park-unit
+    [ "$ns" != db0 ] || target=build/atomfix6-park-db0-unit
+    for mode in 1s 2s; do
+      label="atomfix6 parked MSET8 heads ($mode, $ns)"
+      row_begin "$label"
+      local park_ok=1 suffix=''
+      [ "$ns" != db0 ] || suffix=-db0
+      make -q "$target" && taskset -c "$CORES" "$target" "$mode" \
+          >"$TMPDIR/park-$ns-$mode.log" 2>&1 || park_ok=0
+      [ "$park_sanitized" = 1 ] && [ "$park_db0_sanitized" = 1 ] && \
+          make -f Makefile -f tools/atomfix6.mk -q build/atomfix6-park-asan || park_ok=0
+      ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1 \
+          taskset -c "$CORES" "build/atomfix6-park$suffix-asan" "$mode" \
+          >"$TMPDIR/park-asan-$ns-$mode.log" 2>&1 || park_ok=0
+      TSAN_OPTIONS=halt_on_error=1:exitcode=66 setarch x86_64 -R \
+          taskset -c "$CORES" "build/atomfix6-park$suffix-tsan" "$mode" \
+          >"$TMPDIR/park-tsan-$ns-$mode.log" 2>&1 || park_ok=0
+      [ "$park_ok" = 1 ] && ok "$label" \
+          || bad "$label" "see $TMPDIR/park-*-$ns-$mode.log and build.log"
+    done
+  done
+  for flavor in asan tsan; do
+    target="build/atomfix6-queue-$flavor"
+    label="atomfix6 park index lifetime ($flavor)"
+    row_begin "$label"
+    local -a run=(taskset -c "$CORES" "$target")
+    [ "$flavor" != tsan ] || run=(setarch x86_64 -R "${run[@]}")
+    if make -q "$target" && ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1 \
+        TSAN_OPTIONS=halt_on_error=1:exitcode=66 "${run[@]}" >"$TMPDIR/queue-$flavor.log" 2>&1; then
+      ok "$label"
+    else bad "$label" "see $TMPDIR/queue-$flavor.log and build.log"; fi
+  done
+}
+job_atomfix6_live(){
+  local prefix family mode read_local databases label
+  IFS=- read -r prefix family mode read_local databases <<< "$1"
+  label="atomfix6 MSET pairs/capture/restart ($mode, read-local $read_local, databases $databases)"
+  row_begin "$label"
+  if py tests/atomfix6.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+      --ratio "$GATE_RATIO" --mode "$mode" --read-local "$read_local" --databases "$databases" \
+      --engine "${GATE_PROOF_NET_IO:-${GATE_NET_IO:-uring}}" --output "$TMPDIR/proof" \
+      >"$TMPDIR/proof.log" 2>&1; then ok "$label"
+  else bad "$label" "see $TMPDIR/proof.log and proof/result.json"; fi
+}
+
 job_flushfix3(){
   local databases label
   for databases in 16 1; do
@@ -1721,7 +1825,7 @@ job_flipfix6(){
 # Approved S2/close refusals must match their counters and return below one second;
 # all other FLIPs complete. Every transaction reply and final value is checked.
 row_begin "FLIP MULTI WATCH session storm (all legs)"
-local databases sibling_ok=1
+local databases sibling_ok=1 sessions_ok=1
 for databases in 16 1; do
   py tests/flushfix2_siblings.py --case live-flip --databases "$databases" \
       --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
@@ -1729,13 +1833,13 @@ for databases in 16 1; do
       --output "$TMPDIR/flush-live-flip-db$databases" \
       >"$TMPDIR/flush-live-flip-db$databases.log" 2>&1 || sibling_ok=0
 done
-if py tests/flipfix6.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+py tests/flipfix6.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
     --cases exec p1 p2 p3 watch semantics exec-close --seconds 6 \
-    --output "$TMPDIR/flipfix6" >"$TMPDIR/flipfix6.log" 2>&1 && \
-    py tests/flipfix6.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+    --output "$TMPDIR/flipfix6" >"$TMPDIR/flipfix6.log" 2>&1 || sessions_ok=0
+py tests/flipfix6.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
     --cases exec exec-close --clients-per-io 8 --seconds 6 \
-    --output "$TMPDIR/flipfix6-scale" >"$TMPDIR/flipfix6-scale.log" 2>&1 && \
-    [ "$sibling_ok" = 1 ]; then
+    --output "$TMPDIR/flipfix6-scale" >"$TMPDIR/flipfix6-scale.log" 2>&1 || sessions_ok=0
+if [ "$sessions_ok" = 1 ] && [ "$sibling_ok" = 1 ]; then
   ok "FLIP MULTI WATCH session storm (all legs)"
 else
   bad "FLIP MULTI WATCH session storm (all legs)" "see $TMPDIR/flipfix6*.log"
@@ -6641,7 +6745,7 @@ job_dependencies(){
       done;;
     release|asan|rldbg|core_tsan_build|waits_tsan_build|racefix_tsan_build|tailgen_build|config_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest|reorder_sync|witness_contracts) ;;
     flip_unit) echo production_units;; # ctlfix-unit links the shared release objects
-    core_units|flipfix_units|flipfix5_units|flipfix6_units|flipfix7_units) echo 'production_units core_tsan_build';;
+    core_units|flipfix_units|flipfix5_units|flipfix6_units|flipfix7_units|atomfix6_units) echo 'production_units core_tsan_build';;
     racefix_counters) echo racefix_tsan_build;;
     racefix_climon) echo production_units;;
     compat2) echo 'release production_units redis_tcl';;
@@ -6720,6 +6824,10 @@ collect_job storefix5
 collect_job asan
 collect_job config_unit
 collect_job source_identity
+collect_job atomfix6_units
+for atomfix6_mode in 1s 2s; do for atomfix6_rl in 0 1; do for atomfix6_db in 1 16; do
+  collect_job "atomfix6-live-$atomfix6_mode-$atomfix6_rl-$atomfix6_db"
+done; done; done
 collect_job flushfix3
 collect_job flushfix3_units
 collect_job flushfix2

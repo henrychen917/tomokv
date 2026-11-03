@@ -290,6 +290,7 @@ def storm(args, directory, mode, engine, atomic, oracle):
     expected_aof = None
     sentinels = {}
     counts = dict(flushes=0, work=0, saves=0, flips=0, flip_refusals=0, cancelled_saves=0)
+    flip_drained = threading.Event() if args.case == 'live-flip' and not oracle else None
     flip_observed = dict(flip_refused_s2=0, flip_refused_close=0)
     flip_max_seconds = 0
     with s.Boot(args, directory, mode, engine, atomic, oracle, extra=extra) as b, contextlib.ExitStack() as clients:
@@ -331,6 +332,8 @@ def storm(args, directory, mode, engine, atomic, oracle):
                               encode('EXEC') + encode('FLUSHALL', args.flush_mode))
                         assert [c.read() for _ in range(5)] == [b'OK', b'QUEUED', b'QUEUED', [b'OK', b'OK'], b'OK']
                     counts['flushes'] += 1
+                if flip_drained is not None:
+                    assert flip_drained.wait(args.stall), 'final FLIP did not drain before peer close'
         def worker(stop):
             with conn(b, args) as c:
                 workpair, _ = s.keys_for(c, 'flushfix2:live', oracle, 2)
@@ -378,6 +381,7 @@ def storm(args, directory, mode, engine, atomic, oracle):
                         stop.wait()
                         return
         def flipper(stop):
+    flip_drained = threading.Event() if args.case == 'live-flip' and not oracle else None
             nonlocal flip_max_seconds
             with contextlib.nullcontext(retained['flip']) if retained else conn(b, args) as c:
                 before = s.stats(c)

@@ -444,6 +444,18 @@ def self_test():
             with self.assertRaises(ValueError):
                 self.plan('--server-cores', '16-23', '--load-cores', '16-22',
                           '--shared-correctness-cpus', only_jobs='storage_units', no_rates='1')
+        def test_selected_correctness_fits_one_slot(self):
+            flags = ('quick', '--server-cores', '74-81', '--load-cores', '82-86')
+            plan = self.plan(*flags, only_jobs='atomfix6_units')
+            self.assertEqual(plan['slot_count'], 1)
+            self.assertEqual(plan['slots'][0]['server_cores'], '74-81')
+            with self.assertRaises(ValueError):
+                self.plan(*flags)
+            with self.assertRaises(ValueError):
+                self.plan('perf', *flags[1:], only_jobs='atomfix6_units')
+            with self.assertRaises(ValueError):
+                self.plan('quick', '--server-cores', '74-81', '--load-cores', '82',
+                          only_jobs='atomfix6_units')
 
         def test_default_full_box(self):
             plan = self.plan()

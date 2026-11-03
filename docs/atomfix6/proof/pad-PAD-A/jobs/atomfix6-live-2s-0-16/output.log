@@ -1,0 +1,2 @@
+  row budget: 900s; median=25.515s; correctness-plan-fallback; atomfix6 MSET pairs/capture/restart (2s, read-local 0, databases 16)
+  atomfix6 MSET pairs/capture/restart (2s, read-local 0, databases 16) FAIL (see /home/user/Projects/cx-atomfix6/build/gate-run.HLcyPc/jobs/atomfix6-live-2s-0-16/proof.log and proof/result.json)

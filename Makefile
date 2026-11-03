@@ -80,6 +80,21 @@ ASSERT_DIRS := $(shell find src third_party/lua/helpers -type d)
 
 all: $(BIN) $(ASSERT_MAP)
 
+# Directed atomfix6 record schedules; no server or worker threads.
+ATOMFIX6_UNIT_SRC := tests/atomfix6_unit.cc src/store/flush.cc src/cmd/storesize.cc src/cmd/multidb.cc
+ATOMFIX6_ASAN_FLAGS := -fsanitize=address,undefined -fno-omit-frame-pointer -no-pie
+build/atomfix6-unit build/atomfix6-db0-unit build/atomfix6-asan build/atomfix6-db0-asan build/atomfix6-tsan build/atomfix6-db0-tsan: $(ATOMFIX6_UNIT_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -O1 -ffunction-sections -fdata-sections $(if $(findstring db0,$@),-DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0) $(if $(findstring asan,$@),$(ATOMFIX6_ASAN_FLAGS)) $(if $(findstring tsan,$@),-fsanitize=thread -fno-omit-frame-pointer -no-pie) -I. $(ATOMFIX6_UNIT_SRC) -Wl,--gc-sections -o $@
+
+build/atomfix6-park-unit: tests/atomfix6_park_unit.cc $(filter-out build/src/main.o,$(OBJ)) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(filter-out build/src/main.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/atomfix6-park-db0-unit: tests/atomfix6_park_unit.cc $(filter-out build/db0/src/main.o,$(DB0_OBJ)) $(filter-out build/src/main.o,$(OBJ)) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< $(filter-out build/db0/src/main.o,$(DB0_OBJ)) $(filter-out build/src/main.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+
+build/atomfix6-queue-asan build/atomfix6-queue-tsan: tests/atomfix6_queue_unit.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	$(CXX) $(CXXFLAGS) -O1 $(if $(findstring asan,$@),$(ATOMFIX6_ASAN_FLAGS),-fsanitize=thread -fno-omit-frame-pointer -no-pie) -I. $< -o $@
+
 # Cold INFO identity only: leave execution translation units and their flags alone.
 $(BUILD_ROOT)/src/cmd/info_stats.o $(BUILD_ROOT)/db0/src/cmd/info_stats.o: CXXFLAGS += -DTOMO_INFO_GIT_SHA1='"$(shell git rev-parse --short=8 HEAD 2>/dev/null || echo 00000000)"' -DTOMO_INFO_GIT_DIRTY='"$(shell git diff --quiet -- src Makefile && echo 0 || echo 1)"'
 

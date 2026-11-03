@@ -1,0 +1,23 @@
+{
+  "arm": "PRE",
+  "namespace": "normal",
+  "domain": "complete",
+  "command": "MGET",
+  "mode": "1s",
+  "batch": 32,
+  "atomic": 1,
+  "probe_sha256": "026a6ff9feb3b12806c9b92dce6c960e892d38eb4f5c3e41b069f8b66405c045",
+  "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
+  "total": 20221,
+  "functions": {
+    "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 210,
+    "tomo::xshard_task_is_whole_owner(tomo::Task const&)": 168,
+    "bool tomo::(anonymous namespace)::for_each_task_key<tomo::xshard_tasks_share_key(tomo::Task const&, tomo::Op&, tomo::Task const&, tomo::Op&, int)::{lambda(unsigned long, tomo::Slice)#1}::operator()(unsigned long, tomo::Slice) const::{lambda(unsigned long, tomo::Slice)#1}>(tomo::Task const&, tomo::Op&, int, tomo::xshard_tasks_share_key(tomo::Task const&, tomo::Op&, tomo::Task const&, tomo::Op&, int)::{lambda(unsigned long, tomo::Slice)#1}::operator()(unsigned long, tomo::Slice) const::{lambda(unsigned long, tomo::Slice)#1}&&)": 658,
+    "tomo::xshard_tasks_share_key(tomo::Task const&, tomo::Op&, tomo::Task const&, tomo::Op&, int)": 742,
+    "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 198,
+    "tomo::ExLoopT<true>::atomfix6_observed_predecessor(std::deque<tomo::Task, std::allocator<tomo::Task> > const&, tomo::Task const&, tomo::Op&, int)": 17590,
+    "void tomo::CoreConcurrencyTest::poll<true>(tomo::ExLoopT<true>&)": 655
+  },
+  "clock_calls": 0,
+  "excluded_calls": 7
+}

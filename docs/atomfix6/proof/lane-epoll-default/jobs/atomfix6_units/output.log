@@ -1,0 +1,24 @@
+  row budget: 900s; median=0.05s; correctness-plan-fallback; atomfix6 collapse (normal, unit)
+  atomfix6 collapse (normal, unit)                     ok
+  row budget: 900s; median=0.035s; correctness-plan-fallback; atomfix6 collapse (normal, asan)
+  atomfix6 collapse (normal, asan)                     ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; atomfix6 collapse (normal, tsan)
+  atomfix6 collapse (normal, tsan)                     ok
+  row budget: 900s; median=0.13s; correctness-plan-fallback; atomfix6 parked MSET8 heads (1s, normal)
+  atomfix6 parked MSET8 heads (1s, normal)             ok
+  row budget: 900s; median=0.115s; correctness-plan-fallback; atomfix6 parked MSET8 heads (2s, normal)
+  atomfix6 parked MSET8 heads (2s, normal)             ok
+  row budget: 900s; median=0.035s; correctness-plan-fallback; atomfix6 collapse (db0, unit)
+  atomfix6 collapse (db0, unit)                        ok
+  row budget: 900s; median=0.035s; correctness-plan-fallback; atomfix6 collapse (db0, asan)
+  atomfix6 collapse (db0, asan)                        ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; atomfix6 collapse (db0, tsan)
+  atomfix6 collapse (db0, tsan)                        ok
+  row budget: 900s; median=0.045s; correctness-plan-fallback; atomfix6 parked MSET8 heads (1s, db0)
+  atomfix6 parked MSET8 heads (1s, db0)                ok
+  row budget: 900s; median=0.055s; correctness-plan-fallback; atomfix6 parked MSET8 heads (2s, db0)
+  atomfix6 parked MSET8 heads (2s, db0)                ok
+  row budget: 900s; median=0.8s; correctness-plan-fallback; atomfix6 park index lifetime (asan)
+  atomfix6 park index lifetime (asan)                  ok
+  row budget: 900s; median=1.13s; correctness-plan-fallback; atomfix6 park index lifetime (tsan)
+  atomfix6 park index lifetime (tsan)                  ok
