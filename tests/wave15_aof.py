@@ -243,7 +243,10 @@ def main():
     p.add_argument('--capture-stacks', action='store_true')
     p.add_argument('--stall', type=float, default=5)
     a = p.parse_args()
-    assert 20000 <= a.port <= 20098, 'wave15 port allocation'
+    # The caller owns the port allocation (the gate supplies each slot's ports).
+    # Boot uses PORT for TomoKV and PORT+1 for the oracle; both must stay below
+    # the ephemeral range, where a loopback client can self-connect.
+    assert 1024 <= a.port and a.port + 1 < 32768, ('ports outside 1024-32767', a.port)
     a.output.mkdir(parents=True, exist_ok=False)
     scenarios = a.scenarios or (['lmpop', 'zmpop', 'lmpop-count', 'lmpop-same', 'lmpop-io',
                                 'lpop', 'blmpop', 'watch', 'nosync', 'zunion', 'zinter', 'zdiff',
