@@ -242,6 +242,13 @@ static KvObj* randomkey_result(FlatStore& store, bool census = false) {
     return nullptr;
 }
 
+// Declares the SCAN command's opt-in (src/cmd/t_server.cc ScanCommandVisitor).
+struct ScanCommandWalker {
+    static constexpr bool kExpiresVisited = true;
+    unsigned& seen;
+    void operator()(KvObj*) const { ++seen; }
+};
+
 static void randomkey() {
     for (bool census : {false, true}) {
         struct FullRing { bool full = true; unsigned checks = 0; } ring;
@@ -279,6 +286,39 @@ static void randomkey() {
                 "expiry completes when retirement becomes available");
         require(notifications == notices + 1 && deletes.size() == records + 1,
                 "eventual physical expiry emits exactly once");
+    }
+    {
+        // The same full ring under the SCAN command's walker. Redis's SCAN deletes every elapsed
+        // key it visits; the owner's real defer first reclaims the oldest grace. Every other
+        // walker (KEYS, RANDOMKEY's fallback) keeps the no-wait guard: absent, still resident.
+        static_assert(kScanExpiresVisited<ScanCommandWalker>);
+        struct FullRing { unsigned checks = 0, deferred = 0; } ring;
+        FlatStore s; arm(s, true); s.set_cached_now_ms(100);
+        const std::string key = "scan-full-ring";
+        KvObj* old = put(s, key, "expired", 200);
+        auto sink = FlatStoreRegressionTest::retire_sink(s);
+        sink.context = &ring;
+        sink.available = [](void* context) { ++static_cast<FullRing*>(context)->checks; return false; };
+        sink.defer = [](void* context, void* owner, void* payload, size_t bytes,
+                        ReadLocalRetireSink::ReclaimFn reclaim) {
+            ++static_cast<FullRing*>(context)->deferred;
+            reclaim(owner, payload, bytes);
+        };
+        s.rebind_read_local_retire_sink(sink);
+        s.set_cached_now_ms(201);
+        const auto notices = notifications;
+        const auto records = deletes.size();
+        unsigned seen = 0;
+        uint64_t cursor = 0;
+        do cursor = s.scan(cursor, 16, [&](KvObj*) { ++seen; }); while (cursor);
+        require(seen == 0 && ring.checks != 0 && ring.deferred == 0 && s.size() == 1 &&
+                s.find_resident(hash(key), slice(key)) == old &&
+                notifications == notices && deletes.size() == records,
+                "other walkers keep the full-ring no-wait guard");
+        do cursor = s.scan(cursor, 16, ScanCommandWalker{seen}); while (cursor);
+        require(seen == 0 && ring.deferred == 1 && s.size() == 0 &&
+                notifications == notices + 1 && deletes.size() == records + 1,
+                "SCAN deletes the elapsed key it visits under a full ring");
     }
     for (bool armed : {false, true}) {
         {

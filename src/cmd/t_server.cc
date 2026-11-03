@@ -3451,6 +3451,20 @@ const char* object_type(const KvObj* obj) {
     return "none";
 }
 
+// Every elapsed key a SCAN step visits is deleted, as Redis's SCAN does (kScanExpiresVisited).
+struct ScanCommandVisitor {
+    static constexpr bool kExpiresVisited = true;
+    const Op& op;
+    const Slice& type;
+    const Slice& match;
+    std::vector<Slice>& keys;
+    void operator()(KvObj* obj) const {
+        if (obj->key_namespace() != op.physical_db) return;
+        if (type.n && !eq_icase(type, object_type(obj))) return;
+        if (command_glob_match(match, obj->key())) keys.push_back(obj->key());
+    }
+};
+
 void cmd_scan(Shard& sh, Op& op) {
     uint64_t outer = 0;
     if (!command_parse_scan_cursor(op.arg(1), outer)) {
@@ -3495,11 +3509,7 @@ void cmd_scan(Shard& sh, Op& op) {
 
     std::vector<Slice> keys;
     keys.reserve(std::min<uint32_t>(count, 1024));
-    inner = sh.store().scan(inner, count, [&](KvObj* obj) {
-        if (obj->key_namespace() != op.physical_db) return;
-        if (type.n && !eq_icase(type, object_type(obj))) return;
-        if (command_glob_match(match, obj->key())) keys.push_back(obj->key());
-    });
+    inner = sh.store().scan(inner, count, ScanCommandVisitor{op, type, match, keys});
     uint64_t next = 0;
     if (inner) next = (static_cast<uint64_t>(shard_id) << 56) | inner;
     else if (shard_id + 1 < g_server->nshards()) next = static_cast<uint64_t>(shard_id + 1) << 56;

@@ -515,6 +515,13 @@ inline uint64_t scan_cursor_next(uint64_t cursor, uint64_t mask) {
     return scan_cursor_reverse_bits(cursor);
 }
 
+// The SCAN command's walker declares kExpiresVisited. Redis 7.4's scanGenericCommand deletes
+// every elapsed key of the batch it visits, so that walker keeps the deletion even when the
+// owner's retire ring must first reclaim (FlatStore::scan_visit). Every other walker keeps the
+// no-wait capacity guard.
+template <typename Fn>
+inline constexpr bool kScanExpiresVisited = requires { requires Fn::kExpiresVisited; };
+
 class FlatStore;
 struct FlatStoreLayoutLock;
 
@@ -2604,8 +2611,10 @@ private:
             // like find()/active_expire().  KEYS uses this bounded scan while capture runs.
             if (snapshot_active_ && t == 1) return;
             // Logical expiry remains absent while a reader holds up reclamation.
-            // A scan must not enter the full retire ring's grace-period wait.
-            if (!read_retirement_available()) return;
+            // A scan must not enter the full retire ring's grace-period wait; the
+            // SCAN command alone deletes what it visits, as Redis does.
+            if constexpr (!kScanExpiresVisited<std::remove_cvref_t<Fn>>)
+                if (!read_retirement_available()) return;
             notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, o->key());
             (void)aof_.record_delete(o->key());
             erase_in(t, h, o->key());
