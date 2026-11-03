@@ -54,8 +54,8 @@ the allowed CPU set and complete SMT sibling units (`src/core/placement.h:73`).
 | `read-local` | T | u32, 0 or 1 | `0` | Boot/GET | `read_local` | Eligible GET/MGET on the parsing thread in both modes; `src/core/config.h:801`, `src/main.cc:325`. |
 | `reorder` | T | u32, 0 or 1 | `0` | Boot/GET | `reorder`, `reorder_retired` | 1s shadow priority; 2s resolves to 0; `src/core/config.h:437`, `:836`. |
 | `wb-policy` | T | Literal `0` or `1` | `1` | Boot/GET | `wb_policy` (Writeback) | Flush-all or composite half rule; `src/core/config.h:843`, `src/core/wb_rule.h:25`. |
-| `wb-small-pipe` | T | Canonical decimal 0..64 | `16` | Boot/GET | `wb_small_pipe` (Writeback) | 0 = half rule, no completion; measured default, ledger addendum 12; `src/core/config.h:565`. |
-| `wb-complete-visits` | T | Canonical decimal 0..255 | `3` | Boot/GET | `wb_complete_visits` (Writeback) | 0 = unbounded completion; measured default, ledger addendum 12; `src/core/config.h:566`. |
+| `wb-small-pipe` | T | Canonical decimal 0..64 | `16` | Boot/GET | `wb_small_pipe` (Writeback) | 0 = half rule, no completion; measured default, ledger addendum 12; `src/core/config.h:625`. |
+| `wb-complete-visits` | T | Canonical decimal 0..255 | `3` | Boot/GET | `wb_complete_visits` (Writeback) | 0 = unbounded completion; measured default, ledger addendum 12; `src/core/config.h:626`. |
 | `key-lb` | T | u32, 0 or 1 | `1` | Boot/GET | `key_lb` | Sample key demand and rebalance shard ownership; `src/core/config.h:851`, `src/core/server.h:1272`. |
 | `key-lb-damping` | T | canonical signed decimal, -1..2147483647 | `-1` | Boot/GET | `tomokv_keylb_damping_band_pct`, `tomokv_keylb_damping_fire_pct`, `tomokv_keylb_damping_ticks` | 0 keeps the original key planner and allocates no damping sidecar; -1 derives damping from the decision window; positive N sets the level. Residual-band objective and bounded recent-move damping; `src/core/lbplanner.cc`. |
 | `client-lb` | T | u32, 0 or 1 | `1` | Boot/GET | `client_lb` | Census client demand and move connections between IO owners; `src/core/config.h:857`, `src/core/server.h:529`. |
@@ -153,7 +153,7 @@ pick bound is a wall-time latency guarantee; see `src/core/wb_rule.h:75` and
 
 The default cipher lists retain the complete OpenSSL/system default set, with AES-GCM
 first. TLS session caching follows Redis 7.4 defaults (enabled, 20480 sessions,
-300 seconds). TLS configuration remains boot-only; optional Redis TLS key/password,
+300 seconds). TLS authentication policy is mutable; the context settings remain boot-only; optional Redis TLS key/password,
 client identity, DH-file and session-cache configuration knobs are not implemented.
 TomoKV attempts kernel TLS offload automatically and falls back to OpenSSL; there is no `tls-ktls` switch. TLS 1.2
 can offload both TX and RX. TLS 1.3 retains OpenSSL's receive record layer so
@@ -184,7 +184,7 @@ claim TomoKV implements TLS 1.3 RX offload with re-key handling. See
 [tls.cc](../src/net/tls.cc) and the directed [KeyUpdate witness](../tests/ktls_keyupdate.cc).
 Unterminated inline requests have Redis's fixed 64 KiB `PROTO_INLINE_MAX_SIZE` bound and close with `ERR Protocol error: too big inline request`. Redis 7.4 does not expose a `proto-max-inline` CONFIG option. TomoKV's receive cursors remain 32-bit even when `client-query-buffer-limit` is set above that representation limit.
 Defaults: `src/core/config.h:316`, `:395`; reference: `tomokv.conf:27`.
-All TLS fields are boot-only. A nonzero TLS port needs a certificate and key;
+`tls-auth-clients` is mutable for subsequent handshakes; other TLS fields are boot-only. A nonzero TLS port needs a certificate and key;
 client-auth yes/optional also needs a CA file or directory. Enabled TCP and TLS
 ports must differ (`src/core/config.h:1182`). Empty TLS protocol/cipher settings
 select the built-in defaults, not the example file paths in tomokv.conf
@@ -192,8 +192,8 @@ select the built-in defaults, not the example file paths in tomokv.conf
 
 | Name | Kind | Type / grammar | Default | Change | INFO field | Semantics / parser anchor |
 | --- | --- | --- | --- | --- | --- | --- |
-| `port` | R | Integer 0..65535 | `6379` | Boot/GET | `tcp_port` | Plain TCP listener; 0 disables it; `src/core/config.h:603`. |
-| `bind` | R | Single address string | `127.0.0.1` | Boot/GET | — | Single IPv4 bind address, not Redis's address list; `src/core/config.h:646`, `src/core/io_loop.h:162`. |
+| `port` | R | Integer 0..65535 | `6379` | Boot/GET/SET | `tcp_port` | Plain TCP listener; 0 disables it; `src/core/config.h:603`. |
+| `bind` | R | Single address string | `127.0.0.1` | Boot/GET/SET | — | Single IPv4 bind address, not Redis's address list; `src/core/config.h:646`, `src/core/io_loop.h:162`. |
 | `unixsocket` | R | Path string | Unset | Boot/GET | — | Optional Unix listener; `src/core/config.h:647`. |
 | `unixsocketperm` | R | Octal mode 0..777 | `0` | Boot/GET | — | 0 preserves umask; otherwise chmod the socket; `src/core/config.h:125`, `:648`. |
 | `net-io` | T | `uring` or `epoll` (case-insensitive) | `uring` | Boot/GET | `net_io`, `multiplexing_api` | Network engine also selects uring/syscall persistence; `src/core/config.h:445`, `:974`. |
@@ -209,7 +209,7 @@ select the built-in defaults, not the example file paths in tomokv.conf
 | `tls-key-file` | R | PEM path | Unset | Boot/GET | — | Server private key; `src/core/config.h:620`. |
 | `tls-ca-cert-file` | R | PEM path | Unset | Boot/GET | — | Trusted client CA file; `src/core/config.h:621`. |
 | `tls-ca-cert-dir` | R | CA directory path | Unset | Boot/GET | — | Trusted client CA directory; `src/core/config.h:622`. |
-| `tls-auth-clients` | R | `yes`, `no`, `optional` (case-insensitive) | `yes` | Boot/GET | — | Require, omit, or optionally verify client certificates; `src/core/config.h:623`. |
+| `tls-auth-clients` | R | `yes`, `no`, `optional` (case-insensitive) | `yes` | Boot/GET/SET | — | Require, omit, or optionally verify client certificates; `src/core/config.h:623`. |
 | `tls-protocols` | R | Quoted space-separated TLSv1/TLSv1.1/TLSv1.2/TLSv1.3, case-insensitive | Empty → TLSv1.2 + TLSv1.3 | Boot/GET | — | Allowed protocol versions; `src/core/config.h:634`, `src/net/tls.cc:37`. |
 | `tls-ciphers` | R | OpenSSL cipher-list string | Empty → OpenSSL defaults, AES-GCM first | Boot/GET | — | TLS ≤1.2 cipher list; `src/core/config.h:635`, `src/net/tls.cc:150`. |
 | `tls-ciphersuites` | R | OpenSSL TLS 1.3 suite-list string | Empty → OpenSSL defaults, AES-GCM first | Boot/GET | — | TLS 1.3 suites; `src/core/config.h:636`, `src/net/tls.cc:157`. |
@@ -236,7 +236,7 @@ by CONFIG SET even though their table entries lack the immutable flag
 | `save` | R | Repeatable positive seconds / u64 changes pairs; empty string disables | `3600 1 300 100 60 10000` | Live | Related: `rdb_changes_since_last_save`, `rdb_scheduled_saves` | Periodic snapshot clauses; first clause in a new source replaces prior source's schedule; `src/core/config.h:145`, `:905`. |
 | `shutdown-on-sigint` | R | Space-separated `default`, `save`, `nosave`, `now`, `force` (case-insensitive); `save` and `nosave` conflict | `default` | Live | — | SIGINT shutdown policy; default follows the configured persistence policy, force permits exit after a failed final save; `src/core/config.h:337`, `:1142`. |
 | `shutdown-on-sigterm` | R | Space-separated `default`, `save`, `nosave`, `now`, `force` (case-insensitive); `save` and `nosave` conflict | `default` | Live | — | SIGTERM shutdown policy, with the same modifier grammar as SIGINT; `src/core/config.h:337`, `:1142`. |
-| `appendonly` | R | `yes` or `no` (case-insensitive) | `no` | Boot/GET | `aof_enabled` | Enable multipart AOF; runtime toggle unsupported; `src/core/config.h:955`. |
+| `appendonly` | R | `yes` or `no` (case-insensitive) | `no` | Live | `aof_enabled` | ON starts an initial background rewrite; OFF drains, fsyncs and closes. Active atomic/persistence/topology transitions currently refuse the switch; see `docs/cfgfix/inventory.md`. |
 | `appendfsync` | R | `always`, `everysec`, `no` (case-insensitive) | `everysec` | Live | Related: `aof_fsyncs` | AOF batch sync policy; `src/core/config.h:964`, `tomokv.conf:273`. |
 | `appendfilename` | R | Nonempty name without `/` | `appendonly.aof` | Boot/GET | — | AOF name prefix; `src/core/config.h:983`, `:1216`. |
 | `appenddirname` | R | Nonempty name without `/` | `appendonlydir` | Boot/GET | — | Multipart AOF subdirectory under dir; `src/core/config.h:984`, `:1216`. |
@@ -311,23 +311,23 @@ at u32; a CONFIG update does not eagerly rebuild existing collections.
 
 | Name | Kind | Type / grammar | Default | Change | INFO field | Semantics / parser anchor |
 | --- | --- | --- | --- | --- | --- | --- |
-| `hash-max-listpack-entries` | R | Count64 | `512` | Live | — | Compact hash entry ceiling; `src/core/config.h:330`. |
-| `hash-max-listpack-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Compact hash field/value byte ceiling; `src/core/config.h:331`. |
-| `list-max-listpack-size` | R | Canonical signed 32-bit decimal | `-2` | Live | — | -1..-5: 4/8/16/32/64 KiB; smaller negatives clamp to 64 KiB; nonnegative count with 8 KiB ceiling, 0 allows one element; `src/core/config.h:332`. |
-| `set-max-listpack-entries` | R | Count64 | `128` | Live | — | Compact string-set entry ceiling; `src/core/config.h:333`. |
-| `set-max-listpack-value` | R | Count64, no memory suffix | `64` | Live | — | Compact string-set element byte ceiling; `src/core/config.h:334`. |
-| `zset-max-listpack-entries` | R | Count64 | `128` | Live | — | Compact sorted-set entry ceiling; `src/core/config.h:335`. |
-| `zset-max-listpack-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Compact sorted-set member byte ceiling; `src/core/config.h:336`. |
-| `set-max-intset-entries` | R | Count64 | `512` | Live | — | Integer-set entry ceiling; 0 disables intsets; internal cap 1073741824; `src/core/config.h:337`. |
-| `hash-max-ziplist-entries` | R | Count64 | `512` | Live | — | Alias of hash-max-listpack-entries; `src/core/config.h:330`. |
-| `hash-max-ziplist-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Alias of hash-max-listpack-value; `src/core/config.h:331`. |
-| `list-max-ziplist-size` | R | Canonical signed 32-bit decimal | `-2` | Live | — | Alias of list-max-listpack-size; `src/core/config.h:332`. |
-| `zset-max-ziplist-entries` | R | Count64 | `128` | Live | — | Alias of zset-max-listpack-entries; `src/core/config.h:335`. |
-| `zset-max-ziplist-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Alias of zset-max-listpack-value; `src/core/config.h:336`. |
-| `hash-max-compact-entries` | T | u32 decimal | `512` | Live | — | Legacy alias of hash-max-listpack-entries; `src/core/config.h:330`. |
-| `hash-max-compact-value` | T | u32 decimal bytes | `64` | Live | — | Legacy alias of hash-max-listpack-value; `src/core/config.h:331`. |
-| `zset-max-compact-entries` | T | u32 decimal | `128` | Live | — | Legacy alias of zset-max-listpack-entries; `src/core/config.h:335`. |
-| `zset-max-compact-value` | T | u32 decimal bytes | `64` | Live | — | Legacy alias of zset-max-listpack-value; `src/core/config.h:336`. |
+| `hash-max-listpack-entries` | R | Count64 | `512` | Live | — | Compact hash entry ceiling; `src/core/config.h:390`. |
+| `hash-max-listpack-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Compact hash field/value byte ceiling; `src/core/config.h:391`. |
+| `list-max-listpack-size` | R | Canonical signed 32-bit decimal | `-2` | Live | — | -1..-5: 4/8/16/32/64 KiB; smaller negatives clamp to 64 KiB; nonnegative count with 8 KiB ceiling, 0 allows one element; `src/core/config.h:392`. |
+| `set-max-listpack-entries` | R | Count64 | `128` | Live | — | Compact string-set entry ceiling; `src/core/config.h:393`. |
+| `set-max-listpack-value` | R | Count64, no memory suffix | `64` | Live | — | Compact string-set element byte ceiling; `src/core/config.h:394`. |
+| `zset-max-listpack-entries` | R | Count64 | `128` | Live | — | Compact sorted-set entry ceiling; `src/core/config.h:395`. |
+| `zset-max-listpack-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Compact sorted-set member byte ceiling; `src/core/config.h:396`. |
+| `set-max-intset-entries` | R | Count64 | `512` | Live | — | Integer-set entry ceiling; 0 disables intsets; internal cap 1073741824; `src/core/config.h:397`. |
+| `hash-max-ziplist-entries` | R | Count64 | `512` | Live | — | Alias of hash-max-listpack-entries; `src/core/config.h:390`. |
+| `hash-max-ziplist-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Alias of hash-max-listpack-value; `src/core/config.h:391`. |
+| `list-max-ziplist-size` | R | Canonical signed 32-bit decimal | `-2` | Live | — | Alias of list-max-listpack-size; `src/core/config.h:392`. |
+| `zset-max-ziplist-entries` | R | Count64 | `128` | Live | — | Alias of zset-max-listpack-entries; `src/core/config.h:395`. |
+| `zset-max-ziplist-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Alias of zset-max-listpack-value; `src/core/config.h:396`. |
+| `hash-max-compact-entries` | T | u32 decimal | `512` | Live | — | Legacy alias of hash-max-listpack-entries; `src/core/config.h:390`. |
+| `hash-max-compact-value` | T | u32 decimal bytes | `64` | Live | — | Legacy alias of hash-max-listpack-value; `src/core/config.h:391`. |
+| `zset-max-compact-entries` | T | u32 decimal | `128` | Live | — | Legacy alias of zset-max-listpack-entries; `src/core/config.h:395`. |
+| `zset-max-compact-value` | T | u32 decimal bytes | `64` | Live | — | Legacy alias of zset-max-listpack-value; `src/core/config.h:396`. |
 | `hll-sparse-max-bytes` | R | Memory, 0..4294967295 bytes | `3000` | Boot/GET | — | Sparse HLL promotion cutoff; 0 forces dense on sparse growth; `src/core/config.h:1022`, `tomokv.conf:333`. |
 | `stream-node-max-bytes` | R | Memory, 0..4294967295; empty/bare unit = 0 | `4096` | Live | — | Stream macro-node byte rollover, 0 disables this axis; `src/core/config.h:503`, `:1031`, `src/store/typeval.h:50`. |
 | `stream-node-max-entries` | R | Canonical decimal 0..4294967295 | `100` | Live | — | Stream macro-node entry rollover, 0 disables this axis; `src/core/config.h:1031`, `src/store/typeval.h:50`. |
@@ -426,3 +426,21 @@ listener; live boot and these replies are maintainer-run checks.
 ALPHA without STORE. It is accepted at boot and by CONFIG GET/SET/REWRITE. Runtime
 updates publish a locale object; each sort retains its own comparison context.
 STORE continues to compare binary strings, as in Redis 7.4.
+
+## Process and logging
+
+Logging and daemon setup run before worker creation. `loglevel` changes the existing
+stdout (notice) and stderr (warning) diagnostics; TomoKV's diagnostic text is its own.
+Pidfiles are removed on orderly exit. Hidden settings require an exact CONFIG GET name.
+
+| Knob | Origin | Grammar | Default | Lifetime | Field | Notes |
+|---|---|---|---|---|---|---|
+| `daemonize` | R | yes/no | `no` | Boot/GET | Process sidecar | Detach into a session and redirect standard descriptors. |
+| `logfile` | R | String | Empty | Boot/GET | Process sidecar | Append diagnostics to a file; empty uses stdout/stderr. |
+| `syslog-enabled` | R | yes/no | `no` | Boot/GET | Process sidecar | Also emit diagnostics to syslog. |
+| `syslog-ident` | R | String | `redis` | Boot/GET | Process sidecar | Syslog identity. |
+| `syslog-facility` | R | user, local0..local7 | `local0` | Boot/GET | Process sidecar | Syslog facility. |
+| `loglevel` | R | debug, verbose, notice, warning, nothing | `notice` | Boot/GET/SET | Process sidecar | Minimum diagnostic level. |
+| `pidfile` | R | String | Empty | Boot/GET | Process sidecar | PID file; daemon default `/var/run/redis.pid`. |
+| `supervised` | R | upstart, systemd, auto, no | `no` | Boot/GET | Process sidecar | Supervisor readiness; successful supervision suppresses daemonization. |
+| `key-load-delay` | R | Integer INT_MIN..INT_MAX | `0` | Boot/GET/SET, hidden | Process sidecar | Positive values delay each loaded key/command by that many microseconds. Negative values sample a one-microsecond delay with probability 1/abs(value); zero disables. |

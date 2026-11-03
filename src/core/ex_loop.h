@@ -171,6 +171,17 @@ public:
         srv_ = srv; self_ = self;
         srv_->bind_owner_notify_pending(self_->id(), &notify_keyless_pending_);
         aof_manager_ = srv->aof().configured() ? &srv->aof() : nullptr;
+        cfgfix_register_executor(srv, self->id(), this, [](void* opaque, int action) {
+            auto& loop = *static_cast<ExLoopT*>(opaque);
+            if (action == 2) {
+                loop.aof_flush_pass();
+                for (Shard* shard : loop.self_->shards())
+                    if (shard->store().aof().has_pending()) return false;
+                return !loop.srv_->aof().completions_pending(loop.self_->id());
+            }
+            loop.aof_manager_ = action == 1 ? &loop.srv_->aof() : nullptr;
+            return true;
+        });
         // Multiplication by an odd word is injective modulo 2^64. Every thread
         // therefore starts at a distinct nonzero xorshift state, including 0.
         foreign_touch_random_ = (static_cast<uint64_t>(self->id()) + 1) * 0x9e3779b97f4a7c15ULL;

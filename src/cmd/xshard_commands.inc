@@ -1875,6 +1875,8 @@ void assemble_final(Client& client, Op& op, ScatterState& state, void* release_c
     }
     switch (state.kind) {
         case Kind::AllShards:
+            if (!command_config_apply_reply(op)) reply_ok(op.sink());
+            break;
         case Kind::DebugReload:
         case Kind::DebugLoadAof: reply_ok(op.sink()); break;
         case Kind::DebugBorrowCount:

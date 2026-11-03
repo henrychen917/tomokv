@@ -169,6 +169,21 @@ void authfix_parser() {
                 tomo::kConfigParsed || !tomo::cfg_requirepass(cfg).empty())
             fail("explicit empty password rejected");
     }
+    for (const char* words : {"nosave now", "save force", "default now", "nosave now force"}) {
+        std::vector<std::string> storage;
+        std::vector<size_t> ends;
+        if (!load(std::string("shutdown-on-sigterm ") + words +
+                  "\nshutdown-on-sigint " + words + "\n", storage, ends))
+            fail("multiword shutdown policy rejected by config file loader");
+        tomo::Config cfg;
+        tomo::ConfigParseState state;
+        uint8_t expected = 0;
+        const char* error = nullptr;
+        if (!tomo::cfg_shutdown_flags(tomo::Slice(words, std::strlen(words)), expected, error) ||
+            tomo::parse_config_file(storage, ends, cfg, state, "cfgfix") != tomo::kConfigParsed ||
+            cfg.shutdown_on_sigint != expected || cfg.shutdown_on_sigterm != expected)
+            fail("file and CLI shutdown policy grammar differ");
+    }
     {
         StderrSilencer silence;
         for (const char* name : {"requirepass", "aclfile", "unixsocket", "tls-cert-file",

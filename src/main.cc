@@ -1,4 +1,5 @@
 #include "core/boot_support.h"
+#include "core/cfgfix.h"
 // main.cc — boot, thread launch, pinning, shutdown.
 //
 // Split mode keeps the pure 2s design. Fused startup is isolated in genthread.cc so boot mode
@@ -214,6 +215,7 @@ int main(int argc, char** argv) {
 #if TOMO_SINGLE_DATABASE
     if (tomokv_multidb_boot(cfg.databases)) return tomokv_multidb_main(argc, argv);
 #endif
+    if (!cfgfix_process_boot(cfg)) return 1;
     if (!reorder_available()) cfg.reorder = 0;
     cfg.reorder = reorder_for_mode(cfg.reorder, cfg.thread_mode);
     // THE ENGINE IS LATCHED HERE, once, before anything that reads it exists. Every Ring in the
@@ -617,6 +619,7 @@ int main(int argc, char** argv) {
         });
 
     print_ready_listeners(cfg, unix_listener.bound());
+    cfgfix_process_ready();
 
     // Both controllers use the existing main/monitor thread.
     srv.monitor_controllers();

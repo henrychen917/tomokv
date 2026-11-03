@@ -1,0 +1,680 @@
+{
+  "reason": "Keep the final three arms and census receipts; remove intermediate build trees before the complete final matrix.",
+  "files": [
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/acl.o",
+      "bytes": 12036880,
+      "sha256": "0768e5aecd9546445fe4a720f6f992ababf1c7db007f4ab61cbd2e95f898759d"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/aclkeys.o",
+      "bytes": 245432,
+      "sha256": "0885ee583eb504b4d490cc5589e59c40a45291111ce777121c29c9dcc8a71d40"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/autharity.o",
+      "bytes": 209776,
+      "sha256": "b7585699d6fdbfc00dabc693d249282c656a2fffd49cb24d748b648c4bca545e"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/blocking_debug.o",
+      "bytes": 117336,
+      "sha256": "4e0071780fc5a60b3fd3423861113db1136706935090a0ca81491b7121e974d2"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/climon.o",
+      "bytes": 11082656,
+      "sha256": "4ea1989244784cbae4f964a7d9d88eaa0bcd1cbf5e4aefa1bae0d76a241f484c"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/cmdgap.o",
+      "bytes": 99376,
+      "sha256": "1d6414dd4caf2689f56dd62d09e76673ecc327c4614d247be2b120b5a9858023"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/cmdmeta.o",
+      "bytes": 1112920,
+      "sha256": "605a06479fad04323d3dee80fe1e4315e8f70916769d6a92bbe79c03c3dc87e9"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/commands.o",
+      "bytes": 516920,
+      "sha256": "b1565e53fc775e1f2161d17987f36b48549c5e15b212a88d6d6c142c3f90ea99"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/eviction.o",
+      "bytes": 1869656,
+      "sha256": "8819aaf8314a74f91c9485cb29d46ba24d93dbb520c86212ddec632ba2ad8d4f"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/functions.o",
+      "bytes": 5470928,
+      "sha256": "0bb703b2cc88424bafb72e74d6ec0f0881f6af912bb3cbe39ee12e502f41d72b"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/geo.o",
+      "bytes": 4039088,
+      "sha256": "465524de7362f9ead794147dd51a2ffadbbfdc3acd878b10554b84536dede6b1"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/geo_store.o",
+      "bytes": 1565848,
+      "sha256": "17f61c061c5da6278a0e9ca8d88703819938dbd7c19e962efb27807e8ea6a333"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/glob.o",
+      "bytes": 48528,
+      "sha256": "2c24755dec582ec0d109004b8692634a144071091a997179b5454dd1b51f23ed"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/hexpread.o",
+      "bytes": 2323728,
+      "sha256": "e2e59121556bcb039e721d0f1c01032befe301d5d40e4d49a74d7d464fbfde2b"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/hll.o",
+      "bytes": 424856,
+      "sha256": "001350485b218b000cf2ea31d2d0a828343e6b72a0677cc9f7a69aaa39e9bb3f"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/info_stats.o",
+      "bytes": 3636504,
+      "sha256": "7cf33e2774e19ee79b7c96f075d52f38d4e5a00b30355d0c3f0a961a96af2776"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/l4prebuild.o",
+      "bytes": 2895352,
+      "sha256": "09e9a28c6d0cde6b202d865ca102a60af790ff9df35696fe5bcb152e8e92d510"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/latency_tracking.o",
+      "bytes": 6029488,
+      "sha256": "e29c995a602c8ee9bcb456d4d214e9aad3b9f7ccce1a74d97dbc7d11a65349ed"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/lbsignals.o",
+      "bytes": 3420752,
+      "sha256": "a546411655ef444d9021f63dcd19e754def72cee692ce9684e3d1bb2761d517f"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/lcs.o",
+      "bytes": 388384,
+      "sha256": "c0be8219e1288b1767948aef0e17ef30b96819c3de4193c259c06c335689a38d"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/multi_admin.o",
+      "bytes": 1838352,
+      "sha256": "93cc629fdb1a5137cd7346e3227d7fa9d2e7cc8094b4f049e809c6a08397b241"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/multidb.o",
+      "bytes": 4312088,
+      "sha256": "32e1928f030ad0e93bfd31fdab01879f4e611fe4af8c04b7ff53252f4ebef548"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/objectpread.o",
+      "bytes": 2060360,
+      "sha256": "b8cb17834e5161c745c51e559288e3c6b82c733430a762cedf334e68d54f06f6"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/pfdebug.o",
+      "bytes": 2400232,
+      "sha256": "b50bc4a955e5612c08fcca892c71173ba225e386cd050d47e6522921de7b6c5a"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/scripting.o",
+      "bytes": 5770600,
+      "sha256": "a623b16f474d122e3087b97190c1a089c1955f133ec881b9f7e8ba176c7af665"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/serialize.o",
+      "bytes": 4133904,
+      "sha256": "c5bd7f2eb0ba9b98d2ffdbb23f274fa80b471a4243eb3e567f72b8d480a95ed9"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/server_tail.o",
+      "bytes": 5083744,
+      "sha256": "7d36ac2a96f5c69c3a738ad5fff9fd255badcd03f90f13094c3a4896c3c0e79e"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/slowlog.o",
+      "bytes": 4518864,
+      "sha256": "ae52376fc9118f8364f8d8872236ebc6e7fdfff6490b251a426ed3f1e5fd6a26"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/storesize.o",
+      "bytes": 3230944,
+      "sha256": "979591ca7a204042a3cc280642087a9059d59e9e0200966b231c64a629ade177"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/t_hash.o",
+      "bytes": 4382432,
+      "sha256": "0a5cf81325d89ad0f5277ff941e5ef89156a2c2494c05b20d957422451671339"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/t_hash_ttl.o",
+      "bytes": 3026808,
+      "sha256": "21c8627bb82350ea5d1af79d2eb7e8acfd50e3341ef62a1e6aa0f17ba878fac5"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/t_list.o",
+      "bytes": 4052280,
+      "sha256": "962e83ec0e44cd05ca66bb3cf6931a9e94b4a55e3b908bd3dd4b27f0e20f9780"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/t_server.o",
+      "bytes": 8239744,
+      "sha256": "ef5c506358035388a54b6626626d91cc7e7c52ad975943d6662b66a67e1c07b7"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/t_set.o",
+      "bytes": 4385128,
+      "sha256": "57c5c2eab8272dd1fcc230ca619852f1b84e68260f97562f52e06f1ed3f22c51"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/t_sort.o",
+      "bytes": 1222336,
+      "sha256": "dd1c7b6f9427e7d1dd03b21cfff954c4ab488e63ae073c2ab181ee7f9c3d75b0"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/t_stream.o",
+      "bytes": 5635288,
+      "sha256": "c3100dd1be5a373f707ffff10df08d71e58df061ea26e06bfd27eaa890eee916"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/t_stream_groups.o",
+      "bytes": 4904096,
+      "sha256": "78ff097823208d4f09f00d4273cb46d49b740776ed3abbd97ae1ef51f928e5e2"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/t_string.o",
+      "bytes": 3339568,
+      "sha256": "2a203749a5402176fa38328f3bfa7ba1035569a2525f839e9ddbea45a8599778"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/t_string_notify.o",
+      "bytes": 3282376,
+      "sha256": "8dac1d31b318f7d21f9f869bd7f358fca58f9d68e1ea878cd7ce6bb4875f3804"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/t_zset.o",
+      "bytes": 5146704,
+      "sha256": "a813e1a6676bd215e7539d65a4cd002d4411e8497d0143139f5ef4cb01b751ca"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/t_zset_ops.o",
+      "bytes": 30216,
+      "sha256": "3e5620b4fef6a7ffd9c87c3d38e472d249881e378cc4246661f0b6ed2421dfac"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/tracking.o",
+      "bytes": 8482976,
+      "sha256": "0322e848ea55618aae77ca8cd80182baac1c4b5ffa09ccbaf03d5fff9546c53d"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/cmd/xshard.o",
+      "bytes": 29384192,
+      "sha256": "74a798152c16f958fca079cefa9d509ffb2d753772b20b34a711b9d25722a468"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/core/flipctl.o",
+      "bytes": 4440944,
+      "sha256": "75fdc08ba2d9dc5b3f9871bf56232e6495accb5a7d8a9466f2f3f5149244a123"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/core/fliplisten.o",
+      "bytes": 12404720,
+      "sha256": "5201897649ce37ce1eeeeb0a761681017bf332070678bd20153d5e07fcc6af81"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/core/genthread.o",
+      "bytes": 23006992,
+      "sha256": "9f236e92685a32ef1adcf6b6c210280dd69bc2b4f3af93c20ffe09db958d419d"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/core/lbplanner.o",
+      "bytes": 7750592,
+      "sha256": "23ceab1d86bb78c12cb200fff69fcdfa003d3fa55ca0bbd4d0f879ca75a45bf4"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/core/lbstall.o",
+      "bytes": 3302984,
+      "sha256": "8b58b49b2a6758adf9281ac4c777f266ab336478911f32c640b86e9c4b7bd3a9"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/core/reorder.o",
+      "bytes": 24777944,
+      "sha256": "a968d44c6174cf5e8a5d17081e4b4af663ee375a9249b3798b68b167a01a156d"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/core/rl2s.o",
+      "bytes": 27208432,
+      "sha256": "faf540ad57c3fa2ad09e5dbc8e2d27d4425b5d4a92d7dfceeee718ca7aa38e7d"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/core/shutdown.o",
+      "bytes": 6865864,
+      "sha256": "113a35e045e426a21c3a0c96180dd18afa953b462af20185c24138ba9590c9b8"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/core/version.o",
+      "bytes": 14040,
+      "sha256": "fb2c7a3c1c76c1c21b7ae763fed8ac54b686e5378a95c4cd62ed3d241161bccb"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/main.o",
+      "bytes": 26985864,
+      "sha256": "aa1ff57154821f5e240475ed5c30ed3105c1608d827f82bb141a5a3f9bafdd28"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/net/tls.o",
+      "bytes": 976496,
+      "sha256": "232f401af5b2d2d0bcc20b8868c650110c28aeb6714f3517e227114dff9012c3"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/persist/aof.o",
+      "bytes": 9685784,
+      "sha256": "19dc0ccb6aadf9b58480d2b169b68d807f87d2618e02ba90bb56890656472504"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/persist/aof_frame_debug.o",
+      "bytes": 138736,
+      "sha256": "1587df56f2e4844f286539d06f29337ebc5624ea3b87da9336a46fe2b8b3d3f1"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/snapshot/snapshot.o",
+      "bytes": 5190632,
+      "sha256": "7b8b30f3ac62b966d8b79c70ac68217aed7277cef8cab2bfae2d807533a88bda"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/db0/src/store/flush.o",
+      "bytes": 2638400,
+      "sha256": "cb5347eba3d0bf7f8ed38a56e9736ba89e2ca01831ee06c691f5d910e050af8e"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/acl.o",
+      "bytes": 11885504,
+      "sha256": "2205767754093544090a70c7ecf85c62bfb199396e93b6aaa057d1f24d7c2b45"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/aclkeys.o",
+      "bytes": 244112,
+      "sha256": "2baab5af0d61f38abbeeb25815e1876a1232fbda161435f347b1c7e0d139584d"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/autharity.o",
+      "bytes": 209016,
+      "sha256": "92176f7d0597dc2f5aa2d47bdec9c5067d02199e96367318169786a34b871ae2"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/blocking_debug.o",
+      "bytes": 116600,
+      "sha256": "27853680b423b487263d64cf9a483942fe9a567dfe3e8ac9f2dd009442e05503"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/climon.o",
+      "bytes": 10864512,
+      "sha256": "c19a917a8d2ec7557d3a5509db1057fffadb7fca7e1a54fbe3da31fa9e516dfd"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/cmdgap.o",
+      "bytes": 98648,
+      "sha256": "31adfbc0f394c5957df54dd80314a9637aa63589900f88c3398810eb137acde5"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/cmdmeta.o",
+      "bytes": 1110168,
+      "sha256": "8c4f18af7f6f35f752a30eac60bae38d2e54ec657f0d643002a6aa3d8d56b1e1"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/commands.o",
+      "bytes": 513488,
+      "sha256": "9e066d03f4351fee70ba803aa1f94ec8e63f150658e60e8518baa02a3c95916a"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/eviction.o",
+      "bytes": 1904960,
+      "sha256": "881fc2abbbdfcfb899cab34b6e8eeb93c024360de617c12f051d4488bc90d479"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/functions.o",
+      "bytes": 5411736,
+      "sha256": "1e274e9288e861600eb4b0199a11fb2e54a331989b787340a908709f598b7e25"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/geo.o",
+      "bytes": 3535568,
+      "sha256": "b275cc6974df98568a675cc1d9721a89d870963dc32d758f79dfddefe51c1cc0"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/geo_store.o",
+      "bytes": 1546824,
+      "sha256": "348823390b3cd3a741f945d50d4c4daafc6a29847e1af4e3b688ac555e79dd43"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/glob.o",
+      "bytes": 48376,
+      "sha256": "70e69d8d97e730ce656fbd463ac1f118a1307c14ab501aa9f978272f72470520"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/hexpread.o",
+      "bytes": 2249808,
+      "sha256": "29adae4b5d603202be24def153cdf77000e0c6ae4e514d0bd88e509337822483"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/hll.o",
+      "bytes": 424536,
+      "sha256": "319c22a42f003278920231f097f49b141bd59c9961e78ca5f29406b1797a491e"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/info_stats.o",
+      "bytes": 3579880,
+      "sha256": "bccae6f8e11e2be13d5bade712379decd131c816ff15a36c8d55d4294f5dd62e"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/l4prebuild.o",
+      "bytes": 2840832,
+      "sha256": "f4f47e3a887b94e49728f3546ac6c63b2e8725e06b3979cdf0507d9e33381e54"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/latency_tracking.o",
+      "bytes": 5930728,
+      "sha256": "c46ab5e1399de1d6708036311e1c6bc85c267f5744dd88e25508a9cfea1fd4d6"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/lbsignals.o",
+      "bytes": 3360344,
+      "sha256": "dcb9cce81cdee062d619d184abedd400eede81b3dc425d04d74a49e5c24dd9b3"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/lcs.o",
+      "bytes": 386552,
+      "sha256": "123bf431b50090b3e1a6d8d1316a154903265ae7a90cab715171c66f729c4baa"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/multi_admin.o",
+      "bytes": 1828536,
+      "sha256": "d736868dcdbb2a76e928632dec2daac6c9e0bc8edd11bcd24313c128d30c0d98"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/multidb.o",
+      "bytes": 4627704,
+      "sha256": "6a27a694075d52911b0003738ce4db87be95a63d63cd9a22d6c6d51809fb83eb"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/objectpread.o",
+      "bytes": 2033800,
+      "sha256": "d828b19efdd626768f38be876fb04094f470091f229dfe69c64bbded47c24ccb"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/pfdebug.o",
+      "bytes": 2371592,
+      "sha256": "2a9d60c999a525429451fa30b5fa2500ebd51f9126a261322a5d3122cd887005"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/scripting.o",
+      "bytes": 7759056,
+      "sha256": "6f23e8cfd056e95e318f5b74449542675fb2d3f08d57bfd130b36efefddee1d7"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/serialize.o",
+      "bytes": 4091632,
+      "sha256": "86bd745cb3f7943242a797ae29fa0828dc86d5ec5ba8deae1a27a80cc84d02db"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/server_tail.o",
+      "bytes": 5023696,
+      "sha256": "fbb393b9f3e701f18bbc10a8e375631fb88280444fd5c04639b537345b8d9441"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/slowlog.o",
+      "bytes": 4481304,
+      "sha256": "8d22475be91d8e8bbcea56b529bad5151652fd5f5a5bdf984abc063b3a1eeb31"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/storesize.o",
+      "bytes": 3193656,
+      "sha256": "84c7f23e4eb186262c92795b66d8d628232ee00417471af0311c01c4ce97f5c6"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/t_hash.o",
+      "bytes": 4345560,
+      "sha256": "c3cefaab1cb9c543882c4b0e024ba11f123a342158150fe7debc63d4a6463767"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/t_hash_ttl.o",
+      "bytes": 3061776,
+      "sha256": "44d7808544c5c74a581e45a7e5919522c3dda10faaff991f0f9b293b0339c5c7"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/t_list.o",
+      "bytes": 3957000,
+      "sha256": "fc8ad9abc91b6307ce3e781850148563f5bb7835da999e3694c0b0216bede70f"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/t_server.o",
+      "bytes": 8066288,
+      "sha256": "76148e01453476d420389f8153acb7efddddbb0fe7a4196afb70958527755a39"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/t_set.o",
+      "bytes": 4296528,
+      "sha256": "e0f27f464fc2afe82920009b237d487bff8ca1a9931fbaa2204dcee3d9435462"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/t_sort.o",
+      "bytes": 1219496,
+      "sha256": "8b5ad130787cf088dcfbb9de5b974cd89a02607b09b395a434c6246cfd2ea088"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/t_stream.o",
+      "bytes": 5648440,
+      "sha256": "3749bf0684618031727d6380ff21a27aeb0c64cf5d52d8b9af3ba080f25f04c0"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/t_stream_groups.o",
+      "bytes": 4889632,
+      "sha256": "4a29b4e0447b465cd6e64897aeda6f8790955b2d4fbc29b7f0d32b38a9d0375c"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/t_string.o",
+      "bytes": 3302080,
+      "sha256": "05023af54e708755c2af3673b1be8eace52c226abf671d8da6231fa14e5e77b2"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/t_string_notify.o",
+      "bytes": 3250568,
+      "sha256": "e5dd8cc8fb7e042d7e895ccf56e143390eb6bb12a0a6a9cf5b8b6899fd24da33"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/t_zset.o",
+      "bytes": 5086984,
+      "sha256": "a18d002adff21e622ddb30cb903a44e7994ff8747c68aa792c056c384d0bc989"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/t_zset_ops.o",
+      "bytes": 30184,
+      "sha256": "e2b59a6414a2471b940ca2c8cafeed1e967f13ddecd11538aaf70671bb1cbcff"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/tracking.o",
+      "bytes": 8393792,
+      "sha256": "41b2000d65dee06653ab9744993c4417aea0eea6a91b6265574897a56715a02a"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/cmd/xshard.o",
+      "bytes": 28674336,
+      "sha256": "24a8e7e5d13c669e85b1e0ff50ca795ce4c7fe28329031bfa9273f0176d03caf"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/core/flipctl.o",
+      "bytes": 4382744,
+      "sha256": "37ea074c6e033aadd93bb61a5cdc09c4d2be5a9ecee8b4d8b056e3a1448bc75a"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/core/fliplisten.o",
+      "bytes": 12292384,
+      "sha256": "65fcbd49e4f1bac894e5c0f1a7d183f62224b46b7e93aa3f8817c2c2244564ce"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/core/genthread.o",
+      "bytes": 22673448,
+      "sha256": "6f289e62011815a50cf37d5dccd8a46c2ab2d191c2840839e0c939ca9102dc9e"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/core/lbplanner.o",
+      "bytes": 7653848,
+      "sha256": "1cdac172f7e3a8fd4d235a026121e8b8bc42171ede72b94b33ade8988e3c1f0a"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/core/lbstall.o",
+      "bytes": 3244712,
+      "sha256": "fe2dbef4bc0f67d4748227df75631ad79ecadd42a11702fa84b9b78750df68cd"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/core/reorder.o",
+      "bytes": 24402496,
+      "sha256": "db6531700a9242ce9b360896f821633dc0e49bb76496da7478f3b2cd9fe44781"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/core/rl2s.o",
+      "bytes": 26490952,
+      "sha256": "76a4a7e256c01b128aaed40838e653b18b34047a0f2e085e9ed29337310a284d"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/core/shutdown.o",
+      "bytes": 6767856,
+      "sha256": "0102d8dcc9f0c9c2d611879dc88440f9e079c7c2fcf424721089d186c902e986"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/core/version.o",
+      "bytes": 11752,
+      "sha256": "03058c1d78a1b69e956b75dbae4de38e7636790fee652c97af28f973a1638f0a"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/main.o",
+      "bytes": 26902760,
+      "sha256": "c2bbdcff0795bb29c627cbfe5be2c510117d1586cff3ae520dfeff8f3aeb22df"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/net/tls.o",
+      "bytes": 972328,
+      "sha256": "1f12953da1c126629f569f035759c1ffacd52423540b6023e6624689d135df50"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/persist/aof.o",
+      "bytes": 9268856,
+      "sha256": "21279d8378179766dd7506a18cd0f7b13dea0b67f699e0ebe9b18c9ae731904d"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/persist/aof_frame_debug.o",
+      "bytes": 138712,
+      "sha256": "0fc1efdf697533b383bb54070b5d64c824b70fd4ed46b425744fc75715cea6e7"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/snapshot/snapshot.o",
+      "bytes": 5250576,
+      "sha256": "a1a36a894e58b7a3c1c31e8a1c2a526bdb286de61592e142b63939c91c8560dd"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/src/store/flush.o",
+      "bytes": 2592032,
+      "sha256": "af7880519c02b2893600f96a0b84cbb2cae2381138de26ee409f66f8e71346f4"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/third_party/lua/helpers/fpconv.o",
+      "bytes": 20568,
+      "sha256": "9ffb92c20d204f57137b64d869fef8204bf67bb9792f9d07b3954e5a4d59e360"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/third_party/lua/helpers/lua_bit.o",
+      "bytes": 42848,
+      "sha256": "d598a8b8421f63da6abef3e053107cfdce7137259be09acf10abd558547b1382"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/third_party/lua/helpers/lua_cjson.o",
+      "bytes": 123488,
+      "sha256": "8272a72e28b27e8b26539eebf50be315cbfdc9b9322559df8e07aebc79c5d042"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/third_party/lua/helpers/lua_cmsgpack.o",
+      "bytes": 84440,
+      "sha256": "40d563b4beeead580a5a31a8ec6da423db27afd8dc10cee62171c27dc29e1c37"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/third_party/lua/helpers/lua_struct.o",
+      "bytes": 43240,
+      "sha256": "0226fa09ac53e85e1b34a9223c485fb3bfe0d7d9f31d062f65cf85cd98584490"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/third_party/lua/helpers/strbuf.o",
+      "bytes": 21896,
+      "sha256": "515ef86ff54f02162247c5d8d535d481dfc43913a3dcf14d98cca4e8512cadc7"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/tomokv",
+      "bytes": 228226936,
+      "sha256": "97f0d76e3782485ae2e2f797805484ef09eb52752a5019935d1bc409d4fb4fd1"
+    },
+    {
+      "path": "build/cfgfix/pre-source/build/tomokv.asserts.tsv",
+      "bytes": 2801,
+      "sha256": "b06c6b972581c5ee123c9bc471ed65b2622d176c72874185a61a1d01fe875227"
+    },
+    {
+      "path": "build/cfgfix/counts/scopes/POST-db0/build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "build/cfgfix/counts/scopes/POST-db0/complete.ranges",
+      "bytes": 197787,
+      "sha256": "d7c3c8265888e0fe35d6e5aea28e61795fba556c5d13061768ca4f114769016f"
+    },
+    {
+      "path": "build/cfgfix/counts/scopes/POST-db0/original-main.o",
+      "bytes": 27175680,
+      "sha256": "b9b4a2b1334625b7ee34f65265dc863db48823cdd8dd6451d7a14a31f64e47b9"
+    },
+    {
+      "path": "build/cfgfix/counts/scopes/POST-db0/probe",
+      "bytes": 235104648,
+      "sha256": "3c8ffe413b37d2465cb0a330b862741a660ab4957091271adfe5a29115004e3e"
+    },
+    {
+      "path": "build/cfgfix/counts/scopes/POST-db0/probe.o",
+      "bytes": 14618056,
+      "sha256": "f20ba382d9723807dd8739425a32507c7b7d6aa1676e77f03cf99448e1d31dca"
+    },
+    {
+      "path": "build/cfgfix/counts/scopes/POST-normal/build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "build/cfgfix/counts/scopes/POST-normal/complete.ranges",
+      "bytes": 197789,
+      "sha256": "3d9f664cc59513607d4a36adcf70463491b5021756a9f9ae0b15c5c71c78f662"
+    },
+    {
+      "path": "build/cfgfix/counts/scopes/POST-normal/original-main.o",
+      "bytes": 27175680,
+      "sha256": "b9b4a2b1334625b7ee34f65265dc863db48823cdd8dd6451d7a14a31f64e47b9"
+    },
+    {
+      "path": "build/cfgfix/counts/scopes/POST-normal/probe",
+      "bytes": 235094880,
+      "sha256": "67a478f11dfabd578d68b5a3a21807581bb1b0bcf4b9b611c3e47516251b7448"
+    },
+    {
+      "path": "build/cfgfix/counts/scopes/POST-normal/probe.o",
+      "bytes": 14498136,
+      "sha256": "4c3352dff48e7d7b1de26bbbd8ef2ab405b33f1085e4dc26892ba646fb70b831"
+    },
+    {
+      "path": "build/cfgfix/counts/trace",
+      "bytes": 400152,
+      "sha256": "29c39b562fcc20c780a75004c7a5630581356b38dc1c847f18d0d8291305ea87"
+    }
+  ]
+}

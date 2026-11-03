@@ -594,10 +594,15 @@ struct NetcmdRegression {
         check(config_file, "knob fixture config exists before INFO realpath initialization");
         std::fclose(config_file);
         ConfigParseState state;
-        check(parse_config_args({"--port", "6397", "--bind", "127.0.0.2",
+        check(parse_config_args({"--port", "20197", "--bind", "127.0.0.2",
                                  "--unixsocket", "build/unused-knob-matrix.sock",
                                  "--unixsocketperm", "0600", "--aof-load-truncated", "no",
-                                 "--hll-sparse-max-bytes", "1kb"},
+                                 "--hll-sparse-max-bytes", "1kb",
+                                 "--daemonize", "yes", "--logfile", "build/unused-knob-matrix.log",
+                                 "--syslog-enabled", "yes", "--syslog-ident", "cfgfix-unit",
+                                 "--syslog-facility", "local7", "--pidfile", "build/unused-knob-matrix.pid",
+                                 "--supervised", "auto", "--loglevel", "verbose", "--key-load-delay", "17",
+                                 "--tls-auth-clients", "optional"},
                                 server.cfg_, state, 1, "conf") == kConfigParsed,
               "knob matrix startup values parsed without starting a server");
         // CONFIG SET reads its owner's committed live snapshot even for encoding-only updates.

@@ -207,7 +207,12 @@ public:
     AofManager& operator=(const AofManager&) = delete;
 
     void init(Server& server, const Config& config, uint32_t nthreads, uint32_t nshards,
-              uint32_t writer_tid, const AofReplayPlan* replay);
+              uint32_t writer_tid, const AofReplayPlan* replay, bool runtime = false);
+    // Issuer-only operations while CONFIG has parked every physical worker.
+    bool runtime_enable(ThreadCtx& writer, Ring& ring, std::string& error);
+    void runtime_pump(ThreadCtx& writer, Ring& ring);
+    bool runtime_disable(ThreadCtx& writer, Ring& ring, std::string& error);
+    void runtime_reset();
     static bool seed_snapshot(const Config& config, const std::string& path,
                               const SnapshotLoadPlan& snapshot, std::string& error);
     void drain_for_producer(uint32_t producer, Ring& ring);
@@ -425,6 +430,7 @@ private:
 
     bool configured_ = false;
     bool routing_upgrade_ = false;
+    bool runtime_enabling_ = false; // existing alignment space before server_
     PersistIoEngine engine_;
     Server* server_ = nullptr;
     uint32_t nthreads_ = 0;

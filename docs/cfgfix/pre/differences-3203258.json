@@ -1,0 +1,225 @@
+[
+  {
+    "command": [
+      "CONFIG",
+      "GET",
+      "key-load-delay"
+    ],
+    "oracle": [
+      [
+        "key-load-delay",
+        "0"
+      ]
+    ],
+    "candidate": []
+  },
+  {
+    "command": [
+      "CONFIG",
+      "GET",
+      "key-load-delay",
+      "key-load-*",
+      "key-load-delay"
+    ],
+    "oracle": [
+      [
+        "key-load-delay",
+        "0"
+      ]
+    ],
+    "candidate": []
+  },
+  {
+    "command": [
+      "CONFIG",
+      "GET",
+      "daemonize",
+      "logfile",
+      "syslog-*",
+      "loglevel",
+      "supervised"
+    ],
+    "oracle": [
+      [
+        "daemonize",
+        "no"
+      ],
+      [
+        "logfile",
+        ""
+      ],
+      [
+        "loglevel",
+        "notice"
+      ],
+      [
+        "supervised",
+        "no"
+      ],
+      [
+        "syslog-enabled",
+        "no"
+      ],
+      [
+        "syslog-facility",
+        "local0"
+      ],
+      [
+        "syslog-ident",
+        "redis"
+      ]
+    ],
+    "candidate": []
+  },
+  {
+    "command": [
+      "CONFIG",
+      "SET",
+      "daemonize",
+      "yes"
+    ],
+    "oracle": {
+      "error": "ERR CONFIG SET failed (possibly related to argument 'daemonize') - can't set immutable config"
+    },
+    "candidate": {
+      "error": "ERR Unknown option or number of arguments for CONFIG SET - 'daemonize'"
+    }
+  },
+  {
+    "command": [
+      "CONFIG",
+      "SET",
+      "logfile",
+      "anything"
+    ],
+    "oracle": {
+      "error": "ERR CONFIG SET failed (possibly related to argument 'logfile') - can't set immutable config"
+    },
+    "candidate": {
+      "error": "ERR Unknown option or number of arguments for CONFIG SET - 'logfile'"
+    }
+  },
+  {
+    "command": [
+      "CONFIG",
+      "SET",
+      "maxmemory",
+      "bad",
+      "daemonize",
+      "yes"
+    ],
+    "oracle": {
+      "error": "ERR CONFIG SET failed (possibly related to argument 'daemonize') - can't set immutable config"
+    },
+    "candidate": {
+      "error": "ERR Unknown option or number of arguments for CONFIG SET - 'daemonize'"
+    }
+  },
+  {
+    "command": [
+      "CONFIG",
+      "SET",
+      "tls-auth-clients",
+      "optional"
+    ],
+    "oracle": "OK",
+    "candidate": {
+      "error": "ERR CONFIG SET failed (possibly related to argument 'tls-auth-clients') - can't set immutable config"
+    }
+  },
+  {
+    "command": [
+      "CONFIG",
+      "GET",
+      "tls-auth-clients"
+    ],
+    "oracle": [
+      [
+        "tls-auth-clients",
+        "optional"
+      ]
+    ],
+    "candidate": [
+      [
+        "tls-auth-clients",
+        "yes"
+      ]
+    ]
+  },
+  {
+    "command": [
+      "CONFIG",
+      "SET",
+      "tls-auth-clients",
+      "yes"
+    ],
+    "oracle": "OK",
+    "candidate": {
+      "error": "ERR CONFIG SET failed (possibly related to argument 'tls-auth-clients') - can't set immutable config"
+    }
+  },
+  {
+    "command": [
+      "notification-events",
+      "AKEn"
+    ],
+    "oracle": [
+      [
+        "pmessage",
+        "__key*__:*",
+        "__keyevent@0__:new",
+        "cfgfix:new"
+      ],
+      [
+        "pmessage",
+        "__key*__:*",
+        "__keyevent@0__:set",
+        "cfgfix:new"
+      ],
+      [
+        "pmessage",
+        "__key*__:*",
+        "__keyspace@0__:cfgfix:new",
+        "new"
+      ],
+      [
+        "pmessage",
+        "__key*__:*",
+        "__keyspace@0__:cfgfix:new",
+        "set"
+      ]
+    ],
+    "candidate": [
+      [
+        "pmessage",
+        "__key*__:*",
+        "__keyevent@0__:set",
+        "cfgfix:new"
+      ],
+      [
+        "pmessage",
+        "__key*__:*",
+        "__keyspace@0__:cfgfix:new",
+        "set"
+      ]
+    ]
+  },
+  {
+    "command": [
+      "CONFIG",
+      "SET",
+      "maxmemory",
+      "12345678",
+      "port",
+      "20102",
+      "client-query-buffer-limit",
+      "10m"
+    ],
+    "oracle": {
+      "error": "ERR CONFIG SET failed (possibly related to argument 'port') - Unable to listen on this port. Check server logs."
+    },
+    "candidate": {
+      "error": "ERR CONFIG SET failed (possibly related to argument 'port') - can't set immutable config"
+    }
+  }
+]

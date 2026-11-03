@@ -1,0 +1,99 @@
+{
+  "phase": "tls-collision-fixed",
+  "command": [
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "40-47",
+    "--load-cores",
+    "32-39",
+    "--load-smt",
+    "",
+    "--ports",
+    "20190-20199"
+  ],
+  "environment": {
+    "GATE_ONLY_JOBS": "netfix_tls"
+  },
+  "binary_sha256": "01813fe2a5534ffcce92bb03992d648c74125e7281949c53dad6b125b69526a3",
+  "started": 1793587876.4555953,
+  "returncode": 0,
+  "finished": 1793587889.1681678,
+  "run": "build/gate-run.cz1H0r",
+  "receipts": {
+    "build/gate-run.cz1H0r/jobs/netfix_tls/proof/oracle-port-collision.json": {
+      "before": {
+        "port": "20190",
+        "maxmemory": "0"
+      },
+      "after": {
+        "port": "20190",
+        "maxmemory": "0"
+      },
+      "error": true,
+      "reply": "ERR CONFIG SET failed (possibly related to argument 'port') - Unable to listen on this port. Check server logs."
+    },
+    "build/gate-run.cz1H0r/jobs/netfix_tls/proof/port-collision-911901.json": {
+      "before": {
+        "port": "20190",
+        "maxmemory": "0"
+      },
+      "after": {
+        "port": "20190",
+        "maxmemory": "0"
+      },
+      "error": true,
+      "reply": "ERR CONFIG SET failed (possibly related to argument 'port') - Unable to listen on this port. Check server logs."
+    },
+    "build/gate-run.cz1H0r/jobs/netfix_tls/proof/port-collision-915713.json": {
+      "before": {
+        "port": "20190",
+        "maxmemory": "0"
+      },
+      "after": {
+        "port": "20190",
+        "maxmemory": "0"
+      },
+      "error": true,
+      "reply": "ERR CONFIG SET failed (possibly related to argument 'port') - Unable to listen on this port. Check server logs."
+    },
+    "build/gate-run.cz1H0r/jobs/netfix_tls/proof/port-collision-920799.json": {
+      "before": {
+        "port": "20190",
+        "maxmemory": "0"
+      },
+      "after": {
+        "port": "20190",
+        "maxmemory": "0"
+      },
+      "error": true,
+      "reply": "ERR CONFIG SET failed (possibly related to argument 'port') - Unable to listen on this port. Check server logs."
+    },
+    "build/gate-run.cz1H0r/jobs/netfix_tls/proof/port-collision-924613.json": {
+      "before": {
+        "port": "20190",
+        "maxmemory": "0"
+      },
+      "after": {
+        "port": "20190",
+        "maxmemory": "0"
+      },
+      "error": true,
+      "reply": "ERR CONFIG SET failed (possibly related to argument 'port') - Unable to listen on this port. Check server logs."
+    },
+    "build/gate-run.cz1H0r/jobs/netfix_tls/proof/port-collision-928252.json": {
+      "before": {
+        "port": "20190",
+        "maxmemory": "0"
+      },
+      "after": {
+        "port": "20190",
+        "maxmemory": "0"
+      },
+      "error": true,
+      "reply": "ERR CONFIG SET failed (possibly related to argument 'port') - Unable to listen on this port. Check server logs."
+    }
+  },
+  "ledger": "ok\t11.110000\tnetfix NT4.7 TLS default cipher parity\n",
+  "output_sha256": "b3b70d098bfe687fc802bcf42ef3f425a62173479a31b4baf4c436b4212a390d"
+}

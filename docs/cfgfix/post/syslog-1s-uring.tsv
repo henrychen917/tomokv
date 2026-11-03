@@ -1,0 +1,15 @@
+openlog	cfgfix	184
+syslog		5
+syslog		5
+syslog		5
+syslog		5
+syslog		5
+syslog		5
+syslog		5
+syslog		5
+syslog		5
+syslog		5
+syslog		5
+syslog		5
+syslog		4
+closelog		0

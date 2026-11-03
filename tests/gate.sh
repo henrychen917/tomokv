@@ -1168,7 +1168,7 @@ plan_jobs(){
     JOB_NAMES+=("climonfix4-$MF_MODE-$MF_ENGINE")
   done; done
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
-  JOB_NAMES+=(datafix1_randscan datafix1_hexpire datafix1_bitfield datafix1_locale datafix1_lists datafix1_spop datafix1_geo config_unit flip_unit filter_unit ring_unit storage_units
+  JOB_NAMES+=(datafix1_randscan datafix1_hexpire datafix1_bitfield datafix1_locale datafix1_lists datafix1_spop datafix1_geo cfgfix config_unit flip_unit filter_unit ring_unit storage_units
               production_units aclkeys_wake list_namespace source_identity acl_metadata cmd_metadata abba_selftest redis_tcl bugs5)
   # Start long waits and whole boot families early; short jobs occupy the slots they release.
   if [ "$TIER" = full ]; then
@@ -1519,6 +1519,16 @@ job_source_identity(){
   else
     bad "$label" "see $TMPDIR/source-identity-build.log and $TMPDIR/source-identity-checks.log"
   fi
+}
+
+job_cfgfix(){
+  row_begin "cfgfix CONFIG oracle parity (all modes and engines)"
+  py tests/cfgfix.py --binary "$CANDIDATE_BINARY" \
+      --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --output "$TMPDIR/proof" \
+      >"$TMPDIR/proof.log" 2>&1 \
+      && ok "cfgfix CONFIG oracle parity (all modes and engines)" \
+      || bad "cfgfix CONFIG oracle parity (all modes and engines)" "see $TMPDIR/proof.log"
 }
 
 job_config_unit(){
@@ -6573,6 +6583,8 @@ collect_job netcap
 collect_job netfix_query_stats
 collect_job netfix_unix
 collect_job netfix_config
+# cfgfix: one row before the quick exit, DQ=+1 / DF=+1. EXPECT is maintainer-owned.
+collect_job cfgfix
 collect_job netfix_tls
 collect_job netfix_idle_buffers
 

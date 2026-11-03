@@ -2,6 +2,7 @@
 // reached through an existing cold accept branch or a live FLIP control tail.
 #include "io_loop.h"
 #include <sys/resource.h>
+#include <barrier>
 
 namespace tomo {
 namespace {
@@ -96,7 +97,257 @@ struct FlipListenerState {
             else io.admit_retained_fd<false, false>(fd, kind);
         }
     }
+
+    // CONFIG prepares every replacement before touching any old socket. The
+    // same listener records (including homes transferred by FLIP) keep their
+    // identity. Only the physical issuer touches its ring or epoll instance.
+    struct Rebind {
+        Server& server;
+        FlipListenerState& state;
+        std::array<int, kListeners> next;
+        std::barrier<> join;
+        std::atomic<bool> okay{true};
+        std::atomic<bool> pending{false};
+        uint16_t port;
+        std::string bind;
+        std::string error;
+        bool listeners, old_aof, want_aof;
+        uint32_t writer = UINT32_MAX;
+        Rebind(Server& s, FlipListenerState& state, uint16_t p, std::string address, int aof)
+            : server(s), state(state), join(s.nthreads()), port(p), bind(std::move(address)),
+              listeners(p != s.cfg().port || bind != s.cfg().bind_addr),
+              old_aof(s.aof().configured()), want_aof(aof < 0 ? old_aof : aof != 0) {
+            next.fill(-1);
+            for (uint32_t tid = 0; tid < s.nthreads(); ++tid)
+                if (s.serves_clients(tid) && (!old_aof || s.aof().writer_is(tid))) writer = tid;
+        }
+        ~Rebind() { for (int fd : next) if (fd >= 0) ::close(fd); }
+        bool all_okay() {
+            join.arrive_and_wait();
+            const bool result = okay.load();
+            // Nobody may publish the next phase's result before all peers
+            // have sampled this phase, including a failing writer.
+            join.arrive_and_wait();
+            return result;
+        }
+    };
+    static void fence_rebound_accept(io_uring_cqe& cqe) {
+        const auto kind = ur_kind(cqe.user_data);
+        bool replaced = kind == UrKind::Accept || kind == UrKind::TlsAccept;
+        if (kind == kListenerAccept) {
+            const auto& listener = *ur_ptr<Listener>(cqe.user_data);
+            replaced = listener.kind == UrKind::Accept || listener.kind == UrKind::TlsAccept;
+        }
+        // A transferred UNIX listener uses kListenerAccept too. Its terminal
+        // CQE still owes the normal loop a rearm; CONFIG did not cancel it.
+        if (!replaced) return;
+        if (cqe.res < 0) cqe.user_data = ur_tag(static_cast<UrKind>(255), nullptr);
+        else cqe.flags |= IORING_CQE_F_MORE;
+    }
+    static void aof_worker(Rebind& plan, IoLoop* loop, unsigned tid) {
+        if (plan.old_aof == plan.want_aof) return;
+        if (!plan.all_okay()) return;
+        auto& server = plan.server;
+        auto& manager = server.aof();
+        if (tid == 0 && (plan.writer == UINT32_MAX || server.atomic_inflight() ||
+                         server.atomic_apply_inflight())) {
+            plan.error = "AOF configuration requires completed atomic commands";
+            plan.okay.store(false);
+        }
+        if (!plan.all_okay()) return;
+        if (plan.want_aof) {
+            if (tid == plan.writer && !manager.runtime_enable(server.thread(tid), loop->ring_, plan.error))
+                plan.okay.store(false);
+        } else {
+            // Every owner flushes its own producer and completion queue. Only
+            // the elected IO touches persistence CQEs; ordinary client work
+            // remains parked. Keep the original bindings on any drain error.
+            const uint64_t deadline = now_ns() + 5000000000ull;
+            for (;;) {
+                if (tid == 0) plan.pending.store(false);
+                plan.join.arrive_and_wait();
+                if (tid == plan.writer) manager.runtime_pump(server.thread(tid), loop->ring_);
+                if (!cfgfix_executor_control(server, tid, 2)) plan.pending.store(true);
+                if (tid == plan.writer && manager.pending_chunks()) plan.pending.store(true);
+                plan.join.arrive_and_wait();
+                if (tid == 0 && (manager.failed() || now_ns() >= deadline)) {
+                    plan.error = "AOF producers could not drain";
+                    plan.okay.store(false);
+                }
+                plan.join.arrive_and_wait();
+                const bool again = plan.okay.load() && plan.pending.load();
+                plan.join.arrive_and_wait();
+                if (!again) break;
+            }
+            if (plan.okay.load() && tid == plan.writer &&
+                !manager.runtime_disable(server.thread(tid), loop->ring_, plan.error)) plan.okay.store(false);
+        }
+        if (!plan.all_okay()) return;
+        for (Shard* shard : server.thread(tid).shards())
+            shard->store().bind_aof(plan.want_aof ? &manager : nullptr, shard->id(), 0);
+        if (!cfgfix_executor_control(server, tid, plan.want_aof ? 1 : 0)) std::abort();
+        if (loop) loop->aof_bound_ = plan.want_aof;
+        if (tid == 0) const_cast<Config&>(server.cfg()).appendonly = plan.want_aof;
+        plan.join.arrive_and_wait();
+        // No owner can retain a channel or producer binding when it is freed.
+        if (!plan.want_aof && tid == plan.writer) manager.runtime_reset();
+        plan.join.arrive_and_wait();
+    }
+    static void rebind_worker(void* context, unsigned tid) {
+        auto& plan = *static_cast<Rebind*>(context);
+        auto& state = plan.state;
+        auto* loop = io(plan.server, tid);
+        if (!plan.listeners) { aof_worker(plan, loop, tid); return; }
+        if (loop) {
+            auto& own = state.local[tid];
+            // Reserve epoll registrations without changing the old set.
+            for (unsigned i = 0; i < kListeners; ++i) {
+                const auto& listener = state.listeners[i];
+                if (listener.kind == UrKind::UnixAccept || listener.owner != tid || plan.next[i] < 0)
+                    continue;
+                if (loop->epoll_) {
+                    const auto tag = listener.home == tid ? ur_tag(listener.kind, nullptr)
+                        : ur_tag(kListenerAccept, &state.listeners[i]);
+                    if (!set_nonblocking(plan.next[i]) || !loop->ep_.add(plan.next[i], EPOLLIN, tag))
+                        plan.okay.store(false);
+                }
+            }
+            (void)own;
+        }
+        plan.join.arrive_and_wait();
+        if (plan.okay.load() && loop) {
+            // Cancel by descriptor, never ANY: live client and persistence CQEs
+            // retain their original lifetimes. The sync fence runs on issuer.
+            loop->accept_quiescing_ = true;
+            if (!loop->epoll_) {
+                loop->ring_.submit_and_reap();
+                for (auto& listener : state.listeners) {
+                    if (listener.fd < 0 || listener.kind == UrKind::UnixAccept || listener.owner != tid)
+                        continue;
+                    io_uring_sync_cancel_reg cancel{};
+                    cancel.fd = listener.fd;
+                    cancel.flags = IORING_ASYNC_CANCEL_FD | IORING_ASYNC_CANCEL_ALL;
+                    cancel.timeout.tv_sec = 5;
+                    int rc;
+                    do { rc = io_uring_register_sync_cancel(loop->ring_.raw(), &cancel); } while (rc == -EINTR);
+                    if (rc < 0 && rc != -ENOENT) plan.okay.store(false);
+                    else {
+                        // A later AOF apply failure keeps these descriptors,
+                        // but rollback still owes them a fresh accept arm.
+                        if (listener.home == tid) loop->accept_armed_ref(listener.kind) = false;
+                        else listener.armed = false;
+                    }
+                }
+                // Fence old accepts without executing unrelated client CQEs
+                // inside the rendezvous. Preserve successful accepts for the
+                // normal loop, but remove their obsolete rearm obligation.
+                loop->ring_.submit_and_reap();
+                unsigned head;
+                io_uring_cqe* cqe;
+                io_uring_for_each_cqe(loop->ring_.raw(), head, cqe) fence_rebound_accept(*cqe);
+            }
+        }
+        plan.join.arrive_and_wait();
+        aof_worker(plan, loop, tid);
+        plan.join.arrive_and_wait();
+        const bool commit = plan.okay.load();
+        if (loop) {
+            auto& own = state.local[tid];
+            for (unsigned i = 0; i < kListeners; ++i) {
+                auto& listener = state.listeners[i];
+                if (listener.kind == UrKind::UnixAccept) continue;
+                const int old = listener.fd, next = plan.next[i];
+                if (loop->epoll_) {
+                    if (!commit && listener.owner == tid && next >= 0) loop->ep_.del(next);
+                    if (commit && own.registered[i] && old >= 0 && !loop->ep_.del(old)) std::abort();
+                } else if (commit && own.files_registered && own.registered[i]) {
+                    if (io_uring_register_files_update(loop->ring_.raw(), i, &next, 1) != 1) std::abort();
+                }
+                if (commit) own.registered[i] = loop->epoll_
+                    ? listener.owner == tid && next >= 0 : own.registered[i] && next >= 0;
+            }
+        }
+        plan.join.arrive_and_wait();
+        if (tid == 0 && commit) {
+            for (unsigned i = 0; i < kListeners; ++i) {
+                auto& listener = state.listeners[i];
+                if (listener.kind == UrKind::UnixAccept) continue;
+                if (listener.fd >= 0) ::close(listener.fd);
+                listener.fd = std::exchange(plan.next[i], -1);
+                listener.armed = listener.cancel_pending = listener.cancel_submitted = false;
+            }
+            // Retain the address independently of CONFIG table vector storage.
+            static std::string configured_bind;
+            configured_bind = plan.bind;
+            auto& cfg = const_cast<Config&>(plan.server.cfg());
+            cfg.port = plan.port;
+            cfg.bind_addr = configured_bind.c_str();
+        }
+        plan.join.arrive_and_wait();
+        if (loop) {
+            if (commit) {
+                loop->configured_port_ = plan.port;
+                loop->fliplisten_install();
+                loop->accept_armed_ = loop->tls_accept_armed_ = false;
+                loop->accept_pending_ = loop->tls_accept_pending_ = false;
+            }
+            loop->accept_quiescing_ = false;
+            if (!loop->epoll_ && loop->self_->role() == Role::Ifid) {
+                for (auto& listener : state.listeners) {
+                    if (listener.fd < 0 || listener.owner != tid) continue;
+                    if (listener.home == tid) {
+                        if (!loop->accept_armed_ref(listener.kind)) loop->arm_accept(listener.kind);
+                    } else if (!state.arm(*loop, listener))
+                        loop->accept_quiescing_ = loop->accept_pending_ = true;
+                }
+                loop->ring_.submit();
+            }
+        }
+    }
 };
+
+bool cfgfix_rebind(Server& server, uint32_t caller, uint16_t port,
+                   const std::string& bind, std::string& error, int appendonly) {
+    if (port == server.cfg().port && bind == server.cfg().bind_addr &&
+        (appendonly < 0 || (appendonly != 0) == server.aof().configured())) return true;
+    // SO_REUSEPORT is needed for per-IO sockets, but must not merge the
+    // plaintext listener with our live TLS group. Redis's bind rejects this.
+    if (port && port == server.cfg().tls_port) {
+        error = std::strerror(EADDRINUSE);
+        return false;
+    }
+    if (!cfgfix_control_begin(server)) { error = "listener control path is busy"; return false; }
+    struct Finish {
+        Server& server; bool held = true;
+        ~Finish() { if (held) cfgfix_control_end(server); }
+    } finish{server};
+    if (!fliplisten_reserve(server, error)) return false;
+    auto& state = *server.flip_listeners_;
+    FlipListenerState::Rebind plan(server, state, port, bind, appendonly);
+    for (unsigned i = 0; plan.listeners && i < 3 * server.nthreads(); ++i) {
+        auto& listener = state.listeners[i];
+        if (listener.kind == UrKind::UnixAccept || listener.home >= server.nthreads()) continue;
+        const bool tcp = listener.kind == UrKind::Accept;
+        const uint16_t next_port = tcp ? port : server.cfg().tls_port;
+        if (!next_port) continue;
+        if (listener.fd < 0 && server.thread(listener.home).role() != Role::Ifid) continue;
+        // A zero-port -> live-port transition starts one listener per active IO.
+        if (listener.fd < 0) listener.owner = listener.home;
+        plan.next[i] = IoLoop::make_reuseport_listener(bind.c_str(), next_port,
+            server.cfg().tcp_backlog, !tcp);
+        if (plan.next[i] < 0) { error = std::strerror(errno); return false; }
+    }
+    if (!server.debug_sleep_coordinator().exclusive(caller, server.nthreads(), &plan, FlipListenerState::rebind_worker)) {
+        error = "listener control rendezvous timed out"; return false;
+    }
+    if (!plan.okay.load()) {
+        error = plan.error.empty() ? "listener registration or cancellation failed" : "appendonly: " + plan.error;
+        return false;
+    }
+    cfgfix_control_end(server); finish.held = false;
+    if (!plan.old_aof && plan.want_aof) server.aof().request_rewrite();
+    return true;
+}
 
 bool fliplisten_reserve(Server& srv, std::string& error) {
     if (srv.flip_listeners_) return true;

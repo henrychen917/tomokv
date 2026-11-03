@@ -527,7 +527,10 @@
         "CLIENT SETNAME can change the name of an existing connection in tests/unit/introspection.tcl",
         "CLIENT SETNAME does not accept spaces in tests/unit/introspection.tcl",
         "CLIENT command unhappy path coverage in tests/unit/introspection.tcl",
+        "CONFIG GET hidden configs in tests/unit/introspection.tcl",
         "CONFIG SET duplicate configs in tests/unit/introspection.tcl",
+        "CONFIG SET rollback on apply error in tests/unit/introspection.tcl",
+        "CONFIG SET set immutable in tests/unit/introspection.tcl",
         "MONITOR can log commands issued by the scripting engine in tests/unit/introspection.tcl",
         "MONITOR can log executed commands in tests/unit/introspection.tcl",
         "MONITOR correctly handles multi-exec cases in tests/unit/introspection.tcl",
@@ -541,11 +544,8 @@
       "sha256": "92fa93cdb4bcb77698c6f516bbed9c7e34cf02d757baa8e40ccf5f1f45dd2e7c",
       "skip_tests": {
         "CLIENT KILL close the client connection during bgsave": "failed on TomoKV 2s in the survey",
-        "CONFIG GET hidden configs": "failed on TomoKV 2s in the survey",
         "CONFIG GET multiple args": "failed on TomoKV 2s in the survey",
-        "CONFIG SET rollback on apply error": "failed on TomoKV 2s in the survey",
         "CONFIG SET rollback on set error": "failed on TomoKV 2s in the survey",
-        "CONFIG SET set immutable": "failed on TomoKV 2s in the survey",
         "CONFIG SET with multiple args": "failed on TomoKV 2s in the survey",
         "CONFIG sanity": "failed on TomoKV 2s in the survey",
         "MONITOR can log commands issued by functions": "failed on TomoKV 2s in the survey",
@@ -1735,6 +1735,7 @@
         "LTRIM out of range negative end index - listpack in tests/unit/type/list.tcl",
         "LTRIM out of range negative end index - quicklist in tests/unit/type/list.tcl",
         "List encoding conversion when RDB loading in tests/unit/type/list.tcl",
+        "List invalid list-max-listpack-size config in tests/unit/type/list.tcl",
         "List of various encodings - sanitize dump in tests/unit/type/list.tcl",
         "List of various encodings in tests/unit/type/list.tcl",
         "List quicklist -> listpack encoding conversion in tests/unit/type/list.tcl",
@@ -1784,7 +1785,6 @@
         "Crash due to split quicklist node wrongly": "failed on TomoKV 2s in the survey",
         "LMPOP propagate as pop with count command to replica": "failed on TomoKV 2s in the survey",
         "Linked LMOVEs": "BLOCK-WAKE-ORDER-MULTI / BLOCK-CHAIN-ASYNC (D11): failed on TomoKV 2s in the survey",
-        "List invalid list-max-listpack-size config": "failed on TomoKV 2s in the survey",
         "List listpack -> quicklist encoding conversion": "failed on TomoKV 2s in the survey",
         "Test LINDEX and LINSERT on plain nodes": "failed on TomoKV 2s in the survey",
         "Test LMOVE on plain nodes": "failed on TomoKV 2s in the survey",
@@ -2064,7 +2064,7 @@
         {
           "command": "r config set $param $val",
           "count": 1,
-          "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config"
+          "reply": "ERR aof-use-rdb-preamble no is unsupported: the AOF base file is a TomoKV snapshot"
         }
       ],
       "passed_tests": [
@@ -2991,5 +2991,19 @@
       "test": "unsubscribe inside multi, and publish to self",
       "previous_reason": "failed on TomoKV 2s in the survey"
     }
-  ]
+  ],
+  "cfgfix_promotions": {
+    "baseline": "105c5818c",
+    "assertions": {
+      "unit/introspection": [
+        "CONFIG GET hidden configs",
+        "CONFIG SET rollback on apply error",
+        "CONFIG SET set immutable"
+      ],
+      "unit/type/list": [
+        "List invalid list-max-listpack-size config"
+      ]
+    },
+    "note": "MULTI with config error already passed PRE; replication-specific multi-pattern/argument tests remain excluded. Native list compression setup remains a known error. Stream-cgroups appendonly setup now succeeds and exposes the existing native-format refusal of aof-use-rdb-preamble no; the replacement setup signature is recorded explicitly, with the same 50 assertions."
+  }
 }
