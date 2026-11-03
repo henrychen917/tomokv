@@ -7,6 +7,8 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import socket
+import time
 import traceback
 
 from _lib import Conn, RespError
@@ -206,6 +208,18 @@ def run(args, directory, mode, engine, atomic, db, scenario, oracle):
             b.kill()
             if b.c is not None:
                 b.c.close()
+            # io_uring cancellation can release a killed listener after waitpid.
+            # Require exclusive rebind before starting the next fresh scenario.
+            def released():
+                with socket.socket() as probe:
+                    probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                    try:
+                        probe.bind(('127.0.0.1', b.port))
+                        probe.listen()
+                        return True
+                    except OSError:
+                        return False
+            s.wait(released, 'owned listener survived child teardown', timeout=10)
         directory.mkdir(parents=True, exist_ok=True)
         (directory / 'result.json').write_text(json.dumps(record, indent=2) + '\n')
     print(record['verdict'], mode, engine, atomic, db, scenario, record.get('error', ''), flush=True)

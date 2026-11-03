@@ -229,6 +229,7 @@ SnapshotManager::StartResult SnapshotManager::cancel_for_shutdown(
             return StartResult::Failed;
         }
         writer.progress_fused_executor();
+        server.aof().drain_for_producer(writer.id(), ring);
         if (writer_is(writer.id())) {
             writer_pass(writer, ring, true);
             if (engine_ == PersistIoEngine::Uring) pump_io_completions(writer, ring);

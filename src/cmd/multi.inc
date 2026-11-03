@@ -782,6 +782,11 @@ bool normalize_multi_blocking_pop(MultiCommand& command) {
     for (const std::string& arg : command.exec_argv)
         if (!command.op->push_arg(Slice(arg.data(), static_cast<uint32_t>(arg.size()))))
             return false;
+    // Shards still describe the same keys, but their argv positions changed.
+    // Claims, tracking and AOF postimages must read the normalized key slices,
+    // not the old timeout/count/direction positions.
+    for (uint32_t i = 0; i < command.key_args.size(); ++i)
+        command.key_args[i] = 2 + i;
     return true;
 }
 
@@ -998,6 +1003,15 @@ bool prepare_commands(Server& server, MultiExecState& state,
             command->blocking_pop = multi_blocking_pop(command->queued);
             command_key_args(command->queued, command->key_args);
             if (!make_child_op(*command)) return false;
+            if (command->op->cmd_name().eq_icase("georadius") ||
+                command->op->cmd_name().eq_icase("georadiusbymember")) {
+                GeoRoute route;
+                geo_prepare_route(*command->op, route);
+                // The scatter completion for this family is a STORE reducer.
+                // A read-only form has exactly one key and must use its owner
+                // handler, including owner-side type/member validation.
+                if (!route.store) command->key_args.assign(1, route.source_arg);
+            }
             if constexpr (!kSingleDatabase) multidb_stamp(server, *command->op, logical_db, routing_map);
             command->key_shards.reserve(command->key_args.size());
             for (uint32_t arg : command->key_args) {
