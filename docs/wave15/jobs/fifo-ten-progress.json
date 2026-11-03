@@ -10,5 +10,11 @@
     "exit": 0,
     "elapsed": 990.5604991912842,
     "receipt": "fifo-final-02.json"
+  },
+  {
+    "iteration": 3,
+    "exit": 0,
+    "elapsed": 990.6912722587585,
+    "receipt": "fifo-final-03.json"
   }
 ]

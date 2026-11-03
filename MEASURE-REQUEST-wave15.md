@@ -13,18 +13,18 @@ Correctness and builds use CPUs 0–63, ports 20000–20099 and LC_ALL=C. Perfor
 
 - cfgfix2: combine all six job declarations with wave14 production companion jobs; ACL/config/INFO and shutdown source changes merge without textual conflict.
 
-- eoffix: retain both new production units. Its producer progress hook does not appear in SnapshotManager wait loops; HANG-2 still needs a directed live check.
+- eoffix: retain both new production units. Its producer progress hook did not close SnapshotManager waits. The live PRE witness and parent-debugger stack confirm HANG-2; the integration extends the existing drain hook to those waits.
 - netfix2: EOF timers and accept-backoff timers coexist as distinct kinds; process both cold branches before dereferencing a client. Keep both mode-equivalence guard controls. The guarded partial-only shared-CPU adapter accepts netfix2’s client subset; normal disjoint placement remains unchanged.
 
 - flipfix7 and rlfix5: retain production fixes and both guarded harness interfaces.
-- storefix5 ST5.3 + cfgfix2 SO5.1: construct the clock with nothrow allocation; count all staged nodes in a local byte total; publish the charge only after every install succeeds. A failed partial clock is destroyed without charging the store. Disable retains ST5.3’s deferred subtraction after grace. The serverless directed unit exercises all six allocation boundaries with and without readers, retains an old clock charge through grace, and checks that failed replacement frees exactly its uncharged allocations. Both namespace units pass; the first gate invocation exposed and corrected missing unit prerequisites. Conflicting xshard budgets are provisional until compile-only trials.
+- storefix5 ST5.3 + cfgfix2 SO5.1: construct the clock with nothrow allocation; count all staged nodes in a local byte total; publish the charge only after every install succeeds. A failed partial clock is destroyed without charging the store. Disable retains ST5.3’s deferred subtraction after grace. The serverless directed unit exercises all six allocation boundaries with and without readers, retains an old clock charge through grace, and checks that failed replacement frees exactly its uncharged allocations. Both namespace units pass; the first gate invocation exposed and corrected missing unit prerequisites. Conflicting xshard budgets are re-derived by the compile-only trials below.
 
 - cmdfix2, txnfix4, scriptfix4: retain every declared job and both Tcl adapter test inventories; production edits merge without conflict.
-- atomfix6: retain dynamic IO-role discovery, both socket-retention approaches, and wave14’s exact refusal reasons, subsecond bounds, and counter reconciliation. Preserve every planner negative control. xshard budgets remain provisional.
+- atomfix6: retain dynamic IO-role discovery, both socket-retention approaches, and wave14’s exact refusal reasons, subsecond bounds, and counter reconciliation. Preserve every planner negative control. xshard budgets are re-derived below.
 
 ### Pending work
 
-semantic interaction audit and directed checks; generic error accounting; AOF liveness repairs and negative controls; exact row inventory; compile-only inlining trials and instruction census; required correctness jobs; frozen PRE/POST/PAD-A hashes and maintainer measurement request.
+Remaining: broad public-job matrices, ten complete FIFO repetitions, the AOF job loop, the repaired scheduler self-test, final production-target freshness, and the final measurement handoff. Source integration, directed fixes, row inventory, budget trials, instruction census and frozen arms are complete.
 
 ### Declared rows after the twelve merges
 
@@ -108,3 +108,17 @@ Separate read-local GET scopes add 51–458 instructions against wave14; parser 
 The final compiled candidate is `build/wave15/POST-1babe0d58a-final`, SHA-256 `d36e1c43dd89691747ff5714d7dfe8dec32af88d85e0afc8fd9fe29c2e4c3b0a`. A premature earlier file copy is explicitly rejected in `post-freeze-1.json`; the accepted copy was taken after `make -q all` succeeded. Parser probe objects were compiled after every production object finished and bind to this accepted image (`parser-final-provenance.json`).
 
 The first production-unit job exposed missing `tools/wave15_stream.mk` in historical minimal source copies used by AOF-order and Climon controls. The two new native recipes are now embedded directly in Makefile, so those copies stay self-contained. This is a harness-only correction; frozen production C++ and compiler settings are unchanged. All affected make/gate checks will be rerun.
+
+### Final-POST proof updates
+
+Both Tcl modes pass on both engines (`tcl-final-uring` and `tcl-final-epoll`). All twelve deleted-stream legs pass 200 repetitions on the frozen POST (`private-final`); the deterministic stream boundary check passes both modes and namespaces. The corrected disconnect fixture first requires the boot readiness peer to be reaped, then preserves all 80 exact four-victim KILL and immediate INFO checks. It passes POST and still fails the lane PRE (`fixture-repair-final`, `disconnect-lane-pre`). No failed attempt is replaced or hidden.
+
+The native eoffix writer fixture initially lacked its private `build/eoffix` directory; after creating that prerequisite, all twelve AOF/QSBR schedules pass. The CONFIG supervisor fixture similarly now creates its own socket directory. The generated configuration document changed only two source-line anchors. The scheduler self-test found an error-message merge mismatch (`same eight` versus `authorized load mask`); the diagnostic now retains both descriptions, and its unchanged negative controls pass. The whole self-test is being repeated in a disposable copy with EXPECT and fixture changes confined to that copy.
+
+The private `wave14_order` diagnostic has 144/144 correct replies, 0/144 Redis event/invalidation sequences, and 70/144 Redis slowlog sequences on POST; wave14 PRE gives 144/144, 0/144, and 71/144. This is the previously documented private publication-order exclusion, not a public green row or a Redis-parity claim. `rootcompat-stringlimit` remains private and red on both PRE and POST.
+
+The census reference builds match the supplied frozen references for every entered group: 859/859 against wave14 and 833/833 against the headline (`reference-body-binding.json`). Across 48 probe images, 5,438/5,440 entered-group bindings match the strict normalizer. The two Lua cases differ only in an anonymous VXORPD constant label: exact opcode/register/branch encodings and all 16 consumed constant bytes match (`lua-binding.json`). The shared normalizer is unchanged. Probe hashes and counts were recorded before pruning.
+
+Parent-owned GDB reproductions avoid the denied attach operation. HANG-1 is captured with idle workers; HANG-2 has the writer waiting in `SnapshotManager::start` at the snapshot acknowledgement loop and the executor in `AofProducer::seal` on its full channel. See `aof-stacks/participants-everysec/` and `aof-stacks/large-everysec-db16-epoll/`. The initial no-fsync participant run acknowledged, as predicted for the separate replay-loss check; an initial db1/uring large-write debugger run did not hang. Those attempts remain recorded and are not represented as failing controls.
+
+Frozen arms and full SHA-256s are in `docs/wave15/release-arms.json`: PRE `79fe1f181e26e823e70129a0d6903c1fae5597d4498faee38d3c08fdf713622e`, POST `d36e1c43dd89691747ff5714d7dfe8dec32af88d85e0afc8fd9fe29c2e4c3b0a`, PAD-A `bb28e302d98f889a687a853960831e9510086b80505b22ce687859726d3b4ecc`, POST-layout `75681dab0168e5758053cde8e4a569d7e194a2bf55411c63058dbc3ed3c0a07c`. PAD is **A, a PRE-behaviour twin of the common POST-layout image**: matching sections and symbols, only the five-byte entry jump differs. Compare it with POST-layout, and compare the smaller release POST separately with the headline; this PAD does not claim to preserve the smaller release image's addresses.
