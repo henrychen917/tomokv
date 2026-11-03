@@ -270,6 +270,7 @@ class CorrectnessBudgetWiring(unittest.TestCase):
                    for mode in ('split', 'armed fused') for atomic in (0, 1)]
         cases = [(label, '') for label in labels]
         cases.append(('ABBA comparison + saturation negative controls', 'with-scheduler-controls'))
+        cases.append(('at412 T6', ''))
         stub = r'''
 set -u
 ROW_PLAN="$TMPDIR/plan.json"
@@ -285,6 +286,8 @@ row_begin "$FIXTURE_LABEL" "$FIXTURE_CONTEXT"
                     with self.subTest(label=label, context=context, basis=basis):
                         if label == 'ABBA comparison + saturation negative controls':
                             expected = 660
+                        if label == 'at412 T6':
+                            expected = 2400
                         plan = dict(schema=1, defaults=dict(fallback_seconds=900), rows={label: dict(
                             timeout_seconds=limit, median_seconds=114, basis=basis)})
                         (Path(tmp) / 'plan.json').write_text(json.dumps(plan))
@@ -296,6 +299,8 @@ row_begin "$FIXTURE_LABEL" "$FIXTURE_CONTEXT"
                         if label == 'ABBA comparison + saturation negative controls':
                             self.assertIn('WATCH\t660\tabba-selftest-wave7-landing-442.80s-plus-40pct-rounded',
                                           result.stdout)
+                        if label == 'at412 T6':
+                            self.assertIn('WATCH\t2400\tat412-T6-75-storms-30.5s-each', result.stdout)
 
 
 class LedgerWiring(unittest.TestCase):

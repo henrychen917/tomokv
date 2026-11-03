@@ -544,6 +544,13 @@ row_begin(){
     # Sixteen 60-second legs plus bounded boot/shutdown per leg.
     ROW_TIMEOUT=1440; ROW_BASIS=fifo-16-legs-60s-plus-30s-setup-each
   fi
+  if [ "$ROW_ID" = 'at412 T6' ]; then
+    # 27 legs of one 30-second storm each (3 oracle, 24 TomoKV): 813-873s measured, against the
+    # 900s fallback. A TomoKV leg whose fresh boot never opened the wound window re-runs on at
+    # most two more fresh boots, so the bound is 3 + 24*3 = 75 storms of ~30.5s with boot and
+    # shutdown (gate-run.88Z1At: seven re-rolls in four legs reached 900s mid-matrix).
+    ROW_TIMEOUT=2400; ROW_BASIS=at412-T6-75-storms-30.5s-each
+  fi
   if [ "$ROW_ID" = 'tailgen client-lb outstanding bound' ]; then
     ROW_TIMEOUT=90; ROW_BASIS=tailgen-populate-3s-warmup-20s-window
   fi
