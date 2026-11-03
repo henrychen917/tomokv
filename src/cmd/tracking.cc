@@ -223,7 +223,10 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
         for (uint32_t i = 0; i < op.argc(); ++i)
             if (!probe.push_arg(op.arg(i))) return;
         StreamXreadArgs parsed;
-        if (!stream_parse_xread(probe, parsed)) return;
+        {
+            ErrorStatsProbe metadata_only;
+            if (!stream_parse_xread(probe, parsed)) return;
+        }
         first = parsed.first_key;
         end = first + parsed.key_count;
     }

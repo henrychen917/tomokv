@@ -1,0 +1,26 @@
+[
+  {
+    "budget": 169196,
+    "derived": 171490,
+    "equal": false,
+    "key_eq_call": true
+  },
+  {
+    "budget": 171482,
+    "derived": 171490,
+    "equal": true,
+    "key_eq_call": false
+  },
+  {
+    "budget": 171490,
+    "derived": 171490,
+    "equal": true,
+    "key_eq_call": false
+  },
+  {
+    "budget": 171498,
+    "derived": 171490,
+    "equal": true,
+    "key_eq_call": false
+  }
+]

@@ -1,0 +1,31 @@
+{
+  "arm": "headline-tls",
+  "namespace": "db0",
+  "command": "TLSGET-watch",
+  "mode": "2s",
+  "batch": 1,
+  "atomic": 0,
+  "local": -1,
+  "probe_sha256": "b3198acb2195428c5321ccb3995f283ae6171b589ff7f6909ea94b7e876bdec8",
+  "tracer_sha256": "03231d274f8556260a6c0653abe37ab957ee2e3907900f1d6b08ff30b7d9e5df",
+  "total": 1321,
+  "functions": {
+    "tomo_db0::ExLoopT<false>::flush_notify_batch()": 94,
+    "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)": 205,
+    "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 121,
+    "tomo_db0::multi_task_tagged(tomo_db0::Task const&)": 4,
+    "tomo_db0::watch_execute_handler(tomo_db0::Shard&, tomo_db0::Op&)": 39,
+    "tomo_db0::notify_execute_handler(tomo_db0::Shard&, tomo_db0::Op&, void (*)(tomo_db0::Shard&, tomo_db0::Op&))": 24,
+    "tomo_db0::Op::Sink::reserve(unsigned long)": 24,
+    "tomo_db0::KvObj::val_ptr() const": 16,
+    "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)": 100,
+    "tomo_db0::FlatStore::find_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*)": 105,
+    "tomo_db0::FlatStore::borrow(char const*)": 75,
+    "tomo_db0::cmd_get_notify(tomo_db0::Shard&, tomo_db0::Op&)": 3,
+    "void tomo_db0::(anonymous namespace)::cmd_get<true, true>(tomo_db0::Shard&, tomo_db0::Op&)": 207,
+    "tomo_db0::FlatStore::publish_database_counts() const": 88,
+    "tomo_db0::Shard::publish_size()": 216
+  },
+  "clock_calls": 1,
+  "excluded_calls": 1
+}

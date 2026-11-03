@@ -12,6 +12,8 @@ os.sched_setaffinity(0, os.sched_getaffinity(0) & set(range(48,64)))
 ROOT=identity.ROOT
 ROUND=os.getenv('WAVE15_BUDGET_ROUND','')
 OUT=ROOT/('build/wave15/budgets'+ROUND);DOC=ROOT/('docs/wave15/budgets'+ROUND)
+BASE=Path(os.getenv('WAVE15_BUDGET_BASE',str(ROOT/'build/wave15/budget-base')))
+BASE_MANIFEST=Path(os.getenv('WAVE15_BUDGET_BASE_MANIFEST',str(ROOT/'docs/wave15/budget-base.json')))
 PRE=ROOT/'build/wave15/pre-source'
 sys.path.insert(0,str(ROOT/'tools'))
 from ccfix_audit import audit
@@ -39,7 +41,8 @@ def trial(job):
  dump.unlink()
  elf=audit.Elf(dest)
  digest=hashlib.sha256(repr([(s,elf.canonical(f)) for s,f in sorted(elf.functions().items())]).encode()).hexdigest()
- result=dict(job,unit=unit,command=cmd,output=str(dest),code_digest=digest)
+ result=dict(job,unit=unit,command=cmd,output=str(dest),code_digest=digest,
+             object_sha256=hashlib.sha256(dest.read_bytes()).hexdigest())
  receipt.write_text(json.dumps(result,indent=2)+'\n');print('compiled',tag,'IPA',unit,flush=True)
  return result
 
@@ -59,7 +62,7 @@ def score(job):
  binary=Path(job['output']+'.tomokv')
  cmd=shlex.split(next(s for s in subprocess.check_output(['make','-n','-W','build/src/main.o','all'],cwd=ROOT,text=True).splitlines() if s.startswith('g++ ') and ' -Wl,--wrap=main ' in s))
  cmd[cmd.index('build/'+job['object'])]=job['output'];cmd[cmd.index('-o')+1]=str(binary);cmd+=['-Wl,--strip-debug']
- cmd=[str(ROOT/'build/wave15/budget-base'/x[6:]) if x.startswith('build/') and x.endswith('.o') else x for x in cmd]
+ cmd=[str(BASE/x[6:]) if x.startswith('build/') and x.endswith('.o') else x for x in cmd]
  with open(job['output']+'.link.log','w') as log:subprocess.run(cmd,cwd=ROOT,stdout=log,stderr=subprocess.STDOUT,check=True)
  post=identity.inventory(binary);refs={arm:identity.inventory(path) for arm,path in identity.REFS.items()}
  rows=identity.compare(post,refs)
@@ -69,7 +72,7 @@ def score(job):
    sum(r['command_hot'] and not r['matches'] for r in rows),
    sum(r['hot'] and len(r['changed_lanes'])<=1 and not r['matches'] for r in rows),
    sum(r['hot'] and not r['matches'] for r in rows),sum(not r['matches'] for r in rows)],
-   linked_sha256=post['sha256'],link_command=cmd,base_manifest_sha256=hashlib.sha256((ROOT/'docs/wave15/budget-base.json').read_bytes()).hexdigest(),
+   linked_sha256=post['sha256'],link_command=cmd,base_manifest_sha256=hashlib.sha256(BASE_MANIFEST.read_bytes()).hexdigest(),
    residual_hot=[r for r in rows if r['hot'] and not r['matches']])
  receipt.write_text(json.dumps(result,indent=2)+'\n');binary.unlink();print('scored',job['object'],job['budget'],result['score'],flush=True)
  return result

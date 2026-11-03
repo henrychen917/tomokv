@@ -212,6 +212,13 @@ bool IoLoop::flip_immovable_refused() {
     if (!flip_liveness_enabled()) return false;
     const bool converting = srv_->flip_candidate_target(self_->id()) == Role::Ex;
     for (const Client* client : self_->clients()) {
+        // FIN may leave complete input behind a synchronous control or the
+        // dispatch pause. Its EOF timer cannot drain until admission resumes.
+        // Decide before commit instead of waiting on our own FLIP barrier.
+        if (receive_eof_pending(client)) {
+            srv_->flip_note_failure("ERR FLIP refused: a connection is draining its end of stream");
+            return true;
+        }
         const uint8_t kind = flip_immovable_kind(client);
         if (!kind) continue;
         if (!converting) continue;
@@ -247,9 +254,16 @@ bool IoLoop::flip_client_drained(const Client* client, bool coordinator) const {
 bool IoLoop::flip_timers_drained() const {
     if (deferred_timers_.empty()) return true;
     if (!flip_liveness_enabled() || srv_->flip_candidate_target(self_->id()) == Role::Ex) return false;
-    for (const auto& timer : deferred_timers_)
+    for (const auto& timer : deferred_timers_) {
+        // A FIN can also arrive after commit on a retained IO. Once all owner
+        // work has retired, its timer and buffered input stay with that Client
+        // and resume at Idle. Neither is an outstanding executor obligation.
+        if (flip_post_drain() &&
+            (timer.kind == DeferredTimerKind::ReceiveFin || timer.kind == DeferredTimerKind::ReceiveEof) &&
+            timer.client->ifid_thread() == self_->id() && timer.client->flip_execution_idle()) continue;
         if (timer.kind != DeferredTimerKind::WaitZero || !timer.client->flip_stationary_idle())
             return false;
+    }
     return true;
 }
 

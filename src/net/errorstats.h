@@ -21,11 +21,20 @@ struct ErrorStats {
     bool enabled = true;
 };
 inline ErrorStats error_stats;
+// A metadata-only parser can build a disposable reply while inspecting argv.
+// Its real dispatch owns the error. This guard is used only by that cold probe;
+// successful command/reply paths never inspect the suppression state.
+inline thread_local uint32_t error_stats_suppressed = 0;
+struct ErrorStatsProbe {
+    ErrorStatsProbe() { ++error_stats_suppressed; }
+    ~ErrorStatsProbe() { --error_stats_suppressed; }
+};
 
 // msg excludes the RESP '-' marker. Redis searches the first 32 wire bytes
 // for a space; sanitization must agree with the line actually emitted.
 [[gnu::cold, gnu::noinline]] inline void error_stats_record(
         const char* msg, size_t length, bool trim = true) {
+    if (error_stats_suppressed) return;
     if (trim)
         while (length && (msg[length - 1] == '\r' || msg[length - 1] == '\n')) --length;
     char prefix[31];

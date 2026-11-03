@@ -8,6 +8,8 @@ import traceback
 
 from authfix import Run, Server
 from infofix_compat import fields
+from _lib import encode
+import time
 
 
 def observe(c):
@@ -53,6 +55,11 @@ def witness(c, observer, run, label):
     commands += [('EVAL', script, 1, 'wrong') for script in scripts]
     sha = c.cmd('SCRIPT', 'LOAD', "return redis.pcall('GET',KEYS[1])")
     commands += [('EVALSHA', sha, 1, 'wrong')] * 2
+    commands += [('CLIENT', 'TRACKING', 'ON'),
+                 ('XREAD', 'COUNT', 'bad', 'STREAMS', 'absent', '0'),
+                 ('XREAD', 'BLOCK', '-1', 'STREAMS', 'absent', '0'),
+                 ('XREAD', 'STREAMS', 'absent', 'invalid-id'),
+                 ('CLIENT', 'TRACKING', 'OFF')]
     for i, command in enumerate(commands):
         c.cmd(*command)
         actual = observe(observer)
@@ -73,6 +80,29 @@ def witness(c, observer, run, label):
     c.cmd('GET', 'wrong')
     run.check(label + ' reset re-enables', observe(observer),
               [1, {'errorstat_WRONGTYPE': 'count=1'}])
+    # Count a removed group's two parked replies; the surviving group is free
+    # of both a false error and a false charge.
+    c.cmd('XGROUP', 'CREATE', 'accounting', 'gone', '$', 'MKSTREAM')
+    c.cmd('XGROUP', 'CREATE', 'accounting', 'live', '$')
+    c.cmd('CONFIG', 'RESETSTAT')
+    with run.server.client() as one, run.server.client() as two, run.server.client() as live:
+        for client, group, name in ((one, 'gone', 'one'), (two, 'gone', 'two'),
+                                    (live, 'live', 'three')):
+            client.sock.sendall(encode('XREADGROUP', 'GROUP', group, name, 'BLOCK', 0,
+                                      'STREAMS', 'accounting', '>'))
+        until = time.monotonic() + 3
+        while int(fields(observer, 'CLIENTS')[b'blocked_clients']) != 3:
+            assert time.monotonic() < until, 'three actual blocked readers required'
+            time.sleep(.001)
+        assert c.cmd('XGROUP', 'DESTROY', 'accounting', 'gone') == 1
+        for client in (one, two):
+            assert client.read()['error'].startswith('NOGROUP')
+        run.check(label+' two woken errors', observe(observer),
+                  [2, {'errorstat_NOGROUP': 'count=2'}])
+        assert c.cmd('XADD', 'accounting', '1-0', 'f', 'v') == b'1-0'
+        assert live.read() == [[b'accounting', [[b'1-0', [b'f', b'v']]]]]
+        run.check(label+' survivor uncharged', observe(observer),
+                  [2, {'errorstat_NOGROUP': 'count=2'}])
 
 
 def main():

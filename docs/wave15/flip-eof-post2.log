@@ -1,0 +1,16 @@
+{"label": "epoll-a0-d1-stay1", "passed": true, "client": 6, "armed": true, "drained": 65, "flip_seconds": 0.100571951828897, "flip": "ERR FLIP refused: a connection is draining its end of stream"}
+{"label": "epoll-a0-d1-stay0", "passed": true, "client": 2, "armed": true, "drained": 65, "flip_seconds": 0.1005153814330697, "flip": "ERR FLIP refused: a connection is draining its end of stream"}
+{"label": "epoll-a0-d16-stay1", "passed": true, "client": 3, "armed": true, "drained": 65, "flip_seconds": 0.10050516296178102, "flip": "ERR FLIP refused: a connection is draining its end of stream"}
+{"label": "epoll-a0-d16-stay0", "passed": true, "client": 15, "armed": true, "flip_seconds": 0.1003706119954586, "flip": "ERR FLIP refused: a connection is draining its end of stream", "drained": 65}
+{"label": "epoll-a1-d1-stay1", "passed": true, "client": 4, "armed": true, "drained": 65, "flip_seconds": 0.10040135309100151, "flip": "ERR FLIP refused: a connection is draining its end of stream"}
+{"label": "epoll-a1-d1-stay0", "passed": true, "client": 2, "armed": true, "flip_seconds": 0.1003619022667408, "flip": "ERR FLIP refused: a connection is draining its end of stream", "drained": 65}
+{"label": "epoll-a1-d16-stay1", "passed": true, "client": 3, "armed": true, "drained": 65, "flip_seconds": 0.10042262263596058, "flip": "ERR FLIP refused: a connection is draining its end of stream"}
+{"label": "epoll-a1-d16-stay0", "passed": true, "client": 2, "armed": true, "flip_seconds": 0.10038967244327068, "flip": "ERR FLIP refused: a connection is draining its end of stream", "drained": 65}
+{"label": "uring-a0-d1-stay1", "passed": true, "client": 5, "armed": true, "drained": 65, "flip_seconds": 0.10033297166228294, "flip": "ERR FLIP refused: a connection is draining its end of stream"}
+{"label": "uring-a0-d1-stay0", "passed": true, "client": 9, "armed": true, "flip_seconds": 0.10045918356627226, "flip": "ERR FLIP refused: a connection is draining its end of stream", "drained": 65}
+{"label": "uring-a0-d16-stay1", "passed": true, "client": 10, "armed": true, "flip_seconds": 0.10041549243032932, "flip": "ERR FLIP refused: a connection is draining its end of stream", "drained": 65}
+{"label": "uring-a0-d16-stay0", "passed": true, "client": 5, "armed": true, "drained": 65, "flip_seconds": 0.10040726140141487, "flip": "ERR FLIP refused: a connection is draining its end of stream"}
+{"label": "uring-a1-d1-stay1", "passed": true, "client": 7, "armed": true, "flip_seconds": 0.1004017535597086, "flip": "ERR FLIP refused: a connection is draining its end of stream", "drained": 65}
+{"label": "uring-a1-d1-stay0", "passed": true, "client": 24, "armed": true, "flip_seconds": 0.10054593347012997, "flip": "ERR FLIP refused: a connection is draining its end of stream", "drained": 65}
+{"label": "uring-a1-d16-stay1", "passed": true, "client": 10, "armed": true, "drained": 65, "flip_seconds": 0.10046961158514023, "flip": "ERR FLIP refused: a connection is draining its end of stream"}
+{"label": "uring-a1-d16-stay0", "passed": true, "client": 7, "armed": true, "drained": 65, "flip_seconds": 0.10044735390692949, "flip": "ERR FLIP refused: a connection is draining its end of stream"}

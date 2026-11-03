@@ -1,0 +1,35 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "32-39,40-47",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "32-39",
+    "--load-cores",
+    "40-47",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20040-20059",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave15/build/wave15/rebind-v6-post"
+  ],
+  "binary_sha256": "e41ab047ee7eb89148f863450260b165110bc01157dc5153f9869c93386bbe3e",
+  "env": {
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_ONLY_JOBS": "wave15_errorstats",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave15/docs/wave15/jobs/errorstats-tracked-probe",
+    "CXX": "g++ -gz=zlib",
+    "CC": "cc -gz=zlib"
+  }
+}

@@ -1,0 +1,1 @@
+{"label": "epoll-a1-d16-stay1", "passed": false, "client": 5, "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-wave15/tests/wave15_flip_eof.py\", line 40, in trial\n    assert time.monotonic() < until, 'sleep/FIN window did not arm'\n           ^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: sleep/FIN window did not arm\n"}

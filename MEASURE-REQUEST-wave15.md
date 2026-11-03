@@ -63,3 +63,13 @@ CONFIG's REUSEPORT replacements could join another process's listener group desp
 `integration-directed-1` passes the corrected cfgfix2 auth/shutdown, mixed generic errorstats, all EXEC participant/restart siblings, and 32 MiB/1 MiB plus original 128 MiB AOF progress matrices. Defective initial harness attempts remain labelled in receipts, not counted as evidence. Runtime payloads are SHA-recorded before pruning; logs and JSON receipts remain.
 
 Two further integration rows (idle accounting and runtime rebind exclusivity) are collected before the quick exit, for **1170/1187** currently: wave14 1090/1107 +75 lane rows +5 integration rows. EXPECT constants remain unchanged.
+
+### Error accounting / tracking interaction
+
+The expanded oracle found a duplicated error count for malformed XREAD under tracking: `tracking_register_read` parses a disposable Op before the real dispatch, and both error builders charged it. `ErrorStatsProbe` now suppresses only that metadata-only parse. It is thread-local, scoped, and consulted only inside the cold error recorder; successful reply builders still execute no accounting code. The oracle now also checks two NOGROUP wake errors and an uncharged surviving group. `errorstats-tracked-probe` is the failing pre-fix receipt.
+
+### Half-close / FLIP liveness repair
+
+A fresh 6:2/16-shard epoll probe reproduces a circular wait on the merged pre-integration-fix binary: FIN follows DEBUG SLEEP plus buffered INCRs; FLIP pauses admission and waits for the EOF timer; that timer waits for the paused suffix to execute. `flip-eof-pre2` proves the FIN/sleep window and times out waiting for FLIP. A precommit EOF now causes an explicit bounded refusal. If FIN arrives after commit on a retained IO, an execution-idle EOF timer may resume at Idle; executor barriers and borrow pins still veto that exemption. No timer or client state moves to another owner.
+
+A new gate row combines live exact-reply and state-directed postcommit checks. The corrected live fixture fits the request inside the receive window, uses TCP_INFO FIN_WAIT2 to prove accepted FIN while the first sleep reply remains unavailable, and rerolls an unopened window on at most sixteen fresh boots. It checks the unchanged one-second FLIP bound, exact refusal reasons, overall refusal counter, every INCR reply, EOF and the final value. The first full POST matrix passes 16/16; current declaration is **1171/1188** (+75 lane rows, +6 integration rows).
