@@ -98,8 +98,8 @@ class Server:
             raise
         self.pid = self.proc.pid
 
-    def conn(self, timeout=30):
-        return Conn('127.0.0.1', self.a.port, timeout=timeout)
+    def conn(self, timeout=None):
+        return Conn('127.0.0.1', self.a.port, timeout=timeout or self.a.conn_timeout)
 
     def alive(self):
         return self.proc.poll() is None
@@ -218,6 +218,8 @@ def case_retry(a, leg):
             message = sub.read()
             require(message == [b'message', b'pw:ch', str(i).encode()], f'subscriber got {message!r}')
             samples.append(ms)
+            if sum(x > a.deadline_ms for x in samples) >= a.stop_after:
+                break   # a failed deadline needs no further traffic
         out['exec_publish'] = summary(samples, a.deadline_ms)
         sub.close()
         # B. EXEC with SUBSCRIBE/UNSUBSCRIBE: the subscription half of the same path.
@@ -230,6 +232,8 @@ def case_retry(a, leg):
             require(replies[0] == b'OK' and isinstance(replies[3], list) and len(replies[3]) == 2,
                     f'EXEC+SUBSCRIBE reply {replies!r}')
             samples.append(ms)
+            if sum(x > a.deadline_ms for x in samples) >= a.stop_after:
+                break
         out['exec_subscribe'] = summary(samples, a.deadline_ms)
         # C. Contended cross-owner EXECs: dooms/wounds retry through the IO lane.
         k1, k2 = keys_on_distinct_owners(admin, 'pw:t', 2)
@@ -695,6 +699,8 @@ def main():
     p.add_argument('--deadline-ms', type=float, default=20.0)
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--movers', type=int, default=300)
+    p.add_argument('--conn-timeout', type=float, default=30.0)
+    p.add_argument('--stop-after', type=int, default=3, help='misses after which a form stops')
     p.add_argument('--slowsync', type=Path, default=Path(__file__).resolve().parents[1] / 'build/parkwake-slowsync.so')
     p.add_argument('--scripts', type=int, default=4)
     p.add_argument('--reply-seconds', type=float, default=5.0)
