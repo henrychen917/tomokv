@@ -1,12 +1,12 @@
 {
   "pre": {
-    "path": "build/parkwake/pre-source/build/tomokv",
+    "path": "build/parkwake/arms/tomokv-PRE",
     "sha256": "13dbf1e200102ea347d623e38ace196109ef3790835785002a14925fafac533d",
     "groups": 11254
   },
   "post": {
     "path": "build/tomokv",
-    "sha256": "480de2e6fa45344336c6845d119dc86f3be53a40e199c4e4dfba58fdd9e3bbf1",
+    "sha256": "4023172c9e668c8592f213f65817e77a2ab5319deb1643ea4f16a5183c5a090f",
     "groups": 11276
   },
   "changed": 321,

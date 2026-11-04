@@ -64,7 +64,7 @@ Strict gate normalizer (docs/wave9/identity.py, tools/wave12_normalize.py). Iden
 | `tomo::DatabaseMap::bind_workers(unsigned int, tomo::Server*)` | [527] | [543] |  |  |  |
 | `tomo::DatabaseMap::bind_workers(unsigned int, tomo::Server*) [clone .cold]` | [114] | [114] |  |  |  |
 | `tomo::DatabaseMap::boundary_started()` | [172] | [172] |  |  |  |
-| `tomo::DatabaseMap::drain_deadline_start(tomo::Server&, unsigned long, unsigned long)` | [] | [297] |  | yes |  |
+| `tomo::DatabaseMap::drain_deadline_start(tomo::Server&, unsigned long, unsigned long)` | [] | [313] |  | yes |  |
 | `tomo::DatabaseMap::join_workers(tomo::Server&, std::vector<std::thread, std::allocator<std::thread> >&)` | [888] | [888] |  |  |  |
 | `tomo::DatabaseMap::monitor(tomo::Server&) [clone .part.0]` | [778] | [778] |  | yes |  |
 | `tomo::DatabaseMap::note_drain_waiting()` | [] | [108] |  | yes |  |
@@ -149,7 +149,7 @@ Strict gate normalizer (docs/wave9/identity.py, tools/wave12_normalize.py). Iden
 | `tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)` | [13197] | [13197] |  |  | yes |
 | `tomo_db0::(anonymous namespace)::script_random(lua_State*)` | [509] | [509] |  |  | yes |
 | `tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)` | [181] | [181] |  |  | yes |
-| `tomo_db0::DatabaseMap::drain_deadline_start(tomo_db0::Server&, unsigned long, unsigned long)` | [] | [297] |  | yes |  |
+| `tomo_db0::DatabaseMap::drain_deadline_start(tomo_db0::Server&, unsigned long, unsigned long)` | [] | [313] |  | yes |  |
 | `tomo_db0::DatabaseMap::note_drain_waiting()` | [] | [5] |  | yes |  |
 | `tomo_db0::DatabaseMap::publish(std::unique_ptr<tomo_db0::DatabaseMap::Map, std::default_delete<tomo_db0::DatabaseMap::Map> >)` | [498] | [498] |  |  |  |
 | `tomo_db0::DatabaseMap::state()` | [341] | [325] |  |  |  |
