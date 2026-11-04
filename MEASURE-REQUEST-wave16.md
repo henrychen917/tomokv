@@ -398,8 +398,8 @@ All gate runs went through `tests/gate.sh iteration` with `GATE_ONLY_JOBS` and
 | `tests/differ_gate.sh`, standard seeds 7 19 20 22 23 | POST | epoll | **pass=475 fail=0** (17m37s) |
 | `python3 tests/gates_test.py` | | CPUs 8-15, 80-95 | **79 tests OK** (200.6 s) |
 | `tests/gateplan.py --self-test` | | | **12 OK** |
-| `txnorder_fifo_live` ×10, in its wide slot | POST | one gate run per loop: 8 in one lane, 2 in parallel lanes on other CCXs | **10 / 10 ok** (plus the P1 run: 11 / 11) |
-| at412 T6 + T9 ×10 | POST | 8 in one lane, 2 in parallel lanes | **T6 10 / 10, T9 10 / 10 ok** (plus P1: 11 / 11 each) |
+| `txnorder_fifo_live` ×10, in its wide slot | POST | one gate run per loop: 9 in one lane, 2 in parallel lanes on other CCXs | **11 / 11 ok** (plus the P1 run: 12 / 12) |
+| at412 T6 + T9 ×10 | POST | 9 in one lane, 2 in parallel lanes | **T6 11 / 11, T9 11 / 11 ok** (plus P1: 12 / 12 each) |
 | `wave15-block-*` ×10, the coordinator's addition (12 rows of 200 repetitions per loop) | POST | | **10 / 10 loops, 120 / 120 rows ok** (24,000 deleted-stream iterations, 0 wrong replies) |
 | `atomwake-live-2s-uring`, interleaved A/B ×5 | POST / PRE | | **POST 5 / 5, PRE 5 / 5** (60 legs each, 0 failures) |
 
@@ -413,9 +413,10 @@ All gate runs went through `tests/gate.sh iteration` with `GATE_ONLY_JOBS` and
   in the ephemeral range, which other lanes' clients were drawing from. The five other Tcl failures
   are present in both modes, and the manifest accounts for them (unknown DEBUG subcommand,
   `list-compress-depth`, `aof-use-rdb-preamble no`). The second isolated run passed both modes.
-- **The loop lanes**: each main FIFO and T6/T9 loop was stopped by PID after its 8th run, and runs
-  9-10 ran on two parallel lanes. The stopped 9th attempt was terminated at its start (`release`
-  prerequisite only), torn down by the gate's own cleanup, and is not counted.
+- **The loop lanes**: to finish sooner, two more FIFO and two more T6/T9 lanes ran in parallel, and
+  each main loop's shell was stopped by PID after its 8th run. The 9th run had already started and
+  was not interrupted; it ran to completion and passed, so each loop has 11 runs. All are in
+  `docs/wave16/proof`.
 - **The atomwake diag leg**: one leg of 12 in the first diag run (`rl0-db16-rep2`) had one probe
   batch of 33.4 ms (its first replies at 28.6 ms) against the 20 ms bound.
   - A missed wake on the 2 s arm costs 2,000 ms, so this is a credit-contention tail. The test notes
