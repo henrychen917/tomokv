@@ -175,6 +175,15 @@ public:
         ~ClientWorkScope() {
             if (outer_) epoch_.store(end_, std::memory_order_release);
         }
+        // A parked thread holds no Client pointer. A loop whose outermost scope spans its
+        // blocking wait ends the scope for the wait (even epoch) and opens a fresh one after
+        // (new odd epoch), so close and client-LB fences never wait for a park to time out.
+        void park() { if (outer_) epoch_.store(end_, std::memory_order_release); }
+        void resume() {
+            if (!outer_) return;
+            epoch_.store(end_ + 1, std::memory_order_release);
+            end_ += 2;
+        }
         ClientWorkScope(const ClientWorkScope&) = delete;
         ClientWorkScope& operator=(const ClientWorkScope&) = delete;
     private:
@@ -191,6 +200,8 @@ public:
     public:
 #if TOMO_SINGLE_DATABASE && !defined(TOMO_MDBQSBR_DB0_NEGATIVE)
         DatabaseWorkScope(Server&, uint32_t) {}
+        void park() {}
+        void resume() {}
 #else
 #ifdef TOMO_MDBQSBR_TEST
         DatabaseWorkScope(Server& server, uint32_t tid) {
@@ -198,9 +209,15 @@ public:
             if (DatabaseMapTestHooks::fault != DatabaseMapTestHooks::OmitIo)
                 work_.emplace(server, tid);
         }
+        void park() { if (work_) work_->park(); }
+        void resume() { if (work_) work_->resume(); }
 #else
         DatabaseWorkScope(Server& server, uint32_t tid)
             : work_(safe_point(server, tid), tid) {}
+        // The whole pass is a map-reader region, but the blocking wait reads no map and holds
+        // no Client: publish it as outside the client-work scope (ClientWorkScope::park).
+        void park() { work_.park(); }
+        void resume() { work_.resume(); }
 #endif
     private:
         static Server& safe_point(Server& server, uint32_t tid) {

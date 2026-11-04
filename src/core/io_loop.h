@@ -783,13 +783,17 @@ private:
 #ifdef TOMO_SIGNALACCT_WITNESS
                         tenure.park();
 #endif
+                        database_work.park();
                         epoll_pass<HasUnix, HasTls, Fused>(wait_ms);
+                        database_work.resume();
                     }
                 } else if (!credit_room && !retry_ready && !self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
+                    database_work.park();
                     epoll_pass<HasUnix, HasTls, false>(wait_ms);
+                    database_work.resume();
                 }
             } else {
                 if constexpr (Fused) {
@@ -797,14 +801,18 @@ private:
 #ifdef TOMO_SIGNALACCT_WITNESS
                         tenure.park();
 #endif
+                        database_work.park();
                         ring_.submit_and_wait(1, wait_ms);
+                        database_work.resume();
                     } else                            ring_.submit_and_reap();
                 } else {
                     if (!credit_room && !retry_ready && !self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                         tenure.park();
 #endif
+                        database_work.park();
                         ring_.submit_and_wait(1, wait_ms);
+                        database_work.resume();
                     } else                         ring_.submit_and_reap();
                 }
             }
