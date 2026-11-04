@@ -19,6 +19,11 @@ bgsave   F9. A BGSAVE owner refused by its full chunk channel was never woken wh
          freed it. One owner holds the whole dataset and the BGSAVE writer is another thread; the
          capture rate must exceed a bound that a 50 ms-per-channel cadence cannot reach, the
          owner's channel must actually have refused a post, and the dump reloads exactly.
+loadaof  F13. DEBUG LOADAOF issued on the AOF writer's own IO thread spun without submitting or
+         reaping its writes. It follows 200 pipelined SETs on the writer thread's connection, so
+         their chunks are still unwritten when it drains; it must reply within 5 s, a PING on
+         another thread must answer within 2 s, and every acknowledged key must reload exactly.
+         The same pipeline from another IO thread is the control.
 """
 import argparse
 import contextlib
@@ -495,10 +500,69 @@ def case_bgsave(args, directory, mode, engine, evidence):
 
 
 # ---------------------------------------------------------------------------------------------
+# F13: DEBUG LOADAOF on the AOF writer's own IO thread
+# ---------------------------------------------------------------------------------------------
+
+def case_loadaof(args, directory, mode, engine, evidence):
+    b = Boot(args, directory, mode, engine, AOF_EXTRA)
+    try:
+        c = b.c
+        writer = aof_writer(c)
+        on_writer = connect_on(args.port, args.stall, lambda t: t == writer)
+        off_writer = connect_on(args.port, args.stall, lambda t: t != writer)
+        control = connect_on(args.port, args.stall, lambda t: t != writer)
+        sentinels = {f'iowake:f13:s{i}': os.urandom(32) for i in range(16)}
+        for key, value in sentinels.items():
+            assert c.must('SET', key, value) == b'OK'
+        keys = len(sentinels)
+        attempts = []
+        # Pipelined writes ahead of LOADAOF on the same connection: their chunks are posted, and
+        # on the writer's own thread still unwritten, when LOADAOF drains. The writer-thread
+        # attempts are the witness; the off-writer attempt takes the existing timed wait.
+        for i, (name, issuer) in enumerate([('writer', on_writer)] * args.repeats +
+                                           [('control', off_writer)]):
+            batch = [f'iowake:f13:{i}:{n}' for n in range(200)]
+            issuer.raw(b''.join(encode('SET', key, f'v{i}') for key in batch) +
+                       encode('DEBUG', 'LOADAOF'))
+            issuer.sock.settimeout(5)
+            began = time.monotonic()
+            try:
+                assert all(issuer.read() == b'OK' for _ in batch), (name, 'pipelined SET')
+                reply = issuer.read()
+            except (TimeoutError, socket.timeout) as exc:
+                raise AssertionError(f'{mode}/{engine}/{name}#{i}: DEBUG LOADAOF did not reply '
+                                     'in 5 s') from exc
+            finally:
+                issuer.sock.settimeout(args.stall)
+            elapsed = (time.monotonic() - began) * 1000
+            assert reply == b'OK', (name, reply)
+            control.sock.settimeout(2)
+            try:
+                assert control.must('PING') == b'PONG'
+            except (TimeoutError, socket.timeout) as exc:
+                raise AssertionError(f'{mode}/{engine}/{name}#{i}: PING after LOADAOF hung') from exc
+            finally:
+                control.sock.settimeout(args.stall)
+            keys += len(batch)
+            # Exact: every acknowledged write, including the pipelined batch, was reloaded.
+            assert c.must('DBSIZE') == keys, (name, 'reloaded key count')
+            assert c.must('GET', batch[-1]) == f'v{i}'.encode(), (name, 'pipelined value')
+            for key, value in sentinels.items():
+                assert c.must('GET', key) == value, (name, 'acknowledged sentinel lost', key)
+            attempts.append(dict(issuer=name, issuer_io=io_thread(issuer), loadaof_ms=round(elapsed, 2)))
+        evidence.update(writer=writer, attempts=attempts)
+        for conn in (on_writer, off_writer, control):
+            conn.close()
+        b.stop()
+    finally:
+        b.kill()
+
+
+# ---------------------------------------------------------------------------------------------
 # driver
 # ---------------------------------------------------------------------------------------------
 
-CASES = {'tls': case_tls, 'aof': case_aof, 'bgsave': case_bgsave}
+CASES = {'tls': case_tls, 'aof': case_aof, 'bgsave': case_bgsave, 'loadaof': case_loadaof}
 
 
 def main():
