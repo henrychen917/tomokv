@@ -120,6 +120,8 @@ public:
     uint64_t grace_bound_ms() const;
     void boundary_started();
     void boundary_finished();
+    // A draining IO still holds an unfinished op: the boundary is waiting for a command.
+    void note_drain_waiting();
     void monitor(Server& server);
     // Main owns this wait, never a reader. Stop abandons early reclamation;
     // exited workers need no ack, and destruction after joins owns final grace.
@@ -166,6 +168,7 @@ private:
     void worker_exited(uint32_t tid);
     void worker_entered(uint32_t tid);
     bool stopping(Server& server);
+    uint64_t drain_deadline_start(Server& server, uint64_t since, uint64_t now);
     [[noreturn]] void overdue(Server& server, const char* kind, uint64_t elapsed_ms);
     std::atomic<const void*> swapping_{nullptr};
     mutable std::atomic<uint32_t> grace_work_{0};

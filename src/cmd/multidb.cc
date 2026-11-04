@@ -31,6 +31,7 @@ struct DatabaseMap::State {
         std::atomic<bool> exited{false};
         std::atomic<int> native_tid{0};
         int fd = -1;
+        uint64_t drain_epoch = 0; // monitor (main thread) only: client-work epoch at its last tick
         ~Participant() { if (fd >= 0) ::close(fd); }
     };
     struct Retired { std::unique_ptr<Map> map; uint64_t request, since_ms; };
@@ -49,6 +50,11 @@ struct DatabaseMap::State {
     // than at its next database safe point. Leave one ordinary grace after the
     // last observed persistence work, without restarting the caller's deadline.
     std::atomic<uint64_t> persistence_seen_ms{0};
+    // Namespace-drain supervision. Draining IOs stamp the last time they still held an
+    // unfinished op; the monitor alone owns the boundary it last watched and the last time it
+    // saw a participant inside one pass across two of its ticks.
+    std::atomic<uint64_t> drain_waiting_ms{0};
+    uint64_t drain_watched_since = 0, drain_command_ms = 0;
     std::mutex wait_mutex;
     std::condition_variable changed;
 
@@ -177,6 +183,35 @@ void DatabaseMap::boundary_finished() {
         if (state_) state_->boundary_since_ms.store(0, std::memory_order_release);
 }
 
+void DatabaseMap::note_drain_waiting() {
+    if constexpr (!kSingleDatabase)
+        if (state_) state_->drain_waiting_ms.store(now_ns() / 1000000, std::memory_order_relaxed);
+}
+
+// Redis runs SWAPDB after the command in progress: its single thread has nothing to time out.
+// Here DatabaseIoDrain waits for every in-flight op to be Done, so a long command legitimately
+// holds the boundary -- one pass that spans two monitor ticks (a long EVAL, SAVE), or an IO that
+// still holds an unfinished op (a KEYS walk sliced across passes, an appendfsync-always
+// durability wait). Either restarts the deadline, the rule worker shutdown already applies to a
+// command in flight. Only a boundary that shows neither for the whole bound is overdue.
+uint64_t DatabaseMap::drain_deadline_start(Server& server, uint64_t since, uint64_t now) {
+    auto& s = *state_;
+    if (s.drain_watched_since != since) {
+        s.drain_watched_since = since;
+        s.drain_command_ms = 0;
+        for (uint32_t tid = 0; tid < s.count; ++tid) s.participants[tid].drain_epoch = 0;
+    }
+    bool command = false;
+    for (uint32_t tid = 0; tid < s.count && tid < server.nthreads(); ++tid) {
+        auto& p = s.participants[tid];
+        const uint64_t epoch = server.client_work_epoch(tid);
+        command |= (epoch & 1) && epoch == p.drain_epoch;
+        p.drain_epoch = epoch;
+    }
+    if (command) s.drain_command_ms = now;
+    return std::max({since, s.drain_command_ms, s.drain_waiting_ms.load(std::memory_order_relaxed)});
+}
+
 bool DatabaseMap::stopping(Server& server) {
 #ifdef TOMO_MDBQSBR_TEST
     if (DatabaseMapTestHooks::fault == DatabaseMapTestHooks::IgnoreStop) return false;
@@ -246,7 +281,8 @@ void DatabaseMap::monitor(Server& server) {
         overdue(server, "retire acknowledgement", age);
     const uint64_t since = state_->boundary_since_ms.load(std::memory_order_acquire);
     const uint64_t now = now_ns() / 1000000;
-    if (since && now - since > state_->wait_bound_ms(3 * grace_bound_ms(), now) &&
+    if (since && now - drain_deadline_start(server, since, now) >
+                     state_->wait_bound_ms(3 * grace_bound_ms(), now) &&
         state_->boundary_since_ms.load(std::memory_order_acquire) == since && !stopping(server))
         overdue(server, "namespace drain", now - since);
 }

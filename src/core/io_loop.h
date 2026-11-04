@@ -2169,6 +2169,8 @@ private:
                 srv_->database_boundary_end(*client, id);
                 return 1;
             }
+            // The boundary's own op (SWAPDB, or an EXEC around it) is still executing.
+            if (stage == FlipStage::DatabaseRun) map.note_drain_waiting();
         }
         if (stage == FlipStage::DatabaseIoDrain) {
             // Judge the drain only for a live boundary epoch this IO still owes (flip_stage_owed:
@@ -2187,6 +2189,7 @@ private:
                             !blocking_namespace_quiesced(rob.at(id))) { drained = false; break; }
                 }
                 if (drained) srv_->flip_ack(self_->id(), stage);
+                else map.note_drain_waiting(); // a command in flight holds SWAPDB, as on Redis
             }
             if (coordinator && srv_->flip_all_role_acked(Role::Ifid, stage)) {
                 srv_->flip_set_stage(FlipStage::DatabaseExDrain);
