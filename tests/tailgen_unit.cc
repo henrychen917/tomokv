@@ -8,7 +8,9 @@
 #include "tools/tailgen/report.h"
 
 #include <algorithm>
+#include <bit>
 #include <cmath>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <sched.h>
@@ -68,6 +70,136 @@ void histogram() {
     }
     rejects([&] { whole.record(Histogram::max_ns + 1); }, "histogram overflow must fail");
     std::fprintf(stderr, "histogram: 1000000 samples vs exact sort PASS\n");
+}
+
+void attainment() {
+    // Empty: zero at every level, like every other statistic, and never NaN.
+    Histogram empty;
+    for (const auto& level : attain_ladder)
+        require(empty.count_at_or_below_ms(level.ms) == 0 && empty.fraction_at_or_below_ms(level.ms) == 0,
+                "empty histogram attainment must be zero");
+    require(empty.fraction_at_or_below_ms(INFINITY) == 0 && percent_floor3(0, 0) == "0.000",
+            "empty histogram attainment must be zero at any level");
+    rejects([&] { empty.fraction_at_or_below_ms(std::nan("")); }, "NaN attainment level accepted");
+
+    // One sample against one level at each documented boundary. record() bins
+    // latency rounded UP to whole microseconds; a bucket counts only when its
+    // upper bound is <= the level, so a straddling bucket is excluded whole.
+    struct Case { uint64_t ns; double ms; bool counted; const char* what; };
+    const Case cases[] = {
+        {0, 0, true, "0 ns is at or below a zero level"},
+        {1, 0, false, "1 ns rounds up into the 1 us bucket, above a zero level"},
+        {0, -0.001, false, "a negative level counts nothing"},
+        {49'001, 0.05, true, "49.001 us shares the 50 us bucket"},
+        {50'000, 0.05, true, "exactly 0.05 ms is at or below 0.05 ms"},
+        {50'001, 0.05, false, "50.001 us exceeds 0.05 ms"},
+        {50'001, 0.051, true, "50.001 us is at or below 51 us"},
+        {100'000, 0.1, true, "0.1 ms survives decimal-to-binary conversion"},
+        {100'001, 0.1, false, "just over 0.1 ms"},
+        {200'000, 0.2, true, "exactly 0.2 ms"}, {200'001, 0.2, false, "just over 0.2 ms"},
+        {500'000, 0.5, true, "exactly 0.5 ms"}, {500'001, 0.5, false, "just over 0.5 ms"},
+        {1'000'000, 1, true, "exactly 1 ms"}, {1'000'001, 1, false, "just over 1 ms"},
+        {2'000'000, 2, true, "exactly 2 ms"}, {2'000'001, 2, false, "just over 2 ms"},
+        {2'047'000, 2.047, true, "last 1 us bucket"},
+        {2'048'000, 2.048, false, "first 2 us bucket [2048,2049] us straddles 2.048 ms"},
+        {2'048'000, 2.049, true, "first 2 us bucket counts at its 2049 us upper bound"},
+        {4'999'000, 5, true, "bucket [4996,4999] us lies below 5 ms"},
+        {4'999'001, 5, false, "bucket [5000,5003] us straddles 5 ms and is excluded"},
+        {5'000'000, 5, false, "exactly 5 ms sits in the straddling bucket (documented undercount)"},
+        {5'000'000, 5.003, true, "5 ms counts once the level reaches its bucket's upper bound"},
+        {9'999'000, 10, true, "bucket [9992,9999] us lies below 10 ms"},
+        {9'999'001, 10, false, "bucket [10000,10007] us straddles 10 ms"},
+        {19'999'000, 20, true, "bucket [19984,19999] us lies below 20 ms"},
+        {19'999'001, 20, false, "bucket [20000,20015] us straddles 20 ms"},
+        {49'983'000, 50, true, "bucket [49952,49983] us lies below 50 ms"},
+        {49'983'001, 50, false, "bucket [49984,50015] us straddles 50 ms"},
+        {50'000'000, 50.015, true, "50 ms counts at its bucket's 50015 us upper bound"},
+        {Histogram::max_ns, 99'999.999, false, "the top bucket ends at the 100 s range edge"},
+        {Histogram::max_ns, 100'000, true, "100 s at a 100 s level"},
+        {Histogram::max_ns, INFINITY, true, "an infinite level counts everything"},
+    };
+    for (const auto& c : cases) {
+        Histogram one;
+        one.record(c.ns);
+        require(one.count_at_or_below_ms(c.ms) == (c.counted ? 1u : 0u) &&
+                one.fraction_at_or_below_ms(c.ms) == (c.counted ? 1.0 : 0.0), c.what);
+    }
+
+    // Eight known samples: every ladder fraction is an exact eighth. The 5 ms and
+    // 50 ms samples fall in straddling buckets and miss their own levels.
+    Histogram mix;
+    for (uint64_t ns : {0, 50'000, 50'001, 1'000'000, 4'999'000, 5'000'000, 50'000'000, 100'000'000}) mix.record(ns);
+    const unsigned eighths[] = {2, 3, 3, 3, 4, 4, 5, 6, 6, 6};
+    for (size_t i = 0; i < attain_ladder.size(); ++i)
+        require(mix.count_at_or_below_ms(attain_ladder[i].ms) == eighths[i] &&
+                mix.fraction_at_or_below_ms(attain_ladder[i].ms) == eighths[i] / 8.0, "ladder fractions of known samples");
+    const std::string mix_pct =
+        R"({"0.05":25.000,"0.1":37.500,"0.2":37.500,"0.5":37.500,"1":50.000,"2":50.000,"5":62.500,"10":75.000,"20":75.000,"50":75.000})";
+    const std::string zero_pct =
+        R"({"0.05":0.000,"0.1":0.000,"0.2":0.000,"0.5":0.000,"1":0.000,"2":0.000,"5":0.000,"10":0.000,"20":0.000,"50":0.000})";
+    std::ostringstream json;
+    write_json(json, mix, empty, 1'000'000'000, 1, 0);
+    require(json.str().ends_with(R"(,"window_seconds":1,"attain_pct":{"short":)" + mix_pct + R"(,"long":)" + zero_pct +
+                                 R"(,"combined":)" + mix_pct + "}}\n"), "JSON attainment curve and empty class");
+    std::ostringstream human;
+    human_attainment(human, "short", mix);
+    require(human.str() == "short attain: <=0.05ms=25.000% <=0.1ms=37.500% <=0.2ms=37.500% <=0.5ms=37.500% <=1ms=50.000%"
+                           " <=2ms=50.000% <=5ms=62.500% <=10ms=75.000% <=20ms=75.000% <=50ms=75.000%\n",
+            "stderr attainment line");
+
+    // Percent is truncated in integers: never rounded up to 100.000, no binary error.
+    require(percent_floor3(0, 7) == "0.000" && percent_floor3(7, 7) == "100.000", "attainment percent endpoints");
+    require(percent_floor3(1, 3) == "33.333" && percent_floor3(2, 3) == "66.666", "attainment percent must truncate");
+    require(percent_floor3(29, 100) == "29.000", "attainment percent must not inherit binary-fraction error");
+    require(percent_floor3(199'999, 200'000) == "99.999" && percent_floor3(1, 100'000) == "0.001" &&
+            percent_floor3(1, 100'001) == "0.000", "one request short of all must not print 100.000");
+    require(percent_floor3(UINT64_MAX - 1, UINT64_MAX) == "99.999", "attainment percent overflow");
+
+    // Exact oracle: the count equals the samples <= U, U being the largest bucket
+    // upper bound <= the level, derived here from the documented layout. Samples
+    // and levels sit on and beside microsecond edges in every octave.
+    const auto largest_upper_us = [](uint64_t limit_us) -> uint64_t {
+        if (limit_us >= Histogram::max_us) return Histogram::max_us;
+        if (limit_us < 2048) return limit_us;
+        const uint64_t width = uint64_t{1} << (std::bit_width(limit_us) - 11);
+        return (limit_us + 1) / width * width - 1;
+    };
+    Random rng(23);
+    Histogram many;
+    std::vector<uint64_t> exact{0};
+    many.record(0);
+    for (unsigned i = 0; i < 200'000; ++i) {
+        const uint64_t octave = rng.bounded(27), us = (uint64_t{1} << octave) + rng.bounded(uint64_t{1} << octave);
+        const uint64_t ns = std::min(Histogram::max_ns, us * 1000 - 1 + (i % 4 < 3 ? i % 4 : rng.bounded(1000)));
+        exact.push_back(ns);
+        many.record(ns);
+    }
+    std::sort(exact.begin(), exact.end());
+    const auto at_or_below = [&](uint64_t ns) {
+        return static_cast<uint64_t>(std::upper_bound(exact.begin(), exact.end(), ns) - exact.begin());
+    };
+    std::vector<uint64_t> levels;
+    for (const auto& level : attain_ladder) {
+        const auto ns = static_cast<uint64_t>(std::llround(level.ms * 1e6));
+        require(ns > 2'000'000 || many.count_at_or_below_ms(level.ms) == at_or_below(ns),
+                "ladder levels through 2 ms must be exact to the nanosecond");
+        levels.insert(levels.end(), {ns - 1, ns, ns + 1});
+    }
+    for (unsigned i = 0; i < 4000; ++i) {
+        const uint64_t octave = rng.bounded(38); // reaches beyond the 100 s range edge
+        const uint64_t ns = (uint64_t{1} << octave) + rng.bounded(uint64_t{1} << octave);
+        levels.insert(levels.end(), {ns, ns / 1000 * 1000, ns / 1000 * 1000 + 999});
+    }
+    for (uint64_t ns : levels) {
+        const double ms = static_cast<double>(ns) / 1e6;
+        const uint64_t expected = at_or_below(largest_upper_us(ns / 1000) * 1000);
+        require(many.count_at_or_below_ms(ms) == expected, "attainment differs from the exact bucket-rule oracle");
+        require(many.fraction_at_or_below_ms(ms) == static_cast<double>(expected) / static_cast<double>(exact.size()),
+                "attainment fraction differs from count / samples");
+        require(expected <= at_or_below(ns), "attainment overstated");
+    }
+    std::fprintf(stderr, "attainment: bucket-rule boundaries, exact eighths, %zu-level oracle, truncated percent, empty PASS\n",
+                 levels.size());
 }
 
 void parser() {
@@ -296,14 +428,18 @@ void json_contract() {
     write_json(out, short_latency, long_latency, 2'000'000'000, 65, .25);
     // Independent tiny oracle, including units, the eleven keys, and the
     // distinction between short p99.9, combined mean and measurement rate.
-    const char* expected = R"({"rate":1.5,"latency_ms":0.002,"p999_ms":0.003,"long_p999_ms":0.002,"short_count":2,"long_count":1,"short":{"count":2,"mean_ms":0.002,"p50_ms":0.001,"p90_ms":0.003,"p99_ms":0.003,"p999_ms":0.003,"p9999_ms":0.003,"max_ms":0.003},"long":{"count":1,"mean_ms":0.002,"p50_ms":0.002,"p90_ms":0.002,"p99_ms":0.002,"p999_ms":0.002,"p9999_ms":0.002,"max_ms":0.002},"outstanding_max":65,"over_max_outstanding_fraction":0.25,"window_seconds":2})";
-    require(out.str() == std::string(expected) + '\n', "JSON harness contract");
-    std::fprintf(stderr, "JSON: exact schema, units, sample counts, cohort rate PASS\n");
+    // The eleven original fields stay byte-identical; attain_pct follows them.
+    const std::string original = R"({"rate":1.5,"latency_ms":0.002,"p999_ms":0.003,"long_p999_ms":0.002,"short_count":2,"long_count":1,"short":{"count":2,"mean_ms":0.002,"p50_ms":0.001,"p90_ms":0.003,"p99_ms":0.003,"p999_ms":0.003,"p9999_ms":0.003,"max_ms":0.003},"long":{"count":1,"mean_ms":0.002,"p50_ms":0.002,"p90_ms":0.002,"p99_ms":0.002,"p999_ms":0.002,"p9999_ms":0.002,"max_ms":0.002},"outstanding_max":65,"over_max_outstanding_fraction":0.25,"window_seconds":2})";
+    const std::string all = R"({"0.05":100.000,"0.1":100.000,"0.2":100.000,"0.5":100.000,"1":100.000,"2":100.000,"5":100.000,"10":100.000,"20":100.000,"50":100.000})";
+    const std::string expected = original.substr(0, original.size() - 1) + R"(,"attain_pct":{"short":)" + all +
+                                 R"(,"long":)" + all + R"(,"combined":)" + all + "}}\n";
+    require(out.str() == expected, "JSON harness contract");
+    std::fprintf(stderr, "JSON: exact schema, units, sample counts, cohort rate, attain_pct PASS\n");
 }
 } // namespace
 
 int main() {
-    try { histogram(); parser(); workload(); outstanding(); connections(); json_contract(); pacing(); }
+    try { histogram(); attainment(); parser(); workload(); outstanding(); connections(); json_contract(); pacing(); }
     catch (const std::exception& e) { std::fprintf(stderr, "tailgen-unit: FAIL: %s\n", e.what()); return 1; }
     std::fprintf(stderr, "tailgen-unit: PASS\n");
 }
