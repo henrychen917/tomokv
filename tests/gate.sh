@@ -1049,6 +1049,7 @@ job_body(){
     aof-*) job_aof "$name";;
     atomfix6-live-*) job_atomfix6_live "$name";;
     atomwake-live-*) job_atomwake_live "$name";;
+    blockwake-live-*) job_blockwake_live "$name";;
     txnorder2) job_txnorder2;;
     txnorder_wake) job_txnorder_wake;;
     at412-*) job_at412 "${name#at412-}";;
@@ -1214,6 +1215,7 @@ plan_jobs(){
   done; done; done
   for mode in 2s 1s; do for section in uring epoll; do JOB_NAMES+=("atomwake-live-$mode-$section"); done; done
   JOB_NAMES+=(atomwake_unit)
+  for mode in 2s 1s; do for section in uring epoll; do JOB_NAMES+=("blockwake-live-$mode-$section"); done; done
   for section in T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11a T11b T12 T13 T14 T15 T16 owner; do JOB_NAMES+=("at412-$section"); done
   local resp_case resp_engine
   for resp_case in fragment cpu neighbour; do for mode in 1s 2s; do
@@ -1613,6 +1615,26 @@ job_atomwake_live(){
 # mset8fix: one serverless row, collected before the quick exit with the live rows (DQ=+1, DF=+1).
 # Deterministic doorbell schedules on real rings in both engines: publish/retire in both orders,
 # one wake per credit in turn, an awake holder skipped, and the snapshot barrier clear.
+# blockwake F6a/F6b: a push served to a cancelled blocking waiter (CLIENT KILL/UNBLOCK/disconnect)
+# loses the popped element (S1 data loss); a still-registering front waiter strands the waiters
+# queued behind it (BLPOP .. 0 hang). Two rows per mode/engine: cancel (vs the Redis 7.4 oracle)
+# and strand. Four jobs x two rows collected before the quick exit: DQ=+8, DF=+8.
+# EXPECT_QUICK / EXPECT_FULL remain maintainer-owned.
+job_blockwake_live(){
+  local prefix family mode engine
+  IFS=- read -r prefix family mode engine <<< "$1"
+  row_begin "blockwake cancel: no element lost to a cancelled waiter ($mode, $engine)"
+  if py tests/blockwake.py cancel --binary "$CANDIDATE_BINARY" \
+      --oracle "$REDIS74_ROOT/src/redis-server" --cores "$CORES" --port "$PORT" \
+      --ratio "$GATE_RATIO" --mode "$mode" --engine "$engine" --output "$TMPDIR/cancel" \
+      >"$TMPDIR/cancel.log" 2>&1; then ok "blockwake cancel: no element lost to a cancelled waiter ($mode, $engine)"
+  else bad "blockwake cancel: no element lost to a cancelled waiter ($mode, $engine)" "see $TMPDIR/cancel.log"; fi
+  row_begin "blockwake strand: a registering front waiter does not strand its followers ($mode, $engine)"
+  if py tests/blockwake.py strand --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+      --ratio "$GATE_RATIO" --mode "$mode" --engine "$engine" --output "$TMPDIR/strand" \
+      >"$TMPDIR/strand.log" 2>&1; then ok "blockwake strand: a registering front waiter does not strand its followers ($mode, $engine)"
+  else bad "blockwake strand: a registering front waiter does not strand its followers ($mode, $engine)" "see $TMPDIR/strand.log"; fi
+}
 job_atomwake_unit(){
   local label="atomwake credit doorbell unit (uring, epoll)" passed=1 engine
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/atomwake-unit >"$TMPDIR/build.log" 2>&1

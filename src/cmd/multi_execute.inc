@@ -287,6 +287,10 @@
                                                    *aof_context);
                         // Private pushes must never claim a blocked client. Once
                         // the CAS wins, sweep participant registries on their owners.
+                        // F6c: order this commit's data before the waiter-count reads, so a
+                        // concurrently registering waiter is either seen here or sees the data in
+                        // its own post-add reprobe (Shard::blocking_publish_fence / has_waiters).
+                        Shard::blocking_publish_fence();
                         bool owners[kMaxThreads] = {};
                         for (int32_t sid : state.shards) {
                             Shard& participant = server.shard(sid);

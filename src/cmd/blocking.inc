@@ -910,16 +910,14 @@ public:
                 BlockingPhase phase = state.phase.load(std::memory_order_acquire);
                 if (phase == BlockingPhase::Parked && blocking_request_remap(state, self, ring))
                     phase = BlockingPhase::RemapRequested;
-                if (state.cancel_requested.load(std::memory_order_acquire) &&
-                    blocking_phase_live(phase)) {
-                    if (state.phase.compare_exchange_strong(
-                            phase, BlockingPhase::Cancelled, std::memory_order_acq_rel,
-                            std::memory_order_acquire) &&
-                        state.active_tasks.load(std::memory_order_acquire) == 0)
-                        blocking_finish_cancelled(state, &self, &ring);
-                    phase = state.phase.load(std::memory_order_acquire);
-                }
+                phase = honour_cancel(state, phase, self, ring);
                 if (!blocking_phase_live(phase)) {
+                    if (claimed_here(state, phase, queue.waiters[i].key_index)) {
+                        shard.set_blocking_dirty();
+                        work++;
+                        i++;
+                        continue;
+                    }
                     remove_at_from_shard(shard, queue, i);
                     work++;
                     continue;
@@ -986,6 +984,33 @@ private:
         ~ServiceScope() { active = previous; }
     };
     bool servicing_ = false;
+
+    // CLIENT KILL, CLIENT UNBLOCK and a disconnect only request cancellation (the requesting IO
+    // stores cancel_requested): the waiter stays Parked until an owner visit honours it. Both
+    // the sweep AND the push path (service) honour it before anything can claim the waiter, or a
+    // push that the requester issued after its KILL/UNBLOCK reply hands the element to a closed
+    // (or unblocked) client: Redis frees/unblocks the client before it replies.
+    static BlockingPhase honour_cancel(BlockingState& state, BlockingPhase phase,
+                                       ThreadCtx& self, Ring& ring) {
+        if (!state.cancel_requested.load(std::memory_order_acquire) || !blocking_phase_live(phase))
+            return phase;
+        if (state.phase.compare_exchange_strong(
+                phase, BlockingPhase::Cancelled, std::memory_order_acq_rel,
+                std::memory_order_acquire) &&
+            state.active_tasks.load(std::memory_order_acquire) == 0)
+            blocking_finish_cancelled(state, &self, &ring);
+        return state.phase.load(std::memory_order_acquire);
+    }
+
+    // A front waiter that was still registering when data arrived is claimed by its finishing
+    // owner through this queue's candidate, and takes its element in a task posted here. Until
+    // it has, it keeps its place and this owner keeps re-servicing: serving the waiters behind
+    // it first would hand them its element (Redis serves the longest-waiting client first).
+    static bool claimed_here(const BlockingState& state, BlockingPhase phase, uint32_t key_index) {
+        return (phase == BlockingPhase::Claimed || phase == BlockingPhase::NeedSelected) &&
+               state.candidate.load(std::memory_order_acquire) == key_index;
+    }
+
     void remove_at_from_shard(Shard& shard, BlockingQueue& queue, size_t index) {
         BlockingState* state = queue.waiters[index].state;
         queue.members.erase(state);
@@ -1009,7 +1034,12 @@ private:
             BlockingPhase phase = state.phase.load(std::memory_order_acquire);
             if (phase == BlockingPhase::Parked && blocking_request_remap(state, self, ring))
                 phase = BlockingPhase::RemapRequested;
+            phase = honour_cancel(state, phase, self, ring);
             if (!blocking_phase_live(phase)) {
+                if (claimed_here(state, phase, entry.key_index)) {
+                    shard.set_blocking_dirty();
+                    return work + 1;
+                }
                 remove_at_from_shard(shard, queue, i);
                 work++;
                 continue;
@@ -1033,6 +1063,11 @@ private:
                 blocking_atomic_min(state.candidate, entry.key_index);
                 if (state.phase.load(std::memory_order_acquire) != BlockingPhase::Registering)
                     continue;
+                // The front waiter is still registering on another owner and will take one
+                // element through its candidate. The waiters behind it were not examined: keep
+                // this owner's queues dirty so a later cycle serves them once it has. Without
+                // this, a timeout-0 follower waits for the next push while the data sits here.
+                shard.set_blocking_dirty();
                 return work + 1;
             }
             BlockingPhase expected = BlockingPhase::Parked;
@@ -1339,15 +1374,36 @@ bool blocking_execute_impl(Server&, ThreadCtx& self, Ring& ring, const Task& tas
             blocking_task_done(state, self, ring);
             return true;
         }
+        bool added_any = false;
         for (uint32_t index : group->keys) {
             if (state.phase.load(std::memory_order_acquire) !=
                 BlockingPhase::Registering) break;
             BlockingKey& key = state.keys[index];
             key.probe = blocking_probe_key(shard, state, key);
-            if (key.probe == BlockingProbe::Empty && !registry->add(shard, state, index)) {
-                blocking_fail_registration_oom(state, op, self, ring);
-                blocking_task_done(state, self, ring);
-                return true;
+            if (key.probe == BlockingProbe::Empty) {
+                if (const uint32_t us = __builtin_expect(
+                        state.server->take_debug_blocking_register_defer(), 0))
+                    Server::debug_stall_us(us);  // widen the probe/add window (F6c control)
+                if (!registry->add(shard, state, index)) {
+                    blocking_fail_registration_oom(state, op, self, ring);
+                    blocking_task_done(state, self, ring);
+                    return true;
+                }
+                added_any = true;
+            }
+        }
+        // F6c: add-then-fence-then-reprobe. registry->add() made this waiter visible to the
+        // waiter count with a seq_cst RMW; the fence orders that store before the reprobe's load
+        // of the key. A cross-thread committer that publishes data and then reads the count is the
+        // other Dekker half (blocking_publish_fence before every cross-owner count read): either
+        // it observes this waiter and marks the shard dirty, or this reprobe observes its data.
+        // Without this, a BLPOP..0 whose registration raced the commit parks on present data.
+        if (added_any && state.phase.load(std::memory_order_acquire) == BlockingPhase::Registering) {
+            std::atomic_thread_fence(std::memory_order_seq_cst);
+            for (uint32_t index : group->keys) {
+                BlockingKey& key = state.keys[index];
+                if (key.probe == BlockingProbe::Empty)
+                    key.probe = blocking_probe_key(shard, state, key);
             }
         }
         if (state.phase.load(std::memory_order_acquire) == BlockingPhase::Registering &&
@@ -1501,11 +1557,25 @@ uint32_t blocking_owner_cycle(Server&, ThreadCtx& self, Ring& ring, int64_t now_
     return work;
 }
 
+// F7: the owner's pre-park re-check. A producer sets a shard dirty (seq_cst) and then wakes the
+// owner conditionally on parked_; if that wake loses the race with the owner's park, this re-check
+// -- run after arm_blocked()'s seq_cst fence -- still finds the flag and keeps the owner off the
+// 50 ms timeout. Cold: the caller only reaches it with blocked clients present.
+bool blocking_owner_dirty_pending(ThreadCtx& self) {
+    for (Shard* shard : self.shards())
+        if (shard->has_blocking_waiters() && shard->blocking_dirty_pending()) return true;
+    return false;
+}
+
 void blocking_atomic_published(Server& server, ThreadCtx& self, Ring& ring,
                                ScatterState& state) {
     if (!(state.atomic_apply || state.atomic_write || state.atomic_pop) ||
         state.epoch.load(std::memory_order_acquire) == 0 ||
         state.aborted.load(std::memory_order_acquire)) return;
+    // F6c producer half: order the commit's published data before the count read below, so a
+    // waiter still registering on one of these shards is either seen here (dirty + wake) or sees
+    // this data in its own post-add reprobe.
+    Shard::blocking_publish_fence();
     bool owners[kMaxThreads] = {};
     for (uint32_t i = 0; i < state.nsub; i++) {
         Shard& shard = server.shard(state.groups[i].shard);
@@ -1641,7 +1711,15 @@ bool blocking_resume_move_impl(Server& server, ThreadCtx& self, Ring& ring, Clie
         ScatterDispatch dispatch;
         const ScatterPrepare prepared = xshard_prepare(
             server, op, pool, self.id(), client.id(), dispatch);
-        if (prepared == ScatterPrepare::Backpressure) return false;
+        if (prepared == ScatterPrepare::Backpressure) {
+            // F8: a resumed BLMOVE/BRPOPLPUSH the global atomic window refused leaves this frame
+            // unconsumed, and nothing else may wake this IO. Arm the credit doorbell exactly as
+            // script_window_resume does, so a credit retirement or barrier clear rings it instead
+            // of the 50 ms park timeout. The pre-park sweep cleared credit_wait and recomputes it.
+            if (!server.atomic_can_admit(self.id()))
+                self.atomic_admission_state().credit_wait = true;
+            return false;
+        }
         if (prepared == ScatterPrepare::Error) {
             block->phase.store(BlockingPhase::Completed, std::memory_order_release);
             op.state.store(OpState::Done, std::memory_order_release);

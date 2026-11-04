@@ -328,7 +328,11 @@ $(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=
 # perfex2: compensate the inline cold clear reset; every other emitted body is PRE-identical.
 # clientcompat notification capture adds cold code; the 161773 neighbour keeps
 # the ordinary hash routing inlined (finite trial receipts in budgets/).
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=171751 --param max-inline-insns-auto=18 --param early-inlining-insns=10
+# blockwake: the F6/F7/F8 blocking-registry edits in blocking.inc grow this db0 unit by 181
+# insns (136675 -> 136856), which tipped FlatStore::find past the threshold that inlines
+# Slice::key_eq and added ~35 instr/op to db0 GET/SET/INCR/MGET. Restore the PRE headroom
+# (171751 + 181); the normal namespace was unaffected. No runtime option or request-path branch.
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=171932 --param max-inline-insns-auto=18 --param early-inlining-insns=10
 # ACL key extraction is isolated from the IO templates. Keep the merged baseline's
 # ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
 # aclfix grows the unit by 749/765 insns (+739/+750 here): the shared reply helpers this
