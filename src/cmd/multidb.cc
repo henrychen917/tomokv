@@ -209,7 +209,10 @@ uint64_t DatabaseMap::drain_deadline_start(Server& server, uint64_t since, uint6
         p.drain_epoch = epoch;
     }
     if (command) s.drain_command_ms = now;
-    return std::max({since, s.drain_command_ms, s.drain_waiting_ms.load(std::memory_order_relaxed)});
+    // An IO may stamp drain_waiting_ms after the caller sampled `now`: clamp, so the caller's
+    // `now - start` can never wrap around and report a fresh restart as overdue.
+    return std::min(now, std::max({since, s.drain_command_ms,
+                                   s.drain_waiting_ms.load(std::memory_order_relaxed)}));
 }
 
 bool DatabaseMap::stopping(Server& server) {
