@@ -267,7 +267,8 @@
                             for (const auto& command : state.commands) {
                                 if (command->kind != MultiCommandKind::IoLocal) continue;
                                 const uint64_t started = multi_slowlog_start(state, owner_thread_id);
-                                if (command_client_pause(server, *command->op, state.now_cut_mono_ms)) {
+                                if (command_client_pause(server, *command->op, state.now_cut_mono_ms,
+                                                         owner_thread_id)) {
                                     command->io_effect_done = true;
                                     multi_slowlog_part(*command, started);
                                     multi_slowlog_finish(state, *command, owner_thread_id);
@@ -287,6 +288,10 @@
                                                    *aof_context);
                         // Private pushes must never claim a blocked client. Once
                         // the CAS wins, sweep participant registries on their owners.
+                        // F6c: order this commit's data before the waiter-count reads, so a
+                        // concurrently registering waiter is either seen here or sees the data in
+                        // its own post-add reprobe (Shard::blocking_publish_fence / has_waiters).
+                        Shard::blocking_publish_fence();
                         bool owners[kMaxThreads] = {};
                         for (int32_t sid : state.shards) {
                             Shard& participant = server.shard(sid);

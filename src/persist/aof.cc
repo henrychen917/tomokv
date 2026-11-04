@@ -425,6 +425,13 @@ bool parse_record_bounds(const std::vector<uint8_t>& section, size_t pos,
     return true;
 }
 
+// A record larger than one frame keeps its owner inside one command for many frames, while
+// post_chunk only PREPARES the writer's 0->1 edge wake on the owner's ring. Submit that wake
+// with the frame that raised it, not when a full channel next makes the owner spin (F4).
+void submit_large_frame_wake(AofOwnerContext* context) {
+    if (context && context->ring && context->ring->sq_ready()) context->ring->submit_and_reap();
+}
+
 }  // namespace
 
 std::string aof_directory_path(const Config& config) {
@@ -810,6 +817,7 @@ bool AofProducer::emit(const uint8_t* bytes, uint64_t length, bool large,
         const size_t room = kAofChunkBytes - build_->bytes.size();
         if (!room) {
             if (!seal(0, context)) return false;
+            if (large) submit_large_frame_wake(context);
             build_ = make_chunk(0, ticket);
             if (!build_) return false;
             continue;
@@ -823,8 +831,10 @@ bool AofProducer::emit(const uint8_t* bytes, uint64_t length, bool large,
         }
         bytes += take;
         length -= take;
-        if (large && build_->bytes.size() == kAofChunkBytes && length)
+        if (large && build_->bytes.size() == kAofChunkBytes && length) {
             if (!seal(0, context)) return false;
+            submit_large_frame_wake(context);
+        }
     }
     return true;
 }
@@ -912,6 +922,7 @@ bool AofProducer::record_bytes(AofRecordKind kind, uint8_t type, uint8_t encodin
             size_t room = kAofChunkBytes - build_->bytes.size();
             if (!room) {
                 if (!seal(0, context)) return false;
+                if (large) submit_large_frame_wake(context);
                 build_ = make_chunk(0, ticket);
                 if (!build_) return false;
                 room = kAofChunkBytes;
@@ -2752,7 +2763,10 @@ bool AofManager::drain_producer(uint32_t producer, uint32_t& budget, uint32_t& c
             return false;
         }
     }
-    if (chunk_in_[producer].depth()) chunk_notify_.set(producer);
+    // Only a spent budget leaves frames for this writer's own next pass. A drain that found the
+    // channel empty must leave the taken bit clear: a frame pushed after that empty recv belongs
+    // to its producer's 0->1 edge, and setting the bit here would swallow that edge's wake.
+    if (!budget && chunk_in_[producer].depth()) chunk_notify_.set(producer);
     return true;
 }
 
@@ -2784,6 +2798,13 @@ uint32_t AofManager::writer_pass(ThreadCtx& writer, Ring& ring, bool drain_all) 
     if (const LargeStreamToken* large = stream_owner_.large_token()) {
         const uint32_t producer = large->producer();
         note_control_deferral(*large);
+        // Take the owner's notify bit before draining it, exactly as the open-stream branch does,
+        // and put back every other producer's bit for the record's end. A bit left set across a
+        // large record suppressed the owner's 0->1 wake edge for every later frame, so this writer
+        // slept out its park timeout on each dry spell while every gated reply waited (F4).
+        const uint32_t word = (producer >> 6) & (NotifyMask::kWords - 1);
+        const uint64_t others = chunk_notify_.take(word) & ~(uint64_t{1} << (producer & 63));
+        if (others) chunk_notify_.restore(word, others);
         drain_producer(producer, budget, consumed, ring, last_write);
         if (written_sequence_.load(std::memory_order_relaxed) != written_before)
             wake_gate_waiters(writer, ring);

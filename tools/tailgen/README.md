@@ -23,8 +23,10 @@ system loader. There are no Redis client, histogram, jemalloc, or io_uring
 dependencies. `make all` continues to build the server separately.
 
 The units compare histogram quantiles with an exact sort of 1,000,000 samples;
-check incremental RESP framing, binary bulk payloads, errors, and malformed
-inputs; force partial writes/EAGAIN through a socketpair with 200 outstanding
+check attainment at every bucket-rule boundary, against an exact oracle, with
+truncated percentages and empty classes; check incremental RESP framing,
+binary bulk payloads, errors, and malformed inputs; force partial
+writes/EAGAIN through a socketpair with 200 outstanding
 requests; check FIFO/class/warmup metadata, the saturation interval union,
 deterministic workloads, CLI validation, and the exact JSON contract. On one
 allowed core they pace 100,000 arrivals at 200,000/s **for each spacing mode**,
@@ -133,6 +135,18 @@ Mean and maximum use original nanoseconds. No coordinated-omission correction
 or synthetic samples are applied. An empty class reports count and all
 statistics as zero.
 
+Attainment (`attain_pct`) is the percentage of a class's requests completing
+at or below each level of the ladder 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20 and
+50 ms, exact to bucket resolution. Samples are binned rounded up to whole
+microseconds, and the bucket containing a level counts as at-or-below only if
+its upper bound is <= the level: a bucket straddling the level is excluded
+whole, so attainment is never overstated. Levels through 2 ms fall on 1 us
+bucket edges and are exact to the nanosecond. Above 2,047 us the straddling
+bucket is up to `level / 1024` wide: 5, 10 and 20 ms count samples through
+4.999, 9.999 and 19.999 ms, and 50 ms through 49.983 ms. Percentages are
+truncated, not rounded, to three decimals, so `100.000` means every request
+met the level. An empty class reports `0.000` at every level; read its count.
+
 ## Saturation witness
 
 `outstanding_max` is the largest outstanding count on **one connection**
@@ -160,11 +174,15 @@ made from a serverless test.
 Stdout contains one JSON object with exactly these top-level keys:
 
 ```json
-{"rate":0,"latency_ms":0,"p999_ms":0,"long_p999_ms":0,"short_count":0,"long_count":0,"short":{},"long":{},"outstanding_max":0,"over_max_outstanding_fraction":0,"window_seconds":20}
+{"rate":0,"latency_ms":0,"p999_ms":0,"long_p999_ms":0,"short_count":0,"long_count":0,"short":{},"long":{},"outstanding_max":0,"over_max_outstanding_fraction":0,"window_seconds":20,"attain_pct":{"short":{},"long":{},"combined":{}}}
 ```
 
 `latency_ms` is the combined mean; `p999_ms` is **short** p99.9.
 Each `short`/`long` object contains `count`, `mean_ms`, `p50_ms`, `p90_ms`,
-`p99_ms`, `p999_ms`, `p9999_ms`, and `max_ms`. Human summaries include all
-requested percentiles for short, long, and combined on stderr. Preserve the
-stderr log alongside JSON when judging tails.
+`p99_ms`, `p999_ms`, `p9999_ms`, and `max_ms`. `attain_pct` comes last and
+holds one object per class (`short`, `long`, `combined`), keyed by the level in
+ms: `{"0.05":12.345,"0.1":56.789,...,"50":100.000}`. The first eleven keys and
+their order predate it and are unchanged. Human summaries include all requested
+percentiles for short, long, and combined on stderr, each followed by an
+attainment line such as `short attain: <=0.05ms=12.345% ... <=50ms=100.000%`.
+Preserve the stderr log alongside JSON when judging tails.

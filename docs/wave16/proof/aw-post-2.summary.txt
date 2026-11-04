@@ -1,0 +1,2 @@
+22:24:07 aw-post-2 run1 rc=0 2 ok 0 FAIL
+22:24:07 aw-post-2 DONE

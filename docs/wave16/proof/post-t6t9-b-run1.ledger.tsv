@@ -1,0 +1,4 @@
+PARTIAL	0	GATE_ONLY_JOBS=at412-T6 at412-T9; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	813.550000	at412 T6
+ok	3.830000	at412 T9

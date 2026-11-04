@@ -1,0 +1,4 @@
+03:44:06 pre-1s-uring run1 rc=1 "passed": false windows=3/3 stranded_trials=3
+03:44:10 pre-1s-uring run2 rc=1 "passed": false windows=3/3 stranded_trials=3
+03:44:13 pre-1s-uring run3 rc=1 "passed": false windows=3/3 stranded_trials=3
+03:44:13 pre-1s-uring DONE

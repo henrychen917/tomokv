@@ -490,6 +490,10 @@ bool Server::lb_debug_move_client(uint64_t id, uint32_t destination, std::string
                                std::memory_order_relaxed);
     lb_deadline_ns_.store(now_ns() + LbAutotune::kMoveTimeoutNs, std::memory_order_release);
     lb_stage_.store(LbStage::ClientDrain, std::memory_order_release);
+    // The source performs the move and may be parked: ring it from this (destination) thread.
+    if (Ring* mine = thread(destination).ring())
+        if (Ring* source = thread(move.source).ring())
+            (void)mine->msg_to(*source, ur_tag(UrKind::Wake, nullptr));
     return true;
 }
 
@@ -544,6 +548,20 @@ bool Server::lb_consume_plan(uint32_t coordinator) {
 void Server::monitor_controllers() {
     // INFO sampling also needs this existing cold thread when both controllers are off.
     uint64_t next_lb_ms = 0, next_flip_ms = 0, next_info_ms = 0;
+    // This thread publishes automatic FLIPs and LB plans to a coordinator IO that may be parked,
+    // and owns no ring to wake it with. A wake-only ring (msg_ring under io_uring; the target's
+    // mailbox under epoll) is created at the first such publication; a failed init leaves the
+    // coordinator's park timeout as before.
+    Ring wake_ring;
+    int wake_ring_state = 0; // 0 untried, 1 ready, -1 unavailable
+    auto wake = [&](uint32_t tid) {
+        Ring* target = tid < nthreads() ? thread(tid).ring() : nullptr;
+        if (!target) return;
+        if (!wake_ring_state) wake_ring_state = wake_ring.init(8) ? 1 : -1;
+        if (wake_ring_state < 0) return;
+        if (wake_ring.msg_to(*target, ur_tag(UrKind::Wake, nullptr))) wake_ring.submit_and_reap();
+        wake_ring.for_each_cqe([](io_uring_cqe*) {});
+    };
     for (;;) {
         if (shutting_down().load(std::memory_order_relaxed)) break;
         // Also covers a worker's boot failure, before it could publish normal shutdown.
@@ -561,13 +579,16 @@ void Server::monitor_controllers() {
             next_lb_ms = now_ms + lb_tick_ms();
             for (uint32_t tid = 0; tid < nthreads(); ++tid) {
                 if (thread(tid).role() != Role::Ifid) continue;
-                (void)lb_controller_tick(tid, now_ms);
+                if (lb_controller_tick(tid, now_ms)) wake(lb_coordinator()); // PlanReady
                 break;
             }
         }
         const uint64_t flip_now_ms = now_ns() / 1000000;
         if (flipctl_enabled() && flip_now_ms >= next_flip_ms) {
+            const uint64_t flip_epoch_before = flip_epoch();
             (void)flipctl_tick(flip_now_ms);
+            // A new automatic FLIP holds every IO's dispatch until its coordinator runs.
+            if (flip_epoch() != flip_epoch_before) wake(flip_coordinator());
             next_flip_ms = now_ns() / 1000000 + flipctl_wait_ms();
         }
         if (shutting_down().load(std::memory_order_relaxed)) break;

@@ -767,37 +767,58 @@ private:
             const bool credit_room =
                 __builtin_expect(self_->atomic_admission_state().credit_wait, false) &&
                 srv_->atomic_credit_wait_arm(self_->id());
+            // F7 (fused owners only): re-check owned shards' blocking dirty flags after the
+            // arm_blocked fence, so a producer's lost conditional wake does not strand a blocked
+            // client until the timeout. Cold: gated on a blocked client existing anywhere.
+            [[maybe_unused]] const bool blocking_owed =
+                Fused && __builtin_expect(srv_->blocking_waiters() != 0, false) &&
+                blocking_owner_dirty_pending(*self_);
+            // The IO retry lane is a park predicate too. Its producers CAS the head (seq_cst) and
+            // then wake only a parked IO; this load after arm_blocked() is the other Dekker half,
+            // so either it sees the node or the producer sees parked_ set and rings.
+            const bool retry_ready = __builtin_expect(
+                srv_->multi_retry_lane(self_->id()).head.load(std::memory_order_seq_cst) != nullptr,
+                false);
+            if (retry_ready) multi_retry_lane_note_pending();
             if constexpr (kEp) {
                 // The park. Same 50ms ceiling as the ring wait, and for the same reason: the stop
                 // flag is only re-read at the top of the loop, so an unbounded block would make
                 // shutdown depend on a connection arriving.
                 if constexpr (Fused) {
-                    if (!credit_room && !self_->any_fused_inbound()) {
+                    if (!credit_room && !blocking_owed && !retry_ready && !self_->any_fused_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                         tenure.park();
 #endif
+                        database_work.park();
                         epoll_pass<HasUnix, HasTls, Fused>(wait_ms);
+                        database_work.resume();
                     }
-                } else if (!credit_room && !self_->any_io_inbound()) {
+                } else if (!credit_room && !retry_ready && !self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
+                    database_work.park();
                     epoll_pass<HasUnix, HasTls, false>(wait_ms);
+                    database_work.resume();
                 }
             } else {
                 if constexpr (Fused) {
-                    if (!credit_room && !self_->any_fused_inbound()) {
+                    if (!credit_room && !blocking_owed && !retry_ready && !self_->any_fused_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                         tenure.park();
 #endif
+                        database_work.park();
                         ring_.submit_and_wait(1, wait_ms);
+                        database_work.resume();
                     } else                            ring_.submit_and_reap();
                 } else {
-                    if (!credit_room && !self_->any_io_inbound()) {
+                    if (!credit_room && !retry_ready && !self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                         tenure.park();
 #endif
+                        database_work.park();
                         ring_.submit_and_wait(1, wait_ms);
+                        database_work.resume();
                     } else                         ring_.submit_and_reap();
                 }
             }
@@ -2008,7 +2029,11 @@ private:
                 lb_schedule_wake_all();
                 return 1;
             }
-            return 0;
+            // A deferred consumption (busy transition lock, an old reader still retiring) is
+            // retried every pass: nothing wakes the coordinator of a plan it has not yet taken,
+            // and the pending plan refuses SAVE/BGSAVE and listener changes meanwhile.
+            return srv_->lb_stage() == LbStage::PlanReady &&
+                   srv_->lb_coordinator() == self_->id();
         }
         if (stage != LbStage::ClientDrain) lb_client_wake_pending_ = false;
         if (stage == LbStage::Idle || stage == LbStage::ClientMoving) return 0;
@@ -2162,6 +2187,8 @@ private:
                 srv_->database_boundary_end(*client, id);
                 return 1;
             }
+            // The boundary's own op (SWAPDB, or an EXEC around it) is still executing.
+            if (stage == FlipStage::DatabaseRun) map.note_drain_waiting();
         }
         if (stage == FlipStage::DatabaseIoDrain) {
             // Judge the drain only for a live boundary epoch this IO still owes (flip_stage_owed:
@@ -2180,6 +2207,7 @@ private:
                             !blocking_namespace_quiesced(rob.at(id))) { drained = false; break; }
                 }
                 if (drained) srv_->flip_ack(self_->id(), stage);
+                else map.note_drain_waiting(); // a command in flight holds SWAPDB, as on Redis
             }
             if (coordinator && srv_->flip_all_role_acked(Role::Ifid, stage)) {
                 srv_->flip_set_stage(FlipStage::DatabaseExDrain);
@@ -4572,7 +4600,10 @@ ordinary_shard_ready:
                     // frontier. Only the recv completion may drive inbound TLS while armed.
                     if (!c->closing() && !c->recv_armed()) (void)drive_tls<kEp, Fused>(c);
                     else if (tls->userspace()) {
-                        (void)wb_.pump_tls<kEp>(*c, *tls);
+                        // A synchronous transport (socket-userspace SSL_write, epoll memory BIO)
+                        // sends one plaintext unit per call and completes no CQE. Progress is work,
+                        // or the loop parks with units left until the idle timeout (F5).
+                        if (wb_.pump_tls<kEp>(*c, *tls)) work++;
                         if (tls->socket_userspace() && tls->has_pinned_plain())
                             arm_tls_socket_poll<kEp>(c, tls->wanted());
                     }
@@ -5027,8 +5058,10 @@ ordinary_shard_ready:
 
     unsigned idle_timeout_ms() const {
         const uint64_t now_ms = now_ns() / 1000000ull;
-        uint64_t deadline = now_ms + Ring::kWaitTimeoutMs;
-        if (client_cron_was_armed_) deadline = std::min(deadline, client_cron_beat_ms_);
+        uint64_t deadline = now_ms + kParkNetMs; // park_net.h: the missed-wake safety net
+        // The cron beat is a second rescue of a missed wake; the diagnostic build drops it too.
+        if (!kParkNetStretched && client_cron_was_armed_)
+            deadline = std::min(deadline, client_cron_beat_ms_);
         // Connection timers have no external producer to wake their owner.
         for (const auto& timer : deferred_timers_)
             if ((timer.kind == DeferredTimerKind::WaitZero ||

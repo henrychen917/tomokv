@@ -1,0 +1,767 @@
+[
+  {
+    "object": "db0/src/core/genthread.o",
+    "pre_budget": 135506,
+    "compensated": 135538,
+    "budget": 135538,
+    "changed": [
+      "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false, false>()",
+      "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true, false>()",
+      "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, false, false>()",
+      "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true, false>()",
+      "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, false, false>()",
+      "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, true, false>()",
+      "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, false, false>()",
+      "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, true, false>()"
+    ],
+    "trials": [
+      {
+        "budget": 135506,
+        "unit": 113455,
+        "code_digest": "92699eae05d2fc527319904474cffc5de15f2baf538360588bc5b837c4445707",
+        "changed": 13
+      },
+      {
+        "budget": 135514,
+        "unit": 113455,
+        "code_digest": "4d1d953cec51b3cb216e19929d7ab1d9720b007886b0092090207aff0863409a",
+        "changed": 13
+      },
+      {
+        "budget": 135522,
+        "unit": 113455,
+        "code_digest": "962b5aff3310edad4b4986eff22234f967fc8a2a6b51e102bc9ecf4b7cf892e7",
+        "changed": 11
+      },
+      {
+        "budget": 135530,
+        "unit": 113455,
+        "code_digest": "47b3c92277f03c1a340295b3879fc32597bd28364a3a26aee82e7574b90a9e2e",
+        "changed": 16
+      },
+      {
+        "budget": 135538,
+        "unit": 113455,
+        "code_digest": "777096a8bf2b86b285d8d5192b952aff658ca47e885e586ff7d83509797c26c5",
+        "changed": 8
+      },
+      {
+        "budget": 135546,
+        "unit": 113455,
+        "code_digest": "a009057568d12b3380ab274b4ff324fadfb150036200275a17ead526f2f63426",
+        "changed": 9
+      },
+      {
+        "budget": 135554,
+        "unit": 113455,
+        "code_digest": "2fd9d2c5dfc673b767f3bbb284b223537eea53118692caf60d51b79a4b90817e",
+        "changed": 14
+      },
+      {
+        "budget": 135562,
+        "unit": 113455,
+        "code_digest": "239a0d5588f0b90a2d8d542d8381fc55fa8b1815d25bd1382ec53fda91beb756",
+        "changed": 15
+      }
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "pre_budget": 153552,
+    "compensated": 153584,
+    "budget": 153584,
+    "changed": [
+      "tomo_db0::FlatStore::atomic_prepare_capacity_read_local(unsigned int)",
+      "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, false, false, false>()",
+      "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, false, true, false>()",
+      "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, true, false, false>()",
+      "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, true, true, false>()",
+      "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, false, false>()",
+      "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, true, false>()",
+      "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, false, false>()",
+      "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, true, false>()"
+    ],
+    "trials": [
+      {
+        "budget": 153552,
+        "unit": 125953,
+        "code_digest": "d72edfa55eb9867334630b4b9ac84f264e6ed4f2f1cb56081bcfed090254c155",
+        "changed": 11
+      },
+      {
+        "budget": 153560,
+        "unit": 125953,
+        "code_digest": "8686ef080e6c5475b41a203f94f5fec43095c7b7e3c5e932d1c995099c7b2e10",
+        "changed": 12
+      },
+      {
+        "budget": 153568,
+        "unit": 125953,
+        "code_digest": "dc456320a17ae8744e8e7c6e5900ba4a63082d101ccc215dd426a51d6166056a",
+        "changed": 13
+      },
+      {
+        "budget": 153576,
+        "unit": 125953,
+        "code_digest": "e19c7ba04804ee1073e037a1c8d612710b633bcade4a5589c2c931690b1c1b61",
+        "changed": 10
+      },
+      {
+        "budget": 153584,
+        "unit": 125953,
+        "code_digest": "ba94416de68907493713cc4ffd0ffd6f0d68996342587df813132c94c3b4c2ab",
+        "changed": 9
+      },
+      {
+        "budget": 153592,
+        "unit": 125953,
+        "code_digest": "068ca9c731f168126f748ef9e4515ce76145029a2cbe5038a9c62672c80645e1",
+        "changed": 10
+      },
+      {
+        "budget": 153600,
+        "unit": 125953,
+        "code_digest": "0ed9e0ee2d9176fbe072ea7071a79c7f31b900227a8360fc637969ff028cfedb",
+        "changed": 11
+      },
+      {
+        "budget": 153608,
+        "unit": 125953,
+        "code_digest": "ade877d7255a12a9c0d4c3dfc41d194f55d8c3a5589d692a5e2ec5c7652e35b0",
+        "changed": 12
+      }
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "pre_budget": 169904,
+    "compensated": 169936,
+    "budget": 169928,
+    "changed": [
+      "unsigned int tomo_db0::IoLoop::flip_control_pass<true>()",
+      "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false, true>()",
+      "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true, true>()",
+      "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, false, true>()",
+      "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true, true>()",
+      "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, false, true>()",
+      "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, true, true>()",
+      "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, false, true>()",
+      "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, true, true>()"
+    ],
+    "trials": [
+      {
+        "budget": 169904,
+        "unit": 121938,
+        "code_digest": "b5b93bf9fefd167f0483aa5fa9c6748aec1a5a2b6b68a0aae9d139f5a71d5513",
+        "changed": 15
+      },
+      {
+        "budget": 169912,
+        "unit": 121938,
+        "code_digest": "dcec472a63764b8a7e7229a6ee138d58671d9117576e0d643140b5ee6b0d1289",
+        "changed": 16
+      },
+      {
+        "budget": 169920,
+        "unit": 121938,
+        "code_digest": "b309bee2dd9716840483576574451656f51604073027e1a72707eb9c78d84c6e",
+        "changed": 16
+      },
+      {
+        "budget": 169928,
+        "unit": 121938,
+        "code_digest": "65e3270a60f9e4be37d88deb46256095f77db76b5a78865d60ba04406a37a60e",
+        "changed": 9
+      },
+      {
+        "budget": 169936,
+        "unit": 121938,
+        "code_digest": "603fd6ec0c2d04b24eb04dc7843a9a0e5a87071216348ef2e3e6a05d65977aa1",
+        "changed": 10
+      },
+      {
+        "budget": 169944,
+        "unit": 121938,
+        "code_digest": "cbe45a848492267d1d7c2053ac6ee857311efa16f65d3fdbefee9d7820eaef23",
+        "changed": 9
+      },
+      {
+        "budget": 169952,
+        "unit": 121938,
+        "code_digest": "6ee16959b5d492bfd1d0f604f53d620a11cacac4760df31d9f504e2072f65d18",
+        "changed": 12
+      },
+      {
+        "budget": 169960,
+        "unit": 121938,
+        "code_digest": "2c873f8d9c512b68f0a5e1dcf67a4436cc0f8565e1dfd68217a2e1ba55b84f72",
+        "changed": 17
+      }
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "pre_budget": 150687,
+    "compensated": 150695,
+    "budget": 150695,
+    "changed": [
+      "unsigned int tomo_db0::IoLoop::flush_ready<true, false, false, false, false, false>()",
+      "unsigned int tomo_db0::IoLoop::flush_ready<true, true, false, false, false, false>()"
+    ],
+    "trials": [
+      {
+        "budget": 150671,
+        "unit": 107597,
+        "code_digest": "3af1b0237f17ef6251e38573589a0dbcc20061ac34041a05472d0eda20bd8863",
+        "changed": 8
+      },
+      {
+        "budget": 150679,
+        "unit": 107597,
+        "code_digest": "ec7318fffbeb20d748f852a7f0cbcbae1d38c3f4080e3f95cfc71013c73b57b3",
+        "changed": 4
+      },
+      {
+        "budget": 150687,
+        "unit": 107597,
+        "code_digest": "67a82e7e3da348cec719861e807a213f92002514d92def84396da3604f53d177",
+        "changed": 3
+      },
+      {
+        "budget": 150695,
+        "unit": 107597,
+        "code_digest": "0debb38d71c46fad88b220fdec480b69c5cb7e608dae95b282c47681d3412805",
+        "changed": 2
+      },
+      {
+        "budget": 150703,
+        "unit": 107597,
+        "code_digest": "b3c2e9f39be7cf887103aca632fc1f8bba4b00754c347ab22cebae8ce6050ec6",
+        "changed": 5
+      },
+      {
+        "budget": 150711,
+        "unit": 107597,
+        "code_digest": "98c3d2a408b440a2bd74ed8ee90a8b4ac8d7abe0165643240d6cc9cb53250965",
+        "changed": 4
+      },
+      {
+        "budget": 150719,
+        "unit": 107597,
+        "code_digest": "3288ec4468d078471694b1f23af6ef7b18edd2ca560dcef79bde4216acd7a2e5",
+        "changed": 5
+      }
+    ]
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "pre_budget": 40597,
+    "compensated": 40650,
+    "budget": 40650,
+    "changed": [
+      "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+      "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [clone .cold]",
+      "tomo_db0::(anonymous namespace)::submit_large_frame_wake(tomo_db0::AofOwnerContext*)",
+      "tomo_db0::AofManager::drain_producer(unsigned int, unsigned int&, unsigned int&, tomo_db0::Ring&, io_uring_sqe*&)",
+      "tomo_db0::AofManager::drain_producer(unsigned int, unsigned int&, unsigned int&, tomo_db0::Ring&, io_uring_sqe*&) [clone .cold]",
+      "tomo_db0::AofManager::writer_pass(tomo_db0::ThreadCtx&, tomo_db0::Ring&, bool)",
+      "tomo_db0::AofManager::writer_pass(tomo_db0::ThreadCtx&, tomo_db0::Ring&, bool) [clone .cold]",
+      "tomo_db0::AofProducer::emit(unsigned char const*, unsigned long, bool, tomo_db0::AofOwnerContext*, unsigned long)",
+      "tomo_db0::AofProducer::record_bytes(tomo_db0::AofRecordKind, unsigned char, unsigned char, tomo_db0::Slice, long, unsigned long, unsigned char const*, unsigned long, tomo_db0::SnapshotTypeHooks const*, tomo_db0::SnapshotSaveCursor*, tomo_db0::AofOwnerContext*)",
+      "tomo_db0::AofProducer::record_bytes(tomo_db0::AofRecordKind, unsigned char, unsigned char, tomo_db0::Slice, long, unsigned long, unsigned char const*, unsigned long, tomo_db0::SnapshotTypeHooks const*, tomo_db0::SnapshotSaveCursor*, tomo_db0::AofOwnerContext*) [clone .cold]"
+    ],
+    "trials": [
+      {
+        "budget": 40597,
+        "unit": 33348,
+        "code_digest": "08de873a15a712c5c28efcfb41e360c65ed37d0d64d07824d6331ce778885938",
+        "changed": 13
+      },
+      {
+        "budget": 40626,
+        "unit": 33348,
+        "code_digest": "909910ea54d8696baaf13aed7aba0673bd94e5b0594099b949985c08fd420606",
+        "changed": 12
+      },
+      {
+        "budget": 40634,
+        "unit": 33348,
+        "code_digest": "ac71ac924dde2f693f19015b3445adcc2c3a7442b3cd545d9ed2c9bed00216f9",
+        "changed": 11
+      },
+      {
+        "budget": 40642,
+        "unit": 33348,
+        "code_digest": "acf1d1101b2bb352e13258608cc56c03de0269f53f60ddca7ac08b6b9ca685c5",
+        "changed": 12
+      },
+      {
+        "budget": 40650,
+        "unit": 33348,
+        "code_digest": "6597d0a17499887577cefd41c067fe7d54bc8e5d33dbdec20f2b3b76663d8065",
+        "changed": 10
+      },
+      {
+        "budget": 40658,
+        "unit": 33348,
+        "code_digest": "c6b93cb0e0e1d73d759767f5c260d37747a8bd9ea6888467a9bcc4f481c34a3a",
+        "changed": 14
+      },
+      {
+        "budget": 40666,
+        "unit": 33348,
+        "code_digest": "d484bc47db87f685e2790973e81329b4904962eaa19094549f86fb5728c62490",
+        "changed": 13
+      },
+      {
+        "budget": 40674,
+        "unit": 33348,
+        "code_digest": "00e03cd0e9eeb9674ff4db592217b320e2804971d6471356a6b65e2630ff74ce",
+        "changed": 14
+      }
+    ]
+  },
+  {
+    "object": "db0/src/snapshot/snapshot.o",
+    "pre_budget": 16184,
+    "compensated": 16315,
+    "budget": 16339,
+    "changed": [
+      "tomo_db0::SnapshotManager::post_chunk(unsigned int, std::unique_ptr<tomo_db0::SnapshotChunk, std::default_delete<tomo_db0::SnapshotChunk> >&, tomo_db0::Ring&, tomo_db0::LoopSignals&)",
+      "tomo_db0::SnapshotManager::writer_pass(tomo_db0::ThreadCtx&, tomo_db0::Ring&, bool)",
+      "tomo_db0::SnapshotManager::writer_pass(tomo_db0::ThreadCtx&, tomo_db0::Ring&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const"
+    ],
+    "trials": [
+      {
+        "budget": 16184,
+        "unit": 13766,
+        "code_digest": "687c3402441ee1251d601ad5cb1ce611dd7e2ec63a9a4e2e447dde31ce66e16b",
+        "changed": 8
+      },
+      {
+        "budget": 16291,
+        "unit": 13766,
+        "code_digest": "8fb9a089960b8792e04d986d927ad9f6d3c5269240ebbd9f0135d78399d09cbc",
+        "changed": 8
+      },
+      {
+        "budget": 16299,
+        "unit": 13766,
+        "code_digest": "9939f7788ff3089d360e6e2cf9b8b9afd5e630414e46413f3c49340e33bd1637",
+        "changed": 6
+      },
+      {
+        "budget": 16307,
+        "unit": 13766,
+        "code_digest": "8586c6fb86abfa33139b20f7f32583338b80abdda5db6461149812cd79051623",
+        "changed": 6
+      },
+      {
+        "budget": 16315,
+        "unit": 13766,
+        "code_digest": "f99bdaf12bfe3097122f99b076eb065e3f9f7e477eca1686f0031108c1ae08d2",
+        "changed": 6
+      },
+      {
+        "budget": 16323,
+        "unit": 13766,
+        "code_digest": "b6d74479a73eb284a44a6935b26323d9c4f9910e9394cd7bcbe1d5e167424833",
+        "changed": 4
+      },
+      {
+        "budget": 16331,
+        "unit": 13766,
+        "code_digest": "33609d0e3d1ad62e1b54035268913f579d0514635c6264fea8f08ca6751d6f8c",
+        "changed": 4
+      },
+      {
+        "budget": 16339,
+        "unit": 13766,
+        "code_digest": "90adaa10b813dfb12063ed6ff5d2bed7b2cb77c78c42d78570951116e20e1c3a",
+        "changed": 3
+      }
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "pre_budget": 134842,
+    "compensated": 134874,
+    "budget": 134874,
+    "changed": [
+      "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, false, false>()",
+      "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, true, false>()",
+      "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, false, false>()",
+      "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, true, false>()",
+      "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, false, false>()",
+      "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, true, false>()",
+      "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false, false>()",
+      "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, true, false>()",
+      "unsigned long tomo::kvobj_external_bytes<true>(tomo::KvObj const*, void const*, tomo::KvObj const*)"
+    ],
+    "trials": [
+      {
+        "budget": 134842,
+        "unit": 114253,
+        "code_digest": "a366fb87cff901456395c3f38616cc9f083d826496b4df0edd8bd2d72d22151a",
+        "changed": 13
+      },
+      {
+        "budget": 134850,
+        "unit": 114253,
+        "code_digest": "03de434cab5b25b52576d7d9a228eaecb02ec8da1e2312853773d2e0f9ad1d59",
+        "changed": 14
+      },
+      {
+        "budget": 134858,
+        "unit": 114253,
+        "code_digest": "6f0c892b22950eabbd34af43956b47efac335d1322b0b356a97e47cf1a1f3350",
+        "changed": 14
+      },
+      {
+        "budget": 134866,
+        "unit": 114253,
+        "code_digest": "4d500962d2d1f541351ba7d9b6d3c7da5978201c8670a01338ade2ce90c25bca",
+        "changed": 10
+      },
+      {
+        "budget": 134874,
+        "unit": 114253,
+        "code_digest": "2696b8f51525dc59f2105e263608bc8a253be5b2c796c3fa52823b56f162b94e",
+        "changed": 9
+      },
+      {
+        "budget": 134882,
+        "unit": 114253,
+        "code_digest": "abb58358d969bb501a6b9a0b8c4543f117404042e5c73f77924b10990d867703",
+        "changed": 10
+      },
+      {
+        "budget": 134890,
+        "unit": 114253,
+        "code_digest": "2d4cb1740ee6953f70fe6552c368880f900c2de72023cdb7aa254dd23de2de99",
+        "changed": 12
+      },
+      {
+        "budget": 134898,
+        "unit": 114253,
+        "code_digest": "6985d3398c02c5480ed9d4abd19d447a46c13a3feb0b4f7033c8a1d6139d7f4a",
+        "changed": 13
+      }
+    ]
+  },
+  {
+    "object": "src/core/reorder.o",
+    "pre_budget": 152568,
+    "compensated": 152600,
+    "budget": 152600,
+    "changed": [
+      "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, false, false>()",
+      "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()",
+      "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, false, false>()",
+      "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()",
+      "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, false, false>()",
+      "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, true, false>()",
+      "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, false, false>()",
+      "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, true, false>()"
+    ],
+    "trials": [
+      {
+        "budget": 152568,
+        "unit": 126882,
+        "code_digest": "91252e54a97172e16768881134e51f933267d09bd594f9ebd1fcbe48503465f2",
+        "changed": 13
+      },
+      {
+        "budget": 152576,
+        "unit": 126882,
+        "code_digest": "32f028473044ea719c86e207e2ce2d6a4bbe9777cbf5ddd77eb9fa0b312e487f",
+        "changed": 15
+      },
+      {
+        "budget": 152584,
+        "unit": 126882,
+        "code_digest": "8459ff370fa9a9c85f2ea661147470d243c51f00032f4f95222c01c7ad93e44b",
+        "changed": 12
+      },
+      {
+        "budget": 152592,
+        "unit": 126882,
+        "code_digest": "01aae8967a2918dfa13ee235837a44da29f91712ac79b8b36acf4a6163541c95",
+        "changed": 10
+      },
+      {
+        "budget": 152600,
+        "unit": 126882,
+        "code_digest": "ad1be6d6632e202d9b96009aaca99ff596cced419f5e32148b55870dce137d6a",
+        "changed": 8
+      },
+      {
+        "budget": 152608,
+        "unit": 126882,
+        "code_digest": "c45bea12b0013c6cbf5758276015e27a4ee5a486db8110293ec3ebb61abe20f1",
+        "changed": 9
+      },
+      {
+        "budget": 152616,
+        "unit": 126882,
+        "code_digest": "be6aeba66994c4e78624003f8f42bfab5ce6fe0b72c10b625ec6d28d3c93a85d",
+        "changed": 10
+      },
+      {
+        "budget": 152624,
+        "unit": 126882,
+        "code_digest": "8cb52253be52c815b901a39318c6765566d13e1faf724b961bc982ecb996e10f",
+        "changed": 11
+      }
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "pre_budget": 168119,
+    "compensated": 168151,
+    "budget": 168151,
+    "changed": [
+      "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, false, true>()",
+      "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, true, true>()",
+      "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, false, true>()",
+      "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, true, true>()",
+      "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, false, true>()",
+      "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, true, true>()",
+      "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false, true>()",
+      "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, true, true>()"
+    ],
+    "trials": [
+      {
+        "budget": 168119,
+        "unit": 122873,
+        "code_digest": "cafbcf1f3f4c3cd7ff1556020fee3fe0032da1232f5fbf08c1a5279d52e9738b",
+        "changed": 14
+      },
+      {
+        "budget": 168127,
+        "unit": 122873,
+        "code_digest": "0c62ceb66cf60b520511d15dc28e50e08e558889e6f0103d64d9b8be71e71430",
+        "changed": 13
+      },
+      {
+        "budget": 168135,
+        "unit": 122873,
+        "code_digest": "b8501576044da5c9c7482ac2ec1a793a7b705dc861dca609a2aa5fbb37d5cead",
+        "changed": 11
+      },
+      {
+        "budget": 168143,
+        "unit": 122873,
+        "code_digest": "df24b5f3b6dce72dcf4fc6eb9b9d4dfd52a4a9a994f9d34cf829353497810883",
+        "changed": 13
+      },
+      {
+        "budget": 168151,
+        "unit": 122873,
+        "code_digest": "ca7f1fcf25dd102c62e8712d01e0249de1077abe45dd4c14c643e2ab35978828",
+        "changed": 8
+      },
+      {
+        "budget": 168159,
+        "unit": 122873,
+        "code_digest": "2fd40de76fb7d98a70f8a5eec86c7c1e5e121c269de67b42e98273d1e78a5285",
+        "changed": 10
+      },
+      {
+        "budget": 168167,
+        "unit": 122873,
+        "code_digest": "2d4287b9ea8c57bd9dd8ea340ab974f69053a6f47a75a48275cf86c7faeabb16",
+        "changed": 10
+      },
+      {
+        "budget": 168175,
+        "unit": 122873,
+        "code_digest": "ef399571af781ce842facde76cc9c72f6e4e557f9bd5ca9bd6109f6d7219129b",
+        "changed": 10
+      }
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "pre_budget": 152477,
+    "compensated": 152485,
+    "budget": 152485,
+    "changed": [
+      "unsigned int tomo::IoLoop::flush_ready<true, false, false, false, false, false>()",
+      "unsigned int tomo::IoLoop::flush_ready<true, true, false, false, false, false>()"
+    ],
+    "trials": [
+      {
+        "budget": 152461,
+        "unit": 108349,
+        "code_digest": "603714c7e98ec795ea9cf7c0d3f98e2ee64f2bd3aade3a7fe5b044faa59bb882",
+        "changed": 9
+      },
+      {
+        "budget": 152469,
+        "unit": 108349,
+        "code_digest": "eb25766a2c4997c400ea98c7fcd3a71ca7e7841411b7b3d1998088a175570ead",
+        "changed": 9
+      },
+      {
+        "budget": 152477,
+        "unit": 108349,
+        "code_digest": "c08321d1308487a180064482ecbc78792aface2a4e7ceb5cacf51af7786256ac",
+        "changed": 4
+      },
+      {
+        "budget": 152485,
+        "unit": 108349,
+        "code_digest": "59d5a5bfc8ef5da1edd13d2ad346945fb0cf5987fe69fa86a00410e149a1cf08",
+        "changed": 2
+      },
+      {
+        "budget": 152493,
+        "unit": 108349,
+        "code_digest": "bb6a070083babef6734891b397f14a6507fb6b94c362e8a59d8964ce04529c2b",
+        "changed": 3
+      },
+      {
+        "budget": 152501,
+        "unit": 108349,
+        "code_digest": "56d01e132b78719968cdfca0b5bffce9e10ee8af7bdae84bd4d1f1eacebb7984",
+        "changed": 9
+      },
+      {
+        "budget": 152509,
+        "unit": 108349,
+        "code_digest": "ad4bc6520cf60fcb889b5bde3e3a84c8561436c4b7b11efa378693ebb55b9f7b",
+        "changed": 9
+      }
+    ]
+  },
+  {
+    "object": "src/persist/aof.o",
+    "pre_budget": 38653,
+    "compensated": 38706,
+    "budget": 38714,
+    "changed": [
+      "tomo::(anonymous namespace)::submit_large_frame_wake(tomo::AofOwnerContext*)",
+      "tomo::AofManager::drain_producer(unsigned int, unsigned int&, unsigned int&, tomo::Ring&, io_uring_sqe*&)",
+      "tomo::AofManager::drain_producer(unsigned int, unsigned int&, unsigned int&, tomo::Ring&, io_uring_sqe*&) [clone .cold]",
+      "tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)",
+      "tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool) [clone .cold]",
+      "tomo::AofProducer::emit(unsigned char const*, unsigned long, bool, tomo::AofOwnerContext*, unsigned long)",
+      "tomo::AofProducer::record_bytes(tomo::AofRecordKind, unsigned char, unsigned char, tomo::Slice, long, unsigned long, unsigned char const*, unsigned long, tomo::SnapshotTypeHooks const*, tomo::SnapshotSaveCursor*, tomo::AofOwnerContext*)",
+      "tomo::AofProducer::record_bytes(tomo::AofRecordKind, unsigned char, unsigned char, tomo::Slice, long, unsigned long, unsigned char const*, unsigned long, tomo::SnapshotTypeHooks const*, tomo::SnapshotSaveCursor*, tomo::AofOwnerContext*) [clone .cold]"
+    ],
+    "trials": [
+      {
+        "budget": 38653,
+        "unit": 33419,
+        "code_digest": "8f9b39f5f384a14e2c96942e1faab1093e925659ea7ca8e19325c874eddb8326",
+        "changed": 12
+      },
+      {
+        "budget": 38682,
+        "unit": 33419,
+        "code_digest": "1aa9faca8ca24424698609a0cdfadfe796307b18c0e22f353a7f7d1f3a6d391d",
+        "changed": 12
+      },
+      {
+        "budget": 38690,
+        "unit": 33419,
+        "code_digest": "8018cb2582a5c1251f315da69f913a5a710462902583934950b132ad60dfac9b",
+        "changed": 11
+      },
+      {
+        "budget": 38698,
+        "unit": 33419,
+        "code_digest": "18f94da366c202fd7fc10db6962ce4ff4025bc433f8758bf23545303b647d4a8",
+        "changed": 11
+      },
+      {
+        "budget": 38706,
+        "unit": 33419,
+        "code_digest": "a97d3f9b43e399abc8e5837b81f5e566d44381fcd02e77fe6ce021f7e63d32f7",
+        "changed": 12
+      },
+      {
+        "budget": 38714,
+        "unit": 33419,
+        "code_digest": "b7bce51e279d306d57e6c1de6a3b241bc5ea4cbb712b3962adb49b7bf392df9b",
+        "changed": 8
+      },
+      {
+        "budget": 38722,
+        "unit": 33419,
+        "code_digest": "2b3217d3af7a4b84bf12f37cdde28ad8320ab09fa6ba40e1e6c853f7c6ab89ff",
+        "changed": 9
+      },
+      {
+        "budget": 38730,
+        "unit": 33419,
+        "code_digest": "840748d306fcf8a62a67772b445d97c2a364d74372739248ec4a4a4017712dc1",
+        "changed": 10
+      }
+    ]
+  },
+  {
+    "object": "src/snapshot/snapshot.o",
+    "pre_budget": 16744,
+    "compensated": 16875,
+    "budget": 16899,
+    "changed": [
+      "tomo::SnapshotManager::post_chunk(unsigned int, std::unique_ptr<tomo::SnapshotChunk, std::default_delete<tomo::SnapshotChunk> >&, tomo::Ring&, tomo::LoopSignals&)",
+      "tomo::SnapshotManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)",
+      "tomo::SnapshotManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "unsigned long tomo::kvobj_external_bytes<false>(tomo::KvObj const*, void const*, tomo::KvObj const*) [clone .isra.0]",
+      "unsigned long tomo::kvobj_external_bytes<true>(tomo::KvObj const*, void const*, tomo::KvObj const*)"
+    ],
+    "trials": [
+      {
+        "budget": 16744,
+        "unit": 14047,
+        "code_digest": "51948730970450b40460ebad085603e26462e15824d8b5fe927f205e5cc49b0b",
+        "changed": 13
+      },
+      {
+        "budget": 16851,
+        "unit": 14047,
+        "code_digest": "6198095b5f7cebd5c8a170c1c6315160ca4dbb00633f9802987a3ff1b668c2a8",
+        "changed": 6
+      },
+      {
+        "budget": 16859,
+        "unit": 14047,
+        "code_digest": "0fc9aeeab9da7dbb920f41fdb8fface99c85e67ae56cf6164b906c27cf3333cc",
+        "changed": 11
+      },
+      {
+        "budget": 16867,
+        "unit": 14047,
+        "code_digest": "da414e09777e269a8a7d090efde29dde7083735a8f4b6d46160deb9b2e15e862",
+        "changed": 11
+      },
+      {
+        "budget": 16875,
+        "unit": 14047,
+        "code_digest": "eb526b8203a06c399a006de0c86e894e095d3576225779cfad7b41f8a41c6d67",
+        "changed": 8
+      },
+      {
+        "budget": 16883,
+        "unit": 14047,
+        "code_digest": "ab347fd828e9cd213db4f11aea6a07cff7523eacd551cb70dd26c0288a6f0f4b",
+        "changed": 11
+      },
+      {
+        "budget": 16891,
+        "unit": 14047,
+        "code_digest": "5cddec03785ee60511173da2f111618dbec9d91c6876202ec0b0668f0476c464",
+        "changed": 10
+      },
+      {
+        "budget": 16899,
+        "unit": 14047,
+        "code_digest": "d1fa2697afdbca0cd3baa247ced5c8e94ee4604fb1a02c62836799c0f33f6b13",
+        "changed": 5
+      }
+    ]
+  }
+]

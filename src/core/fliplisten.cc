@@ -435,7 +435,10 @@ bool cfgfix_rebind(Server& server, uint32_t caller, uint16_t port,
             server.cfg().tcp_backlog, !tcp);
         if (plan.next[i] < 0) { error = std::strerror(errno); return false; }
     }
-    if (!server.debug_sleep_coordinator().exclusive(caller, server.nthreads(), &plan, FlipListenerState::rebind_worker)) {
+    // Parked members would reach the rendezvous only at their park timeout, holding the whole
+    // server meanwhile: ring them right after the request is published (before the caller waits).
+    if (!server.debug_sleep_coordinator().exclusive(caller, server.nthreads(), &plan, FlipListenerState::rebind_worker,
+            [](void* s, unsigned origin) { static_cast<Server*>(s)->wake_peers_from(origin, true); }, &server)) {
         error = "listener control rendezvous timed out"; return false;
     }
     if (!plan.okay.load()) {

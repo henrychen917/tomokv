@@ -368,8 +368,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # flipfix5: job_flipfix5_units (two serverless rows) and job_flipfix5 (one live row), all three
 # collected before the quick exit: DQ=+3, DF=+3. Maintainer updates 946/963 -> 949/966 and adds
 # the three labels to the label fixture.
-EXPECT_QUICK=1177
-EXPECT_FULL=1194                 # ABBA reports only; self-test remains counted.
+EXPECT_QUICK=1212
+EXPECT_FULL=1229                 # ABBA reports only; self-test remains counted.
 # txnfix/txnfix2: four txniso, four txn_nx, two txngroup rows before the quick exit:
 # DQ=10, DF=10; maintainer update required: 625+10=635 quick, 642+10=652 full.
 # txnorder: four rows before the quick exit, DQ=4, DF=4; cumulative +14/+14.
@@ -1021,6 +1021,7 @@ job_body(){
   local name=$1 label; label=$(job_label "$name")
   case "$name" in
     netfix2-*) job_netfix2 "$name";;
+    iowake-*) job_iowake "${name#iowake-}";;
     cmdfix2-*) job_cmdfix2 "${name#cmdfix2-}";;
     txnfix4-*) job_txnfix4 "${name#txnfix4-}";;
     iofix-deferred) job_iofix_deferred "$name";;
@@ -1049,6 +1050,8 @@ job_body(){
     aof-*) job_aof "$name";;
     atomfix6-live-*) job_atomfix6_live "$name";;
     atomwake-live-*) job_atomwake_live "$name";;
+    blockwake-live-*) job_blockwake_live "$name";;
+    parkwake-*) job_parkwake_live "$name";;
     txnorder2) job_txnorder2;;
     txnorder_wake) job_txnorder_wake;;
     at412-*) job_at412 "${name#at412-}";;
@@ -1214,6 +1217,12 @@ plan_jobs(){
   done; done; done
   for mode in 2s 1s; do for section in uring epoll; do JOB_NAMES+=("atomwake-live-$mode-$section"); done; done
   JOB_NAMES+=(atomwake_unit)
+  for mode in 2s 1s; do for section in uring epoll; do JOB_NAMES+=("blockwake-live-$mode-$section"); done; done
+  for section in retry control epoch slotless watchdog; do
+    for mode in 2s 1s; do for FR in uring epoll; do JOB_NAMES+=("parkwake-$section-$mode-$FR"); done; done
+  done
+  for FR in uring epoll; do JOB_NAMES+=("parkwake-script-2s-$FR"); done
+  JOB_NAMES+=(parkwake_unit)
   for section in T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11a T11b T12 T13 T14 T15 T16 owner; do JOB_NAMES+=("at412-$section"); done
   local resp_case resp_engine
   for resp_case in fragment cpu neighbour; do for mode in 1s 2s; do
@@ -1231,6 +1240,7 @@ plan_jobs(){
               efficiency dump_restore persistfmt persistfmt_aof_error auth authfix latencyfix_grammar latencyfix_shape latencyfix_off wave8b_off serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect trackorder notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated flipfix5 flipfix6 flipfix7_output flipfix7_blocked flipfix7_tls atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
               execfair exec1s txnorder_fifo txnorder_fifo_live txnorder_chain txnorder_index txnorder_wound txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
+  for section in tls aof bgsave loadaof; do JOB_NAMES+=("iowake-$section"); done
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
   for FM in 1s 2s; do
     for FR in 0 1; do for FC in 0 1; do for FQ in 0 1; do for FF in 0 1; do
@@ -1613,6 +1623,26 @@ job_atomwake_live(){
 # mset8fix: one serverless row, collected before the quick exit with the live rows (DQ=+1, DF=+1).
 # Deterministic doorbell schedules on real rings in both engines: publish/retire in both orders,
 # one wake per credit in turn, an awake holder skipped, and the snapshot barrier clear.
+# blockwake F6a/F6b: a push served to a cancelled blocking waiter (CLIENT KILL/UNBLOCK/disconnect)
+# loses the popped element (S1 data loss); a still-registering front waiter strands the waiters
+# queued behind it (BLPOP .. 0 hang). Two rows per mode/engine: cancel (vs the Redis 7.4 oracle)
+# and strand. Four jobs x two rows collected before the quick exit: DQ=+8, DF=+8.
+# EXPECT_QUICK / EXPECT_FULL remain maintainer-owned.
+job_blockwake_live(){
+  local prefix family mode engine
+  IFS=- read -r prefix family mode engine <<< "$1"
+  row_begin "blockwake cancel: no element lost to a cancelled waiter ($mode, $engine)"
+  if py tests/blockwake.py cancel --binary "$CANDIDATE_BINARY" \
+      --oracle "$REDIS74_ROOT/src/redis-server" --cores "$CORES" --port "$PORT" \
+      --ratio "$GATE_RATIO" --mode "$mode" --engine "$engine" --output "$TMPDIR/cancel" \
+      >"$TMPDIR/cancel.log" 2>&1; then ok "blockwake cancel: no element lost to a cancelled waiter ($mode, $engine)"
+  else bad "blockwake cancel: no element lost to a cancelled waiter ($mode, $engine)" "see $TMPDIR/cancel.log"; fi
+  row_begin "blockwake strand: a registering front waiter does not strand its followers ($mode, $engine)"
+  if py tests/blockwake.py strand --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+      --ratio "$GATE_RATIO" --mode "$mode" --engine "$engine" --output "$TMPDIR/strand" \
+      >"$TMPDIR/strand.log" 2>&1; then ok "blockwake strand: a registering front waiter does not strand its followers ($mode, $engine)"
+  else bad "blockwake strand: a registering front waiter does not strand its followers ($mode, $engine)" "see $TMPDIR/strand.log"; fi
+}
 job_atomwake_unit(){
   local label="atomwake credit doorbell unit (uring, epoll)" passed=1 engine
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/atomwake-unit >"$TMPDIR/build.log" 2>&1
@@ -1624,6 +1654,43 @@ job_atomwake_unit(){
     [ "$(grep -c '^PASS atomwake doorbell' "$TMPDIR/unit.log")" = 2 ] || passed=0
   else passed=0; fi
   [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/unit.log and build.log"
+}
+# parkwake: park/wake witnesses of the IO and executor loops (tests/parkwake.py), one fresh
+# pinned boot per leg (databases 16 and 1, except the namespace watchdog: 16), LC_ALL=C.
+# 23 rows, all collected before the quick-tier exit: retry/control/epoch/slotless/watchdog in
+# 2s and 1s x uring and epoll (20), script in 2s x uring and epoll (2; one executor is a split
+# geometry), and the serverless unit (1). DQ=+23, DF=+23; EXPECT_QUICK/EXPECT_FULL and the
+# label fixture remain maintainer-owned.
+job_parkwake_live(){
+  local prefix case mode engine label databases=16,1
+  IFS=- read -r prefix case mode engine <<< "$1"
+  [ "$case" != watchdog ] || databases=16
+  # A literal case map (as job_txnfix4/job_iowake): tests/gate_ledger_fixture.py reads these
+  # finite titles to declare the 22 row labels statically; no command substitution in a label.
+  case "$case" in
+    retry) label='IO retry lane: EXEC with PUBLISH/SUBSCRIBE, retries, escalation';;
+    script) label='script re-post refused by its own executor lane';;
+    watchdog) label='SWAPDB during a command longer than the namespace watchdog';;
+    control) label='CONFIG rendezvous, CLIENT UNPAUSE and DEBUG CLIENT-LB wakes';;
+    epoch) label='disconnect fd release across the park';;
+    slotless) label='slot-less completion notices beyond a full channel';;
+    *) echo "unknown parkwake case $case" >&2; return 2;;
+  esac
+  label="parkwake $label ($mode, $engine)"
+  row_begin "$label"
+  if py tests/parkwake.py --binary "$CANDIDATE_BINARY" --case "$case" --cores "$CORES" \
+      --port "$PORT" --ratio "$GATE_RATIO" --mode "$mode" --engine "$engine" \
+      --databases "$databases" --output "$TMPDIR/$case" >"$TMPDIR/$case.log" 2>&1; then
+    ok "$label"
+  else bad "$label" "see $TMPDIR/$case.log and $case/result.json"; fi
+}
+job_parkwake_unit(){
+  local label="parkwake park/wake unit (F3 ExDrain ack, F11 epoch, F12 notice, F10 announce)"
+  pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/parkwake-unit >"$TMPDIR/build.log" 2>&1
+  row_begin "$label"
+  if make -q build/parkwake-unit && taskset -c "$CORES" build/parkwake-unit >"$TMPDIR/unit.log" 2>&1 &&
+      [ "$(grep -c '^PASS parkwake' "$TMPDIR/unit.log")" = 5 ]; then ok "$label"
+  else bad "$label" "see $TMPDIR/unit.log and build.log"; fi
 }
 
 job_flushfix3(){
@@ -2651,6 +2718,24 @@ row_begin "NET1 serverless bounds + scan + reclamation"
 unit_ready netcap-unit && taskset -c "$CORES" ./build/netcap-unit >"$TMPDIR/gate-netcap-unit.txt" 2>&1 \
     && ok "NET1 serverless bounds + scan + reclamation" \
     || bad "NET1 serverless bounds + scan + reclamation" "see $TMPDIR/gate-netcap-unit.txt"
+}
+
+# iowake: round-5 bounded-queue wake audit witnesses (F5, F4, F9, F13), one public row each.
+# Every row boots its own servers on this slot (PORT, and PORT+1 for TLS) in each declared mode
+# and engine, and bounds the delayed operation well below the 50 ms idle-park rescue.
+job_iowake(){
+  local case=$1 label
+  case "$case" in
+    tls) label='iowake F5 TLS multi-unit output re-drive (kTLS, TLS 1.3, CBC memory BIO; 2s, 1s, 1s reorder; both engines)';;
+    aof) label='iowake F4 AOF writer re-wake during a large record (both modes, both engines)';;
+    bgsave) label='iowake F9 BGSAVE owner re-wake from its chunk channel (both modes, both engines)';;
+    loadaof) label='iowake F13 DEBUG LOADAOF on the AOF writer thread (both modes, both engines)';;
+    *) echo "unknown iowake case $case" >&2; return 2;;
+  esac
+  row_begin "$label"
+  py tests/iowake.py --case "$case" --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+      --output "$TMPDIR/proof" >"$TMPDIR/proof.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/proof.log"
 }
 
 job_netfix2(){
@@ -7001,6 +7086,18 @@ for atomwake_mode in 2s 1s; do for atomwake_engine in uring epoll; do
   collect_job "atomwake-live-$atomwake_mode-$atomwake_engine"
 done; done
 collect_job atomwake_unit
+# blockwake: four jobs x two rows (cancel, strand) before the quick-tier exit (DQ=+8, DF=+8).
+for blockwake_mode in 2s 1s; do for blockwake_engine in uring epoll; do
+  collect_job "blockwake-live-$blockwake_mode-$blockwake_engine"
+done; done
+# parkwake: 23 rows before the quick-tier exit (DQ=+23, DF=+23; see job_parkwake_live).
+for parkwake_case in retry control epoch slotless watchdog; do
+  for parkwake_mode in 2s 1s; do for parkwake_engine in uring epoll; do
+    collect_job "parkwake-$parkwake_case-$parkwake_mode-$parkwake_engine"
+  done; done
+done
+for parkwake_engine in uring epoll; do collect_job "parkwake-script-2s-$parkwake_engine"; done
+collect_job parkwake_unit
 collect_job flushfix3
 collect_job flushfix3_units
 collect_job flushfix2
@@ -7324,6 +7421,10 @@ collect_job aof_frame
 collect_job aoforder
 
 collect_job tls
+
+# iowake: four wake-audit witness rows (F5, F4, F9, F13), collected before the quick exit:
+# DQ=+4, DF=+4. EXPECT_QUICK/EXPECT_FULL remain maintainer-owned.
+for IOWAKE_CASE in tls aof bgsave loadaof; do collect_job "iowake-$IOWAKE_CASE"; done
 
 # ---- A. mandatory feature matrix (35 rows, BEFORE the quick-tier exit) -----------------------
 # No inherited feature defaults: feature_gate.py sets --thread-mode {1s,2s}, --read-local {0,1},

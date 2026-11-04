@@ -200,7 +200,11 @@
                 }
             }();
             if (finished == ScatterFinish::Waiting) return true;
-            if (finished == ScatterFinish::Retry) return false;
+            // Retry is a script wave refused for task-lane room (script_resume_post). Park it with
+            // the polled atomic tasks, never in xshard_retries_: that queue switches the inbox
+            // drain off, and the lane the re-post waits for can be this executor's own (livelock).
+            // Its connection holds the scatter barrier, so no younger task can overtake it.
+            if (finished == ScatterFinish::Retry) { atomic_deferred_.push_back(t); return true; }
             if (finished == ScatterFinish::CommitQueued) {
                 xshard_queue_commit(*srv_, *self_, t);
                 xshard_commit_pending_ = true;

@@ -179,14 +179,32 @@ public:
 
     // The registry pointer and its map are owner-only.  Cross-thread INFO and atomic publication
     // touch only these two atomics; ordinary shards retain one predicted-false waiter check.
+    // seq_cst: a cross-owner committer reads this count to decide whether to mark the shard dirty
+    // and wake its owner. Paired after blocking_publish_fence() (F6c), it forms a Dekker half with
+    // a registering waiter's post-add fence: one side always sees the other. A seq_cst load is a
+    // plain mov on x86-64, so the common no-waiter guard on list/zset/stream writes is unchanged.
     bool has_blocking_waiters() const {
-        return blocking_waiters_.load(std::memory_order_relaxed) != 0;
+        return blocking_waiters_.load(std::memory_order_seq_cst) != 0;
     }
     uint64_t blocking_waiters() const {
-        return blocking_waiters_.load(std::memory_order_relaxed);
+        return blocking_waiters_.load(std::memory_order_seq_cst);
     }
-    void set_blocking_dirty() { blocking_dirty_.store(true, std::memory_order_release); }
+    // The fence a cross-owner producer runs between publishing its data (commit ticket / push) and
+    // reading has_blocking_waiters(). The owner-local push path needs no fence: the owner that
+    // mutated the key is the thread that services its own waiters.
+    static void blocking_publish_fence() { std::atomic_thread_fence(std::memory_order_seq_cst); }
+    // seq_cst store: the owner re-checks blocking_dirty_pending() after arm_blocked() (whose
+    // seq_cst fence is the other half), so a cross-owner producer that marks a shard dirty just as
+    // its owner is about to park is observed on that re-check instead of waiting out the 50 ms
+    // timeout (F7). A plain release store could be reordered past the producer's parked_ read and
+    // the owner's dirty read, leaving the wake to the timer. set_blocking_dirty runs only when a
+    // shard already has blocked clients, never on a GET/SET/INCR/MGET/MSET path.
+    void set_blocking_dirty() { blocking_dirty_.store(true, std::memory_order_seq_cst); }
     bool take_blocking_dirty() { return blocking_dirty_.exchange(false, std::memory_order_acquire); }
+    // Non-consuming peek for the owner's pre-park re-check (seq_cst: pairs with arm_blocked).
+    bool blocking_dirty_pending() const {
+        return blocking_dirty_.load(std::memory_order_seq_cst);
+    }
     // Owner-local H3 notes move with the physical shard. Existing padding;
     // neither registry offsets nor the Shard stride changes.
     enum : uint8_t { TxnServeNote = 1, TxnWatchNote = 2, TxnBlindNote = 4 };
@@ -194,7 +212,9 @@ public:
     uint8_t txn_boundary_notes() const { return reserved_route_[0]; }
     void clear_txn_boundary_notes(uint8_t kinds = 7) { reserved_route_[0] &= ~kinds; }
     void*& blocking_registry_slot() { return blocking_registry_; }
-    void blocking_waiter_added() { blocking_waiters_.fetch_add(1, std::memory_order_relaxed); }
+    // seq_cst add: the waiter-visible edge of the F6c Dekker (see has_blocking_waiters). Removal
+    // stays relaxed -- nothing races a disappearing waiter against a wake decision.
+    void blocking_waiter_added() { blocking_waiters_.fetch_add(1, std::memory_order_seq_cst); }
     void blocking_waiter_removed() { blocking_waiters_.fetch_sub(1, std::memory_order_relaxed); }
 
     FlatStore&       store()       { return store_; }

@@ -1662,9 +1662,19 @@ namespace {
     ThreadCtx& caller = server.thread(owner_io);
     Ring* caller_ring = caller.ring();
     if (server.aof().configured() && server.aof().writer_is(owner_io) && caller_ring) {
-        while (server.aof().pending_chunks()) {
-            if (!server.aof().writer_pass(caller, *caller_ring, true))
-                std::this_thread::yield();
+        // This thread is the writer, so nothing else submits its writes or reaps their CQEs.
+        // writer_pass alone only prepares SQEs, and io_uring retires pending chunks at the CQE,
+        // so the old loop spun forever (F13). The writer's existing pumped drain submits, reaps
+        // and retires persistence CQEs only; bound it like the wait below.
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(5000);
+        while (server.aof().pending_chunks() && !server.aof().failed() &&
+               std::chrono::steady_clock::now() < deadline) {
+            server.aof().runtime_pump(caller, *caller_ring);
+            std::this_thread::yield();
+        }
+        if (server.aof().pending_chunks()) {
+            reply_err(op.sink(), "ERR timed out flushing AOF before reload");
+            return false;
         }
     } else if (server.aof().configured() && !server.aof().wait_until_drained(5000)) {
         reply_err(op.sink(), "ERR timed out flushing AOF before reload");

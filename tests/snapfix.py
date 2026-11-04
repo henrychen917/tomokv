@@ -36,7 +36,7 @@ import threading
 import time
 import traceback
 
-from _lib import Conn, RespError, encode, wait_ready
+from _lib import note_port_owner, wait_port_bindable, Conn, RespError, encode, wait_ready
 
 WRITE = "return {redis.call('INCR',KEYS[1]),redis.call('INCR',KEYS[2])}"
 
@@ -91,6 +91,13 @@ class Boot:
         self.log = directory / f'{name}.log'
         (directory / f'{name}.argv.json').write_text(json.dumps(self.argv) + '\n')
         self.name = name
+        self.label = directory.name if name == 'server' else f'{directory.name}/{name}'
+        # A forced exit can leave the previous owner's listener in the kernel until io_uring's
+        # asynchronous teardown; wait (bounded, logged) instead of booting into EADDRINUSE.
+        self.ports = [self.port] + [int(extra[i + 1]) for i, flag in enumerate(extra[:-1])
+                                    if flag == '--tls-port']
+        waits = [wait_port_bindable(port) for port in self.ports]
+        self.port_wait = next((w for w in waits if w), None)
         with self.log.open('w') as log:
             self.proc = subprocess.Popen(self.argv, stdout=log, stderr=subprocess.STDOUT)
         try:
@@ -105,6 +112,8 @@ class Boot:
         if self.proc.poll() is None:
             self.proc.kill()
         self.proc.wait()
+        for port in self.ports:
+            note_port_owner(port, self.label)
 
     def wait_exit(self, timeout):
         forced = False
@@ -114,6 +123,8 @@ class Boot:
             forced = True
             self.kill()
         self.exit = dict(rc=self.proc.returncode, forced=forced)
+        for port in self.ports:
+            note_port_owner(port, self.label)
         (self.directory / f'{self.name}.exit.json').write_text(json.dumps(self.exit) + '\n')
         return self.exit
 

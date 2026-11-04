@@ -1,0 +1,4 @@
+Lingering-listener demonstration (scratch harness, POST bins/wave16-post-3f058fa1, port 24000, CPUs 0-7):
+- a SO_REUSEADDR+SO_REUSEPORT listener held on the port, then the server binary booted onto it: rc 1, 'Could not create server TCP listening socket 127.0.0.1:24000: Address already in use' (the landing failure).
+- the same held listener closed after 2.0 s while tests/flipfix.py sigterm --net-io epoll booted (flipfix7 / snapfix.Boot path): 'waited 1933 ms for port 24000 release after demo: previous sigint-uring leg (held listener) before sigterm-epoll (it exited 0.1 s before the wait began)'; leg PASS (PASS flipfix7 post 1, rc 0).
+- the same before tests/flipfix.py close --net-io uring (flipfix.boot path): 'waited 1974 ms for port 24000 release after demo: previous sigint-uring leg (held listener) before close-uring (it exited 0.0 s before the wait began)'; leg rc 0.

@@ -1,0 +1,4 @@
+22:25:39 diag-strand run1 rc=0 3 ok 0 FAIL
+22:25:52 diag-strand run2 rc=0 3 ok 0 FAIL
+22:26:04 diag-strand run3 rc=0 3 ok 0 FAIL
+22:26:04 diag-strand DONE

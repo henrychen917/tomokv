@@ -28,6 +28,7 @@ House rules this module encodes (they are rules, not preferences -- see AUDIT-TE
 
 import contextlib
 import errno
+import json
 import os
 import socket
 import sys
@@ -305,6 +306,56 @@ def wait_ready(host, port, *, timeout=30.0, process=None, log_path=None, pid=Non
                 conn.close()
         time.sleep(min(.02, max(0, deadline - time.monotonic())))
     raise TimeoutError("server readiness timed out after %.3fs: %s" % (timeout, last))
+
+
+_PORT_OWNERS = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                            'build', 'port-release')
+
+
+def note_port_owner(port, label):
+    """Record which owned server last held `port` (the next boot's wait names it)."""
+    try:
+        os.makedirs(_PORT_OWNERS, exist_ok=True)
+        with open(os.path.join(_PORT_OWNERS, f'{port}.json'), 'w') as f:
+            json.dump(dict(label=label, stopped=time.time()), f)
+    except OSError:
+        pass
+
+
+def wait_port_bindable(port, timeout=10.0, host='127.0.0.1'):
+    """Bounded wait until a test listener on host:port succeeds exactly as the server's boot probe
+    does (SO_REUSEADDR, bind, listen: TIME_WAIT never blocks it, a live or lingering listener does). After a forced exit io_uring
+    can hold an exited server's listener until its asynchronous ring teardown, and the next
+    leg's boot on the same port fails with EADDRINUSE. Returns None when the port was free at
+    once; otherwise prints and returns the wait, naming the port's previous owner."""
+    started, wall, attempts = time.monotonic(), time.time(), 0
+    while True:
+        attempts += 1
+        with socket.socket() as probe:
+            probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            try:  # the server's own boot probe: SO_REUSEADDR, bind, listen (boot_support.h)
+                probe.bind((host, port))
+                probe.listen(1)
+                bound = True
+            except OSError:
+                bound = False
+        elapsed = time.monotonic() - started
+        if bound and attempts == 1:
+            return None
+        if bound or elapsed >= timeout:
+            break
+        time.sleep(0.01)
+    after = 'an unknown previous owner'
+    try:
+        with open(os.path.join(_PORT_OWNERS, f'{port}.json')) as f:
+            owner = json.load(f)
+        after = f"{owner['label']} (it exited {wall - owner['stopped']:.1f} s before the wait began)"
+    except (OSError, ValueError, KeyError):
+        pass
+    record = dict(ms=round(elapsed * 1000), port=port, after=after, released=bound)
+    print(f"waited {record['ms']} ms for port {port} release after {after}"
+          + ('' if bound else f'; still not bindable after {timeout:g} s'), flush=True)
+    return record
 
 
 def host_port(argv=None, default_port=6379):

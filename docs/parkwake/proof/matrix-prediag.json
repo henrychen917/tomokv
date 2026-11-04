@@ -1,0 +1,1713 @@
+[
+ {
+  "case": "retry",
+  "mode": "2s",
+  "engine": "uring",
+  "rc": 1,
+  "seconds": 368.3,
+  "legs": [
+   {
+    "label": "retry-2s-uring-db16",
+    "databases": 16,
+    "case": "retry",
+    "mode": "2s",
+    "engine": "uring",
+    "reasons": [
+     "exec_publish: 3 calls over 20.0 ms (max 34000.7 ms)",
+     "exec_subscribe: 3 calls over 20.0 ms (max 28000.6 ms)"
+    ],
+    "notes": [
+     "no contended EXEC retry happened (form C unarmed this leg)"
+    ],
+    "passed": false,
+    "forms": {
+     "exec_publish": {
+      "calls": 3,
+      "max_ms": 34000.716,
+      "p50_ms": 32000.668,
+      "misses": 3,
+      "slowest": [
+       30069.887,
+       32000.668,
+       34000.716
+      ]
+     },
+     "exec_subscribe": {
+      "calls": 3,
+      "max_ms": 28000.573,
+      "p50_ms": 28000.542,
+      "misses": 3,
+      "slowest": [
+       26000.57,
+       28000.542,
+       28000.573
+      ]
+     },
+     "exec_contended": {
+      "calls": 8,
+      "max_ms": 0.144,
+      "p50_ms": 0.097,
+      "misses": 0,
+      "slowest": [
+       0.085,
+       0.097,
+       0.108,
+       0.109,
+       0.144
+      ],
+      "retries": 0
+     },
+     "escalation": {
+      "calls": 2,
+      "max_ms": 3.872,
+      "p50_ms": 3.872,
+      "misses": 0,
+      "slowest": [
+       3.868,
+       3.872
+      ],
+      "escalations": 1
+     }
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   },
+   {
+    "label": "retry-2s-uring-db1",
+    "databases": 1,
+    "case": "retry",
+    "mode": "2s",
+    "engine": "uring",
+    "reasons": [
+     "exec_publish: 3 calls over 20.0 ms (max 32000.7 ms)",
+     "exec_subscribe: 3 calls over 20.0 ms (max 34000.7 ms)"
+    ],
+    "notes": [],
+    "passed": false,
+    "forms": {
+     "exec_publish": {
+      "calls": 3,
+      "max_ms": 32000.703,
+      "p50_ms": 30000.79,
+      "misses": 3,
+      "slowest": [
+       30000.594,
+       30000.79,
+       32000.703
+      ]
+     },
+     "exec_subscribe": {
+      "calls": 3,
+      "max_ms": 34000.656,
+      "p50_ms": 32000.627,
+      "misses": 3,
+      "slowest": [
+       32000.582,
+       32000.627,
+       34000.656
+      ]
+     },
+     "exec_contended": {
+      "calls": 8,
+      "max_ms": 0.255,
+      "p50_ms": 0.141,
+      "misses": 0,
+      "slowest": [
+       0.132,
+       0.141,
+       0.184,
+       0.227,
+       0.255
+      ],
+      "retries": 1
+     },
+     "escalation": {
+      "calls": 2,
+      "max_ms": 3.463,
+      "p50_ms": 3.463,
+      "misses": 0,
+      "slowest": [
+       3.435,
+       3.463
+      ],
+      "escalations": 1
+     }
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   }
+  ]
+ },
+ {
+  "case": "retry",
+  "mode": "2s",
+  "engine": "epoll",
+  "rc": 1,
+  "seconds": 358.5,
+  "legs": [
+   {
+    "label": "retry-2s-epoll-db16",
+    "databases": 16,
+    "case": "retry",
+    "mode": "2s",
+    "engine": "epoll",
+    "reasons": [
+     "exec_publish: 3 calls over 20.0 ms (max 32032.6 ms)",
+     "exec_subscribe: 3 calls over 20.0 ms (max 30030.5 ms)"
+    ],
+    "notes": [
+     "no contended EXEC retry happened (form C unarmed this leg)"
+    ],
+    "passed": false,
+    "forms": {
+     "exec_publish": {
+      "calls": 3,
+      "max_ms": 32032.59,
+      "p50_ms": 32032.583,
+      "misses": 3,
+      "slowest": [
+       26026.555,
+       32032.583,
+       32032.59
+      ]
+     },
+     "exec_subscribe": {
+      "calls": 3,
+      "max_ms": 30030.524,
+      "p50_ms": 30030.49,
+      "misses": 3,
+      "slowest": [
+       20020.435,
+       30030.49,
+       30030.524
+      ]
+     },
+     "exec_contended": {
+      "calls": 8,
+      "max_ms": 0.201,
+      "p50_ms": 0.106,
+      "misses": 0,
+      "slowest": [
+       0.102,
+       0.106,
+       0.119,
+       0.152,
+       0.201
+      ],
+      "retries": 0
+     },
+     "escalation": {
+      "calls": 2,
+      "max_ms": 3.354,
+      "p50_ms": 3.354,
+      "misses": 0,
+      "slowest": [
+       3.295,
+       3.354
+      ],
+      "escalations": 1
+     }
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   },
+   {
+    "label": "retry-2s-epoll-db1",
+    "databases": 1,
+    "case": "retry",
+    "mode": "2s",
+    "engine": "epoll",
+    "reasons": [
+     "exec_publish: 3 calls over 20.0 ms (max 36036.6 ms)",
+     "exec_subscribe: 3 calls over 20.0 ms (max 30030.5 ms)"
+    ],
+    "notes": [
+     "no contended EXEC retry happened (form C unarmed this leg)"
+    ],
+    "passed": false,
+    "forms": {
+     "exec_publish": {
+      "calls": 3,
+      "max_ms": 36036.564,
+      "p50_ms": 34034.601,
+      "misses": 3,
+      "slowest": [
+       30030.53,
+       34034.601,
+       36036.564
+      ]
+     },
+     "exec_subscribe": {
+      "calls": 3,
+      "max_ms": 30030.481,
+      "p50_ms": 30030.206,
+      "misses": 3,
+      "slowest": [
+       28028.58,
+       30030.206,
+       30030.481
+      ]
+     },
+     "exec_contended": {
+      "calls": 8,
+      "max_ms": 0.147,
+      "p50_ms": 0.104,
+      "misses": 0,
+      "slowest": [
+       0.093,
+       0.104,
+       0.117,
+       0.14,
+       0.147
+      ],
+      "retries": 0
+     },
+     "escalation": {
+      "calls": 2,
+      "max_ms": 3.45,
+      "p50_ms": 3.45,
+      "misses": 0,
+      "slowest": [
+       3.424,
+       3.45
+      ],
+      "escalations": 1
+     }
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   }
+  ]
+ },
+ {
+  "case": "retry",
+  "mode": "1s",
+  "engine": "uring",
+  "rc": 1,
+  "seconds": 362.2,
+  "legs": [
+   {
+    "label": "retry-1s-uring-db16",
+    "databases": 16,
+    "case": "retry",
+    "mode": "1s",
+    "engine": "uring",
+    "reasons": [
+     "exec_publish: 3 calls over 20.0 ms (max 32000.6 ms)",
+     "exec_subscribe: 3 calls over 20.0 ms (max 34000.6 ms)"
+    ],
+    "notes": [
+     "no contended EXEC retry happened (form C unarmed this leg)"
+    ],
+    "passed": false,
+    "forms": {
+     "exec_publish": {
+      "calls": 3,
+      "max_ms": 32000.58,
+      "p50_ms": 30000.574,
+      "misses": 3,
+      "slowest": [
+       30000.534,
+       30000.574,
+       32000.58
+      ]
+     },
+     "exec_subscribe": {
+      "calls": 3,
+      "max_ms": 34000.551,
+      "p50_ms": 32000.565,
+      "misses": 3,
+      "slowest": [
+       30000.494,
+       32000.565,
+       34000.551
+      ]
+     },
+     "exec_contended": {
+      "calls": 8,
+      "max_ms": 0.138,
+      "p50_ms": 0.102,
+      "misses": 0,
+      "slowest": [
+       0.097,
+       0.102,
+       0.102,
+       0.123,
+       0.138
+      ],
+      "retries": 0
+     },
+     "escalation": {
+      "calls": 2,
+      "max_ms": 3.419,
+      "p50_ms": 3.419,
+      "misses": 0,
+      "slowest": [
+       3.392,
+       3.419
+      ],
+      "escalations": 1
+     }
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   },
+   {
+    "label": "retry-1s-uring-db1",
+    "databases": 1,
+    "case": "retry",
+    "mode": "1s",
+    "engine": "uring",
+    "reasons": [
+     "exec_publish: 3 calls over 20.0 ms (max 32000.6 ms)",
+     "exec_subscribe: 3 calls over 20.0 ms (max 28000.6 ms)"
+    ],
+    "notes": [
+     "no contended EXEC retry happened (form C unarmed this leg)"
+    ],
+    "passed": false,
+    "forms": {
+     "exec_publish": {
+      "calls": 3,
+      "max_ms": 32000.603,
+      "p50_ms": 30000.596,
+      "misses": 3,
+      "slowest": [
+       30000.589,
+       30000.596,
+       32000.603
+      ]
+     },
+     "exec_subscribe": {
+      "calls": 3,
+      "max_ms": 28000.594,
+      "p50_ms": 28000.589,
+      "misses": 3,
+      "slowest": [
+       26000.541,
+       28000.589,
+       28000.594
+      ]
+     },
+     "exec_contended": {
+      "calls": 8,
+      "max_ms": 0.148,
+      "p50_ms": 0.115,
+      "misses": 0,
+      "slowest": [
+       0.109,
+       0.115,
+       0.117,
+       0.144,
+       0.148
+      ],
+      "retries": 0
+     },
+     "escalation": {
+      "calls": 2,
+      "max_ms": 3.401,
+      "p50_ms": 3.401,
+      "misses": 0,
+      "slowest": [
+       3.374,
+       3.401
+      ],
+      "escalations": 1
+     }
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   }
+  ]
+ },
+ {
+  "case": "retry",
+  "mode": "1s",
+  "engine": "epoll",
+  "rc": 1,
+  "seconds": 366.5,
+  "legs": [
+   {
+    "label": "retry-1s-epoll-db16",
+    "databases": 16,
+    "case": "retry",
+    "mode": "1s",
+    "engine": "epoll",
+    "reasons": [
+     "exec_publish: 3 calls over 20.0 ms (max 32032.6 ms)",
+     "exec_subscribe: 3 calls over 20.0 ms (max 30030.6 ms)"
+    ],
+    "notes": [
+     "no contended EXEC retry happened (form C unarmed this leg)"
+    ],
+    "passed": false,
+    "forms": {
+     "exec_publish": {
+      "calls": 3,
+      "max_ms": 32032.649,
+      "p50_ms": 32032.607,
+      "misses": 3,
+      "slowest": [
+       32032.595,
+       32032.607,
+       32032.649
+      ]
+     },
+     "exec_subscribe": {
+      "calls": 3,
+      "max_ms": 30030.584,
+      "p50_ms": 30030.557,
+      "misses": 3,
+      "slowest": [
+       28028.544,
+       30030.557,
+       30030.584
+      ]
+     },
+     "exec_contended": {
+      "calls": 8,
+      "max_ms": 0.133,
+      "p50_ms": 0.097,
+      "misses": 0,
+      "slowest": [
+       0.087,
+       0.097,
+       0.114,
+       0.123,
+       0.133
+      ],
+      "retries": 0
+     },
+     "escalation": {
+      "calls": 2,
+      "max_ms": 3.407,
+      "p50_ms": 3.407,
+      "misses": 0,
+      "slowest": [
+       3.384,
+       3.407
+      ],
+      "escalations": 1
+     }
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   },
+   {
+    "label": "retry-1s-epoll-db1",
+    "databases": 1,
+    "case": "retry",
+    "mode": "1s",
+    "engine": "epoll",
+    "reasons": [
+     "exec_publish: 3 calls over 20.0 ms (max 32032.6 ms)",
+     "exec_subscribe: 3 calls over 20.0 ms (max 30030.6 ms)"
+    ],
+    "notes": [
+     "no contended EXEC retry happened (form C unarmed this leg)"
+    ],
+    "passed": false,
+    "forms": {
+     "exec_publish": {
+      "calls": 3,
+      "max_ms": 32032.604,
+      "p50_ms": 32032.6,
+      "misses": 3,
+      "slowest": [
+       30030.578,
+       32032.6,
+       32032.604
+      ]
+     },
+     "exec_subscribe": {
+      "calls": 3,
+      "max_ms": 30030.562,
+      "p50_ms": 30030.551,
+      "misses": 3,
+      "slowest": [
+       28027.975,
+       30030.551,
+       30030.562
+      ]
+     },
+     "exec_contended": {
+      "calls": 8,
+      "max_ms": 0.179,
+      "p50_ms": 0.117,
+      "misses": 0,
+      "slowest": [
+       0.113,
+       0.117,
+       0.133,
+       0.141,
+       0.179
+      ],
+      "retries": 0
+     },
+     "escalation": {
+      "calls": 2,
+      "max_ms": 3.645,
+      "p50_ms": 3.645,
+      "misses": 0,
+      "slowest": [
+       3.574,
+       3.645
+      ],
+      "escalations": 1
+     }
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   }
+  ]
+ },
+ {
+  "case": "control",
+  "mode": "2s",
+  "engine": "uring",
+  "rc": 1,
+  "seconds": 34.3,
+  "legs": [
+   {
+    "label": "control-2s-uring-db16",
+    "databases": 16,
+    "case": "control",
+    "mode": "2s",
+    "engine": "uring",
+    "reasons": [
+     "config_rendezvous: 4 over 20.0 ms (max 2000.5 ms)",
+     "unpause: 4 over 20.0 ms (max 1900.0 ms)"
+    ],
+    "notes": [],
+    "passed": false,
+    "forms": {
+     "config_rendezvous": {
+      "calls": 4,
+      "max_ms": 2000.475,
+      "p50_ms": 2000.368,
+      "misses": 4,
+      "slowest": [
+       2000.221,
+       2000.24,
+       2000.368,
+       2000.475
+      ]
+     },
+     "unpause": {
+      "calls": 4,
+      "max_ms": 1900.007,
+      "p50_ms": 1899.972,
+      "misses": 4,
+      "slowest": [
+       1899.962,
+       1899.971,
+       1899.972,
+       1900.007
+      ]
+     },
+     "debug_clientlb": {
+      "calls": 1,
+      "max_ms": 0.756,
+      "p50_ms": 0.756,
+      "misses": 0,
+      "slowest": [
+       0.756
+      ]
+     }
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   },
+   {
+    "label": "control-2s-uring-db1",
+    "databases": 1,
+    "case": "control",
+    "mode": "2s",
+    "engine": "uring",
+    "reasons": [
+     "config_rendezvous: 4 over 20.0 ms (max 2000.6 ms)",
+     "unpause: 4 over 20.0 ms (max 1900.0 ms)"
+    ],
+    "notes": [],
+    "passed": false,
+    "forms": {
+     "config_rendezvous": {
+      "calls": 4,
+      "max_ms": 2000.553,
+      "p50_ms": 2000.469,
+      "misses": 4,
+      "slowest": [
+       2000.229,
+       2000.395,
+       2000.469,
+       2000.553
+      ]
+     },
+     "unpause": {
+      "calls": 4,
+      "max_ms": 1900.023,
+      "p50_ms": 1899.989,
+      "misses": 4,
+      "slowest": [
+       1899.977,
+       1899.989,
+       1899.989,
+       1900.023
+      ]
+     },
+     "debug_clientlb": {
+      "calls": 1,
+      "max_ms": 0.745,
+      "p50_ms": 0.745,
+      "misses": 0,
+      "slowest": [
+       0.745
+      ]
+     }
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   }
+  ]
+ },
+ {
+  "case": "control",
+  "mode": "2s",
+  "engine": "epoll",
+  "rc": 1,
+  "seconds": 36.3,
+  "legs": [
+   {
+    "label": "control-2s-epoll-db16",
+    "databases": 16,
+    "case": "control",
+    "mode": "2s",
+    "engine": "epoll",
+    "reasons": [
+     "config_rendezvous: 4 over 20.0 ms (max 2003.0 ms)",
+     "unpause: 4 over 20.0 ms (max 1902.0 ms)",
+     "debug_clientlb: 1 over 20.0 ms (max 1992.3 ms)"
+    ],
+    "notes": [],
+    "passed": false,
+    "forms": {
+     "config_rendezvous": {
+      "calls": 4,
+      "max_ms": 2003.042,
+      "p50_ms": 2002.899,
+      "misses": 4,
+      "slowest": [
+       2002.229,
+       2002.245,
+       2002.899,
+       2003.042
+      ]
+     },
+     "unpause": {
+      "calls": 4,
+      "max_ms": 1901.987,
+      "p50_ms": 1901.96,
+      "misses": 4,
+      "slowest": [
+       1901.952,
+       1901.958,
+       1901.96,
+       1901.987
+      ]
+     },
+     "debug_clientlb": {
+      "calls": 1,
+      "max_ms": 1992.328,
+      "p50_ms": 1992.328,
+      "misses": 1,
+      "slowest": [
+       1992.328
+      ]
+     }
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   },
+   {
+    "label": "control-2s-epoll-db1",
+    "databases": 1,
+    "case": "control",
+    "mode": "2s",
+    "engine": "epoll",
+    "reasons": [
+     "config_rendezvous: 4 over 20.0 ms (max 2003.0 ms)",
+     "unpause: 4 over 20.0 ms (max 1902.0 ms)"
+    ],
+    "notes": [],
+    "passed": false,
+    "forms": {
+     "config_rendezvous": {
+      "calls": 4,
+      "max_ms": 2003.016,
+      "p50_ms": 2002.818,
+      "misses": 4,
+      "slowest": [
+       2002.227,
+       2002.228,
+       2002.818,
+       2003.016
+      ]
+     },
+     "unpause": {
+      "calls": 4,
+      "max_ms": 1901.988,
+      "p50_ms": 1901.978,
+      "misses": 4,
+      "slowest": [
+       1901.953,
+       1901.963,
+       1901.978,
+       1901.988
+      ]
+     },
+     "debug_clientlb": {
+      "calls": 1,
+      "max_ms": 0.746,
+      "p50_ms": 0.746,
+      "misses": 0,
+      "slowest": [
+       0.746
+      ]
+     }
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   }
+  ]
+ },
+ {
+  "case": "control",
+  "mode": "1s",
+  "engine": "uring",
+  "rc": 1,
+  "seconds": 32.1,
+  "legs": [
+   {
+    "label": "control-1s-uring-db16",
+    "databases": 16,
+    "case": "control",
+    "mode": "1s",
+    "engine": "uring",
+    "reasons": [
+     "config_rendezvous: 4 over 20.0 ms (max 1999.1 ms)",
+     "unpause: 4 over 20.0 ms (max 1900.0 ms)"
+    ],
+    "notes": [],
+    "passed": false,
+    "forms": {
+     "config_rendezvous": {
+      "calls": 4,
+      "max_ms": 1999.071,
+      "p50_ms": 1995.504,
+      "misses": 4,
+      "slowest": [
+       1984.404,
+       1994.961,
+       1995.504,
+       1999.071
+      ]
+     },
+     "unpause": {
+      "calls": 4,
+      "max_ms": 1900.019,
+      "p50_ms": 1899.959,
+      "misses": 4,
+      "slowest": [
+       1899.938,
+       1899.948,
+       1899.959,
+       1900.019
+      ]
+     }
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   },
+   {
+    "label": "control-1s-uring-db1",
+    "databases": 1,
+    "case": "control",
+    "mode": "1s",
+    "engine": "uring",
+    "reasons": [
+     "config_rendezvous: 4 over 20.0 ms (max 1999.5 ms)",
+     "unpause: 4 over 20.0 ms (max 1900.0 ms)"
+    ],
+    "notes": [],
+    "passed": false,
+    "forms": {
+     "config_rendezvous": {
+      "calls": 4,
+      "max_ms": 1999.481,
+      "p50_ms": 1993.86,
+      "misses": 4,
+      "slowest": [
+       1985.308,
+       1993.716,
+       1993.86,
+       1999.481
+      ]
+     },
+     "unpause": {
+      "calls": 4,
+      "max_ms": 1900.001,
+      "p50_ms": 1899.979,
+      "misses": 4,
+      "slowest": [
+       1899.948,
+       1899.973,
+       1899.979,
+       1900.001
+      ]
+     }
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   }
+  ]
+ },
+ {
+  "case": "control",
+  "mode": "1s",
+  "engine": "epoll",
+  "rc": 1,
+  "seconds": 16.2,
+  "legs": [
+   {
+    "label": "control-1s-epoll-db16",
+    "databases": 16,
+    "case": "control",
+    "mode": "1s",
+    "engine": "epoll",
+    "reasons": [
+     "unpause: 4 over 20.0 ms (max 1902.0 ms)"
+    ],
+    "notes": [],
+    "passed": false,
+    "forms": {
+     "config_rendezvous": {
+      "calls": 4,
+      "max_ms": 0.398,
+      "p50_ms": 0.178,
+      "misses": 0,
+      "slowest": [
+       0.126,
+       0.139,
+       0.178,
+       0.398
+      ]
+     },
+     "unpause": {
+      "calls": 4,
+      "max_ms": 1901.998,
+      "p50_ms": 1901.994,
+      "misses": 4,
+      "slowest": [
+       1901.958,
+       1901.985,
+       1901.994,
+       1901.998
+      ]
+     }
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   },
+   {
+    "label": "control-1s-epoll-db1",
+    "databases": 1,
+    "case": "control",
+    "mode": "1s",
+    "engine": "epoll",
+    "reasons": [
+     "unpause: 4 over 20.0 ms (max 1902.0 ms)"
+    ],
+    "notes": [],
+    "passed": false,
+    "forms": {
+     "config_rendezvous": {
+      "calls": 4,
+      "max_ms": 0.41,
+      "p50_ms": 0.165,
+      "misses": 0,
+      "slowest": [
+       0.109,
+       0.137,
+       0.165,
+       0.41
+      ]
+     },
+     "unpause": {
+      "calls": 4,
+      "max_ms": 1902.028,
+      "p50_ms": 1902.001,
+      "misses": 4,
+      "slowest": [
+       1901.947,
+       1901.982,
+       1902.001,
+       1902.028
+      ]
+     }
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   }
+  ]
+ },
+ {
+  "case": "epoch",
+  "mode": "2s",
+  "engine": "uring",
+  "rc": 1,
+  "seconds": 40.3,
+  "legs": [
+   {
+    "label": "epoch-2s-uring-db16",
+    "databases": 16,
+    "case": "epoch",
+    "mode": "2s",
+    "engine": "uring",
+    "reasons": [
+     "20 fd releases over 20.0 ms (max 2000.3 ms)"
+    ],
+    "notes": [],
+    "passed": false,
+    "fd_release": {
+     "calls": 20,
+     "max_ms": 2000.295,
+     "p50_ms": 2000.215,
+     "misses": 20,
+     "slowest": [
+      2000.279,
+      2000.287,
+      2000.288,
+      2000.289,
+      2000.295
+     ]
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   },
+   {
+    "label": "epoch-2s-uring-db1",
+    "databases": 1,
+    "case": "epoch",
+    "mode": "2s",
+    "engine": "uring",
+    "reasons": [],
+    "notes": [],
+    "passed": true,
+    "fd_release": {
+     "calls": 20,
+     "max_ms": 0.071,
+     "p50_ms": 0.055,
+     "misses": 0,
+     "slowest": [
+      0.057,
+      0.058,
+      0.059,
+      0.064,
+      0.071
+     ]
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   }
+  ]
+ },
+ {
+  "case": "epoch",
+  "mode": "2s",
+  "engine": "epoll",
+  "rc": 1,
+  "seconds": 40.3,
+  "legs": [
+   {
+    "label": "epoch-2s-epoll-db16",
+    "databases": 16,
+    "case": "epoch",
+    "mode": "2s",
+    "engine": "epoll",
+    "reasons": [
+     "20 fd releases over 20.0 ms (max 2002.3 ms)"
+    ],
+    "notes": [],
+    "passed": false,
+    "fd_release": {
+     "calls": 20,
+     "max_ms": 2002.33,
+     "p50_ms": 2002.202,
+     "misses": 20,
+     "slowest": [
+      2002.232,
+      2002.239,
+      2002.249,
+      2002.319,
+      2002.33
+     ]
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   },
+   {
+    "label": "epoch-2s-epoll-db1",
+    "databases": 1,
+    "case": "epoch",
+    "mode": "2s",
+    "engine": "epoll",
+    "reasons": [],
+    "notes": [],
+    "passed": true,
+    "fd_release": {
+     "calls": 20,
+     "max_ms": 0.07,
+     "p50_ms": 0.054,
+     "misses": 0,
+     "slowest": [
+      0.056,
+      0.056,
+      0.056,
+      0.062,
+      0.07
+     ]
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   }
+  ]
+ },
+ {
+  "case": "epoch",
+  "mode": "1s",
+  "engine": "uring",
+  "rc": 1,
+  "seconds": 40.3,
+  "legs": [
+   {
+    "label": "epoch-1s-uring-db16",
+    "databases": 16,
+    "case": "epoch",
+    "mode": "1s",
+    "engine": "uring",
+    "reasons": [
+     "20 fd releases over 20.0 ms (max 2000.3 ms)"
+    ],
+    "notes": [],
+    "passed": false,
+    "fd_release": {
+     "calls": 20,
+     "max_ms": 2000.322,
+     "p50_ms": 2000.153,
+     "misses": 20,
+     "slowest": [
+      2000.238,
+      2000.253,
+      2000.274,
+      2000.301,
+      2000.322
+     ]
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   },
+   {
+    "label": "epoch-1s-uring-db1",
+    "databases": 1,
+    "case": "epoch",
+    "mode": "1s",
+    "engine": "uring",
+    "reasons": [],
+    "notes": [],
+    "passed": true,
+    "fd_release": {
+     "calls": 20,
+     "max_ms": 0.066,
+     "p50_ms": 0.053,
+     "misses": 0,
+     "slowest": [
+      0.056,
+      0.056,
+      0.059,
+      0.06,
+      0.066
+     ]
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   }
+  ]
+ },
+ {
+  "case": "epoch",
+  "mode": "1s",
+  "engine": "epoll",
+  "rc": 1,
+  "seconds": 40.3,
+  "legs": [
+   {
+    "label": "epoch-1s-epoll-db16",
+    "databases": 16,
+    "case": "epoch",
+    "mode": "1s",
+    "engine": "epoll",
+    "reasons": [
+     "20 fd releases over 20.0 ms (max 2002.3 ms)"
+    ],
+    "notes": [],
+    "passed": false,
+    "fd_release": {
+     "calls": 20,
+     "max_ms": 2002.322,
+     "p50_ms": 2002.224,
+     "misses": 20,
+     "slowest": [
+      2002.241,
+      2002.258,
+      2002.266,
+      2002.275,
+      2002.322
+     ]
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   },
+   {
+    "label": "epoch-1s-epoll-db1",
+    "databases": 1,
+    "case": "epoch",
+    "mode": "1s",
+    "engine": "epoll",
+    "reasons": [],
+    "notes": [],
+    "passed": true,
+    "fd_release": {
+     "calls": 20,
+     "max_ms": 0.066,
+     "p50_ms": 0.053,
+     "misses": 0,
+     "slowest": [
+      0.056,
+      0.057,
+      0.061,
+      0.066,
+      0.066
+     ]
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   }
+  ]
+ },
+ {
+  "case": "slotless",
+  "mode": "2s",
+  "engine": "uring",
+  "rc": 1,
+  "seconds": 7.1,
+  "legs": [
+   {
+    "label": "slotless-2s-uring-db16",
+    "databases": 16,
+    "case": "slotless",
+    "mode": "2s",
+    "engine": "uring",
+    "reasons": [
+     "round 0: 1176 BLPOP replies missing after 3000 ms"
+    ],
+    "notes": [],
+    "passed": false,
+    "rounds_slowest_ms": [],
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 1176
+   },
+   {
+    "label": "slotless-2s-uring-db1",
+    "databases": 1,
+    "case": "slotless",
+    "mode": "2s",
+    "engine": "uring",
+    "reasons": [
+     "round 0: 1176 BLPOP replies missing after 3000 ms"
+    ],
+    "notes": [],
+    "passed": false,
+    "rounds_slowest_ms": [],
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 1176
+   }
+  ]
+ },
+ {
+  "case": "slotless",
+  "mode": "2s",
+  "engine": "epoll",
+  "rc": 1,
+  "seconds": 7.2,
+  "legs": [
+   {
+    "label": "slotless-2s-epoll-db16",
+    "databases": 16,
+    "case": "slotless",
+    "mode": "2s",
+    "engine": "epoll",
+    "reasons": [
+     "round 0: 804 BLPOP replies missing after 3000 ms"
+    ],
+    "notes": [],
+    "passed": false,
+    "rounds_slowest_ms": [],
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 804
+   },
+   {
+    "label": "slotless-2s-epoll-db1",
+    "databases": 1,
+    "case": "slotless",
+    "mode": "2s",
+    "engine": "epoll",
+    "reasons": [
+     "round 0: 878 BLPOP replies missing after 3000 ms"
+    ],
+    "notes": [],
+    "passed": false,
+    "rounds_slowest_ms": [],
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 878
+   }
+  ]
+ },
+ {
+  "case": "slotless",
+  "mode": "1s",
+  "engine": "uring",
+  "rc": 1,
+  "seconds": 32.0,
+  "legs": [
+   {
+    "label": "slotless-1s-uring-db16",
+    "databases": 16,
+    "case": "slotless",
+    "mode": "1s",
+    "engine": "uring",
+    "reasons": [
+     "error: AssertionError('clients never all blocked')"
+    ],
+    "notes": [],
+    "passed": false,
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   },
+   {
+    "label": "slotless-1s-uring-db1",
+    "databases": 1,
+    "case": "slotless",
+    "mode": "1s",
+    "engine": "uring",
+    "reasons": [],
+    "notes": [],
+    "passed": true,
+    "rounds_slowest_ms": [
+     21.683,
+     16.306,
+     16.571
+    ],
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 3528
+   }
+  ]
+ },
+ {
+  "case": "slotless",
+  "mode": "1s",
+  "engine": "epoll",
+  "rc": 1,
+  "seconds": 5.2,
+  "legs": [
+   {
+    "label": "slotless-1s-epoll-db16",
+    "databases": 16,
+    "case": "slotless",
+    "mode": "1s",
+    "engine": "epoll",
+    "reasons": [],
+    "notes": [],
+    "passed": true,
+    "rounds_slowest_ms": [
+     21.949,
+     17.335,
+     17.748
+    ],
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 3528
+   },
+   {
+    "label": "slotless-1s-epoll-db1",
+    "databases": 1,
+    "case": "slotless",
+    "mode": "1s",
+    "engine": "epoll",
+    "reasons": [
+     "round 0: 1034 BLPOP replies missing after 3000 ms"
+    ],
+    "notes": [],
+    "passed": false,
+    "rounds_slowest_ms": [],
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 1034
+   }
+  ]
+ },
+ {
+  "case": "watchdog",
+  "mode": "2s",
+  "engine": "uring",
+  "rc": 1,
+  "seconds": 7.7,
+  "legs": [
+   {
+    "label": "watchdog-2s-uring-db16",
+    "databases": 16,
+    "case": "watchdog",
+    "mode": "2s",
+    "engine": "uring",
+    "reasons": [
+     "connection lost during the long command: EOFError('server closed the connection') (server alive=False)",
+     "server log: fatal: database namespace drain timeout elapsed_ms=2711 grace_bound_ms=900 stage=1 request=0",
+     "server exit {'rc': -6, 'forced': False}"
+    ],
+    "notes": [],
+    "passed": false,
+    "server_exit": {
+     "rc": -6,
+     "forced": false
+    },
+    "notify_drop": 0
+   }
+  ]
+ },
+ {
+  "case": "watchdog",
+  "mode": "2s",
+  "engine": "epoll",
+  "rc": 1,
+  "seconds": 7.7,
+  "legs": [
+   {
+    "label": "watchdog-2s-epoll-db16",
+    "databases": 16,
+    "case": "watchdog",
+    "mode": "2s",
+    "engine": "epoll",
+    "reasons": [
+     "connection lost during the long command: EOFError('server closed the connection') (server alive=True)",
+     "server log: fatal: database namespace drain timeout elapsed_ms=2730 grace_bound_ms=900 stage=1 request=0",
+     "server exit {'rc': -6, 'forced': False}"
+    ],
+    "notes": [],
+    "passed": false,
+    "server_exit": {
+     "rc": -6,
+     "forced": false
+    },
+    "notify_drop": 0
+   }
+  ]
+ },
+ {
+  "case": "watchdog",
+  "mode": "1s",
+  "engine": "uring",
+  "rc": 1,
+  "seconds": 7.7,
+  "legs": [
+   {
+    "label": "watchdog-1s-uring-db16",
+    "databases": 16,
+    "case": "watchdog",
+    "mode": "1s",
+    "engine": "uring",
+    "reasons": [
+     "connection lost during the long command: EOFError('server closed the connection') (server alive=False)",
+     "server log: fatal: database namespace drain timeout elapsed_ms=2706 grace_bound_ms=900 stage=1 request=0",
+     "server exit {'rc': -6, 'forced': False}"
+    ],
+    "notes": [],
+    "passed": false,
+    "server_exit": {
+     "rc": -6,
+     "forced": false
+    },
+    "notify_drop": 0
+   }
+  ]
+ },
+ {
+  "case": "watchdog",
+  "mode": "1s",
+  "engine": "epoll",
+  "rc": 1,
+  "seconds": 7.6,
+  "legs": [
+   {
+    "label": "watchdog-1s-epoll-db16",
+    "databases": 16,
+    "case": "watchdog",
+    "mode": "1s",
+    "engine": "epoll",
+    "reasons": [
+     "connection lost during the long command: EOFError('server closed the connection') (server alive=True)",
+     "server log: fatal: database namespace drain timeout elapsed_ms=2718 grace_bound_ms=900 stage=1 request=0",
+     "server exit {'rc': -6, 'forced': False}"
+    ],
+    "notes": [],
+    "passed": false,
+    "server_exit": {
+     "rc": -6,
+     "forced": false
+    },
+    "notify_drop": 0
+   }
+  ]
+ },
+ {
+  "case": "script",
+  "mode": "2s",
+  "engine": "uring",
+  "rc": 1,
+  "seconds": 11.3,
+  "legs": [
+   {
+    "label": "script-2s-uring-db16",
+    "databases": 16,
+    "case": "script",
+    "mode": "2s",
+    "engine": "uring",
+    "reasons": [
+     "a reply did not arrive within 5.0 s (executor livelocked)"
+    ],
+    "notes": [],
+    "passed": false,
+    "movers": 300,
+    "scripts": 4,
+    "lane_full_errors": 0,
+    "replies_ok": 0,
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   },
+   {
+    "label": "script-2s-uring-db1",
+    "databases": 1,
+    "case": "script",
+    "mode": "2s",
+    "engine": "uring",
+    "reasons": [
+     "a reply did not arrive within 5.0 s (executor livelocked)"
+    ],
+    "notes": [],
+    "passed": false,
+    "movers": 300,
+    "scripts": 4,
+    "lane_full_errors": 0,
+    "replies_ok": 0,
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   }
+  ]
+ },
+ {
+  "case": "script",
+  "mode": "2s",
+  "engine": "epoll",
+  "rc": 1,
+  "seconds": 11.3,
+  "legs": [
+   {
+    "label": "script-2s-epoll-db16",
+    "databases": 16,
+    "case": "script",
+    "mode": "2s",
+    "engine": "epoll",
+    "reasons": [
+     "a reply did not arrive within 5.0 s (executor livelocked)"
+    ],
+    "notes": [],
+    "passed": false,
+    "movers": 300,
+    "scripts": 4,
+    "lane_full_errors": 0,
+    "replies_ok": 0,
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   },
+   {
+    "label": "script-2s-epoll-db1",
+    "databases": 1,
+    "case": "script",
+    "mode": "2s",
+    "engine": "epoll",
+    "reasons": [
+     "a reply did not arrive within 5.0 s (executor livelocked)"
+    ],
+    "notes": [],
+    "passed": false,
+    "movers": 300,
+    "scripts": 4,
+    "lane_full_errors": 0,
+    "replies_ok": 0,
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   }
+  ]
+ },
+ {
+  "case": "swapdb",
+  "mode": "2s",
+  "engine": "epoll",
+  "rc": 0,
+  "seconds": 8.3,
+  "legs": [
+   {
+    "label": "swapdb-2s-epoll-db16",
+    "databases": 16,
+    "case": "swapdb",
+    "mode": "2s",
+    "engine": "epoll",
+    "reasons": [],
+    "notes": [],
+    "passed": true,
+    "swapdb": {
+     "calls": 30,
+     "max_ms": 250.635,
+     "p50_ms": 250.31,
+     "misses": 0,
+     "slowest": [
+      250.581,
+      250.596,
+      250.599,
+      250.61,
+      250.635
+     ]
+    },
+    "server_exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "notify_drop": 0
+   }
+  ]
+ }
+]

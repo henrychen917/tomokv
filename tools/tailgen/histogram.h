@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <bit>
+#include <cmath>
 #include <cstdint>
 #include <stdexcept>
 
@@ -46,6 +47,39 @@ public:
             if (seen >= rank) return static_cast<double>(upper(i)) / 1000;
         }
         throw std::logic_error("histogram count mismatch");
+    }
+
+    // Attainment: samples completed at or below `ms`, exact to bucket resolution.
+    // record() bins each latency rounded UP to whole microseconds, so all of a
+    // bucket's samples are <= its upper bound. ROUNDING RULE: the bucket that
+    // contains the threshold counts as at-or-below only if its upper bound is
+    // <= the threshold; a bucket straddling the threshold is excluded whole. The
+    // result is exactly the number of samples <= U, where U is the largest bucket
+    // upper bound <= the threshold, so attainment is never overstated:
+    //   - through 2047 us buckets are 1 us wide and U equals any whole-microsecond
+    //     threshold: 0.05, 0.1, 0.2, 0.5, 1 and 2 ms are exact to the nanosecond;
+    //   - above that a bucket is value/1024 wide and samples in (U, threshold]
+    //     are left out: U is 4999 us at 5 ms, 9999 at 10 ms, 19999 at 20 ms and
+    //     49983 us at 50 ms (whose bucket spans 49984-50015 us).
+    // The threshold is first rounded to the nearest nanosecond (the recording
+    // unit), absorbing decimal-to-binary error such as 0.1 * 1e6. A negative
+    // threshold counts nothing, one at or beyond the 100 s range counts every
+    // sample, and NaN is rejected. An empty histogram reports 0, as every other
+    // statistic does; count() tells "no samples" from "none met the level".
+    uint64_t count_at_or_below_ms(double ms) const {
+        if (std::isnan(ms)) throw std::invalid_argument("attainment threshold is NaN");
+        if (ms < 0) return 0;
+        const double ns = ms * 1e6;
+        const uint64_t limit_us = ns >= static_cast<double>(max_ns) ? max_us
+                                                                     : static_cast<uint64_t>(std::llround(ns)) / 1000;
+        uint64_t seen = 0;
+        // upper() never decreases, so the first bucket above the limit ends the scan.
+        for (size_t i = 0; i < bins_.size() && upper(i) <= limit_us; ++i) seen += bins_[i];
+        return seen;
+    }
+    double fraction_at_or_below_ms(double ms) const {
+        const uint64_t at_or_below = count_at_or_below_ms(ms); // validates ms even when empty
+        return count_ ? static_cast<double>(at_or_below) / static_cast<double>(count_) : 0;
     }
 
 private:

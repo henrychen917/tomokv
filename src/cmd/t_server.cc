@@ -1442,6 +1442,20 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         reply_ok(op.sink());
         return;
     }
+    // F6c positive control: a one-shot microsecond stall between the next blocking registration's
+    // empty probe and its registry add. A cross-owner push issued during that window is the race
+    // the probe-then-add hole lost a wake into.
+    if (eq_icase(subcommand, "blocking-register-defer") && op.argc() == 3) {
+        uint64_t delay = 0;
+        if (!parse_u64(op.arg(2), delay) || delay > 10000000) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        g_server->set_debug_blocking_register_defer(static_cast<uint32_t>(delay));
+        reply_ok(op.sink());
+        return;
+    }
 #ifdef TOMO_TXNORDER_DEBUG
     if (eq_icase(subcommand, "txn-registry-visits") && op.argc() == 2) {
         reply_int(op.sink(), registry_visits.load(std::memory_order_relaxed));

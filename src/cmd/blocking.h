@@ -66,6 +66,9 @@ bool blocking_scatter_repark(Server& server, ThreadCtx& self, Ring& ring,
 // Executor heartbeat and atomic publish integration.
 uint32_t blocking_owner_cycle(Server& server, ThreadCtx& self, Ring& ring, int64_t now_ms,
                               bool timeout_beat);
+// Pre-park re-check (F7): true iff an owned shard has blocked waiters and a dirty flag a producer
+// set since this owner's last blocking cycle. The caller gates this on blocking_waiters() != 0.
+bool blocking_owner_dirty_pending(ThreadCtx& self);
 void blocking_atomic_published(Server& server, ThreadCtx& self, Ring& ring,
                                ScatterState& state);
 void blocking_scatter_mutation_published(const Task& task, Shard& shard, Op& op);
