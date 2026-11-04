@@ -15,6 +15,10 @@ aof      F4. The AOF writer was never re-woken while a record larger than one 64
          everysec while a PING probe on a third thread (neither the writer nor an owner) is timed:
          every gated reply waits for the writer, so a sleeping writer delays every PING. The
          restart replays every acknowledged post-image.
+bgsave   F9. A BGSAVE owner refused by its full chunk channel was never woken when the writer
+         freed it. One owner holds the whole dataset and the BGSAVE writer is another thread; the
+         capture rate must exceed a bound that a 50 ms-per-channel cadence cannot reach, the
+         owner's channel must actually have refused a post, and the dump reloads exactly.
 """
 import argparse
 import contextlib
@@ -28,7 +32,7 @@ import subprocess
 import time
 import traceback
 
-from _lib import Conn, topology, wait_ready
+from _lib import Conn, encode, lbsignals, topology, wait_ready
 import tls as tlslib
 
 PARK_RESCUE_MS = 50.0
@@ -335,6 +339,10 @@ def key_on(c, prefix, want, limit=4096):
     raise AssertionError(f'no {prefix} key reached a qualifying owner')
 
 
+def thread_row(c, tid):
+    return next(t for t in lbsignals(c).threads if t.tid == tid)
+
+
 # ---------------------------------------------------------------------------------------------
 # F4: AOF writer re-wake during a large record
 # ---------------------------------------------------------------------------------------------
@@ -417,10 +425,80 @@ def case_aof(args, directory, mode, engine, evidence):
 
 
 # ---------------------------------------------------------------------------------------------
+# F9: BGSAVE chunk channel consumer -> producer wake
+# ---------------------------------------------------------------------------------------------
+
+def case_bgsave(args, directory, mode, engine, evidence):
+    b = Boot(args, directory, mode, engine)
+    try:
+        c = b.c
+        # One owner produces every chunk and the BGSAVE writer is a different thread, so the
+        # only event that can resume a refused owner is the writer freeing its channel.
+        saver = c
+        owner = None
+        keys = []
+        names = [f'iowake:snap:{i}' for i in range(8192)]
+        rows = []
+        for start in range(0, len(names), 256):
+            rows += c.must('DEBUG', 'SHARDS', *names[start:start + 256])
+        saver_io = io_thread(saver)
+        for key, row in zip(names, rows):
+            if owner is None and int(row[1]) != saver_io:
+                owner = int(row[1])
+            if int(row[1]) == owner:
+                keys.append(key)
+            if len(keys) == args.snapshot_keys:
+                break
+        assert len(keys) == args.snapshot_keys, ('not enough single-owner keys', len(keys))
+        values = {key: os.urandom(16) * (MiB // 16) for key in keys}
+        for start in range(0, len(keys), 16):
+            batch = keys[start:start + 16]
+            c.raw(b''.join(encode('SET', key, values[key]) for key in batch))
+            for _ in batch:
+                assert c.read() == b'OK'
+        dataset = sum(len(v) for v in values.values())
+        # Neither probe may share the owner's loop: its traffic would wake a parked owner.
+        poller = connect_on(args.port, args.stall, lambda t: t != owner)
+        saves = []
+        for i in range(args.repeats):
+            refused = thread_row(poller, owner).full_events
+            began = time.monotonic()
+            assert saver.must('BGSAVE') == b'Background saving started'
+            while info_fields(poller, 'persistence')['rdb_bgsave_in_progress'] != '0':
+                assert time.monotonic() - began < 60, 'BGSAVE did not finish'
+                time.sleep(.001)
+            elapsed = time.monotonic() - began
+            status = info_fields(poller, 'persistence')['rdb_last_bgsave_status']
+            refusals = thread_row(poller, owner).full_events - refused
+            rate = dataset / MiB / elapsed
+            saves.append(dict(seconds=round(elapsed, 4), mib_per_s=round(rate, 1),
+                              owner_channel_refusals=refusals))
+            assert status == 'ok', status
+            # Anti-vacuity: the owner's post was refused by a full chunk channel at least once.
+            assert refusals > 0, ('the chunk channel never filled; the wait was not exercised', saves)
+            if rate < args.capture_mib_s:
+                raise AssertionError(f'{mode}/{engine}: BGSAVE captured {rate:.0f} MiB/s from one owner '
+                                     f'(bound {args.capture_mib_s} MiB/s): {saves}')
+        evidence.update(owner=owner, saver_io=saver_io, dataset_mib=dataset // MiB, saves=saves)
+        poller.close()
+        b.stop()
+        again = Boot(args, directory, mode, engine, name='restart')
+        try:
+            assert again.c.must('DBSIZE') == len(keys)
+            for key in (keys[0], keys[len(keys) // 2], keys[-1]):
+                assert again.c.must('GET', key) == values[key], key
+            again.stop()
+        finally:
+            again.kill()
+    finally:
+        b.kill()
+
+
+# ---------------------------------------------------------------------------------------------
 # driver
 # ---------------------------------------------------------------------------------------------
 
-CASES = {'tls': case_tls, 'aof': case_aof}
+CASES = {'tls': case_tls, 'aof': case_aof, 'bgsave': case_bgsave}
 
 
 def main():
@@ -436,6 +514,8 @@ def main():
     p.add_argument('--rounds', type=int, default=10)
     p.add_argument('--repeats', type=int, default=3)
     p.add_argument('--bound-ms', type=float, default=25.0)
+    p.add_argument('--capture-mib-s', type=float, default=200.0)
+    p.add_argument('--snapshot-keys', type=int, default=128)
     p.add_argument('--stall', type=float, default=20.0)
     a = p.parse_args()
     # The caller owns the port allocation; TLS uses PORT+1. Stay below the ephemeral range.

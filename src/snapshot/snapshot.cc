@@ -38,6 +38,11 @@ constexpr uint32_t kRecordTag = 0x44434552;  // "RECD"
 constexpr uint32_t kRecordHeaderBytes = 32;
 constexpr uint32_t kWriterFramesPerPass = 8;
 constexpr uint32_t kSnapshotMaxInflight = 64;
+// Owners refused by their full chunk channel, one bit per producer tid. The writer claims a bit
+// after it frees room in that channel and wakes the owner (consumer -> producer edge, F9). The
+// process has one snapshot coordinator (Server::snapshot_); keeping the word here leaves the
+// SnapshotManager and Server layouts unchanged.
+std::atomic<uint64_t> g_snapshot_room_waiters[NotifyMask::kWords];
 
 enum SnapshotIoRole : uint8_t {
     SnapshotIoHeader = 1,
@@ -673,7 +678,20 @@ bool SnapshotManager::post_chunk(uint32_t producer, std::unique_ptr<SnapshotChun
                                  Ring& producer_ring, LoopSignals& signals) {
     if (!chunk || producer >= nthreads_) return false;
     SnapshotChunk* raw = chunk.get();
-    if (!chunk_in_[producer].push(raw, signals)) return false;
+    if (!chunk_in_[producer].push(raw, signals)) {
+        // A refused owner has no other event that will wake it once the writer frees room, so an
+        // idle owner slept out its park timeout per full channel (F9). Publish, then re-check:
+        // either the re-check sees the writer's pop, or the writer's post-pop check sees the bit.
+        // A bit already set is owed that wake by the writer's next pop from this full channel.
+        std::atomic<uint64_t>& waiting =
+            g_snapshot_room_waiters[(producer >> 6) & (NotifyMask::kWords - 1)];
+        const uint64_t bit = uint64_t{1} << (producer & 63);
+        if (waiting.load(std::memory_order_relaxed) & bit) return false;
+        waiting.fetch_or(bit, std::memory_order_seq_cst);
+        std::atomic_thread_fence(std::memory_order_seq_cst);
+        if (!chunk_in_[producer].producer_free_slots() || !chunk_in_[producer].push(raw, signals))
+            return false;
+    }
     chunk.release();
     if (chunk_notify_.set(producer) && !blocking()) {
         Ring* target = writer_ring_.load(std::memory_order_acquire);
@@ -1046,6 +1064,20 @@ uint32_t SnapshotManager::writer_pass(ThreadCtx& writer, Ring& ring, bool drain_
         if (!ok) fail(epoch(), "snapshot file write failed");
         return ok;
     };
+    // Room just appeared in `producer`'s channel. The fence pairs with post_chunk's publication:
+    // a refused owner either saw this pop on its re-check or is woken here (F9).
+    auto wake_refused = [&](uint32_t producer) {
+        std::atomic_thread_fence(std::memory_order_seq_cst);
+        std::atomic<uint64_t>& waiting =
+            g_snapshot_room_waiters[(producer >> 6) & (NotifyMask::kWords - 1)];
+        const uint64_t bit = uint64_t{1} << (producer & 63);
+        if (!(waiting.load(std::memory_order_relaxed) & bit) ||
+            !(waiting.fetch_and(~bit, std::memory_order_acq_rel) & bit)) return;
+        Ring* target = server_ ? server_->thread(producer).ring() : nullptr;
+        if (!target || target == &ring) return;
+        while (!ring.msg_to(*target, ur_tag(UrKind::Wake, nullptr))) ring.submit_and_reap();
+        writer.sig().wakes_sent++;
+    };
     for (uint32_t word = 0; word < NotifyMask::kWords && budget; word++) {
         uint64_t bits = chunk_notify_.take(word);
         while (bits && budget) {
@@ -1054,10 +1086,14 @@ uint32_t SnapshotManager::writer_pass(ThreadCtx& writer, Ring& ring, bool drain_
             const uint32_t producer = word * 64 + bit;
             if (producer >= nthreads_) continue;
             SnapshotChunk* chunk = nullptr;
+            const uint32_t before = consumed;
             while (budget && chunk_in_[producer].recv(chunk)) {
                 if (!consume_chunk(producer, chunk)) return consumed;
             }
-            if (chunk_in_[producer].depth()) chunk_notify_.set(producer);
+            if (consumed != before) wake_refused(producer);
+            // Only a spent budget leaves chunks for this writer's own next pass. A channel found
+            // empty keeps its bit clear, so a concurrent post still owns its 0->1 wake edge.
+            if (!budget && chunk_in_[producer].depth()) chunk_notify_.set(producer);
         }
         // Preserve producers not visited because this pass hit its work budget.
         while (bits) {
@@ -1071,9 +1107,11 @@ uint32_t SnapshotManager::writer_pass(ThreadCtx& writer, Ring& ring, bool drain_
     if (drain_all && consumed == 0) {
         for (uint32_t producer = 0; producer < nthreads_ && budget; producer++) {
             SnapshotChunk* chunk = nullptr;
+            const uint32_t before = consumed;
             while (budget && chunk_in_[producer].recv(chunk)) {
                 if (!consume_chunk(producer, chunk)) return consumed;
             }
+            if (consumed != before) wake_refused(producer);
         }
     }
     if (ended_shards_ == nshards_ &&

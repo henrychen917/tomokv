@@ -1232,7 +1232,7 @@ plan_jobs(){
               efficiency dump_restore persistfmt persistfmt_aof_error auth authfix latencyfix_grammar latencyfix_shape latencyfix_off wave8b_off serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect trackorder notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated flipfix5 flipfix6 flipfix7_output flipfix7_blocked flipfix7_tls atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
               execfair exec1s txnorder_fifo txnorder_fifo_live txnorder_chain txnorder_index txnorder_wound txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
-  for section in tls aof; do JOB_NAMES+=("iowake-$section"); done
+  for section in tls aof bgsave; do JOB_NAMES+=("iowake-$section"); done
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
   for FM in 1s 2s; do
     for FR in 0 1; do for FC in 0 1; do for FQ in 0 1; do for FF in 0 1; do
@@ -2655,7 +2655,7 @@ unit_ready netcap-unit && taskset -c "$CORES" ./build/netcap-unit >"$TMPDIR/gate
     || bad "NET1 serverless bounds + scan + reclamation" "see $TMPDIR/gate-netcap-unit.txt"
 }
 
-# iowake: round-5 bounded-queue wake audit witnesses (F5, F4), one public row each.
+# iowake: round-5 bounded-queue wake audit witnesses (F5, F4, F9), one public row each.
 # Every row boots its own servers on this slot (PORT, and PORT+1 for TLS) in each declared mode
 # and engine, and bounds the delayed operation well below the 50 ms idle-park rescue.
 job_iowake(){
@@ -2663,6 +2663,7 @@ job_iowake(){
   case "$case" in
     tls) label='iowake F5 TLS multi-unit output re-drive (kTLS, TLS 1.3, CBC memory BIO; 2s, 1s, 1s reorder; both engines)';;
     aof) label='iowake F4 AOF writer re-wake during a large record (both modes, both engines)';;
+    bgsave) label='iowake F9 BGSAVE owner re-wake from its chunk channel (both modes, both engines)';;
     *) echo "unknown iowake case $case" >&2; return 2;;
   esac
   row_begin "$label"
@@ -7343,9 +7344,9 @@ collect_job aoforder
 
 collect_job tls
 
-# iowake: two wake-audit witness rows (F5, F4), collected before the quick exit:
-# DQ=+2, DF=+2. EXPECT_QUICK/EXPECT_FULL remain maintainer-owned.
-for IOWAKE_CASE in tls aof; do collect_job "iowake-$IOWAKE_CASE"; done
+# iowake: three wake-audit witness rows (F5, F4, F9), collected before the quick exit:
+# DQ=+3, DF=+3. EXPECT_QUICK/EXPECT_FULL remain maintainer-owned.
+for IOWAKE_CASE in tls aof bgsave; do collect_job "iowake-$IOWAKE_CASE"; done
 
 # ---- A. mandatory feature matrix (35 rows, BEFORE the quick-tier exit) -----------------------
 # No inherited feature defaults: feature_gate.py sets --thread-mode {1s,2s}, --read-local {0,1},
