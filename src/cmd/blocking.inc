@@ -1711,7 +1711,15 @@ bool blocking_resume_move_impl(Server& server, ThreadCtx& self, Ring& ring, Clie
         ScatterDispatch dispatch;
         const ScatterPrepare prepared = xshard_prepare(
             server, op, pool, self.id(), client.id(), dispatch);
-        if (prepared == ScatterPrepare::Backpressure) return false;
+        if (prepared == ScatterPrepare::Backpressure) {
+            // F8: a resumed BLMOVE/BRPOPLPUSH the global atomic window refused leaves this frame
+            // unconsumed, and nothing else may wake this IO. Arm the credit doorbell exactly as
+            // script_window_resume does, so a credit retirement or barrier clear rings it instead
+            // of the 50 ms park timeout. The pre-park sweep cleared credit_wait and recomputes it.
+            if (!server.atomic_can_admit(self.id()))
+                self.atomic_admission_state().credit_wait = true;
+            return false;
+        }
         if (prepared == ScatterPrepare::Error) {
             block->phase.store(BlockingPhase::Completed, std::memory_order_release);
             op.state.store(OpState::Done, std::memory_order_release);
