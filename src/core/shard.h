@@ -179,12 +179,20 @@ public:
 
     // The registry pointer and its map are owner-only.  Cross-thread INFO and atomic publication
     // touch only these two atomics; ordinary shards retain one predicted-false waiter check.
+    // seq_cst: a cross-owner committer reads this count to decide whether to mark the shard dirty
+    // and wake its owner. Paired after blocking_publish_fence() (F6c), it forms a Dekker half with
+    // a registering waiter's post-add fence: one side always sees the other. A seq_cst load is a
+    // plain mov on x86-64, so the common no-waiter guard on list/zset/stream writes is unchanged.
     bool has_blocking_waiters() const {
-        return blocking_waiters_.load(std::memory_order_relaxed) != 0;
+        return blocking_waiters_.load(std::memory_order_seq_cst) != 0;
     }
     uint64_t blocking_waiters() const {
-        return blocking_waiters_.load(std::memory_order_relaxed);
+        return blocking_waiters_.load(std::memory_order_seq_cst);
     }
+    // The fence a cross-owner producer runs between publishing its data (commit ticket / push) and
+    // reading has_blocking_waiters(). The owner-local push path needs no fence: the owner that
+    // mutated the key is the thread that services its own waiters.
+    static void blocking_publish_fence() { std::atomic_thread_fence(std::memory_order_seq_cst); }
     void set_blocking_dirty() { blocking_dirty_.store(true, std::memory_order_release); }
     bool take_blocking_dirty() { return blocking_dirty_.exchange(false, std::memory_order_acquire); }
     // Owner-local H3 notes move with the physical shard. Existing padding;
@@ -194,7 +202,9 @@ public:
     uint8_t txn_boundary_notes() const { return reserved_route_[0]; }
     void clear_txn_boundary_notes(uint8_t kinds = 7) { reserved_route_[0] &= ~kinds; }
     void*& blocking_registry_slot() { return blocking_registry_; }
-    void blocking_waiter_added() { blocking_waiters_.fetch_add(1, std::memory_order_relaxed); }
+    // seq_cst add: the waiter-visible edge of the F6c Dekker (see has_blocking_waiters). Removal
+    // stays relaxed -- nothing races a disappearing waiter against a wake decision.
+    void blocking_waiter_added() { blocking_waiters_.fetch_add(1, std::memory_order_seq_cst); }
     void blocking_waiter_removed() { blocking_waiters_.fetch_sub(1, std::memory_order_relaxed); }
 
     FlatStore&       store()       { return store_; }

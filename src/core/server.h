@@ -2911,6 +2911,12 @@ public:
     void set_debug_txn_place_defer(uint32_t delay) {
         debug_txn_place_defer_.store(delay, std::memory_order_relaxed);
     }
+    uint32_t take_debug_blocking_register_defer() {
+        return debug_blocking_register_defer_.exchange(0, std::memory_order_relaxed);
+    }
+    void set_debug_blocking_register_defer(uint32_t delay) {
+        debug_blocking_register_defer_.store(delay, std::memory_order_relaxed);
+    }
     // Same-owner tickets (a localfast plain version, FLUSH's logical clear) have no window: the
     // shard that draws them installs their records before it yields, and no other task may touch
     // that shard in between. They still travel through the bracket so the watermark can never
@@ -4045,6 +4051,10 @@ private:
     std::atomic<uint64_t> flip_skipped_class_[3]{};
     std::atomic<uint64_t> flip_refused_class_[3]{};
 
+    // F6c reproduction (cold, DEBUG-only): a one-shot microsecond stall the blocking registration
+    // inserts between its empty probe and its registry add, widening the probe/add window a
+    // cross-owner committer must lose a wake into. Consumed once; zero in production.
+    std::atomic<uint32_t> debug_blocking_register_defer_{0};
 };
 
 }  // namespace tomo

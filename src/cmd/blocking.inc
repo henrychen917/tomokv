@@ -1374,15 +1374,36 @@ bool blocking_execute_impl(Server&, ThreadCtx& self, Ring& ring, const Task& tas
             blocking_task_done(state, self, ring);
             return true;
         }
+        bool added_any = false;
         for (uint32_t index : group->keys) {
             if (state.phase.load(std::memory_order_acquire) !=
                 BlockingPhase::Registering) break;
             BlockingKey& key = state.keys[index];
             key.probe = blocking_probe_key(shard, state, key);
-            if (key.probe == BlockingProbe::Empty && !registry->add(shard, state, index)) {
-                blocking_fail_registration_oom(state, op, self, ring);
-                blocking_task_done(state, self, ring);
-                return true;
+            if (key.probe == BlockingProbe::Empty) {
+                if (const uint32_t us = __builtin_expect(
+                        state.server->take_debug_blocking_register_defer(), 0))
+                    Server::debug_stall_us(us);  // widen the probe/add window (F6c control)
+                if (!registry->add(shard, state, index)) {
+                    blocking_fail_registration_oom(state, op, self, ring);
+                    blocking_task_done(state, self, ring);
+                    return true;
+                }
+                added_any = true;
+            }
+        }
+        // F6c: add-then-fence-then-reprobe. registry->add() made this waiter visible to the
+        // waiter count with a seq_cst RMW; the fence orders that store before the reprobe's load
+        // of the key. A cross-thread committer that publishes data and then reads the count is the
+        // other Dekker half (blocking_publish_fence before every cross-owner count read): either
+        // it observes this waiter and marks the shard dirty, or this reprobe observes its data.
+        // Without this, a BLPOP..0 whose registration raced the commit parks on present data.
+        if (added_any && state.phase.load(std::memory_order_acquire) == BlockingPhase::Registering) {
+            std::atomic_thread_fence(std::memory_order_seq_cst);
+            for (uint32_t index : group->keys) {
+                BlockingKey& key = state.keys[index];
+                if (key.probe == BlockingProbe::Empty)
+                    key.probe = blocking_probe_key(shard, state, key);
             }
         }
         if (state.phase.load(std::memory_order_acquire) == BlockingPhase::Registering &&
@@ -1541,6 +1562,10 @@ void blocking_atomic_published(Server& server, ThreadCtx& self, Ring& ring,
     if (!(state.atomic_apply || state.atomic_write || state.atomic_pop) ||
         state.epoch.load(std::memory_order_acquire) == 0 ||
         state.aborted.load(std::memory_order_acquire)) return;
+    // F6c producer half: order the commit's published data before the count read below, so a
+    // waiter still registering on one of these shards is either seen here (dirty + wake) or sees
+    // this data in its own post-add reprobe.
+    Shard::blocking_publish_fence();
     bool owners[kMaxThreads] = {};
     for (uint32_t i = 0; i < state.nsub; i++) {
         Shard& shard = server.shard(state.groups[i].shard);
