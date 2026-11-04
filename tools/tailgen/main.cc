@@ -271,6 +271,7 @@ void human_histogram(const char* name, const Histogram& histogram) {
               << " p50=" << histogram.percentile_ms(50000) << " p90=" << histogram.percentile_ms(90000)
               << " p99=" << histogram.percentile_ms(99000) << " p99.9=" << histogram.percentile_ms(99900)
               << " p99.99=" << histogram.percentile_ms(99990) << " max=" << histogram.max_ms() << " ms\n";
+    human_attainment(std::cerr, name, histogram);
 }
 void report(const Config& config, const std::vector<std::unique_ptr<Result>>& results) {
     Histogram short_latency, long_latency, lateness;
