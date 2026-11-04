@@ -5027,8 +5027,10 @@ ordinary_shard_ready:
 
     unsigned idle_timeout_ms() const {
         const uint64_t now_ms = now_ns() / 1000000ull;
-        uint64_t deadline = now_ms + Ring::kWaitTimeoutMs;
-        if (client_cron_was_armed_) deadline = std::min(deadline, client_cron_beat_ms_);
+        uint64_t deadline = now_ms + kParkNetMs; // park_net.h: the missed-wake safety net
+        // The cron beat is a second rescue of a missed wake; the diagnostic build drops it too.
+        if (!kParkNetStretched && client_cron_was_armed_)
+            deadline = std::min(deadline, client_cron_beat_ms_);
         // Connection timers have no external producer to wake their owner.
         for (const auto& timer : deferred_timers_)
             if ((timer.kind == DeferredTimerKind::WaitZero ||

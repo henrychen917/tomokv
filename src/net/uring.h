@@ -50,6 +50,7 @@
 
 #include "../core/signal_doorbell.h"
 #include "../core/exec1s.h"
+#include "../base/park_net.h"
 
 namespace tomo {
 
@@ -90,6 +91,7 @@ inline T* ur_ptr(uint64_t tag) { return reinterpret_cast<T*>(tag & ((1ULL << 48)
 class Ring {
 public:
     static constexpr unsigned kWaitTimeoutMs = 50;
+    static_assert(kParkNetStretched || kParkNetMs == kWaitTimeoutMs, "park_net.h production net");
     Ring() = default;
     ~Ring() { shutdown(); }
     Ring(const Ring&) = delete;
@@ -282,16 +284,11 @@ public:
     // The timeout is not decoration: without it a thread parked here never re-reads its stop flag,
     // so shutdown hangs and the process has to be SIGKILLed. It also bounds the damage from any
     // missed wake — the loop recovers on the next tick instead of sleeping forever.
+    // The default is the missed-wake safety net (park_net.h); the diagnostic build stretches it.
     template <bool ClearSendClassification = false>
-    int submit_and_wait(unsigned want = 1, unsigned timeout_ms = kWaitTimeoutMs,
+    int submit_and_wait(unsigned want = 1, unsigned timeout_ms = kParkNetMs,
                         int database_fd = -1) {
         if constexpr (ClearSendClassification) send_pending_ = false;
-#ifdef TOMO_MDBQSBR_LIVE_PARK
-        // Test twins only: a witnessed idle worker stays asleep beyond the
-        // client's deadline unless a real control event wakes it.
-        constexpr unsigned workers = 8; // the live proof's required gate geometry
-        timeout_ms = 2 * 3 * (2 * kWaitTimeoutMs * (workers + 1));
-#endif
         if (__builtin_expect(wake_fd_ >= 0, false)) {
             // The ex loop's park. Same contract as the uring path: block until a peer rings the
             // doorbell OR the timeout expires, so the stop flag is re-read on every tick.

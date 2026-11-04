@@ -744,7 +744,7 @@ public:
                 }
                 Span idle(sig.idle_ns);
                 self_->arm_blocked();
-                ring_.submit_and_wait(1, Ring::kWaitTimeoutMs, srv_->databases().wake_fd(self_->id()));
+                ring_.submit_and_wait(1, kParkNetMs, srv_->databases().wake_fd(self_->id()));
                 if (ring_.wake_fd() >= 0) srv_->databases().consume_wake(self_->id(), ring_);
                 self_->clear_blocked();
                 continue;
@@ -761,7 +761,7 @@ public:
             Span idle(sig.idle_ns);
             self_->arm_blocked();
             if (!self_->any_ex_inbound()) {
-                ring_.submit_and_wait(1, Ring::kWaitTimeoutMs, srv_->databases().wake_fd(self_->id()));
+                ring_.submit_and_wait(1, kParkNetMs, srv_->databases().wake_fd(self_->id()));
                 if (ring_.wake_fd() >= 0) srv_->databases().consume_wake(self_->id(), ring_);
             } else ring_.submit_and_reap();
             self_->clear_blocked();

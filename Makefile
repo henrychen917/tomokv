@@ -755,6 +755,14 @@ mdbqsbr-live-arms:
 	$(MAKE) BUILD_ROOT=build/mdbqsbr2-park CXXFLAGS='$(CXXFLAGS) -DTOMO_MDBQSBR_LIVE_PARK' all
 	$(MAKE) BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='$(CXXFLAGS) -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all
 
+# parkwake: TEST-ONLY missed-wake diagnostic, never a measurement or release arm. Every park's
+# safety net (src/base/park_net.h) becomes PARK_NET_MS instead of 50 ms, so a missed wake is a
+# deterministic multi-second stall a gate row can assert. Production builds never define it.
+PARK_NET_MS ?= 2000
+.PHONY: park-net-arm
+park-net-arm:
+	$(MAKE) BUILD_ROOT=build/park-net CXXFLAGS='$(CXXFLAGS) -DTOMO_PARK_NET_MS=$(PARK_NET_MS)' all
+
 build/multidb-boundary-unit: tests/multidb_boundary_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
