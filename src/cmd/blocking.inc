@@ -912,6 +912,12 @@ public:
                     phase = BlockingPhase::RemapRequested;
                 phase = honour_cancel(state, phase, self, ring);
                 if (!blocking_phase_live(phase)) {
+                    if (claimed_here(state, phase, queue.waiters[i].key_index)) {
+                        shard.set_blocking_dirty();
+                        work++;
+                        i++;
+                        continue;
+                    }
                     remove_at_from_shard(shard, queue, i);
                     work++;
                     continue;
@@ -996,6 +1002,15 @@ private:
         return state.phase.load(std::memory_order_acquire);
     }
 
+    // A front waiter that was still registering when data arrived is claimed by its finishing
+    // owner through this queue's candidate, and takes its element in a task posted here. Until
+    // it has, it keeps its place and this owner keeps re-servicing: serving the waiters behind
+    // it first would hand them its element (Redis serves the longest-waiting client first).
+    static bool claimed_here(const BlockingState& state, BlockingPhase phase, uint32_t key_index) {
+        return (phase == BlockingPhase::Claimed || phase == BlockingPhase::NeedSelected) &&
+               state.candidate.load(std::memory_order_acquire) == key_index;
+    }
+
     void remove_at_from_shard(Shard& shard, BlockingQueue& queue, size_t index) {
         BlockingState* state = queue.waiters[index].state;
         queue.members.erase(state);
@@ -1021,6 +1036,10 @@ private:
                 phase = BlockingPhase::RemapRequested;
             phase = honour_cancel(state, phase, self, ring);
             if (!blocking_phase_live(phase)) {
+                if (claimed_here(state, phase, entry.key_index)) {
+                    shard.set_blocking_dirty();
+                    return work + 1;
+                }
                 remove_at_from_shard(shard, queue, i);
                 work++;
                 continue;
@@ -1044,6 +1063,11 @@ private:
                 blocking_atomic_min(state.candidate, entry.key_index);
                 if (state.phase.load(std::memory_order_acquire) != BlockingPhase::Registering)
                     continue;
+                // The front waiter is still registering on another owner and will take one
+                // element through its candidate. The waiters behind it were not examined: keep
+                // this owner's queues dirty so a later cycle serves them once it has. Without
+                // this, a timeout-0 follower waits for the next push while the data sits here.
+                shard.set_blocking_dirty();
                 return work + 1;
             }
             BlockingPhase expected = BlockingPhase::Parked;
