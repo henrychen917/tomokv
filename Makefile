@@ -763,6 +763,16 @@ PARK_NET_MS ?= 2000
 park-net-arm:
 	$(MAKE) BUILD_ROOT=build/park-net CXXFLAGS='$(CXXFLAGS) -DTOMO_PARK_NET_MS=$(PARK_NET_MS)' all
 
+# parkwake: serverless park/wake schedules (F3 DatabaseExDrain, F11 epoch, F12 notice retry,
+# F10 rendezvous announce) on the production objects; no listener, ring wait or sleep.
+build/parkwake-unit: tests/parkwake_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+# LD_PRELOAD helper of the F3 diagnostic witness (tests/parkwake.py --case swapdb).
+build/parkwake-slowsync.so: tests/parkwake_slowsync.c Makefile
+	@mkdir -p $(dir $@)
+	$(CC) -shared -fPIC -O2 -Wall -o $@ $< -ldl
+
 build/multidb-boundary-unit: tests/multidb_boundary_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm

@@ -1049,6 +1049,7 @@ job_body(){
     aof-*) job_aof "$name";;
     atomfix6-live-*) job_atomfix6_live "$name";;
     atomwake-live-*) job_atomwake_live "$name";;
+    parkwake-*) job_parkwake_live "$name";;
     txnorder2) job_txnorder2;;
     txnorder_wake) job_txnorder_wake;;
     at412-*) job_at412 "${name#at412-}";;
@@ -1214,6 +1215,11 @@ plan_jobs(){
   done; done; done
   for mode in 2s 1s; do for section in uring epoll; do JOB_NAMES+=("atomwake-live-$mode-$section"); done; done
   JOB_NAMES+=(atomwake_unit)
+  for section in retry control epoch slotless watchdog; do
+    for mode in 2s 1s; do for FR in uring epoll; do JOB_NAMES+=("parkwake-$section-$mode-$FR"); done; done
+  done
+  for FR in uring epoll; do JOB_NAMES+=("parkwake-script-2s-$FR"); done
+  JOB_NAMES+=(parkwake_unit)
   for section in T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11a T11b T12 T13 T14 T15 T16 owner; do JOB_NAMES+=("at412-$section"); done
   local resp_case resp_engine
   for resp_case in fragment cpu neighbour; do for mode in 1s 2s; do
@@ -1624,6 +1630,42 @@ job_atomwake_unit(){
     [ "$(grep -c '^PASS atomwake doorbell' "$TMPDIR/unit.log")" = 2 ] || passed=0
   else passed=0; fi
   [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/unit.log and build.log"
+}
+# parkwake: park/wake witnesses of the IO and executor loops (tests/parkwake.py), one fresh
+# pinned boot per leg (databases 16 and 1, except the namespace watchdog: 16), LC_ALL=C.
+# 23 rows, all collected before the quick-tier exit: retry/control/epoch/slotless/watchdog in
+# 2s and 1s x uring and epoll (20), script in 2s x uring and epoll (2; one executor is a split
+# geometry), and the serverless unit (1). DQ=+23, DF=+23; EXPECT_QUICK/EXPECT_FULL and the
+# label fixture remain maintainer-owned.
+parkwake_label(){
+  case "$1" in
+    retry) echo "IO retry lane: EXEC with PUBLISH/SUBSCRIBE, retries, escalation";;
+    script) echo "script re-post refused by its own executor lane";;
+    watchdog) echo "SWAPDB during a command longer than the namespace watchdog";;
+    control) echo "CONFIG rendezvous, CLIENT UNPAUSE and DEBUG CLIENT-LB wakes";;
+    epoch) echo "disconnect fd release across the park";;
+    slotless) echo "slot-less completion notices beyond a full channel";;
+  esac
+}
+job_parkwake_live(){
+  local prefix case mode engine label databases=16,1
+  IFS=- read -r prefix case mode engine <<< "$1"
+  [ "$case" != watchdog ] || databases=16
+  label="parkwake $(parkwake_label "$case") ($mode, $engine)"
+  row_begin "$label"
+  if py tests/parkwake.py --binary "$CANDIDATE_BINARY" --case "$case" --cores "$CORES" \
+      --port "$PORT" --ratio "$GATE_RATIO" --mode "$mode" --engine "$engine" \
+      --databases "$databases" --output "$TMPDIR/$case" >"$TMPDIR/$case.log" 2>&1; then
+    ok "$label"
+  else bad "$label" "see $TMPDIR/$case.log and $case/result.json"; fi
+}
+job_parkwake_unit(){
+  local label="parkwake park/wake unit (F3 ExDrain ack, F11 epoch, F12 notice, F10 announce)"
+  pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/parkwake-unit >"$TMPDIR/build.log" 2>&1
+  row_begin "$label"
+  if make -q build/parkwake-unit && taskset -c "$CORES" build/parkwake-unit >"$TMPDIR/unit.log" 2>&1 &&
+      [ "$(grep -c '^PASS parkwake' "$TMPDIR/unit.log")" = 5 ]; then ok "$label"
+  else bad "$label" "see $TMPDIR/unit.log and build.log"; fi
 }
 
 job_flushfix3(){
@@ -7001,6 +7043,14 @@ for atomwake_mode in 2s 1s; do for atomwake_engine in uring epoll; do
   collect_job "atomwake-live-$atomwake_mode-$atomwake_engine"
 done; done
 collect_job atomwake_unit
+# parkwake: 23 rows before the quick-tier exit (DQ=+23, DF=+23; see job_parkwake_live).
+for parkwake_case in retry control epoch slotless watchdog; do
+  for parkwake_mode in 2s 1s; do for parkwake_engine in uring epoll; do
+    collect_job "parkwake-$parkwake_case-$parkwake_mode-$parkwake_engine"
+  done; done
+done
+for parkwake_engine in uring epoll; do collect_job "parkwake-script-2s-$parkwake_engine"; done
+collect_job parkwake_unit
 collect_job flushfix3
 collect_job flushfix3_units
 collect_job flushfix2
