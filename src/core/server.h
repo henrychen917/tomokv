@@ -175,6 +175,15 @@ public:
         ~ClientWorkScope() {
             if (outer_) epoch_.store(end_, std::memory_order_release);
         }
+        // A parked thread holds no Client pointer. A loop whose outermost scope spans its
+        // blocking wait ends the scope for the wait (even epoch) and opens a fresh one after
+        // (new odd epoch), so close and client-LB fences never wait for a park to time out.
+        void park() { if (outer_) epoch_.store(end_, std::memory_order_release); }
+        void resume() {
+            if (!outer_) return;
+            epoch_.store(end_ + 1, std::memory_order_release);
+            end_ += 2;
+        }
         ClientWorkScope(const ClientWorkScope&) = delete;
         ClientWorkScope& operator=(const ClientWorkScope&) = delete;
     private:
@@ -191,6 +200,8 @@ public:
     public:
 #if TOMO_SINGLE_DATABASE && !defined(TOMO_MDBQSBR_DB0_NEGATIVE)
         DatabaseWorkScope(Server&, uint32_t) {}
+        void park() {}
+        void resume() {}
 #else
 #ifdef TOMO_MDBQSBR_TEST
         DatabaseWorkScope(Server& server, uint32_t tid) {
@@ -198,9 +209,15 @@ public:
             if (DatabaseMapTestHooks::fault != DatabaseMapTestHooks::OmitIo)
                 work_.emplace(server, tid);
         }
+        void park() { if (work_) work_->park(); }
+        void resume() { if (work_) work_->resume(); }
 #else
         DatabaseWorkScope(Server& server, uint32_t tid)
             : work_(safe_point(server, tid), tid) {}
+        // The whole pass is a map-reader region, but the blocking wait reads no map and holds
+        // no Client: publish it as outside the client-work scope (ClientWorkScope::park).
+        void park() { work_.park(); }
+        void resume() { work_.resume(); }
 #endif
     private:
         static Server& safe_point(Server& server, uint32_t tid) {
@@ -2368,6 +2385,19 @@ public:
         return ticket;
     }
     bool debug_sleep_complete(uint64_t ticket) { return debug_sleep_.complete(ticket); }
+    // Cold control publications that every worker consumes at its next pass (the CONFIG
+    // listener rendezvous, CLIENT UNPAUSE): ring every other worker from thread `tid`'s own ring,
+    // so a parked one does not sleep to its timeout. Only thread `tid` may call this. `submit`
+    // sends at once (a caller about to block); otherwise the caller's next submit carries them.
+    void wake_peers_from(uint32_t tid, bool submit) {
+        Ring* source = tid < nthreads() ? thread(tid).ring() : nullptr;
+        if (!source) return;
+        for (uint32_t other = 0; other < nthreads(); ++other)
+            if (other != tid)
+                if (Ring* target = thread(other).ring())
+                    source->msg_to(*target, ur_tag(UrKind::Wake, nullptr));
+        if (submit) source->submit();
+    }
     uint32_t client_hz() const {
         return client_hz_.effective(live_clients_.load(std::memory_order_relaxed));
     }
@@ -2902,6 +2932,19 @@ public:
         return total;
     }
     MultiRetryLane& multi_retry_lane(uint32_t io) { return multi_retry_lanes_[io]; }
+    // Completion notices an owner could not post to a full EX->IO channel (a connection without a
+    // ready-mask slot). Worker `tid` alone touches its vector. Dropping such a notice left the
+    // reply to its IO's every-64th-pass serve backstop, about a second on an idle IO. Instead the
+    // claim (retire_queued) stays set -- the client can then be neither released nor migrated --
+    // and the owner reposts it on its following passes, counted as work.
+    std::vector<Client*>& notify_retries(uint32_t tid) { return notify_retries_[tid]; }
+    void defer_completion_notice(uint32_t tid, Client* client) {
+        try {
+            notify_retries_[tid].push_back(client);
+        } catch (const std::bad_alloc&) {
+            client->retire_queued().store(false, std::memory_order_release); // the old drop
+        }
+    }
     bool txn_retry_held(const void* = nullptr) const {
         return snapshot_atomic_barrier_.load(std::memory_order_acquire) & 1;
     }
@@ -4055,6 +4098,8 @@ private:
     // inserts between its empty probe and its registry add, widening the probe/add window a
     // cross-owner committer must lose a wake into. Consumed once; zero in production.
     std::atomic<uint32_t> debug_blocking_register_defer_{0};
+    // parkwake F12 (notify_retries): at the tail, so every established offset stays fixed.
+    std::vector<Client*> notify_retries_[kMaxThreads];
 };
 
 }  // namespace tomo

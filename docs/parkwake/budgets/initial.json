@@ -1,0 +1,533 @@
+[
+  {
+    "object": "db0/src/cmd/acl.o",
+    "pre_budget": 36137,
+    "post_budget": 36137,
+    "pre_unit": 33102,
+    "post_unit": 33102,
+    "delta": 0,
+    "compensated": 36137
+  },
+  {
+    "object": "db0/src/cmd/climon.o",
+    "pre_budget": 29422,
+    "post_budget": 29422,
+    "pre_unit": 25968,
+    "post_unit": 26021,
+    "delta": 53,
+    "compensated": 29475
+  },
+  {
+    "object": "db0/src/cmd/geo.o",
+    "pre_budget": 16462,
+    "post_budget": 16462,
+    "pre_unit": 12487,
+    "post_unit": 12487,
+    "delta": 0,
+    "compensated": 16462
+  },
+  {
+    "object": "db0/src/cmd/hexpread.o",
+    "pre_budget": 10040,
+    "post_budget": 10040,
+    "pre_unit": 4084,
+    "post_unit": 4084,
+    "delta": 0,
+    "compensated": 10040
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o",
+    "pre_budget": 10030,
+    "post_budget": 10030,
+    "pre_unit": 7985,
+    "post_unit": 7985,
+    "delta": 0,
+    "compensated": 10030
+  },
+  {
+    "object": "db0/src/cmd/latency_tracking.o",
+    "pre_budget": 10020,
+    "post_budget": 10020,
+    "pre_unit": 17690,
+    "post_unit": 17830,
+    "delta": 140,
+    "compensated": 10160
+  },
+  {
+    "object": "db0/src/cmd/multi_admin.o",
+    "pre_budget": 10032,
+    "post_budget": 10032,
+    "pre_unit": 1467,
+    "post_unit": 1467,
+    "delta": 0,
+    "compensated": 10032
+  },
+  {
+    "object": "db0/src/cmd/multidb.o",
+    "pre_budget": 10032,
+    "post_budget": 10032,
+    "pre_unit": 5167,
+    "post_unit": 5260,
+    "delta": 93,
+    "compensated": 10125
+  },
+  {
+    "object": "db0/src/cmd/objectpread.o",
+    "pre_budget": 10012,
+    "post_budget": 10012,
+    "pre_unit": 2369,
+    "post_unit": 2369,
+    "delta": 0,
+    "compensated": 10012
+  },
+  {
+    "object": "db0/src/cmd/pfdebug.o",
+    "pre_budget": 10012,
+    "post_budget": 10012,
+    "pre_unit": 4386,
+    "post_unit": 4386,
+    "delta": 0,
+    "compensated": 10012
+  },
+  {
+    "object": "db0/src/cmd/scripting.o",
+    "pre_budget": 10020,
+    "post_budget": 10020,
+    "pre_unit": 16249,
+    "post_unit": 16249,
+    "delta": 0,
+    "compensated": 10020
+  },
+  {
+    "object": "db0/src/cmd/serialize.o",
+    "pre_budget": 10032,
+    "post_budget": 10032,
+    "pre_unit": 14828,
+    "post_unit": 14828,
+    "delta": 0,
+    "compensated": 10032
+  },
+  {
+    "object": "db0/src/cmd/t_hash.o",
+    "pre_budget": 10032,
+    "post_budget": 10032,
+    "pre_unit": 20093,
+    "post_unit": 20093,
+    "delta": 0,
+    "compensated": 10032
+  },
+  {
+    "object": "db0/src/cmd/t_hash_ttl.o",
+    "pre_budget": 10040,
+    "post_budget": 10040,
+    "pre_unit": 8645,
+    "post_unit": 8645,
+    "delta": 0,
+    "compensated": 10040
+  },
+  {
+    "object": "db0/src/cmd/t_list.o",
+    "pre_budget": 10032,
+    "post_budget": 10032,
+    "pre_unit": 19332,
+    "post_unit": 19332,
+    "delta": 0,
+    "compensated": 10032
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "pre_budget": 34277,
+    "post_budget": 34277,
+    "pre_unit": 28444,
+    "post_unit": 28444,
+    "delta": 0,
+    "compensated": 34277
+  },
+  {
+    "object": "db0/src/cmd/t_set.o",
+    "pre_budget": 26685,
+    "post_budget": 26685,
+    "pre_unit": 19730,
+    "post_unit": 19730,
+    "delta": 0,
+    "compensated": 26685
+  },
+  {
+    "object": "db0/src/cmd/t_stream.o",
+    "pre_budget": 10032,
+    "post_budget": 10032,
+    "pre_unit": 25692,
+    "post_unit": 25692,
+    "delta": 0,
+    "compensated": 10032
+  },
+  {
+    "object": "db0/src/cmd/t_stream_groups.o",
+    "pre_budget": 10012,
+    "post_budget": 10012,
+    "pre_unit": 18642,
+    "post_unit": 18642,
+    "delta": 0,
+    "compensated": 10012
+  },
+  {
+    "object": "db0/src/cmd/t_string.o",
+    "pre_budget": 14099,
+    "post_budget": 14099,
+    "pre_unit": 13918,
+    "post_unit": 13918,
+    "delta": 0,
+    "compensated": 14099
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "pre_budget": 10032,
+    "post_budget": 10032,
+    "pre_unit": 13719,
+    "post_unit": 13719,
+    "delta": 0,
+    "compensated": 10032
+  },
+  {
+    "object": "db0/src/cmd/t_zset.o",
+    "pre_budget": 33458,
+    "post_budget": 33458,
+    "pre_unit": 25444,
+    "post_unit": 25444,
+    "delta": 0,
+    "compensated": 33458
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "pre_budget": 171751,
+    "post_budget": 171751,
+    "pre_unit": 136675,
+    "post_unit": 136739,
+    "delta": 64,
+    "compensated": 171815
+  },
+  {
+    "object": "db0/src/core/fliplisten.o",
+    "pre_budget": 48705,
+    "post_budget": 48705,
+    "pre_unit": 39841,
+    "post_unit": 39901,
+    "delta": 60,
+    "compensated": 48765
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "pre_budget": 135506,
+    "post_budget": 135506,
+    "pre_unit": 113423,
+    "post_unit": 113679,
+    "delta": 256,
+    "compensated": 135762
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "pre_budget": 153552,
+    "post_budget": 153552,
+    "pre_unit": 125921,
+    "post_unit": 126243,
+    "delta": 322,
+    "compensated": 153874
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "pre_budget": 169904,
+    "post_budget": 169904,
+    "pre_unit": 121906,
+    "post_unit": 122178,
+    "delta": 272,
+    "compensated": 170176
+  },
+  {
+    "object": "db0/src/main.o",
+    "pre_budget": 150687,
+    "post_budget": 150687,
+    "pre_unit": 107589,
+    "post_unit": 107810,
+    "delta": 221,
+    "compensated": 150908
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "pre_budget": 40597,
+    "post_budget": 40597,
+    "pre_unit": 33295,
+    "post_unit": 33295,
+    "delta": 0,
+    "compensated": 40597
+  },
+  {
+    "object": "db0/src/snapshot/snapshot.o",
+    "pre_budget": 16184,
+    "post_budget": 16184,
+    "pre_unit": 13635,
+    "post_unit": 13635,
+    "delta": 0,
+    "compensated": 16184
+  },
+  {
+    "object": "src/cmd/acl.o",
+    "pre_budget": 36195,
+    "post_budget": 36195,
+    "pre_unit": 33208,
+    "post_unit": 33208,
+    "delta": 0,
+    "compensated": 36195
+  },
+  {
+    "object": "src/cmd/climon.o",
+    "pre_budget": 28847,
+    "post_budget": 28847,
+    "pre_unit": 26013,
+    "post_unit": 26066,
+    "delta": 53,
+    "compensated": 28900
+  },
+  {
+    "object": "src/cmd/geo.o",
+    "pre_budget": 14751,
+    "post_budget": 14751,
+    "pre_unit": 12605,
+    "post_unit": 12605,
+    "delta": 0,
+    "compensated": 14751
+  },
+  {
+    "object": "src/cmd/hexpread.o",
+    "pre_budget": 10035,
+    "post_budget": 10035,
+    "pre_unit": 4143,
+    "post_unit": 4143,
+    "delta": 0,
+    "compensated": 10035
+  },
+  {
+    "object": "src/cmd/l4prebuild.o",
+    "pre_budget": 10025,
+    "post_budget": 10025,
+    "pre_unit": 8084,
+    "post_unit": 8084,
+    "delta": 0,
+    "compensated": 10025
+  },
+  {
+    "object": "src/cmd/latency_tracking.o",
+    "pre_budget": 10013,
+    "post_budget": 10013,
+    "pre_unit": 17755,
+    "post_unit": 17895,
+    "delta": 140,
+    "compensated": 10153
+  },
+  {
+    "object": "src/cmd/multi_admin.o",
+    "pre_budget": 10025,
+    "post_budget": 10025,
+    "pre_unit": 1509,
+    "post_unit": 1509,
+    "delta": 0,
+    "compensated": 10025
+  },
+  {
+    "object": "src/cmd/multidb.o",
+    "pre_budget": 10025,
+    "post_budget": 10025,
+    "pre_unit": 7108,
+    "post_unit": 7214,
+    "delta": 106,
+    "compensated": 10131
+  },
+  {
+    "object": "src/cmd/objectpread.o",
+    "pre_budget": 10012,
+    "post_budget": 10012,
+    "pre_unit": 2412,
+    "post_unit": 2412,
+    "delta": 0,
+    "compensated": 10012
+  },
+  {
+    "object": "src/cmd/pfdebug.o",
+    "pre_budget": 10012,
+    "post_budget": 10012,
+    "pre_unit": 4455,
+    "post_unit": 4455,
+    "delta": 0,
+    "compensated": 10012
+  },
+  {
+    "object": "src/cmd/scripting.o",
+    "pre_budget": 10013,
+    "post_budget": 10013,
+    "pre_unit": 37509,
+    "post_unit": 37509,
+    "delta": 0,
+    "compensated": 10013
+  },
+  {
+    "object": "src/cmd/serialize.o",
+    "pre_budget": 10025,
+    "post_budget": 10025,
+    "pre_unit": 14929,
+    "post_unit": 14929,
+    "delta": 0,
+    "compensated": 10025
+  },
+  {
+    "object": "src/cmd/t_hash.o",
+    "pre_budget": 10025,
+    "post_budget": 10025,
+    "pre_unit": 20343,
+    "post_unit": 20343,
+    "delta": 0,
+    "compensated": 10025
+  },
+  {
+    "object": "src/cmd/t_list.o",
+    "pre_budget": 25633,
+    "post_budget": 25633,
+    "pre_unit": 19578,
+    "post_unit": 19578,
+    "delta": 0,
+    "compensated": 25633
+  },
+  {
+    "object": "src/cmd/t_server.o",
+    "pre_budget": 34101,
+    "post_budget": 34101,
+    "pre_unit": 28726,
+    "post_unit": 28726,
+    "delta": 0,
+    "compensated": 34101
+  },
+  {
+    "object": "src/cmd/t_set.o",
+    "pre_budget": 26445,
+    "post_budget": 26445,
+    "pre_unit": 19921,
+    "post_unit": 19921,
+    "delta": 0,
+    "compensated": 26445
+  },
+  {
+    "object": "src/cmd/t_stream.o",
+    "pre_budget": 10025,
+    "post_budget": 10025,
+    "pre_unit": 25942,
+    "post_unit": 25942,
+    "delta": 0,
+    "compensated": 10025
+  },
+  {
+    "object": "src/cmd/t_stream_groups.o",
+    "pre_budget": 10012,
+    "post_budget": 10012,
+    "pre_unit": 19032,
+    "post_unit": 19032,
+    "delta": 0,
+    "compensated": 10012
+  },
+  {
+    "object": "src/cmd/t_string.o",
+    "pre_budget": 10626,
+    "post_budget": 10626,
+    "pre_unit": 14138,
+    "post_unit": 14138,
+    "delta": 0,
+    "compensated": 10626
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "pre_budget": 10025,
+    "post_budget": 10025,
+    "pre_unit": 13935,
+    "post_unit": 13935,
+    "delta": 0,
+    "compensated": 10025
+  },
+  {
+    "object": "src/cmd/t_zset.o",
+    "pre_budget": 33472,
+    "post_budget": 33472,
+    "pre_unit": 25753,
+    "post_unit": 25753,
+    "delta": 0,
+    "compensated": 33472
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "pre_budget": 168287,
+    "post_budget": 168287,
+    "pre_unit": 136981,
+    "post_unit": 137030,
+    "delta": 49,
+    "compensated": 168336
+  },
+  {
+    "object": "src/core/fliplisten.o",
+    "pre_budget": 48951,
+    "post_budget": 48951,
+    "pre_unit": 39981,
+    "post_unit": 40041,
+    "delta": 60,
+    "compensated": 49011
+  },
+  {
+    "object": "src/core/genthread.o",
+    "pre_budget": 134842,
+    "post_budget": 134842,
+    "pre_unit": 114221,
+    "post_unit": 114585,
+    "delta": 364,
+    "compensated": 135206
+  },
+  {
+    "object": "src/core/reorder.o",
+    "pre_budget": 152568,
+    "post_budget": 152568,
+    "pre_unit": 126850,
+    "post_unit": 127280,
+    "delta": 430,
+    "compensated": 152998
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "pre_budget": 168119,
+    "post_budget": 168119,
+    "pre_unit": 122841,
+    "post_unit": 123241,
+    "delta": 400,
+    "compensated": 168519
+  },
+  {
+    "object": "src/main.o",
+    "pre_budget": 152477,
+    "post_budget": 152477,
+    "pre_unit": 108341,
+    "post_unit": 108696,
+    "delta": 355,
+    "compensated": 152832
+  },
+  {
+    "object": "src/persist/aof.o",
+    "pre_budget": 38653,
+    "post_budget": 38653,
+    "pre_unit": 33366,
+    "post_unit": 33366,
+    "delta": 0,
+    "compensated": 38653
+  },
+  {
+    "object": "src/snapshot/snapshot.o",
+    "pre_budget": 16744,
+    "post_budget": 16744,
+    "pre_unit": 13916,
+    "post_unit": 13916,
+    "delta": 0,
+    "compensated": 16744
+  }
+]

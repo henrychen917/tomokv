@@ -204,8 +204,8 @@ $(BIN): $(OBJ) $(SERVER_ONLY_OBJ) $(DB0_OBJ) $(DB0_SERVER_ONLY_OBJ)
 # 85 distinct object bodies judged with the gate linked-instruction normalizer
 # against headline and the four frozen lane POSTs. See docs/wave4/budgets/selected.json.
 # Preserve established budgets on tied body scores; composed residuals remain merit inputs.
-$(BUILD_ROOT)/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=28847
-$(BUILD_ROOT)/db0/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=29422
+$(BUILD_ROOT)/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=28900
+$(BUILD_ROOT)/db0/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=29459
 
 # The clean string family intentionally excludes the armed instantiations, but its parsed template
 # bodies still move GCC just past the default large-unit threshold. 10600 restores the same inlining
@@ -323,7 +323,7 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # clientcompat: cold EXEC growth is isolated in clientcompat.cc. Bounded compile
 # and executed-count trials retain ordinary scopes at/below PRE; see
 # docs/clientcompat/budgets and the instruction census (including outlined STL).
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=168287 --param max-inline-insns-auto=14 --param early-inlining-insns=5
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=168328 --param max-inline-insns-auto=14 --param early-inlining-insns=5
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
 # perfex2: compensate the inline cold clear reset; every other emitted body is PRE-identical.
 # clientcompat notification capture adds cold code; the 161773 neighbour keeps
@@ -332,7 +332,9 @@ $(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=
 # insns (136675 -> 136856), which tipped FlatStore::find past the threshold that inlines
 # Slice::key_eq and added ~35 instr/op to db0 GET/SET/INCR/MGET. Restore the PRE headroom
 # (171751 + 181); the normal namespace was unaffected. No runtime option or request-path branch.
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=171932 --param max-inline-insns-auto=18 --param early-inlining-insns=10
+# wave16 merge (provisional, additive lane deltas over 8be4f68323): blockwake +181, parkwake +72.
+# The wave-16 budget commit re-derives this value for the merged tree.
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=172004 --param max-inline-insns-auto=18 --param early-inlining-insns=10
 # ACL key extraction is isolated from the IO templates. Keep the merged baseline's
 # ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
 # aclfix grows the unit by 749/765 insns (+739/+750 here): the shared reply helpers this
@@ -430,7 +432,7 @@ $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 # 153552, xshard 168287/171751, snapshot 16744/16184, db0 main 150687. src main keeps 152477: it is
 # the only scanned value that keeps the 2s parse_and_dispatch PRE-identical. Remaining compiler
 # spillover is inventoried in docs/mset8fix/identity; instruction scopes in docs/mset8fix/counts.
-$(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=152477
+$(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=152824
 # txnorder2: compile-only trials retained in docs/txnorder2/budgets; remaining spillover is explicit.
 # RL4.3/RL4.4 add only cold miss/delete work. Preserve the PRE hot-body inlining
 # choices; docs/rlfix records the complete byte inventory and compile-only trials.
@@ -439,11 +441,11 @@ $(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inli
 # body spillover; the remaining differences are reported for merit review.
 # wave4 merge (provisional, additive lane deltas over 8656f9fa9): genthread compat2 +29 and
 # clockcut +128; rl2s clockcut +256. The wave-4 budget commit re-derives these values.
-$(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=134842
-$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=168119
+$(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=135198
+$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=168503
 # Protofix late-listener bounds, subject to wave9 compile-only re-derivation.
-$(BUILD_ROOT)/src/core/fliplisten.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=48951
-$(BUILD_ROOT)/db0/src/core/fliplisten.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=48705
+$(BUILD_ROOT)/src/core/fliplisten.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=49003
+$(BUILD_ROOT)/db0/src/core/fliplisten.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=48789
 # wave3: see the note above $(BUILD_ROOT)/src/main.o (first override of this object).
 # wave3 R7 round (7fa5cb0e0 regenerates rlfix's RL4.4 into the R7 envelope): units +82 / +80
 # (src / db0). Compile-only scans 147770-147970 / 148760-148949 (docs/wave3/identity/
@@ -452,19 +454,19 @@ $(BUILD_ROOT)/db0/src/core/fliplisten.o: override CXXFLAGS += --param inline-uni
 # r7_ReadLocalDemotionPlan::prepare, its new read_local_commands_overlap .part.0 clone and
 # discarded COMDAT copies (the non-R7 demotion plan and FlatStore helpers; genthread.o's are linked).
 # snapfix: see the note above $(BUILD_ROOT)/src/core/genthread.o.
-$(BUILD_ROOT)/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=152568
+$(BUILD_ROOT)/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=152982
 # CC18/ST3 composition: smallest current hot-body delta; ccfix4 retains the search.
-$(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=150687 --param max-inline-insns-auto=18
+$(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=150916 --param max-inline-insns-auto=18
 # RL1: retain the measured ALT spelling and its fused GET placement controls.
 # docs/rlfence2/alt.patch and MEASURE-REQUEST-rlfence3.md record the byte proofs.
 # txnorder2: compile-only trials retained in docs/txnorder2/budgets; remaining spillover is explicit.
 # wave4 merge (provisional, additive lane deltas over 8656f9fa9): db0 genthread compat2 +27
 # and clockcut +64; db0 reorder compat2 +39 and clockcut +128. Re-derived by the budget commit.
-$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=135506 -Wa,--defsym,tomo_rlfence_text_pad=16
+$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=135778 -Wa,--defsym,tomo_rlfence_text_pad=16
 $(BUILD_ROOT)/db0/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=169904
 # Keep PRE's first (rather than second) tombstone-compaction call inlined in the
 # R7 fused sweep; the cold miss body otherwise changes GCC's tied call ordering.
-$(BUILD_ROOT)/db0/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=153552 --param max-inline-insns-auto=14
+$(BUILD_ROOT)/db0/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=153850 --param max-inline-insns-auto=14
 $(BUILD_ROOT)/db0/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
 # Separate C++ namespaces prevent accidental cross-variant inline/COMDAT binding.
@@ -758,6 +760,24 @@ build/multidb-unit: | build/mdbqsbr-unit
 mdbqsbr-live-arms:
 	$(MAKE) BUILD_ROOT=build/mdbqsbr2-park CXXFLAGS='$(CXXFLAGS) -DTOMO_MDBQSBR_LIVE_PARK' all
 	$(MAKE) BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='$(CXXFLAGS) -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all
+
+# parkwake: TEST-ONLY missed-wake diagnostic, never a measurement or release arm. Every park's
+# safety net (src/base/park_net.h) becomes PARK_NET_MS instead of 50 ms, so a missed wake is a
+# deterministic multi-second stall a gate row can assert. Production builds never define it.
+PARK_NET_MS ?= 2000
+.PHONY: park-net-arm
+park-net-arm:
+	$(MAKE) BUILD_ROOT=build/park-net CXXFLAGS='$(CXXFLAGS) -DTOMO_PARK_NET_MS=$(PARK_NET_MS)' all
+
+# parkwake: serverless park/wake schedules (F3 DatabaseExDrain, F11 epoch, F12 notice retry,
+# F10 rendezvous announce) on the production objects; no listener, ring wait or sleep.
+build/parkwake-unit: tests/parkwake_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+# LD_PRELOAD helper of the F3 diagnostic witness (tests/parkwake.py --case swapdb).
+build/parkwake-slowsync.so: tests/parkwake_slowsync.c Makefile
+	@mkdir -p $(dir $@)
+	$(CC) -shared -fPIC -O2 -Wall -o $@ $< -ldl
 
 build/multidb-boundary-unit: tests/multidb_boundary_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
 	@mkdir -p $(dir $@)
@@ -1250,11 +1270,11 @@ $(BUILD_ROOT)/db0/src/cmd/hexpread.o: override CXXFLAGS += --param large-unit-in
 
 $(BUILD_ROOT)/db0/src/cmd/l4prebuild.o: override CXXFLAGS += --param large-unit-insns=10030
 
-$(BUILD_ROOT)/db0/src/cmd/latency_tracking.o: override CXXFLAGS += --param large-unit-insns=10020
+$(BUILD_ROOT)/db0/src/cmd/latency_tracking.o: override CXXFLAGS += --param large-unit-insns=10160
 
 $(BUILD_ROOT)/db0/src/cmd/multi_admin.o: override CXXFLAGS += --param large-unit-insns=10032
 
-$(BUILD_ROOT)/db0/src/cmd/multidb.o: override CXXFLAGS += --param large-unit-insns=10032
+$(BUILD_ROOT)/db0/src/cmd/multidb.o: override CXXFLAGS += --param large-unit-insns=10125
 
 $(BUILD_ROOT)/db0/src/cmd/objectpread.o: override CXXFLAGS += --param large-unit-insns=10012
 
@@ -1280,11 +1300,11 @@ $(BUILD_ROOT)/src/cmd/hexpread.o: override CXXFLAGS += --param large-unit-insns=
 
 $(BUILD_ROOT)/src/cmd/l4prebuild.o: override CXXFLAGS += --param large-unit-insns=10025
 
-$(BUILD_ROOT)/src/cmd/latency_tracking.o: override CXXFLAGS += --param large-unit-insns=10013
+$(BUILD_ROOT)/src/cmd/latency_tracking.o: override CXXFLAGS += --param large-unit-insns=10153
 
 $(BUILD_ROOT)/src/cmd/multi_admin.o: override CXXFLAGS += --param large-unit-insns=10025
 
-$(BUILD_ROOT)/src/cmd/multidb.o: override CXXFLAGS += --param large-unit-insns=10025
+$(BUILD_ROOT)/src/cmd/multidb.o: override CXXFLAGS += --param large-unit-insns=10131
 
 $(BUILD_ROOT)/src/cmd/objectpread.o: override CXXFLAGS += --param large-unit-insns=10012
 

@@ -555,6 +555,7 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl() {
         if (!srv_->lb_acked(self_->id())) {
             did += service_stale_forwards<BatchOps, IofusedPrivateQueue>();
             did += drain_releases(true);
+            if (__builtin_expect(notify_retries_pending(), false)) did += service_notify_retries();
             did += service_multi_retries<IofusedPrivateQueue>();
             did += service_atomic_deferred<IofusedPrivateQueue>();
             did += service_xshard_retries<IofusedPrivateQueue>();
@@ -574,6 +575,7 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl() {
         did += snapshot_control_pass<BatchOps, IofusedPrivateQueue>();
         did += service_stale_forwards<BatchOps, IofusedPrivateQueue>();
         did += drain_releases();
+        if (__builtin_expect(notify_retries_pending(), false)) did += service_notify_retries();
         if (!snapshot_blocks_tasks()) {
             did += service_multi_retries<IofusedPrivateQueue>();
             did += service_atomic_deferred<IofusedPrivateQueue>();
@@ -716,6 +718,7 @@ uint32_t ExLoopT<Fused>::r7_sweep() {
     uint32_t n = snapshot_control_pass<BatchOps, IofusedPrivateQueue>() +
                  service_stale_forwards<BatchOps, IofusedPrivateQueue>() +
                  drain_releases(true);
+    if (__builtin_expect(notify_retries_pending(), false)) n += service_notify_retries();
     if (!snapshot_blocks_tasks()) {
         n += service_multi_retries<IofusedPrivateQueue>();
         n += service_atomic_deferred<IofusedPrivateQueue>();
@@ -995,37 +998,52 @@ void IoLoop::r7_run_loop() {
         [[maybe_unused]] const bool blocking_owed =
             Fused && __builtin_expect(srv_->blocking_waiters() != 0, false) &&
             blocking_owner_dirty_pending(*self_);
+        // The IO retry lane is a park predicate too. Its producers CAS the head (seq_cst) and
+        // then wake only a parked IO; this load after arm_blocked() is the other Dekker half,
+        // so either it sees the node or the producer sees parked_ set and rings.
+        const bool retry_ready = __builtin_expect(
+            srv_->multi_retry_lane(self_->id()).head.load(std::memory_order_seq_cst) != nullptr,
+            false);
+        if (retry_ready) multi_retry_lane_note_pending();
         if constexpr (kEp) {
             // The park. Same 50ms ceiling as the ring wait, and for the same reason: the stop
             // flag is only re-read at the top of the loop, so an unbounded block would make
             // shutdown depend on a connection arriving.
             if constexpr (Fused) {
-                if (!credit_room && !blocking_owed && !self_->any_fused_inbound()) {
+                if (!credit_room && !blocking_owed && !retry_ready && !self_->any_fused_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
+                    database_work.park();
                     r7_epoll_pass<HasUnix, HasTls, Fused>(wait_ms);
+                    database_work.resume();
                 }
-            } else if (!credit_room && !self_->any_io_inbound()) {
+            } else if (!credit_room && !retry_ready && !self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                 tenure.park();
 #endif
+                database_work.park();
                 r7_epoll_pass<HasUnix, HasTls, false>(wait_ms);
+                database_work.resume();
             }
         } else {
             if constexpr (Fused) {
-                if (!credit_room && !blocking_owed && !self_->any_fused_inbound()) {
+                if (!credit_room && !blocking_owed && !retry_ready && !self_->any_fused_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
+                    database_work.park();
                     ring_.submit_and_wait(1, wait_ms);
+                    database_work.resume();
                 } else                            ring_.submit_and_reap();
             } else {
-                if (!credit_room && !self_->any_io_inbound()) {
+                if (!credit_room && !retry_ready && !self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
+                    database_work.park();
                     ring_.submit_and_wait(1, wait_ms);
+                    database_work.resume();
                 } else                         ring_.submit_and_reap();
             }
         }

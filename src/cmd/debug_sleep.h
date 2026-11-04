@@ -23,7 +23,10 @@ public:
     // pending check, so ordinary commands acquire no new branch or load.
     // The callback runs on each physical issuer after every worker has parked.
     // No callback may depend on normal command execution during this interval.
-    bool exclusive(unsigned origin, unsigned participants, void* context, void (*action)(void*, unsigned)) {
+    // `announce` runs on the caller right after the request is published: members reach their
+    // pass-boundary check only when they run, so it must ring the parked ones.
+    bool exclusive(unsigned origin, unsigned participants, void* context, void (*action)(void*, unsigned),
+                   void (*announce)(void*, unsigned) = nullptr, void* announce_context = nullptr) {
         Lock lock(mutex_);
         if (pending() || origin >= Workers || !workers_.test(origin) ||
             workers_.count() != participants) return false;
@@ -36,6 +39,7 @@ public:
         deadline_ = Clock::now() + std::chrono::seconds(5);
         interrupted_.store(false, std::memory_order_relaxed);
         pending_.store(true, std::memory_order_release);
+        if (announce) announce(announce_context, origin);
         control_park(lock, origin, control);
         while ((control.departed & arrived_) != arrived_) changed_.wait(lock);
         control_.store(nullptr, std::memory_order_release);

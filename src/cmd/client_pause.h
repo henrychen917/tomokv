@@ -17,6 +17,8 @@ inline std::atomic<const std::atomic<uint64_t>*> client_pause_expiry_clock{nullp
     clock_gettime(CLOCK_MONOTONIC, &now);
     return uint64_t(now.tv_sec) * 1000 + uint64_t(now.tv_nsec) / 1000000 < end;
 }
-bool command_client_pause(Server& server, Op& op, uint64_t time_base_ms = 0);
+// `waker` is the calling worker's id: CLIENT UNPAUSE rings every other worker from its ring.
+bool command_client_pause(Server& server, Op& op, uint64_t time_base_ms = 0,
+                          uint32_t waker = UINT32_MAX);
 bool command_pause_write(const Op& op);
 } // namespace tomo

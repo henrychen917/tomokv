@@ -409,7 +409,7 @@ void blocking_notify_sender(Server& server, ThreadCtx& self, Ring& ring, Client*
             expected, true, std::memory_order_acq_rel)) return;
     if (!sender.post_client(self.id(), client, ring, self.sig())) {
         self.sig().notify_drop++;
-        client->retire_queued().store(false, std::memory_order_release);
+        server.defer_completion_notice(self.id(), client); // keep the claim; reposted per pass
     }
 }
 

@@ -22,6 +22,41 @@ def save(path, value):
     path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
 
 
+PARKWAKE_MONITOR_WAKES = (
+    # parkwake (audit F10): the monitor thread rings a parked coordinator after it publishes
+    # a PlanReady or an automatic FLIP. These lines carry no policy; they are verified exactly,
+    # removed, and the original complete-body proof of monitor_controllers then applies.
+    ("""    // This thread publishes automatic FLIPs and LB plans to a coordinator IO that may be parked,
+    // and owns no ring to wake it with. A wake-only ring (msg_ring under io_uring; the target's
+    // mailbox under epoll) is created at the first such publication; a failed init leaves the
+    // coordinator's park timeout as before.
+    Ring wake_ring;
+    int wake_ring_state = 0; // 0 untried, 1 ready, -1 unavailable
+    auto wake = [&](uint32_t tid) {
+        Ring* target = tid < nthreads() ? thread(tid).ring() : nullptr;
+        if (!target) return;
+        if (!wake_ring_state) wake_ring_state = wake_ring.init(8) ? 1 : -1;
+        if (wake_ring_state < 0) return;
+        if (wake_ring.msg_to(*target, ur_tag(UrKind::Wake, nullptr))) wake_ring.submit_and_reap();
+        wake_ring.for_each_cqe([](io_uring_cqe*) {});
+    };""", ""),
+    ("if (lb_controller_tick(tid, now_ms)) wake(lb_coordinator()); // PlanReady",
+     "(void)lb_controller_tick(tid, now_ms);"),
+    ("const uint64_t flip_epoch_before = flip_epoch();", ""),
+    ("""// A new automatic FLIP holds every IO's dispatch until its coordinator runs.
+            if (flip_epoch() != flip_epoch_before) wake(flip_coordinator());""", ""),
+)
+
+
+def outside_parkwake_wakes(text):
+    text = normalized(text)
+    for added, original in PARKWAKE_MONITOR_WAKES:
+        added = normalized(added)
+        assert text.count(added) == 1, ("parkwake monitor wake inventory changed", added[:48])
+        text = text.replace(added, original)
+    return normalized(text)
+
+
 def source_proof():
     def old(path):
         return subprocess.check_output(["git", "show", BASE + ":" + path], cwd=ROOT, text=True)
@@ -64,11 +99,14 @@ def source_proof():
         body(old("src/core/weighted_lb.h"), "weighted_lb_best_incremental_move")), "PRE search changed"
     for name in ("lb_consume_plan", "monitor_controllers", "lb_controller_tick_pad"):
         candidate_body = outside_config_transition(body(planner, name), int(name == "lb_consume_plan"))
+        if name == "monitor_controllers":
+            candidate_body = outside_parkwake_wakes(candidate_body)
         assert normalized(candidate_body) == normalized(body(old("src/core/lbplanner.cc"), name)), name
     assert normalized(body(planner, "lbosc3_level")) == "{ return configured; }"
     return {"base": BASE, "zero_policy_equals_pre": True,
             "scope": "PRE key policy outside a CONFIG transition; both arms retain cfgfix exclusion",
             "cfgfix_admission_gates": {"lb_controller_tick": 3, "lb_consume_plan": 1},
+            "parkwake_monitor_wakes": len(PARKWAKE_MONITOR_WAKES),
             "pre_planner_sha256": hashlib.sha256(normalized(original).encode()).hexdigest()}
 
 
