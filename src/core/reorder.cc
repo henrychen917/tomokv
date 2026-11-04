@@ -989,12 +989,17 @@ void IoLoop::r7_run_loop() {
         const bool credit_room =
             __builtin_expect(self_->atomic_admission_state().credit_wait, false) &&
             srv_->atomic_credit_wait_arm(self_->id());
+        // F7 (fused owners only): see io_loop.h. Re-check owned shards' blocking dirty flags
+        // after arm_blocked so a lost conditional wake does not wait out the park timeout.
+        [[maybe_unused]] const bool blocking_owed =
+            Fused && __builtin_expect(srv_->blocking_waiters() != 0, false) &&
+            blocking_owner_dirty_pending(*self_);
         if constexpr (kEp) {
             // The park. Same 50ms ceiling as the ring wait, and for the same reason: the stop
             // flag is only re-read at the top of the loop, so an unbounded block would make
             // shutdown depend on a connection arriving.
             if constexpr (Fused) {
-                if (!credit_room && !self_->any_fused_inbound()) {
+                if (!credit_room && !blocking_owed && !self_->any_fused_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
@@ -1008,7 +1013,7 @@ void IoLoop::r7_run_loop() {
             }
         } else {
             if constexpr (Fused) {
-                if (!credit_room && !self_->any_fused_inbound()) {
+                if (!credit_room && !blocking_owed && !self_->any_fused_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif

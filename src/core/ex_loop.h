@@ -760,7 +760,13 @@ public:
 
             Span idle(sig.idle_ns);
             self_->arm_blocked();
-            if (!self_->any_ex_inbound()) {
+            // F7: a producer that marked one of this owner's shards dirty just before arm_blocked
+            // may have lost its conditional wake. Re-check after the seq_cst fence; a set flag
+            // means service it now, not at the 50 ms timeout. Cold: gated on a blocked client.
+            const bool blocking_owed =
+                __builtin_expect(srv_->blocking_waiters() != 0, false) &&
+                blocking_owner_dirty_pending(*self_);
+            if (!blocking_owed && !self_->any_ex_inbound()) {
                 ring_.submit_and_wait(1, Ring::kWaitTimeoutMs, srv_->databases().wake_fd(self_->id()));
                 if (ring_.wake_fd() >= 0) srv_->databases().consume_wake(self_->id(), ring_);
             } else ring_.submit_and_reap();

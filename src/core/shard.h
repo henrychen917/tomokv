@@ -193,8 +193,18 @@ public:
     // reading has_blocking_waiters(). The owner-local push path needs no fence: the owner that
     // mutated the key is the thread that services its own waiters.
     static void blocking_publish_fence() { std::atomic_thread_fence(std::memory_order_seq_cst); }
-    void set_blocking_dirty() { blocking_dirty_.store(true, std::memory_order_release); }
+    // seq_cst store: the owner re-checks blocking_dirty_pending() after arm_blocked() (whose
+    // seq_cst fence is the other half), so a cross-owner producer that marks a shard dirty just as
+    // its owner is about to park is observed on that re-check instead of waiting out the 50 ms
+    // timeout (F7). A plain release store could be reordered past the producer's parked_ read and
+    // the owner's dirty read, leaving the wake to the timer. set_blocking_dirty runs only when a
+    // shard already has blocked clients, never on a GET/SET/INCR/MGET/MSET path.
+    void set_blocking_dirty() { blocking_dirty_.store(true, std::memory_order_seq_cst); }
     bool take_blocking_dirty() { return blocking_dirty_.exchange(false, std::memory_order_acquire); }
+    // Non-consuming peek for the owner's pre-park re-check (seq_cst: pairs with arm_blocked).
+    bool blocking_dirty_pending() const {
+        return blocking_dirty_.load(std::memory_order_seq_cst);
+    }
     // Owner-local H3 notes move with the physical shard. Existing padding;
     // neither registry offsets nor the Shard stride changes.
     enum : uint8_t { TxnServeNote = 1, TxnWatchNote = 2, TxnBlindNote = 4 };

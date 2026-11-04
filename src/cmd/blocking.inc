@@ -1557,6 +1557,16 @@ uint32_t blocking_owner_cycle(Server&, ThreadCtx& self, Ring& ring, int64_t now_
     return work;
 }
 
+// F7: the owner's pre-park re-check. A producer sets a shard dirty (seq_cst) and then wakes the
+// owner conditionally on parked_; if that wake loses the race with the owner's park, this re-check
+// -- run after arm_blocked()'s seq_cst fence -- still finds the flag and keeps the owner off the
+// 50 ms timeout. Cold: the caller only reaches it with blocked clients present.
+bool blocking_owner_dirty_pending(ThreadCtx& self) {
+    for (Shard* shard : self.shards())
+        if (shard->has_blocking_waiters() && shard->blocking_dirty_pending()) return true;
+    return false;
+}
+
 void blocking_atomic_published(Server& server, ThreadCtx& self, Ring& ring,
                                ScatterState& state) {
     if (!(state.atomic_apply || state.atomic_write || state.atomic_pop) ||
