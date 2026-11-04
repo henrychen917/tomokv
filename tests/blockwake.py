@@ -400,7 +400,18 @@ def read_by(conn, deadline):
         return 'timeout', None
 
 
-def strand_trial(boot, admin, k, m, big_a, big_b, conns, trial):
+def timed_sort(conn, key):
+    """Milliseconds one SORT ... LIMIT 0 1 of `key` keeps its owner busy (calibration only)."""
+    started = time.monotonic()
+    if not isinstance(conn.must('SORT', key, 'LIMIT', '0', '1'), list):
+        raise AssertionError(f'SORT {key} failed')
+    return (time.monotonic() - started) * 1000
+
+
+def strand_trial(ctl, k, m, big_a, big_b, conns, trial):
+    # `ctl` polls INFO, pushes and reads LLEN. It is served by neither owner: in 1s every IO thread
+    # is a fused owner, and a controller on B's thread would wait out B's SORT before it could see
+    # the followers park or push, so the window could never open (a placement lottery).
     pa, pb, w1, w2, w3 = conns
     for c in conns:
         c.sock.settimeout(10)
@@ -417,14 +428,15 @@ def strand_trial(boot, admin, k, m, big_a, big_b, conns, trial):
     for c, want in ((w2, 1), (w3, 2)):
         c.send('BLPOP', k, '0')
         deadline = time.monotonic() + 2
-        while stat(admin, 'blocked_clients', 'clients') < want:
+        while stat(ctl, 'blocked_clients', 'clients') < want:
             if time.monotonic() > deadline:
                 raise AssertionError(f'follower {want} never parked')
             time.sleep(0.0005)
-    blocked = stat(admin, 'blocked_clients', 'clients')
-    waiters = stat(admin, 'blocking_waiters')
+    blocked = stat(ctl, 'blocked_clients', 'clients')
+    waiters = stat(ctl, 'blocking_waiters')
     b_done = bool(select.select([pb.sock], [], [], 0)[0])
-    pushed = admin.must('RPUSH', k, 'a', 'b', 'c')
+    record['setup_ms'] = round((time.monotonic() - t_b0) * 1000, 1)   # B's start to the push
+    pushed = ctl.must('RPUSH', k, 'a', 'b', 'c')
     # The window: W1 has its k alias on A but is not parked (still registering on B, whose SORT
     # has not answered), and W2/W3 are parked behind it when the push lands.
     record.update(blocked_at_push=blocked, waiters_at_push=waiters, pushed=pushed,
@@ -440,7 +452,7 @@ def strand_trial(boot, admin, k, m, big_a, big_b, conns, trial):
         replies[name] = dict(kind=kind, value=repr(value),
                              ms_after_b=round((time.monotonic() - t_b1) * 1000, 1))
     record['replies'] = replies
-    record['llen'] = admin.must('LLEN', k)
+    record['llen'] = ctl.must('LLEN', k)
     stranded = [n for n, r in replies.items() if r['kind'] == 'timeout']
     record['stranded'] = stranded
     return record, stranded
@@ -455,22 +467,36 @@ def case_strand(a):
         if len(owners) < 2:
             raise AssertionError(f'need two owners, have {owners}')
         own_a, own_b = owners[0], owners[1]
-        k_pool = keys_on(admin, 'bw:k', a.repeats * 4, owner=own_a)
+        budget = a.repeats + a.strand_rerolls
+        k_pool = keys_on(admin, 'bw:k', budget + 1, owner=own_a)
         m = keys_on(admin, 'bw:m', 1, owner=own_b)[0]
         big_a = keys_on(admin, 'bw:bigA', 1, owner=own_a)[0]
         big_b = keys_on(admin, 'bw:bigB', 1, owner=own_b)[0]
         preload(admin, big_a, a.big_a)
         preload(admin, big_b, a.big_b)
+        ctl, = conns_off(boot, {own_a, own_b}, 1)
+        # Calibration, not a constant: B's SORT must outlast A's plus the follower setup. Measured
+        # on this boot and this load, B's list doubles (bounded) until it does, and again whenever
+        # a trial shows B answering before the push.
+        b_len, b_cap = a.big_b, a.big_b * a.big_b_growth
+        calibration = dict(ctl_thread=io_thread(ctl), admin_thread=io_thread(admin),
+                           a_ms=round(timed_sort(ctl, big_a), 1), b_ms=round(timed_sort(ctl, big_b), 1))
+        while calibration['b_ms'] < 3 * calibration['a_ms'] + 100 and b_len < b_cap:
+            preload(admin, big_b, b_len)
+            b_len *= 2
+            calibration['b_ms'] = round(timed_sort(ctl, big_b), 1)
+        calibration['b_len'] = b_len
+        print(json.dumps(dict(calibration=calibration)), flush=True)
         opened = attempts = 0
         # A window that did not open is re-rolled on a fresh key (bounded); every attempt is
         # still judged for correctness, and too few opened windows is a vacuous FAIL.
-        while opened < a.repeats and attempts < a.repeats + 6:
+        while opened < a.repeats and attempts < budget:
             attempts += 1
             conns = conns_off(boot, {own_a, own_b}, 5)
             try:
-                record, stranded = strand_trial(boot, admin, k_pool[attempts], m, big_a, big_b,
+                record, stranded = strand_trial(ctl, k_pool[attempts], m, big_a, big_b,
                                                 conns, attempts)
-                record.update(owner_a=own_a, owner_b=own_b)
+                record.update(owner_a=own_a, owner_b=own_b, b_len=b_len)
                 opened += record['window_open']
                 trials.append(record)
                 print(json.dumps(record), flush=True)
@@ -492,11 +518,16 @@ def case_strand(a):
                     if 'b' in fields.get('flags', ''):
                         admin.must('CLIENT', 'UNBLOCK', fields['id'])
                 admin.must('DEL', k_pool[attempts])
+            if not record['window_open'] and record['b_done_before_push'] and b_len < b_cap:
+                preload(admin, big_b, b_len)    # B answered first under this load: lengthen it
+                b_len *= 2
+        ctl.close()
     if opened < a.repeats:
         reasons.append(f'vacuous: the registering window opened in {opened} of {attempts} attempts')
     if not boot.clean_exit():
         reasons.append(f'server exit {boot.exit}')
-    return dict(case='strand', trials=trials, reasons=reasons, server_exit=boot.exit)
+    return dict(case='strand', calibration=calibration, trials=trials, reasons=reasons,
+                server_exit=boot.exit)
 
 
 # ------------------------------------------------------------------------------------------------
@@ -652,6 +683,10 @@ def main():
     p.add_argument('--repeats', type=int, default=3)
     p.add_argument('--big-a', type=int, default=150000, help='list length whose SORT stalls A')
     p.add_argument('--big-b', type=int, default=1000000, help='list length whose SORT stalls B')
+    p.add_argument('--big-b-growth', type=int, default=8,
+                   help='strand: cap of the calibrated B list, as a multiple of --big-b')
+    p.add_argument('--strand-rerolls', type=int, default=12,
+                   help='strand: fresh-key attempts allowed beyond --repeats for unopened windows')
     p.add_argument('--rounds', type=int, default=120, help='f8 BLMOVE wake rounds')
     p.add_argument('--hogs', type=int, default=4, help='f8 MSET8 hogs per non-probe IO thread')
     p.add_argument('--max-ms', type=float, default=20.0, help='f8/f7 wake-latency bound')

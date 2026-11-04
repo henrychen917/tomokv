@@ -326,6 +326,44 @@ data keep PRE's layout. Receipt: `docs/wave16/arms.json`.
 The diagnostic arm `build/park-net/tomokv` (`make park-net-arm`, `-DTOMO_PARK_NET_MS=2000`, test-only,
 SHA-256 `8af37b4e6083312644961e3e270c2c8d7d753150a3e6b4b25fe2216f3f532be3`) is not in `bins`.
 
+### Landing follow-up 2: the blockwake strand row opens its window in every geometry (test-only)
+
+**The landing FAIL.** The landing gate (`build/gate-run.cdEvP4`, 396 jobs) had one FAIL: `blockwake
+strand: … (1s, uring)`.
+- All 9 trials had `b_done_before_push` and `window_open=false`.
+- Every reply was correct.
+- B's SORT ran its normal 282-301 ms, yet the push landed after it in every trial.
+
+**Root cause, confirmed.** The strand harness polled INFO and pushed through `boot.admin`.
+`conns_off` placed only the five trial connections off owners A and B. In 1s every IO thread is a
+fused owner. When `admin` landed on B's thread (about 1 boot in 8), every INFO poll and the push
+queued behind B's SORT, so the window could never open on that boot: a placement lottery, not load.
+
+The causal control is a scratch copy of the harness with its controller deliberately ON owner B (1s,
+uring, POST). The window opened in 0 of 5 trials, and `setup_ms` equalled `b_busy_ms` in every trial
+(`docs/wave16/proof/strand/rootcause-controller-on-owner-b.json`). The same cause explains the
+diag-arm vacuous leg above.
+
+**The fix (`tests/blockwake.py` only; no src, gate.sh, label or EXPECT change):**
+- **A controller off both owners.** INFO polls, the push and LLEN go through a connection that
+  `conns_off` places off A and B, as the trial connections already are.
+- **A measured calibration.** On each boot the harness times one SORT of A's list and one of B's
+  list. B's list doubles (up to 8× `--big-b`) until B's SORT outlasts 3× A's plus 100 ms.
+- **Adaptive growth.** B's list doubles again whenever a trial shows B answering before the push.
+- **A larger bounded re-roll budget.** Up to 12 fresh-key attempts beyond `--repeats`.
+- **Unchanged.** Every attempt is still judged for correct replies, the row still needs `--repeats`
+  (3) opened windows, and fewer is a vacuous FAIL. The trial protocol itself is unchanged.
+- **Recorded.** The calibration (controller and admin threads, A and B SORT times, B's length) and
+  each trial's `setup_ms`.
+
+| Proof | Arm | Load | Result |
+|---|---|---|---|
+| strand, 10× per mode/engine (direct) | POST `bins/wave16-post-3f058fa1` | one busy-loop hog pinned to each of the slot's 8 server CPUs (B's SORT ≈285 → ≈605 ms, setup ≈43 → ≈78 ms) | **40 / 40 pass**, every trial's window open (120 / 120) |
+| `blockwake-live-{2s,1s}-{uring,epoll}` through the gate, 10 iterations | POST `build/tomokv` | alongside at412 T6, at412 T10, txnfix4-oom and rootcompat-xsnotify in a concurrent gate run on the other half of the box | **10 / 10 iterations, 80 / 80 rows ok** (40 strand + 40 cancel) |
+| strand, 3× per mode/engine (direct) | PRE `bins/blockwake-pre-0f2283a2` | none | **12 / 12 FAIL**, the intended failure: every window opened (3 / 3), and W2/W3 stranded in every trial |
+
+Summaries and ledgers are in `docs/wave16/proof/strand/`.
+
 ### S1 candidate: deleted-stream group waiter served from a renamed stream (not changed; rare residual)
 
 **What was seen.** parkwake's broad run on its POST recorded one wrong reply in
@@ -401,7 +439,7 @@ All gate runs went through `tests/gate.sh iteration` with `GATE_ONLY_JOBS` and
 | Proof | Arm | Selection / environment | Result |
 |---|---|---|---|
 | **All 35 new rows** (31 jobs), 2 s park net (task 3) | diag | blockwake ×4, parkwake ×23 (`_unit` included), iowake ×4; one gate run | **35 / 35 ok** |
-| same, second pass | diag | single slot, 2 load CPUs | 34 ok, 1 vacuous: `blockwake strand (1s, epoll)` opened its registering window in 0 of 9 trials. Every reply was correct (W1 `a`, W2 `b`, W3 `c`, LLEN 0, no stranded waiter). |
+| same, second pass | diag | single slot, 2 load CPUs | 34 ok, 1 vacuous: `blockwake strand (1s, epoll)` opened its registering window in 0 of 9 trials. Every reply was correct (W1 `a`, W2 `b`, W3 `c`, LLEN 0, no stranded waiter). Root cause and fix: see "Landing follow-up 2". |
 | `blockwake-live-1s-epoll` re-run ×3, same geometry | diag | | **6 / 6 ok** |
 | `txnorder_fifo_live`, at412 T6/T9, atomwake ×4 + unit | diag | the first diag run plus 2 diag-loop runs (3 runs) | **FIFO 3 / 3, T6 3 / 3, T9 3 / 3, atomwake unit 3 / 3, atomwake live rows 11 / 12** (the one miss is the contention-tail leg in the first run, see below) |
 | `atomwake-live-2s-uring` ×5 | diag | | **5 / 5 ok** (with the loops: 7 runs of the 2s-uring row on the 2 s arm, 6 pass) |

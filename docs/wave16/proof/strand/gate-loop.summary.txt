@@ -1,0 +1,11 @@
+03:45:25 strand-gate run1 rc=0 9 ok 0 FAIL
+03:45:39 strand-gate run2 rc=0 9 ok 0 FAIL
+03:45:52 strand-gate run3 rc=0 9 ok 0 FAIL
+03:46:06 strand-gate run4 rc=0 9 ok 0 FAIL
+03:46:19 strand-gate run5 rc=0 9 ok 0 FAIL
+03:46:32 strand-gate run6 rc=0 9 ok 0 FAIL
+03:46:46 strand-gate run7 rc=0 9 ok 0 FAIL
+03:46:59 strand-gate run8 rc=0 9 ok 0 FAIL
+03:47:12 strand-gate run9 rc=0 9 ok 0 FAIL
+03:47:26 strand-gate run10 rc=0 9 ok 0 FAIL
+03:47:26 strand-gate DONE
