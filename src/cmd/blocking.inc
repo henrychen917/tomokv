@@ -910,15 +910,7 @@ public:
                 BlockingPhase phase = state.phase.load(std::memory_order_acquire);
                 if (phase == BlockingPhase::Parked && blocking_request_remap(state, self, ring))
                     phase = BlockingPhase::RemapRequested;
-                if (state.cancel_requested.load(std::memory_order_acquire) &&
-                    blocking_phase_live(phase)) {
-                    if (state.phase.compare_exchange_strong(
-                            phase, BlockingPhase::Cancelled, std::memory_order_acq_rel,
-                            std::memory_order_acquire) &&
-                        state.active_tasks.load(std::memory_order_acquire) == 0)
-                        blocking_finish_cancelled(state, &self, &ring);
-                    phase = state.phase.load(std::memory_order_acquire);
-                }
+                phase = honour_cancel(state, phase, self, ring);
                 if (!blocking_phase_live(phase)) {
                     remove_at_from_shard(shard, queue, i);
                     work++;
@@ -986,6 +978,24 @@ private:
         ~ServiceScope() { active = previous; }
     };
     bool servicing_ = false;
+
+    // CLIENT KILL, CLIENT UNBLOCK and a disconnect only request cancellation (the requesting IO
+    // stores cancel_requested): the waiter stays Parked until an owner visit honours it. Both
+    // the sweep AND the push path (service) honour it before anything can claim the waiter, or a
+    // push that the requester issued after its KILL/UNBLOCK reply hands the element to a closed
+    // (or unblocked) client: Redis frees/unblocks the client before it replies.
+    static BlockingPhase honour_cancel(BlockingState& state, BlockingPhase phase,
+                                       ThreadCtx& self, Ring& ring) {
+        if (!state.cancel_requested.load(std::memory_order_acquire) || !blocking_phase_live(phase))
+            return phase;
+        if (state.phase.compare_exchange_strong(
+                phase, BlockingPhase::Cancelled, std::memory_order_acq_rel,
+                std::memory_order_acquire) &&
+            state.active_tasks.load(std::memory_order_acquire) == 0)
+            blocking_finish_cancelled(state, &self, &ring);
+        return state.phase.load(std::memory_order_acquire);
+    }
+
     void remove_at_from_shard(Shard& shard, BlockingQueue& queue, size_t index) {
         BlockingState* state = queue.waiters[index].state;
         queue.members.erase(state);
@@ -1009,6 +1019,7 @@ private:
             BlockingPhase phase = state.phase.load(std::memory_order_acquire);
             if (phase == BlockingPhase::Parked && blocking_request_remap(state, self, ring))
                 phase = BlockingPhase::RemapRequested;
+            phase = honour_cancel(state, phase, self, ring);
             if (!blocking_phase_live(phase)) {
                 remove_at_from_shard(shard, queue, i);
                 work++;
