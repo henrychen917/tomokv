@@ -68,6 +68,8 @@ def trial(args, directory, engine, atomic, case, attempt):
     b = s.Boot(args, directory, '2s', engine, atomic, False, extra)
     result = dict(case=case, engine=engine, atomic=atomic, databases=args.databases,
                   read_local=args.read_local, attempt=attempt)
+    if b.port_wait:
+        result['port_wait'] = b.port_wait   # the previous owner's listener outlived its exit
     with contextlib.ExitStack() as stack:
         def conn(io, small=False):
             for _ in range(96):

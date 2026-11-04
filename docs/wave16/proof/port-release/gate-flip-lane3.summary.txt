@@ -1,0 +1,3 @@
+04:51:01 flipsig-3 run1 rc=0 10 ok 0 FAIL
+04:51:20 flipsig-3 run2 rc=0 10 ok 0 FAIL
+04:51:20 flipsig-3 DONE

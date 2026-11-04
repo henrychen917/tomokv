@@ -29,7 +29,7 @@ import subprocess
 import threading
 import time
 
-from _lib import Conn, RespError, encode, wait_ready
+from _lib import Conn, RespError, encode, note_port_owner, wait_port_bindable, wait_ready
 
 REPLY_BOUND_S = 6.5   # a FLIP's own pre-commit deadline is 5 s
 # A connection that closes during a FLIP must neither wedge it nor hold it to that deadline nor
@@ -72,6 +72,11 @@ def boot(args, label, save='', directory=None, extra=()):
     directory = directory or args.output / label
     directory.mkdir(parents=True, exist_ok=True)
     path = directory / (label + '.log')
+    # A previous owner's listener can outlive its exit (io_uring teardown): wait for it first
+    # (bounded, logged), then keep the unchanged refusal of a foreign listener.
+    waited = wait_port_bindable(args.port)
+    if waited:
+        emit(event='port_wait', label=label, **waited)
     with socket.socket() as probe:
         assert probe.connect_ex(('127.0.0.1', args.port)) != 0, 'owned port already busy'
     argv = ['taskset', '-c', args.cores, str(args.binary.resolve()),
@@ -112,6 +117,7 @@ def boot(args, label, save='', directory=None, extra=()):
                 except subprocess.TimeoutExpired:
                     process.kill()
                     process.wait(timeout=10)
+            note_port_owner(args.port, f'{label}-{args.net_io}')
             emit(event='stop', label=label, rc=process.returncode, log=str(path),
                  loadavg=os.getloadavg())
             text = path.read_text(errors='replace')

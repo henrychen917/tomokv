@@ -364,6 +364,53 @@ diag-arm vacuous leg above.
 
 Summaries and ledgers are in `docs/wave16/proof/strand/`.
 
+### Landing follow-up 3: FLIP signal legs wait for the previous owner's port (test-only)
+
+**The landing FAIL.** Landing run `gate-run.mkB5oh` failed "FLIP signal stop during FLIP + second
+SIGINT".
+- The sigterm/epoll leg's server could not boot: `Could not create server TCP listening socket
+  127.0.0.1:7926: Address already in use`.
+- About 1 s earlier the sigint/uring leg's server, on the same port, had been stopped by SIGINT
+  during a FLIP plus a second SIGINT.
+- That forced exit skips the io_uring fixed-file unregister (landfix `fcbd02ba6a` covers clean
+  shutdown only). The kernel therefore keeps the listener until the asynchronous ring teardown.
+
+The maintainer's decision: fix the harness now, and record the server behaviour as a known
+difference for after the freeze.
+
+**The harness change.** `tests/_lib.py`, `tests/snapfix.py`, `tests/flipfix.py` and
+`tests/flipfix7.py` changed. No src, no gate.sh, no label, no EXPECT change, and no leg's assertion
+changed.
+- **`_lib.wait_port_bindable(port)`** repeats the server's own boot probe (`SO_REUSEADDR`, bind,
+  listen; `boot_support.h`) every 10 ms for at most 10 s. TIME_WAIT never blocks it; a live or
+  lingering listener does.
+  - When it had to wait, it prints `waited N ms for port P release after <previous owner>` and
+    returns the record. Otherwise it returns at once and prints nothing.
+  - `_lib.note_port_owner` records the previous owner in `build/port-release/<port>.json` at every
+    owned exit.
+- **`snapfix.Boot`**, the shared boot of flipfix7's signal legs and of flipfix5/6, flushfix2/3,
+  snapfix* and wave15_aof, waits for its port and any `--tls-port` before booting. It records the
+  owner at every exit, forced or not. `flipfix7` copies a wait into its trial row (`port_wait`).
+- **`flipfix.boot`** waits before its unchanged foreign-listener refusal (`connect_ex`) and records
+  the owner at stop.
+
+**Proof.** POST `bins/wave16-post-3f058fa1`.
+- **Through `tests/gate.sh`'s job interface:** the `flip` job ran 10× (5 lanes × 2). The signal row
+  passed 10 / 10, and every flip row was ok in all 10 runs (10 ok, 0 FAIL each). The port-release
+  wait was needed 0 times: no listener outlived its owner in these runs.
+- **The failing boundary, stressed:** sigint/uring immediately followed by sigterm/epoll on one port,
+  20 pairs in each of 5 lanes, with a busy-loop hog on every server CPU. 200 / 200 legs passed, with
+  0 waits needed.
+- **The lingering listener, reproduced on purpose:** a `SO_REUSEPORT` listener held on the port, as
+  the exited server's per-IO listener is.
+  - The server binary booted straight onto it fails exactly as the landing did (`Address already
+    in use`, rc 1).
+  - The sigterm/epoll signal leg (flipfix7 path) logged `waited 1933 ms for port 24000 release after
+    … sigint-uring …` and passed.
+  - The close/uring leg (`flipfix.boot` path) logged `waited 1974 ms …` and passed.
+- **Harness self-tests:** FixtureControls 12 OK, fixture 1229 rows agree; `gates_test.py` 79 OK.
+- **Evidence:** `docs/wave16/proof/port-release/`.
+
 ### S1 candidate: deleted-stream group waiter served from a renamed stream (not changed; rare residual)
 
 **What was seen.** parkwake's broad run on its POST recorded one wrong reply in
