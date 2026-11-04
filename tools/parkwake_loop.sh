@@ -11,7 +11,7 @@ out=$W/build/parkwake/proof/$label
 mkdir -p "$out"
 for run in $(seq 1 "$runs"); do
   log="$out/run$run.log"
-  ( cd "$W" && GATE_ONLY_JOBS="$jobs" timeout 7200 taskset -c "$SERVER,$LOAD" tests/gate.sh quick \
+  ( cd "$W" && GATE_ONLY_JOBS="$jobs" timeout "${GATE_TIMEOUT:-7200}" taskset -c "$SERVER,$LOAD" tests/gate.sh quick \
       --server-cores "$SERVER" --load-cores "$LOAD" --ports "$PORTS" \
       --candidate-binary "$binary" ) > "$log" 2>&1
   rc=$?
