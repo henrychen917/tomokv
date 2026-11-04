@@ -2932,6 +2932,19 @@ public:
         return total;
     }
     MultiRetryLane& multi_retry_lane(uint32_t io) { return multi_retry_lanes_[io]; }
+    // Completion notices an owner could not post to a full EX->IO channel (a connection without a
+    // ready-mask slot). Worker `tid` alone touches its vector. Dropping such a notice left the
+    // reply to its IO's every-64th-pass serve backstop, about a second on an idle IO. Instead the
+    // claim (retire_queued) stays set -- the client can then be neither released nor migrated --
+    // and the owner reposts it on its following passes, counted as work.
+    std::vector<Client*>& notify_retries(uint32_t tid) { return notify_retries_[tid]; }
+    void defer_completion_notice(uint32_t tid, Client* client) {
+        try {
+            notify_retries_[tid].push_back(client);
+        } catch (const std::bad_alloc&) {
+            client->retire_queued().store(false, std::memory_order_release); // the old drop
+        }
+    }
     bool txn_retry_held(const void* = nullptr) const {
         return snapshot_atomic_barrier_.load(std::memory_order_acquire) & 1;
     }
@@ -4075,6 +4088,8 @@ private:
     std::atomic<uint64_t> flip_skipped_class_[3]{};
     std::atomic<uint64_t> flip_refused_class_[3]{};
 
+    // parkwake F12 (notify_retries): at the tail, so every established offset stays fixed.
+    std::vector<Client*> notify_retries_[kMaxThreads];
 };
 
 }  // namespace tomo

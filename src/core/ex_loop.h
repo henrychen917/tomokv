@@ -441,6 +441,7 @@ public:
             if (!srv_->lb_acked(self_->id())) {
                 did += service_stale_forwards<BatchOps, IofusedPrivateQueue>();
                 did += drain_releases(true);
+                if (__builtin_expect(notify_retries_pending(), false)) did += service_notify_retries();
                 did += service_multi_retries<IofusedPrivateQueue>();
                 did += service_atomic_deferred<IofusedPrivateQueue>();
                 did += service_xshard_retries<IofusedPrivateQueue>();
@@ -460,6 +461,7 @@ public:
             did += snapshot_control_pass<BatchOps, IofusedPrivateQueue>();
             did += service_stale_forwards<BatchOps, IofusedPrivateQueue>();
             did += drain_releases();
+            if (__builtin_expect(notify_retries_pending(), false)) did += service_notify_retries();
             if (!snapshot_blocks_tasks()) {
                 did += service_multi_retries<IofusedPrivateQueue>();
                 did += service_atomic_deferred<IofusedPrivateQueue>();
@@ -671,6 +673,7 @@ public:
                     if (!acknowledged) {
                         did += service_stale_forwards();
                         did += drain_releases(true);
+                        if (__builtin_expect(notify_retries_pending(), false)) did += service_notify_retries();
                         did += service_multi_retries();
                         did += service_atomic_deferred();
                         did += service_xshard_retries();
@@ -690,6 +693,7 @@ public:
                     did += snapshot_control_pass();
                     did += service_stale_forwards();
                     did += drain_releases();
+                    if (__builtin_expect(notify_retries_pending(), false)) did += service_notify_retries();
                     if (!snapshot_blocks_tasks()) {
                         did += service_multi_retries();
                         did += service_atomic_deferred();
@@ -1526,7 +1530,7 @@ private:
             !stale_releases_.empty() || !atomic_deferred_.empty() ||
             !multi_retries_.empty() || !xshard_retries_.empty() ||
             !ordered_deferred_.empty() || xshard_commit_pending_ ||
-            notify_keyless_pending_ ||
+            notify_keyless_pending_ || !srv_->notify_retries(self_->id()).empty() ||
             srv_->atomic_inflight() != 0 || srv_->atomic_apply_inflight() != 0) return false;
         for (const auto& queue : snapshot_backlogs_) if (!queue.empty()) return false;
         for (Shard* shard : self_->shards()) {
@@ -1813,6 +1817,7 @@ private:
         uint32_t n = snapshot_control_pass<BatchOps, IofusedPrivateQueue>() +
                      service_stale_forwards<BatchOps, IofusedPrivateQueue>() +
                      drain_releases(true);
+        if (__builtin_expect(notify_retries_pending(), false)) n += service_notify_retries();
         if (!snapshot_blocks_tasks()) {
             n += service_multi_retries<IofusedPrivateQueue>();
             n += service_atomic_deferred<IofusedPrivateQueue>();
@@ -2915,9 +2920,25 @@ private:
         ThreadCtx& snd = srv_->thread(target);
         if (!snd.post_client(self_->id(), c, handoff_ring(), self_->sig())) {
             self_->sig().notify_drop++;
-            c->retire_queued().store(false, std::memory_order_release);   // retry on a later pass
+            srv_->defer_completion_notice(self_->id(), c);   // keep the claim; reposted per pass
         }
     }
+
+    // Reposts the completion notices a full EX->IO channel refused (Server::notify_retries).
+    // Counted as work while any is queued: never park on one, never spin in place on a full
+    // channel (two fused threads could each wait on the other's). The IO cannot park on a
+    // non-empty channel, so a repost succeeds once it drains.
+    __attribute__((noinline, cold)) uint32_t service_notify_retries() {
+        auto& queue = srv_->notify_retries(self_->id());
+        size_t kept = 0;
+        for (Client* c : queue) {
+            ThreadCtx& sender = srv_->thread(c->ifid_thread());
+            if (!sender.post_client(self_->id(), c, handoff_ring(), self_->sig())) queue[kept++] = c;
+        }
+        queue.resize(kept);
+        return 1;
+    }
+    bool notify_retries_pending() { return !srv_->notify_retries(self_->id()).empty(); }
 
     // Batch end (or a full record): ONE fence covering every Done store of the batch, then the
     // same read-first set per recorded client run that the per-op path performs, then one wake

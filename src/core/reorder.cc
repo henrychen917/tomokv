@@ -555,6 +555,7 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl() {
         if (!srv_->lb_acked(self_->id())) {
             did += service_stale_forwards<BatchOps, IofusedPrivateQueue>();
             did += drain_releases(true);
+            if (__builtin_expect(notify_retries_pending(), false)) did += service_notify_retries();
             did += service_multi_retries<IofusedPrivateQueue>();
             did += service_atomic_deferred<IofusedPrivateQueue>();
             did += service_xshard_retries<IofusedPrivateQueue>();
@@ -574,6 +575,7 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl() {
         did += snapshot_control_pass<BatchOps, IofusedPrivateQueue>();
         did += service_stale_forwards<BatchOps, IofusedPrivateQueue>();
         did += drain_releases();
+        if (__builtin_expect(notify_retries_pending(), false)) did += service_notify_retries();
         if (!snapshot_blocks_tasks()) {
             did += service_multi_retries<IofusedPrivateQueue>();
             did += service_atomic_deferred<IofusedPrivateQueue>();
@@ -716,6 +718,7 @@ uint32_t ExLoopT<Fused>::r7_sweep() {
     uint32_t n = snapshot_control_pass<BatchOps, IofusedPrivateQueue>() +
                  service_stale_forwards<BatchOps, IofusedPrivateQueue>() +
                  drain_releases(true);
+    if (__builtin_expect(notify_retries_pending(), false)) n += service_notify_retries();
     if (!snapshot_blocks_tasks()) {
         n += service_multi_retries<IofusedPrivateQueue>();
         n += service_atomic_deferred<IofusedPrivateQueue>();
