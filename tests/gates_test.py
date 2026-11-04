@@ -793,6 +793,19 @@ bad(){ printf 'FAIL\t0\t%s\n' "$1" >> "$LEDGER"; FAIL=$((FAIL+1)); }
                 self.assertEqual(self.collect('0\t1\t0\n', ledger)[0], (0, 1))
 
 
+def taskset_cpu_list(cpus):
+    """The list `taskset -pc` prints (util-linux cpulist_create): a range only for three or more
+    consecutive CPUs, so {22,23,88,89} is "22,23,88,89", never "22-23,88-89"."""
+    ranges = []
+    for cpu in sorted(set(cpus)):
+        if ranges and ranges[-1][1] + 1 == cpu:
+            ranges[-1][1] = cpu
+        else:
+            ranges.append([cpu, cpu])
+    return ','.join(str(lo) if lo == hi else f'{lo},{hi}' if hi == lo + 1 else f'{lo}-{hi}'
+                    for lo, hi in ranges)
+
+
 # A 2026-09-11 full-inventory control retained a missing affinity observation before
 # core_tsan_build's first witness (scheduler-failure-_zqi3thv), although the live gate's
 # parallel control passed. Query the kernel through sched_getaffinity via taskset rather
@@ -818,6 +831,23 @@ SCHEDULER_AFFINITY_PROBE = r'''
 
 
 class SchedulerAffinity(unittest.TestCase):
+    def test_one_slot_cpu_list_matches_taskset(self):
+        # The one-slot scheduler control expects exactly this string from its affinity probe.
+        # A slot with two load CPUs (landing gate-run.0IGVkV slot 2: 16-23 + 88-89) failed
+        # every fixture job when two-CPU runs were written as ranges.
+        self.assertEqual(taskset_cpu_list([88, 22, 89, 23]), '22,23,88,89')
+        self.assertEqual(taskset_cpu_list([5, 6, 7, 85]), '5-7,85')
+        self.assertEqual(taskset_cpu_list([3]), '3')
+        owned = sorted(os.sched_getaffinity(0))
+        pairs = [cpu for cpu in owned if cpu + 1 in owned]
+        if pairs:  # Also ask util-linux itself whenever two adjacent CPUs are owned.
+            pair = [pairs[0], pairs[0] + 1]
+            # The outer taskset applies the pair before exec; the shell then reports its own pid.
+            reply = subprocess.run(['taskset', '-c', ','.join(map(str, pair)), 'sh', '-c',
+                                    'exec taskset -pc "$$"'], text=True, check=True,
+                                   capture_output=True, env=dict(os.environ, LC_ALL='C')).stdout
+            self.assertEqual(reply.strip().rsplit(': ', 1)[1], taskset_cpu_list(pair))
+
     def probe(self, response=None):
         cpu = min(os.sched_getaffinity(0))
         stub = '' if response is None else '''
@@ -1192,14 +1222,7 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
                 # beside its parent. Pinning both to one CPU made 289 complete
                 # jobs consume 44s, leaving no time for the real collector.
                 # Keep one worker, the complete inventory and the 45s deadline.
-                ranges = []
-                for cpu in map(int, fixture_cpus):
-                    if ranges and ranges[-1][1] + 1 == cpu:
-                        ranges[-1][1] = cpu
-                    else:
-                        ranges.append([cpu, cpu])
-                slot_cpus = [','.join(str(lo) if lo == hi else f'{lo}-{hi}'
-                                      for lo, hi in ranges)]
+                slot_cpus = [taskset_cpu_list(map(int, fixture_cpus))]
             else:
                 slot_cpus = [fixture_cpus[index % len(fixture_cpus)] for index in range(count)]
             arrays = '\n'.join([
