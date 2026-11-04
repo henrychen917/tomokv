@@ -3187,7 +3187,11 @@ job_rlfix5(){
   unit_root=${GATE_RLFIX5_UNITS:-$PWD/build/rlfix5/counts/scopes/post}
   if [ -z "${GATE_RLFIX5_UNITS:-}" ]; then
     if make -q all && cmp -s "$CANDIDATE_BINARY" build/tomokv; then
-      if ! pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" -f Makefile -f tools/rlfix5.mk build/rlfix5-scopes \
+      # The three rlfix5 families share this target and its probe outputs. Concurrent slots
+      # once ran the recipe together: one strip read a probe another's linker was rewriting
+      # (landing gate-run.0IGVkV). The first holder builds; the others then find it fresh.
+      if ! pausable flock "$PWD/build/rlfix5-scopes.lock" \
+          taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" -f Makefile -f tools/rlfix5.mk build/rlfix5-scopes \
           >"$TMPDIR/build.log" 2>&1 ||
           ! make -f Makefile -f tools/rlfix5.mk -q build/rlfix5-scopes; then
         unit_root="$TMPDIR/missing"
