@@ -267,7 +267,8 @@
                             for (const auto& command : state.commands) {
                                 if (command->kind != MultiCommandKind::IoLocal) continue;
                                 const uint64_t started = multi_slowlog_start(state, owner_thread_id);
-                                if (command_client_pause(server, *command->op, state.now_cut_mono_ms)) {
+                                if (command_client_pause(server, *command->op, state.now_cut_mono_ms,
+                                                         owner_thread_id)) {
                                     command->io_effect_done = true;
                                     multi_slowlog_part(*command, started);
                                     multi_slowlog_finish(state, *command, owner_thread_id);

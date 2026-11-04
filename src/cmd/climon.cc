@@ -193,12 +193,15 @@ void IoLoop::climon_copy_client_filter(PubSubEvent& target, const PubSubEvent& s
 
 // ---- lane state ----------------------------------------------------------------------------
 
-bool command_client_pause(Server& server, Op& op, uint64_t time_base_ms) {
+bool command_client_pause(Server& server, Op& op, uint64_t time_base_ms, uint32_t waker) {
     if (!op.cmd_name().eq_icase("client") || op.argc() < 2) return false;
     const Slice sub = op.arg(1);
     if (sub.eq_icase("unpause")) {
         if (op.argc() != 2) { climon_wrong_args(op, "unpause"); return true; }
         server.climon_clear_pause();
+        // IOs holding paused frames notice only at their next pass: wake them now, as Redis
+        // resumes paused clients at once.
+        if (waker != UINT32_MAX) server.wake_peers_from(waker, false);
         reply_ok(op.sink());
         return true;
     }
@@ -1280,7 +1283,7 @@ IoLoop::ClimonStartResult IoLoop::climon_start_client_command(Client* client, Op
         return ClimonStartResult::Sync;
     }
 
-    if (command_client_pause(*srv_, op)) {
+    if (command_client_pause(*srv_, op, 0, self_->id())) {
         climon_refresh_armed();
         climon_release_pause();
         return ClimonStartResult::Sync;

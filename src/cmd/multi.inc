@@ -2873,7 +2873,8 @@ bool multi_exec_io_commands(IoLoop& loop, MultiExecState& state) {
             else if (child.cmd_name().eq_icase("client") &&
                      loop.tracking_client_subcommand(&client, child) !=
                          IoLoop::ClimonStartResult::NotHandled) {}
-            else if (!command_client_pause(*state.server, child, state.now_cut_mono_ms))
+            else if (!command_client_pause(*state.server, child, state.now_cut_mono_ms,
+                                           loop.self_->id()))
                 child.spec->handler(state.server->shard(0), child);
             command_set_local_context(nullptr, nullptr);
         }
@@ -3292,9 +3293,11 @@ void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred
                 const uint64_t started = multi_slowlog_start(*state, state->owner_io);
                 if (__builtin_expect(state->server->latency_tracking(), false)) {
                     LatencyTrackingScope latency(state->owner_io, *command->op);
-                    if (!command_client_pause(*state->server, *command->op, state->now_cut_mono_ms))
+                    if (!command_client_pause(*state->server, *command->op, state->now_cut_mono_ms,
+                                              state->owner_io))
                         command->op->spec->handler(state->server->shard(0), *command->op);
-                } else if (!command_client_pause(*state->server, *command->op, state->now_cut_mono_ms))
+                } else if (!command_client_pause(*state->server, *command->op, state->now_cut_mono_ms,
+                                                 state->owner_io))
                     command->op->spec->handler(state->server->shard(0), *command->op);
                 multi_slowlog_part(*command, started);
                 multi_slowlog_finish(*state, *command, state->owner_io);

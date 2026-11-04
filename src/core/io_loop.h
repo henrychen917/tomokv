@@ -2015,7 +2015,11 @@ private:
                 lb_schedule_wake_all();
                 return 1;
             }
-            return 0;
+            // A deferred consumption (busy transition lock, an old reader still retiring) is
+            // retried every pass: nothing wakes the coordinator of a plan it has not yet taken,
+            // and the pending plan refuses SAVE/BGSAVE and listener changes meanwhile.
+            return srv_->lb_stage() == LbStage::PlanReady &&
+                   srv_->lb_coordinator() == self_->id();
         }
         if (stage != LbStage::ClientDrain) lb_client_wake_pending_ = false;
         if (stage == LbStage::Idle || stage == LbStage::ClientMoving) return 0;

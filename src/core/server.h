@@ -2368,6 +2368,19 @@ public:
         return ticket;
     }
     bool debug_sleep_complete(uint64_t ticket) { return debug_sleep_.complete(ticket); }
+    // Cold control publications that every worker consumes at its next pass (the CONFIG
+    // listener rendezvous, CLIENT UNPAUSE): ring every other worker from thread `tid`'s own ring,
+    // so a parked one does not sleep to its timeout. Only thread `tid` may call this. `submit`
+    // sends at once (a caller about to block); otherwise the caller's next submit carries them.
+    void wake_peers_from(uint32_t tid, bool submit) {
+        Ring* source = tid < nthreads() ? thread(tid).ring() : nullptr;
+        if (!source) return;
+        for (uint32_t other = 0; other < nthreads(); ++other)
+            if (other != tid)
+                if (Ring* target = thread(other).ring())
+                    source->msg_to(*target, ur_tag(UrKind::Wake, nullptr));
+        if (submit) source->submit();
+    }
     uint32_t client_hz() const {
         return client_hz_.effective(live_clients_.load(std::memory_order_relaxed));
     }
