@@ -1119,7 +1119,8 @@ uint32_t IoLoop::r7_flush_ready() {
                 // frontier. Only the recv completion may drive inbound TLS while armed.
                 if (!c->closing() && !c->recv_armed()) (void)r7_drive_tls<kEp, Fused>(c);
                 else if (tls->userspace()) {
-                    (void)wb_.pump_tls<kEp>(*c, *tls);
+                    // Synchronous TLS progress is work: see IoLoop::flush_ready (F5).
+                    if (wb_.pump_tls<kEp>(*c, *tls)) work++;
                     if (tls->socket_userspace() && tls->has_pinned_plain())
                         arm_tls_socket_poll<kEp>(c, tls->wanted());
                 }
