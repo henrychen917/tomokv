@@ -1,0 +1,2755 @@
+{
+  "partial": true,
+  "full_gate_receipt": false,
+  "sources": [
+    {
+      "receipt": "regression-final",
+      "archive_sha256": "a55a75690a6324260c45494aa4eb7bb9eb7783b6e1f95e94ccac6a568f012392"
+    },
+    {
+      "receipt": "final-witnesses",
+      "archive_sha256": "238f1394933698f900a9299d0e61b42a5cee61bf706f7eff618c14a760d3a4f4"
+    },
+    {
+      "receipt": "pause-window-final",
+      "archive_sha256": "4da5c4b860ebfa43d2c4ccb1552cd7aa2d1a93ef01f8d03c51d8b564f29543e7"
+    }
+  ],
+  "requested_jobs": 150,
+  "completed_jobs": 154,
+  "passed_rows": 566,
+  "failed_rows": 0,
+  "jobs": [
+    {
+      "receipt": "regression-final",
+      "job": "acl_metadata",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.050000\tgenerated Redis 7.4 ACL categories"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "acl_recheck",
+      "exit": 0,
+      "passed": 2,
+      "failed": 0,
+      "ledger": [
+        "ok\t6.100000\tACL recheck one-reply battery (2s)",
+        "ok\t6.300000\tACL recheck one-reply battery (1s)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "acl_subcommands",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t13.900000\tdispatchfix CC4.15 ACL subcommand grants"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "aclfix",
+      "exit": 0,
+      "passed": 12,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.060000\taclfix sort (1s)",
+        "ok\t0.060000\taclfix streams-name (1s)",
+        "ok\t0.070000\taclfix save-load (1s)",
+        "ok\t2.030000\taclfix capacity (1s)",
+        "ok\t0.080000\taclfix wake-pop (1s)",
+        "ok\t0.070000\taclfix wake-scatter (1s)",
+        "ok\t0.070000\taclfix sort (2s)",
+        "ok\t0.070000\taclfix streams-name (2s)",
+        "ok\t0.070000\taclfix save-load (2s)",
+        "ok\t1.900000\taclfix capacity (2s)",
+        "ok\t0.080000\taclfix wake-pop (2s)",
+        "ok\t0.070000\taclfix wake-scatter (2s)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "at412-T1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t14.800000\tat412 T1"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "at412-T10",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t451.880000\tat412 T10"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "at412-T11a",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t7.050000\tat412 T11a"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "at412-T11b",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t43.320000\tat412 T11b"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "at412-T12",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t14.800000\tat412 T12"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "at412-T13",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t122.110000\tat412 T13"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "at412-T14",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t5.920000\tat412 T14"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "at412-T15",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t109.160000\tat412 T15"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "at412-T16",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t17.470000\tat412 T16"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "at412-T2",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t26.850000\tat412 T2"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "at412-T3",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t6.770000\tat412 T3"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "at412-T4",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t13.100000\tat412 T4"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "at412-T5",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t107.740000\tat412 T5"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "at412-T6",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t812.610000\tat412 T6"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "at412-T7",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t37.100000\tat412 T7"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "at412-T8",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t4.060000\tat412 T8"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "at412-T9",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t3.750000\tat412 T9"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "at412-owner",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.060000\tat412 owner"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "atomfix5_accounting",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t13.700000\tatomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "atomfix5_watch",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.290000\tatomfix5 WATCH key count (both modes, both engines, atomic 0/1)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "atomic_batteries",
+      "exit": 0,
+      "passed": 4,
+      "failed": 0,
+      "ledger": [
+        "ok\t32.800000\tatomic torn/window battery",
+        "ok\t4.070000\tatomic RYOW/mixed-write battery",
+        "ok\t4.250000\tatomic owner-local hazard battery",
+        "ok\t0.020000\tatomic shutdown invariants"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "atomic_units",
+      "exit": 0,
+      "passed": 27,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.000000\tatomic commit publication catches up at quiescence",
+        "ok\t1.310000\tflushfix flush witnesses",
+        "ok\t0.050000\tflushfix headers witnesses",
+        "ok\t3.630000\tmultidb serverless owners",
+        "ok\t0.040000\tmultidb global namespace boundary",
+        "ok\t2.130000\tstoresize published monitoring",
+        "ok\t0.210000\tMULTI admin command replies",
+        "ok\t0.070000\tEXECABORT releases WATCH reservation",
+        "ok\t0.000000\tatomic survivors unit build",
+        "ok\t0.010000\tatomic survivor: admission",
+        "ok\t0.010000\tatomic survivor: closure",
+        "ok\t0.000000\tatomic survivor: script_keys",
+        "ok\t0.010000\tatomic survivor: rename_overlay",
+        "ok\t0.010000\tatomic survivor: write_latest",
+        "ok\t0.010000\tatomic survivor: script_apply",
+        "ok\t0.000000\tatomic survivor: post_apply_probe",
+        "ok\t0.000000\tatomic survivor: lua_conversion",
+        "ok\t0.010000\tatomic survivor: watch_parent",
+        "ok\t0.010000\tatomic survivor: watch_cycle",
+        "ok\t0.000000\tatomic survivor: mset_arity",
+        "ok\t0.000000\tatomic survivor: watch_oom",
+        "ok\t0.010000\tatomic survivor: lua_lines",
+        "ok\t0.010000\tatomic survivor: library_limit",
+        "ok\t0.010000\tatomic survivor: stage_flag",
+        "ok\t0.010000\tatomic survivor: instruction_limit",
+        "ok\t0.010000\tarmed resize retirement: atomic-growth",
+        "ok\t0.000000\tarmed resize retirement: flush-prepared"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "auth",
+      "exit": 0,
+      "passed": 7,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.000000\treject bad protected-mode",
+        "ok\t0.010000\treject bad enable-debug-command",
+        "ok\t0.150000\tAUTH/HELLO/protected state machine",
+        "ok\t5.540000\tACL battery (atomic off)",
+        "ok\t5.560000\tACL battery (atomic on)",
+        "ok\t2.470000\tDEBUG toggle/reload battery",
+        "ok\t0.140000\ttyped snapshot round-trip incl stream"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "authfix",
+      "exit": 0,
+      "passed": 5,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.910000\tauthfix CG4.1 binary config requirepass",
+        "ok\t3.480000\tauthfix CG4.2 missing config value refuses boot",
+        "ok\t0.920000\tauthfix SV4.2 binary requirepass rewrite restart",
+        "ok\t0.300000\tauthfix SV4.1 slowlog credential redaction (1s)",
+        "ok\t0.300000\tauthfix SV4.1 slowlog credential redaction (2s)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "blockfix2",
+      "exit": 0,
+      "passed": 7,
+      "failed": 0,
+      "ledger": [
+        "ok\t34.100000\tblockfix2 BLOCK-WAKE-RENAME-SORTSTORE",
+        "ok\t36.410000\tblockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK",
+        "ok\t33.950000\tblockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS",
+        "ok\t33.560000\tblockfix2 MULTI-XREADGROUP-BLOCK-HANG",
+        "ok\t33.710000\tblockfix2 INFO-TOTAL-BLOCKING-KEYS",
+        "ok\t33.600000\tblockfix2 SLOWLOG-BLOCKED-NOT-LOGGED",
+        "ok\t0.030000\tblockfix2 BLOCK-SERVE-REFUSED-DROP"
+      ]
+    },
+    {
+      "receipt": "final-witnesses",
+      "job": "clientcompat-disconnect",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t4.690000\tclientcompat disconnect"
+      ]
+    },
+    {
+      "receipt": "final-witnesses",
+      "job": "clientcompat-enable-race",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t79.020000\tclientcompat enable-race"
+      ]
+    },
+    {
+      "receipt": "final-witnesses",
+      "job": "clientcompat-multi-controls",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t438.850000\tclientcompat multi-controls"
+      ]
+    },
+    {
+      "receipt": "final-witnesses",
+      "job": "clientcompat-multi-tracking",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t162.800000\tclientcompat multi-tracking"
+      ]
+    },
+    {
+      "receipt": "pause-window-final",
+      "job": "clientcompat-pause",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t207.640000\tclientcompat pause"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "clientfix",
+      "exit": 0,
+      "passed": 14,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.760000\tclientfix tracking-cap (1s)",
+        "ok\t6.920000\tclientfix tracking-pipeline (1s)",
+        "ok\t13.820000\tclientfix reply-skip (1s)",
+        "ok\t0.300000\tclientfix pattern-cleanup (1s)",
+        "ok\t1.120000\tclientfix pause-deadline (1s)",
+        "ok\t0.110000\tclientfix geo-count (1s)",
+        "ok\t0.100000\tclientfix geo-store (1s)",
+        "ok\t1.760000\tclientfix tracking-cap (2s)",
+        "ok\t6.920000\tclientfix tracking-pipeline (2s)",
+        "ok\t11.600000\tclientfix reply-skip (2s)",
+        "ok\t0.300000\tclientfix pattern-cleanup (2s)",
+        "ok\t1.120000\tclientfix pause-deadline (2s)",
+        "ok\t0.110000\tclientfix geo-count (2s)",
+        "ok\t0.100000\tclientfix geo-store (2s)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "climonfix",
+      "exit": 0,
+      "passed": 7,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.020000\tshutdown policy + signal handoff serverless",
+        "ok\t0.350000\tshutdown persistence (1s, command)",
+        "ok\t0.150000\tshutdown persistence (1s, sigterm)",
+        "ok\t0.140000\tshutdown persistence (1s, sigint)",
+        "ok\t0.360000\tshutdown persistence (2s, command)",
+        "ok\t0.140000\tshutdown persistence (2s, sigterm)",
+        "ok\t0.140000\tshutdown persistence (2s, sigint)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "climonfix4-1s-epoll",
+      "exit": 0,
+      "passed": 7,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.820000\tclimonfix4 PAUSE-BLOCKED-COUNT (1s epoll)",
+        "ok\t12.260000\tclimonfix4 PAUSE-MAY-REPLICATE (1s epoll)",
+        "ok\t11.310000\tclimonfix4 PAUSE-SCRIPT-FLAGS (1s epoll)",
+        "ok\t13.370000\tclimonfix4 MONITOR-SCRIPT-CMDS (1s epoll)",
+        "ok\t11.300000\tclimonfix4 RESET-CLEARS-LIBNAME (1s epoll)",
+        "ok\t11.300000\tclimonfix4 RESET-MONITOR-ECHO (1s epoll)",
+        "ok\t11.320000\tclimonfix4 CLIENT-LIST-CMD-NAME (1s epoll)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "climonfix4-1s-uring",
+      "exit": 0,
+      "passed": 7,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.860000\tclimonfix4 PAUSE-BLOCKED-COUNT (1s uring)",
+        "ok\t12.260000\tclimonfix4 PAUSE-MAY-REPLICATE (1s uring)",
+        "ok\t11.330000\tclimonfix4 PAUSE-SCRIPT-FLAGS (1s uring)",
+        "ok\t13.380000\tclimonfix4 MONITOR-SCRIPT-CMDS (1s uring)",
+        "ok\t11.300000\tclimonfix4 RESET-CLEARS-LIBNAME (1s uring)",
+        "ok\t11.300000\tclimonfix4 RESET-MONITOR-ECHO (1s uring)",
+        "ok\t11.320000\tclimonfix4 CLIENT-LIST-CMD-NAME (1s uring)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "climonfix4-2s-epoll",
+      "exit": 0,
+      "passed": 7,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.840000\tclimonfix4 PAUSE-BLOCKED-COUNT (2s epoll)",
+        "ok\t12.240000\tclimonfix4 PAUSE-MAY-REPLICATE (2s epoll)",
+        "ok\t11.310000\tclimonfix4 PAUSE-SCRIPT-FLAGS (2s epoll)",
+        "ok\t13.370000\tclimonfix4 MONITOR-SCRIPT-CMDS (2s epoll)",
+        "ok\t11.300000\tclimonfix4 RESET-CLEARS-LIBNAME (2s epoll)",
+        "ok\t11.300000\tclimonfix4 RESET-MONITOR-ECHO (2s epoll)",
+        "ok\t11.320000\tclimonfix4 CLIENT-LIST-CMD-NAME (2s epoll)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "climonfix4-2s-uring",
+      "exit": 0,
+      "passed": 7,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.860000\tclimonfix4 PAUSE-BLOCKED-COUNT (2s uring)",
+        "ok\t12.270000\tclimonfix4 PAUSE-MAY-REPLICATE (2s uring)",
+        "ok\t11.320000\tclimonfix4 PAUSE-SCRIPT-FLAGS (2s uring)",
+        "ok\t13.380000\tclimonfix4 MONITOR-SCRIPT-CMDS (2s uring)",
+        "ok\t11.300000\tclimonfix4 RESET-CLEARS-LIBNAME (2s uring)",
+        "ok\t11.300000\tclimonfix4 RESET-MONITOR-ECHO (2s uring)",
+        "ok\t11.310000\tclimonfix4 CLIENT-LIST-CMD-NAME (2s uring)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "compat2",
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.630000\tcompat2 autharity",
+        "ok\t6.760000\tcompat2 expire_notify",
+        "ok\t2.230000\tcompat2 ktls_lifetime"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "compat3",
+      "exit": 0,
+      "passed": 6,
+      "failed": 0,
+      "ledger": [
+        "ok\t33.510000\tcompat3 CC4.12 pubsub vs Redis 7.4",
+        "ok\t33.490000\tcompat3 CC4.13 pending vs Redis 7.4",
+        "ok\t33.500000\tcompat3 CC4.14 history vs Redis 7.4",
+        "ok\t33.570000\tcompat3 CC4.16 grammar vs Redis 7.4",
+        "ok\t33.740000\tcompat3 CC4.5 glob vs Redis 7.4",
+        "ok\t37.910000\tcompat3 CC4.17 flags vs Redis 7.4"
+      ]
+    },
+    {
+      "receipt": "final-witnesses",
+      "job": "core_tsan_build",
+      "exit": 0,
+      "passed": 0,
+      "failed": 0,
+      "ledger": []
+    },
+    {
+      "receipt": "final-witnesses",
+      "job": "core_units",
+      "exit": 0,
+      "passed": 9,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.120000\tcore concurrency watch",
+        "ok\t0.330000\tcore concurrency lifetime",
+        "ok\t0.120000\tcore concurrency drain",
+        "ok\t7.210000\tcore concurrency route",
+        "ok\t0.120000\tcore concurrency snapshot",
+        "ok\t0.180000\tcore concurrency config",
+        "ok\t0.180000\tcore concurrency notify",
+        "ok\t0.620000\tread-local topology demotion (1s)",
+        "ok\t0.640000\tread-local topology demotion (2s)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "debug-0",
+      "exit": 0,
+      "passed": 16,
+      "failed": 0,
+      "ledger": [
+        "ok\t9.160000\tplain-write lost updates (atomic 0)",
+        "ok\t0.160000\tlbsignals battery (atomic 0)",
+        "ok\t1.490000\tslowlog battery (atomic 0)",
+        "ok\t0.040000\tatomfix battery (atomic 0)",
+        "ok\t0.130000\tscriptatomic battery (atomic 0)",
+        "ok\t14.470000\texecatomic battery (atomic 0)",
+        "ok\t11.870000\texeciso battery (atomic 0)",
+        "ok\t0.440000\texecfix battery (atomic 0)",
+        "ok\t0.110000\tmultires battery (atomic 0)",
+        "ok\t0.790000\tmultirace battery (atomic 0)",
+        "ok\t30.590000\tsession_monotonic battery (atomic 0)",
+        "ok\t0.360000\txacct battery (atomic 0)",
+        "ok\t0.030000\txmove battery (atomic 0)",
+        "ok\t3.260000\txscript battery (atomic 0)",
+        "ok\t2.110000\ttxn_nx battery (atomic 0)",
+        "ok\t9.080000\ttxniso battery (atomic 0)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "debug-1",
+      "exit": 0,
+      "passed": 16,
+      "failed": 0,
+      "ledger": [
+        "ok\t6.170000\tplain-write lost updates (atomic 1)",
+        "ok\t0.160000\tlbsignals battery (atomic 1)",
+        "ok\t1.480000\tslowlog battery (atomic 1)",
+        "ok\t0.040000\tatomfix battery (atomic 1)",
+        "ok\t0.130000\tscriptatomic battery (atomic 1)",
+        "ok\t14.460000\texecatomic battery (atomic 1)",
+        "ok\t11.860000\texeciso battery (atomic 1)",
+        "ok\t0.440000\texecfix battery (atomic 1)",
+        "ok\t0.120000\tmultires battery (atomic 1)",
+        "ok\t0.780000\tmultirace battery (atomic 1)",
+        "ok\t30.590000\tsession_monotonic battery (atomic 1)",
+        "ok\t0.360000\txacct battery (atomic 1)",
+        "ok\t0.020000\txmove battery (atomic 1)",
+        "ok\t3.260000\txscript battery (atomic 1)",
+        "ok\t1.960000\ttxn_nx battery (atomic 1)",
+        "ok\t9.330000\ttxniso battery (atomic 1)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "exec1s",
+      "exit": 0,
+      "passed": 4,
+      "failed": 0,
+      "ledger": [
+        "ok\t3.130000\texec1s refinements (1s, atomic 0)",
+        "ok\t2.990000\texec1s refinements (1s, atomic 1)",
+        "ok\t2.990000\texec1s refinements (2s, atomic 0)",
+        "ok\t2.990000\texec1s refinements (2s, atomic 1)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "execfair",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t83.560000\tEXEC fast-lane polls"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-armed-0",
+      "exit": 0,
+      "passed": 35,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.250000\tfused+armed boot line (atomic 0)",
+        "ok\t1.160000\tfused+armed s6 battery (atomic 0)",
+        "ok\t2.110000\tfused+armed multi_exec battery (atomic 0)",
+        "ok\t1.630000\tfused+armed blocking battery (atomic 0)",
+        "ok\t0.490000\tfused+armed blockmulti battery (atomic 0)",
+        "ok\t0.790000\tfused+armed stream battery (atomic 0)",
+        "ok\t0.080000\tfused+armed streamgroups battery (atomic 0)",
+        "ok\t1.680000\tfused+armed pubsub battery (atomic 0)",
+        "ok\t0.070000\tfused+armed lua_scripting battery (atomic 0)",
+        "ok\t0.080000\tfused+armed scriptsurf battery (atomic 0)",
+        "ok\t15.620000\tfused+armed limits battery (atomic 0)",
+        "ok\t0.060000\tfused+armed resp3 battery (atomic 0)",
+        "ok\t0.060000\tfused+armed bitfield battery (atomic 0)",
+        "ok\t0.090000\tfused+armed dumprestore battery (atomic 0)",
+        "ok\t0.080000\tfused+armed zsetops battery (atomic 0)",
+        "ok\t0.050000\tfused+armed geo battery (atomic 0)",
+        "ok\t1.150000\tfused+armed climon battery (atomic 0)",
+        "ok\t3.880000\tfused+armed climon2 battery (atomic 0)",
+        "ok\t13.290000\tfused+armed tracking battery (atomic 0)",
+        "ok\t3.330000\tfused+armed hexpire battery (atomic 0)",
+        "ok\t0.590000\tfused+armed servertail battery (atomic 0)",
+        "ok\t0.190000\tfused+armed lcs battery (atomic 0)",
+        "ok\t2.820000\tfused+armed concur battery (atomic 0)",
+        "ok\t0.750000\tfused+armed edgeproto battery (atomic 0)",
+        "ok\t0.390000\tfused+armed edgeenc battery (atomic 0)",
+        "ok\t3.840000\tfused+armed edgetime battery (atomic 0)",
+        "ok\t0.050000\tfused+armed arity battery (atomic 0)",
+        "ok\t0.060000\tfused+armed contarity battery (atomic 0)",
+        "ok\t0.050000\tfused+armed cmdgap battery (atomic 0)",
+        "ok\t0.060000\tfused+armed aclsel battery (atomic 0)",
+        "ok\t52.970000\tfused+armed expwide battery (atomic 0)",
+        "ok\t4.220000\tfused+armed infofix battery (atomic 0)",
+        "ok\t3.020000\tfused+armed pushtear battery (atomic 0)",
+        "ok\t0.060000\tfused+armed netcmd battery (atomic 0)",
+        "ok\t1.170000\tfused+armed shutdown report + lane fired (hits=N, atomic 0)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-armed-1",
+      "exit": 0,
+      "passed": 35,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.260000\tfused+armed boot line (atomic 1)",
+        "ok\t1.790000\tfused+armed s6 battery (atomic 1)",
+        "ok\t2.110000\tfused+armed multi_exec battery (atomic 1)",
+        "ok\t1.690000\tfused+armed blocking battery (atomic 1)",
+        "ok\t0.490000\tfused+armed blockmulti battery (atomic 1)",
+        "ok\t0.790000\tfused+armed stream battery (atomic 1)",
+        "ok\t0.080000\tfused+armed streamgroups battery (atomic 1)",
+        "ok\t1.820000\tfused+armed pubsub battery (atomic 1)",
+        "ok\t0.060000\tfused+armed lua_scripting battery (atomic 1)",
+        "ok\t0.070000\tfused+armed scriptsurf battery (atomic 1)",
+        "ok\t15.140000\tfused+armed limits battery (atomic 1)",
+        "ok\t0.060000\tfused+armed resp3 battery (atomic 1)",
+        "ok\t0.060000\tfused+armed bitfield battery (atomic 1)",
+        "ok\t0.080000\tfused+armed dumprestore battery (atomic 1)",
+        "ok\t0.070000\tfused+armed zsetops battery (atomic 1)",
+        "ok\t0.050000\tfused+armed geo battery (atomic 1)",
+        "ok\t1.150000\tfused+armed climon battery (atomic 1)",
+        "ok\t3.920000\tfused+armed climon2 battery (atomic 1)",
+        "ok\t13.310000\tfused+armed tracking battery (atomic 1)",
+        "ok\t3.070000\tfused+armed hexpire battery (atomic 1)",
+        "ok\t0.590000\tfused+armed servertail battery (atomic 1)",
+        "ok\t0.190000\tfused+armed lcs battery (atomic 1)",
+        "ok\t2.840000\tfused+armed concur battery (atomic 1)",
+        "ok\t0.760000\tfused+armed edgeproto battery (atomic 1)",
+        "ok\t0.400000\tfused+armed edgeenc battery (atomic 1)",
+        "ok\t3.830000\tfused+armed edgetime battery (atomic 1)",
+        "ok\t0.050000\tfused+armed arity battery (atomic 1)",
+        "ok\t0.050000\tfused+armed contarity battery (atomic 1)",
+        "ok\t0.050000\tfused+armed cmdgap battery (atomic 1)",
+        "ok\t0.060000\tfused+armed aclsel battery (atomic 1)",
+        "ok\t53.470000\tfused+armed expwide battery (atomic 1)",
+        "ok\t4.190000\tfused+armed infofix battery (atomic 1)",
+        "ok\t5.470000\tfused+armed pushtear battery (atomic 1)",
+        "ok\t0.050000\tfused+armed netcmd battery (atomic 1)",
+        "ok\t1.160000\tfused+armed shutdown report + lane fired (hits=N, atomic 1)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-1s-0-0-0-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.230000\tfeature 1s-0-0-0-0"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-1s-0-0-0-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.100000\tfeature 1s-0-0-0-1"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-1s-0-0-1-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.240000\tfeature 1s-0-0-1-0"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-1s-0-0-1-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.110000\tfeature 1s-0-0-1-1"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-1s-0-1-0-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t2.340000\tfeature 1s-0-1-0-0"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-1s-0-1-0-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.100000\tfeature 1s-0-1-0-1"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-1s-0-1-1-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t2.350000\tfeature 1s-0-1-1-0"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-1s-0-1-1-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.100000\tfeature 1s-0-1-1-1"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-1s-1-0-0-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.240000\tfeature 1s-1-0-0-0"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-1s-1-0-0-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.110000\tfeature 1s-1-0-0-1"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-1s-1-0-1-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.220000\tfeature 1s-1-0-1-0"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-1s-1-0-1-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.100000\tfeature 1s-1-0-1-1"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-1s-1-1-0-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.240000\tfeature 1s-1-1-0-0"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-1s-1-1-0-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.100000\tfeature 1s-1-1-0-1"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-1s-1-1-1-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.240000\tfeature 1s-1-1-1-0"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-1s-1-1-1-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.100000\tfeature 1s-1-1-1-1"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-2s-0-0-0-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.230000\tfeature 2s-0-0-0-0"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-2s-0-0-0-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.230000\tfeature 2s-0-0-0-1"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-2s-0-0-1-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.230000\tfeature 2s-0-0-1-0"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-2s-0-0-1-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.240000\tfeature 2s-0-0-1-1"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-2s-0-1-0-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t2.330000\tfeature 2s-0-1-0-0"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-2s-0-1-0-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t2.340000\tfeature 2s-0-1-0-1"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-2s-0-1-1-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t2.330000\tfeature 2s-0-1-1-0"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-2s-0-1-1-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t2.330000\tfeature 2s-0-1-1-1"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-2s-1-0-0-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.230000\tfeature 2s-1-0-0-0"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-2s-1-0-0-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.230000\tfeature 2s-1-0-0-1"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-2s-1-0-1-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.230000\tfeature 2s-1-0-1-0"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-2s-1-0-1-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.240000\tfeature 2s-1-0-1-1"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-2s-1-1-0-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t2.330000\tfeature 2s-1-1-0-0"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-2s-1-1-0-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.230000\tfeature 2s-1-1-0-1"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-2s-1-1-1-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.230000\tfeature 2s-1-1-1-0"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-2s-1-1-1-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.230000\tfeature 2s-1-1-1-1"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-fused-home-max-nopin",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.240000\tfeature fused-home-max-nopin"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-split-home-min",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.230000\tfeature split-home-min"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-cell-split-shards-auto",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.230000\tfeature split-shards-auto"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-split-0",
+      "exit": 0,
+      "passed": 34,
+      "failed": 0,
+      "ledger": [
+        "ok\t2.450000\ts6 battery (atomic 0)",
+        "ok\t2.090000\tmulti_exec battery (atomic 0)",
+        "ok\t1.590000\tblocking battery (atomic 0)",
+        "ok\t0.470000\tblockmulti battery (atomic 0)",
+        "ok\t0.810000\tstream battery (atomic 0)",
+        "ok\t0.070000\tstreamgroups battery (atomic 0)",
+        "ok\t1.700000\tpubsub battery (atomic 0)",
+        "ok\t0.060000\tlua_scripting battery (atomic 0)",
+        "ok\t0.070000\tscriptsurf battery (atomic 0)",
+        "ok\t15.500000\tlimits battery (atomic 0)",
+        "ok\t0.060000\tresp3 battery (atomic 0)",
+        "ok\t0.060000\tbitfield battery (atomic 0)",
+        "ok\t0.080000\tdumprestore battery (atomic 0)",
+        "ok\t0.080000\tzsetops battery (atomic 0)",
+        "ok\t0.050000\tgeo battery (atomic 0)",
+        "ok\t1.140000\tclimon battery (atomic 0)",
+        "ok\t3.870000\tclimon2 battery (atomic 0)",
+        "ok\t13.290000\ttracking battery (atomic 0)",
+        "ok\t3.320000\thexpire battery (atomic 0)",
+        "ok\t0.660000\tservertail battery (atomic 0)",
+        "ok\t0.180000\tlcs battery (atomic 0)",
+        "ok\t2.870000\tconcur battery (atomic 0)",
+        "ok\t0.640000\tedgeproto battery (atomic 0)",
+        "ok\t0.370000\tedgeenc battery (atomic 0)",
+        "ok\t3.860000\tedgetime battery (atomic 0)",
+        "ok\t0.050000\tarity battery (atomic 0)",
+        "ok\t0.050000\tcontarity battery (atomic 0)",
+        "ok\t0.050000\tcmdgap battery (atomic 0)",
+        "ok\t0.060000\taclsel battery (atomic 0)",
+        "ok\t68.130000\texpwide battery (atomic 0)",
+        "ok\t4.230000\tinfofix battery (atomic 0)",
+        "ok\t2.960000\tpushtear battery (atomic 0)",
+        "ok\t0.060000\tnetcmd battery (atomic 0)",
+        "ok\t0.020000\tfeature shutdown invariants (atomic 0)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "feature-split-1",
+      "exit": 0,
+      "passed": 34,
+      "failed": 0,
+      "ledger": [
+        "ok\t2.430000\ts6 battery (atomic 1)",
+        "ok\t2.110000\tmulti_exec battery (atomic 1)",
+        "ok\t1.590000\tblocking battery (atomic 1)",
+        "ok\t0.480000\tblockmulti battery (atomic 1)",
+        "ok\t0.800000\tstream battery (atomic 1)",
+        "ok\t0.070000\tstreamgroups battery (atomic 1)",
+        "ok\t1.140000\tpubsub battery (atomic 1)",
+        "ok\t0.050000\tlua_scripting battery (atomic 1)",
+        "ok\t0.080000\tscriptsurf battery (atomic 1)",
+        "ok\t15.090000\tlimits battery (atomic 1)",
+        "ok\t0.060000\tresp3 battery (atomic 1)",
+        "ok\t0.060000\tbitfield battery (atomic 1)",
+        "ok\t0.080000\tdumprestore battery (atomic 1)",
+        "ok\t0.070000\tzsetops battery (atomic 1)",
+        "ok\t0.050000\tgeo battery (atomic 1)",
+        "ok\t1.160000\tclimon battery (atomic 1)",
+        "ok\t3.850000\tclimon2 battery (atomic 1)",
+        "ok\t13.300000\ttracking battery (atomic 1)",
+        "ok\t3.320000\thexpire battery (atomic 1)",
+        "ok\t0.580000\tservertail battery (atomic 1)",
+        "ok\t0.180000\tlcs battery (atomic 1)",
+        "ok\t2.800000\tconcur battery (atomic 1)",
+        "ok\t0.660000\tedgeproto battery (atomic 1)",
+        "ok\t0.360000\tedgeenc battery (atomic 1)",
+        "ok\t3.860000\tedgetime battery (atomic 1)",
+        "ok\t0.050000\tarity battery (atomic 1)",
+        "ok\t0.050000\tcontarity battery (atomic 1)",
+        "ok\t0.050000\tcmdgap battery (atomic 1)",
+        "ok\t0.060000\taclsel battery (atomic 1)",
+        "ok\t48.290000\texpwide battery (atomic 1)",
+        "ok\t4.220000\tinfofix battery (atomic 1)",
+        "ok\t5.470000\tpushtear battery (atomic 1)",
+        "ok\t0.050000\tnetcmd battery (atomic 1)",
+        "ok\t0.020000\tfeature shutdown invariants (atomic 1)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "flip",
+      "exit": 0,
+      "passed": 9,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.140000\tFLIP state battery",
+        "ok\t1.040000\tFLIP under verified load",
+        "ok\t1.490000\tFLIP TTL + expiry events",
+        "ok\t2.230000\tpartial-frame conn parks (no io spin)",
+        "ok\t2.220000\tFLIP close during FLIP (uring)",
+        "ok\t2.160000\tFLIP close during FLIP (epoll)",
+        "ok\t1.070000\tFLIP signal stop during FLIP + second SIGINT",
+        "ok\t0.600000\tperfio stale epoll registration (epoll-flip)",
+        "ok\t1.110000\tperfio stale epoll registration (epoll-lb)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "flip_unit",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t16.950000\tflip controller model unit"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "flipctl",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t127.900000\tflip controller: ramp gate, hold, surge + mix re-maneuvers"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "flipfix5",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t80.910000\tFLIP stale stage storm (all legs)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "flipfix5_units",
+      "exit": 0,
+      "passed": 2,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.200000\tFLIP stale stage sample refused (ASAN+TSAN)",
+        "ok\t0.200000\tFLIP stale stage planted pre-fix controls fail"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "flipfix_units",
+      "exit": 0,
+      "passed": 2,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.140000\tFLIP planned-connection close lifetime (ASAN+TSAN)",
+        "ok\t0.140000\tFLIP fingerprint publication (ASAN+TSAN)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "fliplisten",
+      "exit": 0,
+      "passed": 4,
+      "failed": 0,
+      "ledger": [
+        "ok\t29.130000\tFLIP listener conservation (io-ex, complete)",
+        "ok\t28.310000\tFLIP listener conservation (io-ex, rollback)",
+        "ok\t28.780000\tFLIP listener conservation (ex-io, complete)",
+        "ok\t29.730000\tFLIP listener conservation (ex-io, rollback)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "fused-0",
+      "exit": 0,
+      "passed": 9,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.260000\tfused boot line (atomic 0)",
+        "ok\t1.170000\tfused s6 battery (atomic 0)",
+        "ok\t2.100000\tfused multi_exec battery (atomic 0)",
+        "ok\t0.740000\tfused edgeproto battery (atomic 0)",
+        "ok\t0.070000\tfused atomfix battery (atomic 0)",
+        "ok\t2.240000\tfused spinprobe battery (atomic 0)",
+        "ok\t1.170000\tfused shutdown report (atomic 0)",
+        "ok\t1.600000\tfused txn_nx battery (atomic 0)",
+        "ok\t9.120000\tfused txniso battery (atomic 0)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "fused-1",
+      "exit": 0,
+      "passed": 9,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.260000\tfused boot line (atomic 1)",
+        "ok\t2.560000\tfused s6 battery (atomic 1)",
+        "ok\t2.100000\tfused multi_exec battery (atomic 1)",
+        "ok\t0.750000\tfused edgeproto battery (atomic 1)",
+        "ok\t0.080000\tfused atomfix battery (atomic 1)",
+        "ok\t2.230000\tfused spinprobe battery (atomic 1)",
+        "ok\t1.170000\tfused shutdown report (atomic 1)",
+        "ok\t3.710000\tfused txn_nx battery (atomic 1)",
+        "ok\t9.220000\tfused txniso battery (atomic 1)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "infofix_compat-docs",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.790000\tRedis 7.4 infofix docs (both modes/engines/runtimes)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "infofix_compat-loadaof",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.300000\tRedis 7.4 infofix loadaof (both modes/engines/runtimes)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "infofix_compat-missing",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.150000\tRedis 7.4 infofix missing (both modes/engines/runtimes)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "infofix_latency",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t12.720000\tRedis 7.4 infofix exact latency batch witness"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "lb-stationary-1s",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t42.370000\tstationary balanced LB holds still (1s)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "lb-stationary-2s",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t42.360000\tstationary balanced LB holds still (2s)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "lbplanner_units",
+      "exit": 0,
+      "passed": 2,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.170000\tLB sampler exceptional cleanup + negative control",
+        "ok\t0.200000\tLB monitor plan handoff + negative controls"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "multidb-1s-0-0",
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "ledger": [
+        "ok\t4.420000\tmultidb (1s, read-local 0, atomic 0)",
+        "ok\t0.100000\tmultidb (1s, read-local 0, atomic 0) SWAPDB serial order",
+        "ok\t0.270000\tmultidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "multidb-1s-0-1",
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "ledger": [
+        "ok\t4.420000\tmultidb (1s, read-local 0, atomic 1)",
+        "ok\t0.100000\tmultidb (1s, read-local 0, atomic 1) SWAPDB serial order",
+        "ok\t0.270000\tmultidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "multidb-1s-1-0",
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "ledger": [
+        "ok\t4.410000\tmultidb (1s, read-local 1, atomic 0)",
+        "ok\t0.090000\tmultidb (1s, read-local 1, atomic 0) SWAPDB serial order",
+        "ok\t0.280000\tmultidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "multidb-1s-1-1",
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "ledger": [
+        "ok\t4.420000\tmultidb (1s, read-local 1, atomic 1)",
+        "ok\t0.100000\tmultidb (1s, read-local 1, atomic 1) SWAPDB serial order",
+        "ok\t0.280000\tmultidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "multidb-2s-0-0",
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "ledger": [
+        "ok\t4.310000\tmultidb (2s, read-local 0, atomic 0)",
+        "ok\t0.100000\tmultidb (2s, read-local 0, atomic 0) SWAPDB serial order",
+        "ok\t0.280000\tmultidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "multidb-2s-0-1",
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "ledger": [
+        "ok\t4.290000\tmultidb (2s, read-local 0, atomic 1)",
+        "ok\t0.100000\tmultidb (2s, read-local 0, atomic 1) SWAPDB serial order",
+        "ok\t0.270000\tmultidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "multidb-2s-1-0",
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "ledger": [
+        "ok\t4.310000\tmultidb (2s, read-local 1, atomic 0)",
+        "ok\t0.090000\tmultidb (2s, read-local 1, atomic 0) SWAPDB serial order",
+        "ok\t0.270000\tmultidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "multidb-2s-1-1",
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "ledger": [
+        "ok\t4.300000\tmultidb (2s, read-local 1, atomic 1)",
+        "ok\t0.100000\tmultidb (2s, read-local 1, atomic 1) SWAPDB serial order",
+        "ok\t0.270000\tmultidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "multifix-1s-epoll",
+      "exit": 0,
+      "passed": 6,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.060000\tmultifix RESET-IN-MULTI (1s epoll)",
+        "ok\t11.070000\tmultifix WATCH-SPURIOUS-INVALIDATION (1s epoll)",
+        "ok\t11.490000\tmultifix EXEC-REPEATED-KEY-LINEAR (1s epoll)",
+        "ok\t15.240000\tmultifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)",
+        "ok\t28.540000\tmultifix PAUSE-IN-MULTI (1s epoll)",
+        "ok\t12.090000\tmultifix PAUSE-EXEC-NOT-HELD (1s epoll)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "multifix-1s-uring",
+      "exit": 0,
+      "passed": 6,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.060000\tmultifix RESET-IN-MULTI (1s uring)",
+        "ok\t11.070000\tmultifix WATCH-SPURIOUS-INVALIDATION (1s uring)",
+        "ok\t11.490000\tmultifix EXEC-REPEATED-KEY-LINEAR (1s uring)",
+        "ok\t15.240000\tmultifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)",
+        "ok\t28.690000\tmultifix PAUSE-IN-MULTI (1s uring)",
+        "ok\t11.710000\tmultifix PAUSE-EXEC-NOT-HELD (1s uring)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "multifix-2s-epoll",
+      "exit": 0,
+      "passed": 6,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.070000\tmultifix RESET-IN-MULTI (2s epoll)",
+        "ok\t11.070000\tmultifix WATCH-SPURIOUS-INVALIDATION (2s epoll)",
+        "ok\t11.500000\tmultifix EXEC-REPEATED-KEY-LINEAR (2s epoll)",
+        "ok\t15.240000\tmultifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)",
+        "ok\t28.590000\tmultifix PAUSE-IN-MULTI (2s epoll)",
+        "ok\t12.100000\tmultifix PAUSE-EXEC-NOT-HELD (2s epoll)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "multifix-2s-uring",
+      "exit": 0,
+      "passed": 6,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.060000\tmultifix RESET-IN-MULTI (2s uring)",
+        "ok\t11.070000\tmultifix WATCH-SPURIOUS-INVALIDATION (2s uring)",
+        "ok\t11.490000\tmultifix EXEC-REPEATED-KEY-LINEAR (2s uring)",
+        "ok\t15.240000\tmultifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)",
+        "ok\t28.630000\tmultifix PAUSE-IN-MULTI (2s uring)",
+        "ok\t11.720000\tmultifix PAUSE-EXEC-NOT-HELD (2s uring)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "netcmd_units",
+      "exit": 0,
+      "passed": 16,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.010000\tnetcmd regression build",
+        "ok\t0.000000\tnetcmd streams regression",
+        "ok\t0.010000\tnetcmd zpop regression",
+        "ok\t0.000000\tnetcmd notify-oom regression",
+        "ok\t0.010000\tnetcmd notify-retry regression",
+        "ok\t0.010000\tnetcmd flush regression",
+        "ok\t0.000000\tnetcmd output regression",
+        "ok\t0.010000\tnetcmd pubsub regression",
+        "ok\t0.000000\tnetcmd receive regression",
+        "ok\t0.050000\tnetcmd config regression",
+        "ok\t0.000000\tnetcmd wb-small-pipe regression",
+        "ok\t0.010000\tnetcmd wb-complete-visits regression",
+        "ok\t0.000000\tnetcmd hexpire-oom regression",
+        "ok\t0.000000\tencodingfix knob",
+        "ok\t0.010000\tencodingfix precedence",
+        "ok\t0.010000\tNET1 serverless bounds + scan + reclamation"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "notify",
+      "exit": 0,
+      "passed": 6,
+      "failed": 0,
+      "ledger": [
+        "ok\t2.080000\tMULTI feature battery",
+        "ok\t1.580000\tblocking feature battery",
+        "ok\t1.050000\tpubsub feature battery",
+        "ok\t0.040000\tLua feature battery",
+        "ok\t46.650000\tkeyspace notification battery (atomic 0/1)",
+        "ok\t0.020000\tfeature battery shutdown invariants"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "notify_aof",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t13.230000\tlocal script notification AOF vs Redis 7.4"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "notify_order",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t72.230000\tkeyspace lazy-expiry order vs Redis 7.4"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "notifycompat",
+      "exit": 0,
+      "passed": 7,
+      "failed": 0,
+      "ledger": [
+        "ok\t22.520000\tnotification compatibility setbit vs Redis 7.4",
+        "ok\t41.630000\tnotification compatibility setpast vs Redis 7.4",
+        "ok\t50.820000\tnotification compatibility emptystore vs Redis 7.4",
+        "ok\t42.820000\tnotification compatibility writemiss vs Redis 7.4",
+        "ok\t43.810000\tnotification compatibility objectmiss vs Redis 7.4",
+        "ok\t144.940000\tnotification compatibility expiredstore vs Redis 7.4",
+        "ok\t56.810000\tnotification compatibility flush vs Redis 7.4"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "ntfix_input",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t5.510000\tINFO received bytes exact (ntfix N1)"
+      ]
+    },
+    {
+      "receipt": "final-witnesses",
+      "job": "production_units",
+      "exit": 0,
+      "passed": 0,
+      "failed": 0,
+      "ledger": []
+    },
+    {
+      "receipt": "regression-final",
+      "job": "pubtrackfix",
+      "exit": 0,
+      "passed": 4,
+      "failed": 0,
+      "ledger": [
+        "ok\t3.330000\tpubtrackfix TRACK-BCAST-BATCH",
+        "ok\t11.420000\tpubtrackfix PUBSUB-REPLY-OFF-PUSH",
+        "ok\t8.260000\tpubtrackfix PUBSUB-IMPLICIT-CONSUMER-EVENT",
+        "ok\t22.940000\tpubtrackfix PUBSUB-EVICT-ON-MAXMEMORY"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "racefix_climon",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.650000\tClimon armed refresh + stale-store suppression control"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "redis_tcl",
+      "exit": 0,
+      "passed": 2,
+      "failed": 0,
+      "ledger": [
+        "ok\t222.990000\tRedis 7.4.10 Tcl passing subset (2s)",
+        "ok\t227.710000\tRedis 7.4.10 Tcl passing subset (1s)"
+      ]
+    },
+    {
+      "receipt": "pause-window-final",
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "release_batteries",
+      "exit": 0,
+      "passed": 8,
+      "failed": 0,
+      "ledger": [
+        "ok\t6.630000\ttorture battery",
+        "ok\t0.970000\tRYOW battery",
+        "ok\t0.030000\tACL category runtime table",
+        "ok\t0.030000\tACL LOAD/SAVE no-file errors",
+        "ok\t1.030000\tidle loop ceiling (LBSIGNALS, 1s)",
+        "ok\t0.050000\tshutdown invariants (nothing stuck)",
+        "ok\t0.020000\tdirect-reply fired (direct=N)",
+        "ok\t0.040000\tdispatched==executed (N)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "replyoff",
+      "exit": 0,
+      "passed": 2,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.240000\tCLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)",
+        "ok\t1.230000\tCLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "ring_unit",
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.100000\tread-local write ring + arming transient unit",
+        "ok\t0.170000\tclimon 128-owner delivery mask",
+        "ok\t0.890000\tread-local MGET fence symmetry unit"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "rlfix3_info",
+      "exit": 0,
+      "passed": 8,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.750000\tINFO selective collection (1s, epoll, read-local 0)",
+        "ok\t0.740000\tINFO selective collection (1s, epoll, read-local 1)",
+        "ok\t0.740000\tINFO selective collection (1s, uring, read-local 0)",
+        "ok\t0.750000\tINFO selective collection (1s, uring, read-local 1)",
+        "ok\t0.750000\tINFO selective collection (2s, epoll, read-local 0)",
+        "ok\t0.740000\tINFO selective collection (2s, epoll, read-local 1)",
+        "ok\t0.750000\tINFO selective collection (2s, uring, read-local 0)",
+        "ok\t0.760000\tINFO selective collection (2s, uring, read-local 1)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "serverfix_acllog",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t14.350000\tserverfix CC4.26 disabled ACL log allocation"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "serverfix_config",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.980000\tserverfix SV4.6 CONFIG validation matrix"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "serverfix_hello",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.780000\tserverfix SV4.7 HELLO canonical protocol"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "serverfix_hll",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t6.220000\tserverfix SV4.8 HyperLogLog self-test controls"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "serverfix_lines",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t8.360000\tserverfix CG4.3 physical config lines"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "serverfix_scalar",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t19.500000\tserverfix CG4.4 shared scalar grammar"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "serverfix_slowlog",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t13.730000\tserverfix SV4.14 disabled slowlog allocation"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "serverfix_waitaof",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t6.880000\tserverfix SV4.5 WAITAOF wait lifecycle"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "snapfix_bgsave_exec",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t55.650000\tsnapfix SNAP-STORM-1 BGSAVE under EXEC + writer storm (both modes, both engines, atomic 0/1)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "trackfix_accounting",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t54.950000\ttracking-only delivery/drop accounting vs Redis 7.4"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "trackfix_order",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t221.700000\ttracking delayed-write order vs Redis 7.4"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "tracking_redirect",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t37.670000\ttracking REDIRECT close vs Redis 7.4"
+      ]
+    },
+    {
+      "receipt": "final-witnesses",
+      "job": "trackorder",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t290.390000\ttracking FLUSH reply order vs Redis 7.4"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "txn_group_fused",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t12.480000\tfused txngroup battery (atomic 1)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "txn_group_split",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t12.870000\ttxngroup battery (atomic 1)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "txnorder-fused-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t48.050000\ttxnorder battery (fused, atomic 0)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "txnorder-fused-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t48.140000\ttxnorder battery (fused, atomic 1)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "txnorder-split-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t47.880000\ttxnorder battery (split, atomic 0)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "txnorder-split-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t48.030000\ttxnorder battery (split, atomic 1)"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "txnorder2",
+      "exit": 0,
+      "passed": 16,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.020000\ttxnorder2 writer episode R1",
+        "ok\t0.020000\ttxnorder2 writer episode R2",
+        "ok\t0.030000\ttxnorder2 writer episode R3",
+        "ok\t0.020000\ttxnorder2 writer episode R4",
+        "ok\t0.020000\ttxnorder2 writer episode R5",
+        "ok\t0.030000\ttxnorder2 writer episode R6",
+        "ok\t0.020000\ttxnorder2 writer episode R7",
+        "ok\t0.070000\ttxnorder2 writer episode R8",
+        "ok\t0.020000\ttxnorder2 writer episode R9",
+        "ok\t0.020000\ttxnorder2 writer episode R10",
+        "ok\t0.030000\ttxnorder2 writer episode R11",
+        "ok\t4.550000\ttxnorder2 writer episode R12",
+        "ok\t0.050000\ttxnorder2 direct RENAME owner join",
+        "ok\t22.570000\ttxnorder2 WATCH serve",
+        "ok\t30.260000\ttxnorder2 WATCH flush",
+        "ok\t27.440000\ttxnorder2 WATCH readonly"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "txnorder_index",
+      "exit": 0,
+      "passed": 2,
+      "failed": 0,
+      "ledger": [
+        "ok\t102.230000\ttxnorder index oracle",
+        "ok\t2.540000\ttxnorder index complexity"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "txnorder_wake",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.010000\ttxnorder2 busy owner inbox wake"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "txnorder_wound",
+      "exit": 0,
+      "passed": 4,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.020000\ttxnorder wound group",
+        "ok\t0.030000\ttxnorder wound exec",
+        "ok\t0.030000\ttxnorder wound oom",
+        "ok\t0.090000\ttxnorder wound d2"
+      ]
+    },
+    {
+      "receipt": "regression-final",
+      "job": "wave8b_off",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t16.070000\twave8b tracking-off EXEC scans and transitions"
+      ]
+    }
+  ],
+  "superseded_failures": [
+    {
+      "receipt": "before-ack-wake-regression",
+      "job": "feature-armed-0",
+      "exit": 0,
+      "passed": 33,
+      "failed": 2,
+      "ledger": [
+        "ok\t0.260000\tfused+armed boot line (atomic 0)",
+        "ok\t1.180000\tfused+armed s6 battery (atomic 0)",
+        "ok\t2.100000\tfused+armed multi_exec battery (atomic 0)",
+        "ok\t1.660000\tfused+armed blocking battery (atomic 0)",
+        "ok\t0.490000\tfused+armed blockmulti battery (atomic 0)",
+        "ok\t0.890000\tfused+armed stream battery (atomic 0)",
+        "ok\t0.080000\tfused+armed streamgroups battery (atomic 0)",
+        "FAIL\t0.750000\tfused+armed pubsub battery (atomic 0)",
+        "ok\t0.060000\tfused+armed lua_scripting battery (atomic 0)",
+        "ok\t0.080000\tfused+armed scriptsurf battery (atomic 0)",
+        "ok\t14.740000\tfused+armed limits battery (atomic 0)",
+        "ok\t0.050000\tfused+armed resp3 battery (atomic 0)",
+        "ok\t0.050000\tfused+armed bitfield battery (atomic 0)",
+        "ok\t0.090000\tfused+armed dumprestore battery (atomic 0)",
+        "ok\t0.080000\tfused+armed zsetops battery (atomic 0)",
+        "ok\t0.060000\tfused+armed geo battery (atomic 0)",
+        "ok\t1.150000\tfused+armed climon battery (atomic 0)",
+        "FAIL\t7.820000\tfused+armed climon2 battery (atomic 0)",
+        "ok\t14.600000\tfused+armed tracking battery (atomic 0)",
+        "ok\t3.070000\tfused+armed hexpire battery (atomic 0)",
+        "ok\t0.590000\tfused+armed servertail battery (atomic 0)",
+        "ok\t0.180000\tfused+armed lcs battery (atomic 0)",
+        "ok\t2.880000\tfused+armed concur battery (atomic 0)",
+        "ok\t0.730000\tfused+armed edgeproto battery (atomic 0)",
+        "ok\t0.400000\tfused+armed edgeenc battery (atomic 0)",
+        "ok\t3.820000\tfused+armed edgetime battery (atomic 0)",
+        "ok\t0.050000\tfused+armed arity battery (atomic 0)",
+        "ok\t0.050000\tfused+armed contarity battery (atomic 0)",
+        "ok\t0.050000\tfused+armed cmdgap battery (atomic 0)",
+        "ok\t0.060000\tfused+armed aclsel battery (atomic 0)",
+        "ok\t42.230000\tfused+armed expwide battery (atomic 0)",
+        "ok\t4.200000\tfused+armed infofix battery (atomic 0)",
+        "ok\t6.030000\tfused+armed pushtear battery (atomic 0)",
+        "ok\t0.110000\tfused+armed netcmd battery (atomic 0)",
+        "ok\t1.170000\tfused+armed shutdown report + lane fired (hits=N, atomic 0)"
+      ]
+    },
+    {
+      "receipt": "before-ack-wake-regression",
+      "job": "feature-split-0",
+      "exit": 0,
+      "passed": 32,
+      "failed": 2,
+      "ledger": [
+        "ok\t2.460000\ts6 battery (atomic 0)",
+        "ok\t2.110000\tmulti_exec battery (atomic 0)",
+        "ok\t1.570000\tblocking battery (atomic 0)",
+        "ok\t0.490000\tblockmulti battery (atomic 0)",
+        "ok\t0.780000\tstream battery (atomic 0)",
+        "ok\t0.080000\tstreamgroups battery (atomic 0)",
+        "FAIL\t0.750000\tpubsub battery (atomic 0)",
+        "ok\t0.050000\tlua_scripting battery (atomic 0)",
+        "ok\t0.070000\tscriptsurf battery (atomic 0)",
+        "ok\t14.650000\tlimits battery (atomic 0)",
+        "ok\t0.060000\tresp3 battery (atomic 0)",
+        "ok\t0.050000\tbitfield battery (atomic 0)",
+        "ok\t0.080000\tdumprestore battery (atomic 0)",
+        "ok\t0.070000\tzsetops battery (atomic 0)",
+        "ok\t0.050000\tgeo battery (atomic 0)",
+        "ok\t1.160000\tclimon battery (atomic 0)",
+        "FAIL\t7.820000\tclimon2 battery (atomic 0)",
+        "ok\t14.150000\ttracking battery (atomic 0)",
+        "ok\t3.330000\thexpire battery (atomic 0)",
+        "ok\t0.590000\tservertail battery (atomic 0)",
+        "ok\t0.190000\tlcs battery (atomic 0)",
+        "ok\t2.790000\tconcur battery (atomic 0)",
+        "ok\t0.690000\tedgeproto battery (atomic 0)",
+        "ok\t0.370000\tedgeenc battery (atomic 0)",
+        "ok\t3.820000\tedgetime battery (atomic 0)",
+        "ok\t0.050000\tarity battery (atomic 0)",
+        "ok\t0.050000\tcontarity battery (atomic 0)",
+        "ok\t0.050000\tcmdgap battery (atomic 0)",
+        "ok\t0.060000\taclsel battery (atomic 0)",
+        "ok\t57.120000\texpwide battery (atomic 0)",
+        "ok\t4.220000\tinfofix battery (atomic 0)",
+        "ok\t5.870000\tpushtear battery (atomic 0)",
+        "ok\t0.060000\tnetcmd battery (atomic 0)",
+        "ok\t0.030000\tfeature shutdown invariants (atomic 0)"
+      ]
+    },
+    {
+      "receipt": "before-ack-wake-regression",
+      "job": "trackorder",
+      "exit": 124,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t900.100000\ttracking FLUSH reply order vs Redis 7.4"
+      ]
+    },
+    {
+      "receipt": "before-ack-wake-extra",
+      "job": "blockfix2",
+      "exit": 0,
+      "passed": 6,
+      "failed": 1,
+      "ledger": [
+        "ok\t36.250000\tblockfix2 BLOCK-WAKE-RENAME-SORTSTORE",
+        "ok\t38.540000\tblockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK",
+        "ok\t35.880000\tblockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS",
+        "ok\t35.680000\tblockfix2 MULTI-XREADGROUP-BLOCK-HANG",
+        "ok\t35.830000\tblockfix2 INFO-TOTAL-BLOCKING-KEYS",
+        "ok\t35.660000\tblockfix2 SLOWLOG-BLOCKED-NOT-LOGGED",
+        "FAIL\t0.010000\tblockfix2 BLOCK-SERVE-REFUSED-DROP"
+      ]
+    },
+    {
+      "receipt": "subscription-ping-before",
+      "job": "clientcompat-multi-controls",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t118.850000\tclientcompat multi-controls"
+      ]
+    },
+    {
+      "receipt": "subscription-keyspace-before",
+      "job": "clientcompat-multi-controls",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t163.910000\tclientcompat multi-controls"
+      ]
+    },
+    {
+      "receipt": "subscription-keyspace-capture-before",
+      "job": "clientcompat-multi-controls",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t159.730000\tclientcompat multi-controls"
+      ]
+    },
+    {
+      "receipt": "subscription-close-draft",
+      "job": "clientcompat-multi-controls",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t253.500000\tclientcompat multi-controls"
+      ]
+    },
+    {
+      "receipt": "subscription-close-before",
+      "job": "clientcompat-multi-controls",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t245.440000\tclientcompat multi-controls"
+      ]
+    },
+    {
+      "receipt": "pause-window-before",
+      "job": "clientcompat-pause",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t207.180000\tclientcompat pause"
+      ]
+    }
+  ],
+  "interrupted_for_correction": [
+    {
+      "receipt": "before-subscription-ping-epoll",
+      "job": "differ-armed-1",
+      "exit": 1,
+      "passed": 0,
+      "failed": 2,
+      "ledger": [
+        "FAIL\t149.920000\tRedis 7.4 differential part (armed fused, atomic 1)",
+        "FAIL\t0\tRedis 7.4 differential part (armed fused, atomic 1)"
+      ],
+      "differential_legs": 83
+    }
+  ],
+  "differential": [
+    {
+      "engine": "uring",
+      "receipt": "differential-uring",
+      "parts": [
+        {
+          "schema": 1,
+          "part": "split-0",
+          "run": "iteration:gate-run.Eiqakx",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            26
+          ],
+          "comparisons": 235,
+          "complete": true,
+          "engine_boots": [
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-split-0/differ/target-atomic-0.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "1084be5f1f02913bf2c2949f58ac67598a8e9dc71b3c50ace558486fc676841c"
+            }
+          ]
+        },
+        {
+          "schema": 1,
+          "part": "split-1",
+          "run": "iteration:gate-run.Eiqakx",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            26
+          ],
+          "comparisons": 239,
+          "complete": true,
+          "engine_boots": [
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-split-1/differ/target-atomic-1.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "7c8c993ce2f1b3c0444543ea821638bcff6c032549475ab3cf23f98fc26a872c"
+            }
+          ]
+        },
+        {
+          "schema": 1,
+          "part": "armed-0",
+          "run": "iteration:gate-run.Eiqakx",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            26
+          ],
+          "comparisons": 230,
+          "complete": true,
+          "engine_boots": [
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-armed-0/differ/target-atomic-0.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=1",
+              "sha256": "d11b177ab3df9675b974658fd3d19df5538b0a52dafe9660cce9ce2132dab9e1"
+            }
+          ]
+        },
+        {
+          "schema": 1,
+          "part": "armed-1",
+          "run": "iteration:gate-run.Eiqakx",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            26
+          ],
+          "comparisons": 234,
+          "complete": true,
+          "engine_boots": [
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-armed-1/differ/target-atomic-1.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=1",
+              "sha256": "3e80cdec97747c7b15457cfac718747ce78249e88f60c2984fde190de157df79"
+            }
+          ]
+        },
+        {
+          "schema": 1,
+          "part": "equivalence",
+          "run": "iteration:gate-run.Eiqakx",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            26
+          ],
+          "comparisons": 16,
+          "complete": true,
+          "engine_boots": [
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/1s-0-0-0/replay/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "c735498bcae1a3f3ee485414207c14bc1a1d853f44f640f8e6e09c95ab5f11e5"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/1s-0-0-0/witness/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "07d74b60aa1e9cf04ac59dffe6ea1e39618318701c28adf80fd0877928746684"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/1s-0-0-1/replay/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "169c3137d5c8daee1e8acc8709ec9547eaec2404a74c47f1eac04ea812ff3697"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/1s-0-0-1/witness/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "7dcc9d2773f725e91409e30c8fc321e3d9df8475fb79240eaf87f05f009e3c19"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/1s-0-1-0/replay/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=1, read-local=0",
+              "sha256": "f64d95eb3b426e6c5b54f9b47e6cae0bc65f2f4a06d02f71f39b892df4c0c323"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/1s-0-1-0/witness/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=1, read-local=0",
+              "sha256": "11f64a312188e95792e5781753bd8b71d232e0545332e77ace6f34f16be9e1b1"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/1s-0-1-1/replay/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=1, read-local=0",
+              "sha256": "d9c0e623b5dd4edbc892f4b2f53a55a9ac985dbbe3ad8ab9793fff639e429e61"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/1s-0-1-1/witness/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=1, read-local=0",
+              "sha256": "e3462ce5ff98bd1887733ae598defc69d8dc642046ed6aaefbb21b520b86e761"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/1s-1-0-0/replay/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=1",
+              "sha256": "314cdac6cfb054e7f0af3121fdc986e70adfed200b5f5059265aa03d75a39f5d"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/1s-1-0-0/witness/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=1",
+              "sha256": "8d28f9a3eeb8fe3a011bf103f21659baa473c2421911deb67540f842cfc4c210"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/1s-1-0-1/replay/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=1",
+              "sha256": "bd5130d40252153377c57c869c28bef18812df900886339fd3747a95acd37e0a"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/1s-1-0-1/witness/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=1",
+              "sha256": "77dfa46fdefec546d52b055c1c108e22d47781e180b19470f82051403a57c3e4"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/1s-1-1-0/replay/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=1, read-local=1",
+              "sha256": "57c139a99d94fb305c09fd27889feb0e1f1cb68599ff7664da921a9762661fdd"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/1s-1-1-0/witness/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=1, read-local=1",
+              "sha256": "fd27f297a4f7c704bb5da44e88395b9a1ac68967badb1a3258cfc691ed852798"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/1s-1-1-1/replay/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=1, read-local=1",
+              "sha256": "e70e054b956db3ed062af6c1b8d179dce9fc09fa3abbb968c0641b55b1d9d9e5"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/1s-1-1-1/witness/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=1, read-local=1",
+              "sha256": "6c4eac9dbb5c556914191f69ac1e96e1747916b742a3ade20156635affd7a281"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/2s-0-0-0/replay/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "a079c2e595085170074287e747f7fffdf1a33ab9dc03adb452ca48e83fd4de8d"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/2s-0-0-0/witness/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "31c2f042fe70e5c6517f12f31d44d7ecc3377488d5214622ff102bf6b260cc4e"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/2s-0-0-1/replay/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "6e5476b1dd11a5bbf7d0592d20ea40fa12946edc758fa307049416976e6b2331"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/2s-0-0-1/witness/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "df0165f395839b20414bf6b7049c601c4b51bb10c5a48e71ecdf9e3ced457b66"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/2s-0-1-0/replay/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "95ac84882df1b04f04b3a79ebc4b55a816e5d2581785425fc77f281acd846d6d"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/2s-0-1-0/witness/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "478084095b074876a44d4202690bc270d3b84644933aeba3673a94b82b687cad"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/2s-0-1-1/replay/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "7dc3e6f4a2b093b1b0be99ba65d3d59e9717ccb7809fe389778d2aa554db2e7f"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/2s-0-1-1/witness/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "4d777b9463540159d331ec333ad2734554f43ab5d396c376567f4e781b23f0c3"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/2s-1-0-0/replay/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, reorder=0, read-local=1, io_uring, alloc=jemalloc",
+              "sha256": "3cb09c8d2a8f092679731e1e2df7b0bf4dff49da5df9b9e3954d5565ee730c1b"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/2s-1-0-0/witness/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, reorder=0, read-local=1, io_uring, alloc=jemalloc",
+              "sha256": "7435a4f4a20e43754db923d93daf0dddf145ee143192c41730755fb73e8242d8"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/2s-1-0-1/replay/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, reorder=0, read-local=1, io_uring, alloc=jemalloc",
+              "sha256": "0f42c9078f73ba4b9285315a1b438bd384537886b411447ba7d87e959bdfebb3"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/2s-1-0-1/witness/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, reorder=0, read-local=1, io_uring, alloc=jemalloc",
+              "sha256": "f20ba37670468243522e9ec7f7a5a4e82462f0d1b9c3e43046b8a40793a30190"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/2s-1-1-0/replay/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, reorder=0, read-local=1, io_uring, alloc=jemalloc",
+              "sha256": "daf0a7e737553e6f939527a8c014700883b740aeac74636291525e4fff81bed3"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/2s-1-1-0/witness/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, reorder=0, read-local=1, io_uring, alloc=jemalloc",
+              "sha256": "72e7a01d7b44c1309317e362d00242bdc6b41624b5958bde84679f386c3d1cac"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/2s-1-1-1/replay/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, reorder=0, read-local=1, io_uring, alloc=jemalloc",
+              "sha256": "95fb91b1a72481d67eff9b20c590083eddcdd1a50556a99f47183be66cb80e17"
+            },
+            {
+              "path": "build/gate-run.Eiqakx/jobs/differ-equivalence/differ/mode-equivalence-26/2s-1-1-1/witness/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, reorder=0, read-local=1, io_uring, alloc=jemalloc",
+              "sha256": "b742e4e70f2985eb8d0375f5d83178d7f7f649402fd2d0612acaa2488941842d"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "engine": "epoll",
+      "receipt": "differential-epoll",
+      "parts": [
+        {
+          "schema": 1,
+          "part": "split-0",
+          "run": "iteration:gate-run.el52gP",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            27
+          ],
+          "comparisons": 235,
+          "complete": true,
+          "engine_boots": [
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-split-0/differ/target-atomic-0.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, epoll, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "78936484fe70433f68832a82a9c5afe315198460c6eeb1b2e12b3539cc774e7a"
+            }
+          ]
+        },
+        {
+          "schema": 1,
+          "part": "split-1",
+          "run": "iteration:gate-run.el52gP",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            27
+          ],
+          "comparisons": 239,
+          "complete": true,
+          "engine_boots": [
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-split-1/differ/target-atomic-1.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, epoll, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "a957298d0e6ae2ff982f9b023ae3cdb4425bd320f1db92bb6643ad16cadddcf0"
+            }
+          ]
+        },
+        {
+          "schema": 1,
+          "part": "armed-0",
+          "run": "iteration:gate-run.el52gP",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            27
+          ],
+          "comparisons": 230,
+          "complete": true,
+          "engine_boots": [
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-armed-0/differ/target-atomic-0.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=0, read-local=1",
+              "sha256": "3e6828016cc5cff9893b38e6a6efd8405bef46cf1f90e630a7f0bc400fc0d8c8"
+            }
+          ]
+        },
+        {
+          "schema": 1,
+          "part": "armed-1",
+          "run": "iteration:gate-run.el52gP",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            27
+          ],
+          "comparisons": 234,
+          "complete": true,
+          "engine_boots": [
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-armed-1/differ/target-atomic-1.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=0, read-local=1",
+              "sha256": "14162fdf5ae9fa9c3ed30331fdf7eb01dc09d02590466a2badd064b838d86916"
+            }
+          ]
+        },
+        {
+          "schema": 1,
+          "part": "equivalence",
+          "run": "iteration:gate-run.el52gP",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            27
+          ],
+          "comparisons": 16,
+          "complete": true,
+          "engine_boots": [
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/1s-0-0-0/replay/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "563b7e79a79714c5de490073855e7882e47962cff9dab65beeac4ec155df335f"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/1s-0-0-0/witness/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "80b39f07272e06a53d8f9e150c484fd246f04cb806ad30ac23d2ee55d4aae4e7"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/1s-0-0-1/replay/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "63d1bd5b69c6d717b648551c650493735806f3a9ca573bdc031822814c69ac10"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/1s-0-0-1/witness/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "25523bd558378158f64df060ca94c29aa6427e0c59abd633dca42b585c559ad1"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/1s-0-1-0/replay/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=1, read-local=0",
+              "sha256": "36ce66901f7b6972487b142ffeb61af4aa77487ef78d55cd4e8a02c77420db1a"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/1s-0-1-0/witness/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=1, read-local=0",
+              "sha256": "a0a1a5410e4bef60b74785c0c902540c3b0d3b3e98855fe5c4f57be7c7f84dfc"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/1s-0-1-1/replay/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=1, read-local=0",
+              "sha256": "34163a59700092c9c7653f0214c864cf7f049f1937807e135ca3ffc272ef9c0a"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/1s-0-1-1/witness/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=1, read-local=0",
+              "sha256": "c8468f29c3abfe952f9ae44aa1195961b8609525e0b062034b41e2fd3f7224d4"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/1s-1-0-0/replay/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=0, read-local=1",
+              "sha256": "d11ebf2f079e65ef208b8d3526869f4255e85403be359173d0e485532715230f"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/1s-1-0-0/witness/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=0, read-local=1",
+              "sha256": "2e5f23fc8a22b16ba872bd3f556f3d1a6bfa381482bad749f3c69702463aa568"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/1s-1-0-1/replay/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=0, read-local=1",
+              "sha256": "2755b62940d3594eb835ce5d5afd24c244661d5fe9ff05ea044d2b908d321d24"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/1s-1-0-1/witness/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=0, read-local=1",
+              "sha256": "3aed4ef6825f959a1b345301cbc804bf647ababda542f902a819d7aee2ad238f"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/1s-1-1-0/replay/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=1, read-local=1",
+              "sha256": "0b9740f7f856def2abd0d41af1cec1a9511857bafde6d6a013a648610ff67443"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/1s-1-1-0/witness/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=1, read-local=1",
+              "sha256": "3a0e4f61040710473de9f785a177fb2039adde9203ed35072ade4af98af4b915"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/1s-1-1-1/replay/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=1, read-local=1",
+              "sha256": "24dd2c701c72331fd7d9732082b00ebd8ba0b022f733dbbda4bd2ac49380c6f0"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/1s-1-1-1/witness/server.log",
+              "header": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=1, read-local=1",
+              "sha256": "66e43ba305bba8c57273dab00dabb5156dff73243191f1ec5eb80cf744bef4ab"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/2s-0-0-0/replay/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, epoll, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "73c85c4b5148d587fbcb4034acb6c8f204d4275954ffefd900308455ae2e67f6"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/2s-0-0-0/witness/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, epoll, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "0e5e8fb77a005c5517fabe983ae9ab86759ef12df6bb591f9558d2230d793aab"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/2s-0-0-1/replay/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, epoll, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "7a7f61196fc67ad078f045bd6d8e270a71466ddf50bbf83facf3b18548955d04"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/2s-0-0-1/witness/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, epoll, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "3782b397280bc23add83d77830ecff089c692f2ee06381f4023cd7e0fd1566f9"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/2s-0-1-0/replay/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, epoll, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "a170178a8c73ecedd75a59c64b607428b8f6f1bd18472ec667f6a42aa3b488d7"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/2s-0-1-0/witness/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, epoll, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "9a1b1e625309df8727331f4df9596ae862f5cd536183ae20ba091da9f09acae3"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/2s-0-1-1/replay/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, epoll, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "086f3086115ebc38e0bc7fb732a57ff9f65a322074d83f8229ff7a49796a8145"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/2s-0-1-1/witness/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, epoll, alloc=jemalloc, reorder=0, read-local=0",
+              "sha256": "8f2b68b50e7aaf935b3bec343ecbc530d1d26b2cd3497404553541b6a40752aa"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/2s-1-0-0/replay/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, reorder=0, read-local=1, epoll, alloc=jemalloc",
+              "sha256": "da2de1b0ff33c8e27b56d4f34660e635ffdeee2f8101a25e56faab62ef00627f"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/2s-1-0-0/witness/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, reorder=0, read-local=1, epoll, alloc=jemalloc",
+              "sha256": "6f050f31fe426ca503e1e66170fb12832e212716c8a53931dc8cb6c354ef222d"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/2s-1-0-1/replay/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, reorder=0, read-local=1, epoll, alloc=jemalloc",
+              "sha256": "2e9db09b09ec292af69512eb21c1d6aaed931ef366af27239148f7935339db84"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/2s-1-0-1/witness/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, reorder=0, read-local=1, epoll, alloc=jemalloc",
+              "sha256": "794befaff56e024ed75d4a1da834a5654ea53befdedfe075a82873a514ca4346"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/2s-1-1-0/replay/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, reorder=0, read-local=1, epoll, alloc=jemalloc",
+              "sha256": "869dde9e2e527e06ebae208ca789f20c5c02602ea1f91349a772c8d9525f019c"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/2s-1-1-0/witness/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, reorder=0, read-local=1, epoll, alloc=jemalloc",
+              "sha256": "ffad15992fab86647706d73ec5626cb25b9c4925680de7e934edcbaea7db2d72"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/2s-1-1-1/replay/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, reorder=0, read-local=1, epoll, alloc=jemalloc",
+              "sha256": "7b30c1502cf1a3d0271bc91f92b7b5c8eff2fca85cad941281aeb3ea1851a234"
+            },
+            {
+              "path": "build/gate-run.el52gP/jobs/differ-equivalence/differ/mode-equivalence-27/2s-1-1-1/witness/server.log",
+              "header": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, reorder=0, read-local=1, epoll, alloc=jemalloc",
+              "sha256": "95653596a8517605f184cb2493f9e07b69049c0f6c98d6714093ea42626fb132"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "freshness_checks": 55,
+  "instructions": {
+    "domain": "All executed functions in the linked executable, including out-of-line STL; fixture function bodies and shared libraries excluded. The identical PRE and POST scope markers bound one operation batch.",
+    "commands": {
+      "rows": 160,
+      "equal": 48,
+      "lower": 112,
+      "higher": 0,
+      "min_per_command_delta": -300.0,
+      "max_per_command_delta": 0.0,
+      "changed_symbol_rows": 868,
+      "pre_server_sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+      "post_server_sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01"
+    },
+    "sessions": {
+      "rows": 128,
+      "equal": 0,
+      "lower": 0,
+      "higher": 128,
+      "min_per_command_delta": 214.0,
+      "max_per_command_delta": 1158.25,
+      "changed_symbol_rows": 5120,
+      "pre_server_sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+      "post_server_sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01"
+    }
+  },
+  "post_sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01",
+  "pad_sha256": "54084673401c693fb9ba466ba9671bed153cc7f0fccc50fb2be2240085e3b874",
+  "gates_tests": 83,
+  "tcl_runs": 78,
+  "tcl_promotions": 6,
+  "at412_legs": 423,
+  "pause_windows": [
+    {
+      "arm": "POST",
+      "candidate_geometries": 32,
+      "oracle_geometries": 1,
+      "accepted_windows": 1584,
+      "unopened_windows": 0,
+      "maximum_seconds": 0.03523497097194195
+    },
+    {
+      "arm": "PRE",
+      "candidate_geometries": 32,
+      "oracle_geometries": 1,
+      "accepted_windows": 752,
+      "unopened_windows": 0,
+      "maximum_seconds": 0.03523265477269888
+    },
+    {
+      "arm": "PAD-A",
+      "candidate_geometries": 32,
+      "oracle_geometries": 1,
+      "accepted_windows": 752,
+      "unopened_windows": 0,
+      "maximum_seconds": 0.035466271452605724
+    }
+  ]
+}

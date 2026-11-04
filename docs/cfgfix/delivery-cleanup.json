@@ -1,0 +1,14 @@
+{
+  "owned_live_servers_and_runners": [],
+  "listen_port_range": "20100-20199",
+  "ss_output": "",
+  "ss_stderr": "",
+  "lossless_log_archives": 300,
+  "archived_original_bytes": 1494258510,
+  "compressed_bytes": 226374820,
+  "net_reclaimed_bytes": 1267883690,
+  "build_allocated_bytes": 13223251968,
+  "build_allocated_GiB": 12.315,
+  "arm_hashes_unchanged_after_last_jobs": true,
+  "source_tree": "db7a16b7e2bd23fb8e53d48a46b9a898fdf14ad4"
+}

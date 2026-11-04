@@ -1,0 +1,42 @@
+{
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "0-7",
+    "--load-cores",
+    "0-7",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "21921-21923",
+    "--candidate-binary",
+    "/home/user/Projects/cx-eoffix/build/eoffix/post/tomokv"
+  ],
+  "native": "/home/user/Projects/cx-eoffix/build/eoffix/post/tomokv",
+  "native_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
+  "launcher_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
+  "engine": "uring",
+  "jobs": "redis_tcl",
+  "env": {
+    "LC_ALL": "C",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_CORRECTNESS_SHARED_CPUS": "1",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_ONLY_JOBS": "redis_tcl",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_LEDGER": "/home/user/Projects/cx-eoffix/docs/eoffix/post-tcl-uring-1"
+  },
+  "exit_code": 1,
+  "directory": "/home/user/Projects/cx-eoffix/build/gate-run.Hqjjqm",
+  "ledgers": {
+    "jobs/redis_tcl/ledger": "FAIL\t254.260000\tRedis 7.4.10 Tcl passing subset (2s)\nFAIL\t295.030000\tRedis 7.4.10 Tcl passing subset (1s)\n",
+    "jobs/release/ledger": "ok\t0.000000\trelease build (+footprint locks)\n"
+  },
+  "captures": [],
+  "archive_sha256": "69c5dd301c9c5b260f3ffbdead784bdb28a3ac50e873257391f1fcc57ba344fd"
+}

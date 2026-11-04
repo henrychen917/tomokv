@@ -1,0 +1,43 @@
+{
+  "binary": "/home/user/Projects/redis/src/redis-server",
+  "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "checks": [
+    {
+      "label": "redis-redis-db16 configured limit ('SETRANGE', 'small', 1048576, 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "redis-redis-db16 configured limit ('SETRANGE', 'small', 9223372036854775807, 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "redis-redis-db16 configured limit ('SETBIT', 'small', 8388608, 1)",
+      "passed": true,
+      "actual": {
+        "error": "ERR bit offset is not an integer or out of range"
+      }
+    },
+    {
+      "label": "redis-redis-db16 above 32-bit representation SETRANGE",
+      "passed": true,
+      "actual": 4294967297
+    },
+    {
+      "label": "redis-redis-db16 above 32-bit representation APPEND",
+      "passed": true,
+      "actual": 4294967298
+    },
+    {
+      "label": "redis-redis-db16 above 32-bit representation SETBIT",
+      "passed": true,
+      "actual": 0
+    }
+  ],
+  "slowlog": {}
+}

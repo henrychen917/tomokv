@@ -1,0 +1,5 @@
+clientcompat-pause
+clientcompat-disconnect
+clientcompat-multi-tracking
+clientcompat-multi-controls
+clientcompat-enable-race

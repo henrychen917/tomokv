@@ -102,7 +102,7 @@ void race(Server& server, std::string verb, bool left, bool to_left, int count) 
     }
     local(server, seed);
     std::vector<std::string> command{verb, a, b};
-    if (verb == "LMOVE") command.insert(command.end(), {left ? "LEFT" : "RIGHT", to_left ? "LEFT" : "RIGHT"});
+    if (verb == "LMOVE" || verb == "PUSH") command.insert(command.end(), {left ? "LEFT" : "RIGHT", to_left ? "LEFT" : "RIGHT"});
     if (set) command.push_back("v0");
     if (pop) command = {verb, "2", a, b, verb == "ZMPOP" ? (left ? "MIN" : "MAX") : (left ? "LEFT" : "RIGHT"), "COUNT", "3"};
     Move first(server, command, 101), second(server, command, 102);
@@ -151,6 +151,47 @@ void race(Server& server, std::string verb, bool left, bool to_left, int count) 
     }
     require(local(server, {"EXISTS", a}) == ":0\r\n", "source fully consumed");
 }
+void push_between_probe_and_claim(Server& server, bool from_left, bool push_left) {
+    const auto a = key_on(server, 0, "mover-push-src");
+    const auto b = key_on(server, 1, "mover-push-dst");
+    local(server, {"DEL", a}); local(server, {"DEL", b});
+    local(server, {"RPUSH", a, "first", "last"});
+    Move first(server, {"LMOVE", a, b, from_left ? "LEFT" : "RIGHT", "RIGHT"}, 103);
+    Move second(server, {"LMOVE", a, b, from_left ? "LEFT" : "RIGHT", "RIGHT"}, 104);
+    require(first.state->result && second.state->result &&
+            first.state->result->bulk == (from_left ? "first" : "last") &&
+            first.state->result->bulk == second.state->result->bulk,
+            "both initial probes observed the same original edge");
+    require(first.turn(1) == ScatterTaskResult::Defer &&
+            second.turn(1) == ScatterTaskResult::Defer, "destinations wait for source claims");
+    require(local(server, {push_left ? "LPUSH" : "RPUSH", a, "intervening"}) == ":3\r\n",
+            "intervening push completed before source claims");
+    std::printf("HIT probe/push/claim=1 probes=2 from_left=%d push_left=%d\n", from_left, push_left);
+    require(first.turn(0) == ScatterTaskResult::Complete &&
+            second.turn(0) == ScatterTaskResult::Complete, "both source claims finish");
+    require(first.turn(1) == ScatterTaskResult::Complete &&
+            second.turn(1) == ScatterTaskResult::Complete, "both destinations finish");
+    finish_phase2(*first.state); finish_phase2(*second.state);
+    const auto& x = first.state->result->bulk;
+    const auto& y = second.state->result->bulk;
+    require(first.state->final_reply == FinalReply::Bulk &&
+            second.state->final_reply == FinalReply::Bulk && x != y,
+            "nonempty source must yield two distinct claims");
+    // Accept every valid cross-client linearization. The witness requires
+    // conservation, not that the push precede either move in Redis's order.
+    const std::vector<std::string> values{"first", "last", "intervening"};
+    require(std::find(values.begin(), values.end(), x) != values.end() &&
+            std::find(values.begin(), values.end(), y) != values.end(), "claimed values came from source");
+    std::string remaining;
+    for (const auto& value : values) if (value != x && value != y) remaining = value;
+    auto bulk = [](const std::string& value) {
+        return "$" + std::to_string(value.size()) + "\r\n" + value + "\r\n";
+    };
+    require(local(server, {"LRANGE", a, "0", "-1"}) == "*1\r\n" + bulk(remaining),
+            "source preserves exactly the unclaimed element");
+    require(local(server, {"LRANGE", b, "0", "-1"}) == "*2\r\n" + bulk(x) + bulk(y),
+            "destination contains exactly the two returned claims");
+}
 }
 int main(int argc, char** argv) {
     require(argc == 3, "mode and family required");
@@ -176,9 +217,13 @@ int main(int argc, char** argv) {
     command_bind_server(&server);
     std::string error; require(acl_initialize(server, cfg, error), "ACL");
     const std::string verb = argv[2];
+    if (verb != "PUSH")
     for (bool left : {false, true}) for (bool to_left : {false, true})
         for (int count : {1, 2})
             race(server, verb, left, to_left, verb == "SMOVE" ? 1 :
                  (verb == "LMPOP" || verb == "ZMPOP") ? (count == 1 ? 3 : 6) : count);
+    if (verb == "LMOVE" || verb == "PUSH")
+        for (bool from_left : {false, true}) for (bool push_left : {false, true})
+            push_between_probe_and_claim(server, from_left, push_left);
     std::puts("PASS moverfix deterministic claims");
 }

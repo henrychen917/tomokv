@@ -1,0 +1,272 @@
+{
+  "original_failure": "build/gate-run.ILs4xn/jobs/redis_tcl/redis-tcl-2s/unit/type/list/result.json",
+  "note": "Isolated probes and complete-list samples do not replace the failed required full-suite verdict.",
+  "diagnostics": [
+    {
+      "tag": "tcl-fairness-r7",
+      "mode": "2s",
+      "binary_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+      "rows": [
+        {
+          "file": "unit/type/list",
+          "probe": "Unblock fairness is kept while pipelining",
+          "attempt": 1,
+          "error": null,
+          "named_failures": []
+        },
+        {
+          "file": "unit/type/list",
+          "probe": "Unblock fairness is kept while pipelining",
+          "attempt": 2,
+          "error": null,
+          "named_failures": []
+        },
+        {
+          "file": "unit/type/list",
+          "probe": "Unblock fairness is kept while pipelining",
+          "attempt": 3,
+          "error": null,
+          "named_failures": []
+        },
+        {
+          "file": "unit/type/list",
+          "probe": "Unblock fairness is kept during nested unblock",
+          "attempt": 1,
+          "error": null,
+          "named_failures": []
+        },
+        {
+          "file": "unit/type/list",
+          "probe": "Unblock fairness is kept during nested unblock",
+          "attempt": 2,
+          "error": null,
+          "named_failures": []
+        },
+        {
+          "file": "unit/type/list",
+          "probe": "Unblock fairness is kept during nested unblock",
+          "attempt": 3,
+          "error": null,
+          "named_failures": []
+        }
+      ]
+    },
+    {
+      "tag": "tcl-fairness-r7",
+      "mode": "1s",
+      "binary_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+      "rows": [
+        {
+          "file": "unit/type/list",
+          "probe": "Unblock fairness is kept while pipelining",
+          "attempt": 1,
+          "error": null,
+          "named_failures": []
+        },
+        {
+          "file": "unit/type/list",
+          "probe": "Unblock fairness is kept while pipelining",
+          "attempt": 2,
+          "error": null,
+          "named_failures": []
+        },
+        {
+          "file": "unit/type/list",
+          "probe": "Unblock fairness is kept while pipelining",
+          "attempt": 3,
+          "error": null,
+          "named_failures": []
+        },
+        {
+          "file": "unit/type/list",
+          "probe": "Unblock fairness is kept during nested unblock",
+          "attempt": 1,
+          "error": null,
+          "named_failures": []
+        },
+        {
+          "file": "unit/type/list",
+          "probe": "Unblock fairness is kept during nested unblock",
+          "attempt": 2,
+          "error": null,
+          "named_failures": []
+        },
+        {
+          "file": "unit/type/list",
+          "probe": "Unblock fairness is kept during nested unblock",
+          "attempt": 3,
+          "error": null,
+          "named_failures": []
+        }
+      ]
+    },
+    {
+      "tag": "tcl-fairness-context-r7-1",
+      "mode": "2s",
+      "binary_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+      "rows": [
+        {
+          "file": "unit/type/list",
+          "probe": null,
+          "attempt": null,
+          "error": null,
+          "named_failures": []
+        }
+      ]
+    },
+    {
+      "tag": "tcl-fairness-context-r7-1",
+      "mode": "1s",
+      "binary_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+      "rows": [
+        {
+          "file": "unit/type/list",
+          "probe": null,
+          "attempt": null,
+          "error": null,
+          "named_failures": []
+        }
+      ]
+    },
+    {
+      "tag": "tcl-fairness-context-r7-2",
+      "mode": "2s",
+      "binary_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+      "rows": [
+        {
+          "file": "unit/type/list",
+          "probe": null,
+          "attempt": null,
+          "error": null,
+          "named_failures": []
+        }
+      ]
+    },
+    {
+      "tag": "tcl-fairness-context-r7-2",
+      "mode": "1s",
+      "binary_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+      "rows": [
+        {
+          "file": "unit/type/list",
+          "probe": null,
+          "attempt": null,
+          "error": null,
+          "named_failures": []
+        }
+      ]
+    },
+    {
+      "tag": "tcl-fairness-context-r7-3",
+      "mode": "2s",
+      "binary_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+      "rows": [
+        {
+          "file": "unit/type/list",
+          "probe": null,
+          "attempt": null,
+          "error": null,
+          "named_failures": []
+        }
+      ]
+    },
+    {
+      "tag": "tcl-fairness-context-r7-3",
+      "mode": "1s",
+      "binary_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+      "rows": [
+        {
+          "file": "unit/type/list",
+          "probe": null,
+          "attempt": null,
+          "error": null,
+          "named_failures": []
+        }
+      ]
+    },
+    {
+      "tag": "tcl-fairness-context-headline-1",
+      "mode": "2s",
+      "binary_sha256": "2404be4919172bd5b273d8cb6bda720eeae176ea3e0bb151c9fe768ee96f0991",
+      "rows": [
+        {
+          "file": "unit/type/list",
+          "probe": null,
+          "attempt": null,
+          "error": null,
+          "named_failures": []
+        }
+      ]
+    },
+    {
+      "tag": "tcl-fairness-context-headline-1",
+      "mode": "1s",
+      "binary_sha256": "2404be4919172bd5b273d8cb6bda720eeae176ea3e0bb151c9fe768ee96f0991",
+      "rows": [
+        {
+          "file": "unit/type/list",
+          "probe": null,
+          "attempt": null,
+          "error": null,
+          "named_failures": []
+        }
+      ]
+    },
+    {
+      "tag": "tcl-fairness-context-headline-2",
+      "mode": "2s",
+      "binary_sha256": "2404be4919172bd5b273d8cb6bda720eeae176ea3e0bb151c9fe768ee96f0991",
+      "rows": [
+        {
+          "file": "unit/type/list",
+          "probe": null,
+          "attempt": null,
+          "error": null,
+          "named_failures": []
+        }
+      ]
+    },
+    {
+      "tag": "tcl-fairness-context-headline-2",
+      "mode": "1s",
+      "binary_sha256": "2404be4919172bd5b273d8cb6bda720eeae176ea3e0bb151c9fe768ee96f0991",
+      "rows": [
+        {
+          "file": "unit/type/list",
+          "probe": null,
+          "attempt": null,
+          "error": null,
+          "named_failures": []
+        }
+      ]
+    },
+    {
+      "tag": "tcl-fairness-context-headline-3",
+      "mode": "2s",
+      "binary_sha256": "2404be4919172bd5b273d8cb6bda720eeae176ea3e0bb151c9fe768ee96f0991",
+      "rows": [
+        {
+          "file": "unit/type/list",
+          "probe": null,
+          "attempt": null,
+          "error": null,
+          "named_failures": []
+        }
+      ]
+    },
+    {
+      "tag": "tcl-fairness-context-headline-3",
+      "mode": "1s",
+      "binary_sha256": "2404be4919172bd5b273d8cb6bda720eeae176ea3e0bb151c9fe768ee96f0991",
+      "rows": [
+        {
+          "file": "unit/type/list",
+          "probe": null,
+          "attempt": null,
+          "error": null,
+          "named_failures": []
+        }
+      ]
+    }
+  ]
+}

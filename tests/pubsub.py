@@ -370,13 +370,20 @@ def main():
                    f"shard subscriber {index} message {sequence}")
         conn.close()
 
-    # Subscription controls cannot be EXEC children in the owner-only transaction machinery.
+    # Redis queues SSUBSCRIBE, then rejects that EXEC child as DENY BLOCKING.
+    # The following command still executes and no subscription is installed.
     multi = Conn(host, port)
     expect(multi.command("MULTI"), b"OK", "MULTI before SSUBSCRIBE")
-    forbidden_multi = multi.command("SSUBSCRIBE", f"{token}:multi")
-    if not isinstance(forbidden_multi, RespError) or "not allowed inside a transaction" not in str(forbidden_multi):
-        raise AssertionError(f"SSUBSCRIBE inside MULTI: {forbidden_multi!r}")
-    expect(multi.command("DISCARD"), b"OK", "DISCARD after forbidden SSUBSCRIBE")
+    expect(multi.command("SSUBSCRIBE", f"{token}:multi"), b"QUEUED", "queue SSUBSCRIBE")
+    expect(multi.command("PING"), b"QUEUED", "queue after SSUBSCRIBE")
+    result = multi.command("EXEC")
+    assert isinstance(result, list) and len(result) == 2, result
+    assert isinstance(result[0], RespError) and str(result[0]) == \
+        "ERR SSUBSCRIBE isn't allowed for a DENY BLOCKING client", result
+    expect(result[1], b"PONG", "EXEC continues after SSUBSCRIBE error")
+    expect(publisher.command("SPUBLISH", f"{token}:multi", "unused"), 0,
+           "rejected EXEC child installed no subscription")
+    expect(multi.command("PING"), b"PONG", "normal mode after rejected EXEC child")
     multi.close()
 
     # Exact and both pattern arms, including subscriber-mode framing/restrictions.

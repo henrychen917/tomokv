@@ -1,0 +1,47 @@
+[
+  {
+    "path": "blockfix-cost-build.log",
+    "bytes": 206,
+    "sha256": "a39a0e942dac7085e53d808c64bf58467cac7b83faf2934859d2264e0e65f915"
+  },
+  {
+    "path": "blockfix2-build.log",
+    "bytes": 281,
+    "sha256": "351ade2113e5d70318fd97c9eda1facff3737953177bb020c14e0d2670e5b17d"
+  },
+  {
+    "path": "build.log",
+    "bytes": 4031,
+    "sha256": "b9d18e304f4ad897f0d49af29894a8b799cd55373408007b1d9d538fea268445"
+  },
+  {
+    "path": "done",
+    "bytes": 6,
+    "sha256": "4a89136e7ccf303595f11a85a70961af78bba8bcfb5e11f56ec3ad1de3b35ae6"
+  },
+  {
+    "path": "family.tsv",
+    "bytes": 61,
+    "sha256": "fc4e5d757c92657d54487bf310a50c050ec779c26d0d899b7950ed0deec31ab5"
+  },
+  {
+    "path": "ledger",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "mdbqsbr-live-build.log",
+    "bytes": 766,
+    "sha256": "de392bb95148241dedc5ccb3ba7d4bc6121a01a60093eb965a85b1dc06e7ebd3"
+  },
+  {
+    "path": "output.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "timings",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

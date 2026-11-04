@@ -1,0 +1,44 @@
+PARTIAL	0	GATE_ONLY_JOBS=txnorder_fifo,txnorder_chain,txnorder_index,txnorder_wound,txnorder2,txnorder_wake,exec1s,at412-owner; NOT A RECEIPT
+ok	0.040000	release build (+footprint locks)
+ok	0.070000	at412 owner
+ok	3.210000	exec1s refinements (1s, atomic 0)
+ok	19.900000	exec1s refinements (1s, atomic 1)
+ok	19.910000	exec1s refinements (2s, atomic 0)
+ok	3.060000	exec1s refinements (2s, atomic 1)
+ok	0.090000	txnorder FIFO F1
+ok	0.080000	txnorder FIFO F2
+ok	0.080000	txnorder FIFO F3
+ok	0.090000	txnorder FIFO F4
+ok	0.070000	txnorder FIFO F5
+ok	0.190000	txnorder FIFO F6
+ok	0.110000	txnorder FIFO F7
+ok	0.080000	txnorder FIFO F8
+ok	0.080000	txnorder FIFO F9
+ok	0.080000	txnorder FIFO F10
+ok	0.040000	txnorder chain local
+ok	0.030000	txnorder chain boundary
+ok	0.030000	txnorder chain serve
+ok	0.020000	txnorder chain hot
+ok	96.310000	txnorder index oracle
+ok	2.660000	txnorder index complexity
+ok	0.620000	txnorder wound group
+ok	0.060000	txnorder wound exec
+ok	0.180000	txnorder wound oom
+ok	0.190000	txnorder wound d2
+ok	0.520000	txnorder2 writer episode R1
+ok	0.030000	txnorder2 writer episode R2
+ok	0.020000	txnorder2 writer episode R3
+ok	0.020000	txnorder2 writer episode R4
+ok	0.020000	txnorder2 writer episode R5
+ok	0.030000	txnorder2 writer episode R6
+ok	0.040000	txnorder2 writer episode R7
+ok	0.130000	txnorder2 writer episode R8
+ok	0.020000	txnorder2 writer episode R9
+ok	0.030000	txnorder2 writer episode R10
+ok	0.030000	txnorder2 writer episode R11
+ok	4.580000	txnorder2 writer episode R12
+ok	0.050000	txnorder2 direct RENAME owner join
+ok	22.740000	txnorder2 WATCH serve
+ok	30.470000	txnorder2 WATCH flush
+ok	27.310000	txnorder2 WATCH readonly
+ok	0.010000	txnorder2 busy owner inbox wake

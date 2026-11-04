@@ -1,0 +1,27 @@
+{
+  "arm": "headline-errors",
+  "namespace": "normal",
+  "command": "WRONGTYPE",
+  "mode": "2s",
+  "batch": 1,
+  "atomic": 0,
+  "local": -1,
+  "probe_sha256": "e031605c97f135ecf7fd9824e103d4e0e6aefb163a35a1e98dff5b705a70570c",
+  "tracer_sha256": "03231d274f8556260a6c0653abe37ab957ee2e3907900f1d6b08ff30b7d9e5df",
+  "total": 1458,
+  "functions": {
+    "tomo::Op::Sink::append(char const*, unsigned long)": 40,
+    "tomo::ExLoopT<false>::flush_notify_batch()": 94,
+    "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)": 206,
+    "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 121,
+    "tomo::multi_task_tagged(tomo::Task const&)": 4,
+    "tomo::Slice::key_eq(tomo::Slice const&) const": 29,
+    "tomo::KvObj::key() const": 13,
+    "tomo::FlatStore::find(unsigned long, tomo::Slice)": 82,
+    "void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)": 49,
+    "tomo::FlatStore::publish_database_counts() const": 588,
+    "tomo::Shard::publish_size()": 232
+  },
+  "clock_calls": 1,
+  "excluded_calls": 1
+}

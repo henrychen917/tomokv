@@ -1,0 +1,2 @@
+PASS EX4.19 owner=4 simultaneous=1030 remote-owner GET/ECHO rounds=3
+PASS slotless all clients drained before shutdown

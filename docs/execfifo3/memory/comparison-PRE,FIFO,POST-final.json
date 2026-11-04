@@ -1,0 +1,1376 @@
+[
+  {
+    "namespace": "normal",
+    "command": "GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "FIFO",
+    "pre": 18290,
+    "post": 18290,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      73,
+      70
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "FIFO",
+    "pre": 18578,
+    "post": 18578,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      74,
+      71
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "GET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "FIFO",
+    "pre": 18054,
+    "post": 18054,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      70,
+      69
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "SET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "FIFO",
+    "pre": 22258,
+    "post": 22258,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      91,
+      90
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "SET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "FIFO",
+    "pre": 34002,
+    "post": 34002,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      134,
+      132
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "SET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "FIFO",
+    "pre": 22022,
+    "post": 22022,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      88,
+      90
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "INCR",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "FIFO",
+    "pre": 37219,
+    "post": 37219,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      140,
+      135
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "INCR",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "FIFO",
+    "pre": 40067,
+    "post": 40067,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      146,
+      144
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "INCR",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "FIFO",
+    "pre": 36983,
+    "post": 36983,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      137,
+      135
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "PARSE-GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "FIFO",
+    "pre": 23767,
+    "post": 25047,
+    "delta": 1280,
+    "memory_delta": {},
+    "operand_delta": 608,
+    "code_lines": [
+      105,
+      109
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "PARSE-GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "FIFO",
+    "pre": 26887,
+    "post": 28167,
+    "delta": 1280,
+    "memory_delta": {},
+    "operand_delta": 608,
+    "code_lines": [
+      140,
+      151
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "PARSE-GET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "FIFO",
+    "pre": 21097,
+    "post": 21141,
+    "delta": 44,
+    "memory_delta": {
+      "Client0+0 access=1": 1
+    },
+    "operand_delta": 3,
+    "code_lines": [
+      84,
+      87
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "PARSE-SET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "FIFO",
+    "pre": 26135,
+    "post": 27511,
+    "delta": 1376,
+    "memory_delta": {},
+    "operand_delta": 704,
+    "code_lines": [
+      105,
+      111
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "PARSE-SET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "FIFO",
+    "pre": 29989,
+    "post": 31365,
+    "delta": 1376,
+    "memory_delta": {},
+    "operand_delta": 704,
+    "code_lines": [
+      129,
+      140
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "PARSE-SET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "FIFO",
+    "pre": 23241,
+    "post": 23285,
+    "delta": 44,
+    "memory_delta": {
+      "Client0+0 access=1": 1
+    },
+    "operand_delta": 3,
+    "code_lines": [
+      83,
+      87
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "PARSE-INCR",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "FIFO",
+    "pre": 23767,
+    "post": 25047,
+    "delta": 1280,
+    "memory_delta": {},
+    "operand_delta": 608,
+    "code_lines": [
+      104,
+      109
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "PARSE-INCR",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "FIFO",
+    "pre": 27621,
+    "post": 28901,
+    "delta": 1280,
+    "memory_delta": {},
+    "operand_delta": 608,
+    "code_lines": [
+      129,
+      138
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "PARSE-INCR",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "FIFO",
+    "pre": 21097,
+    "post": 21141,
+    "delta": 44,
+    "memory_delta": {
+      "Client0+0 access=1": 1
+    },
+    "operand_delta": 3,
+    "code_lines": [
+      83,
+      87
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "FIFO",
+    "pre": 18513,
+    "post": 18513,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      74,
+      72
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "FIFO",
+    "pre": 18801,
+    "post": 18801,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      76,
+      73
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "GET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "FIFO",
+    "pre": 17959,
+    "post": 17959,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      67,
+      67
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "SET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "FIFO",
+    "pre": 21969,
+    "post": 21969,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      93,
+      90
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "SET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "FIFO",
+    "pre": 30737,
+    "post": 30737,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      127,
+      128
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "SET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "FIFO",
+    "pre": 21415,
+    "post": 21415,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      86,
+      86
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "INCR",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "FIFO",
+    "pre": 34722,
+    "post": 34722,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      137,
+      131
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "INCR",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "FIFO",
+    "pre": 37378,
+    "post": 37378,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      144,
+      140
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "INCR",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "FIFO",
+    "pre": 34168,
+    "post": 34168,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      130,
+      127
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "PARSE-GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "FIFO",
+    "pre": 21205,
+    "post": 22485,
+    "delta": 1280,
+    "memory_delta": {},
+    "operand_delta": 608,
+    "code_lines": [
+      96,
+      100
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "PARSE-GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "FIFO",
+    "pre": 24423,
+    "post": 25703,
+    "delta": 1280,
+    "memory_delta": {},
+    "operand_delta": 608,
+    "code_lines": [
+      137,
+      140
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "PARSE-GET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "FIFO",
+    "pre": 18406,
+    "post": 18406,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      74,
+      76
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "PARSE-SET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "FIFO",
+    "pre": 23669,
+    "post": 25045,
+    "delta": 1376,
+    "memory_delta": {},
+    "operand_delta": 704,
+    "code_lines": [
+      98,
+      102
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "PARSE-SET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "FIFO",
+    "pre": 27427,
+    "post": 28803,
+    "delta": 1376,
+    "memory_delta": {},
+    "operand_delta": 704,
+    "code_lines": [
+      121,
+      127
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "PARSE-SET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "FIFO",
+    "pre": 20646,
+    "post": 20646,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      74,
+      77
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "PARSE-INCR",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "FIFO",
+    "pre": 21205,
+    "post": 22485,
+    "delta": 1280,
+    "memory_delta": {},
+    "operand_delta": 608,
+    "code_lines": [
+      96,
+      100
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "PARSE-INCR",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "FIFO",
+    "pre": 24963,
+    "post": 26243,
+    "delta": 1280,
+    "memory_delta": {},
+    "operand_delta": 608,
+    "code_lines": [
+      120,
+      125
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "PARSE-INCR",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "FIFO",
+    "pre": 18406,
+    "post": 18406,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      72,
+      75
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "POST-final",
+    "pre": 18290,
+    "post": 18290,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      73,
+      76
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "POST-final",
+    "pre": 18578,
+    "post": 18578,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      74,
+      78
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "GET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "POST-final",
+    "pre": 18054,
+    "post": 18054,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      70,
+      72
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "SET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "POST-final",
+    "pre": 22258,
+    "post": 22258,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      91,
+      97
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "SET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "POST-final",
+    "pre": 34002,
+    "post": 34002,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      134,
+      144
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "SET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "POST-final",
+    "pre": 22022,
+    "post": 22022,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      88,
+      92
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "INCR",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "POST-final",
+    "pre": 37219,
+    "post": 37219,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      140,
+      142
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "INCR",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "POST-final",
+    "pre": 40067,
+    "post": 40067,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      146,
+      153
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "INCR",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "POST-final",
+    "pre": 36983,
+    "post": 36983,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      137,
+      137
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "PARSE-GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "POST-final",
+    "pre": 23767,
+    "post": 23767,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      105,
+      105
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "PARSE-GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "POST-final",
+    "pre": 26887,
+    "post": 26887,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      140,
+      141
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "PARSE-GET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "POST-final",
+    "pre": 21097,
+    "post": 21097,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      84,
+      85
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "PARSE-SET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "POST-final",
+    "pre": 26135,
+    "post": 26135,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      105,
+      105
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "PARSE-SET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "POST-final",
+    "pre": 29989,
+    "post": 29989,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      129,
+      129
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "PARSE-SET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "POST-final",
+    "pre": 23241,
+    "post": 23241,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      83,
+      85
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "PARSE-INCR",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "POST-final",
+    "pre": 23767,
+    "post": 23767,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      104,
+      104
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "PARSE-INCR",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "POST-final",
+    "pre": 27621,
+    "post": 27621,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      129,
+      129
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "normal",
+    "command": "PARSE-INCR",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "POST-final",
+    "pre": 21097,
+    "post": 21097,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      83,
+      87
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "POST-final",
+    "pre": 18513,
+    "post": 18513,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      74,
+      69
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "POST-final",
+    "pre": 18801,
+    "post": 18801,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      76,
+      70
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "GET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "POST-final",
+    "pre": 17959,
+    "post": 17959,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      67,
+      68
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "SET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "POST-final",
+    "pre": 21969,
+    "post": 21969,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      93,
+      88
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "SET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "POST-final",
+    "pre": 30737,
+    "post": 30737,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      127,
+      120
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "SET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "POST-final",
+    "pre": 21415,
+    "post": 21415,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      86,
+      87
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "INCR",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "POST-final",
+    "pre": 34722,
+    "post": 34722,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      137,
+      131
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "INCR",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "POST-final",
+    "pre": 37378,
+    "post": 37378,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      144,
+      138
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "INCR",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "POST-final",
+    "pre": 34168,
+    "post": 34168,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      130,
+      130
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "PARSE-GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "POST-final",
+    "pre": 21205,
+    "post": 21205,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      96,
+      102
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "PARSE-GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "POST-final",
+    "pre": 24423,
+    "post": 24423,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      137,
+      142
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "PARSE-GET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "POST-final",
+    "pre": 18406,
+    "post": 18406,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      74,
+      80
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "PARSE-SET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "POST-final",
+    "pre": 23669,
+    "post": 23669,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      98,
+      103
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "PARSE-SET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "POST-final",
+    "pre": 27427,
+    "post": 27427,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      121,
+      128
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "PARSE-SET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "POST-final",
+    "pre": 20646,
+    "post": 20646,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      74,
+      80
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "PARSE-INCR",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 0,
+    "arm": "POST-final",
+    "pre": 21205,
+    "post": 21205,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      96,
+      102
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "PARSE-INCR",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 1,
+    "arm": "POST-final",
+    "pre": 24963,
+    "post": 24963,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      120,
+      128
+    ],
+    "added_object_lines": []
+  },
+  {
+    "namespace": "db0",
+    "command": "PARSE-INCR",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "arm": "POST-final",
+    "pre": 18406,
+    "post": 18406,
+    "delta": 0,
+    "memory_delta": {},
+    "operand_delta": 0,
+    "code_lines": [
+      72,
+      79
+    ],
+    "added_object_lines": []
+  }
+]

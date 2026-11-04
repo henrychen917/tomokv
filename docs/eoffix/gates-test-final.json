@@ -1,0 +1,8 @@
+{
+  "command": [
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "exit_code": 0,
+  "seconds": 254.26798292901367
+}

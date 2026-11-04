@@ -1,0 +1,23 @@
+{"expired_reaped_by_one_call": 25, "chi2": 47.34375, "df": 31, "samples": 16384, "counts": {"uniform:0": 556, "uniform:1": 539, "uniform:2": 511, "uniform:3": 529, "uniform:4": 487, "uniform:5": 528, "uniform:6": 480, "uniform:7": 503, "uniform:8": 505, "uniform:9": 462, "uniform:10": 488, "uniform:11": 469, "uniform:12": 518, "uniform:13": 514, "uniform:14": 525, "uniform:15": 507, "uniform:16": 541, "uniform:17": 528, "uniform:18": 553, "uniform:19": 519, "uniform:20": 559, "uniform:21": 545, "uniform:22": 500, "uniform:23": 518, "uniform:24": 497, "uniform:25": 493, "uniform:26": 524, "uniform:27": 497, "uniform:28": 507, "uniform:29": 553, "uniform:30": 482, "uniform:31": 447}}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-storefix5/tools/storefix5_checks.py", line 75, in <module>
+    run(p.parse_args())
+  File "/home/user/Projects/cx-storefix5/tools/storefix5_checks.py", line 51, in run
+    result['cases'][name] = dict(result=getattr(storefix5, name)(c, **kw), passed=True)
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-storefix5/tests/storefix5.py", line 69, in randomkey
+    assert c.cmd('EXEC') == [b'OK', b'transaction']
+           ^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-storefix5/tests/_lib.py", line 201, in cmd
+    return self.read()
+           ^^^^^^^^^^^
+  File "/home/user/Projects/cx-storefix5/tests/_lib.py", line 161, in read
+    head = read(1)
+           ^^^^^^^
+  File "/home/user/Projects/cx-storefix5/tests/_lib.py", line 124, in _read
+    return self.file.read(size)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 707, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+TimeoutError: timed out

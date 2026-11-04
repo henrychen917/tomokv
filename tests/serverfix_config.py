@@ -3,6 +3,7 @@
 import re
 from pathlib import Path
 from _serverfix import main, Server, is_error
+from known_difference import expect
 
 
 def inventory():
@@ -12,23 +13,29 @@ def inventory():
     enc = (root / 'src/core/config.h').read_text().split('settings[Count] = {')[1].split('};')[0]
     for name in re.findall(r'"([^"]+)"', enc):
         table[name] = 'Encoding'
+    process = (root / 'src/core/config.h').read_text().split('process_configs[] = {')[1].split('};')[0]
+    for name, choices in re.findall(r'\{"([^"]+)", "[^"]*", (nullptr|"[^"]*")', process):
+        table[name] = 'String' if choices == 'nullptr' else 'Process'
     return table
 
 
 # Deliberate existing lifetime/representation differences, exercised and recorded.
-IMMUTABLE = set('hll-sparse-max-bytes port bind unixsocket unixsocketperm dir dbfilename appendonly '
+IMMUTABLE = set('hll-sparse-max-bytes unixsocket unixsocketperm dir dbfilename '
                 'net-io thread-mode read-local zc-min-read-local reorder wb-policy wb-small-pipe wb-complete-visits '
                 'key-lb key-lb-damping client-lb flip-auto appendfilename appenddirname tls-port '
-                'tls-cert-file tls-key-file tls-ca-cert-file tls-ca-cert-dir tls-auth-clients '
+                'tls-cert-file tls-key-file tls-ca-cert-file tls-ca-cert-dir '
                 'tls-protocols tls-ciphers tls-ciphersuites tls-prefer-server-ciphers '
-                'tracking-table-max-keys databases aclfile enable-debug-command tcp-backlog'.split())
+                'tracking-table-max-keys databases aclfile enable-debug-command tcp-backlog '
+                'daemonize logfile syslog-enabled syslog-ident syslog-facility pidfile supervised'.split())
 
 # These controls are boot-only in TomoKV but mutable in Redis. All other
 # oracle-backed immutable/protected replies must match exactly, too.
-LIFETIME_DIFFERENCES = set('appendonly bind hll-sparse-max-bytes port tls-auth-clients '
+LIFETIME_DIFFERENCES = set('hll-sparse-max-bytes '
                            'tls-ca-cert-dir tls-ca-cert-file tls-cert-file tls-ciphers '
                            'tls-ciphersuites tls-key-file tls-port tls-prefer-server-ciphers '
                            'tls-protocols tracking-table-max-keys'.split())
+NATIVE_IMMUTABLE = set('net-io thread-mode read-local reorder wb-policy wb-small-pipe '
+                       'wb-complete-visits key-lb key-lb-damping client-lb flip-auto'.split())
 
 
 def probe(run, mode, label, extra):
@@ -36,7 +43,8 @@ def probe(run, mode, label, extra):
     with Server(run, label, mode, extra=extra) as server, server.client() as c:
         if not run.oracle:
             values = c.cmd('CONFIG', 'GET', '*')
-            run.check(label + ' every parameter has a type row', sorted(v.decode() for v in values[::2]), sorted(table))
+            run.check(label + ' every parameter has a type row', sorted(v.decode() for v in values[::2]),
+                      sorted(set(table) - {'key-load-delay'}))
         for name, kind in sorted(table.items()):
             old = c.cmd('CONFIG', 'GET', name)
             if not old:
@@ -69,7 +77,20 @@ def probe(run, mode, label, extra):
                     continue
                 expected = run.reference.get(key)
                 if name in IMMUTABLE and (expected is None or name in LIFETIME_DIFFERENCES):
-                    run.check(label + ' immutable ' + key, result, lambda r: is_error(r, 'ERR'))
+                    spelling = next(command[i] for i in range(2, len(command), 2)
+                                    if command[i].lower() == name)
+                    immutable = {'error': ('ERR parameter is immutable at runtime'
+                                 if name in NATIVE_IMMUTABLE else
+                                 "ERR CONFIG SET failed (possibly related to argument '" +
+                                 spelling + "') - can't set immutable config")}
+                    if expected is None:
+                        run.check(label + ' native immutable ' + key, result, immutable)
+                    else:
+                        root = ('TRACK-MAXKEYS-IMMUTABLE / D15' if name == 'tracking-table-max-keys'
+                                else 'CONFIG-RUNTIME-IMMUTABLE / 68d-4')
+                        compatible = expect(result, expected, root=root, known=immutable)
+                        run.rows[key] = dict(target=result, redis=expected,
+                                             known_difference=None if compatible else root)
                 elif expected is not None:
                     run.check(label + ' oracle ' + key, result, expected)
                 else:  # Tomo-only spellings retain their own type, but reject duplicates too.

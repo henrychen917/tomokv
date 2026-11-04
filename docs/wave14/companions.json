@@ -1,0 +1,57 @@
+[
+  {
+    "path": "build/wave14/post/txnorder-watch-db0-unit",
+    "target": "/home/user/Projects/cx-wave14/build/txnorder-watch-db0-unit",
+    "sha256": "b9586165b6a98bae48ed135831922ffaf4a1087180797fb52cbc91470b149b1b"
+  },
+  {
+    "path": "build/wave14/post/blockfix2-db0-unit",
+    "target": "/home/user/Projects/cx-wave14/build/blockfix2-db0-unit",
+    "sha256": "d8950bb39dd9d3e3626d4f2818223a9b73ef616a9207c59934a94dd90fb9cebb"
+  },
+  {
+    "path": "build/wave14/post/blockfix2-unit",
+    "target": "/home/user/Projects/cx-wave14/build/blockfix2-unit",
+    "sha256": "8231b26d4fde44b11226414bf1bb5f5e4494971415f643051a51cf19373531e6"
+  },
+  {
+    "path": "build/wave14/post/moverfix-unit",
+    "target": "/home/user/Projects/cx-wave14/build/moverfix-unit",
+    "sha256": "0df0d51a30034e4b3e0e426d85b11ee263f06d6e62752988e31a07b24fc28e06"
+  },
+  {
+    "path": "build/wave14/post/txnorder-watch-unit",
+    "target": "/home/user/Projects/cx-wave14/build/txnorder-watch-unit",
+    "sha256": "9de0d04a562bf150130a8716dca1c7421143fe226b467f228e5ccf34b9f04707"
+  },
+  {
+    "path": "build/wave14/post/moverfix-db0-unit",
+    "target": "/home/user/Projects/cx-wave14/build/moverfix-db0-unit",
+    "sha256": "ccf3cda65d641f99559379f16133a2929a484a2eb090b3524aae948a7743ed8b"
+  },
+  {
+    "path": "build/wave14/post/txnorder-wake-unit",
+    "target": "/home/user/Projects/cx-wave14/build/txnorder-wake-unit",
+    "sha256": "3fb7602c003963693e648a75c93e295bb259157b0cecf6b71b10d7daf8967b45"
+  },
+  {
+    "path": "build/wave14/post/txnorder-episodes-debug",
+    "target": "/home/user/Projects/cx-wave14/build/txnorder-episodes-debug",
+    "sha256": "ac56dafa5b33f3aba91fdfdf6d92b998835c214321d4ec5243cf17981056a3c2"
+  },
+  {
+    "path": "build/wave14/post/blockfix-cost",
+    "target": "/home/user/Projects/cx-wave14/build/blockfix-cost",
+    "sha256": "e718d396a164a4e8fe8a9763c5d8f259eec1c11fde81c6be7359c2a25ee6c8b4"
+  },
+  {
+    "path": "build/wave14/post/tomokv.blockfix-cost.sha256",
+    "target": "/home/user/Projects/cx-wave14/build/tomokv.blockfix-cost.sha256",
+    "sha256": "a59aec4a701f4922040e537a4ad8f8e77fcf45ad3f73ed3f55691403de96725f"
+  },
+  {
+    "path": "build/wave14/post/txnorder-episodes",
+    "target": "/home/user/Projects/cx-wave14/build/txnorder-episodes",
+    "sha256": "aafc155649d4fc472482448bf3ea89984ef4c27f434728277a289b05467e1b3e"
+  }
+]

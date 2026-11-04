@@ -20,6 +20,8 @@
 
 namespace tomo {
 
+[[gnu::noipa, gnu::cold]] bool clientcompat_post() { return true; }
+
 namespace {
 
 // Redis quotes MONITOR arguments with the same escaping sdscatrepr uses for DEBUG output.
@@ -587,7 +589,7 @@ bool IoLoop::climon_armed_gate(Client* client, Op& op) {
             return false;
         }
         state->gate_op_id = id;
-        if (state->tracking_on) tracking_register_read(client, *state, op);
+        if (state->tracking_dispatch) tracking_register_read(client, *state, op);
     }
     if (armed & Server::kClimonMonitor) climon_monitor_feed(client, op);
     climon_mark_reply(client, op);
@@ -649,7 +651,7 @@ bool IoLoop::climon_unblock_local(uint64_t id, bool error_flavor) {
             Op& waiting = c->rob().at(timer.op_id);
             if (error_flavor)
                 reply_err(waiting.sink(), "UNBLOCKED client unblocked via CLIENT UNBLOCK");
-            else server_tail_reply_wait(waiting);
+            else server_tail_reply_wait(waiting, c);
             waiting.state.store(OpState::Done, std::memory_order_release);
             c->set_blocked(false);
             c->set_last_interaction_s(cached_now_s_);
@@ -741,6 +743,17 @@ bool command_pause_write(const Op& op) {
     if (!op.spec) return false;
     if (op.spec->flags & CmdFlags::ScriptRoute)
         return function_is_fcall(op) ? function_metadata_write(op) : script_metadata_write(op);
+    // Containers expose subcommand flags in Redis. XGROUP HELP is read-only;
+    // FUNCTION's library mutations are WRITE even though FUNCTION itself has
+    // no root flags. The other supported containers have no WRITE children.
+    if (clientcompat_post() && op.argc() >= 2) {
+        if (op.cmd_name().eq_icase("xgroup") && op.arg(1).eq_icase("help")) return false;
+        if (op.cmd_name().eq_icase("function")) {
+            const Slice sub = op.arg(1);
+            return sub.eq_icase("load") || sub.eq_icase("flush") ||
+                   sub.eq_icase("restore") || sub.eq_icase("delete");
+        }
+    }
     // Redis's MAY_REPLICATE flag is deliberately absent from COMMAND INFO.
     return (op.spec->flags & CmdFlags::Write) || op.cmd_name().eq_icase("pfcount") ||
         op.cmd_name().eq_icase("publish") || op.cmd_name().eq_icase("spublish");
@@ -753,12 +766,10 @@ bool IoLoop::climon_pause_holds(const Client& client, Op& op) {
     if (cached_now_ms_ >= climon_pause_deadline_ms_) return false;
     const CommandSpec* spec = op.spec;
     if (!spec) return false;
-    // DELIBERATE DIVERGENCE FROM REDIS: redis postpones CLIENT
-    // UNPAUSE itself under PAUSE ... ALL, so an ALL pause can only end by expiring. We exempt the
-    // connection-control class (CLIENT/RESET/MONITOR, the CmdFlags::Climon rows) so UNPAUSE
-    // always works. Everything else -- including PING and reads -- is held under ALL, matching
-    // redis.
-    if (spec->flags & CmdFlags::Climon) return false;
+    if ((spec->flags & CmdFlags::Climon) && !clientcompat_post()) return false;
+    // Redis postpones every valid command under ALL, including CLIENT UNPAUSE,
+    // RESET and MONITOR. WRITE uses WRITE | MAY_REPLICATE, including queued
+    // EXEC children; DENYOOM alone is not a pause classification.
     if (srv_->climon_pause_mode() == Server::kPauseWrite)
         return command_pause_write(op) ||
             (op.cmd_name().eq_icase("exec") && multi_pause_writes(client));
@@ -783,14 +794,10 @@ void IoLoop::climon_monitor_format(Client* client, Op& op, std::string& out) {
                   static_cast<long long>(ts.tv_nsec / 1000),
                   client->session().db_index, addr.c_str());
     out.assign(head);
-    const bool redact = op.cmd_name().eq_icase("auth") ||
-                        (op.cmd_name().eq_icase("hello") && op.argc() > 1);
+    uint32_t hello_cursor = 2;
     for (uint32_t i = 0; i < op.argc(); i++) {
         out.push_back(' ');
-        // AUTH arguments and HELLO's AUTH tail carry credentials; redis prints them as "(redacted)".
-        if (redact && i > 0 &&
-            (op.cmd_name().eq_icase("auth") || op.arg(i - 1).eq_icase("auth") ||
-             (i >= 2 && op.arg(i - 2).eq_icase("auth")))) {
+        if (diagnostic_redact_argument(op, i, hello_cursor)) {
             out += "\"(redacted)\"";
             continue;
         }
@@ -1316,6 +1323,7 @@ void IoLoop::climon_handle_client_request(PubSubEvent& event) {
         result->count = victims.size();
         for (Client* victim : victims) {
             if (victim->id() == event.caller_id) {
+                command_client_closing(victim);
                 victim->mark_closing();
                 mark_active(victim);
             } else {

@@ -1,0 +1,13 @@
+T1 rc=0
+T8b rc=0
+T6tracking rc=0
+T5 rc=0
+T31b rc=0
+P-T6 rc=1
+P-T7 rc=1
+P-T9 rc=1
+P-T8 rc=0
+P-T19 rc=1
+P-T21 rc=1
+P-T20 rc=0
+done

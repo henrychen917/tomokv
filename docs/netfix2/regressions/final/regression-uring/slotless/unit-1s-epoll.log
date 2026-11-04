@@ -1,0 +1,2 @@
+PASS slotless real channel mode=2s slots=1024 overflow=1 rounds=3
+PASS slotless real channel mode=1s slots=1024 overflow=1 rounds=3

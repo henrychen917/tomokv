@@ -11,7 +11,8 @@ import re
 import time
 import traceback
 
-from authfix import Run, Server, clean
+from authfix import Run, Server, clean, is_error
+from known_difference import expect
 
 
 def fields(c, section):
@@ -41,17 +42,47 @@ def missing(c, run, label):
         run.check(label + ' CPU fields', sorted(cpu), sorted(expected))
         run.check(label + ' CPU values', list(cpu.values()),
                   lambda rows: len(rows) == 6 and all(re.fullmatch(rb'\d+\.\d{6}', x) for x in rows))
+        before_cpu = sum(float(cpu[k]) for k in (b'used_cpu_sys', b'used_cpu_user'))
+        for _ in range(8):
+            reply = c.cmd('EVAL', 'local n=0; for i=1,10000 do n=n+i end; return n', 0)
+            assert reply == 50005000, ('bounded CPU witness', reply)
+        worked = fields(c, 'CPU')
+        run.check(label + ' CPU advances after observed work',
+                  sum(float(worked[k]) for k in (b'used_cpu_sys', b'used_cpu_user')) > before_cpu, True)
         server = fields(c, 'SERVER')
         for name, pattern in ((b'redis_git_sha1', rb'[0-9a-f]{8}'),
                               (b'redis_git_dirty', rb'[01]'),
                               (b'redis_build_id', rb'[0-9a-f]{1,16}')):
             run.check(label + ' build ' + name.decode(), server.get(name),
                       lambda x: isinstance(x, bytes) and re.fullmatch(pattern, x) is not None)
+        if not run.oracle:
+            run.check(label + ' build ID is not a zero placeholder',
+                      int(server[b'redis_build_id'], 16) > 0, True)
+            run.check(label + ' git ID is not a fallback', server[b'redis_git_sha1'] != b'00000000', True)
         for selection in ('DEFAULT', 'ALL', 'EVERYTHING'):
             run.check(label + ' ' + selection + ' CPU', b'used_cpu_user' in fields(c, selection), True)
     c.cmd('CONFIG', 'RESETSTAT')
     after = fields(c, 'CPU')
     run.check(label + ' CPU survives RESETSTAT', all(float(after[k]) >= float(v) for k, v in cpu.items()), True)
+
+    # Force SAVE to reach its rename/error path on this fresh owned server.
+    directory = Path(c.cmd('CONFIG', 'GET', 'dir')[1].decode())
+    filename = c.cmd('CONFIG', 'GET', 'dbfilename')[1].decode()
+    obstacle = directory / filename
+    assert not obstacle.exists(), ('SAVE fixture requires fresh state', obstacle)
+    before = fields(c, 'PERSISTENCE')
+    obstacle.mkdir()
+    try:
+        reply = c.cmd('SAVE')
+        assert is_error(reply, 'ERR'), ('SAVE error path not hit', reply)
+        after = fields(c, 'PERSISTENCE')
+        expect(int(after[b'rdb_saves']), int(before[b'rdb_saves']) + 1,
+               root='PS7 SAVE admission count', known=int(before[b'rdb_saves']))
+        expect(after[b'rdb_last_bgsave_status'], before[b'rdb_last_bgsave_status'],
+               root='SV9 foreground SAVE background status', known=b'err')
+        print(label, 'failed_SAVE_hits=1', flush=True)
+    finally:
+        obstacle.rmdir()
 
 
 def docs(c, run, label):

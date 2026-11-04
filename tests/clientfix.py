@@ -105,6 +105,7 @@ def server(args, atomic=0, read_local=0):
                    '--appendonly', 'no', '--dir', directory]
         if not args.oracle:
             command += ['--databases', '1', '--shards', '16', '--thread-mode', args.mode,
+                        '--net-io', os.environ.get('GATE_NET_IO', 'uring'),
                         '--read-local', str(read_local), '--atomic', str(atomic),
                         '--flip-auto', '0', '--enable-debug-command', 'yes']
             if args.mode == '2s':
@@ -318,9 +319,12 @@ def main():
     parser.add_argument('--cores', required=True)
     parser.add_argument('--ratio', default='6:2')
     parser.add_argument('--mode', choices=('1s', '2s'), default='2s')
+    parser.add_argument('--net-io', choices=('uring', 'epoll'), default='uring')
     parser.add_argument('--case', choices=CASES, required=True)
     parser.add_argument('--oracle', action='store_true')
     args = parser.parse_args()
+    if not args.oracle:
+        args.extra_flags = ['--net-io', args.net_io]
     axes = [(0, 0)]
     if not args.oracle and args.case.startswith('tracking-'):
         axes += [(1, 0), (1, 1)]
@@ -328,6 +332,9 @@ def main():
     for atomic, read_local in axes:
         try:
             with server(args, atomic, read_local) as port:
+                if not args.oracle:
+                    with Conn(port) as conn:
+                        assert f'net_io:{args.net_io}\r\n'.encode() in conn.cmd('INFO', 'server')
                 if args.case == 'reply-skip':
                     reply_skip(port, args.oracle)
                 elif args.case.startswith('geo-'):

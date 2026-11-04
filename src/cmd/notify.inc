@@ -1,19 +1,9 @@
 // notify.inc -- out-of-line keyspace-notification recording and publication.
 // Textually included by xshard.cc after the scatter, blocking, and MULTI state definitions.
 
-namespace tomo {
+#include "notify_batch.h"
 
-struct NotifyRecordImpl {
-    uint32_t order = 0;
-    uint32_t sequence = 0;
-    // Widened from uint8_t for NOTIFY_TRACKING (bit 20). The record is heap batch state, not Op
-    // storage; no footprint lock covers it.
-    uint32_t routes = 0;
-    NotifyEventId event = NotifyEventId::Set;
-    uint8_t db = 0;
-    bool physical = false;  // lazy deletion survives speculative abort/retry
-    Slice key;
-};
+namespace tomo {
 
 namespace {
 
@@ -214,6 +204,8 @@ std::string notify_keyevent_channel(NotifyEventId event, uint8_t db) {
     return channel;
 }
 
+} // namespace
+
 bool notify_make_publication(uint8_t db, uint32_t routes, uint8_t route,
                              NotifyEventId event_id, Slice key,
                              std::string& channel, std::string& message) {
@@ -229,16 +221,9 @@ bool notify_make_publication(uint8_t db, uint32_t routes, uint8_t route,
     return true;
 }
 
-struct NotifyExpiryCompletion {
-    std::vector<std::shared_ptr<std::atomic<bool>>> waiters;
-    ~NotifyExpiryCompletion() {
-        for (const auto& waiter : waiters) waiter->store(true, std::memory_order_release);
-    }
-};
-
 std::shared_ptr<PubSubNotificationChain> notify_reserve_chain(
         Server& server, std::unique_ptr<PubSubNotificationChain> chain,
-        std::shared_ptr<NotifyExpiryCompletion> expiry_completion = {}) {
+        std::shared_ptr<NotifyExpiryCompletion> expiry_completion) {
     const uint64_t count = chain ? chain->items.size() : 0;
     if (!count || !server.pubsub_notification_reserve(count, kNotifyInflightCap)) return {};
     PubSubNotificationChain* raw = chain.release();
@@ -249,23 +234,6 @@ std::shared_ptr<PubSubNotificationChain> notify_reserve_chain(
             server.pubsub_notification_retire(count);
         });
 }
-
-}  // namespace
-
-struct NotifyBatch {
-    uint64_t tracking_stamp = 0;
-    std::mutex mutex;
-    NotifyRecordImpl inline_records[8];
-    uint32_t inline_size = 0;
-    uint32_t total = 0;
-    uint32_t next_sequence = 0;
-    uint32_t physical = 0;
-    std::vector<NotifyRecordImpl> spill;
-    std::deque<std::string> owned_keys;
-    std::shared_ptr<NotifyExpiryCompletion> expiry_completion;
-    // Only scripts with MONITOR armed populate this cold, existing carrier.
-    std::vector<MonitorScriptLine> monitor_lines;
-};
 
 namespace {
 
@@ -368,14 +336,23 @@ void notify_flat_store_emit(const FlatStore* store, uint32_t cls,
     }
 }
 
+namespace {
+// Subscription children take effect after data commit. Preserve their events
+// even when the transaction will install the server's very first subscriber.
+[[gnu::noinline]] bool notify_multi_subscriber(const Shard& shard) {
+    const Op* carrier = shard.notify_carrier();
+    return carrier && carrier->has_multi_state() &&
+        static_cast<const MultiExecState*>(carrier->multi_state())->has_subscription;
+}
+}
+
 bool notify_record_slow(Shard& shard, Op& source, uint32_t routes, uint32_t cls,
                         NotifyEventId event, Slice key) {
     (void)cls;
     Server* server = shard.server();
     if (!server) return false;
-    // Tracking invalidation has no pub/sub subscriber to require. When only the pub/sub routes
-    // are armed the original early-out is unchanged.
-    if (!server->pubsub_any_subscribers() && !(routes & NOTIFY_TRACKING)) return false;
+    if (!(routes & NOTIFY_TRACKING) && !server->pubsub_any_subscribers() &&
+        !notify_multi_subscriber(shard)) return false;
     Op* carrier = shard.notify_carrier();
     if (!carrier) carrier = &source;
     NotifyBatch* batch = notify_get_or_create_batch(*carrier);
@@ -419,7 +396,8 @@ bool notify_record_slow(Shard& shard, Op& source, uint32_t routes, uint32_t cls,
                               : notify_key_arg_order(shard, source, key)) + notify_event_priority(event);
     record.sequence = batch->next_sequence++;
     record.routes = routes;
-    if (!server->pubsub_any_subscribers())
+    if ((routes & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT)) &&
+        !server->pubsub_any_subscribers() && !notify_multi_subscriber(shard))
         record.routes &= ~(NOTIFY_KEYSPACE | NOTIFY_KEYEVENT);
     record.event = event;
     record.db = key.ns == source.physical_db ? source.db : source.target_db;
@@ -440,6 +418,31 @@ namespace {
 
 enum class NotifyPhysicalResult { Nothing, Recorded, Fallback };
 
+bool notify_expiry_waits_for_other_batch(Shard& shard, Op& source, Slice key) {
+    auto& slot = shard.notify_state_slot();
+    if (!slot) return false;
+    for (auto it = slot->elapsed_sets.rbegin(); it != slot->elapsed_sets.rend(); ++it) {
+        if (it->ns != key.ns || it->key != key.sv()) continue;
+        if (it->after_set->load(std::memory_order_acquire)) return false;
+        Op& carrier = shard.notify_carrier() ? *shard.notify_carrier() : source;
+        NotifyBatch* batch = nullptr;
+        if (auto* special = notify_special_slot(carrier))
+            batch = special->load(std::memory_order_acquire);
+        else if (carrier.has_notify_state())
+            batch = static_cast<NotifyBatch*>(carrier.notify_state());
+        if (batch) {
+            std::lock_guard<std::mutex> lock(batch->mutex);
+            if (batch->expiry_completion) {
+                const auto& waiters = batch->expiry_completion->waiters;
+                if (std::find(waiters.begin(), waiters.end(), it->after_set) != waiters.end())
+                    return false; // A nested read keeps its position inside this script.
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
 // A by-name deletion is already physical. Allocation/cap failures use the old
 // keyless route without counting a drop or observing SAVE a second time.
 NotifyPhysicalResult notify_record_physical_slow(Shard& shard, Op& source, uint32_t routes, uint32_t cls,
@@ -447,9 +450,8 @@ NotifyPhysicalResult notify_record_physical_slow(Shard& shard, Op& source, uint3
     (void)cls;
     Server* server = shard.server();
     if (!server) return NotifyPhysicalResult::Nothing;
-    // Tracking invalidation has no pub/sub subscriber to require. When only the pub/sub routes
-    // are armed the original early-out is unchanged.
-    if (!server->pubsub_any_subscribers() && !(routes & NOTIFY_TRACKING)) return NotifyPhysicalResult::Nothing;
+    if (!(routes & NOTIFY_TRACKING) && !server->pubsub_any_subscribers() &&
+        !notify_multi_subscriber(shard)) return NotifyPhysicalResult::Nothing;
     Op* carrier = shard.notify_carrier();
     if (!carrier) carrier = &source;
     NotifyBatch* batch;
@@ -483,7 +485,8 @@ NotifyPhysicalResult notify_record_physical_slow(Shard& shard, Op& source, uint3
     record.order = notify_key_arg_order(shard, source, key) + notify_event_priority(event);
     record.sequence = batch->next_sequence++;
     record.routes = routes;
-    if (!server->pubsub_any_subscribers())
+    if ((routes & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT)) &&
+        !server->pubsub_any_subscribers() && !notify_multi_subscriber(shard))
         record.routes &= ~(NOTIFY_KEYSPACE | NOTIFY_KEYEVENT);
     record.event = event;
     record.physical = true;
@@ -502,6 +505,12 @@ NotifyPhysicalResult notify_record_physical_slow(Shard& shard, Op& source, uint3
 }
 
 void notify_record_physical(Shard& shard, Op& source, uint32_t cls, Slice key) {
+    // Workbench expiry is speculative just like its other effects. It must be
+    // discarded on validation failure, rather than survive as a physical reap.
+    if (shard.server() && &shard.server()->shard(shard.id()) != &shard) {
+        notify_record(shard, source, cls, NotifyEventId::Expired, key);
+        return;
+    }
     shard.watch_physical_delete(key, true);
     const uint32_t mask = shard.notify_mask();
     const bool observed = (mask & NOTIFY_OBSERVERS) && (NOTIFY_ALL & cls);
@@ -509,6 +518,13 @@ void notify_record_physical(Shard& shard, Op& source, uint32_t cls, Slice key) {
     if (observed && (mask & NOTIFY_SAVE)) shard.note_save_change();
     const uint32_t routes = notify_routes_for_class(mask, cls);
     if (!routes) return;
+    // A different connection may reap after the writer has replied but before
+    // its publications reach this subscriber. Honor the same causal fence as
+    // maintenance expiry; the physical deletion and read have already finished.
+    if (notify_expiry_waits_for_other_batch(shard, source, key)) {
+        notify_record_keyless_slow(shard, routes, cls, NotifyEventId::Expired, key);
+        return;
+    }
     if (notify_record_physical_slow(shard, source, routes, cls, NotifyEventId::Expired, key)
             == NotifyPhysicalResult::Fallback)
         notify_record_keyless_slow(shard, routes, cls, NotifyEventId::Expired, key);
@@ -527,10 +543,18 @@ bool notify_record_keyless_slow(Shard& shard, uint32_t routes, uint32_t cls,
         slot.reset(new (std::nothrow) NotifyShardState);
         if (!slot) { server->notify_event_dropped(); return false; }
     }
-    if (slot->keyless.size() >= kNotifyKeylessCap) {
-        server->notify_event_dropped();
-        return false;
-    }
+    auto overflow = [&] {
+        // Pub/sub is bounded and may lose events; cache coherence may not.
+        // Coalesce excess tracking records into an allocation-free pending
+        // whole-cache invalidation, retried until every current IO accepts it.
+        if (routes & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT)) server->notify_event_dropped();
+        if (!(routes & NOTIFY_TRACKING)) return false;
+        slot->tracking_flush_pending = true;
+        shard.notify_output_created();
+        server->notify_event_fired();
+        return true;
+    };
+    if (slot->keyless.size() >= kNotifyKeylessCap) return overflow();
     try {
         NotifyOut out;
         out.routes = routes;
@@ -550,8 +574,7 @@ bool notify_record_keyless_slow(Shard& shard, uint32_t routes, uint32_t cls,
         }
         slot->keyless.push_back(std::move(out));
     } catch (const std::bad_alloc&) {
-        server->notify_event_dropped();
-        return false;
+        return overflow();
     }
     shard.notify_output_created();
     server->notify_event_fired();
@@ -566,6 +589,9 @@ void notify_overwrite_expiry(Shard& shard, uint64_t expired_before, Slice key) {
 }
 
 void notify_elapsed_set(Shard& shard, Op& op, Slice key) {
+    // Private script state has no asynchronous expiry pass. Its by-name expiry
+    // already joins the script's ordered, speculative notification batch.
+    if (shard.server() && &shard.server()->shard(shard.id()) != &shard) return;
     // Only this already-elapsed value needs a causal edge to maintenance. The
     // value still expires through the usual owner cycle, with unchanged AOF,
     // SAVE, tracking-NOLOOP and expiry-counter semantics. Waiting delays only
@@ -598,6 +624,44 @@ void notify_elapsed_set(Shard& shard, Op& op, Slice key) {
     }
 }
 
+namespace {
+
+void notify_script_expiries(Shard& shard, Op& op, ScatterState& state, ShardGroup& group) {
+    const uint32_t mask = shard.notify_mask();
+    if (!(mask & NOTIFY_EXPIRED) || !(mask & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT)) ||
+        !state.server->pubsub_any_subscribers()) return;
+    std::shared_ptr<std::atomic<bool>> ready;
+    try {
+        for (uint32_t i = 0; i < group.count; i++) {
+            const uint32_t pos = state.key_order[group.begin + i];
+            const ObjectImage& image = state.apply[pos];
+            if (!image.present || image.expire_at_ms < 0) continue;
+            auto& slot = shard.notify_state_slot();
+            if (!ready) {
+                NotifyBatch* batch = notify_get_or_create_batch(op);
+                if (!batch) return;
+                if (!slot) slot = std::make_unique<NotifyShardState>();
+                // One cleanup and completion token per owner, not per key.
+                // Future deadlines can pass while other APPLY owners finish.
+                std::erase_if(slot->elapsed_sets, [](const auto& pending) {
+                    return pending.after_set->load(std::memory_order_acquire);
+                });
+                ready = std::make_shared<std::atomic<bool>>(false);
+                std::lock_guard<std::mutex> lock(batch->mutex);
+                if (!batch->expiry_completion)
+                    batch->expiry_completion = std::make_shared<NotifyExpiryCompletion>();
+                batch->expiry_completion->waiters.push_back(ready);
+            }
+            const Slice key = op.arg(state.keys[pos].arg);
+            slot->elapsed_sets.push_back(NotifyPendingExpiry{std::string(key.p, key.n), key.ns, ready});
+        }
+    } catch (const std::bad_alloc&) {
+        state.server->notify_event_dropped();
+    }
+}
+
+} // namespace
+
 // Cold STORE/RENAME image deletion. A source RENAME deletion suppresses del;
 // STORE observes whether dbDelete removed a physical resident, even if elapsed.
 void notify_erase_image(Shard& shard, uint64_t hash, Slice key, bool suppress_del) {
@@ -622,7 +686,8 @@ bool notify_flat_enabled(void* context, uint32_t cls) {
     Server* server = shard.server();
     if (!server) return false;
     // Tracking invalidation needs the expiry/eviction observers even with nobody subscribed.
-    return server->pubsub_any_subscribers() || (routes & NOTIFY_TRACKING) != 0;
+    return (routes & NOTIFY_TRACKING) != 0 || server->pubsub_any_subscribers() ||
+        notify_multi_subscriber(shard);
 }
 
 // The flat lookup receives the actual argv Slice, including its identity and namespace.
@@ -720,8 +785,27 @@ uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
                               ThreadCtx& thread, Ring& ring, LoopSignals& signals) {
     (void)thread;
     auto& slot = shard.notify_state_slot();
-    if (!slot || slot->keyless.empty()) return 0;
+    if (!slot) return 0;
     uint32_t work = 0;
+    if (slot->tracking_flush_pending) {
+        const ClimonIoMask io_mask = server.climon_tracking_io_mask();
+        for (uint32_t io : server.placement().ifid_threads()) {
+            if (!io_mask.contains(io)) continue;
+            auto event = std::unique_ptr<PubSubEvent>(new (std::nothrow) PubSubEvent);
+            if (!event) return work;
+            event->kind = PubSubEventKind::TrackingFlush;
+            event->target_io = io;
+            event->route_mask = io_mask;
+            server.pubsub_event_created();
+            if (!server.thread(io).post_pubsub_event_nonblocking(producer, event.get(), ring, signals)) {
+                server.pubsub_event_retired();
+                return work;
+            }
+            event.release();
+        }
+        slot->tracking_flush_pending = false;
+        ++work;
+    }
     while (work < kNotifyKeylessPass && !slot->keyless.empty()) {
         NotifyOut& out = slot->keyless.front();
         if (out.after_set && !out.after_set->load(std::memory_order_acquire)) break;
@@ -855,6 +939,40 @@ void notify_tracking_commit(Op& op) {
     notify_tracking_seal(batch);
 }
 
+// Replay the committed child's tracking effects before the following read
+// enrolls. GET; SET; GET owes one invalidation and retains the last enrollment.
+// The later whole-batch broadcast is idempotent at this publication stamp;
+// remote IO owners still receive the normal transport exactly once.
+void notify_tracking_multi_writes(IoLoop& loop, NotifyBatch* batch, uint64_t writer,
+                                  uint32_t order) {
+    if (!batch || !batch->tracking_stamp) return;
+    const auto apply = [&](const NotifyRecordImpl& record) {
+        if (!(record.routes & NOTIFY_TRACKING) || record.event == NotifyEventId::Keymiss ||
+            record.order < order || record.order - order >= 0x10000u) return;
+        loop.tracking_invalidate_local(record.key, writer, batch->tracking_stamp);
+    };
+    for (uint32_t i = 0; i < batch->inline_size; ++i) apply(batch->inline_records[i]);
+    for (const auto& record : batch->spill) apply(record);
+}
+
+uint64_t notify_tracking_read_stamp(NotifyBatch* batch, Slice key, uint32_t order) {
+    if (!batch || !batch->tracking_stamp) return 0;
+    bool before = false, after = false;
+    const auto inspect = [&](const NotifyRecordImpl& record) {
+        if (!(record.routes & NOTIFY_TRACKING) || record.event == NotifyEventId::Keymiss ||
+            !record.key.key_mem_eq(key)) return;
+        // Passive expiry during this read precedes the returned observation.
+        before |= record.order < order + 0x10000u;
+        after |= record.order >= order + 0x10000u;
+    };
+    for (uint32_t i = 0; i < batch->inline_size; ++i) inspect(batch->inline_records[i]);
+    for (const auto& record : batch->spill) inspect(record);
+    // A read of our own earlier write includes that publication. A later
+    // mutation in the same EXEC must still invalidate its intermediate result.
+    return before && !after ? batch->tracking_stamp : 0;
+}
+
+
 NotifyBatch* notify_take_batch(Op& op) {
     // Some asynchronous committers publish Done outside the ordinary owner epilogue.
     // At IO retirement all fragments and atomic publication have joined.
@@ -881,9 +999,7 @@ NotifyBatch* notify_take_batch(Op& op) {
     }
     if (!op.has_notify_state()) return nullptr;
     auto* batch = static_cast<NotifyBatch*>(op.notify_state());
-    op.zc_ptr = nullptr;
-    op.zc_len = 0;
-    op.zc_shard = -1;
+    op.detach_notify_state();
     return batch;
 }
 
@@ -955,9 +1071,7 @@ void notify_discard_batch(NotifyBatch* batch) { delete batch; }
 void notify_abort_op(Op& op) {
     if (!op.has_notify_state()) return;
     auto* batch = static_cast<NotifyBatch*>(op.notify_state());
-    op.zc_ptr = nullptr;
-    op.zc_len = 0;
-    op.zc_shard = -1;
+    op.detach_notify_state();
     notify_discard_batch(batch);
 }
 

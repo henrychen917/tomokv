@@ -1,0 +1,114 @@
+[
+  {
+    "name": "kernel",
+    "command": [
+      "uname",
+      "-a"
+    ],
+    "returncode": 0,
+    "log": "docs/execfifo3/pmu-audit/kernel.txt"
+  },
+  {
+    "name": "cache-alias",
+    "command": [
+      "perf",
+      "list",
+      "--details",
+      "cache-misses"
+    ],
+    "returncode": 0,
+    "log": "docs/execfifo3/pmu-audit/cache-alias.txt"
+  },
+  {
+    "name": "l2-event",
+    "command": [
+      "perf",
+      "list",
+      "--details",
+      "l2_cache_req_stat.ic_dc_miss_in_l2"
+    ],
+    "returncode": 0,
+    "log": "docs/execfifo3/pmu-audit/l2-event.txt"
+  },
+  {
+    "name": "l3-events",
+    "command": [
+      "perf",
+      "list",
+      "--details",
+      "l3*"
+    ],
+    "returncode": 0,
+    "log": "docs/execfifo3/pmu-audit/l3-events.txt"
+  },
+  {
+    "name": "llc-generic-probe",
+    "command": [
+      "perf",
+      "stat",
+      "-e",
+      "LLC-loads:u,LLC-load-misses:u",
+      "--",
+      "/bin/true"
+    ],
+    "returncode": 1,
+    "log": "docs/execfifo3/pmu-audit/llc-generic-probe.txt"
+  },
+  {
+    "name": "l3-named-probe",
+    "command": [
+      "perf",
+      "stat",
+      "-e",
+      "l3_lookup_state.l3_miss",
+      "--",
+      "/bin/true"
+    ],
+    "returncode": 129,
+    "log": "docs/execfifo3/pmu-audit/l3-named-probe.txt"
+  },
+  {
+    "name": "available-pmus",
+    "devices": [
+      "amd_iommu_0",
+      "amd_iommu_1",
+      "amd_iommu_2",
+      "amd_iommu_3",
+      "breakpoint",
+      "cpu",
+      "ibs_fetch",
+      "ibs_op",
+      "kprobe",
+      "msr",
+      "power",
+      "power_core",
+      "software",
+      "tracepoint",
+      "uprobe"
+    ]
+  },
+  {
+    "name": "llc-miss-probe",
+    "command": [
+      "perf",
+      "stat",
+      "-e",
+      "LLC-load-misses:u",
+      "--",
+      "/bin/true"
+    ],
+    "returncode": 1,
+    "log": "docs/execfifo3/pmu-audit/llc-miss-probe.txt"
+  },
+  {
+    "name": "l1-alias",
+    "command": [
+      "perf",
+      "list",
+      "--details",
+      "L1-dcache-load-misses"
+    ],
+    "returncode": 0,
+    "log": "docs/execfifo3/pmu-audit/l1-alias.txt"
+  }
+]

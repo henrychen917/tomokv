@@ -1,0 +1,12 @@
+--- src/cmd/geo.cc
++++ /home/user/Projects/cx-witnessfix/build/witnessfix/mutants/geo-count-order/geo.cc
+@@ -338,8 +338,7 @@
+     if (options.any && !options.count) {
+         reply_err(op.sink(), "ERR the ANY argument requires COUNT argument"); return false;
+     }
+-    if (options.count && options.order == GeoOrder::None && !options.any)
+-        options.order = GeoOrder::Asc;
++    // planted defect: COUNT no longer supplies implicit nearest-first order
+     return true;
+ }
+ 

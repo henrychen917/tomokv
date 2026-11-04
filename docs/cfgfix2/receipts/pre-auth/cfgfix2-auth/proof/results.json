@@ -1,0 +1,43 @@
+[
+  {
+    "mode": "redis",
+    "engine": "oracle",
+    "result": [
+      {
+        "databases": 1,
+        "toggles": 82230,
+        "connections": 49541
+      },
+      {
+        "databases": 16,
+        "toggles": 82602,
+        "connections": 49800
+      }
+    ],
+    "passed": true
+  },
+  {
+    "mode": "1s",
+    "engine": "uring",
+    "passed": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 422, in main\n    row.update(result=globals()[a.case + '_case'](a, mode, engine), passed=True)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 399, in auth_case\n    assert all(r['toggles'] >= toggles_wanted and r['connections'] >= 1000 and not r['errors'] and\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: [{'databases': 1, 'toggles': 45768, 'connections': 49179, 'noauth': 49067, 'admitted': 112, 'other': 0, 'first': {'reply': '$-1\\r\\n', 'after_toggles': 115}, 'errors': []}, {'databases': 16, 'toggles': 46890, 'connections': 48560, 'noauth': 48477, 'admitted': 83, 'other': 0, 'first': {'reply': '$-1\\r\\n', 'after_toggles': 45}, 'errors': []}]\n"
+  },
+  {
+    "mode": "1s",
+    "engine": "epoll",
+    "passed": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 422, in main\n    row.update(result=globals()[a.case + '_case'](a, mode, engine), passed=True)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 399, in auth_case\n    assert all(r['toggles'] >= toggles_wanted and r['connections'] >= 1000 and not r['errors'] and\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: [{'databases': 1, 'toggles': 45480, 'connections': 48310, 'noauth': 48194, 'admitted': 116, 'other': 0, 'first': {'reply': '$-1\\r\\n', 'after_toggles': 292}, 'errors': []}, {'databases': 16, 'toggles': 45757, 'connections': 49700, 'noauth': 49602, 'admitted': 98, 'other': 0, 'first': {'reply': '$-1\\r\\n', 'after_toggles': 385}, 'errors': []}]\n"
+  },
+  {
+    "mode": "2s",
+    "engine": "uring",
+    "passed": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 422, in main\n    row.update(result=globals()[a.case + '_case'](a, mode, engine), passed=True)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 399, in auth_case\n    assert all(r['toggles'] >= toggles_wanted and r['connections'] >= 1000 and not r['errors'] and\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: [{'databases': 1, 'toggles': 49229, 'connections': 48929, 'noauth': 48836, 'admitted': 93, 'other': 0, 'first': {'reply': '$-1\\r\\n', 'after_toggles': 224}, 'errors': []}, {'databases': 16, 'toggles': 50588, 'connections': 49612, 'noauth': 49511, 'admitted': 101, 'other': 0, 'first': {'reply': '$-1\\r\\n', 'after_toggles': 12}, 'errors': []}]\n"
+  },
+  {
+    "mode": "2s",
+    "engine": "epoll",
+    "passed": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 422, in main\n    row.update(result=globals()[a.case + '_case'](a, mode, engine), passed=True)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 399, in auth_case\n    assert all(r['toggles'] >= toggles_wanted and r['connections'] >= 1000 and not r['errors'] and\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: [{'databases': 1, 'toggles': 48064, 'connections': 49535, 'noauth': 49407, 'admitted': 128, 'other': 0, 'first': {'reply': '$-1\\r\\n', 'after_toggles': 186}, 'errors': []}, {'databases': 16, 'toggles': 48876, 'connections': 49415, 'noauth': 49308, 'admitted': 107, 'other': 0, 'first': {'reply': '$-1\\r\\n', 'after_toggles': 209}, 'errors': []}]\n"
+  }
+]

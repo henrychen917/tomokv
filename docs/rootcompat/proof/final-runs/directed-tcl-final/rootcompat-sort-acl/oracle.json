@@ -1,0 +1,91 @@
+{
+  "binary": "/home/user/Projects/redis/src/redis-server",
+  "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "checks": [
+    {
+      "label": "redis-redis-db16 queued SORTBY",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "redis-redis-db16 EXEC SORTBY",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR BY option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "redis-redis-db16 queued SORTGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "redis-redis-db16 EXEC SORTGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "redis-redis-db16 queued SORTGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "redis-redis-db16 EXEC SORTGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "redis-redis-db16 queued SORT_ROBY",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "redis-redis-db16 EXEC SORT_ROBY",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR BY option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "redis-redis-db16 queued SORT_ROGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "redis-redis-db16 EXEC SORT_ROGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "redis-redis-db16 queued SORT_ROGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "redis-redis-db16 EXEC SORT_ROGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    }
+  ],
+  "slowlog": {}
+}

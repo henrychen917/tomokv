@@ -1,0 +1,135 @@
+{
+  "base": "9d6ab5526f8fff0c8617e94cf20fa837e15ab0f8",
+  "production_source": "bcbe1650fd",
+  "description": "Exact source equality, not a standalone runtime proof. Main FLIP coordinator transitions, global dispatch pause and five-second deadline are compared as source ranges; other entries compare complete files.",
+  "checks": [
+    {
+      "path": "src/exec/masked_queue.h",
+      "bytes": 27650,
+      "sha256": "26ace924331eaf68f5fcc713cedc94c747866774ec35613e01bf47cf8ef427bc",
+      "identical_to_pre": true
+    },
+    {
+      "path": "src/core/signal.h",
+      "bytes": 30067,
+      "sha256": "85b22e6c47f714c75fc9d2695ce270392648b30d66faed8e4613e7115263a6bb",
+      "identical_to_pre": true
+    },
+    {
+      "path": "src/core/thread.h",
+      "bytes": 64063,
+      "sha256": "057efb87c76a4525204426d162cac8df90c87b3ab2872857ca82c2e15cda996e",
+      "identical_to_pre": true
+    },
+    {
+      "path": "src/core/genthread.h",
+      "bytes": 1905,
+      "sha256": "a25a5413c45d42ec74e78a94aac4ae8b84f8d0c38c7cc69abac0ef7aa575c910",
+      "identical_to_pre": true
+    },
+    {
+      "path": "src/core/genthread.cc",
+      "bytes": 12198,
+      "sha256": "6f38514878f537608343ed44c3180cef25f53c05c778ce6740f2774c903badb1",
+      "identical_to_pre": true
+    },
+    {
+      "path": "src/core/genthread_pipeline.h",
+      "bytes": 436,
+      "sha256": "ac0761d0b67bc63f8dca5f89467e1bf6f7f7bf2351e398e9061274c2b5e7a568",
+      "identical_to_pre": true
+    },
+    {
+      "path": "src/core/fliplisten.cc",
+      "bytes": 19548,
+      "sha256": "50dd8b608fe7975b0a73b4ed180a7cc81d7c018d27f25f3d59667ac32efd4970",
+      "identical_to_pre": true
+    },
+    {
+      "path": "src/core/flip_policy.h",
+      "bytes": 28497,
+      "sha256": "f173d758c55e76bf1c77296959282c474d0f90dfcf02b1131c48c0c4b066abac",
+      "identical_to_pre": true
+    },
+    {
+      "path": "src/core/flipctl.h",
+      "bytes": 30554,
+      "sha256": "0bd3f377212edfefadab7c474b06316d44dc6f396babb78e84d89961e87aab87",
+      "identical_to_pre": true
+    },
+    {
+      "path": "src/core/flipctl.cc",
+      "bytes": 85506,
+      "sha256": "f9ab350ec1898aa02281b6bc00b0c4d67b790c373cdcc02dfd39cb384360b138",
+      "identical_to_pre": true
+    },
+    {
+      "path": "src/core/lbplanner.cc",
+      "bytes": 50281,
+      "sha256": "f4fcea06afafa42ab909175e6a73e0d42df62aed0a5c8cfc67e1b4cf5529ca5a",
+      "identical_to_pre": true
+    },
+    {
+      "path": "src/core/weighted_lb.h",
+      "bytes": 18683,
+      "sha256": "fea0c789aa276dcd7f35d940b9c674d77d656ca336ee79abb13792756bb76478",
+      "identical_to_pre": true
+    },
+    {
+      "path": "src/core/lbstall.h",
+      "bytes": 1444,
+      "sha256": "e319e77b2084142dc79e72aeec66c0685f24226a10dcff9d921408fd46b44468",
+      "identical_to_pre": true
+    },
+    {
+      "path": "src/core/lbstall.cc",
+      "bytes": 6482,
+      "sha256": "7eb5336f0ae91567a6e0a1529709167bd30117fd10538db3a1bd8ecd9771e2eb",
+      "identical_to_pre": true
+    },
+    {
+      "path": "src/cmd/flip_session.inc",
+      "bytes": 2060,
+      "sha256": "18d7901f179e5d31dcf94397ceb50eefce2aa6a5769503c7b065473ec757ef39",
+      "identical_to_pre": true
+    },
+    {
+      "path": "src/cmd/txnorder_debug.h",
+      "bytes": 1644,
+      "sha256": "1a4db73f0191437b9661f93150f843fe172cc834d842cea8c49e15bf18984007",
+      "identical_to_pre": true
+    },
+    {
+      "path": "src/core/server.h",
+      "starts_with": "bool flip_dispatch_paused() const {",
+      "ends_before": "",
+      "bytes": 81,
+      "sha256": "a50fc2084a5fb31edc898ddbc3d7371ab700accbe9c0c5c5c88da0d62a5166c8",
+      "identical_to_pre": true
+    },
+    {
+      "path": "src/core/server.h",
+      "starts_with": "flip_deadline_ns_.store(now_ns() + 5ull",
+      "ends_before": "",
+      "bytes": 69,
+      "sha256": "f34988ce834a0d5f57beaddfaa9f3c9663f8eb590ab0721fe698d0c7e55fd170",
+      "identical_to_pre": true
+    },
+    {
+      "path": "src/core/io_loop.h",
+      "starts_with": "__attribute__((noinline)) bool flip_dispatch_paused() const {",
+      "ends_before": "void refresh_save_cron_writer()",
+      "bytes": 437,
+      "sha256": "cc6966fb3e88c9e32217abf80f3c6fe352ac926c658f56e52e9e445dd242ea44",
+      "identical_to_pre": true
+    },
+    {
+      "path": "src/core/io_loop.h",
+      "starts_with": "case FlipStage::IoPrepare: {",
+      "ends_before": "flip_wake_all();",
+      "bytes": 3220,
+      "sha256": "5c5fdda13f57e1bacf2c4ed94213151532bd757ec0ee39d154adbf47b6101e16",
+      "identical_to_pre": true
+    }
+  ]
+}

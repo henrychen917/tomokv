@@ -1,0 +1,96 @@
+{
+  "run": "build/gate-run.pHNZ6F",
+  "partial": true,
+  "full_gate_receipt": false,
+  "complete": true,
+  "jobs": [
+    {
+      "job": "clientcompat-disconnect",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t3.530000\tclientcompat disconnect"
+      ]
+    },
+    {
+      "job": "clientcompat-enable-race",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t72.860000\tclientcompat enable-race"
+      ]
+    },
+    {
+      "job": "clientcompat-multi-controls",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t7.890000\tclientcompat multi-controls"
+      ]
+    },
+    {
+      "job": "clientcompat-multi-tracking",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t41.160000\tclientcompat multi-tracking"
+      ]
+    },
+    {
+      "job": "clientcompat-pause",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t48.680000\tclientcompat pause"
+      ]
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    }
+  ],
+  "missing": [],
+  "archive": "docs/clientcompat/validation/final-pad.json.gz",
+  "archive_sha256": "a00251612dd7739b438b6ba4e1c9402604fb9cff3166f4e77a762cd6458d228a",
+  "passed": 1,
+  "failed": 5,
+  "arm": {
+    "source_commit": "694fae5c73",
+    "binary": "build/clientcompat/PAD-A/tomokv",
+    "sha256": "54084673401c693fb9ba466ba9671bed153cc7f0fccc50fb2be2240085e3b874",
+    "engine": null,
+    "arm": "PAD-A",
+    "command": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "72-79",
+      "--load-cores",
+      "64-71",
+      "--ports",
+      "20400-20419",
+      "--candidate-binary",
+      "build/clientcompat/PAD-A/tomokv"
+    ],
+    "started": 1793522589.676193,
+    "pid": 1385113,
+    "LC_ALL": "C",
+    "requested_jobs": [
+      "clientcompat-pause",
+      "clientcompat-disconnect",
+      "clientcompat-multi-tracking",
+      "clientcompat-multi-controls",
+      "clientcompat-enable-race"
+    ]
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "base": "105c5818cc20e3ede50fbe4849915ef72ee1732e",
+  "production_source": "80a7559fda832169bbb70a71af6512c9042fd360",
+  "src_tree": "db7a16b7e2bd23fb8e53d48a46b9a898fdf14ad4",
+  "verified_at": "9cf1cf1fb7717e4c75e140dbc2cb9ae6c39f6d5f",
+  "arms": {
+    "PRE": {
+      "path": "build/cfgfix/arms/tomokv-PRE",
+      "sha256": "97f0d76e3782485ae2e2f797805484ef09eb52752a5019935d1bc409d4fb4fd1",
+      "text_address": 182960,
+      "text_bytes": 8896071,
+      "bytes": 228226936
+    },
+    "POST": {
+      "path": "build/cfgfix/arms/tomokv-POST",
+      "sha256": "01813fe2a5534ffcce92bb03992d648c74125e7281949c53dad6b125b69526a3",
+      "text_address": 183344,
+      "text_bytes": 8924055,
+      "bytes": 230506896
+    },
+    "PAD-A": {
+      "path": "build/cfgfix/arms/tomokv-PAD-A",
+      "sha256": "ba567335d4633b8d3ab150389864ca1f570eda5e496bf1736547534271de9c94",
+      "text_address": 183344,
+      "text_bytes": 8924055,
+      "bytes": 228255648
+    }
+  },
+  "main_binary_sha256": "01813fe2a5534ffcce92bb03992d648c74125e7281949c53dad6b125b69526a3",
+  "expected_constants": [
+    "EXPECT_QUICK=1046",
+    "EXPECT_FULL=1063"
+  ],
+  "cfgfix_collection_line": 6336,
+  "quick_exit_line": 6574,
+  "DQ": 1,
+  "DF": 1,
+  "instruction_cells": 48,
+  "zero_added_in_all_cells": true,
+  "identical_cells": 40,
+  "reduced_cells": 8,
+  "freshness_targets": 57,
+  "freshness_pass": 57,
+  "freshness_receipt": "docs/cfgfix/freshness-final.json",
+  "freshness_receipt_sha256": "6ccf2c0221487f00cc574e9e38315216a77aace0d7adf79fd826b4d4d90c5476",
+  "framework_receipt": "docs/cfgfix/framework-fixed.json",
+  "framework_receipt_sha256": "addb6e7e5c00079b377c7d4f8ba70ad1ab9b5f9a80252f8a4131fb8eb7667b7a",
+  "PAD_A_limitation": "PRE behavior with POST aggregate .text start and size only; internal symbol placement and data layout retain PRE."
+}

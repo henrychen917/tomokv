@@ -1,0 +1,4 @@
+/home/user/Projects/cx-storefix5/build/storefix5/counts/trace /home/user/Projects/cx-storefix5/build/storefix5/counts/scopes/pre-memory-normal/probe /home/user/Projects/cx-storefix5/build/storefix5/counts/scopes/pre-memory-normal/complete.ranges 8c9460 8c9470 000000000002bb30 GET 2s 32 0 -1
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+COUNT 21667

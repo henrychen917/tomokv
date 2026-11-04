@@ -1,0 +1,74 @@
+[
+  {
+    "arm": "pre",
+    "namespace": "normal",
+    "mode": "1s",
+    "sha256": "a021006175d7cfb5cc6c3fb0a3f499a87ad80380fd1474d2e5ac0e3c55a97c36",
+    "exit": 1,
+    "stdout": "",
+    "stderr": "FAIL: decided deletion must finish its waiter before CREATE can replace it\n"
+  },
+  {
+    "arm": "pre",
+    "namespace": "normal",
+    "mode": "2s",
+    "sha256": "a021006175d7cfb5cc6c3fb0a3f499a87ad80380fd1474d2e5ac0e3c55a97c36",
+    "exit": 1,
+    "stdout": "",
+    "stderr": "FAIL: decided deletion must finish its waiter before CREATE can replace it\n"
+  },
+  {
+    "arm": "pre",
+    "namespace": "db0",
+    "mode": "1s",
+    "sha256": "942bddc3f1212975ad2676a99722f7c553455ac233a367d12b3fba4272325317",
+    "exit": 1,
+    "stdout": "",
+    "stderr": "FAIL: decided deletion must finish its waiter before CREATE can replace it\n"
+  },
+  {
+    "arm": "pre",
+    "namespace": "db0",
+    "mode": "2s",
+    "sha256": "942bddc3f1212975ad2676a99722f7c553455ac233a367d12b3fba4272325317",
+    "exit": 1,
+    "stdout": "",
+    "stderr": "FAIL: decided deletion must finish its waiter before CREATE can replace it\n"
+  },
+  {
+    "arm": "post",
+    "namespace": "normal",
+    "mode": "1s",
+    "sha256": "f670a3d5404e5cc6193ba592f9e4872a8f15abcf3e80724c1aa53b469eff16ed",
+    "exit": 0,
+    "stdout": "PASS atomic deletion before delayed owner notification\n",
+    "stderr": ""
+  },
+  {
+    "arm": "post",
+    "namespace": "normal",
+    "mode": "2s",
+    "sha256": "f670a3d5404e5cc6193ba592f9e4872a8f15abcf3e80724c1aa53b469eff16ed",
+    "exit": 0,
+    "stdout": "PASS atomic deletion before delayed owner notification\n",
+    "stderr": ""
+  },
+  {
+    "arm": "post",
+    "namespace": "db0",
+    "mode": "1s",
+    "sha256": "6a3f329a0259a885145cfe7c3dcc17cdc6d7645f3a2a07c669cd77d6fb1e75ab",
+    "exit": 0,
+    "stdout": "PASS atomic deletion before delayed owner notification\n",
+    "stderr": ""
+  },
+  {
+    "arm": "post",
+    "namespace": "db0",
+    "mode": "2s",
+    "sha256": "6a3f329a0259a885145cfe7c3dcc17cdc6d7645f3a2a07c669cd77d6fb1e75ab",
+    "exit": 0,
+    "stdout": "PASS atomic deletion before delayed owner notification\n",
+    "stderr": ""
+  }
+]

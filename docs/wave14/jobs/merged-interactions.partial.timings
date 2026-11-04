@@ -1,0 +1,6 @@
+ok	0.000000	release build (+footprint locks)
+ok	142.380000	production source identity + stable assertion ids
+ok	10.790000	rootcore waitaof known difference WAITAOF-NOOP-RECEIPT
+ok	41.460000	rootcore misconf known difference MISCONF-NEVER-CLEARS
+ok	26.100000	wave14 function snapshot and journal history
+FAIL	125.240000	rootcompat tracking vs Redis 7.4

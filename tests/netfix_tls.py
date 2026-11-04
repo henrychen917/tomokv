@@ -48,6 +48,29 @@ def probe(port, version, cipher, admin):
 
 
 def test(a, port, certs, proc, oracle):
+    # TCP must not join the existing TLS SO_REUSEPORT group. Redis rejects
+    # this apply and restores earlier scalar values and the old TCP listener.
+    with closing(n.connect(a.port)) as admin, closing(n.connect(port, certs)) as established:
+        def settings():
+            values = admin.must('CONFIG', 'GET', 'port', 'maxmemory')
+            return dict(zip((v.decode() for v in values[::2]),
+                            (v.decode() for v in values[1::2])))
+        before = settings()
+        reply = admin.cmd('CONFIG', 'SET', 'maxmemory', '12345678', 'port', str(port))
+        record = dict(before=before, after=settings(),
+                      error=isinstance(reply, n._lib.RespError),
+                      reply=str(reply) if isinstance(reply, n._lib.RespError) else reply.decode())
+        (a.output / f'port-collision-{proc.pid}.json').write_text(json.dumps(record, indent=2))
+        reference = a.output / 'oracle-port-collision.json'
+        if oracle:
+            reference.write_text(json.dumps(record, indent=2))
+        assert record['error'], ('TCP port collided with TLS listener', record)
+        assert record['after'] == record['before'], ('TLS collision did not roll back CONFIG', record)
+        if not oracle:
+            assert record == json.loads(reference.read_text()), record
+        assert established.must('PING') == b'PONG'
+        with closing(n.connect(a.port)) as fresh, closing(n.connect(port, certs)) as fresh_tls:
+            assert fresh.must('PING') == fresh_tls.must('PING') == b'PONG'
     suites = []
     for version, flag in (('TLSv1.2', '-tls1_2'), ('TLSv1.3', '-tls1_3')):
         names = subprocess.check_output(['openssl', 'ciphers', '-s', flag, 'DEFAULT'], text=True)
@@ -84,6 +107,33 @@ def test(a, port, certs, proc, oracle):
         assert not missing, missing
         assert results['TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256'] == (True, 1), results
         assert results['TLSv1.2/ECDHE-RSA-AES256-GCM-SHA384'] == (True, 1), results
+    # cfgfix: change verification on newly accepted connections, keeping an
+    # established TLS connection alive across every policy change.
+    policy_results = {}
+    with closing(n.connect(a.port)) as admin, closing(n.connect(port, certs)) as established:
+        for version in (ssl.TLSVersion.TLSv1_2, ssl.TLSVersion.TLSv1_3):
+            for policy in ('yes', 'optional', 'no'):
+                admin.must('CONFIG', 'SET', 'tls-auth-clients', policy)
+                assert established.must('PING') == b'PONG'
+                for identity in ('none', 'client', 'bad-client'):
+                    ctx = ssl.create_default_context(cafile=str(certs / 'ca.crt'))
+                    ctx.check_hostname = False
+                    ctx.minimum_version = ctx.maximum_version = version
+                    if identity != 'none':
+                        ctx.load_cert_chain(str(certs / (identity + '.crt')), str(certs / (identity + '.key')))
+                    accepted = False
+                    try:
+                        with socket.create_connection(('127.0.0.1', port), timeout=5) as raw:
+                            with ctx.wrap_socket(raw, server_hostname='localhost') as sock:
+                                sock.sendall(b'*1\r\n$4\r\nPING\r\n')
+                                accepted = sock.recv(64) == b'+PONG\r\n'
+                    except (ssl.SSLError, ConnectionError):
+                        pass
+                    expected = policy == 'no' or identity == 'client' or (policy == 'optional' and identity == 'none')
+                    policy_results[f'{version.name}/{policy}/{identity}'] = accepted
+                    assert accepted == expected, (version, policy, identity, accepted)
+        admin.must('CONFIG', 'SET', 'tls-auth-clients', 'no')
+    (a.output / f'auth-policy-{proc.pid}.json').write_text(json.dumps(policy_results, indent=2))
     return results
 
 

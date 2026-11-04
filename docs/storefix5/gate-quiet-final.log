@@ -1,0 +1,3 @@
+GATE(iteration): 8 physical CPUs shared by one correctness server/client slot; 8 server threads at ratio 6:2; PARTIAL ONLY, rates/ABBA/NIC/receipt disabled
+  artifacts: /home/user/Projects/cx-storefix5/build/gate-run.MKa4KP
+core_tsan_build is a build-only prerequisite; select its consuming correctness job

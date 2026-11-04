@@ -1,0 +1,210 @@
+[
+  {
+    "receipt": "tcl-uring-repeat",
+    "mode": "1s",
+    "binary_sha256": "cb7a70bbcf669f8657697a3708c9dd583dbf74fd0463da4ba590a1b8caf63a65",
+    "files": 39,
+    "passed_assertions": 1875,
+    "raw_setup_errors": 5,
+    "unexpected_validation_errors": 0,
+    "complete_files": 39,
+    "expected_setup_errors": [
+      {
+        "file": "unit/scripting",
+        "errors": [
+          {
+            "command": "r debug set-disable-deny-scripts 1",
+            "reply": "ERR unknown subcommand or wrong number of arguments for 'debug' command",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "file": "unit/type/list",
+        "errors": [
+          {
+            "command": "r config set list-compress-depth 2",
+            "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "file": "unit/type/list-3",
+        "errors": [
+          {
+            "command": "config_set list-compress-depth $comp",
+            "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "file": "unit/type/stream-cgroups",
+        "errors": [
+          {
+            "command": "r config set $param $val",
+            "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "receipt": "tcl-uring-repeat",
+    "mode": "2s",
+    "binary_sha256": "cb7a70bbcf669f8657697a3708c9dd583dbf74fd0463da4ba590a1b8caf63a65",
+    "files": 39,
+    "passed_assertions": 1875,
+    "raw_setup_errors": 5,
+    "unexpected_validation_errors": 0,
+    "complete_files": 39,
+    "expected_setup_errors": [
+      {
+        "file": "unit/scripting",
+        "errors": [
+          {
+            "command": "r debug set-disable-deny-scripts 1",
+            "reply": "ERR unknown subcommand or wrong number of arguments for 'debug' command",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "file": "unit/type/list",
+        "errors": [
+          {
+            "command": "r config set list-compress-depth 2",
+            "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "file": "unit/type/list-3",
+        "errors": [
+          {
+            "command": "config_set list-compress-depth $comp",
+            "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "file": "unit/type/stream-cgroups",
+        "errors": [
+          {
+            "command": "r config set $param $val",
+            "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "receipt": "functional-epoll",
+    "mode": "1s",
+    "binary_sha256": "cb7a70bbcf669f8657697a3708c9dd583dbf74fd0463da4ba590a1b8caf63a65",
+    "files": 39,
+    "passed_assertions": 1875,
+    "raw_setup_errors": 5,
+    "unexpected_validation_errors": 0,
+    "complete_files": 39,
+    "expected_setup_errors": [
+      {
+        "file": "unit/scripting",
+        "errors": [
+          {
+            "command": "r debug set-disable-deny-scripts 1",
+            "reply": "ERR unknown subcommand or wrong number of arguments for 'debug' command",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "file": "unit/type/list",
+        "errors": [
+          {
+            "command": "r config set list-compress-depth 2",
+            "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "file": "unit/type/list-3",
+        "errors": [
+          {
+            "command": "config_set list-compress-depth $comp",
+            "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "file": "unit/type/stream-cgroups",
+        "errors": [
+          {
+            "command": "r config set $param $val",
+            "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "receipt": "functional-epoll",
+    "mode": "2s",
+    "binary_sha256": "cb7a70bbcf669f8657697a3708c9dd583dbf74fd0463da4ba590a1b8caf63a65",
+    "files": 39,
+    "passed_assertions": 1875,
+    "raw_setup_errors": 5,
+    "unexpected_validation_errors": 0,
+    "complete_files": 39,
+    "expected_setup_errors": [
+      {
+        "file": "unit/scripting",
+        "errors": [
+          {
+            "command": "r debug set-disable-deny-scripts 1",
+            "reply": "ERR unknown subcommand or wrong number of arguments for 'debug' command",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "file": "unit/type/list",
+        "errors": [
+          {
+            "command": "r config set list-compress-depth 2",
+            "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "file": "unit/type/list-3",
+        "errors": [
+          {
+            "command": "config_set list-compress-depth $comp",
+            "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "file": "unit/type/stream-cgroups",
+        "errors": [
+          {
+            "command": "r config set $param $val",
+            "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  }
+]

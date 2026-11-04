@@ -1,0 +1,23 @@
+Deleted bounded GDB step trace: /home/user/Projects/cx-execfifo3/build/execfifo3/memory-scopes/POST-final-normal-PARSE-SET-1s-32-1-1.log
+SHA-256: 3ca06650b334017b593a1930a1d643a34f72fe99bef3c384e9f0e502362fee6a
+Exit: 0
+0x0000555555cedbfd	4232	    }
+0x0000555555cedc04	4232	    }
+0x0000555555cedc08	4232	    }
+0x0000555555cedc09	4232	    }
+0x0000555555cedc0b	4232	    }
+0x0000555555cedc0d	4232	    }
+0x0000555555cedc0f	4232	    }
+0x0000555555cedc11	4232	    }
+0x0000555555cedc13	4232	    }
+0x0000555555cedc14	4232	    }
+0x0000555555cedc18	4232	    }
+0x0000555555de7d25 in tomo::CoreConcurrencyTest::TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS finite SET owners=1 turns=1 batch=32 read_local=1
+run<true>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, unsigned int, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const (__closure=__closure@entry=0x7ffffffd8aa0, w=w@entry=0) at /home/user/Projects/cx-execfifo3/tests/execfifo3_scope.cc:140
+140	                    scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-execfifo3/tests/execfifo3_scope.cc:31
+31	[[gnu::noinline]] void scope_end() { asm volatile("" ::: "memory"); }
+[Inferior 1 (process 188674) exited normally]
+COUNT 29989

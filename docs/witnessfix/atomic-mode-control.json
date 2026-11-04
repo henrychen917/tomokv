@@ -1,0 +1,114 @@
+[
+  {
+    "mode": "split",
+    "atomic": "0",
+    "arm": "no-restore",
+    "command": [
+      "python3",
+      "/home/user/Projects/cx-witnessfix/build/witnessfix/atomic-mode-control-v2/no-restore.py",
+      "127.0.0.1",
+      "20558",
+      "0"
+    ],
+    "exit": 1,
+    "stdout": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-witnessfix/build/witnessfix/atomic-mode-control-v2/no-restore.py\", line 18, in <module>\n    restore(sys.argv[1], int(sys.argv[2]), sys.argv[3])\n  File \"/home/user/Projects/cx-witnessfix/build/witnessfix/atomic-mode-control-v2/no-restore.py\", line 13, in restore\n    assert actual == [b'atomic', atomic.encode()], ('TM4.1 live atomic mismatch', actual)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ('TM4.1 live atomic mismatch', [b'atomic', b'1'])\n"
+  },
+  {
+    "mode": "split",
+    "atomic": "0",
+    "arm": "restored",
+    "command": [
+      "python3",
+      "/home/user/Projects/cx-witnessfix/tests/atomic_mode.py",
+      "127.0.0.1",
+      "20558",
+      "0"
+    ],
+    "exit": 0,
+    "stdout": "TM4.1 live atomic=0\n"
+  },
+  {
+    "mode": "split",
+    "atomic": "1",
+    "arm": "no-restore",
+    "command": [
+      "python3",
+      "/home/user/Projects/cx-witnessfix/build/witnessfix/atomic-mode-control-v2/no-restore.py",
+      "127.0.0.1",
+      "20558",
+      "1"
+    ],
+    "exit": 1,
+    "stdout": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-witnessfix/build/witnessfix/atomic-mode-control-v2/no-restore.py\", line 18, in <module>\n    restore(sys.argv[1], int(sys.argv[2]), sys.argv[3])\n  File \"/home/user/Projects/cx-witnessfix/build/witnessfix/atomic-mode-control-v2/no-restore.py\", line 13, in restore\n    assert actual == [b'atomic', atomic.encode()], ('TM4.1 live atomic mismatch', actual)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ('TM4.1 live atomic mismatch', [b'atomic', b'0'])\n"
+  },
+  {
+    "mode": "split",
+    "atomic": "1",
+    "arm": "restored",
+    "command": [
+      "python3",
+      "/home/user/Projects/cx-witnessfix/tests/atomic_mode.py",
+      "127.0.0.1",
+      "20558",
+      "1"
+    ],
+    "exit": 0,
+    "stdout": "TM4.1 live atomic=1\n"
+  },
+  {
+    "mode": "fused",
+    "atomic": "0",
+    "arm": "no-restore",
+    "command": [
+      "python3",
+      "/home/user/Projects/cx-witnessfix/build/witnessfix/atomic-mode-control-v2/no-restore.py",
+      "127.0.0.1",
+      "20558",
+      "0"
+    ],
+    "exit": 1,
+    "stdout": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-witnessfix/build/witnessfix/atomic-mode-control-v2/no-restore.py\", line 18, in <module>\n    restore(sys.argv[1], int(sys.argv[2]), sys.argv[3])\n  File \"/home/user/Projects/cx-witnessfix/build/witnessfix/atomic-mode-control-v2/no-restore.py\", line 13, in restore\n    assert actual == [b'atomic', atomic.encode()], ('TM4.1 live atomic mismatch', actual)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ('TM4.1 live atomic mismatch', [b'atomic', b'1'])\n"
+  },
+  {
+    "mode": "fused",
+    "atomic": "0",
+    "arm": "restored",
+    "command": [
+      "python3",
+      "/home/user/Projects/cx-witnessfix/tests/atomic_mode.py",
+      "127.0.0.1",
+      "20558",
+      "0"
+    ],
+    "exit": 0,
+    "stdout": "TM4.1 live atomic=0\n"
+  },
+  {
+    "mode": "fused",
+    "atomic": "1",
+    "arm": "no-restore",
+    "command": [
+      "python3",
+      "/home/user/Projects/cx-witnessfix/build/witnessfix/atomic-mode-control-v2/no-restore.py",
+      "127.0.0.1",
+      "20558",
+      "1"
+    ],
+    "exit": 1,
+    "stdout": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-witnessfix/build/witnessfix/atomic-mode-control-v2/no-restore.py\", line 18, in <module>\n    restore(sys.argv[1], int(sys.argv[2]), sys.argv[3])\n  File \"/home/user/Projects/cx-witnessfix/build/witnessfix/atomic-mode-control-v2/no-restore.py\", line 13, in restore\n    assert actual == [b'atomic', atomic.encode()], ('TM4.1 live atomic mismatch', actual)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ('TM4.1 live atomic mismatch', [b'atomic', b'0'])\n"
+  },
+  {
+    "mode": "fused",
+    "atomic": "1",
+    "arm": "restored",
+    "command": [
+      "python3",
+      "/home/user/Projects/cx-witnessfix/tests/atomic_mode.py",
+      "127.0.0.1",
+      "20558",
+      "1"
+    ],
+    "exit": 0,
+    "stdout": "TM4.1 live atomic=1\n"
+  }
+]

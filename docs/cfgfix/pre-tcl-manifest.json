@@ -1,0 +1,844 @@
+{
+  "binary_sha256": "ef368a64f969aa5b44dead90743d70949dc6681f949c0171726d0f46d826dc52",
+  "files": {
+    "unit/introspection": {
+      "extra_args": [],
+      "known_setup_errors": [],
+      "passed_tests": [
+        "CONFIG sanity in tests/unit/introspection.tcl",
+        "CONFIG SET rollback on apply error in tests/unit/introspection.tcl",
+        "CONFIG SET rollback on set error in tests/unit/introspection.tcl",
+        "CONFIG SET set immutable in tests/unit/introspection.tcl",
+        "CONFIG SET with multiple args in tests/unit/introspection.tcl",
+        "CONFIG GET hidden configs in tests/unit/introspection.tcl",
+        "CONFIG GET multiple args in tests/unit/introspection.tcl"
+      ],
+      "seconds": {
+        "1s": 2.27,
+        "2s": 2.27
+      },
+      "sha256": "92fa93cdb4bcb77698c6f516bbed9c7e34cf02d757baa8e40ccf5f1f45dd2e7c",
+      "skip_tests": {
+        "After CLIENT SETNAME, connection can still be closed": "Focused cfgfix PRE witness",
+        "CLIENT GETNAME check if name set correctly": "Focused cfgfix PRE witness",
+        "CLIENT GETNAME should return NIL if name is not assigned": "Focused cfgfix PRE witness",
+        "CLIENT INFO": "Focused cfgfix PRE witness",
+        "CLIENT KILL SKIPME YES/NO will kill all clients": "Focused cfgfix PRE witness",
+        "CLIENT KILL close the client connection during bgsave": "Focused cfgfix PRE witness",
+        "CLIENT KILL maxAGE will kill old clients": "Focused cfgfix PRE witness",
+        "CLIENT KILL with illegal arguments": "Focused cfgfix PRE witness",
+        "CLIENT LIST": "Focused cfgfix PRE witness",
+        "CLIENT LIST shows empty fields for unassigned names": "Focused cfgfix PRE witness",
+        "CLIENT LIST with IDs": "Focused cfgfix PRE witness",
+        "CLIENT REPLY OFF/ON: disable all commands reply": "Focused cfgfix PRE witness",
+        "CLIENT REPLY ON: unset SKIP flag": "Focused cfgfix PRE witness",
+        "CLIENT REPLY SKIP: skip the next command reply": "Focused cfgfix PRE witness",
+        "CLIENT SETINFO can clear library name": "Focused cfgfix PRE witness",
+        "CLIENT SETINFO can set a library name to this connection": "Focused cfgfix PRE witness",
+        "CLIENT SETINFO invalid args": "Focused cfgfix PRE witness",
+        "CLIENT SETNAME can assign a name to this connection": "Focused cfgfix PRE witness",
+        "CLIENT SETNAME can change the name of an existing connection": "Focused cfgfix PRE witness",
+        "CLIENT SETNAME does not accept spaces": "Focused cfgfix PRE witness",
+        "CLIENT command unhappy path coverage": "Focused cfgfix PRE witness",
+        "CONFIG SET duplicate configs": "Focused cfgfix PRE witness",
+        "MONITOR can log commands issued by functions": "Focused cfgfix PRE witness",
+        "MONITOR can log commands issued by the scripting engine": "Focused cfgfix PRE witness",
+        "MONITOR can log executed commands": "Focused cfgfix PRE witness",
+        "MONITOR correctly handles multi-exec cases": "Focused cfgfix PRE witness",
+        "MONITOR log blocked command only once": "Focused cfgfix PRE witness",
+        "MONITOR supports redacting command arguments": "Focused cfgfix PRE witness",
+        "PING": "Focused cfgfix PRE witness",
+        "RESET does NOT clean library name": "Focused cfgfix PRE witness"
+      }
+    },
+    "unit/multi": {
+      "extra_args": [],
+      "known_setup_errors": [],
+      "passed_tests": [
+        "MULTI with config error in tests/unit/multi.tcl",
+        "MULTI with config set appendonly in tests/unit/multi.tcl"
+      ],
+      "seconds": {
+        "1s": 1.37,
+        "2s": 1.37
+      },
+      "sha256": "f994cb2f460e1478036f9b151db9e80d06af57d58e4173bb411580be35d3ce2b",
+      "skip_tests": {
+        "After failed EXEC key is no longer watched": "Focused cfgfix PRE witness",
+        "After successful EXEC key is no longer watched": "Focused cfgfix PRE witness",
+        "Blocking commands ignores the timeout": "Focused cfgfix PRE witness",
+        "DISCARD": "Focused cfgfix PRE witness",
+        "DISCARD should UNWATCH all the keys": "Focused cfgfix PRE witness",
+        "DISCARD should clear the WATCH dirty flag on the client": "Focused cfgfix PRE witness",
+        "DISCARD should not fail during OOM": "Focused cfgfix PRE witness",
+        "Delete WATCHed stale keys should not fail EXEC": "Focused cfgfix PRE witness",
+        "EXEC and script timeout": "Focused cfgfix PRE witness",
+        "EXEC fail on WATCHed key modified (1 key of 1 watched)": "Focused cfgfix PRE witness",
+        "EXEC fail on WATCHed key modified (1 key of 5 watched)": "Focused cfgfix PRE witness",
+        "EXEC fail on WATCHed key modified by SORT with STORE even if the result is empty": "Focused cfgfix PRE witness",
+        "EXEC fail on lazy expired WATCHed key": "Focused cfgfix PRE witness",
+        "EXEC fails if there are errors while queueing commands #1": "Focused cfgfix PRE witness",
+        "EXEC fails if there are errors while queueing commands #2": "Focused cfgfix PRE witness",
+        "EXEC with at least one use-memory command should fail": "Focused cfgfix PRE witness",
+        "EXEC with only read commands should not be rejected when OOM": "Focused cfgfix PRE witness",
+        "EXEC works on WATCHed key not modified": "Focused cfgfix PRE witness",
+        "FLUSHALL does not touch non affected keys": "Focused cfgfix PRE witness",
+        "FLUSHALL is able to touch the watched keys": "Focused cfgfix PRE witness",
+        "FLUSHDB does not touch non affected keys": "Focused cfgfix PRE witness",
+        "FLUSHDB is able to touch the watched keys": "Focused cfgfix PRE witness",
+        "FLUSHDB while watching stale keys should not fail EXEC": "Focused cfgfix PRE witness",
+        "Flushall while watching several keys by one client": "Focused cfgfix PRE witness",
+        "If EXEC aborts, the client MULTI state is cleared": "Focused cfgfix PRE witness",
+        "It is possible to UNWATCH": "Focused cfgfix PRE witness",
+        "MULTI / EXEC basics": "Focused cfgfix PRE witness",
+        "MULTI / EXEC is not propagated (single write command)": "Focused cfgfix PRE witness",
+        "MULTI / EXEC is propagated correctly (empty transaction)": "Focused cfgfix PRE witness",
+        "MULTI / EXEC is propagated correctly (multiple commands)": "Focused cfgfix PRE witness",
+        "MULTI / EXEC is propagated correctly (read-only commands)": "Focused cfgfix PRE witness",
+        "MULTI / EXEC is propagated correctly (write command, no effect)": "Focused cfgfix PRE witness",
+        "MULTI / EXEC with REPLICAOF": "Focused cfgfix PRE witness",
+        "MULTI and script timeout": "Focused cfgfix PRE witness",
+        "MULTI propagation of EVAL": "Focused cfgfix PRE witness",
+        "MULTI propagation of PUBLISH": "Focused cfgfix PRE witness",
+        "MULTI propagation of SCRIPT FLUSH": "Focused cfgfix PRE witness",
+        "MULTI propagation of SCRIPT LOAD": "Focused cfgfix PRE witness",
+        "MULTI propagation of XREADGROUP": "Focused cfgfix PRE witness",
+        "MULTI where commands alter argc/argv": "Focused cfgfix PRE witness",
+        "MULTI with SAVE": "Focused cfgfix PRE witness",
+        "MULTI with SHUTDOWN": "Focused cfgfix PRE witness",
+        "MULTI-EXEC body and script timeout": "Focused cfgfix PRE witness",
+        "Nested MULTI are not allowed": "Focused cfgfix PRE witness",
+        "UNWATCH when there is nothing watched works as expected": "Focused cfgfix PRE witness",
+        "WATCH inside MULTI is not allowed": "Focused cfgfix PRE witness",
+        "WATCH stale keys should not fail EXEC": "Focused cfgfix PRE witness",
+        "WATCH will consider touched expired keys": "Focused cfgfix PRE witness",
+        "WATCH will consider touched keys target of EXPIRE": "Focused cfgfix PRE witness",
+        "exec with read commands and stale replica state change": "Focused cfgfix PRE witness",
+        "exec with write commands and state change": "Focused cfgfix PRE witness",
+        "just EXEC and script timeout": "Focused cfgfix PRE witness"
+      }
+    },
+    "unit/type/list": {
+      "extra_args": [],
+      "known_setup_errors": [
+        {
+          "command": "r config set list-compress-depth 2",
+          "count": 1,
+          "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'"
+        }
+      ],
+      "passed_tests": [
+        "List invalid list-max-listpack-size config in tests/unit/type/list.tcl"
+      ],
+      "seconds": {
+        "1s": 9.68,
+        "2s": 8.38
+      },
+      "sha256": "d6561e1a61fcf7648b3a36b714c016a053394c85b461b3e2681a8da67c26bcc1",
+      "skip_tests": {
+        "BLMOVE (left, left) with a client BLPOPing the target list": "Focused cfgfix PRE witness",
+        "BLMOVE (left, right) with a client BLPOPing the target list": "Focused cfgfix PRE witness",
+        "BLMOVE (right, left) with a client BLPOPing the target list": "Focused cfgfix PRE witness",
+        "BLMOVE (right, right) with a client BLPOPing the target list": "Focused cfgfix PRE witness",
+        "BLMOVE left left - listpack": "Focused cfgfix PRE witness",
+        "BLMOVE left left - quicklist": "Focused cfgfix PRE witness",
+        "BLMOVE left left with zero timeout should block indefinitely": "Focused cfgfix PRE witness",
+        "BLMOVE left right - listpack": "Focused cfgfix PRE witness",
+        "BLMOVE left right - quicklist": "Focused cfgfix PRE witness",
+        "BLMOVE left right with zero timeout should block indefinitely": "Focused cfgfix PRE witness",
+        "BLMOVE right left - listpack": "Focused cfgfix PRE witness",
+        "BLMOVE right left - quicklist": "Focused cfgfix PRE witness",
+        "BLMOVE right left with zero timeout should block indefinitely": "Focused cfgfix PRE witness",
+        "BLMOVE right right - listpack": "Focused cfgfix PRE witness",
+        "BLMOVE right right - quicklist": "Focused cfgfix PRE witness",
+        "BLMOVE right right with zero timeout should block indefinitely": "Focused cfgfix PRE witness",
+        "BLMPOP propagate as pop with count command to replica": "Focused cfgfix PRE witness",
+        "BLMPOP with multiple blocked clients": "Focused cfgfix PRE witness",
+        "BLMPOP_LEFT inside a transaction": "Focused cfgfix PRE witness",
+        "BLMPOP_LEFT when new key is moved into place": "Focused cfgfix PRE witness",
+        "BLMPOP_LEFT when result key is created by SORT..STORE": "Focused cfgfix PRE witness",
+        "BLMPOP_LEFT with variadic LPUSH": "Focused cfgfix PRE witness",
+        "BLMPOP_LEFT, LPUSH + DEL + SET should not awake blocked client": "Focused cfgfix PRE witness",
+        "BLMPOP_LEFT, LPUSH + DEL should not awake blocked client": "Focused cfgfix PRE witness",
+        "BLMPOP_LEFT: arguments are empty": "Focused cfgfix PRE witness",
+        "BLMPOP_LEFT: multiple existing lists - listpack": "Focused cfgfix PRE witness",
+        "BLMPOP_LEFT: multiple existing lists - quicklist": "Focused cfgfix PRE witness",
+        "BLMPOP_LEFT: second argument is not a list": "Focused cfgfix PRE witness",
+        "BLMPOP_LEFT: second list has an entry - listpack": "Focused cfgfix PRE witness",
+        "BLMPOP_LEFT: second list has an entry - quicklist": "Focused cfgfix PRE witness",
+        "BLMPOP_LEFT: single existing list - listpack": "Focused cfgfix PRE witness",
+        "BLMPOP_LEFT: single existing list - quicklist": "Focused cfgfix PRE witness",
+        "BLMPOP_LEFT: timeout": "Focused cfgfix PRE witness",
+        "BLMPOP_LEFT: with 0.001 timeout should not block indefinitely": "Focused cfgfix PRE witness",
+        "BLMPOP_LEFT: with negative timeout": "Focused cfgfix PRE witness",
+        "BLMPOP_LEFT: with non-integer timeout": "Focused cfgfix PRE witness",
+        "BLMPOP_LEFT: with single empty list argument": "Focused cfgfix PRE witness",
+        "BLMPOP_LEFT: with zero timeout should block indefinitely": "Focused cfgfix PRE witness",
+        "BLMPOP_RIGHT: arguments are empty": "Focused cfgfix PRE witness",
+        "BLMPOP_RIGHT: second argument is not a list": "Focused cfgfix PRE witness",
+        "BLMPOP_RIGHT: timeout": "Focused cfgfix PRE witness",
+        "BLMPOP_RIGHT: with 0.001 timeout should not block indefinitely": "Focused cfgfix PRE witness",
+        "BLMPOP_RIGHT: with negative timeout": "Focused cfgfix PRE witness",
+        "BLMPOP_RIGHT: with non-integer timeout": "Focused cfgfix PRE witness",
+        "BLMPOP_RIGHT: with single empty list argument": "Focused cfgfix PRE witness",
+        "BLMPOP_RIGHT: with zero timeout should block indefinitely": "Focused cfgfix PRE witness",
+        "BLPOP inside a transaction": "Focused cfgfix PRE witness",
+        "BLPOP unblock but the key is expired and then block again - reprocessing command": "Focused cfgfix PRE witness",
+        "BLPOP when new key is moved into place": "Focused cfgfix PRE witness",
+        "BLPOP when result key is created by SORT..STORE": "Focused cfgfix PRE witness",
+        "BLPOP with same key multiple times should work (issue #801)": "Focused cfgfix PRE witness",
+        "BLPOP with variadic LPUSH": "Focused cfgfix PRE witness",
+        "BLPOP, LPUSH + DEL + SET should not awake blocked client": "Focused cfgfix PRE witness",
+        "BLPOP, LPUSH + DEL should not awake blocked client": "Focused cfgfix PRE witness",
+        "BLPOP/BLMOVE should increase dirty": "Focused cfgfix PRE witness",
+        "BLPOP: arguments are empty": "Focused cfgfix PRE witness",
+        "BLPOP: multiple existing lists - listpack": "Focused cfgfix PRE witness",
+        "BLPOP: multiple existing lists - quicklist": "Focused cfgfix PRE witness",
+        "BLPOP: second argument is not a list": "Focused cfgfix PRE witness",
+        "BLPOP: second list has an entry - listpack": "Focused cfgfix PRE witness",
+        "BLPOP: second list has an entry - quicklist": "Focused cfgfix PRE witness",
+        "BLPOP: single existing list - listpack": "Focused cfgfix PRE witness",
+        "BLPOP: single existing list - quicklist": "Focused cfgfix PRE witness",
+        "BLPOP: timeout": "Focused cfgfix PRE witness",
+        "BLPOP: timeout value out of range": "Focused cfgfix PRE witness",
+        "BLPOP: with 0.001 timeout should not block indefinitely": "Focused cfgfix PRE witness",
+        "BLPOP: with negative timeout": "Focused cfgfix PRE witness",
+        "BLPOP: with non-integer timeout": "Focused cfgfix PRE witness",
+        "BLPOP: with single empty list argument": "Focused cfgfix PRE witness",
+        "BLPOP: with zero timeout should block indefinitely": "Focused cfgfix PRE witness",
+        "BRPOP: arguments are empty": "Focused cfgfix PRE witness",
+        "BRPOP: second argument is not a list": "Focused cfgfix PRE witness",
+        "BRPOP: timeout": "Focused cfgfix PRE witness",
+        "BRPOP: with 0.001 timeout should not block indefinitely": "Focused cfgfix PRE witness",
+        "BRPOP: with negative timeout": "Focused cfgfix PRE witness",
+        "BRPOP: with non-integer timeout": "Focused cfgfix PRE witness",
+        "BRPOP: with single empty list argument": "Focused cfgfix PRE witness",
+        "BRPOP: with zero timeout should block indefinitely": "Focused cfgfix PRE witness",
+        "BRPOPLPUSH - listpack": "Focused cfgfix PRE witness",
+        "BRPOPLPUSH - quicklist": "Focused cfgfix PRE witness",
+        "BRPOPLPUSH does not affect WATCH while still blocked": "Focused cfgfix PRE witness",
+        "BRPOPLPUSH inside a transaction": "Focused cfgfix PRE witness",
+        "BRPOPLPUSH maintains order of elements after failure": "Focused cfgfix PRE witness",
+        "BRPOPLPUSH timeout": "Focused cfgfix PRE witness",
+        "BRPOPLPUSH with multiple blocked clients": "Focused cfgfix PRE witness",
+        "BRPOPLPUSH with wrong destination type": "Focused cfgfix PRE witness",
+        "BRPOPLPUSH with wrong source type": "Focused cfgfix PRE witness",
+        "BRPOPLPUSH with zero timeout should block indefinitely": "Focused cfgfix PRE witness",
+        "Basic LPOP/RPOP/LMPOP - listpack": "Focused cfgfix PRE witness",
+        "Basic LPOP/RPOP/LMPOP - quicklist": "Focused cfgfix PRE witness",
+        "Blocking command accounted only once in commandstats": "Focused cfgfix PRE witness",
+        "Blocking command accounted only once in commandstats after timeout": "Focused cfgfix PRE witness",
+        "Blocking timeout following PAUSE should honor the timeout": "Focused cfgfix PRE witness",
+        "Check if list is still ok after a DEBUG RELOAD - listpack": "Focused cfgfix PRE witness",
+        "Check if list is still ok after a DEBUG RELOAD - quicklist": "Focused cfgfix PRE witness",
+        "Circular BRPOPLPUSH": "Focused cfgfix PRE witness",
+        "Command being unblocked cause another command to get unblocked execution order test": "Focused cfgfix PRE witness",
+        "Crash due to delete entry from a compress quicklist node": "Focused cfgfix PRE witness",
+        "Crash due to split quicklist node wrongly": "Focused cfgfix PRE witness",
+        "DEL a list": "Focused cfgfix PRE witness",
+        "LINDEX against non existing key": "Focused cfgfix PRE witness",
+        "LINDEX against non-list value error": "Focused cfgfix PRE witness",
+        "LINDEX consistency test - listpack": "Focused cfgfix PRE witness",
+        "LINDEX consistency test - quicklist": "Focused cfgfix PRE witness",
+        "LINDEX random access - listpack": "Focused cfgfix PRE witness",
+        "LINDEX random access - quicklist": "Focused cfgfix PRE witness",
+        "LINSERT - listpack": "Focused cfgfix PRE witness",
+        "LINSERT - quicklist": "Focused cfgfix PRE witness",
+        "LINSERT against non existing key": "Focused cfgfix PRE witness",
+        "LINSERT against non-list value error": "Focused cfgfix PRE witness",
+        "LINSERT raise error on bad syntax": "Focused cfgfix PRE witness",
+        "LLEN against non existing key": "Focused cfgfix PRE witness",
+        "LLEN against non-list value error": "Focused cfgfix PRE witness",
+        "LMOVE left left base case - listpack": "Focused cfgfix PRE witness",
+        "LMOVE left left base case - quicklist": "Focused cfgfix PRE witness",
+        "LMOVE left left with listpack source and existing target listpack": "Focused cfgfix PRE witness",
+        "LMOVE left left with listpack source and existing target quicklist": "Focused cfgfix PRE witness",
+        "LMOVE left left with quicklist source and existing target listpack": "Focused cfgfix PRE witness",
+        "LMOVE left left with quicklist source and existing target quicklist": "Focused cfgfix PRE witness",
+        "LMOVE left left with the same list as src and dst - listpack": "Focused cfgfix PRE witness",
+        "LMOVE left left with the same list as src and dst - quicklist": "Focused cfgfix PRE witness",
+        "LMOVE left right base case - listpack": "Focused cfgfix PRE witness",
+        "LMOVE left right base case - quicklist": "Focused cfgfix PRE witness",
+        "LMOVE left right with listpack source and existing target listpack": "Focused cfgfix PRE witness",
+        "LMOVE left right with listpack source and existing target quicklist": "Focused cfgfix PRE witness",
+        "LMOVE left right with quicklist source and existing target listpack": "Focused cfgfix PRE witness",
+        "LMOVE left right with quicklist source and existing target quicklist": "Focused cfgfix PRE witness",
+        "LMOVE left right with the same list as src and dst - listpack": "Focused cfgfix PRE witness",
+        "LMOVE left right with the same list as src and dst - quicklist": "Focused cfgfix PRE witness",
+        "LMOVE right left base case - listpack": "Focused cfgfix PRE witness",
+        "LMOVE right left base case - quicklist": "Focused cfgfix PRE witness",
+        "LMOVE right left with listpack source and existing target listpack": "Focused cfgfix PRE witness",
+        "LMOVE right left with listpack source and existing target quicklist": "Focused cfgfix PRE witness",
+        "LMOVE right left with quicklist source and existing target listpack": "Focused cfgfix PRE witness",
+        "LMOVE right left with quicklist source and existing target quicklist": "Focused cfgfix PRE witness",
+        "LMOVE right left with the same list as src and dst - listpack": "Focused cfgfix PRE witness",
+        "LMOVE right left with the same list as src and dst - quicklist": "Focused cfgfix PRE witness",
+        "LMOVE right right base case - listpack": "Focused cfgfix PRE witness",
+        "LMOVE right right base case - quicklist": "Focused cfgfix PRE witness",
+        "LMOVE right right with listpack source and existing target listpack": "Focused cfgfix PRE witness",
+        "LMOVE right right with listpack source and existing target quicklist": "Focused cfgfix PRE witness",
+        "LMOVE right right with quicklist source and existing target listpack": "Focused cfgfix PRE witness",
+        "LMOVE right right with quicklist source and existing target quicklist": "Focused cfgfix PRE witness",
+        "LMOVE right right with the same list as src and dst - listpack": "Focused cfgfix PRE witness",
+        "LMOVE right right with the same list as src and dst - quicklist": "Focused cfgfix PRE witness",
+        "LMPOP multiple existing lists - listpack": "Focused cfgfix PRE witness",
+        "LMPOP multiple existing lists - quicklist": "Focused cfgfix PRE witness",
+        "LMPOP propagate as pop with count command to replica": "Focused cfgfix PRE witness",
+        "LMPOP single existing list - listpack": "Focused cfgfix PRE witness",
+        "LMPOP single existing list - quicklist": "Focused cfgfix PRE witness",
+        "LMPOP with illegal argument": "Focused cfgfix PRE witness",
+        "LPOP/RPOP against non existing key in RESP2": "Focused cfgfix PRE witness",
+        "LPOP/RPOP against non existing key in RESP3": "Focused cfgfix PRE witness",
+        "LPOP/RPOP with <count> against non existing key in RESP2": "Focused cfgfix PRE witness",
+        "LPOP/RPOP with <count> against non existing key in RESP3": "Focused cfgfix PRE witness",
+        "LPOP/RPOP with the count 0 returns an empty array in RESP2": "Focused cfgfix PRE witness",
+        "LPOP/RPOP with the count 0 returns an empty array in RESP3": "Focused cfgfix PRE witness",
+        "LPOP/RPOP with wrong number of arguments": "Focused cfgfix PRE witness",
+        "LPOP/RPOP/LMPOP NON-BLOCK or BLOCK against non list value": "Focused cfgfix PRE witness",
+        "LPOP/RPOP/LMPOP against empty list": "Focused cfgfix PRE witness",
+        "LPOS COUNT + RANK option": "Focused cfgfix PRE witness",
+        "LPOS COUNT option": "Focused cfgfix PRE witness",
+        "LPOS MAXLEN": "Focused cfgfix PRE witness",
+        "LPOS RANK (positive, negative and zero rank) option": "Focused cfgfix PRE witness",
+        "LPOS basic usage - listpack": "Focused cfgfix PRE witness",
+        "LPOS basic usage - quicklist": "Focused cfgfix PRE witness",
+        "LPOS no match": "Focused cfgfix PRE witness",
+        "LPOS non existing key": "Focused cfgfix PRE witness",
+        "LPOS when RANK is greater than matches": "Focused cfgfix PRE witness",
+        "LPUSH against non-list value error": "Focused cfgfix PRE witness",
+        "LPUSH, RPUSH, LLENGTH, LINDEX, LPOP - listpack": "Focused cfgfix PRE witness",
+        "LPUSH, RPUSH, LLENGTH, LINDEX, LPOP - quicklist": "Focused cfgfix PRE witness",
+        "LPUSHX, RPUSHX - generic": "Focused cfgfix PRE witness",
+        "LPUSHX, RPUSHX - listpack": "Focused cfgfix PRE witness",
+        "LPUSHX, RPUSHX - quicklist": "Focused cfgfix PRE witness",
+        "LRANGE against non existing key": "Focused cfgfix PRE witness",
+        "LRANGE basics - listpack": "Focused cfgfix PRE witness",
+        "LRANGE basics - quicklist": "Focused cfgfix PRE witness",
+        "LRANGE inverted indexes - listpack": "Focused cfgfix PRE witness",
+        "LRANGE inverted indexes - quicklist": "Focused cfgfix PRE witness",
+        "LRANGE out of range indexes including the full list - listpack": "Focused cfgfix PRE witness",
+        "LRANGE out of range indexes including the full list - quicklist": "Focused cfgfix PRE witness",
+        "LRANGE out of range negative end index - listpack": "Focused cfgfix PRE witness",
+        "LRANGE out of range negative end index - quicklist": "Focused cfgfix PRE witness",
+        "LRANGE with start > end yields an empty array for backward compatibility": "Focused cfgfix PRE witness",
+        "LREM deleting objects that may be int encoded - listpack": "Focused cfgfix PRE witness",
+        "LREM deleting objects that may be int encoded - quicklist": "Focused cfgfix PRE witness",
+        "LREM remove all the occurrences - listpack": "Focused cfgfix PRE witness",
+        "LREM remove all the occurrences - quicklist": "Focused cfgfix PRE witness",
+        "LREM remove non existing element - listpack": "Focused cfgfix PRE witness",
+        "LREM remove non existing element - quicklist": "Focused cfgfix PRE witness",
+        "LREM remove the first occurrence - listpack": "Focused cfgfix PRE witness",
+        "LREM remove the first occurrence - quicklist": "Focused cfgfix PRE witness",
+        "LREM starting from tail with negative count (2) - listpack": "Focused cfgfix PRE witness",
+        "LREM starting from tail with negative count (2) - quicklist": "Focused cfgfix PRE witness",
+        "LREM starting from tail with negative count - listpack": "Focused cfgfix PRE witness",
+        "LREM starting from tail with negative count - quicklist": "Focused cfgfix PRE witness",
+        "LSET - listpack": "Focused cfgfix PRE witness",
+        "LSET - quicklist": "Focused cfgfix PRE witness",
+        "LSET against non existing key": "Focused cfgfix PRE witness",
+        "LSET against non list value": "Focused cfgfix PRE witness",
+        "LSET out of range index - listpack": "Focused cfgfix PRE witness",
+        "LSET out of range index - quicklist": "Focused cfgfix PRE witness",
+        "LTRIM basics - listpack": "Focused cfgfix PRE witness",
+        "LTRIM basics - quicklist": "Focused cfgfix PRE witness",
+        "LTRIM out of range negative end index - listpack": "Focused cfgfix PRE witness",
+        "LTRIM out of range negative end index - quicklist": "Focused cfgfix PRE witness",
+        "Linked LMOVEs": "Focused cfgfix PRE witness",
+        "List encoding conversion when RDB loading": "Focused cfgfix PRE witness",
+        "List listpack -> quicklist encoding conversion": "Focused cfgfix PRE witness",
+        "List of various encodings": "Focused cfgfix PRE witness",
+        "List of various encodings - sanitize dump": "Focused cfgfix PRE witness",
+        "List quicklist -> listpack encoding conversion": "Focused cfgfix PRE witness",
+        "MULTI/EXEC is isolated from the point of view of BLMPOP_LEFT": "Focused cfgfix PRE witness",
+        "MULTI/EXEC is isolated from the point of view of BLPOP": "Focused cfgfix PRE witness",
+        "Mass RPOP/LPOP - listpack": "Focused cfgfix PRE witness",
+        "PUSH resulting from BRPOPLPUSH affect WATCH": "Focused cfgfix PRE witness",
+        "RPOP/LPOP with the optional count argument - listpack": "Focused cfgfix PRE witness",
+        "RPOP/LPOP with the optional count argument - quicklist": "Focused cfgfix PRE witness",
+        "RPOPLPUSH against non existing key": "Focused cfgfix PRE witness",
+        "RPOPLPUSH against non existing src key": "Focused cfgfix PRE witness",
+        "RPOPLPUSH against non list dst key - listpack": "Focused cfgfix PRE witness",
+        "RPOPLPUSH against non list dst key - quicklist": "Focused cfgfix PRE witness",
+        "RPOPLPUSH against non list src key": "Focused cfgfix PRE witness",
+        "RPOPLPUSH base case - listpack": "Focused cfgfix PRE witness",
+        "RPOPLPUSH base case - quicklist": "Focused cfgfix PRE witness",
+        "RPOPLPUSH with listpack source and existing target listpack": "Focused cfgfix PRE witness",
+        "RPOPLPUSH with listpack source and existing target quicklist": "Focused cfgfix PRE witness",
+        "RPOPLPUSH with quicklist source and existing target listpack": "Focused cfgfix PRE witness",
+        "RPOPLPUSH with quicklist source and existing target quicklist": "Focused cfgfix PRE witness",
+        "RPOPLPUSH with the same list as src and dst - listpack": "Focused cfgfix PRE witness",
+        "RPOPLPUSH with the same list as src and dst - quicklist": "Focused cfgfix PRE witness",
+        "RPUSH against non-list value error": "Focused cfgfix PRE witness",
+        "Regression for bug 593 - chaining BRPOPLPUSH with other blocking cmds": "Focused cfgfix PRE witness",
+        "Self-referential BRPOPLPUSH": "Focused cfgfix PRE witness",
+        "Test LINDEX and LINSERT on plain nodes": "Focused cfgfix PRE witness",
+        "Test LMOVE on plain nodes": "Focused cfgfix PRE witness",
+        "Test LPOS on plain nodes": "Focused cfgfix PRE witness",
+        "Test LPUSH and LPOP on plain nodes": "Focused cfgfix PRE witness",
+        "Test LREM on plain nodes": "Focused cfgfix PRE witness",
+        "Test LSET with packed / plain combinations": "Focused cfgfix PRE witness",
+        "Test LSET with packed consist only one item": "Focused cfgfix PRE witness",
+        "Test LSET with packed is split in the middle": "Focused cfgfix PRE witness",
+        "Test LTRIM on plain nodes": "Focused cfgfix PRE witness",
+        "Unblock fairness is kept during nested unblock": "Focused cfgfix PRE witness",
+        "Unblock fairness is kept while pipelining": "Focused cfgfix PRE witness",
+        "Variadic RPUSH/LPUSH": "Focused cfgfix PRE witness",
+        "client unblock tests": "Focused cfgfix PRE witness"
+      }
+    },
+    "unit/type/stream-cgroups": {
+      "extra_args": [],
+      "known_setup_errors": [
+        {
+          "command": "r config set $param $val",
+          "count": 1,
+          "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config"
+        }
+      ],
+      "passed_tests": [
+        "Blocking XREAD: key deleted in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREAD: key type changed with SET in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREADGROUP for stream key that has clients blocked on list in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREADGROUP for stream key that has clients blocked on stream - avoid endless loop in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREADGROUP for stream key that has clients blocked on stream - reprocessing command in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREADGROUP for stream that ran dry (issue #5299) in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREADGROUP will ignore BLOCK if ID is not > in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREADGROUP will not reply with an empty array in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREADGROUP: flushed DB in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREADGROUP: key deleted in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREADGROUP: key type changed with SET in tests/unit/type/stream-cgroups.tcl",
+        "Blocking XREADGROUP: key type changed with transaction in tests/unit/type/stream-cgroups.tcl",
+        "Consumer seen-time and active-time in tests/unit/type/stream-cgroups.tcl",
+        "PEL NACK reassignment after XGROUP SETID event in tests/unit/type/stream-cgroups.tcl",
+        "RENAME can unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl",
+        "RENAME can unblock XREADGROUP with data in tests/unit/type/stream-cgroups.tcl",
+        "XACK can't remove the same item multiple times in tests/unit/type/stream-cgroups.tcl",
+        "XACK is able to accept multiple arguments in tests/unit/type/stream-cgroups.tcl",
+        "XACK is able to remove items from the consumer/group PEL in tests/unit/type/stream-cgroups.tcl",
+        "XACK should fail if got at least one invalid ID in tests/unit/type/stream-cgroups.tcl",
+        "XAUTOCLAIM COUNT must be > 0 in tests/unit/type/stream-cgroups.tcl",
+        "XAUTOCLAIM as an iterator in tests/unit/type/stream-cgroups.tcl",
+        "XAUTOCLAIM can claim PEL items from another consumer in tests/unit/type/stream-cgroups.tcl",
+        "XAUTOCLAIM with XDEL and count in tests/unit/type/stream-cgroups.tcl",
+        "XAUTOCLAIM with XDEL in tests/unit/type/stream-cgroups.tcl",
+        "XAUTOCLAIM with out of range count in tests/unit/type/stream-cgroups.tcl",
+        "XCLAIM can claim PEL items from another consumer in tests/unit/type/stream-cgroups.tcl",
+        "XCLAIM same consumer in tests/unit/type/stream-cgroups.tcl",
+        "XCLAIM with XDEL in tests/unit/type/stream-cgroups.tcl",
+        "XCLAIM with trimming in tests/unit/type/stream-cgroups.tcl",
+        "XCLAIM with trimming in tests/unit/type/stream-cgroups.tcl",
+        "XCLAIM without JUSTID increments delivery count in tests/unit/type/stream-cgroups.tcl",
+        "XGROUP CREATE: automatic stream creation fails without MKSTREAM in tests/unit/type/stream-cgroups.tcl",
+        "XGROUP CREATE: automatic stream creation works with MKSTREAM in tests/unit/type/stream-cgroups.tcl",
+        "XGROUP CREATE: creation and duplicate group name detection in tests/unit/type/stream-cgroups.tcl",
+        "XGROUP CREATE: with ENTRIESREAD parameter in tests/unit/type/stream-cgroups.tcl",
+        "XGROUP CREATECONSUMER: create consumer if does not exist in tests/unit/type/stream-cgroups.tcl",
+        "XGROUP CREATECONSUMER: group must exist in tests/unit/type/stream-cgroups.tcl",
+        "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl",
+        "XINFO FULL output in tests/unit/type/stream-cgroups.tcl",
+        "XPENDING can return single consumer items in tests/unit/type/stream-cgroups.tcl",
+        "XPENDING is able to return pending items in tests/unit/type/stream-cgroups.tcl",
+        "XPENDING only group in tests/unit/type/stream-cgroups.tcl",
+        "XPENDING with IDLE in tests/unit/type/stream-cgroups.tcl",
+        "XPENDING with exclusive range intervals works as expected in tests/unit/type/stream-cgroups.tcl",
+        "XREAD and XREADGROUP against wrong parameter in tests/unit/type/stream-cgroups.tcl",
+        "XREADGROUP can read the history of the elements we own in tests/unit/type/stream-cgroups.tcl",
+        "XREADGROUP history reporting of deleted entries. Bug #5570 in tests/unit/type/stream-cgroups.tcl",
+        "XREADGROUP will not report data on empty history. Bug #5577 in tests/unit/type/stream-cgroups.tcl",
+        "XREADGROUP will return only new elements in tests/unit/type/stream-cgroups.tcl"
+      ],
+      "seconds": {
+        "1s": 1.47,
+        "2s": 1.42
+      },
+      "sha256": "3c701f4315918a9038d63542733806e611603189d4024ce403f501361d710d86",
+      "skip_tests": {
+        "XREADGROUP from PEL does not change dirty": "failed on TomoKV 2s in the survey",
+        "XREADGROUP of multiple entries changes dirty by one": "failed on TomoKV 2s in the survey"
+      }
+    }
+  },
+  "redis_version": "7.4.10",
+  "schema": 2,
+  "selection": "every upstream assertion passing in BOTH TomoKV modes; each file runs with --skipfile naming every test that failed or hung on TomoKV in the survey or the builder; the passing multiset was identical in 2 consecutive clean rounds in both modes; no assertion body modified",
+  "source_commit": "f103d127b9747965e28f20615ef790332661fc68",
+  "support": {
+    "runtest": "0eabe18a80d49daf8242571cea768b0cb9e21ea46681cf9e444a98d43423d76d",
+    "src/version.h": "d37be1fd3ccca0252941a0d7bd4f8ee24d6f30a80c595b6ccfd41dbfd20a7131",
+    "tests/support/aofmanifest.tcl": "6cec2a27a80133260260d0bc559a3749cd2d93fc2d59dc457fb66530da8faf19",
+    "tests/support/benchmark.tcl": "e4832f65905257652d242d01a0f1c1427b910e46f3b4b12f22009d98702163a6",
+    "tests/support/cli.tcl": "48d41dcb46e2f27787ecf872db6362e8dfce5345a45ff92498f8966c46c203e8",
+    "tests/support/cluster.tcl": "207045db825f492f3bb2bf293d3d1d2bf7d4d56ea3989474306ab20cacc67c9c",
+    "tests/support/cluster_util.tcl": "d6ae863cd62238e00c5773c47f617416b659fb47b14c200385f22bc7c04616d0",
+    "tests/support/redis.tcl": "4aba1a0afdc9b39854c5557502c20bddfece20eeeda8db95550ae94cea00daa7",
+    "tests/support/response_transformers.tcl": "373f01a88759abe07b5d1e04e4b469d937af47d458daf89d317d0f3bebaea7ee",
+    "tests/support/server.tcl": "e412686245be3a0f74592d8d5fe4f52c14c0790fb647c736a8a5e2cac13b72bb",
+    "tests/support/test.tcl": "770cbcd7cc446fca8bb232fd406982a68cc675b31b8fa0f8ebec7a9bc7298e89",
+    "tests/support/tmpfile.tcl": "5416b68b9af39f68d3bddce15de975a85d0550b08c2661464802c1ab6493da33",
+    "tests/support/util.tcl": "6bca53d58fcdce0cfb767aab4797d122b95fdf5133943f5878bc8e3987c92920",
+    "tests/test_helper.tcl": "844807d95218020cd79aecbaf10c2134190759d67c311185db76c204e6c08894"
+  },
+  "wave8_promotions": [
+    {
+      "file": "unit/latency-monitor",
+      "name": "LATENCY HISTOGRAM all commands",
+      "root": "LATENCY-HISTOGRAM-ABSENT",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/latency-monitor",
+      "name": "LATENCY HISTOGRAM command",
+      "root": "LATENCY-HISTOGRAM-ABSENT",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/latency-monitor",
+      "name": "LATENCY HISTOGRAM sub commands",
+      "root": "LATENCY-HISTOGRAM-ABSENT",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/latency-monitor",
+      "name": "LATENCY HISTOGRAM with a subset of commands",
+      "root": "LATENCY-HISTOGRAM-ABSENT",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/latency-monitor",
+      "name": "LATENCY HISTOGRAM with empty histogram",
+      "root": "LATENCY-HISTOGRAM-ABSENT",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/latency-monitor",
+      "name": "LATENCY HISTOGRAM with wrong command name skips the invalid one",
+      "root": "LATENCY-HISTOGRAM-ABSENT",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "EVAL - JSON numeric decoding",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "EVAL - JSON smoke test",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "EVAL - JSON string decoding",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "EVAL - Verify minimal bitop functionality",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "EVAL - cmsgpack can pack and unpack circular references?",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "EVAL - cmsgpack can pack double?",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "EVAL - cmsgpack can pack negative int64?",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "Functions in the Redis namespace are able to report errors",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "Try trick readonly table on bit table",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "Try trick readonly table on cmsgpack table",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "Try trick readonly table on json table",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "lua bit.tohex bug",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "redis.sha1hex() implementation",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    }
+  ],
+  "scriptfix2": {
+    "promoted_assertions": 78,
+    "source": "docs/scriptfix2/tcl-promotions.json",
+    "remaining_dependencies": "MEASURE-REQUEST-scriptfix2.md"
+  },
+  "infofix_promotions": [
+    {
+      "file": "integration/redis-cli",
+      "name": "Non-interactive non-TTY CLI: Test command-line hinting - latest server",
+      "root": "COMMAND-DOCS-INCOMPLETE",
+      "prior_reason": "failed on TomoKV 2s in the survey",
+      "status": "reverted to skip in wave 10: the assertion also needs MIGRATE (D17d)"
+    },
+    {
+      "file": "unit/other",
+      "name": "EXPIRES after a reload (snapshot + append only file rewrite)",
+      "root": "DEBUG-LOADAOF-AOF-OFF",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    }
+  ],
+  "wave12_promotions": [
+    {
+      "file": "unit/functions",
+      "test": "FUNCTION - verify allow-omm allows running any command",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/multi",
+      "test": "EXEC with only read commands should not be rejected when OOM",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/multi",
+      "test": "Flushall while watching several keys by one client",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/multi",
+      "test": "MULTI with SAVE",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/multi",
+      "test": "MULTI with SHUTDOWN",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/multi",
+      "test": "MULTI with config error",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/protocol",
+      "test": "test argument rewriting - issue 9598",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/protocol",
+      "test": "test large number of args",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/pubsub",
+      "test": "publish to self inside multi",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/scripting",
+      "test": "Call Redis command with many args from Lua (issue #1764)",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "EVAL - Redis bulk -> Lua type conversion",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "EVAL - Redis error reply -> Lua type conversion",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "EVAL - Redis integer -> Lua type conversion",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "EVAL - Redis multi bulk -> Lua type conversion",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "EVAL - Redis status reply -> Lua type conversion",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "EVAL - Scripts can run non-deterministic commands",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "EVAL does not leak in the Lua stack",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "EVAL_RO - Cannot run write commands",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "EVAL_RO - Successful case",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "SCRIPTING FLUSH - is able to clear the scripts cache?",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/scripting",
+      "test": "SCRIPTING FLUSH ASYNC",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/scripting",
+      "test": "Script with RESP3 map",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "String containing number precision test (regression of issue #1118)",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/scripting",
+      "test": "Test an example script DECR_IF_GT",
+      "occurrences": 2
+    },
+    {
+      "file": "unit/slowlog",
+      "test": "SLOWLOG - commands with too many arguments are trimmed",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/slowlog",
+      "test": "SLOWLOG - too long arguments are trimmed",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/tracking",
+      "test": "Tracking invalidation message is not interleaved with transaction response",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/list",
+      "test": "BLMPOP_LEFT: with 0.001 timeout should not block indefinitely",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/list",
+      "test": "BLMPOP_RIGHT: with 0.001 timeout should not block indefinitely",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/list",
+      "test": "BLPOP unblock but the key is expired and then block again - reprocessing command",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/list",
+      "test": "BLPOP: with 0.001 timeout should not block indefinitely",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/list",
+      "test": "BRPOP: with 0.001 timeout should not block indefinitely",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/list",
+      "test": "BRPOPLPUSH timeout",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/list",
+      "test": "Regression for bug 593 - chaining BRPOPLPUSH with other blocking cmds",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/list",
+      "test": "Self-referential BRPOPLPUSH",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/list",
+      "test": "Unblock fairness is kept during nested unblock",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/list",
+      "test": "Unblock fairness is kept while pipelining",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/set",
+      "test": "SMOVE basics - from intset to regular set",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/set",
+      "test": "SMOVE basics - from regular set to intset",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/set",
+      "test": "SMOVE from intset to non existing destination set",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/set",
+      "test": "SMOVE from regular set to non existing destination set",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/set",
+      "test": "SMOVE non existing key",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/set",
+      "test": "SMOVE non existing src set",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/zset",
+      "test": "BZMPOP should not blocks on non key arguments - #10762",
+      "occurrences": 1
+    },
+    {
+      "file": "unit/type/zset",
+      "test": "ZRANDMEMBER - listpack",
+      "occurrences": 1
+    }
+  ]
+}

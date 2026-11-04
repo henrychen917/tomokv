@@ -9,8 +9,12 @@ import argparse
 import collections
 import concurrent.futures
 import json
+import os
+from pathlib import Path
+import subprocess
 import threading
 import time
+import traceback
 
 import _lib
 from txniso import Battery
@@ -20,6 +24,37 @@ class OrderBattery(Battery):
     def __init__(self, args):
         super().__init__(args)
         self.atomic = int(self.admin.must("CONFIG", "GET", "atomic")[1])
+        self.capture_pid = None
+        if os.environ.get("WAVE14_TXNORDER_CAPTURE") == "1":
+            self.capture_pid = int(_lib.info(self.admin, "server")["process_id"])
+            assert Path(os.readlink(f"/proc/{self.capture_pid}/exe")).resolve() == Path(
+                os.environ["WAVE14_TXNORDER_NATIVE"]).resolve()
+
+    def run(self, name, function):
+        if self.capture_pid is None:
+            return super().run(name, function)
+
+        def observed():
+            try:
+                return function()
+            except Exception:
+                directory = Path(os.environ["TMPDIR"]) / f"txnorder-failure-{name}-{self.capture_pid}"
+                directory.mkdir(exist_ok=False)
+                (directory / "exception.txt").write_text(traceback.format_exc())
+                command = ["gdb", "-q", "-nx", "-batch", "-p", str(self.capture_pid),
+                           "-ex", "set pagination off", "-ex", "set print elements 16",
+                           "-ex", "set print max-depth 3", "-ex", "thread apply all bt 12",
+                           "-ex", "thread apply all bt full 8", "-ex", "detach"]
+                try:
+                    with (directory / "stacks.log").open("w") as log:
+                        result = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT, timeout=20)
+                    (directory / "capture.json").write_text(json.dumps(dict(
+                        pid=self.capture_pid, command=command, exit_code=result.returncode)) + "\n")
+                except Exception as error:
+                    (directory / "capture-error.txt").write_text(repr(error) + "\n")
+                raise
+
+        return super().run(name, observed)
 
     def counter(self, name):
         value = self.stats().get(name)

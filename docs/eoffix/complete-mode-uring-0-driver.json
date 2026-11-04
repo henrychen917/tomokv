@@ -1,0 +1,22 @@
+{
+  "command": [
+    "python3",
+    "tools/eoffix.py",
+    "--tag",
+    "complete-mode-uring-0",
+    "--jobs",
+    "release_batteries atomic_floor replyoff aof_frame aof-uring snapshot-uring",
+    "--binary",
+    "/home/user/Projects/cx-eoffix/build/eoffix/post-complete/tomokv",
+    "--engine",
+    "uring",
+    "--port",
+    "21900",
+    "--keep-going"
+  ],
+  "exit_code": 0,
+  "seconds": 118.96533501520753,
+  "env": {
+    "GATE_TXN_FUSED": "0"
+  }
+}

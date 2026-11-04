@@ -1,9 +1,42 @@
 """CD4.3: option permutations, lookup precedence, duplicate and invalid options."""
 from itertools import permutations
+import random
 from datafix1_common import main
 
 
+def count_without_order(p):
+    # CD4.1/CD4.19: compare to Redis itself, not this candidate's own ASC.
+    rng = random.Random(4242)
+    points = []
+    for index in range(300):
+        points += [round(rng.uniform(-.5, .5), 6),
+                   round(rng.uniform(-.5, .5), 6), f'p{index}']
+    key, dst = 'geo:count:source', 'geo:count:destination'
+    p.check(p.cmd('GEOADD', key, *points) == (300, 300), 'GEO COUNT seed')
+    for index in range(20):
+        lon, lat = round(rng.uniform(-.4, .4), 4), round(rng.uniform(-.4, .4), 4)
+        options = ('FROMLONLAT', lon, lat, 'BYRADIUS', 100, 'km', 'COUNT', 5)
+        oracle, target = p.cmd('GEOSEARCH', key, *options)
+        p.check(isinstance(oracle, list) and len(oracle) == 5,
+                ('GEO COUNT oracle returned five neighbors', index, oracle))
+        for command in ('GEORADIUS', 'GEORADIUS_RO'):
+            p.cmd(command, key, lon, lat, 100, 'km', 'COUNT', 5)
+        p.check(p.cmd('GEOSEARCHSTORE', dst, key, *options) == (5, 5),
+                ('GEOSEARCHSTORE count', index))
+        p.cmd('ZRANGE', dst, 0, -1)
+        p.check(p.cmd('GEORADIUS', key, lon, lat, 100, 'km',
+                      'COUNT', 5, 'STORE', dst) == (5, 5), ('GEORADIUS STORE count', index))
+        p.cmd('ZRANGE', dst, 0, -1)
+        member = f'p{index}'
+        p.cmd('GEOSEARCH', key, 'FROMMEMBER', member, 'BYRADIUS', 100, 'km', 'COUNT', 5)
+        for command in ('GEORADIUSBYMEMBER', 'GEORADIUSBYMEMBER_RO'):
+            p.cmd(command, key, member, 100, 'km', 'COUNT', 5)
+    p.cmd('DEL', key, dst)
+    print('GEO COUNT without ASC/DESC/ANY: 20 centers compared directly to Redis', flush=True)
+
+
 def battery(p):
+    count_without_order(p)
     p.cmd('GEOADD', 'g', 0, 0, 'a', 0.01, 0.01, 'b')
     p.cmd('SET', 'wrong', 'v')
     for command in ('GEOSEARCH', 'GEOSEARCHSTORE'):

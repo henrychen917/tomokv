@@ -61,6 +61,7 @@ namespace tomo {
 
 class IoLoop {
     friend struct FlipListenerState;
+    friend bool cfgfix_rebind(Server&, uint32_t, uint16_t, const std::string&, std::string&, int);
     friend bool fliplisten_reserve(Server&, std::string&);
     friend struct CoreConcurrencyTest;
     friend struct LbPlannerTest;
@@ -132,6 +133,8 @@ public:
                 latency_blocking_retire(*loop->srv_, client, op, *loop->self_);
             } else if (op.has_multi_state()) {
                 notifications = notify_take_batch(op);
+                loop->tracking_finish_multi(client,
+                    *static_cast<MultiExecState*>(op.multi_state()), notifications);
                 latency_multi_retire(*loop, client, op);
             } else if (__builtin_expect(op.has_notify_state(), false)) {
                 notifications = notify_take_batch(op);
@@ -328,7 +331,13 @@ public:
             error = "TLS connection has owner-local engine state";
             return false;
         }
+        if (receive_eof_pending(client)) {
+            error = "connection is draining its end of stream";
+            return false;
+        }
         const auto protocol_idle = [&] {
+            if (hold_for_commit && flip_output_held(client))
+                return client->flip_held_output_idle();
             return hold_for_commit ? client->flip_migration_protocol_idle()
                                    : client->migration_protocol_idle();
         };
@@ -522,6 +531,7 @@ private:
     friend void acl_command_entry(IoLoop&, Client&, Op&);
     friend void acl_broadcast_user_change(IoLoop&, uint32_t, const AclPerm*, bool);
     friend void multi_retire_entry(IoLoop&, Client&, Op&);
+    friend bool multi_exec_io_commands(IoLoop&, MultiExecState&);
     friend uint32_t multi_owner_pass_entry(IoLoop&);
     friend uint32_t xshard_flush_snapshot_progress(Server&, ThreadCtx&);
     template <bool IofusedPrivateQueue>
@@ -727,6 +737,9 @@ private:
             // not be the only thing that can find queued work, or one lost bit wedges a connection
             // forever. Runs only when this thread has already concluded it has nothing to do.
             uint32_t sweep_work = 0;
+            // The sweep's resume visits recompute this: true iff a connection still holds a
+            // frame the global atomic window refused (script_window_resume).
+            self_->atomic_admission_state().credit_wait = false;
             sweep_work = sweep<HasUnix, HasTls, kEp, Fused, SplitLocal>();
             if (sweep_work) {
                 {
@@ -748,18 +761,24 @@ private:
                     self_->publish_read_local_parked(srv_->read_local_epoch());
             }
             self_->arm_blocked();
+            // CREDIT DOORBELL, waiter half. No inbound channel announces a retired window credit,
+            // so a refused frame used to sleep until this park's timeout. Publish this IO after
+            // arm_blocked(), then re-check; a retirement's Server::atomic_credit_doorbell() rings it.
+            const bool credit_room =
+                __builtin_expect(self_->atomic_admission_state().credit_wait, false) &&
+                srv_->atomic_credit_wait_arm(self_->id());
             if constexpr (kEp) {
                 // The park. Same 50ms ceiling as the ring wait, and for the same reason: the stop
                 // flag is only re-read at the top of the loop, so an unbounded block would make
                 // shutdown depend on a connection arriving.
                 if constexpr (Fused) {
-                    if (!self_->any_fused_inbound()) {
+                    if (!credit_room && !self_->any_fused_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                         tenure.park();
 #endif
                         epoll_pass<HasUnix, HasTls, Fused>(wait_ms);
                     }
-                } else if (!self_->any_io_inbound()) {
+                } else if (!credit_room && !self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
@@ -767,14 +786,14 @@ private:
                 }
             } else {
                 if constexpr (Fused) {
-                    if (!self_->any_fused_inbound()) {
+                    if (!credit_room && !self_->any_fused_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                         tenure.park();
 #endif
                         ring_.submit_and_wait(1, wait_ms);
                     } else                            ring_.submit_and_reap();
                 } else {
-                    if (!self_->any_io_inbound()) {
+                    if (!credit_room && !self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                         tenure.park();
 #endif
@@ -922,7 +941,11 @@ private:
                 if (static_cast<size_t>(n) < avail) { c->set_recv_armed(true); return; }
                 continue;                  // filled the offer: there may be more behind it
             }
-            if (n == 0) { epoll_request_close(c); return; }   // orderly peer close
+            if (n == 0) {
+                if (c->is_tls()) epoll_request_close(c);
+                else receive_fin(c, true);
+                return;
+            }
             if (errno == EINTR) continue;
             if (errno == EAGAIN || errno == EWOULDBLOCK) { c->set_recv_armed(true); return; }
             epoll_request_close(c);
@@ -1075,6 +1098,7 @@ private:
                     // EPOLLERR/EPOLLHUP are folded into the read side on purpose: the recv that
                     // follows returns 0 or the real errno, and close_client is then reached through
                     // the one path that already knows how to tear a connection down.
+                    if ((ev.events & EPOLLRDHUP) && !c->is_tls()) receive_fin(c, false);
                     if (ev.events & (EPOLLIN | EPOLLERR | EPOLLHUP | EPOLLRDHUP))
                         c->set_recv_armed(false);
                     if (ev.events & (EPOLLOUT | EPOLLERR | EPOLLHUP)) enqueue_serve(c);
@@ -1284,6 +1308,11 @@ private:
             // Do not swallow this silently: a failing accept with no trace is indistinguishable from
             // a hung server, which is exactly how the 1024-connection failure presented.
             self_->sig().accept_err++;
+            if (cqe->res == -EMFILE || cqe->res == -ENFILE) {
+                accept_armed_ref(kind) = false;
+                backoff_accept(kind);
+                return;
+            }
             rearm_accept(cqe, kind);
             return;
         }
@@ -1310,6 +1339,11 @@ private:
             const int fd = ::accept4(listener, nullptr, nullptr, SOCK_NONBLOCK | SOCK_CLOEXEC);
             if (fd < 0) {
                 if (errno == EINTR) continue;
+                if (errno == EMFILE || errno == ENFILE) {
+                    self_->sig().accept_err++;
+                    backoff_accept(kind);
+                    return taken;
+                }
                 if (errno != EAGAIN && errno != EWOULDBLOCK) self_->sig().accept_err++;
                 return taken;
             }
@@ -1334,7 +1368,9 @@ private:
         self_->sig().accepts++;
         if (tls_socket) self_->sig().tls_accepts++;
         else self_->sig().plain_accepts++;
-        if (srv_->live_clients() >= srv_->maxclients()) {
+        // Redis admits exactly maxclients. IO threads accept concurrently, so the slot is
+        // reserved before any other admission work and every later refusal releases it.
+        if (!srv_->client_reserve()) {
             static constexpr char kErr[] = "-ERR max number of clients reached\r\n";
             if (!tls_socket) {
                 const ssize_t sent = ::send(fd, kErr, sizeof(kErr) - 1,
@@ -1356,12 +1392,14 @@ private:
             }
             ::close(fd);
             srv_->note_rejected_connection();
+            srv_->client_reserve_cancel();
             return;
         }
         auto* c = new (std::nothrow) Client(fd);
         if (!c) {
             ::close(fd);
             self_->sig().accept_err++;
+            srv_->client_reserve_cancel();
             return;
         }
         // NOTHING READ-LOCAL IS ALLOCATED HERE ANY MORE. The RYOW write-ring
@@ -1374,9 +1412,9 @@ private:
             delete c;
             ::close(fd);
             self_->sig().accept_err++;
+            srv_->client_reserve_cancel();
             return;
         }
-        srv_->client_accepted();
         c->set_authenticated(!srv_->requirepass_enabled());
         c->set_acl_user_idx(kAclDefaultUser);
         c->set_id(srv_->next_client_id().fetch_add(1, std::memory_order_relaxed));
@@ -1429,7 +1467,8 @@ private:
         try {
             auto conn = std::make_unique<TlsConn>();
             std::string error;
-            if (!conn->init(*tls_context_, srv_->cfg().tls_auth_clients, c->fd(),
+            auto& auth = const_cast<Config&>(srv_->cfg()).tls_auth_clients;
+            if (!conn->init(*tls_context_, std::atomic_ref<TlsAuthClients>(auth).load(std::memory_order_relaxed), c->fd(),
                             true, error)) {
                 std::fprintf(stderr, "TLS connection init failed: %s\n", error.c_str());
                 return false;
@@ -1650,6 +1689,7 @@ private:
         // among source touches. A failed transport push after the capacity check is an invariant
         // failure: attempting rollback would make ownership ambiguous.
         const uint64_t client_id = client->id();
+        if (flip_transfer) flip_output_detach(client);
         self_->release_wb_slot(client->wb_slot());
         // Destination epoll readiness may arrive as soon as the owner store publishes. This
         // sentinel keeps those events inert until the pre-reserved client/catalog/WB install.
@@ -1738,6 +1778,7 @@ private:
                 std::abort();
             }
             client->set_wb_slot(self_->assign_wb_slot(client));
+            flip_output_adopt(client);
             // Epoll's actual registration was installed during reversible preflight. io_uring
             // needs no registration; arm_recv below retries harmless SQ starvation.
             mark_active(client);
@@ -1747,13 +1788,32 @@ private:
                         : self_->drain_client_transfers(take);
     }
 
+    bool flip_output_hold();
+    void flip_output_prepare();
+    void flip_output_unhold(Client* client);
+    bool flip_output_plan();
+    void flip_output_release();
+    void flip_output_adopt(Client* client);
+    void flip_output_detach(Client* client);
+    bool flip_output_held(const Client* client) const;
+    void flip_output_observe();
+    bool flip_post_drain() const;
+    uint8_t flip_immovable_kind(const Client* client) const;
+    bool flip_immovable_refused();
+    bool flip_client_drained(const Client* client, bool coordinator) const;
+    bool flip_timers_drained() const;
+    void flip_skip_stayers();
+    bool flip_client_stays(const Client* client) const;
+    void flip_borrow_hold();
+    void flip_borrow_resume();
+    void flip_borrow_release();
     bool flip_session_drain_refused() const;
     bool flip_session_close_held();
     bool closing_client_ready(Client* client);
 
     bool flip_io_drained() const {
         if (!pending_serve_.empty() || !pending_releases_.empty() ||
-            !pending_handoffs_.empty() || !deferred_timers_.empty() ||
+            !pending_handoffs_.empty() || !flip_timers_drained() ||
             !client_migrations_.empty() || !epoll_closes_.empty() ||
             !dead_next_.empty() || !dead_ready_.empty() ||
             !multi_deferred_.empty() || !pending_multi_cleanups_.empty() ||
@@ -1775,13 +1835,7 @@ private:
             if (flip_close_pin_ && client->closing()) continue;
             const bool coordinator_op = self_->id() == srv_->flip_coordinator() &&
                 client == flip_client_ && flip_epoch_local_ == srv_->flip_epoch();
-            if (coordinator_op) {
-                if (client->rob().in_flight() != 1 || client->send_inflight() ||
-                    client->serve_pending() || !client->nothing_to_write() ||
-                    !wb_.migration_ready(*client)) return false;
-            } else if (!client->flip_drain_idle() || !wb_.migration_ready(*client)) {
-                return false;
-            }
+            if (!flip_client_drained(client, coordinator_op)) return false;
         }
         return true;
     }
@@ -1790,7 +1844,8 @@ private:
         const uint32_t planned = srv_->flip_source_clients(self_->id());
         for (uint32_t ordinal = 0; ordinal < planned; ordinal++) {
             Client* client = srv_->flip_client_at(self_->id(), ordinal);
-            if (!client || client == flip_client_ || client->ifid_thread() != self_->id()) {
+            if (!client) continue; // this source retained a durable blocker in its plan row
+            if (client == flip_client_ || client->ifid_thread() != self_->id()) {
                 error = "the weighted FLIP connection set changed after planning";
                 return false;
             }
@@ -1819,6 +1874,7 @@ private:
                                            srv_->flip_client_destination(self_->id(), ordinal),
                                            !converting_to_ex);
             srv_->flip_forget_planned_client(self_->id(), ordinal);
+            flip_output_unhold(client);
             flip_dropped_local_++;
         }
     }
@@ -1833,16 +1889,6 @@ private:
         return unix_owner >= srv_->nthreads() || unix_owner == self_->id() ||
                srv_->flip_acked(unix_owner, FlipStage::IoDrain);
     }
-
-    // A live FLIP never parks this loop (flip_control_pass reports work every pass), so the
-    // mask-independent sweep the idle path runs before parking never runs either. NotifyMask::set
-    // skips its RMW when it still sees its bit, so a consumer can take that bit before the
-    // producer's item is visible; the item then waits with no bit. The FLIP stages wait on exactly
-    // these inboxes (connection transfers; client/pub-sub markers): a stranded transfer held
-    // ClientInstall forever in a POST epoll stress run. While live, re-flag every inbox that holds
-    // an item; this loop's next masked drains take it. Out of line and opaque (`noipa`), so the
-    // units that instantiate flip_control_pass keep their inlining decisions.
-    __attribute__((noinline, noipa)) void flip_reflag_inbound() { self_->flag_pending_io_inbound(); }
 
     static bool flip_stage_holds_closes(FlipStage stage) {
         return stage >= FlipStage::Planning && stage <= FlipStage::Rollback;
@@ -2186,8 +2232,9 @@ private:
         }
         if constexpr (!kSingleDatabase)
             if (stage <= FlipStage::DatabaseRun) return database_control_pass();
-        flip_reflag_inbound();
+        flip_borrow_resume();
         fliplisten_resume();
+        flip_output_prepare();
         // A pinned close may have refused this epoch earlier in this IO pass.
         // Do not drop/unpin it in ClientPrepare before rollback retires the FLIP.
         if (stage < FlipStage::ClientCommit) {
@@ -2204,8 +2251,8 @@ private:
             // A pin left by an earlier FLIP must not hide a detached close from this drain.
             flip_close_pin_ = false;
             fliplisten_quiesce();
-            if (!flip_session_drain_refused() && accepts_quiesced() &&
-                flip_io_drained() && flip_io_drain_ordered()) {
+            if (!flip_session_drain_refused() && !flip_immovable_refused() && accepts_quiesced() &&
+                flip_io_drained() && flip_io_drain_ordered() && flip_output_hold()) {
                 // From this acknowledgement the plan reads this IO's client vector: hold every
                 // close before it leaves ThreadCtx::clients until the FLIP retires (a converting
                 // IO releases the pin once its ClientPrepare is decided).
@@ -2214,6 +2261,8 @@ private:
             }
         } else if (stage == FlipStage::IoPrepare &&
                    flip_owed(stage)) {
+            if (!flip_output_plan())
+                srv_->flip_note_failure("ERR FLIP could not reserve socket-output handover");
             if (!fliplisten_prepare())
                 srv_->flip_note_failure("ERR FLIP could not register destination listeners");
             if (!prepare_client_transfer_capacity(srv_->flip_incoming_clients(self_->id())))
@@ -2227,6 +2276,7 @@ private:
             const uint32_t planned = srv_->flip_source_clients(self_->id());
             if (planned &&
                 flip_prepare_epoch_ != srv_->flip_epoch()) {
+                flip_skip_stayers();
                 std::string ready_error;
                 if (!flip_candidate_clients_ready(ready_error)) {
                     // A saturated pipelined connection is momentarily busy at ANY instant, so a
@@ -2243,14 +2293,14 @@ private:
                     }
                 } else {
                     flip_prepare_epoch_ = srv_->flip_epoch();
-                    flip_dropped_local_ = 0;
+                    flip_dropped_local_ = flip_skipped_local_;
                     if (!reserve_client_transfer_state(planned)) {
                         srv_->flip_note_failure(
                             "ERR FLIP could not reserve source connection state");
                     } else {
                         for (uint32_t ordinal = 0; ordinal < planned; ordinal++) {
                             Client* client = srv_->flip_client_at(self_->id(), ordinal);
-                            if (!client) std::abort();
+                            if (!client) continue; // retained on this surviving source
                             if (client->closing()) continue; // dropped below, never detached
                             std::string error;
                             if (!prepare_client_transfer(
@@ -2295,19 +2345,23 @@ private:
             fliplisten_install();
             if (srv_->flip_source_clients(self_->id()))
                 commit_prepared_client_transfers_impl<kEp>();
+            // Ownership is already published: discard source pointers without dereferencing.
+            flip_held_output_.clear();
             srv_->flip_ack(self_->id(), stage);
         } else if (stage == FlipStage::ClientInstall &&
                    flip_owed(stage)) {
             const bool converting_to_ex =
                 srv_->flip_candidate_target(self_->id()) == Role::Ex;
-            // EX is frozen now, so this second full IO drain is the transit barrier for notify,
+            // EX is frozen now, so this execution/transit drain fences notify,
             // pub/sub, tracking, and client-scatter messages which were posted just after a peer's
             // earlier IoDrain acknowledgement. The global event count prevents every consumer
             // from acknowledging while a payload is still between queues. Listener accepts stay
             // cancelled until the final quota check and retained-descriptor admission barrier.
             if (flip_io_drained() && self_->client_transfers_quiesced() &&
-                (!converting_to_ex || accepts_quiesced()))
+                (!converting_to_ex || accepts_quiesced())) {
+                flip_output_observe();
                 srv_->flip_ack(self_->id(), stage);
+            }
         } else if (stage == FlipStage::RoleReady &&
                    flip_owed(stage)) {
             refresh_save_cron_writer();
@@ -2326,6 +2380,7 @@ private:
             fliplisten_quiesce();
             if (client_transfers_prepared() && accepts_quiesced()) {
                 cancel_prepared_client_transfers_impl<kEp>();
+                flip_output_release();
                 if (converting_to_ex && !restore_accepts_after_rollback()) return 1;
                 srv_->flip_ack(self_->id(), stage);
             }
@@ -2525,8 +2580,13 @@ private:
             } else if (res == -ECANCELED) {
                 (void)finish_client_transfer<kEp>(c);
             } else {
+                // Rollback normally re-arms reception. EOF already released the
+                // original kernel pin; hold admission across that rollback.
+                const bool eof = res == 0 && !c->is_tls() && !c->closing();
+                if (eof) c->set_recv_armed(true);
                 cancel_client_transfer<kEp>(c);
-                close_client(c);
+                if (eof) receive_fin(c, true);
+                else close_client(c);
             }
             return;
         }
@@ -2546,7 +2606,9 @@ private:
             connreset::note(*c, self_->id(), res == 0 ? "recv_eof" : "recv_error",
                             std::source_location::current(), res);
 #endif
-            close_client(c); return;
+            if (res == 0 && !c->is_tls() && !c->closing()) receive_fin(c, true);
+            else close_client(c);
+            return;
         }
         c->commit_read(static_cast<size_t>(res));
         if (query_buffer_exceeded(*c)) { close_client(c); return; }
@@ -2643,6 +2705,10 @@ private:
                 // Only decrypted bytes enter the RESP buffer. Ciphertext counts are committed to
                 // the BIO in on_tls_recv and can never reach this cursor.
                 c->commit_read(result.bytes);
+                self_->sig().net_input_bytes.store(
+                    self_->sig().net_input_bytes.load(std::memory_order_relaxed) + result.bytes,
+                    std::memory_order_relaxed);
+                c->set_last_interaction_s(cached_now_s_);
                 if (query_buffer_exceeded(*c)) { close_client(c); return false; }
                 self_->sig().tls_plaintext_input_bytes += result.bytes;
                 decrypted = true;
@@ -2698,7 +2764,6 @@ private:
     template <bool kEp, bool Fused = false>
     void on_tls_recv(Client* c, int res) {
         c->set_recv_armed(false);
-        if (res > 0) self_->sig().net_input_bytes.store(self_->sig().net_input_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(res), std::memory_order_relaxed);
         TlsConn* tls = tls_engine(c);
         if (!tls) { close_client(c); return; }
         if (c->dead()) { tls->abandon_input(); return; }
@@ -3252,7 +3317,7 @@ private:
         static constexpr bool Fused = SplitLocal || (
             BatchOps == kGenthreadIfidBatchOps);
         [[maybe_unused]] const bool read_local_enabled =
-            Fused && __builtin_expect(latency_reads_local_, false);
+            Fused && __builtin_expect(read_local_bookkeeping_, false);
         Client& conn = *c;
         if (__builtin_expect(query_buffer_exceeded(conn), false)) {
             close_client(c); // Redis query-buffer overflow closes without a protocol reply.
@@ -3783,7 +3848,7 @@ subscriber_checks_done:
                     uint64_t timeout_ms = 0;
                     const uint64_t latency_started = __builtin_expect(srv_->latency_tracking(), false)
                         ? latency_tracking_start() : 0;
-                    const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms);
+                    const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms, c);
                     if (wait == WaitCommandResult::Unsatisfied) {
                         // Pending slices participate in CONFIG no's discard. Do not
                         // retain an old probe duration in the parked timer itself.
@@ -3810,7 +3875,7 @@ subscriber_checks_done:
                             break;
                         }
                     } else if (wait == WaitCommandResult::Immediate) {
-                        server_tail_reply_wait(*op);
+                        server_tail_reply_wait(*op, c);
                     }
                     // Error already carries its exact validation reply. Immediate already carries
                     // :0. Both retire through the ordinary local completion path below.
@@ -4129,9 +4194,10 @@ ordinary_shard_ready:
                     }
                     read_local_demotion.commit_reads();
                 }
+                // The shared classifier sets this exactly for armed GET/MGET. No intervening
+                // path changes spec; reuse that result instead of testing its flags again.
                 if (read_local_enabled &&
-                    __builtin_expect(spec->flags & CmdFlags::ReadLocalEligible, false)) {
-                    if (!read_local_eligible_decided) std::abort();
+                    __builtin_expect(read_local_eligible_decided, false)) {
                     if (read_local_eligible) {
                         if (head_candidate) {
                             head_candidate = false;
@@ -4752,7 +4818,7 @@ ordinary_shard_ready:
         else          sig.clear_oldest_age();
     }
 
-    enum class DeferredTimerKind : uint8_t { WaitZero, DebugSleepOk };
+    enum class DeferredTimerKind : uint8_t { WaitZero, DebugSleepOk, TrackingOn, ReceiveFin, ReceiveEof, AcceptRetry };
     struct DeferredTimer {
         Client* client = nullptr;
         uint64_t op_id = 0;
@@ -4761,6 +4827,31 @@ ordinary_shard_ready:
         SlowlogArm slowlog_arm{};
         DeferredTimerKind kind = DeferredTimerKind::WaitZero;
     };
+
+    // Cold EOF lifecycle. ReceiveFin keeps retrying an epoll short read until recv(0).
+    // ReceiveEof holds recv_armed as an admission fence, with no kernel buffer pin.
+    // For these two kinds op_id/slow_started_ns snapshot flush_id/output bytes.
+    void receive_fin(Client* client, bool input_ended);
+    bool receive_eof_pending(const Client* client) const;
+    bool receive_eof_blocks_flip(const Client* client) const;
+    void receive_eof_forget(Client* client);
+    bool receive_eof_pass(size_t index, uint64_t now_ms);
+
+    [[gnu::cold, gnu::noinline]] void backoff_accept(UrKind kind) {
+        // Stop level-triggered readiness as well as uring rearming. The existing
+        // owner-local timer service wakes the issuer; no per-command state or
+        // sleeping worker is introduced. Generation checks discard retired roles.
+        const int fd = kind == UrKind::UnixAccept ? unix_listen_fd_ :
+                       kind == UrKind::TlsAccept ? tls_listen_fd_ : listen_fd_;
+        if (epoll_) (void)ep_.del(fd);
+        try {
+            deferred_timers_.push_back(DeferredTimer{nullptr, static_cast<uint64_t>(kind),
+                now_ns() / 1000000ull + 100, accept_generation_, {}, DeferredTimerKind::AcceptRetry});
+        } catch (const std::bad_alloc&) {
+            std::fprintf(stderr, "Out of memory scheduling accept retry\n");
+            (void)srv_->request_signal_shutdown();
+        }
+    }
 
     int debug_sleep_timer_start(Client* client, uint64_t op_id, uint64_t delay_us,
                                 uint64_t slow_started_ns, const SlowlogArm& arm) {
@@ -4796,9 +4887,35 @@ ordinary_shard_ready:
         uint32_t completed = 0;
         for (size_t i = 0; i < deferred_timers_.size();) {
             const DeferredTimer timer = deferred_timers_[i];
+            if (timer.kind == DeferredTimerKind::ReceiveFin ||
+                timer.kind == DeferredTimerKind::ReceiveEof) {
+                if (receive_eof_pass(i, now_ms)) completed++;
+                else i++;
+                continue;
+            }
+            if (timer.kind == DeferredTimerKind::AcceptRetry) {
+                if (now_ms < timer.deadline_ms) { ++i; continue; }
+                deferred_timers_[i] = deferred_timers_.back();
+                deferred_timers_.pop_back();
+                if (timer.slow_started_ns != accept_generation_ || self_->role() != Role::Ifid ||
+                    accept_quiescing_) continue;
+                const UrKind kind = static_cast<UrKind>(timer.op_id);
+                if (epoll_) {
+                    const int fd = kind == UrKind::UnixAccept ? unix_listen_fd_ :
+                                   kind == UrKind::TlsAccept ? tls_listen_fd_ : listen_fd_;
+                    if (fd >= 0 && !ep_.add(fd, EPOLLIN, ur_tag(kind, nullptr))) backoff_accept(kind);
+                } else {
+                    arm_accept(kind);
+                }
+                ++completed;
+                continue;
+            }
             const bool ready = timer.kind == DeferredTimerKind::DebugSleepOk
                 ? srv_->debug_sleep_complete(timer.deadline_ms)
-                : timer.deadline_ms && now_ms >= timer.deadline_ms;
+                : timer.kind == DeferredTimerKind::TrackingOn
+                    ? srv_->tracking_config_ready(timer.deadline_ms)
+                    : (timer.deadline_ms && now_ms >= timer.deadline_ms) ||
+                      server_tail_wait_ready(timer.client->rob().at(timer.op_id), timer.client);
             if (!ready) {
                 i++;
                 continue;
@@ -4808,7 +4925,7 @@ ordinary_shard_ready:
             if (timer.kind == DeferredTimerKind::WaitZero) {
                 const uint64_t started = __builtin_expect(srv_->latency_tracking(), false)
                     ? latency_tracking_start() : 0;
-                server_tail_reply_wait(op);
+                server_tail_reply_wait(op, client);
                 if (started) {
                     latency_tracking_part(self_->id(), op, started);
                     latency_tracking_retire(self_->id(), op);
@@ -4914,8 +5031,13 @@ ordinary_shard_ready:
         if (client_cron_was_armed_) deadline = std::min(deadline, client_cron_beat_ms_);
         // Connection timers have no external producer to wake their owner.
         for (const auto& timer : deferred_timers_)
-            if (timer.kind == DeferredTimerKind::WaitZero && timer.deadline_ms)
+            if ((timer.kind == DeferredTimerKind::WaitZero ||
+                 timer.kind == DeferredTimerKind::AcceptRetry) && timer.deadline_ms)
                 deadline = std::min(deadline, timer.deadline_ms);
+            else if (timer.kind == DeferredTimerKind::TrackingOn)
+                // Owner acknowledgements publish a mailbox word, not an IO
+                // completion. Only this cold control wait needs a short poll.
+                deadline = std::min(deadline, now_ms + 1);
         return deadline > now_ms ? static_cast<unsigned>(deadline - now_ms) : 0;
     }
 
@@ -5018,9 +5140,9 @@ ordinary_shard_ready:
         slowlog_arm_.latency_ms = snapshot.latency_monitor_threshold;
         slowlog_arm_.latency_tracking = snapshot.latency_tracking;
         latency_tracking_bind(snapshot.latency_tracking);
-        // Arming changes admission only: the store's immutable replacement / QSBR
-        // contract remains armed until the boot-latched lane is dismantled.
-        latency_reads_local_ = srv_->read_local_enabled() && !snapshot.latency_tracking;
+        // RYOW, owner-tail and MGET fences outlive a latency-tracking switch.
+        // Only lane admission is vetoed by tracking, in read_local_parse.inc.
+        read_local_bookkeeping_ = srv_->read_local_enabled();
         slowlog_armed_ = slowlog_arm_.armed();
         if (srv_->read_local_enabled()) {
             fused_executor_->set_read_local_point_writes_precise(
@@ -5042,6 +5164,8 @@ ordinary_shard_ready:
         // parked it AGAIN: a double delete, one reap later. Caught by the torture battery's RST
         // churn under ASAN; latent since the first teardown path was written.
         if (c->dead()) return;
+        receive_eof_forget(c);
+        command_client_closing(c);
         climon_unpark_paused(c);
         if (!c->closing()) {
 #ifdef TOMO_CONNRESET_TRACE
@@ -5099,6 +5223,7 @@ ordinary_shard_ready:
         client_work_fences_.erase(c);
         climon_untrack_client(c);
         command_client_disconnected(c);
+        srv_->aof().forget_client(c->id());
         self_->release_wb_slot(c->wb_slot());
         c->set_wb_slot(Client::kNoWbSlot);
         wb_.teardown(*c);
@@ -5317,7 +5442,7 @@ ordinary_shard_ready:
     uint64_t proto_max_bulk_len_ = 512ull * 1024 * 1024;
     // Slow-log arm for connection-local commands. Appended here rather than earlier so no
     // pre-existing IoLoop member offset moves.
-    bool latency_reads_local_ = false; // per-pass admission, preserves owner timing while armed
+    bool read_local_bookkeeping_ = false; // boot-latched; runtime timing never disables ordering
     bool slowlog_armed_ = false;
     SlowlogArm slowlog_arm_{};
     // Notification publications are sequenced through one coordinator IO. Keep this v2-only
@@ -5411,6 +5536,7 @@ public:
 
     // FLIP-only resource protocol; definitions stay out of hot translation units.
     void fliplisten_shutdown();
+    void fliplisten_release_files();
     void fliplisten_retain(int fd, UrKind kind);
     void fliplisten_stale(io_uring_cqe*, UrKind);
     void fliplisten_cqe(io_uring_cqe*);
@@ -5430,6 +5556,15 @@ public:
     // Cold config cache at the tail: established IO members retain their offsets.
     uint64_t client_query_buffer_limit_ = 1024ull * 1024 * 1024;
     IdleBuffers idle_buffers_;
+    // A cold deferred-serve queue. serve_pending is its existing lifetime and
+    // deduplication pin, so ordinary command/send paths acquire no new branch.
+    std::vector<Client*> flip_held_output_;
+    std::vector<Client*> flip_stayers_;
+    std::vector<BorrowRelease> flip_borrow_releases_;
+    uint64_t flip_stay_epoch_ = UINT64_MAX;
+    bool flip_borrow_held_ = false;
+    uint64_t flip_skip_epoch_ = UINT64_MAX;
+    uint32_t flip_skipped_local_ = 0;
 };
 
 }  // namespace tomo

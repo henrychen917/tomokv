@@ -1,0 +1,144 @@
+{
+  "file": "integration/replication-buffer",
+  "mode": "1s",
+  "passed": 2,
+  "failed": 0,
+  "skipped": 4,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "seconds": 0.16841619089245796,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "8-15",
+    "/home/user/Projects/cx-execfifo2/build/tomokv",
+    "--port",
+    "20103",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.I1WnIs/jobs/redis_tcl/redis-tcl-1s/integration/replication-buffer/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--databases",
+    "16"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "8-15",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20103",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20105",
+    "--portcount",
+    "1",
+    "--single",
+    "integration/replication-buffer",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.I1WnIs/jobs/redis_tcl/redis-tcl-1s/integration/replication-buffer/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "3919738",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/integration/replication-buffer.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/integration/replication-buffer.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/replication-buffer.tcl",
+      "test": "Partial resynchronization is successful even client-output-buffer-limit is less than repl-backlog-size in tests/integration/replication-buffer.tcl",
+      "data": "Partial resynchronization is successful even client-output-buffer-limit is less than repl-backlog-size",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/integration/replication-buffer.tcl",
+      "test": "Partial resynchronization is successful even client-output-buffer-limit is less than repl-backlog-size in tests/integration/replication-buffer.tcl",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/replication-buffer.tcl",
+      "test": "Partial resynchronization is successful even client-output-buffer-limit is less than repl-backlog-size in tests/integration/replication-buffer.tcl",
+      "data": "Partial resynchronization is successful even client-output-buffer-limit is less than repl-backlog-size",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/replication-buffer.tcl",
+      "test": "Replica client-output-buffer size is limited to backlog_limit/16 when no replication data is pending in tests/integration/replication-buffer.tcl",
+      "data": "Replica client-output-buffer size is limited to backlog_limit/16 when no replication data is pending",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/integration/replication-buffer.tcl",
+      "test": "Replica client-output-buffer size is limited to backlog_limit/16 when no replication data is pending in tests/integration/replication-buffer.tcl",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/replication-buffer.tcl",
+      "test": "Replica client-output-buffer size is limited to backlog_limit/16 when no replication data is pending in tests/integration/replication-buffer.tcl",
+      "data": "Replica client-output-buffer size is limited to backlog_limit/16 when no replication data is pending",
+      "milliseconds": "0"
+    },
+    {
+      "status": "done",
+      "file": "tests/integration/replication-buffer.tcl",
+      "test": "",
+      "data": "integration/replication-buffer",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/integration/replication-buffer.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ],
+  "setup_stdout": ""
+}

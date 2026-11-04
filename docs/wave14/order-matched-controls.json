@@ -1,0 +1,18 @@
+[
+  {
+    "arm": "headline",
+    "exit_code": 1
+  },
+  {
+    "arm": "blockfix4",
+    "exit_code": 1
+  },
+  {
+    "arm": "rootcompat",
+    "exit_code": 1
+  },
+  {
+    "arm": "merged",
+    "exit_code": 1
+  }
+]

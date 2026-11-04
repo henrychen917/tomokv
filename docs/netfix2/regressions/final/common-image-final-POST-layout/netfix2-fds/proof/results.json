@@ -1,0 +1,98 @@
+{
+  "fds-2s-uring-db1": {
+    "fds_budget": {
+      "maxclients": 136,
+      "own_fds": 32,
+      "answered": 146,
+      "rejected": 10
+    },
+    "fds_backoff": {
+      "forced_emfile_attempts": 36,
+      "pending_connection": "resumed"
+    }
+  },
+  "fds-2s-uring-db16": {
+    "fds_budget": {
+      "maxclients": 128,
+      "own_fds": 41,
+      "answered": 138,
+      "rejected": 11
+    },
+    "fds_backoff": {
+      "forced_emfile_attempts": 36,
+      "pending_connection": "resumed"
+    }
+  },
+  "fds-2s-epoll-db1": {
+    "fds_budget": {
+      "maxclients": 128,
+      "own_fds": 40,
+      "answered": 138,
+      "rejected": 11
+    },
+    "fds_backoff": {
+      "forced_emfile_attempts": 36,
+      "pending_connection": "resumed"
+    }
+  },
+  "fds-2s-epoll-db16": {
+    "fds_budget": {
+      "maxclients": 120,
+      "own_fds": 49,
+      "answered": 130,
+      "rejected": 11
+    },
+    "fds_backoff": {
+      "forced_emfile_attempts": 40,
+      "pending_connection": "resumed"
+    }
+  },
+  "fds-1s-uring-db1": {
+    "fds_budget": {
+      "maxclients": 136,
+      "own_fds": 36,
+      "answered": 146,
+      "rejected": 11
+    },
+    "fds_backoff": {
+      "forced_emfile_attempts": 48,
+      "pending_connection": "resumed"
+    }
+  },
+  "fds-1s-uring-db16": {
+    "fds_budget": {
+      "maxclients": 128,
+      "own_fds": 45,
+      "answered": 138,
+      "rejected": 11
+    },
+    "fds_backoff": {
+      "forced_emfile_attempts": 48,
+      "pending_connection": "resumed"
+    }
+  },
+  "fds-1s-epoll-db1": {
+    "fds_budget": {
+      "maxclients": 128,
+      "own_fds": 44,
+      "answered": 138,
+      "rejected": 10
+    },
+    "fds_backoff": {
+      "forced_emfile_attempts": 48,
+      "pending_connection": "resumed"
+    }
+  },
+  "fds-1s-epoll-db16": {
+    "fds_budget": {
+      "maxclients": 120,
+      "own_fds": 53,
+      "answered": 130,
+      "rejected": 12
+    },
+    "fds_backoff": {
+      "forced_emfile_attempts": 48,
+      "pending_connection": "resumed"
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "function_groups": 10324,
+  "unchanged": 10322,
+  "changed": 2,
+  "lane_equal": 0,
+  "residual": 2,
+  "hot_groups": 718,
+  "hot_headline": 718,
+  "hot_lane": 0,
+  "command_hot_groups": 88,
+  "command_hot_headline": 88,
+  "command_hot_lane": 0,
+  "hot_residual": [],
+  "references": {
+    "headline": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-105c5818cc",
+      "sha256": "2404be4919172bd5b273d8cb6bda720eeae176ea3e0bb151c9fe768ee96f0991"
+    },
+    "rootcore": {
+      "path": "/home/user/Projects/bins/rootcore-post-d8cdb1df",
+      "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d"
+    },
+    "baseline_rootcore": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-7d2f8a205",
+      "sha256": "69edca195456270290f3ca6f96dfe7388bd5afb3b074d883374941445a23888d"
+    },
+    "blockfix4": {
+      "path": "/home/user/Projects/bins/blockfix4-post-cb7a70bb",
+      "sha256": "cb7a70bbcf669f8657697a3708c9dd583dbf74fd0463da4ba590a1b8caf63a65"
+    },
+    "baseline_blockfix4": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-7d2f8a205",
+      "sha256": "69edca195456270290f3ca6f96dfe7388bd5afb3b074d883374941445a23888d"
+    },
+    "rootcompat": {
+      "path": "/home/user/Projects/bins/rootcompat-post-f3511f86",
+      "sha256": "f3511f861a8a9a01ca24eafbb43766dca621e7c3c1f3512119c241b962ed26ed"
+    },
+    "baseline_rootcompat": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-7d2f8a205",
+      "sha256": "69edca195456270290f3ca6f96dfe7388bd5afb3b074d883374941445a23888d"
+    },
+    "clientcompat": {
+      "path": "/home/user/Projects/bins/clientcompat-post-346d035c",
+      "sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01"
+    },
+    "baseline_clientcompat": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-7d2f8a205",
+      "sha256": "69edca195456270290f3ca6f96dfe7388bd5afb3b074d883374941445a23888d"
+    },
+    "execfifo3": {
+      "path": "/home/user/Projects/bins/execfifo3-post-6f9af8cd",
+      "sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8"
+    },
+    "baseline_execfifo3": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-e32b04a44",
+      "sha256": "93f866e4803cf97b0664899c21e5c4255fca84fcddff27e19c46f9be45e15149"
+    }
+  },
+  "post": {
+    "path": "build/wave14/pre-source/build/tomokv",
+    "sha256": "eb46b9718b4642fc78d3139f9e903c934bd0f47f3867267ea003af3f30ef5814"
+  }
+}

@@ -1,0 +1,1 @@
+{"wave9": "PASS", "contracts": ["EXEC repeated-key wakeup", "escalated script commit wakeup", "FIFO PAUSE WRITE", "trim accounting/removal/sanitized NOGROUP"]}

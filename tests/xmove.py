@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Directed cross-owner element-mover battery. Usage: tests/xmove.py HOST PORT [--release-build]"""
 
-import select
 import socket
 import sys
 import time
@@ -86,11 +85,7 @@ def config_get(conn, name):
 
 
 def find_geometry(conn):
-    # Source and destination must live on different OWNERS, not merely on different shards: the
-    # concurrent cells hold the destination owner with an LREM scan of a same-shard blocker while
-    # the source owner runs the push. Two shards of one owner (shard placement follows the
-    # boot-randomized hash; a few percent of split boots) queue the push behind that hold too, so
-    # the inter-hop window could never open. DEBUG SHARDS reports [shard, owner] per key.
+    # Exercise actual cross-owner routing, not merely two shards of one owner.
     by_shard, owner_of = {}, {}
 
     def pick():
@@ -263,140 +258,6 @@ def complexity_cell(conn, source, destination, atomic):
         print("  skip atomic-on ratio bound: MVCC deep-candidate stage two is documented scope", flush=True)
 
 
-def socket_ready(conn):
-    return bool(select.select([conn.sock], [], [], 0)[0])
-
-
-CONCURRENT_ATTEMPTS = 20
-
-
-def legal_order(attempt, order):
-    print(f"  ok   attempt {attempt}: {order}; replies and lists match that serial order, retrying",
-          flush=True)
-
-
-def until_witnessed(label, cell):
-    # Commands on different connections have no serial order until one of their replies has been
-    # read, so a push sent 0.5-10 ms after LMOVE may still run before LMOVE's first hop, between
-    # its hops, or after its second hop. Each attempt checks the server's replies and both lists
-    # against the serial order the replies identify (a mismatch fails at once) and returns True
-    # only when every check of the interleaving this cell exists to test held. Other legal orders
-    # are retried from a fresh setup; the cell fails if its interleaving is never witnessed.
-    for attempt in range(1, CONCURRENT_ATTEMPTS + 1):
-        if cell(attempt):
-            return
-    raise AssertionError(f"{label}: interleaving not witnessed in {CONCURRENT_ATTEMPTS} attempts")
-
-
-def concurrent_push_cell(admin, source, destination, blocker, atomic):
-    if atomic:
-        print("  skip concurrent inter-hop preservation: atomic-on mover stage two is documented scope",
-              flush=True)
-        return
-
-    admin.command("FLUSHALL")
-    fill_list(admin, blocker, "block", 500000)
-    mover, pusher, holder = Conn(), Conn(), Conn()
-
-    def setup():
-        admin.command("DEL", source, destination)
-        admin.command("RPUSH", source, "moved", "keep")
-        admin.command("RPUSH", destination, "dest")
-
-    def lists(label, wanted_source, wanted_destination):
-        expect(admin.command("LRANGE", source, "0", "-1"), wanted_source, label + " source")
-        expect(admin.command("LRANGE", destination, "0", "-1"), wanted_destination,
-               label + " destination")
-
-    # Negative control: without a held destination owner, the move reply is already readable when
-    # the later push completes. The detector must report zero before its positive use below.
-    def control(attempt):
-        setup()
-        mover.send("LMOVE", source, destination, "LEFT", "RIGHT")
-        time.sleep(0.010)
-        pusher.send("RPUSH", source, "control")
-        pushed = pusher.read()
-        control_window = not socket_ready(mover)
-        # Every legal order moves the left element and keeps the pushed one.
-        expect(mover.read(), b"moved", "concurrent detector control move")
-        lists("concurrent detector control", [b"keep", b"control"], [b"dest", b"moved"])
-        if pushed == 3:
-            legal_order(attempt, "control push ran before LMOVE's second hop")
-            return False
-        expect(pushed, 2, "concurrent detector control push")
-        if control_window:
-            legal_order(attempt, "control move completed first; its reply was not yet readable")
-            return False
-        print("  ok   concurrent detector negative control reported zero", flush=True)
-        return True
-
-    def forced(attempt):
-        setup()
-        holder.send("LREM", blocker, "0", "not-present")
-        time.sleep(0.0005)
-        mover.send("LMOVE", source, destination, "LEFT", "RIGHT")
-        time.sleep(0.0005)
-        pusher.send("RPUSH", source, "concurrent")
-        pushed = pusher.read()
-        ready = [name for name, conn in (("move", mover), ("hold", holder)) if socket_ready(conn)]
-        forced_window = not ready
-        # A right-edge push never changes the selected left element: every legal order (before
-        # hop one, between the hops, after hop two) has the same move, hold and list outcome.
-        expect(mover.read(), b"moved", "concurrent LMOVE reply")
-        expect(holder.read(), 0, "destination-owner hold scanned without mutation")
-        lists("targeted source removal retains concurrent push",
-              [b"keep", b"concurrent"], [b"dest", b"moved"])
-        if pushed == 2:
-            legal_order(attempt, "push ran after LMOVE's second hop")
-            return False
-        expect(pushed, 3, "concurrent push completed between hops")
-        if not forced_window:
-            legal_order(attempt, "push ran before hop two; the probe found the "
-                                 + "/".join(ready) + " reply already readable")
-            return False
-        print("  ok   forced inter-hop window fired and retained the unrelated write", flush=True)
-        return True
-
-    # The selected edge itself may receive a push. Hop two must remove the value observed by hop
-    # one, not the newly arrived edge element.
-    def same_edge(attempt):
-        setup()
-        holder.send("LREM", blocker, "0", "not-present")
-        time.sleep(0.0005)
-        mover.send("LMOVE", source, destination, "LEFT", "RIGHT")
-        time.sleep(0.0005)
-        pusher.send("LPUSH", source, "new-edge")
-        pushed = pusher.read()
-        ready = [name for name, conn in (("move", mover), ("hold", holder)) if socket_ready(conn)]
-        window = not ready
-        moved = mover.read()
-        expect(holder.read(), 0, "same-edge destination-owner hold fired")
-        if moved == b"new-edge":
-            # The push ran before hop one, which then selected the new left element.
-            expect(pushed, 3, "same-edge push before hop one")
-            lists("same-edge push before hop one", [b"moved", b"keep"], [b"dest", b"new-edge"])
-            legal_order(attempt, "same-edge push ran before LMOVE's first hop")
-            return False
-        expect(moved, b"moved", "concurrent same-edge LMOVE reply")
-        lists("targeted source removal preserves a new edge element",
-              [b"new-edge", b"keep"], [b"dest", b"moved"])
-        if pushed == 2:
-            legal_order(attempt, "same-edge push ran after LMOVE's second hop")
-            return False
-        expect(pushed, 3, "concurrent same-edge push completed between hops")
-        if not window:
-            legal_order(attempt, "same-edge push ran between the hops; the probe found the "
-                                 + "/".join(ready) + " reply already readable")
-            return False
-        print("  ok   same-edge inter-hop window fired and preserved the new edge element", flush=True)
-        return True
-
-    for label, cell in (("concurrent detector negative control", control),
-                        ("forced inter-hop window", forced),
-                        ("same-edge inter-hop window", same_edge)):
-        until_witnessed(label, cell)
-
-
 def main():
     admin = Conn()
     atomic = int(config_get(admin, "atomic"))
@@ -408,7 +269,7 @@ def main():
     else:
         print("  skip size-ratio timing: requires --release-build; correctness checks remain active",
               flush=True)
-    concurrent_push_cell(admin, source, destination, blocker, atomic)
+    print("  info D2 probe/push/claim schedule is checked by the gated moverfix production-body unit", flush=True)
     print(f"PASS xmove atomic={atomic}", flush=True)
 
 

@@ -1,0 +1,21 @@
+{
+  "arm": "pre-receive",
+  "namespace": "normal",
+  "command": "EPOLL",
+  "mode": "1s",
+  "batch": 1,
+  "atomic": 0,
+  "local": 0,
+  "probe_sha256": "f216498078e6b180ef59a82d2c2afffaca50f87a07a686ae5ce1dedffe8b9e2f",
+  "tracer_sha256": "d7db28c562bb5e3ce8eadcd8ddd7f9eb39b2bce0b1493486beb372496c07a35d",
+  "total": 294,
+  "functions": {
+    "tomo::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0]": 54,
+    "tomo::IoLoop::epoll_recv(tomo::Client*)": 79,
+    "tomo::IoLoop::mark_active(tomo::Client*)": 56,
+    "std::deque<tomo::Client*, std::allocator<tomo::Client*> >::push_back(tomo::Client* const&)": 11,
+    "unsigned int tomo::IoLoop::epoll_pass<false, false, true>(int)": 94
+  },
+  "clock_calls": 0,
+  "excluded_calls": 3
+}

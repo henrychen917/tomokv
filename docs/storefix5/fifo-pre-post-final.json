@@ -1,0 +1,231 @@
+{
+  "PRE": {
+    "log": "gate-fifo-pre-final.log",
+    "complete": true,
+    "legs": [
+      {
+        "leg": "fifo-1-1s-0-epoll",
+        "status": "PASS",
+        "errors": []
+      },
+      {
+        "leg": "fifo-1-1s-0-uring",
+        "status": "PASS",
+        "errors": []
+      },
+      {
+        "leg": "fifo-1-1s-1-epoll",
+        "status": "PASS",
+        "errors": []
+      },
+      {
+        "leg": "fifo-1-1s-1-uring",
+        "status": "FAIL",
+        "errors": [
+          "('plain p99 exceeds three FIFO cycles', 0.0030030300840735435, 0.002289081306372757)"
+        ]
+      },
+      {
+        "leg": "fifo-1-2s-0-epoll",
+        "status": "FAIL",
+        "errors": [
+          "('plain p99 exceeds three FIFO cycles', 0.002773628570139408, 0.0016717601529264736)"
+        ]
+      },
+      {
+        "leg": "fifo-1-2s-0-uring",
+        "status": "FAIL",
+        "errors": [
+          "('plain p99 exceeds three FIFO cycles', 0.0029138289391994476, 0.0016752615094624886)"
+        ]
+      },
+      {
+        "leg": "fifo-1-2s-1-epoll",
+        "status": "FAIL",
+        "errors": [
+          "('plain p99 exceeds three FIFO cycles', 0.002758859656751156, 0.0015853960073577483)"
+        ]
+      },
+      {
+        "leg": "fifo-1-2s-1-uring",
+        "status": "FAIL",
+        "errors": [
+          "('plain p99 exceeds three FIFO cycles', 0.002869749441742897, 0.0016328979164631347)"
+        ]
+      },
+      {
+        "leg": "fifo-16-1s-0-epoll",
+        "status": "FAIL",
+        "errors": [
+          "('plain p99 exceeds three FIFO cycles', 0.0029934216290712357, 0.002241599493121393)"
+        ]
+      },
+      {
+        "leg": "fifo-16-1s-0-uring",
+        "status": "PASS",
+        "errors": []
+      },
+      {
+        "leg": "fifo-16-1s-1-epoll",
+        "status": "PASS",
+        "errors": []
+      },
+      {
+        "leg": "fifo-16-1s-1-uring",
+        "status": "PASS",
+        "errors": []
+      },
+      {
+        "leg": "fifo-16-2s-0-epoll",
+        "status": "FAIL",
+        "errors": [
+          "('plain p99 exceeds three FIFO cycles', 0.0026779985055327415, 0.0016132087660530837)"
+        ]
+      },
+      {
+        "leg": "fifo-16-2s-0-uring",
+        "status": "FAIL",
+        "errors": [
+          "('plain p99 exceeds three FIFO cycles', 0.0029000798240303993, 0.001694252245278705)"
+        ]
+      },
+      {
+        "leg": "fifo-16-2s-1-epoll",
+        "status": "FAIL",
+        "errors": [
+          "('plain p99 exceeds three FIFO cycles', 0.0027506081387400627, 0.0016483440401637256)"
+        ]
+      },
+      {
+        "leg": "fifo-16-2s-1-uring",
+        "status": "FAIL",
+        "errors": [
+          "('plain p99 exceeds three FIFO cycles', 0.0028937188908457756, 0.0016726371222909805)"
+        ]
+      }
+    ]
+  },
+  "POST": {
+    "log": "gate-extra-final.log",
+    "complete": true,
+    "legs": [
+      {
+        "leg": "fifo-1-1s-0-epoll",
+        "status": "FAIL",
+        "errors": [
+          "('plain p99 exceeds three FIFO cycles', 0.003009066917002201, 0.0021966891190504777)"
+        ]
+      },
+      {
+        "leg": "fifo-1-1s-0-uring",
+        "status": "PASS",
+        "errors": []
+      },
+      {
+        "leg": "fifo-1-1s-1-epoll",
+        "status": "PASS",
+        "errors": []
+      },
+      {
+        "leg": "fifo-1-1s-1-uring",
+        "status": "FAIL",
+        "errors": [
+          "('plain p99 exceeds three FIFO cycles', 0.0030126571655273438, 0.0023430027476255646)"
+        ]
+      },
+      {
+        "leg": "fifo-1-2s-0-epoll",
+        "status": "FAIL",
+        "errors": [
+          "('plain p99 exceeds three FIFO cycles', 0.002738497219979763, 0.0016246753925744121)"
+        ]
+      },
+      {
+        "leg": "fifo-1-2s-0-uring",
+        "status": "FAIL",
+        "errors": [
+          "('plain p99 exceeds three FIFO cycles', 0.002891797572374344, 0.0016390827531883364)"
+        ]
+      },
+      {
+        "leg": "fifo-1-2s-1-epoll",
+        "status": "FAIL",
+        "errors": [
+          "('plain p99 exceeds three FIFO cycles', 0.0026934081688523293, 0.0015391373354326986)"
+        ]
+      },
+      {
+        "leg": "fifo-1-2s-1-uring",
+        "status": "FAIL",
+        "errors": [
+          "('plain p99 exceeds three FIFO cycles', 0.002898626960813999, 0.0016335391915869948)"
+        ]
+      },
+      {
+        "leg": "fifo-16-1s-0-epoll",
+        "status": "PASS",
+        "errors": []
+      },
+      {
+        "leg": "fifo-16-1s-0-uring",
+        "status": "PASS",
+        "errors": []
+      },
+      {
+        "leg": "fifo-16-1s-1-epoll",
+        "status": "PASS",
+        "errors": []
+      },
+      {
+        "leg": "fifo-16-1s-1-uring",
+        "status": "PASS",
+        "errors": []
+      },
+      {
+        "leg": "fifo-16-2s-0-epoll",
+        "status": "FAIL",
+        "errors": [
+          "('plain p99 exceeds three FIFO cycles', 0.002706446684896946, 0.0016532790813847866)"
+        ]
+      },
+      {
+        "leg": "fifo-16-2s-0-uring",
+        "status": "FAIL",
+        "errors": [
+          "('plain p99 exceeds three FIFO cycles', 0.002880317158997059, 0.001666312722332928)"
+        ]
+      },
+      {
+        "leg": "fifo-16-2s-1-epoll",
+        "status": "FAIL",
+        "errors": [
+          "('plain p99 exceeds three FIFO cycles', 0.002720767632126808, 0.0016406953268280123)"
+        ]
+      },
+      {
+        "leg": "fifo-16-2s-1-uring",
+        "status": "FAIL",
+        "errors": [
+          "('plain p99 exceeds three FIFO cycles', 0.0028772857040166855, 0.0016670761986555867)"
+        ]
+      }
+    ]
+  },
+  "common_failures": [
+    "fifo-1-1s-1-uring",
+    "fifo-1-2s-0-epoll",
+    "fifo-1-2s-0-uring",
+    "fifo-1-2s-1-epoll",
+    "fifo-1-2s-1-uring",
+    "fifo-16-2s-0-epoll",
+    "fifo-16-2s-0-uring",
+    "fifo-16-2s-1-epoll",
+    "fifo-16-2s-1-uring"
+  ],
+  "PRE_only_failures": [
+    "fifo-16-1s-0-epoll"
+  ],
+  "POST_only_failures": [
+    "fifo-1-1s-0-epoll"
+  ]
+}

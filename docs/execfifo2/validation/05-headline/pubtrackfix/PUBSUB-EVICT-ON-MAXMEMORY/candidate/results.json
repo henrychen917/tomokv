@@ -1,0 +1,327 @@
+{
+  "binary": "/home/user/Projects/cx-execfifo2/build/tomokv",
+  "sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+  "checks": [
+    {
+      "label": "1s-uring-db1-a0-r0-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db1-a0-r0-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db1-a0-r1-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db1-a0-r1-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db1-a1-r0-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db1-a1-r0-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db1-a1-r1-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db1-a1-r1-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db16-a0-r0-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db16-a0-r0-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db16-a0-r1-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db16-a0-r1-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db16-a1-r0-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db16-a1-r0-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db16-a1-r1-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db16-a1-r1-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db1-a0-r0-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db1-a0-r0-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db1-a0-r1-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db1-a0-r1-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db1-a1-r0-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db1-a1-r0-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db1-a1-r1-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db1-a1-r1-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db16-a0-r0-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db16-a0-r0-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db16-a0-r1-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db16-a0-r1-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db16-a1-r0-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db16-a1-r0-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db16-a1-r1-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db16-a1-r1-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db1-a0-r0-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db1-a0-r0-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db1-a0-r1-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db1-a0-r1-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db1-a1-r0-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db1-a1-r0-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db1-a1-r1-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db1-a1-r1-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db16-a0-r0-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db16-a0-r0-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db16-a0-r1-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db16-a0-r1-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db16-a1-r0-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db16-a1-r0-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db16-a1-r1-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db16-a1-r1-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db1-a0-r0-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db1-a0-r0-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db1-a0-r1-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db1-a0-r1-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db1-a1-r0-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db1-a1-r0-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db1-a1-r1-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db1-a1-r1-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db16-a0-r0-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db16-a0-r0-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db16-a0-r1-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db16-a0-r1-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db16-a1-r0-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db16-a1-r0-empty-key",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db16-a1-r1-foo",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db16-a1-r1-empty-key",
+      "passed": true,
+      "actual": true
+    }
+  ],
+  "slowlog": {}
+}

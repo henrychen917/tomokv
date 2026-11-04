@@ -1,0 +1,144 @@
+{
+  "file": "unit/violations",
+  "mode": "1s",
+  "passed": 1,
+  "failed": 0,
+  "skipped": 6,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "seconds": 0.16837975289672613,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "8-15",
+    "/home/user/Projects/cx-execfifo2/build/tomokv",
+    "--port",
+    "20103",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.I1WnIs/jobs/redis_tcl/redis-tcl-1s/unit/violations/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--databases",
+    "16"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "8-15",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20103",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20105",
+    "--portcount",
+    "1",
+    "--single",
+    "unit/violations",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.I1WnIs/jobs/redis_tcl/redis-tcl-1s/unit/violations/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "3960147",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/violations.tcl",
+      "test": "",
+      "data": "XADD one huge field: large memory flag not provided",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/violations.tcl",
+      "test": "",
+      "data": "XADD one huge field - 1: large memory flag not provided",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/violations.tcl",
+      "test": "",
+      "data": "several XADD big fields: large memory flag not provided",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/violations.tcl",
+      "test": "",
+      "data": "single XADD big fields: large memory flag not provided",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/violations.tcl",
+      "test": "",
+      "data": "hash with many big fields: large memory flag not provided",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/violations.tcl",
+      "test": "",
+      "data": "hash with one huge field: large memory flag not provided",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/violations.tcl",
+      "test": "SORT adds integer field to list in tests/unit/violations.tcl",
+      "data": "SORT adds integer field to list",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/violations.tcl",
+      "test": "SORT adds integer field to list in tests/unit/violations.tcl",
+      "data": "SORT adds integer field to list",
+      "milliseconds": "0"
+    },
+    {
+      "status": "done",
+      "file": "tests/unit/violations.tcl",
+      "test": "",
+      "data": "unit/violations",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/unit/violations.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ],
+  "setup_stdout": ""
+}

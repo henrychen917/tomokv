@@ -1,0 +1,4 @@
+ok	2.080000	read-only resize split read-local=0
+ok	2.080000	read-only resize split read-local=1
+ok	1.580000	read-only resize fused read-local=0
+ok	1.590000	read-only resize fused read-local=1

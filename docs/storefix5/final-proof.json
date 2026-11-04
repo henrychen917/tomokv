@@ -1,0 +1,483 @@
+{
+  "waiting_for": null,
+  "stages": [
+    {
+      "log": "append-final.log",
+      "argv": [
+        "python3",
+        "tools/storefix5_append.py",
+        "post-retirement",
+        "--source",
+        ".",
+        "--objects",
+        "build/storefix5/arms/retirement168000"
+      ],
+      "environment": {},
+      "expected": [
+        0
+      ],
+      "started": 1793610531.469083,
+      "exit": 0,
+      "finished": 1793610547.969994
+    },
+    {
+      "log": "curve-final-pre-1s.log",
+      "argv": [
+        "python3",
+        "tools/storefix5_checks.py",
+        "--binary",
+        "build/storefix5/PRE",
+        "--mode",
+        "1s",
+        "--port",
+        "21600",
+        "--cases",
+        "randomkey_footprint,append",
+        "--output",
+        "/home/user/Projects/cx-storefix5/docs/storefix5/curves-release/pre-1s.json"
+      ],
+      "environment": {},
+      "expected": [
+        1
+      ],
+      "started": 1793610548.1604757,
+      "exit": 1,
+      "finished": 1793610552.9323428
+    },
+    {
+      "log": "curve-final-post-1s.log",
+      "argv": [
+        "python3",
+        "tools/storefix5_checks.py",
+        "--binary",
+        "build/storefix5/POST",
+        "--mode",
+        "1s",
+        "--port",
+        "21600",
+        "--cases",
+        "randomkey_footprint,append",
+        "--output",
+        "/home/user/Projects/cx-storefix5/docs/storefix5/curves-release/post-1s.json"
+      ],
+      "environment": {},
+      "expected": [
+        0
+      ],
+      "started": 1793610553.111995,
+      "exit": 0,
+      "finished": 1793610554.704452
+    },
+    {
+      "log": "curve-final-pre-2s.log",
+      "argv": [
+        "python3",
+        "tools/storefix5_checks.py",
+        "--binary",
+        "build/storefix5/PRE",
+        "--mode",
+        "2s",
+        "--port",
+        "21600",
+        "--cases",
+        "randomkey_footprint,append",
+        "--output",
+        "/home/user/Projects/cx-storefix5/docs/storefix5/curves-release/pre-2s.json"
+      ],
+      "environment": {},
+      "expected": [
+        1
+      ],
+      "started": 1793610554.8851986,
+      "exit": 1,
+      "finished": 1793610564.0441077
+    },
+    {
+      "log": "curve-final-post-2s.log",
+      "argv": [
+        "python3",
+        "tools/storefix5_checks.py",
+        "--binary",
+        "build/storefix5/POST",
+        "--mode",
+        "2s",
+        "--port",
+        "21600",
+        "--cases",
+        "randomkey_footprint,append",
+        "--output",
+        "/home/user/Projects/cx-storefix5/docs/storefix5/curves-release/post-2s.json"
+      ],
+      "environment": {},
+      "expected": [
+        0
+      ],
+      "started": 1793610564.2258294,
+      "exit": 0,
+      "finished": 1793610565.5686393
+    },
+    {
+      "log": "curve-final-redis.log",
+      "argv": [
+        "python3",
+        "tools/storefix5_checks.py",
+        "--binary",
+        "/home/user/Projects/redis/src/redis-server",
+        "--redis",
+        "--port",
+        "21600",
+        "--cases",
+        "randomkey_footprint,append",
+        "--output",
+        "/home/user/Projects/cx-storefix5/docs/storefix5/curves-release/redis-2s.json"
+      ],
+      "environment": {},
+      "expected": [
+        0
+      ],
+      "started": 1793610565.7495503,
+      "exit": 0,
+      "finished": 1793610567.4227936
+    },
+    {
+      "log": "memory-final.log",
+      "argv": [
+        "python3",
+        "tools/storefix5_memory.py",
+        "release",
+        "--binary",
+        "build/storefix5/POST",
+        "--port",
+        "21630"
+      ],
+      "environment": {},
+      "expected": [
+        0
+      ],
+      "started": 1793610567.604022,
+      "exit": 0,
+      "finished": 1793610589.830732
+    },
+    {
+      "log": "pad-final-1s.log",
+      "argv": [
+        "python3",
+        "tools/storefix5_checks.py",
+        "--binary",
+        "build/storefix5/PAD-A",
+        "--mode",
+        "1s",
+        "--port",
+        "21600",
+        "--cases",
+        "randomkey,idle",
+        "--output",
+        "/home/user/Projects/cx-storefix5/docs/storefix5/pad-final-1s.json"
+      ],
+      "environment": {},
+      "expected": [
+        1
+      ],
+      "started": 1793610590.0115645,
+      "exit": 1,
+      "finished": 1793610593.003332
+    },
+    {
+      "log": "pad-final-2s.log",
+      "argv": [
+        "python3",
+        "tools/storefix5_checks.py",
+        "--binary",
+        "build/storefix5/PAD-A",
+        "--mode",
+        "2s",
+        "--port",
+        "21600",
+        "--cases",
+        "randomkey,idle",
+        "--output",
+        "/home/user/Projects/cx-storefix5/docs/storefix5/pad-final-2s.json"
+      ],
+      "environment": {},
+      "expected": [
+        1
+      ],
+      "started": 1793610593.1834016,
+      "exit": 1,
+      "finished": 1793610596.3015852
+    },
+    {
+      "log": "gates-test-final.log",
+      "argv": [
+        "python3",
+        "tests/gates_test.py"
+      ],
+      "environment": {
+        "GATE_TEST_PORT": "21699"
+      },
+      "expected": [
+        0
+      ],
+      "started": 1793610596.4815493,
+      "exit": 0,
+      "finished": 1793610833.6590247
+    },
+    {
+      "log": "rlfix3-info-build-final.log",
+      "argv": [
+        "make",
+        "-j8",
+        "build/rlfix3-info-unit",
+        "build/rlfix3-info-db0-unit",
+        "CXXFLAGS=-std=c++20 -O2 -g -gz=zlib -Wall -Wextra -march=native -pthread"
+      ],
+      "environment": {},
+      "expected": [
+        0
+      ],
+      "started": 1793610833.840228,
+      "exit": 0,
+      "finished": 1793610852.119708
+    },
+    {
+      "log": "gate-quiet-final.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21610-21612",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/POST"
+      ],
+      "environment": {
+        "GATE_ONLY_JOBS": "asan_batteries zc splitlocal_units core_tsan_build waits_tsan_build",
+        "GATE_PROOF_NO_RATES": "1",
+        "REDIS74_ROOT": "/home/user/Projects/redis"
+      },
+      "expected": [
+        0
+      ],
+      "started": 1793610852.2997115,
+      "exit": 2,
+      "finished": 1793610852.6938632
+    },
+    {
+      "log": "gate-live-final.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21640-21642",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/POST"
+      ],
+      "environment": {
+        "GATE_ONLY_JOBS": "storefix5 maxmemrace datafix1_geo datafix1_spop datafix1_lists datafix1_locale datafix1_bitfield datafix1_randscan datafix1_hexpire redis_tcl datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_watch datafix2_idle feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 snapshot-epoll snapshot-uring aof-epoll aof-uring readonly atomic_batteries release_batteries evict-lfu-split-0 evict-lfu-split-1 evict-lfu-armed-0 evict-lfu-armed-1 evict-lruclock-split-0 evict-lruclock-split-1 evict-lruclock-armed-0 evict-lruclock-armed-1",
+        "GATE_PROOF_NO_RATES": "1",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_TCL_MANIFEST": "/home/user/Projects/cx-storefix5/build/storefix5/tcl-required.json"
+      },
+      "expected": [
+        0
+      ],
+      "started": 1793610852.874387,
+      "exit": 0,
+      "finished": 1793613716.1241853
+    },
+    {
+      "log": "gate-native-final.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21690-21692",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/POST"
+      ],
+      "environment": {
+        "GATE_ONLY_JOBS": "storage_units atomic_units aof_frame aoforder readonly fused-0 fused-1 txn_group_fused txn_group_split rlfix3_info multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 at412-T1 at412-T2 at412-T3 at412-T4 at412-T5 at412-T6 at412-T7 at412-T8 at412-T9 at412-T10 at412-T11a at412-T11b at412-T12 at412-T13 at412-T14 at412-T15 at412-T16 at412-owner",
+        "GATE_PROOF_NO_RATES": "1",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_RLFIX3_INFO_UNIT": "/home/user/Projects/cx-storefix5/build/rlfix3-info-unit",
+        "GATE_RLFIX3_INFO_DB0_UNIT": "/home/user/Projects/cx-storefix5/build/rlfix3-info-db0-unit"
+      },
+      "expected": [
+        0
+      ],
+      "started": 1793610852.8751233,
+      "exit": 0,
+      "finished": 1793613716.5035987
+    },
+    {
+      "log": "gate-extra-final.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21620-21622",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/POST"
+      ],
+      "environment": {
+        "GATE_ONLY_JOBS": "rldbg rlcache bplus rlfix3_zc atomfix5_watch atomfix5_accounting snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors persistfmt persistfmt_aof_error dump_restore notify_aof rootcompat-stringlimit config_unit core_units wait_units flushfix2 flushfix2_units flushfix3 flushfix3_units aclkeys_wake list_namespace dbdefault atomic_floor execfair exec1s txnorder_fifo txnorder_fifo_live txnorder_chain txnorder_index txnorder_wound txnorder_wake txnorder2 txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 script_bounds scriptfix scriptfix2 lualibs serverfix_waitaof rootcore-waitaof infofix_compat-loadaof persistfix_units",
+        "GATE_PROOF_NO_RATES": "1",
+        "REDIS74_ROOT": "/home/user/Projects/redis"
+      },
+      "expected": [
+        1
+      ],
+      "started": 1793613716.7400823,
+      "exit": 1,
+      "finished": 1793616989.424716
+    },
+    {
+      "log": "gate-fused-final.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21650-21652",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/POST"
+      ],
+      "environment": {
+        "GATE_ONLY_JOBS": "atomic_batteries release_batteries snapshot-epoll snapshot-uring aof-epoll aof-uring",
+        "GATE_PROOF_NO_RATES": "1",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_TXN_FUSED": "1"
+      },
+      "expected": [
+        0
+      ],
+      "started": 1793613716.7408519,
+      "exit": 0,
+      "finished": 1793616989.778612
+    },
+    {
+      "log": "gate-tcl-unfiltered-final.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21620-21622",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/POST"
+      ],
+      "environment": {
+        "GATE_ONLY_JOBS": "redis_tcl",
+        "GATE_PROOF_NO_RATES": "1",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_TCL_ONLY_FILES": "unit/keyspace,unit/maxmemory,unit/type/string"
+      },
+      "expected": [
+        1
+      ],
+      "started": 1793616990.1049166,
+      "exit": 1,
+      "finished": 1793617008.772497
+    },
+    {
+      "log": "gate-differ-uring-final.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21660-21662",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/POST"
+      ],
+      "environment": {
+        "GATE_ONLY_JOBS": "differ-split differ-armed",
+        "GATE_PROOF_NO_RATES": "1",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_DIFFER_NET_IO": "uring"
+      },
+      "expected": [
+        0
+      ],
+      "started": 1793617009.105689,
+      "exit": 1,
+      "finished": 1793619057.13997
+    },
+    {
+      "log": "gate-differ-epoll-final.log",
+      "argv": [
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "16-23",
+        "--load-cores",
+        "16-23",
+        "--load-smt",
+        "",
+        "--ports",
+        "21670-21672",
+        "--shared-correctness-cpus",
+        "--candidate-binary",
+        "build/storefix5/POST"
+      ],
+      "environment": {
+        "GATE_ONLY_JOBS": "differ-split differ-armed",
+        "GATE_PROOF_NO_RATES": "1",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_DIFFER_NET_IO": "epoll"
+      },
+      "expected": [
+        0
+      ],
+      "started": 1793619057.4835854,
+      "exit": 0,
+      "finished": 1793621113.6341984
+    }
+  ],
+  "complete": true
+}

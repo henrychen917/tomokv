@@ -1,0 +1,22 @@
+[
+  {
+    "path": "build/atomfix6/park/scopes/PRE-normal/probe",
+    "sha256": "dfdb121e2deaeab156aa2b0cb4d6e1ede80dc5c643e48245f10d67043b548ecd",
+    "bytes": 238485864
+  },
+  {
+    "path": "build/atomfix6/park/scopes/PRE-db0/probe",
+    "sha256": "f2e9cac1f5002d7347e8b9a1816b5f21174bf76f0e7b800f0252e23e4f185471",
+    "bytes": 238497984
+  },
+  {
+    "path": "build/atomfix6/park/scopes/PRE-normal/original-main.o",
+    "sha256": "a3709f9e0a16dab180530543d60235fd16012bca47f3c15edc50f0d97fbbd4cf",
+    "bytes": 27206752
+  },
+  {
+    "path": "build/atomfix6/park/scopes/PRE-db0/original-main.o",
+    "sha256": "a3709f9e0a16dab180530543d60235fd16012bca47f3c15edc50f0d97fbbd4cf",
+    "bytes": 27206752
+  }
+]

@@ -1,0 +1,8 @@
+{
+  "mode": "1s",
+  "engine": "epoll",
+  "atomic": 1,
+  "databases": 16,
+  "scenario": "lmpop",
+  "oracle": false
+}

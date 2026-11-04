@@ -1,0 +1,2 @@
+ok	0.050000	waits config publication + admission unit
+ok	1.010000	reads never wait for retirement quiescence

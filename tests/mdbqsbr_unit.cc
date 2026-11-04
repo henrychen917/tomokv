@@ -312,12 +312,12 @@ void operator delete[](void* p, std::align_val_t) noexcept { std::free(p); }
 void operator delete(void* p, size_t, std::align_val_t) noexcept { std::free(p); }
 void operator delete[](void* p, size_t, std::align_val_t) noexcept { std::free(p); }
 
-bool real_record(AofProducer*, const uint8_t*)
-    asm("__real__ZN4tomo11AofProducer19record_database_mapEPKh");
-bool wrap_record(AofProducer* p, const uint8_t* bytes)
-    asm("__wrap__ZN4tomo11AofProducer19record_database_mapEPKh");
-bool wrap_record(AofProducer* p, const uint8_t* bytes) {
-    return refuse_journal ? false : real_record(p, bytes);
+bool real_record(AofProducer*, const uint8_t*, uint64_t)
+    asm("__real__ZN4tomo11AofProducer19record_database_mapEPKhm");
+bool wrap_record(AofProducer* p, const uint8_t* bytes, uint64_t client_id)
+    asm("__wrap__ZN4tomo11AofProducer19record_database_mapEPKhm");
+bool wrap_record(AofProducer* p, const uint8_t* bytes, uint64_t client_id) {
+    return refuse_journal ? false : real_record(p, bytes, client_id);
 }
 
 namespace tomo {

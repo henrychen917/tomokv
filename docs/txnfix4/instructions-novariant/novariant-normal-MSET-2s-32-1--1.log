@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/novariant-normal-MSET-2s-32-1--1.log
+SHA-256: 5cf486bd71062018114b779e2b58c266447299bf797af6439dae0fe95f30af18
+Exit: 0
+0x0000555555abf4b8	583	}
+0x0000555555abf4b9	583	}
+0x0000555555abf4ba	583	}
+0x0000555555abf4bc	583	}
+0x0000555555abf4be	583	}
+0x0000555555abf4c0	583	}
+0x0000555555e30602 in tomo::CoreConcurrencyTest::run<false> (command=..., n=..., atomic=..., slowlog=...) at /usr/include/c++/13/bits/unique_ptr.h:199
+199	      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
+277	   for(unsigned i=0;i<n;i++){
+0x0000555555e30609	277	   for(unsigned i=0;i<n;i++){
+277	   for(unsigned i=0;i<n;i++){
+0x0000555555e3041f	277	   for(unsigned i=0;i<n;i++){
+0x0000555555e3060e	297	   std::string want="+OK\r\n";
+0x0000555555e30615	297	   std::string want="+OK\r\n";
+0x0000555555e3061c	296	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
+23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 688617) exited normally]
+COUNT 948382

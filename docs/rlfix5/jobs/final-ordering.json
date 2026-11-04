@@ -1,0 +1,510 @@
+{
+  "label": "final-ordering",
+  "source": "/home/user/Projects/cx-rlfix5/build/gate-run.E3EMoP",
+  "archive": "/home/user/Projects/cx-rlfix5/docs/rlfix5/jobs/final-ordering.tar.gz",
+  "archive_sha256": "8eb190bd2a7067f2e330d230a77f5d840b397941dc5e0ba7a97b505fbebfb81d",
+  "files": [
+    {
+      "path": "families.tsv",
+      "size": 229,
+      "sha256": "8e075b8f9f4398c2f1e7259603194a2c5b2114cdb869a22ac6a8d1865f850a25"
+    },
+    {
+      "path": "jobs/release/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "size": 52,
+      "sha256": "9c2d96b9b486eb12133a3328db6a9e413a6d9a9fb382db71ba9d9dab01a90d62"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "size": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/build.log",
+      "size": 400,
+      "sha256": "a92f19e9d76c189d9d4a4b458687c0ee124103a0a3c6cf98725368e74712b80b"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/done",
+      "size": 6,
+      "sha256": "d819e1df0d38b302f00dec563af85695b5ff6662bc6d34f351ceb19beaf032cc"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/family.tsv",
+      "size": 61,
+      "sha256": "16e73e01e0f68befcd083a6d76037c3e5ef7d3b0ae6965dff8499ea1bd5462b5"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/gate-srv-fused.TQj4Mm",
+      "size": 10811,
+      "sha256": "0b62d68afb3fe4be4cec301d6f1538e663ba398cb0a90658e6c25978b0d57e74"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/gate-srv-fused.UkwwOS",
+      "size": 10787,
+      "sha256": "01bfbdbd0846ef00cbaf21c9fa51f19bf1cdfc5fe1d9d3e1d8b43620e03acb43"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/gate-srv-main.TzUHHa",
+      "size": 10004,
+      "sha256": "b6146716cab7a5c6a25910c7741d9e5c83b37b7afb2b0e9bfe1a461371b9cb6f"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/gate-srv-main.ztchil",
+      "size": 9958,
+      "sha256": "23163621d974ab2cd99fc6db2d9bb0189caaaeb2daa5f049fea8f7bbb0f8fcfc"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/ledger",
+      "size": 70,
+      "sha256": "64a5e829658ed0c1182dc455590d600ac908c1266438c5988506170e018c2ded"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/live-monotonic-1s-epoll.log",
+      "size": 332,
+      "sha256": "356f8de91f42a517c930a0c08ffd17d675d4a30d56175aa5487a7d25ddc3534c"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/live-monotonic-1s-uring.log",
+      "size": 332,
+      "sha256": "356f8de91f42a517c930a0c08ffd17d675d4a30d56175aa5487a7d25ddc3534c"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/live-monotonic-2s-epoll.log",
+      "size": 332,
+      "sha256": "356f8de91f42a517c930a0c08ffd17d675d4a30d56175aa5487a7d25ddc3534c"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/live-monotonic-2s-uring.log",
+      "size": 332,
+      "sha256": "356f8de91f42a517c930a0c08ffd17d675d4a30d56175aa5487a7d25ddc3534c"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/oracle-1s.log",
+      "size": 1203,
+      "sha256": "fd965188d74768db2eac2b861de1056808ac73ad4549dbb1a754c77d24767975"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/oracle-2s.log",
+      "size": 1203,
+      "sha256": "d338931b65291fe68e2ca6ee6fda338fe1634892c349e603f93b3fbf49982fb5"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/oracle-proof-1s.log",
+      "size": 332,
+      "sha256": "356f8de91f42a517c930a0c08ffd17d675d4a30d56175aa5487a7d25ddc3534c"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/oracle-proof-2s.log",
+      "size": 332,
+      "sha256": "356f8de91f42a517c930a0c08ffd17d675d4a30d56175aa5487a7d25ddc3534c"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/output.log",
+      "size": 284,
+      "sha256": "54dfe9a5695bbdf2fbe9f988e4ba366448d099d6766d9d5b72b2f721e842ca5c"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/timings",
+      "size": 70,
+      "sha256": "64a5e829658ed0c1182dc455590d600ac908c1266438c5988506170e018c2ded"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/unit-monotonic-1s-db0.log",
+      "size": 115,
+      "sha256": "02f2c4a3b0c9c69b7b3eb873d647f54703d2f51fbf10a4ad47295485dde8a877"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/unit-monotonic-1s-normal.log",
+      "size": 115,
+      "sha256": "02f2c4a3b0c9c69b7b3eb873d647f54703d2f51fbf10a4ad47295485dde8a877"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/unit-monotonic-2s-db0.log",
+      "size": 115,
+      "sha256": "bedd0c285989183cc9b048805acda29934e75d05d6db01f5b155e73ea57dc715"
+    },
+    {
+      "path": "jobs/rlfix5-monotonic/unit-monotonic-2s-normal.log",
+      "size": 115,
+      "sha256": "bedd0c285989183cc9b048805acda29934e75d05d6db01f5b155e73ea57dc715"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/build.log",
+      "size": 206,
+      "sha256": "caed214e933afa7593880f854cdbd22cdeee7fad9c875455ddc075ba960f6edb"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/done",
+      "size": 6,
+      "sha256": "d819e1df0d38b302f00dec563af85695b5ff6662bc6d34f351ceb19beaf032cc"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/family.tsv",
+      "size": 58,
+      "sha256": "8f36c841ebd6d199ffb83f58ccacef6c21e7a003f750af83afd914deaac81f19"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/gate-srv-fused.UzylJk",
+      "size": 10770,
+      "sha256": "c02ab095392156eddebdcc798629b72e03cb7b30343c5000b1c55920527516da"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/gate-srv-fused.o7Abo1",
+      "size": 10812,
+      "sha256": "784e85e706e47901d50b54a1fb36ae42aa2ce28735aa19bcfe77c7a1cd2e66b8"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/gate-srv-main.KJzUNi",
+      "size": 9944,
+      "sha256": "0c674fbdcf723b943eb4a21def6cea0fd734db090478e7f73ac363e5bc002cf8"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/gate-srv-main.YdKnnO",
+      "size": 9876,
+      "sha256": "cf2361fccb5b35ffe4f7a8333c3a3e10c3170776744b3e0e8ed110e5f8f195d4"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/ledger",
+      "size": 62,
+      "sha256": "f36663752b0f9c50c6c27c268d7ddffd7f45e56e73e13a53187cf9cd18efd835"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/live-no-yes-1s-epoll.log",
+      "size": 53,
+      "sha256": "68d26c0a7d6e4ca9a68b596871873d16663c9416dbe100d5135fcc2e7e3c7186"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/live-no-yes-1s-uring.log",
+      "size": 53,
+      "sha256": "68d26c0a7d6e4ca9a68b596871873d16663c9416dbe100d5135fcc2e7e3c7186"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/live-no-yes-2s-epoll.log",
+      "size": 53,
+      "sha256": "68d26c0a7d6e4ca9a68b596871873d16663c9416dbe100d5135fcc2e7e3c7186"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/live-no-yes-2s-uring.log",
+      "size": 53,
+      "sha256": "68d26c0a7d6e4ca9a68b596871873d16663c9416dbe100d5135fcc2e7e3c7186"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/oracle-1s.log",
+      "size": 1203,
+      "sha256": "a139674d957cf7e37cee3f0fe1be070da27e4a6c362b48b7ce510454ba685487"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/oracle-2s.log",
+      "size": 1203,
+      "sha256": "ae7105d7b5b17eed9e0ec1496b35510b4386fbb22d7e6c854b5d8f5280730d88"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/oracle-proof-1s.log",
+      "size": 53,
+      "sha256": "68d26c0a7d6e4ca9a68b596871873d16663c9416dbe100d5135fcc2e7e3c7186"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/oracle-proof-2s.log",
+      "size": 53,
+      "sha256": "68d26c0a7d6e4ca9a68b596871873d16663c9416dbe100d5135fcc2e7e3c7186"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/output.log",
+      "size": 276,
+      "sha256": "b1fde7c667add7342e6a93d4c4b4672920de0765196bf67a38fc19ac831db1ce"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/timings",
+      "size": 62,
+      "sha256": "f36663752b0f9c50c6c27c268d7ddffd7f45e56e73e13a53187cf9cd18efd835"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/unit-mget-1s-db0.log",
+      "size": 116,
+      "sha256": "1daff9681aba5d36a44353c29be89458a71eebc9c19507de686781feb55d684c"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/unit-mget-1s-normal.log",
+      "size": 116,
+      "sha256": "1daff9681aba5d36a44353c29be89458a71eebc9c19507de686781feb55d684c"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/unit-mget-2s-db0.log",
+      "size": 116,
+      "sha256": "730e485c62693a27e5d36f567ca5b693a612a6ac8946427b99ae4aa3bc22ca76"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/unit-mget-2s-normal.log",
+      "size": 116,
+      "sha256": "730e485c62693a27e5d36f567ca5b693a612a6ac8946427b99ae4aa3bc22ca76"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/unit-no-yes-1s-db0.log",
+      "size": 107,
+      "sha256": "6f749e16fc468461d57a131cdff9c314528e65193f1a96303f0c57e696854a03"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/unit-no-yes-1s-normal.log",
+      "size": 107,
+      "sha256": "6f749e16fc468461d57a131cdff9c314528e65193f1a96303f0c57e696854a03"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/unit-no-yes-2s-db0.log",
+      "size": 107,
+      "sha256": "4ce006716ff1435884405c9d425f2831014925639b71cc88264d8829af4837dc"
+    },
+    {
+      "path": "jobs/rlfix5-no-yes/unit-no-yes-2s-normal.log",
+      "size": 107,
+      "sha256": "4ce006716ff1435884405c9d425f2831014925639b71cc88264d8829af4837dc"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/build.log",
+      "size": 206,
+      "sha256": "caed214e933afa7593880f854cdbd22cdeee7fad9c875455ddc075ba960f6edb"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/done",
+      "size": 6,
+      "sha256": "d819e1df0d38b302f00dec563af85695b5ff6662bc6d34f351ceb19beaf032cc"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/family.tsv",
+      "size": 58,
+      "sha256": "5d914f49b652034fd6c10cefaf7e2e8a2cfde7e147b99bb031f4df2a95bcf886"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/gate-srv-fused.K98Vpp",
+      "size": 10810,
+      "sha256": "d0abc40883f9041619bcc58ed9583221ae449269a697dc47f5fd14ab31fe9a73"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/gate-srv-fused.qiERVd",
+      "size": 10761,
+      "sha256": "d8b76522521bd6a41c51c4080c4922139cb972668e008231234e05319980ca93"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/gate-srv-main.iKAn1r",
+      "size": 9935,
+      "sha256": "8e6fe05bd21d429323750ee5e63a9a0db1fbc5c7f176b94a497c7697a1d7ac66"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/gate-srv-main.mdl9s4",
+      "size": 9866,
+      "sha256": "fa9035d70e8679355602afd71fd2035fb6d5d015e06e30c728a30730e54a155f"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/ledger",
+      "size": 62,
+      "sha256": "0590f83c913ea7a3be7e5f1682957f140c65c232fa9c1e580953cd133c45f679"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/live-yes-no-1s-epoll.log",
+      "size": 53,
+      "sha256": "b938b3b4caab412cb59fbc5c4645ea454e5e10a7d4f5b9a0e9c3974847c16f4d"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/live-yes-no-1s-uring.log",
+      "size": 53,
+      "sha256": "b938b3b4caab412cb59fbc5c4645ea454e5e10a7d4f5b9a0e9c3974847c16f4d"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/live-yes-no-2s-epoll.log",
+      "size": 53,
+      "sha256": "b938b3b4caab412cb59fbc5c4645ea454e5e10a7d4f5b9a0e9c3974847c16f4d"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/live-yes-no-2s-uring.log",
+      "size": 53,
+      "sha256": "b938b3b4caab412cb59fbc5c4645ea454e5e10a7d4f5b9a0e9c3974847c16f4d"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/oracle-1s.log",
+      "size": 1203,
+      "sha256": "c2e7d8627a13f24fce7e50dc7335d77bf6deeeb4530178bdae2212c787eb2633"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/oracle-2s.log",
+      "size": 1203,
+      "sha256": "cbc01e9c78d55cbeb4fd8d1ab96bce270f0b576bf4899e45224c042c99df6a69"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/oracle-proof-1s.log",
+      "size": 53,
+      "sha256": "b938b3b4caab412cb59fbc5c4645ea454e5e10a7d4f5b9a0e9c3974847c16f4d"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/oracle-proof-2s.log",
+      "size": 53,
+      "sha256": "b938b3b4caab412cb59fbc5c4645ea454e5e10a7d4f5b9a0e9c3974847c16f4d"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/output.log",
+      "size": 276,
+      "sha256": "78f12e869a2ebcbc702767f8ed1c1f3f142d758747871d974956bd5667898d13"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/timings",
+      "size": 62,
+      "sha256": "0590f83c913ea7a3be7e5f1682957f140c65c232fa9c1e580953cd133c45f679"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/unit-yes-no-1s-db0.log",
+      "size": 113,
+      "sha256": "4580e320509365171fd5138852e7d56892bfb4ebb361c250504c3abf239047de"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/unit-yes-no-1s-normal.log",
+      "size": 113,
+      "sha256": "4580e320509365171fd5138852e7d56892bfb4ebb361c250504c3abf239047de"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/unit-yes-no-2s-db0.log",
+      "size": 113,
+      "sha256": "59b2edb5fe000263440934ae5507dcdfaec8c98d724bea28436602173c8f6a2c"
+    },
+    {
+      "path": "jobs/rlfix5-yes-no/unit-yes-no-2s-normal.log",
+      "size": 113,
+      "sha256": "59b2edb5fe000263440934ae5507dcdfaec8c98d724bea28436602173c8f6a2c"
+    },
+    {
+      "path": "phases.tsv",
+      "size": 88,
+      "sha256": "eb6a0bccb8811cb05caf9e63c56272a1c792dd00a8cdd49c7315bc029bc00c0d"
+    },
+    {
+      "path": "plan.sh",
+      "size": 946,
+      "sha256": "ce48e00951360e610a8e03dc9b2e6e9028264866aff9a74c343cf13b0d1319b2"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 2298,
+      "sha256": "0a6bd146361791aa66dd7c9128d0d127942079dd59ddfad62a68490d454c3bbd"
+    }
+  ],
+  "jobs": [
+    {
+      "job": "release",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    },
+    {
+      "job": "rlfix5-monotonic",
+      "done": "0\t2\t0",
+      "passed": 2,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "12.210000",
+          "label": "rlfix5 monotonic (1s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "12.570000",
+          "label": "rlfix5 monotonic (2s)"
+        }
+      ]
+    },
+    {
+      "job": "rlfix5-no-yes",
+      "done": "0\t2\t0",
+      "passed": 2,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "3.180000",
+          "label": "rlfix5 no-yes (1s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "3.130000",
+          "label": "rlfix5 no-yes (2s)"
+        }
+      ]
+    },
+    {
+      "job": "rlfix5-yes-no",
+      "done": "0\t2\t0",
+      "passed": 2,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "3.240000",
+          "label": "rlfix5 yes-no (1s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "3.110000",
+          "label": "rlfix5 yes-no (2s)"
+        }
+      ]
+    }
+  ],
+  "command": [
+    "taskset",
+    "-c",
+    "24-31",
+    "tests/gate.sh",
+    "full",
+    "--shared-correctness-cpus",
+    "--server-cores",
+    "24-31",
+    "--load-cores",
+    "24-31",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "21500-21599",
+    "--candidate-binary",
+    "/home/user/Projects/cx-rlfix5/build/rlfix5/POST"
+  ],
+  "binary_sha256": "ee33679bab712d69b735539b1c13211e78ccc9a09dcecd18d668a098a5042a24",
+  "engine": "uring",
+  "env": {
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_ONLY_JOBS": "rlfix5-monotonic rlfix5-yes-no rlfix5-no-yes",
+    "GATE_TEST_PORT": "21598",
+    "GATE_LEDGER": "/home/user/Projects/cx-rlfix5/docs/rlfix5/jobs/final-ordering",
+    "CXX": "g++ -gz=zlib",
+    "CC": "cc -gz=zlib"
+  },
+  "exit_code": 0
+}

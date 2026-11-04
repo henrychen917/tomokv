@@ -132,6 +132,58 @@ struct CoreConcurrencyTest {
         }
     };
 
+    template <bool ReadLocal>
+    static void tracking_lb_drain() {
+        Fixture<ReadLocal, true> f(ThreadMode::Fused, 1);
+        const bool epoll = g_ring_epoll_mode;
+        g_ring_epoll_mode = true;
+        require(f.loop.ring_.init(8), "initialize owner completion mailbox");
+        g_ring_epoll_mode = epoll;
+        f.loop.lb_controller_armed_ = true;
+        auto pass = [&] {
+            if (f.server.cfg().reorder)
+                f.loop.template r7_fused_pass_impl<32, true, false, ReadLocal>();
+            else
+                f.loop.template fused_pass_impl<32, true, false, ReadLocal>();
+        };
+        auto acknowledge_other_owners = [&](uint64_t version) {
+            for (uint32_t tid = 0; tid < f.server.nthreads(); ++tid)
+                if (tid != f.owner) f.server.tracking_config_applied(tid, version);
+        };
+        f.server.climon_tracking_added();
+        const uint64_t enabled = f.server.live_config_snapshot(f.owner).version;
+        acknowledge_other_owners(enabled);
+        require(f.loop.live_config_version_ < enabled &&
+                    !f.server.tracking_config_ready(enabled),
+                "tracking enable must wait for this actual owner");
+        f.server.lb_stage_.store(LbStage::IoDrain, std::memory_order_release);
+        pass();
+        require(f.loop.live_config_version_ == enabled &&
+                    f.server.tracking_config_ready(enabled),
+                "R7 owner did not acknowledge tracking during LB IoDrain");
+
+        // ExDrain owns the shard-vector handover. The same correction must
+        // retain its freeze even when a newer configuration is pending.
+        f.server.climon_tracking_removed();
+        const uint64_t disabled = f.server.live_config_snapshot(f.owner).version;
+        acknowledge_other_owners(disabled);
+        require(disabled > enabled && !f.server.tracking_config_ready(disabled),
+                "second publication must be pending before ExDrain");
+        f.server.lb_stage_.store(LbStage::ExDrain, std::memory_order_release);
+        f.server.lb_ack(f.owner);
+        pass();
+        require(f.loop.live_config_version_ == enabled &&
+                    !f.server.tracking_config_ready(disabled),
+                "R7 owner refreshed configuration while ExDrain owned shards");
+        f.server.lb_stage_.store(LbStage::Idle, std::memory_order_release);
+        pass();
+        require(f.loop.live_config_version_ == disabled &&
+                    f.server.tracking_config_ready(disabled),
+                "tracking publication did not finish after ExDrain");
+        std::printf("PASS R7 tracking/LB read-local=%u reorder=%d: armed IoDrain receipt, "
+                    "ExDrain freeze, Idle completion\n", ReadLocal, f.server.cfg().reorder);
+    }
+
     inline static std::vector<uint64_t> observed;
     static void record(Shard&, Op& op) {
         observed.push_back(op.hash);
@@ -575,6 +627,8 @@ int main(int argc, char** argv) {
                "supply independently expected capabilities: on|off shadow|r7");
     T::require(tomo::r7::shadow_available() == (std::string(argv[2]) == "shadow"), "shadow capability");
     T::require(tomo::command_registry_init(false), "command registry");
+    T::tracking_lb_drain<false>();
+    T::tracking_lb_drain<true>();
     T::io_dispatch_membership_all();
     for (auto mode : {tomo::ThreadMode::Fused, tomo::ThreadMode::Split})
 

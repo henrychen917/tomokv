@@ -1,0 +1,4 @@
+ok	0.010000	release build (+footprint locks)
+ok	3.030000	epoll directed correctness (1s)
+ok	2.980000	epoll directed correctness (2s)
+ok	0.170000	Redis default databases 16 (both modes)

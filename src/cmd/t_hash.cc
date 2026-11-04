@@ -808,7 +808,9 @@ const HashFieldTtl* hash_ttls_of(const KvObj* object) {
 // shard that has never seen HEXPIRE pays one load and one predicted-false test per hash command and
 // reaches no field-TTL code at all. Reaping (rather than filtering at each read site) is also what
 // keeps the ordinary handlers below on live fields. A parked read branches to hexpread.cc
-// before this lookup; its borrowed version must never reach this eager reaper.
+// before this lookup; its borrowed version must never reach this eager reaper. A read during a
+// snapshot capture must not reap either: the reaper answers it from hexpread's view and returns
+// false, exactly as for an error reply (CD5.3).
 template <bool kNotify>
 inline bool hash_lookup(Shard& shard, Op& op, KvObj*& object) {
     object = (op.spec->flags & CmdFlags::Readonly)
@@ -816,7 +818,7 @@ inline bool hash_lookup(Shard& shard, Op& op, KvObj*& object) {
         : shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return false;
     if (__builtin_expect(shard.store().field_expire_count() != 0, false) && object)
-        object = hash_ttl_on_access(shard, op, object, kNotify);
+        return hash_ttl_on_access(shard, op, object, kNotify);
     return true;
 }
 
@@ -1705,16 +1707,14 @@ uint64_t hash_read_visit(const KvObj* object, uint64_t cursor, uint64_t count,
                          void* context, void (*visit)(void*, Slice, Slice)) {
     CollectionRef hash = as_hash(const_cast<KvObj*>(object));
     if (hash.encoding() == CollectionEncoding::Compact) {
-        uint64_t position = 0, sampled = 0;
+        // Like Redis's listpack scan, a compact immutable predecessor is one
+        // page. A positional cursor cannot survive promotion to a hash table.
         for (auto it = hash.begin(); it != hash.end(); ++it) {
             PairView pair;
             if (!decode_pair(*it, pair)) continue;
-            if (position++ < cursor) continue;
-            if (count && sampled >= count) { --position; break; }
-            ++sampled;
             visit(context, pair.field, pair.value);
         }
-        return position >= hash.entries() ? 0 : position;
+        return 0;
     }
     if (!count) {
         hash_fields(hash)->for_each([&](const HashFieldMap::Node& node) {

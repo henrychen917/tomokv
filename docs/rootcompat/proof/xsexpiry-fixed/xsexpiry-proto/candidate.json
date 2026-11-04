@@ -1,0 +1,1783 @@
+{
+  "binary": "/home/user/Projects/cx-rootcompat/build/rootcompat/POST-expiry",
+  "sha256": "b593bdb0dc2a0145546946e22b9ab1341ade8b3ae52f68a5943519fcb9098306",
+  "checks": [
+    {
+      "label": "1s-uring-db1 same_shard a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db1 same_shard a0 staged geometry",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-uring-db1 same_shard a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db1 same_shard a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-uring-db1 same_owner a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db1 same_owner a0 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db1 same_owner a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db1 same_owner a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-uring-db1 cross_owner a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db1 cross_owner a0 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db1 cross_owner a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db1 cross_owner a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-uring-db1 same_shard a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db1 same_shard a1 staged geometry",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-uring-db1 same_shard a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db1 same_shard a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-uring-db1 same_owner a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db1 same_owner a1 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db1 same_owner a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db1 same_owner a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-uring-db1 cross_owner a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db1 cross_owner a1 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db1 cross_owner a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db1 cross_owner a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-uring-db16 same_shard a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db16 same_shard a0 staged geometry",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-uring-db16 same_shard a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db16 same_shard a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-uring-db16 same_owner a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db16 same_owner a0 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db16 same_owner a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db16 same_owner a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-uring-db16 cross_owner a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db16 cross_owner a0 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db16 cross_owner a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db16 cross_owner a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-uring-db16 same_shard a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db16 same_shard a1 staged geometry",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-uring-db16 same_shard a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db16 same_shard a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-uring-db16 same_owner a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db16 same_owner a1 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db16 same_owner a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db16 same_owner a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-uring-db16 cross_owner a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db16 cross_owner a1 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db16 cross_owner a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db16 cross_owner a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-epoll-db1 same_shard a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db1 same_shard a0 staged geometry",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-epoll-db1 same_shard a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db1 same_shard a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-epoll-db1 same_owner a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db1 same_owner a0 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db1 same_owner a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db1 same_owner a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-epoll-db1 cross_owner a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db1 cross_owner a0 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db1 cross_owner a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db1 cross_owner a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-epoll-db1 same_shard a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db1 same_shard a1 staged geometry",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-epoll-db1 same_shard a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db1 same_shard a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-epoll-db1 same_owner a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db1 same_owner a1 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db1 same_owner a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db1 same_owner a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-epoll-db1 cross_owner a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db1 cross_owner a1 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db1 cross_owner a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db1 cross_owner a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-epoll-db16 same_shard a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db16 same_shard a0 staged geometry",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-epoll-db16 same_shard a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db16 same_shard a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-epoll-db16 same_owner a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db16 same_owner a0 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db16 same_owner a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db16 same_owner a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-epoll-db16 cross_owner a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db16 cross_owner a0 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db16 cross_owner a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db16 cross_owner a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-epoll-db16 same_shard a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db16 same_shard a1 staged geometry",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-epoll-db16 same_shard a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db16 same_shard a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-epoll-db16 same_owner a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db16 same_owner a1 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db16 same_owner a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db16 same_owner a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-epoll-db16 cross_owner a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db16 cross_owner a1 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db16 cross_owner a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db16 cross_owner a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-uring-db1 same_shard a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db1 same_shard a0 staged geometry",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-uring-db1 same_shard a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db1 same_shard a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-uring-db1 same_owner a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db1 same_owner a0 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db1 same_owner a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db1 same_owner a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-uring-db1 cross_owner a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db1 cross_owner a0 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db1 cross_owner a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db1 cross_owner a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-uring-db1 same_shard a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db1 same_shard a1 staged geometry",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-uring-db1 same_shard a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db1 same_shard a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-uring-db1 same_owner a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db1 same_owner a1 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db1 same_owner a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db1 same_owner a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-uring-db1 cross_owner a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db1 cross_owner a1 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db1 cross_owner a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db1 cross_owner a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-uring-db16 same_shard a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db16 same_shard a0 staged geometry",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-uring-db16 same_shard a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db16 same_shard a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-uring-db16 same_owner a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db16 same_owner a0 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db16 same_owner a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db16 same_owner a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-uring-db16 cross_owner a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db16 cross_owner a0 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db16 cross_owner a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db16 cross_owner a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-uring-db16 same_shard a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db16 same_shard a1 staged geometry",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-uring-db16 same_shard a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db16 same_shard a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-uring-db16 same_owner a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db16 same_owner a1 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db16 same_owner a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db16 same_owner a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-uring-db16 cross_owner a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db16 cross_owner a1 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db16 cross_owner a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db16 cross_owner a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-epoll-db1 same_shard a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db1 same_shard a0 staged geometry",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-epoll-db1 same_shard a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db1 same_shard a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-epoll-db1 same_owner a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db1 same_owner a0 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db1 same_owner a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db1 same_owner a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-epoll-db1 cross_owner a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db1 cross_owner a0 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db1 cross_owner a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db1 cross_owner a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-epoll-db1 same_shard a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db1 same_shard a1 staged geometry",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-epoll-db1 same_shard a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db1 same_shard a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-epoll-db1 same_owner a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db1 same_owner a1 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db1 same_owner a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db1 same_owner a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-epoll-db1 cross_owner a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db1 cross_owner a1 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db1 cross_owner a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db1 cross_owner a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-epoll-db16 same_shard a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db16 same_shard a0 staged geometry",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-epoll-db16 same_shard a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db16 same_shard a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-epoll-db16 same_owner a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db16 same_owner a0 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db16 same_owner a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db16 same_owner a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-epoll-db16 cross_owner a0 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db16 cross_owner a0 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db16 cross_owner a0 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db16 cross_owner a0 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-epoll-db16 same_shard a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db16 same_shard a1 staged geometry",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-epoll-db16 same_shard a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db16 same_shard a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-epoll-db16 same_owner a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db16 same_owner a1 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db16 same_owner a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db16 same_owner a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-epoll-db16 cross_owner a1 reply",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db16 cross_owner a1 staged geometry",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db16 cross_owner a1 expired value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db16 cross_owner a1 ordered events",
+      "passed": true,
+      "actual": [
+        [
+          "set",
+          1
+        ],
+        [
+          "expire",
+          1
+        ],
+        [
+          "set",
+          0
+        ],
+        [
+          "expired",
+          1
+        ]
+      ]
+    }
+  ],
+  "slowlog": {}
+}

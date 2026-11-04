@@ -1,0 +1,10 @@
+{
+  "limit": 12,
+  "purpose": "Capture state after the first failing bounded wait; prior full-suite verdict remains red regardless of subsequent passes.",
+  "attempts": [
+    {
+      "tag": "tcl-fairness-capture-r7-1",
+      "exit_code": 1
+    }
+  ]
+}

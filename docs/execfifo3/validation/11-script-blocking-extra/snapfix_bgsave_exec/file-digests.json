@@ -1,0 +1,307 @@
+[
+  {
+    "path": "done",
+    "bytes": 6,
+    "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+  },
+  {
+    "path": "family.tsv",
+    "bytes": 64,
+    "sha256": "a8d92a5c981f390fca352242c3df7b650cfd12ad3af67f1ab51ae7a5c2be3f41"
+  },
+  {
+    "path": "ledger",
+    "bytes": 106,
+    "sha256": "829ad4479eef6eae9f2bf826caa3f11481c694be3fe998f541ab2233eb068158"
+  },
+  {
+    "path": "output.log",
+    "bytes": 255,
+    "sha256": "69ffddca285a9abb86d65285dde92ea20712d3778a50c06081ed79233fd7ae82"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-epoll-0/exec-reload.argv.json",
+    "bytes": 467,
+    "sha256": "030ade5b6bf7a21bf4264d0ed7a67309de45fa2bea8845c5ece5588ea8ba5c6d"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-epoll-0/exec-reload.exit.json",
+    "bytes": 27,
+    "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-epoll-0/exec-reload.log",
+    "bytes": 10609,
+    "sha256": "412b12dc1cdbfa74a41c01d32369ec02922af30340aa5e8fa8f8f030c4d847f9"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-epoll-0/server.argv.json",
+    "bytes": 467,
+    "sha256": "030ade5b6bf7a21bf4264d0ed7a67309de45fa2bea8845c5ece5588ea8ba5c6d"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-epoll-0/server.exit.json",
+    "bytes": 27,
+    "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-epoll-0/server.log",
+    "bytes": 11319,
+    "sha256": "0b39089ca16cb86ec1f9ae95649ac16e5ce3244b978a779598378053abda359e"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-epoll-1/exec-reload.argv.json",
+    "bytes": 467,
+    "sha256": "af65d9b61d2fa5bfd7fca971dff9ee723632771957c6ae1419cf2b2d8dfdf520"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-epoll-1/exec-reload.exit.json",
+    "bytes": 27,
+    "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-epoll-1/exec-reload.log",
+    "bytes": 10634,
+    "sha256": "0882bae084b56dbeb828fede42650bd707b157fb50622ac07cc391cd26c99c47"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-epoll-1/server.argv.json",
+    "bytes": 467,
+    "sha256": "af65d9b61d2fa5bfd7fca971dff9ee723632771957c6ae1419cf2b2d8dfdf520"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-epoll-1/server.exit.json",
+    "bytes": 27,
+    "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-epoll-1/server.log",
+    "bytes": 11315,
+    "sha256": "a0334c38e69f710e549a6819327fd70b48319bcb09b9476b19222ccbdf50688f"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-uring-0/exec-reload.argv.json",
+    "bytes": 467,
+    "sha256": "95121a0fb1c466483d8b32324cf43638c506cbb10841200788364fa22e6f91e6"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-uring-0/exec-reload.exit.json",
+    "bytes": 27,
+    "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-uring-0/exec-reload.log",
+    "bytes": 10530,
+    "sha256": "8d82b138389630fff850e72057100a125364c0e45d7508035651b41c7b3a42d9"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-uring-0/server.argv.json",
+    "bytes": 467,
+    "sha256": "95121a0fb1c466483d8b32324cf43638c506cbb10841200788364fa22e6f91e6"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-uring-0/server.exit.json",
+    "bytes": 27,
+    "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-uring-0/server.log",
+    "bytes": 11411,
+    "sha256": "99926ea69289954779251ab7a9ffb438530d95529282d1fc788a09cac5ab440c"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-uring-1/exec-reload.argv.json",
+    "bytes": 467,
+    "sha256": "b04812bc387babc3504cfa1bfcb47b5c2e86c1136a99fd066c6486bf62462982"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-uring-1/exec-reload.exit.json",
+    "bytes": 27,
+    "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-uring-1/exec-reload.log",
+    "bytes": 10551,
+    "sha256": "788a174011738ddf18e894423c64e53f8b47ec29d9b7dfa909fa9716573d512a"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-uring-1/server.argv.json",
+    "bytes": 467,
+    "sha256": "b04812bc387babc3504cfa1bfcb47b5c2e86c1136a99fd066c6486bf62462982"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-uring-1/server.exit.json",
+    "bytes": 27,
+    "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+  },
+  {
+    "path": "snapfix-bgsave-exec/1s-uring-1/server.log",
+    "bytes": 11403,
+    "sha256": "f25098383809ed15713f6fe1a46454933e334a1c8c1476da79c77ac10a6775b5"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-epoll-0/exec-reload.argv.json",
+    "bytes": 485,
+    "sha256": "ad6041777bc1757f06ad990f09d0bab31bec8df97d8a6fe1325996df68849e67"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-epoll-0/exec-reload.exit.json",
+    "bytes": 27,
+    "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-epoll-0/exec-reload.log",
+    "bytes": 9713,
+    "sha256": "6259b21fbcf97e33c9ca4e8ea14ab9c4ad6e6fce5a61bca0d1f5c76c840fb7bc"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-epoll-0/server.argv.json",
+    "bytes": 485,
+    "sha256": "ad6041777bc1757f06ad990f09d0bab31bec8df97d8a6fe1325996df68849e67"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-epoll-0/server.exit.json",
+    "bytes": 27,
+    "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-epoll-0/server.log",
+    "bytes": 10107,
+    "sha256": "49ea38685ed4f46f6e3050bb60058918b1a42c0255a5faf2430d8d3e3c66967b"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-epoll-1/exec-reload.argv.json",
+    "bytes": 485,
+    "sha256": "08501e8db944deb249817adecc989a88c23cc897470dba142e8b768e751c250c"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-epoll-1/exec-reload.exit.json",
+    "bytes": 27,
+    "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-epoll-1/exec-reload.log",
+    "bytes": 9713,
+    "sha256": "f3318f572c06f4ee8d33907d06033eac7aadbf2958cad2c6be4af45d7ca17b26"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-epoll-1/server.argv.json",
+    "bytes": 485,
+    "sha256": "08501e8db944deb249817adecc989a88c23cc897470dba142e8b768e751c250c"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-epoll-1/server.exit.json",
+    "bytes": 27,
+    "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-epoll-1/server.log",
+    "bytes": 10114,
+    "sha256": "05a598c204c75c5330245bf8d2879ee820a0f0cde608a5a9758e65ad969369a0"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-uring-0/exec-reload.argv.json",
+    "bytes": 485,
+    "sha256": "0fc6e5c432bfd776c18930f45a5891be06454c5b9a1218c4c8b55298f26590e5"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-uring-0/exec-reload.exit.json",
+    "bytes": 27,
+    "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-uring-0/exec-reload.log",
+    "bytes": 9630,
+    "sha256": "4f7be4a970ccc945401c27976131f7faa73f373b36472505c81df33d2df01240"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-uring-0/server.argv.json",
+    "bytes": 485,
+    "sha256": "0fc6e5c432bfd776c18930f45a5891be06454c5b9a1218c4c8b55298f26590e5"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-uring-0/server.exit.json",
+    "bytes": 27,
+    "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-uring-0/server.log",
+    "bytes": 10167,
+    "sha256": "c696085c79d97dd2a081945d34d6ca1da4ceedb581efdcd064455dc944305c43"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-uring-1/exec-reload.argv.json",
+    "bytes": 485,
+    "sha256": "779f7a68cc002643dbb4854370b41a66003accb7bc5da8934cf27efea4b24491"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-uring-1/exec-reload.exit.json",
+    "bytes": 27,
+    "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-uring-1/exec-reload.log",
+    "bytes": 9630,
+    "sha256": "d3a601587a513a67b56ad0d806585007998029f7677c19499a207fb659fecdac"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-uring-1/server.argv.json",
+    "bytes": 485,
+    "sha256": "779f7a68cc002643dbb4854370b41a66003accb7bc5da8934cf27efea4b24491"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-uring-1/server.exit.json",
+    "bytes": 27,
+    "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+  },
+  {
+    "path": "snapfix-bgsave-exec/2s-uring-1/server.log",
+    "bytes": 10111,
+    "sha256": "bb6f5368209ed5e59a24c6001c7999e69ed247780515c1358a04c5dbae8fee1f"
+  },
+  {
+    "path": "snapfix-bgsave-exec/redis-redis-0/exec-reload.argv.json",
+    "bytes": 289,
+    "sha256": "5ee0d8e354656824eeb6f09f8b723cf8665addf6676cea6713fe846cdf161ce5"
+  },
+  {
+    "path": "snapfix-bgsave-exec/redis-redis-0/exec-reload.exit.json",
+    "bytes": 27,
+    "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+  },
+  {
+    "path": "snapfix-bgsave-exec/redis-redis-0/exec-reload.log",
+    "bytes": 1556,
+    "sha256": "ebc854bb893b00605d832a62ec804564644dc21b582118249d89955cfc959c01"
+  },
+  {
+    "path": "snapfix-bgsave-exec/redis-redis-0/server.argv.json",
+    "bytes": 289,
+    "sha256": "5ee0d8e354656824eeb6f09f8b723cf8665addf6676cea6713fe846cdf161ce5"
+  },
+  {
+    "path": "snapfix-bgsave-exec/redis-redis-0/server.exit.json",
+    "bytes": 27,
+    "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+  },
+  {
+    "path": "snapfix-bgsave-exec/redis-redis-0/server.log",
+    "bytes": 19056,
+    "sha256": "23a93129e6e8dfc986124f936716fec1cdc4feb43ff0dd354e04c4990df6402e"
+  },
+  {
+    "path": "snapfix-bgsave-exec/results.json",
+    "bytes": 4178,
+    "sha256": "80fdb9be9738a3e8b5eb8c18d8e6f649ec03f37806cbe0444dfa7f4ffe61d134"
+  },
+  {
+    "path": "snapfix-bgsave-exec.log",
+    "bytes": 2758,
+    "sha256": "d013e92bc23607f2c3665a9056f05695f85ff807f9c2960b9405932463d2b1ca"
+  },
+  {
+    "path": "timings",
+    "bytes": 106,
+    "sha256": "829ad4479eef6eae9f2bf826caa3f11481c694be3fe998f541ab2233eb068158"
+  }
+]

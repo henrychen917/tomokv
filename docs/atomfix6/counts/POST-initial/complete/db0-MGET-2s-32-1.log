@@ -1,0 +1,4 @@
+/home/user/Projects/cx-atomfix6/build/atomfix6/counts/trace /home/user/Projects/cx-atomfix6/build/atomfix6/counts/scopes/POST-db0/probe /home/user/Projects/cx-atomfix6/build/atomfix6/counts/scopes/POST-db0/all-executable.ranges 8cad00 8cad10 000000000002bb40 MGET 2s 32 1 -1
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+COUNT 320230

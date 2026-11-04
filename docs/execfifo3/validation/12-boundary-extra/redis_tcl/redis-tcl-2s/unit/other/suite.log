@@ -1,0 +1,42 @@
+Starting test server at port 20601
+[ready]: 880722
+[1;37;49mTesting unit/other[0m
+[[0;33;49mskip[0m]: Coverage: HELP commands
+[[0;32;49mok[0m]: Coverage: MEMORY MALLOC-STATS (6 ms)
+[[0;32;49mok[0m]: Coverage: MEMORY PURGE (1 ms)
+[[0;32;49mok[0m]: SAVE - make sure there are all the types as values (1 ms)
+[[0;32;49mok[0m]: FUZZ stresser with data model binary (220 ms)
+[[0;32;49mok[0m]: FUZZ stresser with data model alpha (230 ms)
+[[0;32;49mok[0m]: FUZZ stresser with data model compr (217 ms)
+[[0;36;49mignore[0m]: Not supported on external server
+[[0;32;49mok[0m]: BGSAVE (53 ms)
+[[0;32;49mok[0m]: SELECT an out of range DB (0 ms)
+[[0;33;49mskip[0m]: Check consistency of different data types after a reload
+[[0;33;49mskip[0m]: Same dataset digest if saving/reloading as AOF?
+[[0;32;49mok[0m]: EXPIRES after a reload (snapshot + append only file rewrite) (53 ms)
+[[0;33;49mskip[0m]: EXPIRES after AOF reload (without rewrite)
+[[0;32;49mok[0m]: PIPELINING stresser (also a regression for the old epoll bug) (280 ms)
+[[0;32;49mok[0m]: APPEND basics (0 ms)
+[[0;32;49mok[0m]: APPEND basics, integer encoded values (1 ms)
+[[0;32;49mok[0m]: APPEND fuzzing (85 ms)
+[[0;32;49mok[0m]: FLUSHDB (9 ms)
+[[0;32;49mok[0m]: Perform a final SAVE to leave a clean DB on disk (5 ms)
+[[0;32;49mok[0m]: RESET clears client state (1 ms)
+[[0;32;49mok[0m]: RESET clears MONITOR state (0 ms)
+[[0;32;49mok[0m]: RESET clears and discards MULTI state (0 ms)
+[[0;32;49mok[0m]: RESET clears Pub/Sub state (0 ms)
+[[0;32;49mok[0m]: RESET clears authenticated state (0 ms)
+[[0;32;49mok[0m]: Subcommand syntax error crash (issue #10070) (0 ms)
+[[0;36;49mignore[0m]: Not supported on external server
+[[0;36;49mignore[0m]: Not supported on external server
+[[0;36;49mignore[0m]: Not supported on external server
+[[0;36;49mignore[0m]: Not supported on external server
+[1/1 [0;33;49mdone[0m]: unit/other (2 seconds)
+
+                   The End
+
+Execution time of different units:
+  2 seconds - unit/other
+
+[1;37;49m\o/[0m [1;32;49mAll tests passed without errors![0m
+

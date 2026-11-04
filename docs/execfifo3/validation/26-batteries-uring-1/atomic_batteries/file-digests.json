@@ -1,0 +1,47 @@
+[
+  {
+    "path": "done",
+    "bytes": 6,
+    "sha256": "42a52187f3fb65550c4b755cb3a1d49776e3e43784f8a47e0ffb19c5786e0961"
+  },
+  {
+    "path": "family.tsv",
+    "bytes": 61,
+    "sha256": "d9f2b9af0a9cc57339542a3e9d327dde074ab8b953237119ba1435103b7379c7"
+  },
+  {
+    "path": "gate-atomic-hazards.txt",
+    "bytes": 727,
+    "sha256": "34332bb266fda66ff1d43c0bd599baa1a433f0fc672fa384b7dfff97daaaca27"
+  },
+  {
+    "path": "gate-atomic-ryow.txt",
+    "bytes": 1802,
+    "sha256": "a990cc2f2b51268148e6e10ca32728efe3c93bef0c0d89ff82d3ccf6c9c29cc7"
+  },
+  {
+    "path": "gate-atomic-torn.txt",
+    "bytes": 3534,
+    "sha256": "2deb4be1dee315fe2928aea4bc18c11e2964f8a1b36c84677df4b08abc5956a5"
+  },
+  {
+    "path": "gate-srv-fused.QXAUfg",
+    "bytes": 11460,
+    "sha256": "91fb3fb55167fd47a0edc63c7bfaea153175175fa4009b831d56b94856413eb4"
+  },
+  {
+    "path": "ledger",
+    "bytes": 169,
+    "sha256": "b12a782521eb80e16c8fcbb121071e01a69c21533bf10824bb0b9ff0660d7381"
+  },
+  {
+    "path": "output.log",
+    "bytes": 597,
+    "sha256": "6348134ad4eb7f171bbc49db61462e998ab94fe3cb0f5b037261648d836eb7fd"
+  },
+  {
+    "path": "timings",
+    "bytes": 169,
+    "sha256": "b12a782521eb80e16c8fcbb121071e01a69c21533bf10824bb0b9ff0660d7381"
+  }
+]

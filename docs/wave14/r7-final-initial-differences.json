@@ -1,0 +1,108 @@
+{
+  "pre_sha256": "cc31f86e579a33a926fee80a6d5551b021eed8a3b7d4cc112df39c1480f61168",
+  "post_sha256": "236ef70134c3b427ee51b2136f8ea950bd5ded45773d7b8c5b0723e30547207d",
+  "changed": [
+    {
+      "name": "unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+      "old": [
+        {
+          "size": 3609,
+          "address": "0x878960",
+          "digest": "9c406da2509117f75f3a76540f80ec3752853b83a36268b7d14ae2eb617d63ad"
+        }
+      ],
+      "new": [
+        {
+          "size": 3587,
+          "address": "0x878940",
+          "digest": "5994847dc17ae73edd7f900ee6053bb17d411e2caf986ba4126394c5d955433d"
+        }
+      ]
+    },
+    {
+      "name": "unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()",
+      "old": [
+        {
+          "size": 3928,
+          "address": "0x877a00",
+          "digest": "08f8a7173b6332ac030461ee4c7c00d55ae266ac0e81e7ff57213240498b9a9b"
+        }
+      ],
+      "new": [
+        {
+          "size": 3883,
+          "address": "0x877a10",
+          "digest": "3ec3288c3457a11ea12577e7c8d39815d0a1703bee7aff2544580aeb030875f7"
+        }
+      ]
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+      "old": [
+        {
+          "size": 3758,
+          "address": "0x45fa30",
+          "digest": "374a8d5304ed094db4ffdd62846207e007a364db838ecc0a18b93799c749d8ed"
+        }
+      ],
+      "new": [
+        {
+          "size": 3766,
+          "address": "0x45fa10",
+          "digest": "47ccb0e7983f188927e0df11f59b7f6df7a2c7ac9a8f9e862622d730cf895f0d"
+        }
+      ]
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()",
+      "old": [
+        {
+          "size": 4072,
+          "address": "0x45ea40",
+          "digest": "2db25a9502b4ba42c76ccac8ff159c21ec7c0e15733be07436e07c0a14ab6f02"
+        }
+      ],
+      "new": [
+        {
+          "size": 4043,
+          "address": "0x45ea40",
+          "digest": "33ec454c05847b2dadaff5b7f8b5b6c0ce22c1068e2517ac5a28cab91a9f926e"
+        }
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::r7_run_loop<true, true, true, true, false>()",
+      "old": [
+        {
+          "size": 5543,
+          "address": "0x88ffa0",
+          "digest": "082275f9abc1b5e1494068fcf5d49d09d05c3e9c25bdae86cf493d0c5712beb4"
+        }
+      ],
+      "new": [
+        {
+          "size": 5516,
+          "address": "0x881650",
+          "digest": "3df87fde844372ee6acebc129a0c8b76c4afe3896d215f72667e324371f8d8ae"
+        }
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_run_loop<false, true, false, true, false>()",
+      "old": [
+        {
+          "size": 5860,
+          "address": "0x474950",
+          "digest": "bc31fd37c319d5722c104eeabdbbf369f8ddd2e7ada8876861f053c1fccbe7f0"
+        }
+      ],
+      "new": [
+        {
+          "size": 5900,
+          "address": "0x474940",
+          "digest": "eac512aaa927ed0c074553d8067a58863124535b1545b6a464d15a85257eb9be"
+        }
+      ]
+    }
+  ]
+}

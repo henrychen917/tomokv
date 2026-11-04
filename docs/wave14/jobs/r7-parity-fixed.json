@@ -1,0 +1,188 @@
+{
+  "label": "r7-parity-fixed",
+  "source": "/home/user/Projects/cx-wave14/build/gate-run.Fu3PLX",
+  "archive": "/home/user/Projects/cx-wave14/docs/wave14/jobs/r7-parity-fixed.tar.gz",
+  "archive_sha256": "9e5ee291f17feea2ccb33aaa464ce146032c8117d69e997538eda9d69d11d1af",
+  "files": [
+    {
+      "path": "families.tsv",
+      "size": 170,
+      "sha256": "f41f28fae4681253fe3f6b55aaa397d5ef32127042bf496c0789fbf8203a6d3e"
+    },
+    {
+      "path": "jobs/release/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "size": 52,
+      "sha256": "04fc2896c793eb48a462a653aeeb44c8f99f573362961eddab97c551f4128145"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "size": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/reorder_identity/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/reorder_identity/family.tsv",
+      "size": 61,
+      "sha256": "33ec76795c78a2ccaf9289b957089d040b32e505b4a50cd2f535385612262750"
+    },
+    {
+      "path": "jobs/reorder_identity/ledger",
+      "size": 65,
+      "sha256": "9c337ac260c462891d72cefbfcfb7abe57227e7e49e3d5f8799ac55b6e03243a"
+    },
+    {
+      "path": "jobs/reorder_identity/output.log",
+      "size": 167,
+      "sha256": "4f5decad8fbc7a61389426369c90ee08ac39d6b82b5027043f5f310d508df500"
+    },
+    {
+      "path": "jobs/reorder_identity/receipt/identity/audit.json",
+      "size": 369238,
+      "sha256": "4e8f1ca1b716e529284ebf3934a0ee5c7cbb70e33a9868ee585d1dc88217e7ad"
+    },
+    {
+      "path": "jobs/reorder_identity/receipt/twin.json",
+      "size": 795,
+      "sha256": "ddcd21440af8b57e7d38dfe12949a67f87497316f9e52f67753510f375705542"
+    },
+    {
+      "path": "jobs/reorder_identity/receipt.log",
+      "size": 246,
+      "sha256": "5301d47738886707bd94a48236e9d595c4131b3eab74d37f6343fe6d8da9ce19"
+    },
+    {
+      "path": "jobs/reorder_identity/timings",
+      "size": 65,
+      "sha256": "9c337ac260c462891d72cefbfcfb7abe57227e7e49e3d5f8799ac55b6e03243a"
+    },
+    {
+      "path": "jobs/reorder_sync/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/reorder_sync/family.tsv",
+      "size": 57,
+      "sha256": "48cf834047716d295dbccb5b18384357b7e9946da913108a3fcdd37ca5ade985"
+    },
+    {
+      "path": "jobs/reorder_sync/ledger",
+      "size": 41,
+      "sha256": "4b4efa731dc5b8a9efa612ed039e6611b8b97c9bb6329bc938a14c6201ead8e1"
+    },
+    {
+      "path": "jobs/reorder_sync/output.log",
+      "size": 145,
+      "sha256": "d3c96b399409cfdc00efb245efca5c1e69add005c6d4f12e67a06e39b1549ada"
+    },
+    {
+      "path": "jobs/reorder_sync/sync.log",
+      "size": 128,
+      "sha256": "ba22eea408649e06e023ef5d8d30ee66d50ae9c1dd1a48d978abfcb124b6c015"
+    },
+    {
+      "path": "jobs/reorder_sync/timings",
+      "size": 41,
+      "sha256": "4b4efa731dc5b8a9efa612ed039e6611b8b97c9bb6329bc938a14c6201ead8e1"
+    },
+    {
+      "path": "phases.tsv",
+      "size": 88,
+      "sha256": "700f7cf5dbbdc5ab7d44eeb0b34befa9bf16191329ceac2f4e4b4e32da76e52d"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1196,
+      "sha256": "fbfca4677ccccffcfba5e1dfe989c16c0e89d015efe9f18a5aa852a6e7dc2df7"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 179962,
+      "sha256": "0dd809f5486035c20ce4a5d8f670f8ee81c5d90eef6a6679268b458d3e62a21c"
+    }
+  ],
+  "jobs": [
+    {
+      "job": "release",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    },
+    {
+      "job": "reorder_identity",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "132.700000",
+          "label": "R7 FIFO twin off-path identity + negative controls"
+        }
+      ]
+    },
+    {
+      "job": "reorder_sync",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "1.120000",
+          "label": "R7 generated envelope parity"
+        }
+      ]
+    }
+  ],
+  "command": [
+    "taskset",
+    "-c",
+    "0-31",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "0-7",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20093-20095",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave14/build/wave14/r7-final/tomokv"
+  ],
+  "binary_sha256": "236ef70134c3b427ee51b2136f8ea950bd5ded45773d7b8c5b0723e30547207d",
+  "exit_code": 0,
+  "run_directory": "/home/user/Projects/cx-wave14/build/gate-run.Fu3PLX",
+  "engine": "uring",
+  "fused": false
+}

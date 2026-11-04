@@ -1,0 +1,23 @@
+{
+  "gate": "build/gate-run.QQjXt6",
+  "rows": [
+    {
+      "mode": "1s",
+      "files": 39,
+      "passed": 1874,
+      "known_setup_errors": 5,
+      "skipped": 433,
+      "validation_errors": 0,
+      "binary_sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341"
+    },
+    {
+      "mode": "2s",
+      "files": 39,
+      "passed": 1874,
+      "known_setup_errors": 5,
+      "skipped": 433,
+      "validation_errors": 0,
+      "binary_sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341"
+    }
+  ]
+}

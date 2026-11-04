@@ -1,0 +1,42 @@
+{
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "0-7",
+    "--load-cores",
+    "0-7",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "21918-21920",
+    "--candidate-binary",
+    "/home/user/Projects/cx-eoffix/build/eoffix/post/tomokv"
+  ],
+  "native": "/home/user/Projects/cx-eoffix/build/eoffix/post/tomokv",
+  "native_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
+  "launcher_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
+  "engine": "epoll",
+  "jobs": "wave14_eof_data",
+  "env": {
+    "LC_ALL": "C",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_CORRECTNESS_SHARED_CPUS": "1",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_ONLY_JOBS": "wave14_eof_data",
+    "GATE_NET_IO": "epoll",
+    "GATE_PROOF_NET_IO": "epoll",
+    "GATE_DIFFER_NET_IO": "epoll",
+    "GATE_LEDGER": "/home/user/Projects/cx-eoffix/docs/eoffix/post-extended-fresh"
+  },
+  "exit_code": 0,
+  "directory": "/home/user/Projects/cx-eoffix/build/gate-run.bzcsRN",
+  "ledgers": {
+    "jobs/wave14_eof_data/ledger": "ok\t27.510000\twave14 half-close accepted input\n",
+    "jobs/release/ledger": "ok\t0.000000\trelease build (+footprint locks)\n"
+  },
+  "captures": [],
+  "archive_sha256": "364a8275d856f805e988e9bbcb24eee73c8613e37ce56d6a811a32efcba74bb1"
+}

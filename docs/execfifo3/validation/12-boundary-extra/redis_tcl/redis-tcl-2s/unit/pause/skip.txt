@@ -1,0 +1,3 @@
+CLIENT UNBLOCK is not allow to unblock client blocked by CLIENT PAUSE
+Test may-replicate commands are rejected in RO scripts
+Test old pause-all takes precedence over new pause-write (less restrictive)

@@ -36,8 +36,28 @@ def cpu_spec(values):
     return ','.join(map(str, sorted(values)))
 
 
-def pin_driver(server_cpus, load_cpus):
-    require(not set(cpus(server_cpus)) & set(cpus(load_cpus)),
+def shared_correctness_cpus(server_cpus, load_cpus):
+    """Explicit selected-job adapters; never enable overlap for a rate run."""
+    servers = set(cpus(server_cpus)) if isinstance(server_cpus, str) else set(server_cpus)
+    loads = set(cpus(load_cpus)) if isinstance(load_cpus, str) else set(load_cpus)
+    legacy = os.getenv('GATE_CORRECTNESS_SHARED_CPUS') == '1'
+    explicit = os.getenv('GATE_SHARED_CORRECTNESS_CPUS') == '1'
+    if not (legacy or explicit) or not servers & loads:
+        return False
+    require(os.getenv('GATE_PROOF_NO_RATES') == '1' and os.getenv('GATE_ONLY_JOBS'),
+            'shared CPUs require selected correctness jobs without rate assertions')
+    require(len(servers) == 8 and loads and loads <= servers and (legacy or loads == servers),
+            'shared correctness requires eight server CPUs and the same eight CPUs or an authorized load mask')
+    for cpu in servers:
+        siblings = set(cpus(Path(f'/sys/devices/system/cpu/cpu{cpu}/topology/thread_siblings_list').read_text().strip()))
+        require(len(siblings & servers) == 1, 'shared correctness requires distinct physical server cores')
+    return True
+
+
+def pin_driver(server_cpus, load_cpus, *, correctness_only=False, allow_shared_correctness=False):
+    servers, loads = set(cpus(server_cpus)), set(cpus(load_cpus))
+    allowed = correctness_only or allow_shared_correctness or os.getenv('GATE_CORRECTNESS_SHARED_CPUS') == '1'
+    require(not servers & loads or (allowed and shared_correctness_cpus(servers, loads)),
             'server and load CPUs overlap')
     os.sched_setaffinity(0, cpus(load_cpus))
 

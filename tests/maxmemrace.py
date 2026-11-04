@@ -233,12 +233,28 @@ def prepare(g, policy):
         assert g.ctl.read() == base + 1000
 
 
-def settle(g, maxmemory):
+def settle(g, maxmemory, transcript):
     """Apply the old limit and prove it on X's witness shard before the trial."""
     assert g.ctl.cmd('CONFIG', 'SET', 'maxmemory', maxmemory) == b'+OK'
     # The SET is itself an X task, so X has crossed a pass boundary after the commit.
     reply = g.ctl.cmd('SET', g.witness, 'settle')
     want = b'+OK' if maxmemory == '0' else OOM
+    if g.oracle and maxmemory == '1':
+        policy = g.ctl.cmd('CONFIG', 'GET', 'maxmemory-policy')
+        if policy == [b'maxmemory-policy', b'allkeys-lru']:
+            # Redis 7.4 performEvictions() may return EVICT_RUNNING. Only
+            # EVICT_FAIL rejects DENYOOM commands, so +OK is legal while the
+            # incremental eviction cycle still has keys. Wait for its end;
+            # candidate setup and the post-CONFIG assertion stay strict.
+            deadline = time.monotonic() + 5
+            admitted = 0
+            while reply == b'+OK' and time.monotonic() < deadline:
+                admitted += 1
+                time.sleep(.001)
+                reply = g.ctl.cmd('SET', g.witness, 'settle')
+            transcript.append(dict(setup='Redis incremental allkeys-lru eviction',
+                                   admitted_while_evicting=admitted,
+                                   final_reply=reply.decode(errors='replace')))
     assert reply == want, ('settled limit not in effect', maxmemory, reply)
 
 
@@ -293,43 +309,45 @@ def trial(g, case, transcript):
     keeper = threading.Thread(target=keep_awake, daemon=True)
     keeper.start()
     time.sleep(0.002)
-    # Settle last: under allkeys-lru the old limit starts evicting shard 0 at once, so the
-    # occupation follows the settle's proof directly.
-    settle(g, old)
-    t0 = time.monotonic()
-    g.b1.send(*([scan] * OCCUPY_FIRST))                    # occupy the shard-0 owner
-    time.sleep(0.001)
-    g.a.send(encode('CONFIG', 'SET', 'maxmemory', new))
-    time.sleep(0.0005)
-    g.b2.send(*([scan] * OCCUPY_TASKS))                    # behind the fragments, same IO
-    config_reply = g.a.read()
-    t_ok = time.monotonic()
-    g.a.send(encode('SET', g.witness, 'after-ok'))
-    t_sent = time.monotonic()
-    # Every reply here is one line (+OK, -OOM ..., :n, $-1/_). Read by readiness so the
-    # arrival order is observed rather than imposed by the reader.
-    names = {g.b1.sock: 'b1', g.b2.sock: 'b2', g.a.sock: 'a'}
-    conns = {'b1': g.b1, 'b2': g.b2, 'a': g.a}
-    pending = {'b1': OCCUPY_FIRST, 'b2': OCCUPY_TASKS, 'a': 1}
-    replies = {'b1': [], 'b2': [], 'a': []}
-    events = []
-    while any(pending.values()):
-        for n, c in conns.items():
-            while pending[n] and b'\r\n' in c.buf:
-                line, c.buf = c.buf.split(b'\r\n', 1)
-                replies[n].append(line)
-                pending[n] -= 1
-                events.append((n, time.monotonic()))
-        if not any(pending.values()):
-            break
-        readable, _, _ = select.select([c.sock for n, c in conns.items() if pending[n]], [], [], 30)
-        assert readable, ('reply timeout', pending)
-        for sock in readable:
-            data = sock.recv(1 << 16)
-            assert data, 'server closed the connection'
-            conns[names[sock]].buf += data
-    stop.set()
-    keeper.join(30)
+    try:
+        # Settle last: under allkeys-lru the old limit starts evicting shard 0 at once, so the
+        # occupation follows the settle's proof directly.
+        settle(g, old, transcript)
+        t0 = time.monotonic()
+        g.b1.send(*([scan] * OCCUPY_FIRST))                    # occupy the shard-0 owner
+        time.sleep(0.001)
+        g.a.send(encode('CONFIG', 'SET', 'maxmemory', new))
+        time.sleep(0.0005)
+        g.b2.send(*([scan] * OCCUPY_TASKS))                    # behind the fragments, same IO
+        config_reply = g.a.read()
+        t_ok = time.monotonic()
+        g.a.send(encode('SET', g.witness, 'after-ok'))
+        t_sent = time.monotonic()
+        # Every reply here is one line (+OK, -OOM ..., :n, $-1/_). Read by readiness so the
+        # arrival order is observed rather than imposed by the reader.
+        names = {g.b1.sock: 'b1', g.b2.sock: 'b2', g.a.sock: 'a'}
+        conns = {'b1': g.b1, 'b2': g.b2, 'a': g.a}
+        pending = {'b1': OCCUPY_FIRST, 'b2': OCCUPY_TASKS, 'a': 1}
+        replies = {'b1': [], 'b2': [], 'a': []}
+        events = []
+        while any(pending.values()):
+            for n, c in conns.items():
+                while pending[n] and b'\r\n' in c.buf:
+                    line, c.buf = c.buf.split(b'\r\n', 1)
+                    replies[n].append(line)
+                    pending[n] -= 1
+                    events.append((n, time.monotonic()))
+            if not any(pending.values()):
+                break
+            readable, _, _ = select.select([c.sock for n, c in conns.items() if pending[n]], [], [], 30)
+            assert readable, ('reply timeout', pending)
+            for sock in readable:
+                data = sock.recv(1 << 16)
+                assert data, 'server closed the connection'
+                conns[names[sock]].buf += data
+    finally:
+        stop.set()
+        keeper.join(30)
     assert not keeper.is_alive(), 'keeper did not stop'
     set_reply = replies['a'][0]
     want = OOM if case.startswith('TIGHTEN') else b'+OK'

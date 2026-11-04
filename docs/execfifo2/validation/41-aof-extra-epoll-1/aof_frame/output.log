@@ -1,0 +1,4 @@
+  row budget: 900s; median=0.32s; correctness-plan-fallback; AOF control frame never inside a large record (atomic 0)
+  AOF control frame never inside a large record (atomic 0) ok
+  row budget: 900s; median=0.32s; correctness-plan-fallback; AOF control frame never inside a large record (atomic 1)
+  AOF control frame never inside a large record (atomic 1) ok

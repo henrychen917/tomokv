@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "commands": {
+    "DEL": 26,
+    "EVAL": 1559,
+    "EVALSHA": 453,
+    "EVALSHA_RO": 184,
+    "EVAL_RO": 514,
+    "EXISTS": 25,
+    "FCALL": 601,
+    "FCALL_RO": 258,
+    "FUNCTION": 266,
+    "GET": 29,
+    "MGET": 109,
+    "MSET": 104,
+    "SCRIPT": 641,
+    "SET": 159,
+    "STRLEN": 33,
+    "TOUCH": 32,
+    "TYPE": 17,
+    "UNLINK": 33
+  },
+  "kinds": {
+    "DEL": [
+      "reply"
+    ],
+    "EVAL": [
+      "reply"
+    ],
+    "EVALSHA": [
+      "reply"
+    ],
+    "EVALSHA_RO": [
+      "reply"
+    ],
+    "EVAL_RO": [
+      "reply"
+    ],
+    "EXISTS": [
+      "reply"
+    ],
+    "FCALL": [
+      "reply"
+    ],
+    "FCALL_RO": [
+      "reply"
+    ],
+    "FUNCTION": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "MGET": [
+      "reply"
+    ],
+    "MSET": [
+      "reply"
+    ],
+    "SCRIPT": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "STRLEN": [
+      "reply"
+    ],
+    "TOUCH": [
+      "reply"
+    ],
+    "TYPE": [
+      "reply"
+    ],
+    "UNLINK": [
+      "reply"
+    ]
+  }
+}

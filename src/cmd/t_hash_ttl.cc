@@ -124,7 +124,7 @@ bool hash_ttl_lookup(Shard& shard, Op& op, KvObj*& object) {
         : shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return false;
     if (__builtin_expect(shard.store().field_expire_count() != 0, false) && object)
-        object = hash_ttl_on_access(shard, op, object, kNotify);
+        return hash_ttl_on_access(shard, op, object, kNotify);
     return true;
 }
 
@@ -409,17 +409,21 @@ bool hash_ttl_active_reap(FlatStore& store, KvObj* object, int64_t now_ms, uint3
     return hash_ttl_field_count(object) == 0;
 }
 
-KvObj* hash_ttl_on_access(Shard& shard, Op& op, KvObj* object, bool notify) {
-    // A read can resolve an immutable predecessor underneath an undecided group. Reaping that
-    // object changes another version; erasing by key would delete the group's physical candidate.
-    // Ordinary hash readers filter in HashReadView; HTTL-family readers already use field_live.
-    if ((op.spec->flags & CmdFlags::Readonly) &&
-        !shard.store().atomic_read_owns_value(op.hash, op.key(), object)) return object;
-    // Suppressed during a snapshot capture for the same reason active_expire() is: the frozen table
-    // still has to serialize the pre-cut image. Every command in this file filters logically anyway,
-    // so the only visible effect is that an ordinary HGET may still see a just-lapsed field until
-    // the capture completes.
-    if (shard.store().snapshot_active()) return object;
+bool hash_ttl_on_access(Shard& shard, Op& op, KvObj*& object, bool notify) {
+    if (op.spec->flags & CmdFlags::Readonly) {
+        // A read can resolve an immutable predecessor underneath an undecided group. Reaping that
+        // object changes another version; erasing by key would delete the group's physical
+        // candidate. Ordinary hash readers filter in HashReadView (hash_parked_reply);
+        // HTTL-family readers already use field_live.
+        if (!shard.store().atomic_read_owns_value(op.hash, op.key(), object)) return true;
+        // CD5.3: a capture suspends read-side reaping, as it suspends active_expire(): a read takes
+        // no pre-image, and the frozen table still has to serialize the pre-cut value. Answer from
+        // the same reply-only view instead, so a lapsed field is never served. A command the view
+        // does not cover (the HTTL family) filters with field_live itself.
+        if (shard.store().snapshot_active()) return !hash_capture_reply(shard, op, object);
+    }
+    // A write reaps even during a capture: the executor's snapshot gate serializes its key's
+    // pre-image before the write runs, so an increment, HSETNX or HSET never sees a lapsed field.
     const int64_t now_ms = shard.now_ms();
     if (!shard.store().read_retirement_available()) {
         // Reaping the last field calls store_erase(), which retires the hash header. Leave an
@@ -431,24 +435,28 @@ KvObj* hash_ttl_on_access(Shard& shard, Op& op, KvObj* object, bool notify) {
             ttls->for_each([&](Slice field, int64_t at) {
                 if (at <= now_ms && hash_ttl_field_exists(object, field)) due++;
             });
-            if (due && due == hash_ttl_field_count(object)) return nullptr;
+            if (due && due == hash_ttl_field_count(object)) {
+                object = nullptr;
+                return true;
+            }
         }
     }
     const size_t before = kvobj_size(object);
     const uint32_t reaped = reap_due(object, now_ms);
-    if (!reaped) return object;
+    if (!reaped) return true;
     shard.store().note_field_expired(reaped);
     if (hash_ttl_field_count(object) != 0) {
         shard.store().note_object_size_change(before, kvobj_size(object));
         if (notify) notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hexpired, op.key());
-        return object;
+        return true;
     }
     if (notify) notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hexpired, op.key());
     // erase() subtracts the object's whole footprint, so the growth bracket must not also report.
     (void)shard.store().aof().record_delete(op.key());
     if (notify) shard.store_erase<true>(op.hash, op.key());
     else        shard.store_erase<false>(op.hash, op.key());
-    return nullptr;
+    object = nullptr;
+    return true;
 }
 
 void hash_ttl_clear_field(Shard& shard, KvObj* object, Slice field) {

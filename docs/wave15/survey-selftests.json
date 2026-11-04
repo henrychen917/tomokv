@@ -1,0 +1,62 @@
+[
+  {
+    "command": [
+      "python3",
+      "calib/survey-cmds.py",
+      "--selftest"
+    ],
+    "exit": 0,
+    "stdout": "survey_cmds selftest: PASS\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "python3",
+      "calib/survey-latency.py",
+      "--selftest"
+    ],
+    "exit": 0,
+    "stdout": "survey_latency selftest: PASS\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "python3",
+      "calib/survey-memory.py",
+      "--selftest"
+    ],
+    "exit": 0,
+    "stdout": "survey_memory selftest: PASS\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "python3",
+      "calib/survey-persist.py",
+      "--selftest"
+    ],
+    "exit": 0,
+    "stdout": "survey_persist selftest: PASS\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "python3",
+      "calib/survey-scale.py",
+      "--selftest"
+    ],
+    "exit": 0,
+    "stdout": "survey_scale selftest: PASS\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "python3",
+      "calib/survey.py",
+      "--selftest"
+    ],
+    "exit": 0,
+    "stdout": "survey selftest: PASS\n",
+    "stderr": ""
+  }
+]

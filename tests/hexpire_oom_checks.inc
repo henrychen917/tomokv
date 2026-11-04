@@ -29,10 +29,24 @@ struct Fixture {
         check(expanded || CollectionRef(object()).is_embedded(),
               "CD1: compact case must exercise first-TTL externalization");
         check(shard.store().field_expire_count() == 0, "CD1: fresh shard has no TTL gate");
-        // maxmemory is an admission limit, not a per-new allocator. Leave room for externalizing
-        // the compact hash, then inject the precise in-command failure independently.
-        shard.store().configure_maxmemory(true, shard.store().accounted_bytes() + 4096,
-                                         MaxmemoryPolicy::NoEviction, 1);
+        // maxmemory is an admission limit, not a per-new allocator. Enabling it builds the
+        // OBJECT IDLETIME clock, which ST5.3 charges to the store, so take the seed footprint
+        // only after enabling. Leave room for externalizing the compact hash, including one
+        // complete idle-clock path for its replacement object (an upper bound for any single
+        // install), then inject the precise in-command failure independently.
+        FlatStore& store = shard.store();
+        check(store.configure_maxmemory(true, std::numeric_limits<uint64_t>::max(),
+                                        MaxmemoryPolicy::NoEviction, 1) && idle_bytes() != 0,
+              "CD1: enabled maxmemory builds and charges its idle clock");
+        store.configure_maxmemory(true, store.accounted_bytes() + 4096 +
+                                            ObjectIdleClock().allocation_bytes(nullptr),
+                                  MaxmemoryPolicy::NoEviction, 1);
+    }
+    // ST5.3: every idle-clock node is charged to the store's object bytes.
+    size_t idle_bytes() {
+        const ObjectIdleClock* clock =
+            shard.store().object_idle_slot()->load(std::memory_order_relaxed);
+        return clock ? clock->allocated_bytes() : 0;
     }
     KvObj* object() { return shard.store().find(hash, key); }
     int64_t ttl(const std::string& field) {
@@ -80,7 +94,7 @@ void expire(const char* verb, const char* when, bool expanded, bool notify, bool
     HashFieldTtl** slot = hash_ttl_slot(f.object());
     const auto* value = slot ? static_cast<const HashVal*>(f.object()->external_ptr()) : nullptr;
     const bool accounted = (!value || value->ttl_bytes == (value->ttls ? value->ttls->allocation_bytes() : 0)) &&
-                           f.shard.store().object_bytes() == kvobj_size(f.object());
+                           f.shard.store().object_bytes() == kvobj_size(f.object()) + f.idle_bytes();
     check(f.get(f.first) == "$2\r\nv1\r\n" && f.get(f.second) == "$2\r\nv2\r\n",
           "CD1: both values remain readable before the deadline");
     f.shard.set_cached_now_ms(deadline + 1);

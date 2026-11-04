@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=netfix2-fds; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	6.190000	netfix2 fds

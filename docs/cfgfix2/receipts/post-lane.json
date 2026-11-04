@@ -1,0 +1,273 @@
+{
+  "phase": "post-lane",
+  "command": [
+    "taskset",
+    "-c",
+    "32-47",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "32-39",
+    "--load-cores",
+    "40-47",
+    "--load-smt",
+    "",
+    "--ports",
+    "21800-21849",
+    "--candidate-binary",
+    "/home/user/Projects/cx-cfgfix2/build/cfgfix2/arms/tomokv-POST"
+  ],
+  "environment": {
+    "GATE_ONLY_JOBS": "cfgfix2-file cfgfix2-acl cfgfix2-latency cfgfix2-auth cfgfix2-shutdown cfgfix2-maxmemory config_unit boot_grammar serverfix_lines serverfix_config netcmd_units authfix auth acl_metadata",
+    "GATE_PROOF_NO_RATES": "1"
+  },
+  "binary": "/home/user/Projects/cx-cfgfix2/build/cfgfix2/arms/tomokv-POST",
+  "binary_sha256": "b525d76155ce9a141c66db38789443cb5d19b8d6285245450928305f4a196e91",
+  "returncode": 1,
+  "started": 1793607304.233371,
+  "finished": 1793608310.3097396,
+  "run": "/home/user/Projects/cx-cfgfix2/build/gate-run.0lW4Kw",
+  "log": "build/cfgfix2/gate-logs/post-lane.log",
+  "log_sha256": "aff913549d175f4dde8ab83b7d08e505de8a871f88b4a6ce425075267e500918",
+  "rows": [
+    {
+      "status": "ok",
+      "seconds": 0.0,
+      "label": "release build (+footprint locks)"
+    },
+    {
+      "status": "ok",
+      "seconds": 5.71,
+      "label": "cfgfix2 file (oracle, both modes and engines)"
+    },
+    {
+      "status": "ok",
+      "seconds": 9.89,
+      "label": "cfgfix2 acl (oracle, both modes and engines)"
+    },
+    {
+      "status": "ok",
+      "seconds": 70.43,
+      "label": "cfgfix2 latency (oracle, both modes and engines)"
+    },
+    {
+      "status": "ok",
+      "seconds": 32.54,
+      "label": "cfgfix2 auth (oracle, both modes and engines)"
+    },
+    {
+      "status": "FAIL",
+      "seconds": 261.53,
+      "label": "cfgfix2 shutdown (oracle, both modes and engines)"
+    },
+    {
+      "status": "ok",
+      "seconds": 3.42,
+      "label": "cfgfix2 maxmemory (oracle, both modes and engines)"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.4,
+      "label": "configuration docs match parser"
+    },
+    {
+      "status": "ok",
+      "seconds": 5.56,
+      "label": "Redis config quoting + mid-value #"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.05,
+      "label": "generated Redis 7.4 ACL categories"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.0,
+      "label": "netcmd regression build"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.0,
+      "label": "netcmd streams regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "netcmd zpop regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.0,
+      "label": "netcmd notify-oom regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.0,
+      "label": "netcmd notify-retry regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "netcmd flush regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.0,
+      "label": "netcmd output regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.0,
+      "label": "netcmd pubsub regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "netcmd receive regression"
+    },
+    {
+      "status": "FAIL",
+      "seconds": 0.04,
+      "label": "netcmd config regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "netcmd wb-small-pipe regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.0,
+      "label": "netcmd wb-complete-visits regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "netcmd hexpire-oom regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "encodingfix knob"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.0,
+      "label": "encodingfix precedence"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "NET1 serverless bounds + scan + reclamation"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "reject --mode (flag deleted)"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "reject --spread"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "reject --nodes"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.0,
+      "label": "reject 3-part ratio"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "reject missing conf"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "reject bad conf key"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "reject aclfile + conf user lines"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "reject bad protected-mode"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.0,
+      "label": "reject bad enable-debug-command"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.15,
+      "label": "AUTH/HELLO/protected state machine"
+    },
+    {
+      "status": "ok",
+      "seconds": 5.58,
+      "label": "ACL battery (atomic off)"
+    },
+    {
+      "status": "ok",
+      "seconds": 5.57,
+      "label": "ACL battery (atomic on)"
+    },
+    {
+      "status": "ok",
+      "seconds": 2.43,
+      "label": "DEBUG toggle/reload battery"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.13,
+      "label": "typed snapshot round-trip incl stream"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.91,
+      "label": "authfix CG4.1 binary config requirepass"
+    },
+    {
+      "status": "ok",
+      "seconds": 3.46,
+      "label": "authfix CG4.2 missing config value refuses boot"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.91,
+      "label": "authfix SV4.2 binary requirepass rewrite restart"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.3,
+      "label": "authfix SV4.1 slowlog credential redaction (1s)"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.3,
+      "label": "authfix SV4.1 slowlog credential redaction (2s)"
+    },
+    {
+      "status": "ok",
+      "seconds": 8.38,
+      "label": "serverfix CG4.3 physical config lines"
+    },
+    {
+      "status": "ok",
+      "seconds": 1.0,
+      "label": "serverfix SV4.6 CONFIG validation matrix"
+    }
+  ],
+  "summary": {
+    "ok": 45,
+    "fail": 2
+  }
+}

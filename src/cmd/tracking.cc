@@ -66,7 +66,7 @@ std::atomic<uint64_t> g_track_bcast_prefixes{0};
 // Release certificates follow actual publication, never speculative fire points.
 // A separate line avoids false sharing with the membership filter and prefix counter.
 alignas(64) std::atomic<uint64_t> g_tracking_clock{1};
-void tracking_read_marker(Shard&, Op&) { std::abort(); }
+void tracking_read_marker(Shard& shard, Op& op) { tracking_execute_read(shard, op); }
 
 
 inline void track_filter_add(uint64_t hash) {
@@ -84,6 +84,23 @@ inline bool track_filter_may_contain(uint64_t hash) {
 bool track_prefix_overlaps(const std::string& a, const std::string& b) {
     const size_t shortest = std::min(a.size(), b.size());
     return std::memcmp(a.data(), b.data(), shortest) == 0;
+}
+
+// EVAL/EVALSHA/FCALL and their _RO forms: numkeys, then the declared KEYS. Dispatch owns any
+// grammar error and its reply; an invalid count simply registers nothing here.
+bool tracking_script_keys(const Op& op, uint32_t& count) {
+    if (op.argc() < 3) return false;
+    const Slice value = op.arg(2);
+    if (!value.n) return false;
+    uint64_t parsed = 0;
+    for (uint32_t i = 0; i < value.n; ++i) {
+        const uint8_t c = static_cast<uint8_t>(value.p[i]);
+        if (c < '0' || c > '9') return false;
+        parsed = parsed * 10 + (c - '0');
+        if (parsed > op.argc() - 3) return false;
+    }
+    count = static_cast<uint32_t>(parsed);
+    return true;
 }
 
 }  // namespace
@@ -109,6 +126,43 @@ void tracking_observe_read(Shard& shard, Op& op) {
     }
     uint64_t& observed = read.observed[shard.id()];
     observed = std::min(observed, stamp); // each shard slot has exactly one writer
+}
+
+// Redis enrolls a blocking read when it parks and again when the woken command re-runs; the
+// waking write invalidates the first enrolment. Here the woken reply is captured by the owner's
+// readiness probe after that write (blocking_probe_key), so the probe certifies the enrolment.
+// observed keeps the park-time minimum for the delivery decision. The owner is this shard's
+// only writer, and the IO reads the slot only at retirement, after the reply's publication.
+void tracking_observe_wake(Shard& shard, Op& op) {
+    if (!op.spec || op.spec->handler_notify != tracking_read_marker) return;
+    auto& read = *static_cast<IoLoop::TrackingRead*>(const_cast<CommandSpec*>(op.spec));
+    if (read.woken.empty()) return;
+    // A single-owner command (or a local script, at its end) serves parked readers from its own
+    // handler, after all of its writes but before its epilogue seals its publication certificate.
+    // Seal it now (idempotent) so this capture's observation follows the write it captured. A
+    // scatter or EXEC batch can still gain other owners' writes, so it is never sealed early; its
+    // capture, like any sweep without a carrier, keeps the conservative pre-seal observation.
+    Op* waking = shard.notify_carrier();
+    if (waking && !waking->has_scatter_state() && !waking->has_blocking_state() &&
+        !waking->has_multi_state())
+        notify_tracking_commit(*waking);
+    uint64_t& woken = read.woken[shard.id()];
+    woken = std::min(woken, tracking_clock_observe());
+}
+
+// The executing owner is the activation's only writer of these flags; the IO reads them at
+// retirement, after the reply's publication. Every nested command names exactly one key, and
+// the script layer already refused any undeclared one.
+void tracking_note_script_read(Op& parent, Slice key) {
+    if (!parent.spec || parent.spec->handler_notify != tracking_read_marker) return;
+    auto& read = *static_cast<IoLoop::TrackingRead*>(const_cast<CommandSpec*>(parent.spec));
+    for (size_t i = 0; i < read.script_reads.size(); ++i) {
+        const std::string& name = read.keys[i];
+        if (name.size() == key.n && std::memcmp(name.data(), key.p, key.n) == 0) {
+            read.script_reads[i] = 1;
+            return;
+        }
+    }
 }
 
 void tracking_observe_local(Server& server, Op& op) {
@@ -140,14 +194,20 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
     // Redis preserves CACHING across every CLIENT command, including introspection and errors.
     // Consuming it before TRACKINGINFO both hides the flag and loses the following OPTIN read's
     // invalidation (or wrongly subscribes an exempted OPTOUT read). CLIENT has no keys to enroll.
-    if (op.cmd_name().eq_icase("client")) return;
+    if (op.spec && (op.spec->flags & CmdFlags::PreserveCaching)) return;
     const bool caching = state.caching_armed;
     state.caching_armed = false;   // CLIENT subcommands above do not consume the choice
-    if (state.bcast) return;
     const CommandSpec* spec = op.spec;
     if (!spec) return;
+    // Redis enrolls the keys of each read-only command a script runs, for its caller, in both the
+    // writable and _RO forms; never the script command's own argument range. A script can read
+    // only its declared KEYS, so those carry the pending obligations and retirement enrolls the
+    // ones its read commands actually read (tracking_note_script_read).
+    const bool script = (spec->flags & CmdFlags::ScriptRoute) != 0;
     // Only genuine reads register. A write from the tracking connection is not a subscription.
-    if (!(spec->flags & CmdFlags::Readonly) || (spec->flags & CmdFlags::Write)) return;
+    if (!script && (!(spec->flags & CmdFlags::Readonly) || (spec->flags & CmdFlags::Write))) return;
+    // Writes consumed CACHING above, but cannot enroll in either tracking mode.
+    if (state.bcast) return;
     // OPTIN: register only when the previous command was CLIENT CACHING yes.
     // OPTOUT: register unless the previous command was CLIENT CACHING no.
     if (state.optin && !caching) return;
@@ -156,21 +216,32 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
     uint32_t first = spec->first_key > 0 ? static_cast<uint32_t>(spec->first_key) : 0;
     uint32_t end = spec->last_key < 0 ? op.argc()
         : std::min<uint32_t>(op.argc(), static_cast<uint32_t>(spec->last_key) + 1);
-    if (spec->flags & CmdFlags::StreamRoute) {
+    const bool stream = (spec->flags & CmdFlags::StreamRoute) != 0;
+    if (stream) {
         // Registration must not append a parser error to the real reply; dispatch owns that error.
         Op probe;
         for (uint32_t i = 0; i < op.argc(); ++i)
             if (!probe.push_arg(op.arg(i))) return;
         StreamXreadArgs parsed;
-        if (!stream_parse_xread(probe, parsed)) return;
+        {
+            ErrorStatsProbe metadata_only;
+            if (!stream_parse_xread(probe, parsed)) return;
+        }
         first = parsed.first_key;
         end = first + parsed.key_count;
+    }
+    if (script) {
+        uint32_t count = 0;
+        if (!tracking_script_keys(op, count) || !count) return;
+        first = 3;
+        end = first + count;
     }
     if (!first) return;
     (void)client;
     const int32_t step = spec->key_step > 0 ? spec->key_step : 1;
     const uint64_t stamp = tracking_clock_observe();
     auto read = std::make_unique<TrackingRead>(op.spec, stamp, srv_->atomic_snapshot(), srv_->nshards());
+    if (stream) read->woken.assign(srv_->nshards(), UINT64_MAX);
     auto& keys = read->keys;
     for (uint32_t i = first; i < end; i += static_cast<uint32_t>(step)) {
         const Slice key = op.arg(i);
@@ -183,11 +254,14 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
         // monotonic filter just because this read has not retired yet.
         track_filter_add(FlatStore::hash_key(Slice(key.p, key.n)));
     }
+    if (script) read->script_reads.assign(keys.size(), 0);
     read->handler_notify = tracking_read_marker;
-    // QUEUED stores the registry spec beyond this ROB slot's lifetime.
+    // A queued receipt is never selected for execution. POST bypasses this
+    // function while collecting MULTI; the PAD-A control retains PRE's receipt.
     if (!multi_session_active(*client)) op.spec = read.get();
     state.tracking_reads[&op] = std::move(read);
 }
+
 
 void IoLoop::tracking_register_key(uint64_t id, const std::string& name, uint64_t stamp) {
     const Slice key(name.data(), static_cast<uint32_t>(name.size()));
@@ -237,17 +311,25 @@ void IoLoop::tracking_retire_read(Client& client, Op& op) {
         if (receipt.canceled) continue;
         uint64_t stamp = receipt.observed[receipt.shards[i]];
         if (stamp == UINT64_MAX) stamp = 0; // no successful observation certificate
+        // A woken XREAD enrolls with its wake probe's certificate (tracking_observe_wake).
+        uint64_t enrol = stamp;
+        if (!receipt.woken.empty() && receipt.woken[receipt.shards[i]] != UINT64_MAX)
+            enrol = receipt.woken[receipt.shards[i]];
         auto pending = state->tracking_pending.find(key);
         if (pending == state->tracking_pending.end()) std::abort();
         auto& obligation = pending->second;
-        if (stamp < obligation.invalidated) {
+        if (!receipt.script_reads.empty() && !receipt.script_reads[i]) {
+            // A declared key the script never read: neither enrolled nor owed a delivery.
+        } else if (stamp < obligation.invalidated) {
             if (obligation.delivered < obligation.invalidated) {
                 tracking_deliver_frame(*state, client.id(),
                     Slice(key.data(), static_cast<uint32_t>(key.size())), false);
                 obligation.delivered = obligation.invalidated;
             }
+            if (enrol >= obligation.invalidated && state->tracking_on)
+                tracking_register_key(client.id(), key, enrol);
         } else if (state->tracking_on) {
-            tracking_register_key(client.id(), key, stamp);
+            tracking_register_key(client.id(), key, enrol);
         }
         auto member = std::find(obligation.reads.begin(), obligation.reads.end(), &op);
         if (member == obligation.reads.end()) std::abort();
@@ -300,6 +382,7 @@ void IoLoop::tracking_forget_client(uint64_t id, ClimonConn& state) {
     state.prefixes.clear();
     if (state.tracking_on) {
         state.tracking_on = false;
+        state.tracking_dispatch = false;
         state.bcast = state.optin = state.optout = state.noloop = false;
         state.caching_armed = false;
         state.redirect = 0;
@@ -946,6 +1029,7 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
     }
 
     ClimonConn& state = climon_conn_get(client);
+    state.tracking_dispatch = true;
     if (!state.tracking_on) {
         state.tracking_on = true;
         if (!state.tracking_draining) {
@@ -979,8 +1063,7 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
     std::sort(state.prefixes.begin(), state.prefixes.end());   // redis reports them sorted
     command_client_set_tracking_view(client, true, static_cast<int64_t>(redirect));
     climon_refresh_armed();
-    reply_ok(op.sink());
-    return ClimonStartResult::Sync;
+    return tracking_ack_enable(client, op);
 }
 
 }  // namespace tomo

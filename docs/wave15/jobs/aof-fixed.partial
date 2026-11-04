@@ -1,0 +1,4 @@
+PARTIAL	0	GATE_ONLY_JOBS=wave15_aof_participants wave15_aof_large; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	16.430000	wave15 AOF EXEC task participants (oracle, both modes, engines, atomic and namespaces)
+ok	42.650000	wave15 AOF snapshot producer progress (oracle, both modes, engines, atomic and namespaces)

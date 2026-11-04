@@ -1,0 +1,3 @@
+ok	1.170000	NT-new-4 command clock after dequeue (2s)
+ok	1.180000	NT-new-4 command clock after dequeue (1s)
+ok	1.170000	NT-new-4 command clock after dequeue (2s, epoll)

@@ -1,0 +1,22 @@
+[
+  {
+    "namespace": "normal",
+    "last_object": [
+      1793694417991198811,
+      "build/db0/src/cmd/xshard.o"
+    ],
+    "fixture_compiled": 1793694435855246384,
+    "all_objects_finished_before_probe_link": true,
+    "server_sha256": "d36e1c43dd89691747ff5714d7dfe8dec32af88d85e0afc8fd9fe29c2e4c3b0a"
+  },
+  {
+    "namespace": "db0",
+    "last_object": [
+      1793694417991198811,
+      "build/db0/src/cmd/xshard.o"
+    ],
+    "fixture_compiled": 1793694454418296362,
+    "all_objects_finished_before_probe_link": true,
+    "server_sha256": "d36e1c43dd89691747ff5714d7dfe8dec32af88d85e0afc8fd9fe29c2e4c3b0a"
+  }
+]

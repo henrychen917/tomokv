@@ -1,0 +1,839 @@
+{
+  "file": "unit/sort",
+  "mode": "2s",
+  "passed": 52,
+  "failed": 0,
+  "skipped": 3,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "seconds": 2.3215446984395385,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "8-15",
+    "/home/user/Projects/cx-execfifo2/build/tomokv",
+    "--port",
+    "20103",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.I1WnIs/jobs/redis_tcl/redis-tcl-2s/unit/sort/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "2s",
+    "--shards",
+    "16",
+    "--databases",
+    "16",
+    "--ratio",
+    "6:2"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "8-15",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20103",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20105",
+    "--portcount",
+    "1",
+    "--single",
+    "unit/sort",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.I1WnIs/jobs/redis_tcl/redis-tcl-2s/unit/sort/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "3903989",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "Listpack: SORT BY key in tests/unit/sort.tcl",
+      "data": "Listpack: SORT BY key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "Listpack: SORT BY key in tests/unit/sort.tcl",
+      "data": "Listpack: SORT BY key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "Listpack: SORT BY key with limit in tests/unit/sort.tcl",
+      "data": "Listpack: SORT BY key with limit",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "Listpack: SORT BY key with limit in tests/unit/sort.tcl",
+      "data": "Listpack: SORT BY key with limit",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "Listpack: SORT BY hash field in tests/unit/sort.tcl",
+      "data": "Listpack: SORT BY hash field",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "Listpack: SORT BY hash field in tests/unit/sort.tcl",
+      "data": "Listpack: SORT BY hash field",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "Quicklist: SORT BY key in tests/unit/sort.tcl",
+      "data": "Quicklist: SORT BY key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "Quicklist: SORT BY key in tests/unit/sort.tcl",
+      "data": "Quicklist: SORT BY key",
+      "milliseconds": "5"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "Quicklist: SORT BY key with limit in tests/unit/sort.tcl",
+      "data": "Quicklist: SORT BY key with limit",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "Quicklist: SORT BY key with limit in tests/unit/sort.tcl",
+      "data": "Quicklist: SORT BY key with limit",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "Quicklist: SORT BY hash field in tests/unit/sort.tcl",
+      "data": "Quicklist: SORT BY hash field",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "Quicklist: SORT BY hash field in tests/unit/sort.tcl",
+      "data": "Quicklist: SORT BY hash field",
+      "milliseconds": "5"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "Big Quicklist: SORT BY key in tests/unit/sort.tcl",
+      "data": "Big Quicklist: SORT BY key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "Big Quicklist: SORT BY key in tests/unit/sort.tcl",
+      "data": "Big Quicklist: SORT BY key",
+      "milliseconds": "135"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "Big Quicklist: SORT BY key with limit in tests/unit/sort.tcl",
+      "data": "Big Quicklist: SORT BY key with limit",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "Big Quicklist: SORT BY key with limit in tests/unit/sort.tcl",
+      "data": "Big Quicklist: SORT BY key with limit",
+      "milliseconds": "5"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "Big Quicklist: SORT BY hash field in tests/unit/sort.tcl",
+      "data": "Big Quicklist: SORT BY hash field",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "Big Quicklist: SORT BY hash field in tests/unit/sort.tcl",
+      "data": "Big Quicklist: SORT BY hash field",
+      "milliseconds": "134"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "Intset: SORT BY key in tests/unit/sort.tcl",
+      "data": "Intset: SORT BY key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "Intset: SORT BY key in tests/unit/sort.tcl",
+      "data": "Intset: SORT BY key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "Intset: SORT BY key with limit in tests/unit/sort.tcl",
+      "data": "Intset: SORT BY key with limit",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "Intset: SORT BY key with limit in tests/unit/sort.tcl",
+      "data": "Intset: SORT BY key with limit",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "Intset: SORT BY hash field in tests/unit/sort.tcl",
+      "data": "Intset: SORT BY hash field",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "Intset: SORT BY hash field in tests/unit/sort.tcl",
+      "data": "Intset: SORT BY hash field",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "Hash table: SORT BY key in tests/unit/sort.tcl",
+      "data": "Hash table: SORT BY key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "Hash table: SORT BY key in tests/unit/sort.tcl",
+      "data": "Hash table: SORT BY key",
+      "milliseconds": "5"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "Hash table: SORT BY key with limit in tests/unit/sort.tcl",
+      "data": "Hash table: SORT BY key with limit",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "Hash table: SORT BY key with limit in tests/unit/sort.tcl",
+      "data": "Hash table: SORT BY key with limit",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "Hash table: SORT BY hash field in tests/unit/sort.tcl",
+      "data": "Hash table: SORT BY hash field",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "Hash table: SORT BY hash field in tests/unit/sort.tcl",
+      "data": "Hash table: SORT BY hash field",
+      "milliseconds": "4"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "Big Hash table: SORT BY key in tests/unit/sort.tcl",
+      "data": "Big Hash table: SORT BY key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "Big Hash table: SORT BY key in tests/unit/sort.tcl",
+      "data": "Big Hash table: SORT BY key",
+      "milliseconds": "134"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "Big Hash table: SORT BY key with limit in tests/unit/sort.tcl",
+      "data": "Big Hash table: SORT BY key with limit",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "Big Hash table: SORT BY key with limit in tests/unit/sort.tcl",
+      "data": "Big Hash table: SORT BY key with limit",
+      "milliseconds": "5"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "Big Hash table: SORT BY hash field in tests/unit/sort.tcl",
+      "data": "Big Hash table: SORT BY hash field",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "Big Hash table: SORT BY hash field in tests/unit/sort.tcl",
+      "data": "Big Hash table: SORT BY hash field",
+      "milliseconds": "133"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT GET # in tests/unit/sort.tcl",
+      "data": "SORT GET #",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT GET # in tests/unit/sort.tcl",
+      "data": "SORT GET #",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT GET <const> in tests/unit/sort.tcl",
+      "data": "SORT GET <const>",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT GET <const> in tests/unit/sort.tcl",
+      "data": "SORT GET <const>",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT_RO GET <const> in tests/unit/sort.tcl",
+      "data": "SORT_RO GET <const>",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT_RO GET <const> in tests/unit/sort.tcl",
+      "data": "SORT_RO GET <const>",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT GET (key and hash) with sanity check in tests/unit/sort.tcl",
+      "data": "SORT GET (key and hash) with sanity check",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT GET (key and hash) with sanity check in tests/unit/sort.tcl",
+      "data": "SORT GET (key and hash) with sanity check",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT BY key STORE in tests/unit/sort.tcl",
+      "data": "SORT BY key STORE",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT BY key STORE in tests/unit/sort.tcl",
+      "data": "SORT BY key STORE",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT BY hash field STORE in tests/unit/sort.tcl",
+      "data": "SORT BY hash field STORE",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT BY hash field STORE in tests/unit/sort.tcl",
+      "data": "SORT BY hash field STORE",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT extracts STORE correctly in tests/unit/sort.tcl",
+      "data": "SORT extracts STORE correctly",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT extracts STORE correctly in tests/unit/sort.tcl",
+      "data": "SORT extracts STORE correctly",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT_RO get keys in tests/unit/sort.tcl",
+      "data": "SORT_RO get keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT_RO get keys in tests/unit/sort.tcl",
+      "data": "SORT_RO get keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT extracts multiple STORE correctly in tests/unit/sort.tcl",
+      "data": "SORT extracts multiple STORE correctly",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT extracts multiple STORE correctly in tests/unit/sort.tcl",
+      "data": "SORT extracts multiple STORE correctly",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT DESC in tests/unit/sort.tcl",
+      "data": "SORT DESC",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT DESC in tests/unit/sort.tcl",
+      "data": "SORT DESC",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT ALPHA against integer encoded strings in tests/unit/sort.tcl",
+      "data": "SORT ALPHA against integer encoded strings",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT ALPHA against integer encoded strings in tests/unit/sort.tcl",
+      "data": "SORT ALPHA against integer encoded strings",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT sorted set in tests/unit/sort.tcl",
+      "data": "SORT sorted set",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT sorted set in tests/unit/sort.tcl",
+      "data": "SORT sorted set",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT sorted set BY nosort should retain ordering in tests/unit/sort.tcl",
+      "data": "SORT sorted set BY nosort should retain ordering",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT sorted set BY nosort should retain ordering in tests/unit/sort.tcl",
+      "data": "SORT sorted set BY nosort should retain ordering",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT sorted set BY nosort + LIMIT in tests/unit/sort.tcl",
+      "data": "SORT sorted set BY nosort + LIMIT",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT sorted set BY nosort + LIMIT in tests/unit/sort.tcl",
+      "data": "SORT sorted set BY nosort + LIMIT",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/sort.tcl",
+      "test": "",
+      "data": "SORT sorted set BY nosort works as expected from scripts",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT sorted set: +inf and -inf handling in tests/unit/sort.tcl",
+      "data": "SORT sorted set: +inf and -inf handling",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT sorted set: +inf and -inf handling in tests/unit/sort.tcl",
+      "data": "SORT sorted set: +inf and -inf handling",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT regression for issue #19, sorting floats in tests/unit/sort.tcl",
+      "data": "SORT regression for issue #19, sorting floats",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT regression for issue #19, sorting floats in tests/unit/sort.tcl",
+      "data": "SORT regression for issue #19, sorting floats",
+      "milliseconds": "3"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT with STORE returns zero if result is empty (github issue 224) in tests/unit/sort.tcl",
+      "data": "SORT with STORE returns zero if result is empty (github issue 224)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT with STORE returns zero if result is empty (github issue 224) in tests/unit/sort.tcl",
+      "data": "SORT with STORE returns zero if result is empty (github issue 224)",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT with STORE does not create empty lists (github issue 224) in tests/unit/sort.tcl",
+      "data": "SORT with STORE does not create empty lists (github issue 224)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT with STORE does not create empty lists (github issue 224) in tests/unit/sort.tcl",
+      "data": "SORT with STORE does not create empty lists (github issue 224)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT with STORE removes key if result is empty (github issue 227) in tests/unit/sort.tcl",
+      "data": "SORT with STORE removes key if result is empty (github issue 227)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT with STORE removes key if result is empty (github issue 227) in tests/unit/sort.tcl",
+      "data": "SORT with STORE removes key if result is empty (github issue 227)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT with BY <constant> and STORE should still order output in tests/unit/sort.tcl",
+      "data": "SORT with BY <constant> and STORE should still order output",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT with BY <constant> and STORE should still order output in tests/unit/sort.tcl",
+      "data": "SORT with BY <constant> and STORE should still order output",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT will complain with numerical sorting and bad doubles (1) in tests/unit/sort.tcl",
+      "data": "SORT will complain with numerical sorting and bad doubles (1)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT will complain with numerical sorting and bad doubles (1) in tests/unit/sort.tcl",
+      "data": "SORT will complain with numerical sorting and bad doubles (1)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT will complain with numerical sorting and bad doubles (2) in tests/unit/sort.tcl",
+      "data": "SORT will complain with numerical sorting and bad doubles (2)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT will complain with numerical sorting and bad doubles (2) in tests/unit/sort.tcl",
+      "data": "SORT will complain with numerical sorting and bad doubles (2)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT BY sub-sorts lexicographically if score is the same in tests/unit/sort.tcl",
+      "data": "SORT BY sub-sorts lexicographically if score is the same",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT BY sub-sorts lexicographically if score is the same in tests/unit/sort.tcl",
+      "data": "SORT BY sub-sorts lexicographically if score is the same",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT GET with pattern ending with just -> does not get hash field in tests/unit/sort.tcl",
+      "data": "SORT GET with pattern ending with just -> does not get hash field",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT GET with pattern ending with just -> does not get hash field in tests/unit/sort.tcl",
+      "data": "SORT GET with pattern ending with just -> does not get hash field",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT by nosort retains native order for lists in tests/unit/sort.tcl",
+      "data": "SORT by nosort retains native order for lists",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT by nosort retains native order for lists in tests/unit/sort.tcl",
+      "data": "SORT by nosort retains native order for lists",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT by nosort plus store retains native order for lists in tests/unit/sort.tcl",
+      "data": "SORT by nosort plus store retains native order for lists",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT by nosort plus store retains native order for lists in tests/unit/sort.tcl",
+      "data": "SORT by nosort plus store retains native order for lists",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT by nosort with limit returns based on original list order in tests/unit/sort.tcl",
+      "data": "SORT by nosort with limit returns based on original list order",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT by nosort with limit returns based on original list order in tests/unit/sort.tcl",
+      "data": "SORT by nosort with limit returns based on original list order",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT_RO - Successful case in tests/unit/sort.tcl",
+      "data": "SORT_RO - Successful case",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT_RO - Successful case in tests/unit/sort.tcl",
+      "data": "SORT_RO - Successful case",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT_RO - Cannot run with STORE arg in tests/unit/sort.tcl",
+      "data": "SORT_RO - Cannot run with STORE arg",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT_RO - Cannot run with STORE arg in tests/unit/sort.tcl",
+      "data": "SORT_RO - Cannot run with STORE arg",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT speed, 100 element list BY key, 100 times in tests/unit/sort.tcl",
+      "data": "SORT speed, 100 element list BY key, 100 times",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT speed, 100 element list BY key, 100 times in tests/unit/sort.tcl",
+      "data": "SORT speed, 100 element list BY key, 100 times",
+      "milliseconds": "10"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT speed, 100 element list BY hash field, 100 times in tests/unit/sort.tcl",
+      "data": "SORT speed, 100 element list BY hash field, 100 times",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT speed, 100 element list BY hash field, 100 times in tests/unit/sort.tcl",
+      "data": "SORT speed, 100 element list BY hash field, 100 times",
+      "milliseconds": "9"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT speed, 100 element list directly, 100 times in tests/unit/sort.tcl",
+      "data": "SORT speed, 100 element list directly, 100 times",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT speed, 100 element list directly, 100 times in tests/unit/sort.tcl",
+      "data": "SORT speed, 100 element list directly, 100 times",
+      "milliseconds": "7"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT speed, 100 element list BY <const>, 100 times in tests/unit/sort.tcl",
+      "data": "SORT speed, 100 element list BY <const>, 100 times",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT speed, 100 element list BY <const>, 100 times in tests/unit/sort.tcl",
+      "data": "SORT speed, 100 element list BY <const>, 100 times",
+      "milliseconds": "6"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/sort.tcl",
+      "test": "SETRANGE with huge offset in tests/unit/sort.tcl",
+      "data": "SETRANGE with huge offset",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/sort.tcl",
+      "test": "SETRANGE with huge offset in tests/unit/sort.tcl",
+      "data": "SETRANGE with huge offset",
+      "milliseconds": "1"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/sort.tcl",
+      "test": "",
+      "data": "SORT STORE quicklist with the right options",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/sort.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "done",
+      "file": "tests/unit/sort.tcl",
+      "test": "",
+      "data": "unit/sort",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/unit/sort.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ],
+  "setup_stdout": ""
+}

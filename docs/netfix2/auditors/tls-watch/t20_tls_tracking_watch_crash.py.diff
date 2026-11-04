@@ -1,0 +1,32 @@
+--- audit/t20_tls_tracking_watch_crash.py
++++ confined-POST/t20_tls_tracking_watch_crash.py
+@@ -57,7 +57,7 @@
+ 
+ cases = [("tracking-resp3", True), ("tracking-resp3", False), ("plain-get", True),
+          ("reply-skip", True), ("reply-skip", False)]
+-port, tport = 22233, 22234
++port, tport = 21133, 21134
+ for mode in ("2s", "1s"):
+     for variant, watch in cases:
+         tag = "t20-%s-%s-%s" % (mode, variant, "watch" if watch else "nowatch")
+@@ -76,17 +76,17 @@
+         label = "%s %s %s" % (mode, variant, "WATCH-armed" if watch else "no-WATCH")
+         expect_crash = watch and variant in ("tracking-resp3", "reply-skip")
+         if expect_crash:
+-            r.check(label + ": server aborts (S1)", res[0] == "died" and not alive and rc == -6,
++            r.check(label + ": server replies and survives (S1)", res == ("replied", True) and alive and rc == 0,
+                     "client=%s alive=%s rc=%s log=%s" % (res, alive, rc, tail))
+         else:
+             r.check(label + ": control replies, server alive", res == ("replied", True) and alive,
+                     "client=%s alive=%s rc=%s" % (res, alive, rc))
+ 
+ # Oracle: same sequences over plaintext Redis 7.4 (no TLS build available): must reply.
+-with redis(22235, tag="t20-redis") as rd:
++with redis(21135, tag="t20-redis") as rd:
+     for variant, watch in cases:
+         plain = rd.client()
+-        res = scenario(lambda: Client(22235), plain, watch, variant)
++        res = scenario(lambda: Client(21135), plain, watch, variant)
+         plain.close()
+         r.check("redis %s %s replies" % (variant, "WATCH" if watch else "no-WATCH"),
+                 res == ("replied", True) and rd.alive(), str(res))

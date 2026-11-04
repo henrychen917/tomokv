@@ -1,0 +1,538 @@
+{
+  "file": "unit/type/incr",
+  "mode": "2s",
+  "passed": 31,
+  "failed": 0,
+  "skipped": 2,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "seconds": 0.16860121116042137,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "8-15",
+    "/home/user/Projects/cx-execfifo2/build/tomokv",
+    "--port",
+    "20103",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.I1WnIs/jobs/redis_tcl/redis-tcl-2s/unit/type/incr/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "2s",
+    "--shards",
+    "16",
+    "--databases",
+    "16",
+    "--ratio",
+    "6:2"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "8-15",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20103",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20105",
+    "--portcount",
+    "1",
+    "--single",
+    "unit/type/incr",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.I1WnIs/jobs/redis_tcl/redis-tcl-2s/unit/type/incr/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "3904307",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCR against non existing key in tests/unit/type/incr.tcl",
+      "data": "INCR against non existing key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCR against non existing key in tests/unit/type/incr.tcl",
+      "data": "INCR against non existing key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCR against key created by incr itself in tests/unit/type/incr.tcl",
+      "data": "INCR against key created by incr itself",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCR against key created by incr itself in tests/unit/type/incr.tcl",
+      "data": "INCR against key created by incr itself",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "DECR against key created by incr in tests/unit/type/incr.tcl",
+      "data": "DECR against key created by incr",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "DECR against key created by incr in tests/unit/type/incr.tcl",
+      "data": "DECR against key created by incr",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "DECR against key is not exist and incr in tests/unit/type/incr.tcl",
+      "data": "DECR against key is not exist and incr",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "DECR against key is not exist and incr in tests/unit/type/incr.tcl",
+      "data": "DECR against key is not exist and incr",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCR against key originally set with SET in tests/unit/type/incr.tcl",
+      "data": "INCR against key originally set with SET",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCR against key originally set with SET in tests/unit/type/incr.tcl",
+      "data": "INCR against key originally set with SET",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCR over 32bit value in tests/unit/type/incr.tcl",
+      "data": "INCR over 32bit value",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCR over 32bit value in tests/unit/type/incr.tcl",
+      "data": "INCR over 32bit value",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBY over 32bit value with over 32bit increment in tests/unit/type/incr.tcl",
+      "data": "INCRBY over 32bit value with over 32bit increment",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBY over 32bit value with over 32bit increment in tests/unit/type/incr.tcl",
+      "data": "INCRBY over 32bit value with over 32bit increment",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCR fails against key with spaces (left) in tests/unit/type/incr.tcl",
+      "data": "INCR fails against key with spaces (left)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCR fails against key with spaces (left) in tests/unit/type/incr.tcl",
+      "data": "INCR fails against key with spaces (left)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCR fails against key with spaces (right) in tests/unit/type/incr.tcl",
+      "data": "INCR fails against key with spaces (right)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCR fails against key with spaces (right) in tests/unit/type/incr.tcl",
+      "data": "INCR fails against key with spaces (right)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCR fails against key with spaces (both) in tests/unit/type/incr.tcl",
+      "data": "INCR fails against key with spaces (both)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCR fails against key with spaces (both) in tests/unit/type/incr.tcl",
+      "data": "INCR fails against key with spaces (both)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "DECRBY negation overflow in tests/unit/type/incr.tcl",
+      "data": "DECRBY negation overflow",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "DECRBY negation overflow in tests/unit/type/incr.tcl",
+      "data": "DECRBY negation overflow",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCR fails against a key holding a list in tests/unit/type/incr.tcl",
+      "data": "INCR fails against a key holding a list",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCR fails against a key holding a list in tests/unit/type/incr.tcl",
+      "data": "INCR fails against a key holding a list",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "DECRBY over 32bit value with over 32bit increment, negative res in tests/unit/type/incr.tcl",
+      "data": "DECRBY over 32bit value with over 32bit increment, negative res",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "DECRBY over 32bit value with over 32bit increment, negative res in tests/unit/type/incr.tcl",
+      "data": "DECRBY over 32bit value with over 32bit increment, negative res",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "DECRBY against key is not exist in tests/unit/type/incr.tcl",
+      "data": "DECRBY against key is not exist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "DECRBY against key is not exist in tests/unit/type/incr.tcl",
+      "data": "DECRBY against key is not exist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "",
+      "data": "INCR uses shared objects in the 0-9999 range",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "",
+      "data": "INCR can modify objects in-place",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBYFLOAT against non existing key in tests/unit/type/incr.tcl",
+      "data": "INCRBYFLOAT against non existing key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBYFLOAT against non existing key in tests/unit/type/incr.tcl",
+      "data": "INCRBYFLOAT against non existing key",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBYFLOAT against key originally set with SET in tests/unit/type/incr.tcl",
+      "data": "INCRBYFLOAT against key originally set with SET",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBYFLOAT against key originally set with SET in tests/unit/type/incr.tcl",
+      "data": "INCRBYFLOAT against key originally set with SET",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBYFLOAT over 32bit value in tests/unit/type/incr.tcl",
+      "data": "INCRBYFLOAT over 32bit value",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBYFLOAT over 32bit value in tests/unit/type/incr.tcl",
+      "data": "INCRBYFLOAT over 32bit value",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBYFLOAT over 32bit value with over 32bit increment in tests/unit/type/incr.tcl",
+      "data": "INCRBYFLOAT over 32bit value with over 32bit increment",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBYFLOAT over 32bit value with over 32bit increment in tests/unit/type/incr.tcl",
+      "data": "INCRBYFLOAT over 32bit value with over 32bit increment",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBYFLOAT fails against key with spaces (left) in tests/unit/type/incr.tcl",
+      "data": "INCRBYFLOAT fails against key with spaces (left)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBYFLOAT fails against key with spaces (left) in tests/unit/type/incr.tcl",
+      "data": "INCRBYFLOAT fails against key with spaces (left)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBYFLOAT fails against key with spaces (right) in tests/unit/type/incr.tcl",
+      "data": "INCRBYFLOAT fails against key with spaces (right)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBYFLOAT fails against key with spaces (right) in tests/unit/type/incr.tcl",
+      "data": "INCRBYFLOAT fails against key with spaces (right)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBYFLOAT fails against key with spaces (both) in tests/unit/type/incr.tcl",
+      "data": "INCRBYFLOAT fails against key with spaces (both)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBYFLOAT fails against key with spaces (both) in tests/unit/type/incr.tcl",
+      "data": "INCRBYFLOAT fails against key with spaces (both)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBYFLOAT fails against a key holding a list in tests/unit/type/incr.tcl",
+      "data": "INCRBYFLOAT fails against a key holding a list",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBYFLOAT fails against a key holding a list in tests/unit/type/incr.tcl",
+      "data": "INCRBYFLOAT fails against a key holding a list",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBYFLOAT does not allow NaN or Infinity in tests/unit/type/incr.tcl",
+      "data": "INCRBYFLOAT does not allow NaN or Infinity",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBYFLOAT does not allow NaN or Infinity in tests/unit/type/incr.tcl",
+      "data": "INCRBYFLOAT does not allow NaN or Infinity",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBYFLOAT decrement in tests/unit/type/incr.tcl",
+      "data": "INCRBYFLOAT decrement",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBYFLOAT decrement in tests/unit/type/incr.tcl",
+      "data": "INCRBYFLOAT decrement",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "string to double with null terminator in tests/unit/type/incr.tcl",
+      "data": "string to double with null terminator",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "string to double with null terminator in tests/unit/type/incr.tcl",
+      "data": "string to double with null terminator",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "No negative zero in tests/unit/type/incr.tcl",
+      "data": "No negative zero",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "No negative zero in tests/unit/type/incr.tcl",
+      "data": "No negative zero",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBY INCRBYFLOAT DECRBY against unhappy path in tests/unit/type/incr.tcl",
+      "data": "INCRBY INCRBYFLOAT DECRBY against unhappy path",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "INCRBY INCRBYFLOAT DECRBY against unhappy path in tests/unit/type/incr.tcl",
+      "data": "INCRBY INCRBYFLOAT DECRBY against unhappy path",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "incr operation should update encoding from raw to int in tests/unit/type/incr.tcl",
+      "data": "incr operation should update encoding from raw to int",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "incr operation should update encoding from raw to int in tests/unit/type/incr.tcl",
+      "data": "incr operation should update encoding from raw to int",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "decr operation should update encoding from raw to int in tests/unit/type/incr.tcl",
+      "data": "decr operation should update encoding from raw to int",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "decr operation should update encoding from raw to int in tests/unit/type/incr.tcl",
+      "data": "decr operation should update encoding from raw to int",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "incrby operation should update encoding from raw to int in tests/unit/type/incr.tcl",
+      "data": "incrby operation should update encoding from raw to int",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "incrby operation should update encoding from raw to int in tests/unit/type/incr.tcl",
+      "data": "incrby operation should update encoding from raw to int",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "decrby operation should update encoding from raw to int in tests/unit/type/incr.tcl",
+      "data": "decrby operation should update encoding from raw to int",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "decrby operation should update encoding from raw to int in tests/unit/type/incr.tcl",
+      "data": "decrby operation should update encoding from raw to int",
+      "milliseconds": "0"
+    },
+    {
+      "status": "done",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "",
+      "data": "unit/type/incr",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/unit/type/incr.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ],
+  "setup_stdout": ""
+}

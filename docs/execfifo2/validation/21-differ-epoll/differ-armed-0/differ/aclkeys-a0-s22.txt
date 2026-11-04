@@ -1,0 +1,9 @@
+DIFFER aclkeys wake BLPOP: both parked, reply=b'*2\r\n$13\r\nblock:aclkeys\r\n$5\r\nvalue\r\n'
+DIFFER aclkeys wake BRPOP: both parked, reply=b'*2\r\n$13\r\nblock:aclkeys\r\n$5\r\nvalue\r\n'
+DIFFER aclkeys wake BLMPOP: both parked, reply=b'*2\r\n$13\r\nblock:aclkeys\r\n*1\r\n$5\r\nvalue\r\n'
+DIFFER aclkeys wake BZPOPMIN: both parked, reply=b'*3\r\n$13\r\nblock:aclkeys\r\n$5\r\nvalue\r\n$1\r\n1\r\n'
+DIFFER aclkeys wake XREAD: both parked, reply=b'*1\r\n*2\r\n$13\r\nblock:aclkeys\r\n*1\r\n*2\r\n$3\r\n1-0\r\n*2\r\n$5\r\nfield\r\n$5\r\nvalue\r\n'
+DIFFER aclkeys wake BLMOVE: both parked, reply=b'$5\r\nvalue\r\n'
+DIFFER aclkeys wake BRPOPLPUSH: both parked, reply=b'$5\r\nvalue\r\n'
+DIFFER aclkeys wake XREADGROUP: both parked, reply=b'*1\r\n*2\r\n$19\r\nblock:aclkeys:group\r\n*1\r\n*2\r\n$3\r\n1-0\r\n*2\r\n$5\r\nfield\r\n$5\r\nvalue\r\n'
+DIFFER aclkeys: PASS {'admitted': 10, 'denied': 10, 'getkeys': 20, 'parked': 16}

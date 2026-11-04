@@ -9,6 +9,11 @@ void txn_unlink_waiter(TxnWaiter& node, bool release = true) {
         if (node.wprev) node.wprev->wnext = node.wnext; else q.whead = node.wnext;
         if (node.wnext) node.wnext->wprev = node.wprev; else q.wtail = node.wprev;
     }
+    if (node.entry.unit_kind == 1) {
+        if (node.eprev) node.eprev->enext = node.enext; else q.ehead = node.enext;
+        if (node.enext) node.enext->eprev = node.eprev; else q.etail = node.eprev;
+    }
+    node.eprev = node.enext = nullptr;
     --q.waiters;
     node.prev = node.next = node.wprev = node.wnext = nullptr;
     node.waiting = false;
@@ -52,6 +57,15 @@ void txn_link_waiter(TxnKeyQueue& q, TxnWaiter& node,
         node.wprev = write; node.wnext = write ? write->wnext : q.whead;
         if (node.wnext) node.wnext->wprev = &node; else q.wtail = &node;
         if (write) write->wnext = &node; else q.whead = &node;
+    }
+    // Filter only the plain-writer FIFO predicate (D-F2=no). EXEC and
+    // escalated scripts still share q.head and txn_version_before for placement.
+    if (entry.unit_kind == 1) {
+        auto* exec = q.etail;
+        while (exec && txn_version_before(own, txn_unit_view(exec->entry))) exec = exec->eprev;
+        node.eprev = exec; node.enext = exec ? exec->enext : q.ehead;
+        if (node.enext) node.enext->eprev = &node; else q.etail = &node;
+        if (exec) exec->enext = &node; else q.ehead = &node;
     }
     ++q.waiters;
     if (acquire && entry.refs) entry.refs->fetch_add(1, std::memory_order_release);
@@ -199,6 +213,12 @@ void Shard::watch_promote_unit_waiter(const std::string& key,
     if (found == watch_reservations_.end()) return;
     auto& q = found->second;
     auto* head = txn_live_head(q);
+    // An A' writer at the front inherits this owner turn. This is only a
+    // scheduling hint: its complete key set and program order are rechecked.
+    if (promoter && promoter->promote_writer && !q.marks.empty() &&
+        (!head || q.marks.front().writer_generation < txn_unit_view(head->entry).age_ns) &&
+        watch_key_ready(key, q.marks.front().token, false))
+        promoter->promote_writer(promoter->context, q.marks.front().token, id());
     if (!head) {
         if (q.empty()) { watch_reservations_.erase(found); refresh_has_watches(); }
         return;

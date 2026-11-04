@@ -1,0 +1,17 @@
+PASS header all: 1656 comparisons (multi)
+PASS receipt kvobj-header-unit all exit=0
+PASS header all: 414 comparisons (db0)
+PASS receipt kvobj-header-db0-unit all exit=0
+FAIL header raw: 8-byte header equals kvobj_init_header
+PASS receipt unit raw exit=1
+FAIL header int: 8-byte header equals kvobj_init_header
+PASS receipt unit int exit=1
+FAIL header string: 8-byte header equals kvobj_init_header
+PASS receipt unit string exit=1
+FAIL header typeval: 8-byte header equals kvobj_init_header
+PASS receipt unit typeval exit=1
+FAIL header embedded: 8-byte header equals kvobj_init_header
+PASS receipt unit embedded exit=1
+FAIL header reheader: 8-byte header equals kvobj_init_header
+PASS receipt unit reheader exit=1
+PASS flushfix headers: 8/8 strict outcomes

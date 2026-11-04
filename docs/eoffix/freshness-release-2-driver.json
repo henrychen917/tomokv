@@ -1,0 +1,15 @@
+{
+  "command": [
+    "make",
+    "-f",
+    "Makefile",
+    "-f",
+    "tools/blockfix_cost.mk",
+    "-q",
+    "build/blockfix-cost",
+    "build/tomokv.blockfix-cost.sha256"
+  ],
+  "exit_code": 0,
+  "seconds": 0.036647528409957886,
+  "env": {}
+}

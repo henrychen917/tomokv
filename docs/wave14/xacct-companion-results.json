@@ -1,0 +1,72 @@
+[
+  {
+    "tag": "xacct-policy-final-uring-2s",
+    "command": [
+      "python3",
+      "tools/wave14.py",
+      "jobs",
+      "--tag",
+      "xacct-policy-final-uring-2s",
+      "--engine",
+      "uring",
+      "--jobs",
+      "debug-0 debug-1",
+      "--binary",
+      "/home/user/Projects/cx-wave14/build/wave14/post-r7/tomokv",
+      "--server-cores",
+      "16-23",
+      "--load-cores",
+      "0-7",
+      "--ports",
+      "20093-20095"
+    ],
+    "exit_code": 0
+  },
+  {
+    "tag": "xacct-policy-final-epoll-2s",
+    "command": [
+      "python3",
+      "tools/wave14.py",
+      "jobs",
+      "--tag",
+      "xacct-policy-final-epoll-2s",
+      "--engine",
+      "epoll",
+      "--jobs",
+      "debug-0 debug-1",
+      "--binary",
+      "/home/user/Projects/cx-wave14/build/wave14/post-r7/tomokv",
+      "--server-cores",
+      "16-23",
+      "--load-cores",
+      "0-7",
+      "--ports",
+      "20093-20095"
+    ],
+    "exit_code": 0
+  },
+  {
+    "tag": "xacct-policy-final-uring-1s",
+    "command": [
+      "python3",
+      "tools/wave14.py",
+      "jobs",
+      "--tag",
+      "xacct-policy-final-uring-1s",
+      "--engine",
+      "uring",
+      "--jobs",
+      "debug-0 debug-1",
+      "--binary",
+      "/home/user/Projects/cx-wave14/build/wave14/post-r7/tomokv",
+      "--server-cores",
+      "16-23",
+      "--load-cores",
+      "0-7",
+      "--ports",
+      "20093-20095",
+      "--fused"
+    ],
+    "exit_code": 0
+  }
+]

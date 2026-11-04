@@ -3,20 +3,24 @@
 import json
 import time
 from compat3_lib import equal, run, wire
-from _lib import Conn, RespError, cross_owner_pair, info
+from _lib import Conn, RespError, cross_owner_pair, same_shard_pair, info
 from wave7 import prebuilt_watch_effects
 
 K, D = "k", "dst"
 DATABASES = 1
 TARGET = None
 REGISTERED = set()
+LOCAL = None
 
 def prepare(args):
-    global K, D, DATABASES, TARGET, REGISTERED
+    global K, D, DATABASES, TARGET, REGISTERED, LOCAL
     TARGET = (args.host, args.port)
     c = Conn(args.host, args.port, buffering=0)
     K, D, a, b = cross_owner_pair(c, "datafix2:watch")
     assert a != b
+    left, right, shard = same_shard_pair(c, 'datafix2:watch:local')
+    LOCAL = (left, right)
+    print('SAME-SHARD', left, right, shard, 'hits=1', flush=True)
     REGISTERED = {row[0].decode().upper() for row in c.cmd("COMMAND") if b"write" in row[2]} | {"PFCOUNT", "PFDEBUG"}
     DATABASES = int(c.cmd("CONFIG", "GET", "databases")[1])
     print("CROSS", K, D, a, b, flush=True)
@@ -167,6 +171,31 @@ def table(c):
 
 def probe(c, _case):
     outcomes={}
+    # CD4.9: the no-op destination bug was in the local path. A cross-owner
+    # table alone cannot exercise it. prepare() proves this pair shares a shard.
+    for in_exec in (False, True):
+        src, dst = LOCAL
+        c.cmd('DEL', src, dst)
+        equal(c.cmd('SADD', src, 'member'), 1, 'source seed')
+        equal(c.cmd('SADD', dst, 'member'), 1, 'destination seed')
+        w = Conn(c.host, c.port, buffering=0)
+        try:
+            equal(w.cmd('WATCH', dst), b'OK', 'watch local no-op destination')
+            if in_exec:
+                equal(c.cmd('MULTI'), b'OK', 'local mover MULTI')
+                equal(c.cmd('SMOVE', src, dst, 'member'), b'QUEUED', 'local mover queued')
+                equal(c.cmd('EXEC'), [1], 'local mover EXEC')
+            else:
+                equal(c.cmd('SMOVE', src, dst, 'member'), 1, 'local mover')
+            equal(w.cmd('MULTI'), b'OK', 'watch MULTI')
+            equal(w.cmd('PING'), b'QUEUED', 'watch PING')
+            result = w.cmd('EXEC')
+            equal(result, [b'PONG'], 'CD4.9 unchanged local destination must not invalidate WATCH')
+            equal(c.cmd('SMEMBERS', src), [], 'source was consumed')
+            equal(c.cmd('SMEMBERS', dst), [b'member'], 'destination preserved')
+            outcomes[f'same-shard-smove-exec-{in_exec}'] = result
+        finally:
+            w.close()
     rows=table(c)
     for label,command,seed,keys,db in rows:
         # FLUSH inside EXEC is an existing unsupported transaction surface;

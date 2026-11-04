@@ -4,6 +4,7 @@
 #include <array>
 #include <atomic>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -68,7 +69,9 @@ enum class AclLogContext : uint8_t { Toplevel, Multi, Lua, Module };
 
 bool acl_initialize(Server& server, const Config& config, std::string& error);
 void acl_shutdown();
-void acl_update_default_requirepass(Server& server, Slice password);
+void acl_config_rewrite(std::string& output);
+// True when the initialized ACL registry published the resulting admission state itself.
+bool acl_update_default_requirepass(Server& server, Slice password);
 bool acl_authenticate(Slice username, Slice password, uint32_t& user_index);
 bool acl_find_user(Slice username, uint32_t& user_index);
 bool acl_default_nopass();
@@ -93,6 +96,12 @@ bool acl_channel_allowed_any(const AclPerm& permissions, Slice channel, bool lit
 AclDeniedReason acl_check_queued(uint32_t user_index, const CommandSpec& spec,
                                  const std::vector<std::string>& argv,
                                  uint32_t* denied_arg = nullptr);
+bool acl_reply_sort_option_denied(Op& op, AclDeniedReason reason, uint32_t denied_arg);
+// EXEC preflight sees earlier SETUSER changes to its own caller without
+// publishing any ACL side effect from an attempt that can still abort.
+AclDeniedReason acl_check_multi(uint32_t user_index, const CommandSpec& spec,
+                               const std::vector<std::string>& argv,
+                               std::unique_ptr<AclPerm>& permissions, uint32_t* denied_arg);
 // Live ACL check of a parked command, by whichever thread is about to run it (or retire a reply
 // it never executed for). True means it denied: the reply is now exactly that denial.
 bool acl_recheck_blocking(Client& client, Op& op, ThreadCtx& thread);

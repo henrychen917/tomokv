@@ -1,11 +1,90 @@
 #include "netcmd_unit.h"
 #include "src/cmd/server_tail.cc"
+#include "src/core/fliplisten.cc"
 #include <filesystem>
 #include <thread>
 #include <barrier>
 #include <sys/stat.h>
+#include <sys/syscall.h>
 
 namespace {
+thread_local bool observe_load_delay = false;
+thread_local std::vector<timespec> load_delay_sleeps;
+}
+
+// Observe the real loader hook without wall-clock tolerances. Calls outside
+// this test retain the kernel nanosleep behavior; no workers are cancelled.
+extern "C" int nanosleep(const timespec* duration, timespec* remaining) {
+    if (observe_load_delay) {
+        load_delay_sleeps.push_back(*duration);
+        return 0;
+    }
+    return static_cast<int>(::syscall(SYS_nanosleep, duration, remaining));
+}
+
+namespace {
+void loader_delay_policy() {
+    observe_load_delay = true;
+    tomo::cfgfix_key_load_delay(0);
+    tomo::cfgfix_delay_loaded_key();
+    check(load_delay_sleeps.empty(), "zero load delay issues no sleep");
+    tomo::cfgfix_key_load_delay(1700001);
+    tomo::cfgfix_delay_loaded_key();
+    check(load_delay_sleeps.size() == 1 && load_delay_sleeps[0].tv_sec == 1 &&
+          load_delay_sleeps[0].tv_nsec == 700001000, "positive load delay uses microseconds");
+    load_delay_sleeps.clear();
+    tomo::cfgfix_key_load_delay(-1);
+    for (int i = 0; i != 4; ++i) tomo::cfgfix_delay_loaded_key();
+    check(load_delay_sleeps.size() == 4, "negative one must open every delay window");
+    for (const auto& delay : load_delay_sleeps)
+        check(delay.tv_sec == 0 && delay.tv_nsec == 1000, "negative delay is one microsecond");
+    // The oracle's debug.c debugDelay samples rand() % -usec. A fixed seed
+    // makes the statistical arm deterministic and requires both outcomes.
+    unsigned expected = 0;
+    std::srand(68);
+    for (unsigned i = 0; i != 128; ++i) expected += std::rand() % 8 == 0;
+    check(expected > 0 && expected < 128, "sampling fixture contains both outcomes");
+    std::srand(68);
+    load_delay_sleeps.clear();
+    tomo::cfgfix_key_load_delay(-8);
+    for (unsigned i = 0; i != 128; ++i) tomo::cfgfix_delay_loaded_key();
+    check(load_delay_sleeps.size() == expected, "negative delay matches Redis sampling policy");
+    for (const auto& delay : load_delay_sleeps)
+        check(delay.tv_sec == 0 && delay.tv_nsec == 1000, "sampled delay is one microsecond");
+    tomo::cfgfix_key_load_delay(0);
+    observe_load_delay = false;
+    load_delay_sleeps.clear();
+}
+void listener_completion_filter() {
+    using namespace tomo;
+    // Invoke the production filter with terminal successes and errors. In
+    // particular a FLIP-transferred UNIX accept must keep its rearm obligation.
+    unsigned cases = 0;
+    auto probe = [&](uint64_t tag, bool replaced) {
+        for (int result : {-EMFILE, 20197}) {
+            io_uring_cqe cqe{};
+            cqe.user_data = tag; cqe.res = result;
+            FlipListenerState::fence_rebound_accept(cqe);
+            check(cqe.res == result, "CONFIG preserves accept result/fd");
+            check(cqe.user_data == (replaced && result < 0
+                      ? ur_tag(static_cast<UrKind>(255), nullptr) : tag),
+                  "CONFIG fences only replaced TCP/TLS completion tags");
+            check(cqe.flags == (replaced && result >= 0 ? IORING_CQE_F_MORE : 0),
+                  "unreplaced UNIX/client/persistence completions keep their rearm obligation");
+            ++cases;
+        }
+    };
+    for (UrKind kind : {UrKind::Accept, UrKind::TlsAccept, UrKind::UnixAccept}) {
+        const bool replaced = kind != UrKind::UnixAccept;
+        probe(ur_tag(kind, nullptr), replaced);
+        FlipListenerState::Listener transferred;
+        transferred.kind = kind;
+        probe(ur_tag(kListenerAccept, &transferred), replaced);
+    }
+    for (UrKind kind : {UrKind::Recv, UrKind::AofIo, UrKind::SnapshotIo})
+        probe(ur_tag(kind, nullptr), false);
+    check(cases == 18, "all CONFIG completion-filter cases ran");
+}
 std::atomic<bool> rewrite_arm{false};
 std::atomic<unsigned> rewrite_opens{0};
 std::barrier rewrite_opened(2);
@@ -48,12 +127,53 @@ void knob_matrix() {
     // expose actual non-default values; live SET must fail and leave the value intact.
     for (const auto& [name, value] : {
              std::pair{"hll-sparse-max-bytes", "1024"},
-             {"unixsocketperm", "600"}, {"port", "6397"}, {"bind", "127.0.0.2"},
+             {"unixsocketperm", "600"},
              {"unixsocket", "build/unused-knob-matrix.sock"}, {"wb-policy", "1"},
-             {"wb-small-pipe", "16"}, {"wb-complete-visits", "3"}}) {
+             {"wb-small-pipe", "16"}, {"wb-complete-visits", "3"},
+             {"daemonize", "yes"}, {"logfile", "build/unused-knob-matrix.log"},
+             {"syslog-enabled", "yes"}, {"syslog-ident", "cfgfix-unit"},
+             {"syslog-facility", "local7"}, {"pidfile", "build/unused-knob-matrix.pid"},
+             {"supervised", "auto"}}) {
         get(name, value);
         set({"CONFIG", "SET", name, value}, false);
         get(name, value);
+    }
+    // This fixture has no live workers or sockets. A same-value SET still
+    // validates mutability and takes the production apply path; cfgfix's live
+    // oracle row exercises actual listener/AOF replacement and rollback.
+    for (const auto& [name, value] : {std::pair{"port", "20197"},
+                                    {"bind", "127.0.0.2"}, {"appendonly", "no"}}) {
+        get(name, value);
+        set({"CONFIG", "SET", name, value}, true);
+        get(name, value);
+    }
+    get("loglevel", "verbose");
+    get("key-load-delay", "17");
+    get("tls-auth-clients", "optional");
+    for (const auto& [name, value] : {std::pair{"loglevel", "debug"},
+                                    {"loglevel", "verbose"}, {"loglevel", "notice"},
+                                    {"loglevel", "warning"}, {"loglevel", "nothing"},
+                                    {"loglevel", "notice"},
+                                    {"key-load-delay", "-2147483648"},
+                                    {"key-load-delay", "2147483647"}, {"key-load-delay", "0"},
+                                    {"tls-auth-clients", "yes"}, {"tls-auth-clients", "no"},
+                                    {"tls-auth-clients", "optional"},
+                                    {"shutdown-on-sigterm", "nosave now"},
+                                    {"shutdown-on-sigint", "nosave now"}}) {
+        set({"CONFIG", "SET", name, value}, true);
+        get(name, value);
+    }
+    for (const auto& [name, invalid] : {std::pair{"loglevel", "trace"},
+                                      {"key-load-delay", "2147483648"},
+                                      {"key-load-delay", "-2147483649"},
+                                      {"key-load-delay", "01"}, {"key-load-delay", "+1"},
+                                      {"tls-auth-clients", "maybe"},
+                                      {"shutdown-on-sigterm", "save nosave"},
+                                      {"shutdown-on-sigint", "now unknown"}}) {
+        const auto before = execute(shard, {"CONFIG", "GET", name});
+        set({"CONFIG", "SET", name, invalid}, false);
+        check(execute(shard, {"CONFIG", "GET", name}) == before,
+              "rejected process/listener setting preserves the committed value");
     }
     // The boot directive is no, but Redis permits live yes/no changes. Rejected
     // values must preserve both states, including through the owner handler.
@@ -198,6 +318,8 @@ void test_config_bounds(const char* only) {
 }
 
 void test_config_rewrite() {
+    listener_completion_filter();
+    loader_delay_policy();
     knob_matrix();
     check(tomo::config_quote("77") == "77", "simple scalar keeps its original spelling");
     const std::string value = "pass with spaces\n\r\t\"'\\tail";
@@ -216,7 +338,12 @@ void test_config_rewrite() {
     std::string error;
     check(tomo::config_rewrite(error), "first rewrite");
     std::ifstream in(path); std::string body((std::istreambuf_iterator<char>(in)), {});
-    check(body.find("user reader on nopass ~* +get\n") != std::string::npos, "inline ACL survived rewrite");
+    // SV5.2: REWRITE no longer copies stale inline `user` lines from the original file; it writes
+    // the live ACL registry instead (none here, as this fixture does not initialize ACL). The
+    // full live-registry round trip is covered by the cfgfix2-acl gate witness.
+    check(body.find("user reader on nopass ~* +get\n") == std::string::npos, "stale inline ACL dropped by rewrite");
+    check(body.find("\nuser ") == std::string::npos && body.compare(0, 5, "user ") != 0,
+          "rewrite emits no user line without a live ACL registry");
     check(body.find("load \"/tmp/recovery source.tomo\"\n") != std::string::npos, "recovery source survived rewrite");
     check(body.find("overlap ") == std::string::npos, "rewrite does not emit retired overlap knobs");
     check(body.find("max-ziplist-") == std::string::npos, "stale encoding aliases were replaced");
@@ -226,8 +353,13 @@ void test_config_rewrite() {
                              "set-max-intset-entries"})
         check(body.find(std::string(name) + " ") != std::string::npos, "canonical encoding directive emitted");
     for (const char* directive : {"hll-sparse-max-bytes 1024\n", "aof-load-truncated no\n",
-                                  "unixsocketperm 600\n", "port 6397\n", "bind 127.0.0.2\n",
-                                  "unixsocket build/unused-knob-matrix.sock\n"})
+                                  "unixsocketperm 600\n", "port 20197\n", "bind 127.0.0.2\n",
+                                  "unixsocket build/unused-knob-matrix.sock\n",
+                                  "daemonize yes\n", "logfile build/unused-knob-matrix.log\n",
+                                  "syslog-enabled yes\n", "syslog-ident cfgfix-unit\n",
+                                  "syslog-facility local7\n", "pidfile build/unused-knob-matrix.pid\n",
+                                  "supervised auto\n", "loglevel notice\n", "key-load-delay 0\n",
+                                  "tls-auth-clients optional\n"})
         check(body.find(directive) != std::string::npos, "boot binding survived rewrite with actual value");
     for (const char* line : {"wb-policy 1\n", "wb-small-pipe 16\n", "wb-complete-visits 3\n"})
         check(body.find(line) != std::string::npos, "writeback boot knobs survive rewrite");
@@ -290,11 +422,10 @@ void test_writeback_knob(const char* name, tomo::Config& cfg) {
         std::string error;
         check(tomo::config_rewrite(error), "writeback knob rewrite succeeds");
         std::vector<std::string> loaded;
-        check(tomo::load_conf_file(cfg.conf_path, loaded), "writeback rewritten file loads");
-        std::vector<const char*> argv;
-        for (const auto& arg : loaded) argv.push_back(arg.c_str());
+        std::vector<size_t> line_ends;
+        check(tomo::load_conf_file(cfg.conf_path, loaded, &line_ends), "writeback rewritten file loads");
         tomo::Config reparsed; tomo::ConfigParseState reparse_state;
-        check(tomo::parse_config_args(argv, reparsed, reparse_state, 1, "rewrite") == tomo::kConfigParsed &&
+        check(tomo::parse_config_file(loaded, line_ends, reparsed, reparse_state, "rewrite") == tomo::kConfigParsed &&
               value(reparsed) == boot, "writeback REWRITE reboots actual value");
     }
     for (const std::string& input : std::vector<std::string>{"-1", "-0", "+1", "01", "00", "1x", "1.0",

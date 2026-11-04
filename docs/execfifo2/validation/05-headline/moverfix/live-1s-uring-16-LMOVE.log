@@ -1,0 +1,4 @@
+PASS LMOVE LEFT LEFT exact deliveries 2000 resumed False
+PASS LMOVE LEFT RIGHT exact deliveries 2000 resumed False
+PASS LMOVE RIGHT LEFT exact deliveries 2000 resumed False
+PASS LMOVE RIGHT RIGHT exact deliveries 2000 resumed False

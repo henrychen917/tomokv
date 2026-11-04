@@ -1,0 +1,4 @@
+ok	0.190000	persistfmt repeated aoffix2 error (1s, epoll)
+ok	0.200000	persistfmt repeated aoffix2 error (1s, uring)
+ok	0.200000	persistfmt repeated aoffix2 error (2s, epoll)
+ok	0.190000	persistfmt repeated aoffix2 error (2s, uring)

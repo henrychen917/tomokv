@@ -1,0 +1,97 @@
+{
+  "phase": "tls-collision-witness",
+  "command": [
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "40-47",
+    "--load-cores",
+    "32-39",
+    "--load-smt",
+    "",
+    "--ports",
+    "20150-20199"
+  ],
+  "environment": {
+    "GATE_ONLY_JOBS": "netfix_tls"
+  },
+  "binary_sha256": "39ecc4aa17bc2cb82913f17e7ceb1810112da4e757c714f46986683a63e13652",
+  "started": 1793587055.061654,
+  "returncode": 1,
+  "finished": 1793587059.887895,
+  "run": "/home/user/Projects/cx-cfgfix/build/gate-run.s915sO",
+  "receipts": {
+    "/home/user/Projects/cx-cfgfix/build/gate-run.s915sO/jobs/netfix_tls/proof/oracle-port-collision.json": {
+      "before": {
+        "maxmemory": "0",
+        "port": "20150"
+      },
+      "after": {
+        "maxmemory": "0",
+        "port": "20150"
+      },
+      "error": true,
+      "reply": "ERR CONFIG SET failed (possibly related to argument 'port') - Unable to listen on this port. Check server logs."
+    },
+    "/home/user/Projects/cx-cfgfix/build/gate-run.s915sO/jobs/netfix_tls/proof/port-collision-204254.json": {
+      "before": {
+        "maxmemory": "0",
+        "port": "20150"
+      },
+      "after": {
+        "maxmemory": "0",
+        "port": "20150"
+      },
+      "error": true,
+      "reply": "ERR CONFIG SET failed (possibly related to argument 'port') - Unable to listen on this port. Check server logs."
+    },
+    "/home/user/Projects/cx-cfgfix/build/gate-run.s915sO/jobs/netfix_tls/proof/port-collision-207511.json": {
+      "before": {
+        "port": "20150",
+        "maxmemory": "0"
+      },
+      "after": {
+        "port": "20151",
+        "maxmemory": "12345678"
+      },
+      "error": false,
+      "reply": "OK"
+    },
+    "/home/user/Projects/cx-cfgfix/build/gate-run.s915sO/jobs/netfix_tls/proof/port-collision-207724.json": {
+      "before": {
+        "port": "20150",
+        "maxmemory": "0"
+      },
+      "after": {
+        "port": "20151",
+        "maxmemory": "12345678"
+      },
+      "error": false,
+      "reply": "OK"
+    },
+    "/home/user/Projects/cx-cfgfix/build/gate-run.s915sO/jobs/netfix_tls/proof/port-collision-207715.json": {
+      "before": {
+        "port": "20150",
+        "maxmemory": "0"
+      },
+      "after": {
+        "port": "20151",
+        "maxmemory": "12345678"
+      },
+      "error": false,
+      "reply": "OK"
+    },
+    "/home/user/Projects/cx-cfgfix/build/gate-run.s915sO/jobs/netfix_tls/proof/port-collision-207353.json": {
+      "before": {
+        "port": "20150",
+        "maxmemory": "0"
+      },
+      "after": {
+        "port": "20151",
+        "maxmemory": "12345678"
+      },
+      "error": false,
+      "reply": "OK"
+    }
+  }
+}

@@ -1,0 +1,760 @@
+{
+  "file": "unit/keyspace",
+  "mode": "1s",
+  "passed": 37,
+  "failed": 0,
+  "skipped": 22,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "seconds": 1.2702929936349392,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "/home/user/Projects/cx-execfifo3/build/tomokv",
+    "--port",
+    "20600",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/redis_tcl/redis-tcl-1s/unit/keyspace/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--databases",
+    "16"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20600",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20602",
+    "--portcount",
+    "1",
+    "--single",
+    "unit/keyspace",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/redis_tcl/redis-tcl-1s/unit/keyspace/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "934013",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "DEL against a single item in tests/unit/keyspace.tcl",
+      "data": "DEL against a single item",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "DEL against a single item in tests/unit/keyspace.tcl",
+      "data": "DEL against a single item",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "Vararg DEL in tests/unit/keyspace.tcl",
+      "data": "Vararg DEL",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "Vararg DEL in tests/unit/keyspace.tcl",
+      "data": "Vararg DEL",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "Untagged multi-key commands in tests/unit/keyspace.tcl",
+      "data": "Untagged multi-key commands",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "Untagged multi-key commands in tests/unit/keyspace.tcl",
+      "data": "Untagged multi-key commands",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "KEYS with pattern in tests/unit/keyspace.tcl",
+      "data": "KEYS with pattern",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "KEYS with pattern in tests/unit/keyspace.tcl",
+      "data": "KEYS with pattern",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "KEYS to get all keys in tests/unit/keyspace.tcl",
+      "data": "KEYS to get all keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "KEYS to get all keys in tests/unit/keyspace.tcl",
+      "data": "KEYS to get all keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "DBSIZE in tests/unit/keyspace.tcl",
+      "data": "DBSIZE",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "DBSIZE in tests/unit/keyspace.tcl",
+      "data": "DBSIZE",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "KEYS with hashtag in tests/unit/keyspace.tcl",
+      "data": "KEYS with hashtag",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "KEYS with hashtag in tests/unit/keyspace.tcl",
+      "data": "KEYS with hashtag",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "DEL all keys in tests/unit/keyspace.tcl",
+      "data": "DEL all keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "DEL all keys in tests/unit/keyspace.tcl",
+      "data": "DEL all keys",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "DEL against expired key in tests/unit/keyspace.tcl",
+      "data": "DEL against expired key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "DEL against expired key in tests/unit/keyspace.tcl",
+      "data": "DEL against expired key",
+      "milliseconds": "1101"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "EXISTS in tests/unit/keyspace.tcl",
+      "data": "EXISTS",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "EXISTS in tests/unit/keyspace.tcl",
+      "data": "EXISTS",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "Zero length value in key. SET/GET/EXISTS in tests/unit/keyspace.tcl",
+      "data": "Zero length value in key. SET/GET/EXISTS",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "Zero length value in key. SET/GET/EXISTS in tests/unit/keyspace.tcl",
+      "data": "Zero length value in key. SET/GET/EXISTS",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "Commands pipelining in tests/unit/keyspace.tcl",
+      "data": "Commands pipelining",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "Commands pipelining in tests/unit/keyspace.tcl",
+      "data": "Commands pipelining",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "Non existing command in tests/unit/keyspace.tcl",
+      "data": "Non existing command",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "Non existing command in tests/unit/keyspace.tcl",
+      "data": "Non existing command",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAME basic usage in tests/unit/keyspace.tcl",
+      "data": "RENAME basic usage",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAME basic usage in tests/unit/keyspace.tcl",
+      "data": "RENAME basic usage",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAME source key should no longer exist in tests/unit/keyspace.tcl",
+      "data": "RENAME source key should no longer exist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAME source key should no longer exist in tests/unit/keyspace.tcl",
+      "data": "RENAME source key should no longer exist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAME against already existing key in tests/unit/keyspace.tcl",
+      "data": "RENAME against already existing key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAME against already existing key in tests/unit/keyspace.tcl",
+      "data": "RENAME against already existing key",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAMENX basic usage in tests/unit/keyspace.tcl",
+      "data": "RENAMENX basic usage",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAMENX basic usage in tests/unit/keyspace.tcl",
+      "data": "RENAMENX basic usage",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAMENX against already existing key in tests/unit/keyspace.tcl",
+      "data": "RENAMENX against already existing key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAMENX against already existing key in tests/unit/keyspace.tcl",
+      "data": "RENAMENX against already existing key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAMENX against already existing key (2) in tests/unit/keyspace.tcl",
+      "data": "RENAMENX against already existing key (2)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAMENX against already existing key (2) in tests/unit/keyspace.tcl",
+      "data": "RENAMENX against already existing key (2)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAME against non existing source key in tests/unit/keyspace.tcl",
+      "data": "RENAME against non existing source key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAME against non existing source key in tests/unit/keyspace.tcl",
+      "data": "RENAME against non existing source key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAME where source and dest key are the same (existing) in tests/unit/keyspace.tcl",
+      "data": "RENAME where source and dest key are the same (existing)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAME where source and dest key are the same (existing) in tests/unit/keyspace.tcl",
+      "data": "RENAME where source and dest key are the same (existing)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAMENX where source and dest key are the same (existing) in tests/unit/keyspace.tcl",
+      "data": "RENAMENX where source and dest key are the same (existing)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAMENX where source and dest key are the same (existing) in tests/unit/keyspace.tcl",
+      "data": "RENAMENX where source and dest key are the same (existing)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAME where source and dest key are the same (non existing) in tests/unit/keyspace.tcl",
+      "data": "RENAME where source and dest key are the same (non existing)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAME where source and dest key are the same (non existing) in tests/unit/keyspace.tcl",
+      "data": "RENAME where source and dest key are the same (non existing)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAME with volatile key, should move the TTL as well in tests/unit/keyspace.tcl",
+      "data": "RENAME with volatile key, should move the TTL as well",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAME with volatile key, should move the TTL as well in tests/unit/keyspace.tcl",
+      "data": "RENAME with volatile key, should move the TTL as well",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAME with volatile key, should not inherit TTL of target key in tests/unit/keyspace.tcl",
+      "data": "RENAME with volatile key, should not inherit TTL of target key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RENAME with volatile key, should not inherit TTL of target key in tests/unit/keyspace.tcl",
+      "data": "RENAME with volatile key, should not inherit TTL of target key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "DEL all keys again (DB 0) in tests/unit/keyspace.tcl",
+      "data": "DEL all keys again (DB 0)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "DEL all keys again (DB 0) in tests/unit/keyspace.tcl",
+      "data": "DEL all keys again (DB 0)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "DEL all keys again (DB 1): Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "COPY basic usage for string in tests/unit/keyspace.tcl",
+      "data": "COPY basic usage for string",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "COPY basic usage for string in tests/unit/keyspace.tcl",
+      "data": "COPY basic usage for string",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "COPY for string does not replace an existing key without REPLACE option: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "COPY for string can replace an existing key with REPLACE option: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "COPY for string ensures that copied data is independent of copying data: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "COPY for string does not copy data to no-integer DB in tests/unit/keyspace.tcl",
+      "data": "COPY for string does not copy data to no-integer DB",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "COPY for string does not copy data to no-integer DB in tests/unit/keyspace.tcl",
+      "data": "COPY for string does not copy data to no-integer DB",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "COPY can copy key expire metadata as well in tests/unit/keyspace.tcl",
+      "data": "COPY can copy key expire metadata as well",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "COPY can copy key expire metadata as well in tests/unit/keyspace.tcl",
+      "data": "COPY can copy key expire metadata as well",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "COPY does not create an expire if it does not exist in tests/unit/keyspace.tcl",
+      "data": "COPY does not create an expire if it does not exist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "COPY does not create an expire if it does not exist in tests/unit/keyspace.tcl",
+      "data": "COPY does not create an expire if it does not exist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "COPY basic usage for list - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "COPY basic usage for list - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "COPY basic usage for $type set",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "COPY basic usage for $type set",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "COPY basic usage for $type set",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "COPY basic usage for listpack sorted set",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "COPY basic usage for skiplist sorted set",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "COPY basic usage for listpack hash",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "COPY basic usage for hashtable hash",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "COPY basic usage for stream",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "COPY basic usage for stream-cgroups in tests/unit/keyspace.tcl",
+      "data": "COPY basic usage for stream-cgroups",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "COPY basic usage for stream-cgroups in tests/unit/keyspace.tcl",
+      "data": "COPY basic usage for stream-cgroups",
+      "milliseconds": "3"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "MOVE basic usage: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "MOVE against key existing in the target DB: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "MOVE against non-integer DB (#1428): Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "MOVE can move key expire metadata as well: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "MOVE does not create an expire if it does not exist: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "SET/GET keys in different DBs: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RANDOMKEY in tests/unit/keyspace.tcl",
+      "data": "RANDOMKEY",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RANDOMKEY in tests/unit/keyspace.tcl",
+      "data": "RANDOMKEY",
+      "milliseconds": "6"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RANDOMKEY against empty DB in tests/unit/keyspace.tcl",
+      "data": "RANDOMKEY against empty DB",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RANDOMKEY against empty DB in tests/unit/keyspace.tcl",
+      "data": "RANDOMKEY against empty DB",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RANDOMKEY regression 1 in tests/unit/keyspace.tcl",
+      "data": "RANDOMKEY regression 1",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "RANDOMKEY regression 1 in tests/unit/keyspace.tcl",
+      "data": "RANDOMKEY regression 1",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "KEYS * two times with long key, Github issue #1208 in tests/unit/keyspace.tcl",
+      "data": "KEYS * two times with long key, Github issue #1208",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "KEYS * two times with long key, Github issue #1208 in tests/unit/keyspace.tcl",
+      "data": "KEYS * two times with long key, Github issue #1208",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "Regression for pattern matching long nested loops in tests/unit/keyspace.tcl",
+      "data": "Regression for pattern matching long nested loops",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "Regression for pattern matching long nested loops in tests/unit/keyspace.tcl",
+      "data": "Regression for pattern matching long nested loops",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "Regression for pattern matching very long nested loops in tests/unit/keyspace.tcl",
+      "data": "Regression for pattern matching very long nested loops",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "Regression for pattern matching very long nested loops in tests/unit/keyspace.tcl",
+      "data": "Regression for pattern matching very long nested loops",
+      "milliseconds": "1"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "Coverage: basic SWAPDB test and unhappy path: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "Coverage: SWAPDB and FLUSHDB: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "done",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "unit/keyspace",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/unit/keyspace.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ],
+  "setup_stdout": ""
+}

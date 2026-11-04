@@ -1,0 +1,26 @@
+redis-redis-db16 failed_SAVE_hits=1
+KNOWN DIFFERENCE PS7 SAVE admission count: Redis=1; observed=0; excluded from compatibility evidence
+KNOWN DIFFERENCE SV9 foreground SAVE background status: Redis=b'ok'; observed=b'err'; excluded from compatibility evidence
+1s-uring-db1 failed_SAVE_hits=1
+KNOWN DIFFERENCE PS7 SAVE admission count: Redis=1; observed=0; excluded from compatibility evidence
+KNOWN DIFFERENCE SV9 foreground SAVE background status: Redis=b'ok'; observed=b'err'; excluded from compatibility evidence
+1s-uring-db16 failed_SAVE_hits=1
+KNOWN DIFFERENCE PS7 SAVE admission count: Redis=1; observed=0; excluded from compatibility evidence
+KNOWN DIFFERENCE SV9 foreground SAVE background status: Redis=b'ok'; observed=b'err'; excluded from compatibility evidence
+1s-epoll-db1 failed_SAVE_hits=1
+KNOWN DIFFERENCE PS7 SAVE admission count: Redis=1; observed=0; excluded from compatibility evidence
+KNOWN DIFFERENCE SV9 foreground SAVE background status: Redis=b'ok'; observed=b'err'; excluded from compatibility evidence
+1s-epoll-db16 failed_SAVE_hits=1
+KNOWN DIFFERENCE PS7 SAVE admission count: Redis=1; observed=0; excluded from compatibility evidence
+KNOWN DIFFERENCE SV9 foreground SAVE background status: Redis=b'ok'; observed=b'err'; excluded from compatibility evidence
+2s-uring-db1 failed_SAVE_hits=1
+KNOWN DIFFERENCE PS7 SAVE admission count: Redis=1; observed=0; excluded from compatibility evidence
+KNOWN DIFFERENCE SV9 foreground SAVE background status: Redis=b'ok'; observed=b'err'; excluded from compatibility evidence
+2s-uring-db16 failed_SAVE_hits=1
+KNOWN DIFFERENCE PS7 SAVE admission count: Redis=1; observed=0; excluded from compatibility evidence
+KNOWN DIFFERENCE SV9 foreground SAVE background status: Redis=b'ok'; observed=b'err'; excluded from compatibility evidence
+2s-epoll-db1 failed_SAVE_hits=1
+KNOWN DIFFERENCE PS7 SAVE admission count: Redis=1; observed=0; excluded from compatibility evidence
+KNOWN DIFFERENCE SV9 foreground SAVE background status: Redis=b'ok'; observed=b'err'; excluded from compatibility evidence
+2s-epoll-db16 failed_SAVE_hits=1
+infofix missing: 0 failed checks; evidence /home/user/Projects/cx-netfix2/build/gate-run.J82pCu/jobs/infofix_compat-missing/infofix-missing

@@ -1,0 +1,95 @@
+{
+  "reason": "Final GEO review found early unit conversion changes cover steps at floating-point boundaries; replace POST and rerun required proof.",
+  "runs": [
+    {
+      "process_group": 2852813,
+      "members": [
+        {
+          "pid": 2375831,
+          "command": "/bin/bash tests/gate.sh full --server-cores 100-107 --load-cores 108-111 --load-smt  --ports 21300-21309 --candidate-binary /home/user/Projects/cx-cmdfix2/build/cmdfix2/POST "
+        },
+        {
+          "pid": 2375844,
+          "command": "python3 tests/gate_history.py watch --pid 2375831 --parent-start 524715704 --seconds 1440 --marker /home/user/Projects/cx-cmdfix2/build/gate-run.j7OW7X/jobs/txnorder_fifo_live/row-timeout-2375831.json --generation 2375831.524715704.1 --cancel-request /home/user/Projects/cx-cmdfix2/build/gate-run.j7OW7X/jobs/txnorder_fifo_live/row-timeout-2375831.2375831.524715704.1.cancel --cancel-receipt /home/user/Projects/cx-cmdfix2/build/gate-run.j7OW7X/jobs/txnorder_fifo_live/row-timeout-2375831.2375831.524715704.1.cancelled "
+        },
+        {
+          "pid": 2375853,
+          "command": "/home/user/Projects/cx-cmdfix2/build/cmdfix2/POST --port 21300 --bind 127.0.0.1 --shards 16 --dir /home/user/Projects/cx-cmdfix2/build/gate-run.j7OW7X/jobs/txnorder_fifo_live/gate-data-fused.RYIUkm --save  --thread-mode fused --databases 1 --atomic 0 --net-io uring --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes "
+        },
+        {
+          "pid": 2375876,
+          "command": "python3 tests/execfair.py 127.0.0.1 21300 --fifo --seconds 60 --clients 64 --output /home/user/Projects/cx-cmdfix2/build/gate-run.j7OW7X/jobs/txnorder_fifo_live/fifo-1-1s-0-uring.json "
+        },
+        {
+          "pid": 2375880,
+          "command": "/usr/bin/python3 -c from multiprocessing.resource_tracker import main;main(7) "
+        },
+        {
+          "pid": 2375881,
+          "command": "/usr/bin/python3 -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=8, pipe_handle=14) --multiprocessing-fork "
+        },
+        {
+          "pid": 2375882,
+          "command": "/usr/bin/python3 -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=8, pipe_handle=17) --multiprocessing-fork "
+        },
+        {
+          "pid": 2375883,
+          "command": "/usr/bin/python3 -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=8, pipe_handle=20) --multiprocessing-fork "
+        },
+        {
+          "pid": 2375884,
+          "command": "/usr/bin/python3 -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=8, pipe_handle=23) --multiprocessing-fork "
+        },
+        {
+          "pid": 2852813,
+          "command": "/bin/bash -c cp --reflink=auto build/tomokv build/cmdfix2/POST && taskset -c 100-111 env LC_ALL=C REDIS74_ROOT=/home/user/Projects/redis GATE_ONLY_JOBS='feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 fused-0 fused-1 debug-0 debug-1 txn_group_fused txn_group_split txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 txnorder_fifo txnorder_fifo_live txnorder_chain txnorder_index txnorder_wound txnorder2 txnorder_wake execfair exec1s atomic_units atomic_batteries atomfix5_watch atomfix5_accounting acl_metadata acl_subcommands acl_recheck aclfix aclkeys_wake auth release_batteries datafix1_geo serverfix_hll serverfix_acllog streamfix blockfix_mkstream blockfix4 multifix-1s-uring multifix-1s-epoll multifix-2s-uring multifix-2s-epoll clientcompat-multi-controls clientcompat-multi-tracking differ-split differ-armed' GATE_PROOF_NO_RATES=1 GATE_LEDGER=\"$PWD/build/cmdfix2/post-main-uring\" tests/gate.sh full --server-cores 100-107 --load-cores 108-111 --load-smt '' --ports 21300-21309 --candidate-binary \"$PWD/build/cmdfix2/POST\" > build/cmdfix2/post-main-uring.log 2>&1 "
+        },
+        {
+          "pid": 2852987,
+          "command": "/bin/bash tests/gate.sh full --server-cores 100-107 --load-cores 108-111 --load-smt  --ports 21300-21309 --candidate-binary /home/user/Projects/cx-cmdfix2/build/cmdfix2/POST "
+        },
+        {
+          "pid": 2854368,
+          "command": "/bin/bash tests/gate.sh full --server-cores 100-107 --load-cores 108-111 --load-smt  --ports 21300-21309 --candidate-binary /home/user/Projects/cx-cmdfix2/build/cmdfix2/POST "
+        }
+      ]
+    },
+    {
+      "process_group": 1638934,
+      "members": [
+        {
+          "pid": 1638934,
+          "command": "/bin/bash -c taskset -c 100-111 python3 tools/cmdfix2_related_jobs.py > build/cmdfix2/related-jobs.log 2>&1 "
+        },
+        {
+          "pid": 1638936,
+          "command": "python3 tools/cmdfix2_related_jobs.py "
+        },
+        {
+          "pid": 1639014,
+          "command": "/bin/bash tests/gate.sh quick --server-cores 100-107 --load-cores 108-111 --load-smt  --ports 21380-21389 --candidate-binary /home/user/Projects/cx-cmdfix2/build/tomokv "
+        },
+        {
+          "pid": 1639237,
+          "command": "/bin/bash tests/gate.sh quick --server-cores 100-107 --load-cores 108-111 --load-smt  --ports 21380-21389 --candidate-binary /home/user/Projects/cx-cmdfix2/build/tomokv "
+        },
+        {
+          "pid": 2364478,
+          "command": "/bin/bash tests/gate.sh quick --server-cores 100-107 --load-cores 108-111 --load-smt  --ports 21380-21389 --candidate-binary /home/user/Projects/cx-cmdfix2/build/tomokv "
+        },
+        {
+          "pid": 2364491,
+          "command": "python3 tests/gate_history.py watch --pid 2364478 --parent-start 524711464 --seconds 900 --marker /home/user/Projects/cx-cmdfix2/build/gate-run.kvgxvK/jobs/at412-T13/row-timeout-2364478.json --generation 2364478.524711464.1 --cancel-request /home/user/Projects/cx-cmdfix2/build/gate-run.kvgxvK/jobs/at412-T13/row-timeout-2364478.2364478.524711464.1.cancel --cancel-receipt /home/user/Projects/cx-cmdfix2/build/gate-run.kvgxvK/jobs/at412-T13/row-timeout-2364478.2364478.524711464.1.cancelled "
+        },
+        {
+          "pid": 2364492,
+          "command": "python3 tests/at412.py --case T13 --binary /home/user/Projects/cx-cmdfix2/build/tomokv --oracle /home/user/Projects/redis/src/redis-server --cores 100-107 --port 21380 --output /home/user/Projects/cx-cmdfix2/build/gate-run.kvgxvK/jobs/at412-T13/at412-T13 "
+        },
+        {
+          "pid": 2381476,
+          "command": "/home/user/Projects/cx-cmdfix2/build/tomokv --bind 127.0.0.1 --port 21380 --dir /home/user/Projects/cx-cmdfix2/build/gate-run.kvgxvK/jobs/at412-T13/at412-T13/2s-uring-0-EVAL --save  --appendonly no --appendfsync no --enable-debug-command yes --shards 16 --thread-mode 2s --net-io uring --atomic 0 --read-local 0 --key-lb 0 --client-lb 0 --flip-auto 0 --databases 16 --ratio 6:2 "
+        }
+      ]
+    }
+  ]
+}

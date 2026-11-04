@@ -1,0 +1,7 @@
+{
+  "launcher_sha256": "ff5e4d4c0f12122493fdddc2f1267b169b86bec13dda05264feff7bd3db03fd9",
+  "exit_code": 0,
+  "log": "build/wave14/r7-final/ptrace-exec-control.log",
+  "log_sha256": "f4d190c88e6cc414197a7f7650abecb6727771968cd30d0b33e85b60750e607e",
+  "result": "Same-user sibling GDB attaches after launcher exec, captures the sleeping native stack and detaches; no global ptrace policy changed."
+}

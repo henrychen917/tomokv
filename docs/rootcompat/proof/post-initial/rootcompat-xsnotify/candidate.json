@@ -1,0 +1,1407 @@
+{
+  "binary": "/home/user/Projects/cx-rootcompat/build/rootcompat/POST",
+  "sha256": "afe546b2a3f581b8961d6c01d6b1fd00be9bfc167065673748b1fb6c64212463",
+  "checks": [
+    {
+      "label": "1s-uring-db1-a0-rl0cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a0-rl0cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a0-rl0cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a0-rl0same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a0-rl0same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a0-rl0same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a0-rl0same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a0-rl0same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a0-rl0same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a0-rl1cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a0-rl1cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a0-rl1cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a0-rl1same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a0-rl1same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a0-rl1same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a0-rl1same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a0-rl1same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a0-rl1same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a1-rl0cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a1-rl0cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a1-rl0cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a1-rl0same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a1-rl0same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a1-rl0same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a1-rl0same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a1-rl0same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a1-rl0same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a1-rl1cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a1-rl1cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a1-rl1cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a1-rl1same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a1-rl1same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a1-rl1same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a1-rl1same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a1-rl1same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db1-a1-rl1same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a0-rl0cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a0-rl0cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a0-rl0cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a0-rl0same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a0-rl0same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a0-rl0same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a0-rl0same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a0-rl0same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a0-rl0same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a0-rl1cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a0-rl1cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a0-rl1cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a0-rl1same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a0-rl1same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a0-rl1same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a0-rl1same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a0-rl1same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a0-rl1same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a1-rl0cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a1-rl0cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a1-rl0cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a1-rl0same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a1-rl0same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a1-rl0same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a1-rl0same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a1-rl0same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a1-rl0same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a1-rl1cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a1-rl1cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a1-rl1cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a1-rl1same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a1-rl1same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a1-rl1same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a1-rl1same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a1-rl1same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-uring-db16-a1-rl1same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl0cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl0cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl0cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl0same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl0same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl0same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl0same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl0same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl0same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl1cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl1cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl1cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl1same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl1same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl1same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl1same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl1same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl1same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl0cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl0cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl0cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl0same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl0same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl0same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl0same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl0same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl0same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl1cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl1cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl1cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl1same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl1same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl1same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl1same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl1same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl1same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl0cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl0cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl0cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl0same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl0same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl0same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl0same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl0same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl0same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl1cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl1cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl1cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl1same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl1same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl1same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl1same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl1same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl1same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl0cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl0cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl0cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl0same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl0same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl0same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl0same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl0same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl0same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl1cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl1cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl1cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl1same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl1same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl1same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl1same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl1same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl1same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a0-rl0cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a0-rl0cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a0-rl0cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a0-rl0same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a0-rl0same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a0-rl0same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a0-rl0same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a0-rl0same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a0-rl0same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a0-rl1cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a0-rl1cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a0-rl1cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a0-rl1same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a0-rl1same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a0-rl1same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a0-rl1same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a0-rl1same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a0-rl1same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a1-rl0cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a1-rl0cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a1-rl0cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a1-rl0same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a1-rl0same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a1-rl0same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a1-rl0same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a1-rl0same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a1-rl0same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a1-rl1cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a1-rl1cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a1-rl1cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a1-rl1same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a1-rl1same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a1-rl1same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a1-rl1same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a1-rl1same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db1-a1-rl1same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a0-rl0cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a0-rl0cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a0-rl0cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a0-rl0same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a0-rl0same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a0-rl0same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a0-rl0same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a0-rl0same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a0-rl0same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a0-rl1cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a0-rl1cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a0-rl1cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a0-rl1same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a0-rl1same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a0-rl1same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a0-rl1same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a0-rl1same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a0-rl1same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a1-rl0cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a1-rl0cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a1-rl0cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a1-rl0same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a1-rl0same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a1-rl0same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a1-rl0same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a1-rl0same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a1-rl0same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a1-rl1cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a1-rl1cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a1-rl1cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a1-rl1same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a1-rl1same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a1-rl1same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a1-rl1same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a1-rl1same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-uring-db16-a1-rl1same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl0cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl0cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl0cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl0same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl0same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl0same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl0same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl0same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl0same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl1cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl1cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl1cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl1same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl1same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl1same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl1same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl1same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl1same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a1-rl0 completed witness",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-db1-a1-rl1cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a1-rl1cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a1-rl1cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a1-rl1same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a1-rl1same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a1-rl1same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a1-rl1same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a1-rl1same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db1-a1-rl1same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl0cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl0cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl0cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl0same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl0same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl0same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl0same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl0same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl0same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl1cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl1cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl1cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl1same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl1same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl1same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl1same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl1same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl1same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl0cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl0cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl0cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl0same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl0same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl0same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl0same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl0same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl0same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl1cross_owner armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl1cross_owner ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl1cross_owner invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl1same_shard armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl1same_shard ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl1same_shard invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl1same_owner_2shards armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl1same_owner_2shards ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl1same_owner_2shards invalidations",
+      "passed": true,
+      "actual": 3
+    }
+  ],
+  "slowlog": {}
+}

@@ -1,0 +1,6 @@
+ok	0.000000	release build (+footprint locks)
+ok	17.380000	blockfix4 scripts (all modes, read-local and atomic)
+ok	44.130000	blockfix4 moves (all modes, read-local and atomic)
+ok	5.180000	blockfix4 creators (all modes, read-local and atomic)
+ok	9.810000	blockfix4 removed (all modes, read-local and atomic)
+ok	6.000000	blockfix4 mpop (all modes, read-local and atomic)

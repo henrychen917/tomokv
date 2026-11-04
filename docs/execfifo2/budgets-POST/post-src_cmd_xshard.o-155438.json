@@ -1,0 +1,37 @@
+{
+  "arm": "post",
+  "unit": "src/cmd/xshard.o",
+  "budget": 155438,
+  "initial": 126590,
+  "command": [
+    "taskset",
+    "-c",
+    "0-31",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=155438",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/xshard.cc",
+    "-o",
+    "/home/user/Projects/cx-execfifo2/build/execfifo2/budgets-POST/post-src_cmd_xshard.o-155438.o",
+    "-g0",
+    "-fdump-ipa-inline=/home/user/Projects/cx-execfifo2/build/execfifo2/budgets-POST/post-src_cmd_xshard.o-155438.inline"
+  ],
+  "output": "/home/user/Projects/cx-execfifo2/build/execfifo2/budgets-POST/post-src_cmd_xshard.o-155438.o",
+  "changed": [
+    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int) [clone .cold]",
+    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)"
+  ],
+  "total": 27
+}

@@ -1,0 +1,38 @@
+Starting test server at port 20104
+[ready]: 3938282
+[1;37;49mTesting unit/scan[0m
+[[0;32;49mok[0m]: {standalone} SCAN basic (78 ms)
+[[0;32;49mok[0m]: {standalone} SCAN COUNT (88 ms)
+[[0;32;49mok[0m]: {standalone} SCAN MATCH (44 ms)
+[[0;32;49mok[0m]: {standalone} SCAN TYPE (47 ms)
+[[0;32;49mok[0m]: {standalone} SCAN unknown type (30 ms)
+[[0;32;49mok[0m]: {standalone} SCAN with expired keys (33 ms)
+[[0;32;49mok[0m]: {standalone} SCAN with expired keys with TYPE filter (33 ms)
+[[0;32;49mok[0m]: {standalone} SSCAN with encoding intset (1 ms)
+[[0;32;49mok[0m]: {standalone} SSCAN with encoding listpack (0 ms)
+[[0;32;49mok[0m]: {standalone} SSCAN with encoding hashtable (1 ms)
+[[0;32;49mok[0m]: {standalone} HSCAN with encoding listpack (0 ms)
+[[0;32;49mok[0m]: {standalone} HSCAN with large value listpack (0 ms)
+[[0;32;49mok[0m]: {standalone} HSCAN with encoding hashtable (58 ms)
+[[0;32;49mok[0m]: {standalone} HSCAN with large value hashtable (0 ms)
+[[0;32;49mok[0m]: {standalone} ZSCAN with encoding listpack (0 ms)
+[[0;32;49mok[0m]: {standalone} ZSCAN with encoding skiplist (56 ms)
+[[0;32;49mok[0m]: {standalone} SCAN guarantees check under write load (44 ms)
+[[0;32;49mok[0m]: {standalone} SSCAN with integer encoded object (issue #1345) (0 ms)
+[[0;32;49mok[0m]: {standalone} SSCAN with PATTERN (0 ms)
+[[0;32;49mok[0m]: {standalone} HSCAN with PATTERN (0 ms)
+[[0;32;49mok[0m]: {standalone} HSCAN with NOVALUES (0 ms)
+[[0;32;49mok[0m]: {standalone} ZSCAN with PATTERN (0 ms)
+[[0;32;49mok[0m]: {standalone} ZSCAN scores: regression test for issue #2175 (14 ms)
+[[0;32;49mok[0m]: {standalone} SCAN regression test for issue #4906 (3622 ms)
+[[0;32;49mok[0m]: {standalone} SCAN MATCH pattern implies cluster slot (13 ms)
+[[0;36;49mignore[0m]: Not supported on external server
+[1/1 [0;33;49mdone[0m]: unit/scan (4 seconds)
+
+                   The End
+
+Execution time of different units:
+  4 seconds - unit/scan
+
+[1;37;49m\o/[0m [1;32;49mAll tests passed without errors![0m
+

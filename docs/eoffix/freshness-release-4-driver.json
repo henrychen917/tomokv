@@ -1,0 +1,11 @@
+{
+  "command": [
+    "make",
+    "-q",
+    "BUILD_ROOT=build/mdbqsbr2-park",
+    "all"
+  ],
+  "exit_code": 0,
+  "seconds": 0.037993984296917915,
+  "env": {}
+}

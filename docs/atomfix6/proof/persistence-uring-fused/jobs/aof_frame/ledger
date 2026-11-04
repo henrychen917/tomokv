@@ -1,0 +1,2 @@
+ok	0.650000	AOF control frame never inside a large record (atomic 0)
+ok	0.660000	AOF control frame never inside a large record (atomic 1)

@@ -1,0 +1,9 @@
+{
+  "argv": [
+    "build/store-regression",
+    "randomkey"
+  ],
+  "exit": 0,
+  "stdout": "PASS storage randomkey\n",
+  "stderr": ""
+}

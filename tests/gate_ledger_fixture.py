@@ -136,7 +136,7 @@ def source_labels(gate):
     two differential folds contribute their public job_label, not private child
     rows. The headline ABBA reporting section and optional NIC are outside it.
     """
-    starts = list(re.finditer(r"^(job_\w+|feature_\w+_job)\(\)\{", gate, re.M))
+    starts = list(re.finditer(r"^(job_\w+|feature_\w+_job|flipfix7_live)\(\)\{", gate, re.M))
     bodies = {match[1]: gate[match.end():starts[i + 1].start() if i + 1 < len(starts)
                             else gate.index("\n# ---- 0. preflight:", match.end())]
               for i, match in enumerate(starts)}
@@ -165,6 +165,20 @@ def source_labels(gate):
         raise ValueError(f"missing public job_label declaration: {name}")
 
     def collect(name):
+        if name == 'rootcompat':
+            # The default worker recursively invokes its nine named cases.
+            # Read that finite list from the source, preserving one public
+            # row per invocation rather than inventing a "rootcompat" case.
+            body = bodies['job_rootcompat']
+            group = re.search(r'if \[ "\$1" = all \]; then\s+'
+                              r'local rootcompat_tmp=\$TMPDIR case\s+'
+                              r'for case in ([^;]+); do\s+'
+                              r'TMPDIR="\$rootcompat_tmp/\$case"; mkdir -p "\$TMPDIR"\s+'
+                              r'job_rootcompat "\$case"\s+done\s+'
+                              r'TMPDIR=\$rootcompat_tmp\s+return\s+fi', body)
+            require(group is not None, 'rootcompat finite worker declaration changed')
+            return [label for case in shlex.split(group[1])
+                    for label in collect('rootcompat-' + case)]
         if name in ("differ-split", "differ-armed", "flipctl") or name.startswith("evict-"):
             return [public_label(name)]
         function, argument = "job_" + name, name
@@ -174,6 +188,22 @@ def source_labels(gate):
                 break
         require(function in bodies, f"unknown collected gate job: {name}")
         body = bodies[function]
+        if function in ("job_flipfix7_output", "job_flipfix7_blocked", "job_flipfix7_tls"):
+            # The live wrappers pass a literal case list and title to one shared
+            # worker. Interpret only that finite call, never execute shell code.
+            call = re.match(r'\s*flipfix7_live ([^;\n]+); \}', body)
+            require(call is not None, "FLIP live wrapper declaration changed")
+            arguments = shlex.split(call[1])
+            require(len(arguments) == 2, "FLIP live wrapper argument count changed")
+            return evaluate(declarations(bodies["flipfix7_live"]),
+                            dict(global_values, **{"1": arguments[0], "2": arguments[1]}), collect)
+        if function == "job_txnfix4":
+            labels = dict(re.findall(r"^    (\w+)\) label='([^'\n]+)';;", body, re.M))
+            require(set(labels) == {"oom", "watch", "crash", "hash", "placement"},
+                    "txnfix4 finite label declaration changed")
+            require(argument in labels, "unknown txnfix4 case")
+            return evaluate(declarations(body),
+                            dict(global_values, **{"1": argument, "label": labels[argument]}), collect)
         if function == "job_release":
             # Source-build and external-candidate arms emit the SAME single row.
             pair = re.search(r'row_begin ("[^"\n]+")\n.*?\nelse\n  row_begin \1 external-candidate',

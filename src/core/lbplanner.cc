@@ -164,7 +164,7 @@ bool Server::lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {
         {
             std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
             if (lb_stage() != LbStage::Idle || flip_dispatch_paused() ||
-                !serves_clients(coordinator) || snapshot_.in_progress() || loading()) {
+                !serves_clients(coordinator) || cfgfix_control_busy(*this) || snapshot_.in_progress() || loading()) {
                 lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
                 return false;
             }
@@ -275,7 +275,7 @@ bool Server::lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {
                     std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
                     if (lb_stage() != LbStage::Idle || flip_dispatch_paused() ||
                         flip_epoch() != plan_flip_epoch || lb_epoch() != plan_lb_epoch ||
-                        snapshot_.in_progress() || loading()) {
+                        cfgfix_control_busy(*this) || snapshot_.in_progress() || loading()) {
                         lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
                         return false;
                     }
@@ -403,7 +403,7 @@ bool Server::lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {
 
         std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
         if (lb_stage() != LbStage::Idle || flip_dispatch_paused() ||
-            snapshot_.in_progress() || loading()) {
+            cfgfix_control_busy(*this) || snapshot_.in_progress() || loading()) {
             lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
             return false;
         }
@@ -448,7 +448,7 @@ bool Server::lb_debug_move_client(uint64_t id, uint32_t destination, std::string
     std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
     if (destination >= nthreads() || thread(destination).role() != Role::Ifid ||
         lb_stage() != LbStage::Idle || flip_dispatch_paused() ||
-        snapshot_.in_progress() || loading()) {
+        cfgfix_control_busy(*this) || snapshot_.in_progress() || loading()) {
         error = "ERR DEBUG CLIENT-LB requires idle topology and an IO destination";
         return false;
     }
@@ -500,7 +500,7 @@ bool Server::lb_consume_plan(uint32_t coordinator) {
     if (!lock || lb_stage() != LbStage::PlanReady || coordinator != lb_coordinator_) return false;
     auto& plan = *lb_plan_;
     if (flip_dispatch_paused() || flip_epoch() != plan.flip_epoch || lb_epoch() != plan.lb_epoch ||
-        snapshot_.in_progress() || loading() || !serves_clients(coordinator)) {
+        cfgfix_control_busy(*this) || snapshot_.in_progress() || loading() || !serves_clients(coordinator)) {
         lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
         lb_stage_.store(LbStage::Idle, std::memory_order_release);
         return false;

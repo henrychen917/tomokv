@@ -1,0 +1,141 @@
+{
+  "binary": "/home/user/Projects/cx-storefix5/build/storefix5/pad-a/tomokv",
+  "sha256": "013ac645dadf0674ab26c92a83a7c9409165838fead7810544951266644612eb",
+  "argv": [
+    "/home/user/Projects/cx-storefix5/build/storefix5/pad-a/tomokv",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "21600",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--enable-debug-command",
+    "yes",
+    "--dir",
+    "/home/user/Projects/cx-storefix5/build/storefix5/tmpjkr6cahv",
+    "--thread-mode",
+    "2s",
+    "--shards",
+    "16",
+    "--databases",
+    "16",
+    "--net-io",
+    "uring",
+    "--ratio",
+    "6:2"
+  ],
+  "affinity": [
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23
+  ],
+  "locale": "C",
+  "cases": {
+    "randomkey": {
+      "passed": false,
+      "error": "RANDOMKEY still visits every elapsed key on every shard"
+    },
+    "idle": {
+      "passed": false,
+      "error": "idle clock missing from used_memory"
+    },
+    "append": {
+      "result": {
+        "16": {
+          "single_call_us": [
+            17.98,
+            16.47,
+            14.99,
+            14.24,
+            11.56
+          ],
+          "slowlog_command_us": [
+            2,
+            1,
+            0,
+            0,
+            0
+          ],
+          "value_and_ttl": true
+        },
+        "1024": {
+          "single_call_us": [
+            16.96,
+            14.3,
+            13.76,
+            14.14,
+            13.98
+          ],
+          "slowlog_command_us": [
+            2,
+            0,
+            0,
+            0,
+            0
+          ],
+          "value_and_ttl": true
+        },
+        "65536": {
+          "single_call_us": [
+            73.51,
+            39.12,
+            24.42,
+            22.46,
+            18.23
+          ],
+          "slowlog_command_us": [
+            53,
+            24,
+            9,
+            8,
+            4
+          ],
+          "value_and_ttl": true
+        },
+        "1048576": {
+          "single_call_us": [
+            713.321,
+            106.99,
+            83.6,
+            86.06,
+            80.39
+          ],
+          "slowlog_command_us": [
+            584,
+            86,
+            66,
+            68,
+            63
+          ],
+          "value_and_ttl": true
+        },
+        "4194304": {
+          "single_call_us": [
+            2579.512,
+            1491.211,
+            310.031,
+            268.08,
+            259.96
+          ],
+          "slowlog_command_us": [
+            2275,
+            1467,
+            289,
+            249,
+            241
+          ],
+          "value_and_ttl": true
+        }
+      },
+      "passed": true
+    }
+  },
+  "exit": 0
+}

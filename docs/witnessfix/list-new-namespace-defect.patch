@@ -1,0 +1,11 @@
+--- src/cmd/t_list.cc
++++ /home/user/Projects/cx-witnessfix/build/witnessfix/mutants/list-new-namespace/t_list.cc
+@@ -1226,7 +1226,7 @@
+             return inserted == FlatStore::InsertResult::MaxmemoryOom
+                 ? XshardElementResult::Maxmemory : XshardElementResult::InsertFailed;
+         }
+-        if (shard.has_blocking_waiters()) blocking_publish_key(shard, hash, key.p, key.n, key.ns);
++        if (shard.has_blocking_waiters()) blocking_publish_key(shard, hash, key.p, key.n, 0);
+         return XshardElementResult::Ok;
+     }
+ 

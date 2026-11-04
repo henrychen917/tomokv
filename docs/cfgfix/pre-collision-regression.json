@@ -1,0 +1,48 @@
+[
+  {
+    "phase": "broad-regression-before-tls-guard",
+    "log": "pre-collision-regression.log",
+    "command": [
+      "/bin/bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "32-39",
+      "--load-cores",
+      "40-47",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "binary_sha256": "39ecc4aa17bc2cb82913f17e7ceb1810112da4e757c714f46986683a63e13652",
+    "returncode": 0,
+    "finished": 1793587523.229887,
+    "process_start_ticks": "523901879"
+  },
+  {
+    "phase": "epoll-controls",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "40-47",
+      "--load-cores",
+      "32-39",
+      "--load-smt",
+      "",
+      "--ports",
+      "20150-20199"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "aoforder flipctl evict-lruclock-split-0 evict-lruclock-split-1 evict-lruclock-armed-0 evict-lruclock-armed-1 evict-lfu-split-0 evict-lfu-split-1 evict-lfu-armed-0 evict-lfu-armed-1",
+      "GATE_PROOF_NET_IO": "epoll"
+    },
+    "binary_sha256": "39ecc4aa17bc2cb82913f17e7ceb1810112da4e757c714f46986683a63e13652",
+    "started": 1793584561.8049667,
+    "note": "Overlaps the independent uring clock jobs. Correctness only; no performance measurements.",
+    "returncode": 0,
+    "finished": 1793585801.995087,
+    "log": "pre-collision-epoll-controls.log"
+  }
+]

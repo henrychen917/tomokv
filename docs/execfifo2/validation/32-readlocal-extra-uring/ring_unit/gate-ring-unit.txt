@@ -1,0 +1,21 @@
+  ok   RYOW: live same-key write fences the read at every ring depth (to the ROB window)
+  ok   HOIST: disjoint read is not fenced by a full ring of precise writes
+  ok   tag collision on a different key does not fence the read
+  ok   a tag-colliding decoy never hides a live same-key write
+  ok   a retired write stops fencing (and the filter slot is released)
+  ok   an abandoned write frame fences nothing after its commit point
+  ok   a conservative generation fences every read and recovers on retirement
+  ok   an abandoned write does not cancel a live conservative generation
+  ok   a ROB saturated with precise writes never overflows the ring (63 live writes)
+  ok   a conservative run four times the ring capacity fences throughout and recovers
+  ok   a same-key write past the old sixteen-slot ring is still found, its tag twin still not
+  ok   a connection no read has armed does zero ring bookkeeping (63 writes, 0 records, 0 sidecars)
+  ok   a read that arrives with unarmed writes in flight is demoted, never served stale
+  ok   the arming transient is bounded by one ROB drain and then lifts (56 demoted, bound 56)
+  ok   the arming fence is one-shot: an interleaved connection returns to full local service (33 records, 1 arms)
+  ok   only a connection that both reads and writes ever allocates a RYOW sidecar
+  ok   soak shallow precise ring: 200k frames, no live write ever missed (87222 reads, 6240 fenced, 80982 hoisted)
+  ok   soak precise ring at the full ROB window: 200k frames, no live write ever missed (87251 reads, 36560 fenced, 50691 hoisted)
+  ok   soak conservative regime: 200k frames, no live same-key write ever missed (87251 reads, 87251 fenced, 0 hoisted)
+  ok   soak from UNARMED: 200k frames across the arming transition, none served stale (87251 reads, 36569 fenced, 50682 hoisted)
+read_local write ring unit: ok

@@ -1,0 +1,112 @@
+PASS 1s uring 0 16 lmpop 
+PASS 1s uring 0 16 lmpop-same 
+PASS 1s uring 0 16 nosync 
+PASS 1s uring 0 16 zunion 
+PASS 1s uring 0 16 zinter 
+PASS 1s uring 0 16 zdiff 
+PASS 1s uring 0 16 geo 
+PASS 1s uring 0 16 geo-member 
+PASS 1s uring 0 16 geo-ro 
+PASS 1s uring 0 16 geo-member-ro 
+PASS 1s uring 0 16 geo-store 
+PASS 1s uring 0 16 geo-member-store 
+FAIL 1s uring 0 16 lmpop TimeoutError('timed out')
+PASS 1s uring 0 16 lmpop-same 
+FAIL 1s uring 0 16 lmpop-io TimeoutError('timed out')
+FAIL 1s uring 0 16 nosync AssertionError(('acknowledged effect lost on restart', (['LRANGE', 'wave15:2', 0, -1], [b'b'])))
+FAIL 1s uring 0 16 zunion TimeoutError('timed out')
+FAIL 1s uring 0 16 zinter TimeoutError('timed out')
+FAIL 1s uring 0 16 zdiff TimeoutError('timed out')
+FAIL 1s uring 0 16 geo TimeoutError('timed out')
+FAIL 1s uring 0 16 geo-member TimeoutError('timed out')
+PASS 1s uring 0 16 geo-ro 
+PASS 1s uring 0 16 geo-member-ro 
+FAIL 1s uring 0 16 geo-store TimeoutError('timed out')
+FAIL 1s uring 0 16 geo-member-store TimeoutError('timed out')
+FAIL 1s uring 1 16 lmpop TimeoutError('timed out')
+PASS 1s uring 1 16 lmpop-same 
+FAIL 1s uring 1 16 lmpop-io TimeoutError('timed out')
+FAIL 1s uring 1 16 nosync AssertionError(('acknowledged effect lost on restart', (['LRANGE', 'wave15:2', 0, -1], [b'b'])))
+FAIL 1s uring 1 16 zunion TimeoutError('timed out')
+FAIL 1s uring 1 16 zinter TimeoutError('timed out')
+FAIL 1s uring 1 16 zdiff TimeoutError('timed out')
+FAIL 1s uring 1 16 geo TimeoutError('timed out')
+FAIL 1s uring 1 16 geo-member TimeoutError('timed out')
+PASS 1s uring 1 16 geo-ro 
+PASS 1s uring 1 16 geo-member-ro 
+FAIL 1s uring 1 16 geo-store TimeoutError('timed out')
+FAIL 1s uring 1 16 geo-member-store TimeoutError('timed out')
+FAIL 1s epoll 0 16 lmpop TimeoutError('timed out')
+PASS 1s epoll 0 16 lmpop-same 
+FAIL 1s epoll 0 16 lmpop-io TimeoutError('timed out')
+FAIL 1s epoll 0 16 nosync AssertionError(('acknowledged effect lost on restart', (['LRANGE', 'wave15:3', 0, -1], [b'b'])))
+FAIL 1s epoll 0 16 zunion TimeoutError('timed out')
+FAIL 1s epoll 0 16 zinter TimeoutError('timed out')
+FAIL 1s epoll 0 16 zdiff TimeoutError('timed out')
+FAIL 1s epoll 0 16 geo TimeoutError('timed out')
+FAIL 1s epoll 0 16 geo-member TimeoutError('timed out')
+PASS 1s epoll 0 16 geo-ro 
+PASS 1s epoll 0 16 geo-member-ro 
+FAIL 1s epoll 0 16 geo-store TimeoutError('timed out')
+FAIL 1s epoll 0 16 geo-member-store TimeoutError('timed out')
+FAIL 1s epoll 1 16 lmpop TimeoutError('timed out')
+PASS 1s epoll 1 16 lmpop-same 
+FAIL 1s epoll 1 16 lmpop-io TimeoutError('timed out')
+FAIL 1s epoll 1 16 nosync AssertionError(('acknowledged effect lost on restart', (['LRANGE', 'wave15:2', 0, -1], [b'b'])))
+FAIL 1s epoll 1 16 zunion TimeoutError('timed out')
+FAIL 1s epoll 1 16 zinter TimeoutError('timed out')
+FAIL 1s epoll 1 16 zdiff TimeoutError('timed out')
+FAIL 1s epoll 1 16 geo TimeoutError('timed out')
+FAIL 1s epoll 1 16 geo-member TimeoutError('timed out')
+PASS 1s epoll 1 16 geo-ro 
+PASS 1s epoll 1 16 geo-member-ro 
+FAIL 1s epoll 1 16 geo-store TimeoutError('timed out')
+FAIL 1s epoll 1 16 geo-member-store TimeoutError('timed out')
+FAIL 2s uring 0 16 lmpop TimeoutError('timed out')
+PASS 2s uring 0 16 lmpop-same 
+FAIL 2s uring 0 16 nosync AssertionError(('acknowledged effect lost on restart', (['LRANGE', 'wave15:1', 0, -1], [b'b'])))
+FAIL 2s uring 0 16 zunion TimeoutError('timed out')
+FAIL 2s uring 0 16 zinter TimeoutError('timed out')
+FAIL 2s uring 0 16 zdiff TimeoutError('timed out')
+FAIL 2s uring 0 16 geo TimeoutError('timed out')
+FAIL 2s uring 0 16 geo-member TimeoutError('timed out')
+PASS 2s uring 0 16 geo-ro 
+PASS 2s uring 0 16 geo-member-ro 
+FAIL 2s uring 0 16 geo-store TimeoutError('timed out')
+FAIL 2s uring 0 16 geo-member-store TimeoutError('timed out')
+FAIL 2s uring 1 16 lmpop TimeoutError('timed out')
+PASS 2s uring 1 16 lmpop-same 
+FAIL 2s uring 1 16 nosync AssertionError(('acknowledged effect lost on restart', (['LRANGE', 'wave15:0', 0, -1], [b'b'])))
+FAIL 2s uring 1 16 zunion TimeoutError('timed out')
+FAIL 2s uring 1 16 zinter TimeoutError('timed out')
+FAIL 2s uring 1 16 zdiff TimeoutError('timed out')
+FAIL 2s uring 1 16 geo TimeoutError('timed out')
+FAIL 2s uring 1 16 geo-member TimeoutError('timed out')
+PASS 2s uring 1 16 geo-ro 
+PASS 2s uring 1 16 geo-member-ro 
+FAIL 2s uring 1 16 geo-store TimeoutError('timed out')
+FAIL 2s uring 1 16 geo-member-store TimeoutError('timed out')
+FAIL 2s epoll 0 16 lmpop TimeoutError('timed out')
+PASS 2s epoll 0 16 lmpop-same 
+FAIL 2s epoll 0 16 nosync AssertionError(('acknowledged effect lost on restart', (['LRANGE', 'wave15:0', 0, -1], [b'b'])))
+FAIL 2s epoll 0 16 zunion TimeoutError('timed out')
+FAIL 2s epoll 0 16 zinter TimeoutError('timed out')
+FAIL 2s epoll 0 16 zdiff TimeoutError('timed out')
+FAIL 2s epoll 0 16 geo TimeoutError('timed out')
+FAIL 2s epoll 0 16 geo-member TimeoutError('timed out')
+PASS 2s epoll 0 16 geo-ro 
+PASS 2s epoll 0 16 geo-member-ro 
+FAIL 2s epoll 0 16 geo-store TimeoutError('timed out')
+FAIL 2s epoll 0 16 geo-member-store TimeoutError('timed out')
+FAIL 2s epoll 1 16 lmpop TimeoutError('timed out')
+PASS 2s epoll 1 16 lmpop-same 
+FAIL 2s epoll 1 16 nosync AssertionError(('acknowledged effect lost on restart', (['LRANGE', 'wave15:2', 0, -1], [b'b'])))
+FAIL 2s epoll 1 16 zunion TimeoutError('timed out')
+FAIL 2s epoll 1 16 zinter TimeoutError('timed out')
+FAIL 2s epoll 1 16 zdiff TimeoutError('timed out')
+FAIL 2s epoll 1 16 geo TimeoutError('timed out')
+FAIL 2s epoll 1 16 geo-member TimeoutError('timed out')
+PASS 2s epoll 1 16 geo-ro 
+PASS 2s epoll 1 16 geo-member-ro 
+FAIL 2s epoll 1 16 geo-store TimeoutError('timed out')
+FAIL 2s epoll 1 16 geo-member-store TimeoutError('timed out')

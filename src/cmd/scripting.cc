@@ -9,6 +9,7 @@
 #include "auth.h"
 #include "notify.h"
 #include "scripting.h"
+#include "blocking.h"
 #include "../base/numeric.h"
 
 #include <algorithm>
@@ -45,7 +46,11 @@ extern "C" {
 #include "../../third_party/lua/lualib.h"
 #else
 #include "../../third_party/lua/lua_amalgamation.c"
+// The instruction cap raises past any pending message handler. luaD_pcall restores the
+// enclosing handler when its protected call unwinds. Defined once, beside Lua's private state.
+void tomo_lua_drop_message_handler(lua_State* state) { state->errfunc = 0; }
 #endif
+void tomo_lua_drop_message_handler(lua_State*);
 int luaopen_cjson(lua_State*);
 int luaopen_cmsgpack(lua_State*);
 int luaopen_bit(lua_State*);
@@ -266,9 +271,10 @@ void reply_text_error(Op& op, std::string_view kind, std::string_view detail,
 }
 
 // A script error already carries its own code word ("ERR ...", "WRONGTYPE ...", "My Error").
-void reply_raw_error(Op& op, std::string_view message) {
+void reply_raw_error(Op& op, std::string_view message, bool accounted) {
     // Runtime errors use Redis's safe-SDS path (map without trimming).
-    reply_err(op.sink(), message.data(), message.size(), false);
+    if (accounted) reply_err_unaccounted(op.sink(), message.data(), message.size(), false);
+    else reply_err(op.sink(), message.data(), message.size(), false);
 }
 
 std::string clean_error(const char* text, size_t length) {
@@ -473,12 +479,26 @@ ScriptContext* lua_context(lua_State* state) {
     return slot ? *slot : nullptr;
 }
 
-void instruction_hook(lua_State* state, lua_Debug*) {
+void instruction_hook(lua_State* state, lua_Debug* debug) {
     ScriptContext* context = lua_context(state);
     if (!context) return;
-    context->instructions += kHookInterval;
+    if (debug->event == LUA_HOOKCOUNT) {
+        context->instructions += kHookInterval;
+    } else if (!context->timed_out) {
+        // Each Lua thread owns its hook. A coroutine kept by a function library can still carry
+        // the line hook of an earlier activation that reached the cap; count this one normally.
+        lua_sethook(state, instruction_hook, LUA_MASKCOUNT, kHookInterval);
+        return;
+    }
     if (context->instructions > kInstructionLimit) {
         context->timed_out = true;
+        // pcall, xpcall and coroutine.resume catch an error raised from a COUNT hook, and a loop
+        // around them would retry forever. Once the cap trips, every later line, loop iteration
+        // and call raises again until the activation unwinds, as Redis's luaMaskCountHook does
+        // after SCRIPT KILL. No message handler runs: an xpcall handler would otherwise execute
+        // with hooks disabled (the raise happens inside this hook) and could loop unbounded.
+        lua_sethook(state, instruction_hook, LUA_MASKLINE, 0);
+        tomo_lua_drop_message_handler(state);
         luaL_error(state, "script exceeded the %llu instruction limit",
                    static_cast<unsigned long long>(kInstructionLimit));
     }
@@ -579,6 +599,10 @@ bool push_resp_value(lua_State* state, const char* data, size_t size, size_t& po
         lua_createtable(state, 0, 1);
         lua_pushlstring(state, data + begin, length);
         lua_setfield(state, -2, marker == '+' ? "ok" : "err");
+        if (marker == '-') {
+            lua_pushboolean(state, 1);
+            lua_setfield(state, -2, "ignore_error_stats_update");
+        }
         return true;
     }
     if (marker == ':') {
@@ -736,8 +760,13 @@ __attribute__((always_inline)) inline bool script_nested_execute(
 __attribute__((noinline)) void script_nested_notified(
         ScriptContext& context, Op& nested, const CommandSpec& spec, Slice key) {
     notify_execute_source(*context.shard, nested, context.call_index++ * 0x10000u);
-    if (script_nested_execute(context, nested, spec, key))
+    if (script_nested_execute(context, nested, spec, key)) {
         notify_monitor_script(*context.shard, *context.parent, nested, context.monitor_multi_order);
+        // CLIENT TRACKING enrolls the key of each read-only command the script runs. A tracked
+        // activation always takes this armed path (the IO selected the notify variant).
+        if ((spec.flags & CmdFlags::Readonly) && !(spec.flags & CmdFlags::Write))
+            tracking_note_script_read(*context.parent, key);
+    }
     notify_execute_source(*context.shard, *context.parent, 0);
 }
 
@@ -748,6 +777,8 @@ int redis_dispatch(lua_State* state, bool protected_call) {
     // is consumed. Successful calls need neither its bytes nor a 2 KiB clear.
     char deferred_error[2100];
     bool failed = false;
+    bool accounted = false;
+    bool admission = false;
     {
         const int argc = lua_gettop(state);
         Op nested;
@@ -792,6 +823,7 @@ int redis_dispatch(lua_State* state, bool protected_call) {
             }
         }
 
+        admission = !failed;
         const CommandSpec* spec = failed ? nullptr : command_lookup(nested.cmd_name());
         if (!failed && (!spec || !command_arity_ok(*spec, nested.argc()))) {
             std::snprintf(deferred_error, sizeof(deferred_error),
@@ -876,6 +908,7 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                                                           : parse_error.c_str());
                         failed = true;
                     } else if (server_error) {
+                        accounted = true;
                         const std::string safe = clean_error(parse_error.data(), parse_error.size());
                         std::snprintf(deferred_error, sizeof(deferred_error), "%s", safe.c_str());
                         failed = true;
@@ -886,9 +919,17 @@ int redis_dispatch(lua_State* state, bool protected_call) {
     }
 
     if (!failed) return 1;
+    if (admission && !accounted) {
+        error_stats_record(deferred_error, std::strlen(deferred_error));
+        accounted = true;
+    }
     lua_createtable(state, 0, 1);
     lua_pushstring(state, deferred_error);
     lua_setfield(state, -2, "err");
+    if (accounted) {
+        lua_pushboolean(state, 1);
+        lua_setfield(state, -2, "ignore_error_stats_update");
+    }
     if (protected_call) return 1;
     // RAISE A TABLE, not a string. Lua prepends `user_script:N: ` to a raised string; Redis's
     // wire error for a failed redis.call has no position prefix (the position appears only in the
@@ -1293,7 +1334,11 @@ bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& outp
         size_t length = 0;
         const char* value = lua_tolstring(state, -1, &length);
         if (!value) { lua_pop(state, 1); error = "invalid redis error table"; return false; }
-        reply_err(output, value, length);
+        result_raw_field(state, index, "ignore_error_stats_update");
+        const bool accounted = lua_toboolean(state, -1);
+        lua_pop(state, 1);
+        if (accounted) reply_err_unaccounted(output, value, length);
+        else reply_err(output, value, length);
         lua_pop(state, 1);
         return true;
     }
@@ -1597,6 +1642,10 @@ FunctionMemoryScope::~FunctionMemoryScope() {
 }
 
 void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
+    struct PublicationScope {
+        bool previous = blocking_defer_plain_publication(true);
+        ~PublicationScope() { blocking_script_publication_finished(previous); }
+    } publication_scope;
     if (__builtin_expect(shard.server() && shard.server()->latency_tracking(), false))
         latency_tracking_script_begin(op);
     LuaEngine& engine = call.style == ScriptArgStyle::Params ? t_function_engine : t_lua_engine;
@@ -1637,6 +1686,12 @@ void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
     if (status != 0 || context.timed_out) {
         const std::string error = context.timed_out ? std::string{}
             : script_runtime_error(state, context, call);
+        bool accounted = false;
+        if (!context.timed_out && lua_istable(state, -1)) {
+            result_raw_field(state, -1, "ignore_error_stats_update");
+            accounted = lua_toboolean(state, -1);
+            lua_pop(state, 1);
+        }
         lua_settop(state, 0);
         engine.current = nullptr;
         // Effects already applied STAND, and the notifications they fired stand with them. Both
@@ -1648,7 +1703,7 @@ void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
             std::snprintf(busy, sizeof(busy), "script exceeded the %llu instruction limit",
                           static_cast<unsigned long long>(kInstructionLimit));
             reply_text_error(op, "BUSY", busy);
-        } else reply_raw_error(op, error);
+        } else reply_raw_error(op, error, accounted);
         return;
     }
 
@@ -1722,26 +1777,28 @@ __attribute__((noinline)) bool compile_eval(lua_State* state, Op& op, const Scri
     return true;
 }
 
-void run_eval(Shard& shard, Op& op, const ScriptSourceRef& owner, bool notify, bool readonly) {
+template <typename Prepare>
+bool run_eval(Shard& shard, Op& op, const ScriptSourceRef& owner, bool notify, bool readonly,
+              Prepare&& prepare) {
     const ScriptSource& source = *owner;
     uint32_t key_first = 0, key_count = 0;
     if (!command_script_key_range(op, key_first, key_count)) {
         reply_text_error(op, "ERR", "invalid script key declaration");
-        return;
+        return true;
     }
     const uint32_t flags = source.flags;
     if (!(flags & (EvalLegacy | EvalNoWrites)) && readonly) {
         reply_text_error(op, "ERR", "Can not execute a script with write flag using *_ro command.");
-        return;
+        return true;
     }
     if (!(flags & (EvalLegacy | EvalNoWrites | EvalAllowOom)) &&
         !FunctionMemoryScope::admit(shard, key_count ? op.arg(key_first) : Slice{})) {
         reply_text_error(op, "OOM", "allow-oom flag is not set on the script, "
                                    "can not run it when used memory > 'maxmemory'");
-        return;
+        return true;
     }
     lua_State* state = script_thread_state();
-    if (!state) { reply_text_error(op, "ERR", "out of memory"); return; }
+    if (!state) { reply_text_error(op, "ERR", "out of memory"); return true; }
 
     // The source cache computed the digest/flags once, before ordered routing.
     const Slice sha(source.sha);
@@ -1750,7 +1807,7 @@ void run_eval(Shard& shard, Op& op, const ScriptSourceRef& owner, bool notify, b
     lua_pushlightuserdata(state, const_cast<ScriptSource*>(&source));
     lua_rawget(state, -2);
     if (lua_isnil(state, -1)) {
-        if (!compile_eval(state, op, owner)) return;
+        if (!compile_eval(state, op, owner)) return true;
     } else {
         g_compile_hits.fetch_add(1, std::memory_order_relaxed);
     }
@@ -1765,16 +1822,25 @@ void run_eval(Shard& shard, Op& op, const ScriptSourceRef& owner, bool notify, b
     call.notify = notify;
     call.chunk = "user_script";
     call.tag = sha;
-    script_execute(shard, op, call);
+    if constexpr (!std::is_same_v<Prepare, std::nullptr_t>) {
+        // Keep the selected source alive across admission, EXEC preparation and
+        // execution. A concurrent SCRIPT FLUSH cannot change this decision.
+        FunctionMemoryScope memory_scope(shard.store(), call.memory_admitted);
+        if (!prepare()) { lua_settop(state, 0); return false; }
+        script_execute(shard, op, call);
+    } else {
+        script_execute(shard, op, call);
+    }
+    return true;
 }
 
-template <bool kNotify, bool kSha, bool kReadonly>
-void cmd_eval(Shard& shard, Op& op) {
+template <bool kNotify, bool kSha, bool kReadonly, typename Prepare>
+bool invoke_eval(Shard& shard, Op& op, Prepare&& prepare) {
     auto source = kSha ? g_scripts.find(op.arg(1)) : g_scripts.source(op.arg(1));
     if (!source) {
         if constexpr (kSha) {
             reply_text_error(op, "NOSCRIPT", "No matching script. Please use EVAL.");
-            return;
+            return true;
         } else {
             // Direct handler callers and a concurrent SCRIPT FLUSH may have no
             // store entry. Compile privately: only ordered IO routing may publish
@@ -1782,19 +1848,24 @@ void cmd_eval(Shard& shard, Op& op) {
             std::string error;
             uint32_t flags = 0, offset = 0;
             if (!validate_source(op.arg(1), error, flags, offset)) {
-                reply_text_error(op, "ERR", error); return;
+                reply_text_error(op, "ERR", error); return true;
             }
             try {
                 source = std::make_shared<ScriptSource>(ScriptSource{
                     std::string(op.arg(1).p, op.arg(1).n), sha1_hex(op.arg(1)), flags, offset});
             } catch (const std::bad_alloc&) {
-                reply_text_error(op, "ERR", "out of memory"); return;
+                reply_text_error(op, "ERR", "out of memory"); return true;
             }
         }
     }
     // WATCH observes writes independently of notification/monitor routing.
     const bool notify = kNotify && (op.spec->flags & CmdFlags::NotifySelected);
-    run_eval(shard, op, source, notify, kReadonly);
+    return run_eval(shard, op, source, notify, kReadonly, std::forward<Prepare>(prepare));
+}
+
+template <bool kNotify, bool kSha, bool kReadonly>
+void cmd_eval(Shard& shard, Op& op) {
+    (void)invoke_eval<kNotify, kSha, kReadonly>(shard, op, nullptr);
 }
 
 void reply_script_wrong_args(Op& op, const char* sub) {
@@ -2024,6 +2095,19 @@ bool command_validate_script_route(Op& op, uint32_t& first, uint32_t& count) {
     // After the numkeys grammar, before routing: Redis reports a bad key count ahead of a compile
     // error, and this keeps that precedence.
     return script_route_store(op);
+}
+
+bool script_execute_exec(Shard& shard, Op& op, void* context, bool (*prepare)(void*)) {
+    if (function_is_fcall(op)) return function_execute_exec(shard, op, context, prepare);
+    auto before_callback = [&] { return prepare(context); };
+    const bool sha = op.cmd_name().eq_icase("evalsha") || op.cmd_name().eq_icase("evalsha_ro");
+    const bool readonly = op.cmd_name().eq_icase("eval_ro") || op.cmd_name().eq_icase("evalsha_ro");
+    if (sha) return readonly
+        ? invoke_eval<true, true, true>(shard, op, before_callback)
+        : invoke_eval<true, true, false>(shard, op, before_callback);
+    return readonly
+        ? invoke_eval<true, false, true>(shard, op, before_callback)
+        : invoke_eval<true, false, false>(shard, op, before_callback);
 }
 
 bool command_prepare_script_route(Server& server, Op& op) {

@@ -1,0 +1,2 @@
+wound-window namespace=multi mode=1s read_done=1 pre_epoch=18446744073709551615 aborted=1 no_such_key=1 source_present=1 commit_accepted=0 final_epoch=18446744073709551615
+PASS: wounded group cannot escape through a terminal commit

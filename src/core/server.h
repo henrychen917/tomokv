@@ -20,6 +20,7 @@
 #include <ctime>
 #include <memory>
 #include <mutex>
+#include "cfgfix.h"
 #include <new>
 #include <sys/resource.h>
 #include <unordered_map>
@@ -152,6 +153,7 @@ class Server {
     friend class IoLoop;
     friend struct FlipListenerState;
     friend bool fliplisten_reserve(Server&, std::string&);
+    friend bool cfgfix_rebind(Server&, uint32_t, uint16_t, const std::string&, std::string&, int);
     friend struct CoreConcurrencyTest;
     friend struct AtomicSurvivorsTest;
     friend struct LbPlannerTest;
@@ -308,7 +310,7 @@ public:
         live_tcp_keepalive_.store(cfg.tcp_keepalive, std::memory_order_relaxed);
         store_client_output_buffer_limits(cfg.client_output_buffer_limits);
         refresh_client_cron_armed();
-        security_flags_.store(cfg.requirepass && *cfg.requirepass ? kSecurityAuth : 0,
+        security_flags_.store(!cfg_requirepass(cfg).empty() ? kSecurityAuth : 0,
                               std::memory_order_relaxed);
         protected_mode_.store(cfg.protected_mode != 0, std::memory_order_relaxed);
         live_notify_events_.store(cfg.notify_events, std::memory_order_relaxed);
@@ -972,6 +974,16 @@ public:
     uint64_t flip_clients_transferred() const {
         return flip_clients_transferred_.load(std::memory_order_relaxed);
     }
+    uint64_t flip_skipped_class(unsigned kind) const {
+        return flip_skipped_class_[kind].load(std::memory_order_relaxed);
+    }
+    uint64_t flip_refused_class(unsigned kind) const {
+        return flip_refused_class_[kind].load(std::memory_order_relaxed);
+    }
+    void flip_note_immovable_refusal(unsigned kind, const char* reason);
+    bool flip_blocked_dispatch_allowed(uint32_t tid) const;
+    uint64_t flip_late_output() const { return flip_late_output_.load(std::memory_order_relaxed); }
+    uint64_t flip_output_transferred() const { return flip_output_transferred_.load(std::memory_order_relaxed); }
     uint64_t flip_session_clients_transferred() const {
         return flip_session_clients_transferred_.load(std::memory_order_relaxed);
     }
@@ -1498,6 +1510,10 @@ public:
             return false;
         }
         std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
+        if (cfgfix_control_busy(*this)) {
+            error = "ERR FLIP is not allowed during a listener reconfiguration";
+            return false;
+        }
         // The automatic controller's evidence belongs to this completion epoch.
         // Check under admission's lock so a manual completion between its sample
         // and this call cannot be silently acknowledged as part of the new move.
@@ -2262,8 +2278,10 @@ public:
         // the writer's mutable committed copy nor the destination's consumer slot is safe here.
         const LiveConfigSnapshot config =
             live_config_mailboxes_[nthreads()].read(live_config_version_).live;
-        shard.configure_maxmemory(config.maxmemory != 0, config.maxmemory / nshards(),
-                                  config.policy, config.samples);
+        if (!shard.configure_maxmemory(config.maxmemory != 0, config.maxmemory / nshards(),
+                                       config.policy, config.samples))
+            std::fprintf(stderr, "WARNING: maxmemory idle clock allocation failed for shard %d; "
+                         "OBJECT IDLETIME reports 0 for its keys\n", shard.id());
         shard.set_notify_mask(config.notify_events |
                               (config.tracking_armed ? NOTIFY_TRACKING : 0u) |
                               (config.save_armed ? NOTIFY_SAVE : 0u));
@@ -2287,11 +2305,30 @@ public:
     std::atomic<bool>&     shutting_down()  { return shutting_down_; }
 
     uint32_t maxclients() const { return live_maxclients_.load(std::memory_order_relaxed); }
+    [[gnu::cold, gnu::noinline]] bool validate_maxclients(uint32_t value, std::string& error) const {
+        const uint64_t capacity = open_file_client_capacity(value);
+        if (value <= capacity) return true;
+        error = "The operating system is not able to handle the specified number of clients, try with " +
+                std::to_string(capacity);
+        return false;
+    }
     void set_maxclients(uint32_t value) {
         live_maxclients_.store(value, std::memory_order_relaxed);
     }
     uint64_t live_clients() const { return live_clients_.load(std::memory_order_relaxed); }
     void client_accepted() { live_clients_.fetch_add(1, std::memory_order_relaxed); }
+    // Accept admission (Redis: listLength(server.clients) >= maxclients refuses). Every IO
+    // thread accepts concurrently, so a separate check and increment can admit more than
+    // maxclients. Reserve atomically; the caller releases the slot if admission later fails.
+    [[gnu::noinline]] bool client_reserve() {
+        uint64_t live = live_clients_.load(std::memory_order_relaxed);
+        do {
+            if (live >= maxclients()) return false;
+        } while (!live_clients_.compare_exchange_weak(live, live + 1, std::memory_order_relaxed));
+        return true;
+    }
+    // A refused admission returns its reservation. Cold: only refusal paths reach it.
+    [[gnu::cold, gnu::noinline]] void client_reserve_cancel() { client_released(); }
     void client_released() {
         if (live_clients_.fetch_sub(1, std::memory_order_relaxed) == 0) std::abort();
     }
@@ -2649,7 +2686,9 @@ public:
         return atomic_mode_state() != 0;
     }
     bool atomic_can_admit(uint32_t /*owner_io*/, bool force = false) const {
-        if (snapshot_atomic_barrier_.load(std::memory_order_acquire)) return false;
+        // seq_cst, like AtomicAdmissionCredits::can_admit(): atomic_credit_wait_arm() re-checks
+        // through this predicate after publishing its waiter bit (same mov on x86-64).
+        if (snapshot_atomic_barrier_.load(std::memory_order_seq_cst)) return false;
         if (!force && !(atomic_mode_state() & kAtomicEnabledBit)) return true;
         return atomic_credits_.can_admit();
     }
@@ -2682,7 +2721,7 @@ public:
     }
     void set_snapshot_atomic_barrier(bool enabled) {
         if (enabled) snapshot_atomic_barrier_.fetch_or(1, std::memory_order_acq_rel);
-        else snapshot_atomic_barrier_.fetch_and(uint8_t{0xfe}, std::memory_order_acq_rel);
+        else snapshot_atomic_barrier_.fetch_and(uint8_t{0xfe}, std::memory_order_seq_cst);
     }
     void atomic_retire_group(uint32_t owner_io, uint64_t admission_token) {
         AtomicAdmissionState& local = thread(owner_io).atomic_admission_state();
@@ -2690,6 +2729,68 @@ public:
         local.active--;
         atomic_credits_.retire();
         if (!local.active) atomic_activity_.fetch_sub(1, std::memory_order_release);
+    }
+    // CREDIT DOORBELL, retirer half: call right after atomic_retire_group() wherever an admitted
+    // group finishes (xshard_destroy, EXEC's release_admission). A frame refused by the window
+    // stays unconsumed on its IO, and that IO may have nothing else that will ever wake it: its
+    // client is waiting for replies and its own groups have retired. This retirement is the event
+    // it waits for. One load of the word beside atomic_credits_ (the line retire() just wrote) and
+    // one predicted-false branch; the ring runs only while an IO is published. The OOM rollbacks
+    // of a just-admitted group do not ring: a waiter that saw the window full also saw at least
+    // fifteen other admitted groups (the window is at least 16), and each of those rings here.
+    void atomic_credit_doorbell(uint32_t owner_io) {
+        if (__builtin_expect(atomic_credit_waiters_.load(std::memory_order_seq_cst) != 0, false))
+            atomic_ring_credit_waiters(owner_io);
+    }
+    // CREDIT DOORBELL, waiter half. An IO calls this on its park path, AFTER arm_blocked(), only
+    // when its pre-park sweep left a connection refused by the window. Publish, then re-check:
+    // either the re-check observes a retirement (or barrier clear) that preceded the publication,
+    // or that retirement's seq_cst load of the waiter word observes the bit and rings this IO.
+    // True means room (or no barrier) already exists: the caller must not park. Out of line: it
+    // runs once per park, never per command. There is no disarm: a ringer consumes the bit, and a
+    // bit left by an IO that woke on its own costs the next retirement one claim and at most one
+    // spurious Wake.
+    [[gnu::cold, gnu::noinline]] bool atomic_credit_wait_arm(uint32_t io) {
+        atomic_credit_waiters_.fetch_or(uint64_t{1} << (io & 63), std::memory_order_seq_cst);
+        return atomic_can_admit(io);
+    }
+    // Runs on self_tid's own thread (a retiring IO, whose AtomicAdmissionState is owner-written,
+    // or the snapshot writer), so the Wake is prepared on that thread's own ring and leaves with
+    // its next submit. A retirement frees one credit, so it rings one published bit; `all` rings
+    // every one (the snapshot barrier clear releases them all at once). Bit b stands for thread
+    // ids b and b+64, and every parked holder of a claimed bit is woken. The scan starts one past
+    // the bit this thread rang last, so waiters are rung in turn and one that re-publishes quickly
+    // cannot take every wake from another. A claimed bit whose holders are all awake (timeout or
+    // another CQE) needs no wake, since they re-check on their own next pass; it passes on.
+    [[gnu::cold, gnu::noinline]] void atomic_ring_credit_waiters(uint32_t self_tid,
+                                                                 Ring* mine = nullptr,
+                                                                 bool all = false) {
+        ThreadCtx& self = thread(self_tid);
+        if (!mine) mine = self.ring();
+        if (!mine) return;
+        uint8_t& cursor = self.atomic_admission_state().credit_ring_cursor;
+        const uint32_t shift = cursor & 63u;
+        const uint64_t raw = atomic_credit_waiters_.load(std::memory_order_seq_cst);
+        uint64_t bits = shift ? (raw >> shift) | (raw << (64u - shift)) : raw;
+        while (bits) {
+            const uint32_t pos = (static_cast<uint32_t>(__builtin_ctzll(bits)) + shift) & 63u;
+            bits &= bits - 1;
+            const uint64_t bit = uint64_t{1} << pos;
+            if (!(atomic_credit_waiters_.fetch_and(~bit, std::memory_order_acq_rel) & bit))
+                continue;  // another ringer consumed it
+            bool rang = false;
+            for (uint32_t io = pos; io < nthreads(); io += 64) {
+                ThreadCtx& waiter = thread(io);
+                if (io == self_tid || !waiter.ring() || !waiter.parked()) continue;
+                // The existing wake: one msg_ring Wake (an eventfd mail under epoll) to the
+                // parked thread, prepared on this thread's ring and counted in wakes_sent.
+                waiter.wake_if_parked(*mine, self.sig());
+                rang = true;
+            }
+            if (!rang) continue;
+            cursor = static_cast<uint8_t>(pos + 1);
+            if (!all) return;
+        }
     }
     // GROUP COMMIT IS TWO STEPS AND A READER MUST NEVER SEE THE FIRST WITHOUT THE SECOND.
     // A cross-shard group installs its versions on every owner while the shared epoch word still
@@ -2788,21 +2889,6 @@ public:
         // A cancelled attempt still reserved a ticket and opened a bracket.
         atomic_commit_publish();
         return won ? ticket : 0;
-    }
-    // The ordinary publication bracket is conservative: A can sample `drawn`,
-    // B can reserve and publish, then A can decrement the last reference and
-    // publish its older sample. Rule-P waiters need an eventual watermark even
-    // when no further writer arrives. Sample the sequence BEFORE observing an
-    // empty bracket: every ticket in that sample has then finished publication.
-    // A subsequent reservation has a newer ticket and cannot ride this update.
-    // Only the cold transaction touch path calls this helper.
-    bool atomic_publish_quiescent() {
-        const uint64_t drawn = commit_seq_.load(std::memory_order_seq_cst);
-        if (atomic_commit_inflight_.load(std::memory_order_seq_cst)) return false;
-        uint64_t safe = atomic_commit_safe_.load(std::memory_order_relaxed);
-        while (safe < drawn && !atomic_commit_safe_.compare_exchange_weak(
-                   safe, drawn, std::memory_order_release, std::memory_order_relaxed)) {}
-        return true;
     }
     void note_txn(uint32_t owner, TxnCounter counter, uint64_t count = 1) {
         txn_counters_[owner].values[static_cast<unsigned>(counter)].fetch_add(
@@ -3039,7 +3125,7 @@ public:
         flag.store(true, std::memory_order_release);
     }
     // Idempotent by construction: whichever of the two ends reaches the group first closes it.
-    void atomic_apply_close(uint32_t tid, std::atomic<bool>& flag) {
+    [[gnu::always_inline]] void atomic_apply_close(uint32_t tid, std::atomic<bool>& flag) {
         if (tid >= nthreads()) std::abort();
         if (__builtin_expect(!flag.load(std::memory_order_acquire), true)) return;
         if (flag.exchange(false, std::memory_order_acq_rel))
@@ -3277,6 +3363,19 @@ public:
         snapshot = live_config_snapshot(reader_tid);
         return snapshot.version != known_version;
     }
+    void tracking_config_applied(uint32_t owner, uint64_t version) {
+        live_config_mailboxes_[owner].applied(version);
+    }
+    bool tracking_config_ready(uint64_t version) const {
+        // This unfinished IO command itself holds the IO drain. Owners can
+        // apply configuration during that drain; waiting for Idle would form
+        // a cycle. A later ownership transfer installs the current mask in
+        // adopt_shard_owner_state before publishing the new owner.
+        for (uint32_t sid = 0; sid < nshards(); ++sid)
+            if (live_config_mailboxes_[worker_of_shard(sid)].applied() < version)
+                return false;
+        return true;
+    }
     void set_maxmemory_config(uint64_t memory, MaxmemoryPolicy policy, uint32_t samples,
                               bool set_memory = true, bool set_policy = true,
                               bool set_samples = true) {
@@ -3436,14 +3535,40 @@ public:
     }
 
 private:
+    // Reserve Redis's 32 transient/persistence/log descriptors in addition to
+    // our per-worker resources: two rings (eventfds under epoll), an IO epoll
+    // set, a database doorbell, and both possible listeners. Count all physical
+    // workers so later role conversion cannot consume client capacity. TLS
+    // certificate opens, the signal fd, stdio, AOF/rewrite/manifest and snapshot
+    // files fit within the shared 32-fd reserve, including a rejected accept.
+    uint64_t reserved_file_descriptors() const {
+        return 32 + placement_.total_threads() *
+            (2ull + (cfg_.net_io == NetIoEngine::Epoll) + !kSingleDatabase +
+             (cfg_.port != 0) + (cfg_.tls_port != 0)) +
+             (cfg_.unixsocket && *cfg_.unixsocket ? 1 : 0);
+    }
+
+    [[gnu::cold, gnu::noinline]] uint64_t open_file_client_capacity(uint32_t requested) const {
+        rlimit limit{};
+        if (::getrlimit(RLIMIT_NOFILE, &limit) != 0) return 0;
+        const uint64_t reserve = reserved_file_descriptors();
+        const uint64_t wanted = static_cast<uint64_t>(requested) + reserve;
+        if (limit.rlim_cur < wanted) {
+            rlimit raised = limit;
+            raised.rlim_cur = static_cast<rlim_t>(std::min<uint64_t>(wanted, limit.rlim_max));
+            if (::setrlimit(RLIMIT_NOFILE, &raised) == 0)
+                (void)::getrlimit(RLIMIT_NOFILE, &limit);
+        }
+        return limit.rlim_cur > reserve ? limit.rlim_cur - reserve : 0;
+    }
+
     bool adjust_open_files_limit() {
         rlimit limit{};
         if (::getrlimit(RLIMIT_NOFILE, &limit) != 0) {
             std::perror("getrlimit(RLIMIT_NOFILE)");
             return false;
         }
-        const uint64_t reserve = 32 + placement_.ifid_threads().size() * 2 +
-            (kSingleDatabase ? 0 : placement_.total_threads()); // database doorbells
+        const uint64_t reserve = reserved_file_descriptors();
         const uint64_t wanted = static_cast<uint64_t>(cfg_.maxclients) + reserve;
         if (limit.rlim_cur < wanted) {
             rlimit raised = limit;
@@ -3776,8 +3901,13 @@ private:
     std::atomic<uint64_t> atomic_fanout_cuts_{0};
     std::atomic<uint64_t> atomic_exec_read_cuts_{0};
     AtomicAdmissionCredits atomic_credits_;
-    // Preserve every following cache-line offset formerly occupied by pool/debt/credit_ops.
-    uint32_t atomic_credit_layout_padding_[3] = {};
+    // IOs parked behind a frame the window refused: bit b for thread ids b and b+64. The word and
+    // the remaining padding fill exactly the 16 bytes the former uint32_t[3] layout padding and its
+    // alignment hole held before atomic_activity_, so every following offset is preserved, and the
+    // word shares atomic_credits_'s cache line: the retirer loads the line its RMW just wrote.
+    std::atomic<uint64_t> atomic_credit_waiters_{0};
+    uint32_t atomic_credit_layout_padding_[2] = {};
+    static_assert(kMaxThreads <= 128, "atomic_credit_waiters_ maps two thread ids to each bit");
     // Enabled is the high bit; every IO with admitted groups and every live record contributes
     // one low-bit unit. Exact group counts belong to atomic_credits_.
     // Dispatch therefore decides OFF/ON/draining with one acquire load and one predictable test.
@@ -3910,6 +4040,10 @@ private:
     alignas(64) std::atomic<uint64_t> flip_session_clients_transferred_{0};
     std::atomic<uint64_t> flip_refused_s2_{0};
     std::atomic<uint64_t> flip_refused_close_{0};
+    std::atomic<uint64_t> flip_late_output_{0};
+    std::atomic<uint64_t> flip_output_transferred_{0};
+    std::atomic<uint64_t> flip_skipped_class_[3]{};
+    std::atomic<uint64_t> flip_refused_class_[3]{};
 
 };
 

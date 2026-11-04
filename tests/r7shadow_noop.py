@@ -76,12 +76,14 @@ def off_roles(binary):
     return removed
 
 
-def splitlocal_inventory(binary, namespaces, *, overlap_removed=False, fliplisten=False, latencyfix=False):
+def splitlocal_inventory(binary, namespaces, *, overlap_removed=False, fliplisten=False, latencyfix=False,
+                         wave15=False):
     """Require the extra physical parser bodies per runtime after splitlocal.
 
     Forwarding SplitLocal emits two parsers and four ordinary-parser clones.
     Their eight out-of-line closures become six after overlap removal.
-    Historical inventories remain usable for frozen inputs.
+    Historical inventories remain usable for frozen inputs. wave15 applies the
+    exact WAVE15_PARSER_ARMS changes to the SplitLocal parsers' closure family.
     """
     for namespace in namespaces:
         for no_borrow in ('false', 'true'):
@@ -98,8 +100,22 @@ def splitlocal_inventory(binary, namespaces, *, overlap_removed=False, flipliste
             clones = {ordinary + ' [clone .isra.0]' + suffix for suffix in ('', ' [clone .cold]')}
             conflict_count = 2 if overlap_removed else 3
             if latencyfix and namespace == "tomo": conflict_count += 1
-            assert (len(conflicts) == conflict_count and len(fillers) == 1 and
-                    family == {direct} | conflicts | fillers and
+            filler_count, extra = 1, set()
+            if wave15:
+                arms = f'{no_borrow}, 32u, true'
+                assert parser == _parser(namespace, arms), parser
+                if arms in WAVE15_PARSER_ARMS['conflicts'][namespace]:
+                    conflict_count -= 1
+                if arms in WAVE15_PARSER_ARMS['auto'][namespace]:
+                    filler_count += 1
+                    op = _parser_op_lambda(namespace, arms)
+                    added = f'auto {parser}::{{lambda(auto:1&&)#1}}::operator()<{op}>({op}&&) const'
+                    assert added in fillers, f'missing wave15 split-local closure: {added}'
+                if arms in WAVE15_PARSER_ARMS['slice'][namespace]:
+                    extra.add(f'{parser}::{{lambda({namespace}::Slice, unsigned int&)#1}}'
+                              f'::operator()({namespace}::Slice, unsigned int&) const')
+            assert (len(conflicts) == conflict_count and len(fillers) == filler_count and
+                    family == {direct} | conflicts | fillers | extra and
                     all(len(binary.groups.get(name, ())) == 1 for name in family) and
                     all(len(binary.groups.get(name, ())) ==
                         (2 if fliplisten and no_borrow == 'true' else 1) for name in clones)), \
@@ -155,11 +171,13 @@ def execfair_inventory(binary, namespaces, *, latencyfix=False, execindex=False)
             f'missing execfair promotion callback: {namespace}: expected={expected}, found={found}'
 
 
-def notifycompat_inventory(binary):
+def notifycompat_inventory(binary, *, storefix5=False):
     """NO-A7 replaces one normal scan by two unique-key bodies: net +1/0.
 
     The DB0 hot/cold pair already exists on the headline. Require all four
     physical bodies, and the disappearance of the superseded normal scan.
+    storefix5's shared SCAN visitor (wave 15) brings back exactly the normal
+    namespace's scan pair (.constprop.0 and its cold split); require those two.
     """
     normal = 'void tomo::FlatStore::atomic_for_each_unique_key<tomo::FlatStore::atomic_for_each_side_key<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}>(unsigned long, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&)::{lambda(unsigned long, tomo::Slice)#1}>(tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&) [clone .isra.0]'
     expected = {normal.replace('tomo::', namespace + '::') + suffix
@@ -169,8 +187,13 @@ def notifycompat_inventory(binary):
              and 'xshard_execute(' in name and audit.category(name)}
     retired = {name for name in binary.groups if 'tomo::FlatStore::scan<' in name
                and 'tomo::xshard_execute(' in name and audit.category(name)}
-    assert found == expected and all(len(binary.groups[name]) == 1 for name in expected) and not retired, \
-        f'missing notifycompat scatter scan: expected={expected}, found={found}'
+    lam = _scan_lambda('tomo')
+    storefix5_scan = (f'unsigned long tomo::FlatStore::scan<{lam}>(unsigned long, unsigned int, '
+                      f'{lam}&&, bool) [clone .constprop.0]')
+    allowed = {storefix5_scan, storefix5_scan + ' [clone .cold]'} if storefix5 else set()
+    assert found == expected and all(len(binary.groups[name]) == 1 for name in expected) and \
+        retired == allowed and all(len(binary.groups[name]) == 1 for name in retired), \
+        f'missing notifycompat scatter scan: expected={expected}, found={found}, scans={retired}'
     return expected
 
 
@@ -200,13 +223,121 @@ def wave8_inventory(binary):
     return Counter({'tomo': 164, 'tomo_db0': 162})
 
 
-def exec1s_inventory(binary, *, snapshot_capped=False):
+FLIPFIX7_CALLBACK = ('tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, '
+                     'tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}'
+                     '::operator()(tomo_db0::KvObj*) const')
+
+
+def _scan_lambda(ns):
+    return (f'{ns}::xshard_execute({ns}::Task const&, {ns}::Shard&, {ns}::Op&, unsigned int)'
+            f'::{{lambda({ns}::KvObj*)#1}}')
+
+
+def _parser(ns, arms):
+    return f'{ns}::IoLoop::parse_and_dispatch<{arms}>({ns}::Client*)'
+
+
+def _parser_op_lambda(ns, arms):
+    return _parser(ns, arms) + '::{lambda(' + ns + '::Op const&)#1}'
+
+
+WAVE15_PARSER_ARMS = dict(
+    # Every name below is exact; no wildcard admits a different clone.
+    auto={'tomo': ('false, 32u, false', 'false, 32u, true', 'true, 32u, true'),
+          'tomo_db0': ('false, 32u, false', 'false, 32u, true', 'true, 32u, true')},
+    nested={'tomo': ('false, 32u, false',), 'tomo_db0': ()},
+    slice={'tomo': ('false, 32u, false', 'true, 0u, false', 'true, 32u, false'),
+           'tomo_db0': ('false, 32u, false', 'false, 32u, true', 'true, 32u, false', 'true, 32u, true')},
+    conflicts={'tomo': ('false, 32u, false', 'false, 32u, true', 'true, 32u, false', 'true, 32u, true'),
+               'tomo_db0': ('false, 32u, false', 'true, 32u, false')})
+
+
+def wave15_inventory_delta(expected):
+    """Wave 15's exact R7 named-inventory changes over flipfix7 (wave14 + one callback).
+
+    Attributed against the frozen links: every bins/<lane>-post-* of the twelve lanes
+    and the integration steps build/wave15/{merged-before-integration-fixes, aof-fixed,
+    errorstats-first, integration-candidate-1, POST-1babe0d58a-final}. Only storefix5
+    among the lanes changes this inventory; the rest come from integration commits
+    0f9c40070f and 1babe0d58a. Every added body stays in the strict byte comparison;
+    a missing or extra clone still fails.
+    """
+    for ns in ('tomo', 'tomo_db0'):
+        lam = _scan_lambda(ns)
+        # storefix5 SO5.3 (44f8ced805) and its shared SCAN visitor retirement guard: the
+        # scan_home body becomes scan_visit plus its cold split, and the normal namespace
+        # regains the scan clone pair DB0 already had (bins/storefix5-post-d661aa5d).
+        assert expected.pop(f'unsigned int {ns}::FlatStore::scan_home<{lam}>'
+                            f'(int, unsigned int, {lam}&, bool)') == 1
+        for suffix in ('', ' [clone .cold]'):
+            expected[f'void {ns}::FlatStore::scan_visit<{lam}>(int, unsigned long, {ns}::KvObj*, '
+                     f'{lam}&, bool){suffix}'] = 1
+        scan = (f'unsigned long {ns}::FlatStore::scan<{lam}>(unsigned long, unsigned int, '
+                f'{lam}&&, bool) [clone .constprop.0]')
+        expected[scan] = 1
+        expected[scan + ' [clone .cold]'] = 1
+        expected[f'{lam}::operator()({ns}::KvObj*) const'] = 1
+        # Integration 0f9c40070f (Redis generic error accounting): GET/SET error replies call
+        # the cold recorder, so GCC splits each handler's error tail into a .cold part. The
+        # ordinary success bodies are unchanged in the instruction census.
+        for handler in (f'void {ns}::(anonymous namespace)::cmd_get<false, true>({ns}::Shard&, {ns}::Op&)',
+                        f'void {ns}::(anonymous namespace)::cmd_get<true, false>({ns}::Shard&, {ns}::Op&)',
+                        f'void {ns}::(anonymous namespace)::cmd_get<true, true>({ns}::Shard&, {ns}::Op&)',
+                        f'void {ns}::(anonymous namespace)::cmd_set<false>({ns}::Shard&, {ns}::Op&)',
+                        f'void {ns}::(anonymous namespace)::cmd_set<true>({ns}::Shard&, {ns}::Op&)',
+                        f'{ns}::cmd_get_tls({ns}::Shard&, {ns}::Op&)'):
+            expected[handler + ' [clone .cold]'] = 1
+        # The same integration commit's parser error replies change GCC's outlining of the
+        # parser closures (errorstats-first); 1babe0d58a's budget then drops DB0's
+        # <true, 0u, false> slice closure. Unedited rlfix5/storefix5 links keep wave14's set.
+        for arms in WAVE15_PARSER_ARMS['auto'][ns]:
+            op = _parser_op_lambda(ns, arms)
+            expected[f'auto {_parser(ns, arms)}::{{lambda(auto:1&&)#1}}::operator()<{op}>({op}&&) const'] = 1
+        for arms in WAVE15_PARSER_ARMS['nested'][ns]:
+            op = _parser(ns, arms) + '::{lambda()#2}::operator()() const::{lambda(' + ns + '::Op const&)#1}'
+            expected[f'auto {_parser(ns, arms)}::{{lambda(auto:1&&)#1}}::operator()<{op}>({op}&&) const'] = 1
+        for arms in WAVE15_PARSER_ARMS['slice'][ns]:
+            expected[f'{_parser(ns, arms)}::{{lambda({ns}::Slice, unsigned int&)#1}}'
+                     f'::operator()({ns}::Slice, unsigned int&) const'] = 1
+        for arms in WAVE15_PARSER_ARMS['conflicts'][ns]:
+            op = _parser_op_lambda(ns, arms)
+            outer = f'{_parser(ns, arms)}::{{lambda(auto:1&&)#1}}::operator()<{op}>({op}&&) const'
+            assert expected.pop(f'{ns}::Rob<64u>::read_local_owner_conflicts_before<{outer}'
+                                f'::{{lambda({ns}::Op const&)#1}}>(unsigned long, {op}&&)'
+                                f'::{{lambda(unsigned long, unsigned long)#1}}'
+                                f'::operator()(unsigned long, unsigned long) const') == 1
+    return expected
+
+
+def exec1s_inventory(binary, *, snapshot_capped=False, wave14=False, flipfix7=False, wave15=False):
     """Keep wave8's inventory, explicitly account for fused sweep outlining.
 
     X1 emits one full fused sweep instead of two hot/cold clone pairs in each
     runtime. X3 adds one ordinary owner-turn body per runtime; its R7-specific
     instantiation is proved armed-only by off_roles(). No other body may vanish.
     """
+    expected = exec1s_expected(snapshot_capped=snapshot_capped, wave14=wave14,
+                               flipfix7=flipfix7, wave15=wave15)
+    actual = {name: len(bodies) for name, bodies in binary.groups.items() if audit.category(name)}
+    label = ('wave15' if wave15 else 'flipfix7' if flipfix7 else 'wave14' if wave14 else
+             'wave10' if snapshot_capped else 'exec1s')
+    assert actual == expected, label + ' named inventory differs'
+    # wave15: +34/-8 bodies over flipfix7 (normal +18/-5, DB0 +16/-3).
+    return Counter({'tomo': 176, 'tomo_db0': 176} if wave15 else
+                   {'tomo': 163, 'tomo_db0': 163} if flipfix7 else
+                   {'tomo': 163, 'tomo_db0': 162} if wave14 else
+                   {'tomo': 164, 'tomo_db0': 162} if snapshot_capped else
+                   {'tomo': 162, 'tomo_db0': 160})
+
+
+def wave15_added_bodies(binary=None):
+    """Names wave15_inventory_delta adds over flipfix7, for missing-body controls."""
+    base = exec1s_expected(snapshot_capped=True, wave14=True, flipfix7=True)
+    return [name for name in exec1s_expected(snapshot_capped=True, wave14=True, flipfix7=True,
+                                             wave15=True) if name not in base]
+
+
+def exec1s_expected(*, snapshot_capped=False, wave14=False, flipfix7=False, wave15=False):
     path = Path(__file__).resolve().parents[1] / 'docs/wave8/reorder-inventory.json'
     expected = json.loads(path.read_text())
     for ns in ('tomo', 'tomo_db0'):
@@ -228,11 +359,35 @@ def exec1s_inventory(binary, *, snapshot_capped=False):
                 for method in ('drain_tasks_capped', 'drain_tasks_unmasked_capped'):
                     expected[old.replace('::ThreadCtx::drain_tasks<false, ',
                                          '::ThreadCtx::' + method + '<false, 32u, ')] = 1
-    actual = {name: len(bodies) for name, bodies in binary.groups.items() if audit.category(name)}
-    label = 'wave10' if snapshot_capped else 'exec1s'
-    assert actual == expected, label + ' named inventory differs'
-    return Counter({'tomo': 164, 'tomo_db0': 162} if snapshot_capped else
-                   {'tomo': 162, 'tomo_db0': 160})
+    if wave14:
+        assert snapshot_capped
+        # XS-NOTIFY-1 replaces ScriptApplyPins with staged publication; both
+        # destructor bodies are also absent in frozen rootcompat f3511f86.
+        for ns in ('tomo', 'tomo_db0'):
+            retired = (f'{ns}::xshard_execute({ns}::Task const&, {ns}::Shard&, '
+                       f'{ns}::Op&, unsigned int)::ScriptApplyPins::~ScriptApplyPins()')
+            assert expected.pop(retired) == 1
+        # Keep clientcompat 346d035c's newly outlined DB0 scan, including its
+        # complete instruction comparison. No extra or missing clone is allowed.
+        scan = ('unsigned long tomo_db0::FlatStore::scan<tomo_db0::xshard_execute('
+                'tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)'
+                '::{lambda(tomo_db0::KvObj*)#1}>(unsigned long, unsigned int, '
+                'tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, '
+                'tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}&&, bool)'
+                ' [clone .constprop.0]')
+        assert scan not in expected
+        expected[scan] = 1
+    if flipfix7:
+        assert wave14
+        # The command-scope compiler budget retains all wave14 bodies and emits
+        # this additional DB0 scan callback. Compare its complete instructions
+        # too; accepting an arbitrary extra callback would weaken the receipt.
+        assert FLIPFIX7_CALLBACK not in expected
+        expected[FLIPFIX7_CALLBACK] = 1
+    if wave15:
+        assert flipfix7
+        expected = wave15_inventory_delta(expected)
+    return expected
 
 
 if __name__ == '__main__':
@@ -240,7 +395,7 @@ if __name__ == '__main__':
     parser.add_argument('pre')
     parser.add_argument('post')
     parser.add_argument('output')
-    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe', 'wave5', 'execfair', 'wave6', 'latencyfix', 'wave8', 'exec1s', 'wave10'), default='r7',
+    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe', 'wave5', 'execfair', 'wave6', 'latencyfix', 'wave8', 'exec1s', 'wave10', 'wave14', 'flipfix7', 'wave15'), default='r7',
                         help='wbrule/splitlocal retain historical inventories; overlapaxe requires the surviving bodies')
     args = parser.parse_args()
     out = Path(args.output)
@@ -320,9 +475,12 @@ if __name__ == '__main__':
         for binary in (pre, post): expected = latencyfix_inventory(binary)
     if args.inventory == 'wave8':
         for binary in (pre, post): expected = wave8_inventory(binary)
-    if args.inventory in ('exec1s', 'wave10'):
+    if args.inventory in ('exec1s', 'wave10', 'wave14', 'flipfix7', 'wave15'):
         for binary in (pre, post):
-            expected = exec1s_inventory(binary, snapshot_capped=args.inventory == 'wave10')
+            expected = exec1s_inventory(binary, snapshot_capped=args.inventory in ('wave10', 'wave14', 'flipfix7', 'wave15'),
+                                       wave14=args.inventory in ('wave14', 'flipfix7', 'wave15'),
+                                       flipfix7=args.inventory in ('flipfix7', 'wave15'),
+                                       wave15=args.inventory == 'wave15')
     counts = Counter('tomo_db0' if 'tomo_db0::' in row['name'] else 'tomo' for row in rows)
     assert counts == expected, f'off-path inventory changed: {counts}, expected {expected}'
     def inventory(binary):

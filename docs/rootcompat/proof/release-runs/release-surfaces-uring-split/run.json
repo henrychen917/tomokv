@@ -1,0 +1,34 @@
+{
+  "name": "release-surfaces-uring-split",
+  "command": [
+    "taskset",
+    "-c",
+    "48-63",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "48-55",
+    "--load-cores",
+    "56-63",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20300-20309",
+    "--candidate-binary",
+    "/home/user/Projects/cx-rootcompat/build/rootcompat/release/POST"
+  ],
+  "environment": {
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_ONLY_JOBS": "feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 debug-0 debug-1 sort notify acl_recheck scriptfix auth aclfix authfix scriptfix2 notifycompat notify_order tracking_redirect infofix_compat-missing blockfix2",
+    "GATE_NET_IO": "uring",
+    "GATE_TXN_FUSED": "0"
+  },
+  "exit": 0,
+  "seconds": 1541.341,
+  "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.FhcI3T",
+  "sha256": "f3511f861a8a9a01ca24eafbb43766dca621e7c3c1f3512119c241b962ed26ed"
+}

@@ -1,0 +1,641 @@
+{
+  "file": "unit/pubsub",
+  "mode": "1s",
+  "passed": 32,
+  "failed": 0,
+  "skipped": 15,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "seconds": 1.2701529245823622,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "56-63",
+    "/home/user/Projects/cx-rootcompat/build/rootcompat/release/POST",
+    "--port",
+    "20310",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-rootcompat/build/gate-run.25vFxB/jobs/redis_tcl/redis-tcl-1s/unit/pubsub/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--databases",
+    "16"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "56-63",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20310",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20312",
+    "--portcount",
+    "1",
+    "--single",
+    "unit/pubsub",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-rootcompat/build/gate-run.25vFxB/jobs/redis_tcl/redis-tcl-1s/unit/pubsub/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "1911058",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Pub/Sub PING on RESP2 in tests/unit/pubsub.tcl",
+      "data": "Pub/Sub PING on RESP2",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Pub/Sub PING on RESP2 in tests/unit/pubsub.tcl",
+      "data": "Pub/Sub PING on RESP2",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Pub/Sub PING on RESP3 in tests/unit/pubsub.tcl",
+      "data": "Pub/Sub PING on RESP3",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Pub/Sub PING on RESP3 in tests/unit/pubsub.tcl",
+      "data": "Pub/Sub PING on RESP3",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "PUBLISH/SUBSCRIBE basics in tests/unit/pubsub.tcl",
+      "data": "PUBLISH/SUBSCRIBE basics",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "PUBLISH/SUBSCRIBE basics in tests/unit/pubsub.tcl",
+      "data": "PUBLISH/SUBSCRIBE basics",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "PUBLISH/SUBSCRIBE with two clients in tests/unit/pubsub.tcl",
+      "data": "PUBLISH/SUBSCRIBE with two clients",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "PUBLISH/SUBSCRIBE with two clients in tests/unit/pubsub.tcl",
+      "data": "PUBLISH/SUBSCRIBE with two clients",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
+      "data": "PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
+      "data": "PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "SUBSCRIBE to one channel more than once in tests/unit/pubsub.tcl",
+      "data": "SUBSCRIBE to one channel more than once",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "SUBSCRIBE to one channel more than once in tests/unit/pubsub.tcl",
+      "data": "SUBSCRIBE to one channel more than once",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "UNSUBSCRIBE from non-subscribed channels in tests/unit/pubsub.tcl",
+      "data": "UNSUBSCRIBE from non-subscribed channels",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "UNSUBSCRIBE from non-subscribed channels in tests/unit/pubsub.tcl",
+      "data": "UNSUBSCRIBE from non-subscribed channels",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "PUBLISH/PSUBSCRIBE basics in tests/unit/pubsub.tcl",
+      "data": "PUBLISH/PSUBSCRIBE basics",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "PUBLISH/PSUBSCRIBE basics in tests/unit/pubsub.tcl",
+      "data": "PUBLISH/PSUBSCRIBE basics",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "PUBLISH/PSUBSCRIBE with two clients in tests/unit/pubsub.tcl",
+      "data": "PUBLISH/PSUBSCRIBE with two clients",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "PUBLISH/PSUBSCRIBE with two clients in tests/unit/pubsub.tcl",
+      "data": "PUBLISH/PSUBSCRIBE with two clients",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
+      "data": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
+      "data": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "PubSub messages with CLIENT REPLY OFF in tests/unit/pubsub.tcl",
+      "data": "PubSub messages with CLIENT REPLY OFF",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "PubSub messages with CLIENT REPLY OFF in tests/unit/pubsub.tcl",
+      "data": "PubSub messages with CLIENT REPLY OFF",
+      "milliseconds": "83"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "PUNSUBSCRIBE from non-subscribed channels in tests/unit/pubsub.tcl",
+      "data": "PUNSUBSCRIBE from non-subscribed channels",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "PUNSUBSCRIBE from non-subscribed channels in tests/unit/pubsub.tcl",
+      "data": "PUNSUBSCRIBE from non-subscribed channels",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "NUMSUB returns numbers, not strings (#1561) in tests/unit/pubsub.tcl",
+      "data": "NUMSUB returns numbers, not strings (#1561)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "NUMSUB returns numbers, not strings (#1561) in tests/unit/pubsub.tcl",
+      "data": "NUMSUB returns numbers, not strings (#1561)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "NUMPATs returns the number of unique patterns in tests/unit/pubsub.tcl",
+      "data": "NUMPATs returns the number of unique patterns",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "NUMPATs returns the number of unique patterns in tests/unit/pubsub.tcl",
+      "data": "NUMPATs returns the number of unique patterns",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Mix SUBSCRIBE and PSUBSCRIBE in tests/unit/pubsub.tcl",
+      "data": "Mix SUBSCRIBE and PSUBSCRIBE",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Mix SUBSCRIBE and PSUBSCRIBE in tests/unit/pubsub.tcl",
+      "data": "Mix SUBSCRIBE and PSUBSCRIBE",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "PUNSUBSCRIBE and UNSUBSCRIBE should always reply in tests/unit/pubsub.tcl",
+      "data": "PUNSUBSCRIBE and UNSUBSCRIBE should always reply",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "PUNSUBSCRIBE and UNSUBSCRIBE should always reply in tests/unit/pubsub.tcl",
+      "data": "PUNSUBSCRIBE and UNSUBSCRIBE should always reply",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: we receive keyspace notifications in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: we receive keyspace notifications",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: we receive keyspace notifications in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: we receive keyspace notifications",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: we receive keyevent notifications in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: we receive keyevent notifications",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: we receive keyevent notifications in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: we receive keyevent notifications",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: we can receive both kind of events in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: we can receive both kind of events",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: we can receive both kind of events in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: we can receive both kind of events",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: we are able to mask events in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: we are able to mask events",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: we are able to mask events in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: we are able to mask events",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: general events test in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: general events test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: general events test in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: general events test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: list events test in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: list events test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: list events test in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: list events test",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: set events test in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: set events test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: set events test in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: set events test",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: zset events test in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: zset events test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: zset events test in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: zset events test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "",
+      "data": "Keyspace notifications: hash events test (listpackex)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: hash events test (hashtable) in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: hash events test (hashtable)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: hash events test (hashtable) in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: hash events test (hashtable)",
+      "milliseconds": "322"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: stream events test in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: stream events test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: stream events test in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: stream events test",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: expired events (triggered expire) in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: expired events (triggered expire)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: expired events (triggered expire) in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: expired events (triggered expire)",
+      "milliseconds": "202"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: expired events (background expire) in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: expired events (background expire)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: expired events (background expire) in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: expired events (background expire)",
+      "milliseconds": "110"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: evicted events in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: evicted events",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: evicted events in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: evicted events",
+      "milliseconds": "51"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: test CONFIG GET/SET of event flags in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: test CONFIG GET/SET of event flags",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: test CONFIG GET/SET of event flags in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: test CONFIG GET/SET of event flags",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: new key test in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: new key test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "Keyspace notifications: new key test in tests/unit/pubsub.tcl",
+      "data": "Keyspace notifications: new key test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "publish to self inside multi in tests/unit/pubsub.tcl",
+      "data": "publish to self inside multi",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "publish to self inside multi in tests/unit/pubsub.tcl",
+      "data": "publish to self inside multi",
+      "milliseconds": "247"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "",
+      "data": "publish to self inside script",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "",
+      "data": "unsubscribe inside multi, and publish to self",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "",
+      "data": "subscribe  fails with OOM when memory limit exceeded",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "",
+      "data": "ssubscribe  fails with OOM when memory limit exceeded",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "",
+      "data": "psubscribe  fails with OOM when memory limit exceeded",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "",
+      "data": "subscribe with 2 clients fails with OOM when memory limit exceeded",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "",
+      "data": "ssubscribe with 2 clients fails with OOM when memory limit exceeded",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "",
+      "data": "psubscribe with 2 clients fails with OOM when memory limit exceeded",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "",
+      "data": "subscribe with large channel name fails due to OOM",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "",
+      "data": "psubscribe with large pattern name fails due to OOM",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "",
+      "data": "ssubscribe with large shard channel name fails due to OOM",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "",
+      "data": "subscribe succeeds with small channel but fails with large channel due to OOM",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "",
+      "data": "psubscribe succeeds with small pattern but fails with large pattern due to OOM",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "",
+      "data": "ssubscribe succeeds with small channel but fails with large channel due to OOM",
+      "milliseconds": "0"
+    },
+    {
+      "status": "done",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "",
+      "data": "unit/pubsub",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ],
+  "setup_stdout": ""
+}

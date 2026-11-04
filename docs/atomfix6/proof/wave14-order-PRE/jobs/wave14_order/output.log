@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; correctness-plan-fallback; wave14 script EXEC wake publication order
+  wave14 script EXEC wake publication order            FAIL (see /home/user/Projects/cx-atomfix6/build/gate-run.L24rOJ/jobs/wave14_order/proof.log)

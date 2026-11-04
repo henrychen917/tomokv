@@ -1,0 +1,27 @@
+PASS 1s uring 0 16 lmpop 
+PASS 1s uring 0 16 lmpop-same 
+PASS 1s uring 0 16 nosync 
+PASS 1s uring 0 16 zunion 
+PASS 1s uring 0 16 geo 
+FAIL 1s epoll 0 16 lmpop TimeoutError('timed out')
+FAIL 1s epoll 0 16 lmpop-same AssertionError('EXEC never committed its AOF participant group')
+FAIL 1s epoll 0 16 lmpop-io TimeoutError('timed out')
+FAIL 1s epoll 0 16 nosync AssertionError('EXEC never committed its AOF participant group')
+FAIL 1s epoll 0 16 zunion TimeoutError('timed out')
+FAIL 1s epoll 0 16 geo TimeoutError('timed out')
+FAIL 1s epoll 1 16 lmpop TimeoutError('timed out')
+FAIL 1s epoll 1 16 lmpop-same AssertionError('EXEC never committed its AOF participant group')
+FAIL 1s epoll 1 16 lmpop-io TimeoutError('timed out')
+FAIL 1s epoll 1 16 nosync AssertionError('EXEC never committed its AOF participant group')
+FAIL 1s epoll 1 16 zunion TimeoutError('timed out')
+FAIL 1s epoll 1 16 geo TimeoutError('timed out')
+FAIL 2s epoll 0 16 lmpop TimeoutError('timed out')
+FAIL 2s epoll 0 16 lmpop-same AssertionError('EXEC never committed its AOF participant group')
+FAIL 2s epoll 0 16 nosync AssertionError('EXEC never committed its AOF participant group')
+FAIL 2s epoll 0 16 zunion TimeoutError('timed out')
+FAIL 2s epoll 0 16 geo TimeoutError('timed out')
+FAIL 2s epoll 1 16 lmpop TimeoutError('timed out')
+FAIL 2s epoll 1 16 lmpop-same AssertionError('EXEC never committed its AOF participant group')
+FAIL 2s epoll 1 16 nosync AssertionError('EXEC never committed its AOF participant group')
+FAIL 2s epoll 1 16 zunion TimeoutError('timed out')
+FAIL 2s epoll 1 16 geo TimeoutError('timed out')

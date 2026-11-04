@@ -1,0 +1,2 @@
+2s epoll + tls: own fds at idle=44; maxclients reduced to 120; 130 connects -> {'PONG': 119, 'maxclients-error': 11}; server CPU over 2 s = 0.05s
+2s uring (control): own fds at idle=32; maxclients reduced to 136; 146 connects -> {'PONG': 136, 'maxclients-error': 10}; server CPU over 2 s = 0.04s

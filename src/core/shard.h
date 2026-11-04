@@ -128,9 +128,9 @@ public:
         store_.set_cached_now_ms(now_ms);
     }
     void set_no_touch(bool value) { store_.set_no_touch(value); }
-    void configure_maxmemory(bool enabled, uint64_t shard_limit, MaxmemoryPolicy policy,
+    bool configure_maxmemory(bool enabled, uint64_t shard_limit, MaxmemoryPolicy policy,
                              uint32_t samples) {
-        store_.configure_maxmemory(enabled, shard_limit, policy, samples);
+        return store_.configure_maxmemory(enabled, shard_limit, policy, samples);
     }
     void bind_atomic_state(FlatStore::AtomicTicketFn ticket_fn, void* ticket_ctx,
                            std::atomic<uint64_t>* activity,
@@ -173,7 +173,7 @@ public:
         if (notify_pending_) *notify_pending_ = true;
     }
     bool notify_output_pending() const {
-        return notify_state_ && !notify_state_->keyless.empty();
+        return notify_state_ && (!notify_state_->keyless.empty() || notify_state_->tracking_flush_pending);
     }
     Server* server() const { return server_; }
 
@@ -187,6 +187,12 @@ public:
     }
     void set_blocking_dirty() { blocking_dirty_.store(true, std::memory_order_release); }
     bool take_blocking_dirty() { return blocking_dirty_.exchange(false, std::memory_order_acquire); }
+    // Owner-local H3 notes move with the physical shard. Existing padding;
+    // neither registry offsets nor the Shard stride changes.
+    enum : uint8_t { TxnServeNote = 1, TxnWatchNote = 2, TxnBlindNote = 4 };
+    void note_txn_boundary(uint8_t kind) { reserved_route_[0] |= kind; }
+    uint8_t txn_boundary_notes() const { return reserved_route_[0]; }
+    void clear_txn_boundary_notes(uint8_t kinds = 7) { reserved_route_[0] &= ~kinds; }
     void*& blocking_registry_slot() { return blocking_registry_; }
     void blocking_waiter_added() { blocking_waiters_.fetch_add(1, std::memory_order_relaxed); }
     void blocking_waiter_removed() { blocking_waiters_.fetch_sub(1, std::memory_order_relaxed); }
@@ -277,6 +283,11 @@ public:
     bool watch_write_ready(Slice key, const void* token = nullptr);
     bool watch_group_write_ready(Slice key, const void* token = nullptr);
     bool watch_key_ready(const std::string& key, const void* token, bool all_units);
+    template <bool Fifo>
+    bool watch_key_ready_impl(const std::string& key, const void* token, bool all_units,
+                              uint64_t stamp = UINT64_MAX);
+    bool watch_fifo_write_ready(Slice key, const void* token);
+    bool watch_fifo_all_write_ready(const void* token);
     bool watch_place_unit(const std::vector<struct TxnClaim>& keys,
                           WatchReservation unit, const struct MultiRetryPromoter* promoter = nullptr);
     void watch_finish_unit(const std::vector<struct TxnClaim>& keys, const void* token,
@@ -287,7 +298,7 @@ public:
     uint64_t watch_writer_stamp(Slice key, const void* token, bool whole = false) const;
     void watch_writer_forget(const void* token);
     void watch_writer_check(Slice key, bool whole, uint64_t stamp);
-    void watch_writer_unmark(Slice key, const void* token, bool whole = false);
+    bool watch_writer_unmark(Slice key, const void* token, bool whole = false);
     bool watch_txn_write_ready(Slice key, MultiExecState& state);
     void watch_reserve_write(Slice key, Client* writer, uint64_t writer_generation,
                              const void* token, std::atomic<uint64_t>* epoch,

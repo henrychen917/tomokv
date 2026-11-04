@@ -1,0 +1,18 @@
+{
+  "geometry": {},
+  "command": [
+    "LMPOP",
+    1,
+    "k",
+    "LEFT"
+  ],
+  "expected": [
+    [
+      "k",
+      [
+        "a"
+      ]
+    ]
+  ],
+  "before": 0
+}

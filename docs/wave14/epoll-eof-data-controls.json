@@ -1,0 +1,10 @@
+[
+  {
+    "tag": "epoll-eof-data-r7",
+    "exit_code": 1
+  },
+  {
+    "tag": "epoll-eof-data-headline",
+    "exit_code": 1
+  }
+]

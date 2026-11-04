@@ -1,0 +1,21 @@
+{
+  "members": 300000,
+  "calibrated_seconds": 4.88,
+  "none": {
+    "exit_code": 0,
+    "waited_seconds": 4.67,
+    "long_reply": "closed",
+    "watchdog": false
+  },
+  "aof": {
+    "exit_code": 0,
+    "waited_seconds": 4.77,
+    "long_reply": "closed",
+    "watchdog": false,
+    "acknowledged": 20023,
+    "tail_acknowledged": 23,
+    "missing": 0,
+    "source_members": 300000,
+    "trial_exists": 1
+  }
+}

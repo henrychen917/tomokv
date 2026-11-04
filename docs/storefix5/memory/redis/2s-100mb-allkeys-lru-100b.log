@@ -1,0 +1,1 @@
+{"limit": 104857600, "value_size": 100, "policy": "allkeys-lru", "keys": 566007, "accepted": 1588751, "refused": 0, "evicted": 1022884, "before": {"used_memory": 1012032, "used_memory_rss": 4218880}, "after": {"used_memory": 104857648, "used_memory_rss": 109076480}, "rss_over_limit": 1.040234375}

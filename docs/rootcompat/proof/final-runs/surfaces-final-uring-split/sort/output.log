@@ -1,0 +1,4 @@
+  row budget: 900s; median=-s; no-history-conservative-default; cross-owner SORT battery (atomic 0)
+  cross-owner SORT battery (atomic 0)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; cross-owner SORT battery (atomic 1)
+  cross-owner SORT battery (atomic 1)                  ok

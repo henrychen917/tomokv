@@ -1,0 +1,72 @@
+{
+  "run": "build/gate-run.NrmvCz",
+  "partial": true,
+  "full_gate_receipt": false,
+  "complete": true,
+  "jobs": [
+    {
+      "job": "differ-armed-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t596.090000\tRedis 7.4 differential part (armed fused, atomic 0)"
+      ],
+      "differential_legs": 230
+    },
+    {
+      "job": "differ-armed-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t575.080000\tRedis 7.4 differential part (armed fused, atomic 1)"
+      ],
+      "differential_legs": 234
+    },
+    {
+      "job": "differ-equivalence",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t21.700000\tmode equivalence part (all execution modes and knobs)"
+      ],
+      "differential_legs": 0
+    },
+    {
+      "job": "differ-split-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t570.300000\tRedis 7.4 differential part (split, atomic 0)"
+      ],
+      "differential_legs": 235
+    },
+    {
+      "job": "differ-split-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t574.420000\tRedis 7.4 differential part (split, atomic 1)"
+      ],
+      "differential_legs": 239
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    }
+  ],
+  "missing": [],
+  "archive": "docs/clientcompat/validation/before-ack-wake-differential-epoll.json.gz",
+  "archive_sha256": "0da0aa90827ec9e2b7595fa99e64bdeecc6012f9800ce2e22140d37f3743cf96",
+  "passed": 6,
+  "failed": 0
+}

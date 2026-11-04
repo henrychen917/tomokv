@@ -1,0 +1,230 @@
+{
+  "label": "rebind-v6",
+  "source": "/home/user/Projects/cx-wave15/build/gate-run.jObiry",
+  "archive": "/home/user/Projects/cx-wave15/docs/wave15/jobs/rebind-v6.tar.gz",
+  "archive_sha256": "6b3cc50756aae40bfb50d9decc64cbe43b6d9a0efc420c950c4d308fc39a7d25",
+  "files": [
+    {
+      "path": "families.tsv",
+      "size": 110,
+      "sha256": "917484330b7b9cbaa6eba0092b03ff9092d121e720bcbb2114c23056ea8663ab"
+    },
+    {
+      "path": "jobs/release/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "size": 52,
+      "sha256": "a262b16aff7843624150e35f0b95d1015b53cb5ca388d25ff6c6ab15fa3f2691"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "size": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/wave15_rebind/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/wave15_rebind/family.tsv",
+      "size": 58,
+      "sha256": "56d66de6548e35a04dc6853301d646035ba063b8aa10c2f0ff4a19f9573ea3c8"
+    },
+    {
+      "path": "jobs/wave15_rebind/ledger",
+      "size": 105,
+      "sha256": "99ea258d6c98028bf009af2aacccf7d7b898f639748302396e715a00ba4509c5"
+    },
+    {
+      "path": "jobs/wave15_rebind/output.log",
+      "size": 251,
+      "sha256": "1fdf8b2b4762ee2805786d245307d9a813545110b5a31499e7c01bddd35cabad"
+    },
+    {
+      "path": "jobs/wave15_rebind/proof/1s-epoll-d1/1s-epoll-d1.json",
+      "size": 578,
+      "sha256": "46d5c08f1678a5272c87c1feed692c1bf0d4cb043a0da2091840dfd5c87511fe"
+    },
+    {
+      "path": "jobs/wave15_rebind/proof/1s-epoll-d1/1s-epoll-d1.log",
+      "size": 11434,
+      "sha256": "2fed3d4ce4605cbc0e64b3f5b2d0fc40ae8533e820d6d309021794979ac0cf09"
+    },
+    {
+      "path": "jobs/wave15_rebind/proof/1s-epoll-d16/1s-epoll-d16.json",
+      "size": 580,
+      "sha256": "e31e4cd27fcc36c20ac47602769ce218d85288dc5083720df86e61617308134f"
+    },
+    {
+      "path": "jobs/wave15_rebind/proof/1s-epoll-d16/1s-epoll-d16.log",
+      "size": 11434,
+      "sha256": "9745f2f92e8b855c3b94877ccf989498d5fcbb4daad817fb1e1fa0d02d0b03f1"
+    },
+    {
+      "path": "jobs/wave15_rebind/proof/1s-uring-d1/1s-uring-d1.json",
+      "size": 578,
+      "sha256": "ece679698a1327f5e81e359eecc93f56528e88eb4ba865a99e8093ef6f1510ea"
+    },
+    {
+      "path": "jobs/wave15_rebind/proof/1s-uring-d1/1s-uring-d1.log",
+      "size": 11415,
+      "sha256": "4d76bd93709da6b2e847828653008669d1142fe99d128e0e4b229f0096944c37"
+    },
+    {
+      "path": "jobs/wave15_rebind/proof/1s-uring-d16/1s-uring-d16.json",
+      "size": 580,
+      "sha256": "c198c63e49ee45ab74b8fba08ced3a214b85163908bcf9c427bac00ec9e5f7b7"
+    },
+    {
+      "path": "jobs/wave15_rebind/proof/1s-uring-d16/1s-uring-d16.log",
+      "size": 11409,
+      "sha256": "dc0b1b79fb53ddfd7f19c626a1aed6df46b9ecd0a9e2e8c00bf26faef5836e84"
+    },
+    {
+      "path": "jobs/wave15_rebind/proof/2s-epoll-d1/2s-epoll-d1.json",
+      "size": 604,
+      "sha256": "e81c48ba454a27bc06a3b7a8e3901f67067b10b5b6875cddf6f78309124c83ee"
+    },
+    {
+      "path": "jobs/wave15_rebind/proof/2s-epoll-d1/2s-epoll-d1.log",
+      "size": 10549,
+      "sha256": "59a50eddd76d9b2316876200f81048a1a83b9aa10a264999ebf31db4c51392ee"
+    },
+    {
+      "path": "jobs/wave15_rebind/proof/2s-epoll-d16/2s-epoll-d16.json",
+      "size": 606,
+      "sha256": "828d325e1c212897a3e0152a1dd1fd92e11a2f5f6e00257e646219a69ecce03c"
+    },
+    {
+      "path": "jobs/wave15_rebind/proof/2s-epoll-d16/2s-epoll-d16.log",
+      "size": 10549,
+      "sha256": "45874a0b3a3750a4cff3046f6b4888a7e7098b5e4fbb73ec20d0e205adc2af3e"
+    },
+    {
+      "path": "jobs/wave15_rebind/proof/2s-uring-d1/2s-uring-d1.json",
+      "size": 604,
+      "sha256": "7f0ac5dd63a8fa12fcdd008dba3b2f02442d95f8fe67e105432eb92440e29f70"
+    },
+    {
+      "path": "jobs/wave15_rebind/proof/2s-uring-d1/2s-uring-d1.log",
+      "size": 10493,
+      "sha256": "02d84772a4fa098f8f087558d7a5cf0ab46d9191f00ff6f693f26e3b2024c8b9"
+    },
+    {
+      "path": "jobs/wave15_rebind/proof/2s-uring-d16/2s-uring-d16.json",
+      "size": 606,
+      "sha256": "3019ea707e3c5ef7b68ecaf42dc14260b626cf0fa85ec3707ac67c4a572d716f"
+    },
+    {
+      "path": "jobs/wave15_rebind/proof/2s-uring-d16/2s-uring-d16.log",
+      "size": 10494,
+      "sha256": "1ec4d60b070f44acfdff2e5594a8eed7fb6566f31436637ddf90bd2f757f4aaf"
+    },
+    {
+      "path": "jobs/wave15_rebind/proof/redis-oracle-d16/redis-oracle-d16.json",
+      "size": 483,
+      "sha256": "6164fa7814790c02ffbcb66673350db62e50c167f5816cb1564ad459a5e32be7"
+    },
+    {
+      "path": "jobs/wave15_rebind/proof/redis-oracle-d16/redis-oracle-d16.log",
+      "size": 2305,
+      "sha256": "047ffbe762a6190a777442ea7c7fafac2e409af0cb6395cc3d91f00f89da3614"
+    },
+    {
+      "path": "jobs/wave15_rebind/proof/results.json",
+      "size": 516,
+      "sha256": "3abe2ab9774e388333ee06b5663d1c92112d0627f92189344f66d9cff490405c"
+    },
+    {
+      "path": "jobs/wave15_rebind/proof.log",
+      "size": 378,
+      "sha256": "88cbce61cc91aa3ab6694dd7c62bd86d61cb658e61b4e0dca502095f25869fda"
+    },
+    {
+      "path": "jobs/wave15_rebind/timings",
+      "size": 105,
+      "sha256": "99ea258d6c98028bf009af2aacccf7d7b898f639748302396e715a00ba4509c5"
+    },
+    {
+      "path": "phases.tsv",
+      "size": 88,
+      "sha256": "1db78a4f792afeffbd8488454207cd93f237374a502cb316186ef74a731bac0a"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1269,
+      "sha256": "809276f5afe442809d3ad0cc21301cf6d23f37eab4223cc18d23857eeafbbd0a"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 4552,
+      "sha256": "a364c1ce1e078234cc59884f548abeb6151213415c54798df56e41fda380097e"
+    }
+  ],
+  "jobs": [
+    {
+      "job": "release",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    },
+    {
+      "job": "wave15_rebind",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "4.510000",
+          "label": "wave15 CONFIG listener exclusivity and rollback (oracle, both modes, engines and namespaces)"
+        }
+      ]
+    }
+  ],
+  "command": [
+    "taskset",
+    "-c",
+    "32-39,40-47",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "32-39",
+    "--load-cores",
+    "40-47",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20040-20059",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave15/build/wave15/rebind-v6-post"
+  ],
+  "binary_sha256": "e41ab047ee7eb89148f863450260b165110bc01157dc5153f9869c93386bbe3e",
+  "exit_code": 0,
+  "run_directory": "/home/user/Projects/cx-wave15/build/gate-run.jObiry",
+  "engine": "uring",
+  "fused": false
+}

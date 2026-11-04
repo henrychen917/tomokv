@@ -711,8 +711,24 @@ uint32_t acl_sort_restricted_option(uint32_t argc, GetArg&& get_arg, bool readon
 }
 
 template <typename GetArg>
-AclDeniedReason acl_check_keys(const AclSelector& perm, const CommandSpec& spec, uint32_t argc,
+AclDeniedReason acl_check_arguments(const AclSelector& perm, const CommandSpec& spec, uint32_t argc,
                                GetArg&& get_arg, uint32_t* denied_arg) {
+    // Admission runs before MULTI queues an IO-local command. EXEC uses this
+    // same predicate against both live ACLs and its preceding SETUSER shadow.
+    // Check within one selector, so command and channel grants cannot be mixed.
+    if (!(perm.flags & AclAllChannels)) {
+        const Slice command(spec.name, static_cast<uint32_t>(std::strlen(spec.name)));
+        const bool publish = command.eq_icase("publish") || command.eq_icase("spublish");
+        const bool pattern = command.eq_icase("psubscribe");
+        if (publish || pattern || command.eq_icase("subscribe") || command.eq_icase("ssubscribe")) {
+            const uint32_t end = publish ? std::min(argc, 2u) : argc;
+            for (uint32_t arg = 1; arg < end; ++arg) {
+                if (acl_channel_allowed(perm, get_arg(arg), pattern)) continue;
+                if (denied_arg) *denied_arg = arg;
+                return AclDeniedReason::Channel;
+            }
+        }
+    }
     if (perm.flags & AclAllKeys) return AclDeniedReason::None;
     using Arguments = std::remove_reference_t<GetArg>;
     // The declared keys first (SORT's source and final STORE target, as sortGetKeys): Redis's
@@ -746,14 +762,18 @@ __attribute__((noinline)) AclDeniedReason acl_check_permission(
 
     bool command_allowed = false;
     uint32_t first_denied_arg = UINT32_MAX;
+    AclDeniedReason argument_denied = AclDeniedReason::Key;
     auto check = [&](const AclSelector& selector) {
         if (!acl_command_allowed(selector, spec, argc > 1 ? get_arg(1) : Slice{})) return false;
         command_allowed = true;
         uint32_t candidate = UINT32_MAX;
-        const AclDeniedReason denied = acl_check_keys(
+        const AclDeniedReason denied = acl_check_arguments(
             selector, spec, argc, get_arg, &candidate);
         if (denied == AclDeniedReason::None) return true;
-        if (first_denied_arg == UINT32_MAX) first_denied_arg = candidate;
+        if (first_denied_arg == UINT32_MAX || denied > argument_denied) {
+            first_denied_arg = candidate;
+            argument_denied = denied;
+        }
         return false;
     };
     if (check(*permissions)) return AclDeniedReason::None;
@@ -761,19 +781,13 @@ __attribute__((noinline)) AclDeniedReason acl_check_permission(
         if (check(selector)) return AclDeniedReason::None;
     if (!command_allowed) return AclDeniedReason::Command;
     if (denied_arg) *denied_arg = first_denied_arg;
-    return AclDeniedReason::Key;
+    return argument_denied;
 }
 
 void acl_reply_denied(Client& client, Op& op, uint32_t user_index, AclDeniedReason reason,
                       uint32_t denied_arg, ThreadCtx& thread,
                       AclLogContext context = AclLogContext::Toplevel) {
-    if (reason == AclDeniedReason::Key && (denied_arg & kAclSortOptionDenied)) {
-        // sort.c's own error reply: Redis neither logs it nor counts an ACL denial.
-        reply_err(op.sink(), op.arg(denied_arg & ~kAclSortOptionDenied).eq_icase("by")
-            ? "ERR BY option of SORT denied due to insufficient ACL permissions."
-            : "ERR GET option of SORT denied due to insufficient ACL permissions.");
-        return;
-    }
+    if (acl_reply_sort_option_denied(op, reason, denied_arg)) return;
     LoopSignals& signals = thread.sig();
     const char* username_text = acl_username(user_index);
     const Slice username(username_text, static_cast<uint32_t>(std::strlen(username_text)));
@@ -942,7 +956,7 @@ std::vector<AclUser*> acl_sorted_users_locked() {
     return users;
 }
 
-bool acl_save_file_locked() {
+std::string acl_registry_text_locked() {
     std::string contents;
     for (AclUser* user : acl_sorted_users_locked()) {
         contents += "user ";
@@ -951,6 +965,11 @@ bool acl_save_file_locked() {
         contents += acl_describe_image(acl_image(*user));
         contents.push_back('\n');
     }
+    return contents;
+}
+
+bool acl_save_file_locked() {
+    const std::string contents = acl_registry_text_locked();
     timespec ts{};
     ::clock_gettime(CLOCK_REALTIME, &ts);
     const std::string temporary = g_acl_filename + ".tmp-" + std::to_string(::getpid()) + "-" +
@@ -1251,6 +1270,12 @@ bool acl_initialize(Server& server, const Config& config, std::string& error) {
     return true;
 }
 
+void acl_config_rewrite(std::string& output) {
+    std::lock_guard<std::mutex> lock(g_acl_mu);
+    // CONFIG REWRITE never owns the contents of an external ACL file.
+    if (g_acl_initialized && g_acl_filename.empty()) output += acl_registry_text_locked();
+}
+
 void acl_shutdown() {
     std::lock_guard<std::mutex> lock(g_acl_mu);
     if (!g_acl_initialized) return;
@@ -1282,11 +1307,11 @@ void acl_shutdown() {
     g_acl_server = nullptr;
 }
 
-void acl_update_default_requirepass(Server&, Slice password) {
+bool acl_update_default_requirepass(Server&, Slice password) {
     std::lock_guard<std::mutex> lock(g_acl_mu);
-    if (!g_acl_initialized) return;
+    if (!g_acl_initialized) return false;
     AclUser* user = acl_slot(kAclDefaultUser);
-    if (!user) return;
+    if (!user) return false;
     user->passwords.clear();
     if (password.empty()) user->flags |= AclUserNoPass;
     else {
@@ -1294,6 +1319,7 @@ void acl_update_default_requirepass(Server&, Slice password) {
         user->passwords.push_back(auth_password_digest(password));
     }
     acl_refresh_security_locked();
+    return g_acl_server != nullptr;
 }
 
 bool acl_authenticate(Slice username, Slice password, uint32_t& user_index) {
@@ -1389,7 +1415,19 @@ bool acl_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed,
         client.acl_user_idx(), spec, op.argc(),
         [&](uint32_t arg) { return op.arg(arg); }, &denied_arg);
     if (denied == AclDeniedReason::None) return false;
+    // Redis admits the declared keys now; BY/GET restrictions are a command
+    // error inside EXEC. Its preparation already retains the caller identity.
+    if (denied == AclDeniedReason::Key && (denied_arg & kAclSortOptionDenied) &&
+        multi_session_active(client)) return false;
     return acl_finish_dispatch_denial(loop, client, op, consumed, denied, denied_arg);
+}
+
+bool acl_reply_sort_option_denied(Op& op, AclDeniedReason reason, uint32_t denied_arg) {
+    if (reason != AclDeniedReason::Key || !(denied_arg & kAclSortOptionDenied)) return false;
+    reply_err(op.sink(), op.arg(denied_arg & ~kAclSortOptionDenied).eq_icase("by")
+        ? "ERR BY option of SORT denied due to insufficient ACL permissions."
+        : "ERR GET option of SORT denied due to insufficient ACL permissions.");
+    return true;
 }
 
 AclDeniedReason acl_check_queued(uint32_t user_index, const CommandSpec& spec,
@@ -1400,6 +1438,48 @@ AclDeniedReason acl_check_queued(uint32_t user_index, const CommandSpec& spec,
             const std::string& value = argv[arg];
             return Slice(value.data(), static_cast<uint32_t>(value.size()));
         }, denied_arg);
+}
+
+AclDeniedReason acl_check_multi(uint32_t user_index, const CommandSpec& spec,
+                               const std::vector<std::string>& argv,
+                               std::unique_ptr<AclPerm>& permissions, uint32_t* denied_arg) {
+    const auto arg = [&](uint32_t i) { return Slice(argv[i]); };
+    AclDeniedReason denied = AclDeniedReason::None;
+    if (!permissions) denied = acl_check_queued(user_index, spec, argv, denied_arg);
+    else if (!(spec.flags & CmdFlags::AclExempt)) {
+        bool granted = false;
+        uint32_t first = UINT32_MAX;
+        AclDeniedReason argument_denied = AclDeniedReason::Key;
+        const auto check = [&](const AclSelector& selector) {
+            if (!acl_command_allowed(selector, spec, argv.size() > 1 ? arg(1) : Slice{})) return false;
+            granted = true;
+            uint32_t candidate = UINT32_MAX;
+            const auto reason = acl_check_arguments(selector, spec, argv.size(), arg, &candidate);
+            if (reason == AclDeniedReason::None) return true;
+            if (first == UINT32_MAX || reason > argument_denied) {
+                first = candidate;
+                argument_denied = reason;
+            }
+            return false;
+        };
+        bool allowed = check(*permissions);
+        for (const auto& selector : permissions->selectors) allowed |= check(selector);
+        if (!allowed) {
+            denied = granted ? argument_denied : AclDeniedReason::Command;
+            if (denied_arg) *denied_arg = first;
+        }
+    }
+    if (denied != AclDeniedReason::None || argv.size() < 3 ||
+        !arg(0).eq_icase("acl") || !arg(1).eq_icase("setuser")) return denied;
+    std::lock_guard<std::mutex> lock(g_acl_mu);
+    AclUser* user = acl_slot(user_index);
+    if (!user || argv[2] != user->name) return denied;
+    AclUserImage image = acl_image(*user);
+    if (permissions) image.perm = *permissions;
+    std::string error;
+    if (acl_apply_rules(image, argv, 3, error))
+        permissions = std::make_unique<AclPerm>(std::move(image.perm));
+    return denied;
 }
 
 bool acl_pubsub_channel_entry(Client& client, Op& op, bool pattern, ThreadCtx& thread) {

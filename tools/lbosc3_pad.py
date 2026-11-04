@@ -26,7 +26,16 @@ def source_proof():
     def old(path):
         return subprocess.check_output(["git", "show", BASE + ":" + path], cwd=ROOT, text=True)
     planner = (ROOT / "src/core/lbplanner.cc").read_text()
+    def outside_config_transition(text, expected):
+        # cfgfix adds the same cold admission exclusion to both policy arms.
+        # Verify exactly those gates, then retain the original complete-body
+        # proof. This comparison applies when no CONFIG transition is active;
+        # the patched binary itself keeps every exclusion in place.
+        gate = "cfgfix_control_busy(*this) || "
+        assert text.count(gate) == expected, "CONFIG admission gate inventory changed"
+        return text.replace(gate, "")
     candidate = body(planner, "lb_controller_tick")
+    candidate = outside_config_transition(candidate, 3)
     level = "    const int32_t damping = lbosc3_level(cfg_.key_lb_damping);\n"
     assert candidate.count(level) == 1
     candidate = candidate.replace(level, "")
@@ -54,9 +63,12 @@ def source_proof():
     assert normalized(body(weighted, "weighted_lb_best_incremental_move")) == normalized(
         body(old("src/core/weighted_lb.h"), "weighted_lb_best_incremental_move")), "PRE search changed"
     for name in ("lb_consume_plan", "monitor_controllers", "lb_controller_tick_pad"):
-        assert normalized(body(planner, name)) == normalized(body(old("src/core/lbplanner.cc"), name)), name
+        candidate_body = outside_config_transition(body(planner, name), int(name == "lb_consume_plan"))
+        assert normalized(candidate_body) == normalized(body(old("src/core/lbplanner.cc"), name)), name
     assert normalized(body(planner, "lbosc3_level")) == "{ return configured; }"
     return {"base": BASE, "zero_policy_equals_pre": True,
+            "scope": "PRE key policy outside a CONFIG transition; both arms retain cfgfix exclusion",
+            "cfgfix_admission_gates": {"lb_controller_tick": 3, "lb_consume_plan": 1},
             "pre_planner_sha256": hashlib.sha256(normalized(original).encode()).hexdigest()}
 
 

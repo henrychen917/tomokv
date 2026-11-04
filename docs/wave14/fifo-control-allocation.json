@@ -1,0 +1,46 @@
+{
+  "abba_extra": [],
+  "axes": {
+    "load_cores": "0-3",
+    "load_smt": "",
+    "server_cores": "16-27",
+    "server_smt": ""
+  },
+  "build_candidate": 0,
+  "build_cores": "0-3,16-27",
+  "build_jobs": 16,
+  "candidate_binary": "/home/user/Projects/bins/execfifo3-post-6f9af8cd",
+  "correctness_ratio": "6:2",
+  "header": "16 physical cores; 1 correctness slots = min(12/8 server, 4/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 12 server + 4 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads",
+  "load_min_per_slot": 2,
+  "perf": {
+    "load_cores": "0-3",
+    "load_cpus": "0-3",
+    "load_smt": "",
+    "port": 20093,
+    "server_cores": "16-27",
+    "server_cpus": "16-27",
+    "server_smt": "",
+    "split_ratio": "",
+    "threads": 12
+  },
+  "physical_cores": 16,
+  "ports_first": 20093,
+  "ports_last": 20095,
+  "ports_per_slot": 3,
+  "purpose": "full",
+  "reference_binary": "",
+  "server_per_slot": 8,
+  "slot_count": 1,
+  "slots": [
+    {
+      "load_cores": "0-3",
+      "load_cpus": "0-3",
+      "load_smt": "",
+      "port": 20093,
+      "server_cores": "16-23"
+    }
+  ],
+  "subset": "full",
+  "tier": "full"
+}

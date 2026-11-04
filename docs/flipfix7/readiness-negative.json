@@ -1,0 +1,6 @@
+{
+  "source": "cd4b73916b before readiness fix, with corrected new fixture",
+  "binary_sha256": "c6192b1fba3023de1eff216489138e70fd342ff10fc9c61d1467d4034238859c",
+  "rc": -6,
+  "expected": "SIGABRT in flip_output_hold after the armed POLLOUT change"
+}

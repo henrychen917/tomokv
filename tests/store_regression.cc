@@ -107,6 +107,15 @@ struct FlatStoreRegressionTest {
     static bool capturing_record(const FlatStore& s, const KvObj* o) {
         return s.snapshot_record_.active && s.snapshot_record_.value.object == o;
     }
+    static ReadLocalRetireSink retire_sink(const FlatStore& s) {
+        return s.read_local_store_state_required().retire_sink;
+    }
+    static uint32_t first_random_slot(FlatStore& s) {
+        s.random_state_ = 1;
+        const uint32_t slot = s.next_random() % s.capacity();
+        s.random_state_ = 1;
+        return slot;
+    }
     static uint32_t field_index_size(const FlatStore& s) { return s.field_expires_.size(); }
 };
 } // namespace tomo
@@ -196,7 +205,11 @@ static void unlinked() {
     for (bool armed : {false, true}) {
         Group g({"candidate-a", "candidate-b"}); FlatStore s(64); arm(s, armed);
         KvObj* a = string_object(g.state.keys[0]); KvObj* b = string_object(g.state.keys[1]);
-        s.configure_maxmemory(true, kvobj_size(a) + 12, MaxmemoryPolicy::AllKeysRandom, 64);
+        s.configure_maxmemory(true, 1 << 20, MaxmemoryPolicy::AllKeysRandom, 64);
+        require(s.object_idle_install(hash(g.state.keys[0]), a) &&
+                s.object_idle_install(hash(g.state.keys[1]), b), "precharge candidate clock paths");
+        s.configure_maxmemory(true, s.object_bytes() + kvobj_size(a) + 12,
+                              MaxmemoryPolicy::AllKeysRandom, 64);
         require(s.atomic_prepare_capacity(2), "candidate pass capacity"); g.prepare(s);
         require(s.atomic_admit(slice(g.state.keys[0]), a), "first candidate admitted");
         g.install(s, 0, a);
@@ -214,7 +227,99 @@ static void unlinked() {
     }
 }
 
+// The same resumable sampler called by the production scatter Kind::RandomKey.
+static KvObj* randomkey_result(FlatStore& store, bool census = false) {
+    FlatStore::RandomKeyCursor sample;
+    for (unsigned turn = 0; turn < 10000; ++turn) {
+        if (!store.random_live(sample, 0, census)) continue;
+        if (!sample.seen) return nullptr;
+        Slice key(sample.key);
+        auto* object = store.find(FlatStore::hash_key(key), key);
+        require(object != nullptr, "RANDOMKEY must not return a logically invisible key");
+        return object;
+    }
+    require(false, "RANDOMKEY exhausted bounded owner turns");
+    return nullptr;
+}
+
+// Declares the SCAN command's opt-in (src/cmd/t_server.cc ScanCommandVisitor).
+struct ScanCommandWalker {
+    static constexpr bool kExpiresVisited = true;
+    unsigned& seen;
+    void operator()(KvObj*) const { ++seen; }
+};
+
 static void randomkey() {
+    for (bool census : {false, true}) {
+        struct FullRing { bool full = true; unsigned checks = 0; } ring;
+        FlatStore s; arm(s, true); s.set_cached_now_ms(100);
+        const auto key = keys_at_slots(FlatStoreRegressionTest::cap(s),
+            FlatStoreRegressionTest::first_random_slot(s), 1, "full-ring-").front();
+        KvObj* old = put(s, key, "expired", 200);
+        auto sink = FlatStoreRegressionTest::retire_sink(s);
+        sink.context = &ring;
+        sink.available = [](void* context) {
+            auto& ring = *static_cast<FullRing*>(context);
+            ++ring.checks;
+            return !ring.full;
+        };
+        sink.defer = [](void* context, void* owner, void* payload, size_t bytes,
+                        ReadLocalRetireSink::ReclaimFn reclaim) {
+            require(!static_cast<FullRing*>(context)->full,
+                    "RANDOMKEY entered a full retirement sink");
+            reclaim(owner, payload, bytes);
+        };
+        s.rebind_read_local_retire_sink(sink);
+        const auto before = s.object_bytes();
+        const auto notices = notifications;
+        const auto records = deletes.size();
+        s.set_cached_now_ms(201);
+        require(randomkey_result(s, census) == nullptr, "full-ring expiry is logically absent");
+        require(ring.checks != 0, "full-ring availability window fired");
+        require(s.size() == 1 && s.object_bytes() == before &&
+                s.find_resident(hash(key), slice(key)) == old,
+                "full-ring read retains the physical object");
+        require(notifications == notices && deletes.size() == records,
+                "deferred expiry emits no premature notification or AOF delete");
+        ring.full = false;
+        require(randomkey_result(s, census) == nullptr && s.size() == 0,
+                "expiry completes when retirement becomes available");
+        require(notifications == notices + 1 && deletes.size() == records + 1,
+                "eventual physical expiry emits exactly once");
+    }
+    {
+        // The same full ring under the SCAN command's walker. Redis's SCAN deletes every elapsed
+        // key it visits; the owner's real defer first reclaims the oldest grace. Every other
+        // walker (KEYS, RANDOMKEY's fallback) keeps the no-wait guard: absent, still resident.
+        static_assert(kScanExpiresVisited<ScanCommandWalker>);
+        struct FullRing { unsigned checks = 0, deferred = 0; } ring;
+        FlatStore s; arm(s, true); s.set_cached_now_ms(100);
+        const std::string key = "scan-full-ring";
+        KvObj* old = put(s, key, "expired", 200);
+        auto sink = FlatStoreRegressionTest::retire_sink(s);
+        sink.context = &ring;
+        sink.available = [](void* context) { ++static_cast<FullRing*>(context)->checks; return false; };
+        sink.defer = [](void* context, void* owner, void* payload, size_t bytes,
+                        ReadLocalRetireSink::ReclaimFn reclaim) {
+            ++static_cast<FullRing*>(context)->deferred;
+            reclaim(owner, payload, bytes);
+        };
+        s.rebind_read_local_retire_sink(sink);
+        s.set_cached_now_ms(201);
+        const auto notices = notifications;
+        const auto records = deletes.size();
+        unsigned seen = 0;
+        uint64_t cursor = 0;
+        do cursor = s.scan(cursor, 16, [&](KvObj*) { ++seen; }); while (cursor);
+        require(seen == 0 && ring.checks != 0 && ring.deferred == 0 && s.size() == 1 &&
+                s.find_resident(hash(key), slice(key)) == old &&
+                notifications == notices && deletes.size() == records,
+                "other walkers keep the full-ring no-wait guard");
+        do cursor = s.scan(cursor, 16, ScanCommandWalker{seen}); while (cursor);
+        require(seen == 0 && ring.deferred == 1 && s.size() == 0 &&
+                notifications == notices + 1 && deletes.size() == records + 1,
+                "SCAN deletes the elapsed key it visits under a full ring");
+    }
     for (bool armed : {false, true}) {
         {
             FlatStore s; arm(s, armed); s.set_cached_now_ms(100);
@@ -225,7 +330,7 @@ static void randomkey() {
             s.snapshot_progress(1, 2048);
             require(FlatStoreRegressionTest::capturing_record(s, o), "record held partway through serialization");
             const size_t before = s.object_bytes(); s.set_cached_now_ms(201);
-            require(s.random_live() == nullptr, "RANDOMKEY logically excludes expired snapshot key");
+            require(randomkey_result(s) == nullptr, "RANDOMKEY logically excludes expired snapshot key");
             require(s.size() == 1 && s.object_bytes() == before &&
                     s.find_resident(hash("snapshot-ttl"), slice(std::string("snapshot-ttl"))) == o,
                     "RANDOMKEY retains serializer's object");
@@ -240,14 +345,14 @@ static void randomkey() {
             KvObj* value = string_object("private"); require(s.atomic_admit(slice(g.state.keys[0]), value), "admit private key");
             g.install(s, 0, value); g.publish(s);
             require(s.size() == 1 && g.epoch.load() == 0, "fresh undecided physical candidate");
-            require(s.random_live() == nullptr, "RANDOMKEY hides undecided candidate"); g.finish(s);
-            require(s.random_live() == value, "RANDOMKEY sees committed candidate");
+            require(randomkey_result(s) == nullptr, "RANDOMKEY hides undecided candidate"); g.finish(s);
+            require(randomkey_result(s) == value, "RANDOMKEY sees committed candidate");
         }
         {
             Group g({"deleted"}); FlatStore s; arm(s, armed); KvObj* old = put(s, "deleted");
             g.prepare(s); g.install(s, 0, nullptr); g.publish(s);
             require(s.size() == 0 && s.atomic_pending_entries() == 1, "only visible key is parked");
-            require(s.random_live() == old, "RANDOMKEY samples parked predecessor"); g.finish(s, true);
+            require(randomkey_result(s) == old, "RANDOMKEY samples parked predecessor"); g.finish(s, true);
         }
     }
 }
@@ -381,12 +486,64 @@ static void lru_sample_order() {
     }
 }
 
+static void idle_clock_accounting() {
+    static_assert(sizeof(ObjectIdleClock) == sizeof(void*), "idle-clock layout unchanged");
+    ObjectIdleClock clock;
+    size_t charged = sizeof(clock);
+    const void* first = reinterpret_cast<void*>(0x1000);
+    const void* second = reinterpret_cast<void*>(0x2000);
+    require(clock.allocated_bytes() == charged, "empty clock object accounted");
+    const size_t needed = clock.allocation_bytes(first);
+    require(needed == 4 * 4096 + 2048 && clock.allocation_bytes(first) == needed &&
+            clock.allocated_bytes() == charged, "allocation estimate is exact and side-effect-free");
+    require(clock.install(first, 17, charged) && charged == sizeof(clock) + needed &&
+            clock.allocated_bytes() == charged, "every installed branch and leaf charged");
+    require(clock.allocation_bytes(first) == 0 && clock.allocation_bytes(second) == 2048,
+            "existing path costs zero; adjacent page needs only a leaf");
+    const size_t before = charged;
+    require(clock.install(first, 18, charged) && charged == before &&
+            clock.timestamp(first, 0) == 18, "existing-node write does not recharge");
+
+    struct Retire {
+        void* owner; void* payload; size_t bytes; ReadLocalRetireSink::ReclaimFn reclaim;
+    };
+    std::vector<Retire> retired;
+    FlatStore store;
+    KvBlockCache blocks;
+    require(store.prepare_read_local(), "prepare clock reader lifetime");
+    store.configure_read_local(true, {&retired,
+        [](void* context, void* owner, void* payload, size_t bytes,
+           ReadLocalRetireSink::ReclaimFn reclaim) {
+            static_cast<std::vector<Retire>*>(context)->push_back({owner, payload, bytes, reclaim});
+        }, &blocks});
+    KvObj* object = put(store, "clock-owner");
+    const size_t objects = store.object_bytes();
+    store.configure_maxmemory(true, 1 << 20, MaxmemoryPolicy::NoEviction, 1);
+    const size_t armed = store.object_bytes();
+    require(armed >= objects + needed + sizeof(clock), "store includes clock nodes");
+    auto* active = store.object_idle_slot()->load();
+    for (unsigned i = 0; i < 8; ++i)
+        require(active->allocated_bytes() == armed - objects &&
+                active->allocation_bytes(object) == 0 && store.object_bytes() == armed,
+                "accounting walk leaves store and clock unchanged");
+    store.configure_maxmemory(false, 0, MaxmemoryPolicy::NoEviction, 1);
+    require(retired.size() == 1 && store.object_bytes() == armed,
+            "retired clock remains charged until its grace period");
+    for (const auto& record : retired) record.reclaim(record.owner, record.payload, record.bytes);
+    retired.clear();
+    require(store.object_bytes() == objects, "clock free removes exactly its charge");
+    blocks.release_all();
+}
+
 static void aof_eviction() {
+    idle_clock_accounting();
     lru_sample_order();
     for (bool armed : {false, true}) {
         FlatStore s(64); arm(s, armed); KvObj* old = put(s, "victim");
         KvObj* incoming = string_object("new");
-        s.configure_maxmemory(true, kvobj_size(old) + 12, MaxmemoryPolicy::AllKeysRandom, 64);
+        s.configure_maxmemory(true, 1 << 20, MaxmemoryPolicy::AllKeysRandom, 64);
+        require(s.object_idle_install(hash("new"), incoming), "precharge incoming clock path");
+        s.configure_maxmemory(true, s.object_bytes() + 12, MaxmemoryPolicy::AllKeysRandom, 64);
         uint64_t evicted = 0; s.bind_evicted_counter(&evicted); deletes.clear();
         require(s.atomic_admit(slice(std::string("new")), incoming), "atomic admission succeeds through eviction");
         require(evicted == 1 && s.size() == 0, "unrelated victim actually evicted");
@@ -399,6 +556,7 @@ static void intents() {
     for (bool armed : {false, true}) {
         FlatStore s(64); arm(s, armed); KvObj* o = put(s, "pinned");
         s.configure_maxmemory(true, 1, MaxmemoryPolicy::AllKeysRandom, 64);
+        s.configure_maxmemory(true, s.object_bytes() - kvobj_size(o), MaxmemoryPolicy::AllKeysRandom, 64);
         require(FlatStoreRegressionTest::candidate(s) == o, "victim sampling positive control");
         require(s.atomic_script_pin(hash("pinned"), slice(std::string("pinned"))), "script pin created");
         require(s.atomic_has_script_intent(hash("pinned"), slice(std::string("pinned"))) &&

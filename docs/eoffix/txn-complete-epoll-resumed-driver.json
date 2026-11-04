@@ -1,0 +1,26 @@
+{
+  "command": [
+    "python3",
+    "tools/eoffix.py",
+    "--tag",
+    "txn-complete-epoll",
+    "--jobs",
+    "txnorder-fused-0",
+    "--binary",
+    "/home/user/Projects/cx-eoffix/build/eoffix/post-complete/tomokv",
+    "--engine",
+    "epoll",
+    "--port",
+    "21900",
+    "--capture",
+    "--archive-data",
+    "--repeat",
+    "4",
+    "--start-index",
+    "47",
+    "--keep-going"
+  ],
+  "exit_code": 0,
+  "seconds": 212.18428393546492,
+  "env": {}
+}

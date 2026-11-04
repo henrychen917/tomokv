@@ -1,0 +1,20 @@
+[
+  {
+    "arm": "list-new-namespace",
+    "command": [
+      "build/witnessfix/mutants/list-new-namespace/tomokv"
+    ],
+    "exit": 1,
+    "stdout": "FAIL list-namespace: list publisher lost physical namespace\nlist-publisher hit=1 namespace=0 expected=1\n",
+    "sha256": "d47ba2f0ac0bb995790385e49bbed180d52e13600dd79decb35d533bee440573"
+  },
+  {
+    "arm": "list-existing-namespace",
+    "command": [
+      "build/witnessfix/mutants/list-existing-namespace/tomokv"
+    ],
+    "exit": 1,
+    "stdout": "FAIL list-namespace: list publisher lost physical namespace\nlist-publisher hit=1 namespace=1 expected=1\nlist-publisher hit=2 namespace=0 expected=1\n",
+    "sha256": "62a77b0c7d325dc7b774fc8999f5ace530c1b8e3b038517f6454484bb2798563"
+  }
+]

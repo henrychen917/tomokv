@@ -1,0 +1,346 @@
+{
+  "post_sha256": "cb7a70bbcf669f8657697a3708c9dd583dbf74fd0463da4ba590a1b8caf63a65",
+  "archives_verified": 18,
+  "required_job_coverage": {
+    "uring": {
+      "blockfix4": [
+        "functional-uring",
+        "normal-namespace-uring",
+        "post-extended-uring"
+      ],
+      "blockfix2": [
+        "remaining-uring"
+      ],
+      "blockfix_structure": [
+        "production-ready"
+      ],
+      "blockfix_registry": [
+        "production-ready"
+      ],
+      "blockfix_mkstream": [
+        "remaining-uring"
+      ],
+      "feature-split-0": [
+        "remaining-uring"
+      ],
+      "feature-split-1": [
+        "remaining-uring"
+      ],
+      "feature-armed-0": [
+        "remaining-uring"
+      ],
+      "feature-armed-1": [
+        "remaining-uring"
+      ],
+      "fused-0": [
+        "remaining-uring"
+      ],
+      "fused-1": [
+        "remaining-uring"
+      ],
+      "debug-0": [
+        "fused-debug-uring",
+        "remaining-uring"
+      ],
+      "debug-1": [
+        "fused-debug-uring",
+        "remaining-uring"
+      ],
+      "release_batteries": [
+        "remaining-uring",
+        "fused-supplement-uring"
+      ],
+      "txn_group_fused": [
+        "remaining-uring"
+      ],
+      "txn_group_split": [
+        "remaining-uring"
+      ],
+      "txnorder-fused-0": [
+        "remaining-uring"
+      ],
+      "txnorder-fused-1": [
+        "remaining-uring"
+      ],
+      "txnorder-split-0": [
+        "remaining-uring"
+      ],
+      "txnorder-split-1": [
+        "remaining-uring"
+      ],
+      "txnorder2": [
+        "remaining-uring"
+      ],
+      "txnorder_wake": [
+        "remaining-uring"
+      ],
+      "txnorder_index": [
+        "remaining-uring"
+      ],
+      "txnorder_wound": [
+        "remaining-uring"
+      ],
+      "atomic_batteries": [
+        "remaining-uring",
+        "fused-supplement-uring"
+      ],
+      "atomic_units": [
+        "production-ready"
+      ],
+      "scriptfix": [
+        "remaining-uring"
+      ],
+      "scriptfix2": [
+        "remaining-uring"
+      ],
+      "script_bounds": [
+        "remaining-uring"
+      ],
+      "streamfix": [
+        "remaining-uring"
+      ],
+      "notify": [
+        "remaining-uring",
+        "fused-supplement-uring"
+      ],
+      "notifycompat": [
+        "remaining-uring"
+      ],
+      "notify_order": [
+        "remaining-uring"
+      ],
+      "flip": [
+        "remaining-uring"
+      ],
+      "fliplisten": [
+        "remaining-uring"
+      ],
+      "flipfix5": [
+        "remaining-uring"
+      ],
+      "lb-stationary-1s": [
+        "remaining-uring"
+      ],
+      "lb-stationary-2s": [
+        "remaining-uring"
+      ],
+      "lbplanner_units": [
+        "remaining-uring"
+      ],
+      "redis_tcl": [
+        "tcl-uring-repeat"
+      ],
+      "differ-split-0": [
+        "functional-uring"
+      ],
+      "differ-split-1": [
+        "functional-uring"
+      ],
+      "differ-equivalence": [
+        "functional-uring"
+      ],
+      "differ-armed-0": [
+        "functional-uring"
+      ],
+      "differ-armed-1": [
+        "functional-uring"
+      ]
+    },
+    "epoll": {
+      "blockfix4": [
+        "functional-epoll",
+        "normal-namespace-epoll"
+      ],
+      "blockfix2": [
+        "remaining-epoll"
+      ],
+      "blockfix_structure": [
+        "remaining-epoll"
+      ],
+      "blockfix_registry": [
+        "remaining-epoll"
+      ],
+      "blockfix_mkstream": [
+        "remaining-epoll"
+      ],
+      "feature-split-0": [
+        "remaining-epoll"
+      ],
+      "feature-split-1": [
+        "remaining-epoll"
+      ],
+      "feature-armed-0": [
+        "remaining-epoll"
+      ],
+      "feature-armed-1": [
+        "remaining-epoll"
+      ],
+      "fused-0": [
+        "remaining-epoll"
+      ],
+      "fused-1": [
+        "remaining-epoll"
+      ],
+      "debug-0": [
+        "remaining-epoll",
+        "fused-debug-epoll"
+      ],
+      "debug-1": [
+        "remaining-epoll",
+        "fused-debug-epoll"
+      ],
+      "release_batteries": [
+        "fused-supplement-epoll",
+        "remaining-epoll"
+      ],
+      "txn_group_fused": [
+        "remaining-epoll"
+      ],
+      "txn_group_split": [
+        "remaining-epoll"
+      ],
+      "txnorder-fused-0": [
+        "remaining-epoll"
+      ],
+      "txnorder-fused-1": [
+        "remaining-epoll"
+      ],
+      "txnorder-split-0": [
+        "remaining-epoll"
+      ],
+      "txnorder-split-1": [
+        "remaining-epoll"
+      ],
+      "txnorder2": [
+        "remaining-epoll"
+      ],
+      "txnorder_wake": [
+        "remaining-epoll"
+      ],
+      "txnorder_index": [
+        "remaining-epoll"
+      ],
+      "txnorder_wound": [
+        "remaining-epoll"
+      ],
+      "atomic_batteries": [
+        "fused-supplement-epoll",
+        "remaining-epoll"
+      ],
+      "atomic_units": [
+        "remaining-epoll"
+      ],
+      "scriptfix": [
+        "remaining-epoll"
+      ],
+      "scriptfix2": [
+        "remaining-epoll"
+      ],
+      "script_bounds": [
+        "remaining-epoll"
+      ],
+      "streamfix": [
+        "remaining-epoll"
+      ],
+      "notify": [
+        "fused-supplement-epoll",
+        "remaining-epoll"
+      ],
+      "notifycompat": [
+        "remaining-epoll"
+      ],
+      "notify_order": [
+        "remaining-epoll"
+      ],
+      "flip": [
+        "remaining-epoll"
+      ],
+      "fliplisten": [
+        "remaining-epoll"
+      ],
+      "flipfix5": [
+        "remaining-epoll"
+      ],
+      "lb-stationary-1s": [
+        "remaining-epoll"
+      ],
+      "lb-stationary-2s": [
+        "remaining-epoll"
+      ],
+      "lbplanner_units": [
+        "remaining-epoll"
+      ],
+      "redis_tcl": [
+        "functional-epoll"
+      ],
+      "differ-split-0": [
+        "functional-epoll"
+      ],
+      "differ-split-1": [
+        "functional-epoll"
+      ],
+      "differ-equivalence": [
+        "functional-epoll"
+      ],
+      "differ-armed-0": [
+        "functional-epoll"
+      ],
+      "differ-armed-1": [
+        "functional-epoll"
+      ]
+    }
+  },
+  "final_witness_matrices": [
+    {
+      "receipt": "post-extended-uring",
+      "legs": 116,
+      "passed": 116
+    },
+    {
+      "receipt": "functional-epoll",
+      "legs": 116,
+      "passed": 116
+    },
+    {
+      "receipt": "normal-namespace-uring",
+      "legs": 116,
+      "passed": 116
+    },
+    {
+      "receipt": "normal-namespace-epoll",
+      "legs": 116,
+      "passed": 116
+    }
+  ],
+  "expected_negative_rows": {
+    "pre-extended": 5,
+    "pad-a-negative": 5
+  },
+  "differential": {
+    "uring": {
+      "comparisons": 938,
+      "fixed_multi_repetitions": 8
+    },
+    "epoll": {
+      "comparisons": 938,
+      "fixed_multi_repetitions": 8
+    }
+  },
+  "ordinary_instruction_pairs": 64,
+  "script_exec_instruction_pairs": 44,
+  "freshness_commands": 5,
+  "unchanged_expect": [
+    "EXPECT_QUICK=999",
+    "EXPECT_FULL=1016                 # ABBA reports only; self-test remains counted."
+  ],
+  "DQ": 5,
+  "DF": 5,
+  "retained_nonzero_invocations": {
+    "pre-final-uring": 1,
+    "pre-extended": 1,
+    "production-units": 2,
+    "functional-uring": 1,
+    "tcl-pre-control": 1,
+    "pad-a-negative": 1
+  }
+}

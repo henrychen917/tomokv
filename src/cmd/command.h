@@ -19,6 +19,10 @@
 
 namespace tomo {
 
+// Cold compatibility control for the exact-layout PAD-A artifact. Production
+// always returns true; the artifact builder patches only this function body.
+bool clientcompat_post();
+
 class Shard;
 class Op;
 class Client;
@@ -115,6 +119,9 @@ struct CmdFlags {
     // Boot-stamped from generated metadata. Only containers need persistent
     // child identity for CLIENT LIST; ordinary verbs use the retained ROB spec.
     static constexpr uint32_t ClientCommandName = 1u << 28;
+    // CLIENT and MULTI preserve Redis's one-shot CLIENT CACHING choice.
+    // Internal registry metadata; never exposed as a COMMAND flag.
+    static constexpr uint32_t PreserveCaching = 1u << 29;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
@@ -360,6 +367,7 @@ void command_set_local_context(Client* client, ThreadCtx* thread);
 void command_client_connected(Client* client, const char* addr, const char* laddr,
                               bool unix_socket, uint64_t now_ms);
 void command_client_disconnected(Client* client);
+void command_client_closing(Client* client);
 // Cold synchronized snapshot for a client that predates slowlog enable.
 bool command_client_slowlog_identity(uint64_t id, std::string& addr, std::string& name);
 // Runtime IO-owner handoff moves the thread-local CLIENT catalog as an extracted map node. The
@@ -413,6 +421,8 @@ bool command_prepare_subcmd_route(Server& server, Op& op);
 // Lets the server-tail translation unit reach the bound Server without duplicating the binding.
 Server* command_server();
 uint64_t command_proto_max_bulk_len();
+// Transient command buffers have size_t indexing, not the string object's 32-bit ABI.
+uint64_t command_proto_max_bulk_len_configured();
 // Bound handler context. ConnLocal runs on IO; EXEC's ConfigRoute stage temporarily binds its
 // parked client on shard 0's owner and restores the previous context afterwards.
 ThreadCtx* command_local_thread();
@@ -428,6 +438,7 @@ void command_config_resetstat();
 bool command_validate_all_shards(Op& op);
 bool command_config_routes_all_shards(Op& op, bool execution_boundary = false);
 bool command_validate_config_set(Op& op);
+bool command_config_apply_reply(Op& op);
 bool command_prepare_script_route(Server& server, Op& op);
 bool command_validate_script_route(Op& op, uint32_t& first, uint32_t& count);
 bool command_script_key_range(const Op& op, uint32_t& first, uint32_t& count);

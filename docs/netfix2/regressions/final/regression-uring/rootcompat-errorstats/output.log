@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; no-history-conservative-default; rootcompat errorstats vs Redis 7.4
+  rootcompat errorstats vs Redis 7.4                   FAIL (see /home/user/Projects/cx-netfix2/build/gate-run.J82pCu/jobs/rootcompat-errorstats/rootcompat.log and proof)

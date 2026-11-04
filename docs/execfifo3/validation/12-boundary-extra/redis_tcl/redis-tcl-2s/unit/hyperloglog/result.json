@@ -1,0 +1,447 @@
+{
+  "file": "unit/hyperloglog",
+  "mode": "2s",
+  "passed": 24,
+  "failed": 0,
+  "skipped": 4,
+  "teardown_exceptions": 0,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "seconds": 47.88658418878913,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "/home/user/Projects/cx-execfifo3/build/tomokv",
+    "--port",
+    "20600",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/redis_tcl/redis-tcl-2s/unit/hyperloglog/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "2s",
+    "--shards",
+    "16",
+    "--databases",
+    "16",
+    "--ratio",
+    "6:2"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20600",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20602",
+    "--portcount",
+    "1",
+    "--single",
+    "unit/hyperloglog",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/redis_tcl/redis-tcl-2s/unit/hyperloglog/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "862819",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "HyperLogLog self test passes in tests/unit/hyperloglog.tcl",
+      "data": "HyperLogLog self test passes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "HyperLogLog self test passes in tests/unit/hyperloglog.tcl",
+      "data": "HyperLogLog self test passes",
+      "milliseconds": "183"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFADD without arguments creates an HLL value in tests/unit/hyperloglog.tcl",
+      "data": "PFADD without arguments creates an HLL value",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFADD without arguments creates an HLL value in tests/unit/hyperloglog.tcl",
+      "data": "PFADD without arguments creates an HLL value",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "Approximated cardinality after creation is zero in tests/unit/hyperloglog.tcl",
+      "data": "Approximated cardinality after creation is zero",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "Approximated cardinality after creation is zero in tests/unit/hyperloglog.tcl",
+      "data": "Approximated cardinality after creation is zero",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFADD returns 1 when at least 1 reg was modified in tests/unit/hyperloglog.tcl",
+      "data": "PFADD returns 1 when at least 1 reg was modified",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFADD returns 1 when at least 1 reg was modified in tests/unit/hyperloglog.tcl",
+      "data": "PFADD returns 1 when at least 1 reg was modified",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFADD returns 0 when no reg was modified in tests/unit/hyperloglog.tcl",
+      "data": "PFADD returns 0 when no reg was modified",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFADD returns 0 when no reg was modified in tests/unit/hyperloglog.tcl",
+      "data": "PFADD returns 0 when no reg was modified",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFADD works with empty string (regression) in tests/unit/hyperloglog.tcl",
+      "data": "PFADD works with empty string (regression)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFADD works with empty string (regression) in tests/unit/hyperloglog.tcl",
+      "data": "PFADD works with empty string (regression)",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFCOUNT returns approximated cardinality of set in tests/unit/hyperloglog.tcl",
+      "data": "PFCOUNT returns approximated cardinality of set",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFCOUNT returns approximated cardinality of set in tests/unit/hyperloglog.tcl",
+      "data": "PFCOUNT returns approximated cardinality of set",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "",
+      "data": "HyperLogLogs are promote from sparse to dense",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "",
+      "data": "Change hll-sparse-max-bytes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "",
+      "data": "Hyperloglog promote to dense well in different hll-sparse-max-bytes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "HyperLogLog sparse encoding stress test in tests/unit/hyperloglog.tcl",
+      "data": "HyperLogLog sparse encoding stress test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "HyperLogLog sparse encoding stress test in tests/unit/hyperloglog.tcl",
+      "data": "HyperLogLog sparse encoding stress test",
+      "milliseconds": "299"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "Corrupted sparse HyperLogLogs are detected: Additional at tail in tests/unit/hyperloglog.tcl",
+      "data": "Corrupted sparse HyperLogLogs are detected: Additional at tail",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "Corrupted sparse HyperLogLogs are detected: Additional at tail in tests/unit/hyperloglog.tcl",
+      "data": "Corrupted sparse HyperLogLogs are detected: Additional at tail",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "Corrupted sparse HyperLogLogs are detected: Broken magic in tests/unit/hyperloglog.tcl",
+      "data": "Corrupted sparse HyperLogLogs are detected: Broken magic",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "Corrupted sparse HyperLogLogs are detected: Broken magic in tests/unit/hyperloglog.tcl",
+      "data": "Corrupted sparse HyperLogLogs are detected: Broken magic",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "Corrupted sparse HyperLogLogs are detected: Invalid encoding in tests/unit/hyperloglog.tcl",
+      "data": "Corrupted sparse HyperLogLogs are detected: Invalid encoding",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "Corrupted sparse HyperLogLogs are detected: Invalid encoding in tests/unit/hyperloglog.tcl",
+      "data": "Corrupted sparse HyperLogLogs are detected: Invalid encoding",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "Corrupted sparse HyperLogLogs doesn't cause overflow and out-of-bounds with XZERO opcode in tests/unit/hyperloglog.tcl",
+      "data": "Corrupted sparse HyperLogLogs doesn't cause overflow and out-of-bounds with XZERO opcode",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "Corrupted sparse HyperLogLogs doesn't cause overflow and out-of-bounds with XZERO opcode in tests/unit/hyperloglog.tcl",
+      "data": "Corrupted sparse HyperLogLogs doesn't cause overflow and out-of-bounds with XZERO opcode",
+      "milliseconds": "35"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "Corrupted sparse HyperLogLogs doesn't cause overflow and out-of-bounds with ZERO opcode in tests/unit/hyperloglog.tcl",
+      "data": "Corrupted sparse HyperLogLogs doesn't cause overflow and out-of-bounds with ZERO opcode",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "Corrupted sparse HyperLogLogs doesn't cause overflow and out-of-bounds with ZERO opcode in tests/unit/hyperloglog.tcl",
+      "data": "Corrupted sparse HyperLogLogs doesn't cause overflow and out-of-bounds with ZERO opcode",
+      "milliseconds": "8226"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "Corrupted dense HyperLogLogs are detected: Wrong length in tests/unit/hyperloglog.tcl",
+      "data": "Corrupted dense HyperLogLogs are detected: Wrong length",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "Corrupted dense HyperLogLogs are detected: Wrong length in tests/unit/hyperloglog.tcl",
+      "data": "Corrupted dense HyperLogLogs are detected: Wrong length",
+      "milliseconds": "2"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "Fuzzing dense/sparse encoding: Redis should always detect errors in tests/unit/hyperloglog.tcl",
+      "data": "Fuzzing dense/sparse encoding: Redis should always detect errors",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "Fuzzing dense/sparse encoding: Redis should always detect errors in tests/unit/hyperloglog.tcl",
+      "data": "Fuzzing dense/sparse encoding: Redis should always detect errors",
+      "milliseconds": "36345"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFADD, PFCOUNT, PFMERGE type checking works in tests/unit/hyperloglog.tcl",
+      "data": "PFADD, PFCOUNT, PFMERGE type checking works",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFADD, PFCOUNT, PFMERGE type checking works in tests/unit/hyperloglog.tcl",
+      "data": "PFADD, PFCOUNT, PFMERGE type checking works",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFMERGE results on the cardinality of union of sets in tests/unit/hyperloglog.tcl",
+      "data": "PFMERGE results on the cardinality of union of sets",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFMERGE results on the cardinality of union of sets in tests/unit/hyperloglog.tcl",
+      "data": "PFMERGE results on the cardinality of union of sets",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFMERGE on missing source keys will create an empty destkey in tests/unit/hyperloglog.tcl",
+      "data": "PFMERGE on missing source keys will create an empty destkey",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFMERGE on missing source keys will create an empty destkey in tests/unit/hyperloglog.tcl",
+      "data": "PFMERGE on missing source keys will create an empty destkey",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFMERGE with one empty input key, create an empty destkey in tests/unit/hyperloglog.tcl",
+      "data": "PFMERGE with one empty input key, create an empty destkey",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFMERGE with one empty input key, create an empty destkey in tests/unit/hyperloglog.tcl",
+      "data": "PFMERGE with one empty input key, create an empty destkey",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFMERGE with one non-empty input key, dest key is actually one of the source keys in tests/unit/hyperloglog.tcl",
+      "data": "PFMERGE with one non-empty input key, dest key is actually one of the source keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFMERGE with one non-empty input key, dest key is actually one of the source keys in tests/unit/hyperloglog.tcl",
+      "data": "PFMERGE with one non-empty input key, dest key is actually one of the source keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFCOUNT multiple-keys merge returns cardinality of union #1 in tests/unit/hyperloglog.tcl",
+      "data": "PFCOUNT multiple-keys merge returns cardinality of union #1",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFCOUNT multiple-keys merge returns cardinality of union #1 in tests/unit/hyperloglog.tcl",
+      "data": "PFCOUNT multiple-keys merge returns cardinality of union #1",
+      "milliseconds": "1679"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFCOUNT multiple-keys merge returns cardinality of union #2 in tests/unit/hyperloglog.tcl",
+      "data": "PFCOUNT multiple-keys merge returns cardinality of union #2",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFCOUNT multiple-keys merge returns cardinality of union #2 in tests/unit/hyperloglog.tcl",
+      "data": "PFCOUNT multiple-keys merge returns cardinality of union #2",
+      "milliseconds": "755"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFDEBUG GETREG returns the HyperLogLog raw registers in tests/unit/hyperloglog.tcl",
+      "data": "PFDEBUG GETREG returns the HyperLogLog raw registers",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFDEBUG GETREG returns the HyperLogLog raw registers in tests/unit/hyperloglog.tcl",
+      "data": "PFDEBUG GETREG returns the HyperLogLog raw registers",
+      "milliseconds": "250"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFADD / PFCOUNT cache invalidation works in tests/unit/hyperloglog.tcl",
+      "data": "PFADD / PFCOUNT cache invalidation works",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "PFADD / PFCOUNT cache invalidation works in tests/unit/hyperloglog.tcl",
+      "data": "PFADD / PFCOUNT cache invalidation works",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "",
+      "data": "PFADD with 2GB entry should not crash server due to overflow in MurmurHash64A: large memory flag not provided",
+      "milliseconds": "0"
+    },
+    {
+      "status": "done",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "",
+      "data": "unit/hyperloglog",
+      "milliseconds": "0"
+    }
+  ],
+  "setup_stdout": ""
+}

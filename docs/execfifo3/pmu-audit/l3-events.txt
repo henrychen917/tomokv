@@ -1,0 +1,126 @@
+
+cache:
+  l2_pf_miss_l2_hit_l3.all
+       [L2 prefetches accepted by the L2 pipeline which miss the L2 cache and
+        hit in the L3 cache cache of all types. Unit: cpu]
+        cpu/event=0x71,umask=0xff/
+  l2_pf_miss_l2_hit_l3.l1_region
+       [L2 prefetches accepted by the L2 pipeline which miss the L2 cache and
+        hit in the L3 cache of type L1Region (fetch additional lines into L1
+        cache when the data access for a given instruction tends to be
+        followed by a consistent pattern of other accesses within a localized
+        region). Unit: cpu]
+        cpu/event=0x71,umask=0x80/
+  l2_pf_miss_l2_hit_l3.l1_stream
+       [L2 prefetches accepted by the L2 pipeline which miss the L2 cache and
+        hit in the L3 cache of type L1Stream (fetch additional sequential
+        lines into L1 cache). Unit: cpu]
+        cpu/event=0x71,umask=0x20/
+  l2_pf_miss_l2_hit_l3.l1_stride
+       [L2 prefetches accepted by the L2 pipeline which miss the L2 cache and
+        hit in the L3 cache of type L1Stride (fetch additional lines into L1
+        cache when each access is a constant distance from the previous).
+        Unit: cpu]
+        cpu/event=0x71,umask=0x40/
+  l2_pf_miss_l2_hit_l3.l2_burst
+       [L2 prefetches accepted by the L2 pipeline which miss the L2 cache and
+        hit in the L3 cache of type L2Burst (aggressively fetch additional
+        sequential lines into L2 cache). Unit: cpu]
+        cpu/event=0x71,umask=8/
+  l2_pf_miss_l2_hit_l3.l2_next_line
+       [L2 prefetches accepted by the L2 pipeline which miss the L2 cache and
+        hit in the L3 cache of type L2NextLine (fetch the next line into L2
+        cache). Unit: cpu]
+        cpu/event=0x71,umask=2/
+  l2_pf_miss_l2_hit_l3.l2_stream
+       [L2 prefetches accepted by the L2 pipeline which miss the L2 cache and
+        hit in the L3 cache of type L2Stream (fetch additional sequential
+        lines into L2 cache). Unit: cpu]
+        cpu/event=0x71,umask=1/
+  l2_pf_miss_l2_hit_l3.l2_stride
+       [L2 prefetches accepted by the L2 pipeline which miss the L2 cache and
+        hit in the L3 cache of type L2Stride (fetch additional lines into L2
+        cache when each access is a constant distance from the previous).
+        Unit: cpu]
+        cpu/event=0x71,umask=0x10/
+  l2_pf_miss_l2_hit_l3.l2_up_down
+       [L2 prefetches accepted by the L2 pipeline which miss the L2 cache and
+        hit in the L3 cache of type L2UpDown (fetch the next or previous line
+        into L2 cache for all memory accesses). Unit: cpu]
+        cpu/event=0x71,umask=4/
+  l2_pf_miss_l2_l3.all
+       [L2 prefetches accepted by the L2 pipeline which miss the L2 and the L3
+        caches of all types. Unit: cpu]
+        cpu/event=0x72,umask=0xff/
+  l2_pf_miss_l2_l3.l1_region
+       [L2 prefetches accepted by the L2 pipeline which miss the L2 and the L3
+        caches of type L1Region (fetch additional lines into L1 cache when the
+        data access for a given instruction tends to be followed by a
+        consistent pattern of other accesses within a localized region). Unit:
+        cpu]
+        cpu/event=0x72,umask=0x80/
+  l2_pf_miss_l2_l3.l1_stream
+       [L2 prefetches accepted by the L2 pipeline which miss the L2 and the L3
+        caches of type L1Stream (fetch additional sequential lines into L1
+        cache). Unit: cpu]
+        cpu/event=0x72,umask=0x20/
+  l2_pf_miss_l2_l3.l1_stride
+       [L2 prefetches accepted by the L2 pipeline which miss the L2 and the L3
+        caches of type L1Stride (fetch additional lines into L1 cache when
+        each access is a constant distance from the previous). Unit: cpu]
+        cpu/event=0x72,umask=0x40/
+  l2_pf_miss_l2_l3.l2_burst
+       [L2 prefetches accepted by the L2 pipeline which miss the L2 and the L3
+        caches of type L2Burst (aggressively fetch additional sequential lines
+        into L2 cache). Unit: cpu]
+        cpu/event=0x72,umask=8/
+  l2_pf_miss_l2_l3.l2_next_line
+       [L2 prefetches accepted by the L2 pipeline which miss the L2 and the L3
+        caches of type L2NextLine (fetch the next line into L2 cache). Unit:
+        cpu]
+        cpu/event=0x72,umask=2/
+  l2_pf_miss_l2_l3.l2_stream
+       [L2 prefetches accepted by the L2 pipeline which miss the L2 and the L3
+        caches of type L2Stream (fetch additional sequential lines into L2
+        cache). Unit: cpu]
+        cpu/event=0x72,umask=1/
+  l2_pf_miss_l2_l3.l2_stride
+       [L2 prefetches accepted by the L2 pipeline which miss the L2 and the L3
+        caches of type L2Stride (fetch additional lines into L2 cache when
+        each access is a constant distance from the previous). Unit: cpu]
+        cpu/event=0x72,umask=0x10/
+  l2_pf_miss_l2_l3.l2_up_down
+       [L2 prefetches accepted by the L2 pipeline which miss the L2 and the L3
+        caches of type L2UpDown (fetch the next or previous line into L2 cache
+        for all memory accesses). Unit: cpu]
+        cpu/event=0x72,umask=4/
+
+Metric Groups:
+
+l3_cache:
+  l3_cache_accesses
+       [L3 cache accesses]
+       [l3_lookup_state.all_coherent_accesses_to_l3]
+  l3_misses
+       [L3 misses (including cacheline state change requests)]
+       [l3_lookup_state.l3_miss]
+  l3_read_miss_latency
+       [Average L3 read miss latency (in core clocks)]
+       [l3_xi_sampled_latency.all * 10 / l3_xi_sampled_latency_requests.all]
+
+lpm_l3: [L3 cache breakdown per CCX]
+  lpm_l3_accesses
+       [L3 victim cache accesses]
+       [d_ratio(max(l3_lookup_state.all_coherent_accesses_to_l3,
+        l3_lookup_state.l3_miss),duration_time)]
+  lpm_l3_hits
+       [L3 victim cache hit rate]
+       [d_ratio(max(l3_lookup_state.all_coherent_accesses_to_l3,
+        l3_lookup_state.l3_miss) - l3_lookup_state.l3_miss,
+        max(l3_lookup_state.all_coherent_accesses_to_l3,
+        l3_lookup_state.l3_miss))]
+  lpm_l3_miss
+       [L3 victim cache miss rate]
+       [d_ratio(l3_lookup_state.l3_miss,
+        max(l3_lookup_state.all_coherent_accesses_to_l3,
+        l3_lookup_state.l3_miss))]

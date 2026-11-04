@@ -2,6 +2,7 @@
 """Network and command audit regressions, using an existing server (no launch/skip/rate tests)."""
 import sys
 from _lib import Conn, RespError, encode
+from known_difference import expect
 
 
 def require(condition, message):
@@ -38,9 +39,14 @@ def run(host, port):
                 "rejected COUNT cannot create a consumer")
         require(c.cmd("XAUTOCLAIM", "netcmd:stream", "g", "c", 0, 0, "COUNT", 100)
                 == [b"0-0", [], []], "valid COUNT on empty PEL")
-        c.raw(encode("XPENDING", "netcmd:stream", "g", "(18446744073709551615-18446744073709551615", "+", 1) +
-              encode("PING", "pending"))
-        require(c.read() == [] and c.read() == b"pending", "exclusive max XPENDING has an empty reply")
+        for start, end, error in (
+                ('(-', '+', b'ERR Invalid stream ID specified as stream command argument'),
+                ('-', '(+', b'ERR Invalid stream ID specified as stream command argument'),
+                ('(18446744073709551615-18446744073709551615', '+',
+                 b'ERR invalid start ID for the interval')):
+            c.raw(encode('XPENDING', 'netcmd:stream', 'g', start, end, 1) + encode('PING', 'pending'))
+            expect(c.read(), RespError(error), root='XRANGE-EXCLUSIVE-SENTINEL / XPENDING', known=[])
+            require(c.read() == b'pending', 'XPENDING error preserves frame boundaries')
 
         for source in ("return {ok='OK\\r\\n:42'}", "return {err='ERR bad\\r\\n:42'}"):
             c.raw(encode("EVAL", source, 0) + encode("PING", "lua-framing"))

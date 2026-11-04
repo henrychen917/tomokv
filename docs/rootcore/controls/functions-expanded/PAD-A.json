@@ -1,0 +1,21 @@
+{
+  "arm": "PAD-A",
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "24-31",
+    "--ports",
+    "20190-20199",
+    "--candidate-binary",
+    "/home/user/Projects/cx-rootcore/build/rootcore/PAD-A"
+  ],
+  "started": "2026-11-01T02:41:02.139907+00:00",
+  "ended": "2026-11-01T02:41:21.893597+00:00",
+  "exit_code": 1,
+  "passes": 3,
+  "failures": 24,
+  "risky_hits": 39
+}

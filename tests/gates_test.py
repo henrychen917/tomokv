@@ -270,6 +270,7 @@ class CorrectnessBudgetWiring(unittest.TestCase):
                    for mode in ('split', 'armed fused') for atomic in (0, 1)]
         cases = [(label, '') for label in labels]
         cases.append(('ABBA comparison + saturation negative controls', 'with-scheduler-controls'))
+        cases.append(('at412 T6', ''))
         stub = r'''
 set -u
 ROW_PLAN="$TMPDIR/plan.json"
@@ -285,6 +286,8 @@ row_begin "$FIXTURE_LABEL" "$FIXTURE_CONTEXT"
                     with self.subTest(label=label, context=context, basis=basis):
                         if label == 'ABBA comparison + saturation negative controls':
                             expected = 660
+                        if label == 'at412 T6':
+                            expected = 2400
                         plan = dict(schema=1, defaults=dict(fallback_seconds=900), rows={label: dict(
                             timeout_seconds=limit, median_seconds=114, basis=basis)})
                         (Path(tmp) / 'plan.json').write_text(json.dumps(plan))
@@ -296,6 +299,8 @@ row_begin "$FIXTURE_LABEL" "$FIXTURE_CONTEXT"
                         if label == 'ABBA comparison + saturation negative controls':
                             self.assertIn('WATCH\t660\tabba-selftest-wave7-landing-442.80s-plus-40pct-rounded',
                                           result.stdout)
+                        if label == 'at412 T6':
+                            self.assertIn('WATCH\t2400\tat412-T6-75-storms-30.5s-each', result.stdout)
 
 
 class LedgerWiring(unittest.TestCase):
@@ -788,6 +793,19 @@ bad(){ printf 'FAIL\t0\t%s\n' "$1" >> "$LEDGER"; FAIL=$((FAIL+1)); }
                 self.assertEqual(self.collect('0\t1\t0\n', ledger)[0], (0, 1))
 
 
+def taskset_cpu_list(cpus):
+    """The list `taskset -pc` prints (util-linux cpulist_create): a range only for three or more
+    consecutive CPUs, so {22,23,88,89} is "22,23,88,89", never "22-23,88-89"."""
+    ranges = []
+    for cpu in sorted(set(cpus)):
+        if ranges and ranges[-1][1] + 1 == cpu:
+            ranges[-1][1] = cpu
+        else:
+            ranges.append([cpu, cpu])
+    return ','.join(str(lo) if lo == hi else f'{lo},{hi}' if hi == lo + 1 else f'{lo}-{hi}'
+                    for lo, hi in ranges)
+
+
 # A 2026-09-11 full-inventory control retained a missing affinity observation before
 # core_tsan_build's first witness (scheduler-failure-_zqi3thv), although the live gate's
 # parallel control passed. Query the kernel through sched_getaffinity via taskset rather
@@ -813,6 +831,23 @@ SCHEDULER_AFFINITY_PROBE = r'''
 
 
 class SchedulerAffinity(unittest.TestCase):
+    def test_one_slot_cpu_list_matches_taskset(self):
+        # The one-slot scheduler control expects exactly this string from its affinity probe.
+        # A slot with two load CPUs (landing gate-run.0IGVkV slot 2: 16-23 + 88-89) failed
+        # every fixture job when two-CPU runs were written as ranges.
+        self.assertEqual(taskset_cpu_list([88, 22, 89, 23]), '22,23,88,89')
+        self.assertEqual(taskset_cpu_list([5, 6, 7, 85]), '5-7,85')
+        self.assertEqual(taskset_cpu_list([3]), '3')
+        owned = sorted(os.sched_getaffinity(0))
+        pairs = [cpu for cpu in owned if cpu + 1 in owned]
+        if pairs:  # Also ask util-linux itself whenever two adjacent CPUs are owned.
+            pair = [pairs[0], pairs[0] + 1]
+            # The outer taskset applies the pair before exec; the shell then reports its own pid.
+            reply = subprocess.run(['taskset', '-c', ','.join(map(str, pair)), 'sh', '-c',
+                                    'exec taskset -pc "$$"'], text=True, check=True,
+                                   capture_output=True, env=dict(os.environ, LC_ALL='C')).stdout
+            self.assertEqual(reply.strip().rsplit(': ', 1)[1], taskset_cpu_list(pair))
+
     def probe(self, response=None):
         cpu = min(os.sched_getaffinity(0))
         stub = '' if response is None else '''
@@ -911,9 +946,9 @@ collect_job(){
         probe = cls('test_one_slot_uses_the_same_queue_without_losing_coverage')
         # This control deliberately serializes the complete inventory, including
         # every real budget/watchdog/history process. Three other full fixtures
-        # beside it made that serial critical path exceed 45s after wave9's
-        # inventory grew. Run it first on owned CPUs; retain its deadline, all
-        # rows and every concurrently scheduled negative control below. Waiting
+        # beside it made that serial critical path exceed its resource budget
+        # after the inventory grew. Run it first on owned CPUs; retain all rows
+        # and every concurrently scheduled negative control below. Waiting
         # through exception() preserves a failure for its test without skipping
         # the remaining scenarios.
         single_slot = pool.submit(probe._run_scheduler, slots=1, _cpus=cpus[-4:])
@@ -1181,7 +1216,15 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
             fixture_cpus = list(map(str, (_cpus or self.fixture_cpus)[:4]))
             cpu_list = ','.join(fixture_cpus)
             count = slots or len(fixture_cpus)
-            slot_cpus = [fixture_cpus[index % len(fixture_cpus)] for index in range(count)]
+            if count == 1:
+                # A slot is a worker queue, not a CPU. Give the serial control
+                # its four already-owned CPUs so each real watchdog can start
+                # beside its parent. Pinning both to one CPU made 289 complete
+                # jobs consume 44s, leaving no time for the real collector.
+                # Keep one worker, the complete inventory and the 45s deadline.
+                slot_cpus = [taskset_cpu_list(map(int, fixture_cpus))]
+            else:
+                slot_cpus = [fixture_cpus[index % len(fixture_cpus)] for index in range(count)]
             arrays = '\n'.join([
                 f'GATE_SLOTS={count}',
                 f'ALL_BUILD_CORES={cpu_list}',
@@ -1198,10 +1241,17 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
             def preserve_failure(stdout='', stderr=''):
                 saved = preserve_scheduler_failure(root, directory, script, stdout, stderr)
                 return f'\nScheduler failure artifacts: {saved}\n'
+            # This is a resource cap for walking the complete mocked inventory,
+            # not a command latency oracle. Each row still runs the real budget,
+            # watchdog and history helpers. Keep 45s setup/teardown slack and
+            # 0.5s per scheduled job per slot as the inventory grows. The gate's
+            # real row deadlines and every fault assertion remain unchanged.
+            row_count = len(canonical) + len(helpers)
+            fixture_timeout = 45 + (row_count + 2 * count - 1) // (2 * count)
             try:
-                result = subprocess.run(['timeout', '--kill-after=2', '45', 'taskset', '-c', cpu_list,
+                result = subprocess.run(['timeout', '--kill-after=2', str(fixture_timeout), 'taskset', '-c', cpu_list,
                                          'bash', str(script_path)], cwd=root, env=env,
-                                        text=True, capture_output=True, timeout=50)
+                                        text=True, capture_output=True, timeout=fixture_timeout + 5)
             except subprocess.TimeoutExpired as exc:
                 def as_text(value):
                     return value.decode(errors='replace') if isinstance(value, bytes) else value or ''
@@ -1211,7 +1261,9 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
             if result.returncode:
                 output += preserve_failure(result.stdout, result.stderr)
             self.assertEqual(result.returncode, 0, output)
+            from _gate_process import cpus as parse_cpus
             observed_cpus = set()
+            observed_slots = set()
             try:
                 # Collector rows enumerate scored jobs. The three build prerequisites do
                 # not emit rows in this fixture, but must still run and finalize cleanly:
@@ -1226,7 +1278,8 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
                 for job in (directory / 'jobs').iterdir():
                     assigned_slot, observed_cpu = (job / 'fixture-affinity').read_text().split()
                     self.assertEqual(observed_cpu, slot_cpus[int(assigned_slot)], job.name)
-                    observed_cpus.add(observed_cpu)
+                    observed_cpus.update(map(str, parse_cpus(observed_cpu)))
+                    observed_slots.add(int(assigned_slot))
             except (AssertionError, IndexError, ValueError, OSError) as exc:
                 # A worker can fail before job_body records its affinity and still publish
                 # a recovered completion. Retain its output/ledger before TemporaryDirectory
@@ -1266,6 +1319,7 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
             return dict(ledger=(''.join(f'{v}\t{label}\n' for v, duration, label in timed_rows)).encode(),
                         output=output, counts=counts, script_bytes=len(script.encode()),
                         fixture_cpus=set(fixture_cpus), observed_cpus=observed_cpus,
+                        observed_slots=observed_slots,
                         dependency_reached=dependency_reached,
                         dependency_handshake=dependency_handshake,
                         dependency_failure=dependency_failure,
@@ -1422,7 +1476,8 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
         self.assertCountEqual(result['completion'], self.canonical)
         self.assertEqual(result['counts'], (len(self.canonical), 0), result['output'])
         self.assertEqual({row[1] for row in result['families']}, {'0'})
-        self.assertEqual(len(result['observed_cpus']), 1)
+        self.assertEqual(result['observed_slots'], {0})
+        self.assertEqual(result['observed_cpus'], result['fixture_cpus'])
         self.assertEqual(result['cleaned'], set(self.canonical))
 
     def test_failed_prerequisite_cannot_leave_the_queue_waiting_forever(self):
@@ -2043,6 +2098,31 @@ CORES=112-127; PORT=17991; GATE_RATIO=6:2
 
 
 class TlsBootGeometry(unittest.TestCase):
+    def test_partial_mode_engine_defaults_allow_explicit_overrides(self):
+        root = Path(__file__).resolve().parents[1]
+        gate = (root / 'tests/gate.sh').read_text()
+        helper = gate[gate.index('tlsboot(){'):].split('\n}', 1)[0] + '\n}\n'
+        with tempfile.TemporaryDirectory(dir=root / 'build') as directory:
+            for args, mode, engine in [([], 'fused', 'epoll'),
+                    (['--thread-mode', '2s', '--net-io', 'uring'], '2s', 'uring')]:
+                script = '''
+quiet_wait(){ :; }
+guard_port(){ :; }
+seq(){ :; }
+taskset(){ printf '%s\\0' "$@" > "$TMPDIR/argv"; }
+CORES=8-15; PORT=21100; TLS_PORT=21101; GATE_RATIO=6:2
+CANDIDATE_BINARY=/unused/tomokv; TLS_DIR=/unused/tls
+''' + helper + '\ntlsboot no "$@"\nwait "$SRV"\n'
+                run = subprocess.run(['bash', '-c', script, 'tlsboot', *args],
+                    capture_output=True, text=True, timeout=5,
+                    env=dict(os.environ, TMPDIR=directory, GATE_TXN_FUSED='1', GATE_NET_IO='epoll'))
+                self.assertEqual(run.returncode, 0, run.stderr)
+                argv = (Path(directory) / 'argv').read_bytes().decode().split('\0')[:-1]
+                values = lambda flag: [argv[i+1] for i, word in enumerate(argv) if word == flag]
+                self.assertEqual(values('--thread-mode')[-1], mode)
+                self.assertEqual(values('--net-io')[-1], engine)
+                self.assertEqual(values('--ratio'), ['6:2'] if mode == '2s' else [])
+
     def test_ratio_follows_thread_mode_value_and_preserves_other_arguments(self):
         root = Path(__file__).resolve().parents[1]
         gate = (root / 'tests/gate.sh').read_text()
@@ -2177,93 +2257,27 @@ class FlushMeritSelfTests(unittest.TestCase):
         self.run_instrument('mget-under-exec-merit.py')
 
 
-class TclOrderRetryFailures(unittest.TestCase):
-    """Known setup errors cannot hide a missing or still-failing assertion."""
-    def setUp(self):
+class TclOrderFailurePreservation(unittest.TestCase):
+    """A known setup failure cannot excuse or replace a real assertion failure."""
+    def test_named_order_failures_are_never_retried(self):
         import redis_tcl
-        self.tcl = redis_tcl
-        self.folder = tempfile.TemporaryDirectory()
-        self.addCleanup(self.folder.cleanup)
-        self.args = SimpleNamespace(output=Path(self.folder.name))
-        self.unit = 'unit/type/list'
-        (self.args.output / self.unit).mkdir(parents=True)
-        self.known = [dict(command='r config set list-compress-depth 2',
-                           reply='ERR unsupported fixture setting', count=1)]
-        self.setup = dict(status='err', test='', data=(
+        known = [dict(command='r config set list-compress-depth 2',
+                      reply='ERR unsupported fixture setting', count=1)]
+        setup = dict(status='err', test='', data=(
             'ERR unsupported fixture setting\nwhile executing\n'
             '"r config set list-compress-depth 2"'))
-
-    def row(self, name, passed=False):
-        return dict(events=[copy.deepcopy(self.setup), dict(
-            status='ok' if passed else 'err', test=name, data='order witness')],
-            error=None, complete=True, exit_code=1, failed=1 if passed else 2,
-            passed=int(passed), seconds=0.1)
-
-    def invoke(self, row, part):
-        with patch.object(self.tcl, 'run_file', return_value=part) as run:
-            result = self.tcl.retry_monitor_order(self.args, Path(self.folder.name),
-                self.unit, row, [], self.known)
-        return result, run
-
-    def test_each_named_order_assertion_rearms_once_and_keeps_setup_error(self):
-        for name in self.tcl.ORDER_TESTS[self.unit]:
-            with self.subTest(name=name):
-                result, run = self.invoke(self.row(name), self.row(name, True))
-                self.assertEqual(run.call_count, 1)
-                self.assertEqual(run.call_args.kwargs['only'], [name.split(' in tests/')[0]])
-                self.tcl.validate_passing(result, [name], self.known)
-                self.assertEqual(result['failed'], 1)
-                self.assertEqual(result['exit_code'], 1)
-                self.assertTrue((self.args.output/self.unit/'before-monitor-retry.json').exists())
-
-    def test_failed_fresh_assertion_stays_failed(self):
-        name = self.tcl.ORDER_TESTS[self.unit][0]
-        result, run = self.invoke(self.row(name), self.row(name))
-        self.assertEqual(run.call_count, 1)
-        self.assertEqual(result['failed'], 2)
-        self.assertFalse(result['monitor_order_retry']['passed'])
-
-    def test_missing_or_duplicate_fresh_assertion_cannot_pass(self):
-        name = self.tcl.ORDER_TESTS[self.unit][0]
-        for count in (0, 2):
-            part = self.row(name, True)
-            part['events'] = [self.setup] + [part['events'][1]]*count
-            part['passed'] = count
-            result, _ = self.invoke(self.row(name), part)
-            self.assertFalse(result['monitor_order_retry']['passed'])
-
-    def test_unrelated_assertion_does_not_retry(self):
-        result, run = self.invoke(self.row('unrelated assertion'), {})
-        run.assert_not_called()
-        self.assertEqual(result['failed'], 2)
-
-    def test_two_failed_assertions_do_not_retry(self):
-        names = self.tcl.ORDER_TESTS[self.unit]
-        row = self.row(names[0])
-        row['events'].append(self.row(names[1])['events'][1])
-        row['failed'] += 1
-        _, run = self.invoke(row, {})
-        run.assert_not_called()
-
-    def test_unknown_or_missing_setup_error_does_not_retry(self):
-        name = self.tcl.ORDER_TESTS[self.unit][0]
-        for missing in (False, True):
-            row = self.row(name)
-            if missing:
-                row['events'].pop(0)
-                row['failed'] -= 1
-            else:
-                row['events'][0]['data'] = 'ERR different setup failure'
-            _, run = self.invoke(row, {})
-            run.assert_not_called()
-
-    def test_incomplete_timeout_or_wrong_exit_does_not_retry(self):
-        name = self.tcl.ORDER_TESTS[self.unit][0]
-        for field, value in (('complete',False),('error','TIMEOUT'),('exit_code',124)):
-            row = self.row(name)
-            row[field] = value
-            _, run = self.invoke(row, {})
-            run.assert_not_called()
+        for name in ('MONITOR log blocked command only once',
+                     'BRPOPLPUSH does not affect WATCH while still blocked',
+                     'PUSH resulting from BRPOPLPUSH affect WATCH', 'unrelated assertion'):
+            row = dict(events=[setup, dict(status='err', test=name, data='failure')],
+                       error=None, complete=True, exit_code=1, failed=2, passed=0, seconds=0.1)
+            with patch.object(redis_tcl, 'run_file', return_value=row) as run:
+                result = redis_tcl.run_manifest_file(SimpleNamespace(), Path('/unused'),
+                    'unit/type/list', dict(known_setup_errors=known), [], [])
+            self.assertEqual(run.call_count, 1)
+            self.assertIs(result, row)
+            with self.assertRaises(ValueError):
+                redis_tcl.validate_passing(result, [name], known)
 
 
 if __name__ == '__main__':

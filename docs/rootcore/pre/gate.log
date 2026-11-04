@@ -1,0 +1,17 @@
+GATE(quick): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 8 load SMT threads (automatic available siblings), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-rootcore/build/gate-run.KjwwSj
+PARTIAL jobs (including prerequisites): release rootcore-eval rootcore-segments rootcore-notify rootcore-functions rootcore-waitaof
+PARTIAL jobs (including prerequisites): release rootcore-eval rootcore-segments rootcore-notify rootcore-functions rootcore-waitaof
+  row budget: 900s; median=-s; no-history-conservative-default; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; rootcore eval
+  rootcore eval                                        FAIL (see /home/user/Projects/cx-rootcore/build/gate-run.KjwwSj/jobs/rootcore-eval/rootcore-eval.log)
+  row budget: 900s; median=-s; no-history-conservative-default; rootcore segments
+  rootcore segments                                    FAIL (see /home/user/Projects/cx-rootcore/build/gate-run.KjwwSj/jobs/rootcore-segments/rootcore-segments.log)
+  row budget: 900s; median=-s; no-history-conservative-default; rootcore notify
+  rootcore notify                                      FAIL (see /home/user/Projects/cx-rootcore/build/gate-run.KjwwSj/jobs/rootcore-notify/rootcore-notify.log)
+  row budget: 900s; median=-s; no-history-conservative-default; rootcore functions
+  rootcore functions                                   FAIL (see /home/user/Projects/cx-rootcore/build/gate-run.KjwwSj/jobs/rootcore-functions/rootcore-functions.log)
+  row budget: 900s; median=-s; no-history-conservative-default; rootcore waitaof
+  rootcore waitaof                                     FAIL (see /home/user/Projects/cx-rootcore/build/gate-run.KjwwSj/jobs/rootcore-waitaof/rootcore-waitaof.log)
+GATE(PARTIAL): 1 ok, 5 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rootcore/build/gate-run.KjwwSj/ledger.partial

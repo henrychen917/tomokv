@@ -1,4 +1,5 @@
 #include "../persist/routing_compat.h"
+#include "../core/cfgfix.h"
 #include "snapshot.h"
 
 #include <algorithm>
@@ -228,6 +229,7 @@ SnapshotManager::StartResult SnapshotManager::cancel_for_shutdown(
             return StartResult::Failed;
         }
         writer.progress_fused_executor();
+        server.aof().drain_for_producer(writer.id(), ring);
         if (writer_is(writer.id())) {
             writer_pass(writer, ring, true);
             if (engine_ == PersistIoEngine::Uring) pump_io_completions(writer, ring);
@@ -268,6 +270,9 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
                                                      std::string& error, AofManager* rewrite,
                                                      const char* target_dir,
                                                      const char* target_filename, bool shutdown) {
+    // An owner may still be sealing a record into its bounded AOF channel.
+    // Every wait below must service that channel before asking it to acknowledge
+    // the snapshot. Reuse the writer-only drain; it cannot start another rewrite.
     // SAVE can run while Redis's AOF child is active. The native format shares
     // one snapshot coordinator, so finish that capture before taking SAVE's cut.
     // The caller may own its IO ring or a fused shard and must advance both.
@@ -275,6 +280,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         server.aof().rewrite_in_progress();
     while (finish_rewrite && (server.aof().rewrite_in_progress() || in_progress())) {
         writer.progress_fused_executor();
+        server.aof().drain_for_producer(writer.id(), writer_ring);
         if (writer_is(writer.id())) {
             writer_pass(writer, writer_ring, true);
             if (engine_ == PersistIoEngine::Uring) pump_io_completions(writer, writer_ring);
@@ -297,7 +303,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
                 return StartResult::Busy;
             }
         } else transition_lock.lock();
-        if (server.placement_transition_active()) {
+        if (server.placement_transition_active() || cfgfix_control_busy(server)) {
             error = "placement transition is in progress";
             return StartResult::Busy;
         }
@@ -351,6 +357,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
             while (io_inflight_) {
                 writer_ring.submit_and_reap();
                 pump_io_completions(writer, writer_ring);
+                server.aof().drain_for_producer(writer.id(), writer_ring);
                 std::this_thread::yield();
             }
             abort_file();
@@ -410,6 +417,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         record_bgsave_failure(rewrite_);
         error = "could not create snapshot temporary file";
         server.set_snapshot_atomic_barrier(false);
+        server.atomic_ring_credit_waiters(writer.id(), &writer_ring, true);
         phase_.store(Phase::Idle, std::memory_order_release);
         writer_tid_.store(UINT32_MAX, std::memory_order_relaxed);
         return StartResult::Failed;
@@ -426,6 +434,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         Ring* target = server.thread(tid).ring();
         while (!target && !server.shutting_down().load(std::memory_order_relaxed)) {
             if (shutdown_expired()) break;
+            server.aof().drain_for_producer(writer.id(), writer_ring);
             std::this_thread::yield();
             target = server.thread(tid).ring();
         }
@@ -449,6 +458,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
            ready_owners_.load(std::memory_order_acquire) != executor_count_) {
         if (shutdown_expired()) return StartResult::Failed;
         writer.progress_fused_executor();
+        server.aof().drain_for_producer(writer.id(), writer_ring);
         std::this_thread::yield();
     }
     if (phase() == Phase::Preparing) {
@@ -467,23 +477,8 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
            frozen_owners_.load(std::memory_order_acquire) != executor_count_) {
         if (shutdown_expired()) return StartResult::Failed;
         writer.progress_fused_executor();
+        server.aof().drain_for_producer(writer.id(), writer_ring);
         std::this_thread::yield();
-    }
-    if (phase() == Phase::Freeze) {
-        // Libraries are process-wide and protected by their registry mutex. Take
-        // one immutable source image at the cut, never one image per shard/key.
-        function_metadata_.clear();
-        std::vector<uint8_t> functions;
-        if (!function_snapshot_save(functions, error)) {
-            fail(next_epoch, error.c_str());
-        } else if (!functions.empty()) {
-            try {
-                if (functions.size() > UINT32_MAX - kFileHeaderBytes - DatabaseMap::kPayloadBytes)
-                    throw std::bad_alloc();
-                function_metadata_.assign(database_map_.begin(), database_map_.end());
-                function_metadata_.insert(function_metadata_.end(), functions.begin(), functions.end());
-            } catch (const std::bad_alloc&) { fail(next_epoch, "out of memory saving functions"); }
-        }
     }
     if (phase() == Phase::Freeze) {
         // All owners are frozen and the atomic-group drain is complete, so this is the stable
@@ -501,6 +496,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
            marked_owners_.load(std::memory_order_acquire) != executor_count_) {
         if (shutdown_expired()) return StartResult::Failed;
         writer.progress_fused_executor();
+        server.aof().drain_for_producer(writer.id(), writer_ring);
         std::this_thread::yield();
     }
 
@@ -509,15 +505,41 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         fail(next_epoch, error.empty() ? "could not rotate AOF at snapshot mark" : error.c_str());
     }
 
+    if (phase() == Phase::Mark) {
+        // Rotate the AOF increment BEFORE copying the process-wide libraries.
+        // FUNCTION is IO-local: freezing shard owners does not stop it. A change
+        // after the copy must land in the retained new increment, never in the
+        // old increment that rewrite_complete removes. Earlier changes may be
+        // in both the base and the new increment; full registry postimages replay
+        // in order and are idempotent. Shards remain frozen throughout this cut.
+        function_metadata_.clear();
+        std::vector<uint8_t> functions;
+        // A final shutdown save holds later registry mutations from this copy on, as frozen
+        // owners hold post-cut key writes; the cut precedes the copy, so nothing falls between.
+        if (shutdown) function_final_cut(next_epoch);
+        if (!function_snapshot_save(functions, error)) {
+            fail(next_epoch, error.c_str());
+        } else if (!functions.empty()) {
+            try {
+                if (functions.size() > UINT32_MAX - kFileHeaderBytes - DatabaseMap::kPayloadBytes)
+                    throw std::bad_alloc();
+                function_metadata_.assign(database_map_.begin(), database_map_.end());
+                function_metadata_.insert(function_metadata_.end(), functions.begin(), functions.end());
+            } catch (const std::bad_alloc&) { fail(next_epoch, "out of memory saving functions"); }
+        }
+    }
+
     if (phase() != Phase::Mark) {
         while (cancelled_owners_.load(std::memory_order_acquire) +
                    finished_owners_.load(std::memory_order_acquire) != executor_count_) {
             if (shutdown_expired()) return StartResult::Failed;
             writer.progress_fused_executor();
+            server.aof().drain_for_producer(writer.id(), writer_ring);
             std::this_thread::yield();
         }
         abort_file();
         server.set_snapshot_atomic_barrier(false);
+        server.atomic_ring_credit_waiters(writer.id(), &writer_ring, true);
         phase_.store(Phase::Idle, std::memory_order_release);
         std::lock_guard<std::mutex> lock(error_mu_);
         error = error_.empty() ? "snapshot start failed" : error_;
@@ -529,6 +551,8 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     // its loop can drain a frame.
     phase_.store(Phase::Capture, std::memory_order_release);
     server.set_snapshot_atomic_barrier(false);
+    // Every IO parked behind the barrier can admit again; nothing else wakes it.
+    server.atomic_ring_credit_waiters(writer.id(), &writer_ring, true);
     for (uint32_t tid : server.placement().ex_threads())
         if (Ring* target = server.thread(tid).ring())
             writer_ring.msg_to(*target, ur_tag(UrKind::Wake, nullptr));
@@ -541,11 +565,13 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
                    finished_owners_.load(std::memory_order_acquire) != executor_count_) {
             if (shutdown_expired()) return StartResult::Failed;
             writer.progress_fused_executor();
+            server.aof().drain_for_producer(writer.id(), writer_ring);
             std::this_thread::yield();
         }
         discard_chunks();
         abort_file();
         server.set_snapshot_atomic_barrier(false);
+        server.atomic_ring_credit_waiters(writer.id(), &writer_ring, true);
         phase_.store(Phase::Idle, std::memory_order_release);
         std::lock_guard<std::mutex> lock(error_mu_);
         error = error_.empty() ? "snapshot start failed" : error_;
@@ -557,6 +583,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     while (phase() == Phase::Capture) {
         if (shutdown_expired()) return StartResult::Failed;
         writer.progress_fused_executor();
+        server.aof().drain_for_producer(writer.id(), writer_ring);
         writer_pass(writer, writer_ring, true);
         writer_ring.submit_and_reap();
         if (engine_ == PersistIoEngine::Uring)
@@ -569,6 +596,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
                io_inflight_ != 0) {
             if (shutdown_expired()) return StartResult::Failed;
             writer.progress_fused_executor();
+            server.aof().drain_for_producer(writer.id(), writer_ring);
             writer_pass(writer, writer_ring, true);
             writer_ring.submit_and_reap();
             if (engine_ == PersistIoEngine::Uring)
@@ -611,6 +639,8 @@ bool SnapshotManager::drain_atomic_groups(Server& server, ThreadCtx& writer, uin
         if (deadline_ns && now_ns() >= deadline_ns) return false;
         xshard_flush_snapshot_progress(server, writer);
         writer.progress_fused_executor();
+        if (Ring* ring = writer_ring_.load(std::memory_order_acquire))
+            server.aof().drain_for_producer(writer.id(), *ring);
         std::this_thread::yield();
     }
     return true;
@@ -1221,6 +1251,7 @@ static bool load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& shar
                 return false;
             }
             shard.store().note_loaded_object(hash, object);
+            cfgfix_delay_loaded_key();
         }
     }
     shard.publish_size();

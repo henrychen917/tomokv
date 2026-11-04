@@ -14,6 +14,7 @@ import time
 import flushfix2 as f
 import snapfix as s
 from _lib import Conn, RespError, encode
+from flipfix6 import post_flip_reply, refusal_counters
 
 ORACLE = {}
 
@@ -289,7 +290,13 @@ def storm(args, directory, mode, engine, atomic, oracle):
     expected_aof = None
     sentinels = {}
     counts = dict(flushes=0, work=0, saves=0, flips=0, flip_refusals=0, cancelled_saves=0)
-    with s.Boot(args, directory, mode, engine, atomic, oracle, extra=extra) as b:
+    # A successful FLIP storm must finish its last request before its FLUSH peer
+    # closes. Otherwise teardown itself can produce the approved close refusal.
+    # Keep the existing strict reply checks; do not broaden accepted errors.
+    flip_drained = threading.Event() if args.case == 'live-flip' and not oracle else None
+    flip_observed = dict(flip_refused_s2=0, flip_refused_close=0)
+    flip_max_seconds = 0
+    with s.Boot(args, directory, mode, engine, atomic, oracle, extra=extra) as b, contextlib.ExitStack() as clients:
         if aof:
             for db in range(args.databases):
                 b.c.must('SELECT', db)
@@ -306,8 +313,15 @@ def storm(args, directory, mode, engine, atomic, oracle):
                 sentinels[db] = list(by_shard.values())
             b.c.must('SELECT', 0)
         pair, _ = s.keys_for(b.c, 'flushfix2:storm', oracle, 2)
+        # Stopping a worker must not close a connection that the other worker's
+        # final FLIP still pins. The live-flip fixture owns both sockets until
+        # run_storm has joined the workers; deliberate close races are exercised
+        # by flipfix6's independent exec-close legs.
+        retained = {}
+        if args.case == 'live-flip' and not oracle:
+            retained = {role: clients.enter_context(conn(b, args)) for role in ('flush', 'flip')}
         def flush(stop):
-            with conn(b, args) as c:
+            with contextlib.nullcontext(retained['flush']) if retained else conn(b, args) as c:
                 while not stop.is_set():
                     if args.case == 'live-flip':
                         # Test FLUSH+FLIP without a retained MULTI session. The
@@ -321,6 +335,8 @@ def storm(args, directory, mode, engine, atomic, oracle):
                               encode('EXEC') + encode('FLUSHALL', args.flush_mode))
                         assert [c.read() for _ in range(5)] == [b'OK', b'QUEUED', b'QUEUED', [b'OK', b'OK'], b'OK']
                     counts['flushes'] += 1
+                if flip_drained is not None:
+                    assert flip_drained.wait(args.stall), 'final FLIP did not drain before peer close'
         def worker(stop):
             with conn(b, args) as c:
                 workpair, _ = s.keys_for(c, 'flushfix2:live', oracle, 2)
@@ -368,22 +384,36 @@ def storm(args, directory, mode, engine, atomic, oracle):
                         stop.wait()
                         return
         def flipper(stop):
-            with conn(b, args) as c:
-                while not stop.is_set():
-                    target = 4 if counts['flips'] % 2 == 0 else 6
-                    reply = c.cmd('FLIP', target, 8-target)
-                    if isinstance(reply, RespError):
-                        assert reply.message.startswith(b'ERR FLIP cannot quiesce a connection:'), reply
-                        counts['flip_refusals'] += 1
-                        continue
-                    assert reply == b'OK', reply
-                    counts['flips'] += 1
+            nonlocal flip_max_seconds
+            try:
+                with contextlib.nullcontext(retained['flip']) if retained else conn(b, args) as c:
+                    before = s.stats(c)
+                    while not stop.is_set():
+                        target = 4 if counts['flips'] % 2 == 0 else 6
+                        began = time.monotonic()
+                        reply = c.cmd('FLIP', target, 8-target)
+                        elapsed = time.monotonic() - began
+                        flip_max_seconds = max(flip_max_seconds, elapsed)
+                        reason = post_flip_reply(reply, elapsed)
+                        if reason is not None:
+                            flip_observed[reason] += 1
+                            counts['flip_refusals'] += 1
+                            continue
+                        counts['flips'] += 1
+                    refusal_counters(flip_observed, before, s.stats(c))
+            finally:
+                if flip_drained is not None:
+                    flip_drained.set()
         workers = [flush] + ([] if args.case == 'live-flip' else [worker]) + ([saver] if save else [])
         if args.case in ('live-flip', 'live-flip-cut') and not oracle:
             assert mode == '2s'
             workers.append(flipper)
         errors = s.run_storm(args.seconds, workers, args.stall)
         assert not errors and counts['flushes'], (counts, errors)
+        for role, client in retained.items():
+            assert client.must('PING') == b'PONG', f'{role} client closed before the workers joined'
+        if retained:
+            counts['clients_alive_after_join'] = len(retained)
         assert args.case == 'live-flip' or counts['work'], counts
         assert not save or counts['saves'] or (oracle and counts['cancelled_saves']), counts
         assert args.case not in ('live-flip', 'live-flip-cut') or oracle or counts['flips'], counts
@@ -411,7 +441,7 @@ def storm(args, directory, mode, engine, atomic, oracle):
                 b.c.must('SELECT', db)
                 keys = sorted(b.c.must('KEYS', '*'))
                 assert (keys, b.c.must('MGET', *keys) if keys else [], b.c.must('DBSIZE')) == expected
-    return dict(**counts, snapshots_checked=len(saved),
+    return dict(**counts, **flip_observed, flip_max_seconds=flip_max_seconds, snapshots_checked=len(saved),
                 aof_sentinels=sum(map(len, sentinels.values())), aof_namespaces=len(sentinels))
 
 

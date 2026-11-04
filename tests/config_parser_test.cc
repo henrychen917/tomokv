@@ -98,14 +98,13 @@ void documented_example() {
         fail("writing documented config example failed");
     if (std::fclose(file)) fail("closing documented config example failed");
     std::vector<std::string> storage;
-    const bool loaded = tomo::load_conf_file(path, storage);
+    std::vector<size_t> line_ends;
+    const bool loaded = tomo::load_conf_file(path, storage, &line_ends);
     ::unlink(path);
     if (!loaded) fail("documented config example did not tokenize");
-    std::vector<const char*> tokens;
-    for (const auto& token : storage) tokens.push_back(token.c_str());
     tomo::Config config;
     tomo::ConfigParseState state;
-    if (tomo::parse_config_args(tokens, config, state, 1, "docs-example") != tomo::kConfigParsed ||
+    if (tomo::parse_config_file(storage, line_ends, config, state, "docs-example") != tomo::kConfigParsed ||
         tomo::parse_config_args({"--ratio", "6:2", "--dir", "/tmp"}, config, state, 2,
                                 "docs-example") != tomo::kConfigParsed ||
         tomo::validate_config(config) != tomo::kConfigParsed)
@@ -168,6 +167,21 @@ void authfix_parser() {
         if (tomo::parse_config_args({"--requirepass", ""}, cfg, state, 2, "authfix") !=
                 tomo::kConfigParsed || !tomo::cfg_requirepass(cfg).empty())
             fail("explicit empty password rejected");
+    }
+    for (const char* words : {"nosave now", "save force", "default now", "nosave now force"}) {
+        std::vector<std::string> storage;
+        std::vector<size_t> ends;
+        if (!load(std::string("shutdown-on-sigterm ") + words +
+                  "\nshutdown-on-sigint " + words + "\n", storage, ends))
+            fail("multiword shutdown policy rejected by config file loader");
+        tomo::Config cfg;
+        tomo::ConfigParseState state;
+        uint8_t expected = 0;
+        const char* error = nullptr;
+        if (!tomo::cfg_shutdown_flags(tomo::Slice(words, std::strlen(words)), expected, error) ||
+            tomo::parse_config_file(storage, ends, cfg, state, "cfgfix") != tomo::kConfigParsed ||
+            cfg.shutdown_on_sigint != expected || cfg.shutdown_on_sigterm != expected)
+            fail("file and CLI shutdown policy grammar differ");
     }
     {
         StderrSilencer silence;

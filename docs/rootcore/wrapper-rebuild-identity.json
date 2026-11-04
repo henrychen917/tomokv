@@ -1,0 +1,84 @@
+{
+  "sections": {
+    ".text": {
+      "before": {
+        "address": 182992,
+        "size": 8865719,
+        "sha256": "9bc47184aabd1d1dfcfb794fa3acaefd9538ce46698a7b967b4473431988987d"
+      },
+      "after": {
+        "address": 182992,
+        "size": 8865719,
+        "sha256": "9bc47184aabd1d1dfcfb794fa3acaefd9538ce46698a7b967b4473431988987d"
+      },
+      "changed_bytes": 0
+    },
+    ".rodata": {
+      "before": {
+        "address": 9052160,
+        "size": 638308,
+        "sha256": "81d9f731c37db87c977d456619ad023583b57664622dfbb2c2b196e67718831c"
+      },
+      "after": {
+        "address": 9052160,
+        "size": 638308,
+        "sha256": "5d84aa309cdb776eac6ba4129ac46c5cbe17e40578f286494c5bc5d9d86a5dd2"
+      },
+      "changed_bytes": 16
+    },
+    ".data": {
+      "before": {
+        "address": 10657792,
+        "size": 19321,
+        "sha256": "b5957ead94b2eb6073aa1a57d4374b7b33363ab190206e407c38f15ac90f6435"
+      },
+      "after": {
+        "address": 10657792,
+        "size": 19321,
+        "sha256": "b5957ead94b2eb6073aa1a57d4374b7b33363ab190206e407c38f15ac90f6435"
+      },
+      "changed_bytes": 0
+    }
+  },
+  "arm_sha256": {
+    "PRE": "20cad68cbae07e8f8ce01b332f9a27236c500094f16221d33cb7aeae86e837e7",
+    "POST": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+    "PAD-A": "1728de4bc8e377581be39e1c554e0edd893c9f90c67aba3f57e55790ff26c38e"
+  },
+  "rodata_changes": [
+    {
+      "offsets": [
+        90055,
+        90056,
+        90057,
+        90058,
+        90059,
+        90061,
+        90062,
+        90081
+      ],
+      "before": "_git_sha1:93f43196\r\nredis_git_dirty:1\r\nredis_build",
+      "after": "_git_sha1:a8ed915e\r\nredis_git_dirty:0\r\nredis_build"
+    },
+    {
+      "offsets": [
+        574127,
+        574128,
+        574129,
+        574130,
+        574131,
+        574133,
+        574134
+      ],
+      "before": "_git_sha1:93f43196\r\nredis_gdis_",
+      "after": "_git_sha1:a8ed915e\r\nredis_gdis_"
+    },
+    {
+      "offsets": [
+        574158
+      ],
+      "before": "git_dirty:1\r\nredis_build",
+      "after": "git_dirty:0\r\nredis_build"
+    }
+  ]
+}

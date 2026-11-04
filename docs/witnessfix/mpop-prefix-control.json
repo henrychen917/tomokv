@@ -1,0 +1,1730 @@
+[
+  {
+    "leg": "epoll-2s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-2s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a0",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a0",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a0",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a0",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a0",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a0",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a0",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a0",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a0",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a0",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a0",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a0",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a1",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a1",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a1",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a1",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a1",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a1",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a1",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a1",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a1",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a1",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a1",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "epoll-1s-rl1-a1",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-2s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a0",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a0",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a1",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl0-a1",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a0",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a0",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a0",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a0",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a0",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a0",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a0",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a0",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a0",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a0",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a0",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a0",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a1",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a1",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a1",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a1",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a1",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a1",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a1",
+    "argv": [
+      "LMPOP",
+      0,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a1",
+    "argv": [
+      "LMPOP",
+      "a",
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a1",
+    "argv": [
+      "LMPOP",
+      -1,
+      "mpop:errors:first",
+      "LEFT"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a1",
+    "argv": [
+      "ZMPOP",
+      0,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a1",
+    "argv": [
+      "ZMPOP",
+      "a",
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  },
+  {
+    "leg": "uring-1s-rl1-a1",
+    "argv": [
+      "ZMPOP",
+      -1,
+      "mpop:errors:first",
+      "MIN"
+    ],
+    "old_tcl_prefix_accepts": true,
+    "oracle": "ERR numkeys should be greater than 0",
+    "target": "ERR numkeys planted unrelated suffix"
+  }
+]

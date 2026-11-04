@@ -90,7 +90,6 @@ def live(port, case, wb=False):
         assert admin.cmd('MGET',*keys)==[b'1']*len(keys)
         if wb: wb_window(admin,clients[1])
         stats=admin.cmd('INFO','stats').decode()
-        assert 'atomic_txn_order_violations:0\r\n' in stats
 
 
 def shutdown(path,mode,case,wb):

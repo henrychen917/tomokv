@@ -1,0 +1,82 @@
+[
+  {
+    "path": "done",
+    "bytes": 6,
+    "sha256": "c9f89851661da456b7bae828007df1b0f30a06beddc03e90df447f16b3c0cc24"
+  },
+  {
+    "path": "family.tsv",
+    "bytes": 52,
+    "sha256": "f688c0c0d9888a576f369d3fb4b627fe578ee501eead8e0c9fdbaf391c5a7d6f"
+  },
+  {
+    "path": "gate-fused-atomfix-0.txt",
+    "bytes": 911,
+    "sha256": "ed41110d93b56141b94b5776aff9c0d8f06c0dab8821737cf81df4dff5bd60d4"
+  },
+  {
+    "path": "gate-fused-edgeproto-0.txt",
+    "bytes": 93,
+    "sha256": "b2b910459029b2d43c8bee66d51ab2b6cafe94f37836385bcee5a7b4bf3d13b0"
+  },
+  {
+    "path": "gate-fused-multi_exec-0.txt",
+    "bytes": 1528,
+    "sha256": "45fc96a70574ae3c715859355b8ad414aae2f8619497cba36632e140c6ad37bc"
+  },
+  {
+    "path": "gate-fused-s6-0.txt",
+    "bytes": 454,
+    "sha256": "2a2a5b1001d782166e6d999e4d15e688bfbad2ce463e636eed16219605377f58"
+  },
+  {
+    "path": "gate-fused-spinprobe-0.txt",
+    "bytes": 261,
+    "sha256": "6a9ac3dd0d7013b7049e9ebf93a2bf14f5857f997f41e3f6b880a1263db1c4c7"
+  },
+  {
+    "path": "gate-fused-txn-nx-0.txt",
+    "bytes": 175,
+    "sha256": "56a6a4e8d5c737149246c2fddd94b0d4513d2ce8cb1545ee727ee36dc97bbce1"
+  },
+  {
+    "path": "gate-fused-txniso-0.txt",
+    "bytes": 1244,
+    "sha256": "24f2e074591a5874e8c02dd79a232235e2c8e38405f178bc21d3ee06acab60ec"
+  },
+  {
+    "path": "gate-srv-fused.5jJp0y",
+    "bytes": 11350,
+    "sha256": "79a1bd4d305ec4a0c3ef01c3adbfd11f3ea3ad700cfab4d332b7644a1b46257e"
+  },
+  {
+    "path": "gate-srv-fused.EzQQ5N",
+    "bytes": 11284,
+    "sha256": "8f7f243d0043817e649e12b53d7903aba71160e07767bb1cc9a78748ac5fa86a"
+  },
+  {
+    "path": "gate-srv-fused.Pcjq70",
+    "bytes": 10917,
+    "sha256": "c9b4311466b335da6a935754ff420e2ebca75799810fdb516a9fb3b5ebc985ef"
+  },
+  {
+    "path": "gate-srv-fused.ZSi4qW",
+    "bytes": 10840,
+    "sha256": "433d2cbe5f69599d08cd2e58e853c313ff3938b658324afef2663ce48e11e8fa"
+  },
+  {
+    "path": "ledger",
+    "bytes": 399,
+    "sha256": "abcb8ea0bf0ccc3278fd37ec32abb5b2e3ecedd2043d6b5b7856aa77b2c29d62"
+  },
+  {
+    "path": "output.log",
+    "bytes": 1389,
+    "sha256": "71485f2e0a632a1bd9b75a19e18e0a36c3d12813cc327a973a9d4d6f51e55127"
+  },
+  {
+    "path": "timings",
+    "bytes": 399,
+    "sha256": "abcb8ea0bf0ccc3278fd37ec32abb5b2e3ecedd2043d6b5b7856aa77b2c29d62"
+  }
+]

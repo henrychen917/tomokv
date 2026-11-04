@@ -1,0 +1,145 @@
+{
+  "label": "atomic-companions-final-uring",
+  "source": "/home/user/Projects/cx-wave14/build/gate-run.iV9Y3T",
+  "archive": "/home/user/Projects/cx-wave14/docs/wave14/jobs/atomic-companions-final-uring.tar.gz",
+  "archive_sha256": "b7ea2e2f182e190cbe923a6c60774ebbb5be6f3cb5e369ee43d48dda3c69bab5",
+  "files": [
+    {
+      "path": "families.tsv",
+      "size": 109,
+      "sha256": "ea8f3328e89e8bceeb76bc3cd81e6ad9773e441adfa1e64c77660dabd76ea24f"
+    },
+    {
+      "path": "jobs/atomic_floor/done",
+      "size": 6,
+      "sha256": "d819e1df0d38b302f00dec563af85695b5ff6662bc6d34f351ceb19beaf032cc"
+    },
+    {
+      "path": "jobs/atomic_floor/family.tsv",
+      "size": 57,
+      "sha256": "fa65b073644d6c9efe53f0a7079b0f1560335492a1def188699d0637f5f1574a"
+    },
+    {
+      "path": "jobs/atomic_floor/gate-pipeorder.txt",
+      "size": 87,
+      "sha256": "170f6538b3453deb3131838317a0758b2c1b7710b51fbac3dd3afe946d6af6c9"
+    },
+    {
+      "path": "jobs/atomic_floor/gate-srv-main.3fnK3w",
+      "size": 9806,
+      "sha256": "05b082798e9f8dd6b9bd28cd16af80791a412718dcd6f13bc3afb69add1215a7"
+    },
+    {
+      "path": "jobs/atomic_floor/ledger",
+      "size": 101,
+      "sha256": "403d70f1deded8860ddaedde4dc794b85810a10cbd89b4282b10f7a5b7818376"
+    },
+    {
+      "path": "jobs/atomic_floor/output.log",
+      "size": 399,
+      "sha256": "c6331d27c5f4d840da3420118715f90342e0b942373969b26377413c175fff5c"
+    },
+    {
+      "path": "jobs/atomic_floor/timings",
+      "size": 101,
+      "sha256": "403d70f1deded8860ddaedde4dc794b85810a10cbd89b4282b10f7a5b7818376"
+    },
+    {
+      "path": "jobs/release/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "size": 52,
+      "sha256": "5ad225b027a73e8633fef67f5838e7f4853eb30b733f8c384875ceb735774eed"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "size": 45,
+      "sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "size": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "size": 45,
+      "sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5"
+    },
+    {
+      "path": "phases.tsv",
+      "size": 88,
+      "sha256": "76781311cb66893a38daaf6eff4fc41e8c25546376482f5a1dfd3c6faccdd2a9"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1185,
+      "sha256": "5584741a1543805bfd7afa100afa615cbcad99c9b4d92c9c249fe97da07f3332"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 289084,
+      "sha256": "63df806503b06c38764ab4178e97f784da5b248c283aa3995263cb876f7a754a"
+    }
+  ],
+  "jobs": [
+    {
+      "job": "atomic_floor",
+      "done": "0\t2\t0",
+      "passed": 2,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "tripwire arm/disarm round-trip"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.130000",
+          "label": "pipelined same-conn program order (400 rolls)"
+        }
+      ]
+    },
+    {
+      "job": "release",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    }
+  ],
+  "command": [
+    "taskset",
+    "-c",
+    "0-31",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "0-7",
+    "--load-cores",
+    "8-15",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20096-20098",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave14/build/wave14/post-r7/tomokv"
+  ],
+  "binary_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+  "exit_code": 0,
+  "run_directory": "/home/user/Projects/cx-wave14/build/gate-run.iV9Y3T",
+  "engine": "uring",
+  "fused": false
+}

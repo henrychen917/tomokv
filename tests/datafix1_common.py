@@ -19,11 +19,10 @@ def boot(binary, port, cores, directory, flags=(), *, locale='C', oracle=False):
     argv = ['taskset', '-c', cores, str(Path(binary).resolve()), '--bind', '127.0.0.1',
             '--port', str(port), '--dir', str(directory.resolve()), '--save', '',
             '--appendonly', 'no', '--enable-debug-command', 'yes', *flags]
-    # Redis's process-title update overwrites the original /proc environment
-    # area. Keep it intact so the ready oracle's locale can be witnessed too.
+    # Preserve Redis's environment for the live locale assertion.
     if oracle:
         argv += ['--set-proc-title', 'no']
-    env = dict(os.environ, LANG=locale, LC_ALL=locale)
+    env = dict(os.environ, LANG='C', LC_ALL='C')
     with (directory / 'server.log').open('w') as log:
         p = subprocess.Popen(argv, stdout=log, stderr=subprocess.STDOUT, env=env)
     print(json.dumps(dict(start=argv, pid=p.pid)), flush=True)
@@ -89,7 +88,9 @@ class Pair:
 def main(feature, battery, *, multi=False, flags=()):
     p = argparse.ArgumentParser()
     p.add_argument('--binary', default='build/tomokv')
-    p.add_argument('--oracle', default='/home/user/Projects/redis74/src/redis-server')
+    p.add_argument('--oracle', default=os.environ.get('GATE_DIFFER_ORACLE_BIN',
+                   str(Path(os.environ.get('REDIS74_ROOT', '/home/user/Projects/redis74')) /
+                       'src/redis-server')))
     p.add_argument('--port', type=int, default=int(os.environ.get('GATE_PORT', 29800)))
     p.add_argument('--cores', default=os.environ.get('GATE_CORES', '48-55'))
     p.add_argument('--ratio', default='6:2')
@@ -98,9 +99,8 @@ def main(feature, battery, *, multi=False, flags=()):
     args = p.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     failures = []
-    # The dedicated locale-default witness must retain its non-C environment;
-    # all other batteries use the gate's required C boot environment.
-    boot_locale = 'en_US.UTF-8' if feature == 'CD4.6' else 'C'
+    # CD4.6 arms non-C collation with CONFIG, like every other C-locale boot.
+    boot_locale = 'C'
     legs = [('oracle', '2s', 0, 0)] if args.oracle_only else [
         (engine, mode, local, atomic)
         for engine in ('epoll', 'uring') for mode, local in (('2s', 0), ('1s', 0), ('1s', 1))

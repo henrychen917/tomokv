@@ -1,0 +1,46 @@
+{
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "0-7",
+    "--load-cores",
+    "0-7",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "21900-21902",
+    "--candidate-binary",
+    "/home/user/Projects/cx-eoffix/build/eoffix/post-final/tomokv"
+  ],
+  "native": "/home/user/Projects/cx-eoffix/build/eoffix/post-final/tomokv",
+  "native_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48",
+  "launcher_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48",
+  "engine": "epoll",
+  "jobs": "differ-split differ-armed",
+  "env": {
+    "LC_ALL": "C",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_CORRECTNESS_SHARED_CPUS": "1",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_ONLY_JOBS": "differ-split differ-armed",
+    "GATE_NET_IO": "epoll",
+    "GATE_PROOF_NET_IO": "epoll",
+    "GATE_DIFFER_NET_IO": "epoll",
+    "GATE_LEDGER": "/home/user/Projects/cx-eoffix/docs/eoffix/final-differ-epoll"
+  },
+  "exit_code": 0,
+  "directory": "/home/user/Projects/cx-eoffix/build/gate-run.fIb5tk",
+  "ledgers": {
+    "jobs/differ-equivalence/ledger": "ok\t21.610000\tmode equivalence part (all execution modes and knobs)\n",
+    "jobs/differ-armed-0/ledger": "ok\t527.460000\tRedis 7.4 differential part (armed fused, atomic 0)\n",
+    "jobs/differ-split-0/ledger": "ok\t529.640000\tRedis 7.4 differential part (split, atomic 0)\n",
+    "jobs/differ-split-1/ledger": "ok\t528.790000\tRedis 7.4 differential part (split, atomic 1)\n",
+    "jobs/differ-armed-1/ledger": "ok\t529.170000\tRedis 7.4 differential part (armed fused, atomic 1)\n",
+    "jobs/release/ledger": "ok\t0.010000\trelease build (+footprint locks)\n"
+  },
+  "captures": [],
+  "archive_sha256": "4994f1f161d135f3c17d8b8b1cbfe1ed9c7b841f0af1868e858d3498018f3e6a"
+}

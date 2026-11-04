@@ -1,0 +1,48 @@
+{
+  "owners": [
+    [
+      12,
+      6
+    ],
+    [
+      11,
+      7
+    ]
+  ],
+  "phases": [
+    {
+      "phase": "natural",
+      "seconds": 6.0,
+      "flips": 25561,
+      "flip_refusals": 0,
+      "refused": 0,
+      "identity_checks": 13026,
+      "FLUSHALL": 14313,
+      "FLUSHALL-ASYNC": 14896,
+      "FLUSHDB": 12878,
+      "DBSIZE-NOW": 26097,
+      "SCAN": 350,
+      "RANDOMKEY": 25562,
+      "EVAL": 25559,
+      "refusal_kinds": {},
+      "flip_stale_stage_refusals": 0
+    },
+    {
+      "phase": "held",
+      "seconds": 4,
+      "flips": 15199,
+      "flip_refusals": 0,
+      "refused": 0,
+      "identity_checks": 6858,
+      "FLUSHALL": 7599,
+      "FLUSHALL-ASYNC": 7599,
+      "FLUSHDB": 7598,
+      "DBSIZE-NOW": 15191,
+      "SCAN": 159,
+      "RANDOMKEY": 15194,
+      "EVAL": 15194,
+      "refusal_kinds": {},
+      "flip_stale_stage_refusals": 45590
+    }
+  ]
+}

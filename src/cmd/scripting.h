@@ -117,7 +117,11 @@ FunctionStats function_stats();
 // Cold snapshot library image. Load compiles the whole image before publishing
 // the registry, so corrupt input cannot expose a partially restored library set.
 bool function_snapshot_save(std::vector<uint8_t>& image, std::string& error);
+// The final shutdown save's registry cut: later FUNCTION mutations wait until the server exits
+// or that save (named by its snapshot epoch) fails. Called before the copy above.
+void function_final_cut(uint64_t epoch);
 bool function_snapshot_load(Slice image, bool flush, bool replace, std::string& error);
+bool function_restore_journal(Slice payload, std::string& error);
 
 // Whether argv[0] of this op is one of the FCALL forms. Routing shares EVAL's numkeys grammar but
 // Redis reports a different message for a malformed count.
@@ -128,6 +132,7 @@ bool function_metadata_write(const Op& op);
 bool script_metadata_write(const Op& op);
 // Execute one admitted callback after EXEC prepares its owner-private versions.
 // False means preparation parked; command errors complete normally with a reply.
+bool script_execute_exec(Shard& shard, Op& op, void* context, bool (*prepare)(void*));
 bool function_execute_exec(Shard& shard, Op& op, void* context,
                            bool (*prepare)(void*));
 

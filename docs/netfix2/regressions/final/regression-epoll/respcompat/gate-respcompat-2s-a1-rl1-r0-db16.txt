@@ -1,0 +1,4 @@
+oracle Redis 7.4.10
+oracle: 311 raw-wire cases attempted
+target: 311 raw-wire cases attempted
+PASS RESP protocol error compatibility: 311 cases x 2 arms

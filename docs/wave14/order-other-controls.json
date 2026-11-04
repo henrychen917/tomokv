@@ -1,0 +1,14 @@
+[
+  {
+    "arm": "rootcore",
+    "exit_code": 1
+  },
+  {
+    "arm": "clientcompat",
+    "exit_code": 1
+  },
+  {
+    "arm": "execfifo3",
+    "exit_code": 1
+  }
+]

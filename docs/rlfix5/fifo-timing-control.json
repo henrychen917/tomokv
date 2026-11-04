@@ -1,0 +1,322 @@
+[
+  {
+    "arm": "POST",
+    "leg": "fifo-1-1s-0-epoll",
+    "passed": true,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.001720626838505268,
+    "bound_seconds": 0.002489322467809874,
+    "failure": null
+  },
+  {
+    "arm": "POST",
+    "leg": "fifo-1-1s-0-uring",
+    "passed": true,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.0016088858246803284,
+    "bound_seconds": 0.0027417963906719344,
+    "failure": null
+  },
+  {
+    "arm": "POST",
+    "leg": "fifo-1-1s-1-epoll",
+    "passed": false,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.0030227405950427055,
+    "bound_seconds": 0.0022663501653077465,
+    "failure": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.0030227405950427055, 0.0022663501653077465)"
+  },
+  {
+    "arm": "POST",
+    "leg": "fifo-1-1s-1-uring",
+    "passed": false,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.003016691654920578,
+    "bound_seconds": 0.002264736002006591,
+    "failure": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.003016691654920578, 0.002264736002006591)"
+  },
+  {
+    "arm": "POST",
+    "leg": "fifo-1-2s-0-epoll",
+    "passed": false,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.002751801162958145,
+    "bound_seconds": 0.001644217537834564,
+    "failure": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.002751801162958145, 0.001644217537834564)"
+  },
+  {
+    "arm": "POST",
+    "leg": "fifo-1-2s-0-uring",
+    "passed": false,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.0028936415910720825,
+    "bound_seconds": 0.0016198393007959922,
+    "failure": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.0028936415910720825, 0.0016198393007959922)"
+  },
+  {
+    "arm": "POST",
+    "leg": "fifo-1-2s-1-epoll",
+    "passed": false,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.0027326196432113647,
+    "bound_seconds": 0.0016015610149036038,
+    "failure": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.0027326196432113647, 0.0016015610149036038)"
+  },
+  {
+    "arm": "POST",
+    "leg": "fifo-1-2s-1-uring",
+    "passed": false,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.0028834715485572815,
+    "bound_seconds": 0.0016304776022121918,
+    "failure": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.0028834715485572815, 0.0016304776022121918)"
+  },
+  {
+    "arm": "POST",
+    "leg": "fifo-16-1s-0-epoll",
+    "passed": true,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.001745506189763546,
+    "bound_seconds": 0.002760560264345677,
+    "failure": null
+  },
+  {
+    "arm": "POST",
+    "leg": "fifo-16-1s-0-uring",
+    "passed": true,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.001620725728571415,
+    "bound_seconds": 0.002612335952599241,
+    "failure": null
+  },
+  {
+    "arm": "POST",
+    "leg": "fifo-16-1s-1-epoll",
+    "passed": false,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.0030212700366973877,
+    "bound_seconds": 0.0023078041265541683,
+    "failure": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.0030212700366973877, 0.0023078041265541683)"
+  },
+  {
+    "arm": "POST",
+    "leg": "fifo-16-1s-1-uring",
+    "passed": true,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.001573675312101841,
+    "bound_seconds": 0.0026062462451813487,
+    "failure": null
+  },
+  {
+    "arm": "POST",
+    "leg": "fifo-16-2s-0-epoll",
+    "passed": false,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.002765890210866928,
+    "bound_seconds": 0.0017432674135585452,
+    "failure": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.002765890210866928, 0.0017432674135585452)"
+  },
+  {
+    "arm": "POST",
+    "leg": "fifo-16-2s-0-uring",
+    "passed": false,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.0028744805604219437,
+    "bound_seconds": 0.0016426341520035957,
+    "failure": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.0028744805604219437, 0.0016426341520035957)"
+  },
+  {
+    "arm": "POST",
+    "leg": "fifo-16-2s-1-epoll",
+    "passed": false,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.002673218958079815,
+    "bound_seconds": 0.0016796887721205601,
+    "failure": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.002673218958079815, 0.0016796887721205601)"
+  },
+  {
+    "arm": "POST",
+    "leg": "fifo-16-2s-1-uring",
+    "passed": false,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.0028769997879862785,
+    "bound_seconds": 0.0016523825080169633,
+    "failure": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.0028769997879862785, 0.0016523825080169633)"
+  },
+  {
+    "arm": "PRE",
+    "leg": "fifo-1-1s-0-epoll",
+    "passed": true,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.0017033331096172333,
+    "bound_seconds": 0.0026578347464988814,
+    "failure": null
+  },
+  {
+    "arm": "PRE",
+    "leg": "fifo-1-1s-0-uring",
+    "passed": false,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.0024760086089372635,
+    "bound_seconds": 0.002273515143970681,
+    "failure": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.0024760086089372635, 0.002273515143970681)"
+  },
+  {
+    "arm": "PRE",
+    "leg": "fifo-1-1s-1-epoll",
+    "passed": false,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.003059033304452896,
+    "bound_seconds": 0.002280024533187889,
+    "failure": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.003059033304452896, 0.002280024533187889)"
+  },
+  {
+    "arm": "PRE",
+    "leg": "fifo-1-1s-1-uring",
+    "passed": true,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.002101736143231392,
+    "bound_seconds": 0.002417426499633014,
+    "failure": null
+  },
+  {
+    "arm": "PRE",
+    "leg": "fifo-1-2s-0-epoll",
+    "passed": false,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.0027568452060222626,
+    "bound_seconds": 0.001629702266812303,
+    "failure": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.0027568452060222626, 0.001629702266812303)"
+  },
+  {
+    "arm": "PRE",
+    "leg": "fifo-1-2s-0-uring",
+    "passed": false,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.0029210923239588737,
+    "bound_seconds": 0.0016281939877221953,
+    "failure": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.0029210923239588737, 0.0016281939877221953)"
+  },
+  {
+    "arm": "PRE",
+    "leg": "fifo-1-2s-1-epoll",
+    "passed": false,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.0027138041332364082,
+    "bound_seconds": 0.001649759530178866,
+    "failure": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.0027138041332364082, 0.001649759530178866)"
+  },
+  {
+    "arm": "PRE",
+    "leg": "fifo-1-2s-1-uring",
+    "passed": false,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.0028635766357183456,
+    "bound_seconds": 0.0015660732316095756,
+    "failure": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.0028635766357183456, 0.0015660732316095756)"
+  },
+  {
+    "arm": "PRE",
+    "leg": "fifo-16-1s-0-epoll",
+    "passed": true,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.0018005985766649246,
+    "bound_seconds": 0.0025056129728680994,
+    "failure": null
+  },
+  {
+    "arm": "PRE",
+    "leg": "fifo-16-1s-0-uring",
+    "passed": true,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.0016852067783474922,
+    "bound_seconds": 0.002550829385110813,
+    "failure": null
+  },
+  {
+    "arm": "PRE",
+    "leg": "fifo-16-1s-1-epoll",
+    "passed": true,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.0017621014267206192,
+    "bound_seconds": 0.002899870215815383,
+    "failure": null
+  },
+  {
+    "arm": "PRE",
+    "leg": "fifo-16-1s-1-uring",
+    "passed": true,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.0014932313933968544,
+    "bound_seconds": 0.002364831618825702,
+    "failure": null
+  },
+  {
+    "arm": "PRE",
+    "leg": "fifo-16-2s-0-epoll",
+    "passed": false,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.002748102881014347,
+    "bound_seconds": 0.001680379611682086,
+    "failure": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.002748102881014347, 0.001680379611682086)"
+  },
+  {
+    "arm": "PRE",
+    "leg": "fifo-16-2s-0-uring",
+    "passed": false,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.002872781828045845,
+    "bound_seconds": 0.0016490571559205714,
+    "failure": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.002872781828045845, 0.0016490571559205714)"
+  },
+  {
+    "arm": "PRE",
+    "leg": "fifo-16-2s-1-epoll",
+    "passed": false,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.0027542365714907646,
+    "bound_seconds": 0.0016473057553099413,
+    "failure": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.0027542365714907646, 0.0016473057553099413)"
+  },
+  {
+    "arm": "PRE",
+    "leg": "fifo-16-2s-1-uring",
+    "passed": false,
+    "exact_values": true,
+    "order_violations": 0,
+    "p99_seconds": 0.0028807148337364197,
+    "bound_seconds": 0.0016562963471748288,
+    "failure": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.0028807148337364197, 0.0016562963471748288)"
+  }
+]

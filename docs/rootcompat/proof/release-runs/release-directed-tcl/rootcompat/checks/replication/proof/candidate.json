@@ -1,0 +1,623 @@
+{
+  "binary": "/home/user/Projects/cx-rootcompat/build/rootcompat/release/POST",
+  "sha256": "f3511f861a8a9a01ca24eafbb43766dca621e7c3c1f3512119c241b962ed26ed",
+  "checks": [
+    {
+      "label": "1s-uring-db1 replication field set",
+      "passed": true,
+      "actual": [
+        "connected_slaves",
+        "master_failover_state",
+        "master_repl_offset",
+        "master_replid",
+        "master_replid2",
+        "repl_backlog_active",
+        "repl_backlog_first_byte_offset",
+        "repl_backlog_histlen",
+        "repl_backlog_size",
+        "role",
+        "second_repl_offset"
+      ]
+    },
+    {
+      "label": "1s-uring-db1 role",
+      "passed": true,
+      "actual": "master"
+    },
+    {
+      "label": "1s-uring-db1 connected_slaves",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-uring-db1 master_failover_state",
+      "passed": true,
+      "actual": "no-failover"
+    },
+    {
+      "label": "1s-uring-db1 master_replid",
+      "passed": true,
+      "actual": "99c5a320e9f0f3538d95d5d7e7bbef8dc26c4b82"
+    },
+    {
+      "label": "1s-uring-db1 master_replid2",
+      "passed": true,
+      "actual": "0000000000000000000000000000000000000000"
+    },
+    {
+      "label": "1s-uring-db1 unused replid2",
+      "passed": true,
+      "actual": "0000000000000000000000000000000000000000"
+    },
+    {
+      "label": "1s-uring-db1 master_repl_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-uring-db1 second_repl_offset",
+      "passed": true,
+      "actual": "-1"
+    },
+    {
+      "label": "1s-uring-db1 repl_backlog_active",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-uring-db1 repl_backlog_size",
+      "passed": true,
+      "actual": "1048576"
+    },
+    {
+      "label": "1s-uring-db1 repl_backlog_first_byte_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-uring-db1 repl_backlog_histlen",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-uring-db16 replication field set",
+      "passed": true,
+      "actual": [
+        "connected_slaves",
+        "master_failover_state",
+        "master_repl_offset",
+        "master_replid",
+        "master_replid2",
+        "repl_backlog_active",
+        "repl_backlog_first_byte_offset",
+        "repl_backlog_histlen",
+        "repl_backlog_size",
+        "role",
+        "second_repl_offset"
+      ]
+    },
+    {
+      "label": "1s-uring-db16 role",
+      "passed": true,
+      "actual": "master"
+    },
+    {
+      "label": "1s-uring-db16 connected_slaves",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-uring-db16 master_failover_state",
+      "passed": true,
+      "actual": "no-failover"
+    },
+    {
+      "label": "1s-uring-db16 master_replid",
+      "passed": true,
+      "actual": "fbc22e0aef69fc7e4fe964b8c4b3cd9db11d5db2"
+    },
+    {
+      "label": "1s-uring-db16 master_replid2",
+      "passed": true,
+      "actual": "0000000000000000000000000000000000000000"
+    },
+    {
+      "label": "1s-uring-db16 unused replid2",
+      "passed": true,
+      "actual": "0000000000000000000000000000000000000000"
+    },
+    {
+      "label": "1s-uring-db16 master_repl_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-uring-db16 second_repl_offset",
+      "passed": true,
+      "actual": "-1"
+    },
+    {
+      "label": "1s-uring-db16 repl_backlog_active",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-uring-db16 repl_backlog_size",
+      "passed": true,
+      "actual": "1048576"
+    },
+    {
+      "label": "1s-uring-db16 repl_backlog_first_byte_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-uring-db16 repl_backlog_histlen",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-epoll-db1 replication field set",
+      "passed": true,
+      "actual": [
+        "connected_slaves",
+        "master_failover_state",
+        "master_repl_offset",
+        "master_replid",
+        "master_replid2",
+        "repl_backlog_active",
+        "repl_backlog_first_byte_offset",
+        "repl_backlog_histlen",
+        "repl_backlog_size",
+        "role",
+        "second_repl_offset"
+      ]
+    },
+    {
+      "label": "1s-epoll-db1 role",
+      "passed": true,
+      "actual": "master"
+    },
+    {
+      "label": "1s-epoll-db1 connected_slaves",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-epoll-db1 master_failover_state",
+      "passed": true,
+      "actual": "no-failover"
+    },
+    {
+      "label": "1s-epoll-db1 master_replid",
+      "passed": true,
+      "actual": "5bfe0ec8fcd24bd22bbf26145ac9c0a6af045c9f"
+    },
+    {
+      "label": "1s-epoll-db1 master_replid2",
+      "passed": true,
+      "actual": "0000000000000000000000000000000000000000"
+    },
+    {
+      "label": "1s-epoll-db1 unused replid2",
+      "passed": true,
+      "actual": "0000000000000000000000000000000000000000"
+    },
+    {
+      "label": "1s-epoll-db1 master_repl_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-epoll-db1 second_repl_offset",
+      "passed": true,
+      "actual": "-1"
+    },
+    {
+      "label": "1s-epoll-db1 repl_backlog_active",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-epoll-db1 repl_backlog_size",
+      "passed": true,
+      "actual": "1048576"
+    },
+    {
+      "label": "1s-epoll-db1 repl_backlog_first_byte_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-epoll-db1 repl_backlog_histlen",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-epoll-db16 replication field set",
+      "passed": true,
+      "actual": [
+        "connected_slaves",
+        "master_failover_state",
+        "master_repl_offset",
+        "master_replid",
+        "master_replid2",
+        "repl_backlog_active",
+        "repl_backlog_first_byte_offset",
+        "repl_backlog_histlen",
+        "repl_backlog_size",
+        "role",
+        "second_repl_offset"
+      ]
+    },
+    {
+      "label": "1s-epoll-db16 role",
+      "passed": true,
+      "actual": "master"
+    },
+    {
+      "label": "1s-epoll-db16 connected_slaves",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-epoll-db16 master_failover_state",
+      "passed": true,
+      "actual": "no-failover"
+    },
+    {
+      "label": "1s-epoll-db16 master_replid",
+      "passed": true,
+      "actual": "6708a6d2f24a7b401fa26f5d8b279d973cdceede"
+    },
+    {
+      "label": "1s-epoll-db16 master_replid2",
+      "passed": true,
+      "actual": "0000000000000000000000000000000000000000"
+    },
+    {
+      "label": "1s-epoll-db16 unused replid2",
+      "passed": true,
+      "actual": "0000000000000000000000000000000000000000"
+    },
+    {
+      "label": "1s-epoll-db16 master_repl_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-epoll-db16 second_repl_offset",
+      "passed": true,
+      "actual": "-1"
+    },
+    {
+      "label": "1s-epoll-db16 repl_backlog_active",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-epoll-db16 repl_backlog_size",
+      "passed": true,
+      "actual": "1048576"
+    },
+    {
+      "label": "1s-epoll-db16 repl_backlog_first_byte_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-epoll-db16 repl_backlog_histlen",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-uring-db1 replication field set",
+      "passed": true,
+      "actual": [
+        "connected_slaves",
+        "master_failover_state",
+        "master_repl_offset",
+        "master_replid",
+        "master_replid2",
+        "repl_backlog_active",
+        "repl_backlog_first_byte_offset",
+        "repl_backlog_histlen",
+        "repl_backlog_size",
+        "role",
+        "second_repl_offset"
+      ]
+    },
+    {
+      "label": "2s-uring-db1 role",
+      "passed": true,
+      "actual": "master"
+    },
+    {
+      "label": "2s-uring-db1 connected_slaves",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-uring-db1 master_failover_state",
+      "passed": true,
+      "actual": "no-failover"
+    },
+    {
+      "label": "2s-uring-db1 master_replid",
+      "passed": true,
+      "actual": "17b6ce97d0e7803fc39d483c9fe172323e7e67c2"
+    },
+    {
+      "label": "2s-uring-db1 master_replid2",
+      "passed": true,
+      "actual": "0000000000000000000000000000000000000000"
+    },
+    {
+      "label": "2s-uring-db1 unused replid2",
+      "passed": true,
+      "actual": "0000000000000000000000000000000000000000"
+    },
+    {
+      "label": "2s-uring-db1 master_repl_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-uring-db1 second_repl_offset",
+      "passed": true,
+      "actual": "-1"
+    },
+    {
+      "label": "2s-uring-db1 repl_backlog_active",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-uring-db1 repl_backlog_size",
+      "passed": true,
+      "actual": "1048576"
+    },
+    {
+      "label": "2s-uring-db1 repl_backlog_first_byte_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-uring-db1 repl_backlog_histlen",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-uring-db16 replication field set",
+      "passed": true,
+      "actual": [
+        "connected_slaves",
+        "master_failover_state",
+        "master_repl_offset",
+        "master_replid",
+        "master_replid2",
+        "repl_backlog_active",
+        "repl_backlog_first_byte_offset",
+        "repl_backlog_histlen",
+        "repl_backlog_size",
+        "role",
+        "second_repl_offset"
+      ]
+    },
+    {
+      "label": "2s-uring-db16 role",
+      "passed": true,
+      "actual": "master"
+    },
+    {
+      "label": "2s-uring-db16 connected_slaves",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-uring-db16 master_failover_state",
+      "passed": true,
+      "actual": "no-failover"
+    },
+    {
+      "label": "2s-uring-db16 master_replid",
+      "passed": true,
+      "actual": "d8436ec6bef666a824aa832d97595fb35afd2974"
+    },
+    {
+      "label": "2s-uring-db16 master_replid2",
+      "passed": true,
+      "actual": "0000000000000000000000000000000000000000"
+    },
+    {
+      "label": "2s-uring-db16 unused replid2",
+      "passed": true,
+      "actual": "0000000000000000000000000000000000000000"
+    },
+    {
+      "label": "2s-uring-db16 master_repl_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-uring-db16 second_repl_offset",
+      "passed": true,
+      "actual": "-1"
+    },
+    {
+      "label": "2s-uring-db16 repl_backlog_active",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-uring-db16 repl_backlog_size",
+      "passed": true,
+      "actual": "1048576"
+    },
+    {
+      "label": "2s-uring-db16 repl_backlog_first_byte_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-uring-db16 repl_backlog_histlen",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-epoll-db1 replication field set",
+      "passed": true,
+      "actual": [
+        "connected_slaves",
+        "master_failover_state",
+        "master_repl_offset",
+        "master_replid",
+        "master_replid2",
+        "repl_backlog_active",
+        "repl_backlog_first_byte_offset",
+        "repl_backlog_histlen",
+        "repl_backlog_size",
+        "role",
+        "second_repl_offset"
+      ]
+    },
+    {
+      "label": "2s-epoll-db1 role",
+      "passed": true,
+      "actual": "master"
+    },
+    {
+      "label": "2s-epoll-db1 connected_slaves",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-epoll-db1 master_failover_state",
+      "passed": true,
+      "actual": "no-failover"
+    },
+    {
+      "label": "2s-epoll-db1 master_replid",
+      "passed": true,
+      "actual": "8cb3543e9ef12e081854cd11ac2a7b883c0b698e"
+    },
+    {
+      "label": "2s-epoll-db1 master_replid2",
+      "passed": true,
+      "actual": "0000000000000000000000000000000000000000"
+    },
+    {
+      "label": "2s-epoll-db1 unused replid2",
+      "passed": true,
+      "actual": "0000000000000000000000000000000000000000"
+    },
+    {
+      "label": "2s-epoll-db1 master_repl_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-epoll-db1 second_repl_offset",
+      "passed": true,
+      "actual": "-1"
+    },
+    {
+      "label": "2s-epoll-db1 repl_backlog_active",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-epoll-db1 repl_backlog_size",
+      "passed": true,
+      "actual": "1048576"
+    },
+    {
+      "label": "2s-epoll-db1 repl_backlog_first_byte_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-epoll-db1 repl_backlog_histlen",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-epoll-db16 replication field set",
+      "passed": true,
+      "actual": [
+        "connected_slaves",
+        "master_failover_state",
+        "master_repl_offset",
+        "master_replid",
+        "master_replid2",
+        "repl_backlog_active",
+        "repl_backlog_first_byte_offset",
+        "repl_backlog_histlen",
+        "repl_backlog_size",
+        "role",
+        "second_repl_offset"
+      ]
+    },
+    {
+      "label": "2s-epoll-db16 role",
+      "passed": true,
+      "actual": "master"
+    },
+    {
+      "label": "2s-epoll-db16 connected_slaves",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-epoll-db16 master_failover_state",
+      "passed": true,
+      "actual": "no-failover"
+    },
+    {
+      "label": "2s-epoll-db16 master_replid",
+      "passed": true,
+      "actual": "cf4206b92214e47ed059e14c824e023b575f1608"
+    },
+    {
+      "label": "2s-epoll-db16 master_replid2",
+      "passed": true,
+      "actual": "0000000000000000000000000000000000000000"
+    },
+    {
+      "label": "2s-epoll-db16 unused replid2",
+      "passed": true,
+      "actual": "0000000000000000000000000000000000000000"
+    },
+    {
+      "label": "2s-epoll-db16 master_repl_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-epoll-db16 second_repl_offset",
+      "passed": true,
+      "actual": "-1"
+    },
+    {
+      "label": "2s-epoll-db16 repl_backlog_active",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-epoll-db16 repl_backlog_size",
+      "passed": true,
+      "actual": "1048576"
+    },
+    {
+      "label": "2s-epoll-db16 repl_backlog_first_byte_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-epoll-db16 repl_backlog_histlen",
+      "passed": true,
+      "actual": "0"
+    }
+  ],
+  "slowlog": {}
+}

@@ -1,0 +1,10 @@
+{
+  "arm": "pre",
+  "kind": "receive",
+  "namespace": "db0",
+  "server_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
+  "probe_sha256": "468dbc6605a97b769d0763f921654a2b752016afee5d0a1866560b12bc67549f",
+  "entered_groups": 7,
+  "matched": 7,
+  "unmatched": []
+}

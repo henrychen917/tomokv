@@ -1,0 +1,27 @@
+[
+  {
+    "label": "accepted",
+    "actual": "PONG",
+    "expected": "PONG"
+  },
+  {
+    "label": "accepted",
+    "actual": "PONG",
+    "expected": "PONG"
+  },
+  {
+    "label": "accepted",
+    "actual": "PONG",
+    "expected": "PONG"
+  },
+  {
+    "label": "accepted",
+    "actual": "PONG",
+    "expected": "PONG"
+  },
+  {
+    "label": "killed",
+    "actual": 5,
+    "expected": 4
+  }
+]

@@ -176,6 +176,21 @@ class DriverTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'changed expiry section anchor'):
             self.run_driver('expwide', 'pass\n')
 
+    def test_unavailable_or_unauthorized_rows_fail_before_boot(self):
+        import os
+        from unittest.mock import patch
+        import lottery_attempt
+        for family, reason in (('xmove', 'candidate-binary W6 hit'),
+                               ('flip saturated', 'excludes load generators')):
+            with self.subTest(family=family), \
+                    patch.dict(os.environ, GATE_PROOF_NO_RATES='1'), \
+                    patch.object(lottery_attempt, 'server') as boot, \
+                    patch.object(lottery_attempt, 'run') as run:
+                with self.assertRaisesRegex(ValueError, reason):
+                    lottery_attempt.attempt(dict(family=family, job='debug-0'), None)
+                boot.assert_not_called()
+                run.assert_not_called()
+
 
 class CalibrationTests(unittest.TestCase):
     def result(self, row, attempts, hits, seconds, witnesses=None):

@@ -1,0 +1,15 @@
+  ok   no accepts missing client cert
+  ok   no accepts configured client cert
+  ok   client rejects untrusted server certificate
+  ok   all TLS knobs are visible and boot-only
+  ok   TLS1.2 + TLS1.3 handshake matrix (forced fallback)
+  ok   8MiB + boundary values pipeline byte-identically
+  ok   TLS GET borrow producer selected the copy-only handler
+  ok   cross-shard MGET copies and releases borrowed plaintext
+  ok   RESET preserves TLS transport
+  ok   torn TLS record cannot advance plaintext parser cursors
+  ok   abrupt disconnects during 1MiB input and output
+  ok   concurrent plaintext and TLS clients
+  ok   wrong-transport connections fail cleanly
+  ok   TLS counters prove handshake/transport/zc/plain arms fired
+TLS PASS (no)

@@ -1,0 +1,10 @@
+{
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\nCopyright (C) 2023 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+  "linker": "GNU ld (GNU Binutils for Ubuntu) 2.42\nCopyright (C) 2024 Free Software Foundation, Inc.\nThis program is free software; you may redistribute it under the terms of\nthe GNU General Public License version 3 or (at your option) a later version.\nThis program has absolutely no warranty.\n",
+  "affinity": "0-31",
+  "jobs": 32,
+  "pre_source_git_archive": "e32b04a445b056976abb308aa598e356fcbaae74 Makefile src third_party tests tools",
+  "pre_make_q_all": 0,
+  "post_make_q_all": 0,
+  "lc_all": "C"
+}

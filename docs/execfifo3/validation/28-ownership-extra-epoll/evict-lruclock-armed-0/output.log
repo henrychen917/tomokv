@@ -1,0 +1,2 @@
+  row budget: 900s; median=255.3s; correctness-plan-fallback; mechanism-floor=512s (two production 256s clock buckets); eviction lruclock battery (fused+armed, atomic 0)
+  eviction lruclock battery (fused+armed, atomic 0)    ok

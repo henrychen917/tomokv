@@ -1,0 +1,8 @@
+  row budget: 900s; median=-s; no-history-conservative-default; pubtrackfix TRACK-BCAST-BATCH
+  pubtrackfix TRACK-BCAST-BATCH                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; pubtrackfix PUBSUB-REPLY-OFF-PUSH
+  pubtrackfix PUBSUB-REPLY-OFF-PUSH                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; pubtrackfix PUBSUB-IMPLICIT-CONSUMER-EVENT
+  pubtrackfix PUBSUB-IMPLICIT-CONSUMER-EVENT           ok
+  row budget: 900s; median=-s; no-history-conservative-default; pubtrackfix PUBSUB-EVICT-ON-MAXMEMORY
+  pubtrackfix PUBSUB-EVICT-ON-MAXMEMORY                ok

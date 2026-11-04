@@ -1,0 +1,104 @@
+{
+  "binary": "/home/user/Projects/cx-storefix5/build/storefix5/pre-source/build/tomokv",
+  "sha256": "59ad75c28b64f855dd5d80fafc39928386b55eaeb900016fe09da93b7dd902b2",
+  "argv": [
+    "/home/user/Projects/cx-storefix5/build/storefix5/pre-source/build/tomokv",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "21600",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--enable-debug-command",
+    "yes",
+    "--dir",
+    "/home/user/Projects/cx-storefix5/build/storefix5/tmpxpkkfbrd",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--databases",
+    "16",
+    "--net-io",
+    "uring"
+  ],
+  "affinity": [
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23
+  ],
+  "locale": "C",
+  "cases": {
+    "randomkey": {
+      "passed": false,
+      "error": "RANDOMKEY still visits every elapsed key on every shard"
+    },
+    "append": {
+      "result": {
+        "16": {
+          "single_call_us": [
+            1126.794,
+            993.464,
+            1065.354,
+            276.732,
+            477.032
+          ],
+          "value_and_ttl": true
+        },
+        "1024": {
+          "single_call_us": [
+            998.785,
+            998.934,
+            1002.354,
+            886.994,
+            1127.895
+          ],
+          "value_and_ttl": true
+        },
+        "65536": {
+          "single_call_us": [
+            998.594,
+            333.801,
+            245.832,
+            237.881,
+            301.461
+          ],
+          "value_and_ttl": true
+        },
+        "1048576": {
+          "single_call_us": [
+            998.575,
+            995.084,
+            1004.114,
+            992.434,
+            548.262
+          ],
+          "value_and_ttl": true
+        },
+        "4194304": {
+          "single_call_us": [
+            2889.371,
+            1921.508,
+            1293.355,
+            976.314,
+            997.534
+          ],
+          "value_and_ttl": true
+        }
+      },
+      "passed": true
+    },
+    "idle": {
+      "passed": false,
+      "error": "idle clock missing from used_memory"
+    }
+  },
+  "exit": 0
+}

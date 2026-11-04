@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; no-history-conservative-default; Redis 7.4 infofix missing (both modes/engines/runtimes)
+  Redis 7.4 infofix missing (both modes/engines/runtimes) ok

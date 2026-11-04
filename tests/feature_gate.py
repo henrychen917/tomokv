@@ -260,9 +260,12 @@ def smoke(conn, port, knobs):
 
 def run_cell(args, cell):
     knobs, argv = config(cell, args.server_cpus, args.ratio)
+    engine = args.net_io
+    knobs['net-io'] = engine
+    argv += ['--net-io', args.net_io]
     directory = Path(args.output) / cell
     start = time.monotonic()
-    evidence = dict(cell=cell, requested=knobs)
+    evidence = dict(cell=cell, requested=knobs, net_io=engine)
     if refuses_boot(cell):
         evidence['contract'] = 'refusal'
         try:
@@ -286,6 +289,7 @@ def run_cell(args, cell):
     try:
         with server(args.binary, args.server_cpus, args.port, directory, argv) as (conn, process):
             actual = info(conn, 'SERVER', 'STATS', 'FLIPCTL')
+            require(actual.get('net_io') == args.net_io, 'network engine differs from request')
             check_config(actual, knobs, cell, args.server_cpus)
             masks = [sorted(os.sched_getaffinity(int(path.name)))
                      for path in Path(f'/proc/{process.pid}/task').iterdir()]
@@ -321,6 +325,7 @@ def main():
     parser.add_argument('--server-cpus', default='8-15')
     parser.add_argument('--load-cpus', default='96-127')
     parser.add_argument('--ratio', default='6:2')
+    parser.add_argument('--net-io', choices=('uring', 'epoll'), default=os.getenv('GATE_PROOF_NET_IO', os.getenv('GATE_NET_IO', 'uring')))
     parser.add_argument('--port', type=int, default=8620)
     parser.add_argument('--output', required=True, help='new artifact directory; never reuse a run')
     which = parser.add_mutually_exclusive_group(required=True)
@@ -328,7 +333,7 @@ def main():
     which.add_argument('--matrix', action='store_true')
     args = parser.parse_args()
     install_signals()
-    pin_driver(args.server_cpus, args.load_cpus)
+    pin_driver(args.server_cpus, args.load_cpus, correctness_only=True)
     inventory(args.server_cpus, args.ratio)
     results = [run_cell(args, cell) for cell in (CELLS if args.matrix else [args.cell])]
     return 0 if all(results) else 1

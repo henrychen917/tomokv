@@ -1,0 +1,17 @@
+{
+  "geometry": {},
+  "command": [
+    "GEORADIUS",
+    "k",
+    0,
+    0,
+    100,
+    "km"
+  ],
+  "expected": [
+    [
+      "m"
+    ]
+  ],
+  "before": 0
+}

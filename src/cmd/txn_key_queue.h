@@ -44,6 +44,7 @@ struct TxnReservation {
 struct TxnWaiter {
     TxnWaiter *prev = nullptr, *next = nullptr;
     TxnWaiter *wprev = nullptr, *wnext = nullptr;
+    TxnWaiter *eprev = nullptr, *enext = nullptr; // EXEC-only FIFO (D-F2)
     TxnReservation entry;
     TxnKeyQueue* queue = nullptr;
     bool waiting = false;
@@ -64,6 +65,7 @@ struct TxnKeyQueue {
     std::vector<TxnHeld> held;
     TxnWaiter *head = nullptr, *tail = nullptr;
     TxnWaiter *whead = nullptr, *wtail = nullptr;
+    TxnWaiter *ehead = nullptr, *etail = nullptr;
     std::vector<TxnReservation> marks;
     uint32_t waiters = 0;
     bool empty() const { return held.empty() && !head && marks.empty(); }

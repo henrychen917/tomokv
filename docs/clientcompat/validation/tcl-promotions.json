@@ -1,0 +1,99 @@
+{
+  "run": "build/gate-run.iOV7wW",
+  "summary": [
+    {
+      "mode": "2s",
+      "files": 37,
+      "runs": 39,
+      "repeated_files": {
+        "unit/slowlog": 3
+      },
+      "manifest_errors": 0,
+      "sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01"
+    },
+    {
+      "mode": "1s",
+      "files": 37,
+      "runs": 39,
+      "repeated_files": {
+        "unit/slowlog": 3
+      },
+      "manifest_errors": 0,
+      "sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01"
+    }
+  ],
+  "promotions": [
+    {
+      "mode": "2s",
+      "file": "unit/pause",
+      "test": "Test old pause-all takes precedence over new pause-write (less restrictive)",
+      "event": {
+        "status": "ok",
+        "file": "tests/unit/pause.tcl",
+        "test": "Test old pause-all takes precedence over new pause-write (less restrictive) in tests/unit/pause.tcl",
+        "data": "Test old pause-all takes precedence over new pause-write (less restrictive)",
+        "milliseconds": "264"
+      }
+    },
+    {
+      "mode": "2s",
+      "file": "unit/introspection",
+      "test": "CLIENT KILL SKIPME YES/NO will kill all clients",
+      "event": {
+        "status": "ok",
+        "file": "tests/unit/introspection.tcl",
+        "test": "CLIENT KILL SKIPME YES/NO will kill all clients in tests/unit/introspection.tcl",
+        "data": "CLIENT KILL SKIPME YES/NO will kill all clients",
+        "milliseconds": "52"
+      }
+    },
+    {
+      "mode": "2s",
+      "file": "unit/pubsub",
+      "test": "unsubscribe inside multi, and publish to self",
+      "event": {
+        "status": "ok",
+        "file": "tests/unit/pubsub.tcl",
+        "test": "unsubscribe inside multi, and publish to self in tests/unit/pubsub.tcl",
+        "data": "unsubscribe inside multi, and publish to self",
+        "milliseconds": "200"
+      }
+    },
+    {
+      "mode": "1s",
+      "file": "unit/pause",
+      "test": "Test old pause-all takes precedence over new pause-write (less restrictive)",
+      "event": {
+        "status": "ok",
+        "file": "tests/unit/pause.tcl",
+        "test": "Test old pause-all takes precedence over new pause-write (less restrictive) in tests/unit/pause.tcl",
+        "data": "Test old pause-all takes precedence over new pause-write (less restrictive)",
+        "milliseconds": "265"
+      }
+    },
+    {
+      "mode": "1s",
+      "file": "unit/introspection",
+      "test": "CLIENT KILL SKIPME YES/NO will kill all clients",
+      "event": {
+        "status": "ok",
+        "file": "tests/unit/introspection.tcl",
+        "test": "CLIENT KILL SKIPME YES/NO will kill all clients in tests/unit/introspection.tcl",
+        "data": "CLIENT KILL SKIPME YES/NO will kill all clients",
+        "milliseconds": "52"
+      }
+    },
+    {
+      "mode": "1s",
+      "file": "unit/pubsub",
+      "test": "unsubscribe inside multi, and publish to self",
+      "event": {
+        "status": "ok",
+        "file": "tests/unit/pubsub.tcl",
+        "test": "unsubscribe inside multi, and publish to self in tests/unit/pubsub.tcl",
+        "data": "unsubscribe inside multi, and publish to self",
+        "milliseconds": "50"
+      }
+    }
+  ]
+}

@@ -12,6 +12,7 @@
 // the blocked flag, re-check, and block. Producers only pay a wake syscall while that flag is armed.
 #pragma once
 #include "../cmd/txn_retry_queue.h"
+#include "atomic_parked.h"
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>
@@ -171,6 +172,17 @@ public:
         srv_ = srv; self_ = self;
         srv_->bind_owner_notify_pending(self_->id(), &notify_keyless_pending_);
         aof_manager_ = srv->aof().configured() ? &srv->aof() : nullptr;
+        cfgfix_register_executor(srv, self->id(), this, [](void* opaque, int action) {
+            auto& loop = *static_cast<ExLoopT*>(opaque);
+            if (action == 2) {
+                loop.aof_flush_pass();
+                for (Shard* shard : loop.self_->shards())
+                    if (shard->store().aof().has_pending()) return false;
+                return !loop.srv_->aof().completions_pending(loop.self_->id());
+            }
+            loop.aof_manager_ = action == 1 ? &loop.srv_->aof() : nullptr;
+            return true;
+        });
         // Multiplication by an odd word is injective modulo 2^64. Every thread
         // therefore starts at a distinct nonzero xorshift state, including 0.
         foreign_touch_random_ = (static_cast<uint64_t>(self->id()) + 1) * 0x9e3779b97f4a7c15ULL;
@@ -397,7 +409,7 @@ public:
             if (read_local_enabled())
                 srv_->debug_assert_read_local_sinks_follow_ownership(self_->id());
 #endif
-        const bool lb_frozen = lb_controller_armed_ && srv_->lb_dispatch_paused();
+        const bool lb_frozen = lb_controller_armed_ && srv_->lb_stage() == LbStage::ExDrain;
         if (!lb_frozen) refresh_live_config();
         if (maxmemory_enabled_)
             cached_lru_clock_ = static_cast<uint8_t>(
@@ -617,7 +629,7 @@ public:
                 srv_->debug_assert_read_local_sinks_follow_ownership(self_->id());
 #endif
             const bool flip_frozen = srv_->flip_stage() >= FlipStage::ExDrain;
-            const bool lb_frozen = lb_controller_armed_ && srv_->lb_dispatch_paused();
+            const bool lb_frozen = lb_controller_armed_ && srv_->lb_stage() == LbStage::ExDrain;
             const bool placement_frozen = flip_frozen || lb_frozen;
             // refresh_live_config() walks this owner's shard vector. The coordinator may rewrite
             // those vectors after ExDrain acknowledgement, so a frozen executor must not even run
@@ -759,6 +771,7 @@ public:
 private:
     friend class IoLoop;
     friend struct CoreConcurrencyTest;
+    friend struct TxnChainTest;
 #ifdef TOMO_CORE_CONCURRENCY_TEST
     inline static void (*test_after_done_)(Client*) = nullptr;
     inline static void (*test_after_drain_ack_)() = nullptr;
@@ -1677,7 +1690,8 @@ private:
         if constexpr (OwnsShards) {
             const uint64_t shard_limit = snapshot.maxmemory / srv_->nshards();
             for (Shard* sh : self_->shards()) {
-                sh->configure_maxmemory(enabled, shard_limit, snapshot.policy, snapshot.samples);
+                if (!sh->configure_maxmemory(enabled, shard_limit, snapshot.policy, snapshot.samples))
+                    report_idle_clock_unavailable(*sh);
                 // CLIENT TRACKING and periodic SAVE need the same per-write observation points as
                 // keyspace notifications, so they ride the shard mask as synthetic observer bits.
                 // notify_record expands those observers over NOTIFY_ALL without adding those class
@@ -1707,6 +1721,8 @@ private:
         slowlog_armed_ = slowlog_arm_.armed();
         debug_fanout_defer_us_ = snapshot.debug_fanout_defer_us;
         live_config_version_ = snapshot.version;
+        if constexpr (OwnsShards)
+            srv_->tracking_config_applied(self_->id(), snapshot.version);
     }
 
     // CONFIG SET maxmemory/-policy/-samples: called by this owner's own CONFIG fragment, after the
@@ -1721,7 +1737,8 @@ private:
         const bool enabled = snapshot.maxmemory != 0;
         const uint64_t shard_limit = snapshot.maxmemory / srv_->nshards();
         for (Shard* sh : self_->shards())
-            sh->configure_maxmemory(enabled, shard_limit, snapshot.policy, snapshot.samples);
+            if (!sh->configure_maxmemory(enabled, shard_limit, snapshot.policy, snapshot.samples))
+                report_idle_clock_unavailable(*sh);
         maxmemory_enabled_ = enabled;
         foreign_touch_policy_ =
             !enabled                                    ? kForeignTouchNone
@@ -1737,6 +1754,13 @@ private:
             if (read_local_enabled())
                 set_read_local_point_writes_precise(
                     !enabled || snapshot.policy == MaxmemoryPolicy::NoEviction);
+    }
+
+    // A failed idle-clock allocation cannot refuse anything here: keep the limit (eviction uses
+    // the five-bit LRU meta) and report that this store's OBJECT IDLETIME is degraded to 0.
+    [[gnu::cold, gnu::noinline]] static void report_idle_clock_unavailable(const Shard& sh) {
+        std::fprintf(stderr, "WARNING: maxmemory idle clock allocation failed for shard %u; "
+                     "OBJECT IDLETIME reports 0 for its keys\n", static_cast<unsigned>(sh.id()));
     }
 
     // Binds this executor as the thread's CONFIG maxmemory hook for one loop tenure.
@@ -2585,7 +2609,10 @@ private:
     __attribute__((noinline)) MultiTaskResult execute_multi_unit(
         const Task& task, Shard& shard, void (*promote)(void*, MultiOwnerRetryNode&)) {
         AofOwnerContext context{self_->id(), &ring_, &self_->sig()};
-        const MultiRetryPromoter promoter{this, promote};
+        const MultiRetryPromoter promoter{this, promote,
+            [](void* loop, const void* token, int32_t sid) {
+                static_cast<ExLoopT*>(loop)->promote_deferred_writer(token, sid);
+            }};
 #ifdef TOMO_EXEC1S_DEBUG
         Exec1sVisitScope visits(self_->id());
 #endif
@@ -2600,51 +2627,70 @@ private:
     __attribute__((noinline)) void queue_multi_retry(const Task& task) {
         multi_retries_.enqueue(multi_owner_retry_node(task), task, false);
     }
+    void promote_deferred_writer(const void* token, int32_t sid) {
+        if (atomic_deferred_.promote_writer(token, sid))
+            srv_->note_txn(self_->id(), TxnCounter::WriterPromotions);
+    }
     void promote_multi_retry(MultiOwnerRetryNode& node) {
-        multi_retries_.promote(node);
+        multi_retries_.make_runnable(node);
         ring_fused_owner();
     }
+
+#include "ex_txn_chain.inc"
 
     template <bool IofusedPrivateQueue = false>
     uint32_t service_multi_retries() {
         if (multi_retries_.empty()) return 0;
         // Snapshot the prefix and reserve the original rotation head. Promotions
         // and demotions append behind it, exactly as in the former deque.
+        const bool nested = multi_retries_.chaining;
+        multi_retries_.chaining = true;
         const uint32_t fast = multi_retries_.fast_count;
         const bool rotate = multi_retries_.rotation_head != nullptr;
         Task rotation{};
         if (rotate) rotation = multi_retries_.pop(false);
-        for (uint32_t i = 0; i < fast; ++i) {
+        for (uint32_t i = 0; i < fast && multi_retries_.fast_head; ++i) {
+            service_txn_boundary<IofusedPrivateQueue>();
+            if (!multi_retries_.fast_head) break;
             const Task task = multi_retries_.pop(true);
             srv_->note_txn(self_->id(), TxnCounter::FastPolls);
             execute_resumed<IofusedPrivateQueue>(task);
         }
         // Always advance the rotation too: a fast waiter may depend on it.
         if (rotate) execute_resumed<IofusedPrivateQueue>(rotation);
-        return fast + rotate;
+        multi_retries_.chaining = nested;
+        return fast + rotate + service_multi_chain<IofusedPrivateQueue>();
     }
 
     template <bool IofusedPrivateQueue = false>
     uint32_t service_atomic_deferred() {
         if (atomic_deferred_.empty()) return 0;
-        const Task task = atomic_deferred_.front();
-        atomic_deferred_.pop_front();
-        Op& op = task.client->rob().at(task.op_id);
-        const int32_t shard_id = task.shard >= 0 ? task.shard : op.shard;
-        Shard& shard = srv_->shard(shard_id);
-        shard.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
-        if (has_parked_predecessor(task, op, shard_id) ||
-            xshard_task_should_defer(*srv_, shard, task, op)) {
-            atomic_deferred_.push_back(task);
-            // Keep polling the decision without preventing normal inbox drains. At low traffic this
-            // also prevents an owner sleeping after another worker publishes the dependency.
-            return 1;
+        // One oldest operation per connection per pass, bounded by the ordinary
+        // owner batch. Followers cannot advance before this head's predecessor
+        // publishes its decision. Do not walk or rotate through those followers.
+        const uint32_t budget = std::min<size_t>(kExecBatch, atomic_deferred_.connections());
+        uint32_t work = 0;
+        while (work < budget && !atomic_deferred_.empty()) {
+            const Task task = atomic_deferred_.oldest();
+            ++exec1s_counters[self_->id()].parked_polls;
+            ++work;
+            Op& op = task.client->rob().at(task.op_id);
+            const int32_t shard_id = task.shard >= 0 ? task.shard : op.shard;
+            Shard& shard = srv_->shard(shard_id);
+            shard.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
+            if (has_parked_predecessor(task, op, shard_id) ||
+                xshard_task_should_defer(*srv_, shard, task, op)) {
+                atomic_deferred_.rotate_oldest();
+                continue;
+            }
+            atomic_deferred_.pop_oldest();
+            const bool complete = snapshot_owner_state_ == SnapshotOwnerState::None
+                ? execute_resumed<IofusedPrivateQueue>(task)
+                : execute_snapshot_task<IofusedPrivateQueue>(task, true);
+            if (!complete) xshard_retries_.push_back(task);
         }
-        const bool complete = snapshot_owner_state_ == SnapshotOwnerState::None
-            ? execute_resumed<IofusedPrivateQueue>(task)
-            : execute_snapshot_task<IofusedPrivateQueue>(task, true);
-        if (!complete) xshard_retries_.push_back(task);
-        return 1;
+        // Count held heads as work so a remote decision cannot leave us asleep.
+        return work;
     }
 
     // PROGRAM ORDER AGAINST EVERY PARKED PREDECESSOR, NOT JUST THE DEFERRED ONES.
@@ -2654,7 +2700,7 @@ private:
     // atomic_deferred_ because a bounded KEYS walk lives there between passes: service_atomic_
     // deferred() runs first in the loop, so a younger write parked earlier could install a key
     // behind the walker's cursor and be reported by a listing that must not see it yet.
-    // Both deques are empty on any path with no cross-shard atomic window open.
+    // Both indexes are empty on any path with no cross-shard atomic window open.
     __attribute__((always_inline)) bool has_parked_predecessor(const Task& task, Op& op, int32_t shard_id) {
         if (__builtin_expect(atomic_deferred_.empty() && xshard_retries_.empty(), true))
             return false;
@@ -2662,20 +2708,19 @@ private:
                parked_predecessor_in(xshard_retries_, task, op, shard_id);
     }
 
-    __attribute__((noinline)) bool parked_predecessor_in(const std::deque<Task>& parked,
+    __attribute__((noinline)) bool parked_predecessor_in(const AtomicParkedTasks& parked,
                                                          const Task& task, Op& op,
                                                          int32_t shard_id) {
-        for (const Task& older : parked) {
-            if (older.client != task.client || older.op_id >= task.op_id) continue;
+        return parked.older(task.client, task.op_id, [&](const Task& older) {
+            ++exec1s_counters[self_->id()].parked_visits;
             Op& older_op = older.client->rob().at(older.op_id);
-            if (!xshard_tasks_share_key(older, older_op, task, op, shard_id)) continue;
+            if (!xshard_tasks_share_key(older, older_op, task, op, shard_id)) return false;
             // Either direction is the scan-ordering hold: a walker held behind an older
             // write, or a younger write held behind a walk that is already in flight.
             if (xshard_task_is_whole_owner(older) || xshard_task_is_whole_owner(task))
                 self_->note_atomic_scan_hold();
             return true;
-        }
-        return false;
+        });
     }
 
     template <uint32_t BatchOps = kGenthreadExBatchOps,
@@ -2976,9 +3021,9 @@ private:
     std::vector<uint8_t> snapshot_done_shards_;
     std::vector<std::unique_ptr<SnapshotChunk>> snapshot_pending_chunks_;
     std::vector<std::deque<Task>> snapshot_backlogs_;
-    std::deque<Task> atomic_deferred_;
+    AtomicParkedTasks atomic_deferred_;
     TxnRetryQueues multi_retries_;
-    std::deque<Task> xshard_retries_;
+    AtomicParkedTasks xshard_retries_;
     std::deque<Task> ordered_deferred_;
     // Backpressure cannot turn a stale route into a dropped request/release. These queues contain
     // objects for shards this loop no longer owns and are serviced before ordinary inbox work.

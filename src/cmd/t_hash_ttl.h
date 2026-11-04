@@ -264,12 +264,14 @@ bool     hash_ttl_externalize(Shard& shard, Op& op, KvObj*& object, bool notify)
 
 // ---- seam: implemented in t_hash_ttl.cc, consumed by t_hash.cc and flatstore.h -----------------
 
-// Out-of-line lazy reap, called only behind the shard-level gate. Returns the object, or nullptr if
-// the last live field expired and the key was deleted.
-KvObj* hash_ttl_on_access(Shard& shard, Op& op, KvObj* object, bool notify);
+// Out-of-line lazy reap, called only behind the shard-level gate. Sets `object` to nullptr when the
+// last live field expired and the key was deleted. Returns false when it already wrote the reply:
+// during a snapshot capture a read answers from the reply-only view instead (CD5.3).
+bool hash_ttl_on_access(Shard& shard, Op& op, KvObj*& object, bool notify);
 
 // Cold immutable replies and a read-only visitor over the hash's physical cursor.
 bool hash_parked_reply(Shard& shard, Op& op);
+bool hash_capture_reply(Shard& shard, Op& op, KvObj* object);
 bool hash_field_value_ro(const KvObj* object, Slice field, Slice& value);
 uint64_t hash_read_visit(const KvObj* object, uint64_t cursor, uint64_t count,
                          void* context, void (*visit)(void*, Slice, Slice));

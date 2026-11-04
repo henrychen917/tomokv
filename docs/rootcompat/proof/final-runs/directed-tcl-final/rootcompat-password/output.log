@@ -1,0 +1,2 @@
+  row budget: 900s; median=1.16s; correctness-plan-fallback; rootcompat password vs Redis 7.4
+  rootcompat password vs Redis 7.4                     ok

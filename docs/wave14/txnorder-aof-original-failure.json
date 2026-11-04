@@ -1,0 +1,47 @@
+{
+  "job": "merged-final-epoll/txnorder-fused-0",
+  "binary_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+  "mode": "fused",
+  "atomic": 0,
+  "engine": "epoll",
+  "earlier_rows": "a, b, c, armed and all nine native transaction controls passed",
+  "failure": "AOF row d reports TimeoutError; subsequent owned-server shutdown times out at 30 seconds",
+  "files": [
+    {
+      "path": "build/gate-run.ILs4xn/jobs/txnorder-fused-0/row-timeout-4108926.4108926.525044264.1.cancel",
+      "sha256": "9f18022d6aec8eb32164b5188321135dd365280e3615a7b1a1f4d4be52dcd662"
+    },
+    {
+      "path": "build/gate-run.ILs4xn/jobs/txnorder-fused-0/timings",
+      "sha256": "aea828efb7cbb0d9e3eef5c19584409366bc37978b8e6f2a39f396a30b120aeb"
+    },
+    {
+      "path": "build/gate-run.ILs4xn/jobs/txnorder-fused-0/output.log",
+      "sha256": "a7dc22448bcc344571b1e69bd2f0178cba034e76bc43a8e934631f7f27c897c9"
+    },
+    {
+      "path": "build/gate-run.ILs4xn/jobs/txnorder-fused-0/gate-srv-fused.uNolhP",
+      "sha256": "642a92b4245103ead4887fd329697796b9ff84c23a1999434bb259ba4a3043be"
+    },
+    {
+      "path": "build/gate-run.ILs4xn/jobs/txnorder-fused-0/family.tsv",
+      "sha256": "fcad5e89d683b562cb4d39f9a735f69aeaf0f57b6dcb0f3d76821e81606360a0"
+    },
+    {
+      "path": "build/gate-run.ILs4xn/jobs/txnorder-fused-0/txnorder-2s-0.txt",
+      "sha256": "d9c9375bb9c622cd132c0881ed8b91e69766f49183cdd1ed356ee65470b17ab5"
+    },
+    {
+      "path": "build/gate-run.ILs4xn/jobs/txnorder-fused-0/ledger",
+      "sha256": "dfca757602eb1349335f9f41a9392f4bbd0d3707342476dc0b983f8caf2d025f"
+    },
+    {
+      "path": "build/gate-run.ILs4xn/jobs/txnorder-fused-0/gate-srv-fused.XvSIBU",
+      "sha256": "5ddc2385e3c5479a919f64ca14c5abe0b74879540bcb83b2ad011ad3f2742f83"
+    },
+    {
+      "path": "build/gate-run.ILs4xn/jobs/txnorder-fused-0/done",
+      "sha256": "a77898b9ae386952ccd27957c57d452e9183c722002e39f7ff32cbba6f720860"
+    }
+  ]
+}

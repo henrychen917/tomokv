@@ -14,6 +14,10 @@ from gate_measurements import ratio as measured_ratio
 
 SERVER_PER_SLOT = 8
 LOAD_PER_SLOT = 2
+# Load-bound correctness rows (txnorder FIFO live fairness: 64 EXEC clients plus four
+# plain writers on per-CPU driver processes) were validated with eight load CPUs. The
+# planner reserves one such slot whenever the other slots keep their two-CPU minimum.
+WIDE_LOAD_PER_SLOT = 8
 PORTS_PER_SLOT = 3
 MIN_PHYSICAL = 16
 MAX_PHYSICAL = 128
@@ -99,7 +103,7 @@ def permitted_cpus(cpus):
 
 
 def validate_axes(server_cores, server_smt, load_cores, load_smt, *, topology=None,
-                  check_available=True):
+                  check_available=True, shared_correctness=False):
     axes = {name: parse_cpu_range(value, "--" + name.replace("_", "-"), "smt" in name)
             for name, value in (("server_cores", server_cores), ("server_smt", server_smt),
                                 ("load_cores", load_cores), ("load_smt", load_smt))}
@@ -112,7 +116,7 @@ def validate_axes(server_cores, server_smt, load_cores, load_smt, *, topology=No
     seen = {}
     for name, values in axes.items():
         for cpu in values:
-            if cpu in seen:
+            if cpu in seen and not (shared_correctness and name == 'load_cores' and seen[cpu] == 'server_cores'):
                 raise ValueError(f"CPU {cpu} overlaps --{seen[cpu].replace('_', '-')} and "
                                  f"--{name.replace('_', '-')}")
             seen[cpu] = name
@@ -129,7 +133,7 @@ def validate_axes(server_cores, server_smt, load_cores, load_smt, *, topology=No
                 raise ValueError(f"--{role}-smt CPU {cpu} has no physical core in --{role}-cores")
     server_groups = {topology[cpu] for cpu in axes["server_cores"]}
     for cpu in axes["load_cores"] + axes["load_smt"]:
-        if topology[cpu] in server_groups:
+        if topology[cpu] in server_groups and not shared_correctness:
             raise ValueError(f"load CPU {cpu} shares a physical core with server CPUs "
                              f"{cpu_string(topology[cpu])}; server SMT siblings must stay reserved")
     if check_available:
@@ -168,6 +172,18 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
     # The iteration budget changes only the measured cells. Normalize every complete gate to
     # the existing full correctness path, so a new purpose cannot bypass full-only batteries.
     purpose = args.tier
+    shared = getattr(args, 'shared_correctness_cpus', False)
+    if shared and (purpose not in ('quick', 'iteration') or not os.getenv('GATE_ONLY_JOBS')
+                   or os.getenv('GATE_PROOF_NO_RATES') != '1'):
+        # Both merged adapters' descriptions are retained (storefix5 and rlfix5 diagnostics).
+        raise ValueError('--shared-correctness-cpus requires selected correctness jobs (selected '
+                         'quick/iteration jobs) and GATE_PROOF_NO_RATES=1; no complete gate or '
+                         'performance use')
+    # Selected correctness proofs need one real 8+2 slot, not the full gate's
+    # measurement headroom. Keep the complete/performance budget unchanged.
+    minimum_physical = (SERVER_PER_SLOT + LOAD_PER_SLOT
+                        if purpose != "perf" and os.getenv("GATE_ONLY_JOBS") and
+                        os.getenv("GATE_PROOF_NO_RATES") == "1" else MIN_PHYSICAL)
     correctness_ratio = measured_ratio("correctness", SERVER_PER_SLOT)
     if os.getenv("GATE_RATIO", correctness_ratio) != correctness_ratio:
         raise ValueError("GATE_RATIO differs from the reviewed correctness geometry; update gate_measurements.json")
@@ -180,14 +196,25 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
     if topology is None:
         topology = read_topology()
     if available is None:
-        available = permitted_cpus(topology)
+        available = permitted_cpus(parse_cpu_range(args.server_cores, "--server-cores")
+                                   if shared else topology)
     defaults = default_physical(available, topology)
+    # A selected correctness job needs one 8+2 slot. Full gates retain their
+    # 16-core minimum; a partial ledger cannot run ABBA or earn a receipt.
+    minimum = SERVER_PER_SLOT + LOAD_PER_SLOT if (
+        purpose != "perf" and os.getenv("GATE_ONLY_JOBS")) else MIN_PHYSICAL
     server = None if args.server_cores is None else parse_cpu_range(args.server_cores, "--server-cores")
     load = None if args.load_cores is None else parse_cpu_range(args.load_cores, "--load-cores")
+    if shared:
+        if server is None or len(server) != SERVER_PER_SLOT or args.server_smt or args.load_smt:
+            raise ValueError("shared correctness requires exactly eight explicit server CPUs and no SMT")
+        if load is not None and load != server:
+            raise ValueError("shared correctness load CPUs must equal server CPUs")
+        load = server
     if server is None and load is None:
-        if len(defaults) < MIN_PHYSICAL:
+        if len(defaults) < minimum_physical:
             raise ValueError(f"physical core budget is {len(defaults)}; the gate requires "
-                             f"{MIN_PHYSICAL}-{MAX_PHYSICAL} distinct physical cores")
+                             f"{minimum_physical}-{MAX_PHYSICAL} distinct physical cores")
         count = len(defaults) // (SERVER_PER_SLOT + LOAD_PER_SLOT) * SERVER_PER_SLOT
         server, load = defaults[:count], defaults[count:]
     elif server is None or load is None:
@@ -202,11 +229,22 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
             server = remaining
         else:
             load = remaining
+    shared = shared or os.getenv('GATE_CORRECTNESS_SHARED_CPUS', '0') == '1'
+    if shared and (purpose == 'perf' or not os.getenv('GATE_ONLY_JOBS') or
+                   os.getenv('GATE_PROOF_NO_RATES') != '1'):
+        raise ValueError('shared CPUs require selected correctness jobs and GATE_PROOF_NO_RATES=1')
+    if shared and (len(server) != SERVER_PER_SLOT or not set(load) <= set(server) or
+                   args.server_smt or args.load_smt):
+        raise ValueError('shared correctness requires exactly eight server CPUs, client CPUs within them, and no SMT')
     axes = validate_axes(server, args.server_smt, load, args.load_smt or "",
-                         topology=topology, check_available=check_available)
-    total = len(server) + len(load)
-    if not MIN_PHYSICAL <= total <= MAX_PHYSICAL:
-        raise ValueError(f"physical core budget is {total}; the gate requires {MIN_PHYSICAL}-"
+                         topology=topology, check_available=check_available, shared_correctness=shared)
+    total = len(set(server + load))
+    # Selected correctness jobs retain an 8-server/2-driver slot. Shared CPU
+    # diagnostics have their stricter guards above; full/perf retains its floor.
+    minimum = (SERVER_PER_SLOT if shared else SERVER_PER_SLOT + LOAD_PER_SLOT
+               if purpose != "perf" and os.getenv("GATE_ONLY_JOBS") else MIN_PHYSICAL)
+    if not minimum <= total <= MAX_PHYSICAL:
+        raise ValueError(f"physical core budget is {total}; the gate requires {minimum}-"
                          f"{MAX_PHYSICAL} distinct physical cores")
     count = min(len(server) // SERVER_PER_SLOT, len(load) // LOAD_PER_SLOT)
     if count < 1:
@@ -219,14 +257,28 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
         raise ValueError(f"--ports {args.ports} has {last-first+1} ports; {count} correctness slots "
                          f"need {required} ({PORTS_PER_SLOT} per slot); widen the port range")
     slots = []
+    # The last slot owns exactly WIDE_LOAD_PER_SLOT load cores when the others still keep
+    # LOAD_PER_SLOT each; a single slot keeps every load core and is wide if it has enough.
+    wide = None
+    if count > 1 and len(load) - WIDE_LOAD_PER_SLOT >= LOAD_PER_SLOT * (count - 1):
+        wide = count - 1
+    shared_loads = load[:len(load) - WIDE_LOAD_PER_SLOT] if wide is not None else load
+    shared_count = count - 1 if wide is not None else count
     for index in range(count):
         servers = server[index * SERVER_PER_SLOT:(index + 1) * SERVER_PER_SLOT]
-        loads = load[index * len(load) // count:(index + 1) * len(load) // count]
+        if index == wide:
+            loads = load[len(load) - WIDE_LOAD_PER_SLOT:]
+        else:
+            loads = shared_loads[index * len(shared_loads) // shared_count:
+                                 (index + 1) * len(shared_loads) // shared_count]
         groups = {topology[cpu] for cpu in loads}
         smt = [cpu for cpu in axes["load_smt"] if topology[cpu] in groups]
         slots.append({"server_cores": cpu_string(servers), "load_cores": cpu_string(loads),
                       "load_smt": cpu_string(smt), "load_cpus": cpu_string(loads + smt),
                       "port": first + PORTS_PER_SLOT * index})
+    if wide is None and count == 1 and len(load) >= WIDE_LOAD_PER_SLOT:
+        wide = 0
+    wide_slot = -1 if wide is None else wide
     # Correctness partitions and the headline measurement have different geometry. Once every
     # correctness child has exited, the measurement keeps at most 32 physical server cores and
     # gives every other selected physical core to its load generators. Correctness needs protocol
@@ -239,14 +291,14 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
     perf_server_smt = [cpu for cpu in axes["server_smt"] if topology[cpu] in server_groups]
     perf_load_smt = sorted(axes["load_smt"] + [cpu for cpu in axes["server_smt"]
                                                if topology[cpu] not in server_groups])
-    if args.load_smt is None:
+    if args.load_smt is None and not shared:
         load_groups = {topology[cpu] for cpu in perf_load}
         perf_load_smt = sorted({cpu for group in load_groups for cpu in group
                                 if cpu in available and cpu in topology} - set(perf_load))
     # Validate the derived phase as well as the user axes: topology/availability filtering must
     # never turn the headroom default into physical-core contention with a server thread.
     validate_axes(perf_server, perf_server_smt, perf_load, perf_load_smt,
-                  topology=topology, check_available=check_available)
+                  topology=topology, check_available=check_available, shared_correctness=shared)
     perf = {"server_cores": cpu_string(perf_server), "server_smt": cpu_string(perf_server_smt),
             "load_cores": cpu_string(perf_load), "load_smt": cpu_string(perf_load_smt),
             "server_cpus": cpu_string(perf_server + perf_server_smt),
@@ -260,7 +312,7 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
     perf["split_ratio"] = "" if correctness_only else measured_ratio("abba", perf["threads"])
     candidate = executable(args.candidate_binary, "--candidate-binary")
     reference = executable(args.reference_binary, "--reference-binary")
-    build_cpus = sorted(cpu for values in axes.values() for cpu in values)
+    build_cpus = sorted({cpu for values in axes.values() for cpu in values})
     header = (f"{total} physical cores; {count} correctness slots = min({len(server)}/8 server, "
               f"{len(load)}/2 load), 8 server threads at ratio {correctness_ratio} and 3 ports per slot; "
               f"correctness load is modest protocol traffic (at least 2 physical cores per slot), "
@@ -270,12 +322,20 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
               f"{len(perf_server_smt)} explicit server SMT threads")
     if perf["split_ratio"]:
         header += f", reviewed ratio {perf['split_ratio']}"
+    if shared:
+        header = (f'PARTIAL correctness: {total} physical CPUs, one slot with 8 server threads '
+                  f'at ratio {correctness_ratio}, shared client CPUs; no rates or receipt')
     if len(server) > len(perf_server):
         header += f" ({len(server)-len(perf_server)} surplus server cores move to ABBA load)"
+    if shared:
+        header = (f"shared correctness CPUs {cpu_string(server)}; one 8-thread server at "
+                  f"ratio {correctness_ratio}; selected jobs only, no rates or performance tier")
     return {"tier": tier, "purpose": purpose, "subset": subset,
+            "shared_correctness": shared,
             "physical_cores": total, "slot_count": count, "correctness_ratio": correctness_ratio,
             "server_per_slot": SERVER_PER_SLOT, "load_min_per_slot": LOAD_PER_SLOT,
             "ports_per_slot": PORTS_PER_SLOT, "ports_first": first, "ports_last": last,
+            "wide_slot": wide_slot, "wide_load_per_slot": WIDE_LOAD_PER_SLOT,
             "axes": {key: cpu_string(value) for key, value in axes.items()}, "slots": slots,
             "perf": perf, "candidate_binary": candidate or str(ROOT / "build/tomokv"),
             "reference_binary": reference, "build_candidate": int(not candidate),
@@ -285,8 +345,10 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
 
 def shell_plan(plan):
     scalars = {"TIER": plan["tier"], "GATE_PURPOSE": plan["purpose"],
+               "GATE_SHARED_CORRECTNESS_CPUS": int(plan.get("shared_correctness", False)),
                "GATE_PHYSICAL_CORES": plan["physical_cores"], "GATE_RATIO": plan["correctness_ratio"],
-               "GATE_SLOTS": plan["slot_count"], "GATE_PORT_FIRST": plan["ports_first"],
+               "GATE_SLOTS": plan["slot_count"], "GATE_WIDE_SLOT": plan.get("wide_slot", -1),
+               "GATE_PORT_FIRST": plan["ports_first"],
                "GATE_PORT_LAST": plan["ports_last"], "CANDIDATE_BINARY": plan["candidate_binary"],
                "REFERENCE_BINARY": plan["reference_binary"], "PERF_THREADS": plan["perf"]["threads"],
                "BUILD_CANDIDATE": plan["build_candidate"], "BUILD_CORES": plan["build_cores"],
@@ -294,6 +356,7 @@ def shell_plan(plan):
     scalars.update({"GATE_" + key.upper(): value for key, value in plan["axes"].items()})
     scalars.update({"PERF_" + key.upper(): value for key, value in plan["perf"].items()})
     lines = [f"{key}={shlex.quote(str(value))}" for key, value in scalars.items()]
+    lines.append("export GATE_SHARED_CORRECTNESS_CPUS")
     for name, field in (("SLOT_CORES", "server_cores"), ("SLOT_LOAD_CORES", "load_cpus"),
                         ("SLOT_LOAD_PHYSICAL", "load_cores"), ("SLOT_LOAD_SMT", "load_smt"),
                         ("SLOT_PORTS", "port")):
@@ -320,6 +383,9 @@ def parser():
     result.add_argument("--server-cores", default=os.getenv("GATE_SERVER_CORES", os.getenv("GATE_CORES")))
     result.add_argument("--server-smt", default=os.getenv("GATE_SERVER_SMT", ""))
     result.add_argument("--load-cores", default=os.getenv("GATE_LOAD_CORES"))
+    result.add_argument("--shared-correctness-cpus", action="store_true",
+                        help="selected jobs only: share eight explicit server CPUs with clients; "
+                        "requires GATE_PROOF_NO_RATES=1")
     result.add_argument("--load-smt", default=os.getenv("GATE_LOAD_SMT"),
                         help="explicit load sibling CPUs; omitted: automatic for ABBA only; "
                         "empty string: reserve omitted siblings")
@@ -342,12 +408,76 @@ def self_test():
     topology.update({1000 + 3 * cpu: group for cpu, group in list(topology.items())})
 
     class PlanningTests(unittest.TestCase):
-        def plan(self, *flags, only_jobs=""):
+        def test_shared_cpus_require_partial_correctness_without_rates(self):
+            flags = ['quick', '--server-cores', '8-15', '--load-cores', '8-15', '--load-smt', '']
+            env = dict(GATE_CORRECTNESS_SHARED_CPUS='1', GATE_PROOF_NO_RATES='1',
+                       GATE_ONLY_JOBS='netfix2-fds')
+            with mock.patch.dict(os.environ, env, clear=True):
+                plan = make_plan(parser().parse_args(flags), topology=topology,
+                                 available=set(topology), check_available=False)
+                self.assertEqual(plan['build_jobs'], 8)
+                self.assertEqual(plan['slot_count'], 1)
+                self.assertEqual(plan['perf']['split_ratio'], '')
+                self.assertEqual(plan['slots'][0]['load_cpus'], '8-15')
+                for mutation in ({'GATE_ONLY_JOBS': ''}, {'GATE_PROOF_NO_RATES': '0'}):
+                    with mock.patch.dict(os.environ, mutation):
+                        with self.assertRaisesRegex(ValueError, 'shared CPUs require'):
+                            make_plan(parser().parse_args(flags), topology=topology,
+                                      available=set(topology), check_available=False)
+                with self.assertRaisesRegex(ValueError, 'shared CPUs require'):
+                    make_plan(parser().parse_args(['perf'] + flags[1:]), topology=topology,
+                              available=set(topology), check_available=False)
+
+        def plan(self, *flags, only_jobs="", no_rates="0"):
             # Gate workers export their own slice of GATE_*; validation of the planner must use
             # its synthetic topology even when called from one of those workers.
-            with mock.patch.dict(os.environ, {"GATE_ONLY_JOBS": only_jobs}, clear=True):
+            with mock.patch.dict(os.environ, {"GATE_ONLY_JOBS": only_jobs,
+                                             "GATE_PROOF_NO_RATES": no_rates}, clear=True):
                 args = parser().parse_args(list(flags))
                 return make_plan(args, topology=topology, available=set(topology), check_available=False)
+
+        def test_selected_small_lane_preserves_geometry(self):
+            flags = ("quick", "--server-cores", "48-55", "--load-cores", "56-60")
+            plan = self.plan(*flags, only_jobs="flipfix7_blocked")
+            self.assertEqual((plan["physical_cores"], plan["slot_count"],
+                              plan["correctness_ratio"]), (13, 1, "6:2"))
+            with self.assertRaisesRegex(ValueError, "requires 16"):
+                self.plan(*flags)
+            with self.assertRaisesRegex(ValueError, "requires 10"):
+                self.plan("quick", "--server-cores", "48-55", "--load-cores", "56",
+                          only_jobs="flipfix7_blocked")
+        def test_shared_partial_stays_inside_eight_cpus(self):
+            flags = ('--server-cores', '16-23', '--load-cores', '16-23',
+                     '--shared-correctness-cpus')
+            plan = self.plan(*flags, only_jobs='storage_units', no_rates='1')
+            self.assertEqual(plan['physical_cores'], 8)
+            self.assertEqual(plan['build_jobs'], 8)
+            self.assertEqual(plan['slot_count'], 1)
+            self.assertEqual(plan['slots'][0]['server_cores'], '16-23')
+            self.assertEqual(plan['slots'][0]['load_cpus'], '16-23')
+            self.assertEqual(plan['perf']['load_smt'], '')
+            self.assertEqual(plan['perf']['split_ratio'], '')
+            for tier in ('perf', 'full', 'push', 'release'):
+                with self.assertRaises(ValueError):
+                    self.plan(tier, *flags, only_jobs='storage_units', no_rates='1')
+            for jobs, rates in (('', '1'), ('storage_units', '0')):
+                with self.assertRaises(ValueError):
+                    self.plan(*flags, only_jobs=jobs, no_rates=rates)
+            with self.assertRaises(ValueError):
+                self.plan('--server-cores', '16-23', '--load-cores', '16-22',
+                          '--shared-correctness-cpus', only_jobs='storage_units', no_rates='1')
+        def test_selected_correctness_fits_one_slot(self):
+            flags = ('quick', '--server-cores', '74-81', '--load-cores', '82-86')
+            plan = self.plan(*flags, only_jobs='atomfix6_units')
+            self.assertEqual(plan['slot_count'], 1)
+            self.assertEqual(plan['slots'][0]['server_cores'], '74-81')
+            with self.assertRaises(ValueError):
+                self.plan(*flags)
+            with self.assertRaises(ValueError):
+                self.plan('perf', *flags[1:], only_jobs='atomfix6_units')
+            with self.assertRaises(ValueError):
+                self.plan('quick', '--server-cores', '74-81', '--load-cores', '82',
+                          only_jobs='atomfix6_units')
 
         def test_default_full_box(self):
             plan = self.plan()
@@ -459,6 +589,30 @@ def self_test():
                 parsed = abbagate.parse_args()
             self.assertEqual(abbagate.select_port(parsed.ports, parsed.port), (9000, (9000, 9011)))
 
+        def test_wide_load_slot(self):
+            # The 10-slot landing iteration: the last slot owns eight load cores, the
+            # other nine keep at least two each, and nothing overlaps.
+            plan = self.plan("--server-cores", "0-83", "--load-cores", "84-111")
+            self.assertEqual((plan["slot_count"], plan["wide_slot"]), (10, 9))
+            self.assertEqual(plan["slots"][9]["load_cores"], "104-111")
+            loads = [len(parse_cpu_range(slot["load_cores"])) for slot in plan["slots"][:9]]
+            self.assertTrue(all(n >= LOAD_PER_SLOT for n in loads), loads)
+            self.assertEqual(sum(loads), 28 - WIDE_LOAD_PER_SLOT)
+            script = shell_plan(plan) + 'printf "%s" "$GATE_WIDE_SLOT"'
+            self.assertEqual(subprocess.run(["bash", "-uc", script], check=True,
+                                            capture_output=True).stdout.decode(), "9")
+            # One slot keeps every load core; it is wide only with eight of them.
+            one = self.plan("quick", "--server-cores", "0-7", "--load-cores", "8-15")
+            self.assertEqual((one["slot_count"], one["wide_slot"], one["slots"][0]["load_cores"]),
+                             (1, 0, "8-15"))
+            narrow = self.plan("quick", "--server-cores", "48-55", "--load-cores", "56-60",
+                               only_jobs="txnorder_fifo_live")
+            self.assertEqual(narrow["wide_slot"], -1)
+            # Too few load cores to keep the others' minimum: no wide slot, even split.
+            even = self.plan("--server-cores", "0-79", "--load-cores", "80-99")
+            self.assertEqual((even["slot_count"], even["wide_slot"]), (10, -1))
+            self.assertTrue(all(len(parse_cpu_range(s["load_cores"])) == 2 for s in even["slots"]))
+
         def test_slots_own_disjoint_resources(self):
             plan = self.plan("--server-cores", "0-31,64-95", "--load-cores", "32-47,96-111")
             cpus, ports = set(), set()
@@ -471,9 +625,52 @@ def self_test():
                 self.assertFalse(current_ports & ports)
                 ports |= current_ports
 
+        def test_shared_correctness_requires_explicit_partial_proof(self):
+            flags = ["quick", "--shared-correctness-cpus", "--server-cores", "24-31"]
+            with self.assertRaisesRegex(ValueError, "selected correctness"):
+                self.plan(*flags)
+            with mock.patch.dict(os.environ, {"GATE_ONLY_JOBS": "rlfix5-monotonic",
+                                              "GATE_PROOF_NO_RATES": "1"}, clear=True):
+                plan = make_plan(parser().parse_args(flags), topology=topology,
+                                 available=set(topology), check_available=False)
+                self.assertEqual(plan["physical_cores"], 8)
+                self.assertEqual(plan["build_jobs"], 8)
+                self.assertEqual(plan["slot_count"], 1)
+                self.assertEqual(plan["slots"][0]["server_cores"], "24-31")
+                self.assertEqual(plan["slots"][0]["load_cpus"], "24-31")
+                self.assertEqual(plan["perf"]["split_ratio"], "")
+                self.assertIn("GATE_SHARED_CORRECTNESS_CPUS=1", shell_plan(plan))
+                self.assertIn("export GATE_SHARED_CORRECTNESS_CPUS", shell_plan(plan))
+                for bad in (["perf", *flags[1:]], [*flags, "--load-cores", "32-39"],
+                            [*flags, "--server-smt", "1072"]):
+                    with self.assertRaises(ValueError):
+                        make_plan(parser().parse_args(bad), topology=topology,
+                                  available=set(topology), check_available=False)
+
         def test_server_load_overlap(self):
             with self.assertRaisesRegex(ValueError, "overlaps"):
                 self.plan("--server-cores", "0-7", "--load-cores", "7-15")
+
+        def test_partial_shared_correctness(self):
+            env = {"GATE_ONLY_JOBS": "netio-1s", "GATE_PROOF_NO_RATES": "1",
+                   "GATE_CORRECTNESS_SHARED_CPUS": "1"}
+            flags = ["full", "--server-cores", "0-7", "--load-cores", "0-7"]
+            with mock.patch.dict(os.environ, env, clear=True):
+                plan = make_plan(parser().parse_args(flags), topology=topology,
+                                 available=set(topology), check_available=False)
+                self.assertEqual(plan["slot_count"], 1)
+                self.assertEqual(plan["build_jobs"], 8)
+                self.assertEqual(plan["correctness_ratio"], "6:2")
+                self.assertEqual(plan["slots"][0]["load_cpus"], "0-7")
+                self.assertEqual(plan["perf"]["split_ratio"], "")
+                for change in ({"GATE_ONLY_JOBS": ""}, {"GATE_PROOF_NO_RATES": "0"}):
+                    with mock.patch.dict(os.environ, change):
+                        with self.assertRaisesRegex(ValueError, "shared CPUs require"):
+                            make_plan(parser().parse_args(flags), topology=topology,
+                                      available=set(topology), check_available=False)
+                with self.assertRaisesRegex(ValueError, "shared CPUs require"):
+                    make_plan(parser().parse_args(["perf", *flags[1:]]), topology=topology,
+                              available=set(topology), check_available=False)
 
         def test_load_on_server_sibling(self):
             with self.assertRaisesRegex(ValueError, "shares a physical core"):
@@ -512,6 +709,16 @@ def self_test():
                 args = parser().parse_args([])
             with self.assertRaisesRegex(ValueError, "physical core budget is 8"):
                 make_plan(args, topology=topology, available=set(range(8)), check_available=False)
+
+        def test_selected_correctness_fits_one_slot(self):
+            with mock.patch.dict(os.environ, {"GATE_ONLY_JOBS": "release_batteries",
+                                              "GATE_PROOF_NO_RATES": "1"}, clear=True):
+                args = parser().parse_args(['quick', '--server-cores', '0-7', '--load-cores', '8-9'])
+                plan = make_plan(args, topology=topology, available=set(range(10)), check_available=False)
+                self.assertEqual(plan['slot_count'], 1)
+                args.load_cores = '8'
+                with self.assertRaisesRegex(ValueError, 'physical core budget is 9'):
+                    make_plan(args, topology=topology, available=set(range(10)), check_available=False)
 
         def test_unavailable_requested_cpu_fails(self):
             with mock.patch(__name__ + ".permitted_cpus", return_value=set(range(15))):

@@ -1,0 +1,3 @@
+topology: declared cpu 0 is outside the affinity mask
+fixture failed at 48
+FAIL trace: instruction trap / fixture assertion

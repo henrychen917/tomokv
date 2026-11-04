@@ -1,0 +1,37 @@
+[
+  {
+    "path": "battery.log",
+    "bytes": 5045,
+    "sha256": "df338ee5436e85f97e0e349ba9b67d59b02de8f0ba1fbd56228fa4f26db2ac26"
+  },
+  {
+    "path": "done",
+    "bytes": 6,
+    "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+  },
+  {
+    "path": "family.tsv",
+    "bytes": 52,
+    "sha256": "5257a5169f09dd3bd4b8768057b3d3509c3b6732b35d1df6d890d053874ca7e3"
+  },
+  {
+    "path": "gate-srv-main.BN5W8c",
+    "bytes": 14282,
+    "sha256": "b06a13dced7243f89762471ec87127d743ee86a3928b83e153dbd0c02f4d1a7b"
+  },
+  {
+    "path": "ledger",
+    "bytes": 73,
+    "sha256": "d49314f507b643953c1b41075510cc8fbec4f9d922b9065602880bda28c8caba"
+  },
+  {
+    "path": "output.log",
+    "bytes": 187,
+    "sha256": "ac8ba29e232242b4bec2a3e712924b61f1ddde3c5628702ea4b014a782c3be7e"
+  },
+  {
+    "path": "timings",
+    "bytes": 73,
+    "sha256": "d49314f507b643953c1b41075510cc8fbec4f9d922b9065602880bda28c8caba"
+  }
+]

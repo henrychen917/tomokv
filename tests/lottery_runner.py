@@ -259,10 +259,11 @@ def main():
                      + ', '.join(missing))
     from _gate_process import cpus
     server, client = set(cpus(args.server_cpus)), set(cpus(args.client_cpus))
-    if server & client or not server | client <= set(range(112, 128)) or len(server) != 8:
-        parser.error('use 8 server CPUs and disjoint client CPUs, all within 112-127')
-    if not 25300 <= args.port <= 25397:
-        parser.error('three consecutive ports must be within 25300-25399')
+    if server & client or not server | client <= os.sched_getaffinity(0) or len(server) != 8 or not client:
+        parser.error('use 8 server CPUs and disjoint client CPUs within the assigned affinity')
+    if not 1024 <= args.port <= 32765:
+        parser.error('three consecutive ports must be within 1024-32767')
+    os.environ['LC_ALL'] = 'C'
     os.sched_setaffinity(0, server | client)
     results = []
     for row in rows:

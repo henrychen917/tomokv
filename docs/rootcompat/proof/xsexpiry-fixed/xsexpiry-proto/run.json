@@ -1,0 +1,16 @@
+{
+  "name": "xsexpiry-proto",
+  "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.5plILF",
+  "sha256": "b593bdb0dc2a0145546946e22b9ab1341ade8b3ae52f68a5943519fcb9098306",
+  "note": "Earlier witness: 192 checks before active/escalation expansion; expanded witness: 832 checks before nested-read controls. LC_ALL=C, gate partial job rootcompat-xsexpiry, CPUs 48-55 server / 56-63 client, ports 20320-20329.",
+  "candidate": {
+    "checks": 192,
+    "failures": 0,
+    "armed": 0
+  },
+  "oracle": {
+    "checks": 9,
+    "failures": 0,
+    "armed": 0
+  }
+}

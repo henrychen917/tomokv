@@ -8,6 +8,11 @@
 
 namespace tomo {
 
+// This standalone arithmetic fixture has no Server or control transitions.
+// The full ctlfix fixture links cfgfix.cc; reaching that dependency here is
+// a test error, rather than silently treating CONFIG exclusion as disabled.
+bool cfgfix_control_busy(const Server&) { std::abort(); }
+
 template <class T>
 concept HasStationarityReport = requires(T report) { report.stationary_s; };
 static_assert(!HasStationarityReport<FlipctlReport>,

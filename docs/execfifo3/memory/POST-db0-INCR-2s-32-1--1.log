@@ -1,0 +1,23 @@
+Deleted bounded GDB step trace: /home/user/Projects/cx-execfifo3/build/execfifo3/memory-scopes/POST-db0-INCR-2s-32-1--1.log
+SHA-256: 565f8ec4dedab5f18502b645f7e9012dee47a720be7d54a0d34bd1d9cd5535da
+Exit: 0
+0x0000555555655e18	2427	    }
+0x0000555555655e21	2427	    }
+0x0000555555655e27	2427	    }
+0x0000555555655e2b	2427	    }
+0x0000555555655e2c	2427	    }
+0x0000555555655e2e	2427	    }
+0x0000555555655e30	2427	    }
+0x0000555555655e32	2427	    }
+0x0000555555655e34	2427	    }
+0x0000555555655e35	2427	    }
+0x0000555555de19a7 in tomo_db0::CoreConcurrencyTest::run<false>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, unsigned int, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const (__closure=__closure@entry=0x7ffffffd8c60, w=w@entry=0) at /home/user/Projects/cx-execfifo3/tests/execfifo3_scope.cc:152
+152	                if(!parse)scope_end();
+0x0000555555de19ab	152	                if(!parse)scope_end();
+0x0000555555de19ae	152	                if(!parse)scope_end();
+0x0000555555de3230	152	                if(!parse)scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-execfifo3/tests/execfifo3_scope.cc:29
+29	[[gnu::noinline]] void scope_end() { asm volatile("" ::: "memory"); }
+[Inferior 1 (process 3387024) exited normally]
+COUNT 34168

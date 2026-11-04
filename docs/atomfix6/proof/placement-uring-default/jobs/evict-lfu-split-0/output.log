@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lfu battery (split, atomic 0)
+  eviction lfu battery (split, atomic 0)               ok

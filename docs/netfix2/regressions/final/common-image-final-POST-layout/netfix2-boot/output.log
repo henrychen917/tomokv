@@ -1,0 +1,2 @@
+  row budget: 900s; median=3.52s; correctness-plan-fallback; netfix2 boot
+  netfix2 boot                                         ok

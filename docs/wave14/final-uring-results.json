@@ -1,0 +1,30 @@
+[
+  {
+    "tag": "merged-final-uring",
+    "exit_code": 1
+  },
+  {
+    "tag": "merged-final-fused-uring",
+    "exit_code": 1
+  },
+  {
+    "tag": "merged-final-fused-epoll",
+    "exit_code": 1
+  },
+  {
+    "tag": "merged-final-script-bounds-a0-uring-2s",
+    "exit_code": 0
+  },
+  {
+    "tag": "merged-final-script-bounds-a0-uring-1s",
+    "exit_code": 0
+  },
+  {
+    "tag": "merged-final-script-bounds-a0-epoll-2s",
+    "exit_code": 0
+  },
+  {
+    "tag": "merged-final-script-bounds-a0-epoll-1s",
+    "exit_code": 0
+  }
+]

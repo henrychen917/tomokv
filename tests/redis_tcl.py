@@ -8,6 +8,38 @@ sys.path.insert(0, str(ROOT/'tests'))
 from _lib import Conn
 
 HOOK = r'''
+# unit/acl's first block only uses live command APIs. Admit that block on our
+# owned external listener; later blocks requiring config files/restarts retain
+# upstream's external:skip. Test bodies and assertions remain byte-identical.
+if {[info exists ::env(TOMO_TCL_ACL_FIRST_BLOCK)] && $::env(TOMO_TCL_ACL_FIRST_BLOCK) eq "1"} {
+    set ::cmdfix2_acl_first_block 1
+    rename start_server cmdfix2_start_server
+    proc start_server {options {code undefined}} {
+        if {$::cmdfix2_acl_first_block} {
+            set ::cmdfix2_acl_first_block 0
+            if {$options ne {tags {"acl external:skip"}}} {
+                error "unit/acl first-block setup changed"
+            }
+            dict set options tags {acl}
+        }
+        return [uplevel 1 [list cmdfix2_start_server $options $code]]
+    }
+}
+# Upstream's empty-channel helper sends PUNSUBSCRIBE but consumes zero replies.
+# This one assertion then publishes from another connection. Require all three
+# actual removal acknowledgments before its unchanged zero-recipient checks.
+if {[info exists ::env(TOMO_TCL_PUBSUB_FENCES)] && $::env(TOMO_TCL_PUBSUB_FENCES) eq "1"} {
+    rename punsubscribe cmdfix2_punsubscribe
+    proc punsubscribe {client {channels {}}} {
+        set result [uplevel 1 [list cmdfix2_punsubscribe $client $channels]]
+        if {$channels eq {} && $::cur_test eq "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl"} {
+            set counts [consume_subscribe_messages $client punsubscribe {chan1.* chan2.* chan3.*}]
+            assert_equal 0 [lindex $counts end]
+            puts "CMDFIX2-PUBSUB-FENCE acknowledged=3 remaining=0"
+        }
+        return $result
+    }
+}
 # Receipt observer only: forwards every original packet unchanged.
 rename send_data_packet harness5_send_data_packet
 proc send_data_packet {fd status data {elapsed 0}} {
@@ -22,6 +54,48 @@ proc send_data_packet {fd status data {elapsed 0}} {
         close $out
     }
     harness5_send_data_packet $fd $status $data $elapsed
+}
+# Buffer a selected assertion's already-consumed replies. Emit them only when
+# that assertion ends, so diagnostic output cannot pace its protocol steps.
+if {[info exists ::env(GATE_TCL_REPLY_DIAGNOSTIC)]} {
+    set ::wave14_reply_receipts {}
+    rename ::redis::redis_read_reply ::redis::wave14_original_read_reply
+    proc ::redis::redis_read_reply {id fd} {
+        set code [catch {uplevel 1 [list ::redis::wave14_original_read_reply $id $fd]} result options]
+        if {$::cur_test eq $::env(GATE_TCL_REPLY_DIAGNOSTIC)} {
+            set command {}
+            if {[info exists ::redis::curr_argv($id)]} {set command $::redis::curr_argv($id)}
+            lappend ::wave14_reply_receipts [list $id $command $code $result]
+        }
+        return -options $options $result
+    }
+    rename send_data_packet wave14_reply_send_data_packet
+    proc send_data_packet {fd status data {elapsed 0}} {
+        if {$::cur_test eq $::env(GATE_TCL_REPLY_DIAGNOSTIC) && $status in {ok err exception}} {
+            puts "REPLY-DIAGNOSTIC $::wave14_reply_receipts"
+            set ::wave14_reply_receipts {}
+        }
+        wave14_reply_send_data_packet $fd $status $data $elapsed
+    }
+}
+# Optional failure receipt: query state only after the original bounded wait
+# has failed, then propagate its exact Tcl return options. Never retry it.
+if {[info exists ::env(GATE_TCL_BLOCKED_DIAGNOSTIC)] &&
+    $::env(GATE_TCL_BLOCKED_DIAGNOSTIC) eq "1"} {
+    rename wait_for_blocked_clients_count harness5_wait_for_blocked_clients_count
+    proc wait_for_blocked_clients_count {count {maxtries 100} {delay 10} {idx 0}} {
+        set code [catch {
+            uplevel 1 [list harness5_wait_for_blocked_clients_count $count $maxtries $delay $idx]
+        } result options]
+        if {$code != 0} {
+            puts "BLOCKED-DIAGNOSTIC test=$::cur_test expected=$count result=$result"
+            foreach query {{INFO clients} {CLIENT LIST} {LLEN mylist} {LLEN l1{t}} {LLEN l2{t}} {LLEN l3{t}}} {
+                catch {r $idx {*}$query} observed
+                puts "BLOCKED-DIAGNOSTIC query=$query observed=$observed"
+            }
+        }
+        return -options $options $result
+    }
 }
 '''
 
@@ -101,6 +175,7 @@ def run_file(args, tree, unit, only=None, extra=(), server_args=()):
              '--save','','--appendonly','no','--dir',str(data),'--enable-debug-command','yes']
     if args.mode!='redis':
         command+=['--thread-mode',args.mode,'--shards','16','--databases','16']
+        command+=['--net-io',os.environ.get('GATE_NET_IO', 'uring')]
         if args.mode=='2s': command+=['--ratio', getattr(args, 'ratio', '6:2')]
     else: command+=['--enable-module-command','yes']
     command += list(server_args)
@@ -147,6 +222,8 @@ def run_file(args, tree, unit, only=None, extra=(), server_args=()):
             # gate.sh uses LC_ALL=C. Upstream files contain UTF-8 test names;
             # bind their decoding so the same assertion inventory survives it.
             test=subprocess.Popen(client,cwd=tree,env=dict(os.environ,HARNESS5_TCL_EVENTS=str(event_path),
+                                  TOMO_TCL_ACL_FIRST_BLOCK='1' if unit == 'unit/acl' else '0',
+                                  TOMO_TCL_PUBSUB_FENCES='1' if unit == 'unit/pubsub' else '0',
                                   LANG='C.UTF-8', LC_ALL='C.UTF-8'),
                                   stdout=tl,stderr=subprocess.STDOUT,start_new_session=True)
             try: rc=test.wait(timeout=args.file_timeout)
@@ -159,6 +236,8 @@ def run_file(args, tree, unit, only=None, extra=(), server_args=()):
     row=dict(file=unit,mode=args.mode,**totals,complete=complete,exit_code=rc,error=failure,
              seconds=time.monotonic()-start,server_argv=command,suite_argv=client,
              server_exit=server.returncode if server else None,smove_layout_attempts=layout_attempts,events=observed,
+             pubsub_fences=(folder/"suite.log").read_text(errors="replace").count(
+                 "CMDFIX2-PUBSUB-FENCE acknowledged=3 remaining=0\n"),
              setup_stdout=(folder/"suite.log").read_text(errors="replace") if unit == "unit/printver" else "")
     (folder/'result.json').write_text(json.dumps(row,indent=2)+'\n')
     return row
@@ -193,6 +272,9 @@ def validate_passing(row, expected, known_setup_errors=(), setup_only=False):
     # Exactly the named block-setup errors, no other failure of any kind. runtest
     # exits 1 whenever it recorded any failure, including a named setup error.
     expected_rc = 1 if observed else 0
+    fenced = 'PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl'
+    if row.get('file') == 'unit/pubsub' and fenced in expected and row.get('pubsub_fences') != 1:
+        raise ValueError('PUNSUBSCRIBE completion fence missing or duplicated')
     if setup_only:
         # printver has no test{} block. Require its successful body output;
         # an empty or skipped file may never satisfy this explicit witness.
@@ -206,61 +288,6 @@ def validate_passing(row, expected, known_setup_errors=(), setup_only=False):
             row['exit_code'] != expected_rc):
         raise ValueError('passing subset failed, incomplete, or assertion inventory changed')
 
-MONITOR_ORDER_TEST = 'MONITOR log blocked command only once in tests/unit/introspection.tcl'
-# Named upstream assertions that rely on cross-connection arrival order (single-threaded
-# Redis); each gets one fresh-server retry and nothing else. Maintainer 2026-10-28.
-ORDER_TESTS = {
-    'unit/introspection': MONITOR_ORDER_TEST,
-    # The waker reply and another connection's EXEC do not order the blocked
-    # mover's completion. Both upstream assertions require that arrival order.
-    'unit/type/list': (
-        'BRPOPLPUSH does not affect WATCH while still blocked in tests/unit/type/list.tcl',
-        'PUSH resulting from BRPOPLPUSH affect WATCH in tests/unit/type/list.tcl',
-    ),
-    # REGISTER SLOWLOG-EXEC-BLOCKED-ORDER: BLPOP can retire before its waking EXEC.
-    'unit/slowlog': 'SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl',
-}
-
-def retry_monitor_order(args, tree, unit, row, server_args, known_setup_errors=()):
-    """One fresh-server retry for the named cross-connection ordering assertion of this file.
-
-    Keep the failed receipt and never retry a file, timeout, missing assertion,
-    setup failure, or another named failure. The exact upstream assertion must
-    pass on its sole retry; it is not skipped or weakened.
-    """
-    failures = [event for event in row['events'] if event['status'] == 'err'
-                and event['test'].split(' in tests/')[0]]
-    names = ORDER_TESTS.get(unit, ())
-    if isinstance(names, str):
-        names = (names,)
-    known = Counter({(k['command'], k['reply']): k['count'] for k in known_setup_errors})
-    if (not names or row['error'] or not row['complete'] or
-            row['exit_code'] != 1 or row['failed'] != 1 + sum(known.values()) or
-            setup_errors(row) != known or len(failures) != 1 or
-            failures[0]['test'] not in names):
-        return row
-    name = failures[0]['test']
-    folder = args.output / unit
-    (folder / 'before-monitor-retry.json').write_text(json.dumps(row, indent=2) + '\n')
-    child = copy.copy(args)
-    child.output = folder / 'monitor-retry'
-    part = run_file(child, tree, unit, only=[name.split(' in tests/')[0]],
-                    server_args=server_args)
-    row['monitor_order_retry'] = dict(original_failure=failures[0],
-        result=str(child.output / unit / 'result.json'), passed=False)
-    try:
-        validate_passing(part, [name], known_setup_errors)
-    except ValueError:
-        return row
-    row['monitor_order_retry']['passed'] = True
-    row['events'] = [event for event in row['events'] if event is not failures[0]]
-    row['events'] += [event for event in part['events'] if event['status'] == 'ok']
-    row['failed'] -= 1
-    row['passed'] += 1
-    row['exit_code'] = 1 if known else 0
-    row['seconds'] += part['seconds']
-    return row
-
 def run_manifest_file(args, tree, unit, spec, extra, server_args):
     """Keep required assertions whose skipped predecessors changed their setup.
 
@@ -270,11 +297,8 @@ def run_manifest_file(args, tree, unit, spec, extra, server_args):
     require both runs' exact assertion inventory and completion evidence.
     """
     row=run_file(args,tree,unit,extra=extra,server_args=server_args)
-    row=retry_monitor_order(args,tree,unit,row,server_args,spec.get('known_setup_errors', ()))
     fresh=spec.get('fresh_tests', [])
     if not fresh:
-        if 'monitor_order_retry' in row:
-            (args.output/unit/'result.json').write_text(json.dumps(row, indent=2)+'\n')
         return row
     folder=args.output/unit
     (folder/'primary-result.json').write_text(json.dumps(row,indent=2)+'\n')
@@ -354,6 +378,8 @@ def main():
     p.add_argument('--controller-port', type=int)
     p.add_argument('--ratio', default='6:2')
     p.add_argument('--arm-smove', action='store_true')
+    p.add_argument('--probe-tests', type=Path,
+                   help='diagnostic named assertions, three fresh attempts each; never retries a verdict')
     args=p.parse_args();args.output=args.output.resolve();args.binary=args.binary.resolve();args.output.mkdir(parents=True,exist_ok=True)
     tree=args.output/'checkout';prepare(args.redis_root,tree,controller_port=args.controller_port)
     files=sorted([*args.redis_root.glob('tests/unit/**/*.tcl'),*args.redis_root.glob('tests/integration/**/*.tcl')])
@@ -364,6 +390,31 @@ def main():
         manifest=load_manifest(args.manifest, args.redis_root, inventory); units=list(manifest['files'])
     report=dict(mode=args.mode,binary_sha256=sha(args.binary),redis_version=(args.redis_root/'src/version.h').read_text(),
                 inventory=inventory,rows=[])
+    if args.probe_tests:
+        if args.manifest or args.resume or args.only_files:
+            raise ValueError('isolated probes cannot use a passing manifest or resumed receipt')
+        probes = json.loads(args.probe_tests.read_text())
+        if not probes or any(unit not in inventory or not names for unit, names in probes.items()):
+            raise ValueError('empty or unknown probe inventory')
+        probe_manifest = load_manifest(ROOT/'tests/redis_tcl_passing.json', args.redis_root, inventory)
+        for unit, names in probes.items():
+            spec = probe_manifest['files'][unit]
+            for name in names:
+                for attempt in range(1, 4):
+                    child = copy.copy(args)
+                    child.output = args.output / 'probes' / hashlib.sha256((unit+name).encode()).hexdigest()[:16] / str(attempt)
+                    row = run_file(child, tree, unit, only=[name],
+                                   extra=spec.get('extra_args', ()), server_args=spec.get('server_args', ()))
+                    expected = [name+' in tests/'+unit+'.tcl']
+                    try: validate_passing(row, expected, spec.get('known_setup_errors', ()))
+                    except ValueError as error:
+                        row['error'] = '; '.join(filter(None, (row['error'], str(error))))
+                    row.update(probe=name, attempt=attempt)
+                    report['rows'].append(row)
+                    (args.output/'summary.json').write_text(json.dumps(report,indent=2)+'\n')
+                    print(f"{args.mode} {unit} {name} attempt {attempt}: pass={row['passed']} fail={row['failed']} error={row['error']}", flush=True)
+        if sha(args.binary) != report['binary_sha256']: raise ValueError('candidate changed during probes')
+        return int(any(row['error'] for row in report['rows']))
     for unit in units:
         path=args.output/unit/'result.json'
         extra=[]
@@ -394,8 +445,6 @@ def main():
                 isolated_args.output = args.output / 'isolated' / hashlib.sha256(name.encode()).hexdigest()[:16]
                 isolated_row = run_file(isolated_args, tree, unit, only=[name],
                     extra=spec.get('extra_args', ()), server_args=server_args)
-                isolated_row = retry_monitor_order(isolated_args, tree, unit,
-                    isolated_row, server_args)
                 isolated_row['isolation_reason'] = reason
                 expected = [label for label in spec['passed_tests'] if label.split(' in tests/')[0] == name]
                 try: validate_passing(isolated_row, expected)

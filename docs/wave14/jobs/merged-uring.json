@@ -1,0 +1,48 @@
+{
+  "label": "merged-uring",
+  "source": "/home/user/Projects/cx-wave14/build/gate-run.LzFtUo",
+  "archive": "/home/user/Projects/cx-wave14/docs/wave14/jobs/merged-uring.tar.gz",
+  "archive_sha256": "0984fee7ffce4a548063fea3ab55391caf6bb5a149f26a0ddf62797ee9e907bc",
+  "files": [
+    {
+      "path": "phases.tsv",
+      "size": 27,
+      "sha256": "c4ce10c8c2ec8eeee539ab992c0b74ffedc5a79bf3b41a6c394ee8f800f5ecde"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1218,
+      "sha256": "7f1665d89595395c017a6eb7e293c1db3677f1cbcc0ac87e4fcdacf422b13e33"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 7959,
+      "sha256": "b3d63f1a64ec047ace9b08788239fd6dd1cf39fc005d95b98e6abc83ef19183c"
+    }
+  ],
+  "jobs": [],
+  "command": [
+    "taskset",
+    "-c",
+    "0-31",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "0-15",
+    "--load-cores",
+    "16-23",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20000-20089",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave14/build/wave14/post/tomokv"
+  ],
+  "binary_sha256": "cc31f86e579a33a926fee80a6d5551b021eed8a3b7d4cc112df39c1480f61168",
+  "exit_code": 2,
+  "run_directory": "/home/user/Projects/cx-wave14/build/gate-run.LzFtUo",
+  "engine": "uring",
+  "fused": false
+}

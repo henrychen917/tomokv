@@ -1,0 +1,50 @@
+[
+  {
+    "arm": "PRE",
+    "sha256": "bf7a8a616072d0c238117c0361cb189f7ed50ecc9232546c51c175c048b32c51",
+    "exit": 1,
+    "run": "/home/user/Projects/cx-netfix2/build/gate-run.EBWhiN",
+    "command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "8-15",
+      "--load-cores",
+      "8-15",
+      "--load-smt",
+      "",
+      "--ports",
+      "21100-21199",
+      "--candidate-binary",
+      "/home/user/Projects/cx-netfix2/build/netfix2/PRE"
+    ],
+    "native_directory": "/home/user/Projects/cx-netfix2/build/netfix2/eof-native/PRE"
+  },
+  {
+    "arm": "POST",
+    "sha256": "f9c45811063331942f58bc927aa6a1a343e201041e55b1f60b44b504a3020838",
+    "exit": 1,
+    "run": "/home/user/Projects/cx-netfix2/build/gate-run.YMTYdp",
+    "command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "8-15",
+      "--load-cores",
+      "8-15",
+      "--load-smt",
+      "",
+      "--ports",
+      "21100-21199",
+      "--candidate-binary",
+      "/home/user/Projects/cx-netfix2/build/netfix2/POST"
+    ],
+    "native_directory": "/home/user/Projects/cx-netfix2/build/netfix2/eof-native/POST"
+  }
+]

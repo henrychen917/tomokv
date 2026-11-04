@@ -1,0 +1,7 @@
+{
+  "run": "build/gate-run.iOV7wW/jobs/at412-owner",
+  "passed_arms": 8,
+  "failed": 0,
+  "log_sha256": "53a0f015bf8440fc7be5d101e12ae96a69287c62fc18813c0bf552cf04e04375",
+  "marker": "AT4.12 owner turns PASS"
+}

@@ -1,0 +1,11 @@
+GATE(full): 13 physical cores; 1 correctness slots = min(8/8 server, 5/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 5 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-atomfix6/build/gate-run.HLcyPc
+PARTIAL jobs (including prerequisites): release atomfix6-live-1s-0-1 atomfix6-live-2s-0-16
+PARTIAL jobs (including prerequisites): release atomfix6-live-1s-0-1 atomfix6-live-2s-0-16
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=25.395s; correctness-plan-fallback; atomfix6 MSET pairs/capture/restart (1s, read-local 0, databases 1)
+  atomfix6 MSET pairs/capture/restart (1s, read-local 0, databases 1) FAIL (see /home/user/Projects/cx-atomfix6/build/gate-run.HLcyPc/jobs/atomfix6-live-1s-0-1/proof.log and proof/result.json)
+  row budget: 900s; median=25.515s; correctness-plan-fallback; atomfix6 MSET pairs/capture/restart (2s, read-local 0, databases 16)
+  atomfix6 MSET pairs/capture/restart (2s, read-local 0, databases 16) FAIL (see /home/user/Projects/cx-atomfix6/build/gate-run.HLcyPc/jobs/atomfix6-live-2s-0-16/proof.log and proof/result.json)
+GATE(PARTIAL): 1 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/pad-PAD-A/ledger.tsv.partial

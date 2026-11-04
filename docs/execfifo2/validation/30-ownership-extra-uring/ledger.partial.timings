@@ -1,0 +1,33 @@
+ok	0.040000	release build (+footprint locks)
+ok	256.030000	eviction lruclock battery (split, atomic 0)
+ok	255.170000	eviction lruclock battery (fused+armed, atomic 0)
+ok	255.310000	eviction lruclock battery (split, atomic 1)
+ok	255.320000	eviction lruclock battery (fused+armed, atomic 1)
+ok	0.310000	eviction lfu battery (split, atomic 0)
+ok	0.310000	eviction lfu battery (fused+armed, atomic 0)
+ok	0.310000	eviction lfu battery (split, atomic 1)
+ok	0.320000	eviction lfu battery (fused+armed, atomic 1)
+ok	4.490000	multidb (1s, read-local 0, atomic 0)
+ok	0.100000	multidb (1s, read-local 0, atomic 0) SWAPDB serial order
+ok	0.280000	multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB
+ok	4.440000	multidb (1s, read-local 0, atomic 1)
+ok	0.100000	multidb (1s, read-local 0, atomic 1) SWAPDB serial order
+ok	0.280000	multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB
+ok	4.440000	multidb (1s, read-local 1, atomic 0)
+ok	0.100000	multidb (1s, read-local 1, atomic 0) SWAPDB serial order
+ok	0.280000	multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB
+ok	4.450000	multidb (1s, read-local 1, atomic 1)
+ok	0.090000	multidb (1s, read-local 1, atomic 1) SWAPDB serial order
+ok	0.280000	multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB
+ok	4.340000	multidb (2s, read-local 0, atomic 0)
+ok	0.090000	multidb (2s, read-local 0, atomic 0) SWAPDB serial order
+ok	0.280000	multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB
+ok	4.340000	multidb (2s, read-local 0, atomic 1)
+ok	0.090000	multidb (2s, read-local 0, atomic 1) SWAPDB serial order
+ok	0.280000	multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB
+ok	4.350000	multidb (2s, read-local 1, atomic 0)
+ok	0.090000	multidb (2s, read-local 1, atomic 0) SWAPDB serial order
+ok	0.280000	multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB
+ok	4.350000	multidb (2s, read-local 1, atomic 1)
+ok	0.100000	multidb (2s, read-local 1, atomic 1) SWAPDB serial order
+ok	0.270000	multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB

@@ -1,0 +1,14 @@
+  row budget: 900s; median=34.33s; correctness-plan-fallback; blockfix2 BLOCK-WAKE-RENAME-SORTSTORE
+  blockfix2 BLOCK-WAKE-RENAME-SORTSTORE                ok
+  row budget: 900s; median=36.77s; correctness-plan-fallback; blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK
+  blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK            ok
+  row budget: 900s; median=34.27s; correctness-plan-fallback; blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS
+  blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS               ok
+  row budget: 900s; median=33.78s; correctness-plan-fallback; blockfix2 MULTI-XREADGROUP-BLOCK-HANG
+  blockfix2 MULTI-XREADGROUP-BLOCK-HANG                ok
+  row budget: 900s; median=33.92s; correctness-plan-fallback; blockfix2 INFO-TOTAL-BLOCKING-KEYS
+  blockfix2 INFO-TOTAL-BLOCKING-KEYS                   ok
+  row budget: 900s; median=34.61s; correctness-plan-fallback; blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED
+  blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED                 ok
+  row budget: 900s; median=-s; correctness-plan-fallback; blockfix2 BLOCK-SERVE-REFUSED-DROP
+  blockfix2 BLOCK-SERVE-REFUSED-DROP                   FAIL

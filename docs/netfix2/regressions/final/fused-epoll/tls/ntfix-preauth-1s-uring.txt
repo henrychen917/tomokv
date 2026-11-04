@@ -1,0 +1,2 @@
+PASS ntfix preauth: 23 exact cases, tls=False
+PASS ntfix preauth: 23 exact cases, tls=True

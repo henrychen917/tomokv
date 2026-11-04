@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""XACCT regression battery. Usage: tests/xacct.py HOST PORT
+"""XACCT regression battery. Usage: tests/xacct.py HOST PORT [--release-build]
 
 The server must be purpose-booted with --enable-debug-command yes (or local):
 DEBUG RELOAD is the cold full-recomputation oracle for stream-group accounting.
@@ -11,7 +11,9 @@ import sys
 import time
 
 
-HOST, PORT = sys.argv[1], int(sys.argv[2])
+RELEASE_BUILD = "--release-build" in sys.argv[1:]
+ARGS = [arg for arg in sys.argv[1:] if arg != "--release-build"]
+HOST, PORT = ARGS[0], int(ARGS[1])
 FAIL = 0
 
 
@@ -20,6 +22,16 @@ def note(label, ok, detail=""):
     print(("  ok   " if ok else "  FAIL ") + label +
           ((" " + detail) if detail else ""), flush=True)
     FAIL += not ok
+
+
+def growth(label, small, large, bound):
+    if not RELEASE_BUILD:
+        print("  NOT RUN " + label + " -- requires --release-build; correctness checks remain active",
+              flush=True)
+        return
+    ratio = large / small
+    note(label, ratio < bound, "small=%.3fus large=%.3fus ratio=%.2fx bound<%.2fx" %
+         (small, large, ratio, bound))
 
 
 def frame(*args):
@@ -100,24 +112,21 @@ def xadd_latency(depth):
         commands = [("XADD", "xacct:pel", "%d-0" % ident, "f", "bench")
                     for ident in range(next_id, next_id + ops)]
         next_id += ops
-        started = time.perf_counter_ns()
+        started = time.perf_counter_ns() if RELEASE_BUILD else None
         replies = admin.pipeline(commands)
-        elapsed = time.perf_counter_ns() - started
+        elapsed = time.perf_counter_ns() - started if RELEASE_BUILD else None
         if len(replies) != ops or not all(isinstance(reply, bytes) for reply in replies):
             raise AssertionError("bad XADD reply")
-        samples.append(elapsed / ops / 1000.0)
-    return statistics.median(samples), pending
+        if RELEASE_BUILD:
+            samples.append(elapsed / ops / 1000.0)
+    return statistics.median(samples) if samples else None, pending
 
 
 shallow_us, shallow_pending = xadd_latency(0)
 deep_us, deep_pending = xadd_latency(10000)
-stream_ratio = deep_us / shallow_us
 note("stream detector negative control has PEL=0", shallow_pending == 0)
 note("stream detector fired with PEL=10000", deep_pending == 10000)
-note("XADD cost growth is bounded across a 10k PEL",
-     stream_ratio < 4.0,
-     "shallow=%.3fus deep=%.3fus ratio=%.2fx bound<4.00x" %
-     (shallow_us, deep_us, stream_ratio))
+growth("XADD cost growth is bounded across a 10k PEL", shallow_us, deep_us, 4.0)
 
 
 def queue_sets(count, repeat):
@@ -148,25 +157,22 @@ def aborted_exec_latency(count):
         invalidator.cmd("SET", "xacct:watched", repeat)
         admin.cmd("MULTI")
         queue_sets(count, repeat)
-        started = time.perf_counter_ns()
+        started = time.perf_counter_ns() if RELEASE_BUILD else None
         reply = admin.cmd("EXEC")
-        elapsed = time.perf_counter_ns() - started
+        elapsed = time.perf_counter_ns() - started if RELEASE_BUILD else None
         if reply is None and admin.cmd("DBSIZE") == 1:
             fired += 1
-        samples.append(elapsed / 1000.0)
-    return statistics.median(samples), fired
+        if RELEASE_BUILD:
+            samples.append(elapsed / 1000.0)
+    return statistics.median(samples) if samples else None, fired
 
 
 small_us, small_aborts = aborted_exec_latency(2000)
 large_us, large_aborts = aborted_exec_latency(10000)
-multi_ratio = large_us / small_us
 note("dirty WATCH fired before writes in every measured EXEC",
      small_aborts == 5 and large_aborts == 5,
      "small=%d/5 large=%d/5" % (small_aborts, large_aborts))
-note("MULTI prepare growth is bounded for 5x queued write keys",
-     multi_ratio < 15.0,
-     "2k=%.3fus 10k=%.3fus ratio=%.2fx bound<15.00x" %
-     (small_us, large_us, multi_ratio))
+growth("MULTI prepare growth is bounded for 5x queued write keys", small_us, large_us, 15.0)
 
 # The hash index is only a membership accelerator: first-occurrence dedup and command order stay
 # observable through the child replies and the final value.

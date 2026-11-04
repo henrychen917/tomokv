@@ -1,0 +1,67 @@
+Starting test server at port 20601
+[ready]: 898822
+[1;37;49mTesting unit/sort[0m
+[[0;32;49mok[0m]: Listpack: SORT BY key (0 ms)
+[[0;32;49mok[0m]: Listpack: SORT BY key with limit (0 ms)
+[[0;32;49mok[0m]: Listpack: SORT BY hash field (0 ms)
+[[0;32;49mok[0m]: Quicklist: SORT BY key (5 ms)
+[[0;32;49mok[0m]: Quicklist: SORT BY key with limit (1 ms)
+[[0;32;49mok[0m]: Quicklist: SORT BY hash field (4 ms)
+[[0;32;49mok[0m]: Big Quicklist: SORT BY key (134 ms)
+[[0;32;49mok[0m]: Big Quicklist: SORT BY key with limit (5 ms)
+[[0;32;49mok[0m]: Big Quicklist: SORT BY hash field (134 ms)
+[[0;32;49mok[0m]: Intset: SORT BY key (0 ms)
+[[0;32;49mok[0m]: Intset: SORT BY key with limit (0 ms)
+[[0;32;49mok[0m]: Intset: SORT BY hash field (1 ms)
+[[0;32;49mok[0m]: Hash table: SORT BY key (4 ms)
+[[0;32;49mok[0m]: Hash table: SORT BY key with limit (0 ms)
+[[0;32;49mok[0m]: Hash table: SORT BY hash field (5 ms)
+[[0;32;49mok[0m]: Big Hash table: SORT BY key (135 ms)
+[[0;32;49mok[0m]: Big Hash table: SORT BY key with limit (4 ms)
+[[0;32;49mok[0m]: Big Hash table: SORT BY hash field (134 ms)
+[[0;32;49mok[0m]: SORT GET # (0 ms)
+[[0;32;49mok[0m]: SORT GET <const> (0 ms)
+[[0;32;49mok[0m]: SORT_RO GET <const> (0 ms)
+[[0;32;49mok[0m]: SORT GET (key and hash) with sanity check (1 ms)
+[[0;32;49mok[0m]: SORT BY key STORE (1 ms)
+[[0;32;49mok[0m]: SORT BY hash field STORE (0 ms)
+[[0;32;49mok[0m]: SORT extracts STORE correctly (0 ms)
+[[0;32;49mok[0m]: SORT_RO get keys (0 ms)
+[[0;32;49mok[0m]: SORT extracts multiple STORE correctly (0 ms)
+[[0;32;49mok[0m]: SORT DESC (0 ms)
+[[0;32;49mok[0m]: SORT ALPHA against integer encoded strings (0 ms)
+[[0;32;49mok[0m]: SORT sorted set (0 ms)
+[[0;32;49mok[0m]: SORT sorted set BY nosort should retain ordering (1 ms)
+[[0;32;49mok[0m]: SORT sorted set BY nosort + LIMIT (0 ms)
+[[0;33;49mskip[0m]: SORT sorted set BY nosort works as expected from scripts
+[[0;32;49mok[0m]: SORT sorted set: +inf and -inf handling (0 ms)
+[[0;32;49mok[0m]: SORT regression for issue #19, sorting floats (3 ms)
+[[0;32;49mok[0m]: SORT with STORE returns zero if result is empty (github issue 224) (1 ms)
+[[0;32;49mok[0m]: SORT with STORE does not create empty lists (github issue 224) (0 ms)
+[[0;32;49mok[0m]: SORT with STORE removes key if result is empty (github issue 227) (0 ms)
+[[0;32;49mok[0m]: SORT with BY <constant> and STORE should still order output (1 ms)
+[[0;32;49mok[0m]: SORT will complain with numerical sorting and bad doubles (1) (0 ms)
+[[0;32;49mok[0m]: SORT will complain with numerical sorting and bad doubles (2) (0 ms)
+[[0;32;49mok[0m]: SORT BY sub-sorts lexicographically if score is the same (0 ms)
+[[0;32;49mok[0m]: SORT GET with pattern ending with just -> does not get hash field (0 ms)
+[[0;32;49mok[0m]: SORT by nosort retains native order for lists (0 ms)
+[[0;32;49mok[0m]: SORT by nosort plus store retains native order for lists (0 ms)
+[[0;32;49mok[0m]: SORT by nosort with limit returns based on original list order (0 ms)
+[[0;32;49mok[0m]: SORT_RO - Successful case (1 ms)
+[[0;32;49mok[0m]: SORT_RO - Cannot run with STORE arg (0 ms)
+[[0;32;49mok[0m]: SORT speed, 100 element list BY key, 100 times (10 ms)
+[[0;32;49mok[0m]: SORT speed, 100 element list BY hash field, 100 times (10 ms)
+[[0;32;49mok[0m]: SORT speed, 100 element list directly, 100 times (8 ms)
+[[0;32;49mok[0m]: SORT speed, 100 element list BY <const>, 100 times (6 ms)
+[[0;32;49mok[0m]: SETRANGE with huge offset (1 ms)
+[[0;33;49mskip[0m]: SORT STORE quicklist with the right options
+[[0;36;49mignore[0m]: Not supported on external server
+[1/1 [0;33;49mdone[0m]: unit/sort (2 seconds)
+
+                   The End
+
+Execution time of different units:
+  2 seconds - unit/sort
+
+[1;37;49m\o/[0m [1;32;49mAll tests passed without errors![0m
+

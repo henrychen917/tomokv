@@ -1,0 +1,42 @@
+{
+  "name": "xsexpiry-fenced-post",
+  "command": [
+    "taskset",
+    "-c",
+    "48-63",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "56-63",
+    "--load-cores",
+    "48-55",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20320-20329",
+    "--candidate-binary",
+    "/home/user/Projects/cx-rootcompat/build/rootcompat/POST-fenced"
+  ],
+  "environment": {
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_ONLY_JOBS": "rootcompat-xsexpiry"
+  },
+  "exit": 0,
+  "seconds": 179.7745282649994,
+  "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.S1lqGw",
+  "sha256": "deb2cd7c39886117c49853a8e813cbc0ef4436433e6bf2ea9269d737f1ed8e4e",
+  "candidate": {
+    "checks": 1664,
+    "failures": 0,
+    "armed": 128
+  },
+  "oracle": {
+    "checks": 36,
+    "failures": 0,
+    "armed": 0
+  }
+}

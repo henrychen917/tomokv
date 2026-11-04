@@ -1,0 +1,23 @@
+Deleted bounded GDB step trace: /home/user/Projects/cx-execfifo2/build/execfifo2/commands-scopes/PRE-db0-INCR-1s-32-1--1.log
+SHA-256: 75cad1c3541f4c6ebd8725525ac20630247639eb1cf32e5a532be1f81e2ed2ec
+Exit: 0
+0x00005555558dbf08	2423	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
+0x00005555558dbdd3 in tomo_db0::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff6183648, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2426
+2426	    }
+0x00005555558dbdd8	2426	    }
+0x00005555558dbde1	2426	    }
+0x00005555558dbde7	2426	    }
+0x00005555558dbdeb	2426	    }
+0x00005555558dbdec	2426	    }
+0x00005555558dbdee	2426	    }
+0x00005555558dbdf0	2426	    }
+0x00005555558dbdf2	2426	    }
+0x00005555558dbdf4	2426	    }
+0x00005555558dbdf5	2426	    }
+0x0000555555dde022 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-execfifo2/tests/txnorder_command_scope.cc:112
+112	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-execfifo2/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 3917513) exited normally]
+COUNT 34914

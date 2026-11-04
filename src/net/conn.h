@@ -126,6 +126,13 @@ public:
     SegmentQueue& operator=(const SegmentQueue&) = delete;
 
     bool empty() const { return size_ == 0; }
+    // Cold FLIP drain only: owned socket bytes may survive a role transition;
+    // borrowed storage still names an executor and must be released first.
+    bool has_borrow() const {
+        for (uint32_t i = 0; i < size_; ++i)
+            if (segs_[head_ + i].kind == SegmentKind::Borrow) return true;
+        return false;
+    }
     uint32_t size() const { return size_; }
     uint64_t byte_size() const {
         uint64_t bytes = 0;
@@ -773,6 +780,10 @@ public:
     // Definitions live beside MultiSession; LB and lifetime predicates stay unchanged.
     bool flip_migration_protocol_idle() const;
     bool flip_session_pending() const;
+    bool flip_execution_idle() const;
+    bool flip_stationary_idle() const;
+    bool flip_borrowed_output() const;
+    bool flip_held_output_idle() const;
     bool flip_drain_idle() const {
         // Global dispatch is paused, but connections which remain on this IO may retain durable
         // owner-local modes (subscriptions, WATCH/MULTI session metadata, tracking). Only work

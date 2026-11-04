@@ -1,0 +1,23 @@
+Deleted bounded GDB step trace: /home/user/Projects/cx-execfifo3/build/execfifo3/memory-scopes/PRE-db0-INCR-1s-1-1-0.log
+SHA-256: 533c6be0dd346de5f9c853791adfbf7e2edf557bca4317e2d18304ccb4037db7
+Exit: 0
+2426	    }
+0x00005555558dbd68	2426	    }
+0x00TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS finite INCR owners=1 turns=1 batch=1 read_local=0
+005555558dbd71	2426	    }
+0x00005555558dbd77	2426	    }
+0x00005555558dbd7b	2426	    }
+0x00005555558dbd7c	2426	    }
+0x00005555558dbd7e	2426	    }
+0x00005555558dbd80	2426	    }
+0x00005555558dbd82	2426	    }
+0x00005555558dbd84	2426	    }
+0x00005555558dbd85	2426	    }
+0x0000555555dde115 in tomo_db0::CoreConcurrencyTest::run<true>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, unsigned int, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const (__closure=__closure@entry=0x7ffffffda800, w=w@entry=0) at /home/user/Projects/cx-execfifo3/tests/execfifo3_scope.cc:117
+117	                scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-execfifo3/tests/execfifo3_scope.cc:24
+24	[[gnu::noinline]] void scope_end() { asm volatile("" ::: "memory"); }
+[Inferior 1 (process 2225093) exited normally]
+COUNT 1302

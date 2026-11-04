@@ -1,0 +1,23 @@
+Deleted bounded GDB step trace: /home/user/Projects/cx-execfifo2/build/execfifo2/owner-scopes/PRE-db0-OWNER-cross-1s-2-0--1.log
+SHA-256: 2d24c8b8a4b11eb96466b15a7ed8e173e61c0fd96b686285c8277581a3b26036
+Exit: 0
+0x0000555555ddc0c1	22	    bool empty() const { return count == 0; }
+0x0000555555ddc0c3	22	    bool empty() const { return count == 0; }
+96	            for(unsigned tid=0;tid<8;++tid)if(!owners[tid].multi_retries_.empty()){
+0x0000555555ddc0a7	96	            for(unsigned tid=0;tid<8;++tid)if(!owners[tid].multi_retries_.empty()){
+0x0000555555ddc0ae	96	            for(unsigned tid=0;tid<8;++tid)if(!owners[tid].multi_retries_.empty()){
+95	        for(unsigned turn=0;carriers[0]->state.load()!=OpState::Done&&turn<64;++turn)
+0x0000555555ddc0e0	95	        for(unsigned turn=0;carriers[0]->state.load()!=OpState::Done&&turn<64;++turn)
+293	      load(memory_order __m = memory_order_seq_cst) const noexcept
+0x0000555555ddc078 in std::atomic<tomo_db0::OpState>::load (__m=std::memory_order::seq_cst, this=0x7ffff63584b0) at /usr/include/c++/13/atomic:297
+297		__atomic_load(std::__addressof(_M_i), __ptr, int(__m));
+0x0000555555ddc07b	297		__atomic_load(std::__addressof(_M_i), __ptr, int(__m));
+0x0000555555ddc082 in tomo_db0::CoreConcurrencyTest::run<true> (cross=<optimized out>, cross@entry=true, children=<optimized out>, children@entry=2, atomic=atomic@entry=false) at /home/user/Projects/cx-execfifo2/tests/execfifo2_owner_scope.cc:95
+95	        for(unsigned turn=0;carriers[0]->state.load()!=OpState::Done&&turn<64;++turn)
+0x0000555555ddc084	95	        for(unsigned turn=0;carriers[0]->state.load()!=OpState::Done&&turn<64;++turn)
+0x0000555555ddc980	99	        scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-execfifo2/tests/execfifo2_owner_scope.cc:23
+23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 903367) exited normally]
+COUNT 18623

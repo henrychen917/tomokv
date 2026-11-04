@@ -1,0 +1,11 @@
+CLIENT KILL SKIPME YES/NO will kill all clients
+CLIENT KILL close the client connection during bgsave
+CONFIG GET hidden configs
+CONFIG GET multiple args
+CONFIG SET rollback on apply error
+CONFIG SET rollback on set error
+CONFIG SET set immutable
+CONFIG SET with multiple args
+CONFIG sanity
+MONITOR can log commands issued by functions
+MONITOR supports redacting command arguments

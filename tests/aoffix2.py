@@ -532,10 +532,14 @@ def manifest_missing():
     assert len(saved) >= 2, 'base and increment were not created'
     with Server(aof()) as s:
         # Empty boot or explicit refusal is allowed; destroying old segments is not.
-        after = {name: hashlib.sha256((ad / name).read_bytes()).hexdigest()
-                 for name in saved if (ad / name).is_file()}
+        # Unreferenced segments may be moved into a private quarantine before
+        # the writer reuses live names. Require the exact original bytes for
+        # every saved segment, not merely a file with the old basename.
+        after = {name: [str(p.relative_to(ad)) for p in ad.rglob(name)
+                        if p.is_file() and hashlib.sha256(p.read_bytes()).hexdigest() == digest]
+                 for name, digest in saved.items()}
         emit('missing_manifest', ready=s.ready, before=saved, after=after)
-        assert after == saved, 'PS4.9: unreferenced AOF segments were deleted/overwritten'
+        assert all(after.values()), 'PS4.9: unreferenced AOF segments were deleted/overwritten'
 
 
 def bgsave():

@@ -1,0 +1,14 @@
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 2 L3 domain(s)
+  domain  0: 3 cpus [61,62,63]
+  domain  1: 5 cpus [64,65,66,67,68]
+tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=1
+  thread t0: role=unified cpu=61 L3=0 shards=2 send=self
+  thread t1: role=unified cpu=62 L3=0 shards=2 send=self
+  thread t2: role=unified cpu=63 L3=0 shards=2 send=self
+  thread t3: role=unified cpu=64 L3=1 shards=2 send=self
+  thread t4: role=unified cpu=65 L3=1 shards=2 send=self
+  thread t5: role=unified cpu=66 L3=1 shards=2 send=self
+  thread t6: role=unified cpu=67 L3=1 shards=2 send=self
+  thread t7: role=unified cpu=68 L3=1 shards=2 send=self
+listening on 127.0.0.1:21430

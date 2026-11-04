@@ -1,0 +1,80 @@
+FAIL fds-2s-uring-db1 Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 431, in main
+    results[label] = test(a, label, mode, engine, db)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 280, in fds
+    assert all(isinstance(v, dict) for v in results.values()), results
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'fds_budget': 'Traceback (most recent call last):\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 277, in fds\n    results[test.__name__] = test(a, label + \'-\' + test.__name__, mode, engine, db)\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 214, in fds_budget\n    assert isinstance(error, _lib.RespError), (\'CONFIG SET accepted impossible limit\', error)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: (\'CONFIG SET accepted impossible limit\', b\'OK\')\n', 'fds_backoff': 'Traceback (most recent call last):\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 277, in fds\n    results[test.__name__] = test(a, label + \'-\' + test.__name__, mode, engine, db)\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 269, in fds_backoff\n    assert 1 <= attempts <= 256, (\'EMFILE window absent or accept busy-spin\', attempts)\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError: (\'EMFILE window absent or accept busy-spin\', 5688942)\n'}
+
+FAIL fds-2s-uring-db16 Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 431, in main
+    results[label] = test(a, label, mode, engine, db)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 280, in fds
+    assert all(isinstance(v, dict) for v in results.values()), results
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'fds_budget': 'Traceback (most recent call last):\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 277, in fds\n    results[test.__name__] = test(a, label + \'-\' + test.__name__, mode, engine, db)\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 214, in fds_budget\n    assert isinstance(error, _lib.RespError), (\'CONFIG SET accepted impossible limit\', error)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: (\'CONFIG SET accepted impossible limit\', b\'OK\')\n', 'fds_backoff': 'Traceback (most recent call last):\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 277, in fds\n    results[test.__name__] = test(a, label + \'-\' + test.__name__, mode, engine, db)\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 269, in fds_backoff\n    assert 1 <= attempts <= 256, (\'EMFILE window absent or accept busy-spin\', attempts)\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError: (\'EMFILE window absent or accept busy-spin\', 5915853)\n'}
+
+FAIL fds-2s-epoll-db1 Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 431, in main
+    results[label] = test(a, label, mode, engine, db)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 280, in fds
+    assert all(isinstance(v, dict) for v in results.values()), results
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'fds_budget': 'Traceback (most recent call last):\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 277, in fds\n    results[test.__name__] = test(a, label + \'-\' + test.__name__, mode, engine, db)\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 214, in fds_budget\n    assert isinstance(error, _lib.RespError), (\'CONFIG SET accepted impossible limit\', error)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: (\'CONFIG SET accepted impossible limit\', b\'OK\')\n', 'fds_backoff': 'Traceback (most recent call last):\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 277, in fds\n    results[test.__name__] = test(a, label + \'-\' + test.__name__, mode, engine, db)\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 269, in fds_backoff\n    assert 1 <= attempts <= 256, (\'EMFILE window absent or accept busy-spin\', attempts)\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError: (\'EMFILE window absent or accept busy-spin\', 8239396)\n'}
+
+FAIL fds-2s-epoll-db16 Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 431, in main
+    results[label] = test(a, label, mode, engine, db)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 280, in fds
+    assert all(isinstance(v, dict) for v in results.values()), results
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'fds_budget': 'Traceback (most recent call last):\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 277, in fds\n    results[test.__name__] = test(a, label + \'-\' + test.__name__, mode, engine, db)\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 214, in fds_budget\n    assert isinstance(error, _lib.RespError), (\'CONFIG SET accepted impossible limit\', error)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: (\'CONFIG SET accepted impossible limit\', b\'OK\')\n', 'fds_backoff': 'Traceback (most recent call last):\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 277, in fds\n    results[test.__name__] = test(a, label + \'-\' + test.__name__, mode, engine, db)\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 269, in fds_backoff\n    assert 1 <= attempts <= 256, (\'EMFILE window absent or accept busy-spin\', attempts)\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError: (\'EMFILE window absent or accept busy-spin\', 8436892)\n'}
+
+FAIL fds-1s-uring-db1 Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 431, in main
+    results[label] = test(a, label, mode, engine, db)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 280, in fds
+    assert all(isinstance(v, dict) for v in results.values()), results
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'fds_budget': 'Traceback (most recent call last):\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 277, in fds\n    results[test.__name__] = test(a, label + \'-\' + test.__name__, mode, engine, db)\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 214, in fds_budget\n    assert isinstance(error, _lib.RespError), (\'CONFIG SET accepted impossible limit\', error)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: (\'CONFIG SET accepted impossible limit\', b\'OK\')\n', 'fds_backoff': 'Traceback (most recent call last):\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 277, in fds\n    results[test.__name__] = test(a, label + \'-\' + test.__name__, mode, engine, db)\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 269, in fds_backoff\n    assert 1 <= attempts <= 256, (\'EMFILE window absent or accept busy-spin\', attempts)\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError: (\'EMFILE window absent or accept busy-spin\', 5873417)\n'}
+
+FAIL fds-1s-uring-db16 Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 431, in main
+    results[label] = test(a, label, mode, engine, db)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 280, in fds
+    assert all(isinstance(v, dict) for v in results.values()), results
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'fds_budget': 'Traceback (most recent call last):\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 277, in fds\n    results[test.__name__] = test(a, label + \'-\' + test.__name__, mode, engine, db)\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 214, in fds_budget\n    assert isinstance(error, _lib.RespError), (\'CONFIG SET accepted impossible limit\', error)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: (\'CONFIG SET accepted impossible limit\', b\'OK\')\n', 'fds_backoff': 'Traceback (most recent call last):\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 277, in fds\n    results[test.__name__] = test(a, label + \'-\' + test.__name__, mode, engine, db)\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 269, in fds_backoff\n    assert 1 <= attempts <= 256, (\'EMFILE window absent or accept busy-spin\', attempts)\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError: (\'EMFILE window absent or accept busy-spin\', 5913554)\n'}
+
+FAIL fds-1s-epoll-db1 Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 431, in main
+    results[label] = test(a, label, mode, engine, db)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 280, in fds
+    assert all(isinstance(v, dict) for v in results.values()), results
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'fds_budget': 'Traceback (most recent call last):\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 277, in fds\n    results[test.__name__] = test(a, label + \'-\' + test.__name__, mode, engine, db)\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 214, in fds_budget\n    assert isinstance(error, _lib.RespError), (\'CONFIG SET accepted impossible limit\', error)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: (\'CONFIG SET accepted impossible limit\', b\'OK\')\n', 'fds_backoff': 'Traceback (most recent call last):\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 277, in fds\n    results[test.__name__] = test(a, label + \'-\' + test.__name__, mode, engine, db)\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 269, in fds_backoff\n    assert 1 <= attempts <= 256, (\'EMFILE window absent or accept busy-spin\', attempts)\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError: (\'EMFILE window absent or accept busy-spin\', 6896605)\n'}
+
+FAIL fds-1s-epoll-db16 Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 431, in main
+    results[label] = test(a, label, mode, engine, db)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 280, in fds
+    assert all(isinstance(v, dict) for v in results.values()), results
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'fds_budget': 'Traceback (most recent call last):\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 277, in fds\n    results[test.__name__] = test(a, label + \'-\' + test.__name__, mode, engine, db)\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 214, in fds_budget\n    assert isinstance(error, _lib.RespError), (\'CONFIG SET accepted impossible limit\', error)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: (\'CONFIG SET accepted impossible limit\', b\'OK\')\n', 'fds_backoff': 'Traceback (most recent call last):\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 277, in fds\n    results[test.__name__] = test(a, label + \'-\' + test.__name__, mode, engine, db)\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 269, in fds_backoff\n    assert 1 <= attempts <= 256, (\'EMFILE window absent or accept busy-spin\', attempts)\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError: (\'EMFILE window absent or accept busy-spin\', 5250240)\n'}
+
+fds: 0/8 legs passed
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 443, in <module>
+    main()
+  File "/home/user/Projects/cx-netfix2/tests/netfix2.py", line 439, in main
+    assert not failed, failed
+           ^^^^^^^^^^
+AssertionError: ['fds-2s-uring-db1', 'fds-2s-uring-db16', 'fds-2s-epoll-db1', 'fds-2s-epoll-db16', 'fds-1s-uring-db1', 'fds-1s-uring-db16', 'fds-1s-epoll-db1', 'fds-1s-epoll-db16']

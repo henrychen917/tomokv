@@ -47,7 +47,12 @@ void watch_execute_handler(Shard& shard, Op& op) {
 ScatterTaskResult watch_execute_scatter(const Task& task, Shard& shard, Op& op,
                                          uint32_t owner) {
     ScatterState& state = *task.scatter;
-    const bool deferred = state.atomic_group || state.multi_child;
+    // CD5.5: a bare atomic pop changes its selected key live in phase two and draws a commit
+    // ticket only when AOF records it, so a reservation tied to its epoch could never decide (a
+    // lost update, and a reservation that outlives every watcher). Like LPOP, its WATCH effect
+    // is immediate. EXEC children still decide with their parent.
+    const bool deferred = state.multi_child ||
+        (state.atomic_group && !(state.atomic_pop && state.phase == 2));
     WatchMutationScope scope(shard, deferred ? &state : nullptr,
         publish_epoch(state), publish_aborted(state), &state.watch_refs, task.client);
     const auto result = xshard_execute(task, shard, op, owner);

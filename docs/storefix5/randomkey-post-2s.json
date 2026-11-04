@@ -1,0 +1,42 @@
+{
+  "binary": "/home/user/Projects/cx-storefix5/build/tomokv",
+  "sha256": "eec5589b2d3bb83bc0150d30257c6429e6f7671a0ce2a26534a8abf14a9dac06",
+  "argv": [
+    "/home/user/Projects/cx-storefix5/build/tomokv",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "21600",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--enable-debug-command",
+    "yes",
+    "--dir",
+    "/home/user/Projects/cx-storefix5/build/storefix5/tmpbp_81wtd",
+    "--thread-mode",
+    "2s",
+    "--shards",
+    "16",
+    "--databases",
+    "16",
+    "--net-io",
+    "uring",
+    "--ratio",
+    "6:2"
+  ],
+  "affinity": [
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23
+  ],
+  "locale": "C",
+  "cases": {},
+  "exit": 0
+}

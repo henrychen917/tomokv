@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; no-history-conservative-default; serverfix SV4.7 HELLO canonical protocol
+  serverfix SV4.7 HELLO canonical protocol             ok

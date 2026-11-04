@@ -1,0 +1,31 @@
+{
+  "images": [
+    {
+      "arm": "POST-layout",
+      "path": "build/atomfix6/arms/POST-layout",
+      "before_sha256": "01323b988cb78b98b7e2df8d6ecb3895c3ca7e65d8e1e386a188178dc0db7894",
+      "before_bytes": 457596288,
+      "loaded_sha256": "71fe2014f8a067d2b898125a9ae47b84bc73bbffafd97ab672af88b3c880f86c",
+      "mtime_ns": 1793587116818427971,
+      "after_sha256": "7c9db23622a3e3aadb48664f9c9acafdfef8e681a3ffba3a53c59546900581d8",
+      "after_bytes": 196674864
+    },
+    {
+      "arm": "PAD-A",
+      "path": "build/atomfix6/arms/PAD-A",
+      "before_sha256": "34e210d11f7fbad4667578523b8e7e5692975d6567f3d5a0b0b9c1b4a23df557",
+      "before_bytes": 457596288,
+      "loaded_sha256": "79bab18b2aebe6cc7a52030209b736eb8fd540e73b256870b52fbe382096ed4b",
+      "mtime_ns": 1793587120439664940,
+      "after_sha256": "5a5258682210fe3b09544eb6407b648651fc0420c562f3df32efc45d80539112",
+      "after_bytes": 196674864
+    }
+  ],
+  "changed_bytes": [
+    "  1035013 114 351",
+    "  1035014 215 247",
+    "  1035015 124 316",
+    "  1035016  44   0",
+    "  1035017  10   0"
+  ]
+}

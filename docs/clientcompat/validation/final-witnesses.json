@@ -1,0 +1,139 @@
+{
+  "run": "build/gate-run.KJHFq9",
+  "partial": true,
+  "full_gate_receipt": false,
+  "complete": true,
+  "jobs": [
+    {
+      "job": "clientcompat-disconnect",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t4.690000\tclientcompat disconnect"
+      ]
+    },
+    {
+      "job": "clientcompat-enable-race",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t79.020000\tclientcompat enable-race"
+      ]
+    },
+    {
+      "job": "clientcompat-multi-controls",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t438.850000\tclientcompat multi-controls"
+      ]
+    },
+    {
+      "job": "clientcompat-multi-tracking",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t162.800000\tclientcompat multi-tracking"
+      ]
+    },
+    {
+      "job": "clientcompat-pause",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t207.180000\tclientcompat pause"
+      ]
+    },
+    {
+      "job": "core_tsan_build",
+      "exit": 0,
+      "passed": 0,
+      "failed": 0,
+      "ledger": []
+    },
+    {
+      "job": "core_units",
+      "exit": 0,
+      "passed": 9,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.120000\tcore concurrency watch",
+        "ok\t0.330000\tcore concurrency lifetime",
+        "ok\t0.120000\tcore concurrency drain",
+        "ok\t7.210000\tcore concurrency route",
+        "ok\t0.120000\tcore concurrency snapshot",
+        "ok\t0.180000\tcore concurrency config",
+        "ok\t0.180000\tcore concurrency notify",
+        "ok\t0.620000\tread-local topology demotion (1s)",
+        "ok\t0.640000\tread-local topology demotion (2s)"
+      ]
+    },
+    {
+      "job": "production_units",
+      "exit": 0,
+      "passed": 0,
+      "failed": 0,
+      "ledger": []
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.010000\trelease build (+footprint locks)"
+      ]
+    },
+    {
+      "job": "trackorder",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t290.390000\ttracking FLUSH reply order vs Redis 7.4"
+      ]
+    }
+  ],
+  "missing": [],
+  "archive": "docs/clientcompat/validation/final-witnesses.json.gz",
+  "archive_sha256": "238f1394933698f900a9299d0e61b42a5cee61bf706f7eff618c14a760d3a4f4",
+  "passed": 15,
+  "failed": 1,
+  "arm": {
+    "source_commit": "694fae5c73",
+    "binary": "build/clientcompat/POST/tomokv",
+    "sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01",
+    "engine": null,
+    "arm": "POST",
+    "command": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "72-79",
+      "--load-cores",
+      "64-71",
+      "--ports",
+      "20400-20419",
+      "--candidate-binary",
+      "build/clientcompat/POST/tomokv"
+    ],
+    "started": 1793521010.781371,
+    "pid": 1233513,
+    "LC_ALL": "C",
+    "requested_jobs": [
+      "release",
+      "clientcompat-pause",
+      "clientcompat-disconnect",
+      "clientcompat-multi-tracking",
+      "clientcompat-multi-controls",
+      "clientcompat-enable-race",
+      "trackorder",
+      "core_units"
+    ]
+  }
+}

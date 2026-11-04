@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "commands": {
+    "ACL": 21,
+    "COMMAND": 4202
+  },
+  "kinds": {
+    "ACL": [
+      "reply"
+    ],
+    "COMMAND": [
+      "reply"
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "0-31",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "0-15",
+    "--load-cores",
+    "16-23",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20000-20089",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave14/build/wave14/post-r7/tomokv"
+  ],
+  "binary_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+  "env": {
+    "LC_ALL": "C",
+    "GATE_TXN_ATOMIC": "1",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_NET_IO": "epoll",
+    "GATE_PROOF_NET_IO": "epoll",
+    "GATE_DIFFER_NET_IO": "epoll",
+    "GATE_ONLY_JOBS": "debug-0 debug-1 release_batteries atomic_batteries sort script_bounds dump_restore auth notify aof_frame asan_batteries replyoff zc scriptfix",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave14/docs/wave14/jobs/merged-final-fused-epoll",
+    "CXX": "g++ -gz=zlib",
+    "CC": "cc -gz=zlib",
+    "GATE_TXN_FUSED": "1"
+  }
+}

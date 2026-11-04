@@ -18,6 +18,7 @@ CASES = ('endpoints', 'exits', 'grammar', 'info')
 # tables and their production mutants are the behavioural oracle for defer().
 IO = 'src/core/io_loop.h'
 R7 = 'src/core/reorder.cc'
+FLIP = 'src/cmd/flip_liveness.inc'
 WB = 'src/net/wb.h'
 DETECTOR_TOKENS = (
     'wb_policy_signals_', 'wb_policy_signal(', 'wb_rule::State', 'wb_policy.pass(',
@@ -64,15 +65,12 @@ PLUMBING = (
                       static_cast<uint8_t>(srv_->cfg().wb_complete_visits)};''', 1),
     ('', 'std::deque<Client*> pending_serve_;', 1),
     ('flip_io_drained', '''if (!pending_serve_.empty() || !pending_releases_.empty() ||
-        !pending_handoffs_.empty() || !deferred_timers_.empty() ||
+        !pending_handoffs_.empty() || !flip_timers_drained() ||
         !client_migrations_.empty() || !epoll_closes_.empty() ||
         !dead_next_.empty() || !dead_ready_.empty() ||
         !multi_deferred_.empty() || !pending_multi_cleanups_.empty() ||
         !pubsub_notification_chains_.empty() || !self_->io_inbound_quiesced() ||
         srv_->pubsub_inflight() != 0 || srv_->pubsub_pending() != 0) return false;''', 1),
-    ('flip_io_drained', '''if (client->rob().in_flight() != 1 || client->send_inflight() ||
-        client->serve_pending() || !client->nothing_to_write() ||
-        !wb_.migration_ready(*client)) return false;''', 1),
     ('parse_and_dispatch', BUFFER, 2),
     ('flush_ready', BACKSTOP, 1), ('flush_ready', IDLE, 1),
     ('enqueue_serve', '''if (c->serve_pending()) return;
@@ -86,6 +84,22 @@ R7_PLUMBING = (
     ('r7_run_loop', IDLE_PARK, 1),
     ('r7_parse_and_dispatch', BUFFER, 2),
     ('r7_flush_ready', BACKSTOP, 1), ('r7_flush_ready', IDLE, 1),
+)
+# FLIP's cold helper owns the existing serve pin while a socket may move.
+# Keep every occurrence anchored, including the coordinator's pre-commit fence;
+# moving that code out of IoLoop is not an exemption from the policy envelope.
+FLIP_PLUMBING = (
+    ('flip_output_hold', '''if (client->send_inflight() || client->serve_pending()) std::abort();
+        client->set_serve_pending(true);''', 1),
+    ('flip_output_plan', '''client->set_serve_pending(false); enqueue_serve(client);''', 1),
+    ('flip_output_release', '''client->set_serve_pending(false); enqueue_serve(client);''', 1),
+    ('flip_output_adopt', '''if (!client->serve_pending()) return;''', 1),
+    ('flip_output_adopt', '''client->set_serve_pending(false); enqueue_serve(client);''', 1),
+    ('flip_output_unhold', '''client->set_serve_pending(false); enqueue_serve(client);''', 1),
+    ('flip_client_drained', '''if (coordinator)
+        return client->rob().in_flight() == 1 &&
+               (stays || (post ? !client->flip_borrowed_output() :
+                !client->send_inflight() && !client->serve_pending() && client->nothing_to_write()));''', 1),
 )
 
 
@@ -195,12 +209,13 @@ def emit(name, output):
 
 
 def source():
-    for path in (POLICY, 'src/core/server.h', WB, IO, R7):
+    for path in (POLICY, 'src/core/server.h', WB, IO, R7, FLIP):
         no_tokens(path, (ROOT/path).read_text(), DETECTOR_TOKENS)
     no_tokens(POLICY, (ROOT/POLICY).read_text(), RULE_TOKENS)
     envelope(WB, (), (), ())
     envelope(IO, (SERVE,), PLUMBING, (('flush_ready', SERVE_GUARD),))
     envelope(R7, (SERVE,), R7_PLUMBING, (('r7_flush_ready', SERVE_GUARD),))
+    envelope(FLIP, (), FLIP_PLUMBING, ())
     subprocess.run([sys.executable, '-B', 'tests/r7shadow_sync.py'], cwd=ROOT, check=True)
     print('PASS wbland source: anchored calls/guards, no stray policy references or detector, R7 parity')
 
@@ -209,6 +224,19 @@ def source():
 # A positive unrelated edit must still run R7 parity. No source tree under test
 # (in particular --root pointing at another lane) is modified.
 SOURCE_CONTROLS = {
+    'flip-hold-send-fence': (FLIP,
+        'if (client->send_inflight() || client->serve_pending()) std::abort();',
+        'if (client->serve_pending()) std::abort();',
+        f'{FLIP}: flip_output_hold anchored writeback site'),
+    'flip-adopt-pin': (FLIP, 'if (!client->serve_pending()) return;', '',
+        f'{FLIP}: flip_output_adopt anchored writeback site'),
+    'flip-coordinator-fence': (FLIP,
+        '!client->send_inflight() && !client->serve_pending() && client->nothing_to_write()',
+        '!client->send_inflight() && client->nothing_to_write()',
+        f'{FLIP}: flip_client_drained anchored writeback site'),
+    'flip-stray-rule': (FLIP, 'void IoLoop::flip_output_release() {',
+        'void IoLoop::flip_output_release() { wb_rule::defer(*flip_client_);',
+        f'{FLIP}: unanchored writeback reference wb_rule'),
     'io-grace-disabled': (IO, 'if (wb_config_.policy) wb_idle.observe', 'wb_idle.observe',
                           f'{IO}: run_loop anchored writeback site'),
     'io-grace-disabled-active': (IO, '!did && wb_config_.policy && !pending_serve_.empty()',
@@ -259,7 +287,7 @@ SOURCE_CONTROLS = {
 
 def source_controls(work):
     rows = []
-    inputs = (POLICY, WB, IO, R7, 'src/core/server.h', 'src/core/ex_loop.h',
+    inputs = (POLICY, WB, IO, R7, FLIP, 'src/core/server.h', 'src/core/ex_loop.h',
               'src/core/genthread.cc', 'tests/r7shadow_sync.py', 'tools/reorder_sync.py')
     with tempfile.TemporaryDirectory(prefix='wbland-source-', dir=work) as temporary:
         overlay = Path(temporary)

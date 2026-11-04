@@ -1,0 +1,8 @@
+  row budget: 900s; median=2.11s; correctness-plan-fallback; read-only resize split read-local=0
+  read-only resize split read-local=0                  ok
+  row budget: 900s; median=2.06s; correctness-plan-fallback; read-only resize split read-local=1
+  read-only resize split read-local=1                  ok
+  row budget: 900s; median=1.59s; correctness-plan-fallback; read-only resize fused read-local=0
+  read-only resize fused read-local=0                  ok
+  row budget: 900s; median=1.57s; correctness-plan-fallback; read-only resize fused read-local=1
+  read-only resize fused read-local=1                  ok

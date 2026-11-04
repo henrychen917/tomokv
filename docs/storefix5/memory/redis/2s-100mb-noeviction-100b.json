@@ -1,0 +1,58 @@
+{
+  "binary": "/home/user/Projects/redis/src/redis-server",
+  "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "argv": [
+    "/home/user/Projects/redis/src/redis-server",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "21631",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--enable-debug-command",
+    "yes",
+    "--dir",
+    "/home/user/Projects/cx-storefix5/build/storefix5/tmpc1qcc_gn",
+    "--maxmemory",
+    "104857600",
+    "--maxmemory-policy",
+    "noeviction"
+  ],
+  "affinity": [
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23
+  ],
+  "locale": "C",
+  "cases": {
+    "memory_limit": {
+      "result": {
+        "limit": 104857600,
+        "value_size": 100,
+        "policy": "noeviction",
+        "keys": 566006,
+        "accepted": 566006,
+        "refused": 1034,
+        "evicted": 0,
+        "before": {
+          "used_memory": 1012160,
+          "used_memory_rss": 6340608
+        },
+        "after": {
+          "used_memory": 104858656,
+          "used_memory_rss": 109101056
+        },
+        "rss_over_limit": 1.04046875
+      },
+      "passed": true
+    }
+  },
+  "exit": 0
+}

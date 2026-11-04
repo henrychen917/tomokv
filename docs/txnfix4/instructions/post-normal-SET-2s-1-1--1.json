@@ -1,0 +1,43 @@
+{
+  "total": 1647,
+  "functions": {
+    "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 121,
+    "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)": 221,
+    "tomo::multi_task_tagged(tomo::Task const&)": 4,
+    "void tomo::(anonymous namespace)::cmd_set<false>(tomo::Shard&, tomo::Op&)": 69,
+    "tomo::Op::key() const": 11,
+    "tomo::(anonymous namespace)::store_string(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool) [clone .isra.0]": 180,
+    "tomo::(anonymous namespace)::parse_i64(tomo::Slice, long&) [clone .constprop.0] [clone .isra.0]": 7,
+    "tomo::KvObj::key() const": 39,
+    "tomo::Slice::key_eq(tomo::Slice const&) const": 29,
+    "tomo::good_size(unsigned long)": 12,
+    "tomo::KvObj::val_ptr()": 16,
+    "tomo::Op::Sink::reserve(unsigned long)": 24,
+    "tomo::ExLoopT<false>::flush_notify_batch()": 94,
+    "tomo::Shard::publish_size()": 232,
+    "tomo::FlatStore::publish_database_counts() const": 588
+  },
+  "bodies": {
+    "0x518ca0 void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 121,
+    "0x515050 bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)": 221,
+    "0x56eea0 tomo::multi_task_tagged(tomo::Task const&)": 4,
+    "0x631130 void tomo::(anonymous namespace)::cmd_set<false>(tomo::Shard&, tomo::Op&)": 69,
+    "0x635a10 tomo::Op::key() const": 11,
+    "0x630580 tomo::(anonymous namespace)::store_string(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool) [clone .isra.0]": 180,
+    "0x62b650 tomo::(anonymous namespace)::parse_i64(tomo::Slice, long&) [clone .constprop.0] [clone .isra.0]": 7,
+    "0x4b8f70 tomo::KvObj::key() const": 39,
+    "0x5c5800 tomo::Slice::key_eq(tomo::Slice const&) const": 29,
+    "0x6359b0 tomo::good_size(unsigned long)": 12,
+    "0x635a50 tomo::KvObj::val_ptr()": 16,
+    "0x4b82c0 tomo::Op::Sink::reserve(unsigned long)": 24,
+    "0x5024f0 tomo::ExLoopT<false>::flush_notify_batch()": 94,
+    "0x856ea0 tomo::Shard::publish_size()": 232,
+    "0x856da0 tomo::FlatStore::publish_database_counts() const": 588
+  },
+  "excluded": {
+    "memcpy@plt": 1
+  },
+  "clock_calls": 1,
+  "trace_version": 1,
+  "binary_sha256": "ff3e7ed13035772b0f40b7101e61d98461e409d4d3519a242cc59c10ab4bd9f9"
+}

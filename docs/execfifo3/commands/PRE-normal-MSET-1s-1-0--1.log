@@ -1,0 +1,23 @@
+Deleted bounded GDB step trace: /home/user/Projects/cx-execfifo3/build/execfifo3/commands-scopes/PRE-normal-MSET-1s-1-0--1.log
+SHA-256: d8b0e605f16b10f012714c5a67c164c4c2504c84c8e4f4eb5c06bd23b4a2aa8a
+Exit: 0
+0x0000555555aaf9dd	2359	}
+0x0000555555aaf9de	2359	}
+0x0000555555aaf9e0	2359	}
+0x0000555555aaf9e2	2359	}
+0x0000555555aaf9e4	2359	}
+0x0000555555ddde53 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-execfifo3/tests/txnorder_command_scope.cc:152
+152	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
+135	   for(unsigned i=0;i<n;i++){
+0x0000555555ddde5f	135	   for(unsigned i=0;i<n;i++){
+0x0000555555ddde66	135	   for(unsigned i=0;i<n;i++){
+0x0000555555ddde6e	135	   for(unsigned i=0;i<n;i++){
+0x0000555555ddde75	135	   for(unsigned i=0;i<n;i++){
+0x0000555555ddde7b	155	   std::string want="+OK\r\n";
+0x0000555555ddde82	155	   std::string want="+OK\r\n";
+0x0000555555ddde89	154	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-execfifo3/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 3132427) exited normally]
+COUNT 10779

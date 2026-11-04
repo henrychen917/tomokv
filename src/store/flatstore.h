@@ -515,6 +515,13 @@ inline uint64_t scan_cursor_next(uint64_t cursor, uint64_t mask) {
     return scan_cursor_reverse_bits(cursor);
 }
 
+// The SCAN command's walker declares kExpiresVisited. Redis 7.4's scanGenericCommand deletes
+// every elapsed key of the batch it visits, so that walker keeps the deletion even when the
+// owner's retire ring must first reclaim (FlatStore::scan_visit). Every other walker keeps the
+// no-wait capacity guard.
+template <typename Fn>
+inline constexpr bool kScanExpiresVisited = requires { requires Fn::kExpiresVisited; };
+
 class FlatStore;
 struct FlatStoreLayoutLock;
 
@@ -991,6 +998,17 @@ public:
     // Re-arms type-specific attention for an imported image, including atomic COPY/RENAME APPLY.
     // The type guard keeps hash-field machinery behind the hash-only branch.
     void note_loaded_object(uint64_t h, const KvObj* o) {
+        if (static_cast<Type>(o->type) == Type::String) return;
+        // Imported images (COPY/RESTORE/*STORE/RENAME) create collections
+        // without going through their native push handlers. Signal here, at
+        // installation, so wake coverage follows the type rather than a list
+        // of commands. Native pushes already signal behind their waiter gate.
+        if (static_cast<Type>(o->type) == Type::List ||
+            static_cast<Type>(o->type) == Type::Zset ||
+            static_cast<Type>(o->type) == Type::Stream) {
+            if (blocking_key_created) blocking_key_created(this, o->key());
+            return;
+        }
         if (static_cast<Type>(o->type) != Type::Hash) return;
         if (static_cast<Enc>(o->enc) == Enc::Compact) return;
         if (static_cast<const HashVal*>(o->external_ptr())->ttls) note_field_ttl(h);
@@ -1464,33 +1482,56 @@ public:
             if (old && !deadline_elapsed(hash, old, cached_now_ms_))
                 stamp = clock->timestamp(old, stamp);
         }
-        return clock->install(object, stamp);
+        return clock->install(object, stamp, obj_bytes_);
     }
-    [[gnu::noinline, gnu::cold]] void configure_object_idle(bool enabled) {
+    [[gnu::noinline]] size_t object_idle_allocation_bytes(const KvObj* object) const {
+        const auto* clock = object_idle_slot()->load(std::memory_order_relaxed);
+        return clock ? clock->allocation_bytes(object) : 0;
+    }
+    static void reclaim_object_idle(void* owner, void* payload, size_t bytes) {
+        // The owner drains its retire ring before shard migration or teardown.
+        // Keep the charge until the last foreign reader has passed its grace.
+        delete static_cast<ObjectIdleClock*>(payload);
+        static_cast<FlatStore*>(owner)->obj_bytes_ -= bytes;
+    }
+    // False only when enabling cannot allocate the clock (SO5.1). Nothing escapes: the partial
+    // clock is freed here and the slot stays empty, so OBJECT IDLETIME reads 0 for this store.
+    // Eviction is unaffected: the victim chooser reads the five-bit LRU meta, not this clock.
+    [[gnu::noinline, gnu::cold]] bool configure_object_idle(bool enabled) {
         auto* current = object_idle_slot()->load(std::memory_order_relaxed);
-        if (enabled == (current != nullptr)) return;
+        if (enabled == (current != nullptr)) return true;
         if (enabled) {
-            auto fresh = std::make_unique<ObjectIdleClock>();
+            std::unique_ptr<ObjectIdleClock> fresh(new (std::nothrow) ObjectIdleClock);
+            if (!fresh) return false;
+            size_t bytes = sizeof(ObjectIdleClock);
             const auto now = ObjectIdleClock::clock(cached_now_ms_);
+            bool complete = true;
             for_each([&](KvObj* object) {
-                if (!fresh->install(object, now)) throw std::bad_alloc();
+                if (complete) complete = fresh->install(object, now, bytes);
             });
+            if (!complete) return false;
+            obj_bytes_ += bytes;
             object_idle_slot()->store(fresh.release(), std::memory_order_release);
         } else {
             auto* retired = object_idle_slot()->exchange(nullptr, std::memory_order_acq_rel);
+            const size_t bytes = retired->allocated_bytes();
             if (read_local_enabled_)
-                read_local_store_state_required().retire_sink.retire(nullptr, retired, 0,
-                    [](void*, void* payload, size_t) { delete static_cast<ObjectIdleClock*>(payload); });
-            else delete retired;
+                read_local_store_state_required().retire_sink.retire(
+                    this, retired, bytes, reclaim_object_idle);
+            else reclaim_object_idle(this, retired, bytes);
         }
+        return true;
     }
-    void configure_maxmemory(bool enabled, uint64_t shard_limit, MaxmemoryPolicy policy,
+    // Returns the idle clock's allocation result. The limit and policy always apply: enabling
+    // never aborts and never refuses; a failed clock leaves OBJECT IDLETIME at 0 for this store.
+    bool configure_maxmemory(bool enabled, uint64_t shard_limit, MaxmemoryPolicy policy,
                              uint32_t samples) {
-        configure_object_idle(enabled);
+        const bool clock = configure_object_idle(enabled);
         maxmemory_enabled_ = enabled;
         maxmemory_limit_ = shard_limit;
         maxmemory_policy_ = policy;
         maxmemory_samples_ = samples == 0 ? 1 : (samples > 64 ? 64 : samples);
+        return clock;
     }
 
     // An atomic script can roll back every declared key, but an eviction victim is deliberately
@@ -1662,6 +1703,11 @@ public:
     // during capture for the same reason admission is (victims are not pre-imaged).
     bool budget_admit(Slice protected_key) {
         if (!__builtin_expect(maxmemory_enabled_, false)) return true;
+        return budget_admit_over_limit(protected_key);
+    }
+    // Stream-retirement context belongs to the armed eviction path. Keep its
+    // register saves behind the existing maxmemory gate for ordinary writes.
+    [[gnu::noinline, gnu::cold]] bool budget_admit_over_limit(Slice protected_key) {
         if (snapshot_active_) return true;
         // NOT make_room_for: projected_bytes subtracts the protected key's own size (replacement
         // semantics), so the very key being grown always "fits". The gate asks the raw question:
@@ -1720,9 +1766,11 @@ public:
         // snapshot write-gate pre-images only the incoming command's key — an evicted, unvisited
         // frozen victim would vanish from the dump.  The capture window is short and bounded.
         if (__builtin_expect(maxmemory_enabled_, false)) {
+            if (!snapshot_active_ && !make_room_for(o->key(),
+                    kvobj_size(o) + object_idle_allocation_bytes(o)))
+                return InsertResult::MaxmemoryOom;
             if (!object_idle_install(h, o)) return InsertResult::Failed;
             if (!snapshot_active_) {
-                if (!make_room_for(o->key(), kvobj_size(o))) return InsertResult::MaxmemoryOom;
                 if (o->eviction_meta() == 0) initialize_meta(o);
             }
         }
@@ -1730,7 +1778,7 @@ public:
         // and the key resurrects — see the header.
         if (rehashing()) {
             bool expired = false;
-            if (erase_in(1, h, o->key(), &expired) && expired && expired_counter_)
+            if (erase_in(1, h, o->key(), &expired, o) && expired && expired_counter_)
                 (*expired_counter_)++;
         }
         return insert_into(0, h, o, true) ? InsertResult::Inserted : InsertResult::Failed;
@@ -1873,48 +1921,7 @@ public:
         field_ttl_index_incomplete_ = false;
     }
 
-    // RANDOMKEY starts from an owner-private draw, independent of the IO-side draw that selected
-    // this shard. Reusing that routing draw correlates its low bits with the shard id and leaves
-    // physical-slot residue classes unreachable when table capacities are powers of two. Reservoir
-    // selection across the one wrapped walk keeps adjacent live slots from inheriting a tiny share
-    // of a sparse table's probability. Resolve the owner's read cut before sampling, including
-    // predecessors whose candidate is a physical deletion. Frozen snapshot objects stay resident.
-    KvObj* random_live() {
-        const bool paused = client_pause_expiry_held();
-        struct ExpiryClock {
-            int64_t& clock;
-            int64_t saved;
-            ~ExpiryClock() { clock = saved; }
-        } expiry_clock{cached_now_ms_, cached_now_ms_};
-        if (paused) cached_now_ms_ = -1;
-        const uint64_t total = static_cast<uint64_t>(cap_[0]) + cap_[1];
-        if (!total) return nullptr;
-        const uint64_t start_pos = next_random() % total;
-        KvObj* chosen = nullptr;
-        uint64_t live_seen = 0;
-        for (uint64_t step = 0; step < total; step++) {
-            uint64_t pos = start_pos + step;
-            if (pos >= total) pos -= total;
-            const int t = pos < cap_[0] ? 0 : 1;
-            const uint32_t slot = static_cast<uint32_t>(pos - (t ? cap_[0] : 0));
-            KvObj* o = ptr_of(tab_[t][slot]);
-            if (!o) continue;
-            const uint64_t h = hash_key(o->key());
-            if (atomic_pending_ && atomic_pending_->live) {
-                o = atomic_resolve(h, o->key(), atomic_read_epoch_);
-            } else if (!paused) {
-                if (deadline_elapsed(h, o, cached_now_ms_) && !(snapshot_active_ && t == 1))
-                    notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, o->key());
-                o = live_or_expire(t, h, o->key(), o);
-            }
-            if (o && next_random() % ++live_seen == 0) chosen = o;
-        }
-        atomic_for_each_side_key(atomic_read_epoch_, [&](Slice key) {
-            KvObj* o = atomic_resolve(hash_key(key), key, atomic_read_epoch_);
-            if (o && next_random() % ++live_seen == 0) chosen = o;
-        });
-        return chosen;
-    }
+    #include "flatstore_random.inc"
 
     // The cursor is a bit-reversed HOME index (see scan_cursor_next above), not a physical slot and
     // not a table selector -- there is nothing left in it that a resize can invalidate. One step
@@ -2603,6 +2610,11 @@ private:
             // Report the key logically absent but leave its slot for snapshot traversal, just
             // like find()/active_expire().  KEYS uses this bounded scan while capture runs.
             if (snapshot_active_ && t == 1) return;
+            // Logical expiry remains absent while a reader holds up reclamation.
+            // A scan must not enter the full retire ring's grace-period wait; the
+            // SCAN command alone deletes what it visits, as Redis does.
+            if constexpr (!kScanExpiresVisited<std::remove_cvref_t<Fn>>)
+                if (!read_retirement_available()) return;
             notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, o->key());
             (void)aof_.record_delete(o->key());
             erase_in(t, h, o->key());
@@ -2739,7 +2751,7 @@ private:
                     if constexpr (!kSingleDatabase) storesize_replace(cur, o);
                     (void)this->track_expire(h, o);
                 }
-                retire_obj(cur);                            // replace in place; live_ unchanged
+                retire_obj(cur, o);                         // replace in place; live_ unchanged
                 tab_[t][i] = make_word(tag, o);
                 if (fresh) obj_bytes_ += kvobj_size(o);
                 return true;
@@ -2755,9 +2767,10 @@ private:
             sink->emit(sink->context, cls, event, key);
     }
 
-    bool erase_in(int t, uint64_t h, Slice key, bool* was_expired = nullptr) {
+    bool erase_in(int t, uint64_t h, Slice key, bool* was_expired = nullptr,
+                  const KvObj* replacement = nullptr) {
         if (__builtin_expect(read_local_enabled_, false))
-            return erase_in_read_local(t, h, key, was_expired);
+            return erase_in_read_local(t, h, key, was_expired, replacement);
         if (!tab_[t]) return false;
         const uint16_t tag = tag_of(h);
         uint32_t i = slot_start(t, h);
@@ -2771,7 +2784,8 @@ private:
                 }
                 if constexpr (!kSingleDatabase) storesize_replace(o, nullptr);
                 untrack_expire(h);
-                retire_obj(o);
+                if (replacement) retire_obj(o, replacement);
+                else retire_obj(o);
                 tab_[t][i] = kTombBit;                      // DEAD: non-zero, ptr == 0
                 live_[t]--; tombs_[t]++;
                 return true;
@@ -2786,16 +2800,7 @@ private:
             return rewrite_expire_read_local(h, old, expire_at_ms);
         KvObj* replacement = kvobj_reheader(old, expire_at_ms);
         if (!replacement) return TtlResult::Oom;
-        if (maxmemory_enabled_) {
-            replacement->set_eviction_meta(old->eviction_meta());
-            if (!object_idle_install(h, replacement)) {
-                if (replacement->type != static_cast<uint8_t>(Type::String) &&
-                    replacement->encoding() == Enc::Extern)
-                    replacement->flags &= static_cast<uint8_t>(~KvObjFlags::OwnsExtern);
-                kvobj_free(replacement);
-                return TtlResult::Oom;
-            }
-        }
+        if (maxmemory_enabled_) replacement->set_eviction_meta(old->eviction_meta());
 
         const bool moves_collection = static_cast<Type>(old->type) != Type::String &&
                                       static_cast<Enc>(old->enc) == Enc::Extern;
@@ -2985,9 +2990,11 @@ private:
                 return InsertResult::Failed;
         }
         if (__builtin_expect(maxmemory_enabled_, false)) {
+            if (!snapshot_active_ && !make_room_for(o->key(),
+                    kvobj_size(o) + object_idle_allocation_bytes(o)))
+                return InsertResult::MaxmemoryOom;
             if (!object_idle_install(h, o)) return InsertResult::Failed;
             if (!snapshot_active_) {
-                if (!make_room_for(o->key(), kvobj_size(o))) return InsertResult::MaxmemoryOom;
                 if (o->eviction_meta() == 0) initialize_meta_read_local(o);
             }
         }
@@ -2995,7 +3002,7 @@ private:
         ReadLocalTableGuard table_move(*this, moves_from_old);
         if (rehashing()) {
             bool expired = false;
-            if (erase_in_read_local(1, h, o->key(), &expired) && expired && expired_counter_)
+            if (erase_in_read_local(1, h, o->key(), &expired, o) && expired && expired_counter_)
                 (*expired_counter_)++;
         }
         return insert_into_read_local(0, h, o, true)
@@ -3211,7 +3218,7 @@ private:
                     (void)this->track_expire(h, o);
                 }
                 read_local_slot_store(&tab_[t][i], make_word(tag, o));
-                retire_obj_read_local(cur);
+                retire_obj_read_local(cur, o);
                 const size_t added_bytes = kvobj_capacity(o) + read_local_external_bytes(o);
                 obj_bytes_ += added_bytes;
                 if (track_expire && o->expire_at_ms() < 0) {
@@ -3223,7 +3230,8 @@ private:
         return false;
     }
 
-    bool erase_in_read_local(int t, uint64_t h, Slice key, bool* was_expired = nullptr) {
+    bool erase_in_read_local(int t, uint64_t h, Slice key, bool* was_expired = nullptr,
+                             const KvObj* replacement = nullptr) {
         if (!tab_[t]) return false;
         const uint16_t tag = tag_of(h);
         uint32_t i = slot_start(t, h);
@@ -3238,7 +3246,7 @@ private:
                 if constexpr (!kSingleDatabase) storesize_replace(o, nullptr);
                 untrack_expire(h);
                 read_local_slot_store(&tab_[t][i], kTombBit);
-                retire_obj_read_local(o);
+                retire_obj_read_local(o, replacement);
                 live_[t]--; tombs_[t]++;
                 return true;
             }
@@ -3250,16 +3258,7 @@ private:
     TtlResult rewrite_expire_read_local(uint64_t h, KvObj* old, int64_t expire_at_ms) {
         KvObj* replacement = kvobj_reheader(old, expire_at_ms);
         if (!replacement) return TtlResult::Oom;
-        if (maxmemory_enabled_) {
-            replacement->set_eviction_meta(old->eviction_meta());
-            if (!object_idle_install(h, replacement)) {
-                if (replacement->type != static_cast<uint8_t>(Type::String) &&
-                    replacement->encoding() == Enc::Extern)
-                    replacement->flags &= static_cast<uint8_t>(~KvObjFlags::OwnsExtern);
-                kvobj_free(replacement);
-                return TtlResult::Oom;
-            }
-        }
+        if (maxmemory_enabled_) replacement->set_eviction_meta(old->eviction_meta());
 
         const bool moves_collection = static_cast<Type>(old->type) != Type::String &&
                                       static_cast<Enc>(old->enc) == Enc::Extern;
@@ -3294,9 +3293,9 @@ private:
     // Logical retirement, before QSBR destruction: only the existing external
     // stream type arm signals blocked group readers. String retirement retains
     // its ordinary encoding test and adds no waiter test or callback.
-    size_t retiring_external_bytes(const KvObj* object) {
+    size_t retiring_external_bytes(const KvObj* object, const KvObj* replacement = nullptr) {
         return static_cast<Enc>(object->enc) == Enc::Extern
-            ? kvobj_external_bytes<true>(object, this) : 0;
+            ? kvobj_external_bytes<true>(object, this, replacement) : 0;
     }
 
     // Decode the header ONCE, exactly as unarmed retire_obj() does: the size class computed for
@@ -3304,9 +3303,9 @@ private:
     // auxiliary word, so the free after the grace period does not re-derive it from a header that
     // has gone cold. A published object is immutable, and eviction-meta updates keep
     // the layout bits, so the class cannot change between retire and reclaim.
-    void retire_obj_read_local(KvObj* object) {
+    void retire_obj_read_local(KvObj* object, const KvObj* replacement = nullptr) {
         const size_t capacity = kvobj_capacity(object);
-        const size_t bytes = capacity + retiring_external_bytes(object);
+        const size_t bytes = capacity + retiring_external_bytes(object, replacement);
         obj_bytes_ -= bytes;
         read_local_store_state_armed().retire_sink.retire(
             this, object, capacity, &FlatStore::read_local_reclaim_object);
@@ -3618,9 +3617,12 @@ private:
     // Logical removal updates the live-store footprint immediately. Physical destruction is the
     // common case and pays one branch; registry work exists only while some wire borrow is live.
     // The header is decoded once: the class computed for accounting is the sized-free length.
-    void retire_obj(KvObj* o) {
+    // Keep replacement context inside the external-value branch. Outlining this
+    // wrapper passes an otherwise unused extra argument for inline integers.
+    void retire_obj(KvObj* o) { retire_obj(o, nullptr); }
+    [[gnu::always_inline]] void retire_obj(KvObj* o, const KvObj* replacement) {
         const size_t capacity = kvobj_capacity(o);
-        const size_t bytes = capacity + retiring_external_bytes(o);
+        const size_t bytes = capacity + retiring_external_bytes(o, replacement);
         obj_bytes_ -= bytes;
         if (outstanding_borrows_ == 0) { kvobj_free_with_capacity(o, capacity); return; }
         const char* ptr = (static_cast<Type>(o->type) == Type::String && !o->is_int())

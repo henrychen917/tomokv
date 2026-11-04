@@ -1,0 +1,41 @@
+FAIL 1s-uring-db1 full binary AUTH embedded {'error': 'WRONGPASS invalid username-password pair or user is disabled.'}
+FAIL 1s-uring-db1 full authenticated PING {'error': 'NOAUTH Authentication required.'}
+FAIL 1s-uring-db1 truncated AUTH refused embedded b'OK'
+FAIL 1s-uring-db1 full binary AUTH leading {'error': 'WRONGPASS invalid username-password pair or user is disabled.'}
+FAIL 1s-uring-db1 truncated AUTH refused leading b'OK'
+FAIL 1s-uring-db16 full binary AUTH embedded {'error': 'WRONGPASS invalid username-password pair or user is disabled.'}
+FAIL 1s-uring-db16 full authenticated PING {'error': 'NOAUTH Authentication required.'}
+FAIL 1s-uring-db16 truncated AUTH refused embedded b'OK'
+FAIL 1s-uring-db16 full binary AUTH leading {'error': 'WRONGPASS invalid username-password pair or user is disabled.'}
+FAIL 1s-uring-db16 truncated AUTH refused leading b'OK'
+FAIL 1s-epoll-db1 full binary AUTH embedded {'error': 'WRONGPASS invalid username-password pair or user is disabled.'}
+FAIL 1s-epoll-db1 full authenticated PING {'error': 'NOAUTH Authentication required.'}
+FAIL 1s-epoll-db1 truncated AUTH refused embedded b'OK'
+FAIL 1s-epoll-db1 full binary AUTH leading {'error': 'WRONGPASS invalid username-password pair or user is disabled.'}
+FAIL 1s-epoll-db1 truncated AUTH refused leading b'OK'
+FAIL 1s-epoll-db16 full binary AUTH embedded {'error': 'WRONGPASS invalid username-password pair or user is disabled.'}
+FAIL 1s-epoll-db16 full authenticated PING {'error': 'NOAUTH Authentication required.'}
+FAIL 1s-epoll-db16 truncated AUTH refused embedded b'OK'
+FAIL 1s-epoll-db16 full binary AUTH leading {'error': 'WRONGPASS invalid username-password pair or user is disabled.'}
+FAIL 1s-epoll-db16 truncated AUTH refused leading b'OK'
+FAIL 2s-uring-db1 full binary AUTH embedded {'error': 'WRONGPASS invalid username-password pair or user is disabled.'}
+FAIL 2s-uring-db1 full authenticated PING {'error': 'NOAUTH Authentication required.'}
+FAIL 2s-uring-db1 truncated AUTH refused embedded b'OK'
+FAIL 2s-uring-db1 full binary AUTH leading {'error': 'WRONGPASS invalid username-password pair or user is disabled.'}
+FAIL 2s-uring-db1 truncated AUTH refused leading b'OK'
+FAIL 2s-uring-db16 full binary AUTH embedded {'error': 'WRONGPASS invalid username-password pair or user is disabled.'}
+FAIL 2s-uring-db16 full authenticated PING {'error': 'NOAUTH Authentication required.'}
+FAIL 2s-uring-db16 truncated AUTH refused embedded b'OK'
+FAIL 2s-uring-db16 full binary AUTH leading {'error': 'WRONGPASS invalid username-password pair or user is disabled.'}
+FAIL 2s-uring-db16 truncated AUTH refused leading b'OK'
+FAIL 2s-epoll-db1 full binary AUTH embedded {'error': 'WRONGPASS invalid username-password pair or user is disabled.'}
+FAIL 2s-epoll-db1 full authenticated PING {'error': 'NOAUTH Authentication required.'}
+FAIL 2s-epoll-db1 truncated AUTH refused embedded b'OK'
+FAIL 2s-epoll-db1 full binary AUTH leading {'error': 'WRONGPASS invalid username-password pair or user is disabled.'}
+FAIL 2s-epoll-db1 truncated AUTH refused leading b'OK'
+FAIL 2s-epoll-db16 full binary AUTH embedded {'error': 'WRONGPASS invalid username-password pair or user is disabled.'}
+FAIL 2s-epoll-db16 full authenticated PING {'error': 'NOAUTH Authentication required.'}
+FAIL 2s-epoll-db16 truncated AUTH refused embedded b'OK'
+FAIL 2s-epoll-db16 full binary AUTH leading {'error': 'WRONGPASS invalid username-password pair or user is disabled.'}
+FAIL 2s-epoll-db16 truncated AUTH refused leading b'OK'
+rootcompat password: 40 failed checks; evidence /home/user/Projects/cx-rootcompat/build/gate-run.sqQVnr/jobs/rootcompat-password/proof

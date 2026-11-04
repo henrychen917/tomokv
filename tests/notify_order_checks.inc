@@ -22,8 +22,7 @@ static void notify_test_discard(std::atomic<Batch*>& slot) {
 static void check_notify_overwrite_metadata() {
     using namespace tomo;
     Server server;
-    Shard shard;
-    shard.init_private(&server, 0, TypeLimits{}, StreamLimits{});
+    Shard& shard = netcmd_owned_shard(server);
     auto& store = shard.store();
     store.configure_maxmemory(true, 1u << 20, MaxmemoryPolicy::AllKeysLfu, 5);
     Op source;
@@ -52,8 +51,7 @@ static void check_notify_overwrite_expiry() {
         KvBlockCache blocks;
         {
             Server server;
-            Shard shard;
-            shard.init_private(&server, 0, TypeLimits{}, StreamLimits{});
+            Shard& shard = netcmd_owned_shard(server);
             auto& store = shard.store();
             if (read_local) {
                 check(store.prepare_read_local(), "overwrite fixture read-local allocation");
@@ -111,8 +109,7 @@ static void check_notify_order_failures() {
     check_notify_overwrite_expiry();
     using namespace tomo;
     Server server;
-    Shard shard;
-    shard.init_private(&server, 0, TypeLimits{}, StreamLimits{});
+    Shard& shard = netcmd_owned_shard(server);
     Op source;
     args(source, {"GET", "notifyorder:physical"});
     notify_execute_enter(shard, source, source);
@@ -218,4 +215,18 @@ static void check_notify_order_failures() {
     check(!off_allocations && !source.has_notify_state() && shard.notify_state_slot()->keyless.empty(),
           "disabled sink allocates nothing");
     notify_execute_leave(shard);
+
+    // A script workbench is deliberately a different shard object from the
+    // registered owner. Expiry there must disappear when validation retries.
+    Shard work;
+    work.init_private(&server, 0, TypeLimits{}, StreamLimits{});
+    work.set_notify_mask(NOTIFY_TRACKING);
+    notify_execute_enter(work, source, source);
+    notify_flat_emit(&work, NOTIFY_EXPIRED, NotifyEventId::Expired, key);
+    slot.store(notify_take_batch(source));
+    check(slot.load() && notify_expired_records(slot.load()) == 1,
+          "workbench expiry recorded before validation");
+    notify_test_discard(slot);
+    check(!slot.load(), "script retry discards workbench expiry");
+    notify_execute_leave(work);
 }

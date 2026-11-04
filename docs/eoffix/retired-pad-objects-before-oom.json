@@ -1,0 +1,612 @@
+[
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/acl.o",
+    "bytes": 12056352,
+    "sha256": "f79cab636225c3637dc2f6389bc895f1babde52f786a7a2f3dab9b530a5dd8c2"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/aclkeys.o",
+    "bytes": 249512,
+    "sha256": "489c9a1a75662360c79a5cde784259f9b401f85ab71175402eb3cf5aa90c348c"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/autharity.o",
+    "bytes": 210032,
+    "sha256": "856ec8de7cacc1a966c523d935430a5216ee0fcb42b294bb0ea54cbfea9f3f4d"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/blocking_debug.o",
+    "bytes": 117520,
+    "sha256": "ca2b3f8fe5f3fdfce3a7dd38879a70e50323385d692326efb7d7c631198d284a"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/clientcompat.o",
+    "bytes": 6560720,
+    "sha256": "99c4f596d5b4454a2eed67ad112ce2d63b1e65749e1e1b656f5e724a165799d6"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/climon.o",
+    "bytes": 11188488,
+    "sha256": "6864c8c49d0ac50db821e82ab8f403ad2354c995f885ba6fe03f8c5592ae1fae"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/cmdgap.o",
+    "bytes": 99592,
+    "sha256": "230474bc8bf91e4a41d2a3bc268169fc00dc3200508be851a9aaec5bffe77ca5"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/cmdmeta.o",
+    "bytes": 1113520,
+    "sha256": "f6bdf48f166781ae9c0b8588aa39652bb7c98d18650f348f99b15b4bcf22fef4"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/commands.o",
+    "bytes": 519864,
+    "sha256": "f259109e2854d466cadf1f94ba495fc9c59290f1ae5fea14bc16ef95b5b938d9"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/eviction.o",
+    "bytes": 1963776,
+    "sha256": "f83c2e50840f2f4ac90fa7187d37e0687736d48b51f1c7d8404499cc2206eabf"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/functions.o",
+    "bytes": 5592336,
+    "sha256": "4a9036e9319c8753c2f3e8968d320e23eccd22df176bf942e6101a278d7762e7"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/geo.o",
+    "bytes": 4113472,
+    "sha256": "e0556debeeb701f33beac32a13a291b35db9d320a978676e95c224c0449eea58"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/geo_store.o",
+    "bytes": 1648472,
+    "sha256": "4c95f15a4355511d2addc8925615563131c6b05261ece8e72cae727838b2418b"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/glob.o",
+    "bytes": 48536,
+    "sha256": "6ba2cf142d660cd6d317ac76a78b38d7eb9866524b565b60e06ad1f575badba5"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/hexpread.o",
+    "bytes": 2406816,
+    "sha256": "f6f197409f038f4503468a5d02fb04110c7ea6b2345eb7fd222c7fcc8f4a9316"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/hll.o",
+    "bytes": 425096,
+    "sha256": "ca968e70fe76d24e1b69d5d109903cd440cfb26da73faee34cecdf5a1cf2d1ee"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/info_stats.o",
+    "bytes": 3722496,
+    "sha256": "2984281258634ba59423a45cad59e7218897f2d496d6e569f8c1ccdb0f6ea438"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/l4prebuild.o",
+    "bytes": 2958032,
+    "sha256": "5efdd80bbbb1048588a147f9c1fc56ab52e9784596f472a65c26539ecc5c8d55"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/latency_tracking.o",
+    "bytes": 6974704,
+    "sha256": "a934e6b0c1fa15cf9ee1b6abdfae2d80b4ad9a694d0640459ae858ea9b0011b9"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/lbsignals.o",
+    "bytes": 3503848,
+    "sha256": "de26f42918195d67342c12ba05020c5f9ada3f45713649d4c7e017eedf25c9e4"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/lcs.o",
+    "bytes": 388656,
+    "sha256": "e6e5ead5bc446aace6dd640b20abecd157f073ec9bfcc43cac649c617ce443c8"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/multi_admin.o",
+    "bytes": 1921120,
+    "sha256": "f84b9fb27046fd64111ff285e25b8a8c7f0a69fe40bfa4ab5273ffa76c67858e"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/multidb.o",
+    "bytes": 4375920,
+    "sha256": "1fe376a7cc5ffc14d555f8ebfc12df6e344fd1dd14773374460f83568e66dfcf"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/objectpread.o",
+    "bytes": 2144680,
+    "sha256": "4f7e92b2b7378b57395bcd1b67b32f669a011606b75274af1f3af025d77d4b3a"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/pfdebug.o",
+    "bytes": 2484768,
+    "sha256": "aaabb57925c7685086919ab14067224e7758a023785cc05d0c0850eb595acb7a"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/scripting.o",
+    "bytes": 6055888,
+    "sha256": "517355c8493fdc1db08e9af18e2fe791b198879d74974f7b6abe99c927259736"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/serialize.o",
+    "bytes": 4230624,
+    "sha256": "0170ac1568f3c1fe058e1d90e2edc0e8b6d2dadce5899f918ce10e9616413891"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/server_tail.o",
+    "bytes": 5170968,
+    "sha256": "b45088d308d63581f9b28a0a00377870a5bb00b67adf9210337a99039fa4a3b8"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/slowlog.o",
+    "bytes": 4599456,
+    "sha256": "19cb4245fb93713714becbff1677c1eab8074c1141b022746d6051b0de4c5677"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/storesize.o",
+    "bytes": 3314112,
+    "sha256": "190336f476869eb5c5d9b74a444f8f9fe41d18809aefa73167ceb2dfb94816b0"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/t_hash.o",
+    "bytes": 4473544,
+    "sha256": "e8dc8ba3eb602471f8cbfcde8c683c7128ebe12a3a6e820e8c0cba0501cf069c"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/t_hash_ttl.o",
+    "bytes": 3156792,
+    "sha256": "cb2a5e887a90eea04882c9db2b30a7a93fbf303105cbfc4a30eb8e67bd9ae5e6"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/t_list.o",
+    "bytes": 4139368,
+    "sha256": "67d9062f3fc793c122e1c4e88d93b1338b6ca88dde9a1d6b1f5fffc4938ea426"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/t_server.o",
+    "bytes": 8287144,
+    "sha256": "db7c3bb2d6c4d3bec05cd6b06236441ae6aa8e431b1e6b348625dd4af4d7d575"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/t_set.o",
+    "bytes": 4464392,
+    "sha256": "25e993b543f91154d219c9b70699f84190750160e1743e27dc497837527b76f9"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/t_sort.o",
+    "bytes": 1222488,
+    "sha256": "f23099a13271bc2f03ea54cef204f9884e6643d38c91bb0692b8adca900a4d6a"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/t_stream.o",
+    "bytes": 5732656,
+    "sha256": "a7a4a66278025f9b2189d46f10ea85829fdc04fe1e9779ecccbcb027cf14f26c"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/t_stream_groups.o",
+    "bytes": 4987432,
+    "sha256": "fcf3cfe89c4eca73f56d39823ff9b586428731462a16f834b35507d74fa0bd39"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/t_string.o",
+    "bytes": 3423448,
+    "sha256": "8e4945f61602b07c2b7456a9596b119fb6c7331af1af0dd575e213a1935ad018"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/t_string_notify.o",
+    "bytes": 3370752,
+    "sha256": "986368f6228bfe4eba927ae6709b0efe5e191bec3ffcc44b09df32d43bfb3638"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/t_zset.o",
+    "bytes": 5247304,
+    "sha256": "bafc9b48c4dc5aeeefe276a9a55d04800a543ffd37c288436b2ae6b1a19d5080"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/t_zset_ops.o",
+    "bytes": 30248,
+    "sha256": "cd76ca7fa895b20949b6e34666be1cb2f1b5587412f043db97f2ffc6f4954ba4"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/tracking.o",
+    "bytes": 8581000,
+    "sha256": "01f632a5741f1d7d0315d68020b4429f81b3b405409c28e1f7e4c7de4eec295b"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/cmd/xshard.o",
+    "bytes": 30806800,
+    "sha256": "7d2bb3f674a6d187cae1cdc967f4c7c9f61100956eb41babe9a66527a57bc1d5"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/core/flipctl.o",
+    "bytes": 4524608,
+    "sha256": "3324a6d5d7fda3ab75cf5c1840390f5fe23cd0f85e13344d928478d65c4b1c97"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/core/fliplisten.o",
+    "bytes": 12512352,
+    "sha256": "7b1f244acefcf1877363f8bf70bf2013676c5fd9f92bb5d54f94fe9111f7d440"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/core/genthread.o",
+    "bytes": 23380464,
+    "sha256": "b3a518e9dff1e29cc8c4887ece1fdb8af632afd637a64d4046244081833e7c1e"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/core/lbplanner.o",
+    "bytes": 7840448,
+    "sha256": "8dc679cba1bd10f7bac42922162119f24ad8a68fa9e8776e65afc2c5f74571e7"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/core/lbstall.o",
+    "bytes": 3386064,
+    "sha256": "94a590299d59d4091ce36019d57cab37941715fb1a11f7178d3ebdecd8c754a5"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/core/reorder.o",
+    "bytes": 25164640,
+    "sha256": "7298271523c22dd9389b19c3938818de4f2da6dec699b5c5956a60f2ae1c3a28"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/core/rl2s.o",
+    "bytes": 27520152,
+    "sha256": "dbf92497c47c6fe01a50bdd96f93aade8d4e7bdf6df4c4eda6bb81376fc7649c"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/core/shutdown.o",
+    "bytes": 6954680,
+    "sha256": "b7046057abf4e5aa28cadee5163ebbafc6050ae71bc8b09bab9f7eb1defc5574"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/main.o",
+    "bytes": 27217784,
+    "sha256": "1e00691e4ad56c8bef57aacd723916f7e1356b1d24aa935b637dad88019ca8f2"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/net/tls.o",
+    "bytes": 976912,
+    "sha256": "c14747178ade0d3fa6bd303518f36cc6a3cc72f906f58449ffcf2f8f868e4c99"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/persist/aof.o",
+    "bytes": 9892080,
+    "sha256": "5c0b0ab4febe679d81bd86e3957f7d1d2ec14952fccc801f6d80dec2c09554ad"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/persist/aof_frame_debug.o",
+    "bytes": 138784,
+    "sha256": "d85d0546502df522d4b4632a77cc45876d632cfc809e0757713bd9b7a7243f0d"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/snapshot/snapshot.o",
+    "bytes": 5263560,
+    "sha256": "213a2e5f11ca2a46a09367d6b7239833e651ac0342f405b2f384f4b5434bd967"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/db0/src/store/flush.o",
+    "bytes": 2727096,
+    "sha256": "ab5acbd1b5d3fa653a7fe5f4dbe90beb5fb1f1945aefcbe157706628c88a1206"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/acl.o",
+    "bytes": 11919696,
+    "sha256": "662a538ab994560d890925e9c13191eea6397198358fca45d0af034e320bbb1d"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/aclkeys.o",
+    "bytes": 248184,
+    "sha256": "ded4d9893489f428b69fbf686231be57fd6f7ae0644d231bb2855171bee05ccf"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/autharity.o",
+    "bytes": 209264,
+    "sha256": "da756304c2c02bd20d6cbd83b24061b24ec1bbb2f55b8566a52df9406b51dfef"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/blocking_debug.o",
+    "bytes": 116784,
+    "sha256": "2c43c887b907dc7b2e17185d002c2378c61ef9e81155e2800d32d4f60e95a491"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/clientcompat.o",
+    "bytes": 6460928,
+    "sha256": "bc0e921cbd133b7db3ab767b6f5b37f426cb2833962e27c81c0bff59f5c29869"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/climon.o",
+    "bytes": 10961120,
+    "sha256": "cd67b54ce83d9dfa0c92a17b2f8e56d3bbe7df23825d639b5491fb5bf2575307"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/cmdgap.o",
+    "bytes": 98856,
+    "sha256": "fa50eb81185c75c040f1dfaf7fba3275e1ec87ec0b65d164f9aa6a7d97d5f1b4"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/cmdmeta.o",
+    "bytes": 1110760,
+    "sha256": "6d782069e19fb73b55985f6033fceda9bcfe772a45461288c6fc3ebc4f1526d4"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/commands.o",
+    "bytes": 516416,
+    "sha256": "6baa312ee90da702726aea31a43a82f6dafaec0a274c12c5e4004d39631989d6"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/eviction.o",
+    "bytes": 2002944,
+    "sha256": "d71625dfae06b62da60fe565d836777cdac0372358c5ab176e966944d887f997"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/functions.o",
+    "bytes": 5516504,
+    "sha256": "e2a244377ab730fab71c28e7278566f0179f974bedf4e525caf33dd1829be9e1"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/geo.o",
+    "bytes": 3621024,
+    "sha256": "cf82e8182d5c3cb3b900f03faab3400a3e5123f6e507e0f21dced8f1952846f3"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/geo_store.o",
+    "bytes": 1628288,
+    "sha256": "11c6b725abf8136093100ed5f00a4507242b57c0cb821bcfd6cfe7360c888217"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/glob.o",
+    "bytes": 48384,
+    "sha256": "d596be96f9837ead7be535c47b4e9c03546dca479da3485d7d47e9f5be0193f8"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/hexpread.o",
+    "bytes": 2331744,
+    "sha256": "ca26966a6929f94f614856bb2d4b8939febe66646dfec513b477ba2d8984ccfe"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/hll.o",
+    "bytes": 424776,
+    "sha256": "530b54a4a73e4c4199d1baaf5e61bf18965ca99affb5fd9397926e70682fa773"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/info_stats.o",
+    "bytes": 3664584,
+    "sha256": "250e277fa7d4df02101fb06070bafc2c1b096091c8ab4ebaf5124a3c6738b06b"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/l4prebuild.o",
+    "bytes": 2910680,
+    "sha256": "ae702a60826c590b517e504d33d5a53312ebc389c3f5a056253a446dd55698c7"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/latency_tracking.o",
+    "bytes": 6895568,
+    "sha256": "1f825e7b85688655b7156f5bd7936d3ceaccf09f647366bd843172d2c4de90ff"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/lbsignals.o",
+    "bytes": 3442200,
+    "sha256": "1633c718f923cacbbc2073aca16c8cbbcdbfafaf3711330c4bb7c40bb8bd8d64"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/lcs.o",
+    "bytes": 386824,
+    "sha256": "3d42ef7c72f2ec101aa13bdbb121fa46c28970a3e23850d30a69a0235fa0c53a"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/multi_admin.o",
+    "bytes": 1910144,
+    "sha256": "6c8c51e29b3b974e70ba33fd95e985a36170043d2b3743e3e96cb17f0b31fb52"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/multidb.o",
+    "bytes": 4712688,
+    "sha256": "95097681d41f50ac0040a00e356b05caea9ce27909bc94de7940e1447318c9aa"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/objectpread.o",
+    "bytes": 2116816,
+    "sha256": "1bd26345de84f191cd8a3cd78bc755eedb0cca4e29699430a1a2a458065a4df6"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/pfdebug.o",
+    "bytes": 2454808,
+    "sha256": "2354746b4827e85f8c6272fa9b77746dd722e006fa5773799a1e211ba36f1b9f"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/scripting.o",
+    "bytes": 8028096,
+    "sha256": "285642e780d4d8e921acf337864d94bb021dd47e462dfb0e58f473d372306d64"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/serialize.o",
+    "bytes": 4186976,
+    "sha256": "2c7f2ec9ef2112976338c3ee11f36d77b2846caf4a805e235baa6c296fece8ce"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/server_tail.o",
+    "bytes": 5109664,
+    "sha256": "72d5fc7add257461cfab8fe240f550c4a877e612b5a3b608a7033dbf75522dcf"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/slowlog.o",
+    "bytes": 4560808,
+    "sha256": "99ec3637e7580961b17291b328f29c9aab81621cbe7812297b33d94f20d869be"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/storesize.o",
+    "bytes": 3275584,
+    "sha256": "d42004cc95043a5c07d177496e50880e5d433ffbf042621533abecfe51b14fb2"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/t_hash.o",
+    "bytes": 4436176,
+    "sha256": "088963affe871344c2dbf60a9d2e8c6bb656846ae370b760821baa6834dd0cfc"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/t_hash_ttl.o",
+    "bytes": 3121728,
+    "sha256": "5f74bcf0ba0d71cd2d5eb676b8710acfeb0a2371c914a7c8a7f782fb723e5436"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/t_list.o",
+    "bytes": 4039832,
+    "sha256": "fd044f0cb17177e7ae817fcca223f5b9321aae7fde5b3ae25b377e65967b646e"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/t_server.o",
+    "bytes": 8125368,
+    "sha256": "2c039bc4b050c448d3ed3ef36702986a8a4f0c1b6751c125b20da35b9f8ad8b9"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/t_set.o",
+    "bytes": 4370112,
+    "sha256": "69ccbb3c663a2adc8d9b02199dcacf46a546686c69af38d20d9a52526946a166"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/t_sort.o",
+    "bytes": 1219648,
+    "sha256": "45c349e0944c47a16d0885922318f6df9b21469a390f5dfe3128b24e53b7dd55"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/t_stream.o",
+    "bytes": 5746256,
+    "sha256": "8903fa1562ff4d7d102b09d0d5c0f4ae6331dcf2d66f0681b18db027b36597fb"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/t_stream_groups.o",
+    "bytes": 4949528,
+    "sha256": "2260a7e0695a8ee38950b9aa8d7416d19a5aad8ba6a452e85c28fc62bdca56bc"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/t_string.o",
+    "bytes": 3390536,
+    "sha256": "2d51ea7dc91a34c5187e266aedda2b3b4aa3ea0ea094996192ce48e7840a36dd"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/t_string_notify.o",
+    "bytes": 3341312,
+    "sha256": "e2183087d5a360e139ded779d6e21f9b10f87be848c30863b5f8743de5c6c543"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/t_zset.o",
+    "bytes": 5166768,
+    "sha256": "ec49d9dd84d85e1cd9a93ba11f0450d69029b40cfa67eea739381dce6428cb5c"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/t_zset_ops.o",
+    "bytes": 30216,
+    "sha256": "01a19e15bb6592620b8fdcc80fafaff3ca2cbed63237291f026fad4645a665ed"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/tracking.o",
+    "bytes": 8504808,
+    "sha256": "22022c5bb7c5c272ac35f6148b1b08be476f6e5bbb5226d9ef2a69ff3b93db5f"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/cmd/xshard.o",
+    "bytes": 29832416,
+    "sha256": "fdf61b8807318b08165f1397baaf26618201e2602c5c3d49734382a5eba4d464"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/core/flipctl.o",
+    "bytes": 4465176,
+    "sha256": "a2aed010f15e415d08af37cd095fbd98f1a12aaa00e7ba929be1b53d91cb35f4"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/core/fliplisten.o",
+    "bytes": 12387208,
+    "sha256": "c36759a6f3f1b9d548c4fd3204d71a4849843a2e762ddff957323f1b3264cb93"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/core/genthread.o",
+    "bytes": 23065456,
+    "sha256": "6a6d8675ae85dfe8917e828669c6082a0c656d43e76f9c639ef86b974b4b0624"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/core/lbplanner.o",
+    "bytes": 7742360,
+    "sha256": "4422632c26a1af593c70ef92e79377edeb46c4918ffed592cc4fbd44d9a18b17"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/core/lbstall.o",
+    "bytes": 3326544,
+    "sha256": "268684f59d85765ba3c3f377e460713f9083c7039d65fc84a44daf2cfde10e42"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/core/reorder.o",
+    "bytes": 24783984,
+    "sha256": "6374b431a370a6e35e6fb0454111b353811d270fff3f9cfe8bde2604a1f6ccc4"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/core/rl2s.o",
+    "bytes": 26835016,
+    "sha256": "3285a1f1e1d8cc664d788845c5a715d9665ee4753c78a168501d520e6214e364"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/core/shutdown.o",
+    "bytes": 6855168,
+    "sha256": "7c2323fb6417298c76d427c7d337aeb7b9ed5fce2846ce9292dd14aba346b8d6"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/main.o",
+    "bytes": 27110448,
+    "sha256": "929eebb02188eb578e1adc74a42fe74fb6c88192e0c80c8bccd79c58ce6bbbc7"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/net/tls.o",
+    "bytes": 972736,
+    "sha256": "af644a38d777007ca14e4081bee52eb0b2833eb84dd1ecc133bfc32348468534"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/persist/aof.o",
+    "bytes": 9420512,
+    "sha256": "00a298d9df836c2cfba6a01cda7cffd0dc6f89418e4531d801dcfec194603fbc"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/persist/aof_frame_debug.o",
+    "bytes": 138760,
+    "sha256": "bca161a635469f5dbacf6d4ce2a59d174867be4104d6c6646b46c85a914f3114"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/snapshot/snapshot.o",
+    "bytes": 5332192,
+    "sha256": "7f0f19f170b5b048729cbf0814faafb5a04c0414dc936eb00766b70d864771e1"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/src/store/flush.o",
+    "bytes": 2674776,
+    "sha256": "1c7934d545c196e3c557a0075091817163ec2d9f73bdc038daf184c823ff01f8"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/third_party/lua/helpers/fpconv.o",
+    "bytes": 20600,
+    "sha256": "d75caa612d385c8d43e78701ecc5f20918a174f9b3b5de5d2f1c6a9ee050f430"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/third_party/lua/helpers/lua_bit.o",
+    "bytes": 42960,
+    "sha256": "1d1bb81d8c6885be634f15423ff2df860f865580d2cbaa757c6d3bbea06555ef"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/third_party/lua/helpers/lua_cjson.o",
+    "bytes": 123984,
+    "sha256": "0afff027a9fec21f31cd6104146ed61840390f5903971a9b1a47e5a5e568dd41"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/third_party/lua/helpers/lua_cmsgpack.o",
+    "bytes": 85168,
+    "sha256": "8490cde1daf11872ca669b78f6d1742a4264da62cefb91142c3bb7eea39d6e61"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/third_party/lua/helpers/lua_struct.o",
+    "bytes": 43464,
+    "sha256": "5c53a8e3147005273b724b441d4f8792917787c40c6c31b26a1f4b84c7232d71"
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects/third_party/lua/helpers/strbuf.o",
+    "bytes": 21960,
+    "sha256": "47d5a172dfdce9fc19f40c77e4b21305b75fb39cf5a06c1ac458fda208989778"
+  }
+]

@@ -1,0 +1,3 @@
+ok	0.000000	release build (+footprint locks)
+ok	0.000000	wave14 epoll coalesced EOF (normal)
+ok	0.000000	wave14 epoll coalesced EOF (db0)

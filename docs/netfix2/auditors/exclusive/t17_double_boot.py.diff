@@ -1,0 +1,11 @@
+--- audit/t17_double_boot.py
++++ confined-POST/t17_double_boot.py
+@@ -7,7 +7,7 @@
+ import os, socket, subprocess, sys, time
+ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+ import netlib as nl
+-PORT = 22598
++PORT = 21198
+ 
+ def try_second(kind):
+     binary = nl.TOMO if kind == "tomo" else nl.REDIS

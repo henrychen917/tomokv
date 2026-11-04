@@ -1,0 +1,11 @@
+--- src/cmd/geo.cc
++++ /home/user/Projects/cx-witnessfix/build/witnessfix/mutants/geo-order-reversed/geo.cc
+@@ -395,7 +395,7 @@
+         if (options.order != GeoOrder::None) {
+             std::sort(output.begin(), output.end(), [&](const GeoResult& a, const GeoResult& b) {
+                 if (a.distance_m != b.distance_m)
+-                    return options.order == GeoOrder::Desc ? a.distance_m > b.distance_m
++                    return options.order == GeoOrder::Asc ? a.distance_m > b.distance_m
+                                                            : a.distance_m < b.distance_m;
+                 return a.score < b.score;
+             });

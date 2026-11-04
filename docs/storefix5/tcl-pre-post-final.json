@@ -1,0 +1,90 @@
+[
+  {
+    "mode": "1s",
+    "file": "unit/keyspace",
+    "pre_failed": 10,
+    "post_failed": 10,
+    "same_failed_assertions": true,
+    "post_passed": 37,
+    "post_skipped": 12,
+    "failed_assertions": [
+      "COPY basic usage for list - quicklist in tests/unit/keyspace.tcl",
+      "COPY basic usage for list - listpack in tests/unit/keyspace.tcl",
+      "COPY basic usage for $type set in tests/unit/keyspace.tcl",
+      "COPY basic usage for $type set in tests/unit/keyspace.tcl",
+      "COPY basic usage for $type set in tests/unit/keyspace.tcl",
+      "COPY basic usage for listpack sorted set in tests/unit/keyspace.tcl",
+      "COPY basic usage for skiplist sorted set in tests/unit/keyspace.tcl",
+      "COPY basic usage for listpack hash in tests/unit/keyspace.tcl",
+      "COPY basic usage for hashtable hash in tests/unit/keyspace.tcl",
+      "COPY basic usage for stream in tests/unit/keyspace.tcl"
+    ]
+  },
+  {
+    "mode": "1s",
+    "file": "unit/maxmemory",
+    "pre_failed": 0,
+    "post_failed": 0,
+    "same_failed_assertions": true,
+    "post_passed": 0,
+    "post_skipped": 9,
+    "failed_assertions": []
+  },
+  {
+    "mode": "1s",
+    "file": "unit/type/string",
+    "pre_failed": 2,
+    "post_failed": 2,
+    "same_failed_assertions": true,
+    "post_passed": 80,
+    "post_skipped": 0,
+    "failed_assertions": [
+      "GETDEL propagate as DEL command to replica in tests/unit/type/string.tcl",
+      "GETEX without argument does not propagate to replica in tests/unit/type/string.tcl"
+    ]
+  },
+  {
+    "mode": "2s",
+    "file": "unit/keyspace",
+    "pre_failed": 10,
+    "post_failed": 10,
+    "same_failed_assertions": true,
+    "post_passed": 37,
+    "post_skipped": 12,
+    "failed_assertions": [
+      "COPY basic usage for list - quicklist in tests/unit/keyspace.tcl",
+      "COPY basic usage for list - listpack in tests/unit/keyspace.tcl",
+      "COPY basic usage for $type set in tests/unit/keyspace.tcl",
+      "COPY basic usage for $type set in tests/unit/keyspace.tcl",
+      "COPY basic usage for $type set in tests/unit/keyspace.tcl",
+      "COPY basic usage for listpack sorted set in tests/unit/keyspace.tcl",
+      "COPY basic usage for skiplist sorted set in tests/unit/keyspace.tcl",
+      "COPY basic usage for listpack hash in tests/unit/keyspace.tcl",
+      "COPY basic usage for hashtable hash in tests/unit/keyspace.tcl",
+      "COPY basic usage for stream in tests/unit/keyspace.tcl"
+    ]
+  },
+  {
+    "mode": "2s",
+    "file": "unit/maxmemory",
+    "pre_failed": 0,
+    "post_failed": 0,
+    "same_failed_assertions": true,
+    "post_passed": 0,
+    "post_skipped": 9,
+    "failed_assertions": []
+  },
+  {
+    "mode": "2s",
+    "file": "unit/type/string",
+    "pre_failed": 2,
+    "post_failed": 2,
+    "same_failed_assertions": true,
+    "post_passed": 80,
+    "post_skipped": 0,
+    "failed_assertions": [
+      "GETDEL propagate as DEL command to replica in tests/unit/type/string.tcl",
+      "GETEX without argument does not propagate to replica in tests/unit/type/string.tcl"
+    ]
+  }
+]

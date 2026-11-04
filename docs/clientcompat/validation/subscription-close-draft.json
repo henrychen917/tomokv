@@ -1,0 +1,41 @@
+{
+  "run": "build/gate-run.IekJTs",
+  "partial": true,
+  "full_gate_receipt": false,
+  "complete": true,
+  "jobs": [
+    {
+      "job": "clientcompat-multi-controls",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t253.500000\tclientcompat multi-controls"
+      ]
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    }
+  ],
+  "missing": [],
+  "archive": "docs/clientcompat/validation/subscription-close-draft.json.gz",
+  "archive_sha256": "55798f563746ae3cc81a98e699d90fd97af1cf7f8ea5652f378fa0a2b170a143",
+  "passed": 1,
+  "failed": 1,
+  "arm": {
+    "source_commit": "1076280569",
+    "arm": "POST",
+    "binary": "build/clientcompat/POST/tomokv",
+    "sha256": "33e3c8afb0f86f5f694ae9e9bc4385e53db14636ed9d0f375fc70bd15044ff26",
+    "LC_ALL": "C",
+    "requested_jobs": [
+      "clientcompat-multi-controls"
+    ]
+  }
+}

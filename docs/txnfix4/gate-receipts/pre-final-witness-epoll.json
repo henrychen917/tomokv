@@ -1,0 +1,806 @@
+{
+  "label": "pre-final-witness-epoll",
+  "source": "/home/user/Projects/cx-txnfix4/build/gate-run.68cOEH",
+  "archive": "/home/user/Projects/cx-txnfix4/docs/txnfix4/gate-receipts/pre-final-witness-epoll.tar.gz",
+  "archive_sha256": "c00c2945529c39e7f25234de27d9175d9a3365e51dd842ed82462600e11d6382",
+  "files": [
+    {
+      "path": "families.tsv",
+      "size": 343,
+      "sha256": "59824463494b5be7b3fcf4964f7a6f21b877364758423a7dbcf668247ec27415"
+    },
+    {
+      "path": "jobs/release/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "size": 52,
+      "sha256": "f0a4d1e96c74572c7d0ebece8901c51fbaccf73667bbf574e246b280c1f07d6c"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "size": 153,
+      "sha256": "4fc1a4fcb7a3593edd9bcff481138239f3ab51334ca726fdb1ae90004276ad23"
+    },
+    {
+      "path": "jobs/release/timings",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/txnfix4-crash/crash/redis74-yx3j0z1h/server.log",
+      "size": 1203,
+      "sha256": "d07b8f2e08ccc0e73c7c36eb7458feb72d6d166dc3275767a4b658dba5407b16"
+    },
+    {
+      "path": "jobs/txnfix4-crash/crash/redis74.jsonl",
+      "size": 1815,
+      "sha256": "e661cd6616e14944cecc3b64f8e97089865ef8c8b53b518df42a0ca7b2b29344"
+    },
+    {
+      "path": "jobs/txnfix4-crash/crash/results.json",
+      "size": 2641,
+      "sha256": "0fcdcba22407768ef3dbba97739b1ed75a08a638aed0e4a821fdb2edb05fbd0d"
+    },
+    {
+      "path": "jobs/txnfix4-crash/crash/tomo-1s-a0-db1-rl0-0b6qqmzs/server.log",
+      "size": 11133,
+      "sha256": "21c9c100ee7966b39a1284908d72ed7134f2f4cbb835291c3fb42161254f4c91"
+    },
+    {
+      "path": "jobs/txnfix4-crash/crash/tomo-1s-a0-db1-rl0.jsonl",
+      "size": 1852,
+      "sha256": "9281b7e932a8f9b12071a60609d22c20b31f40ac32f0f7cf4199c5e4bda9de1f"
+    },
+    {
+      "path": "jobs/txnfix4-crash/crash/tomo-1s-a0-db16-rl1-tk2_z11p/server.log",
+      "size": 11182,
+      "sha256": "cba61d94b339ec92a553b35ea5f934ad5e0e33e5c48b01a6c80b34b914e711a2"
+    },
+    {
+      "path": "jobs/txnfix4-crash/crash/tomo-1s-a0-db16-rl1.jsonl",
+      "size": 1853,
+      "sha256": "f15d6c8dae8e919b252948d3d9913fcd60b35946a12d8920cc6e19d260827d57"
+    },
+    {
+      "path": "jobs/txnfix4-crash/crash/tomo-1s-a1-db1-rl0-ebuoxjwh/server.log",
+      "size": 11136,
+      "sha256": "c60976f8c8af07beeb7f2cfc161e59134a75c751af65d30053b10ad765d794e6"
+    },
+    {
+      "path": "jobs/txnfix4-crash/crash/tomo-1s-a1-db1-rl0.jsonl",
+      "size": 4910,
+      "sha256": "04d7cb3f4458d2df97520a60b4cb03fc74effaa16477c4fd24c7e20fe5d14605"
+    },
+    {
+      "path": "jobs/txnfix4-crash/crash/tomo-1s-a1-db16-rl1-ruip6sw8/server.log",
+      "size": 11186,
+      "sha256": "db74e079dff61ed766de0707dc5e0809d6038289ccd0adbcc2e3440d4fe0581f"
+    },
+    {
+      "path": "jobs/txnfix4-crash/crash/tomo-1s-a1-db16-rl1.jsonl",
+      "size": 4912,
+      "sha256": "7480e08674aa43d2e2d9c45433aab39dca808a1824effdbff6afe8c951781ca5"
+    },
+    {
+      "path": "jobs/txnfix4-crash/crash/tomo-2s-a0-db1-rl0-fwbwt3do/server.log",
+      "size": 10094,
+      "sha256": "395415245af35aea00909ecbaa84a89e9828452cc7d8c9c9b59a1e053f2d63df"
+    },
+    {
+      "path": "jobs/txnfix4-crash/crash/tomo-2s-a0-db1-rl0.jsonl",
+      "size": 1852,
+      "sha256": "b255793b30525b217483d266577a470e7f367a0ea859762c85357993553f06e1"
+    },
+    {
+      "path": "jobs/txnfix4-crash/crash/tomo-2s-a0-db16-rl0-y6tst8jn/server.log",
+      "size": 10096,
+      "sha256": "2e6e30a02ccc70d3b89df4c04c467586080ee8c483cef337eefc99aedc3eed4b"
+    },
+    {
+      "path": "jobs/txnfix4-crash/crash/tomo-2s-a0-db16-rl0.jsonl",
+      "size": 1853,
+      "sha256": "a1c42c89d1450321e080aa558dd914a6ebaa208bad85bedaee5c66fcdadd92b1"
+    },
+    {
+      "path": "jobs/txnfix4-crash/crash/tomo-2s-a1-db1-rl0-jn52qkba/server.log",
+      "size": 10094,
+      "sha256": "010f5069cc3dcf41a0394665bde5f09f2846b5e8fa69329288b83815ecedaa39"
+    },
+    {
+      "path": "jobs/txnfix4-crash/crash/tomo-2s-a1-db1-rl0.jsonl",
+      "size": 4907,
+      "sha256": "9c4c6a051bd15cbef7b1bdfaed9b4d5ada25dcf5681365a68a287accc2e1337d"
+    },
+    {
+      "path": "jobs/txnfix4-crash/crash/tomo-2s-a1-db16-rl0-ri14em40/server.log",
+      "size": 10098,
+      "sha256": "85ae907e7c1bf2fd4bde141dcf3d2f83b633472d5365d1959698113e99844cc0"
+    },
+    {
+      "path": "jobs/txnfix4-crash/crash/tomo-2s-a1-db16-rl0.jsonl",
+      "size": 4908,
+      "sha256": "c58569ed24fc9e285ba58cf66d69e573cc470615f8625a860d1af6d5e5d717ea"
+    },
+    {
+      "path": "jobs/txnfix4-crash/crash/witness.json",
+      "size": 651,
+      "sha256": "05507d787b061ede92281d9f988e5d5958680a2109b89da018737b6ab9869ed1"
+    },
+    {
+      "path": "jobs/txnfix4-crash/crash.log",
+      "size": 1792,
+      "sha256": "422bd6650f828105639ed346f41fd881febacfc614340fd5383298b87fbc0b97"
+    },
+    {
+      "path": "jobs/txnfix4-crash/done",
+      "size": 6,
+      "sha256": "77f2bf63a33e80566057a01fcbee2fadd85fd349ed26ca760071ba574f50e2d6"
+    },
+    {
+      "path": "jobs/txnfix4-crash/family.tsv",
+      "size": 58,
+      "sha256": "7a75e11eec19f50d07492811d259558e7c9c2c37ce5d64ca58a1ae47f03fbfc9"
+    },
+    {
+      "path": "jobs/txnfix4-crash/ledger",
+      "size": 78,
+      "sha256": "74f8991c3be2d5e93a53dc70b962d7c5e3aef34b37a47fe5fe7de73224625c22"
+    },
+    {
+      "path": "jobs/txnfix4-crash/output.log",
+      "size": 362,
+      "sha256": "cebcfa2b1c3e07757bbe593e0ae4e65658acb13e2d70f914ff73f9d4eb8ca7db"
+    },
+    {
+      "path": "jobs/txnfix4-crash/timings",
+      "size": 78,
+      "sha256": "74f8991c3be2d5e93a53dc70b962d7c5e3aef34b37a47fe5fe7de73224625c22"
+    },
+    {
+      "path": "jobs/txnfix4-hash/done",
+      "size": 6,
+      "sha256": "77f2bf63a33e80566057a01fcbee2fadd85fd349ed26ca760071ba574f50e2d6"
+    },
+    {
+      "path": "jobs/txnfix4-hash/family.tsv",
+      "size": 57,
+      "sha256": "f36128dfd3f95b7c51f53f99003ecb83169806117b4d035e6d44e43682053c14"
+    },
+    {
+      "path": "jobs/txnfix4-hash/hash/redis74-tnu6c8e7/server.log",
+      "size": 1507,
+      "sha256": "1d7be2c7c0a6b4cd65b7a0ed5cee309e19825e67a319d544b2532b31d0949e9f"
+    },
+    {
+      "path": "jobs/txnfix4-hash/hash/redis74.jsonl",
+      "size": 1423,
+      "sha256": "011f6d63dc732eee69704e799d4f29be90a53654f3953b29b47b6be1590f032e"
+    },
+    {
+      "path": "jobs/txnfix4-hash/hash/results.json",
+      "size": 5316,
+      "sha256": "d4c431c3dac155c124f3713afb2a890300496d238872db99ee909083b31cf492"
+    },
+    {
+      "path": "jobs/txnfix4-hash/hash/tomo-1s-a0-db1-rl0-pt4yu8qf/server.log",
+      "size": 10838,
+      "sha256": "03440f42ab99c783a0ed8ed754f126197d1eadb39032abc691df4d8b46bc6de6"
+    },
+    {
+      "path": "jobs/txnfix4-hash/hash/tomo-1s-a0-db1-rl0.jsonl",
+      "size": 3627,
+      "sha256": "56b5865624f54d4b1fd02eb9e84e3d5427ee07b4d34524186e8900755bfd6f07"
+    },
+    {
+      "path": "jobs/txnfix4-hash/hash/tomo-1s-a0-db16-rl1-n0rhsccx/server.log",
+      "size": 10860,
+      "sha256": "cab6d55efc554f1ee9e9b52a27f57c94005e71664ddcfe41b688a1b5e4f27afa"
+    },
+    {
+      "path": "jobs/txnfix4-hash/hash/tomo-1s-a0-db16-rl1.jsonl",
+      "size": 3650,
+      "sha256": "9892542a04e08ed0580d4bb2ddbef2038e1acfdcfb4c2172ada56342bc6d0b64"
+    },
+    {
+      "path": "jobs/txnfix4-hash/hash/tomo-1s-a1-db1-rl0-9xgp5bdq/server.log",
+      "size": 10838,
+      "sha256": "d79b008fdb38b44509ee69a2ad8691aa2f7d3fff2df64daa0ca14c352c4a6854"
+    },
+    {
+      "path": "jobs/txnfix4-hash/hash/tomo-1s-a1-db1-rl0.jsonl",
+      "size": 3669,
+      "sha256": "1096bcadad28e8c269f0a71690db471521c45e39ba5f9c988e49a42264bd5fb0"
+    },
+    {
+      "path": "jobs/txnfix4-hash/hash/tomo-1s-a1-db16-rl1-b1zldp0x/server.log",
+      "size": 10860,
+      "sha256": "473203baf1c2a278ec5a6ef252649288075655473e0fed095cf45bf4ac9d0bed"
+    },
+    {
+      "path": "jobs/txnfix4-hash/hash/tomo-1s-a1-db16-rl1.jsonl",
+      "size": 3659,
+      "sha256": "f719f8493de70525334abe7864a4e9c2010a0e871da2ba541aefdc2340604065"
+    },
+    {
+      "path": "jobs/txnfix4-hash/hash/tomo-2s-a0-db1-rl0-lbgde9rv/server.log",
+      "size": 9868,
+      "sha256": "cf922720f3774d52fd8ac1f39ed4c2c17deb67c13b5abd3158cd4ebf85f3d450"
+    },
+    {
+      "path": "jobs/txnfix4-hash/hash/tomo-2s-a0-db1-rl0.jsonl",
+      "size": 3634,
+      "sha256": "ab274a3c32520ecfbed8aa4ee3372d3d0d755fa31fdcde0c6b1387e7411b19c0"
+    },
+    {
+      "path": "jobs/txnfix4-hash/hash/tomo-2s-a0-db16-rl0-gat1e8e8/server.log",
+      "size": 9884,
+      "sha256": "7b6811ea7dea2c253d6c39f4a4e65bc8db2f9fa88b77eee68b30a422d0381e70"
+    },
+    {
+      "path": "jobs/txnfix4-hash/hash/tomo-2s-a0-db16-rl0.jsonl",
+      "size": 3674,
+      "sha256": "08e128d1045d0fed58b024543c52eff2e02a96f99d37564866bc3a50c116e68e"
+    },
+    {
+      "path": "jobs/txnfix4-hash/hash/tomo-2s-a1-db1-rl0-e51t9_r9/server.log",
+      "size": 9871,
+      "sha256": "f3c3b5e8db29d663a828265b9dcf202741b076c56cdc56c6e70b0ab91e95851f"
+    },
+    {
+      "path": "jobs/txnfix4-hash/hash/tomo-2s-a1-db1-rl0.jsonl",
+      "size": 3655,
+      "sha256": "86ef196e384e2c74b49b7e67e7f85e07c4892e787ffdb5f12dfef5d406e0a23d"
+    },
+    {
+      "path": "jobs/txnfix4-hash/hash/tomo-2s-a1-db16-rl0-7y2e_wu1/server.log",
+      "size": 9871,
+      "sha256": "4478bf21a459ce565f1481674b2697757abfaf7ae7c03e3b0878a20a74b6a6cf"
+    },
+    {
+      "path": "jobs/txnfix4-hash/hash/tomo-2s-a1-db16-rl0.jsonl",
+      "size": 3662,
+      "sha256": "aeec65511bf6fe50cb258aba9c7aee25ed6eedb43a5bfee5d298a9959b0e1dcc"
+    },
+    {
+      "path": "jobs/txnfix4-hash/hash/witness.json",
+      "size": 650,
+      "sha256": "ed0258d32aedd4913987edccf7a73c561e28e7fbfc5f83e04974ee92322106e4"
+    },
+    {
+      "path": "jobs/txnfix4-hash/hash.log",
+      "size": 4566,
+      "sha256": "f737e8d3d82ac4fe426b19ecbdf704dd54ad75c843d8764c7d6c9fc6ad8ee40e"
+    },
+    {
+      "path": "jobs/txnfix4-hash/ledger",
+      "size": 76,
+      "sha256": "1b245a88b3607f07415623b4e502ba55db3bdbe05eee495c2bd9d9784f4b5bc4"
+    },
+    {
+      "path": "jobs/txnfix4-hash/output.log",
+      "size": 354,
+      "sha256": "01b1f9ff88557020d1a11c56fedfb398da03d59a0b88878f6f9e962de370d7e8"
+    },
+    {
+      "path": "jobs/txnfix4-hash/timings",
+      "size": 76,
+      "sha256": "1b245a88b3607f07415623b4e502ba55db3bdbe05eee495c2bd9d9784f4b5bc4"
+    },
+    {
+      "path": "jobs/txnfix4-oom/done",
+      "size": 6,
+      "sha256": "77f2bf63a33e80566057a01fcbee2fadd85fd349ed26ca760071ba574f50e2d6"
+    },
+    {
+      "path": "jobs/txnfix4-oom/family.tsv",
+      "size": 56,
+      "sha256": "1b0ce517d45884b9e3787e5ed778ee982811b3d39079e7d67f2df7ff606c44f7"
+    },
+    {
+      "path": "jobs/txnfix4-oom/ledger",
+      "size": 86,
+      "sha256": "73a001c2b7a0e959d284d0f65230d9d55b80bc9ac9b3098febcfaaac6ae9ee48"
+    },
+    {
+      "path": "jobs/txnfix4-oom/oom/redis74-l04wjmcu/server.log",
+      "size": 18307,
+      "sha256": "98b31f9e634968da8fa61476dd9ef36b84686667cead3a4aa06a286559f4c18f"
+    },
+    {
+      "path": "jobs/txnfix4-oom/oom/redis74.jsonl",
+      "size": 18987,
+      "sha256": "8b511e326745051de32cada98b6cc7d2e777466f7ab8942ba8d655025d727045"
+    },
+    {
+      "path": "jobs/txnfix4-oom/oom/results.json",
+      "size": 39881,
+      "sha256": "fe5688faba678da816f003f158e65d32a0e12e48fa1dd353dd1639cbc5191d54"
+    },
+    {
+      "path": "jobs/txnfix4-oom/oom/tomo-1s-a0-db1-rl0-gggec796/server.log",
+      "size": 11181,
+      "sha256": "b9fe36b0faba6424a05aab1c38985bbb40010bb781b40ade1d2e8b7bb1f5d1ba"
+    },
+    {
+      "path": "jobs/txnfix4-oom/oom/tomo-1s-a0-db1-rl0.jsonl",
+      "size": 65088,
+      "sha256": "e89097d5b15adb2bf24499e24e4cc53125f611525e2a465f03fa9facdbb23a49"
+    },
+    {
+      "path": "jobs/txnfix4-oom/oom/tomo-1s-a0-db16-rl1-hw37kaqo/server.log",
+      "size": 11225,
+      "sha256": "ffb06084eda7a255e987e4cf96b9333d564d2497b0d04ee527d87cc9ab6464cc"
+    },
+    {
+      "path": "jobs/txnfix4-oom/oom/tomo-1s-a0-db16-rl1.jsonl",
+      "size": 75943,
+      "sha256": "630a441080c4ecfe13ccacb884fca8f742e28b7017ea6e700beed596e540e2b1"
+    },
+    {
+      "path": "jobs/txnfix4-oom/oom/tomo-1s-a1-db1-rl0-avuxcqhl/server.log",
+      "size": 11194,
+      "sha256": "d5f9c9f61c11a5d08379c9e66a9d61260b2faa4ae45d3cb8d6f054d64d078e3c"
+    },
+    {
+      "path": "jobs/txnfix4-oom/oom/tomo-1s-a1-db1-rl0.jsonl",
+      "size": 63764,
+      "sha256": "a345762e90c4c6e62a23acbe005f15d8a92d0f5d66b883db9327cdc086360eaf"
+    },
+    {
+      "path": "jobs/txnfix4-oom/oom/tomo-1s-a1-db16-rl1-warbc_5b/server.log",
+      "size": 11221,
+      "sha256": "aeff6106bc146ae8ed31a4da6da84c84b78a715233bbd8db52009b8ac83a902f"
+    },
+    {
+      "path": "jobs/txnfix4-oom/oom/tomo-1s-a1-db16-rl1.jsonl",
+      "size": 74816,
+      "sha256": "b2c843a2fded94cda77632201735e88bfef0bfd2fad3d138f56fda792e285c49"
+    },
+    {
+      "path": "jobs/txnfix4-oom/oom/tomo-2s-a0-db1-rl0-1ciyr42c/server.log",
+      "size": 10070,
+      "sha256": "bfc0dcbc17758f68d4fdd56a325313330cc51999578861ff4591e2be10246749"
+    },
+    {
+      "path": "jobs/txnfix4-oom/oom/tomo-2s-a0-db1-rl0.jsonl",
+      "size": 65165,
+      "sha256": "b5a694c1902805572e64b41273dae1bb2c2da527325e2cd9adacea3ec0bc7c7c"
+    },
+    {
+      "path": "jobs/txnfix4-oom/oom/tomo-2s-a0-db16-rl0-xj93bvwa/server.log",
+      "size": 10110,
+      "sha256": "d5d8cfe40d6ba5a91f8a6597a18b6d87a33cbceda558d588dd516b6a40a1de93"
+    },
+    {
+      "path": "jobs/txnfix4-oom/oom/tomo-2s-a0-db16-rl0.jsonl",
+      "size": 75979,
+      "sha256": "b589a6830046476af7df27f15f16ab4cc8180a2699ef1fd533f37b1d25cf4680"
+    },
+    {
+      "path": "jobs/txnfix4-oom/oom/tomo-2s-a1-db1-rl0-ae__uo79/server.log",
+      "size": 10071,
+      "sha256": "723463f28e667e2963bbdf47073c322d5f8a77c2f649217b23f8d3d401cee7c5"
+    },
+    {
+      "path": "jobs/txnfix4-oom/oom/tomo-2s-a1-db1-rl0.jsonl",
+      "size": 63761,
+      "sha256": "ab02b2993d40e37db0046ccf50f1c449659599bfc27f9e4d78e3aea34e1702a9"
+    },
+    {
+      "path": "jobs/txnfix4-oom/oom/tomo-2s-a1-db16-rl0-ntvnk5u1/server.log",
+      "size": 10104,
+      "sha256": "f335e9ba22fbf175b5886ad7d47ef5828f863e0e1d256ac658a028e9e459ca09"
+    },
+    {
+      "path": "jobs/txnfix4-oom/oom/tomo-2s-a1-db16-rl0.jsonl",
+      "size": 74878,
+      "sha256": "5d343b168040930494c87677487b9a201375c1b226d051e9688337b42c5b88fe"
+    },
+    {
+      "path": "jobs/txnfix4-oom/oom/witness.json",
+      "size": 649,
+      "sha256": "dfaef414adfdb3da332a22e7d10cc4f5334577e1efca8b4264ede1505279689b"
+    },
+    {
+      "path": "jobs/txnfix4-oom/oom.log",
+      "size": 16282,
+      "sha256": "f5c1a1322cb3c3592021e56075cfccddc3929d31b608b0566fa6782a1b6ae552"
+    },
+    {
+      "path": "jobs/txnfix4-oom/output.log",
+      "size": 368,
+      "sha256": "6fd8a3de1c3cec82e798fb890b41ca757b937975ea76cc197a5cf0426b0e66f4"
+    },
+    {
+      "path": "jobs/txnfix4-oom/timings",
+      "size": 86,
+      "sha256": "73a001c2b7a0e959d284d0f65230d9d55b80bc9ac9b3098febcfaaac6ae9ee48"
+    },
+    {
+      "path": "jobs/txnfix4-placement/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/txnfix4-placement/family.tsv",
+      "size": 62,
+      "sha256": "e6c88221b72c40d7067cca4fb09cb69382db2c8066a41828bda406b39cb76cf2"
+    },
+    {
+      "path": "jobs/txnfix4-placement/ledger",
+      "size": 63,
+      "sha256": "52657f24e64daeeeb53eef5890836cbc6791a58a3b79357948fdb73b03171638"
+    },
+    {
+      "path": "jobs/txnfix4-placement/output.log",
+      "size": 170,
+      "sha256": "98df73294a355c9c0b37e1e3df0be3edab6787632e821bafe7a734f39fc8921c"
+    },
+    {
+      "path": "jobs/txnfix4-placement/placement/results.json",
+      "size": 807,
+      "sha256": "42cdbbfba2d2b42ecb39467a693eb392a6fd0019cfea95784131d6ce3b2b2dfb"
+    },
+    {
+      "path": "jobs/txnfix4-placement/placement/tomo-1s-a0-db1-rl0-shtvr9im/server.log",
+      "size": 10699,
+      "sha256": "c456f8ce73e141fdc2633e76e3689410692baefee987beacb6166b731c4dcc18"
+    },
+    {
+      "path": "jobs/txnfix4-placement/placement/tomo-1s-a0-db1-rl0.jsonl",
+      "size": 654,
+      "sha256": "6a3a6442d00761ea3039c43e88d490adbc4abab9bb33665d69209f237e8ff634"
+    },
+    {
+      "path": "jobs/txnfix4-placement/placement/tomo-1s-a0-db16-rl1-uw1bblu3/server.log",
+      "size": 10705,
+      "sha256": "c020ba57d94f2181dec034fd930d0d87676db77a5aae6fa72ce05306ff4a2ca2"
+    },
+    {
+      "path": "jobs/txnfix4-placement/placement/tomo-1s-a0-db16-rl1.jsonl",
+      "size": 657,
+      "sha256": "391ab9abe016648d847f154a3c083a44f94e3906ea226d78b8df493212bea738"
+    },
+    {
+      "path": "jobs/txnfix4-placement/placement/tomo-1s-a1-db1-rl0-mmb9pqu3/server.log",
+      "size": 10700,
+      "sha256": "32c10b35ba2eef6c0ec7778eafdf0432d95b04eb8800530e35272b7a959b5418"
+    },
+    {
+      "path": "jobs/txnfix4-placement/placement/tomo-1s-a1-db1-rl0.jsonl",
+      "size": 656,
+      "sha256": "4095673b3fce6af9b11a0f6de12adb495dc17f697d3e290ed609c85609c100d4"
+    },
+    {
+      "path": "jobs/txnfix4-placement/placement/tomo-1s-a1-db16-rl1-6zzn1ybz/server.log",
+      "size": 10701,
+      "sha256": "8285e34ba662a2a71e0f00f451b685017011e7884e22b5922ff09d865a16864c"
+    },
+    {
+      "path": "jobs/txnfix4-placement/placement/tomo-1s-a1-db16-rl1.jsonl",
+      "size": 656,
+      "sha256": "172d4203202d9bbabdaf78d8440afc665b0ffcaae386d92dc6a88c5e27ab1957"
+    },
+    {
+      "path": "jobs/txnfix4-placement/placement/tomo-2s-a0-db1-rl0-yg5b_md_/server.log",
+      "size": 9795,
+      "sha256": "1083607b8673c8eb3234194ddefe0542027c20b0fe2a9ef3f4ef2254a2c73145"
+    },
+    {
+      "path": "jobs/txnfix4-placement/placement/tomo-2s-a0-db1-rl0.jsonl",
+      "size": 653,
+      "sha256": "b82d917fc0120d8af005f5ee4e70c15fdfd8c35235e93dfc5c38682b57f37f99"
+    },
+    {
+      "path": "jobs/txnfix4-placement/placement/tomo-2s-a0-db16-rl0-x_zka6p7/server.log",
+      "size": 9800,
+      "sha256": "81422bcb7fab59aa12a88977e61206799bc3ac78040488f89b3ede90716c83b2"
+    },
+    {
+      "path": "jobs/txnfix4-placement/placement/tomo-2s-a0-db16-rl0.jsonl",
+      "size": 657,
+      "sha256": "3a5e5c7d873df1d7afcb1ecd1817cde741c21f0e47cb2cc12d9c272f853659cf"
+    },
+    {
+      "path": "jobs/txnfix4-placement/placement/tomo-2s-a1-db1-rl0-ownpiagx/server.log",
+      "size": 9798,
+      "sha256": "85b2135d1c06d631aeb88f5db53a0d1afc1afbcbcfd438003805c291df33305d"
+    },
+    {
+      "path": "jobs/txnfix4-placement/placement/tomo-2s-a1-db1-rl0.jsonl",
+      "size": 654,
+      "sha256": "3051f8be9d41a38132a0d6d880bc94c617bfa679a628284c0ea5bc8dc6710b1a"
+    },
+    {
+      "path": "jobs/txnfix4-placement/placement/tomo-2s-a1-db16-rl0-nqc4jdmy/server.log",
+      "size": 9796,
+      "sha256": "0b0b342cd8c1de470341840d49cc0fd3b7023d906cb1fda8ef1b0e5738f8fc0a"
+    },
+    {
+      "path": "jobs/txnfix4-placement/placement/tomo-2s-a1-db16-rl0.jsonl",
+      "size": 654,
+      "sha256": "f8d4519a741f4916aed8210dd9cd9fd932c4cd7a4ed8e1bb679c6cd27ff1282f"
+    },
+    {
+      "path": "jobs/txnfix4-placement/placement/witness.json",
+      "size": 655,
+      "sha256": "bf71823841bc1beb7acc18775c88f2fe2058781f9b1ecb549b9922fa360476cc"
+    },
+    {
+      "path": "jobs/txnfix4-placement/placement.log",
+      "size": 255,
+      "sha256": "c77b30825252034e9c0ac9909444fa64351eb9e7fb2ee2a49812e301fac6bba0"
+    },
+    {
+      "path": "jobs/txnfix4-placement/timings",
+      "size": 63,
+      "sha256": "52657f24e64daeeeb53eef5890836cbc6791a58a3b79357948fdb73b03171638"
+    },
+    {
+      "path": "jobs/txnfix4-watch/done",
+      "size": 6,
+      "sha256": "77f2bf63a33e80566057a01fcbee2fadd85fd349ed26ca760071ba574f50e2d6"
+    },
+    {
+      "path": "jobs/txnfix4-watch/family.tsv",
+      "size": 58,
+      "sha256": "f14ca9380c7d7f0f054f509e094817cbd4d56527fde9ae1877bcba978c9906c7"
+    },
+    {
+      "path": "jobs/txnfix4-watch/ledger",
+      "size": 69,
+      "sha256": "302bbeba34093bcdff931f1e1d740479b126a654050de355e446734752e3524f"
+    },
+    {
+      "path": "jobs/txnfix4-watch/output.log",
+      "size": 344,
+      "sha256": "d13df037f365758e76bdb12e249b95bcd4c6097d97b59cb7aed145ebad965fcf"
+    },
+    {
+      "path": "jobs/txnfix4-watch/timings",
+      "size": 69,
+      "sha256": "302bbeba34093bcdff931f1e1d740479b126a654050de355e446734752e3524f"
+    },
+    {
+      "path": "jobs/txnfix4-watch/watch/redis74-twvk4yvv/server.log",
+      "size": 1203,
+      "sha256": "25eb543c8b09eb9d80e94e26b7757b78f78fce3c0c3742e8411d4dd0041cbec1"
+    },
+    {
+      "path": "jobs/txnfix4-watch/watch/redis74.jsonl",
+      "size": 2821,
+      "sha256": "47c1aba09f571905c07f2f63433351ff412048b49ddcaaff6baab029424d63ff"
+    },
+    {
+      "path": "jobs/txnfix4-watch/watch/results.json",
+      "size": 3213,
+      "sha256": "422ba6630591c3e9848cce6e29234e44123bf1d2982254d32abf21dc4a0a7b7a"
+    },
+    {
+      "path": "jobs/txnfix4-watch/watch/tomo-1s-a0-db1-rl0-3zv7nz77/server.log",
+      "size": 10951,
+      "sha256": "b3eb1dcac5f3b4ca758998670fdb2248445e01ba09c7d2f0c02ee56276db7471"
+    },
+    {
+      "path": "jobs/txnfix4-watch/watch/tomo-1s-a0-db1-rl0.jsonl",
+      "size": 8746,
+      "sha256": "691f8d56122e48c0591d3977f300fb9c26de098c60820b7559cacf22bcb9604d"
+    },
+    {
+      "path": "jobs/txnfix4-watch/watch/tomo-1s-a0-db16-rl1-8owu8ts6/server.log",
+      "size": 10977,
+      "sha256": "16cb3e49c296a2a2942e775fe4e1620a6e2ba61244d1d9d005256ffc7c90ae53"
+    },
+    {
+      "path": "jobs/txnfix4-watch/watch/tomo-1s-a0-db16-rl1.jsonl",
+      "size": 8745,
+      "sha256": "b822721d21cb7abba666fc02843c747226e22a496a5dd948764776d49deaa674"
+    },
+    {
+      "path": "jobs/txnfix4-watch/watch/tomo-1s-a1-db1-rl0-313t7dnd/server.log",
+      "size": 10945,
+      "sha256": "6d847c70d4d67afd4a6e9ad4a864e819496b0cc8486e58f867a1409d57161d66"
+    },
+    {
+      "path": "jobs/txnfix4-watch/watch/tomo-1s-a1-db1-rl0.jsonl",
+      "size": 9333,
+      "sha256": "780fa0bf7b6dead11fd777ab171b9286da532113d76e079dd705f1a97d78db6d"
+    },
+    {
+      "path": "jobs/txnfix4-watch/watch/tomo-1s-a1-db16-rl1-x456u061/server.log",
+      "size": 10983,
+      "sha256": "8bf724c95010a057233b3b0f63e90523b5521b85dfdc8b0b2a7b59d64f63b9ff"
+    },
+    {
+      "path": "jobs/txnfix4-watch/watch/tomo-1s-a1-db16-rl1.jsonl",
+      "size": 9333,
+      "sha256": "f6491dad113b224677e7d7d511f7e5926f59e29063f05028797d94619c8cd1f5"
+    },
+    {
+      "path": "jobs/txnfix4-watch/watch/tomo-2s-a0-db1-rl0-tykvd89q/server.log",
+      "size": 9919,
+      "sha256": "6577876f1a7e5a97fcec56887fb8334d1238a81ab63b3f0c4fe9fd339a7f9bcc"
+    },
+    {
+      "path": "jobs/txnfix4-watch/watch/tomo-2s-a0-db1-rl0.jsonl",
+      "size": 8744,
+      "sha256": "9e46a999bfc4e6760c3e8d5b263a7e188451f379052338d13fce73502a578833"
+    },
+    {
+      "path": "jobs/txnfix4-watch/watch/tomo-2s-a0-db16-rl0-9oliu1fl/server.log",
+      "size": 9922,
+      "sha256": "4a1f64c553f6ed01817e9b395f62cc979554b3a0cbca4ad11df2732213fe6aa5"
+    },
+    {
+      "path": "jobs/txnfix4-watch/watch/tomo-2s-a0-db16-rl0.jsonl",
+      "size": 8746,
+      "sha256": "567f35e4012fe0408f457721336bb80090e49f1d1b9407a7039d1562ca43a2ba"
+    },
+    {
+      "path": "jobs/txnfix4-watch/watch/tomo-2s-a1-db1-rl0-eefuipx1/server.log",
+      "size": 9924,
+      "sha256": "ba38406ba543ea9fb0acf9f9644f058bb125d4c56cdb456703f49d1a1e16e3ed"
+    },
+    {
+      "path": "jobs/txnfix4-watch/watch/tomo-2s-a1-db1-rl0.jsonl",
+      "size": 9329,
+      "sha256": "bd88ea08d361025c21472c890dd2b4deae2c2e85901cd2ab8e4592dc0f4b8a4b"
+    },
+    {
+      "path": "jobs/txnfix4-watch/watch/tomo-2s-a1-db16-rl0-s34jm2lm/server.log",
+      "size": 9912,
+      "sha256": "a569bb7d19c379c5a76e1b802b9b250f90cebb5f5c585e8ba867faeed0193881"
+    },
+    {
+      "path": "jobs/txnfix4-watch/watch/tomo-2s-a1-db16-rl0.jsonl",
+      "size": 9336,
+      "sha256": "d89d76db830afcd0116c3c57335010c755211a44ee98a09e074ff0db5bd101ca"
+    },
+    {
+      "path": "jobs/txnfix4-watch/watch/witness.json",
+      "size": 651,
+      "sha256": "c0a61b9b308799bc994ca5c37bed53b4bc39d98c565c2474eccf1b9f9804eb43"
+    },
+    {
+      "path": "jobs/txnfix4-watch/watch.log",
+      "size": 2300,
+      "sha256": "afdc6b63e253585ac9823ce134f38f71e1d9a9e5f8ecb9fe8303eddbbbd1d847"
+    },
+    {
+      "path": "phases.tsv",
+      "size": 88,
+      "sha256": "8a52f2fbee44795679e51868d9188ea787aa101e779c45ba51abbf7c52dcb2d0"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1224,
+      "sha256": "5a8a3016f56006988a6894092bd7275c64ad9adfa4a80609d69c628bce2e4c8e"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 2909,
+      "sha256": "47bda6c307fef46dd54d586f3ee13ce41af6d9a7d712139fdbef145c2f9f00ba"
+    }
+  ],
+  "jobs": [
+    {
+      "job": "release",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    },
+    {
+      "job": "txnfix4-crash",
+      "done": "0\t0\t1",
+      "passed": 0,
+      "failed": 1,
+      "rows": [
+        {
+          "status": "FAIL",
+          "seconds": "19.880000",
+          "label": "txnfix4 CD5.6 WATCH, multi-key pop, CLIENT TRACKING (all legs)"
+        }
+      ]
+    },
+    {
+      "job": "txnfix4-hash",
+      "done": "0\t0\t1",
+      "passed": 0,
+      "failed": 1,
+      "rows": [
+        {
+          "status": "FAIL",
+          "seconds": "15.630000",
+          "label": "txnfix4 CD5.3 lapsed hash fields during a capture (all legs)"
+        }
+      ]
+    },
+    {
+      "job": "txnfix4-oom",
+      "done": "0\t0\t1",
+      "passed": 0,
+      "failed": 1,
+      "rows": [
+        {
+          "status": "FAIL",
+          "seconds": "464.700000",
+          "label": "txnfix4 CD5.4 movers under maxmemory change nothing or run (all legs)"
+        }
+      ]
+    },
+    {
+      "job": "txnfix4-placement",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "3.970000",
+          "label": "txnfix4 TM5.1 execfix proves two owners (all legs)"
+        }
+      ]
+    },
+    {
+      "job": "txnfix4-watch",
+      "done": "0\t0\t1",
+      "passed": 0,
+      "failed": 1,
+      "rows": [
+        {
+          "status": "FAIL",
+          "seconds": "11.000000",
+          "label": "txnfix4 CD5.5 multi-key pops abort a WATCH (all legs)"
+        }
+      ]
+    }
+  ],
+  "command": [
+    "taskset",
+    "-c",
+    "61-73",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "61-68",
+    "--load-cores",
+    "69-73",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "21400-21499",
+    "--candidate-binary",
+    "/home/user/Projects/cx-txnfix4/build/txnfix4/pre-source/build/tomokv"
+  ],
+  "env": {
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_NET_IO": "epoll",
+    "GATE_PROOF_NET_IO": "epoll",
+    "GATE_DIFFER_NET_IO": "epoll",
+    "GATE_ONLY_JOBS": "txnfix4-oom txnfix4-watch txnfix4-crash txnfix4-hash txnfix4-placement ",
+    "GATE_LEDGER": "/home/user/Projects/cx-txnfix4/docs/txnfix4/gate-receipts/pre-final-witness-epoll"
+  },
+  "binary": "/home/user/Projects/cx-txnfix4/build/txnfix4/pre-source/build/tomokv",
+  "binary_sha256": "737dd31040e35a371456af6775ebb07f001e719b7102cd12d6c188be9649e1fb",
+  "exit_code": 1
+}

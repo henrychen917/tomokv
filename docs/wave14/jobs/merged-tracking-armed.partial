@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=rootcompat-tracking; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	744.650000	rootcompat tracking vs Redis 7.4

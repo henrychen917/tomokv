@@ -1,0 +1,36 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "48-55,56-63",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "48-55",
+    "--load-cores",
+    "56-63",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20080-20089",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave15/build/wave15/POST-1babe0d58a-final"
+  ],
+  "binary_sha256": "d36e1c43dd89691747ff5714d7dfe8dec32af88d85e0afc8fd9fe29c2e4c3b0a",
+  "env": {
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_TEST_PORT": "20098",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_ONLY_JOBS": "eoffix_aof clientcompat-disconnect rootcompat-stringlimit",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave15/docs/wave15/jobs/fixture-repair-final",
+    "CXX": "g++ -gz=zlib",
+    "CC": "cc -gz=zlib"
+  }
+}

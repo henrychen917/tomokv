@@ -1,0 +1,36 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "0-31",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "24-31",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20093-20095",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave14/build/wave14/correctness-1/tomokv"
+  ],
+  "binary_sha256": "74f90a8097d3ed9ced1f4eef33f692271c38e2536272a7330e35c01f76ead46d",
+  "env": {
+    "GATE_TCL_PROBE_TESTS": "/home/user/Projects/cx-wave14/build/wave14/tcl-probes-c.json",
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_ONLY_JOBS": "redis_tcl",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave14/docs/wave14/jobs/tcl-probes-c",
+    "CXX": "g++ -gz=zlib",
+    "CC": "cc -gz=zlib"
+  }
+}

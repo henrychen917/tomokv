@@ -1,0 +1,10 @@
+{
+  "arm": "post",
+  "kind": "receive",
+  "namespace": "normal",
+  "server_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
+  "probe_sha256": "1fe6204d442bad941ad42401bc934c83fa5978e539e61a2e1b7d6e6f39ef74f7",
+  "entered_groups": 7,
+  "matched": 7,
+  "unmatched": []
+}

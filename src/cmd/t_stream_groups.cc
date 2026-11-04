@@ -29,18 +29,6 @@ namespace {
 
 constexpr uint32_t kMaxIdText = 128;
 
-// This cold command owns its reply accounting, including replies generated
-// after parking. Never infer errors from the producer's command or count a
-// probe which merely discovers a missing group without sending a reply.
-std::atomic<uint64_t> xreadgroup_nogroup{0};
-std::atomic<uint64_t> xreadgroup_usec{0};
-struct XreadgroupTiming {
-    uint64_t start = now_ns();
-    ~XreadgroupTiming() {
-        xreadgroup_usec.fetch_add((now_ns() - start) / 1000, std::memory_order_relaxed);
-    }
-};
-
 // Redis dirties consumer metadata and emits its keyspace event, but does not
 // signalModifiedKey: creating a consumer must not invalidate tracked reads.
 // A parked XREADGROUP has no retiring Op yet, so it uses the keyless route.
@@ -252,7 +240,6 @@ void maybe_release_groups(StreamVal& stream) {
 }
 
 void reply_nogroup(Op& op, Slice key, Slice group, bool xreadgroup = false) {
-    if (xreadgroup) xreadgroup_nogroup.fetch_add(1, std::memory_order_relaxed);
     std::string message = "NOGROUP No such key '";
     message.append(key.p, key.n);
     message += "' or consumer group '";
@@ -378,9 +365,9 @@ bool group_lag(KvObj* object, const StreamHeader& header, const StreamGroup& gro
     return true;
 }
 
-bool object_last_physical(KvObj* object, StreamID& id) {
+bool object_last_live(KvObj* object, StreamID& id) {
     std::vector<StreamOwnedEntry> entries;
-    if (!stream_object_collect(object, {}, false, 0, true, entries)) return false;
+    if (!stream_object_collect(object, {}, false, 0, false, entries)) return false;
     id = entries.empty() ? StreamID{} : entries.back().id;
     return true;
 }
@@ -990,11 +977,11 @@ template <bool kNotify>
 void cmd_xsetid(Shard& shard, Op& op) {
     StreamID id{};
     if (!parse_id(op.arg(2), id)) { invalid_id(op); return; }
-    bool entries_set = false, deleted_set = false;
+    bool entries_set = false;
     uint64_t entries_added = 0;
     StreamID max_deleted{};
     for (uint32_t pos = 3; pos < op.argc();) {
-        if (op.arg(pos).eq_icase("entriesadded") && !entries_set && pos + 1 < op.argc()) {
+        if (op.arg(pos).eq_icase("entriesadded") && pos + 1 < op.argc()) {
             int64_t parsed = 0;
             if (!parse_i64_option(op.arg(pos + 1), parsed)) {
                 reply_err(op.sink(), "ERR value is not an integer or out of range"); return;
@@ -1004,34 +991,43 @@ void cmd_xsetid(Shard& shard, Op& op) {
             }
             entries_added = static_cast<uint64_t>(parsed);
             entries_set = true; pos += 2;
-        } else if (op.arg(pos).eq_icase("maxdeletedid") && !deleted_set && pos + 1 < op.argc()) {
+        } else if (op.arg(pos).eq_icase("maxdeletedid") && pos + 1 < op.argc()) {
             if (!parse_id(op.arg(pos + 1), max_deleted)) { invalid_id(op); return; }
-            deleted_set = true; pos += 2;
+            if (id_compare(id, max_deleted) < 0) {
+                reply_err(op.sink(), "ERR The ID specified in XSETID is smaller than the provided max_deleted_entry_id"); return;
+            }
+            pos += 2;
         } else { reply_syntax(op.sink()); return; }
     }
     KvObj* object = shard.store_find<kNotify>(op.hash, op.arg(1));
     if (!object) { reply_err(op.sink(), "ERR no such key"); return; }
     if (!obj_type_check(object, Type::Stream, op.sink())) return;
     StreamHeader header;
-    StreamID top{};
-    if (!stream_object_header(object, header) || !object_last_physical(object, top)) {
+    if (!stream_object_header(object, header)) {
         reply_err(op.sink(), "ERR corrupt stream encoding"); return;
     }
-    if (id_compare(id, top) < 0) {
-        reply_err(op.sink(), "ERR The ID specified in XSETID is smaller than the target stream top item"); return;
+    // A supplied watermark cannot hide the current one: deleted entries can
+    // still be pending in a group, so rewinding through them would reuse an ID.
+    if (id_compare(id, header.max_deleted_entry_id) < 0) {
+        reply_err(op.sink(), "ERR The ID specified in XSETID is smaller than current max_deleted_entry_id"); return;
     }
-    const StreamID effective_deleted = deleted_set ? max_deleted : header.max_deleted_entry_id;
-    if (id_compare(id, effective_deleted) < 0) {
-        reply_err(op.sink(), "ERR The ID specified in XSETID is smaller than the provided max_deleted_entry_id"); return;
-    }
-    const uint64_t effective_added = entries_set ? entries_added : header.entries_added;
-    if (effective_added < stream_object_live_length(object)) {
-        reply_err(op.sink(), "ERR The entries_added specified in XSETID is smaller than the target stream length"); return;
+    const uint64_t length = stream_object_live_length(object);
+    if (length) {
+        StreamID top{};
+        if (!object_last_live(object, top)) {
+            reply_err(op.sink(), "ERR corrupt stream encoding"); return;
+        }
+        if (id_compare(id, top) < 0) {
+            reply_err(op.sink(), "ERR The ID specified in XSETID is smaller than the target stream top item"); return;
+        }
+        if (entries_set && entries_added < length) {
+            reply_err(op.sink(), "ERR The entries_added specified in XSETID is smaller than the target stream length"); return;
+        }
     }
     ObjectSizeTracker tracker(shard.store(), object);
     header.last_id = id;
-    header.entries_added = effective_added;
-    header.max_deleted_entry_id = effective_deleted;
+    if (entries_set) header.entries_added = entries_added;
+    if (max_deleted.ms || max_deleted.seq) header.max_deleted_entry_id = max_deleted;
     if (!stream_object_update_header(object, header)) {
         reply_err(op.sink(), "ERR corrupt stream encoding"); return;
     }
@@ -1284,11 +1280,6 @@ static const CommandSpec kTable[] = {
 
 }  // namespace
 
-StreamGroupStats stream_xreadgroup_stats() {
-    return {xreadgroup_nogroup.load(std::memory_order_relaxed),
-            xreadgroup_usec.load(std::memory_order_relaxed)};
-}
-
 StreamVal::~StreamVal() { stream_groups_destroy(groups); }
 
 void stream_groups_destroy(void* groups) { delete static_cast<StreamGroups*>(groups); }
@@ -1368,14 +1359,12 @@ StreamGroupProbe stream_group_prepare_waiter(Shard& shard, Slice key, uint64_t h
 }
 
 void stream_xreadgroup_reply_nogroup(Op& op) {
-    XreadgroupTiming timing;
     StreamXreadGroupArgs parsed;
     if (stream_parse_xreadgroup(op, parsed))
         reply_nogroup(op, op.arg(parsed.key_arg), op.arg(parsed.group_arg), true);
 }
 
 bool stream_xreadgroup_execute(Shard& shard, Op& op, bool may_block) {
-    XreadgroupTiming timing;
     StreamXreadGroupArgs parsed;
     if (!stream_parse_xreadgroup(op, parsed)) return true;
     const Slice key = op.arg(parsed.key_arg);

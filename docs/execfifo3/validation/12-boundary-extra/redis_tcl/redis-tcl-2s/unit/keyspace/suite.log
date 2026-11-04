@@ -1,0 +1,71 @@
+Starting test server at port 20601
+[ready]: 880006
+[1;37;49mTesting unit/keyspace[0m
+[[0;32;49mok[0m]: DEL against a single item (0 ms)
+[[0;32;49mok[0m]: Vararg DEL (0 ms)
+[[0;32;49mok[0m]: Untagged multi-key commands (0 ms)
+[[0;32;49mok[0m]: KEYS with pattern (0 ms)
+[[0;32;49mok[0m]: KEYS to get all keys (0 ms)
+[[0;32;49mok[0m]: DBSIZE (0 ms)
+[[0;32;49mok[0m]: KEYS with hashtag (0 ms)
+[[0;32;49mok[0m]: DEL all keys (1 ms)
+[[0;32;49mok[0m]: DEL against expired key (1101 ms)
+[[0;32;49mok[0m]: EXISTS (0 ms)
+[[0;32;49mok[0m]: Zero length value in key. SET/GET/EXISTS (1 ms)
+[[0;32;49mok[0m]: Commands pipelining (0 ms)
+[[0;32;49mok[0m]: Non existing command (0 ms)
+[[0;32;49mok[0m]: RENAME basic usage (0 ms)
+[[0;32;49mok[0m]: RENAME source key should no longer exist (0 ms)
+[[0;32;49mok[0m]: RENAME against already existing key (0 ms)
+[[0;32;49mok[0m]: RENAMENX basic usage (0 ms)
+[[0;32;49mok[0m]: RENAMENX against already existing key (0 ms)
+[[0;32;49mok[0m]: RENAMENX against already existing key (2) (0 ms)
+[[0;32;49mok[0m]: RENAME against non existing source key (1 ms)
+[[0;32;49mok[0m]: RENAME where source and dest key are the same (existing) (0 ms)
+[[0;32;49mok[0m]: RENAMENX where source and dest key are the same (existing) (0 ms)
+[[0;32;49mok[0m]: RENAME where source and dest key are the same (non existing) (0 ms)
+[[0;32;49mok[0m]: RENAME with volatile key, should move the TTL as well (0 ms)
+[[0;32;49mok[0m]: RENAME with volatile key, should not inherit TTL of target key (0 ms)
+[[0;32;49mok[0m]: DEL all keys again (DB 0) (1 ms)
+[[0;36;49mignore[0m]: DEL all keys again (DB 1): Not supported on singledb
+[[0;32;49mok[0m]: COPY basic usage for string (0 ms)
+[[0;36;49mignore[0m]: COPY for string does not replace an existing key without REPLACE option: Not supported on singledb
+[[0;36;49mignore[0m]: COPY for string can replace an existing key with REPLACE option: Not supported on singledb
+[[0;36;49mignore[0m]: COPY for string ensures that copied data is independent of copying data: Not supported on singledb
+[[0;32;49mok[0m]: COPY for string does not copy data to no-integer DB (0 ms)
+[[0;32;49mok[0m]: COPY can copy key expire metadata as well (0 ms)
+[[0;32;49mok[0m]: COPY does not create an expire if it does not exist (0 ms)
+[[0;33;49mskip[0m]: COPY basic usage for list - quicklist
+[[0;33;49mskip[0m]: COPY basic usage for list - listpack
+[[0;33;49mskip[0m]: COPY basic usage for $type set
+[[0;33;49mskip[0m]: COPY basic usage for $type set
+[[0;33;49mskip[0m]: COPY basic usage for $type set
+[[0;33;49mskip[0m]: COPY basic usage for listpack sorted set
+[[0;33;49mskip[0m]: COPY basic usage for skiplist sorted set
+[[0;33;49mskip[0m]: COPY basic usage for listpack hash
+[[0;33;49mskip[0m]: COPY basic usage for hashtable hash
+[[0;33;49mskip[0m]: COPY basic usage for stream
+[[0;32;49mok[0m]: COPY basic usage for stream-cgroups (3 ms)
+[[0;36;49mignore[0m]: MOVE basic usage: Not supported on singledb
+[[0;36;49mignore[0m]: MOVE against key existing in the target DB: Not supported on singledb
+[[0;36;49mignore[0m]: MOVE against non-integer DB (#1428): Not supported on singledb
+[[0;36;49mignore[0m]: MOVE can move key expire metadata as well: Not supported on singledb
+[[0;36;49mignore[0m]: MOVE does not create an expire if it does not exist: Not supported on singledb
+[[0;36;49mignore[0m]: SET/GET keys in different DBs: Not supported on singledb
+[[0;32;49mok[0m]: RANDOMKEY (14 ms)
+[[0;32;49mok[0m]: RANDOMKEY against empty DB (0 ms)
+[[0;32;49mok[0m]: RANDOMKEY regression 1 (0 ms)
+[[0;32;49mok[0m]: KEYS * two times with long key, Github issue #1208 (1 ms)
+[[0;32;49mok[0m]: Regression for pattern matching long nested loops (0 ms)
+[[0;32;49mok[0m]: Regression for pattern matching very long nested loops (42 ms)
+[[0;36;49mignore[0m]: Coverage: basic SWAPDB test and unhappy path: Not supported on singledb
+[[0;36;49mignore[0m]: Coverage: SWAPDB and FLUSHDB: Not supported on singledb
+[1/1 [0;33;49mdone[0m]: unit/keyspace (1 seconds)
+
+                   The End
+
+Execution time of different units:
+  1 seconds - unit/keyspace
+
+[1;37;49m\o/[0m [1;32;49mAll tests passed without errors![0m
+

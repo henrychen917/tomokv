@@ -326,7 +326,8 @@ def configure(args):
         args.keys, args.connections = min(args.keys, 32), min(args.connections, 4)
         args.workers = min(args.workers if args.workers > 0 else 2, 2)
         args.shards = 16
-    require(20400 <= args.port <= 20499, 'survey port must be 20400-20499')
+    require(20200 <= args.port <= 20299 or 20400 <= args.port <= 20499,
+            'survey port must be 20200-20299 or 20400-20499')
     require(args.blocks > 0 and args.seconds > 0 and args.timeout > 0 and args.keys > 0 and args.connections > 0,
             'invalid duration/population/connections')
     require(args.workers == -1 or 1 <= args.workers <= len(load), 'workers must be -1 or a positive count within load CPUs')
@@ -344,13 +345,13 @@ def configure(args):
         path = getattr(args, attr).resolve()
         require(path.is_file() and os.access(path, os.X_OK), f'missing executable {path}; see survey-plan.md')
         setattr(args, attr, path)
-    version = subprocess.check_output([str(args.redis), '--version'], text=True).strip()
+    version = subprocess.check_output([str(args.redis), '--version'], text=True, timeout=args.timeout).strip()
     require('v=7.4.' in version, 'reference is not Redis 7.4')
     args.output.mkdir(parents=True)
     save(args.output / 'manifest.json', dict(args=vars(args), redis_version=version,
          binaries={k: dict(path=str(getattr(args, k)), sha256=fm.sha256(getattr(args, k))) for k in ('candidate', 'redis', 'client', 'memtier')},
-         memtier_version=subprocess.check_output([str(args.memtier), '--version'], text=True).strip(),
-         source_sha=subprocess.check_output(['git', '-C', str(ROOT), 'rev-parse', 'HEAD'], text=True).strip(),
+         memtier_version=subprocess.check_output([str(args.memtier), '--version'], text=True, timeout=args.timeout).strip(),
+         source_sha=subprocess.check_output(['git', '-C', str(ROOT), 'rev-parse', 'HEAD'], text=True, timeout=args.timeout).strip(),
          kind='SMOKE_ONLY' if args.smoke else 'SURVEY', latency_unit='ns', histogram_significant_digits=3))
 
 
@@ -373,6 +374,57 @@ def server_argv(args, arm, folder, persistence='off'):
     return argv
 
 
+def signal_child(process, method):
+    try:
+        getattr(process, method)()
+    except ProcessLookupError:
+        pass  # exited after poll; still reap it below
+
+
+def stop_child(process, timeout=5):
+    if process is None:
+        return
+    if process.poll() is None:
+        signal_child(process, 'terminate')
+    try:
+        process.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        signal_child(process, 'kill')
+        process.wait(timeout=10)
+
+
+def sample_cpu(pid, samples, now):
+    try:
+        for path in Path(f'/proc/{pid}/task').glob('*/stat'):
+            try:
+                fields = path.read_text().rsplit(')', 1)[1].split()
+                ticks = int(fields[11]) + int(fields[12])
+                samples.setdefault(path.parent.name, []).append((now, ticks))
+            except (FileNotFoundError, ProcessLookupError):
+                pass  # task exited after enumeration (ENOENT or ESRCH)
+    except (FileNotFoundError, ProcessLookupError):
+        pass  # process/task directory disappeared during enumeration
+    # Missing worker coverage still fails memtier's sample-count/span checks.
+
+
+def rss(pid):
+    try:
+        return fm.rss(pid)
+    except (FileNotFoundError, ProcessLookupError) as exc:
+        raise Invalid(f'server {pid} exited while reading required RSS') from exc
+
+
+def disk_bytes(data):
+    used = 0
+    for path in data.rglob('*'):
+        try:
+            if path.is_file():
+                used += path.stat().st_size
+        except FileNotFoundError:
+            pass  # snapshot/AOF rename; other I/O failures must fail the run
+    return used
+
+
 @contextlib.contextmanager
 def server(args, arm, folder, persistence='off'):
     folder.mkdir(parents=True, exist_ok=True)
@@ -391,12 +443,16 @@ def server(args, arm, folder, persistence='off'):
             def disk_watch():
                 while not monitor_stop.wait(.1):
                     try:
-                        used = sum(path.stat().st_size for path in data.rglob('*') if path.is_file())
+                        used = disk_bytes(data)
                     except FileNotFoundError:
-                        continue  # rename during snapshot/AOF publication
+                        continue  # directory renamed while rglob was advancing
+                    except OSError as exc:
+                        disk_failure.append(f'persistence budget observation failed: {exc}')
+                        signal_child(process, 'terminate')
+                        return
                     if used > args.disk_limit_gib * 1024 ** 3:
                         disk_failure.append(f'owned persistence data exceeded {args.disk_limit_gib} GiB')
-                        process.terminate()
+                        signal_child(process, 'terminate')
                         return
             if persistence != 'off':
                 monitor = threading.Thread(target=disk_watch, daemon=True)
@@ -440,13 +496,7 @@ def server(args, arm, folder, persistence='off'):
             save(folder / 'disk-budget-failure.json', disk_failure)
         if conn:
             conn.close()
-        if process and process.poll() is None:
-            process.terminate()
-            try:
-                process.wait(timeout=30)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                process.wait(timeout=10)
+        stop_child(process, timeout=30)
         if process:
             save(folder / 'server-exit.json', dict(returncode=process.returncode))
         # The owned per-boot data directory is never reused or retained, even on failure.
@@ -559,7 +609,7 @@ def validate_client(document, operations, seconds, offered=None, max_lag_ms=20, 
         per_cycle = sum(op['primary'] for op in operations)
         expected = math.ceil(offered * seconds / per_cycle) * per_cycle
         require(primary == expected, f'offered count mismatch {primary} != {expected}')
-        require(result['schedule_lag']['max'] <= max_lag_ms * 1e6, 'generator missed send deadlines')
+        require(result['schedule_lag']['max'] <= max_lag_ms * 1e6, f'generator missed send deadlines: max lag {result["schedule_lag"]["max"] / 1e6:.3f} ms > {max_lag_ms:g} ms')
         require(elapsed <= seconds + max_lag_ms / 1000 + result['latency']['max'] / 1e9 + .1, 'excessive drain')
     result['generator_busy'] = max(result['worker_cpu_fraction']) >= .95
     return result
@@ -619,13 +669,7 @@ def native(args, conn, folder, operations, keys, connections, pipeline=1, second
             save(folder / 'result.json', result)
             return result
     finally:
-        if process and process.poll() is None:
-            process.terminate()
-            try:
-                process.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                process.wait()
+        stop_child(process)
 
 
 def seed(args, conn, folder, cell):
@@ -708,13 +752,7 @@ def memtier(args, conn, folder, cell):
             while process.poll() is None:
                 now = time.monotonic()
                 require(now - started < seconds + args.timeout, 'memtier timed out')
-                for path in Path(f'/proc/{process.pid}/task').glob('*/stat'):
-                    try:
-                        fields = path.read_text().rsplit(')', 1)[1].split()
-                        ticks = int(fields[11]) + int(fields[12])
-                        cpu_samples.setdefault(path.parent.name, []).append((now, ticks))
-                    except (FileNotFoundError, ProcessLookupError):
-                        pass  # a memtier thread exited between glob and read (ESRCH on /proc/<pid>/task/<tid>/stat)
+                sample_cpu(process.pid, cpu_samples, now)
                 time.sleep(.05)
             require(process.returncode == 0, f'memtier failed: {folder}/client.log')
         after = fm.info(conn)
@@ -730,13 +768,7 @@ def memtier(args, conn, folder, cell):
         save(folder / 'result.json', result)
         return result
     finally:
-        if process and process.poll() is None:
-            process.terminate()
-            try:
-                process.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                process.wait()
+        stop_child(process)
 
 
 def paired_ratios(records):
@@ -771,8 +803,10 @@ def sidecar(args, cells):
     total = diffs = 0
     for arm in ['redis-4'] + select(args.variants, ('1s-rl0', '1s-rl1', '2s-rl0', '2s-rl1')):
         folder = args.output / 'sidecar' / arm
+        args.failure_context = dict(cell='sidecar/boot', arm=arm)
         with server(args, arm, folder) as (_, conn):
             for spec, w in unique.items():
+                args.failure_context = dict(cell=f'sidecar/{w["name"]}', arm=arm)
                 require(conn.cmd('FLUSHDB') == b'OK', 'sidecar reset failed')
                 for row in w['init']:
                     wire = conn.wire(row['command'])
@@ -806,9 +840,15 @@ def run_throughput(args, cell, arm, folder):
                       cell['connections'], cell['pipeline'], seconds=cell.get('seconds'))
 
 
-def summary(tool, records, expected, smoke=False, error=None):
+def summary(tool, records, expected, smoke=False, error=None, context=None):
     valid = error is None and len(records) == expected and expected > 0 and all(r.get('valid') for r in records)
     line = f'{tool}: status={"VALID" if valid else "INVALID"} kind={"SMOKE_ONLY" if smoke else "SURVEY"} runs={len(records)}/{expected}'
+    if not valid:
+        failed = next((row for row in reversed(records) if not row.get('valid')), {})
+        location = failed or context or {}
+        reason = error or failed.get('error') or 'incomplete survey'
+        line += (f' cell={location.get("cell", "-")} arm={location.get("arm", "-")}'
+                 f' reason={json.dumps(reason)}')
     return line, valid
 
 
@@ -820,13 +860,14 @@ def campaign(args, tool, build_cells, runner=run_throughput, prepare=None, finis
         selected = build_cells(args)
         require(selected, 'empty survey')
         save(args.output / 'cells.json', selected)
+        variants = select(args.variants, ('1s-rl0', '1s-rl1', '2s-rl0', '2s-rl1'))
+        pairs = [(f'redis-{r}', v) for r in numbers(args.redis_threads) for v in variants]
+        expected = len(selected) * len(pairs) * args.blocks * 4
+        args.failure_context = dict(cell='prepare', arm='-')
         if prepare:
             prepare(args, selected)
         behavior = sidecar(args, behaviour_cells(args) if behaviour_cells else selected)
         save(args.output / 'behaviour.json', behavior)
-        variants = select(args.variants, ('1s-rl0', '1s-rl1', '2s-rl0', '2s-rl1'))
-        pairs = [(f'redis-{r}', v) for r in numbers(args.redis_threads) for v in variants]
-        expected = len(selected) * len(pairs) * args.blocks * 4
         for block in range(args.blocks):
             for cell in selected:
                 for redis, tomo in pairs:
@@ -836,6 +877,7 @@ def campaign(args, tool, build_cells, runner=run_throughput, prepare=None, finis
                         folder = args.output / cell['name'] / pair / f'b{block}-{seq}-{letter}'
                         row = dict(cell=cell['name'], pair=pair, block=block, sequence=seq, letter=letter,
                                    arm=arm, valid=False, folder=str(folder))
+                        args.failure_context = dict(cell=cell['name'], arm=arm)
                         try:
                             row.update(runner(args, cell, arm, folder))
                             row['valid'] = True
@@ -855,6 +897,7 @@ def campaign(args, tool, build_cells, runner=run_throughput, prepare=None, finis
                                 elif 'loaded' in row:
                                     metrics = f' used_B_per_key={row["loaded"]["used_memory_per_key"]:.3f} rss_B_per_key={row["loaded"]["rss_per_key"]:.3f} half_rss_B_per_key={row["after_half_del"]["rss_per_key"]:.3f}'
                             print(f'{tool}: cell={cell["name"]} block={block} visit={seq} arm={arm} status={"VALID" if row["valid"] else "INVALID"} kind={"SMOKE_ONLY" if args.smoke else "SURVEY"}{metrics}', flush=True)
+        args.failure_context = dict(cell='finalize', arm='-')
         save(args.output / 'ratios.json', paired_ratios(records))
         if finish:
             finish(args, records)
@@ -864,7 +907,7 @@ def campaign(args, tool, build_cells, runner=run_throughput, prepare=None, finis
     except (Exception, KeyboardInterrupt) as exc:
         error = f'{type(exc).__name__}: {exc}'
         print(error, file=sys.stderr, flush=True)
-    line, valid = summary(tool, records, expected, args.smoke, error)
+    line, valid = summary(tool, records, expected, args.smoke, error, getattr(args, 'failure_context', None))
     if owns_output:
         save(args.output / 'verdict.json', dict(valid=valid, error=error, summary=line))
         (args.output / 'summary.txt').write_text(line + '\n')
@@ -903,6 +946,51 @@ def base_selftest():
     rejects(lambda: paired_ratios(rows[:-1]))
     assert summary('test', rows, 4)[1] and not summary('test', rows, 5)[1]
     assert not summary('test', rows, 4, error='failure')[1]
+    failed = dict(valid=False, cell='GET-load0.25', arm='redis-4', error='missed\ndeadline')
+    line, valid = summary('test', [failed], 4)
+    assert not valid and 'cell=GET-load0.25 arm=redis-4' in line and 'missed\\ndeadline' in line
+    assert '\n' not in line
+    line, valid = summary('test', [], 4, error='no plateau', context=dict(cell='calibration/GET', arm='redis-4'))
+    assert not valid and 'cell=calibration/GET arm=redis-4' in line and 'no plateau' in line
+    for missing in (FileNotFoundError, ProcessLookupError):
+        samples = {}
+        task = Mock()
+        task.read_text.side_effect = missing()
+        with patch.object(Path, 'glob', return_value=iter([task])):
+            sample_cpu(123, samples, 1)
+        assert not samples
+        def vanished():
+            yield from ()
+            raise missing()
+        with patch.object(Path, 'glob', return_value=vanished()):
+            sample_cpu(123, samples, 1)
+        with patch.object(fm, 'rss', side_effect=missing()):
+            rejects(lambda: rss(123))
+    task = Mock()
+    task.read_text.side_effect = PermissionError()
+    with patch.object(Path, 'glob', return_value=iter([task])):
+        try:
+            sample_cpu(123, {}, 1)
+        except PermissionError:
+            pass
+        else:
+            raise AssertionError('unexpected proc error was hidden')
+    child = Mock()
+    child.poll.return_value = None
+    child.terminate.side_effect = ProcessLookupError()
+    stop_child(child)
+    child.wait.assert_called_once_with(timeout=5)
+    child = Mock()
+    child.poll.return_value = None
+    child.wait.side_effect = [subprocess.TimeoutExpired('child', 5), 0]
+    child.kill.side_effect = ProcessLookupError()
+    stop_child(child)
+    assert child.wait.call_count == 2
+    data, path = Mock(), Mock()
+    path.is_file.return_value = True
+    path.stat.side_effect = FileNotFoundError()
+    data.rglob.return_value = [path]
+    assert disk_bytes(data) == 0
     for cmd in ('MGET8', 'RPOP', 'SINTER', 'XREADGROUP', 'GEOSEARCH'):
         w = workload(cmd)
         assert w['cycle'] and w['init'] and w['primary_per_cycle'] > 0
@@ -918,3 +1006,11 @@ def base_selftest():
             bad = copy.deepcopy(s)
             bad[location][key] = value
             rejects(lambda: memtier_result({'ALL STATS': bad}, workload('GET')['cycle'][0], 1, 1, 1))
+
+
+if __name__ == '__main__':
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--selftest', action='store_true', required=True)
+    p.parse_args()
+    base_selftest()
+    print('survey selftest: PASS')

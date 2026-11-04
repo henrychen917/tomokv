@@ -1,0 +1,28 @@
+[
+  {
+    "databases": 1,
+    "toggles": 45480,
+    "connections": 48310,
+    "noauth": 48194,
+    "admitted": 116,
+    "other": 0,
+    "first": {
+      "reply": "$-1\r\n",
+      "after_toggles": 292
+    },
+    "errors": []
+  },
+  {
+    "databases": 16,
+    "toggles": 45757,
+    "connections": 49700,
+    "noauth": 49602,
+    "admitted": 98,
+    "other": 0,
+    "first": {
+      "reply": "$-1\r\n",
+      "after_toggles": 385
+    },
+    "errors": []
+  }
+]

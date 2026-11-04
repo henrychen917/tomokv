@@ -1,0 +1,40 @@
+[
+  {
+    "mode": "redis",
+    "engine": "oracle",
+    "result": {
+      "members": 8000000,
+      "calibrated_seconds": 6.74,
+      "waited": [
+        6.42,
+        6.22
+      ],
+      "acknowledged": 20021
+    },
+    "passed": true
+  },
+  {
+    "mode": "1s",
+    "engine": "uring",
+    "passed": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 578, in main\n    if len(parts) != 4:\n                        \n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 550, in shutdown_case\n    floor = result['calibrated_seconds'] - 0.3 - 1.0\n               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~\nAssertionError: {'members': 400000, 'calibrated_seconds': 8.56, 'none': {'exit_code': -6, 'waited_seconds': 3.82, 'long_reply': 'closed', 'watchdog': True}, 'aof': {'exit_code': -6, 'waited_seconds': 3.82, 'long_reply': 'closed', 'watchdog': True, 'acknowledged': 20039, 'tail_acknowledged': 39, 'missing': 0, 'source_members': 400000, 'trial_exists': 0}}\n"
+  },
+  {
+    "mode": "1s",
+    "engine": "epoll",
+    "passed": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 578, in main\n    if len(parts) != 4:\n                        \n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 550, in shutdown_case\n    floor = result['calibrated_seconds'] - 0.3 - 1.0\n               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~\nAssertionError: {'members': 400000, 'calibrated_seconds': 8.55, 'none': {'exit_code': -6, 'waited_seconds': 3.82, 'long_reply': 'closed', 'watchdog': True}, 'aof': {'exit_code': -6, 'waited_seconds': 3.82, 'long_reply': 'closed', 'watchdog': True, 'acknowledged': 20022, 'tail_acknowledged': 22, 'missing': 0, 'source_members': 400000, 'trial_exists': 0}}\n"
+  },
+  {
+    "mode": "2s",
+    "engine": "uring",
+    "passed": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 578, in main\n    if len(parts) != 4:\n                        \n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 550, in shutdown_case\n    floor = result['calibrated_seconds'] - 0.3 - 1.0\n               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~\nAssertionError: {'members': 400000, 'calibrated_seconds': 8.52, 'none': {'exit_code': -6, 'waited_seconds': 3.82, 'long_reply': 'closed', 'watchdog': True}, 'aof': {'exit_code': -6, 'waited_seconds': 3.82, 'long_reply': 'closed', 'watchdog': True, 'acknowledged': 20040, 'tail_acknowledged': 40, 'missing': 8, 'source_members': 400000, 'trial_exists': 0}}\n"
+  },
+  {
+    "mode": "2s",
+    "engine": "epoll",
+    "passed": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 578, in main\n    if len(parts) != 4:\n                        \n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 550, in shutdown_case\n    floor = result['calibrated_seconds'] - 0.3 - 1.0\n               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~\nAssertionError: {'members': 400000, 'calibrated_seconds': 8.68, 'none': {'exit_code': -6, 'waited_seconds': 3.82, 'long_reply': 'closed', 'watchdog': True}, 'aof': {'exit_code': -6, 'waited_seconds': 3.82, 'long_reply': 'closed', 'watchdog': True, 'acknowledged': 20040, 'tail_acknowledged': 40, 'missing': 0, 'source_members': 400000, 'trial_exists': 0}}\n"
+  }
+]

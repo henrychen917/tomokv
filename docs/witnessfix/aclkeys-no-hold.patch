@@ -1,0 +1,11 @@
+--- POST/src/cmd/blocking_debug.cc
++++ no-hold/blocking_debug.cc
+@@ -27,7 +27,7 @@
+     }
+     const uint32_t stage = static_cast<uint32_t>(op.arg(2).p[0] - '0');
+     if (stage == 1) debug_xread_stage.store(0, std::memory_order_relaxed);
+-    debug_xread_hold.store(static_cast<uint32_t>(stage), std::memory_order_release);
++    debug_xread_hold.store(0, std::memory_order_release);
+     reply_ok(op.sink());
+ }
+ 

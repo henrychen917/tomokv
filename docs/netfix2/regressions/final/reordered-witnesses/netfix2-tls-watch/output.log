@@ -1,0 +1,2 @@
+  row budget: 900s; median=2.68s; correctness-plan-fallback; netfix2 tls-watch
+  netfix2 tls-watch                                    ok

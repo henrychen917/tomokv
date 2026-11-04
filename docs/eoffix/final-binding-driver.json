@@ -1,0 +1,13 @@
+{
+  "command": [
+    "python3",
+    "tools/eoffix_bind.py",
+    "--arm",
+    "post",
+    "--tag",
+    "release"
+  ],
+  "exit_code": 0,
+  "seconds": 395.7836625734344,
+  "env": {}
+}

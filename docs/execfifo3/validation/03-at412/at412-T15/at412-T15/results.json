@@ -1,0 +1,461 @@
+[
+  {
+    "case": "T15",
+    "leg": "redis-redis-0-EVAL",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "redis-redis-0-EVALSHA",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "redis-redis-0-FCALL",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "1s-uring-0-EVAL",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "1s-uring-0-EVALSHA",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "1s-uring-0-FCALL",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "1s-uring-1-EVAL",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "1s-uring-1-EVALSHA",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "1s-uring-1-FCALL",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "1s-epoll-0-EVAL",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "1s-epoll-0-EVALSHA",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "1s-epoll-0-FCALL",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "1s-epoll-1-EVAL",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "1s-epoll-1-EVALSHA",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "1s-epoll-1-FCALL",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "2s-uring-0-EVAL",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "2s-uring-0-EVALSHA",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "2s-uring-0-FCALL",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "2s-uring-1-EVAL",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "2s-uring-1-EVALSHA",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "2s-uring-1-FCALL",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "2s-epoll-0-EVAL",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "2s-epoll-0-EVALSHA",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "2s-epoll-0-FCALL",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "2s-epoll-1-EVAL",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "2s-epoll-1-EVALSHA",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T15",
+    "leg": "2s-epoll-1-FCALL",
+    "value": {
+      "disconnect": [
+        1,
+        1
+      ],
+      "accepted": 8,
+      "data": [
+        9,
+        9
+      ],
+      "shutdown": true
+    },
+    "pass": true
+  }
+]

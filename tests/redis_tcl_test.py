@@ -11,6 +11,157 @@ from redis_tcl import counts, load_manifest, sha, validate_passing, ROOT
 
 
 class Controls(unittest.TestCase):
+    def test_pubsub_assertion_cannot_pass_without_its_fence_receipt(self):
+        name = 'PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl'
+        row = dict(file='unit/pubsub', events=[dict(status='ok', test=name)],
+                   failed=0, error=None, complete=True, exit_code=0, pubsub_fences=1)
+        validate_passing(row, [name])
+        for count in (0, 2, None):
+            with self.subTest(count=count), self.assertRaises(ValueError):
+                validate_passing(dict(row, pubsub_fences=count), [name])
+
+
+    def test_pubsub_fence_requires_the_actual_zero_count_acknowledgment(self):
+        from redis_tcl import HOOK
+        setup = r'''
+set ::cur_test "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl"
+set ::reads 0
+set ::last_count 0
+proc send_data_packet {args} {}
+proc punsubscribe {client {channels {}}} {return original}
+proc assert_equal {expected actual} {
+    if {$expected ne $actual} {error "acknowledgment count mismatch"}
+}
+proc consume_subscribe_messages {client type channels} {
+    if {$client ne "owned" || $type ne "punsubscribe" || $channels ne {chan1.* chan2.* chan3.*}} {
+        error "wrong acknowledgment inventory"
+    }
+    incr ::reads 3
+    return [list 2 1 $::last_count]
+}
+'''
+        check = r'''
+if {[catch {
+    if {[punsubscribe owned] ne "original" || $::reads != 3} {error "missing acknowledgment fence"}
+    set ::last_count 1
+    if {![catch {punsubscribe owned} failure] || $failure ne "acknowledgment count mismatch"} {
+        error "unremoved subscription passed"
+    }
+    set ::cur_test other
+    if {[punsubscribe owned] ne "original" || $::reads != 6} {error "unrelated helper changed"}
+} error]} {puts stderr $error; exit 1}
+'''
+        result = subprocess.run(['tclsh'], input=setup + HOOK + check, text=True,
+            capture_output=True, env=dict(os.environ, TOMO_TCL_PUBSUB_FENCES='1'))
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+
+    def test_acl_only_admits_the_first_live_api_block_without_changing_bodies(self):
+        from redis_tcl import HOOK
+        setup = r'''
+set ::calls {}
+proc send_data_packet {args} {}
+proc start_server {options {code undefined}} {
+    lappend ::calls [list $options $code]
+    uplevel 1 $code
+}
+'''
+        check = r'''
+if {[catch {
+    set witness 0
+    start_server {tags {"acl external:skip"}} {incr witness}
+    start_server {overrides {user "default on"} tags {acl external:skip}} {incr witness}
+    if {$witness != 2 || [lindex $::calls 0] ne {{tags acl} {incr witness}} ||
+        [lindex $::calls 1] ne {{overrides {user "default on"} tags {acl external:skip}} {incr witness}}} {
+        error "ACL adapter changed a body, scope, or later block"
+    }
+    set ::cmdfix2_acl_first_block 1
+    if {![catch {start_server {tags other} {incr witness}} failure] ||
+        $failure ne "unit/acl first-block setup changed" || $witness != 2} {
+        error "changed upstream setup was accepted"
+    }
+} error]} {puts stderr $error; exit 1}
+'''
+        result = subprocess.run(['tclsh'], input=setup + HOOK + check, text=True,
+            capture_output=True, env=dict(os.environ, TOMO_TCL_ACL_FIRST_BLOCK='1'))
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+
+    def test_reply_receipt_preserves_reads_errors_and_defers_output(self):
+        from redis_tcl import HOOK
+        setup = r'''
+set ::client 0
+set ::cur_test selected
+set ::reads 0
+proc send_data_packet {args} {}
+namespace eval ::redis {}
+proc ::redis::redis_read_reply {id fd} {
+    incr ::reads
+    if {$id == 1} {return {invalidate key1}}
+    return -code error -errorcode {READ CONTROL} "original reply failure"
+}
+'''
+        check = r'''
+if {[catch {
+    if {[::redis::redis_read_reply 1 unused] ne "invalidate key1"} {error "reply changed"}
+    set code [catch {::redis::redis_read_reply 2 unused} result options]
+    if {$code != 1 || $result ne "original reply failure" ||
+        [dict get $options -errorcode] ne "READ CONTROL" || $::reads != 2} {
+        error "reply error changed or socket read repeated"
+    }
+    puts BEFORE-END
+    send_data_packet unused err original
+    puts AFTER-END
+} error]} {puts stderr $error; exit 1}
+'''
+        result = subprocess.run(['tclsh'], input=setup + HOOK + check,
+            text=True, capture_output=True, env=dict(os.environ,
+                GATE_TCL_REPLY_DIAGNOSTIC='selected', GATE_TCL_BLOCKED_DIAGNOSTIC='0'))
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        lines = result.stdout.splitlines()
+        self.assertEqual(lines[0], 'BEFORE-END')
+        self.assertTrue(lines[1].startswith('REPLY-DIAGNOSTIC '))
+        self.assertIn('invalidate key1', lines[1])
+        self.assertIn('original reply failure', lines[1])
+        self.assertEqual(lines[2:], ['AFTER-END'])
+
+    def test_blocked_failure_receipt_preserves_verdict_and_never_retries(self):
+        from redis_tcl import HOOK
+        setup = r'''
+set ::cur_test witness
+set ::calls 0
+set ::queries 0
+proc send_data_packet {args} {}
+proc r {args} {
+    incr ::queries
+    error "diagnostic query failed"
+}
+proc wait_for_blocked_clients_count {count {maxtries 100} {delay 10} {idx 0}} {
+    incr ::calls
+    if {$maxtries != 7 || $delay != 3 || $idx != 2} {error "wait arguments changed"}
+    if {$count == 0} {return ready}
+    return -code error -errorcode {BLOCKED TIMEOUT} "original wait failure"
+}
+'''
+        check = r'''
+if {[catch {
+    if {[wait_for_blocked_clients_count 0 7 3 2] ne "ready" || $::queries != 0 || $::calls != 1} {
+        error "successful wait changed or queried the server"
+    }
+    set code [catch {wait_for_blocked_clients_count 1 7 3 2} result options]
+    if {$code != 1 || $result ne "original wait failure" ||
+        [dict get $options -errorcode] ne "BLOCKED TIMEOUT" || $::calls != 2} {
+        error "failed wait changed or was retried"
+    }
+    if {$::queries == 0} {error "failure receipt did not observe state"}
+} error]} {puts stderr $error; exit 1}
+'''
+        result = subprocess.run(['tclsh'], input=setup + HOOK + check,
+            text=True, capture_output=True,
+            env=dict(os.environ, GATE_TCL_BLOCKED_DIAGNOSTIC='1'))
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('BLOCKED-DIAGNOSTIC test=witness expected=1', result.stdout)
+
     def test_printver_requires_observed_body_output(self):
         row = dict(file='unit/printver', events=[], failed=0, error=None,
                    complete=True, exit_code=0,
@@ -21,39 +172,20 @@ class Controls(unittest.TestCase):
             with self.subTest(change=change), self.assertRaises(ValueError):
                 validate_passing(dict(row, **change), [], setup_only=True)
 
-    def test_monitor_retry_is_named_bounded_and_requires_a_complete_pass(self):
+    def test_failed_assertion_is_never_replaced_by_a_retry(self):
         from types import SimpleNamespace
         from unittest.mock import patch
         import redis_tcl
-        order_tests = [(unit, name) for unit, names in redis_tcl.ORDER_TESTS.items()
-                       for name in ((names,) if isinstance(names, str) else names)]
-        for unit, name in order_tests:
-            original = dict(events=[dict(status='err', test=name)], failed=1, passed=0,
-                            error=None, complete=True, exit_code=1, seconds=0)
-            good = dict(events=[dict(status='ok', test=name)], failed=0, passed=1,
-                        error=None, complete=True, exit_code=0, seconds=0)
-            with tempfile.TemporaryDirectory(dir=ROOT/'build') as directory:
-                args=SimpleNamespace(output=Path(directory))
-                (args.output/unit).mkdir(parents=True)
-                for result in (good, original, {**good, 'events': []},
-                               {**good, 'complete': False},
-                               {**good, 'events': good['events'] * 2}):
-                    with patch.object(redis_tcl, 'run_file', return_value=copy.deepcopy(result)) as run:
-                        row=redis_tcl.retry_monitor_order(args, Path(directory), unit,
-                                                         copy.deepcopy(original), [])
-                    self.assertEqual(run.call_count, 1)
-                    self.assertEqual(run.call_args.kwargs['only'], [name.split(' in tests/')[0]])
-                    self.assertIn('original_failure', row['monitor_order_retry'])
-                    if result is good: validate_passing(row, [name])
-                    else:
-                        with self.assertRaises(ValueError): validate_passing(row, [name])
-                for change in ({'complete': False}, {'error': 'timeout'}, {'failed': 2},
-                               {'events': [dict(status='err', test='another assertion')]},
-                               {'events': []}):
-                    with patch.object(redis_tcl, 'run_file') as run:
-                        row=redis_tcl.retry_monitor_order(args, Path(directory), unit,
-                                                         dict(original, **change), [])
-                    run.assert_not_called()
+        name = 'MONITOR log blocked command only once in tests/unit/introspection.tcl'
+        failed = dict(events=[dict(status='err', test=name)], failed=1, passed=0,
+                      error=None, complete=True, exit_code=1, seconds=0)
+        with patch.object(redis_tcl, 'run_file', return_value=failed) as run:
+            row = redis_tcl.run_manifest_file(SimpleNamespace(), Path('/unused'),
+                                              'unit/introspection', {}, [], [])
+        self.assertIs(row, failed)
+        self.assertEqual(run.call_count, 1)
+        with self.assertRaises(ValueError):
+            validate_passing(row, [name])
 
     def test_fresh_assertion_requires_its_own_complete_successful_receipt(self):
         from types import SimpleNamespace

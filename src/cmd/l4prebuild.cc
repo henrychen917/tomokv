@@ -94,10 +94,8 @@ void cmd_set_prebuilt(Shard& sh, Op& op) {
     int64_t expire = options.expire_at_ms;
     const bool reserve = options.keep_ttl && old && old->has_ttl_slot();
     if (options.keep_ttl && old) expire = sh.store().deadline(op.hash, old);
-    if (expire >= 0 && expire < sh.now_ms()) {  // elapsed only: Redis serves at now == at
-        if (old) sh.store_erase<notify>(op.hash, op.key());
-        else if constexpr (notify)
-            notify_record(sh, op, NOTIFY_GENERIC, NotifyEventId::Del, op.key());
+    if constexpr (!notify) if (expire >= 0 && expire < sh.now_ms()) {
+        if (old) sh.store_erase<false>(op.hash, op.key());
         if (!options.get) reply_ok(op.sink());
         return;
     }
@@ -108,6 +106,7 @@ void cmd_set_prebuilt(Shard& sh, Op& op) {
         notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Set, op.key());
         if (options.expire_kind != ExpireKind::None)
             notify_record(sh, op, NOTIFY_GENERIC, NotifyEventId::Expire, op.key());
+        if (expire >= 0 && expire < sh.now_ms()) notify_elapsed_set(sh, op, op.key());
     }
     if (!options.get) reply_ok(op.sink());
 }

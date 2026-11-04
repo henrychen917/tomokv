@@ -1,0 +1,36 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "16-31,32-39",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "16-31",
+    "--load-cores",
+    "32-39",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20020-20039",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave15/build/wave15/flip-eof-post"
+  ],
+  "binary_sha256": "5c04a022c6f082098369ad23df829ecb56b39ee6dce862f57f5be03f7a0b19e2",
+  "env": {
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_TEST_PORT": "20098",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_ONLY_JOBS": "wave15-block-1s-epoll-0-1 wave15-block-1s-epoll-0-16 wave15-block-1s-epoll-1-1 wave15-block-1s-epoll-1-16 wave15-block-1s-uring-0-1 wave15-block-1s-uring-0-16 wave15-block-1s-uring-1-1 wave15-block-1s-uring-1-16 wave15-block-2s-epoll-0-1 wave15-block-2s-epoll-0-16 wave15-block-2s-uring-0-1 wave15-block-2s-uring-0-16",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave15/docs/wave15/jobs/block-repeat-integration",
+    "CXX": "g++ -gz=zlib",
+    "CC": "cc -gz=zlib"
+  }
+}

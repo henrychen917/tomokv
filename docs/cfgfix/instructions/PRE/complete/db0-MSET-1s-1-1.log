@@ -1,0 +1,4 @@
+/home/user/Projects/cx-cfgfix/build/cfgfix/counts/trace /home/user/Projects/cx-cfgfix/build/cfgfix/counts/scopes/PRE-db0/probe /home/user/Projects/cx-cfgfix/build/cfgfix/counts/scopes/PRE-db0/complete.ranges 8ab9f0 8aba00 000000000002bb20 MSET 1s 1 1 -1
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+COUNT 16295

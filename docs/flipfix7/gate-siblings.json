@@ -1,0 +1,32 @@
+{
+  "POST": {
+    "path": "build/flipfix7/POST",
+    "resolved": "/home/user/Projects/cx-flipfix7/build/flipfix7/POST",
+    "sha256": "d443b95831da51c41d8095a529d4e1d3db8ec3fd7dd802c1a3ef34926c47fd21"
+  },
+  "blockfix-cost": {
+    "path": "build/flipfix7/blockfix-cost",
+    "resolved": "/home/user/Projects/cx-flipfix7/build/blockfix-cost",
+    "sha256": "8b836369ecdd7945eef232d2113751abd9aaa7ab734adc370fc34ef1dc562883"
+  },
+  "blockfix2-unit": {
+    "path": "build/flipfix7/blockfix2-unit",
+    "resolved": "/home/user/Projects/cx-flipfix7/build/blockfix2-unit",
+    "sha256": "69b50df0983a037779bb614001ac1c00ab52914d55e638ce6fb409c3c1cc4d21"
+  },
+  "blockfix2-db0-unit": {
+    "path": "build/flipfix7/blockfix2-db0-unit",
+    "resolved": "/home/user/Projects/cx-flipfix7/build/blockfix2-db0-unit",
+    "sha256": "a4d6015e0a91b4c58e58a9c5daac823441e8d984a155e91ce2badb275269c60b"
+  },
+  "moverfix-unit": {
+    "path": "build/flipfix7/moverfix-unit",
+    "resolved": "/home/user/Projects/cx-flipfix7/build/moverfix-unit",
+    "sha256": "be23d9b7cdf3dcc8b191ec27cb39efab531708052ff13769d3c6b00230ddaff0"
+  },
+  "moverfix-db0-unit": {
+    "path": "build/flipfix7/moverfix-db0-unit",
+    "resolved": "/home/user/Projects/cx-flipfix7/build/moverfix-db0-unit",
+    "sha256": "0f355769d5f14fe3a112c7e62c58df234b0b849dbc22ab2b78fffae407da303e"
+  }
+}

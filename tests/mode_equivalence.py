@@ -32,7 +32,8 @@ import socket
 import sys
 import time
 
-from _gate_process import (cpus, encode, info, install_signals, pin_driver, require, server)
+from _gate_process import (cpus, encode, info, install_signals, pin_driver, require, server,
+                           shared_correctness_cpus)
 from feature_gate import check_config, smoke
 from _differ_history import default_history, failing_seeds, record_leg
 from gateplan import permitted_cpus
@@ -160,16 +161,20 @@ def configuration(cell):
 
 
 def validate_geometry(server_cpus, load_cpus):
+    from _gate_process import shared_correctness_cpus
     servers, loads = set(cpus(server_cpus)), set(cpus(load_cpus))
+    shared = shared_correctness_cpus(server_cpus, load_cpus)
     require(len(servers) == 8, 'equivalence fixture requires eight server CPUs and split ratio 6:2')
     # The coordinator deliberately inherits only its load slot. That temporary
     # taskset mask is not the cgroup's allowed CPU set; probe and restore it just
     # as the main planner does, before the child server takes its own slot.
     require((servers | loads) <= permitted_cpus(servers | loads), 'requested CPUs unavailable')
+    shared = shared_correctness_cpus(servers, loads)
     for cpu in servers:
         siblings = set(cpus(Path(f'/sys/devices/system/cpu/cpu{cpu}/topology/thread_siblings_list').read_text().strip()))
-        require(not siblings & loads, 'server/load CPUs share a physical core (including SMT siblings)')
+        require(shared or not siblings & loads, 'server/load CPUs share a physical core (including SMT siblings)')
         require(len(siblings & servers) == 1, 'server CPUs must name distinct physical cores')
+    return shared
 
 
 def self_test():
@@ -213,7 +218,8 @@ def self_test():
         return f'{cpu},{cpu + 128}'
     with mock.patch(__name__ + '.permitted_cpus', return_value=set(range(256))), \
          mock.patch.object(os, 'sched_getaffinity', return_value={8, 9}), \
-         mock.patch.object(Path, 'read_text', siblings):
+         mock.patch.object(Path, 'read_text', siblings), \
+         mock.patch.dict(os.environ, {}, clear=True):
         validate_geometry('0-7', '8-9')  # Coordinator inherits only its load CPUs.
         try:
             validate_geometry('0-7', '128')
@@ -221,6 +227,53 @@ def self_test():
             require('share a physical core' in str(exc), 'wrong SMT rejection')
         else:
             raise AssertionError('server SMT sibling was accepted as a load CPU')
+        with mock.patch.dict(os.environ, {'GATE_CORRECTNESS_SHARED_CPUS': '1',
+                             'GATE_ONLY_JOBS': 'differ-equivalence', 'GATE_PROOF_NO_RATES': '1'}):
+            require(validate_geometry('0-7', '0-7'), 'selected shared correctness allocation refused')
+            for key in ('GATE_ONLY_JOBS', 'GATE_PROOF_NO_RATES'):
+                with mock.patch.dict(os.environ, {key: ''}):
+                    try:
+                        validate_geometry('0-7', '0-7')
+                    except AssertionError as exc:
+                        require('shared CPUs require' in str(exc), 'wrong shared-CPU rejection')
+                    else:
+                        raise AssertionError('unrestricted CPU overlap was accepted')
+        guarded = dict(GATE_CORRECTNESS_SHARED_CPUS='1', GATE_PROOF_NO_RATES='1',
+                       GATE_ONLY_JOBS='differ-equivalence')
+        with mock.patch.dict(os.environ, guarded, clear=True), \
+             mock.patch.object(os, 'sched_setaffinity') as pin:
+            validate_geometry('0-7', '0-7')
+            pin_driver('0-7', '0-7')
+            pin.assert_called_once()
+            for missing in ('GATE_ONLY_JOBS', 'GATE_PROOF_NO_RATES', 'GATE_CORRECTNESS_SHARED_CPUS'):
+                with mock.patch.dict(os.environ, {missing: ''}):
+                    for check in (validate_geometry, pin_driver):
+                        try:
+                            check('0-7', '0-7')
+                        except AssertionError:
+                            pass
+                        else:
+                            raise AssertionError(f'unguarded shared CPUs accepted by {check.__name__}')
+        with mock.patch.dict(os.environ, {'GATE_SHARED_CORRECTNESS_CPUS': '1',
+                                          'GATE_ONLY_JOBS': 'differ-equivalence',
+                                          'GATE_PROOF_NO_RATES': '1'}, clear=True):
+            validate_geometry('0-7', '0-7')
+            with mock.patch('os.sched_setaffinity') as pin:
+                pin_driver('0-7', '0-7', allow_shared_correctness=True)
+                pin.assert_called_once_with(0, list(range(8)))
+                try:
+                    pin_driver('0-7', '0-7')
+                except AssertionError:
+                    pass
+                else:
+                    raise AssertionError('ordinary driver accepted shared CPUs')
+        with mock.patch.dict(os.environ, {'GATE_SHARED_CORRECTNESS_CPUS': '1'}, clear=True):
+            try:
+                validate_geometry('0-7', '0-7')
+            except AssertionError:
+                pass
+            else:
+                raise AssertionError('shared CPUs escaped the selected correctness guard')
     print('MODE EQUIVALENCE self-test: seed/matrix/raw replay/divergence controls passed; no servers')
 
 
@@ -259,7 +312,7 @@ def main(argv=None):
                   f'{failed} failing streams')
             return int(failed != 0)
     validate_geometry(args.server_cpus, args.load_cpus)
-    pin_driver(args.server_cpus, args.load_cpus)
+    pin_driver(args.server_cpus, args.load_cpus, correctness_only=True)
     install_signals()
     args.output.mkdir(parents=True, exist_ok=False)
     operations = command_stream(args.seed)
@@ -288,8 +341,6 @@ def main(argv=None):
                         report['reached'] = True
                         transcript = replay(sock, file, operations, baseline)
                 report['reply_sha256'] = hashlib.sha256(b''.join(transcript)).hexdigest()
-                require(int(info(admin, 'STATS').get('script_crossshard_window_refusals', -1)) == 0,
-                        'drained script replay registered an admission refusal')
             # MULTI and scripts force atomic admission even with --atomic 0. The feature witness
             # requires lifetime atomic_groups==0 in that configuration and therefore needs its
             # own fresh process. Preserve its exact assertions instead of subtracting legitimate

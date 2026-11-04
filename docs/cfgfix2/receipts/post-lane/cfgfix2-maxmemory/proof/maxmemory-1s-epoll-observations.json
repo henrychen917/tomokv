@@ -1,0 +1,24 @@
+[
+  {
+    "databases": 1,
+    "owners": 8,
+    "target_cpu": 39,
+    "set": "b'OK'",
+    "failures": 1,
+    "owner_cpus": 8,
+    "warned": 1,
+    "terminated": false,
+    "warned_shards": 1
+  },
+  {
+    "databases": 16,
+    "owners": 8,
+    "target_cpu": 39,
+    "set": "b'OK'",
+    "failures": 1,
+    "owner_cpus": 8,
+    "warned": 1,
+    "terminated": false,
+    "warned_shards": 1
+  }
+]

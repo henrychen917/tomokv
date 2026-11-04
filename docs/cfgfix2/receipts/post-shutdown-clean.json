@@ -1,0 +1,48 @@
+{
+  "phase": "post-shutdown-clean",
+  "command": [
+    "taskset",
+    "-c",
+    "32-47",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "32-39",
+    "--load-cores",
+    "40-47",
+    "--load-smt",
+    "",
+    "--ports",
+    "21800-21849",
+    "--candidate-binary",
+    "/home/user/Projects/cx-cfgfix2/build/cfgfix2/arms/tomokv-POST"
+  ],
+  "environment": {
+    "GATE_ONLY_JOBS": "cfgfix2-shutdown",
+    "GATE_PROOF_NO_RATES": "1"
+  },
+  "binary": "/home/user/Projects/cx-cfgfix2/build/cfgfix2/arms/tomokv-POST",
+  "binary_sha256": "b525d76155ce9a141c66db38789443cb5d19b8d6285245450928305f4a196e91",
+  "returncode": 0,
+  "started": 1793608496.42614,
+  "finished": 1793608748.6605742,
+  "run": "/home/user/Projects/cx-cfgfix2/build/gate-run.hslH0V",
+  "log": "build/cfgfix2/gate-logs/post-shutdown-clean.log",
+  "log_sha256": "a447d3e1b483395c5177c9f7b3217cd436b4bcf8368e5afef0f1396a0e549e18",
+  "rows": [
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "release build (+footprint locks)"
+    },
+    {
+      "status": "ok",
+      "seconds": 250.77,
+      "label": "cfgfix2 shutdown (oracle, both modes and engines)"
+    }
+  ],
+  "summary": {
+    "ok": 2,
+    "fail": 0
+  }
+}

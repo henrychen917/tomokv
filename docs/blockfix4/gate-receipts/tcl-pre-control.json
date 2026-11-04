@@ -1,0 +1,264 @@
+{
+  "label": "tcl-pre-control",
+  "source": "/home/user/Projects/cx-blockfix4/build/gate-run.jex8pv",
+  "archive": "/home/user/Projects/cx-blockfix4/docs/blockfix4/gate-receipts/tcl-pre-control.tar.gz",
+  "archive_sha256": "fc99e1da291abd3d6cadf2c9b54af166e36a34d3520706495d6ff14822cf5237",
+  "files": [
+    {
+      "path": "families.tsv",
+      "size": 106,
+      "sha256": "4694b02447d8f7a49f82118c213769e40390346e3d9275839d80938fb4ec72d4"
+    },
+    {
+      "path": "jobs/redis_tcl/done",
+      "size": 6,
+      "sha256": "a8c2a3f6ae6170594bae30f339da956dec334487305d159802f49cec318e0f4b"
+    },
+    {
+      "path": "jobs/redis_tcl/family.tsv",
+      "size": 54,
+      "sha256": "533ae9da34cb85c54adcec04e827d235aace4937233fe4d231cadb528c4409d1"
+    },
+    {
+      "path": "jobs/redis_tcl/ledger",
+      "size": 102,
+      "sha256": "335cba7c031fe25cd11e435ff0e42d1f5dbc9e5447c61bf83699bef2ee573f57"
+    },
+    {
+      "path": "jobs/redis_tcl/output.log",
+      "size": 308,
+      "sha256": "209c61c92b91ceb57b65b9c2ea06e1e4b744f21dfaabe609911060aaef08d94b"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/summary.json",
+      "size": 152270,
+      "sha256": "fd64bdc911f60bd563e2fab3bfc9d79554d5f7b1360a2a491515e0b034581c71"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/unit/pubsub/events.tsv",
+      "size": 14718,
+      "sha256": "bab877ca85103b4ebc3b6db0a8b88c3efae978bf144e661b120ddd1b7109c44b"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/unit/pubsub/result.json",
+      "size": 20802,
+      "sha256": "695c6e6632d9c5861f2b7e55f971b2127e6aee675f00726b3d3cadf435905d9b"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/unit/pubsub/server.log",
+      "size": 10880,
+      "sha256": "ca0ce6e3857b417f7a645ccb4d99ca86bd0300e8afc6c8430cb51d4addb4787e"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/unit/pubsub/skip.txt",
+      "size": 891,
+      "sha256": "4d810a069a6e5ed0d058f348bb51ac5be750ba1955a4c0db12c72f78ab236031"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/unit/pubsub/suite.log",
+      "size": 3764,
+      "sha256": "2b54b5289d8bde4717807494913b9543f685f09ce049791ad6cf73dcabdbcc0c"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/unit/scripting/events.tsv",
+      "size": 75625,
+      "sha256": "4d012b26f44cf2a1de50c927b0039c54746fbef498b9cb76a5aaa94a2c56aad5"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/unit/scripting/result.json",
+      "size": 100252,
+      "sha256": "de50afff6c96d7bf4ae1b25f0909130dfa808f826113b87e9af29dbcb18fc213"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/unit/scripting/server.log",
+      "size": 11103,
+      "sha256": "b569abd00edae4f3da12e706acf7d5fa90cacc766ed4660f7ce4c17d989818e9"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/unit/scripting/skip.txt",
+      "size": 1896,
+      "sha256": "775bcea27d679b74dd46cbfeeb25291f181585f4e824025d14e14d1a9cb7d7cd"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/unit/scripting/suite.log",
+      "size": 19348,
+      "sha256": "27886323fb43695f3abdfa6ccaf459a8b18750908b8a30339a7a21fd85a1a69a"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s.log",
+      "size": 120,
+      "sha256": "93b5de3e2ccd3efc29bcf77a2d6ecf48b2b3daa9a8ac48316639f39dcf73e12c"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/summary.json",
+      "size": 152550,
+      "sha256": "9f3333d949df3788e21a899ef0b90a408950e33ee6a810c41c2561188a2b4bd1"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/unit/pubsub/events.tsv",
+      "size": 14906,
+      "sha256": "16647fd3d1f704cd7b24f716f627802fbe0edfe73c8f3db7804c2b1399dcf5e5"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/unit/pubsub/result.json",
+      "size": 20977,
+      "sha256": "e7a7ad04ca9693b9f780fe66fe57e80b8a634974ce6ec7b1ab71741d9e07b195"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/unit/pubsub/server.log",
+      "size": 9915,
+      "sha256": "a747d383d4a477ddf1f2edd5e86f3b96d0cf71bf55544ea74cbb811a5130bb54"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/unit/pubsub/skip.txt",
+      "size": 891,
+      "sha256": "4d810a069a6e5ed0d058f348bb51ac5be750ba1955a4c0db12c72f78ab236031"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/unit/pubsub/suite.log",
+      "size": 4115,
+      "sha256": "cd55c835f1027b0a444c6113f83c4a7efef055650f6f025e825fcace8ee79b1c"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/unit/scripting/events.tsv",
+      "size": 75629,
+      "sha256": "bb0fdfdb464f9c29456d90078f5a8afdd0191ac5a7435a65178af65f7ec987c6"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/unit/scripting/result.json",
+      "size": 100278,
+      "sha256": "e889c2dbf11d670aaf43af2603b59db1f9370c7024a75366b8cc2c84c0d382fd"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/unit/scripting/server.log",
+      "size": 10084,
+      "sha256": "1f0bbe99a1ed5d4a39f55addcbbdd5a6a8c205b2216017da4efe0fcdfa976985"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/unit/scripting/skip.txt",
+      "size": 1896,
+      "sha256": "775bcea27d679b74dd46cbfeeb25291f181585f4e824025d14e14d1a9cb7d7cd"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/unit/scripting/suite.log",
+      "size": 19350,
+      "sha256": "a73d281e143eb20610cb6da2a713e5f54ce3bfe23537628bd65958463a9572b4"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s.log",
+      "size": 120,
+      "sha256": "d4b3324879ed2e2da2d6c131237907b30844ae01bbb2ee0bedd49a9921893caf"
+    },
+    {
+      "path": "jobs/redis_tcl/timings",
+      "size": 102,
+      "sha256": "335cba7c031fe25cd11e435ff0e42d1f5dbc9e5447c61bf83699bef2ee573f57"
+    },
+    {
+      "path": "jobs/release/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "size": 52,
+      "sha256": "aa4fec8c22a55b59cf22c72a82e3dc8e039abda4557b5bae104783523b1d982a"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "size": 45,
+      "sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "size": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "size": 45,
+      "sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5"
+    },
+    {
+      "path": "phases.tsv",
+      "size": 88,
+      "sha256": "87f60073c18504888f04792eb37eb81eecaf99f308774b54357cfb3854971689"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1232,
+      "sha256": "f56555c6aad5ef51b7410254ea2af5576bffce0d7e167f812e66e91a78e3bcee"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 28005,
+      "sha256": "58a614383103b960077088317014a87295d2f00d03e30e648f61d26d212f2e41"
+    }
+  ],
+  "jobs": [
+    {
+      "job": "redis_tcl",
+      "done": "0\t1\t1",
+      "passed": 1,
+      "failed": 1,
+      "rows": [
+        {
+          "status": "FAIL",
+          "seconds": "61.810000",
+          "label": "Redis 7.4.10 Tcl passing subset (2s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "63.180000",
+          "label": "Redis 7.4.10 Tcl passing subset (1s)"
+        }
+      ]
+    },
+    {
+      "job": "release",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    }
+  ],
+  "command": [
+    "taskset",
+    "-c",
+    "32-47",
+    "tests/gate.sh",
+    "push",
+    "--server-cores",
+    "32-39",
+    "--load-cores",
+    "40-47",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20220-20229",
+    "--candidate-binary",
+    "/home/user/Projects/cx-blockfix4/build/blockfix4/pre-source/build/tomokv"
+  ],
+  "env": {
+    "GATE_TCL_MANIFEST": "docs/blockfix4/tcl-baseline-control.json",
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_ONLY_JOBS": "redis_tcl",
+    "GATE_LEDGER": "/home/user/Projects/cx-blockfix4/docs/blockfix4/gate-receipts/tcl-pre-control"
+  },
+  "binary_sha256": "d85693be2ed803887154381b1ebd67a2106347cb3171ce25160b38899c0ff6d6",
+  "exit_code": 1
+}

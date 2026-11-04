@@ -1,0 +1,43 @@
+{
+  "fds-2s-uring-db1": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-netfix2/tests/netfix2.py\", line 338, in main\n    results[label] = test(a, label, mode, engine, db)\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-netfix2/tests/netfix2.py\", line 247, in fds\n    assert all(isinstance(v, dict) for v in results.values()), results\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'fds_budget': {'maxclients': 136, 'own_fds': 32, 'answered': 146, 'rejected': 11}, 'fds_backoff': 'Traceback (most recent call last):\\n  File \"/home/user/Projects/cx-netfix2/tests/netfix2.py\", line 244, in fds\\n    results[test.__name__] = test(a, label + \\'-\\' + test.__name__, mode, engine, db)\\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \"/home/user/Projects/cx-netfix2/tests/netfix2.py\", line 236, in fds_backoff\\n    assert 1 <= attempts <= 32, (\\'EMFILE window absent or accept busy-spin\\', attempts)\\n           ^^^^^^^^^^^^^^^^^^^\\nAssertionError: (\\'EMFILE window absent or accept busy-spin\\', 0)\\n'}\n",
+  "fds-2s-uring-db16": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-netfix2/tests/netfix2.py\", line 338, in main\n    results[label] = test(a, label, mode, engine, db)\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-netfix2/tests/netfix2.py\", line 247, in fds\n    assert all(isinstance(v, dict) for v in results.values()), results\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'fds_budget': {'maxclients': 128, 'own_fds': 41, 'answered': 138, 'rejected': 11}, 'fds_backoff': 'Traceback (most recent call last):\\n  File \"/home/user/Projects/cx-netfix2/tests/netfix2.py\", line 244, in fds\\n    results[test.__name__] = test(a, label + \\'-\\' + test.__name__, mode, engine, db)\\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \"/home/user/Projects/cx-netfix2/tests/netfix2.py\", line 236, in fds_backoff\\n    assert 1 <= attempts <= 32, (\\'EMFILE window absent or accept busy-spin\\', attempts)\\n           ^^^^^^^^^^^^^^^^^^^\\nAssertionError: (\\'EMFILE window absent or accept busy-spin\\', 0)\\n'}\n",
+  "fds-2s-epoll-db1": {
+    "fds_budget": {
+      "maxclients": 128,
+      "own_fds": 40,
+      "answered": 138,
+      "rejected": 10
+    },
+    "fds_backoff": {
+      "forced_emfile_attempts": 7,
+      "pending_connection": "resumed"
+    }
+  },
+  "fds-2s-epoll-db16": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-netfix2/tests/netfix2.py\", line 338, in main\n    results[label] = test(a, label, mode, engine, db)\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-netfix2/tests/netfix2.py\", line 247, in fds\n    assert all(isinstance(v, dict) for v in results.values()), results\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'fds_budget': {'maxclients': 120, 'own_fds': 49, 'answered': 130, 'rejected': 11}, 'fds_backoff': 'Traceback (most recent call last):\\n  File \"/home/user/Projects/cx-netfix2/tests/netfix2.py\", line 244, in fds\\n    results[test.__name__] = test(a, label + \\'-\\' + test.__name__, mode, engine, db)\\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \"/home/user/Projects/cx-netfix2/tests/netfix2.py\", line 226, in fds_backoff\\n    assert admin.must(\\'PING\\') == b\\'PONG\\'\\n           ^^^^^^^^^^^^^^^^^^\\n  File \"/home/user/Projects/cx-netfix2/tests/_lib.py\", line 204, in must\\n    reply = self.cmd(*args)\\n            ^^^^^^^^^^^^^^^\\n  File \"/home/user/Projects/cx-netfix2/tests/_lib.py\", line 201, in cmd\\n    return self.read()\\n           ^^^^^^^^^^^\\n  File \"/home/user/Projects/cx-netfix2/tests/_lib.py\", line 161, in read\\n    head = read(1)\\n           ^^^^^^^\\n  File \"/home/user/Projects/cx-netfix2/tests/_lib.py\", line 124, in _read\\n    return self.file.read(size)\\n           ^^^^^^^^^^^^^^^^^^^^\\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\\n    return self._sock.recv_into(b)\\n           ^^^^^^^^^^^^^^^^^^^^^^^\\nTimeoutError: timed out\\n'}\n",
+  "fds-1s-uring-db1": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-netfix2/tests/netfix2.py\", line 338, in main\n    results[label] = test(a, label, mode, engine, db)\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-netfix2/tests/netfix2.py\", line 247, in fds\n    assert all(isinstance(v, dict) for v in results.values()), results\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'fds_budget': {'maxclients': 136, 'own_fds': 36, 'answered': 146, 'rejected': 11}, 'fds_backoff': 'Traceback (most recent call last):\\n  File \"/home/user/Projects/cx-netfix2/tests/netfix2.py\", line 244, in fds\\n    results[test.__name__] = test(a, label + \\'-\\' + test.__name__, mode, engine, db)\\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \"/home/user/Projects/cx-netfix2/tests/netfix2.py\", line 236, in fds_backoff\\n    assert 1 <= attempts <= 32, (\\'EMFILE window absent or accept busy-spin\\', attempts)\\n           ^^^^^^^^^^^^^^^^^^^\\nAssertionError: (\\'EMFILE window absent or accept busy-spin\\', 0)\\n'}\n",
+  "fds-1s-uring-db16": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-netfix2/tests/netfix2.py\", line 338, in main\n    results[label] = test(a, label, mode, engine, db)\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-netfix2/tests/netfix2.py\", line 247, in fds\n    assert all(isinstance(v, dict) for v in results.values()), results\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'fds_budget': {'maxclients': 128, 'own_fds': 45, 'answered': 138, 'rejected': 10}, 'fds_backoff': 'Traceback (most recent call last):\\n  File \"/home/user/Projects/cx-netfix2/tests/netfix2.py\", line 244, in fds\\n    results[test.__name__] = test(a, label + \\'-\\' + test.__name__, mode, engine, db)\\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \"/home/user/Projects/cx-netfix2/tests/netfix2.py\", line 236, in fds_backoff\\n    assert 1 <= attempts <= 32, (\\'EMFILE window absent or accept busy-spin\\', attempts)\\n           ^^^^^^^^^^^^^^^^^^^\\nAssertionError: (\\'EMFILE window absent or accept busy-spin\\', 0)\\n'}\n",
+  "fds-1s-epoll-db1": {
+    "fds_budget": {
+      "maxclients": 128,
+      "own_fds": 44,
+      "answered": 138,
+      "rejected": 10
+    },
+    "fds_backoff": {
+      "forced_emfile_attempts": 7,
+      "pending_connection": "resumed"
+    }
+  },
+  "fds-1s-epoll-db16": {
+    "fds_budget": {
+      "maxclients": 120,
+      "own_fds": 53,
+      "answered": 130,
+      "rejected": 12
+    },
+    "fds_backoff": {
+      "forced_emfile_attempts": 7,
+      "pending_connection": "resumed"
+    }
+  }
+}

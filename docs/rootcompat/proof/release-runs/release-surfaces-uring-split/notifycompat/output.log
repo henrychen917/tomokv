@@ -1,0 +1,14 @@
+  row budget: 900s; median=22.63s; correctness-plan-fallback; notification compatibility setbit vs Redis 7.4
+  notification compatibility setbit vs Redis 7.4       ok
+  row budget: 900s; median=41.75s; correctness-plan-fallback; notification compatibility setpast vs Redis 7.4
+  notification compatibility setpast vs Redis 7.4      ok
+  row budget: 900s; median=50.85s; correctness-plan-fallback; notification compatibility emptystore vs Redis 7.4
+  notification compatibility emptystore vs Redis 7.4   ok
+  row budget: 900s; median=42.89s; correctness-plan-fallback; notification compatibility writemiss vs Redis 7.4
+  notification compatibility writemiss vs Redis 7.4    ok
+  row budget: 900s; median=43.84s; correctness-plan-fallback; notification compatibility objectmiss vs Redis 7.4
+  notification compatibility objectmiss vs Redis 7.4   ok
+  row budget: 900s; median=144.88s; correctness-plan-fallback; notification compatibility expiredstore vs Redis 7.4
+  notification compatibility expiredstore vs Redis 7.4 ok
+  row budget: 900s; median=56.95s; correctness-plan-fallback; notification compatibility flush vs Redis 7.4
+  notification compatibility flush vs Redis 7.4        ok

@@ -1,0 +1,42 @@
+{
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "0-7",
+    "--load-cores",
+    "0-7",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "21906-21908",
+    "--candidate-binary",
+    "/home/user/Projects/cx-eoffix/build/eoffix/pre-rebuilt"
+  ],
+  "native": "/home/user/Projects/cx-eoffix/build/eoffix/pre-rebuilt",
+  "native_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
+  "launcher_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
+  "engine": "epoll",
+  "jobs": "wave14_eof_data",
+  "env": {
+    "LC_ALL": "C",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_CORRECTNESS_SHARED_CPUS": "1",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_ONLY_JOBS": "wave14_eof_data",
+    "GATE_NET_IO": "epoll",
+    "GATE_PROOF_NET_IO": "epoll",
+    "GATE_DIFFER_NET_IO": "epoll",
+    "GATE_LEDGER": "/home/user/Projects/cx-eoffix/docs/eoffix/pre-half-replies"
+  },
+  "exit_code": 1,
+  "directory": "/home/user/Projects/cx-eoffix/build/gate-run.ki1zxF",
+  "ledgers": {
+    "jobs/wave14_eof_data/ledger": "FAIL\t75.940000\twave14 half-close accepted input\n",
+    "jobs/release/ledger": "ok\t0.000000\trelease build (+footprint locks)\n"
+  },
+  "captures": [],
+  "archive_sha256": "e8da4fad81be22162061ccdf3fc52d66f9003a02332ff603a4588e3e4523f40a"
+}

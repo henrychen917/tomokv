@@ -1,0 +1,18 @@
+{
+  "source": "fbbd5ddd76",
+  "evidence": "docs/clientcompat/history/before-subscription-ping.json",
+  "arms": [
+    {
+      "arm": "POST",
+      "path": "build/clientcompat/POST/tomokv",
+      "sha256": "eb9efefa59d3a5d0e1bf5b9bb73af4984f6cda0b11cb03681c777b16026ba884",
+      "bytes": 230053272
+    },
+    {
+      "arm": "PAD-A",
+      "path": "build/clientcompat/PAD-A/tomokv",
+      "sha256": "f8287e0627d8075a6557d2729f7ba9c0539e83cf8d658f61a6a5ef7c2f75981c",
+      "bytes": 230053272
+    }
+  ]
+}

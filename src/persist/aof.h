@@ -10,7 +10,9 @@
 #include <cstdint>
 #include <deque>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -59,6 +61,7 @@ enum class AofRecordKind : uint8_t {
     DatabaseMap = 8,
     GroupDatabaseMap = 9,
     GroupFlush = 10,
+    FunctionRestore = 11,
 };
 
 enum class AofRewriteDebugStage : uint8_t {
@@ -77,6 +80,7 @@ struct AofGroupDependency {
 // serializing private candidates; the writer retains it until every named shard fragment precedes
 // the GCMT record. The dependency fields below are writer-private after construction.
 struct AofGroupDecision {
+    uint64_t client_id = 0;
     std::atomic<uint64_t> ticket{0};
     std::atomic<bool> aborted{false};
     std::atomic<bool> commit_enqueued{false};
@@ -94,6 +98,7 @@ struct AofChunk {
     std::vector<uint8_t> bytes;
     std::shared_ptr<AofGroupDecision> group;
     std::vector<uint32_t> group_ticket_offsets;
+    std::vector<uint64_t> receipt_clients; // last frame of each connection's record
     bool group_fragment_last = false;
     bool group_commit = false;
 };
@@ -112,6 +117,7 @@ public:
     std::vector<uint32_t> next_sequence;
     std::vector<std::vector<uint8_t>> sections;
     std::vector<uint8_t> control_section;
+    std::vector<std::string> function_journal;
     std::unordered_set<uint64_t> committed_groups;
 };
 
@@ -119,6 +125,7 @@ struct AofOwnerContext {
     uint32_t producer = 0;
     Ring* ring = nullptr;
     LoopSignals* signals = nullptr;
+    uint64_t client_id = 0;
 };
 
 class AofManager;
@@ -134,9 +141,9 @@ public:
     bool record_post_image_buffered(FlatStore& store, uint64_t hash, Slice key,
                                     uint64_t group = 0);
     bool record_delete(Slice key, uint64_t group = 0);
-    bool record_flush(int physical_db = -1);
+    bool record_flush(int physical_db = -1, uint64_t client_id = 0);
     bool record_group_flush(int physical_db = -1);
-    bool record_database_map(const uint8_t* mapping);
+    bool record_database_map(const uint8_t* mapping, uint64_t client_id = 0);
     bool record_group_database_map(const uint8_t* mapping);
     bool begin_group(const std::shared_ptr<AofGroupDecision>& group);
     bool record_group_post_image(FlatStore& store, uint64_t hash, Slice key);
@@ -161,6 +168,7 @@ private:
                       int64_t expire_at_ms, uint64_t group, const uint8_t* payload,
                       uint64_t payload_len, const SnapshotTypeHooks* hooks,
                       SnapshotSaveCursor* cursor, AofOwnerContext* context);
+    bool receipt(uint64_t client_id);
     bool emit(const uint8_t* bytes, uint64_t length, bool large, AofOwnerContext* context,
               uint64_t ticket);
     bool seal(uint32_t flags, AofOwnerContext* context);
@@ -199,7 +207,12 @@ public:
     AofManager& operator=(const AofManager&) = delete;
 
     void init(Server& server, const Config& config, uint32_t nthreads, uint32_t nshards,
-              uint32_t writer_tid, const AofReplayPlan* replay);
+              uint32_t writer_tid, const AofReplayPlan* replay, bool runtime = false);
+    // Issuer-only operations while CONFIG has parked every physical worker.
+    bool runtime_enable(ThreadCtx& writer, Ring& ring, std::string& error);
+    void runtime_pump(ThreadCtx& writer, Ring& ring);
+    bool runtime_disable(ThreadCtx& writer, Ring& ring, std::string& error);
+    void runtime_reset();
     static bool seed_snapshot(const Config& config, const std::string& path,
                               const SnapshotLoadPlan& snapshot, std::string& error);
     void drain_for_producer(uint32_t producer, Ring& ring);
@@ -209,6 +222,7 @@ public:
     void on_io_complete(ThreadCtx& writer, Ring& ring, void* request, int result);
     bool post_chunk(uint32_t producer, std::unique_ptr<AofChunk>& chunk,
                     Ring& producer_ring, LoopSignals& signals);
+    void append_function_journal(Slice payload);
     bool request_rewrite();
     bool start_offline_rewrite(ThreadCtx& writer, Ring& ring, std::string& error);
     bool rewrite_mark(ThreadCtx& writer, Ring& ring, uint64_t snapshot_epoch,
@@ -251,6 +265,9 @@ public:
         return posted_sequence_.load(std::memory_order_acquire);
     }
     bool reply_gate_ready(uint64_t target) const;
+    bool local_ack(uint64_t client_id) const;
+    bool attach_receipt(AofChunk& chunk, uint64_t client_id);
+    void forget_client(uint64_t client_id);
     void register_send_gate_wait(uint32_t tid);
     uint64_t fsyncs() const { return fsyncs_.load(std::memory_order_relaxed); }
     uint64_t send_gate_waits() const {
@@ -357,7 +374,13 @@ private:
         // pending cut here preserves AofManager/Server layout and AOF-off storage.
         uint64_t rewrite_epoch = 0, rewrite_commit = 0;
         bool sealing_on_writer = false;
+        std::mutex function_journal_mu;
+        std::vector<std::unique_ptr<AofChunk>> function_journal;
+        std::mutex receipt_mu;
+        struct Receipt { uint64_t sequence = 0, buffered = 0; bool closed = false; };
+        std::unordered_map<uint64_t, Receipt> client_sequences;
     };
+    void note_client_sequence(uint64_t client_id, uint64_t sequence, bool was_buffered = false);
     bool producers_stopped() const;
     using OpenStreamToken = AofStreamOwner::OpenToken;
     using LargeStreamToken = AofStreamOwner::LargeToken;
@@ -401,12 +424,13 @@ private:
     void maybe_start_rewrite(ThreadCtx& writer, Ring& ring);
     void maybe_schedule_auto_rewrite();
     void maybe_pause_rewrite(AofRewriteDebugStage stage);
-    void cleanup_unreferenced_files();
+    bool quarantine_unreferenced_files(std::string& error);
     bool schedule_rewrite(bool automatic);
     bool complete_offline_rewrite(const std::string& base_path, uint64_t epoch);
 
     bool configured_ = false;
     bool routing_upgrade_ = false;
+    bool runtime_enabling_ = false; // existing alignment space before server_
     PersistIoEngine engine_;
     Server* server_ = nullptr;
     uint32_t nthreads_ = 0;
@@ -508,7 +532,8 @@ bool aof_read_recovery(const Config& config, uint32_t expected_shards,
 bool aof_record_local_op(Shard& shard, Op& op, AofOwnerContext& context);
 
 std::shared_ptr<AofGroupDecision> aof_create_group(AofManager& manager,
-                                                   const std::vector<uint32_t>& participants);
+                                                   const std::vector<uint32_t>& participants,
+                                                   uint64_t client_id = 0);
 void aof_abort_group(const std::shared_ptr<AofGroupDecision>& group);
 bool aof_commit_group(AofManager& manager, const std::shared_ptr<AofGroupDecision>& group,
                       uint64_t ticket, AofOwnerContext& context);

@@ -346,7 +346,12 @@ def main():
                 expected = json.loads(FIXTURE.read_text())
                 differences = [(a, b) for a, b in zip(actual, expected) if a != b]
                 emit(event="metadata", cases=len(actual), differences=differences)
-                if args.case == "stream": stream_latency(c)
+                if args.case == "stream":
+                    if os.environ.get("GATE_PROOF_NO_RATES") == "1":
+                        assert os.environ.get("GATE_ONLY_JOBS"), "correctness-only stream proof requires a partial gate"
+                        emit(event="NOT RUN", reason="stream latency benchmark belongs to the maintainer; partial correctness proof")
+                    else:
+                        stream_latency(c)
                 assert actual == expected, "entries-read/lag differ from Redis 7.4 oracle"
     emit(result="PASS", case=args.case, elapsed_s=time.monotonic()-started)
 

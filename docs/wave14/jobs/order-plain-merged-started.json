@@ -1,0 +1,37 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "0-31",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "24-31",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20093-20095",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave14/build/wave14/initial/tomokv"
+  ],
+  "binary_sha256": "1229d4bafc6f0e859a711ccd544413d94dc7dbeb497c15b06173ed65044e93ae",
+  "env": {
+    "LC_ALL": "C",
+    "WAVE14_ORDER_SINGLE": "1",
+    "WAVE14_ORDER_ENROL_PLAIN": "1",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_ONLY_JOBS": "wave14_order",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave14/docs/wave14/jobs/order-plain-merged",
+    "CXX": "g++ -gz=zlib",
+    "CC": "cc -gz=zlib"
+  }
+}

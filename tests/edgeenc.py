@@ -247,26 +247,26 @@ for name, knob, small, big in (("hash", "hash", b"listpack", b"hashtable"),
               c.cmd("OBJECT", "ENCODING", k), expect)
         c.cmd("DEL", k)
 
-# The list lane budgets AGGREGATE payload, not per-element length (typeval.h: "A single Compact is
-# our whole small list, so list.max_value is its aggregate payload budget"). Drive that axis.
+# The list lane budgets the AGGREGATE listpack, not per-element length, with Redis 7.4's growth
+# rule (t_list.c listTypeTryConvertListpack, matched by cfgfix 8bd073aa20): a push converts once
+# lpBytes(old listpack) + the incoming string lengths exceeds the byte budget. lpBytes counts the
+# 6-byte header and terminator plus every entry's encoding header and backlen, so the boundary is
+# NOT budget // payload. Drive that exact boundary: the last push that fits, then the first that
+# does not.
 list_budget = compact_limit("list", "value")
 k = "vprom:list"
 c.cmd("DEL", k)
-elem = 64
-under = list_budget // elem            # keeps the aggregate strictly below the budget
-for i in range(under):
+elem = 64                              # a non-integer string: 12-bit string header from 64 bytes
+entry = elem + (1 if elem < 64 else 2 if elem < 4096 else 5)
+entry += 1 if entry <= 127 else 2 if entry < 16383 else 3      # backlen
+fits = (list_budget - 7 - elem) // entry + 1                  # pushes that stay listpack
+for i in range(fits):
     c.cmd("RPUSH", k, V(elem, chr(97 + i % 26)))
-check("list under the aggregate byte budget is listpack", c.cmd("OBJECT", "ENCODING", k),
-      b"listpack")
-while True:
-    c.cmd("RPUSH", k, V(elem, "Z"))
-    if c.cmd("OBJECT", "ENCODING", k) == b"quicklist":
-        break
-    if c.cmd("LLEN", k) > under + 4096:
-        FAILURES.append("list never crossed its aggregate byte budget of %d" % list_budget)
-        break
-check("list promoted once the aggregate budget was passed", c.cmd("OBJECT", "ENCODING", k),
-      b"quicklist")
+check("list at its listpack byte boundary (%d x %d bytes) is listpack" % (fits, elem),
+      c.cmd("OBJECT", "ENCODING", k), b"listpack")
+c.cmd("RPUSH", k, V(elem, "Z"))
+check("the first push past the listpack byte budget converts to quicklist",
+      c.cmd("OBJECT", "ENCODING", k), b"quicklist")
 n = c.cmd("LLEN", k)
 check("list content intact across the aggregate-budget promotion",
       len(c.cmd("LRANGE", k, "0", "-1")), n)

@@ -40,6 +40,10 @@ struct SlowlogArm {
 // Redis truncation rules for a logged command: at most 32 arguments, at most 128 bytes each.
 inline constexpr uint32_t kSlowlogMaxArgs = 32;
 inline constexpr uint32_t kSlowlogMaxArgBytes = 128;
+// Shared with MONITOR; accepts every argument index, including beyond SLOWLOG's cap.
+// Visit arguments in increasing order, with hello_cursor initially 2. The
+// cursor keeps repeated HELLO options linear even for an untruncated MONITOR.
+bool diagnostic_redact_argument(const Op& op, uint32_t index, uint32_t& hello_cursor);
 
 // A snapshot of one command's arguments, taken BEFORE completion publication.
 //

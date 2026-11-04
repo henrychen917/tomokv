@@ -1,0 +1,26 @@
+[
+  {
+    "arm": "PRE",
+    "path": "build/wave14/pre/tomokv",
+    "bytes": 96680184,
+    "sha256": "eb46b9718b4642fc78d3139f9e903c934bd0f47f3867267ea003af3f30ef5814"
+  },
+  {
+    "arm": "POST",
+    "path": "build/wave14/post-r7/tomokv",
+    "bytes": 99553672,
+    "sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e"
+  },
+  {
+    "arm": "POST-layout",
+    "path": "build/wave14/layout-r7/POST-layout",
+    "bytes": 449047440,
+    "sha256": "e17dfa2cc9b48e9cdbdda1dbe8cc59175d043c1a3295063ba285a4b3a9a9dbd5"
+  },
+  {
+    "arm": "PAD-A",
+    "path": "build/wave14/layout-r7/PAD-A",
+    "bytes": 449047440,
+    "sha256": "b701dcca90283c33d42b3d71efa9f1cd65c18ea29e56edc4906b47dc6ef24077"
+  }
+]

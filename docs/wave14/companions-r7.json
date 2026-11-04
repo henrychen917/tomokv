@@ -1,0 +1,57 @@
+[
+  {
+    "path": "build/wave14/post-r7/blockfix-cost",
+    "source": "build/blockfix-cost",
+    "sha256": "78dcdc98d9207b139d88bd8ae402b8d21bf2d92a683fb0cf13747114c35de3c7"
+  },
+  {
+    "path": "build/wave14/post-r7/blockfix2-db0-unit",
+    "source": "build/blockfix2-db0-unit",
+    "sha256": "3a48cb409f1eca2683402a60ff40ca41b7c86630346dd8ad02654bcb37ca6f0d"
+  },
+  {
+    "path": "build/wave14/post-r7/blockfix2-unit",
+    "source": "build/blockfix2-unit",
+    "sha256": "4643690b1e39d8744611e22b15ca27b005310f96bbdd053a4afa9f6102c9c7fe"
+  },
+  {
+    "path": "build/wave14/post-r7/moverfix-db0-unit",
+    "source": "build/moverfix-db0-unit",
+    "sha256": "d739f3c291a9f9bbc1bca7c9b5e97ddbb206d0b2a61f5a2d49a6de819b8fa4f3"
+  },
+  {
+    "path": "build/wave14/post-r7/moverfix-unit",
+    "source": "build/moverfix-unit",
+    "sha256": "3ee7df9004f9a498630a32fbaaeb5f5e35666f279c5157a5cbb66fe31b11218a"
+  },
+  {
+    "path": "build/wave14/post-r7/tomokv.blockfix-cost.sha256",
+    "source": "build/tomokv.blockfix-cost.sha256",
+    "sha256": "cae63406dc5eafc382f030dd37ceab92a1ec3fb3b8c6dc2aaf779fecccfa4026"
+  },
+  {
+    "path": "build/wave14/post-r7/txnorder-episodes",
+    "source": "build/txnorder-episodes",
+    "sha256": "c30e86bd5ba1b151f790b113c7cf5d30cbbc73b74ddc6c295a05ceb3e6803fe4"
+  },
+  {
+    "path": "build/wave14/post-r7/txnorder-episodes-debug",
+    "source": "build/txnorder-episodes-debug",
+    "sha256": "36435092a301d1a981b79a3788f7b69f5fad2dc7f344e63ad4212b599714a345"
+  },
+  {
+    "path": "build/wave14/post-r7/txnorder-wake-unit",
+    "source": "build/txnorder-wake-unit",
+    "sha256": "3fb7602c003963693e648a75c93e295bb259157b0cecf6b71b10d7daf8967b45"
+  },
+  {
+    "path": "build/wave14/post-r7/txnorder-watch-db0-unit",
+    "source": "build/txnorder-watch-db0-unit",
+    "sha256": "cc229d9fea8dbae893c9820927477cd28e9e94e35eedcaf0841d5a4de2a8cc16"
+  },
+  {
+    "path": "build/wave14/post-r7/txnorder-watch-unit",
+    "source": "build/txnorder-watch-unit",
+    "sha256": "ea90b2fa7f1ac3286b06d8f384d2fc94edfdec8fc552d2dc9863a7f94165ef2c"
+  }
+]

@@ -1,0 +1,4113 @@
+{
+  "probe_sha256": "d7587b071ab9a61d74fc6ccbced2165fc904f2b3a97fce20d4be5c6db3d31baa",
+  "server_sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01",
+  "rows": [
+    {
+      "command": "BZMPOP",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "BLOCKING"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/bzmpop.json",
+      "sha256": "6ba40819a6d9a2a015840460e975aebbbf76bf7d6f1b28ab7e46313d18b9ee62"
+    },
+    {
+      "command": "CLIENT KILL",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/client-kill.json",
+      "sha256": "fe0c4a2ea2b7c4867dbd8a6513becec032ea6433a04c03606d295c060bde358d"
+    },
+    {
+      "command": "PUBSUB NUMPAT",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "PUBSUB",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/pubsub-numpat.json",
+      "sha256": "be9a1807a504021507be9aea561315c68a3626ac83fa63922c63fcd4b7d01038"
+    },
+    {
+      "command": "DEL",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/del.json",
+      "sha256": "e916ca80473d3c9d580192ff9c564c097fda216367418cf207070d3df0a63d78"
+    },
+    {
+      "command": "ACL SAVE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/acl-save.json",
+      "sha256": "e6cba91cf5b83466706610ddb000a5b6cc138af73d2e3ed05a72cfb491fc6dd7"
+    },
+    {
+      "command": "LINSERT",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/linsert.json",
+      "sha256": "ab52591897c91f25d6236b60b7ed8550585b76a69c1002edf674b702562f9650"
+    },
+    {
+      "command": "CONFIG RESETSTAT",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/config-resetstat.json",
+      "sha256": "d0b697f824ebe6a81130f9cd9a55ba41aa167c70945a9a609c269c471dde61fe"
+    },
+    {
+      "command": "ACL LOG",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/acl-log.json",
+      "sha256": "028219fee787ca5b9fedae4fb6664b5917a3d73dd0f33684fd919d22b32b3cbc"
+    },
+    {
+      "command": "ZUNION",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zunion.json",
+      "sha256": "474cb5769fd674974816d039509aee5ae7ce27c6aed43480abd78b4d854621a9"
+    },
+    {
+      "command": "SRANDMEMBER",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/srandmember.json",
+      "sha256": "493fe21a64a29e5d6793c83d122cfd89cf2a2703a7693a7489897cc6457e067a"
+    },
+    {
+      "command": "MEMORY MALLOC-STATS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [],
+      "reference": "/home/user/Projects/redis/src/commands/memory-malloc-stats.json",
+      "sha256": "a09265db71ea53ef239b2e19b68e2df0213a5706076091c8e3402ebff8125af1"
+    },
+    {
+      "command": "BITCOUNT",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/bitcount.json",
+      "sha256": "e6d9d71c90deec3eb8c53ffeba16448cc8bb9e921efc0e19a4c1af4078a40361"
+    },
+    {
+      "command": "OBJECT IDLETIME",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/object-idletime.json",
+      "sha256": "5617324a5e8edba06863e61c0bb7405e985ecb96a317be6f90cb35c773f82df7"
+    },
+    {
+      "command": "SMISMEMBER",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/smismember.json",
+      "sha256": "c9565b12a06f175d4756f12d362c9c426d03ae3cf9218ea4c04f619c4ea3092d"
+    },
+    {
+      "command": "BITPOS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/bitpos.json",
+      "sha256": "3aba2337a2751855dd8cc63791d2039f3782ded56540e260aa71564676b2eee5"
+    },
+    {
+      "command": "FUNCTION HELP",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/function-help.json",
+      "sha256": "3a1544d8dbfc53356989ab6479a9113770fbf57a040d69a35228aab7b0be81f4"
+    },
+    {
+      "command": "HSETNX",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hsetnx.json",
+      "sha256": "7a4b3f6df7c214ca279dbc673f41effeda56532d9b6caf306d7a21e518280cfe"
+    },
+    {
+      "command": "ZREMRANGEBYRANK",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zremrangebyrank.json",
+      "sha256": "3fb92f9d588b26505de8d839de8b38d15edcb61a6a26c8f84bf14f9242a24024"
+    },
+    {
+      "command": "UNLINK",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/unlink.json",
+      "sha256": "e1fb17aa3505247bdb7d6dc63f686ffe13bd3d1a7a60e03b94b9bf11ac6e288c"
+    },
+    {
+      "command": "LPOS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/lpos.json",
+      "sha256": "95c023b57387184c36d411734b8979b44406253cd0f7ceb7fc34b4f4802ff49e"
+    },
+    {
+      "command": "CONFIG HELP",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/config-help.json",
+      "sha256": "2ed1cf036d711a07b332210b12d3d51bc5d785f0eed9036978165deee3ba5546"
+    },
+    {
+      "command": "HEXPIRETIME",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hexpiretime.json",
+      "sha256": "7789abc7d33dd02e3b169c1b2ffa4435b933ce668cd05584f9ff0884be7d7f41"
+    },
+    {
+      "command": "MULTI",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "FAST",
+        "ALLOW_BUSY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/multi.json",
+      "sha256": "8bc28e82cf1a87f3e6674b700074d24524fc39fe97cf08455f1f6394f9c5fc5c"
+    },
+    {
+      "command": "HEXISTS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hexists.json",
+      "sha256": "fcdd7708bd2024b5aa92babfc8529172db75d71b821b124b56e325cb1ca6fe05"
+    },
+    {
+      "command": "HSET",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hset.json",
+      "sha256": "4899e7c66b0b87547e8f98eaad6919162837a54ebb12c94e7c4827e0174b703b"
+    },
+    {
+      "command": "ZRANGEBYLEX",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zrangebylex.json",
+      "sha256": "885925cb33c78041f6b8c85686460ba571de26a9c51254185a51bd87f5d11908"
+    },
+    {
+      "command": "ACL DELUSER",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/acl-deluser.json",
+      "sha256": "c0645a047f085276ddb5ddca1a9d874828ae0480b9d16ebd75c592250daeed66"
+    },
+    {
+      "command": "SINTER",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/sinter.json",
+      "sha256": "4e3da5d0ea4a33d33eed691845f4f5a345b00033418911714c65c47d35be65aa"
+    },
+    {
+      "command": "REPLICAOF",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NO_ASYNC_LOADING",
+        "ADMIN",
+        "NOSCRIPT",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/replicaof.json",
+      "sha256": "68faf8bd4d1ce52466cbd940cf5c2617dd1e08b960a7b30d64fa227dcc8c1f19"
+    },
+    {
+      "command": "SUBSTR",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/substr.json",
+      "sha256": "9a99118d129159eb52283ab25a97cc3fe2f732a23f2e666b436cda1a8e48f512"
+    },
+    {
+      "command": "ECHO",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/echo.json",
+      "sha256": "83f6ce7a357957abba4c246efe2c18f993852f8c0f7d4a6eff42b1a639987234"
+    },
+    {
+      "command": "XACK",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xack.json",
+      "sha256": "d36c25573a6af901b47ad6c699cd81584949dbcf333cac253a220a352b41b26e"
+    },
+    {
+      "command": "GEOSEARCH",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/geosearch.json",
+      "sha256": "002ccdcb69dc1361e4a9b1fcdd3721a29e5bec560c83763aa1518ae377d5571b"
+    },
+    {
+      "command": "XCLAIM",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xclaim.json",
+      "sha256": "cf19397630f8a54ff34e49721b16919171a172a3869a5872617365ad0174f24e"
+    },
+    {
+      "command": "XADD",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xadd.json",
+      "sha256": "229579500a5c32ebe07653328db07f032e3f6409b275e1dadcc4d94a0bfa377d"
+    },
+    {
+      "command": "ZREMRANGEBYLEX",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zremrangebylex.json",
+      "sha256": "7b1f588b5b61d38f386cecf73bcc7db12c717a9073384e1ed2a630fdc0dfc8ea"
+    },
+    {
+      "command": "PUBSUB SHARDCHANNELS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "PUBSUB",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/pubsub-shardchannels.json",
+      "sha256": "ebf42ee514a5fc8058537e554c3c943f77049558814cf1ec4f723cca8263219b"
+    },
+    {
+      "command": "XTRIM",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xtrim.json",
+      "sha256": "1f0aa2cca859e4d78362a9ac78e2d98000e26e8d045026d5f54853fc4d246e2a"
+    },
+    {
+      "command": "FUNCTION LOAD",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "NOSCRIPT",
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/function-load.json",
+      "sha256": "db97d285ecbc00884759322b5cfa8dc4c2a1fd2185fa386fd57c5a660a7b8b21"
+    },
+    {
+      "command": "FUNCTION LIST",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/function-list.json",
+      "sha256": "d43230b68a3f79af22280651f58463daaafbcc7c9b8787efed333e7300138f90"
+    },
+    {
+      "command": "XGROUP DESTROY",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xgroup-destroy.json",
+      "sha256": "9b19fd75b47f037c0a577194d94f3462c6ac7aff7785ad9fcf51840be1da966c"
+    },
+    {
+      "command": "ACL WHOAMI",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/acl-whoami.json",
+      "sha256": "4777df67fd9384f1700e1565f290fab10bd2ace7f5f75c96e74bc720fe38c644"
+    },
+    {
+      "command": "RESTORE-ASKING",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "ASKING"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/restore-asking.json",
+      "sha256": "1220e7c9dd59a6fe864f88583f3b8202f356ab19d89edd23516abb6b7c53b403"
+    },
+    {
+      "command": "MEMORY HELP",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/memory-help.json",
+      "sha256": "82613285dfb1afd97e60fd5a7841b7ad2f5dc25da955f8b0a6a98467a0793943"
+    },
+    {
+      "command": "EXISTS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/exists.json",
+      "sha256": "f46bc419574ff2de806511ad981f60c7258bda6503b342e803b99d991f1a848e"
+    },
+    {
+      "command": "XLEN",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xlen.json",
+      "sha256": "92fe42dfcdcf2293efcb53e55174707b5aa5f09a7b19aeb81db1762822b56aaa"
+    },
+    {
+      "command": "XREADGROUP",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "BLOCKING",
+        "WRITE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xreadgroup.json",
+      "sha256": "23adf1f27e59c0acfa901a447af9bffc493dd2d9d11f043ddbe99ad77f829bb1"
+    },
+    {
+      "command": "FLUSHALL",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/flushall.json",
+      "sha256": "2e3adaf9939f3b1e9ea7478bec74c55c6e436cbcc46df7864d4738cb3b5e2d22"
+    },
+    {
+      "command": "ZADD",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zadd.json",
+      "sha256": "1e7bb0fa58d10b28a404704582269bd7a27057d0297b98920c3499fc81881520"
+    },
+    {
+      "command": "PUBSUB CHANNELS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "PUBSUB",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/pubsub-channels.json",
+      "sha256": "b8deec3ac4212b972dc82912497200652c52f4a4413eb8d60a8506e8c46c2f26"
+    },
+    {
+      "command": "DECR",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/decr.json",
+      "sha256": "b3b5c76e8ac10ea4ae8bafa1c9049c96a13c943bccba12c4784abf0171a43fe9"
+    },
+    {
+      "command": "UNSUBSCRIBE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "PUBSUB",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/unsubscribe.json",
+      "sha256": "6172cfd44c477c1f641f14f7583cd78852bf52c95a85c022ad860c9b616761b4"
+    },
+    {
+      "command": "ZREVRANGEBYLEX",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zrevrangebylex.json",
+      "sha256": "a345294a66415c0c08d5743403fee819b8c1894eb0f2a77ea87a565f8cc45bef"
+    },
+    {
+      "command": "LREM",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/lrem.json",
+      "sha256": "c605876fef4ee806bf0e7716e9d9e6cda50ea2be1b541a5e5c2bf85896619ba4"
+    },
+    {
+      "command": "ZMPOP",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zmpop.json",
+      "sha256": "bda27a860e66123ff3e34677648d17016e50b35f39401dcffc22685a7d0e5020"
+    },
+    {
+      "command": "PFSELFTEST",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/pfselftest.json",
+      "sha256": "019130b7dcd5b0cccccc67c3f07a11a82f7f64a528de9047a71b7fb987740091"
+    },
+    {
+      "command": "GEORADIUSBYMEMBER",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/georadiusbymember.json",
+      "sha256": "dafa033f53bb0e3f310fb12423fc4ea2a6213105eb175eca33a6d81436286df5"
+    },
+    {
+      "command": "COMMAND LIST",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/command-list.json",
+      "sha256": "808272bb5d7eb4cdb742ffcd2791c68b4fa9fbcc7d7daaf38cba5518a74cf1bd"
+    },
+    {
+      "command": "COMMAND COUNT",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/command-count.json",
+      "sha256": "d8fad1bf4666547c868ccbdf8dede8c4892e5cd40bf8066ca0984651cca76709"
+    },
+    {
+      "command": "SDIFF",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/sdiff.json",
+      "sha256": "6d69f4f32102dbc579ffeca4e07ab32601a9315bbad4a5e780c925ce15e9cad9"
+    },
+    {
+      "command": "ZPOPMIN",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zpopmin.json",
+      "sha256": "193bf74529929f15eeb159256dc8dbd93126b998c80e2c2a88e4b7d6a77d1157"
+    },
+    {
+      "command": "GEOSEARCHSTORE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/geosearchstore.json",
+      "sha256": "7f5185fab5ea6c661e7ceaed74854ad8bc12fe9be1f9dd7c03869ed3a6b379bc"
+    },
+    {
+      "command": "HMSET",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hmset.json",
+      "sha256": "2b3da8aebd6650b7f72ac01c6142dfd2b3dd4f5f742a8daad712a8ce13e4a76d"
+    },
+    {
+      "command": "TIME",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/time.json",
+      "sha256": "c4c0b7875f1a348fa4e0fa072811ec5a510dcd6f6134b8e18091e8960b64df7b"
+    },
+    {
+      "command": "SETBIT",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/setbit.json",
+      "sha256": "6dd903723c1f38b81dd85a420cce41da1cfe13a86b3ad1645823da3753cc7a30"
+    },
+    {
+      "command": "GETRANGE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/getrange.json",
+      "sha256": "ae968342df75f8ec7696df910dbef76a92c8e986f26666b9b7951c6aff642da9"
+    },
+    {
+      "command": "PSETEX",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/psetex.json",
+      "sha256": "652c4faaa1399ee9e2cdf5183ad2757f9d61270e0fa33e6c955d8ae21d909488"
+    },
+    {
+      "command": "LMPOP",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/lmpop.json",
+      "sha256": "ad4cb1c7890acf5a43ab2c9b7979d5f71adca522848529800afbea5f15465534"
+    },
+    {
+      "command": "PUBLISH",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "PUBSUB",
+        "LOADING",
+        "STALE",
+        "FAST",
+        "MAY_REPLICATE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/publish.json",
+      "sha256": "dc091f591b8339371fa5f1e5b2b9efc4fef9bb7d95622466ec5a9bdf5ddbbba8"
+    },
+    {
+      "command": "ZREM",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zrem.json",
+      "sha256": "876e32bb08b9bbfacc10396263c9278d9fca84775bcc910978d0e04d7ec8aca8"
+    },
+    {
+      "command": "SMOVE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/smove.json",
+      "sha256": "15e21376b282c525af4bef6de7025c039f5c21e8560470f96577b15d55ee2b91"
+    },
+    {
+      "command": "PUBSUB HELP",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/pubsub-help.json",
+      "sha256": "2e2cf4b66a75a6caa51c289777fdd8b0dab08d274e10692846c9110688f074b9"
+    },
+    {
+      "command": "GEODIST",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/geodist.json",
+      "sha256": "968b974eee9602034a67b3d6dc0c079f257d6d1ae9aad5a1e84bdae3ac61e02e"
+    },
+    {
+      "command": "HMGET",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hmget.json",
+      "sha256": "fd5588bc77403f530c3d0405ea82282ff7b51dafb2ba49313b6f60e14a4e8487"
+    },
+    {
+      "command": "FUNCTION FLUSH",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "NOSCRIPT",
+        "WRITE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/function-flush.json",
+      "sha256": "1d964bdd41b9a4aec591e6723596128aba4d55348bc5217fb39032f620c6fc4d"
+    },
+    {
+      "command": "XDEL",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xdel.json",
+      "sha256": "d7e482d562347db7fab9aab64b58b5a8d21a0784e81b5480792aa2595f8ac26b"
+    },
+    {
+      "command": "CLIENT NO-TOUCH",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/client-no-touch.json",
+      "sha256": "4a310be886a8230e4bb621926c8e0bfe67291f7c551e3fb0a294e00352a4083c"
+    },
+    {
+      "command": "ZDIFFSTORE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zdiffstore.json",
+      "sha256": "e8baac152c8c5dcb6f9cdd8650bd5409bc129d9ede173bb8f74f97f10d137695"
+    },
+    {
+      "command": "CLIENT PAUSE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/client-pause.json",
+      "sha256": "6569d0327f9f88591cce2501075bd4495c0ccafdd41934cf6837bd4f254f29f3"
+    },
+    {
+      "command": "ZRANK",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zrank.json",
+      "sha256": "b0953a156e94aec78623894b8255882ea5eb9751982234ea94391c9a2ee824ad"
+    },
+    {
+      "command": "LATENCY DOCTOR",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/latency-doctor.json",
+      "sha256": "8c10de163aa39064904e710fa116685523ec15e3b24450bd96f8087de682ea9d"
+    },
+    {
+      "command": "SORT",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/sort.json",
+      "sha256": "da3af1d0d2ea7e3fe49b214789943b31735a3dfac21f3362fa136493f790f6c1"
+    },
+    {
+      "command": "ZPOPMAX",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zpopmax.json",
+      "sha256": "396d50a3445ac5dfe3c1268a8cf42dcc489e607647aa3c55adf0850924bb6776"
+    },
+    {
+      "command": "SREM",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/srem.json",
+      "sha256": "51e841866ce289aedbc6cfa31758318c905097a6e876a3766d868fbf53391fbf"
+    },
+    {
+      "command": "LASTSAVE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/lastsave.json",
+      "sha256": "2fed61a3305042995dc4c29f33841c5fec058dac87f5aeabfb53c93287ff46ee"
+    },
+    {
+      "command": "BZPOPMIN",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST",
+        "BLOCKING"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/bzpopmin.json",
+      "sha256": "16601701e946e15c37ba54e52d414090bac2c9817f8513bd10ec59ef039b5d39"
+    },
+    {
+      "command": "XAUTOCLAIM",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xautoclaim.json",
+      "sha256": "74e05f3b8959c612972ce143a18df1556ecd81765d4225dd18c2f25ae457d0a4"
+    },
+    {
+      "command": "HTTL",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/httl.json",
+      "sha256": "f3f6b07553e0f76121968fb47c1283dab7020dc152455f4a6f25cf48d9eeaf3d"
+    },
+    {
+      "command": "GETSET",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/getset.json",
+      "sha256": "a5f8f9966a3d4be90bf617dd57066aea280f930bbc86caa658bce9c604bf0c79"
+    },
+    {
+      "command": "HPERSIST",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hpersist.json",
+      "sha256": "c90bccecf45632ac31345a0c70e42891479cf99a10d1bcb27722bd634cd4fad4"
+    },
+    {
+      "command": "MOVE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/move.json",
+      "sha256": "b830b5de919c42ab4a53762438a7abe2b4dcce0b7fa7a9664124b8dee550c206"
+    },
+    {
+      "command": "SHUTDOWN",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "NO_MULTI",
+        "SENTINEL",
+        "ALLOW_BUSY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/shutdown.json",
+      "sha256": "2783386cdb1ec13710fb7041796f6a4fa420c4fe3ecb0183a5011cd821710829"
+    },
+    {
+      "command": "LPUSH",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/lpush.json",
+      "sha256": "cd99949dc6d92cc9ccc85a296b6384de9496dd79c07df29e4f5843a7f8043735"
+    },
+    {
+      "command": "RPUSH",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/rpush.json",
+      "sha256": "3a3d1e02726c0dbfd6ab8dd3bc4f68290da8cf72f10bce7575a7ebff55cbc3a2"
+    },
+    {
+      "command": "LOLWUT",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/lolwut.json",
+      "sha256": "480c1a48a7501e9146ee7a5932e4e15f225a76fc3751c355ee1844fae6151808"
+    },
+    {
+      "command": "TOUCH",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/touch.json",
+      "sha256": "1bbfe4e2e5301620228c81e932a98060ab6dce198c5a78cbbd92744b4444ac73"
+    },
+    {
+      "command": "LPUSHX",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/lpushx.json",
+      "sha256": "9e5d70ab694516e358fd4c655273b1928088e3f19203b900f34336bccc31d9da"
+    },
+    {
+      "command": "STRLEN",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/strlen.json",
+      "sha256": "a610681dd0bfd011949b633f0839e9ea6948f57a325d8b062c39be89842bc63f"
+    },
+    {
+      "command": "SCAN",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "TOUCHES_ARBITRARY_KEYS"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/scan.json",
+      "sha256": "d4129bbb7f3c0ba8d334ebfa2a556476c2dea5910e6324eb7faadc104f4291af"
+    },
+    {
+      "command": "EXPIRETIME",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/expiretime.json",
+      "sha256": "0b7edda69fdc16e8c6ffbbd3adf1cd1a26ef9683d4fbdfa77683b5c5969001d1"
+    },
+    {
+      "command": "GEOADD",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/geoadd.json",
+      "sha256": "302876027e42d6cd1d038133556b649c2b50e0b1e001812c5cf1a93436052f8e"
+    },
+    {
+      "command": "CLIENT UNPAUSE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/client-unpause.json",
+      "sha256": "cfd28f99d33c26567648465dccb67ef0b349a484cb180ee75fd9d1906040ed35"
+    },
+    {
+      "command": "CLIENT HELP",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/client-help.json",
+      "sha256": "8c9a92dfe24f3b5a3e1d5e4130d31d657ee07a306f399bb4161e808280686c12"
+    },
+    {
+      "command": "OBJECT ENCODING",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/object-encoding.json",
+      "sha256": "8f6617ad5234d7fb92e440b58e8623cdca43ccf0079cd471006bf4d82b977e35"
+    },
+    {
+      "command": "ZINTERCARD",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zintercard.json",
+      "sha256": "c48a4c2e52891ff7e59497b14699496f21cdb6b3ecf29a928503c5ad76edcb1e"
+    },
+    {
+      "command": "MGET",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/mget.json",
+      "sha256": "5f4185dfa9613ab96af98e084952b3eece58fb44f5b42f6a3bb1f7664fb7afa5"
+    },
+    {
+      "command": "ASKING",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/asking.json",
+      "sha256": "910edf59a0cb584de27620dd26f49ddc0fbbb8017ac15c17732703ffa6cb6657"
+    },
+    {
+      "command": "XGROUP HELP",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xgroup-help.json",
+      "sha256": "a932892d40a61ee30b0b7060e763bbeba4b5b4238b4282388658d68ca60fca87"
+    },
+    {
+      "command": "LCS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/lcs.json",
+      "sha256": "044407bb52edf35b9c55f6466db97df79fe37afe2acb0df242b1d27af0e48e7d"
+    },
+    {
+      "command": "CLIENT GETREDIR",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/client-getredir.json",
+      "sha256": "b5f82e3d70f08b1be16e5b07efc90bd985925fb41e63de8dc6efc7210f645d7b"
+    },
+    {
+      "command": "ZRANDMEMBER",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zrandmember.json",
+      "sha256": "0cd9a0fdc68f16edb654a0b86aab18b6a70b873a5ba5dab692c24209ecf8151e"
+    },
+    {
+      "command": "LATENCY RESET",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/latency-reset.json",
+      "sha256": "7ff0100e4cc317cedd19981144e5f2eff1eeda71b62c43d73185e509ac6b2705"
+    },
+    {
+      "command": "BGSAVE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NO_ASYNC_LOADING",
+        "ADMIN",
+        "NOSCRIPT"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/bgsave.json",
+      "sha256": "c9921bd1b45cada4c370e23c6a6117213c54a5f52ef995b5b2dd30d35ba5346f"
+    },
+    {
+      "command": "LATENCY GRAPH",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/latency-graph.json",
+      "sha256": "2c45f8e6ade9474c54febe32db1d1d8f9589a23cce55ed94bfeb1c80a1a9e432"
+    },
+    {
+      "command": "ZCOUNT",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zcount.json",
+      "sha256": "54bb923fd06ba2d86897fcf5bfdac0cab23cc1bc3182c6325f949f70f6183db5"
+    },
+    {
+      "command": "COMMAND GETKEYSANDFLAGS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/command-getkeysandflags.json",
+      "sha256": "13aad490987e22bd0b83730177d75f5983cfb97c029b9c8f0b0c8f8caf145e5d"
+    },
+    {
+      "command": "OBJECT REFCOUNT",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/object-refcount.json",
+      "sha256": "792dcbb1d852987332958aa7da487e08ab448afd547edc326e031dac50707aac"
+    },
+    {
+      "command": "FUNCTION STATS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "ALLOW_BUSY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/function-stats.json",
+      "sha256": "a25192838d2eff4390f217810bbeb00efbadde8576883d06f1bab8b38a545540"
+    },
+    {
+      "command": "XINFO STREAM",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xinfo-stream.json",
+      "sha256": "bc34f5c8d01b5cc35ca72d2186b023ac43d7ddbe215c6fd9b37fe777b8a97135"
+    },
+    {
+      "command": "CLIENT REPLY",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/client-reply.json",
+      "sha256": "c734fa660d0ae2a58be821ca0b55eb61f3bd3748b321c080b3e7472555419fc6"
+    },
+    {
+      "command": "MSETNX",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/msetnx.json",
+      "sha256": "8a1f6d03e35211f97465f5bf9094611b51d02a45eb66e67f2170051a3dffd8e6"
+    },
+    {
+      "command": "PEXPIRETIME",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/pexpiretime.json",
+      "sha256": "88a7307fdd63ad45f934b1ed898c511fb726786a6cc483831068d019e3f19c47"
+    },
+    {
+      "command": "EXPIREAT",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/expireat.json",
+      "sha256": "6c3058e2fea858cedeb4ce391cbbae6bc8d678497ad6e502b013670be092c420"
+    },
+    {
+      "command": "GEORADIUS_RO",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/georadius_ro.json",
+      "sha256": "97f3b74af19599273ed3a0ade24c6ceb4ebc0ac4246aea819751b589508680b1"
+    },
+    {
+      "command": "HELLO",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "FAST",
+        "NO_AUTH",
+        "SENTINEL",
+        "ALLOW_BUSY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hello.json",
+      "sha256": "9a5507593523aca4c1e347ef9725f7157114301e07007d30c61fdb331be951c8"
+    },
+    {
+      "command": "SCRIPT FLUSH",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/script-flush.json",
+      "sha256": "c0a0d7c13945cc60ab34d3ed1cf76b1d92d2bd2b91f90a5ee5438f0dc98ca407"
+    },
+    {
+      "command": "EVALSHA",
+      "script": true,
+      "held": -1,
+      "expected": true,
+      "flags": [
+        "NOSCRIPT",
+        "SKIP_MONITOR",
+        "MAY_REPLICATE",
+        "NO_MANDATORY_KEYS",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/evalsha.json",
+      "sha256": "1a20c952f63d26b0c19f78f55ac92fb332e751e6f8f5b6312a80231fd4689e18"
+    },
+    {
+      "command": "GET",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/get.json",
+      "sha256": "7a0db1d578a81fc5a2176f2a4bbce45d73ffe1964418f8540ce1c0478c7b37f2"
+    },
+    {
+      "command": "LATENCY LATEST",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/latency-latest.json",
+      "sha256": "40e6e78373ab5b97a91f924ed27f41130fb99cb381ebb7bbf507f10054f822ad"
+    },
+    {
+      "command": "ZREVRANK",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zrevrank.json",
+      "sha256": "5e5e3a3a8656b2c786fbc2f155a7cf23596307ba7ad28f6cc29cdc3086ec0d5a"
+    },
+    {
+      "command": "GEORADIUS",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/georadius.json",
+      "sha256": "b1003d587f47ba42c17133731a5011e70f56aa74a207c5dd350d232a83da55d8"
+    },
+    {
+      "command": "SISMEMBER",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/sismember.json",
+      "sha256": "a8cabf465640d283f188ca486ae35d90522c751f103bcb4d2a925ac238d40551"
+    },
+    {
+      "command": "ACL DRYRUN",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/acl-dryrun.json",
+      "sha256": "844505583a6b36a769877995aaa91f00e863796c1d4e31e799703abb1c7f0395"
+    },
+    {
+      "command": "FAILOVER",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/failover.json",
+      "sha256": "e9d410fd63494632c6ec16b57a1ff78f7a09162ffff30c3d3be5852d9106d1c0"
+    },
+    {
+      "command": "SSUBSCRIBE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "PUBSUB",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/ssubscribe.json",
+      "sha256": "c24f28679a1812c591cd302ef64f601ce8178a89feab7b7b9677997200688304"
+    },
+    {
+      "command": "XREVRANGE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xrevrange.json",
+      "sha256": "40a785655e3d6496a6c97c15689cdeccc46d50bc2b0054196bda3cb61047544a"
+    },
+    {
+      "command": "INFO",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/info.json",
+      "sha256": "4472bd0193e470f2b01b3f5d4403215c86125042443547239908b100847664cd"
+    },
+    {
+      "command": "MEMORY STATS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [],
+      "reference": "/home/user/Projects/redis/src/commands/memory-stats.json",
+      "sha256": "3e0f130658334e58c789dec3231a2b30da41bfe866a3cbc6d3ba02b93c38d3d6"
+    },
+    {
+      "command": "ZRANGEBYSCORE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zrangebyscore.json",
+      "sha256": "d2020a95d692c55970c8e44f27c5af1a741457ea317a05bad5b9b9295ab748c9"
+    },
+    {
+      "command": "WATCH",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "FAST",
+        "ALLOW_BUSY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/watch.json",
+      "sha256": "ff5f834304e3ce2e93225113ff335f147b616ac0454f711e863ef18ad4f0a6a3"
+    },
+    {
+      "command": "GETEX",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/getex.json",
+      "sha256": "cae9c9368e6770548a85f7bafa807267993bda0a15eab11f15484d0e2a17fb81"
+    },
+    {
+      "command": "INCR",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/incr.json",
+      "sha256": "64a0633a7357b552b99f91e950927145e2a905fb419c438deda352861a8743bc"
+    },
+    {
+      "command": "RPOP",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/rpop.json",
+      "sha256": "077c91de7057a758a6642e5f4bab20498db5ebdbd6363a692578a98a0c201303"
+    },
+    {
+      "command": "SCARD",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/scard.json",
+      "sha256": "d5fd1d1932fdbb66b2df18a9f7a08571e2fe191c2e28f44ba85ba07f303b01c6"
+    },
+    {
+      "command": "ZINTERSTORE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zinterstore.json",
+      "sha256": "17d1a121a084a36fe89f59c8cd36ccdd278d773f6355a35ac8d4d7db7840b356"
+    },
+    {
+      "command": "ACL CAT",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/acl-cat.json",
+      "sha256": "e1fa25ea82aa4923788b2866b693d847378dd5feef1d5502c26a521dcb327774"
+    },
+    {
+      "command": "SLOWLOG HELP",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/slowlog-help.json",
+      "sha256": "0abe006ea20162dfd9c4148bf3e4cce0f45b3948e362210816555be9d5971b93"
+    },
+    {
+      "command": "LRANGE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/lrange.json",
+      "sha256": "5c3cefc2a8bd0c7b86dc45c5be3c023a6953eed346c36090fa05c3cc07092eaa"
+    },
+    {
+      "command": "EXEC",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SKIP_SLOWLOG"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/exec.json",
+      "sha256": "fd3a24dcf90ba552d2f63dd600c0fb9dbba6800c58cbba2dcbbff77af93222b4"
+    },
+    {
+      "command": "SUNION",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/sunion.json",
+      "sha256": "d7b3886ea86d6975b3414296aca2fa7151cc5022fd190640772a44b010759129"
+    },
+    {
+      "command": "ZREVRANGE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zrevrange.json",
+      "sha256": "b98128fd4f818ffdbebf7ec618819030c01bd2c52bf13ba8b479e75a3604530f"
+    },
+    {
+      "command": "ZLEXCOUNT",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zlexcount.json",
+      "sha256": "4868675b63d5b322a8a0b83282e3d5af41f5a866624ce257e93fa1c453e83576"
+    },
+    {
+      "command": "CLIENT SETNAME",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/client-setname.json",
+      "sha256": "96a75a66422db9bc8640a0c2994c50aab3a3b93935b1b03f9da0ded40bd00256"
+    },
+    {
+      "command": "PTTL",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/pttl.json",
+      "sha256": "8f3aff22b4d534d2b1a1e83fca50ce9bc893b34bca45d9b27b39c00143c496fd"
+    },
+    {
+      "command": "LLEN",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/llen.json",
+      "sha256": "33d9461e26b55c71818db03d47986bf785ec55bc464f73ef6a32d00606a9d158"
+    },
+    {
+      "command": "SELECT",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/select.json",
+      "sha256": "9a6a9957f40c6a0e9d7a08541263300832819fe332cfda954278f508e3909074"
+    },
+    {
+      "command": "GETBIT",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/getbit.json",
+      "sha256": "595b6bfa3795721b4c033e8f2fc957bb655f8da5173fb5fea46ce2106d4a669c"
+    },
+    {
+      "command": "DUMP",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/dump.json",
+      "sha256": "e4f9030969bca94ebbcd5b7c279a9c4a3aad02192fd59a9fb5ed87a4207a7d0f"
+    },
+    {
+      "command": "FLUSHDB",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/flushdb.json",
+      "sha256": "151db3ee38ca245dbe2bb018e9c0e117461b655692f4de9bc26c062e2e9fc0bd"
+    },
+    {
+      "command": "FCALL_RO",
+      "script": true,
+      "held": -1,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "SKIP_MONITOR",
+        "NO_MANDATORY_KEYS",
+        "STALE",
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/fcall_ro.json",
+      "sha256": "21d812307a06952f8757f9668ab6ca1d380474e659379060dd06d45124023b0b"
+    },
+    {
+      "command": "HGETALL",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hgetall.json",
+      "sha256": "c151c84a7ae2a7b3d0bf58d683eb7cff3d2df468e5d77726f2be1fd8f302ac77"
+    },
+    {
+      "command": "EVAL",
+      "script": true,
+      "held": -1,
+      "expected": true,
+      "flags": [
+        "NOSCRIPT",
+        "SKIP_MONITOR",
+        "MAY_REPLICATE",
+        "NO_MANDATORY_KEYS",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/eval.json",
+      "sha256": "cbd36759e7459bc38075f11ea156b67b43408d70d87080b5be9c600073bc818d"
+    },
+    {
+      "command": "HPEXPIRE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hpexpire.json",
+      "sha256": "e8b0d5a389291c347c1b14cbb46037f1248a7038bef9f621cda0648082d3ce6f"
+    },
+    {
+      "command": "PUBSUB SHARDNUMSUB",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "PUBSUB",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/pubsub-shardnumsub.json",
+      "sha256": "67b2a1ea37142ec689c5d5f072d81cf2522471d6c9ccfac82900361f9313949b"
+    },
+    {
+      "command": "SINTERCARD",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/sintercard.json",
+      "sha256": "54a9cdfa8993de006505f31890391e47b9d2ac6d826ef8eb1948dcf2d4dcda27"
+    },
+    {
+      "command": "SETEX",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/setex.json",
+      "sha256": "fd8dc973e52fa0fd50fbc1e4e30c029c8cf2f37664fdb2ed010cd1c16174f6c2"
+    },
+    {
+      "command": "XGROUP DELCONSUMER",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xgroup-delconsumer.json",
+      "sha256": "e1a44c613342152debb6f665ea39dabd40aea38d698efa922f83b45522aa4f3d"
+    },
+    {
+      "command": "ZREMRANGEBYSCORE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zremrangebyscore.json",
+      "sha256": "691fe3ea779f3a7791f5b0647866c7b5a891d90e5aab658c09a9763e05c6adb3"
+    },
+    {
+      "command": "ACL SETUSER",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/acl-setuser.json",
+      "sha256": "b9014e94fbe5a3ba2d1f7361489973dfd357f3dde5dd3346cec10c1a972a4d9a"
+    },
+    {
+      "command": "TYPE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/type.json",
+      "sha256": "c2ad1181e55475998e1a3b839b59b322836f39e99544522acc90eb6559719546"
+    },
+    {
+      "command": "WAIT",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "BLOCKING"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/wait.json",
+      "sha256": "92f48ab7d1121c403433677072a8e831ce66d79d0b2d3d0b63dea138c5fc1857"
+    },
+    {
+      "command": "XINFO CONSUMERS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xinfo-consumers.json",
+      "sha256": "9948514652114dc68d2e889620fd3dc5661d8faecc14e86b65153f837bd2cbfd"
+    },
+    {
+      "command": "OBJECT HELP",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/object-help.json",
+      "sha256": "0ed12a3e5662b13398be93d1a22d9c147c0211794ee2fae060126886747dc6bc"
+    },
+    {
+      "command": "BGREWRITEAOF",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NO_ASYNC_LOADING",
+        "ADMIN",
+        "NOSCRIPT"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/bgrewriteaof.json",
+      "sha256": "459909452ecc55047f5a5a6c6f2d8a3774737754f8e417fed6fb1550a36bdfb6"
+    },
+    {
+      "command": "LATENCY HISTOGRAM",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/latency-histogram.json",
+      "sha256": "47df2efa8ee12e28834bf51a29b9115da899197559a0195aa27be6f7f41a360f"
+    },
+    {
+      "command": "LATENCY HELP",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/latency-help.json",
+      "sha256": "6b408ee7c0011b6d1f478e961347d532c9a7b63241a17d480823d5c3e7375578"
+    },
+    {
+      "command": "SETNX",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/setnx.json",
+      "sha256": "06923709b3a0fb054bb13f2bc5704cf1bcde0140276263be09a96a4788ee3653"
+    },
+    {
+      "command": "COMMAND",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/command.json",
+      "sha256": "db9e884a7059161502678cc3c47fe9ded71b1876a4962251e347f64a9a01e0d9"
+    },
+    {
+      "command": "CLIENT NO-EVICT",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/client-no-evict.json",
+      "sha256": "0775ec8c7c548ae492a64337394b091ffb0ed72c68bc15c7397e6f4497fecb77"
+    },
+    {
+      "command": "COMMAND GETKEYS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/command-getkeys.json",
+      "sha256": "0171dabce2e54adc60348fb1de1f54849b17eda8cf7f6a67e16b594123e089fa"
+    },
+    {
+      "command": "BZPOPMAX",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST",
+        "BLOCKING"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/bzpopmax.json",
+      "sha256": "8b3388c1d79e1628fd85d612bede99c70846e15b5cf2f258edfe6c4c309bf875"
+    },
+    {
+      "command": "CONFIG REWRITE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/config-rewrite.json",
+      "sha256": "62af07a6ff892b96fb6203eb244f94f426dcf04abd1a826e9c822b3e3e88bdda"
+    },
+    {
+      "command": "INCRBYFLOAT",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/incrbyfloat.json",
+      "sha256": "d8936e809a2ffda6faf4192049cf57a85a977d05a6577192f50d4e4eb4e63ae5"
+    },
+    {
+      "command": "PFADD",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/pfadd.json",
+      "sha256": "37bec48050d3483ca10c26c60456ea06f3e9111cf14ed212fd10cc54ae8a5c76"
+    },
+    {
+      "command": "ZRANGESTORE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zrangestore.json",
+      "sha256": "61deca23696cc3aad936cb1536ba38c77218971d00cf4e33cdc6c876d32f322a"
+    },
+    {
+      "command": "SSCAN",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/sscan.json",
+      "sha256": "c95459ce22134ab7764428a339e74270798ea6aabc2c53ff1e0fe7dfece96c41"
+    },
+    {
+      "command": "FUNCTION KILL",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "ALLOW_BUSY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/function-kill.json",
+      "sha256": "d6c23971b97c7a6a54fddc897f8c4c95a5f8537d4a19d9dce835a905ac104d5b"
+    },
+    {
+      "command": "APPEND",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/append.json",
+      "sha256": "53e3ffd443623ec3bd1f2ed9b5978b6fdf558645713030c2ceed70fbaa31b307"
+    },
+    {
+      "command": "HLEN",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hlen.json",
+      "sha256": "d8070bb3c3e411e4ebf87d6d56bce57acd02181a3f5558c1c3cbfcf7734dad40"
+    },
+    {
+      "command": "LINDEX",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/lindex.json",
+      "sha256": "314536ff3d88a9eb685f63cd64f6965173aa3519955974c4e8f5bc62e5f7554e"
+    },
+    {
+      "command": "BLMPOP",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "BLOCKING"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/blmpop.json",
+      "sha256": "9aea7e940135085f724435d43a781039daec48886fa15b639c89b814ae77a097"
+    },
+    {
+      "command": "WAITAOF",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "BLOCKING"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/waitaof.json",
+      "sha256": "96a2343b6e20c4764280972756032888a6253d5b8df7327b18da2858150de726"
+    },
+    {
+      "command": "XINFO HELP",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xinfo-help.json",
+      "sha256": "85090aae91ae3407ccc54ad0f28dce5d4aaa4ddecaa9ec87b370b736ded5049a"
+    },
+    {
+      "command": "GEOPOS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/geopos.json",
+      "sha256": "5743da3bf912a9a10b09e7bc117bf64aecf7c9594fc19b5c67d4cbc2080b5dc9"
+    },
+    {
+      "command": "ACL GENPASS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/acl-genpass.json",
+      "sha256": "188809ed05aba2d278852a0219807ba71a9eab441867f508a107ead633fbbf3e"
+    },
+    {
+      "command": "FUNCTION DUMP",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/function-dump.json",
+      "sha256": "2c1ac4cf8d058ce61a0b15428bca1a3feb3d5e7a1996393e272a964d51e974e0"
+    },
+    {
+      "command": "BLPOP",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "BLOCKING"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/blpop.json",
+      "sha256": "48f970981b4dfba22546ee095d15c6fd452bbafdff7e296fd5da28578c8da95d"
+    },
+    {
+      "command": "LSET",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/lset.json",
+      "sha256": "63da2bcb2d1039b593da439a8894a741df0c18594d30d453a4cac58e21a91072"
+    },
+    {
+      "command": "ZUNIONSTORE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zunionstore.json",
+      "sha256": "da1b866d69521020dcfb90d273241792904459a38a7f81e6ec4b050b39a2625b"
+    },
+    {
+      "command": "PEXPIRE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/pexpire.json",
+      "sha256": "c42e85d28046908b29040669dc49d71a4fa8b76ccf679776fec0a6f7031ad3c3"
+    },
+    {
+      "command": "ACL LOAD",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/acl-load.json",
+      "sha256": "c78fb968d11cb48375f2e883f8465636057c3260d6f051b01470516d096ff7e3"
+    },
+    {
+      "command": "PERSIST",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/persist.json",
+      "sha256": "5a3f227f916922d1ce30ca712478d16d755cf74f79ca142be0e55cc8e21c2f11"
+    },
+    {
+      "command": "SCRIPT KILL",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "ALLOW_BUSY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/script-kill.json",
+      "sha256": "0c352c65abe0a2694868245fa2cc8928aa9713d3d6da78de733823a88e92695f"
+    },
+    {
+      "command": "SET",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/set.json",
+      "sha256": "643d255fc38e3ca396f4899b12523a4de42f1c178c495c187aaea950063c958e"
+    },
+    {
+      "command": "GETDEL",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/getdel.json",
+      "sha256": "c62e8a47b074a9bec7899ad30855388997b0fa4836d2f27e6e7332f0f23f9a8b"
+    },
+    {
+      "command": "ZSCORE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zscore.json",
+      "sha256": "57fb1c87b48eff92b8ebb0977b48bbef3803cbf7ba6fe939731cfd363f8fba3a"
+    },
+    {
+      "command": "ZSCAN",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zscan.json",
+      "sha256": "d567676bb1104fdc244b947c6778e698b820ac4323b7d37a0dfddb5fc2429f89"
+    },
+    {
+      "command": "XINFO GROUPS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xinfo-groups.json",
+      "sha256": "28f47484740dfb8c4ca1525ef5e5b7abc759961df70b0e0ad8a7af8eb4a6ea38"
+    },
+    {
+      "command": "DECRBY",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/decrby.json",
+      "sha256": "f21bcb4dc68ada55567506937d12ec9aacb1cd00d00e682a498a2752247af5f7"
+    },
+    {
+      "command": "CLIENT SETINFO",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/client-setinfo.json",
+      "sha256": "c2cbb185db2b936380215f21d8f19a2d49071aa80ff1958ad3606eb046b42bed"
+    },
+    {
+      "command": "PING",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "FAST",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/ping.json",
+      "sha256": "1d3254b2f449bfb6a226ba936a3e2095ccc55ced4ba411dd401ce7c3b967e875"
+    },
+    {
+      "command": "HRANDFIELD",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hrandfield.json",
+      "sha256": "c60203e92a8b0119694f6a46ad3a8b62a817e8a22c216d4e48b0ed1cc51123b6"
+    },
+    {
+      "command": "EVALSHA_RO",
+      "script": true,
+      "held": -1,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "SKIP_MONITOR",
+        "NO_MANDATORY_KEYS",
+        "STALE",
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/evalsha_ro.json",
+      "sha256": "bb71fc41a6f96da3262d6c6bb2a9ecbbb3f8f45363fda0547ceb8f9da32c1c31"
+    },
+    {
+      "command": "SMEMBERS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/smembers.json",
+      "sha256": "e75b08cf949463aeccd6870389974c4d78a78bf947c5ee43526ecd1c165cabb2"
+    },
+    {
+      "command": "BITFIELD_RO",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/bitfield_ro.json",
+      "sha256": "3a450dd6fcdbb678e5af451dd0c7fd6a1b89286039f9eb9f9edb0faaa65e7cd7"
+    },
+    {
+      "command": "ACL GETUSER",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/acl-getuser.json",
+      "sha256": "7340a4b5b42fe90f344feffe3b64ba1df5a83a367f4f9f12fddde774a1eeee33"
+    },
+    {
+      "command": "HSCAN",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hscan.json",
+      "sha256": "a79f4227b13f28b6ee1852efa69fb770b60eec305c5195264814b7f8ca39f2c2"
+    },
+    {
+      "command": "HSTRLEN",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hstrlen.json",
+      "sha256": "96de85f45dd0818de8edf551fa286a9f3dba28fd7a01fcc751d91adff2fba1f6"
+    },
+    {
+      "command": "PFMERGE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/pfmerge.json",
+      "sha256": "14c64cf1d531e2fef3c22dccecd1709c321ccbe41da36469f28c97b5da2c44a9"
+    },
+    {
+      "command": "SETRANGE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/setrange.json",
+      "sha256": "1353fa5ba7e3f56d90aafcb27450151cbfb6cf70ead237814a69aba4257aa91d"
+    },
+    {
+      "command": "TTL",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/ttl.json",
+      "sha256": "67a64fd759175d1f8c10370e64fabf81bfef15d6751ff2a0626bd450ae6b5927"
+    },
+    {
+      "command": "SLAVEOF",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NO_ASYNC_LOADING",
+        "ADMIN",
+        "NOSCRIPT",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/slaveof.json",
+      "sha256": "bc9ea9f28bb015da8b7b9a12138d30ff845f31c7cf8ce91ac868facfe2dae6c2"
+    },
+    {
+      "command": "MEMORY DOCTOR",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [],
+      "reference": "/home/user/Projects/redis/src/commands/memory-doctor.json",
+      "sha256": "ce61042f0f29d49584c73eb787a69c78793f0671165bfb6a9b205f3d940b6585"
+    },
+    {
+      "command": "HKEYS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hkeys.json",
+      "sha256": "eb1f9dd956a0604bb728806d97af0c8e5f5cabe9211057ba9f9e9d2651b8e58f"
+    },
+    {
+      "command": "UNWATCH",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "FAST",
+        "ALLOW_BUSY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/unwatch.json",
+      "sha256": "3e89dbc6afd170ba52134be922e851dd16c6588b629ded89df8ee554443b8a7d"
+    },
+    {
+      "command": "EVAL_RO",
+      "script": true,
+      "held": -1,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "SKIP_MONITOR",
+        "NO_MANDATORY_KEYS",
+        "STALE",
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/eval_ro.json",
+      "sha256": "c1f1e2c773ad6311f3b44207e18eb6e9e0a7ae308d4c2257ecc6db05674a9c3a"
+    },
+    {
+      "command": "BRPOP",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "BLOCKING"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/brpop.json",
+      "sha256": "02824334684060467c2ddf9a7b270d841b9414517e36da7067ab99244269057b"
+    },
+    {
+      "command": "DEBUG",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "PROTECTED"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/debug.json",
+      "sha256": "8e7fc78e9684454ad39ac5aa4827470b403314201d558d64eb129e1980e5e466"
+    },
+    {
+      "command": "PFCOUNT",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "READONLY",
+        "MAY_REPLICATE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/pfcount.json",
+      "sha256": "d7dae8a84e8642fc11b519863c54789a424084300e117cef537ce38c96bd93db"
+    },
+    {
+      "command": "SUBSCRIBE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "PUBSUB",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/subscribe.json",
+      "sha256": "82501e6de96ff0d82f759c23c91e2fd3f6b16ca46e1cb360103ca7d2c69459f6"
+    },
+    {
+      "command": "HINCRBYFLOAT",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hincrbyfloat.json",
+      "sha256": "29480fe66dad101e1444997d118b543f88433e459f91dd5fcf4b8e2aa8af79a8"
+    },
+    {
+      "command": "ACL LIST",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/acl-list.json",
+      "sha256": "ea694898a2dbac10c620f01e57d7dcd694e52b146e82e780c6106ff816219d29"
+    },
+    {
+      "command": "MEMORY USAGE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/memory-usage.json",
+      "sha256": "ea2169755b43beb3e9bf83a80a87eb820403dfb9701732458343dd278939320d"
+    },
+    {
+      "command": "SPOP",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/spop.json",
+      "sha256": "6a6a5bd364c28f5eaffb82b952f912c8279d3b9fa413cbb6ca597685dae9f677"
+    },
+    {
+      "command": "SLOWLOG LEN",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/slowlog-len.json",
+      "sha256": "820e1bca17d1fe3e084151a209bacb4145b4a7104d4d98aa2f4711d73ab09aa6"
+    },
+    {
+      "command": "XGROUP CREATE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xgroup-create.json",
+      "sha256": "18c9b5a481a59f13531cb1811eee93f1f7d649d03f050f7155d5d44a10a2f44e"
+    },
+    {
+      "command": "SINTERSTORE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/sinterstore.json",
+      "sha256": "4b5f785134ad1f569e36235612daaa347fd646921d2c8f1cab82c7acd5ae4d48"
+    },
+    {
+      "command": "READWRITE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "FAST",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/readwrite.json",
+      "sha256": "e5be94ef98679cdcbb842bff92347d75615a65fcbbf93737ba8cf45f26f33a08"
+    },
+    {
+      "command": "HPEXPIRETIME",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hpexpiretime.json",
+      "sha256": "aa964a387d82b0549b8599b96ce5823c137390815d3012515f37a5416f114500"
+    },
+    {
+      "command": "CLIENT UNBLOCK",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/client-unblock.json",
+      "sha256": "f9634dfbc1cd62a1371eae66e9ffa780b41f1e76342d500f8ce7d23cd9cdf300"
+    },
+    {
+      "command": "RENAMENX",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/renamenx.json",
+      "sha256": "0e96b43de15505c0f6d05ca5d8197276b320abed44ce42963ed8c25898da408b"
+    },
+    {
+      "command": "HPEXPIREAT",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hpexpireat.json",
+      "sha256": "c884e3e272c0ee5d94b55ce8edc8cf9ad0b3cd55360a947488a92e7e3986a782"
+    },
+    {
+      "command": "SCRIPT EXISTS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/script-exists.json",
+      "sha256": "3cfc1e007aa34a9b46bda6dcf883e6fb792824b58d14fdd2f63e397754d2b893"
+    },
+    {
+      "command": "RESTORE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/restore.json",
+      "sha256": "704b8e54c6368032ba14911b56afc1bd82b6cd49dc7bf6b8c582226de12d96a6"
+    },
+    {
+      "command": "SCRIPT HELP",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/script-help.json",
+      "sha256": "2ab6e69cc6e54c1481c2d9b691e2b51d62bc8f680996d10a82d736d96b95ce27"
+    },
+    {
+      "command": "PUNSUBSCRIBE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "PUBSUB",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/punsubscribe.json",
+      "sha256": "759c9e8b7ce2d5f847f57583dbc542862b26941c27136c73ac4bd76fdd7729ea"
+    },
+    {
+      "command": "LMOVE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/lmove.json",
+      "sha256": "e9aa5d41c54b794210b6948ab2debff7aa8035aebc35fe3d0bda426906109067"
+    },
+    {
+      "command": "MEMORY PURGE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [],
+      "reference": "/home/user/Projects/redis/src/commands/memory-purge.json",
+      "sha256": "5e6e4d20d25c7dcb642df0d278cdcec7ca3fa80963b8dfa209d4338c3a313e16"
+    },
+    {
+      "command": "SAVE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NO_ASYNC_LOADING",
+        "ADMIN",
+        "NOSCRIPT",
+        "NO_MULTI"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/save.json",
+      "sha256": "3b00a87e189a2bf0a4764f2f1e9c2b329db1a5cc4f960a2554d9b42bdfa9a71b"
+    },
+    {
+      "command": "SORT_RO",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/sort_ro.json",
+      "sha256": "282d092495466703d9a4f6286a812b976375cbfb64a15e52474ca9f53d0b46a2"
+    },
+    {
+      "command": "SUNIONSTORE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/sunionstore.json",
+      "sha256": "d5a98165427306596d996814be9cb5d659d4035dfc8dcedc0fd7e16e969d4731"
+    },
+    {
+      "command": "CLIENT INFO",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/client-info.json",
+      "sha256": "5e90b24388a763425fdcb0dfe30f8ca1a7c48a5a216694de19b7426be5073dad"
+    },
+    {
+      "command": "XSETID",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xsetid.json",
+      "sha256": "a3a8f557b82f11b1d94890c8dacf7d3e7649299c4fe3f3614bb4d29831723f59"
+    },
+    {
+      "command": "COMMAND HELP",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/command-help.json",
+      "sha256": "53ab3453167322c276760abbb3369eaa1a1f69b1bce32ee75af7e193d30dd56d"
+    },
+    {
+      "command": "LATENCY HISTORY",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/latency-history.json",
+      "sha256": "9bfe88157b9f9004f8a49532f130060f64e2ba9e789ff65531e1f0b9725130a9"
+    },
+    {
+      "command": "KEYS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/keys.json",
+      "sha256": "f8780f454ac7168687207b6a3fac0dbff2ad6d01ee71092ccd2346f2fd702046"
+    },
+    {
+      "command": "CLIENT GETNAME",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/client-getname.json",
+      "sha256": "bfc5bc2cd6a56a2c3d3d534637eab43a35d1d3a6e05e92e8f5076f5516cabd3e"
+    },
+    {
+      "command": "QUIT",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ALLOW_BUSY",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "FAST",
+        "NO_AUTH"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/quit.json",
+      "sha256": "435dd2b2f7fd5f25438a63d64e3d3e0bee5af4a16af65dd7980270065a770bda"
+    },
+    {
+      "command": "ZMSCORE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zmscore.json",
+      "sha256": "f6903289563f6513c4c24e4dc707c9b140e239c390d1271522bc5d57ab2188f6"
+    },
+    {
+      "command": "CLIENT CACHING",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/client-caching.json",
+      "sha256": "a5a069e271e84151d97599cdfec989ac45b7f674a5d3432438c193d770abc2ce"
+    },
+    {
+      "command": "PUBSUB NUMSUB",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "PUBSUB",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/pubsub-numsub.json",
+      "sha256": "df2ac668414176552919afa81b1ba9b4e7536bbf351b837e3798acd2daf27a0a"
+    },
+    {
+      "command": "HGET",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hget.json",
+      "sha256": "172ba9bed11828827f6fca71aa5c7da266689be4143370c2c34d8d98716faa1b"
+    },
+    {
+      "command": "RANDOMKEY",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "TOUCHES_ARBITRARY_KEYS"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/randomkey.json",
+      "sha256": "4970b3a34ff81c4431d49d8c5457240a13cdc0479862b279a1381d0b4936ed34"
+    },
+    {
+      "command": "BLMOVE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "BLOCKING"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/blmove.json",
+      "sha256": "2c8796fb0fb8f664902b5997947173834eedb6206077411f687b2f41e917d411"
+    },
+    {
+      "command": "HPTTL",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hpttl.json",
+      "sha256": "865496564c83df3d349dfa280dd32c30469c8217c70e0e7b3b1760d03ce98500"
+    },
+    {
+      "command": "SWAPDB",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/swapdb.json",
+      "sha256": "01d456b715edb82f964027973f1a5bb6fad177cc0eb57369d953f7993320de27"
+    },
+    {
+      "command": "GEOHASH",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/geohash.json",
+      "sha256": "9850b7035312d28738ea5a175221505dd13b2eada85b6e999c2f90802eaf32b0"
+    },
+    {
+      "command": "PSUBSCRIBE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "PUBSUB",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/psubscribe.json",
+      "sha256": "4c67d2ebbba4f13c81a61de274df93b08282f62d16acb6e2f56b61e0a30baa8a"
+    },
+    {
+      "command": "BITFIELD",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/bitfield.json",
+      "sha256": "807456bac795ba16361c472badcb9e35b6f980e3dce8cf96b3e202d911fb7dce"
+    },
+    {
+      "command": "HEXPIREAT",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hexpireat.json",
+      "sha256": "11060ff4bf65d28224c060ed84106752e9c409b9eca5c81f48dc81e95895dfe2"
+    },
+    {
+      "command": "ZDIFF",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zdiff.json",
+      "sha256": "4123ba302fa052a759a96f523e6796fa02b0922e78110b02402740cf91bac497"
+    },
+    {
+      "command": "XPENDING",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xpending.json",
+      "sha256": "19fb55b68f29f78d3b2888317e414be48fd431e5657b2d1e434bbb6eea68f044"
+    },
+    {
+      "command": "OBJECT FREQ",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/object-freq.json",
+      "sha256": "15733aa10fb6c8c98a7547c8365312e2fc5b5ad84548ec62b109efe6811c5ab3"
+    },
+    {
+      "command": "SADD",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/sadd.json",
+      "sha256": "715b205589a2488e5bf494baabea76b434f0753414bde222f17983745bd4b4a5"
+    },
+    {
+      "command": "PEXPIREAT",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/pexpireat.json",
+      "sha256": "f05657ba6ac493a4967ede495a23356fefb47f7464117df369fa8d46f852c38e"
+    },
+    {
+      "command": "XGROUP SETID",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xgroup-setid.json",
+      "sha256": "2dcf045aa2860ad22865d9912f61ce7fe2cbed13a2ec363c65b627c3226e513d"
+    },
+    {
+      "command": "SLOWLOG RESET",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/slowlog-reset.json",
+      "sha256": "019c6d2914317feec86b6e7b743d86c0bc77ba873b17cc9b920c02389b10e4a5"
+    },
+    {
+      "command": "FUNCTION RESTORE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "NOSCRIPT",
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/function-restore.json",
+      "sha256": "217f4155e6d00a533df995d3ee0e0d0696c688200e976bd392c403a80d17bc78"
+    },
+    {
+      "command": "HEXPIRE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hexpire.json",
+      "sha256": "31d8b4955cef1558e2266a1a857c40cbb592f58e006aa8551357c4f770338e55"
+    },
+    {
+      "command": "EXPIRE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/expire.json",
+      "sha256": "22376ec924a6795783b3005b93c841df78b9da9488cf8cadd0a1580e13d659a5"
+    },
+    {
+      "command": "SLOWLOG GET",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/slowlog-get.json",
+      "sha256": "88e9614ab10b78b43a0137cc4d16f96e49df3914c52f807a5433787e159f9669"
+    },
+    {
+      "command": "XRANGE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xrange.json",
+      "sha256": "36eca38d76e7edef5b5575dc80c485acd1e5609ea8b984c343b2a8175584c295"
+    },
+    {
+      "command": "MSET",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/mset.json",
+      "sha256": "6a94c8e2a38f8b1f7d575059508fb1d2f6fd54578ed21e1424887ab556feb2e0"
+    },
+    {
+      "command": "LPOP",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/lpop.json",
+      "sha256": "bee4933b47320d501927b565fda33d2dbf3089e85f704e23e77999f6390cb86c"
+    },
+    {
+      "command": "SUNSUBSCRIBE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "PUBSUB",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/sunsubscribe.json",
+      "sha256": "16e74eb31f9d5c2f5d6eb838feb2a921ad452f189e5c95c19c944f42910c405f"
+    },
+    {
+      "command": "SPUBLISH",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "PUBSUB",
+        "LOADING",
+        "STALE",
+        "FAST",
+        "MAY_REPLICATE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/spublish.json",
+      "sha256": "cb717b45ee65d0020ce4a3c9dfa614a38b1f7fc343f2e601f381623f80ff3592"
+    },
+    {
+      "command": "ZREVRANGEBYSCORE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zrevrangebyscore.json",
+      "sha256": "cee5032b4baf343863b9600cf62b87bf03e468e35d74b001319275c4b8f5120e"
+    },
+    {
+      "command": "ZCARD",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zcard.json",
+      "sha256": "1c44f8998a0d9c341eef48f0541efebb6b4b778ff1f2e128ec34a9f60160ed50"
+    },
+    {
+      "command": "CLIENT TRACKING",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/client-tracking.json",
+      "sha256": "013e0df4bc1e25770a994c32983a01c771790bd6942ae16ceb75a53396feceb4"
+    },
+    {
+      "command": "SCRIPT LOAD",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/script-load.json",
+      "sha256": "13aa8dbda02647f4c1ee5a313f389b0e818591b83023711fd0b0bdb6bb384c4d"
+    },
+    {
+      "command": "RPOPLPUSH",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/rpoplpush.json",
+      "sha256": "8038aa8204587e3ca94cac3b8a3763f776aa37b676897a1a7cbdb01d091961d3"
+    },
+    {
+      "command": "GEORADIUSBYMEMBER_RO",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/georadiusbymember_ro.json",
+      "sha256": "75a7ca8723f257ca44a56126774d11563c6447fe0d6a0eccdc0c1879d81ccb0a"
+    },
+    {
+      "command": "CLIENT LIST",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/client-list.json",
+      "sha256": "5c46bb2638512711d15c84baa7cdfd6a9890ce8c273fbeba49348128cc3325ff"
+    },
+    {
+      "command": "ACL HELP",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/acl-help.json",
+      "sha256": "e2f7c60235a2b5b8f0cea7bd3a8734c2a73e1bac485e3ba71b20faaa1fa3a69c"
+    },
+    {
+      "command": "ROLE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "FAST",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/role.json",
+      "sha256": "4ee5bc497ae06629575c260de45ff88ed24f9586c630304a24e95be1e0ec35e7"
+    },
+    {
+      "command": "BITOP",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/bitop.json",
+      "sha256": "46a52de7b718ef7fb2bc3c3141158abe7d84c40c50c2f1c75deb4326a34d1b9c"
+    },
+    {
+      "command": "CONFIG GET",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/config-get.json",
+      "sha256": "305ebbfffb9bde7f9c92f17a4b89f81222458c87a0216e1ba727dcf8354e65db"
+    },
+    {
+      "command": "PFDEBUG",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "ADMIN"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/pfdebug.json",
+      "sha256": "a1f1084da5edd0af4d0278e1999a66b7dca171c0cff113b581a8c3e5e6cb6daa"
+    },
+    {
+      "command": "FUNCTION DELETE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "NOSCRIPT",
+        "WRITE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/function-delete.json",
+      "sha256": "e657e37e512666b86407be0693ae6ac148c87d2e98ba80d6f892580edb4a8a2e"
+    },
+    {
+      "command": "CLIENT TRACKINGINFO",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/client-trackinginfo.json",
+      "sha256": "0c796fcb7877940940102ff7fc5c803a797f60d797bb4d46db39ad7817a0bb93"
+    },
+    {
+      "command": "DISCARD",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "FAST",
+        "ALLOW_BUSY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/discard.json",
+      "sha256": "29392d81abde0ec1852641f3e1fd77d7f48017f97b81908570786706fc15fca6"
+    },
+    {
+      "command": "SDIFFSTORE",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/sdiffstore.json",
+      "sha256": "b90fe1ee4fb7dae37ba370d33fdb7acafc534b63ffca4aa1d760e10ebda0c471"
+    },
+    {
+      "command": "DBSIZE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/dbsize.json",
+      "sha256": "255fe06b1eecaa832f3982cfed1f132de1bc41cd3e3c8971f0c549c27467ee94"
+    },
+    {
+      "command": "MONITOR",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/monitor.json",
+      "sha256": "fdaed59cd9c22c9442a59dd70fc443bafd16f7930db7f16cc404127b497450e4"
+    },
+    {
+      "command": "RPUSHX",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/rpushx.json",
+      "sha256": "4cc9cb31c47c8b3029f3dd6300ebf092ffc1af936d928d6ab4ca47dd9bd1366c"
+    },
+    {
+      "command": "XGROUP CREATECONSUMER",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xgroup-createconsumer.json",
+      "sha256": "ccc243302308ae9fd334b4b15ee146ee31d751914143b7d6d5fd9c96dc234e6e"
+    },
+    {
+      "command": "ZRANGE",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zrange.json",
+      "sha256": "cf1338c054d5de1097e02c07db617e6a31a261470b3d2fcd7f0636eaff29a3e5"
+    },
+    {
+      "command": "HINCRBY",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hincrby.json",
+      "sha256": "1ca5c4ea3457516040d57aff98887fc8ae436df61edb1f3bb72f94de753abd12"
+    },
+    {
+      "command": "HVALS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hvals.json",
+      "sha256": "4a350479214fdc4b72d5591a32bf6929aa23d9fe380bf1e6ccfa5bc987c462f1"
+    },
+    {
+      "command": "RENAME",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/rename.json",
+      "sha256": "649a2da71697f3a4c1ca45ea2b60bf95c4787118b0673bbef36cd5a767721357"
+    },
+    {
+      "command": "INCRBY",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/incrby.json",
+      "sha256": "2b19e4c27517b92c20f75f1377ba5475e2aab8ae147360cc69be792c22985747"
+    },
+    {
+      "command": "ACL USERS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/acl-users.json",
+      "sha256": "d193275c05ceb30efbeb074c5462c2cfc9785d879207da5bafcb527700c1a7da"
+    },
+    {
+      "command": "ZINCRBY",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zincrby.json",
+      "sha256": "fed5d6dd295ea4800a6e71d866408e4ad27adfa534a500e5a9071c6002f1b384"
+    },
+    {
+      "command": "XREAD",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "BLOCKING",
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/xread.json",
+      "sha256": "e2422e1eeb20a8d76b54ace534caea0445ec9f8e62ac22301a44a543873733b6"
+    },
+    {
+      "command": "CONFIG SET",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "ADMIN",
+        "NOSCRIPT",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/config-set.json",
+      "sha256": "0de74f88b991e28161134938b9871c5b91681c4639e3ed9d0d4b85fa8a83314a"
+    },
+    {
+      "command": "RESET",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "FAST",
+        "NO_AUTH",
+        "ALLOW_BUSY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/reset.json",
+      "sha256": "8c008485bede7c873d26f3c523499955aa550a8d4adcac062aec08eacea5ebf2"
+    },
+    {
+      "command": "CLIENT ID",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/client-id.json",
+      "sha256": "b8fc5ba45dc3f4405b7aba6985b13c1b226390a51f4ba0e23b07ca5edf59ca6d"
+    },
+    {
+      "command": "COMMAND INFO",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/command-info.json",
+      "sha256": "4af09397a8b054aa0d867c9176ac2f40f366f27acd814859dd1fac7f22b75662"
+    },
+    {
+      "command": "HDEL",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "FAST"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/hdel.json",
+      "sha256": "5c30647154d80ed593e6c37e89cf63e44b80712d74190c1b6555df8280c23df9"
+    },
+    {
+      "command": "READONLY",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "FAST",
+        "LOADING",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/readonly.json",
+      "sha256": "5791e0afa42cb110a9d5608695fb5233ecb8615780ab6d2de67bb6bc2d3bab1a"
+    },
+    {
+      "command": "COMMAND DOCS",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "LOADING",
+        "STALE",
+        "SENTINEL"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/command-docs.json",
+      "sha256": "8038954ded3af2bfb036196015a15362dea2907e4fe7461a2c4c2510e70eb192"
+    },
+    {
+      "command": "COPY",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/copy.json",
+      "sha256": "b00beaf2c9edacf602bbc09db59feb486277250b846d757ca624b2fddb88837a"
+    },
+    {
+      "command": "BRPOPLPUSH",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE",
+        "DENYOOM",
+        "BLOCKING"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/brpoplpush.json",
+      "sha256": "812e719e963ffcd84d26ad4753b8ce5dc303009d4e69d0a365f7202f5cac316f"
+    },
+    {
+      "command": "ZINTER",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "READONLY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/zinter.json",
+      "sha256": "10b22734fac592d1442a0f7907faeee8ee0b5d529f38ce5d63f139bb0c6975a3"
+    },
+    {
+      "command": "SCRIPT DEBUG",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/script-debug.json",
+      "sha256": "98d2fd294bcba15aa62e2cb351d7d6b5605bdeb854626722dfea17cbd147f975"
+    },
+    {
+      "command": "AUTH",
+      "script": false,
+      "held": 0,
+      "expected": false,
+      "flags": [
+        "NOSCRIPT",
+        "LOADING",
+        "STALE",
+        "FAST",
+        "NO_AUTH",
+        "SENTINEL",
+        "ALLOW_BUSY"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/auth.json",
+      "sha256": "41afc0dd25fcb1fb794f4875cd0b6b311b1eaf2999f7ba10d0fff215c25053e2"
+    },
+    {
+      "command": "LTRIM",
+      "script": false,
+      "held": 1,
+      "expected": true,
+      "flags": [
+        "WRITE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/ltrim.json",
+      "sha256": "bd3efbf9499bf8343e9ebe8d0db8a9284eb2894b7ab7469a92f93d0476ac27d5"
+    },
+    {
+      "command": "FCALL",
+      "script": true,
+      "held": -1,
+      "expected": true,
+      "flags": [
+        "NOSCRIPT",
+        "SKIP_MONITOR",
+        "MAY_REPLICATE",
+        "NO_MANDATORY_KEYS",
+        "STALE"
+      ],
+      "reference": "/home/user/Projects/redis/src/commands/fcall.json",
+      "sha256": "02fd870bec547827ddebd68b8f0602e5183e248f43ca2e757d1583320be58ba1"
+    }
+  ],
+  "mismatches": [],
+  "dynamic_scripts": [
+    "EVALSHA",
+    "FCALL_RO",
+    "EVAL",
+    "EVALSHA_RO",
+    "EVAL_RO",
+    "FCALL"
+  ]
+}

@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; no-history-conservative-default; rootcompat xsexpiry vs Redis 7.4
+  rootcompat xsexpiry vs Redis 7.4                     FAIL (see /home/user/Projects/cx-rootcompat/build/gate-run.U5SbQ7/jobs/rootcompat-xsexpiry/rootcompat.log and proof)

@@ -1,8 +1,52 @@
 """CD4.5: shrinking quicklists, half-limit boundary, and every pop/mover path."""
 from datafix1_common import main
+from clientfix import Error
+
+
+def mpop_errors(p):
+    # The upstream Tcl assertions accept "ERR numkeys*" / "ERR count*".
+    # Compare whole replies to Redis, including every illegal-argument shape
+    # in those tests, so an unrelated suffix cannot masquerade as compatibility.
+    for protocol in (2, 3):
+        for _, conn in p.each():
+            hello = conn.cmd('HELLO', protocol)
+            assert isinstance(hello, dict if protocol == 3 else list), hello
+            fields = hello if isinstance(hello, dict) else dict(zip(hello[::2], hello[1::2]))
+            assert fields[b'proto'] == protocol, hello
+        cases = 0
+        for verb in ('LMPOP', 'BLMPOP', 'ZMPOP', 'BZMPOP'):
+            prefix = (verb, 1) if verb.startswith('B') else (verb,)
+            edge, other = ('LEFT', 'RIGHT') if 'LMPOP' in verb else ('MIN', 'MAX')
+            key, second = 'mpop:errors:first', 'mpop:errors:second'
+            tails = [(), (1,), (1, key)]
+            tails += [(n, key, edge) for n in (0, 'a', -1)]
+            tails += [(1, key, 'bad_where'), (1, key, edge, 'bad_arg'),
+                      (1, key, other, edge), (1, key, 'COUNT'),
+                      (1, key, edge, 'COUNT', 1, 'COUNT', 2),
+                      (2, key, second, 'bad_where')]
+            tails += [(1, key, edge, 'COUNT', n) for n in (0, 'a', -1)]
+            tails += [(2, key, second, other, 'COUNT', -1)]
+            for tail in tails:
+                oracle, target = p.cmd(*prefix, *tail)
+                p.check(isinstance(oracle, Error) and isinstance(target, Error),
+                        ('MPOP error path required', protocol, prefix + tail, oracle, target))
+                cases += 1
+            p.cmd('SET', key, 'wrong-type')
+            oracle, target = p.cmd(*prefix, 1, key, edge)
+            p.check(isinstance(oracle, Error) and isinstance(target, Error),
+                    ('MPOP wrong-type path required', protocol, verb, oracle, target))
+            p.check(p.cmd('GET', key) == (b'wrong-type', b'wrong-type'),
+                    ('MPOP error must preserve value', protocol, verb))
+            p.cmd('DEL', key, second)
+            cases += 1
+        assert cases == 68
+        print(f'MPOP exact-error replies RESP{protocol}: {cases}', flush=True)
+    for _, conn in p.each():
+        conn.cmd('HELLO', 2)
 
 
 def battery(p):
+    mpop_errors(p)
     # With a count limit, shrinking at exactly half demotes, half+1 does not.
     for fill in (4, 5, 8):
         p.cmd('CONFIG', 'SET', 'list-max-listpack-size', fill)

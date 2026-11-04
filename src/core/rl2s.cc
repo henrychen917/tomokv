@@ -269,9 +269,9 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
         return 0;
     }
 
-    const bool port_ok = probe_boot_listener(cfg, cfg.port, false, IoLoop::make_reuseport_listener);
+    const bool port_ok = probe_boot_listener(cfg, cfg.port, false, make_exclusive_boot_listener);
     const bool tls_port_ok = port_ok &&
-        probe_boot_listener(cfg, cfg.tls_port, true, IoLoop::make_reuseport_listener);
+        probe_boot_listener(cfg, cfg.tls_port, true, make_exclusive_boot_listener);
     if (!port_ok || !tls_port_ok) {
         std::perror(port_ok ? "bind tls-port" : "bind");
         stop_workers();
@@ -304,6 +304,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
 
     // Reached only after every ring, sink and listener is ready and no stop edge was taken.
     print_ready_listeners(cfg, unix_listener.bound());
+    cfgfix_process_ready();
 
     srv.monitor_controllers();
 

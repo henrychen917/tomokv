@@ -1,0 +1,129 @@
+
+cache:
+  ls_any_fills_from_sys.all
+       [Any data cache fills from all types of data sources. Unit: cpu]
+        cpu/event=0x44,umask=0xff/
+  ls_any_fills_from_sys.all_dram_io
+       [Any data cache fills from either DRAM or MMIO in any NUMA node (same
+        or different socket). Unit: cpu]
+        cpu/event=0x44,umask=0x48/
+  ls_any_fills_from_sys.alternate_memories
+       [Any data cache fills from extension memory. Unit: cpu]
+        cpu/event=0x44,umask=0x80/
+  ls_any_fills_from_sys.dram_io_all
+       [Any data cache fills from either DRAM or MMIO in any NUMA node (same
+        or different socket). Unit: cpu]
+        cpu/event=0x44,umask=0x48/
+  ls_any_fills_from_sys.dram_io_far
+       [Any data cache fills from either DRAM or MMIO in a different NUMA node
+        (same or different socket). Unit: cpu]
+        cpu/event=0x44,umask=0x40/
+  ls_any_fills_from_sys.dram_io_near
+       [Any data cache fills from either DRAM or MMIO in the same NUMA node.
+        Unit: cpu]
+        cpu/event=0x44,umask=8/
+  ls_any_fills_from_sys.far_all
+       [Any data cache fills from either cache of another CCX,DRAM or MMIO
+        when the address was in a different NUMA node (same or different
+        socket). Unit: cpu]
+        cpu/event=0x44,umask=0x50/
+  ls_any_fills_from_sys.far_cache
+       [Any data cache fills from cache of another CCX when the address was in
+        a different NUMA node. Unit: cpu]
+        cpu/event=0x44,umask=0x10/
+  ls_any_fills_from_sys.local_all
+       [Any data cache fills from local L2 cache or L3 cache or different L2
+        cache in the same CCX. Unit: cpu]
+        cpu/event=0x44,umask=3/
+  ls_any_fills_from_sys.local_ccx
+       [Any data cache fills from L3 cache or different L2 cache in the same
+        CCX. Unit: cpu]
+        cpu/event=0x44,umask=2/
+  ls_any_fills_from_sys.local_l2
+       [Any data cache fills from local L2 cache. Unit: cpu]
+        cpu/event=0x44,umask=1/
+  ls_any_fills_from_sys.near_cache
+       [Any data cache fills from cache of another CCX when the address was in
+        the same NUMA node. Unit: cpu]
+        cpu/event=0x44,umask=4/
+  ls_any_fills_from_sys.remote_cache
+       [Any data cache fills from cache of another CCX when the address was in
+        the same or a different NUMA node. Unit: cpu]
+        cpu/event=0x44,umask=0x14/
+  l2_cache_req_stat.all
+       [Core to L2 cache requests (not including L2 prefetch) for data and
+        instruction cache access. Unit: cpu]
+        cpu/event=0x64,umask=0xff/
+  l2_cache_req_stat.dc_access_in_l2
+       [Core to L2 cache requests (not including L2 prefetch) for data cache
+        access. Unit: cpu]
+        cpu/event=0x64,umask=0xf8/
+  l2_cache_req_stat.dc_hit_in_l2
+       [Core to L2 cache requests (not including L2 prefetch) for data cache
+        hits. Unit: cpu]
+        cpu/event=0x64,umask=0xf0/
+  l2_cache_req_stat.ic_access_in_l2
+       [Core to L2 cache requests (not including L2 prefetch) for instruction
+        cache access. Unit: cpu]
+        cpu/event=0x64,umask=7/
+  l2_cache_req_stat.ic_dc_hit_in_l2
+       [Core to L2 cache requests (not including L2 prefetch) for data and
+        instruction cache hits. Unit: cpu]
+        cpu/event=0x64,umask=0xf6/
+  l2_cache_req_stat.ic_dc_miss_in_l2
+       [Core to L2 cache requests (not including L2 prefetch) for data and
+        instruction cache misses. Unit: cpu]
+        cpu/event=0x64,umask=9/
+  l2_cache_req_stat.ic_fill_hit_s
+       [Core to L2 cache requests (not including L2 prefetch) with status:
+        instruction cache hit non-modifiable line in L2. Unit: cpu]
+        cpu/event=0x64,umask=2/
+  l2_cache_req_stat.ic_fill_hit_x
+       [Core to L2 cache requests (not including L2 prefetch) with status:
+        instruction cache hit modifiable line in L2. Unit: cpu]
+        cpu/event=0x64,umask=4/
+  l2_cache_req_stat.ic_fill_miss
+       [Core to L2 cache requests (not including L2 prefetch) with status:
+        instruction cache request miss in L2. Unit: cpu]
+        cpu/event=0x64,umask=1/
+  l2_cache_req_stat.ic_hit_in_l2
+       [Core to L2 cache requests (not including L2 prefetch) for instruction
+        cache hits. Unit: cpu]
+        cpu/event=0x64,umask=6/
+  l2_cache_req_stat.ls_rd_blk_c
+       [Core to L2 cache requests (not including L2 prefetch) with status:
+        data cache request miss in L2. Unit: cpu]
+        cpu/event=0x64,umask=8/
+  l2_cache_req_stat.ls_rd_blk_cs
+       [Core to L2 cache requests (not including L2 prefetch) with status:
+        data cache shared read hit in L2. Unit: cpu]
+        cpu/event=0x64,umask=0x80/
+  l2_cache_req_stat.ls_rd_blk_l_hit_s
+       [Core to L2 cache requests (not including L2 prefetch) with status:
+        data cache read hit non-modifiable line in L2. Unit: cpu]
+        cpu/event=0x64,umask=0x20/
+  l2_cache_req_stat.ls_rd_blk_l_hit_x
+       [Core to L2 cache requests (not including L2 prefetch) with status:
+        data cache read hit modifiable line in L2. Unit: cpu]
+        cpu/event=0x64,umask=0x40/
+  l2_cache_req_stat.ls_rd_blk_x
+       [Core to L2 cache requests (not including L2 prefetch) with status:
+        data cache store or state change hit in L2. Unit: cpu]
+        cpu/event=0x64,umask=0x10/
+
+Metric Groups:
+
+l3_cache:
+  l3_misses
+       [L3 misses (including cacheline state change requests)]
+       [l3_lookup_state.l3_miss]
+  l3_read_miss_latency
+       [Average L3 read miss latency (in core clocks)]
+       [l3_xi_sampled_latency.all * 10 / l3_xi_sampled_latency_requests.all]
+
+lpm_l3: [L3 cache breakdown per CCX]
+  lpm_l3_miss
+       [L3 victim cache miss rate]
+       [d_ratio(l3_lookup_state.l3_miss,
+        max(l3_lookup_state.all_coherent_accesses_to_l3,
+        l3_lookup_state.l3_miss))]

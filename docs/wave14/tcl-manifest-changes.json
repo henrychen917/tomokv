@@ -1,0 +1,66 @@
+{
+  "unit/introspection": {
+    "changed_skips": {
+      "MONITOR log blocked command only once": "MONITOR-BLOCKED-ONCE: cross-connection completion ordering remains unresolved; V17 removes the one-fresh-server retry. Named known difference, not regression evidence."
+    },
+    "promoted": [
+      "CLIENT KILL SKIPME YES/NO will kill all clients"
+    ]
+  },
+  "unit/multi": {
+    "changed_skips": {
+      "DISCARD should not fail during OOM": "MULTI-OOM-QUEUE / MULTI-OOM-EXEC (D10): failed on TomoKV 2s in the survey",
+      "EXEC with at least one use-memory command should fail": "MULTI-OOM-QUEUE / MULTI-OOM-EXEC (D10): failed on TomoKV 2s in the survey"
+    },
+    "promoted": []
+  },
+  "unit/pause": {
+    "changed_skips": {},
+    "promoted": [
+      "Test old pause-all takes precedence over new pause-write (less restrictive)"
+    ]
+  },
+  "unit/pubsub": {
+    "changed_skips": {
+      "PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments": "PUBSUB-DISCONNECT-LAG (D14): intermittent cross-owner disconnect lag observed on PRE and POST; no retry and no compatible-pass claim."
+    },
+    "promoted": [
+      "unsubscribe inside multi, and publish to self"
+    ]
+  },
+  "unit/scripting": {
+    "changed_skips": {
+      "LUA redis.error_reply API": "rootcompat: generic errorstats prototype rejected by zero-cost proof; no command-specific counter remains. Wire replies are covered by scriptfix2.",
+      "LUA redis.error_reply API with empty string": "rootcompat: generic errorstats prototype rejected by zero-cost proof; no command-specific counter remains. Wire replies are covered by scriptfix2."
+    },
+    "promoted": []
+  },
+  "unit/slowlog": {
+    "changed_skips": {
+      "SLOWLOG - GET optional argument to limit output len works": "SLOWLOG-MAXLEN-PER-THREAD: global ring was removed at integration (e98831c81); per-thread ring remains a documented difference.",
+      "SLOWLOG - can clean older entries": "SLOWLOG-MAXLEN-PER-THREAD: global ring was removed at integration (e98831c81); per-thread ring remains a documented difference.",
+      "SLOWLOG - get all slow logs": "SLOWLOG-MAXLEN-PER-THREAD: global ring was removed at integration (e98831c81); per-thread ring remains a documented difference.",
+      "SLOWLOG - logged entry sanity check": "SLOWLOG-MAXLEN-PER-THREAD: global ring was removed at integration (e98831c81); per-thread ring remains a documented difference.",
+      "SLOWLOG - max entries is correctly handled": "SLOWLOG-MAXLEN-PER-THREAD: global ring was removed at integration (e98831c81); per-thread ring remains a documented difference.",
+      "SLOWLOG - Rewritten commands are logged as their original command": "SLOWLOG-EXEC-BLOCKED-ORDER (D11): EXEC retirement ordering can log its waking BLPOP before queued SLOWLOG RESET erases it. Real execution-order defect; no retry."
+    },
+    "promoted": []
+  },
+  "unit/type/list": {
+    "changed_skips": {
+      "BLMPOP with multiple blocked clients": "BLOCK-WAKE-ORDER-MULTI / BLOCK-CHAIN-ASYNC (D11): failed on TomoKV 2s in the survey",
+      "Circular BRPOPLPUSH": "BLOCK-WAKE-ORDER-MULTI / BLOCK-CHAIN-ASYNC (D11): failed on TomoKV 2s in the survey",
+      "Command being unblocked cause another command to get unblocked execution order test": "BLOCK-WAKE-ORDER-MULTI / BLOCK-CHAIN-ASYNC (D11): failed on TomoKV 2s in the survey",
+      "Linked LMOVEs": "BLOCK-WAKE-ORDER-MULTI / BLOCK-CHAIN-ASYNC (D11): failed on TomoKV 2s in the survey",
+      "BRPOPLPUSH does not affect WATCH while still blocked": "BRPOPLPUSH-WATCH-ORDER / D11: cross-connection completion ordering remains unresolved; V17 removes the one-fresh-server retry. Named known difference, not regression evidence.",
+      "PUSH resulting from BRPOPLPUSH affect WATCH": "BRPOPLPUSH-WATCH-ORDER / D11: cross-connection completion ordering remains unresolved; V17 removes the one-fresh-server retry. Named known difference, not regression evidence."
+    },
+    "promoted": []
+  },
+  "unit/type/stream-cgroups": {
+    "changed_skips": {
+      "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP": "rootcompat: removed NOGROUP-only total_error_replies, errorstats and cmdstat timing/failed_calls. Generic error accounting remains unimplemented under the authorized zero-cost fallback."
+    },
+    "promoted": []
+  }
+}

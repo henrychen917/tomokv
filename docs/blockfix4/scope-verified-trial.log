@@ -1,0 +1,14 @@
+verified-normal-INCR-2s-1-1--1 2132
+verified-normal-INCR-1s-1-1--1 1512
+verified-normal-MGET-1s-1-1--1 10186
+verified-normal-MGET-2s-1-1--1 10186
+verified-normal-MSET-1s-1-0--1 10606
+verified-normal-MSET-2s-1-0--1 10424
+verified-normal-MSET-1s-1-1--1 16954
+verified-normal-MSET-2s-1-1--1 16622
+verified-normal-LPUSH-1s-1-1--1 3071
+verified-normal-LPUSH-2s-1-1--1 3691
+verified-normal-RPUSH-1s-1-1--1 2909
+verified-normal-RPUSH-2s-1-1--1 3529
+verified-normal-EVAL-local-1s-1-1--1 4810
+verified-normal-EVAL-local-2s-1-1--1 5526

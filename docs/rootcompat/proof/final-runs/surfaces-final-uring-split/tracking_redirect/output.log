@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; no-history-conservative-default; tracking REDIRECT close vs Redis 7.4
+  tracking REDIRECT close vs Redis 7.4                 ok

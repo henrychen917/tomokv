@@ -1,0 +1,68 @@
+{
+  "binary": "/home/user/Projects/cx-storefix5/build/storefix5/arms/budget1/tomokv",
+  "sha256": "48650cec8e0dcb2114ece7da709da72100c141d57bf7adcc1dde26d21bb7b57e",
+  "argv": [
+    "/home/user/Projects/cx-storefix5/build/storefix5/arms/budget1/tomokv",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "21630",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--enable-debug-command",
+    "yes",
+    "--dir",
+    "/home/user/Projects/cx-storefix5/build/storefix5/tmp1m1up08n",
+    "--thread-mode",
+    "2s",
+    "--shards",
+    "16",
+    "--databases",
+    "16",
+    "--net-io",
+    "uring",
+    "--ratio",
+    "6:2",
+    "--maxmemory",
+    "31457280",
+    "--maxmemory-policy",
+    "allkeys-lru"
+  ],
+  "affinity": [
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23
+  ],
+  "locale": "C",
+  "cases": {
+    "memory_limit": {
+      "result": {
+        "limit": 31457280,
+        "value_size": 100,
+        "policy": "allkeys-lru",
+        "keys": 45160,
+        "accepted": 476625,
+        "refused": 0,
+        "evicted": 431465,
+        "before": {
+          "used_memory": 0,
+          "used_memory_rss": 14974976
+        },
+        "after": {
+          "used_memory": 31455584,
+          "used_memory_rss": 50167808
+        },
+        "rss_over_limit": 1.5947916666666666
+      },
+      "passed": true
+    }
+  },
+  "exit": 0
+}

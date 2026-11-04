@@ -1,0 +1,82 @@
+[
+  {
+    "path": "build/atomfix6/counts/scopes/PRE-normal/probe",
+    "bytes": 238652904,
+    "sha256": "29e405f3ea1f9addf85d6c1adbb6a03f865401750468c43efd722536b93507cc"
+  },
+  {
+    "path": "build/atomfix6/counts/scopes/POST-normal/probe",
+    "bytes": 240851120,
+    "sha256": "8989723b1997b4e273697688a336248c2a6428797f76b8fb42ca876333f1b17c"
+  },
+  {
+    "path": "build/atomfix6/counts/scopes/PRE-db0/probe",
+    "bytes": 238657480,
+    "sha256": "e0268af12ff3ed145c205c11393c7849496488d524824ae56f1e9190b703df91"
+  },
+  {
+    "path": "build/atomfix6/counts/scopes/POST-db0/probe",
+    "bytes": 240863160,
+    "sha256": "6bb0df69871fc500c7e969f5a26ba97b233bab94bd6d0e5a0dbdb9da3d1b28d4"
+  },
+  {
+    "path": "build/atomfix6/counts/scopes/PRE-normal/original-main.o",
+    "bytes": 27206752,
+    "sha256": "a3709f9e0a16dab180530543d60235fd16012bca47f3c15edc50f0d97fbbd4cf"
+  },
+  {
+    "path": "build/atomfix6/counts/scopes/POST-normal/original-main.o",
+    "bytes": 27586328,
+    "sha256": "5c11065de431109d21d8227aaf18d5a21fdc6ea32247f040590ec6ff8939f762"
+  },
+  {
+    "path": "build/atomfix6/counts/scopes/PRE-db0/original-main.o",
+    "bytes": 27206752,
+    "sha256": "a3709f9e0a16dab180530543d60235fd16012bca47f3c15edc50f0d97fbbd4cf"
+  },
+  {
+    "path": "build/atomfix6/counts/scopes/POST-db0/original-main.o",
+    "bytes": 27586328,
+    "sha256": "5c11065de431109d21d8227aaf18d5a21fdc6ea32247f040590ec6ff8939f762"
+  },
+  {
+    "path": "build/atomfix6/contended/scopes/PRE-normal/probe",
+    "bytes": 238504000,
+    "sha256": "7f9c5ee00b5ce3794acca78ad6f0354e99090c1698ae919e0d95b87b42c7d86c"
+  },
+  {
+    "path": "build/atomfix6/contended/scopes/POST-normal/probe",
+    "bytes": 240735888,
+    "sha256": "9eaadb48bbe2abd4640d5809c0996627b11c08ba407800576a4a654d66a4ef8f"
+  },
+  {
+    "path": "build/atomfix6/contended/scopes/PRE-db0/probe",
+    "bytes": 238518936,
+    "sha256": "d71d26e6c9a36019069b79e48132b052ba378bb2d6612db3b6c41720b8730248"
+  },
+  {
+    "path": "build/atomfix6/contended/scopes/POST-db0/probe",
+    "bytes": 240750664,
+    "sha256": "2240372bfe31281399102d5ab715d4fd4d28baa5720e61d00b3000e2d7f9d643"
+  },
+  {
+    "path": "build/atomfix6/contended/scopes/PRE-normal/original-main.o",
+    "bytes": 27206752,
+    "sha256": "a3709f9e0a16dab180530543d60235fd16012bca47f3c15edc50f0d97fbbd4cf"
+  },
+  {
+    "path": "build/atomfix6/contended/scopes/POST-normal/original-main.o",
+    "bytes": 27586328,
+    "sha256": "5c11065de431109d21d8227aaf18d5a21fdc6ea32247f040590ec6ff8939f762"
+  },
+  {
+    "path": "build/atomfix6/contended/scopes/PRE-db0/original-main.o",
+    "bytes": 27206752,
+    "sha256": "a3709f9e0a16dab180530543d60235fd16012bca47f3c15edc50f0d97fbbd4cf"
+  },
+  {
+    "path": "build/atomfix6/contended/scopes/POST-db0/original-main.o",
+    "bytes": 27586328,
+    "sha256": "5c11065de431109d21d8227aaf18d5a21fdc6ea32247f040590ec6ff8939f762"
+  }
+]

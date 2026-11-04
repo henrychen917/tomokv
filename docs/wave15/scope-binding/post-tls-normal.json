@@ -1,0 +1,10 @@
+{
+  "arm": "post",
+  "kind": "tls",
+  "namespace": "normal",
+  "server_sha256": "d36e1c43dd89691747ff5714d7dfe8dec32af88d85e0afc8fd9fe29c2e4c3b0a",
+  "probe_sha256": "ac54f43cae33468e62819ffff05bc9e6446da3e474975eee9dbf576eb793b684",
+  "entered_groups": 23,
+  "matched": 23,
+  "unmatched": []
+}

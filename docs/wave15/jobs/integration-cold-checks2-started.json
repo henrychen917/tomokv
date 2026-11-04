@@ -1,0 +1,35 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "0-63",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "0-15",
+    "--load-cores",
+    "16-31",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20000-20029",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave15/build/wave15/rebind-post"
+  ],
+  "binary_sha256": "3fab403d3b72335772be5e73dd6a00e8edd108487e7acea338a4c8b9f562be76",
+  "env": {
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_ONLY_JOBS": "wave15_idle wave15_rebind core_units",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave15/docs/wave15/jobs/integration-cold-checks2",
+    "CXX": "g++ -gz=zlib",
+    "CC": "cc -gz=zlib"
+  }
+}

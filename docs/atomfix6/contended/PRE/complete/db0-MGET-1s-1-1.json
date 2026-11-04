@@ -1,0 +1,21 @@
+{
+  "arm": "PRE",
+  "namespace": "db0",
+  "domain": "complete",
+  "command": "MGET",
+  "mode": "1s",
+  "batch": 1,
+  "atomic": 1,
+  "probe_sha256": "a70f77fb198e62af127e6f8acfd299bd50ca0172b4b2f5aff69b445f0f8e7e1f",
+  "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
+  "total": 3424,
+  "functions": {
+    "void std::deque<tomo_db0::Task, std::allocator<tomo_db0::Task> >::_M_push_back_aux<tomo_db0::Task const&>(tomo_db0::Task const&)": 66,
+    "tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)": 112,
+    "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 1576,
+    "tomo_db0::ExLoopT<true>::atomfix6_observed_predecessor(std::deque<tomo_db0::Task, std::allocator<tomo_db0::Task> > const&, tomo_db0::Task const&, tomo_db0::Op&, int)": 912,
+    "void tomo_db0::CoreConcurrencyTest::poll<true>(tomo_db0::ExLoopT<true>&)": 758
+  },
+  "clock_calls": 0,
+  "excluded_calls": 1
+}

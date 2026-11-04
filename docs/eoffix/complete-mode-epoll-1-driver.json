@@ -1,0 +1,22 @@
+{
+  "command": [
+    "python3",
+    "tools/eoffix.py",
+    "--tag",
+    "complete-mode-epoll-1",
+    "--jobs",
+    "release_batteries atomic_floor replyoff aof_frame aof-epoll snapshot-epoll",
+    "--binary",
+    "/home/user/Projects/cx-eoffix/build/eoffix/post-complete/tomokv",
+    "--engine",
+    "epoll",
+    "--port",
+    "21900",
+    "--keep-going"
+  ],
+  "exit_code": 0,
+  "seconds": 119.17192514706403,
+  "env": {
+    "GATE_TXN_FUSED": "1"
+  }
+}

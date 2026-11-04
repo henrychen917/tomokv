@@ -1,0 +1,9 @@
+{
+  "path": "build/wave14/eof-source/build/tomokv",
+  "bytes": 99552272,
+  "sha256": "106b6dba3851d1e4256426893c9cfde16dc04566ef340cc114e18b407e65bedc",
+  "patch": "docs/wave14/epoll-eof-initial.patch",
+  "note": "Isolated trial only; production source and active sweep candidate remain a0e4d122e8/c1ed04ec.",
+  "patch_sha256": "996b1739873b95e42997aa250589dda35733c9ea3edff824661c273c6b278087",
+  "production_base": "a0e4d122e8"
+}

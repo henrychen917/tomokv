@@ -1,0 +1,276 @@
+{
+  "label": "post-layout-boot-r7",
+  "source": "/home/user/Projects/cx-wave14/build/gate-run.H1fxcI",
+  "archive": "/home/user/Projects/cx-wave14/docs/wave14/jobs/post-layout-boot-r7.tar.gz",
+  "archive_sha256": "2a0bfd7030dca87fe58ac0cfed0e5e5e386493d56d419e08bc2d25ae2cd76c24",
+  "files": [
+    {
+      "path": "families.tsv",
+      "size": 212,
+      "sha256": "ed594968d5606f42f678a57ddba41f9c07f7691d6b7b8b860da87920801a606f"
+    },
+    {
+      "path": "jobs/dbdefault/dbdefault/1s/result.json",
+      "size": 1954,
+      "sha256": "1cce844b50584da578b0466ecf54a73e9b6aa01d262596c939d7b7d83e0651a0"
+    },
+    {
+      "path": "jobs/dbdefault/dbdefault/1s/server.log",
+      "size": 10540,
+      "sha256": "406e84030676426c9449ce5fa4c7c5720c7527e830e76e9e5b14504231451402"
+    },
+    {
+      "path": "jobs/dbdefault/dbdefault/2s/result.json",
+      "size": 2125,
+      "sha256": "40a1f3ea7ef49082e8d34936c77b8bac1759453d3971cdfb226ed53206db13a2"
+    },
+    {
+      "path": "jobs/dbdefault/dbdefault/2s/server.log",
+      "size": 9637,
+      "sha256": "2abf16ae0e87fdbdd5d1ea319f85118a1f676f140c1431a3542432f4578ad183"
+    },
+    {
+      "path": "jobs/dbdefault/dbdefault/results.json",
+      "size": 4745,
+      "sha256": "4013a8d8c24d781a73c041e170e1129f4fce420f71d311156403e1615e4a907b"
+    },
+    {
+      "path": "jobs/dbdefault/dbdefault.log",
+      "size": 4745,
+      "sha256": "4013a8d8c24d781a73c041e170e1129f4fce420f71d311156403e1615e4a907b"
+    },
+    {
+      "path": "jobs/dbdefault/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/dbdefault/family.tsv",
+      "size": 54,
+      "sha256": "0b4f9258bd6d48d1e5de5190a2e06e7bb87f82dc78d83fa9d6dc1e04ada00edd"
+    },
+    {
+      "path": "jobs/dbdefault/ledger",
+      "size": 52,
+      "sha256": "267d58d69188483ca9f95f7af1eef30f0a770c532db2ca474930f12768582f71"
+    },
+    {
+      "path": "jobs/dbdefault/output.log",
+      "size": 159,
+      "sha256": "78f61da052863026b448de34ba56a09e9b0b103227c27ace242ec1dee6c20cfe"
+    },
+    {
+      "path": "jobs/dbdefault/timings",
+      "size": 52,
+      "sha256": "267d58d69188483ca9f95f7af1eef30f0a770c532db2ca474930f12768582f71"
+    },
+    {
+      "path": "jobs/netio-1s/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/netio-1s/epoll.log",
+      "size": 95,
+      "sha256": "1fc86a85089de0f3db79e1b69717b57501624bf01468edba93fea12a31a0c988"
+    },
+    {
+      "path": "jobs/netio-1s/family.tsv",
+      "size": 53,
+      "sha256": "38d26849645aa08db4d0f3ddf3782a022942a301ec6e895533f3f56cd43ca7b8"
+    },
+    {
+      "path": "jobs/netio-1s/gate-srv-fused.d5L2yP",
+      "size": 10888,
+      "sha256": "9b915c84d65b1d7164e39bfdcc43bc205e94c68eb1d5e64ff5f7b78fd49fafb6"
+    },
+    {
+      "path": "jobs/netio-1s/gate-srv-fused.x0CAvY",
+      "size": 10903,
+      "sha256": "8eda7d49d0bd26665b6d9302bdf576167b3bc9d81d60951fd060052a453d1c0b"
+    },
+    {
+      "path": "jobs/netio-1s/ledger",
+      "size": 44,
+      "sha256": "1a41f804976353ec6e429294b54bde3183cbd86070f6479ada0172316ea09dd3"
+    },
+    {
+      "path": "jobs/netio-1s/output.log",
+      "size": 151,
+      "sha256": "ac594039cf641d70c084d97dbc10edfbf0a38c905cdde77da80a1b8f85654f96"
+    },
+    {
+      "path": "jobs/netio-1s/timings",
+      "size": 44,
+      "sha256": "1a41f804976353ec6e429294b54bde3183cbd86070f6479ada0172316ea09dd3"
+    },
+    {
+      "path": "jobs/netio-1s/uring.log",
+      "size": 91,
+      "sha256": "2a0ff474dfe09e4798de827391ab33f9b2ced94f6443f59d612e6b0f7cae31c3"
+    },
+    {
+      "path": "jobs/netio-2s/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/netio-2s/epoll.log",
+      "size": 95,
+      "sha256": "a99002c5fa4db909bd572885868802e46b7253b4ea89381343fbe14c517a21c4"
+    },
+    {
+      "path": "jobs/netio-2s/family.tsv",
+      "size": 53,
+      "sha256": "7263aa6fe435bc77ed02731550d61089ac98f5a0d28a72ffe1a23fa814e1f278"
+    },
+    {
+      "path": "jobs/netio-2s/gate-srv-main.XJyxjw",
+      "size": 9905,
+      "sha256": "24fdce2ba3139b6b1d3797ff6d30881480c6014e7663e560fd27c66d0be9e0ca"
+    },
+    {
+      "path": "jobs/netio-2s/gate-srv-main.p3nCKO",
+      "size": 9954,
+      "sha256": "8e04bfb23800a3e7ec16e9377e5186d05fc88329bbd900e9345583534cca3a14"
+    },
+    {
+      "path": "jobs/netio-2s/ledger",
+      "size": 44,
+      "sha256": "d170043a68fb6532b7c7bb274b9c40b4947383e2c82386e44b09a8a4898d04ed"
+    },
+    {
+      "path": "jobs/netio-2s/output.log",
+      "size": 151,
+      "sha256": "58b06ecd47a0dd49a4b29d29307103e7b348111e777b350fcef99dd693115888"
+    },
+    {
+      "path": "jobs/netio-2s/timings",
+      "size": 44,
+      "sha256": "d170043a68fb6532b7c7bb274b9c40b4947383e2c82386e44b09a8a4898d04ed"
+    },
+    {
+      "path": "jobs/netio-2s/uring.log",
+      "size": 91,
+      "sha256": "d584c5a1c31a0e319df55bf133078829a53effc450b08b0ef87ff82a143b0fab"
+    },
+    {
+      "path": "jobs/release/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "size": 52,
+      "sha256": "dd37546e49e1541fb100edd2c1390ca35019b32297eaf7189c6c63ff3a5db4e2"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "size": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "phases.tsv",
+      "size": 88,
+      "sha256": "cabd6bcfb999a15cfdeca7e3b88e0efdce029453efad1e6d6c665e0f01be77b5"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1208,
+      "sha256": "792afc3b4265ea7847d74512b9a6ff11d30995e1a6906257266a45949b491c7c"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 235994,
+      "sha256": "3b4ad03bcc69eaafc65624163688805487cad054bdb75c1a5ee4913b2ed6e12f"
+    }
+  ],
+  "jobs": [
+    {
+      "job": "dbdefault",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.170000",
+          "label": "Redis default databases 16 (both modes)"
+        }
+      ]
+    },
+    {
+      "job": "netio-1s",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "3.000000",
+          "label": "epoll directed correctness (1s)"
+        }
+      ]
+    },
+    {
+      "job": "netio-2s",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "3.010000",
+          "label": "epoll directed correctness (2s)"
+        }
+      ]
+    },
+    {
+      "job": "release",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    }
+  ],
+  "command": [
+    "taskset",
+    "-c",
+    "0-31",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "0-7",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20093-20095",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave14/build/wave14/layout-r7/POST-layout"
+  ],
+  "binary_sha256": "e17dfa2cc9b48e9cdbdda1dbe8cc59175d043c1a3295063ba285a4b3a9a9dbd5",
+  "exit_code": 0,
+  "run_directory": "/home/user/Projects/cx-wave14/build/gate-run.H1fxcI",
+  "engine": "uring",
+  "fused": false
+}

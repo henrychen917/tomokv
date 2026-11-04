@@ -1,0 +1,20 @@
+{
+  "source_tree": "238b45a8d8771fb4217805728761ad743e3ef142",
+  "arms_verified": 4,
+  "root_release_matches_POST": true,
+  "plain_comparisons": 80,
+  "plain_nonzero_deltas": 0,
+  "TLS_comparisons": 16,
+  "freshness_checks": 60,
+  "freshness_failures": 0,
+  "EXPECT": {
+    "EXPECT_QUICK": "1046",
+    "EXPECT_FULL": "1063"
+  },
+  "tcl_manifest_unchanged": true,
+  "report_links_valid": true,
+  "build_bytes": 14884536320,
+  "no_owned_live_servers": true,
+  "source_script_report_whitespace_check": "pass",
+  "raw_receipts_retained_verbatim": true
+}

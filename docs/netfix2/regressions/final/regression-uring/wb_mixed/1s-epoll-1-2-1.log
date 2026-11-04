@@ -1,0 +1,1 @@
+PASS WB mixed policy=1 S=2 D=1; borrowed sends, SKIP and hold/resume

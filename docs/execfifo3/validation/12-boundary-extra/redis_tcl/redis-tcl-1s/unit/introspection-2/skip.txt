@@ -1,0 +1,6 @@
+COMMAND LIST FILTERBY PATTERN - list all commands/subcommands
+MIGRATE command is marked with movablekeys
+Operations in no-touch mode do not alter the last access time of a key
+TTL, TYPE and EXISTS do not alter the last access time of a key
+command stats for scripts
+errors stats for GEOADD

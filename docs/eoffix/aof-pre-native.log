@@ -1,0 +1,23 @@
+GATE(full): CORRECTNESS ONLY, shared CPUs 0-7; one slot, 8 server threads at ratio 6:2; no rates or measurements
+  artifacts: /home/user/Projects/cx-eoffix/build/gate-run.xbVz8Q
+PARTIAL jobs (including prerequisites): release eoffix_aof
+PARTIAL jobs (including prerequisites): release eoffix_aof
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; eoffix AOF QSBR (normal, epoll, open)
+  eoffix AOF QSBR (normal, epoll, open)                ok
+  row budget: 900s; median=-s; no-history-conservative-default; eoffix AOF QSBR (normal, epoll, pressure)
+  eoffix AOF QSBR (normal, epoll, pressure)            FAIL (see /home/user/Projects/cx-eoffix/build/gate-run.xbVz8Q/jobs/eoffix_aof/normal-epoll-pressure.log)
+  row budget: 900s; median=-s; no-history-conservative-default; eoffix AOF QSBR (normal, uring, open)
+  eoffix AOF QSBR (normal, uring, open)                ok
+  row budget: 900s; median=-s; no-history-conservative-default; eoffix AOF QSBR (normal, uring, pressure)
+  eoffix AOF QSBR (normal, uring, pressure)            FAIL (see /home/user/Projects/cx-eoffix/build/gate-run.xbVz8Q/jobs/eoffix_aof/normal-uring-pressure.log)
+  row budget: 900s; median=-s; no-history-conservative-default; eoffix AOF QSBR (db0, epoll, open)
+  eoffix AOF QSBR (db0, epoll, open)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; eoffix AOF QSBR (db0, epoll, pressure)
+  eoffix AOF QSBR (db0, epoll, pressure)               FAIL (see /home/user/Projects/cx-eoffix/build/gate-run.xbVz8Q/jobs/eoffix_aof/db0-epoll-pressure.log)
+  row budget: 900s; median=-s; no-history-conservative-default; eoffix AOF QSBR (db0, uring, open)
+  eoffix AOF QSBR (db0, uring, open)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; eoffix AOF QSBR (db0, uring, pressure)
+  eoffix AOF QSBR (db0, uring, pressure)               FAIL (see /home/user/Projects/cx-eoffix/build/gate-run.xbVz8Q/jobs/eoffix_aof/db0-uring-pressure.log)
+GATE(PARTIAL): 5 ok, 4 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-eoffix/docs/eoffix/aof-pre-native.partial

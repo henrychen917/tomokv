@@ -1,0 +1,214 @@
+GATE(full): shared correctness CPUs 24-31; one 8-thread server at ratio 6:2; selected jobs only, no rates or performance tier
+  artifacts: /home/user/Projects/cx-rlfix5/build/gate-run.GZO7V2
+PARTIAL jobs (including prerequisites): release production_units evict-lruclock-split-0 evict-lruclock-armed-0 evict-lruclock-split-1 evict-lruclock-armed-1 evict-lfu-split-0 evict-lfu-armed-0 evict-lfu-split-1 evict-lfu-armed-1 reorder_bounds slotless inline_quoted reorder_sync reorder_identity exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units notify atomic_floor ntfix_input execfair exec1s txnorder2 txnorder_wake feature-cell-1s-0-0-0-0 feature-cell-1s-0-0-0-1 feature-cell-1s-0-0-1-0 feature-cell-1s-0-0-1-1 feature-cell-1s-0-1-0-0 feature-cell-1s-0-1-0-1 feature-cell-1s-0-1-1-0 feature-cell-1s-0-1-1-1 feature-cell-1s-1-0-0-0 feature-cell-1s-1-0-0-1 feature-cell-1s-1-0-1-0 feature-cell-1s-1-0-1-1 feature-cell-1s-1-1-0-0 feature-cell-1s-1-1-0-1 feature-cell-1s-1-1-1-0 feature-cell-1s-1-1-1-1 feature-cell-2s-0-0-0-0 feature-cell-2s-0-0-0-1 feature-cell-2s-0-0-1-0 feature-cell-2s-0-0-1-1 feature-cell-2s-0-1-0-0 feature-cell-2s-0-1-0-1 feature-cell-2s-0-1-1-0 feature-cell-2s-0-1-1-1 feature-cell-2s-1-0-0-0 feature-cell-2s-1-0-0-1 feature-cell-2s-1-0-1-0 feature-cell-2s-1-0-1-1 feature-cell-2s-1-1-0-0 feature-cell-2s-1-1-0-1 feature-cell-2s-1-1-1-0 feature-cell-2s-1-1-1-1 rlfix5-monotonic rlfix5-yes-no rlfix5-no-yes feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto
+PARTIAL jobs (including prerequisites): release production_units evict-lruclock-split-0 evict-lruclock-armed-0 evict-lruclock-split-1 evict-lruclock-armed-1 evict-lfu-split-0 evict-lfu-armed-0 evict-lfu-split-1 evict-lfu-armed-1 reorder_bounds slotless inline_quoted reorder_sync reorder_identity exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units notify atomic_floor ntfix_input execfair exec1s txnorder2 txnorder_wake feature-cell-1s-0-0-0-0 feature-cell-1s-0-0-0-1 feature-cell-1s-0-0-1-0 feature-cell-1s-0-0-1-1 feature-cell-1s-0-1-0-0 feature-cell-1s-0-1-0-1 feature-cell-1s-0-1-1-0 feature-cell-1s-0-1-1-1 feature-cell-1s-1-0-0-0 feature-cell-1s-1-0-0-1 feature-cell-1s-1-0-1-0 feature-cell-1s-1-0-1-1 feature-cell-1s-1-1-0-0 feature-cell-1s-1-1-0-1 feature-cell-1s-1-1-1-0 feature-cell-1s-1-1-1-1 feature-cell-2s-0-0-0-0 feature-cell-2s-0-0-0-1 feature-cell-2s-0-0-1-0 feature-cell-2s-0-0-1-1 feature-cell-2s-0-1-0-0 feature-cell-2s-0-1-0-1 feature-cell-2s-0-1-1-0 feature-cell-2s-0-1-1-1 feature-cell-2s-1-0-0-0 feature-cell-2s-1-0-0-1 feature-cell-2s-1-0-1-0 feature-cell-2s-1-0-1-1 feature-cell-2s-1-1-0-0 feature-cell-2s-1-1-0-1 feature-cell-2s-1-1-1-0 feature-cell-2s-1-1-1-1 rlfix5-monotonic rlfix5-yes-no rlfix5-no-yes feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lruclock battery (split, atomic 0)
+  eviction lruclock battery (split, atomic 0)          ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lruclock battery (fused+armed, atomic 0)
+  eviction lruclock battery (fused+armed, atomic 0)    ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lruclock battery (split, atomic 1)
+  eviction lruclock battery (split, atomic 1)          ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lruclock battery (fused+armed, atomic 1)
+  eviction lruclock battery (fused+armed, atomic 1)    ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lfu battery (split, atomic 0)
+  eviction lfu battery (split, atomic 0)               ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lfu battery (fused+armed, atomic 0)
+  eviction lfu battery (fused+armed, atomic 0)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lfu battery (split, atomic 1)
+  eviction lfu battery (split, atomic 1)               ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lfu battery (fused+armed, atomic 1)
+  eviction lfu battery (fused+armed, atomic 1)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; R7 linear scan and lazy construction bounds (both databases)
+  R7 linear scan and lazy construction bounds (both databases) ok
+  row budget: 900s; median=-s; no-history-conservative-default; slotless remote completions (1s, epoll)
+  slotless remote completions (1s, epoll)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; slotless remote completions (1s, uring)
+  slotless remote completions (1s, uring)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; slotless remote completions (2s, epoll)
+  slotless remote completions (2s, epoll)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; slotless remote completions (2s, uring)
+  slotless remote completions (2s, uring)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; inline quoted argument decoding (1s, epoll)
+  inline quoted argument decoding (1s, epoll)          ok
+  row budget: 900s; median=-s; no-history-conservative-default; inline quoted argument decoding (1s, uring)
+  inline quoted argument decoding (1s, uring)          ok
+  row budget: 900s; median=-s; no-history-conservative-default; inline quoted argument decoding (2s, epoll)
+  inline quoted argument decoding (2s, epoll)          ok
+  row budget: 900s; median=-s; no-history-conservative-default; inline quoted argument decoding (2s, uring)
+  inline quoted argument decoding (2s, uring)          ok
+  row budget: 900s; median=-s; no-history-conservative-default; R7 generated envelope parity
+  R7 generated envelope parity                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; R7 FIFO twin off-path identity + negative controls
+  R7 FIFO twin off-path identity + negative controls   ok
+  row budget: 900s; median=-s; no-history-conservative-default; exbatch publication unit + negative controls
+  exbatch publication unit + negative controls         ok
+  row budget: 900s; median=-s; no-history-conservative-default; exbatch watch unit + negative controls
+  exbatch watch unit + negative controls               ok
+  row budget: 900s; median=-s; no-history-conservative-default; exbatch metadata unit + negative controls
+  exbatch metadata unit + negative controls            ok
+  row budget: 900s; median=-s; no-history-conservative-default; exbatch publication and WATCH lifecycle (1s)
+  exbatch publication and WATCH lifecycle (1s)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; exbatch publication and WATCH lifecycle (2s)
+  exbatch publication and WATCH lifecycle (2s)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; writeback c12 policy witnesses + negative controls
+  writeback c12 policy witnesses + negative controls   ok
+  row budget: 900s; median=-s; no-history-conservative-default; writeback c12 phase witnesses + negative controls
+  writeback c12 phase witnesses + negative controls    ok
+  row budget: 900s; median=-s; no-history-conservative-default; writeback c12 stages witnesses + negative controls
+  writeback c12 stages witnesses + negative controls   ok
+  row budget: 900s; median=-s; no-history-conservative-default; writeback c12 split-phase witnesses + negative controls
+  writeback c12 split-phase witnesses + negative controls ok
+  row budget: 900s; median=-s; no-history-conservative-default; writeback policy clauses witnesses + negative controls
+  writeback policy clauses witnesses + negative controls ok
+  row budget: 900s; median=-s; no-history-conservative-default; writeback policy paths witnesses + negative controls
+  writeback policy paths witnesses + negative controls ok
+  row budget: 900s; median=-s; correctness-plan-fallback; splitlocal template forwarding + old-argument controls
+  splitlocal template forwarding + old-argument controls ok
+  row budget: 900s; median=-s; no-history-conservative-default; MULTI feature battery
+  MULTI feature battery                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; blocking feature battery
+  blocking feature battery                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; pubsub feature battery
+  pubsub feature battery                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; Lua feature battery
+  Lua feature battery                                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; keyspace notification battery (atomic 0/1)
+  keyspace notification battery (atomic 0/1)           ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature battery shutdown invariants
+  feature battery shutdown invariants                  ok
+NOT RUN: atomic MGET/MSET throughput floor (partial correctness-only request)
+  row budget: 900s; median=-s; no-history-conservative-default; tripwire arm/disarm round-trip
+  tripwire arm/disarm round-trip                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; pipelined same-conn program order (400 rolls)
+  pipelined same-conn program order (400 rolls)        ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO received bytes exact (ntfix N1)
+  INFO received bytes exact (ntfix N1)                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; EXEC fast-lane polls and wave6-wave10 interactions
+  EXEC fast-lane polls and wave6-wave10 interactions   ok
+  row budget: 900s; median=-s; no-history-conservative-default; exec1s refinements (1s, atomic 0)
+  exec1s refinements (1s, atomic 0)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; exec1s refinements (1s, atomic 1)
+  exec1s refinements (1s, atomic 1)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; exec1s refinements (2s, atomic 0)
+  exec1s refinements (2s, atomic 0)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; exec1s refinements (2s, atomic 1)
+  exec1s refinements (2s, atomic 1)                    ok
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder2 writer episode R1
+  txnorder2 writer episode R1                          ok
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder2 writer episode R2
+  txnorder2 writer episode R2                          ok
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder2 writer episode R3
+  txnorder2 writer episode R3                          ok
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder2 writer episode R4
+  txnorder2 writer episode R4                          ok
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder2 writer episode R5
+  txnorder2 writer episode R5                          ok
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder2 writer episode R6
+  txnorder2 writer episode R6                          ok
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder2 writer episode R7
+  txnorder2 writer episode R7                          ok
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder2 writer episode R8
+  txnorder2 writer episode R8                          ok
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder2 writer episode R9
+  txnorder2 writer episode R9                          ok
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder2 writer episode R10
+  txnorder2 writer episode R10                         ok
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder2 writer episode R11
+  txnorder2 writer episode R11                         ok
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder2 writer episode R12
+  txnorder2 writer episode R12                         ok
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder2 direct RENAME owner join
+  txnorder2 direct RENAME owner join                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder2 WATCH serve
+  txnorder2 WATCH serve                                ok
+  row budget: 900s; median=30.36s; correctness-plan-fallback; txnorder2 WATCH flush
+  txnorder2 WATCH flush                                ok
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder2 WATCH readonly
+  txnorder2 WATCH readonly                             ok
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder2 busy owner inbox wake
+  txnorder2 busy owner inbox wake                      ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 1s-0-0-0-0
+  feature 1s-0-0-0-0                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 1s-0-0-0-1
+  feature 1s-0-0-0-1                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 1s-0-0-1-0
+  feature 1s-0-0-1-0                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 1s-0-0-1-1
+  feature 1s-0-0-1-1                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 1s-0-1-0-0
+  feature 1s-0-1-0-0                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 1s-0-1-0-1
+  feature 1s-0-1-0-1                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 1s-0-1-1-0
+  feature 1s-0-1-1-0                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 1s-0-1-1-1
+  feature 1s-0-1-1-1                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 1s-1-0-0-0
+  feature 1s-1-0-0-0                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 1s-1-0-0-1
+  feature 1s-1-0-0-1                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 1s-1-0-1-0
+  feature 1s-1-0-1-0                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 1s-1-0-1-1
+  feature 1s-1-0-1-1                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 1s-1-1-0-0
+  feature 1s-1-1-0-0                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 1s-1-1-0-1
+  feature 1s-1-1-0-1                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 1s-1-1-1-0
+  feature 1s-1-1-1-0                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 1s-1-1-1-1
+  feature 1s-1-1-1-1                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 2s-0-0-0-0
+  feature 2s-0-0-0-0                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 2s-0-0-0-1
+  feature 2s-0-0-0-1                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 2s-0-0-1-0
+  feature 2s-0-0-1-0                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 2s-0-0-1-1
+  feature 2s-0-0-1-1                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 2s-0-1-0-0
+  feature 2s-0-1-0-0                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 2s-0-1-0-1
+  feature 2s-0-1-0-1                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 2s-0-1-1-0
+  feature 2s-0-1-1-0                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 2s-0-1-1-1
+  feature 2s-0-1-1-1                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 2s-1-0-0-0
+  feature 2s-1-0-0-0                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 2s-1-0-0-1
+  feature 2s-1-0-0-1                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 2s-1-0-1-0
+  feature 2s-1-0-1-0                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 2s-1-0-1-1
+  feature 2s-1-0-1-1                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 2s-1-1-0-0
+  feature 2s-1-1-0-0                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 2s-1-1-0-1
+  feature 2s-1-1-0-1                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 2s-1-1-1-0
+  feature 2s-1-1-1-0                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature 2s-1-1-1-1
+  feature 2s-1-1-1-1                                   ok
+  row budget: 900s; median=12.21s; correctness-plan-fallback; rlfix5 monotonic (1s)
+  rlfix5 monotonic (1s)                                ok
+  row budget: 900s; median=12.17s; correctness-plan-fallback; rlfix5 monotonic (2s)
+  rlfix5 monotonic (2s)                                ok
+  row budget: 900s; median=3.1s; correctness-plan-fallback; rlfix5 yes-no (1s)
+  rlfix5 yes-no (1s)                                   ok
+  row budget: 900s; median=3.085s; correctness-plan-fallback; rlfix5 yes-no (2s)
+  rlfix5 yes-no (2s)                                   ok
+  row budget: 900s; median=3.08s; correctness-plan-fallback; rlfix5 no-yes (1s)
+  rlfix5 no-yes (1s)                                   ok
+  row budget: 900s; median=3.08s; correctness-plan-fallback; rlfix5 no-yes (2s)
+  rlfix5 no-yes (2s)                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature split-home-min
+  feature split-home-min                               ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature fused-home-max-nopin
+  feature fused-home-max-nopin                         ok
+  row budget: 900s; median=-s; correctness-plan-fallback; feature split-shards-auto
+  feature split-shards-auto                            ok
+GATE(PARTIAL): 104 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix5/docs/rlfix5/jobs/additional-uring.partial

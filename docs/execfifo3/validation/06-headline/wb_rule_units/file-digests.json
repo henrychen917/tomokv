@@ -1,0 +1,47 @@
+[
+  {
+    "path": "done",
+    "bytes": 6,
+    "sha256": "42a52187f3fb65550c4b755cb3a1d49776e3e43784f8a47e0ffb19c5786e0961"
+  },
+  {
+    "path": "family.tsv",
+    "bytes": 58,
+    "sha256": "c7540e59c2403a3c4ee5fc12365b5c913f828f90842effbc2d84b6b96859a932"
+  },
+  {
+    "path": "ledger",
+    "bytes": 256,
+    "sha256": "3cd8712fa09018bc9ba1b8580c2e77e6246b819f3e4f0877e1ad8f41dd2f3bbb"
+  },
+  {
+    "path": "output.log",
+    "bytes": 699,
+    "sha256": "01a15c2efea308d37ec5a632e689aa89b763c2ce26f5d3c919b5c387964e31c7"
+  },
+  {
+    "path": "timings",
+    "bytes": 256,
+    "sha256": "3cd8712fa09018bc9ba1b8580c2e77e6246b819f3e4f0877e1ad8f41dd2f3bbb"
+  },
+  {
+    "path": "wb-rule-phase.log",
+    "bytes": 1245,
+    "sha256": "2df6deb00e87452104356b453d84d07625f254e6d696579a064b4c9635d0d966"
+  },
+  {
+    "path": "wb-rule-policy.log",
+    "bytes": 1166,
+    "sha256": "df6a4bffe8dba93b258a0ed8e6c30cabbc21f9781475727234e472f80245583a"
+  },
+  {
+    "path": "wb-rule-split-phase.log",
+    "bytes": 1697,
+    "sha256": "20f0e6a4123def17120dc81ceecdd81a00671b7357ca47bce0116c1a90c3b3cb"
+  },
+  {
+    "path": "wb-rule-stages.log",
+    "bytes": 572,
+    "sha256": "a50d4112c89bd5ba38fe7a097f1c69d6c6789b78ce547c28b18d4a462449c3cc"
+  }
+]

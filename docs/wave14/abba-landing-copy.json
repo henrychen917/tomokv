@@ -1,0 +1,28 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "0-31",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "0-7",
+    "--load-cores",
+    "24-31",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20090-20092",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave14/build/wave14/correctness-1/tomokv"
+  ],
+  "exit_code": 0,
+  "source": "/home/user/Projects/cx-wave14/build/wave14/landing-source",
+  "gate_before_sha256": "4f435ca879b98fbee0e4a42b4e5fe85b83b92bca5a6dd0009cc3d69d497281d9",
+  "gate_after_sha256": "16d4949e6fe221a114dbf5b5c3073a0339fe99ebbda9b8cbe4c3c312cb8be23b",
+  "checked_in_gate_sha256": "4f435ca879b98fbee0e4a42b4e5fe85b83b92bca5a6dd0009cc3d69d497281d9",
+  "expected_quick": 1090,
+  "expected_full": 1107
+}

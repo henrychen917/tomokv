@@ -1,0 +1,35 @@
+{
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "0-7",
+    "--load-cores",
+    "0-7",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "21933-21935",
+    "--candidate-binary",
+    "/home/user/Projects/cx-eoffix/build/eoffix/post/tomokv"
+  ],
+  "native": "/home/user/Projects/cx-eoffix/build/eoffix/post/tomokv",
+  "native_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
+  "launcher_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
+  "engine": "uring",
+  "jobs": "release_batteries feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 iofix-deferred iofix-hz iofix-sleep iofix-signal netfix_query_stats netfix_unix netfix_config netfix_idle_buffers netcap ntfix_input respcompat crlffix clientfix clientcompat-pause clientcompat-disconnect clientcompat-multi-tracking clientcompat-multi-controls persistfix2_shutdown persistfix2_lastsave persistfix2_commands persistfix2_errors persistfmt persistfmt_aof_error snapfix_shutdown notify_aof serverfix_waitaof",
+  "env": {
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "LC_ALL": "C",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_CORRECTNESS_SHARED_CPUS": "1",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_ONLY_JOBS": "release_batteries feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 iofix-deferred iofix-hz iofix-sleep iofix-signal netfix_query_stats netfix_unix netfix_config netfix_idle_buffers netcap ntfix_input respcompat crlffix clientfix clientcompat-pause clientcompat-disconnect clientcompat-multi-tracking clientcompat-multi-controls persistfix2_shutdown persistfix2_lastsave persistfix2_commands persistfix2_errors persistfmt persistfmt_aof_error snapfix_shutdown notify_aof serverfix_waitaof",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_LEDGER": "/home/user/Projects/cx-eoffix/docs/eoffix/post-live-uring"
+  }
+}

@@ -1,0 +1,5 @@
+ORACLE 7.4.10
+ORACLE [[0, 0], [2, 0], [2, 0], [3, 1], [2, 1], [1, 1], [0, 0]]
+GEOMETRY {"thread_mode": "1s", "net_io": "uring", "atomic": "0", "read_local": "0", "shards": "16"}
+TARGET [[0, 0], [2, 0], [2, 0], [3, 1], [2, 1], [1, 1], [0, 0]]
+PASS counts

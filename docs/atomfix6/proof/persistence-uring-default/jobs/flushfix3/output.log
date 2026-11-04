@@ -1,0 +1,4 @@
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix3 idle FLUSH deadlines all eight legs (databases 16)
+  flushfix3 idle FLUSH deadlines all eight legs (databases 16) ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix3 idle FLUSH deadlines all eight legs (databases 1)
+  flushfix3 idle FLUSH deadlines all eight legs (databases 1) ok

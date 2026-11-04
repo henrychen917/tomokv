@@ -1,0 +1,54 @@
+In file included from src/cmd/xshard.cc:58:
+src/cmd/scatter_engine.inc:455:8: warning: ‘tomo_db0::TxnGroupAttempt’ has a field ‘std::unique_ptr<tomo_db0::{anonymous}::ShardGroup []> tomo_db0::TxnGroupAttempt::placement_groups’ whose type has internal linkage [-Wsubobject-linkage]
+  455 | struct TxnGroupAttempt {
+      |        ^~~~~~~~~~~~~~~
+src/cmd/scatter_engine.inc:473:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::Kind tomo_db0::ScatterState::kind’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+  473 | struct ScatterState : SnapshotCut {
+      |        ^~~~~~~~~~~~
+src/cmd/scatter_engine.inc:473:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::FinalReply tomo_db0::ScatterState::final_reply’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:473:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::WorkError tomo_db0::ScatterState::final_error’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:473:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::ScriptPhase tomo_db0::ScatterState::script_phase’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:473:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::PopReplyShape tomo_db0::ScatterState::pop_reply_shape’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:473:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::ImageRangeOptions tomo_db0::ScatterState::range_options’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:473:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::ImageRangeSpec tomo_db0::ScatterState::range_spec’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:473:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::SortOptions tomo_db0::ScatterState::sort_options’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:473:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::ZAggregate tomo_db0::ScatterState::zset_aggregate’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:473:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::ShardGroup* tomo_db0::ScatterState::groups’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:473:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::KeyRef* tomo_db0::ScatterState::keys’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:473:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::ValueSlot* tomo_db0::ScatterState::values’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:473:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::ObjectImage* tomo_db0::ScatterState::images’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:473:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::ObjectImage* tomo_db0::ScatterState::apply’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:473:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::ResultHeap* tomo_db0::ScatterState::result’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:473:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::SortDerefState* tomo_db0::ScatterState::sort_deref’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+In file included from src/cmd/xshard.cc:59:
+src/cmd/xshard_commands.inc: In function ‘bool tomo_db0::{anonymous}::classify_keys(const tomo_db0::Op&, Kind, const XshardKeyHints&, XshardKeyPlan&)’:
+src/cmd/xshard_commands.inc:340:12: warning: enumeration value ‘Flush’ not handled in switch [-Wswitch]
+  340 |     switch (kind) {
+      |            ^
+In file included from src/cmd/xshard.cc:64:
+src/cmd/multi.inc: In function ‘void tomo_db0::{anonymous}::txn_add_claim(std::vector<tomo_db0::TxnClaim>&, tomo_db0::Slice, tomo_db0::TxnClaimMode, bool)’:
+src/cmd/multi.inc:853:21: warning: missing initializer for member ‘tomo_db0::TxnClaim::waiter’ [-Wmissing-field-initializers]
+  853 |     claims.push_back({std::move(owned), whole ? 0 : FlatStore::hash_key(key), mode});
+      |     ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/cmd/multi.inc: In function ‘void tomo_db0::{anonymous}::txn_cap_claims(std::vector<tomo_db0::TxnClaim>&)’:
+src/cmd/multi.inc:862:21: warning: missing initializer for member ‘tomo_db0::TxnClaim::waiter’ [-Wmissing-field-initializers]
+  862 |     claims.push_back({{}, 0, mode});
+      |     ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+In file included from src/cmd/xshard.cc:70:
+src/cmd/notify.inc: At global scope:
+src/cmd/notify.inc:255:8: warning: ‘tomo_db0::NotifyBatch’ has a field ‘std::shared_ptr<tomo_db0::{anonymous}::NotifyExpiryCompletion> tomo_db0::NotifyBatch::expiry_completion’ whose type has internal linkage [-Wsubobject-linkage]
+  255 | struct NotifyBatch {
+      |        ^~~~~~~~~~~
+In file included from src/cmd/../store/kv_block_cache.h:31,
+                 from src/cmd/../store/flatstore.h:82,
+                 from src/cmd/lookup_notouch.h:2,
+                 from src/cmd/xshard.cc:1:
+src/cmd/../store/kvobj.h: In instantiation of ‘size_t tomo_db0::kvobj_external_bytes(const KvObj*, const void*, const KvObj*) [with bool Retiring = true; size_t = long unsigned int]’:
+src/cmd/../store/flatstore.h:3318:41:   required from here
+src/cmd/../store/kvobj.h:1126:21: warning: the address of ‘void tomo_db0::blocking_stream_removed(const void*, Slice, const KvObj*)’ will never be NULL [-Waddress]
+ 1126 |                 if (blocking_stream_removed) blocking_stream_removed(store, o->key(), replacement);
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~
+In file included from src/cmd/xshard.cc:63:
+src/cmd/blocking.inc:1415:6: note: ‘void tomo_db0::blocking_stream_removed(const void*, Slice, const KvObj*)’ declared here
+ 1415 | void blocking_stream_removed(const void* store, Slice key, const KvObj* replacement) {
+      |      ^~~~~~~~~~~~~~~~~~~~~~~

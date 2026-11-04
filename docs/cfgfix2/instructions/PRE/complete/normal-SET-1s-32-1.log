@@ -1,0 +1,4 @@
+/home/user/Projects/cx-cfgfix2/build/cfgfix2/counts/trace /home/user/Projects/cx-cfgfix2/build/cfgfix2/counts/scopes/PRE-normal/probe /home/user/Projects/cx-cfgfix2/build/cfgfix2/counts/scopes/PRE-normal/complete.ranges 8b2bb0 8b2bc0 000000000002cbf0 SET 1s 32 1 -1
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+COUNT 22450

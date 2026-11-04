@@ -523,7 +523,7 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl() {
         if (read_local_enabled())
             srv_->debug_assert_read_local_sinks_follow_ownership(self_->id());
 #endif
-    const bool lb_frozen = lb_controller_armed_ && srv_->lb_dispatch_paused();
+    const bool lb_frozen = lb_controller_armed_ && srv_->lb_stage() == LbStage::ExDrain;
     if (!lb_frozen) refresh_live_config();
     if (maxmemory_enabled_)
         cached_lru_clock_ = static_cast<uint8_t>(
@@ -959,6 +959,9 @@ void IoLoop::r7_run_loop() {
         // not be the only thing that can find queued work, or one lost bit wedges a connection
         // forever. Runs only when this thread has already concluded it has nothing to do.
         uint32_t sweep_work = 0;
+        // The sweep's resume visits recompute this: true iff a connection still holds a
+        // frame the global atomic window refused (script_window_resume).
+        self_->atomic_admission_state().credit_wait = false;
         sweep_work = r7_sweep<HasUnix, HasTls, kEp, Fused, SplitLocal>();
         if (sweep_work) {
             {
@@ -980,18 +983,24 @@ void IoLoop::r7_run_loop() {
                 self_->publish_read_local_parked(srv_->read_local_epoch());
         }
         self_->arm_blocked();
+        // CREDIT DOORBELL, waiter half. No inbound channel announces a retired window credit,
+        // so a refused frame used to sleep until this park's timeout. Publish this IO after
+        // arm_blocked(), then re-check; a retirement's Server::atomic_credit_doorbell() rings it.
+        const bool credit_room =
+            __builtin_expect(self_->atomic_admission_state().credit_wait, false) &&
+            srv_->atomic_credit_wait_arm(self_->id());
         if constexpr (kEp) {
             // The park. Same 50ms ceiling as the ring wait, and for the same reason: the stop
             // flag is only re-read at the top of the loop, so an unbounded block would make
             // shutdown depend on a connection arriving.
             if constexpr (Fused) {
-                if (!self_->any_fused_inbound()) {
+                if (!credit_room && !self_->any_fused_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
                     r7_epoll_pass<HasUnix, HasTls, Fused>(wait_ms);
                 }
-            } else if (!self_->any_io_inbound()) {
+            } else if (!credit_room && !self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                 tenure.park();
 #endif
@@ -999,14 +1008,14 @@ void IoLoop::r7_run_loop() {
             }
         } else {
             if constexpr (Fused) {
-                if (!self_->any_fused_inbound()) {
+                if (!credit_room && !self_->any_fused_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
                     ring_.submit_and_wait(1, wait_ms);
                 } else                            ring_.submit_and_reap();
             } else {
-                if (!self_->any_io_inbound()) {
+                if (!credit_room && !self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
@@ -1328,7 +1337,9 @@ __attribute__((always_inline)) void IoLoop::r7_admit_retained_fd(int fd, UrKind 
     self_->sig().accepts++;
     if (tls_socket) self_->sig().tls_accepts++;
     else self_->sig().plain_accepts++;
-    if (srv_->live_clients() >= srv_->maxclients()) {
+    // Redis admits exactly maxclients. IO threads accept concurrently, so the slot is
+    // reserved before any other admission work and every later refusal releases it.
+    if (!srv_->client_reserve()) {
         static constexpr char kErr[] = "-ERR max number of clients reached\r\n";
         if (!tls_socket) {
             const ssize_t sent = ::send(fd, kErr, sizeof(kErr) - 1,
@@ -1350,12 +1361,14 @@ __attribute__((always_inline)) void IoLoop::r7_admit_retained_fd(int fd, UrKind 
         }
         ::close(fd);
         srv_->note_rejected_connection();
+        srv_->client_reserve_cancel();
         return;
     }
     auto* c = new (std::nothrow) Client(fd);
     if (!c) {
         ::close(fd);
         self_->sig().accept_err++;
+        srv_->client_reserve_cancel();
         return;
     }
     // NOTHING READ-LOCAL IS ALLOCATED HERE ANY MORE. The RYOW write-ring
@@ -1368,9 +1381,9 @@ __attribute__((always_inline)) void IoLoop::r7_admit_retained_fd(int fd, UrKind 
         delete c;
         ::close(fd);
         self_->sig().accept_err++;
+        srv_->client_reserve_cancel();
         return;
     }
-    srv_->client_accepted();
     c->set_authenticated(!srv_->requirepass_enabled());
     c->set_acl_user_idx(kAclDefaultUser);
     c->set_id(srv_->next_client_id().fetch_add(1, std::memory_order_relaxed));
@@ -1579,6 +1592,10 @@ bool IoLoop::r7_drive_tls(Client* c) {
             // Only decrypted bytes enter the RESP buffer. Ciphertext counts are committed to
             // the BIO in on_tls_recv and can never reach this cursor.
             c->commit_read(result.bytes);
+            self_->sig().net_input_bytes.store(
+                self_->sig().net_input_bytes.load(std::memory_order_relaxed) + result.bytes,
+                std::memory_order_relaxed);
+            c->set_last_interaction_s(cached_now_s_);
             if (query_buffer_exceeded(*c)) { close_client(c); return false; }
             self_->sig().tls_plaintext_input_bytes += result.bytes;
             decrypted = true;
@@ -1631,6 +1648,11 @@ uint32_t IoLoop::r7_epoll_accept(UrKind kind) {
         const int fd = ::accept4(listener, nullptr, nullptr, SOCK_NONBLOCK | SOCK_CLOEXEC);
         if (fd < 0) {
             if (errno == EINTR) continue;
+            if (errno == EMFILE || errno == ENFILE) {
+                self_->sig().accept_err++;
+                backoff_accept(kind);
+                return taken;
+            }
             if (errno != EAGAIN && errno != EWOULDBLOCK) self_->sig().accept_err++;
             return taken;
         }
@@ -1694,6 +1716,7 @@ uint32_t IoLoop::r7_epoll_pass(int timeout_ms) {
                 // EPOLLERR/EPOLLHUP are folded into the read side on purpose: the recv that
                 // follows returns 0 or the real errno, and close_client is then reached through
                 // the one path that already knows how to tear a connection down.
+                if ((ev.events & EPOLLRDHUP) && !c->is_tls()) receive_fin(c, false);
                 if (ev.events & (EPOLLIN | EPOLLERR | EPOLLHUP | EPOLLRDHUP))
                     c->set_recv_armed(false);
                 if (ev.events & (EPOLLOUT | EPOLLERR | EPOLLHUP)) enqueue_serve(c);
@@ -1733,6 +1756,11 @@ void IoLoop::r7_on_accept(io_uring_cqe* cqe, UrKind kind) {
         // Do not swallow this silently: a failing accept with no trace is indistinguishable from
         // a hung server, which is exactly how the 1024-connection failure presented.
         self_->sig().accept_err++;
+        if (cqe->res == -EMFILE || cqe->res == -ENFILE) {
+            accept_armed_ref(kind) = false;
+            backoff_accept(kind);
+            return;
+        }
         rearm_accept(cqe, kind);
         return;
     }
@@ -1863,8 +1891,13 @@ void IoLoop::r7_on_recv(Client* c, int res) {
         } else if (res == -ECANCELED) {
             (void)finish_client_transfer<kEp>(c);
         } else {
+            // Rollback normally re-arms reception. EOF already released the
+            // original kernel pin; hold admission across that rollback.
+            const bool eof = res == 0 && !c->is_tls() && !c->closing();
+            if (eof) c->set_recv_armed(true);
             cancel_client_transfer<kEp>(c);
-            close_client(c);
+            if (eof) receive_fin(c, true);
+            else close_client(c);
         }
         return;
     }
@@ -1884,7 +1917,9 @@ void IoLoop::r7_on_recv(Client* c, int res) {
         connreset::note(*c, self_->id(), res == 0 ? "recv_eof" : "recv_error",
                         std::source_location::current(), res);
 #endif
-        close_client(c); return;
+        if (res == 0 && !c->is_tls() && !c->closing()) receive_fin(c, true);
+        else close_client(c);
+        return;
     }
     c->commit_read(static_cast<size_t>(res));
     if (query_buffer_exceeded(*c)) { close_client(c); return; }
@@ -1908,7 +1943,6 @@ template <bool kEp, bool Fused>
 void IoLoop::r7_on_tls_recv(Client* c, int res) {
     TOMO_R7_PATH();
     c->set_recv_armed(false);
-    if (res > 0) self_->sig().net_input_bytes.store(self_->sig().net_input_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(res), std::memory_order_relaxed);
     TlsConn* tls = tls_engine(c);
     if (!tls) { close_client(c); return; }
     if (c->dead()) { tls->abandon_input(); return; }
@@ -1959,7 +1993,7 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
     static constexpr bool Fused = SplitLocal || (
         BatchOps == kGenthreadIfidBatchOps);
     [[maybe_unused]] const bool read_local_enabled =
-        Fused && __builtin_expect(latency_reads_local_, false);
+        Fused && __builtin_expect(read_local_bookkeeping_, false);
     Client& conn = *c;
     if (__builtin_expect(query_buffer_exceeded(conn), false)) {
         close_client(c); // Redis query-buffer overflow closes without a protocol reply.
@@ -2494,7 +2528,7 @@ subscriber_checks_done:
                 uint64_t timeout_ms = 0;
                 const uint64_t latency_started = __builtin_expect(srv_->latency_tracking(), false)
                     ? latency_tracking_start() : 0;
-                const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms);
+                const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms, c);
                 if (wait == WaitCommandResult::Unsatisfied) {
                     // Pending slices participate in CONFIG no's discard. Do not
                     // retain an old probe duration in the parked timer itself.
@@ -2522,7 +2556,7 @@ subscriber_checks_done:
                         break;
                     }
                 } else if (wait == WaitCommandResult::Immediate) {
-                    server_tail_reply_wait(*op);
+                    server_tail_reply_wait(*op, c);
                 }
                 // Error already carries its exact validation reply. Immediate already carries
                 // :0. Both retire through the ordinary local completion path below.
@@ -2849,9 +2883,10 @@ ordinary_shard_ready:
                 }
                 read_local_demotion.commit_reads();
             }
+            // The shared classifier sets this exactly for armed GET/MGET. No intervening
+            // path changes spec; reuse that result instead of testing its flags again.
             if (read_local_enabled &&
-                __builtin_expect(spec->flags & CmdFlags::ReadLocalEligible, false)) {
-                if (!read_local_eligible_decided) std::abort();
+                __builtin_expect(read_local_eligible_decided, false)) {
                 if (read_local_eligible) {
                     if (head_candidate) {
                         head_candidate = false;
@@ -3199,9 +3234,9 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
         return 0;
     }
 
-    const bool port_ok = probe_boot_listener(cfg, cfg.port, false, IoLoop::make_reuseport_listener);
+    const bool port_ok = probe_boot_listener(cfg, cfg.port, false, make_exclusive_boot_listener);
     const bool tls_port_ok = port_ok &&
-        probe_boot_listener(cfg, cfg.tls_port, true, IoLoop::make_reuseport_listener);
+        probe_boot_listener(cfg, cfg.tls_port, true, make_exclusive_boot_listener);
     if (!port_ok || !tls_port_ok) {
         std::perror(port_ok ? "bind tls-port" : "bind");
         stop_workers();
@@ -3235,6 +3270,7 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
     // Reached only when advance_running() succeeded, i.e. no stop edge was taken; the old
     // `if (!stopping)` guard around these lines is now the gate's own postcondition.
     print_ready_listeners(cfg, unix_listener.bound());
+    cfgfix_process_ready();
     srv.monitor_controllers();
 
     srv.databases().join_workers(srv, pool);

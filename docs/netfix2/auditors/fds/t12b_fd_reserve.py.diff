@@ -1,0 +1,29 @@
+--- audit/t12b_fd_reserve.py
++++ confined-POST/t12b_fd_reserve.py
+@@ -1,15 +1,15 @@
+ #!/usr/bin/env python3
+ """T12b: does Server::adjust_open_files_limit's reserve (server.h:3445-3446:
+ 32 + 2 x io threads + total threads in the multi-DB image) cover the server's own non-client fds?
+-Count /proc/PID/fd of an idle server (no clients) for several geometries on 16 CPUs (64-79)."""
++Count /proc/PID/fd of an idle server (no clients) for several geometries on 16 CPUs (8-15)."""
+ import os, sys
+ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+ import netlib as nl
+ rows = [("2s default", ["--thread-mode", "2s"]), ("2s epoll", ["--thread-mode", "2s", "--net-io", "epoll"]),
+         ("1s default", ["--thread-mode", "1s"]), ("1s epoll", ["--thread-mode", "1s", "--net-io", "epoll"]),
+-        ("2s epoll + tls", ["--thread-mode", "2s", "--net-io", "epoll"] + nl.tls_args(22576))]
++        ("2s epoll + tls", ["--thread-mode", "2s", "--net-io", "epoll"] + nl.tls_args(21176))]
+ for label, args in rows:
+-    with nl.Server("tomo", 22575, args, name="t12b") as srv:
++    with nl.Server("tomo", 21175, args, name="t12b") as srv:
+         fds = os.listdir(f"/proc/{srv.pid}/fd")
+         kinds = {}
+         for fd in fds:
+@@ -20,6 +20,6 @@
+             k = t.split(":")[0] if ":" in t else ("file" if t.startswith("/") else t)
+             if "[" in t: k = t
+             kinds[k] = kinds.get(k, 0) + 1
+-        inf = nl.info(22575, "server")
++        inf = nl.info(21175, "server")
+         io = sum(1 for l in open(srv.logpath) if "role=io" in l or "role=ifid" in l)
+         print(f"{label:16}: {len(fds)} fds (less the INFO probe) kinds={kinds}", flush=True)

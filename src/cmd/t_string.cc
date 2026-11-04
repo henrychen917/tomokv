@@ -10,6 +10,7 @@
 #include "serialize.h"
 #include "lookup_notouch.h"
 #include "string_mutation.h"
+#include "string_append.h"
 #include "../core/shard.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
@@ -667,15 +668,8 @@ void cmd_append(Shard& sh, Op& op) {
         reply_err(op.sink(), "ERR string exceeds maximum allowed size (proto-max-bulk-len)");
         return;
     }
-    char* merged = static_cast<char*>(std::malloc(total ? static_cast<size_t>(total) : 1));
-    if (!merged) { reply_err(op.sink(), "ERR out of memory"); return; }
-    std::memcpy(merged, old.p, old.n);
-    std::memcpy(merged + old.n, op.arg(2).p, op.arg(2).n);
-    const int64_t expire = sh.store().deadline(op.hash, o);
-    const StoreResult result = static_cast<StoreResult>(store_mutable_string(
-        sh, op.key(), op.hash, Slice(merged, static_cast<uint32_t>(total)), expire,
-        o->has_ttl_slot(), kNotify));
-    std::free(merged);
+    const StoreResult result = static_cast<StoreResult>(store_appended_string(
+        sh, op.key(), op.hash, *o, old, op.arg(2), kNotify));
     if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
     if constexpr (kNotify)
         notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Append, op.key());

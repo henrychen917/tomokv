@@ -1,0 +1,308 @@
+[
+  {
+    "send": [
+      "'HELLO'",
+      "3"
+    ]
+  },
+  {
+    "reply_hex": "25370d0a24360d0a7365727665720d0a24350d0a72656469730d0a24370d0a76657273696f6e0d0a24360d0a372e342e31300d0a24350d0a70726f746f0d0a3a330d0a24320d0a69640d0a3a320d0a24340d0a6d6f64650d0a2431300d0a7374616e64616c6f6e650d0a24340d0a726f6c650d0a24360d0a6d61737465720d0a24370d0a6d6f64756c65730d0a2a300d0a",
+    "expected_hex": null
+  },
+  {
+    "send": [
+      "'CLIENT'",
+      "'TRACKING'",
+      "'ON'",
+      "'BCAST'"
+    ]
+  },
+  {
+    "reply_hex": "2b4f4b0d0a",
+    "expected_hex": "2b4f4b0d0a"
+  },
+  {
+    "send": [
+      "'MSET'",
+      "'c'",
+      "3",
+      "'a'",
+      "1",
+      "'b'",
+      "2"
+    ]
+  },
+  {
+    "reply_hex": "2b4f4b0d0a",
+    "expected_hex": "2b4f4b0d0a"
+  },
+  {
+    "reply_hex": "3e320d0a2431300d0a696e76616c69646174650d0a2a330d0a24310d0a610d0a24310d0a620d0a24310d0a630d0a",
+    "expected_hex": "3e320d0a2431300d0a696e76616c69646174650d0a2a330d0a24310d0a610d0a24310d0a620d0a24310d0a630d0a"
+  },
+  {
+    "send": [
+      "'PING'"
+    ]
+  },
+  {
+    "reply_hex": "2b504f4e470d0a",
+    "expected_hex": "2b504f4e470d0a"
+  },
+  {
+    "send": [
+      "'CLIENT'",
+      "'TRACKING'",
+      "'OFF'"
+    ]
+  },
+  {
+    "reply_hex": "2b4f4b0d0a",
+    "expected_hex": "2b4f4b0d0a"
+  },
+  {
+    "send": [
+      "'CLIENT'",
+      "'TRACKING'",
+      "'ON'",
+      "'BCAST'",
+      "'PREFIX'",
+      "'a:'",
+      "'PREFIX'",
+      "'b:'"
+    ]
+  },
+  {
+    "reply_hex": "2b4f4b0d0a",
+    "expected_hex": "2b4f4b0d0a"
+  },
+  {
+    "send": [
+      "'MULTI'"
+    ]
+  },
+  {
+    "reply_hex": "2b4f4b0d0a",
+    "expected_hex": "2b4f4b0d0a"
+  },
+  {
+    "send": [
+      "'INCR'",
+      "'b:2'"
+    ]
+  },
+  {
+    "reply_hex": "2b5155455545440d0a",
+    "expected_hex": "2b5155455545440d0a"
+  },
+  {
+    "send": [
+      "'INCR'",
+      "'a:2'"
+    ]
+  },
+  {
+    "reply_hex": "2b5155455545440d0a",
+    "expected_hex": "2b5155455545440d0a"
+  },
+  {
+    "send": [
+      "'INCR'",
+      "'b:1'"
+    ]
+  },
+  {
+    "reply_hex": "2b5155455545440d0a",
+    "expected_hex": "2b5155455545440d0a"
+  },
+  {
+    "send": [
+      "'INCR'",
+      "'a:1'"
+    ]
+  },
+  {
+    "reply_hex": "2b5155455545440d0a",
+    "expected_hex": "2b5155455545440d0a"
+  },
+  {
+    "send": [
+      "'INCR'",
+      "'a:1'"
+    ]
+  },
+  {
+    "reply_hex": "2b5155455545440d0a",
+    "expected_hex": "2b5155455545440d0a"
+  },
+  {
+    "send": [
+      "'INCR'",
+      "'c:1'"
+    ]
+  },
+  {
+    "reply_hex": "2b5155455545440d0a",
+    "expected_hex": "2b5155455545440d0a"
+  },
+  {
+    "send": [
+      "'EXEC'"
+    ]
+  },
+  {
+    "reply_hex": "2a360d0a3a310d0a3a310d0a3a310d0a3a310d0a3a320d0a3a310d0a",
+    "expected_hex": "2a360d0a3a310d0a3a310d0a3a310d0a3a310d0a3a320d0a3a310d0a"
+  },
+  {
+    "reply_hex": "3e320d0a2431300d0a696e76616c69646174650d0a2a320d0a24330d0a613a310d0a24330d0a613a320d0a",
+    "expected_hex": "3e320d0a2431300d0a696e76616c69646174650d0a2a320d0a24330d0a613a310d0a24330d0a613a320d0a"
+  },
+  {
+    "reply_hex": "3e320d0a2431300d0a696e76616c69646174650d0a2a320d0a24330d0a623a310d0a24330d0a623a320d0a",
+    "expected_hex": "3e320d0a2431300d0a696e76616c69646174650d0a2a320d0a24330d0a623a310d0a24330d0a623a320d0a"
+  },
+  {
+    "send": [
+      "'PING'"
+    ]
+  },
+  {
+    "reply_hex": "2b504f4e470d0a",
+    "expected_hex": "2b504f4e470d0a"
+  },
+  {
+    "send": [
+      "'CLIENT'",
+      "'TRACKING'",
+      "'OFF'"
+    ]
+  },
+  {
+    "reply_hex": "2b4f4b0d0a",
+    "expected_hex": "2b4f4b0d0a"
+  },
+  {
+    "send": [
+      "'CLIENT'",
+      "'TRACKING'",
+      "'ON'",
+      "'BCAST'",
+      "'NOLOOP'"
+    ]
+  },
+  {
+    "reply_hex": "2b4f4b0d0a",
+    "expected_hex": "2b4f4b0d0a"
+  },
+  {
+    "send": [
+      "'MSET'",
+      "'x'",
+      "1",
+      "'y'",
+      "2"
+    ]
+  },
+  {
+    "reply_hex": "2b4f4b0d0a",
+    "expected_hex": "2b4f4b0d0a"
+  },
+  {
+    "send": [
+      "'PING'"
+    ]
+  },
+  {
+    "reply_hex": "2b504f4e470d0a",
+    "expected_hex": "2b504f4e470d0a"
+  },
+  {
+    "send": [
+      "'MSET'",
+      "'y'",
+      "3",
+      "'x'",
+      "4"
+    ]
+  },
+  {
+    "reply_hex": "2b4f4b0d0a",
+    "expected_hex": "2b4f4b0d0a"
+  },
+  {
+    "reply_hex": "3e320d0a2431300d0a696e76616c69646174650d0a2a320d0a24310d0a780d0a24310d0a790d0a",
+    "expected_hex": "3e320d0a2431300d0a696e76616c69646174650d0a2a320d0a24310d0a780d0a24310d0a790d0a"
+  },
+  {
+    "send": [
+      "'PING'"
+    ]
+  },
+  {
+    "reply_hex": "2b504f4e470d0a",
+    "expected_hex": "2b504f4e470d0a"
+  },
+  {
+    "send": [
+      "'CLIENT'",
+      "'TRACKING'",
+      "'OFF'"
+    ]
+  },
+  {
+    "reply_hex": "2b4f4b0d0a",
+    "expected_hex": "2b4f4b0d0a"
+  },
+  {
+    "send": [
+      "'CLIENT'",
+      "'ID'"
+    ]
+  },
+  {
+    "reply_hex": "3a340d0a",
+    "expected_hex": null
+  },
+  {
+    "send": [
+      "'SUBSCRIBE'",
+      "'__redis__:invalidate'"
+    ]
+  },
+  {
+    "reply_hex": "2a330d0a24390d0a7375627363726962650d0a2432300d0a5f5f72656469735f5f3a696e76616c69646174650d0a3a310d0a",
+    "expected_hex": "2a330d0a24390d0a7375627363726962650d0a2432300d0a5f5f72656469735f5f3a696e76616c69646174650d0a3a310d0a"
+  },
+  {
+    "send": [
+      "'CLIENT'",
+      "'TRACKING'",
+      "'ON'",
+      "'BCAST'",
+      "'REDIRECT'",
+      "4"
+    ]
+  },
+  {
+    "reply_hex": "2b4f4b0d0a",
+    "expected_hex": "2b4f4b0d0a"
+  },
+  {
+    "send": [
+      "'MSET'",
+      "'z'",
+      "1",
+      "'q'",
+      "2"
+    ]
+  },
+  {
+    "reply_hex": "2b4f4b0d0a",
+    "expected_hex": "2b4f4b0d0a"
+  },
+  {
+    "reply_hex": "2a330d0a24370d0a6d6573736167650d0a2432300d0a5f5f72656469735f5f3a696e76616c69646174650d0a2a320d0a24310d0a710d0a24310d0a7a0d0a",
+    "expected_hex": "2a330d0a24370d0a6d6573736167650d0a2432300d0a5f5f72656469735f5f3a696e76616c69646174650d0a2a320d0a24310d0a710d0a24310d0a7a0d0a"
+  }
+]

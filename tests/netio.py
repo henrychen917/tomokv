@@ -33,6 +33,9 @@ because "nothing broke" is not evidence:
   G  clean teardown          CLIENT KILL on self must deliver its reply and then close.
 """
 import socket
+import os
+from pathlib import Path
+import signal
 import struct
 import sys
 import time
@@ -280,6 +283,53 @@ for i in range(200):
     admin.cmd("DEL", "netio:a:%d" % i)
 for i in range(DEPTH):
     admin.cmd("DEL", "netio:pipe:%d" % i)
+
+# Finish the original battery before the EOF extension. Each fresh-key attempt
+# records its own failure and continues, so a stuck peer cannot hide later cases.
+print("netio(%s): base checks=%d failures=%d; EOF extension next" %
+      (EXPECT, CHECKS, len(FAILS)), flush=True)
+
+# A short read can consume a pipeline and its FIN edge together. If EOF is
+# forgotten, the first empty BRPOPLPUSH parks forever and no send discovers the
+# closed peer. The native wave14_epoll_eof job forces that exact single-edge
+# window; these real connections require teardown through the blocking fences.
+for i in range(32):
+    c = Conn(timeout=10)
+    cid = c.cmd("CLIENT", "ID")[1:].decode()
+    source = "netio:closed-source:%d" % i
+    target = "netio:closed-target:%d" % i
+    check(admin.cmd("DEL", source, target) == b":0", "F4 fresh closed-pipeline keys")
+    request = ("BRPOPLPUSH %s %s 0\r\n" % (source, target)).encode()
+    # The gate owns a local server. Stop its threads for the first fresh case,
+    # observe the stop, then queue data and FIN before allowing epoll to poll.
+    # The remaining 31 cases retain the original naturally scheduled coverage.
+    stopped = None
+    try:
+        if i == 0 and '--coalesced-eof' in sys.argv:
+            raw = admin.cmd('INFO', 'SERVER').decode()
+            stopped = int(next(line.split(':', 1)[1] for line in raw.splitlines()
+                               if line.startswith('process_id:')))
+            os.kill(stopped, signal.SIGSTOP)
+            deadline = time.monotonic() + 2
+            while True:
+                threads = list(Path(f'/proc/{stopped}/task').glob('*/status'))
+                assert threads, 'server disappeared before the coalesced EOF window'
+                if all('\nState:\tT' in p.read_text() for p in threads):
+                    break
+                assert time.monotonic() < deadline, 'server threads did not stop'
+                time.sleep(.001)
+        c.send_raw(request + request)
+        c.sock.shutdown(socket.SHUT_WR)
+        c.close()
+    finally:
+        if stopped is not None:
+            os.kill(stopped, signal.SIGCONT)
+    try:
+        wait_client_state(admin, cid, "gone")
+    except AssertionError as error:
+        check(False, "F5 closed blocking pipeline retired its exact client", error)
+    else:
+        check(True, "F5 closed blocking pipeline retired its exact client")
 
 if FAILS:
     print("netio(%s): %d checks, %d FAILURES" % (EXPECT, CHECKS, len(FAILS)))

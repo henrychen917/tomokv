@@ -1,0 +1,10 @@
+{
+  "arm": "post",
+  "kind": "session",
+  "namespace": "db0",
+  "server_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+  "probe_sha256": "5ecb49b445bf40d78168c91718774e6a287dd40afb3889bba32197c6bff3f1d0",
+  "entered_groups": 164,
+  "matched": 164,
+  "unmatched": []
+}

@@ -372,8 +372,7 @@ uint64_t HashReadView::random(uint64_t seed, uint64_t bound) {
     return static_cast<uint64_t>((static_cast<unsigned __int128>(value) * bound) >> 64);
 }
 
-bool hash_ttl_read_view(Shard& shard, Op& op, KvObj*& object, HashReadView& view) {
-    if (shard.store().atomic_read_owns_value(op.hash, op.key(), object)) return false;
+void hash_fill_read_view(Shard& shard, KvObj*& object, HashReadView& view) {
     HashFieldTtl** slot = hash_ttl_slot(object);
     view.ttls = slot ? *slot : nullptr;
     view.now_ms = shard.now_ms();
@@ -384,20 +383,15 @@ bool hash_ttl_read_view(Shard& shard, Op& op, KvObj*& object, HashReadView& view
         });
         if (view.expired == hash_ttl_field_count(object)) object = nullptr;
     }
+}
+
+bool hash_ttl_read_view(Shard& shard, Op& op, KvObj*& object, HashReadView& view) {
+    if (shard.store().atomic_read_owns_value(op.hash, op.key(), object)) return false;
+    hash_fill_read_view(shard, object, view);
     return true;
 }
 
-}  // namespace hexpread
-
-bool hash_parked_reply(Shard& shard, Op& op) {
-    using namespace hexpread;
-    // Resolve without touching the physical candidate. Safe reads return to the ordinary lookup.
-    KvObj* object = shard.store().atomic_resolve(op.hash, op.key(), shard.store().atomic_read_epoch());
-    if (!object || !object->is_type(Type::Hash)) return false;
-    KvObj* found = object;
-    HashReadView view;
-    if (!hash_ttl_read_view(shard, op, object, view)) return false;
-    shard.note_keyspace_read(found);
+bool hash_filtered_reply(Shard& shard, Op& op, KvObj* object, HashReadView& view) {
     const char* name = op.spec->name;
     if (std::strcmp(name, "HGET") == 0) filtered_cmd_hget(shard, op, object, view);
     else if (std::strcmp(name, "HMGET") == 0) filtered_cmd_hmget(shard, op, object, view);
@@ -414,6 +408,29 @@ bool hash_parked_reply(Shard& shard, Op& op) {
         filtered_generic_getall(shard, op, GetAllMode::Values, object, view);
     else return false;
     return true;
+}
+
+}  // namespace hexpread
+
+bool hash_parked_reply(Shard& shard, Op& op) {
+    using namespace hexpread;
+    // Resolve without touching the physical candidate. Safe reads return to the ordinary lookup.
+    KvObj* object = shard.store().atomic_resolve(op.hash, op.key(), shard.store().atomic_read_epoch());
+    if (!object || !object->is_type(Type::Hash)) return false;
+    KvObj* found = object;
+    HashReadView view;
+    if (!hash_ttl_read_view(shard, op, object, view)) return false;
+    shard.note_keyspace_read(found);
+    return hash_filtered_reply(shard, op, object, view);
+}
+
+// CD5.3: a read of the owned physical hash while its shard is being captured. The lookup has
+// already booked the keyspace hit; filter lapsed fields without reaping. False: not answered.
+bool hash_capture_reply(Shard& shard, Op& op, KvObj* object) {
+    using namespace hexpread;
+    HashReadView view;
+    hash_fill_read_view(shard, object, view);
+    return hash_filtered_reply(shard, op, object, view);
 }
 
 }  // namespace tomo

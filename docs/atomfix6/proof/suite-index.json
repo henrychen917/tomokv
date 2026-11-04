@@ -1,0 +1,62 @@
+[
+  {
+    "group": "lane",
+    "engine": "uring",
+    "fused": false,
+    "rc": 0
+  },
+  {
+    "group": "lane",
+    "engine": "epoll",
+    "fused": false,
+    "rc": 0
+  },
+  {
+    "group": "atomic",
+    "engine": "uring",
+    "fused": false,
+    "rc": 1
+  },
+  {
+    "group": "atomic",
+    "engine": "uring",
+    "fused": true,
+    "rc": 0
+  },
+  {
+    "group": "features",
+    "engine": "uring",
+    "fused": false,
+    "rc": 1
+  },
+  {
+    "group": "persistence",
+    "engine": "uring",
+    "fused": false,
+    "rc": 0
+  },
+  {
+    "group": "persistence",
+    "engine": "uring",
+    "fused": true,
+    "rc": 0
+  },
+  {
+    "group": "placement",
+    "engine": "uring",
+    "fused": false,
+    "rc": 1
+  },
+  {
+    "group": "differ",
+    "engine": "uring",
+    "fused": false,
+    "rc": 0
+  },
+  {
+    "group": "differ",
+    "engine": "epoll",
+    "fused": false,
+    "rc": 0
+  }
+]

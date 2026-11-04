@@ -1,0 +1,82 @@
+[
+  {
+    "arm": "pre",
+    "namespace": "normal",
+    "args": [],
+    "exit": 1,
+    "stdout": "",
+    "stderr": "FAIL core concurrency: precommit EOF refuses the circular wait\n",
+    "sha256": "dc481dcc768ee80175af8841dcbc6f94eedf07af416159833b4809967ffccbd8"
+  },
+  {
+    "arm": "pre",
+    "namespace": "normal",
+    "args": [
+      "post-only"
+    ],
+    "exit": 1,
+    "stdout": "",
+    "stderr": "FAIL core concurrency: committed EOF may resume buffered input at Idle\n",
+    "sha256": "dc481dcc768ee80175af8841dcbc6f94eedf07af416159833b4809967ffccbd8"
+  },
+  {
+    "arm": "pre",
+    "namespace": "db0",
+    "args": [],
+    "exit": 1,
+    "stdout": "",
+    "stderr": "FAIL core concurrency: precommit EOF refuses the circular wait\n",
+    "sha256": "e93fee72406179c15037da3378bcb217b40864cd1ec2e489c9c2f133ebcd2944"
+  },
+  {
+    "arm": "pre",
+    "namespace": "db0",
+    "args": [
+      "post-only"
+    ],
+    "exit": 1,
+    "stdout": "",
+    "stderr": "FAIL core concurrency: committed EOF may resume buffered input at Idle\n",
+    "sha256": "e93fee72406179c15037da3378bcb217b40864cd1ec2e489c9c2f133ebcd2944"
+  },
+  {
+    "arm": "post",
+    "namespace": "normal",
+    "args": [],
+    "exit": 0,
+    "stdout": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS wave15 EOF control db1 kind3 post-only0\nPASS wave15 EOF control db1 kind4 post-only0\nPASS wave15 EOF control db16 kind3 post-only0\nPASS wave15 EOF control db16 kind4 post-only0\n",
+    "stderr": "",
+    "sha256": "1e7812b15d4d5dc17d7933d3e9ec427646fd3baf251cceeb989ca831bc03671a"
+  },
+  {
+    "arm": "post",
+    "namespace": "normal",
+    "args": [
+      "post-only"
+    ],
+    "exit": 0,
+    "stdout": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS wave15 EOF control db1 kind3 post-only1\nPASS wave15 EOF control db1 kind4 post-only1\nPASS wave15 EOF control db16 kind3 post-only1\nPASS wave15 EOF control db16 kind4 post-only1\n",
+    "stderr": "",
+    "sha256": "1e7812b15d4d5dc17d7933d3e9ec427646fd3baf251cceeb989ca831bc03671a"
+  },
+  {
+    "arm": "post",
+    "namespace": "db0",
+    "args": [],
+    "exit": 0,
+    "stdout": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS wave15 EOF control db1 kind3 post-only0\nPASS wave15 EOF control db1 kind4 post-only0\n",
+    "stderr": "",
+    "sha256": "3975606e4c4168d079d21ee7deb04e03cfca46c44afac071df97b62a998d74f6"
+  },
+  {
+    "arm": "post",
+    "namespace": "db0",
+    "args": [
+      "post-only"
+    ],
+    "exit": 0,
+    "stdout": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS wave15 EOF control db1 kind3 post-only1\nPASS wave15 EOF control db1 kind4 post-only1\n",
+    "stderr": "",
+    "sha256": "3975606e4c4168d079d21ee7deb04e03cfca46c44afac071df97b62a998d74f6"
+  }
+]

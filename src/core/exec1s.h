@@ -13,6 +13,7 @@ struct alignas(64) Exec1sCounters {
     uint64_t owner_passes = 0, extra_passes = 0;
     uint64_t eager_collapses = 0, wb_exec_holds = 0;
     uint64_t blind_clear = 0, record_visits = 0;
+    uint64_t parked_polls = 0, parked_visits = 0; // former tail padding
 };
 inline std::array<Exec1sCounters, 128> exec1s_counters{};
 // Scheduling hints contain no shard/client pointer and survive ownership moves
@@ -34,6 +35,8 @@ inline void exec1s_print(const Exec1sCounters& c, bool json) {
     TOMO_EXEC1S_FIELD(owner_passes, "owner_passes"); TOMO_EXEC1S_FIELD(extra_passes, "extra_passes");
     TOMO_EXEC1S_FIELD(eager_collapses, "eager_collapses"); TOMO_EXEC1S_FIELD(wb_exec_holds, "wb_exec_holds");
     TOMO_EXEC1S_FIELD(blind_clear, "blind_clear");
+    TOMO_EXEC1S_FIELD(parked_polls, "parked_polls");
+    TOMO_EXEC1S_FIELD(parked_visits, "parked_visits");
 #undef TOMO_EXEC1S_FIELD
     std::printf(json ? "\"record_visits\":%llu}," : "record_visits=%llu\n",
                 static_cast<unsigned long long>(c.record_visits));

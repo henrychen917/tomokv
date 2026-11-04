@@ -1,0 +1,133 @@
+ok	0.000000	release build (+footprint locks)
+ok	2.190000	ASAN build
+ok	71.730000	read-local ownership-invariant build
+ok	255.900000	eviction lruclock battery (split, atomic 0)
+ok	255.220000	eviction lruclock battery (fused+armed, atomic 0)
+ok	255.310000	eviction lruclock battery (split, atomic 1)
+ok	255.210000	eviction lruclock battery (fused+armed, atomic 1)
+ok	0.270000	eviction lfu battery (split, atomic 0)
+ok	0.310000	eviction lfu battery (fused+armed, atomic 0)
+ok	0.310000	eviction lfu battery (split, atomic 1)
+ok	0.320000	eviction lfu battery (fused+armed, atomic 1)
+ok	129.900000	flip controller: ramp gate, hold, surge + mix re-maneuvers
+ok	0.770000	ROB portable completion without BMI
+ok	2.130000	slotless remote completions (1s, epoll)
+ok	2.090000	slotless remote completions (1s, uring)
+ok	1.970000	slotless remote completions (2s, epoll)
+ok	1.950000	slotless remote completions (2s, uring)
+ok	12.400000	writeback mixed replies and live knob bounds (1s, epoll)
+ok	12.330000	writeback mixed replies and live knob bounds (1s, uring)
+ok	12.610000	writeback mixed replies and live knob bounds (2s, epoll)
+ok	12.610000	writeback mixed replies and live knob bounds (2s, uring)
+ok	42.400000	stationary balanced LB holds still (1s)
+ok	42.390000	stationary balanced LB holds still (2s)
+ok	1.150000	R7 generated envelope parity
+ok	9.290000	R7 production engagement (both database runtimes)
+ok	0.300000	exbatch publication and WATCH lifecycle (1s)
+ok	0.300000	exbatch publication and WATCH lifecycle (2s)
+ok	2.080000	read-only resize split read-local=0
+ok	2.080000	read-only resize split read-local=1
+ok	1.580000	read-only resize fused read-local=0
+ok	1.590000	read-only resize fused read-local=1
+ok	1.220000	hexpread torn (1s)
+ok	3.410000	hexpread replies (1s)
+ok	1.200000	hexpread deferred (1s)
+ok	1.250000	hexpread OBJECT expiry (1s)
+ok	1.210000	hexpread torn (2s)
+ok	3.400000	hexpread replies (2s)
+ok	1.210000	hexpread deferred (2s)
+ok	1.210000	hexpread OBJECT expiry (2s)
+ok	34.050000	compat3 CC4.12 pubsub vs Redis 7.4
+ok	33.860000	compat3 CC4.13 pending vs Redis 7.4
+ok	33.900000	compat3 CC4.14 history vs Redis 7.4
+ok	34.260000	compat3 CC4.16 grammar vs Redis 7.4
+ok	34.680000	compat3 CC4.5 glob vs Redis 7.4
+ok	38.080000	compat3 CC4.17 flags vs Redis 7.4
+ok	2.140000	B+ held-group GET/MGET filter battery
+ok	0.140000	read-local lane admission battery
+ok	0.080000	read-local MGET fence battery (1s)
+ok	1.890000	read-local GET miss battery (1s)
+ok	0.080000	read-local one-key delete battery (1s)
+ok	0.340000	read-local MGET fence battery (2s)
+ok	1.890000	read-local GET miss battery (2s)
+ok	0.070000	read-local one-key delete battery (2s)
+ok	0.290000	read-local borrow capability (1s, epoll, read-local 0)
+ok	0.290000	read-local borrow capability (1s, epoll, read-local 1)
+ok	0.290000	read-local borrow capability (1s, uring, read-local 0)
+ok	0.300000	read-local borrow capability (1s, uring, read-local 1)
+ok	0.310000	read-local borrow capability (2s, epoll, read-local 0)
+ok	0.310000	read-local borrow capability (2s, epoll, read-local 1)
+ok	0.300000	read-local borrow capability (2s, uring, read-local 0)
+ok	0.320000	read-local borrow capability (2s, uring, read-local 1)
+ok	0.980000	INFO selective collection (1s, epoll, read-local 0)
+ok	1.010000	INFO selective collection (1s, epoll, read-local 1)
+ok	0.930000	INFO selective collection (1s, uring, read-local 0)
+ok	0.980000	INFO selective collection (1s, uring, read-local 1)
+ok	0.910000	INFO selective collection (2s, epoll, read-local 0)
+ok	0.930000	INFO selective collection (2s, epoll, read-local 1)
+ok	1.000000	INFO selective collection (2s, uring, read-local 0)
+ok	0.950000	INFO selective collection (2s, uring, read-local 1)
+ok	2.090000	MULTI feature battery
+ok	1.550000	blocking feature battery
+ok	1.450000	pubsub feature battery
+ok	0.030000	Lua feature battery
+ok	46.510000	keyspace notification battery (atomic 0/1)
+ok	0.020000	feature battery shutdown invariants
+ok	0.150000	FLIP state battery
+ok	1.040000	FLIP under verified load
+ok	1.550000	FLIP TTL + expiry events
+ok	2.230000	partial-frame conn parks (no io spin)
+ok	2.410000	FLIP close during FLIP (uring)
+ok	2.270000	FLIP close during FLIP (epoll)
+ok	1.310000	FLIP signal stop during FLIP + second SIGINT
+ok	0.510000	perfio stale epoll registration (epoll-flip)
+ok	1.100000	perfio stale epoll registration (epoll-lb)
+ok	29.940000	FLIP listener conservation (io-ex, complete)
+ok	33.180000	FLIP listener conservation (io-ex, rollback)
+ok	29.780000	FLIP listener conservation (ex-io, complete)
+ok	30.550000	FLIP listener conservation (ex-io, rollback)
+ok	80.840000	FLIP stale stage storm (all legs)
+FAIL	44.840000	FLIP MULTI WATCH session storm (all legs)
+ok	1.240000	CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)
+ok	1.240000	CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)
+ok	1.380000	zc borrow battery
+ok	0.020000	zc fired (zc_sends=20)
+ok	1.430000	zc borrow battery under ASAN
+ok	0.020000	zc ASAN clean
+ok	25.150000	armed block-cache churn battery
+ok	0.020000	read-local ownership invariants
+ok	1.250000	feature 1s-0-0-0-0
+ok	0.120000	feature 1s-0-0-0-1
+ok	1.250000	feature 1s-0-0-1-0
+ok	0.120000	feature 1s-0-0-1-1
+ok	1.250000	feature 1s-0-1-0-0
+ok	0.120000	feature 1s-0-1-0-1
+ok	1.250000	feature 1s-0-1-1-0
+ok	0.120000	feature 1s-0-1-1-1
+ok	1.250000	feature 1s-1-0-0-0
+ok	0.110000	feature 1s-1-0-0-1
+ok	1.240000	feature 1s-1-0-1-0
+ok	0.120000	feature 1s-1-0-1-1
+ok	2.360000	feature 1s-1-1-0-0
+ok	0.120000	feature 1s-1-1-0-1
+ok	1.250000	feature 1s-1-1-1-0
+ok	0.120000	feature 1s-1-1-1-1
+ok	1.250000	feature 2s-0-0-0-0
+ok	1.250000	feature 2s-0-0-0-1
+ok	1.240000	feature 2s-0-0-1-0
+ok	1.250000	feature 2s-0-0-1-1
+ok	2.350000	feature 2s-0-1-0-0
+ok	1.240000	feature 2s-0-1-0-1
+ok	2.360000	feature 2s-0-1-1-0
+ok	2.360000	feature 2s-0-1-1-1
+ok	1.250000	feature 2s-1-0-0-0
+ok	1.250000	feature 2s-1-0-0-1
+ok	1.240000	feature 2s-1-0-1-0
+ok	1.250000	feature 2s-1-0-1-1
+ok	2.350000	feature 2s-1-1-0-0
+ok	1.250000	feature 2s-1-1-0-1
+ok	1.250000	feature 2s-1-1-1-0
+ok	1.250000	feature 2s-1-1-1-1
+ok	1.250000	feature split-home-min
+ok	1.250000	feature fused-home-max-nopin
+ok	1.250000	feature split-shards-auto

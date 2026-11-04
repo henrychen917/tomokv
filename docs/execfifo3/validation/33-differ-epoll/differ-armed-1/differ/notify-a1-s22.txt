@@ -1,0 +1,1 @@
+DIFFER notify: 330 ops, 452 events, 0 diffs -> PASS

@@ -1,0 +1,299 @@
+{
+  "recorded_ns": 1793518982061382011,
+  "native_images": [
+    {
+      "path": "build/execfifo3/PRE",
+      "sha256": "735cbffb1afa279a4b47ddd42411cbc5d4e25a38653c01150ee15edc5fd6ebca",
+      "bytes": 224567720
+    },
+    {
+      "path": "build/execfifo3/FIFO",
+      "sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+      "bytes": 225416448
+    },
+    {
+      "path": "build/execfifo3/POST",
+      "sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8",
+      "bytes": 225727432
+    },
+    {
+      "path": "build/execfifo3/POST-layout",
+      "sha256": "c3512ef049bd02e5fcf9ef4da31a32b1909cd21ae2a8136303f488029903aa25",
+      "bytes": 436175512
+    },
+    {
+      "path": "build/execfifo3/PAD-A",
+      "sha256": "47c757dca7ceacff91b512c52b6aafdeecbaa6b217ab7636c7774b8d6507e7c4",
+      "bytes": 436175512
+    }
+  ],
+  "archives": [
+    {
+      "path": "build/execfifo3/stage1/POST.gz",
+      "sha256": "a182ad99e7127df3c518af8912f9bf47f01edcc241aeb7b517e5b5027741e8b0",
+      "uncompressed_path": "build/execfifo3/stage1/POST",
+      "uncompressed_sha256": "e1d0e02c9c47a1622a923dadb9e9e1ce4257ad81a76f658e26f3967eeddba241",
+      "uncompressed_bytes": 225634992
+    },
+    {
+      "path": "build/execfifo3/stage1/POST-layout.gz",
+      "sha256": "30c539c9d99365964bca14d4210cfb355cc7e85dd35cc954ab2565798adac8da",
+      "uncompressed_path": "build/execfifo3/stage1/POST-layout",
+      "uncompressed_sha256": "472a1db110cad0c8aaabb823dfe66b4aaf51d22755f19326712da3b2259055c2",
+      "uncompressed_bytes": 436081864
+    },
+    {
+      "path": "build/execfifo3/stage1/PAD-A.gz",
+      "sha256": "dd44def68910b2c41c3d6fa8f3442c3d449a4e0b4785ed5f6bb441ac350d4887",
+      "uncompressed_path": "build/execfifo3/stage1/PAD-A",
+      "uncompressed_sha256": "95d8c96ed30a8c804a956182754f7332be7160104137e933002a41868da656db",
+      "uncompressed_bytes": 436081864
+    },
+    {
+      "path": "build/execfifo3/original-artifacts/PRE.gz",
+      "sha256": "c0dc51219c47e0a1d33c4dcc1488347cafc17792d896ddc275853978aa35af36",
+      "uncompressed_path": "build/execfifo3/original-artifacts/PRE",
+      "uncompressed_sha256": "735cbffb1afa279a4b47ddd42411cbc5d4e25a38653c01150ee15edc5fd6ebca",
+      "uncompressed_bytes": 224567720
+    },
+    {
+      "path": "build/execfifo3/original-artifacts/FIFO.gz",
+      "sha256": "4d122656d1da059dce2ec5374461bff5131864ca84c5319908cf8f9d447c1815",
+      "uncompressed_path": "build/execfifo3/original-artifacts/FIFO",
+      "uncompressed_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+      "uncompressed_bytes": 225416448
+    },
+    {
+      "path": "build/execfifo3/PRE-rebuilt.gz",
+      "sha256": "9a9546e94ae74063ae303d59a883015892a2ce0bb136b734c52383f4f186b0e0",
+      "uncompressed_path": "build/execfifo3/PRE-rebuilt",
+      "uncompressed_sha256": "15faa04036c682eba596d520925bedd55f337d0802029db893fd5cb25d523c3b",
+      "uncompressed_bytes": 224567720
+    },
+    {
+      "path": "build/execfifo3/commands-scopes/POST-final-db0/probe.gz",
+      "sha256": "6aaff901d5c5f37a4c7f574be38c961b386f8f7f20f687644e4717e37bb0cb3b",
+      "uncompressed_path": "build/execfifo3/commands-scopes/POST-final-db0/probe",
+      "uncompressed_sha256": "ded0915be398926104b2d59320044b03c4fb0531e68f2a16f794c4fb4d39293b",
+      "uncompressed_bytes": 229287352
+    },
+    {
+      "path": "build/execfifo3/commands-scopes/POST-final-normal/probe.gz",
+      "sha256": "f71c8566fc666983d73e1778d107837ffb83714af5f0175f30dbd6cb262a25ed",
+      "uncompressed_path": "build/execfifo3/commands-scopes/POST-final-normal/probe",
+      "uncompressed_sha256": "c9d046dff057f53127aee755ce9cf2614688d251849fd7d7b0f6736cfdab9d20",
+      "uncompressed_bytes": 229279120
+    },
+    {
+      "path": "build/execfifo3/commands-scopes/PRE-db0/probe.gz",
+      "sha256": "2afccff8c0ad58b09a0455041340918724d19b95bdcf7ffc727d01349882dd3a",
+      "uncompressed_path": "build/execfifo3/commands-scopes/PRE-db0/probe",
+      "uncompressed_sha256": "729f42c11d9083278f6c09e9a5a88a70c1932e9e02a042c58c9aabacf7c43626",
+      "uncompressed_bytes": 227992088
+    },
+    {
+      "path": "build/execfifo3/commands-scopes/PRE-normal/probe.gz",
+      "sha256": "bb95f282c898e9596a41fd5623385956359d529ba80092c3fe5f00e3d188b30d",
+      "uncompressed_path": "build/execfifo3/commands-scopes/PRE-normal/probe",
+      "uncompressed_sha256": "b0c69081473272ca367979cf475629f01791597918ed0b8d7ff2621265740970",
+      "uncompressed_bytes": 227981720
+    },
+    {
+      "path": "build/execfifo3/memory-scopes/FIFO-db0/probe.gz",
+      "sha256": "71bf3f59c81ecb3408f19b99c7147ceb81e75b7e894fa9a86674f8e62cf3f04c",
+      "uncompressed_path": "build/execfifo3/memory-scopes/FIFO-db0/probe",
+      "uncompressed_sha256": "2188fe16ff256fa9ac9bb8df35da44ec82874d8135c7cfaa183a31d706e0a0cc",
+      "uncompressed_bytes": 229644144
+    },
+    {
+      "path": "build/execfifo3/memory-scopes/FIFO-normal/probe.gz",
+      "sha256": "df898966e677af1e8df0457ac0c4cccbcce2664596af5e5d14c3535992fea686",
+      "uncompressed_path": "build/execfifo3/memory-scopes/FIFO-normal/probe",
+      "uncompressed_sha256": "aff18e8ca73da4391e32e9c22cf18cae54e05b939530ce059b2f9d0a7689d09a",
+      "uncompressed_bytes": 229636856
+    },
+    {
+      "path": "build/execfifo3/memory-scopes/POST-final-db0/probe.gz",
+      "sha256": "568b5679aa9f44605e43de6cbe8cbcbd3212cdc1555e3169a11feb3be1187697",
+      "uncompressed_path": "build/execfifo3/memory-scopes/POST-final-db0/probe",
+      "uncompressed_sha256": "1b7af54d8b601d47bbbad31250f7e20704b419541f77871833d6f1ef6fb4d714",
+      "uncompressed_bytes": 229950528
+    },
+    {
+      "path": "build/execfifo3/memory-scopes/POST-final-normal/probe.gz",
+      "sha256": "1f78113fd0d1c01dde868ee18d6d990af87c58a71ee5a35c232ac6a17cd41c7a",
+      "uncompressed_path": "build/execfifo3/memory-scopes/POST-final-normal/probe",
+      "uncompressed_sha256": "18eeca9a31f3497b98a696c107659fb8a6c7f82ad6bc4845262ae0cb94ede9c1",
+      "uncompressed_bytes": 229947344
+    },
+    {
+      "path": "build/execfifo3/memory-scopes/PRE-db0/probe.gz",
+      "sha256": "26e8e303ba67d8a7add6a9d00fb39bc1d884c61ee5f76d315d24316a26045625",
+      "uncompressed_path": "build/execfifo3/memory-scopes/PRE-db0/probe",
+      "uncompressed_sha256": "570a85e2a658ded5eb01c1fb526449ab187209dbe907deb61a5c414ed948439c",
+      "uncompressed_bytes": 228645344
+    },
+    {
+      "path": "build/execfifo3/memory-scopes/PRE-normal/probe.gz",
+      "sha256": "6249a9fa4b93cd192f212fbdc688f36bea1d09aa31ecc6d5722d9201eb3f961f",
+      "uncompressed_path": "build/execfifo3/memory-scopes/PRE-normal/probe",
+      "uncompressed_sha256": "55533fa60b269a0bc849522a5d56dc6ff42c95b677127e393d2dd766d55d802b",
+      "uncompressed_bytes": 228637560
+    }
+  ],
+  "proof_inputs": [
+    {
+      "path": "/home/user/Projects/redis/src/redis-server",
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+      "bytes": 17663696
+    },
+    {
+      "path": "/home/user/Projects/redis/src/redis-cli",
+      "sha256": "da8b5b5001a481a8fe9e7be07f30cca872bafb9a15be2eeee5a82ccccd41ff9e",
+      "bytes": 7735744
+    },
+    {
+      "path": "tests/gate.sh",
+      "sha256": "edf86280993f8f8221e642a66b05ce0fe884cedb8e1e13417cc1da80fabadb63",
+      "bytes": 344184
+    },
+    {
+      "path": "tests/differ_gate.sh",
+      "sha256": "e741f837fb9bed5a0927fefe38aa3361d29ec699964f140a93a05fb9f17e8c63",
+      "bytes": 20529
+    },
+    {
+      "path": "tests/gates_test.py",
+      "sha256": "cfd5179300b0175e6817e8bace282d57e0817b069cef7052483e63daa3bd5fc0",
+      "bytes": 124249
+    },
+    {
+      "path": "tests/txnorder_fifo.cc",
+      "sha256": "d11333e46cebfe0c304722bed89857602dcb064443553deb5285289a33086061",
+      "bytes": 13857
+    },
+    {
+      "path": "tests/txnorder_chain.cc",
+      "sha256": "91ef2b76fccc4a480f7435902d66a8a072bf0bf6d10e9352fd63850a2eceb777",
+      "bytes": 12687
+    },
+    {
+      "path": "tests/execfifo3_scope.cc",
+      "sha256": "1864c7b6006ab467ff0ffa598bfa1cf09dd63dfba3a9fb003195e354419cb92f",
+      "bytes": 11310
+    }
+  ],
+  "negative_units": [
+    {
+      "path": "/home/user/Projects/cx-execfifo3/build/txnorder-chain-db0-unit",
+      "sha256": "aa7f5fdfbec13450e7f2c77b2d55d905ffea7490beca5b68f1fa21c98493d46a",
+      "bytes": 86737520
+    },
+    {
+      "path": "/home/user/Projects/cx-execfifo3/build/txnorder-chain-unit",
+      "sha256": "d8aa6cc00375e01c9037eea1540b637aa8cc6715a10f9374dd353d70f70ee510",
+      "bytes": 45881864
+    },
+    {
+      "path": "/home/user/Projects/cx-execfifo3/build/txnorder-fifo-db0-unit",
+      "sha256": "adc8798b4fcbce090be4bab5d988ac82772bdadf3bd0bfaa0dfd0acdf1348009",
+      "bytes": 84623512
+    },
+    {
+      "path": "/home/user/Projects/cx-execfifo3/build/txnorder-fifo-unit",
+      "sha256": "bcf13d004970ac5e6aec9015781b25c273ac6235964c2738ab7fcf0dd4735252",
+      "bytes": 43755032
+    }
+  ],
+  "sha_receipts": [
+    {
+      "receipt": "SHA256SUMS",
+      "path": "build/execfifo3/PRE",
+      "sha256": "735cbffb1afa279a4b47ddd42411cbc5d4e25a38653c01150ee15edc5fd6ebca"
+    },
+    {
+      "receipt": "SHA256SUMS",
+      "path": "build/execfifo3/FIFO",
+      "sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a"
+    },
+    {
+      "receipt": "SHA256SUMS",
+      "path": "build/execfifo3/POST",
+      "sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8"
+    },
+    {
+      "receipt": "SHA256SUMS",
+      "path": "build/execfifo3/POST-layout",
+      "sha256": "c3512ef049bd02e5fcf9ef4da31a32b1909cd21ae2a8136303f488029903aa25"
+    },
+    {
+      "receipt": "SHA256SUMS",
+      "path": "build/execfifo3/PAD-A",
+      "sha256": "47c757dca7ceacff91b512c52b6aafdeecbaa6b217ab7636c7774b8d6507e7c4"
+    },
+    {
+      "receipt": "stage1-SHA256SUMS",
+      "path": "build/execfifo3/PRE-rebuilt",
+      "sha256": "15faa04036c682eba596d520925bedd55f337d0802029db893fd5cb25d523c3b"
+    },
+    {
+      "receipt": "stage1-SHA256SUMS",
+      "path": "build/execfifo3/FIFO",
+      "sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a"
+    },
+    {
+      "receipt": "stage1-SHA256SUMS",
+      "path": "build/execfifo3/stage1/POST",
+      "sha256": "e1d0e02c9c47a1622a923dadb9e9e1ce4257ad81a76f658e26f3967eeddba241"
+    },
+    {
+      "receipt": "stage1-SHA256SUMS",
+      "path": "build/execfifo3/stage1/POST-layout",
+      "sha256": "472a1db110cad0c8aaabb823dfe66b4aaf51d22755f19326712da3b2259055c2"
+    },
+    {
+      "receipt": "stage1-SHA256SUMS",
+      "path": "build/execfifo3/stage1/PAD-A",
+      "sha256": "95d8c96ed30a8c804a956182754f7332be7160104137e933002a41868da656db"
+    },
+    {
+      "receipt": "stage1-SHA256SUMS",
+      "path": "build/execfifo3/original-artifacts/PRE",
+      "sha256": "735cbffb1afa279a4b47ddd42411cbc5d4e25a38653c01150ee15edc5fd6ebca"
+    },
+    {
+      "receipt": "original-reference-SHA256SUMS",
+      "path": "build/execfifo3/original-artifacts/PRE",
+      "sha256": "735cbffb1afa279a4b47ddd42411cbc5d4e25a38653c01150ee15edc5fd6ebca"
+    }
+  ],
+  "negative_controls": 12,
+  "pad_smoke_cells": 16,
+  "production_makefile_commit": "4248cfd40",
+  "fifo_sources_unchanged_from": "2461efbbb",
+  "production_sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8",
+  "final_receipts": [
+    {
+      "path": "Makefile",
+      "sha256": "802118be376399e370f830493a83602205aaa0a57873e2b41bdb4a28692c23a9"
+    },
+    {
+      "path": "tests/gate.sh",
+      "sha256": "edf86280993f8f8221e642a66b05ce0fe884cedb8e1e13417cc1da80fabadb63"
+    },
+    {
+      "path": "docs/execfifo3/freshness.json",
+      "sha256": "798fb7bf312f7ad21b6ce8fdeba0178407d18d0da133eeafb7a980f9fad009b4"
+    },
+    {
+      "path": "docs/execfifo3/validation/coverage.json",
+      "sha256": "913a2c3a777130584c693c92e7ee1c9f52d63dacce907d15bd053632aa905b28"
+    }
+  ],
+  "listeners_20600_20699": [],
+  "running_worktree_executables": [],
+  "build_allocated_bytes": 21437095936,
+  "build_gib": 19.96485137939453,
+  "branch": "cx-execfifo3",
+  "passed": true
+}

@@ -1,0 +1,41 @@
+{
+  "run": "build/gate-run.Jusnxn",
+  "partial": true,
+  "full_gate_receipt": false,
+  "complete": true,
+  "jobs": [
+    {
+      "job": "clientcompat-multi-controls",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t159.730000\tclientcompat multi-controls"
+      ]
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    }
+  ],
+  "missing": [],
+  "archive": "docs/clientcompat/validation/subscription-keyspace-capture-before.json.gz",
+  "archive_sha256": "110a8f73dcb03c9add2e28f8a1cf3b4ffa51628789f646e3664515e68e34967c",
+  "passed": 1,
+  "failed": 1,
+  "arm": {
+    "source_commit": "ecdf5d9ffa",
+    "arm": "POST",
+    "binary": "build/clientcompat/POST/tomokv",
+    "sha256": "b8bb8c20041c97cd5c8fa8e58abfdeb3864272c4247a20debfcccc218db5b47a",
+    "LC_ALL": "C",
+    "requested_jobs": [
+      "clientcompat-multi-controls"
+    ]
+  }
+}

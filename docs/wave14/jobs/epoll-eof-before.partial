@@ -1,0 +1,4 @@
+PARTIAL	0	GATE_ONLY_JOBS=wave14_epoll_eof; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	0.000000	wave14 epoll coalesced EOF (normal)
+FAIL	0.010000	wave14 epoll coalesced EOF (db0)

@@ -1,0 +1,73 @@
+{
+  "label": "abba-final-receipts",
+  "source": "/home/user/Projects/cx-wave14/build/wave14/landing-final/build/gate-run.4QYjqd",
+  "archive": "/home/user/Projects/cx-wave14/docs/wave14/jobs/abba-final-receipts.tar.gz",
+  "archive_sha256": "861a5ad1a5481a777b0ac72db1a8316d740df81a0834fb07cc1934cad53fe0a3",
+  "files": [
+    {
+      "path": "families.tsv",
+      "size": 58,
+      "sha256": "6c51acaaf55ea41671f6fc2a22931982ec19d5c6a382f62411aa7ff561e71bb9"
+    },
+    {
+      "path": "jobs/abba_selftest/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/abba_selftest/family.tsv",
+      "size": 58,
+      "sha256": "6c51acaaf55ea41671f6fc2a22931982ec19d5c6a382f62411aa7ff561e71bb9"
+    },
+    {
+      "path": "jobs/abba_selftest/gate-abbagate-unit.txt",
+      "size": 163232,
+      "sha256": "1c3d1e3b94bf492d836852a1ca00f3170dde02830b334682003d84a5e3163816"
+    },
+    {
+      "path": "jobs/abba_selftest/ledger",
+      "size": 61,
+      "sha256": "f651273581224bf413817ffe0c3d81f8e3f449f1ab34a115d9bab5f612f316f7"
+    },
+    {
+      "path": "jobs/abba_selftest/output.log",
+      "size": 192,
+      "sha256": "2f9aed32f111786fbe602bf134a885264af95315b33b000ba2845cd7fc154f90"
+    },
+    {
+      "path": "jobs/abba_selftest/timings",
+      "size": 61,
+      "sha256": "f651273581224bf413817ffe0c3d81f8e3f449f1ab34a115d9bab5f612f316f7"
+    },
+    {
+      "path": "phases.tsv",
+      "size": 88,
+      "sha256": "e96053e601395198688348c71e8460a1977bc2a5df85d4321a8f84a1d80ffea1"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1190,
+      "sha256": "0d2b6746e038e61f84c42d5617bae38d0a65bc874434a3591581b8b68a7671a4"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 191,
+      "sha256": "7a34b2d2efeba83a0dced7cd01f7141fa277b3e4e582b0e9ff58d602c8ac22b3"
+    }
+  ],
+  "jobs": [
+    {
+      "job": "abba_selftest",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "434.660000",
+          "label": "ABBA comparison + saturation negative controls"
+        }
+      ]
+    }
+  ]
+}

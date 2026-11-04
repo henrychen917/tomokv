@@ -1,0 +1,538 @@
+[
+  {
+    "leg": "fifo-1-1s-0-epoll",
+    "pre": {
+      "leg": "fifo-1-1s-0-epoll",
+      "passed": false,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 9422943,
+      "fifo": {
+        "share": 0.062298316546295425,
+        "expected_share": 0.0625,
+        "plain_p99": 0.0004832018166780472,
+        "plain_p100": 0.030606558546423912,
+        "bound99": 0.0012994941282572577
+      },
+      "assertions": [
+        "('plain p100 exceeds 20 ms', 0.030606558546423912)"
+      ]
+    },
+    "post": {
+      "leg": "fifo-1-1s-0-epoll",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 5480371,
+      "fifo": {
+        "share": 0.06094092894964666,
+        "expected_share": 0.0625,
+        "plain_p99": 0.0008276635780930519,
+        "plain_p100": 0.0043744612485170364,
+        "bound99": 0.002230404190247748
+      },
+      "assertions": []
+    }
+  },
+  {
+    "leg": "fifo-1-1s-0-uring",
+    "pre": {
+      "leg": "fifo-1-1s-0-uring",
+      "passed": false,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 6272546,
+      "fifo": {
+        "share": 0.06122167925065864,
+        "expected_share": 0.0625,
+        "plain_p99": 0.0007156608626246452,
+        "plain_p100": 0.05002069100737572,
+        "bound99": 0.001949439884184825
+      },
+      "assertions": [
+        "('plain p100 exceeds 20 ms', 0.05002069100737572)"
+      ]
+    },
+    "post": {
+      "leg": "fifo-1-1s-0-uring",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 10810682,
+      "fifo": {
+        "share": 0.07195912018035541,
+        "expected_share": 0.0625,
+        "plain_p99": 0.0003927508369088173,
+        "plain_p100": 0.004018300212919712,
+        "bound99": 0.0011427720569094986
+      },
+      "assertions": []
+    }
+  },
+  {
+    "leg": "fifo-1-1s-1-epoll",
+    "pre": {
+      "leg": "fifo-1-1s-1-epoll",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 10004409,
+      "fifo": {
+        "share": 0.07102624185361756,
+        "expected_share": 0.0625,
+        "plain_p99": 0.00040660053491592407,
+        "plain_p100": 0.0039568254724144936,
+        "bound99": 0.0012333724094396863
+      },
+      "assertions": []
+    },
+    "post": {
+      "leg": "fifo-1-1s-1-epoll",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 9898709,
+      "fifo": {
+        "share": 0.07105099603421405,
+        "expected_share": 0.0625,
+        "plain_p99": 0.0004281904548406601,
+        "plain_p100": 0.003956269472837448,
+        "bound99": 0.0012467544146142905
+      },
+      "assertions": []
+    }
+  },
+  {
+    "leg": "fifo-1-1s-1-uring",
+    "pre": {
+      "leg": "fifo-1-1s-1-uring",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 6322764,
+      "fifo": {
+        "share": 0.06110287661411805,
+        "expected_share": 0.0625,
+        "plain_p99": 0.0007204608991742134,
+        "plain_p100": 0.0031531834974884987,
+        "bound99": 0.0019327522640970748
+      },
+      "assertions": []
+    },
+    "post": {
+      "leg": "fifo-1-1s-1-uring",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 8946667,
+      "fifo": {
+        "share": 0.06520418582367268,
+        "expected_share": 0.0625,
+        "plain_p99": 0.0004879916086792946,
+        "plain_p100": 0.0008023325353860855,
+        "bound99": 0.0013716981196854985
+      },
+      "assertions": []
+    }
+  },
+  {
+    "leg": "fifo-1-2s-0-epoll",
+    "pre": {
+      "leg": "fifo-1-2s-0-epoll",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 15841209,
+      "fifo": {
+        "share": 0.0908976906962619,
+        "expected_share": 0.0625,
+        "plain_p99": 0.0002518007531762123,
+        "plain_p100": 0.002927045337855816,
+        "bound99": 0.0007927817969385319
+      },
+      "assertions": []
+    },
+    "post": {
+      "leg": "fifo-1-2s-0-epoll",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 14729098,
+      "fifo": {
+        "share": 0.07857501044224137,
+        "expected_share": 0.0625,
+        "plain_p99": 0.0002673892304301262,
+        "plain_p100": 0.004358851350843906,
+        "bound99": 0.0008437167863502532
+      },
+      "assertions": []
+    }
+  },
+  {
+    "leg": "fifo-1-2s-0-uring",
+    "pre": {
+      "leg": "fifo-1-2s-0-uring",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 16264125,
+      "fifo": {
+        "share": 0.08897909931461265,
+        "expected_share": 0.0625,
+        "plain_p99": 0.0002587800845503807,
+        "plain_p100": 0.003194204531610012,
+        "bound99": 0.0007704338187127333
+      },
+      "assertions": []
+    },
+    "post": {
+      "leg": "fifo-1-2s-0-uring",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 15464293,
+      "fifo": {
+        "share": 0.0877269947004559,
+        "expected_share": 0.0625,
+        "plain_p99": 0.0002547008916735649,
+        "plain_p100": 0.003536018542945385,
+        "bound99": 0.0008107430917091787
+      },
+      "assertions": []
+    }
+  },
+  {
+    "leg": "fifo-1-2s-1-epoll",
+    "pre": {
+      "leg": "fifo-1-2s-1-epoll",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 16967353,
+      "fifo": {
+        "share": 0.09096793532746489,
+        "expected_share": 0.0625,
+        "plain_p99": 0.0002520103007555008,
+        "plain_p100": 0.004102739505469799,
+        "bound99": 0.0007413703013592508
+      },
+      "assertions": []
+    },
+    "post": {
+      "leg": "fifo-1-2s-1-epoll",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 15721682,
+      "fifo": {
+        "share": 0.08762722562695832,
+        "expected_share": 0.0625,
+        "plain_p99": 0.00025821104645729065,
+        "plain_p100": 0.00441709253937006,
+        "bound99": 0.0007972669153425701
+      },
+      "assertions": []
+    }
+  },
+  {
+    "leg": "fifo-1-2s-1-uring",
+    "pre": {
+      "leg": "fifo-1-2s-1-uring",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 16746782,
+      "fifo": {
+        "share": 0.09120769796551981,
+        "expected_share": 0.0625,
+        "plain_p99": 0.0002735015004873276,
+        "plain_p100": 0.004069168120622635,
+        "bound99": 0.0007497671578728808
+      },
+      "assertions": []
+    },
+    "post": {
+      "leg": "fifo-1-2s-1-uring",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 15034708,
+      "fifo": {
+        "share": 0.08269829642557876,
+        "expected_share": 0.0625,
+        "plain_p99": 0.00025948043912649155,
+        "plain_p100": 0.0009922031313180923,
+        "bound99": 0.0008294681244082685
+      },
+      "assertions": []
+    }
+  },
+  {
+    "leg": "fifo-16-1s-0-epoll",
+    "pre": {
+      "leg": "fifo-16-1s-0-epoll",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 8034990,
+      "fifo": {
+        "share": 0.061734486500428926,
+        "expected_share": 0.0625,
+        "plain_p99": 0.0005735112354159355,
+        "plain_p100": 0.004057439975440502,
+        "bound99": 0.0015203964511594308
+      },
+      "assertions": []
+    },
+    "post": {
+      "leg": "fifo-16-1s-0-epoll",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 5534578,
+      "fifo": {
+        "share": 0.06064354063868066,
+        "expected_share": 0.0625,
+        "plain_p99": 0.0008238749578595161,
+        "plain_p100": 0.003615414723753929,
+        "bound99": 0.0022080551082129447
+      },
+      "assertions": []
+    }
+  },
+  {
+    "leg": "fifo-16-1s-0-uring",
+    "pre": {
+      "leg": "fifo-16-1s-0-uring",
+      "passed": false,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 6817661,
+      "fifo": {
+        "share": 0.06087348244601227,
+        "expected_share": 0.0625,
+        "plain_p99": 0.0006650816649198532,
+        "plain_p100": 0.05310023948550224,
+        "bound99": 0.0017923436384979106
+      },
+      "assertions": [
+        "('plain p100 exceeds 20 ms', 0.05310023948550224)"
+      ]
+    },
+    "post": {
+      "leg": "fifo-16-1s-0-uring",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 5932014,
+      "fifo": {
+        "share": 0.06138748710843089,
+        "expected_share": 0.0625,
+        "plain_p99": 0.0007541514933109283,
+        "plain_p100": 0.003078978508710861,
+        "bound99": 0.002060691494173609
+      },
+      "assertions": []
+    }
+  },
+  {
+    "leg": "fifo-16-1s-1-epoll",
+    "pre": {
+      "leg": "fifo-16-1s-1-epoll",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 5892063,
+      "fifo": {
+        "share": 0.06062012852591219,
+        "expected_share": 0.0625,
+        "plain_p99": 0.0007764007896184921,
+        "plain_p100": 0.004303670488297939,
+        "bound99": 0.002073925067981368
+      },
+      "assertions": []
+    },
+    "post": {
+      "leg": "fifo-16-1s-1-epoll",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 8667272,
+      "fifo": {
+        "share": 0.06267879343702719,
+        "expected_share": 0.0625,
+        "plain_p99": 0.0005262326449155807,
+        "plain_p100": 0.0038285329937934875,
+        "bound99": 0.001412453197023288
+      },
+      "assertions": []
+    }
+  },
+  {
+    "leg": "fifo-16-1s-1-uring",
+    "pre": {
+      "leg": "fifo-16-1s-1-uring",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 10477205,
+      "fifo": {
+        "share": 0.07127702475269189,
+        "expected_share": 0.0625,
+        "plain_p99": 0.00041087064892053604,
+        "plain_p100": 0.0038256878033280373,
+        "bound99": 0.0011761764996265469
+      },
+      "assertions": []
+    },
+    "post": {
+      "leg": "fifo-16-1s-1-uring",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 9357665,
+      "fifo": {
+        "share": 0.06946405109839421,
+        "expected_share": 0.0625,
+        "plain_p99": 0.000451832078397274,
+        "plain_p100": 0.0006676744669675827,
+        "bound99": 0.0013169962694639728
+      },
+      "assertions": []
+    }
+  },
+  {
+    "leg": "fifo-16-2s-0-epoll",
+    "pre": {
+      "leg": "fifo-16-2s-0-epoll",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 14531190,
+      "fifo": {
+        "share": 0.07774735576723395,
+        "expected_share": 0.0625,
+        "plain_p99": 0.0002669217064976692,
+        "plain_p100": 0.0012741237878799438,
+        "bound99": 0.0008546838646431637
+      },
+      "assertions": []
+    },
+    "post": {
+      "leg": "fifo-16-2s-0-epoll",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 15295564,
+      "fifo": {
+        "share": 0.08349803029517379,
+        "expected_share": 0.0625,
+        "plain_p99": 0.00028493069112300873,
+        "plain_p100": 0.0041497619822621346,
+        "bound99": 0.0008148319525968111
+      },
+      "assertions": []
+    }
+  },
+  {
+    "leg": "fifo-16-2s-0-uring",
+    "pre": {
+      "leg": "fifo-16-2s-0-uring",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 15435289,
+      "fifo": {
+        "share": 0.08390534281244119,
+        "expected_share": 0.0625,
+        "plain_p99": 0.00024661049246788025,
+        "plain_p100": 0.004001009277999401,
+        "bound99": 0.0008088423290643846
+      },
+      "assertions": []
+    },
+    "post": {
+      "leg": "fifo-16-2s-0-uring",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 14555159,
+      "fifo": {
+        "share": 0.07908170149493626,
+        "expected_share": 0.0625,
+        "plain_p99": 0.00027220044285058975,
+        "plain_p100": 0.003979641944169998,
+        "bound99": 0.0008541702905549106
+      },
+      "assertions": []
+    }
+  },
+  {
+    "leg": "fifo-16-2s-1-epoll",
+    "pre": {
+      "leg": "fifo-16-2s-1-epoll",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 16448852,
+      "fifo": {
+        "share": 0.09084588435245124,
+        "expected_share": 0.0625,
+        "plain_p99": 0.000261891633272171,
+        "plain_p100": 0.0032242881134152412,
+        "bound99": 0.0007639946798816507
+      },
+      "assertions": []
+    },
+    "post": {
+      "leg": "fifo-16-2s-1-epoll",
+      "passed": false,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 14596841,
+      "fifo": {
+        "share": 0.07962276917196313,
+        "expected_share": 0.0625,
+        "plain_p99": 0.00028242077678442,
+        "plain_p100": 0.041269490495324135,
+        "bound99": 0.0008544437967314117
+      },
+      "assertions": [
+        "('plain p100 exceeds 20 ms', 0.041269490495324135)"
+      ]
+    }
+  },
+  {
+    "leg": "fifo-16-2s-1-uring",
+    "pre": {
+      "leg": "fifo-16-2s-1-uring",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 15745859,
+      "fifo": {
+        "share": 0.08806562505528136,
+        "expected_share": 0.0625,
+        "plain_p99": 0.00024242978543043137,
+        "plain_p100": 0.004202481359243393,
+        "bound99": 0.0007978216240765246
+      },
+      "assertions": []
+    },
+    "post": {
+      "leg": "fifo-16-2s-1-uring",
+      "passed": true,
+      "order_violations": 0,
+      "exact_final_values": true,
+      "completions": 14829382,
+      "fifo": {
+        "share": 0.0804810505015885,
+        "expected_share": 0.0625,
+        "plain_p99": 0.0002697315067052841,
+        "plain_p100": 0.000700593926012516,
+        "bound99": 0.0008404809669264705
+      },
+      "assertions": []
+    }
+  }
+]

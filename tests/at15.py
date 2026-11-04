@@ -115,18 +115,15 @@ def witness(connection):
 
 
 def subscription_policy(connection, oracle=False):
-    """Explicit group-5 difference: Redis permits it; TomoKV currently refuses it."""
+    """Redis 7.4 permits subscription children and RESET leaves their mode."""
     assert not connection.resp3
     assert connection.command(['MULTI']) == b'+OK\r\n'
     queued = connection.command(['SUBSCRIBE', 'at15:channel'])
+    assert queued == b'+QUEUED\r\n'
     result = connection.command(['EXEC'])
-    if oracle:
-        assert queued == b'+QUEUED\r\n'
-        assert result == b'*1\r\n*3\r\n$9\r\nsubscribe\r\n$12\r\nat15:channel\r\n:1\r\n'
-        assert connection.command(['RESET']) == b'+RESET\r\n'
-    else:
-        assert queued == b'-ERR Command not allowed inside a transaction\r\n'
-        assert result == b'-EXECABORT Transaction discarded because of previous errors.\r\n'
+    assert result == b'*1\r\n*3\r\n$9\r\nsubscribe\r\n$12\r\nat15:channel\r\n:1\r\n'
+    assert connection.command(['RESET']) == b'+RESET\r\n'
+    assert connection.command(['PING']) == b'+PONG\r\n'
     return queued, result
 
 

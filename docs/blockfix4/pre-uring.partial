@@ -1,0 +1,7 @@
+PARTIAL	0	GATE_ONLY_JOBS=blockfix4; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+FAIL	32.300000	blockfix4 scripts (all modes, read-local and atomic)
+FAIL	7.160000	blockfix4 moves (all modes, read-local and atomic)
+FAIL	120.620000	blockfix4 creators (all modes, read-local and atomic)
+FAIL	9.280000	blockfix4 removed (all modes, read-local and atomic)
+FAIL	5.840000	blockfix4 mpop (all modes, read-local and atomic)

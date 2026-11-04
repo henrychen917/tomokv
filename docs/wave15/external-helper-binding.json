@@ -1,0 +1,18 @@
+{
+  "candidate_sha256": "d36e1c43dd89691747ff5714d7dfe8dec32af88d85e0afc8fd9fe29c2e4c3b0a",
+  "links": [
+    "moverfix-unit",
+    "moverfix-db0-unit",
+    "txnorder-wake-unit",
+    "txnorder-episodes",
+    "txnorder-watch-unit",
+    "txnorder-watch-db0-unit",
+    "blockfix-cost",
+    "blockfix2-unit",
+    "blockfix2-db0-unit",
+    "txnorder-episodes-debug"
+  ],
+  "helpers_production_binding": "harness-rebuild-binding.json",
+  "difference": "Only info_stats_build_fields embeds a different git hash; all other normalized production function groups match the frozen candidate.",
+  "helper_receipts": "rlfix5-helpers"
+}

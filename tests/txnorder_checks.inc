@@ -120,7 +120,6 @@ void txnorder_checks(Server& server, const std::string& name) {
         require(shard.store().atomic_script_pin(FlatStore::hash_key(slice(src)), slice(src)),
                 "versioned key armed before readonly cut");
         require(local(server, {"SET", src, "old"}) == "+OK\r\n", "old version installed");
-        server.atomic_publish_quiescent();
         const auto cut = server.atomic_snapshot();
         require(local(server, {"SET", src, "new"}) == "+OK\r\n", "new version installed");
         std::unique_ptr<MultiExecState> state(fixture_allocate_state(server, client, 0, MultiStateKind::Execute));

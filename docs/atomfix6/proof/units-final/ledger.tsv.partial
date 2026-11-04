@@ -1,0 +1,55 @@
+PARTIAL	0	GATE_ONLY_JOBS=atomic_units core_units exbatch_units splitlocal_units lbplanner_units flip_unit flipfix_units flipfix5_units flipfix6_units flushfix2_units flushfix3_units; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	23.030000	flip controller model unit
+ok	20.430000	flushfix3-unit linear collapse, collisions, OOM and saturated ranges
+ok	21.140000	flushfix3-db0-unit linear collapse, collisions, OOM and saturated ranges
+ok	0.040000	flushfix2-unit ranges and rollback
+ok	0.040000	flushfix2-db0-unit ranges and rollback
+ok	0.140000	core concurrency watch
+ok	0.340000	core concurrency lifetime
+ok	0.120000	core concurrency drain
+ok	7.820000	core concurrency route
+ok	0.120000	core concurrency snapshot
+ok	0.190000	core concurrency config
+ok	0.200000	core concurrency notify
+ok	0.960000	read-local topology demotion (1s)
+ok	0.720000	read-local topology demotion (2s)
+ok	0.150000	FLIP planned-connection close lifetime (ASAN+TSAN)
+ok	0.140000	FLIP fingerprint publication (ASAN+TSAN)
+ok	0.200000	FLIP stale stage sample refused (ASAN+TSAN)
+ok	0.190000	FLIP stale stage planted pre-fix controls fail
+ok	1.500000	FLIP session handover S2 and close fences (ASAN+TSAN)
+ok	0.030000	FLIP WATCH alias allocation rollback (db1/db16)
+ok	0.220000	LB sampler exceptional cleanup + negative control
+ok	0.320000	LB monitor plan handoff + negative controls
+ok	15.930000	exbatch publication unit + negative controls
+ok	35.310000	exbatch watch unit + negative controls
+ok	16.680000	exbatch metadata unit + negative controls
+ok	1.080000	splitlocal template forwarding + old-argument controls
+ok	0.100000	atomic commit publication catches up at quiescence
+ok	2.450000	flushfix flush witnesses
+ok	0.060000	flushfix headers witnesses
+ok	4.110000	multidb serverless owners
+ok	0.260000	multidb global namespace boundary
+ok	6.580000	storesize published monitoring
+ok	0.450000	MULTI admin command replies
+ok	0.150000	EXECABORT releases WATCH reservation
+ok	0.000000	atomic survivors unit build
+ok	0.010000	atomic survivor: admission
+ok	0.010000	atomic survivor: closure
+ok	0.000000	atomic survivor: script_keys
+ok	0.010000	atomic survivor: rename_overlay
+ok	0.010000	atomic survivor: write_latest
+ok	0.010000	atomic survivor: script_apply
+ok	0.020000	atomic survivor: post_apply_probe
+ok	0.010000	atomic survivor: lua_conversion
+ok	0.010000	atomic survivor: watch_parent
+ok	0.010000	atomic survivor: watch_cycle
+ok	0.010000	atomic survivor: mset_arity
+ok	0.000000	atomic survivor: watch_oom
+ok	0.010000	atomic survivor: lua_lines
+ok	0.010000	atomic survivor: library_limit
+ok	0.020000	atomic survivor: stage_flag
+ok	0.010000	atomic survivor: instruction_limit
+ok	0.070000	armed resize retirement: atomic-growth
+ok	0.010000	armed resize retirement: flush-prepared

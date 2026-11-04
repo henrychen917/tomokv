@@ -1,0 +1,135 @@
+PARTIAL	0	GATE_ONLY_JOBS=atomic_batteries atomic_floor atomfix5_watch atomfix5_accounting release_batteries debug-0 debug-1 fused-0 fused-1 txn_group_fused txn_group_split execfair exec1s txnorder_fifo txnorder_fifo_live txnorder_chain txnorder_index txnorder_wound txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 at412-T1 at412-T2 at412-T3 at412-T4 at412-T5 at412-T6 at412-T7 at412-T8 at412-T9 at412-T10 at412-T11a at412-T11b at412-T12 at412-T13 at412-T14 at412-T15 at412-T16 at412-owner; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	14.780000	at412 T1
+ok	25.910000	at412 T2
+ok	6.780000	at412 T3
+ok	13.100000	at412 T4
+ok	121.120000	at412 T5
+ok	812.990000	at412 T6
+ok	37.230000	at412 T7
+ok	4.060000	at412 T8
+ok	3.740000	at412 T9
+ok	452.190000	at412 T10
+ok	7.070000	at412 T11a
+ok	43.390000	at412 T11b
+ok	14.860000	at412 T12
+ok	122.110000	at412 T13
+ok	5.930000	at412 T14
+ok	109.160000	at412 T15
+ok	17.500000	at412 T16
+ok	0.090000	at412 owner
+ok	9.180000	plain-write lost updates (atomic 0)
+ok	0.190000	lbsignals battery (atomic 0)
+ok	1.510000	slowlog battery (atomic 0)
+ok	0.060000	atomfix battery (atomic 0)
+ok	0.150000	scriptatomic battery (atomic 0)
+ok	14.490000	execatomic battery (atomic 0)
+ok	11.900000	execiso battery (atomic 0)
+ok	0.470000	execfix battery (atomic 0)
+ok	0.120000	multires battery (atomic 0)
+ok	0.840000	multirace battery (atomic 0)
+ok	30.570000	session_monotonic battery (atomic 0)
+ok	0.390000	xacct battery (atomic 0)
+ok	0.050000	xmove battery (atomic 0)
+ok	3.290000	xscript battery (atomic 0)
+ok	1.080000	txn_nx battery (atomic 0)
+ok	8.560000	txniso battery (atomic 0)
+ok	6.170000	plain-write lost updates (atomic 1)
+ok	0.190000	lbsignals battery (atomic 1)
+ok	1.510000	slowlog battery (atomic 1)
+ok	0.070000	atomfix battery (atomic 1)
+ok	0.150000	scriptatomic battery (atomic 1)
+ok	14.480000	execatomic battery (atomic 1)
+ok	11.890000	execiso battery (atomic 1)
+ok	0.470000	execfix battery (atomic 1)
+ok	0.140000	multires battery (atomic 1)
+ok	0.820000	multirace battery (atomic 1)
+ok	30.580000	session_monotonic battery (atomic 1)
+ok	0.390000	xacct battery (atomic 1)
+ok	0.040000	xmove battery (atomic 1)
+ok	3.290000	xscript battery (atomic 1)
+ok	2.040000	txn_nx battery (atomic 1)
+ok	9.020000	txniso battery (atomic 1)
+ok	1.400000	atomfix5 WATCH key count (both modes, both engines, atomic 0/1)
+ok	13.780000	atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1)
+ok	6.610000	torture battery
+ok	1.180000	RYOW battery
+ok	0.040000	ACL category runtime table
+ok	0.030000	ACL LOAD/SAVE no-file errors
+ok	1.030000	idle loop ceiling (LBSIGNALS, 1s)
+ok	0.040000	shutdown invariants (nothing stuck)
+ok	0.020000	direct-reply fired (direct=N)
+ok	0.040000	dispatched==executed (N)
+ok	32.800000	atomic torn/window battery
+ok	4.060000	atomic RYOW/mixed-write battery
+ok	4.240000	atomic owner-local hazard battery
+ok	0.020000	atomic shutdown invariants
+ok	0.010000	tripwire arm/disarm round-trip
+ok	0.070000	pipelined same-conn program order (400 rolls)
+ok	0.340000	fused boot line (atomic 0)
+ok	1.420000	fused s6 battery (atomic 0)
+ok	2.100000	fused multi_exec battery (atomic 0)
+ok	0.740000	fused edgeproto battery (atomic 0)
+ok	0.070000	fused atomfix battery (atomic 0)
+ok	2.240000	fused spinprobe battery (atomic 0)
+ok	1.160000	fused shutdown report (atomic 0)
+ok	1.580000	fused txn_nx battery (atomic 0)
+ok	8.980000	fused txniso battery (atomic 0)
+ok	0.340000	fused boot line (atomic 1)
+ok	1.320000	fused s6 battery (atomic 1)
+ok	2.100000	fused multi_exec battery (atomic 1)
+ok	0.750000	fused edgeproto battery (atomic 1)
+ok	0.080000	fused atomfix battery (atomic 1)
+ok	2.230000	fused spinprobe battery (atomic 1)
+ok	1.170000	fused shutdown report (atomic 1)
+ok	2.690000	fused txn_nx battery (atomic 1)
+ok	9.450000	fused txniso battery (atomic 1)
+ok	12.190000	fused txngroup battery (atomic 1)
+ok	12.600000	txngroup battery (atomic 1)
+ok	84.310000	EXEC fast-lane polls and wave6-wave10 interactions
+ok	3.150000	exec1s refinements (1s, atomic 0)
+ok	3.010000	exec1s refinements (1s, atomic 1)
+ok	3.020000	exec1s refinements (2s, atomic 0)
+ok	3.020000	exec1s refinements (2s, atomic 1)
+ok	1.130000	txnorder FIFO F1
+ok	0.070000	txnorder FIFO F2
+ok	0.070000	txnorder FIFO F3
+ok	0.090000	txnorder FIFO F4
+ok	0.080000	txnorder FIFO F5
+ok	0.150000	txnorder FIFO F6
+ok	0.130000	txnorder FIFO F7
+ok	0.080000	txnorder FIFO F8
+ok	0.070000	txnorder FIFO F9
+ok	0.070000	txnorder FIFO F10
+FAIL	989.070000	txnorder FIFO live fairness
+ok	0.060000	txnorder chain local
+ok	0.030000	txnorder chain boundary
+ok	0.020000	txnorder chain serve
+ok	0.030000	txnorder chain hot
+ok	96.010000	txnorder index oracle
+ok	2.630000	txnorder index complexity
+ok	0.060000	txnorder wound group
+ok	0.030000	txnorder wound exec
+ok	0.040000	txnorder wound oom
+ok	0.090000	txnorder wound d2
+ok	0.040000	txnorder2 writer episode R1
+ok	0.020000	txnorder2 writer episode R2
+ok	0.020000	txnorder2 writer episode R3
+ok	0.020000	txnorder2 writer episode R4
+ok	0.030000	txnorder2 writer episode R5
+ok	0.020000	txnorder2 writer episode R6
+ok	0.030000	txnorder2 writer episode R7
+ok	0.300000	txnorder2 writer episode R8
+ok	0.030000	txnorder2 writer episode R9
+ok	0.030000	txnorder2 writer episode R10
+ok	0.030000	txnorder2 writer episode R11
+ok	4.570000	txnorder2 writer episode R12
+ok	0.040000	txnorder2 direct RENAME owner join
+ok	22.760000	txnorder2 WATCH serve
+ok	30.430000	txnorder2 WATCH flush
+ok	27.310000	txnorder2 WATCH readonly
+ok	0.010000	txnorder2 busy owner inbox wake
+ok	48.830000	txnorder battery (fused, atomic 0)
+ok	48.360000	txnorder battery (fused, atomic 1)
+ok	48.200000	txnorder battery (split, atomic 0)
+ok	48.150000	txnorder battery (split, atomic 1)

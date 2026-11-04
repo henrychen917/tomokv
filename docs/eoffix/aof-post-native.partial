@@ -1,0 +1,10 @@
+PARTIAL	0	GATE_ONLY_JOBS=eoffix_aof; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	0.010000	eoffix AOF QSBR (normal, epoll, open)
+ok	0.010000	eoffix AOF QSBR (normal, epoll, pressure)
+ok	0.010000	eoffix AOF QSBR (normal, uring, open)
+ok	0.010000	eoffix AOF QSBR (normal, uring, pressure)
+ok	0.010000	eoffix AOF QSBR (db0, epoll, open)
+ok	0.010000	eoffix AOF QSBR (db0, epoll, pressure)
+ok	0.000000	eoffix AOF QSBR (db0, uring, open)
+ok	0.020000	eoffix AOF QSBR (db0, uring, pressure)

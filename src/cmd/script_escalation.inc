@@ -327,7 +327,12 @@ void script_window_forget(Server& server, uint32_t io, Client& client) {
 void script_window_resume(Server& server, ScatterArenaPool& pool, uint32_t io, Client& client) {
     auto& lane = server.multi_retry_lane(io);
     script_window_refresh(server, io);
-    if (!server.atomic_can_admit(io)) return;
+    if (!server.atomic_can_admit(io)) {
+        // Only another thread's credit retirement (or barrier clear) can admit this frame.
+        // This IO's park publishes itself as a credit waiter (Server::atomic_credit_wait_arm).
+        server.thread(io).atomic_admission_state().credit_wait = true;
+        return;
+    }
     if (lane.script_window) {
         auto& window = *lane.script_window;
         const auto found = window.members.find(&client);

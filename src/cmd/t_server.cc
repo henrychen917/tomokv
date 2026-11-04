@@ -21,6 +21,7 @@
 #include "latency_tracking.h"
 #include "../base/alloc.h"
 #include "../core/genthread.h"
+#include "../core/cfgfix.h"
 #include "../core/server.h"
 #include "../core/connreset.h"
 #include "../core/lbsignals.h"
@@ -190,6 +191,7 @@ struct ClientMeta {
     bool no_evict = false;
     bool no_touch = false;
     bool pause_blocked = false;
+    bool disconnected = false;
     const CommandMetadata* last_command = nullptr;
     uint64_t last_command_id = UINT64_MAX;
     // Mirrored from the io loop's tracking state purely so CLIENT INFO/LIST can report the
@@ -202,6 +204,9 @@ struct ClientMeta {
 // slowlog's armed snapshot take this mutex; ordinary commands never touch it.
 using ClientCatalog = std::unordered_map<uint64_t, ClientMeta>;
 std::mutex g_client_meta_mu;
+// INFO counts connections at disconnect, independently of the ownership count
+// retained until all executor/kernel references have drained.
+std::atomic<uint64_t> g_connected_clients{0};
 std::array<ClientCatalog*, kMaxThreads> g_client_catalogs{};
 struct RegisteredClientCatalog final : ClientCatalog {
     RegisteredClientCatalog() {
@@ -330,16 +335,30 @@ enum class ConfigKind : uint8_t {
     String, Bool, Unsigned, Bytes, Enum, Policy, ClientOutputBufferLimit, NotifyFlags, Save,
     // slowlog-log-slower-than is the tree's first genuinely signed knob: redis's grammar accepts
     // and reports -1, so an unsigned representation would not round-trip.
-    Signed, Encoding, Uint32, Uint32Bytes, Hz, Shutdown, LatencyPercentiles
+    Signed, Encoding, Uint32, Uint32Bytes, Hz, Shutdown, LatencyPercentiles, Process
 };
 struct ConfigValue {
     const char* name;
     ConfigKind kind;
     std::string value;
     bool immutable = false;
+    bool hidden = false;
 };
 
 std::mutex g_config_mu;
+thread_local uint32_t g_config_worker = UINT32_MAX;
+struct ConfigLock {
+    ConfigLock() {
+        while (!g_config_mu.try_lock()) {
+            const auto context = snapshot_io_context();
+            const uint32_t tid = g_config_worker != UINT32_MAX ? g_config_worker :
+                g_thread ? g_thread->id() : context.thread ? context.thread->id() : UINT32_MAX;
+            if (g_server && tid < g_server->nthreads()) g_server->debug_sleep_poll(tid);
+            std::this_thread::yield();
+        }
+    }
+    ~ConfigLock() { g_config_mu.unlock(); }
+};
 std::vector<ConfigValue> g_config;
 // An implicit default needs no vector allocation. Preserve unrounded doubles
 // separately from CONFIG GET/REWRITE's six-decimal serialization.
@@ -353,15 +372,20 @@ void add_config(const char* name, ConfigKind kind, uint64_t value) {
 }
 
 void init_config(const Config& cfg) {
-    std::lock_guard<std::mutex> lock(g_config_mu);
+    ConfigLock lock;
     g_config.clear();
+    for (size_t i = 0; i < kProcessConfigCount; ++i) {
+        const auto& spec = process_configs[i];
+        g_config.push_back({spec.name, ConfigKind::Process, cfg_process_value(cfg, i),
+                            spec.immutable, spec.hidden});
+    }
     if (!sort_locale_set(cfg.locale_collate)) std::abort();
     g_config.push_back({"locale-collate", ConfigKind::String, cfg.locale_collate});
     hll::configure_sparse_max_bytes(cfg.hll_sparse_max_bytes);
     g_config.push_back({"hll-sparse-max-bytes", ConfigKind::Bytes,
                         std::to_string(cfg.hll_sparse_max_bytes), true});
-    g_config.push_back({"port", ConfigKind::Unsigned, std::to_string(cfg.port), true});
-    g_config.push_back({"bind", ConfigKind::String, cfg.bind_addr, true});
+    g_config.push_back({"port", ConfigKind::Unsigned, std::to_string(cfg.port)});
+    g_config.push_back({"bind", ConfigKind::String, cfg.bind_addr});
     g_config.push_back({"unixsocket", ConfigKind::String,
                         cfg.unixsocket ? cfg.unixsocket : "", true});
     char unix_mode[8];
@@ -374,7 +398,7 @@ void init_config(const Config& cfg) {
     g_config.push_back({"dir", ConfigKind::String, (cfg.dir && *cfg.dir) ? cfg.dir : "."});
     g_config.push_back({"dbfilename", ConfigKind::String,
                         (cfg.dbfilename && *cfg.dbfilename) ? cfg.dbfilename : "dump.tomo"});
-    g_config.push_back({"appendonly", ConfigKind::Bool, cfg.appendonly ? "yes" : "no", true});
+    g_config.push_back({"appendonly", ConfigKind::Bool, cfg.appendonly ? "yes" : "no", false});
     const char* appendfsync = cfg.appendfsync == AppendFsyncPolicy::Always ? "always" :
                               cfg.appendfsync == AppendFsyncPolicy::No ? "no" : "everysec";
     g_config.push_back({"appendfsync", ConfigKind::Enum, appendfsync});
@@ -428,7 +452,7 @@ void init_config(const Config& cfg) {
                         cfg.tls_ca_cert_dir ? cfg.tls_ca_cert_dir : "", true});
     const char* tls_auth = cfg.tls_auth_clients == TlsAuthClients::No ? "no" :
                            cfg.tls_auth_clients == TlsAuthClients::Optional ? "optional" : "yes";
-    g_config.push_back({"tls-auth-clients", ConfigKind::Enum, tls_auth, true});
+    g_config.push_back({"tls-auth-clients", ConfigKind::Enum, tls_auth});
     g_config.push_back({"tls-protocols", ConfigKind::String,
                         cfg.tls_protocols ? cfg.tls_protocols : "", true});
     g_config.push_back({"tls-ciphers", ConfigKind::String,
@@ -625,6 +649,7 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
             }
             int64_t low = 0, high = LONG_MAX;
             if (!std::strcmp(entry.name, "zc-min")) high = UINT32_MAX;
+            if (!std::strcmp(entry.name, "port")) high = 65535;
             if (!std::strcmp(entry.name, "maxmemory-samples")) { low = 1; high = 64; }
             if (!std::strcmp(entry.name, "atomic")) high = 1;
             if (!std::strcmp(entry.name, "databases")) { low = 1; high = 256; }
@@ -661,7 +686,19 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
             out = std::to_string(value);
             return true;
         }
+        case ConfigKind::Process: {
+            std::string reason;
+            const int index = cfg_process_find(Slice(entry.name, std::strlen(entry.name)));
+            if (cfg_process_normalize(index, input, out, reason)) return true;
+            out = std::move(reason); error = out.c_str(); return false;
+        }
         case ConfigKind::Enum:
+            if (!std::strcmp(entry.name, "tls-auth-clients")) {
+                for (const char* value : {"no", "yes", "optional"})
+                    if (input.eq_icase(value)) { out = value; return true; }
+                error = "argument(s) must be one of the following: no, yes, optional";
+                return false;
+            }
             if (!std::strcmp(entry.name, "acl-pubsub-default")) {
                 if (eq_icase(input, "allchannels")) { out = "allchannels"; return true; }
                 if (eq_icase(input, "resetchannels")) { out = "resetchannels"; return true; }
@@ -695,7 +732,10 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
                 error = "Invalid event class character. Use 'Ag$lshzxeKEtmdn'.";
                 return false;
             }
-            out = serialize_notify_flags(flags);
+            // Redis's display string deliberately abbreviates A+n to A. Keep
+            // the validated input until application; reparsing GET's lossy
+            // representation would silently disarm new-key notifications.
+            out.assign(input.p, input.n);
             return true;
         }
         case ConfigKind::Signed: {
@@ -757,6 +797,10 @@ bool collect_config_updates(Op& op,
             error = "can't set immutable config";
         else if (!std::strcmp(item->name, "dir") || !std::strcmp(item->name, "dbfilename"))
             error = "can't set protected config";
+        if (!error && !std::strcmp(item->name, "appendonly") && g_server && g_server->loading()) {
+            reply_err(op.sink(), "LOADING Redis is loading the dataset in memory");
+            return false;
+        }
         if (!error) {
             const std::string requested(op.arg(i).p, op.arg(i).n);
             for (uint32_t previous = 2; previous < i; previous += 2)
@@ -819,6 +863,17 @@ bool collect_config_updates(Op& op,
             msg.append(op.arg(i + 1).p, op.arg(i + 1).n);
             msg += "' for CONFIG SET '"; msg += item->name; msg.push_back('\'');
             reply_err(op.sink(), msg.c_str()); return false;
+        }
+        if (g_server && !std::strcmp(item->name, "maxclients")) {
+            uint64_t requested = 0;
+            parse_u64(Slice(value.data(), value.size()), requested);
+            std::string error;
+            if (!g_server->validate_maxclients(static_cast<uint32_t>(requested), error)) {
+                const std::string message =
+                    "ERR CONFIG SET failed (possibly related to argument 'maxclients') - " + error;
+                reply_err(op.sink(), message.c_str());
+                return false;
+            }
         }
         updates.emplace_back(item, std::move(value));
     }
@@ -1679,6 +1734,62 @@ static constexpr SubcommandArity kConfigSubcommands[] = {
 
 using ConfigUpdates = std::vector<std::pair<ConfigValue*, std::string>>;
 
+struct ConfigApplyResult { const Op* op; std::string error; };
+std::vector<ConfigApplyResult> g_config_apply_results; // g_config_mu; retired at reply assembly
+
+bool config_apply_listeners(Shard& sh, Op& op, const ConfigUpdates& updates) {
+    bool listeners = false, locale = false, aof = false;
+    for (const auto& update : updates) {
+        listeners |= !std::strcmp(update.first->name, "port") || !std::strcmp(update.first->name, "bind");
+        locale |= !std::strcmp(update.first->name, "locale-collate");
+        aof |= !std::strcmp(update.first->name, "appendonly");
+    }
+    if ((!(listeners || aof) || !g_server) && !locale) return true;
+    for (const auto& result : g_config_apply_results)
+        if (result.op == &op) return result.error.empty();
+    // Reserve the shared verdict before any apply action. All fragments see
+    // this verdict before publishing scalar settings from the same SET.
+    ConfigApplyResult standalone{&op, {}};
+    if (op.has_scatter_state()) g_config_apply_results.push_back({&op, {}});
+    auto& result = op.has_scatter_state() ? g_config_apply_results.back() : standalone;
+    uint16_t port = g_server ? g_server->cfg().port : 0;
+    std::string bind = g_server ? g_server->cfg().bind_addr : "";
+    const char* parameter = "port";
+    int appendonly = -1;
+    struct PreparedLocale {
+        locale_t value = nullptr;
+        ~PreparedLocale() { if (value) freelocale(value); }
+    } prepared;
+    for (const auto& update : updates) {
+        if (!std::strcmp(update.first->name, "port")) port = std::stoul(update.second);
+        if (!std::strcmp(update.first->name, "bind")) { bind = update.second; parameter = "bind"; }
+        if (!std::strcmp(update.first->name, "appendonly")) appendonly = update.second == "yes";
+        if (!std::strcmp(update.first->name, "locale-collate")) {
+            prepared.value = newlocale(LC_COLLATE_MASK, update.second.c_str(), nullptr);
+            if (!prepared.value) {
+                result.error = "ERR CONFIG SET failed (possibly related to argument 'locale-collate') - Invalid locale name";
+                if (!op.has_scatter_state()) reply_err(op.sink(), result.error.c_str());
+                return false;
+            }
+        }
+    }
+    std::string reason;
+    if (!(listeners || aof) || !g_server ||
+        cfgfix_rebind(*g_server, g_server->worker_of_shard(sh.id()), port, bind, reason, appendonly)) {
+        // No allocation or fallible apply remains after installing listeners.
+        if (prepared.value) sort_locale_install(std::exchange(prepared.value, nullptr));
+        return true;
+    }
+    if (aof && (!listeners || reason.starts_with("appendonly:"))) parameter = "appendonly";
+    std::fprintf(stderr, "CONFIG %s: %s\n", parameter, reason.c_str());
+    result.error = std::string("ERR CONFIG SET failed (possibly related to argument '") + parameter +
+        "') - " + (!std::strcmp(parameter, "appendonly") ? "Unable to turn on AOF. Check server logs." :
+                  !std::strcmp(parameter, "port") ? "Unable to listen on this port. Check server logs." :
+                                                   "Failed to bind to specified addresses.");
+    if (!op.has_scatter_state()) reply_err(op.sink(), result.error.c_str());
+    return false;
+}
+
 // maxmemory, maxmemory-policy and maxmemory-samples decide admission and eviction on every shard
 // owner. CONFIG SET publishes them exactly once and then has every owner apply them inside its own
 // fragment, so the barrier's +OK follows each owner's switch (ExLoopT::apply_memory_config).
@@ -1750,23 +1861,37 @@ void cmd_config(Shard& sh, Op& op) {
     if (eq_icase(op.arg(1), "GET") && op.argc() >= 3) {
         std::vector<std::pair<std::string, std::string>> matches;
         {
-            std::lock_guard<std::mutex> lock(g_config_mu);
-            for (const ConfigValue& item : g_config) {
-                auto match = [&](const char* spelling) {
-                    const Slice name(spelling, std::strlen(spelling));
-                    for (uint32_t i = 2; i < op.argc(); i++) {
-                        if (!command_glob_match(op.arg(i), name, true)) continue;
-                        matches.emplace_back(spelling, item.value);
-                        break;
+            ConfigLock lock;
+            auto add = [&](Slice spelling, const ConfigValue& item) {
+                for (const auto& present : matches)
+                    if (eq_icase(spelling, present.first.c_str())) return;
+                matches.emplace_back(std::string(spelling.p, spelling.n), item.value);
+            };
+            // Exact lookup preserves the caller's spelling. Pattern lookup
+            // uses registered spellings; earlier matches win case-insensitive
+            // deduplication, including an exact hidden-name lookup.
+            for (uint32_t i = 2; i < op.argc(); ++i) {
+                const Slice pattern = op.arg(i);
+                bool glob = false;
+                for (char ch : pattern) glob |= ch == '[' || ch == '*' || ch == '?';
+                if (!glob) {
+                    if (const ConfigValue* item = find_config(pattern)) add(pattern, *item);
+                    continue;
+                }
+                for (const ConfigValue& item : g_config) {
+                    if (item.hidden) continue;
+                    auto match = [&](const char* spelling) {
+                        const Slice name(spelling, std::strlen(spelling));
+                        if (command_glob_match(pattern, name, true)) add(name, item);
+                    };
+                    match(item.name);
+                    if (item.kind == ConfigKind::Encoding) {
+                        const int key = EncodingConfig::find(Slice(item.name, std::strlen(item.name)));
+                        if (key >= 0 && EncodingConfig::settings[key].alias)
+                            match(EncodingConfig::settings[key].alias);
+                        if (key >= 0 && EncodingConfig::settings[key].tomo_alias)
+                            match(EncodingConfig::settings[key].tomo_alias);
                     }
-                };
-                match(item.name);
-                if (item.kind == ConfigKind::Encoding) {
-                    const int key = EncodingConfig::find(Slice(item.name, std::strlen(item.name)));
-                    if (key >= 0 && EncodingConfig::settings[key].alias)
-                        match(EncodingConfig::settings[key].alias);
-                    if (key >= 0 && EncodingConfig::settings[key].tomo_alias)
-                        match(EncodingConfig::settings[key].tomo_alias);
                 }
             }
         }
@@ -1779,13 +1904,19 @@ void cmd_config(Shard& sh, Op& op) {
         return;
     }
     if (eq_icase(op.arg(1), "SET")) {
+        struct ConfigWorker {
+            uint32_t before = g_config_worker;
+            ConfigWorker(uint32_t tid) { g_config_worker = tid; }
+            ~ConfigWorker() { g_config_worker = before; }
+        } worker(g_server ? g_server->worker_of_shard(sh.id()) : UINT32_MAX);
         uint64_t latency_enable_start = 0;
         ConfigUpdates updates;
         bool memory_update = false;
         {
-            std::lock_guard<std::mutex> lock(g_config_mu);
+            ConfigLock lock;
             // IO validated before fan-out, so failure here can only mean internal table corruption.
             if (!collect_config_updates(op, updates)) return;
+            if (!config_apply_listeners(sh, op, updates)) return;
             for (const auto& update : updates) memory_update |= config_memory_parameter(*update.first);
             if (memory_update && config_claim_memory_publication(op))
                 config_publish_memory(sh, updates);
@@ -1798,13 +1929,29 @@ void cmd_config(Shard& sh, Op& op) {
                         if (!std::strcmp(update.first->name, "latency-tracking") &&
                             update.second == "yes") latency_enable_start = now_ns();
                 for (auto& update : updates) {
-                    if (!std::strcmp(update.first->name, "locale-collate") &&
-                        !sort_locale_set(update.second.c_str())) {
-                        reply_err(op.sink(), "ERR CONFIG SET failed (possibly related to argument 'locale-collate') - Invalid locale name");
-                        return;
+                    if (update.first->kind == ConfigKind::LatencyPercentiles) {
+                        // INFO copies this side vector under the same lock as
+                        // the table. Preserve the input doubles, and publish
+                        // the complete list together with its serialized value.
+                        for (uint32_t i = 2; i < op.argc(); i += 2)
+                            if (op.arg(i).eq_icase("latency-tracking-info-percentiles")) {
+                                std::vector<double> next;
+                                const char* error = nullptr;
+                                if (!cfg_latency_percentiles(op.arg(i + 1), next, error)) std::abort();
+                                g_latency_percentiles.swap(next);
+                                g_latency_percentiles_explicit = true;
+                                break;
+                            }
                     }
                     // The maxmemory family's entries belong to its single publication above.
-                    if (!config_memory_parameter(*update.first)) update.first->value = update.second;
+                    if (!config_memory_parameter(*update.first)) {
+                        if (update.first->kind == ConfigKind::NotifyFlags) {
+                            uint32_t flags = 0;
+                            if (!parse_notify_flags(Slice(update.second.data(), update.second.size()), flags))
+                                std::abort();
+                            update.first->value = serialize_notify_flags(flags);
+                        } else update.first->value = update.second;
+                    }
                     if (!std::strcmp(update.first->name, "client-output-buffer-limit")) {
                         ClientOutputBufferLimits parsed;
                         const ClientOutputBufferLimits defaults;
@@ -1850,7 +1997,16 @@ void cmd_config(Shard& sh, Op& op) {
         // its single publication and per-owner switch are above.
         if (sh.id() == 0 && g_server) {
             for (const auto& update : updates) {
-                if (!std::strcmp(update.first->name, "save")) {
+                if (!std::strcmp(update.first->name, "loglevel")) {
+                    cfgfix_loglevel(update.second.c_str());
+                } else if (!std::strcmp(update.first->name, "key-load-delay")) {
+                    cfgfix_key_load_delay(std::strtol(update.second.c_str(), nullptr, 10));
+                } else if (!std::strcmp(update.first->name, "tls-auth-clients")) {
+                    auto& auth = const_cast<Config&>(g_server->cfg()).tls_auth_clients;
+                    std::atomic_ref<TlsAuthClients>(auth).store(update.second == "no" ? TlsAuthClients::No :
+                        update.second == "optional" ? TlsAuthClients::Optional : TlsAuthClients::Yes,
+                        std::memory_order_relaxed);
+                } else if (!std::strcmp(update.first->name, "save")) {
                     std::vector<SaveClause> clauses;
                     if (!cfg_parse_save_schedule(update.second.data(), update.second.size(),
                                                  clauses)) std::abort();
@@ -1890,16 +2046,6 @@ void cmd_config(Shard& sh, Op& op) {
                 if (!std::strcmp(update.first->name, "requirepass")) {
                     auth_publish_requirepass(
                         *g_server, Slice(update.second.data(), update.second.size()));
-                    continue;
-                }
-                if (!std::strcmp(update.first->name, "latency-tracking-info-percentiles")) {
-                    for (uint32_t i = 2; i < op.argc(); i += 2)
-                        if (op.arg(i).eq_icase("latency-tracking-info-percentiles")) {
-                            const char* error = nullptr;
-                            cfg_latency_percentiles(op.arg(i + 1), g_latency_percentiles, error);
-                            g_latency_percentiles_explicit = true;
-                            break;
-                        }
                     continue;
                 }
                 if (!std::strcmp(update.first->name, "latency-tracking")) {
@@ -2037,7 +2183,6 @@ struct StatBaseline {
     ReadLocalStats read_local;
     std::vector<uint64_t> command_calls;
     std::vector<uint64_t> rejected_calls, failed_calls;
-    StreamGroupStats xreadgroup;
 };
 
 std::mutex g_stat_baseline_mu;
@@ -2088,7 +2233,6 @@ void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
 
 void collect_stat_totals(StatBaseline& out) {
     out = StatBaseline{};
-    out.xreadgroup = stream_xreadgroup_stats();
     if (!g_server) return;
     for (uint32_t i = 0; i < g_server->nshards(); i++) {
         const Shard& sh = g_server->shard(static_cast<int32_t>(i));
@@ -2332,9 +2476,6 @@ void cmd_info(Shard&, Op& op) {
         std::lock_guard<std::mutex> lock(g_stat_baseline_mu);
         baseline = g_stat_baseline;
     }
-    const StreamGroupStats group_totals = stream_xreadgroup_stats();
-    const uint64_t group_errors = minus_baseline(group_totals.nogroup, baseline.xreadgroup.nogroup);
-    const uint64_t group_usec = minus_baseline(group_totals.usec, baseline.xreadgroup.usec);
     const uint64_t expired_subkeys = want_stats
         ? minus_baseline(expired_hash_fields, baseline.expired_subkeys) : 0;
     if (want_stats) {
@@ -2456,7 +2597,7 @@ void cmd_info(Shard&, Op& op) {
         // CONFIG GET, after which a benchmark can verify a completed CONFIG SET of either arm.
         std::string zc_min;
         {
-            std::lock_guard<std::mutex> lock(g_config_mu);
+            ConfigLock lock;
             for (const ConfigValue& item : g_config)
                 if (!std::strcmp(item.name, "zc-min")) { zc_min = item.value; break; }
         }
@@ -2605,7 +2746,9 @@ void cmd_info(Shard&, Op& op) {
         appendf(body, "# Clients\r\nconnected_clients:%llu\r\nblocked_clients:%llu\r\n"
                       "tracking_clients:%llu\r\nmonitor_clients:%llu\r\n"
                       "total_blocking_keys:%llu\r\ntotal_blocking_keys_on_nokey:%llu\r\n",
-                static_cast<unsigned long long>(g_server ? g_server->live_clients() : 0),
+                static_cast<unsigned long long>(clientcompat_post()
+                    ? g_connected_clients.load(std::memory_order_relaxed)
+                    : (g_server ? g_server->live_clients() : 0)),
                 static_cast<unsigned long long>(g_server ? g_server->blocked_clients() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->climon_tracking_clients() : 0),
@@ -3018,7 +3161,8 @@ void cmd_info(Shard&, Op& op) {
             "atomic_group_barriers", "atomic_txn_executed", "atomic_txn_place_waits",
             "atomic_txn_writer_waits", "atomic_txn_writer_marks", "atomic_txn_blind_restarts",
             "atomic_txn_readonly", "atomic_txn_order_violations", "atomic_group_wounds",
-            "atomic_txn_fast_polls", "atomic_txn_poll_skips"
+            "atomic_txn_fast_polls", "atomic_txn_poll_skips",
+            "atomic_txn_fifo_waits", "atomic_txn_fifo_passes", "atomic_txn_writer_promotions"
         };
         static_assert(std::size(txn_fields) == static_cast<unsigned>(TxnCounter::Count));
         for (unsigned i = 0; i < std::size(txn_fields); ++i)
@@ -3041,6 +3185,15 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->flip_conservation_violations() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->flip_stale_stage_refusals() : 0));
+        for (unsigned kind = 0; kind < 3; ++kind) {
+            const char* name = kind == 0 ? "blocked" : kind == 1 ? "tls" : "output";
+            appendf(body, "flip_skipped_%s:%llu\r\nflip_refused_%s:%llu\r\n", name,
+                    static_cast<unsigned long long>(g_server ? g_server->flip_skipped_class(kind) : 0), name,
+                    static_cast<unsigned long long>(g_server ? g_server->flip_refused_class(kind) : 0));
+        }
+        appendf(body, "flip_late_output:%llu\r\nflip_output_transferred:%llu\r\n",
+                static_cast<unsigned long long>(g_server ? g_server->flip_late_output() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->flip_output_transferred() : 0));
         appendf(body,
                 "flip_session_clients_transferred:%llu\r\n"
                 "flip_refused_s2:%llu\r\n"
@@ -3147,16 +3300,15 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.mget_fallback_seq_churn),
                 static_cast<unsigned long long>(read_local.mget_fallback_generation));
     }
-    if (want_stats)
-        appendf(body, "total_error_replies:%llu\r\n", static_cast<unsigned long long>(group_errors));
-    if (want_errors) {
-        body += "# Errorstats\r\n";
-        if (group_errors)
-            appendf(body, "errorstat_NOGROUP:count=%llu\r\n",
-                    static_cast<unsigned long long>(group_errors));
-    }
+    error_stats_info(body, want_stats, want_errors);
     if (info_section(op, "CPU")) info_stats_cpu_fields(body);
-    if (info_section(op, "REPLICATION")) body += "# Replication\r\nrole:master\r\nmaster_repl_offset:0\r\n";
+    if (info_section(op, "REPLICATION"))
+        appendf(body, "# Replication\r\nrole:master\r\nconnected_slaves:0\r\n"
+                "master_failover_state:no-failover\r\nmaster_replid:%s\r\n"
+                "master_replid2:0000000000000000000000000000000000000000\r\n"
+                "master_repl_offset:0\r\nsecond_repl_offset:-1\r\n"
+                "repl_backlog_active:0\r\nrepl_backlog_size:1048576\r\n"
+                "repl_backlog_first_byte_offset:0\r\nrepl_backlog_histlen:0\r\n", info_run_id());
     if (want_commands) {
         body += "# Commandstats\r\n";
         for (uint32_t id = 0; id < command_registry_size(); id++) {
@@ -3174,15 +3326,6 @@ void cmd_info(Shard&, Op& op) {
                 failed_calls = minus_baseline(failed_calls, baseline.failed_calls[id]);
             if (!calls && !rejected_calls && !failed_calls) continue;
             const std::string name = lower_name(command_registry_at(id)->name);
-            if (name == "xreadgroup") {
-                appendf(body, "cmdstat_%s:calls=%llu,usec=%llu,usec_per_call=%.2f,rejected_calls=%llu,failed_calls=%llu\r\n",
-                        name.c_str(), static_cast<unsigned long long>(calls),
-                        static_cast<unsigned long long>(group_usec),
-                        calls ? double(group_usec) / double(calls) : 0.0,
-                        static_cast<unsigned long long>(rejected_calls),
-                        static_cast<unsigned long long>(failed_calls + group_errors));
-                continue;
-            }
             // Omit unmeasured timing and unimplemented failed_calls; never invent counters.
             appendf(body, "cmdstat_%s:calls=%llu,rejected_calls=%llu\r\n",
                     name.c_str(), static_cast<unsigned long long>(calls),
@@ -3296,12 +3439,6 @@ void cmd_flush(Shard& sh, Op& op) {
     sh.publish_size();
 }
 
-void cmd_randomkey(Shard& sh, Op& op) {
-    KvObj* obj = sh.store().random_live();
-    if (!obj) reply_null(op.sink(), op.resp3());
-    else reply_bulk(op.sink(), obj->key());
-}
-
 const char* object_type(const KvObj* obj) {
     switch (static_cast<Type>(obj->type)) {
         case Type::String: return "string";
@@ -3313,6 +3450,20 @@ const char* object_type(const KvObj* obj) {
     }
     return "none";
 }
+
+// Every elapsed key a SCAN step visits is deleted, as Redis's SCAN does (kScanExpiresVisited).
+struct ScanCommandVisitor {
+    static constexpr bool kExpiresVisited = true;
+    const Op& op;
+    const Slice& type;
+    const Slice& match;
+    std::vector<Slice>& keys;
+    void operator()(KvObj* obj) const {
+        if (obj->key_namespace() != op.physical_db) return;
+        if (type.n && !eq_icase(type, object_type(obj))) return;
+        if (command_glob_match(match, obj->key())) keys.push_back(obj->key());
+    }
+};
 
 void cmd_scan(Shard& sh, Op& op) {
     uint64_t outer = 0;
@@ -3358,11 +3509,7 @@ void cmd_scan(Shard& sh, Op& op) {
 
     std::vector<Slice> keys;
     keys.reserve(std::min<uint32_t>(count, 1024));
-    inner = sh.store().scan(inner, count, [&](KvObj* obj) {
-        if (obj->key_namespace() != op.physical_db) return;
-        if (type.n && !eq_icase(type, object_type(obj))) return;
-        if (command_glob_match(match, obj->key())) keys.push_back(obj->key());
-    });
+    inner = sh.store().scan(inner, count, ScanCommandVisitor{op, type, match, keys});
     uint64_t next = 0;
     if (inner) next = (static_cast<uint64_t>(shard_id) << 56) | inner;
     else if (shard_id + 1 < g_server->nshards()) next = static_cast<uint64_t>(shard_id + 1) << 56;
@@ -3423,7 +3570,7 @@ static const CommandSpec kTable[] = {
     {"DBSIZE",     1,  2, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_dbsize,     0,  0, 0},
     {"FLUSHALL",   1,  2, CmdFlags::Write | CmdFlags::Admin | CmdFlags::AllShards,cmd_flush,      0,  0, 0},
     {"FLUSHDB",    1,  2, CmdFlags::Write | CmdFlags::Admin | CmdFlags::AllShards,cmd_flush,      0,  0, 0},
-    {"RANDOMKEY",  1,  1, CmdFlags::Readonly | CmdFlags::AllShards,               cmd_randomkey,  0,  0, 0},
+    {"RANDOMKEY",  1,  1, CmdFlags::Readonly | CmdFlags::AllShards,               cmd_xshard_only,  0,  0, 0},
     {"SCAN",       2, -1, CmdFlags::Readonly | CmdFlags::CursorShard,             cmd_scan,       0,  0, 0},
     {"KEYS",       2,  2, CmdFlags::Readonly | CmdFlags::Admin | CmdFlags::MultiShard,cmd_xshard_only,0,0,0},
     {"SORT",       2, -1, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,cmd_xshard_only,1,1,1},
@@ -3549,6 +3696,9 @@ bool command_parse_scan_cursor(Slice text, uint64_t& cursor) {
 }
 
 Server* command_server() { return g_server; }
+uint64_t command_proto_max_bulk_len_configured() {
+    return g_proto_max_bulk_len.load(std::memory_order_relaxed);
+}
 uint64_t command_proto_max_bulk_len() {
     // CONFIG accepts Redis's signed-long range; string growth keeps the 32-bit bound.
     return std::min(g_proto_max_bulk_len.load(std::memory_order_relaxed),
@@ -3558,7 +3708,7 @@ ThreadCtx* command_local_thread() { return g_thread; }
 Client* command_local_client() { return g_client; }
 
 void command_config_snapshot(std::vector<std::pair<std::string, std::string>>& out) {
-    std::lock_guard<std::mutex> lock(g_config_mu);
+    ConfigLock lock;
     out.clear();
     out.reserve(g_config.size());
     for (const ConfigValue& item : g_config) {
@@ -3570,12 +3720,13 @@ void command_config_snapshot(std::vector<std::pair<std::string, std::string>>& o
 }
 
 bool command_aof_load_truncated(bool boot_value) {
-    std::lock_guard<std::mutex> lock(g_config_mu);
+    ConfigLock lock;
     const ConfigValue* item = find_config(Slice("aof-load-truncated", 18));
     return item ? item->value == "yes" : boot_value;
 }
 
 void command_config_resetstat() {
+    error_stats_reset();
     latency_tracking_reset();
     query_limit_disconnections.store(0, std::memory_order_relaxed);
     // Capture the CURRENT aggregate rather than writing zeros into per-shard/per-thread counters
@@ -3633,10 +3784,20 @@ void command_client_connected(Client* client, const char* addr, const char* ladd
     // id -> (addr, name) directory; connection lifecycle is the only writer.
     slowlog_note_client(client->id(), meta.addr.c_str());
     g_client_meta[client->id()] = std::move(meta);
+    g_connected_clients.fetch_add(1, std::memory_order_relaxed);
+}
+
+void command_client_closing(Client* client) {
+    if (!client) return;
+    ClientMeta* meta = client_meta(client);
+    if (!meta || meta->disconnected) return;
+    meta->disconnected = true;
+    if (!g_connected_clients.fetch_sub(1, std::memory_order_relaxed)) std::abort();
 }
 
 void command_client_disconnected(Client* client) {
     if (!client) return;
+    command_client_closing(client);
     register_client_catalog();
     std::lock_guard<std::mutex> lock(g_client_meta_mu);
     slowlog_forget_client(client->id());
@@ -3902,9 +4063,21 @@ bool command_config_routes_all_shards(Op& op, bool execution_boundary) {
 
 bool command_validate_config_set(Op& op) {
     if (op.cmd_name().eq_icase("dbsize") || op.cmd_name().eq_icase("info")) return true;   // DBSIZE NOW needs no further validation
-    std::lock_guard<std::mutex> lock(g_config_mu);
+    ConfigLock lock;
     std::vector<std::pair<ConfigValue*, std::string>> updates;
     return collect_config_updates(op, updates);
+}
+
+bool command_config_apply_reply(Op& op) {
+    ConfigLock lock;
+    for (auto it = g_config_apply_results.begin(); it != g_config_apply_results.end(); ++it) {
+        if (it->op != &op) continue;
+        const bool failed = !it->error.empty();
+        if (failed) reply_err(op.sink(), it->error.c_str());
+        g_config_apply_results.erase(it);
+        return failed;
+    }
+    return false;
 }
 
 void command_info_with_databases(Server& server, Op& op, const DatabaseStatsTable& stats) {

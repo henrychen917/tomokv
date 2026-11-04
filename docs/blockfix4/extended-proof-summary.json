@@ -1,0 +1,5077 @@
+[
+  {
+    "tag": "pre-extended",
+    "exit_code": 1,
+    "binary_sha256": "d85693be2ed803887154381b1ebd67a2106347cb3171ce25160b38899c0ff6d6",
+    "jobs": [
+      {
+        "job": "blockfix4",
+        "done": "0\t0\t5",
+        "passed": 0,
+        "failed": 5,
+        "rows": [
+          {
+            "status": "FAIL",
+            "seconds": "60.390000",
+            "label": "blockfix4 scripts (all modes, read-local and atomic)"
+          },
+          {
+            "status": "FAIL",
+            "seconds": "7.820000",
+            "label": "blockfix4 moves (all modes, read-local and atomic)"
+          },
+          {
+            "status": "FAIL",
+            "seconds": "121.020000",
+            "label": "blockfix4 creators (all modes, read-local and atomic)"
+          },
+          {
+            "status": "FAIL",
+            "seconds": "10.000000",
+            "label": "blockfix4 removed (all modes, read-local and atomic)"
+          },
+          {
+            "status": "FAIL",
+            "seconds": "6.140000",
+            "label": "blockfix4 mpop (all modes, read-local and atomic)"
+          }
+        ]
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ],
+    "witnesses": {
+      "creators": {
+        "redis": {
+          "legs": 1,
+          "passing": 1,
+          "errors": {},
+          "by_case": {
+            "COPY-list": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-stream": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-zset": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "GEOSEARCHSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "LMOVE-list(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-list(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-stream(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-zset(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-list": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-zset": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "SORTSTORE-list(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZDIFFSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZINTERSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZRANGESTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZUNIONSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            }
+          },
+          "totals": {
+            "attempts": 30,
+            "parked": 30,
+            "hits": 30,
+            "defects": 0,
+            "served": 30,
+            "served_after_long": 0,
+            "served_after_plain_push": 0,
+            "long_checked": 0
+          }
+        },
+        "tomokv": {
+          "legs": 16,
+          "passing": 0,
+          "errors": {
+            "tomokv-2s-0-0-1": [
+              "COPY-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZUNIONSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZINTERSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZDIFFSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZRANGESTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "GEOSEARCHSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-stream: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}"
+            ],
+            "tomokv-2s-0-0-2": [
+              "COPY-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZUNIONSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZINTERSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZDIFFSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZRANGESTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "GEOSEARCHSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-stream: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}"
+            ],
+            "tomokv-2s-0-1-3": [
+              "COPY-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZUNIONSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZINTERSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZDIFFSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZRANGESTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "GEOSEARCHSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-stream: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}"
+            ],
+            "tomokv-2s-0-1-4": [
+              "RESTORE-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}"
+            ],
+            "tomokv-2s-1-0-5": [
+              "COPY-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZUNIONSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZINTERSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZDIFFSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZRANGESTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "GEOSEARCHSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-stream: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}"
+            ],
+            "tomokv-2s-1-0-6": [
+              "COPY-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZUNIONSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZINTERSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZDIFFSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZRANGESTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "GEOSEARCHSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-stream: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}"
+            ],
+            "tomokv-2s-1-1-7": [
+              "COPY-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZUNIONSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZINTERSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZDIFFSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZRANGESTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "GEOSEARCHSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-stream: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}"
+            ],
+            "tomokv-2s-1-1-8": [
+              "RESTORE-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}"
+            ],
+            "tomokv-1s-0-0-9": [
+              "COPY-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZUNIONSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZINTERSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZDIFFSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZRANGESTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "GEOSEARCHSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-stream: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}"
+            ],
+            "tomokv-1s-0-0-10": [
+              "COPY-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZUNIONSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZINTERSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZDIFFSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZRANGESTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "GEOSEARCHSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-stream: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}"
+            ],
+            "tomokv-1s-0-1-11": [
+              "COPY-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZUNIONSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZINTERSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZDIFFSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZRANGESTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "GEOSEARCHSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-stream: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}"
+            ],
+            "tomokv-1s-0-1-12": [
+              "RESTORE-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}"
+            ],
+            "tomokv-1s-1-0-13": [
+              "COPY-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZUNIONSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZINTERSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZDIFFSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZRANGESTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "GEOSEARCHSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-stream: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}"
+            ],
+            "tomokv-1s-1-0-14": [
+              "COPY-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZUNIONSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZINTERSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZDIFFSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZRANGESTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "GEOSEARCHSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-stream: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}"
+            ],
+            "tomokv-1s-1-1-15": [
+              "COPY-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZUNIONSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZINTERSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZDIFFSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "ZRANGESTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "GEOSEARCHSTORE: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "COPY-stream: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}"
+            ],
+            "tomokv-1s-1-1-16": [
+              "RESTORE-list: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}",
+              "RESTORE-zset: {'attempts': 2, 'parked': 2, 'hits': 2, 'defects': 2, 'served': 0, 'served_after_long': 0, 'served_after_plain_push': 2, 'long_checked': 1, 'creator_errors': {}}"
+            ]
+          },
+          "by_case": {
+            "COPY-list": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 24,
+              "served": 8,
+              "served_after_long": 0,
+              "served_after_plain_push": 24,
+              "long_checked": 12
+            },
+            "COPY-stream": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 24,
+              "served": 8,
+              "served_after_long": 0,
+              "served_after_plain_push": 24,
+              "long_checked": 12
+            },
+            "COPY-zset": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 24,
+              "served": 8,
+              "served_after_long": 0,
+              "served_after_plain_push": 24,
+              "long_checked": 12
+            },
+            "GEOSEARCHSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 24,
+              "served": 8,
+              "served_after_long": 0,
+              "served_after_plain_push": 24,
+              "long_checked": 12
+            },
+            "LMOVE-list(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-list(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-stream(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-zset(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-list": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 32,
+              "served": 0,
+              "served_after_long": 0,
+              "served_after_plain_push": 32,
+              "long_checked": 16
+            },
+            "RESTORE-zset": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 32,
+              "served": 0,
+              "served_after_long": 0,
+              "served_after_plain_push": 32,
+              "long_checked": 16
+            },
+            "SORTSTORE-list(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZDIFFSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 24,
+              "served": 8,
+              "served_after_long": 0,
+              "served_after_plain_push": 24,
+              "long_checked": 12
+            },
+            "ZINTERSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 24,
+              "served": 8,
+              "served_after_long": 0,
+              "served_after_plain_push": 24,
+              "long_checked": 12
+            },
+            "ZRANGESTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 24,
+              "served": 8,
+              "served_after_long": 0,
+              "served_after_plain_push": 24,
+              "long_checked": 12
+            },
+            "ZUNIONSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 24,
+              "served": 8,
+              "served_after_long": 0,
+              "served_after_plain_push": 24,
+              "long_checked": 12
+            }
+          },
+          "totals": {
+            "attempts": 480,
+            "parked": 480,
+            "hits": 480,
+            "defects": 256,
+            "served": 224,
+            "served_after_long": 0,
+            "served_after_plain_push": 256,
+            "long_checked": 128
+          }
+        }
+      },
+      "moves": {
+        "redis": {
+          "legs": 1,
+          "passing": 1,
+          "errors": {},
+          "totals": {
+            "attempts": 30,
+            "parked": 30,
+            "hits": 0,
+            "defects_nil": 0,
+            "hit_waiter_still_blocked": 0,
+            "hit_waiter_other": 0,
+            "nonhit_served_x": 30,
+            "nonhit_other": 0
+          }
+        },
+        "tomokv": {
+          "legs": 24,
+          "passing": 0,
+          "errors": {
+            "tomokv-2s-0-0-1": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-2s-0-0-2": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-2s-0-0-3": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-2s-0-1-4": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-2s-0-1-5": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-2s-0-1-6": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-2s-1-0-7": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-2s-1-0-8": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-2s-1-0-9": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-2s-1-1-10": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-2s-1-1-11": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-2s-1-1-12": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-1s-0-0-13": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-1s-0-0-14": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-1s-0-0-15": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-1s-0-1-16": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-1s-0-1-17": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-1s-0-1-18": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-1s-1-0-19": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-1s-1-0-20": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-1s-1-0-21": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-1s-1-1-22": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-1s-1-1-23": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ],
+            "tomokv-1s-1-1-24": [
+              "nil=30 other=0",
+              "stolen-element waiter did not consume the second push"
+            ]
+          },
+          "totals": {
+            "attempts": 720,
+            "parked": 720,
+            "hits": 720,
+            "defects_nil": 720,
+            "hit_waiter_still_blocked": 0,
+            "hit_waiter_other": 0,
+            "nonhit_served_x": 0,
+            "nonhit_other": 0
+          }
+        }
+      },
+      "mpop": {
+        "redis": {
+          "legs": 2,
+          "passing": 2,
+          "errors": {},
+          "totals": {
+            "hot": 3200,
+            "fallback": 3200,
+            "null": 0,
+            "error": 0,
+            "other": 0,
+            "rounds": 2,
+            "contended": 3200,
+            "hits": 0,
+            "defects": 0,
+            "attempts": 6400
+          }
+        },
+        "tomokv": {
+          "legs": 16,
+          "passing": 8,
+          "errors": {
+            "tomokv-2s-0-0-2": [
+              "attempts=3200 contended=1749 null=149 errors=0"
+            ],
+            "tomokv-2s-0-0-3": [
+              "attempts=3200 contended=1754 null=154 errors=0"
+            ],
+            "tomokv-2s-1-0-6": [
+              "attempts=3200 contended=1789 null=189 errors=0"
+            ],
+            "tomokv-2s-1-0-7": [
+              "attempts=3200 contended=1810 null=210 errors=0"
+            ],
+            "tomokv-1s-0-0-10": [
+              "attempts=3200 contended=1986 null=386 errors=0"
+            ],
+            "tomokv-1s-0-0-11": [
+              "attempts=3200 contended=1982 null=382 errors=0"
+            ],
+            "tomokv-1s-1-0-14": [
+              "attempts=3200 contended=2044 null=444 errors=0"
+            ],
+            "tomokv-1s-1-0-15": [
+              "attempts=3200 contended=1956 null=356 errors=0"
+            ]
+          },
+          "totals": {
+            "hot": 25600,
+            "fallback": 23330,
+            "null": 2270,
+            "error": 0,
+            "other": 0,
+            "rounds": 16,
+            "contended": 27870,
+            "hits": 0,
+            "defects": 2270,
+            "attempts": 51200
+          }
+        }
+      },
+      "removed": {
+        "redis": {
+          "legs": 1,
+          "passing": 1,
+          "errors": {},
+          "by_case": {
+            "DEL+RENAME(ctl)": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "EXPIRE(EXISTS)+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHALL+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHALL-ASYNC+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHDB+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHDB-ASYNC+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "MSET+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 10
+              }
+            },
+            "SET+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 10
+              }
+            }
+          },
+          "totals": {
+            "attempts": 80,
+            "parked": 80,
+            "hits": 80,
+            "long_released": 0,
+            "long_checked": 0,
+            "outcomes": {
+              "error: NOGROUP": 60,
+              "error: WRONGTYPE": 20
+            }
+          }
+        },
+        "tomokv": {
+          "legs": 8,
+          "passing": 1,
+          "errors": {
+            "tomokv-2s-0-0-1": [
+              "SET+RENAME: hits=10 outcomes={'data': 10}",
+              "MSET+RENAME: hits=10 outcomes={'data': 10}",
+              "EXPIRE(EXISTS)+RENAME: hits=10 outcomes={'error: NOGROUP': 9, 'data': 1}",
+              "FLUSHDB+RENAME: hits=10 outcomes={'data': 10}",
+              "FLUSHALL+RENAME: hits=10 outcomes={'data': 10}",
+              "FLUSHDB-ASYNC+RENAME: hits=10 outcomes={'data': 10}",
+              "FLUSHALL-ASYNC+RENAME: hits=10 outcomes={'data': 10}",
+              "SET+RENAME: exact error mismatch: '[[x5:242f51:SET_RENAME:0, [[1793503539025-0, [f, renamed]]]]]'"
+            ],
+            "tomokv-2s-0-1-2": [
+              "SET+RENAME: hits=10 outcomes={'data': 10}",
+              "FLUSHDB+RENAME: hits=10 outcomes={'data': 10}",
+              "FLUSHALL+RENAME: hits=10 outcomes={'data': 10}",
+              "FLUSHDB-ASYNC+RENAME: hits=10 outcomes={'data': 10}",
+              "FLUSHALL-ASYNC+RENAME: hits=10 outcomes={'data': 10}",
+              "SET+RENAME: exact error mismatch: '[[x5:243379:SET_RENAME:0, [[1793503540090-0, [f, renamed]]]]]'"
+            ],
+            "tomokv-2s-1-0-3": [
+              "SET+RENAME: hits=10 outcomes={'data': 10}",
+              "MSET+RENAME: hits=10 outcomes={'data': 9, 'error: WRONGTYPE': 1}",
+              "FLUSHDB+RENAME: hits=10 outcomes={'data': 10}",
+              "FLUSHALL+RENAME: hits=10 outcomes={'data': 10}",
+              "FLUSHDB-ASYNC+RENAME: hits=10 outcomes={'data': 10}",
+              "FLUSHALL-ASYNC+RENAME: hits=10 outcomes={'data': 9, 'error: NOGROUP': 1}",
+              "SET+RENAME: exact error mismatch: '[[x5:2437a5:SET_RENAME:0, [[1793503541158-0, [f, renamed]]]]]'"
+            ],
+            "tomokv-2s-1-1-4": [
+              "SET+RENAME: hits=10 outcomes={'data': 10}",
+              "MSET+RENAME: hits=10 outcomes={'error: WRONGTYPE': 9, 'data': 1}",
+              "FLUSHDB+RENAME: hits=10 outcomes={'data': 10}",
+              "FLUSHALL+RENAME: hits=10 outcomes={'data': 10}",
+              "FLUSHDB-ASYNC+RENAME: hits=10 outcomes={'data': 10}",
+              "FLUSHALL-ASYNC+RENAME: hits=10 outcomes={'data': 8, 'error: NOGROUP': 2}",
+              "SET+RENAME: exact error mismatch: '[[x5:243bcf:SET_RENAME:0, [[1793503542223-0, [f, renamed]]]]]'"
+            ],
+            "tomokv-1s-0-0-5": [
+              "SET+RENAME: hits=10 outcomes={'error: WRONGTYPE': 8, 'data': 2}",
+              "MSET+RENAME: hits=10 outcomes={'error: WRONGTYPE': 9, 'data': 1}",
+              "SET+RENAME: exact error mismatch: '[[x5:243ff9:SET_RENAME:2, [[1793503543291-0, [f, renamed]]]]]'"
+            ],
+            "tomokv-1s-0-1-6": [
+              "SET+RENAME: hits=10 outcomes={'error: WRONGTYPE': 9, 'data': 1}",
+              "SET+RENAME: exact error mismatch: '[[x5:244423:SET_RENAME:1, [[1793503544356-0, [f, renamed]]]]]'"
+            ],
+            "tomokv-1s-1-1-8": [
+              "SET+RENAME: hits=10 outcomes={'error: WRONGTYPE': 9, 'data': 1}",
+              "SET+RENAME: exact error mismatch: '[[x5:244c78:SET_RENAME:1, [[1793503546490-0, [f, renamed]]]]]'"
+            ]
+          },
+          "by_case": {
+            "DEL+RENAME(ctl)": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "EXPIRE(EXISTS)+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 79,
+                "data": 1
+              }
+            },
+            "FLUSHALL+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "data": 40,
+                "error: NOGROUP": 40
+              }
+            },
+            "FLUSHALL-ASYNC+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "data": 37,
+                "error: NOGROUP": 43
+              }
+            },
+            "FLUSHDB+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "data": 40,
+                "error: NOGROUP": 40
+              }
+            },
+            "FLUSHDB-ASYNC+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "data": 40,
+                "error: NOGROUP": 40
+              }
+            },
+            "MSET+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "data": 21,
+                "error: WRONGTYPE": 59
+              }
+            },
+            "SET+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "data": 44,
+                "error: WRONGTYPE": 36
+              }
+            }
+          },
+          "totals": {
+            "attempts": 640,
+            "parked": 640,
+            "hits": 640,
+            "long_released": 0,
+            "long_checked": 0,
+            "outcomes": {
+              "error: NOGROUP": 322,
+              "data": 223,
+              "error: WRONGTYPE": 95
+            }
+          }
+        }
+      },
+      "scripts": {
+        "redis": {
+          "legs": 3,
+          "passing": 3,
+          "errors": {},
+          "script": {
+            "attempts": 9,
+            "parked": 9,
+            "hits": 9,
+            "served": 9,
+            "not_served": 0,
+            "served_after_long": 0,
+            "served_after_release": 0,
+            "served_after_plain_push": 0,
+            "still_stuck": 0,
+            "mid_llen": {
+              "1": 9
+            }
+          },
+          "natural_mvcc": {},
+          "natural_legs": []
+        },
+        "tomokv": {
+          "legs": 44,
+          "passing": 0,
+          "errors": {
+            "tomokv-2s-0-0-3": [
+              "script completion: LLEN={'0': 2, '1': 1}"
+            ],
+            "tomokv-2s-0-0-4": [
+              "script completion: LLEN={'0': 2, '1': 1}"
+            ],
+            "tomokv-2s-0-0-5": [
+              "script completion: LLEN={'0': 2, '1': 1}"
+            ],
+            "tomokv-2s-0-1-6": [
+              "script completion: LLEN={'0': 2, '1': 1}"
+            ],
+            "tomokv-2s-0-1-7": [
+              "wake: hits=3/3 served=1/3"
+            ],
+            "tomokv-2s-0-1-8": [
+              "script completion: LLEN={'0': 2, '1': 1}"
+            ],
+            "tomokv-2s-0-1-9": [
+              "wake: hits=3/3 served=1/3"
+            ],
+            "tomokv-2s-0-1-10": [
+              "script completion: LLEN={'0': 2, '1': 1}"
+            ],
+            "tomokv-2s-0-1-11": [
+              "wake: hits=3/3 served=1/3"
+            ],
+            "tomokv-2s-0-1-12": [
+              "natural script wake: {'event': 'summary', 'attempts': 128, 'parked': 128, 'hits': 116, 'hit_defects': 1, 'nonhit_defects': 0, 'served': 127, 'served_after_long': 0, 'geometry': '2s ratio 6:2 shards16 rl0 a1', 'order': 'after'}",
+              "natural script observed an intermediate pop"
+            ],
+            "tomokv-2s-0-1-13": [
+              "natural script observed an intermediate pop"
+            ],
+            "tomokv-2s-1-0-14": [
+              "wake: hits=3/3 served=0/3"
+            ],
+            "tomokv-2s-1-0-15": [
+              "wake: hits=3/3 served=0/3"
+            ],
+            "tomokv-2s-1-0-16": [
+              "wake: hits=3/3 served=0/3"
+            ],
+            "tomokv-2s-1-1-17": [
+              "wake: hits=3/3 served=0/3"
+            ],
+            "tomokv-2s-1-1-18": [
+              "wake: hits=3/3 served=1/3"
+            ],
+            "tomokv-2s-1-1-19": [
+              "wake: hits=3/3 served=0/3"
+            ],
+            "tomokv-2s-1-1-20": [
+              "wake: hits=3/3 served=1/3"
+            ],
+            "tomokv-2s-1-1-21": [
+              "wake: hits=3/3 served=0/3"
+            ],
+            "tomokv-2s-1-1-22": [
+              "wake: hits=3/3 served=1/3"
+            ],
+            "tomokv-2s-1-1-23": [
+              "natural MVCC window: {'event': 'summary', 'attempts': 15, 'parked': 15, 'hits': 15, 'hit_defects': 10, 'nonhit_defects': 0, 'served': 5, 'served_after_long': 0, 'geometry': '2s ratio 6:2 shards16 rl1 a1', 'order': 'after'}",
+              "natural script wake: {'event': 'summary', 'attempts': 15, 'parked': 15, 'hits': 15, 'hit_defects': 10, 'nonhit_defects': 0, 'served': 5, 'served_after_long': 0, 'geometry': '2s ratio 6:2 shards16 rl1 a1', 'order': 'after'}"
+            ],
+            "tomokv-2s-1-1-24": [
+              "natural MVCC window: {'event': 'summary', 'attempts': 32, 'parked': 32, 'hits': 22, 'hit_defects': 10, 'nonhit_defects': 0, 'served': 22, 'served_after_long': 0, 'geometry': '2s ratio 6:2 shards16 rl1 a1', 'order': 'race'}",
+              "natural script wake: {'event': 'summary', 'attempts': 32, 'parked': 32, 'hits': 22, 'hit_defects': 10, 'nonhit_defects': 0, 'served': 22, 'served_after_long': 0, 'geometry': '2s ratio 6:2 shards16 rl1 a1', 'order': 'race'}"
+            ],
+            "tomokv-1s-0-0-25": [
+              "script completion: LLEN={'0': 2, '1': 1}"
+            ],
+            "tomokv-1s-0-0-26": [
+              "script completion: LLEN={'0': 2, '1': 1}"
+            ],
+            "tomokv-1s-0-0-27": [
+              "script completion: LLEN={'0': 2, '1': 1}"
+            ],
+            "tomokv-1s-0-1-28": [
+              "script completion: LLEN={'0': 2, '1': 1}"
+            ],
+            "tomokv-1s-0-1-29": [
+              "wake: hits=3/3 served=1/3"
+            ],
+            "tomokv-1s-0-1-30": [
+              "script completion: LLEN={'0': 2, '1': 1}"
+            ],
+            "tomokv-1s-0-1-31": [
+              "wake: hits=3/3 served=1/3"
+            ],
+            "tomokv-1s-0-1-32": [
+              "script completion: LLEN={'0': 2, '1': 1}"
+            ],
+            "tomokv-1s-0-1-33": [
+              "wake: hits=3/3 served=1/3"
+            ],
+            "tomokv-1s-0-1-34": [
+              "natural script observed an intermediate pop"
+            ],
+            "tomokv-1s-0-1-35": [
+              "natural script observed an intermediate pop"
+            ],
+            "tomokv-1s-1-0-36": [
+              "wake: hits=3/3 served=0/3"
+            ],
+            "tomokv-1s-1-0-37": [
+              "wake: hits=3/3 served=0/3"
+            ],
+            "tomokv-1s-1-0-38": [
+              "wake: hits=3/3 served=0/3"
+            ],
+            "tomokv-1s-1-1-39": [
+              "wake: hits=3/3 served=0/3"
+            ],
+            "tomokv-1s-1-1-40": [
+              "wake: hits=3/3 served=1/3"
+            ],
+            "tomokv-1s-1-1-41": [
+              "wake: hits=3/3 served=0/3"
+            ],
+            "tomokv-1s-1-1-42": [
+              "wake: hits=3/3 served=1/3"
+            ],
+            "tomokv-1s-1-1-43": [
+              "wake: hits=3/3 served=0/3"
+            ],
+            "tomokv-1s-1-1-44": [
+              "wake: hits=3/3 served=1/3"
+            ],
+            "tomokv-1s-1-1-45": [
+              "natural MVCC window: {'event': 'summary', 'attempts': 10, 'parked': 10, 'hits': 8, 'hit_defects': 8, 'nonhit_defects': 2, 'served': 0, 'served_after_long': 0, 'geometry': '1s fused(8) shards16 rl1 a1', 'order': 'after'}",
+              "natural script wake: {'event': 'summary', 'attempts': 10, 'parked': 10, 'hits': 8, 'hit_defects': 8, 'nonhit_defects': 2, 'served': 0, 'served_after_long': 0, 'geometry': '1s fused(8) shards16 rl1 a1', 'order': 'after'}"
+            ],
+            "tomokv-1s-1-1-46": [
+              "natural MVCC window: {'event': 'summary', 'attempts': 20, 'parked': 20, 'hits': 19, 'hit_defects': 9, 'nonhit_defects': 1, 'served': 10, 'served_after_long': 0, 'geometry': '1s fused(8) shards16 rl1 a1', 'order': 'race'}",
+              "natural script wake: {'event': 'summary', 'attempts': 20, 'parked': 20, 'hits': 19, 'hit_defects': 9, 'nonhit_defects': 1, 'served': 10, 'served_after_long': 0, 'geometry': '1s fused(8) shards16 rl1 a1', 'order': 'race'}"
+            ]
+          },
+          "script": {
+            "attempts": 108,
+            "parked": 108,
+            "hits": 108,
+            "served": 36,
+            "not_served": 72,
+            "served_after_long": 0,
+            "served_after_release": 36,
+            "served_after_plain_push": 36,
+            "still_stuck": 0,
+            "mid_llen": {
+              "0": 24,
+              "1": 84
+            }
+          },
+          "natural_mvcc": {
+            "attempts": 589,
+            "parked": 589,
+            "hits": 542,
+            "hit_defects": 38,
+            "nonhit_defects": 3,
+            "served": 548,
+            "served_after_long": 0
+          },
+          "natural_legs": [
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 116,
+              "hit_defects": 1,
+              "nonhit_defects": 0,
+              "served": 127,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl0 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 108,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl0 a1",
+              "order": "race"
+            },
+            {
+              "event": "summary",
+              "attempts": 15,
+              "parked": 15,
+              "hits": 15,
+              "hit_defects": 10,
+              "nonhit_defects": 0,
+              "served": 5,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl1 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 32,
+              "parked": 32,
+              "hits": 22,
+              "hit_defects": 10,
+              "nonhit_defects": 0,
+              "served": 22,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl1 a1",
+              "order": "race"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 126,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl0 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 128,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl0 a1",
+              "order": "race"
+            },
+            {
+              "event": "summary",
+              "attempts": 10,
+              "parked": 10,
+              "hits": 8,
+              "hit_defects": 8,
+              "nonhit_defects": 2,
+              "served": 0,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl1 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 20,
+              "parked": 20,
+              "hits": 19,
+              "hit_defects": 9,
+              "nonhit_defects": 1,
+              "served": 10,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl1 a1",
+              "order": "race"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "tag": "post-extended-uring",
+    "exit_code": 0,
+    "binary_sha256": "cb7a70bbcf669f8657697a3708c9dd583dbf74fd0463da4ba590a1b8caf63a65",
+    "jobs": [
+      {
+        "job": "blockfix4",
+        "done": "0\t5\t0",
+        "passed": 5,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "18.120000",
+            "label": "blockfix4 scripts (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "44.480000",
+            "label": "blockfix4 moves (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "5.470000",
+            "label": "blockfix4 creators (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "9.950000",
+            "label": "blockfix4 removed (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "6.190000",
+            "label": "blockfix4 mpop (all modes, read-local and atomic)"
+          }
+        ]
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ],
+    "witnesses": {
+      "creators": {
+        "redis": {
+          "legs": 1,
+          "passing": 1,
+          "errors": {},
+          "by_case": {
+            "COPY-list": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-stream": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-zset": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "GEOSEARCHSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "LMOVE-list(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-list(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-stream(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-zset(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-list": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-zset": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "SORTSTORE-list(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZDIFFSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZINTERSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZRANGESTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZUNIONSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            }
+          },
+          "totals": {
+            "attempts": 30,
+            "parked": 30,
+            "hits": 30,
+            "defects": 0,
+            "served": 30,
+            "served_after_long": 0,
+            "served_after_plain_push": 0,
+            "long_checked": 0
+          }
+        },
+        "tomokv": {
+          "legs": 16,
+          "passing": 16,
+          "errors": {},
+          "by_case": {
+            "COPY-list": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-stream": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-zset": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "GEOSEARCHSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "LMOVE-list(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-list(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-stream(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-zset(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-list": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-zset": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "SORTSTORE-list(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZDIFFSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZINTERSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZRANGESTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZUNIONSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            }
+          },
+          "totals": {
+            "attempts": 480,
+            "parked": 480,
+            "hits": 480,
+            "defects": 0,
+            "served": 480,
+            "served_after_long": 0,
+            "served_after_plain_push": 0,
+            "long_checked": 0
+          }
+        }
+      },
+      "moves": {
+        "redis": {
+          "legs": 1,
+          "passing": 1,
+          "errors": {},
+          "totals": {
+            "attempts": 30,
+            "parked": 30,
+            "hits": 0,
+            "defects_nil": 0,
+            "hit_waiter_still_blocked": 0,
+            "hit_waiter_other": 0,
+            "nonhit_served_x": 30,
+            "nonhit_other": 0
+          }
+        },
+        "tomokv": {
+          "legs": 24,
+          "passing": 24,
+          "errors": {},
+          "totals": {
+            "attempts": 720,
+            "parked": 720,
+            "hits": 720,
+            "defects_nil": 0,
+            "hit_waiter_still_blocked": 720,
+            "hit_waiter_other": 0,
+            "nonhit_served_x": 0,
+            "nonhit_other": 0
+          }
+        }
+      },
+      "mpop": {
+        "redis": {
+          "legs": 2,
+          "passing": 2,
+          "errors": {},
+          "totals": {
+            "hot": 3200,
+            "fallback": 3200,
+            "null": 0,
+            "error": 0,
+            "other": 0,
+            "rounds": 2,
+            "contended": 3200,
+            "hits": 0,
+            "defects": 0,
+            "attempts": 6400
+          }
+        },
+        "tomokv": {
+          "legs": 16,
+          "passing": 16,
+          "errors": {},
+          "totals": {
+            "hot": 25600,
+            "fallback": 25600,
+            "null": 0,
+            "error": 0,
+            "other": 0,
+            "rounds": 16,
+            "contended": 25600,
+            "hits": 0,
+            "defects": 0,
+            "attempts": 51200
+          }
+        }
+      },
+      "removed": {
+        "redis": {
+          "legs": 1,
+          "passing": 1,
+          "errors": {},
+          "by_case": {
+            "DEL+RENAME(ctl)": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "EXPIRE(EXISTS)+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHALL+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHALL-ASYNC+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHDB+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHDB-ASYNC+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "MSET+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 10
+              }
+            },
+            "SET+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 10
+              }
+            }
+          },
+          "totals": {
+            "attempts": 80,
+            "parked": 80,
+            "hits": 80,
+            "long_released": 0,
+            "long_checked": 0,
+            "outcomes": {
+              "error: NOGROUP": 60,
+              "error: WRONGTYPE": 20
+            }
+          }
+        },
+        "tomokv": {
+          "legs": 8,
+          "passing": 8,
+          "errors": {},
+          "by_case": {
+            "DEL+RENAME(ctl)": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "EXPIRE(EXISTS)+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHALL+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHALL-ASYNC+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHDB+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHDB-ASYNC+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "MSET+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 80
+              }
+            },
+            "SET+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 80
+              }
+            }
+          },
+          "totals": {
+            "attempts": 640,
+            "parked": 640,
+            "hits": 640,
+            "long_released": 0,
+            "long_checked": 0,
+            "outcomes": {
+              "error: NOGROUP": 480,
+              "error: WRONGTYPE": 160
+            }
+          }
+        }
+      },
+      "scripts": {
+        "redis": {
+          "legs": 3,
+          "passing": 3,
+          "errors": {},
+          "script": {
+            "attempts": 9,
+            "parked": 9,
+            "hits": 9,
+            "served": 9,
+            "not_served": 0,
+            "served_after_long": 0,
+            "served_after_release": 0,
+            "served_after_plain_push": 0,
+            "still_stuck": 0,
+            "mid_llen": {
+              "1": 9
+            }
+          },
+          "natural_mvcc": {},
+          "natural_legs": []
+        },
+        "tomokv": {
+          "legs": 44,
+          "passing": 44,
+          "errors": {},
+          "script": {
+            "attempts": 108,
+            "parked": 108,
+            "hits": 108,
+            "served": 96,
+            "not_served": 12,
+            "served_after_long": 0,
+            "served_after_release": 12,
+            "served_after_plain_push": 0,
+            "still_stuck": 0,
+            "mid_llen": {
+              "1": 108
+            }
+          },
+          "natural_mvcc": {
+            "attempts": 1024,
+            "parked": 1024,
+            "hits": 1001,
+            "hit_defects": 0,
+            "nonhit_defects": 0,
+            "served": 1024,
+            "served_after_long": 0
+          },
+          "natural_legs": [
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 128,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl0 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 128,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl0 a1",
+              "order": "race"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 127,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl1 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 111,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl1 a1",
+              "order": "race"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 127,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl0 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 128,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl0 a1",
+              "order": "race"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 126,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl1 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 126,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl1 a1",
+              "order": "race"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "tag": "normal-namespace-uring",
+    "exit_code": 0,
+    "binary_sha256": "cb7a70bbcf669f8657697a3708c9dd583dbf74fd0463da4ba590a1b8caf63a65",
+    "jobs": [
+      {
+        "job": "blockfix4",
+        "done": "0\t5\t0",
+        "passed": 5,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "17.620000",
+            "label": "blockfix4 scripts (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "44.280000",
+            "label": "blockfix4 moves (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "5.230000",
+            "label": "blockfix4 creators (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "9.900000",
+            "label": "blockfix4 removed (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "6.240000",
+            "label": "blockfix4 mpop (all modes, read-local and atomic)"
+          }
+        ]
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ],
+    "witnesses": {
+      "creators": {
+        "redis": {
+          "legs": 1,
+          "passing": 1,
+          "errors": {},
+          "by_case": {
+            "COPY-list": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-stream": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-zset": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "GEOSEARCHSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "LMOVE-list(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-list(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-stream(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-zset(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-list": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-zset": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "SORTSTORE-list(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZDIFFSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZINTERSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZRANGESTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZUNIONSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            }
+          },
+          "totals": {
+            "attempts": 30,
+            "parked": 30,
+            "hits": 30,
+            "defects": 0,
+            "served": 30,
+            "served_after_long": 0,
+            "served_after_plain_push": 0,
+            "long_checked": 0
+          }
+        },
+        "tomokv": {
+          "legs": 16,
+          "passing": 16,
+          "errors": {},
+          "by_case": {
+            "COPY-list": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-stream": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-zset": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "GEOSEARCHSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "LMOVE-list(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-list(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-stream(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-zset(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-list": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-zset": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "SORTSTORE-list(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZDIFFSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZINTERSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZRANGESTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZUNIONSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            }
+          },
+          "totals": {
+            "attempts": 480,
+            "parked": 480,
+            "hits": 480,
+            "defects": 0,
+            "served": 480,
+            "served_after_long": 0,
+            "served_after_plain_push": 0,
+            "long_checked": 0
+          }
+        }
+      },
+      "moves": {
+        "redis": {
+          "legs": 1,
+          "passing": 1,
+          "errors": {},
+          "totals": {
+            "attempts": 30,
+            "parked": 30,
+            "hits": 0,
+            "defects_nil": 0,
+            "hit_waiter_still_blocked": 0,
+            "hit_waiter_other": 0,
+            "nonhit_served_x": 30,
+            "nonhit_other": 0
+          }
+        },
+        "tomokv": {
+          "legs": 24,
+          "passing": 24,
+          "errors": {},
+          "totals": {
+            "attempts": 720,
+            "parked": 720,
+            "hits": 720,
+            "defects_nil": 0,
+            "hit_waiter_still_blocked": 720,
+            "hit_waiter_other": 0,
+            "nonhit_served_x": 0,
+            "nonhit_other": 0
+          }
+        }
+      },
+      "mpop": {
+        "redis": {
+          "legs": 2,
+          "passing": 2,
+          "errors": {},
+          "totals": {
+            "hot": 3200,
+            "fallback": 3200,
+            "null": 0,
+            "error": 0,
+            "other": 0,
+            "rounds": 2,
+            "contended": 3200,
+            "hits": 0,
+            "defects": 0,
+            "attempts": 6400
+          }
+        },
+        "tomokv": {
+          "legs": 16,
+          "passing": 16,
+          "errors": {},
+          "totals": {
+            "hot": 25600,
+            "fallback": 25600,
+            "null": 0,
+            "error": 0,
+            "other": 0,
+            "rounds": 16,
+            "contended": 25600,
+            "hits": 0,
+            "defects": 0,
+            "attempts": 51200
+          }
+        }
+      },
+      "removed": {
+        "redis": {
+          "legs": 1,
+          "passing": 1,
+          "errors": {},
+          "by_case": {
+            "DEL+RENAME(ctl)": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "EXPIRE(EXISTS)+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHALL+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHALL-ASYNC+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHDB+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHDB-ASYNC+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "MSET+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 10
+              }
+            },
+            "SET+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 10
+              }
+            }
+          },
+          "totals": {
+            "attempts": 80,
+            "parked": 80,
+            "hits": 80,
+            "long_released": 0,
+            "long_checked": 0,
+            "outcomes": {
+              "error: NOGROUP": 60,
+              "error: WRONGTYPE": 20
+            }
+          }
+        },
+        "tomokv": {
+          "legs": 8,
+          "passing": 8,
+          "errors": {},
+          "by_case": {
+            "DEL+RENAME(ctl)": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "EXPIRE(EXISTS)+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHALL+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHALL-ASYNC+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHDB+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHDB-ASYNC+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "MSET+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 80
+              }
+            },
+            "SET+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 80
+              }
+            }
+          },
+          "totals": {
+            "attempts": 640,
+            "parked": 640,
+            "hits": 640,
+            "long_released": 0,
+            "long_checked": 0,
+            "outcomes": {
+              "error: NOGROUP": 480,
+              "error: WRONGTYPE": 160
+            }
+          }
+        }
+      },
+      "scripts": {
+        "redis": {
+          "legs": 3,
+          "passing": 3,
+          "errors": {},
+          "script": {
+            "attempts": 9,
+            "parked": 9,
+            "hits": 9,
+            "served": 9,
+            "not_served": 0,
+            "served_after_long": 0,
+            "served_after_release": 0,
+            "served_after_plain_push": 0,
+            "still_stuck": 0,
+            "mid_llen": {
+              "1": 9
+            }
+          },
+          "natural_mvcc": {},
+          "natural_legs": []
+        },
+        "tomokv": {
+          "legs": 44,
+          "passing": 44,
+          "errors": {},
+          "script": {
+            "attempts": 108,
+            "parked": 108,
+            "hits": 108,
+            "served": 96,
+            "not_served": 12,
+            "served_after_long": 0,
+            "served_after_release": 12,
+            "served_after_plain_push": 0,
+            "still_stuck": 0,
+            "mid_llen": {
+              "1": 108
+            }
+          },
+          "natural_mvcc": {
+            "attempts": 1024,
+            "parked": 1024,
+            "hits": 1009,
+            "hit_defects": 0,
+            "nonhit_defects": 0,
+            "served": 1024,
+            "served_after_long": 0
+          },
+          "natural_legs": [
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 127,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl0 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 127,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl0 a1",
+              "order": "race"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 125,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl1 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 123,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl1 a1",
+              "order": "race"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 126,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl0 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 128,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl0 a1",
+              "order": "race"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 126,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl1 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 127,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl1 a1",
+              "order": "race"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "tag": "remaining-uring",
+    "exit_code": 0,
+    "binary_sha256": "cb7a70bbcf669f8657697a3708c9dd583dbf74fd0463da4ba590a1b8caf63a65",
+    "jobs": [
+      {
+        "job": "atomic_batteries",
+        "done": "0\t4\t0",
+        "passed": 4,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "32.800000",
+            "label": "atomic torn/window battery"
+          },
+          {
+            "status": "ok",
+            "seconds": "4.070000",
+            "label": "atomic RYOW/mixed-write battery"
+          },
+          {
+            "status": "ok",
+            "seconds": "4.300000",
+            "label": "atomic owner-local hazard battery"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.030000",
+            "label": "atomic shutdown invariants"
+          }
+        ]
+      },
+      {
+        "job": "blockfix2",
+        "done": "0\t7\t0",
+        "passed": 7,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "34.440000",
+            "label": "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE"
+          },
+          {
+            "status": "ok",
+            "seconds": "37.660000",
+            "label": "blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK"
+          },
+          {
+            "status": "ok",
+            "seconds": "34.290000",
+            "label": "blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS"
+          },
+          {
+            "status": "ok",
+            "seconds": "34.050000",
+            "label": "blockfix2 MULTI-XREADGROUP-BLOCK-HANG"
+          },
+          {
+            "status": "ok",
+            "seconds": "34.270000",
+            "label": "blockfix2 INFO-TOTAL-BLOCKING-KEYS"
+          },
+          {
+            "status": "ok",
+            "seconds": "34.200000",
+            "label": "blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.140000",
+            "label": "blockfix2 BLOCK-SERVE-REFUSED-DROP"
+          }
+        ]
+      },
+      {
+        "job": "blockfix_mkstream",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "51.310000",
+            "label": "blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4"
+          }
+        ]
+      },
+      {
+        "job": "debug-0",
+        "done": "0\t16\t0",
+        "passed": 16,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "9.180000",
+            "label": "plain-write lost updates (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.170000",
+            "label": "lbsignals battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.500000",
+            "label": "slowlog battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.050000",
+            "label": "atomfix battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.140000",
+            "label": "scriptatomic battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "14.480000",
+            "label": "execatomic battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "11.890000",
+            "label": "execiso battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.440000",
+            "label": "execfix battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.130000",
+            "label": "multires battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.810000",
+            "label": "multirace battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "30.620000",
+            "label": "session_monotonic battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.380000",
+            "label": "xacct battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.030000",
+            "label": "xmove battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "3.270000",
+            "label": "xscript battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.960000",
+            "label": "txn_nx battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "9.260000",
+            "label": "txniso battery (atomic 0)"
+          }
+        ]
+      },
+      {
+        "job": "debug-1",
+        "done": "0\t16\t0",
+        "passed": 16,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "6.160000",
+            "label": "plain-write lost updates (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.170000",
+            "label": "lbsignals battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.490000",
+            "label": "slowlog battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.050000",
+            "label": "atomfix battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.130000",
+            "label": "scriptatomic battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "14.470000",
+            "label": "execatomic battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "11.880000",
+            "label": "execiso battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.460000",
+            "label": "execfix battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.120000",
+            "label": "multires battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.810000",
+            "label": "multirace battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "30.620000",
+            "label": "session_monotonic battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.370000",
+            "label": "xacct battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.040000",
+            "label": "xmove battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "3.260000",
+            "label": "xscript battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.990000",
+            "label": "txn_nx battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "9.140000",
+            "label": "txniso battery (atomic 1)"
+          }
+        ]
+      },
+      {
+        "job": "feature-armed-0",
+        "done": "0\t35\t0",
+        "passed": 35,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.280000",
+            "label": "fused+armed boot line (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.470000",
+            "label": "fused+armed s6 battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "2.120000",
+            "label": "fused+armed multi_exec battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.680000",
+            "label": "fused+armed blocking battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.480000",
+            "label": "fused+armed blockmulti battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.850000",
+            "label": "fused+armed stream battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.090000",
+            "label": "fused+armed streamgroups battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.930000",
+            "label": "fused+armed pubsub battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.070000",
+            "label": "fused+armed lua_scripting battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.080000",
+            "label": "fused+armed scriptsurf battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "14.860000",
+            "label": "fused+armed limits battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.060000",
+            "label": "fused+armed resp3 battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.060000",
+            "label": "fused+armed bitfield battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.090000",
+            "label": "fused+armed dumprestore battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.080000",
+            "label": "fused+armed zsetops battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.050000",
+            "label": "fused+armed geo battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.160000",
+            "label": "fused+armed climon battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "3.310000",
+            "label": "fused+armed climon2 battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "13.270000",
+            "label": "fused+armed tracking battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "3.080000",
+            "label": "fused+armed hexpire battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.640000",
+            "label": "fused+armed servertail battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.190000",
+            "label": "fused+armed lcs battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "2.870000",
+            "label": "fused+armed concur battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.770000",
+            "label": "fused+armed edgeproto battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.420000",
+            "label": "fused+armed edgeenc battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "3.850000",
+            "label": "fused+armed edgetime battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.100000",
+            "label": "fused+armed arity battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.110000",
+            "label": "fused+armed contarity battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.050000",
+            "label": "fused+armed cmdgap battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.050000",
+            "label": "fused+armed aclsel battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "55.050000",
+            "label": "fused+armed expwide battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "4.240000",
+            "label": "fused+armed infofix battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "3.090000",
+            "label": "fused+armed pushtear battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.070000",
+            "label": "fused+armed netcmd battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.170000",
+            "label": "fused+armed shutdown report + lane fired (hits=N, atomic 0)"
+          }
+        ]
+      },
+      {
+        "job": "feature-armed-1",
+        "done": "0\t35\t0",
+        "passed": 35,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.270000",
+            "label": "fused+armed boot line (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "11.240000",
+            "label": "fused+armed s6 battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "2.190000",
+            "label": "fused+armed multi_exec battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.600000",
+            "label": "fused+armed blocking battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.490000",
+            "label": "fused+armed blockmulti battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.950000",
+            "label": "fused+armed stream battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.090000",
+            "label": "fused+armed streamgroups battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.060000",
+            "label": "fused+armed pubsub battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.050000",
+            "label": "fused+armed lua_scripting battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.090000",
+            "label": "fused+armed scriptsurf battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "15.050000",
+            "label": "fused+armed limits battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.060000",
+            "label": "fused+armed resp3 battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.060000",
+            "label": "fused+armed bitfield battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.090000",
+            "label": "fused+armed dumprestore battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.080000",
+            "label": "fused+armed zsetops battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.050000",
+            "label": "fused+armed geo battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.140000",
+            "label": "fused+armed climon battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "3.360000",
+            "label": "fused+armed climon2 battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "13.240000",
+            "label": "fused+armed tracking battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "3.080000",
+            "label": "fused+armed hexpire battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.610000",
+            "label": "fused+armed servertail battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.190000",
+            "label": "fused+armed lcs battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "3.090000",
+            "label": "fused+armed concur battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.740000",
+            "label": "fused+armed edgeproto battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.430000",
+            "label": "fused+armed edgeenc battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "3.910000",
+            "label": "fused+armed edgetime battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.050000",
+            "label": "fused+armed arity battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.050000",
+            "label": "fused+armed contarity battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.050000",
+            "label": "fused+armed cmdgap battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.050000",
+            "label": "fused+armed aclsel battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "50.740000",
+            "label": "fused+armed expwide battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "4.220000",
+            "label": "fused+armed infofix battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "3.010000",
+            "label": "fused+armed pushtear battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.060000",
+            "label": "fused+armed netcmd battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.170000",
+            "label": "fused+armed shutdown report + lane fired (hits=N, atomic 1)"
+          }
+        ]
+      },
+      {
+        "job": "feature-split-0",
+        "done": "0\t34\t0",
+        "passed": 34,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "7.470000",
+            "label": "s6 battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "2.200000",
+            "label": "multi_exec battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.630000",
+            "label": "blocking battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.530000",
+            "label": "blockmulti battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.570000",
+            "label": "stream battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.100000",
+            "label": "streamgroups battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.030000",
+            "label": "pubsub battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.070000",
+            "label": "lua_scripting battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.170000",
+            "label": "scriptsurf battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "15.620000",
+            "label": "limits battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.160000",
+            "label": "resp3 battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.110000",
+            "label": "bitfield battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.110000",
+            "label": "dumprestore battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.140000",
+            "label": "zsetops battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.090000",
+            "label": "geo battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.230000",
+            "label": "climon battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "3.350000",
+            "label": "climon2 battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "13.300000",
+            "label": "tracking battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "3.370000",
+            "label": "hexpire battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.650000",
+            "label": "servertail battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.240000",
+            "label": "lcs battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "3.130000",
+            "label": "concur battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.730000",
+            "label": "edgeproto battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.420000",
+            "label": "edgeenc battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "3.670000",
+            "label": "edgetime battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.060000",
+            "label": "arity battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.060000",
+            "label": "contarity battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.050000",
+            "label": "cmdgap battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.070000",
+            "label": "aclsel battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "73.330000",
+            "label": "expwide battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "4.230000",
+            "label": "infofix battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "5.490000",
+            "label": "pushtear battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.110000",
+            "label": "netcmd battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.030000",
+            "label": "feature shutdown invariants (atomic 0)"
+          }
+        ]
+      },
+      {
+        "job": "feature-split-1",
+        "done": "0\t34\t0",
+        "passed": 34,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "12.600000",
+            "label": "s6 battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "2.130000",
+            "label": "multi_exec battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.600000",
+            "label": "blocking battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.490000",
+            "label": "blockmulti battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.790000",
+            "label": "stream battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.080000",
+            "label": "streamgroups battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.970000",
+            "label": "pubsub battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.050000",
+            "label": "lua_scripting battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.080000",
+            "label": "scriptsurf battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "15.060000",
+            "label": "limits battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.060000",
+            "label": "resp3 battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.060000",
+            "label": "bitfield battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.090000",
+            "label": "dumprestore battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.370000",
+            "label": "zsetops battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.070000",
+            "label": "geo battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.200000",
+            "label": "climon battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "3.370000",
+            "label": "climon2 battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "13.250000",
+            "label": "tracking battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "3.320000",
+            "label": "hexpire battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.620000",
+            "label": "servertail battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.180000",
+            "label": "lcs battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "3.120000",
+            "label": "concur battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.600000",
+            "label": "edgeproto battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.360000",
+            "label": "edgeenc battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "4.360000",
+            "label": "edgetime battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.050000",
+            "label": "arity battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.050000",
+            "label": "contarity battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.050000",
+            "label": "cmdgap battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.050000",
+            "label": "aclsel battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "86.280000",
+            "label": "expwide battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "4.230000",
+            "label": "infofix battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "3.070000",
+            "label": "pushtear battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.060000",
+            "label": "netcmd battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.020000",
+            "label": "feature shutdown invariants (atomic 1)"
+          }
+        ]
+      },
+      {
+        "job": "flip",
+        "done": "0\t9\t0",
+        "passed": 9,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.150000",
+            "label": "FLIP state battery"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.040000",
+            "label": "FLIP under verified load"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.450000",
+            "label": "FLIP TTL + expiry events"
+          },
+          {
+            "status": "ok",
+            "seconds": "2.230000",
+            "label": "partial-frame conn parks (no io spin)"
+          },
+          {
+            "status": "ok",
+            "seconds": "2.390000",
+            "label": "FLIP close during FLIP (uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "2.330000",
+            "label": "FLIP close during FLIP (epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.300000",
+            "label": "FLIP signal stop during FLIP + second SIGINT"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.540000",
+            "label": "perfio stale epoll registration (epoll-flip)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.100000",
+            "label": "perfio stale epoll registration (epoll-lb)"
+          }
+        ]
+      },
+      {
+        "job": "flipfix5",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "80.900000",
+            "label": "FLIP stale stage storm (all legs)"
+          }
+        ]
+      },
+      {
+        "job": "fliplisten",
+        "done": "0\t4\t0",
+        "passed": 4,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "28.090000",
+            "label": "FLIP listener conservation (io-ex, complete)"
+          },
+          {
+            "status": "ok",
+            "seconds": "28.450000",
+            "label": "FLIP listener conservation (io-ex, rollback)"
+          },
+          {
+            "status": "ok",
+            "seconds": "28.160000",
+            "label": "FLIP listener conservation (ex-io, complete)"
+          },
+          {
+            "status": "ok",
+            "seconds": "28.200000",
+            "label": "FLIP listener conservation (ex-io, rollback)"
+          }
+        ]
+      },
+      {
+        "job": "fused-0",
+        "done": "0\t9\t0",
+        "passed": 9,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.260000",
+            "label": "fused boot line (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.170000",
+            "label": "fused s6 battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "2.110000",
+            "label": "fused multi_exec battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.740000",
+            "label": "fused edgeproto battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.070000",
+            "label": "fused atomfix battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "2.230000",
+            "label": "fused spinprobe battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.170000",
+            "label": "fused shutdown report (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.420000",
+            "label": "fused txn_nx battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "8.830000",
+            "label": "fused txniso battery (atomic 0)"
+          }
+        ]
+      },
+      {
+        "job": "fused-1",
+        "done": "0\t9\t0",
+        "passed": 9,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.260000",
+            "label": "fused boot line (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.180000",
+            "label": "fused s6 battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "2.100000",
+            "label": "fused multi_exec battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.730000",
+            "label": "fused edgeproto battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.070000",
+            "label": "fused atomfix battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "2.230000",
+            "label": "fused spinprobe battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.160000",
+            "label": "fused shutdown report (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "2.610000",
+            "label": "fused txn_nx battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "9.430000",
+            "label": "fused txniso battery (atomic 1)"
+          }
+        ]
+      },
+      {
+        "job": "lb-stationary-1s",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "42.380000",
+            "label": "stationary balanced LB holds still (1s)"
+          }
+        ]
+      },
+      {
+        "job": "lb-stationary-2s",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "42.370000",
+            "label": "stationary balanced LB holds still (2s)"
+          }
+        ]
+      },
+      {
+        "job": "lbplanner_units",
+        "done": "0\t2\t0",
+        "passed": 2,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.310000",
+            "label": "LB sampler exceptional cleanup + negative control"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.310000",
+            "label": "LB monitor plan handoff + negative controls"
+          }
+        ]
+      },
+      {
+        "job": "notify",
+        "done": "0\t6\t0",
+        "passed": 6,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "2.180000",
+            "label": "MULTI feature battery"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.550000",
+            "label": "blocking feature battery"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.970000",
+            "label": "pubsub feature battery"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.030000",
+            "label": "Lua feature battery"
+          },
+          {
+            "status": "ok",
+            "seconds": "46.660000",
+            "label": "keyspace notification battery (atomic 0/1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.030000",
+            "label": "feature battery shutdown invariants"
+          }
+        ]
+      },
+      {
+        "job": "notify_order",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "72.210000",
+            "label": "keyspace lazy-expiry order vs Redis 7.4"
+          }
+        ]
+      },
+      {
+        "job": "notifycompat",
+        "done": "0\t7\t0",
+        "passed": 7,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "22.590000",
+            "label": "notification compatibility setbit vs Redis 7.4"
+          },
+          {
+            "status": "ok",
+            "seconds": "41.880000",
+            "label": "notification compatibility setpast vs Redis 7.4"
+          },
+          {
+            "status": "ok",
+            "seconds": "50.880000",
+            "label": "notification compatibility emptystore vs Redis 7.4"
+          },
+          {
+            "status": "ok",
+            "seconds": "42.930000",
+            "label": "notification compatibility writemiss vs Redis 7.4"
+          },
+          {
+            "status": "ok",
+            "seconds": "43.890000",
+            "label": "notification compatibility objectmiss vs Redis 7.4"
+          },
+          {
+            "status": "ok",
+            "seconds": "146.060000",
+            "label": "notification compatibility expiredstore vs Redis 7.4"
+          },
+          {
+            "status": "ok",
+            "seconds": "57.180000",
+            "label": "notification compatibility flush vs Redis 7.4"
+          }
+        ]
+      },
+      {
+        "job": "production_units",
+        "done": "0\t0\t0",
+        "passed": 0,
+        "failed": 0,
+        "rows": []
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      },
+      {
+        "job": "release_batteries",
+        "done": "0\t8\t0",
+        "passed": 8,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "6.660000",
+            "label": "torture battery"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.190000",
+            "label": "RYOW battery"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.070000",
+            "label": "ACL category runtime table"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.030000",
+            "label": "ACL LOAD/SAVE no-file errors"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.030000",
+            "label": "idle loop ceiling (LBSIGNALS, 1s)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.050000",
+            "label": "shutdown invariants (nothing stuck)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.030000",
+            "label": "direct-reply fired (direct=N)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.050000",
+            "label": "dispatched==executed (N)"
+          }
+        ]
+      },
+      {
+        "job": "script_bounds",
+        "done": "0\t2\t0",
+        "passed": 2,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.060000",
+            "label": "xscript limit control"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.060000",
+            "label": "xscript window control"
+          }
+        ]
+      },
+      {
+        "job": "scriptfix",
+        "done": "0\t8\t0",
+        "passed": 8,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.130000",
+            "label": "scriptfix sandbox (1s)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.120000",
+            "label": "scriptfix functions (1s)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.710000",
+            "label": "scriptfix replies (1s)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.650000",
+            "label": "scriptfix dump (1s)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.120000",
+            "label": "scriptfix sandbox (2s)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.140000",
+            "label": "scriptfix functions (2s)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.700000",
+            "label": "scriptfix replies (2s)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.580000",
+            "label": "scriptfix dump (2s)"
+          }
+        ]
+      },
+      {
+        "job": "scriptfix2",
+        "done": "0\t48\t0",
+        "passed": 48,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "1.920000",
+            "label": "scriptfix2 EVAL-SHEBANG (1s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.950000",
+            "label": "scriptfix2 EVALSHA-SHA-CASE (1s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.890000",
+            "label": "scriptfix2 FCALL-NAME-CASE (1s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.900000",
+            "label": "scriptfix2 FUNCTION-LOAD-ENV (1s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.930000",
+            "label": "scriptfix2 FUNCTION-REGISTER-ARGS (1s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.930000",
+            "label": "scriptfix2 FUNCTION-SHEBANG-META (1s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.940000",
+            "label": "scriptfix2 FUNCTION-SUBCMD-ARGS (1s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.950000",
+            "label": "scriptfix2 LUA-REDIS-API (1s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.870000",
+            "label": "scriptfix2 LUA-SANDBOX-GLOBALS (1s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.890000",
+            "label": "scriptfix2 SCRIPT-ERROR-WORDING (1s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.900000",
+            "label": "scriptfix2 SCRIPT-NUMBER-ARG (1s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.960000",
+            "label": "scriptfix2 SCRIPT-REPLY-DEPTH (1s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.900000",
+            "label": "scriptfix2 EVAL-SHEBANG (1s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.930000",
+            "label": "scriptfix2 EVALSHA-SHA-CASE (1s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.890000",
+            "label": "scriptfix2 FCALL-NAME-CASE (1s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.890000",
+            "label": "scriptfix2 FUNCTION-LOAD-ENV (1s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.900000",
+            "label": "scriptfix2 FUNCTION-REGISTER-ARGS (1s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.890000",
+            "label": "scriptfix2 FUNCTION-SHEBANG-META (1s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.900000",
+            "label": "scriptfix2 FUNCTION-SUBCMD-ARGS (1s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.900000",
+            "label": "scriptfix2 LUA-REDIS-API (1s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.890000",
+            "label": "scriptfix2 LUA-SANDBOX-GLOBALS (1s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.870000",
+            "label": "scriptfix2 SCRIPT-ERROR-WORDING (1s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.880000",
+            "label": "scriptfix2 SCRIPT-NUMBER-ARG (1s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.940000",
+            "label": "scriptfix2 SCRIPT-REPLY-DEPTH (1s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.880000",
+            "label": "scriptfix2 EVAL-SHEBANG (2s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.920000",
+            "label": "scriptfix2 EVALSHA-SHA-CASE (2s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.870000",
+            "label": "scriptfix2 FCALL-NAME-CASE (2s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.880000",
+            "label": "scriptfix2 FUNCTION-LOAD-ENV (2s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.880000",
+            "label": "scriptfix2 FUNCTION-REGISTER-ARGS (2s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.880000",
+            "label": "scriptfix2 FUNCTION-SHEBANG-META (2s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.890000",
+            "label": "scriptfix2 FUNCTION-SUBCMD-ARGS (2s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.940000",
+            "label": "scriptfix2 LUA-REDIS-API (2s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.890000",
+            "label": "scriptfix2 LUA-SANDBOX-GLOBALS (2s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.880000",
+            "label": "scriptfix2 SCRIPT-ERROR-WORDING (2s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.880000",
+            "label": "scriptfix2 SCRIPT-NUMBER-ARG (2s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.930000",
+            "label": "scriptfix2 SCRIPT-REPLY-DEPTH (2s, uring)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.880000",
+            "label": "scriptfix2 EVAL-SHEBANG (2s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.930000",
+            "label": "scriptfix2 EVALSHA-SHA-CASE (2s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.880000",
+            "label": "scriptfix2 FCALL-NAME-CASE (2s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.880000",
+            "label": "scriptfix2 FUNCTION-LOAD-ENV (2s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.880000",
+            "label": "scriptfix2 FUNCTION-REGISTER-ARGS (2s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.890000",
+            "label": "scriptfix2 FUNCTION-SHEBANG-META (2s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.890000",
+            "label": "scriptfix2 FUNCTION-SUBCMD-ARGS (2s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.910000",
+            "label": "scriptfix2 LUA-REDIS-API (2s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.900000",
+            "label": "scriptfix2 LUA-SANDBOX-GLOBALS (2s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.880000",
+            "label": "scriptfix2 SCRIPT-ERROR-WORDING (2s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.890000",
+            "label": "scriptfix2 SCRIPT-NUMBER-ARG (2s, epoll)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.940000",
+            "label": "scriptfix2 SCRIPT-REPLY-DEPTH (2s, epoll)"
+          }
+        ]
+      },
+      {
+        "job": "streamfix",
+        "done": "0\t6\t0",
+        "passed": 6,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "71.590000",
+            "label": "streamfix STREAM-TRIM-APPROX-LIMIT vs Redis 7.4"
+          },
+          {
+            "status": "ok",
+            "seconds": "40.030000",
+            "label": "streamfix XREAD-PLUS-LAST vs Redis 7.4"
+          },
+          {
+            "status": "ok",
+            "seconds": "33.730000",
+            "label": "streamfix XRANGE-EXCLUSIVE-SENTINEL vs Redis 7.4"
+          },
+          {
+            "status": "ok",
+            "seconds": "33.670000",
+            "label": "streamfix STREAM-GROUP-ID-DASH vs Redis 7.4"
+          },
+          {
+            "status": "ok",
+            "seconds": "33.720000",
+            "label": "streamfix XAUTOCLAIM-COUNT-RANGE vs Redis 7.4"
+          },
+          {
+            "status": "ok",
+            "seconds": "34.020000",
+            "label": "streamfix MPOP-ARG-ERROR-TEXT vs Redis 7.4"
+          }
+        ]
+      },
+      {
+        "job": "txn_group_fused",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "13.040000",
+            "label": "fused txngroup battery (atomic 1)"
+          }
+        ]
+      },
+      {
+        "job": "txn_group_split",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "13.140000",
+            "label": "txngroup battery (atomic 1)"
+          }
+        ]
+      },
+      {
+        "job": "txnorder-fused-0",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "48.410000",
+            "label": "txnorder battery (fused, atomic 0)"
+          }
+        ]
+      },
+      {
+        "job": "txnorder-fused-1",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "51.090000",
+            "label": "txnorder battery (fused, atomic 1)"
+          }
+        ]
+      },
+      {
+        "job": "txnorder-split-0",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "48.490000",
+            "label": "txnorder battery (split, atomic 0)"
+          }
+        ]
+      },
+      {
+        "job": "txnorder-split-1",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "48.090000",
+            "label": "txnorder battery (split, atomic 1)"
+          }
+        ]
+      },
+      {
+        "job": "txnorder2",
+        "done": "0\t16\t0",
+        "passed": 16,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.030000",
+            "label": "txnorder2 writer episode R1"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.020000",
+            "label": "txnorder2 writer episode R2"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.030000",
+            "label": "txnorder2 writer episode R3"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.030000",
+            "label": "txnorder2 writer episode R4"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.030000",
+            "label": "txnorder2 writer episode R5"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.030000",
+            "label": "txnorder2 writer episode R6"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.030000",
+            "label": "txnorder2 writer episode R7"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.110000",
+            "label": "txnorder2 writer episode R8"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.020000",
+            "label": "txnorder2 writer episode R9"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.020000",
+            "label": "txnorder2 writer episode R10"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.030000",
+            "label": "txnorder2 writer episode R11"
+          },
+          {
+            "status": "ok",
+            "seconds": "4.580000",
+            "label": "txnorder2 writer episode R12"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.050000",
+            "label": "txnorder2 direct RENAME owner join"
+          },
+          {
+            "status": "ok",
+            "seconds": "22.700000",
+            "label": "txnorder2 WATCH serve"
+          },
+          {
+            "status": "ok",
+            "seconds": "30.410000",
+            "label": "txnorder2 WATCH flush"
+          },
+          {
+            "status": "ok",
+            "seconds": "27.390000",
+            "label": "txnorder2 WATCH readonly"
+          }
+        ]
+      },
+      {
+        "job": "txnorder_index",
+        "done": "0\t2\t0",
+        "passed": 2,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "102.280000",
+            "label": "txnorder index oracle"
+          },
+          {
+            "status": "ok",
+            "seconds": "2.570000",
+            "label": "txnorder index complexity"
+          }
+        ]
+      },
+      {
+        "job": "txnorder_wake",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.010000",
+            "label": "txnorder2 busy owner inbox wake"
+          }
+        ]
+      },
+      {
+        "job": "txnorder_wound",
+        "done": "0\t4\t0",
+        "passed": 4,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.060000",
+            "label": "txnorder wound group"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.030000",
+            "label": "txnorder wound exec"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.030000",
+            "label": "txnorder wound oom"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.100000",
+            "label": "txnorder wound d2"
+          }
+        ]
+      }
+    ],
+    "witnesses": {}
+  },
+  {
+    "tag": "fused-debug-uring",
+    "exit_code": 0,
+    "binary_sha256": "cb7a70bbcf669f8657697a3708c9dd583dbf74fd0463da4ba590a1b8caf63a65",
+    "jobs": [
+      {
+        "job": "debug-0",
+        "done": "0\t16\t0",
+        "passed": 16,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "9.170000",
+            "label": "plain-write lost updates (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.170000",
+            "label": "lbsignals battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.490000",
+            "label": "slowlog battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.050000",
+            "label": "atomfix battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.130000",
+            "label": "scriptatomic battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "14.470000",
+            "label": "execatomic battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "11.880000",
+            "label": "execiso battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.480000",
+            "label": "execfix battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.120000",
+            "label": "multires battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.810000",
+            "label": "multirace battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "30.690000",
+            "label": "session_monotonic battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.360000",
+            "label": "xacct battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.030000",
+            "label": "xmove battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "3.260000",
+            "label": "xscript battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "2.330000",
+            "label": "txn_nx battery (atomic 0)"
+          },
+          {
+            "status": "ok",
+            "seconds": "8.960000",
+            "label": "txniso battery (atomic 0)"
+          }
+        ]
+      },
+      {
+        "job": "debug-1",
+        "done": "0\t16\t0",
+        "passed": 16,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "7.170000",
+            "label": "plain-write lost updates (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.200000",
+            "label": "lbsignals battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "1.500000",
+            "label": "slowlog battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.070000",
+            "label": "atomfix battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.150000",
+            "label": "scriptatomic battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "14.520000",
+            "label": "execatomic battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "11.910000",
+            "label": "execiso battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.580000",
+            "label": "execfix battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.180000",
+            "label": "multires battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.790000",
+            "label": "multirace battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "30.800000",
+            "label": "session_monotonic battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.370000",
+            "label": "xacct battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "0.030000",
+            "label": "xmove battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "3.270000",
+            "label": "xscript battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "2.360000",
+            "label": "txn_nx battery (atomic 1)"
+          },
+          {
+            "status": "ok",
+            "seconds": "9.200000",
+            "label": "txniso battery (atomic 1)"
+          }
+        ]
+      },
+      {
+        "job": "production_units",
+        "done": "0\t0\t0",
+        "passed": 0,
+        "failed": 0,
+        "rows": []
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ],
+    "witnesses": {}
+  }
+]

@@ -1,0 +1,566 @@
+{
+  "original_sha256": "735cbffb1afa279a4b47ddd42411cbc5d4e25a38653c01150ee15edc5fd6ebca",
+  "rebuilt_sha256": "15faa04036c682eba596d520925bedd55f337d0802029db893fd5cb25d523c3b",
+  "allocated_section_count": 31,
+  "original_sections": {
+    ".interp": {
+      "type": 1,
+      "flags": 2,
+      "address": 848,
+      "bytes": 28,
+      "alignment": 1,
+      "content_sha256": "9097c98ea70f6f3b01d50145eb72bf55ad1f4e9713bccf27bd6405d6254eed00"
+    },
+    ".note.gnu.property": {
+      "type": 7,
+      "flags": 2,
+      "address": 880,
+      "bytes": 48,
+      "alignment": 8,
+      "content_sha256": "67098b0bd64a1f8fdb6594ba06e1fb1fd39e5d20334df6e6957967935b509beb"
+    },
+    ".note.gnu.build-id": {
+      "type": 7,
+      "flags": 2,
+      "address": 928,
+      "bytes": 36,
+      "alignment": 4,
+      "content_sha256": "074e2bf191cb4e9aa5371c29515f03403359f1ad2c05900f43706247ccff1595"
+    },
+    ".note.ABI-tag": {
+      "type": 7,
+      "flags": 2,
+      "address": 964,
+      "bytes": 32,
+      "alignment": 4,
+      "content_sha256": "6e48317ad93a8ac2dc04321465ede06d1274543fc8ab172e68171a9d684bb313"
+    },
+    ".gnu.hash": {
+      "type": 1879048182,
+      "flags": 2,
+      "address": 1000,
+      "bytes": 344,
+      "alignment": 8,
+      "content_sha256": "23d74b797ba0827bbaae707467075062b2a575f5e1a3dd9cdf20f13c2312d9e4"
+    },
+    ".dynsym": {
+      "type": 11,
+      "flags": 2,
+      "address": 1344,
+      "bytes": 9360,
+      "alignment": 8,
+      "content_sha256": "d510d11d1de7ac3084a927dcbaa40de210c239cac00ab1d68e9aef6d4888c197"
+    },
+    ".dynstr": {
+      "type": 3,
+      "flags": 2,
+      "address": 10704,
+      "bytes": 8418,
+      "alignment": 1,
+      "content_sha256": "bd6dc15c569dac682d2176e4540f072afd287b74d8146707f3e2a168d63a7e52"
+    },
+    ".gnu.version": {
+      "type": 1879048191,
+      "flags": 2,
+      "address": 19122,
+      "bytes": 780,
+      "alignment": 2,
+      "content_sha256": "35cc730d76fd7b4e07362754db17503c0be991b2fb71f5bf2033d6a54014cb7b"
+    },
+    ".gnu.version_r": {
+      "type": 1879048190,
+      "flags": 2,
+      "address": 19904,
+      "bytes": 784,
+      "alignment": 8,
+      "content_sha256": "4e388686bbe426b974b7ef23339c412771566c212f2fe9ca42e937e36ab4bc37"
+    },
+    ".rela.dyn": {
+      "type": 4,
+      "flags": 2,
+      "address": 20688,
+      "bytes": 140736,
+      "alignment": 8,
+      "content_sha256": "bf24588ac1d27f9d3b66c40588fae9eb5d7e33c69b374fe17266daa6e710d21c"
+    },
+    ".rela.plt": {
+      "type": 4,
+      "flags": 66,
+      "address": 161424,
+      "bytes": 8136,
+      "alignment": 8,
+      "content_sha256": "6361c482c0e5842c262c9f29b38af133d8e5d41d0a1f2d03c14c29707b71ce49"
+    },
+    ".init": {
+      "type": 1,
+      "flags": 6,
+      "address": 172032,
+      "bytes": 27,
+      "alignment": 4,
+      "content_sha256": "8f0bd2e6455e473780f5fb6a3b924635c19ded66670bdfedc4267df5ba25b6eb"
+    },
+    ".plt": {
+      "type": 1,
+      "flags": 6,
+      "address": 172064,
+      "bytes": 5440,
+      "alignment": 16,
+      "content_sha256": "cb98a43e2b7e8109a96a0e02f277dc1f968c7e45f7b4b98ec4d32ae1c435f6d3"
+    },
+    ".plt.got": {
+      "type": 1,
+      "flags": 6,
+      "address": 177504,
+      "bytes": 32,
+      "alignment": 16,
+      "content_sha256": "77a2a7c1f7a57e249e808e0b99c4d872faa9264980a979a448008939687d61d5"
+    },
+    ".plt.sec": {
+      "type": 1,
+      "flags": 6,
+      "address": 177536,
+      "bytes": 5424,
+      "alignment": 16,
+      "content_sha256": "2cbd0d9267337985b769b25182c48b1ce814f98a1b4b0e10ce0e5ba2133165a0"
+    },
+    ".text": {
+      "type": 1,
+      "flags": 6,
+      "address": 182960,
+      "bytes": 8729431,
+      "alignment": 16,
+      "content_sha256": "2b3989a3f6e2ead05a90f22220602aa6ae947f062341c99d5d96212539a7a544"
+    },
+    ".rlfence": {
+      "type": 1,
+      "flags": 6,
+      "address": 8912391,
+      "bytes": 112,
+      "alignment": 1,
+      "content_sha256": "252e9d4b19319ec553f5df0eecd85b4929ef7e6bb940c1674e96c5308a3fbf18"
+    },
+    ".fini": {
+      "type": 1,
+      "flags": 6,
+      "address": 8912504,
+      "bytes": 13,
+      "alignment": 4,
+      "content_sha256": "6a4f3e5efc7c1f7ee7d6f21afd9ed040ba1d7f0b97bb12b016f5b176cc558bd8"
+    },
+    ".rodata": {
+      "type": 1,
+      "flags": 2,
+      "address": 8912896,
+      "bytes": 637900,
+      "alignment": 64,
+      "content_sha256": "04ca2077304aff65c6c64c0d7a3fcea7a838806b43cd51636a1b72628a9fc790"
+    },
+    ".eh_frame_hdr": {
+      "type": 1,
+      "flags": 2,
+      "address": 9550796,
+      "bytes": 93012,
+      "alignment": 4,
+      "content_sha256": "a2071643c191eac18dce7e4fb5e2eb28fa6a02efa8baafa1f2e533bae60db010"
+    },
+    ".eh_frame": {
+      "type": 1,
+      "flags": 2,
+      "address": 9643808,
+      "bytes": 620608,
+      "alignment": 8,
+      "content_sha256": "7fd0058d23389ecd94fa532783d7d3a98844e0022e17890ddad5b776c5d60eba"
+    },
+    ".gcc_except_table": {
+      "type": 1,
+      "flags": 2,
+      "address": 10264416,
+      "bytes": 148516,
+      "alignment": 4,
+      "content_sha256": "31708c961d8f0cf68db2a130f09dbe1086373f9f7c34c0469750d6b8d8b7fbee"
+    },
+    ".tdata": {
+      "type": 1,
+      "flags": 1027,
+      "address": 10416432,
+      "bytes": 384,
+      "alignment": 16,
+      "content_sha256": "958ed023a52bba855ebb09a2c01fceae5d2672ace62d7ae10499f4194032efde"
+    },
+    ".tbss": {
+      "type": 8,
+      "flags": 1027,
+      "address": 10416816,
+      "bytes": 704,
+      "alignment": 16,
+      "content_sha256": null
+    },
+    ".init_array": {
+      "type": 14,
+      "flags": 3,
+      "address": 10416816,
+      "bytes": 776,
+      "alignment": 8,
+      "content_sha256": "f36b0c2285d7c3f0664a88fa74e1b23397753272e4ca60911e32ab628a9ad223"
+    },
+    ".fini_array": {
+      "type": 15,
+      "flags": 3,
+      "address": 10417592,
+      "bytes": 8,
+      "alignment": 8,
+      "content_sha256": "b9ae7745515f477ee47fcfdbe56c4cb48a0a74309f0ec2bf4919a17f23591f6a"
+    },
+    ".data.rel.ro": {
+      "type": 1,
+      "flags": 3,
+      "address": 10417600,
+      "bytes": 85168,
+      "alignment": 32,
+      "content_sha256": "5f57c21aec3150688a30f42c4fc389bd2169442689bf047c13df5e647039d1ec"
+    },
+    ".dynamic": {
+      "type": 6,
+      "flags": 3,
+      "address": 10502768,
+      "bytes": 608,
+      "alignment": 8,
+      "content_sha256": "ea47ce53436b50c7bfb0ba5c1506dfeb20e4184b3af11622f033e08e254653d7"
+    },
+    ".got": {
+      "type": 1,
+      "flags": 3,
+      "address": 10503376,
+      "bytes": 2864,
+      "alignment": 8,
+      "content_sha256": "e1229863f8ff3474590f3950381ba4e0ac8917c968b5843d9767d93312b2171e"
+    },
+    ".data": {
+      "type": 1,
+      "flags": 3,
+      "address": 10506240,
+      "bytes": 19321,
+      "alignment": 64,
+      "content_sha256": "1db5169111855489657569c61dc7abf54f9ae05567ec86ec0fbdbededb5de5fc"
+    },
+    ".bss": {
+      "type": 8,
+      "flags": 3,
+      "address": 10525568,
+      "bytes": 1189256,
+      "alignment": 64,
+      "content_sha256": null
+    }
+  },
+  "rebuilt_sections": {
+    ".interp": {
+      "type": 1,
+      "flags": 2,
+      "address": 848,
+      "bytes": 28,
+      "alignment": 1,
+      "content_sha256": "9097c98ea70f6f3b01d50145eb72bf55ad1f4e9713bccf27bd6405d6254eed00"
+    },
+    ".note.gnu.property": {
+      "type": 7,
+      "flags": 2,
+      "address": 880,
+      "bytes": 48,
+      "alignment": 8,
+      "content_sha256": "67098b0bd64a1f8fdb6594ba06e1fb1fd39e5d20334df6e6957967935b509beb"
+    },
+    ".note.gnu.build-id": {
+      "type": 7,
+      "flags": 2,
+      "address": 928,
+      "bytes": 36,
+      "alignment": 4,
+      "content_sha256": "2c9ea88554ed98f61c9524f795f015a4f142f63c69e1a9f0a9fce539fc090899"
+    },
+    ".note.ABI-tag": {
+      "type": 7,
+      "flags": 2,
+      "address": 964,
+      "bytes": 32,
+      "alignment": 4,
+      "content_sha256": "6e48317ad93a8ac2dc04321465ede06d1274543fc8ab172e68171a9d684bb313"
+    },
+    ".gnu.hash": {
+      "type": 1879048182,
+      "flags": 2,
+      "address": 1000,
+      "bytes": 344,
+      "alignment": 8,
+      "content_sha256": "23d74b797ba0827bbaae707467075062b2a575f5e1a3dd9cdf20f13c2312d9e4"
+    },
+    ".dynsym": {
+      "type": 11,
+      "flags": 2,
+      "address": 1344,
+      "bytes": 9360,
+      "alignment": 8,
+      "content_sha256": "d510d11d1de7ac3084a927dcbaa40de210c239cac00ab1d68e9aef6d4888c197"
+    },
+    ".dynstr": {
+      "type": 3,
+      "flags": 2,
+      "address": 10704,
+      "bytes": 8418,
+      "alignment": 1,
+      "content_sha256": "bd6dc15c569dac682d2176e4540f072afd287b74d8146707f3e2a168d63a7e52"
+    },
+    ".gnu.version": {
+      "type": 1879048191,
+      "flags": 2,
+      "address": 19122,
+      "bytes": 780,
+      "alignment": 2,
+      "content_sha256": "35cc730d76fd7b4e07362754db17503c0be991b2fb71f5bf2033d6a54014cb7b"
+    },
+    ".gnu.version_r": {
+      "type": 1879048190,
+      "flags": 2,
+      "address": 19904,
+      "bytes": 784,
+      "alignment": 8,
+      "content_sha256": "4e388686bbe426b974b7ef23339c412771566c212f2fe9ca42e937e36ab4bc37"
+    },
+    ".rela.dyn": {
+      "type": 4,
+      "flags": 2,
+      "address": 20688,
+      "bytes": 140736,
+      "alignment": 8,
+      "content_sha256": "bf24588ac1d27f9d3b66c40588fae9eb5d7e33c69b374fe17266daa6e710d21c"
+    },
+    ".rela.plt": {
+      "type": 4,
+      "flags": 66,
+      "address": 161424,
+      "bytes": 8136,
+      "alignment": 8,
+      "content_sha256": "6361c482c0e5842c262c9f29b38af133d8e5d41d0a1f2d03c14c29707b71ce49"
+    },
+    ".init": {
+      "type": 1,
+      "flags": 6,
+      "address": 172032,
+      "bytes": 27,
+      "alignment": 4,
+      "content_sha256": "8f0bd2e6455e473780f5fb6a3b924635c19ded66670bdfedc4267df5ba25b6eb"
+    },
+    ".plt": {
+      "type": 1,
+      "flags": 6,
+      "address": 172064,
+      "bytes": 5440,
+      "alignment": 16,
+      "content_sha256": "cb98a43e2b7e8109a96a0e02f277dc1f968c7e45f7b4b98ec4d32ae1c435f6d3"
+    },
+    ".plt.got": {
+      "type": 1,
+      "flags": 6,
+      "address": 177504,
+      "bytes": 32,
+      "alignment": 16,
+      "content_sha256": "77a2a7c1f7a57e249e808e0b99c4d872faa9264980a979a448008939687d61d5"
+    },
+    ".plt.sec": {
+      "type": 1,
+      "flags": 6,
+      "address": 177536,
+      "bytes": 5424,
+      "alignment": 16,
+      "content_sha256": "2cbd0d9267337985b769b25182c48b1ce814f98a1b4b0e10ce0e5ba2133165a0"
+    },
+    ".text": {
+      "type": 1,
+      "flags": 6,
+      "address": 182960,
+      "bytes": 8729431,
+      "alignment": 16,
+      "content_sha256": "2b3989a3f6e2ead05a90f22220602aa6ae947f062341c99d5d96212539a7a544"
+    },
+    ".rlfence": {
+      "type": 1,
+      "flags": 6,
+      "address": 8912391,
+      "bytes": 112,
+      "alignment": 1,
+      "content_sha256": "252e9d4b19319ec553f5df0eecd85b4929ef7e6bb940c1674e96c5308a3fbf18"
+    },
+    ".fini": {
+      "type": 1,
+      "flags": 6,
+      "address": 8912504,
+      "bytes": 13,
+      "alignment": 4,
+      "content_sha256": "6a4f3e5efc7c1f7ee7d6f21afd9ed040ba1d7f0b97bb12b016f5b176cc558bd8"
+    },
+    ".rodata": {
+      "type": 1,
+      "flags": 2,
+      "address": 8912896,
+      "bytes": 637900,
+      "alignment": 64,
+      "content_sha256": "a44d8c2d76d8e5277611bc566c1c90c7f3feedcb2d981c66cfda56d2fae40a72"
+    },
+    ".eh_frame_hdr": {
+      "type": 1,
+      "flags": 2,
+      "address": 9550796,
+      "bytes": 93012,
+      "alignment": 4,
+      "content_sha256": "a2071643c191eac18dce7e4fb5e2eb28fa6a02efa8baafa1f2e533bae60db010"
+    },
+    ".eh_frame": {
+      "type": 1,
+      "flags": 2,
+      "address": 9643808,
+      "bytes": 620608,
+      "alignment": 8,
+      "content_sha256": "7fd0058d23389ecd94fa532783d7d3a98844e0022e17890ddad5b776c5d60eba"
+    },
+    ".gcc_except_table": {
+      "type": 1,
+      "flags": 2,
+      "address": 10264416,
+      "bytes": 148516,
+      "alignment": 4,
+      "content_sha256": "31708c961d8f0cf68db2a130f09dbe1086373f9f7c34c0469750d6b8d8b7fbee"
+    },
+    ".tdata": {
+      "type": 1,
+      "flags": 1027,
+      "address": 10416432,
+      "bytes": 384,
+      "alignment": 16,
+      "content_sha256": "958ed023a52bba855ebb09a2c01fceae5d2672ace62d7ae10499f4194032efde"
+    },
+    ".tbss": {
+      "type": 8,
+      "flags": 1027,
+      "address": 10416816,
+      "bytes": 704,
+      "alignment": 16,
+      "content_sha256": null
+    },
+    ".init_array": {
+      "type": 14,
+      "flags": 3,
+      "address": 10416816,
+      "bytes": 776,
+      "alignment": 8,
+      "content_sha256": "f36b0c2285d7c3f0664a88fa74e1b23397753272e4ca60911e32ab628a9ad223"
+    },
+    ".fini_array": {
+      "type": 15,
+      "flags": 3,
+      "address": 10417592,
+      "bytes": 8,
+      "alignment": 8,
+      "content_sha256": "b9ae7745515f477ee47fcfdbe56c4cb48a0a74309f0ec2bf4919a17f23591f6a"
+    },
+    ".data.rel.ro": {
+      "type": 1,
+      "flags": 3,
+      "address": 10417600,
+      "bytes": 85168,
+      "alignment": 32,
+      "content_sha256": "5f57c21aec3150688a30f42c4fc389bd2169442689bf047c13df5e647039d1ec"
+    },
+    ".dynamic": {
+      "type": 6,
+      "flags": 3,
+      "address": 10502768,
+      "bytes": 608,
+      "alignment": 8,
+      "content_sha256": "ea47ce53436b50c7bfb0ba5c1506dfeb20e4184b3af11622f033e08e254653d7"
+    },
+    ".got": {
+      "type": 1,
+      "flags": 3,
+      "address": 10503376,
+      "bytes": 2864,
+      "alignment": 8,
+      "content_sha256": "e1229863f8ff3474590f3950381ba4e0ac8917c968b5843d9767d93312b2171e"
+    },
+    ".data": {
+      "type": 1,
+      "flags": 3,
+      "address": 10506240,
+      "bytes": 19321,
+      "alignment": 64,
+      "content_sha256": "1db5169111855489657569c61dc7abf54f9ae05567ec86ec0fbdbededb5de5fc"
+    },
+    ".bss": {
+      "type": 8,
+      "flags": 3,
+      "address": 10525568,
+      "bytes": 1189256,
+      "alignment": 64,
+      "content_sha256": null
+    }
+  },
+  "differences": {
+    ".note.gnu.build-id": {
+      "original": {
+        "type": 7,
+        "flags": 2,
+        "address": 928,
+        "bytes": 36,
+        "alignment": 4,
+        "content_sha256": "074e2bf191cb4e9aa5371c29515f03403359f1ad2c05900f43706247ccff1595"
+      },
+      "rebuilt": {
+        "type": 7,
+        "flags": 2,
+        "address": 928,
+        "bytes": 36,
+        "alignment": 4,
+        "content_sha256": "2c9ea88554ed98f61c9524f795f015a4f142f63c69e1a9f0a9fce539fc090899"
+      }
+    },
+    ".rodata": {
+      "original": {
+        "type": 1,
+        "flags": 2,
+        "address": 8912896,
+        "bytes": 637900,
+        "alignment": 64,
+        "content_sha256": "04ca2077304aff65c6c64c0d7a3fcea7a838806b43cd51636a1b72628a9fc790"
+      },
+      "rebuilt": {
+        "type": 1,
+        "flags": 2,
+        "address": 8912896,
+        "bytes": 637900,
+        "alignment": 64,
+        "content_sha256": "a44d8c2d76d8e5277611bc566c1c90c7f3feedcb2d981c66cfda56d2fae40a72"
+      }
+    }
+  },
+  "only_build_id_differs": false,
+  "rodata_differing_bytes": 16,
+  "rodata_differences": [
+    {
+      "start": 89631,
+      "end": 89638,
+      "original_hex": "6533326230346134",
+      "rebuilt_hex": "3034363162653736",
+      "original_context": "b'o:%.2f\\r\\n\\x00\\x00\\x00\\x00\\x00\\x00\\x00redis_git_sha1:e32b04a4\\r\\nredis_git_dirty:0\\r\\nredis_bui'",
+      "rebuilt_context": "b'o:%.2f\\r\\n\\x00\\x00\\x00\\x00\\x00\\x00\\x00redis_git_sha1:0461be76\\r\\nredis_git_dirty:0\\r\\nredis_bui'"
+    },
+    {
+      "start": 573711,
+      "end": 573718,
+      "original_hex": "6533326230346134",
+      "rebuilt_hex": "3034363162653736",
+      "original_context": "b'ailable for everedis_git_sha1:e32b04a4\\r\\nredis_gdis_git_dirty:0\\r\\nredi'",
+      "rebuilt_context": "b'ailable for everedis_git_sha1:0461be76\\r\\nredis_gdis_git_dirty:0\\r\\nredi'"
+    }
+  ],
+  "native_baseline": "build/execfifo3/PRE",
+  "reconstructed_reference": "build/execfifo3/PRE-rebuilt.gz",
+  "explanation": "The native PRE delivery is now the exact execfifo2 original. The reconstructed PRE used for linked fixture objects and the common-image PRE body has identical .text and allocated section layouts; its two INFO revision strings identify the build worktree. All other allocated section bytes except the ELF build ID are identical."
+}

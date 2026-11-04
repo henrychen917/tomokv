@@ -1,0 +1,810 @@
+{
+  "unit/introspection": {
+    "CLIENT KILL SKIPME YES/NO will kill all clients": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    },
+    "MONITOR log blocked command only once": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    }
+  },
+  "unit/multi": {
+    "DISCARD should not fail during OOM": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    },
+    "EXEC with at least one use-memory command should fail": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    }
+  },
+  "unit/pause": {
+    "Test old pause-all takes precedence over new pause-write (less restrictive)": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    }
+  },
+  "unit/pubsub": {
+    "PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    },
+    "unsubscribe inside multi, and publish to self": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.EN7eSH/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    }
+  },
+  "unit/scripting": {
+    "LUA redis.error_reply API": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    },
+    "LUA redis.error_reply API with empty string": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    }
+  },
+  "unit/slowlog": {
+    "SLOWLOG - GET optional argument to limit output len works": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    },
+    "SLOWLOG - Rewritten commands are logged as their original command": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    },
+    "SLOWLOG - can clean older entries": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    },
+    "SLOWLOG - get all slow logs": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    },
+    "SLOWLOG - logged entry sanity check": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    },
+    "SLOWLOG - max entries is correctly handled": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.ZONfmx/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    }
+  },
+  "unit/type/list": {
+    "BLMPOP with multiple blocked clients": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    },
+    "BRPOPLPUSH does not affect WATCH while still blocked": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    },
+    "Circular BRPOPLPUSH": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    },
+    "Command being unblocked cause another command to get unblocked execution order test": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    },
+    "Linked LMOVEs": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    },
+    "PUSH resulting from BRPOPLPUSH affect WATCH": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": true,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    }
+  },
+  "unit/type/stream-cgroups": {
+    "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP": {
+      "1s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ],
+      "2s": [
+        {
+          "attempt": 1,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 2,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "attempt": 3,
+          "passed": false,
+          "receipt": "/home/user/Projects/cx-wave14/build/gate-run.2IMB0q/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        }
+      ]
+    }
+  }
+}

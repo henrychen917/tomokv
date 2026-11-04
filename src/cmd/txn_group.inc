@@ -229,8 +229,7 @@ bool txn_group_touch(ScatterState& state, Shard& shard, uint64_t hash, Slice key
         if (!epoch) {
             state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::OrderViolations);
             ready = false;
-        } else if (entry.origin_conn_id != state.origin_conn_id && epoch > state.server->atomic_snapshot() &&
-                   !(state.server->atomic_publish_quiescent() && epoch <= state.server->atomic_snapshot())) {
+        } else if (entry.origin_conn_id != state.origin_conn_id && epoch > state.server->atomic_snapshot()) {
             state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::Waits);
             ready = false;
         }
@@ -331,15 +330,11 @@ ScatterFinish txn_group_complete(Server& server, ThreadCtx& self, Ring& ring,
     }
     if (state.pending.fetch_sub(1, std::memory_order_acq_rel) != 1)
         return ScatterFinish::Waiting;
-    if (state.atomic_pop && state.phase == 2 && state.pop_missed) {
+    if (state.pop_missed && state.phase == 2) {
         aof_abort_scatter_group(state);
         state.aof_group.reset();
-        static constexpr uint32_t kMaxPopRetries = 8;
-        if (state.pop_retries++ < kMaxPopRetries &&
-            publish_pop_retry<IofusedPrivateQueue>(server, self, ring, task, state))
+        if (publish_pop_retry<IofusedPrivateQueue>(server, self, ring, task, state))
             return ScatterFinish::Waiting;
-        if (state.final_reply == FinalReply::QueueFull) return final();
-        state.final_reply = FinalReply::NullArray;
         return final();
     }
     if (state.kind == Kind::Sort && state.sort_options.deref && state.phase == 1) {

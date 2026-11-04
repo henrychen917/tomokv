@@ -21,6 +21,7 @@ void IoLoop::shutdown_on_issuer() {
             std::abort(); // Never free a buffer without its kernel lifetime fence.
         }
         (void)ring_.submit_and_reap();
+        fliplisten_release_files();
     }
 }
 
@@ -194,6 +195,8 @@ void IoLoop::shutdown_clients_after_join() {
         auto r = pending_releases_.front(); pending_releases_.pop_front();
         release(r.shard, r.ptr);
     }
+    for (const BorrowRelease& r : flip_borrow_releases_) release(r.shard, r.ptr);
+    flip_borrow_releases_.clear();
     // TLS MULTI retirement and pre-join send completions can already have
     // published releases. Drain every inbox here, including owners whose IO
     // destructor ran earlier; no worker remains to consume these channels.

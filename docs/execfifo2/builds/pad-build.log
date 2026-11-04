@@ -1,0 +1,30 @@
+{
+  "kind": "A: PRE behaviour with the exact POST-layout image",
+  "release_candidate": "/home/user/Projects/cx-execfifo2/build/tomokv",
+  "release_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+  "post_layout": "/home/user/Projects/cx-execfifo2/build/execfifo2/POST-layout",
+  "post_sha256": "02dec207ab3d5fef1aa257e353966f7d8572b477ed4f30817eca9bafb58b0998",
+  "pad_a": "/home/user/Projects/cx-execfifo2/build/execfifo2/PAD-A",
+  "pad_sha256": "07df961f35b194562de4e27e8b3a2be467ef9d250d448330f8e8d5494976b432",
+  "matching_sections": true,
+  "matching_symbols": true,
+  "patch_offset": 988820,
+  "before": "4c8d542408",
+  "after": "e957cc0000",
+  "changed_bytes": 5,
+  "entry_source": {
+    "name": "main",
+    "info": 18,
+    "sec": 16,
+    "value": 988816,
+    "size": 8689
+  },
+  "entry_target": {
+    "name": "exec1s_pre_main",
+    "info": 18,
+    "sec": 16,
+    "value": 1041136,
+    "size": 8691
+  },
+  "limitation": "The exact twin is POST-layout, not the smaller release image. Measure the release null separately."
+}
