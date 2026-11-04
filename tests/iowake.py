@@ -10,19 +10,25 @@ tls      F5. TLS output after the first plaintext unit was sent one unit per loo
          both directions (TLS 1.2 GCM), socket-userspace (TLS 1.3: kernel TX, OpenSSL RX) and the
          memory-BIO engine (TLS 1.2 CBC). The server-side socket's tcp-ulp-tls state proves which
          transport each connection reached; plaintext TCP is the control on the same boot.
+aof      F4. The AOF writer was never re-woken while a record larger than one 64 KiB frame held
+         the stream. Slow-serializing hash and list post-images are written under appendfsync
+         everysec while a PING probe on a third thread (neither the writer nor an owner) is timed:
+         every gated reply waits for the writer, so a sleeping writer delays every PING. The
+         restart replays every acknowledged post-image.
 """
 import argparse
 import contextlib
 import json
 import os
 from pathlib import Path
+import select
 import socket
 import ssl
 import subprocess
 import time
 import traceback
 
-from _lib import Conn, wait_ready
+from _lib import Conn, topology, wait_ready
 import tls as tlslib
 
 PARK_RESCUE_MS = 50.0
@@ -304,10 +310,117 @@ def case_tls(args, directory, mode, engine, evidence):
 
 
 # ---------------------------------------------------------------------------------------------
+# shared persistence geometry
+# ---------------------------------------------------------------------------------------------
+
+AOF_EXTRA = ['--appendonly', 'yes', '--appendfsync', 'everysec',
+             '--auto-aof-rewrite-percentage', '0']
+MiB = 1024 * 1024
+
+
+def aof_writer(c):
+    """The elected AOF writer: the last IO-capable thread (Server::init, aof_.init)."""
+    roles = topology(c).roles
+    return sorted(t for t, role in roles.items() if role in ('io', 'fused'))[-1]
+
+
+def key_on(c, prefix, want, limit=4096):
+    """(key, owner) for the first candidate whose shard owner satisfies want(owner)."""
+    names = [f'{prefix}:{i}' for i in range(limit)]
+    for start in range(0, limit, 256):
+        rows = c.must('DEBUG', 'SHARDS', *names[start:start + 256])
+        for key, row in zip(names[start:start + 256], rows):
+            if want(int(row[1])):
+                return key, int(row[1])
+    raise AssertionError(f'no {prefix} key reached a qualifying owner')
+
+
+# ---------------------------------------------------------------------------------------------
+# F4: AOF writer re-wake during a large record
+# ---------------------------------------------------------------------------------------------
+
+def gated_write(c, pusher, probe, command, expected, bound_ms, label):
+    """Send one large-record write and time PINGs on `probe` until its reply arrives."""
+    before = info_fields(c, 'persistence')
+    pusher.send(*command)
+    began = time.monotonic()
+    worst = 0.0
+    pings = 0
+    while not select.select([pusher.sock], [], [], 0)[0]:
+        sent = time.monotonic()
+        assert probe.must('PING') == b'PONG', label
+        elapsed = (time.monotonic() - sent) * 1000
+        worst = max(worst, elapsed)
+        pings += 1
+        if elapsed > bound_ms:
+            raise AssertionError(f'{label}: a gated PING waited {elapsed:.1f} ms (bound {bound_ms} '
+                                 f'ms, idle park {PARK_RESCUE_MS:.0f} ms) while the record was open')
+        assert time.monotonic() - began < 30, f'{label}: the write never replied'
+    reply = pusher.read()
+    elapsed = (time.monotonic() - began) * 1000
+    after = info_fields(c, 'persistence')
+    assert reply == expected, (label, 'reply', reply, expected)
+    grew = int(after['aof_current_size']) - int(before['aof_current_size'])
+    waits = int(after['aof_send_gate_waits']) - int(before['aof_send_gate_waits'])
+    # Anti-vacuity: a multi-frame record, an open window and a gate that held the probe.
+    assert grew >= MiB, (label, 'record was not larger than one frame', grew)
+    assert pings >= 10, (label, 'the write window closed before the probe ran', pings)
+    assert waits >= 1, (label, 'no reply waited on the AOF gate', waits)
+    return dict(write_ms=round(elapsed, 2), pings=pings, worst_ping_ms=round(worst, 2),
+                aof_bytes=grew, gate_waits=waits)
+
+
+def case_aof(args, directory, mode, engine, evidence):
+    b = Boot(args, directory, mode, engine, AOF_EXTRA)
+    try:
+        c = b.c
+        writer = aof_writer(c)
+        hash_key, hash_owner = key_on(c, 'iowake:aof:hash', lambda owner: owner != writer)
+        list_key, list_owner = key_on(c, 'iowake:aof:list', lambda owner: owner != writer)
+        owners = {hash_owner, list_owner}
+        pusher = connect_on(args.port, args.stall, lambda t: t != writer and t not in owners)
+        probe = connect_on(args.port, args.stall,
+                           lambda t: t != writer and t not in owners and t != io_thread(pusher))
+        evidence.update(writer=writer, owners=sorted(owners), pusher_io=io_thread(pusher),
+                        probe_io=io_thread(probe))
+        # Two slow serializers: a 200k-field hash (one record of under 64 frames, so its owner
+        # never fills the channel) and a 3M-element list (a record that refills it repeatedly).
+        fields = []
+        for i in range(200000):
+            fields += [f'f{i}', 'v']
+        assert pusher.must('HSET', hash_key, *fields) == 200000
+        for start in range(0, 3000000, 1000000):
+            assert pusher.must('RPUSH', list_key, *(['1'] * 1000000)) == start + 1000000
+        writes = []
+        for i in range(args.repeats):
+            writes.append(dict(kind='hash', **gated_write(
+                c, pusher, probe, ['HSET', hash_key, f'extra{i}', 'v'], 1, args.bound_ms,
+                f'{mode}/{engine}/hash#{i}')))
+            writes.append(dict(kind='list', **gated_write(
+                c, pusher, probe, ['RPUSH', list_key, f'x{i}'], 3000000 + i + 1, args.bound_ms,
+                f'{mode}/{engine}/list#{i}')))
+        evidence['writes'] = writes
+        pusher.close()
+        probe.close()
+        b.stop()
+        # Every acknowledged post-image replays.
+        again = Boot(args, directory, mode, engine, AOF_EXTRA, name='restart')
+        try:
+            assert again.c.must('HLEN', hash_key) == 200000 + args.repeats
+            assert again.c.must('LLEN', list_key) == 3000000 + args.repeats
+            assert again.c.must('LINDEX', list_key, -1) == f'x{args.repeats - 1}'.encode()
+            again.stop()
+        finally:
+            again.kill()
+    finally:
+        b.kill()
+
+
+# ---------------------------------------------------------------------------------------------
 # driver
 # ---------------------------------------------------------------------------------------------
 
-CASES = {'tls': case_tls}
+CASES = {'tls': case_tls, 'aof': case_aof}
 
 
 def main():
@@ -321,6 +434,7 @@ def main():
     p.add_argument('--modes', nargs='+', default=None)
     p.add_argument('--engines', nargs='+', default=['uring', 'epoll'])
     p.add_argument('--rounds', type=int, default=10)
+    p.add_argument('--repeats', type=int, default=3)
     p.add_argument('--bound-ms', type=float, default=25.0)
     p.add_argument('--stall', type=float, default=20.0)
     a = p.parse_args()
