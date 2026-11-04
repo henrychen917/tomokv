@@ -1,0 +1,5449 @@
+[
+  {
+    "name": "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      4127
+    ],
+    "post_sizes": [
+      4126
+    ]
+  },
+  {
+    "name": "bool tomo::ExLoopT<false>::execute_latency<false, false>(tomo::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2987
+    ],
+    "post_sizes": [
+      2992
+    ]
+  },
+  {
+    "name": "bool tomo::ExLoopT<false>::execute_timed<false, false>(tomo::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3034
+    ],
+    "post_sizes": [
+      3039
+    ]
+  },
+  {
+    "name": "bool tomo::ExLoopT<false>::service_txn_boundary<false>()",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      2851
+    ],
+    "post_sizes": [
+      2851
+    ]
+  },
+  {
+    "name": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      4107
+    ],
+    "post_sizes": [
+      4109
+    ]
+  },
+  {
+    "name": "bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3960
+    ],
+    "post_sizes": [
+      3960
+    ]
+  },
+  {
+    "name": "bool tomo::ExLoopT<true>::execute<true, false>(tomo::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      4107
+    ],
+    "post_sizes": [
+      4109
+    ]
+  },
+  {
+    "name": "bool tomo::ExLoopT<true>::execute<true, true>(tomo::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3960
+    ],
+    "post_sizes": [
+      3960
+    ]
+  },
+  {
+    "name": "bool tomo::ExLoopT<true>::execute_latency<false, false>(tomo::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3305
+    ],
+    "post_sizes": [
+      3300
+    ]
+  },
+  {
+    "name": "bool tomo::ExLoopT<true>::execute_latency<false, true>(tomo::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3124
+    ],
+    "post_sizes": [
+      3143
+    ]
+  },
+  {
+    "name": "bool tomo::ExLoopT<true>::execute_latency<true, false>(tomo::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3305
+    ],
+    "post_sizes": [
+      3300
+    ]
+  },
+  {
+    "name": "bool tomo::ExLoopT<true>::execute_latency<true, true>(tomo::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3124
+    ],
+    "post_sizes": [
+      3143
+    ]
+  },
+  {
+    "name": "bool tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3325
+    ],
+    "post_sizes": [
+      3320
+    ]
+  },
+  {
+    "name": "bool tomo::ExLoopT<true>::execute_timed<false, true>(tomo::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3160
+    ],
+    "post_sizes": [
+      3178
+    ]
+  },
+  {
+    "name": "bool tomo::ExLoopT<true>::execute_timed<true, false>(tomo::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3325
+    ],
+    "post_sizes": [
+      3320
+    ]
+  },
+  {
+    "name": "bool tomo::ExLoopT<true>::execute_timed<true, true>(tomo::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3160
+    ],
+    "post_sizes": [
+      3178
+    ]
+  },
+  {
+    "name": "bool tomo::ExLoopT<true>::service_txn_boundary<false>()",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      2793
+    ],
+    "post_sizes": [
+      2809
+    ]
+  },
+  {
+    "name": "bool tomo::ExLoopT<true>::service_txn_boundary<true>()",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      2793
+    ],
+    "post_sizes": [
+      2809
+    ]
+  },
+  {
+    "name": "bool tomo::IoLoop::finish_client_transfer<false>(tomo::Client*) [clone .isra.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      913,
+      338,
+      656,
+      357
+    ],
+    "post_sizes": [
+      357,
+      338,
+      357,
+      357
+    ]
+  },
+  {
+    "name": "bool tomo::IoLoop::finish_client_transfer<false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      40,
+      40,
+      40,
+      40
+    ],
+    "post_sizes": [
+      40,
+      40,
+      40,
+      40
+    ]
+  },
+  {
+    "name": "bool tomo::blocking_resume_move_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::ScatterArenaPool&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2928
+    ],
+    "post_sizes": [
+      3008
+    ]
+  },
+  {
+    "name": "bool tomo::blocking_resume_move_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::ScatterArenaPool&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2928
+    ],
+    "post_sizes": [
+      3008
+    ]
+  },
+  {
+    "name": "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      4224
+    ],
+    "post_sizes": [
+      4224
+    ]
+  },
+  {
+    "name": "bool tomo_db0::ExLoopT<false>::execute_latency<false, false>(tomo_db0::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2986
+    ],
+    "post_sizes": [
+      2991
+    ]
+  },
+  {
+    "name": "bool tomo_db0::ExLoopT<false>::execute_timed<false, false>(tomo_db0::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3033
+    ],
+    "post_sizes": [
+      3038
+    ]
+  },
+  {
+    "name": "bool tomo_db0::ExLoopT<false>::service_txn_boundary<false>()",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      2851
+    ],
+    "post_sizes": [
+      2851
+    ]
+  },
+  {
+    "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      4107
+    ],
+    "post_sizes": [
+      4109
+    ]
+  },
+  {
+    "name": "bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3960
+    ],
+    "post_sizes": [
+      3960
+    ]
+  },
+  {
+    "name": "bool tomo_db0::ExLoopT<true>::execute<true, false>(tomo_db0::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      4107
+    ],
+    "post_sizes": [
+      4109
+    ]
+  },
+  {
+    "name": "bool tomo_db0::ExLoopT<true>::execute<true, true>(tomo_db0::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3960
+    ],
+    "post_sizes": [
+      3960
+    ]
+  },
+  {
+    "name": "bool tomo_db0::ExLoopT<true>::execute_latency<false, false>(tomo_db0::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3304
+    ],
+    "post_sizes": [
+      3299
+    ]
+  },
+  {
+    "name": "bool tomo_db0::ExLoopT<true>::execute_latency<false, true>(tomo_db0::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3123
+    ],
+    "post_sizes": [
+      3142
+    ]
+  },
+  {
+    "name": "bool tomo_db0::ExLoopT<true>::execute_latency<true, false>(tomo_db0::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3304
+    ],
+    "post_sizes": [
+      3299
+    ]
+  },
+  {
+    "name": "bool tomo_db0::ExLoopT<true>::execute_latency<true, true>(tomo_db0::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3123
+    ],
+    "post_sizes": [
+      3142
+    ]
+  },
+  {
+    "name": "bool tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3324
+    ],
+    "post_sizes": [
+      3319
+    ]
+  },
+  {
+    "name": "bool tomo_db0::ExLoopT<true>::execute_timed<false, true>(tomo_db0::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3159
+    ],
+    "post_sizes": [
+      3177
+    ]
+  },
+  {
+    "name": "bool tomo_db0::ExLoopT<true>::execute_timed<true, false>(tomo_db0::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3324
+    ],
+    "post_sizes": [
+      3319
+    ]
+  },
+  {
+    "name": "bool tomo_db0::ExLoopT<true>::execute_timed<true, true>(tomo_db0::Task const&)",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3159
+    ],
+    "post_sizes": [
+      3177
+    ]
+  },
+  {
+    "name": "bool tomo_db0::ExLoopT<true>::service_txn_boundary<false>()",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      2793
+    ],
+    "post_sizes": [
+      2809
+    ]
+  },
+  {
+    "name": "bool tomo_db0::ExLoopT<true>::service_txn_boundary<true>()",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      2793
+    ],
+    "post_sizes": [
+      2809
+    ]
+  },
+  {
+    "name": "bool tomo_db0::IoLoop::finish_client_transfer<false>(tomo_db0::Client*) [clone .isra.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      1103,
+      338,
+      1103,
+      357
+    ],
+    "post_sizes": [
+      357,
+      338,
+      357,
+      357
+    ]
+  },
+  {
+    "name": "bool tomo_db0::IoLoop::finish_client_transfer<false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      40,
+      40,
+      40,
+      40
+    ],
+    "post_sizes": [
+      40,
+      40,
+      40,
+      40
+    ]
+  },
+  {
+    "name": "bool tomo_db0::blocking_resume_move_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client&, tomo_db0::ScatterArenaPool&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2915
+    ],
+    "post_sizes": [
+      2995
+    ]
+  },
+  {
+    "name": "bool tomo_db0::blocking_resume_move_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client&, tomo_db0::ScatterArenaPool&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2915
+    ],
+    "post_sizes": [
+      2995
+    ]
+  },
+  {
+    "name": "int tomo_db0::Ring::submit_and_wait<false>(unsigned int, unsigned int, int) [clone .isra.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      339
+    ],
+    "post_sizes": [
+      339,
+      339
+    ]
+  },
+  {
+    "name": "json_append_data",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      1980
+    ],
+    "post_sizes": [
+      1980
+    ]
+  },
+  {
+    "name": "main",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      8826
+    ],
+    "post_sizes": [
+      8853
+    ]
+  },
+  {
+    "name": "main.cold",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      5709
+    ],
+    "post_sizes": [
+      5709
+    ]
+  },
+  {
+    "name": "math_random",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      404
+    ],
+    "post_sizes": [
+      404
+    ]
+  },
+  {
+    "name": "std::vector<tomo::Client*, std::allocator<tomo::Client*> >::resize(unsigned long)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      469
+    ]
+  },
+  {
+    "name": "std::vector<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::resize(unsigned long)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      469
+    ]
+  },
+  {
+    "name": "str_format",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      2252
+    ],
+    "post_sizes": [
+      2252
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::BlockingRegistry::service(tomo::Shard&, tomo::(anonymous namespace)::BlockingQueue&, long, tomo::ThreadCtx&, tomo::Ring&) [clone .isra.0]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      841
+    ],
+    "post_sizes": [
+      1053
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::BlockingRegistry::sweep(tomo::Shard&, long, bool, tomo::ThreadCtx&, tomo::Ring&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1151
+    ],
+    "post_sizes": [
+      1341
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::blocking_notify_sender(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client*)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      495
+    ],
+    "post_sizes": [
+      533
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::blocking_notify_sender(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client*) [clone .cold]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      62
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::blocking_request_remap(tomo::BlockingState&, tomo::ThreadCtx&, tomo::Ring&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      195
+    ],
+    "post_sizes": [
+      211
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::cmd_debug_impl(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      8891
+    ],
+    "post_sizes": [
+      9164
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::cmd_debug_impl(tomo::Shard&, tomo::Op&) [clone .cold]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      2103
+    ],
+    "post_sizes": [
+      2167
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      17588
+    ],
+    "post_sizes": [
+      17588
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      3011
+    ],
+    "post_sizes": [
+      3011
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::command_key_args(tomo::MultiQueuedCommand const&, std::vector<unsigned int, std::allocator<unsigned int> >&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      1805
+    ],
+    "post_sizes": [
+      1805
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::execute_flush(tomo::Task const&, tomo::Shard&, tomo::Op&) [clone .isra.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      610
+    ],
+    "post_sizes": [
+      611
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::execute_plain_element_mover(tomo::Task const&, tomo::Shard&, tomo::Op&) [clone .isra.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      2707
+    ],
+    "post_sizes": [
+      2707
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::free_state_contents(tomo::ScatterState&) [clone .part.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      1045
+    ],
+    "post_sizes": [
+      1029
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::geo_encode(double, double)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      168
+    ],
+    "post_sizes": [
+      168
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::geohashDecode(tomo::(anonymous namespace)::GeoHashRange, tomo::(anonymous namespace)::GeoHashRange, tomo::(anonymous namespace)::GeoHashBits, tomo::(anonymous namespace)::GeoHashArea*) [clone .constprop.0] [clone .isra.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      314
+    ],
+    "post_sizes": [
+      314
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::geohashEncode(tomo::(anonymous namespace)::GeoHashRange const*, tomo::(anonymous namespace)::GeoHashRange const*, double, double, unsigned char, tomo::(anonymous namespace)::GeoHashBits*) [clone .constprop.0] [clone .isra.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      334
+    ],
+    "post_sizes": [
+      334
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::parse_search(tomo::Op&, tomo::(anonymous namespace)::GeoSearchOptions&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      358
+    ],
+    "post_sizes": [
+      358
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::parse_zset_operation(tomo::Op&, tomo::(anonymous namespace)::Kind, unsigned int&, std::vector<double, std::allocator<double> >&, tomo::(anonymous namespace)::ZAggregate&, bool&, unsigned long&) [clone .constprop.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      2324
+    ],
+    "post_sizes": [
+      2324
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      11691
+    ],
+    "post_sizes": [
+      11691
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::prepare_debug_loadaof(tomo::Server&, tomo::Op&, unsigned int, tomo::Client*, std::unique_ptr<tomo::SnapshotLoadPlan, std::default_delete<tomo::SnapshotLoadPlan> >&, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > >&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      896
+    ],
+    "post_sizes": [
+      960
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      3211
+    ],
+    "post_sizes": [
+      3127
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0] [clone .cold]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      162
+    ],
+    "post_sizes": [
+      166
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::script_random(lua_State*)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      475
+    ],
+    "post_sizes": [
+      475
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      181
+    ],
+    "post_sizes": [
+      181
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::submit_large_frame_wake(tomo::AofOwnerContext*)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      68
+    ]
+  },
+  {
+    "name": "tomo::AofManager::drain_producer(unsigned int, unsigned int&, unsigned int&, tomo::Ring&, io_uring_sqe*&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1567
+    ],
+    "post_sizes": [
+      1565
+    ]
+  },
+  {
+    "name": "tomo::AofManager::drain_producer(unsigned int, unsigned int&, unsigned int&, tomo::Ring&, io_uring_sqe*&) [clone .cold]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      195
+    ],
+    "post_sizes": [
+      198
+    ]
+  },
+  {
+    "name": "tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1494
+    ],
+    "post_sizes": [
+      1558
+    ]
+  },
+  {
+    "name": "tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool) [clone .cold]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      114
+    ],
+    "post_sizes": [
+      114
+    ]
+  },
+  {
+    "name": "tomo::AofProducer::emit(unsigned char const*, unsigned long, bool, tomo::AofOwnerContext*, unsigned long)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      482
+    ],
+    "post_sizes": [
+      523
+    ]
+  },
+  {
+    "name": "tomo::AofProducer::record_bytes(tomo::AofRecordKind, unsigned char, unsigned char, tomo::Slice, long, unsigned long, unsigned char const*, unsigned long, tomo::SnapshotTypeHooks const*, tomo::SnapshotSaveCursor*, tomo::AofOwnerContext*)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1677
+    ],
+    "post_sizes": [
+      1709
+    ]
+  },
+  {
+    "name": "tomo::AofProducer::record_bytes(tomo::AofRecordKind, unsigned char, unsigned char, tomo::Slice, long, unsigned long, unsigned char const*, unsigned long, tomo::SnapshotTypeHooks const*, tomo::SnapshotSaveCursor*, tomo::AofOwnerContext*) [clone .cold]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      122
+    ],
+    "post_sizes": [
+      122
+    ]
+  },
+  {
+    "name": "tomo::DatabaseMap::bind_workers(unsigned int, tomo::Server*)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      527
+    ],
+    "post_sizes": [
+      543
+    ]
+  },
+  {
+    "name": "tomo::DatabaseMap::bind_workers(unsigned int, tomo::Server*) [clone .cold]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      114
+    ],
+    "post_sizes": [
+      114
+    ]
+  },
+  {
+    "name": "tomo::DatabaseMap::boundary_started()",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      172
+    ],
+    "post_sizes": [
+      172
+    ]
+  },
+  {
+    "name": "tomo::DatabaseMap::drain_deadline_start(tomo::Server&, unsigned long, unsigned long)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      313
+    ]
+  },
+  {
+    "name": "tomo::DatabaseMap::join_workers(tomo::Server&, std::vector<std::thread, std::allocator<std::thread> >&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      888
+    ],
+    "post_sizes": [
+      888
+    ]
+  },
+  {
+    "name": "tomo::DatabaseMap::monitor(tomo::Server&) [clone .part.0]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      778
+    ],
+    "post_sizes": [
+      778
+    ]
+  },
+  {
+    "name": "tomo::DatabaseMap::note_drain_waiting()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      108
+    ]
+  },
+  {
+    "name": "tomo::DatabaseMap::publish(std::unique_ptr<tomo::DatabaseMap::Map, std::default_delete<tomo::DatabaseMap::Map> >)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      923
+    ],
+    "post_sizes": [
+      923
+    ]
+  },
+  {
+    "name": "tomo::DatabaseMap::state()",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      341
+    ],
+    "post_sizes": [
+      325
+    ]
+  },
+  {
+    "name": "tomo::DatabaseMap::worker_exited(unsigned int)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      49
+    ],
+    "post_sizes": [
+      49
+    ]
+  },
+  {
+    "name": "tomo::DatabaseMap::~DatabaseMap()",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      229
+    ],
+    "post_sizes": [
+      229
+    ]
+  },
+  {
+    "name": "tomo::DebugSleepCoordinator<128u, 50u>::exclusive(unsigned int, unsigned int, void*, void (*)(void*, unsigned int))",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      575
+    ],
+    "post_sizes": []
+  },
+  {
+    "name": "tomo::ExLoopT<false>::flip_control_pass()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1588
+    ],
+    "post_sizes": [
+      1573
+    ]
+  },
+  {
+    "name": "tomo::ExLoopT<false>::flip_quiesced() const",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      514
+    ],
+    "post_sizes": [
+      546
+    ]
+  },
+  {
+    "name": "tomo::ExLoopT<false>::notify_sender_to(tomo::Client*, unsigned int)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      355
+    ],
+    "post_sizes": [
+      865
+    ]
+  },
+  {
+    "name": "tomo::ExLoopT<false>::run()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      9256
+    ],
+    "post_sizes": [
+      9595
+    ]
+  },
+  {
+    "name": "tomo::ExLoopT<false>::service_notify_retries()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      174
+    ]
+  },
+  {
+    "name": "tomo::ExLoopT<true>::flip_control_pass()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1193
+    ],
+    "post_sizes": [
+      1174
+    ]
+  },
+  {
+    "name": "tomo::ExLoopT<true>::flip_quiesced() const",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      562
+    ],
+    "post_sizes": [
+      588
+    ]
+  },
+  {
+    "name": "tomo::ExLoopT<true>::notify_sender_to(tomo::Client*, unsigned int)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      355
+    ],
+    "post_sizes": [
+      865
+    ]
+  },
+  {
+    "name": "tomo::ExLoopT<true>::run()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      8936
+    ],
+    "post_sizes": [
+      9261
+    ]
+  },
+  {
+    "name": "tomo::ExLoopT<true>::service_notify_retries()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      174
+    ]
+  },
+  {
+    "name": "tomo::FlipController::debug_dump[abi:cxx11]() const",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      6458
+    ],
+    "post_sizes": [
+      6458
+    ]
+  },
+  {
+    "name": "tomo::FlipController::seek_after_reading(tomo::Server&, unsigned int, unsigned long, double)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      1281
+    ],
+    "post_sizes": [
+      1281
+    ]
+  },
+  {
+    "name": "tomo::IoLoop::climon_copy_client_filter(tomo::PubSubEvent&, tomo::PubSubEvent const&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      383
+    ],
+    "post_sizes": [
+      380
+    ]
+  },
+  {
+    "name": "tomo::IoLoop::climon_monitor_stop(tomo::Client*, unsigned long)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      345
+    ],
+    "post_sizes": [
+      181
+    ]
+  },
+  {
+    "name": "tomo::IoLoop::climon_start_client_command(tomo::Client*, tomo::Op&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1779
+    ],
+    "post_sizes": [
+      1789
+    ]
+  },
+  {
+    "name": "tomo::IoLoop::climon_start_client_kill(tomo::Client*, tomo::Op&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      2634
+    ],
+    "post_sizes": [
+      2463
+    ]
+  },
+  {
+    "name": "tomo::IoLoop::climon_start_client_kill(tomo::Client*, tomo::Op&) [clone .cold]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      378
+    ],
+    "post_sizes": [
+      378
+    ]
+  },
+  {
+    "name": "tomo::IoLoop::database_control_pass()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1066
+    ],
+    "post_sizes": [
+      1132
+    ]
+  },
+  {
+    "name": "tomo::IoLoop::lb_control_pass()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3954
+    ],
+    "post_sizes": [
+      4015
+    ]
+  },
+  {
+    "name": "tomo::IoLoop::pubsub_reply_ping(tomo::Op&) [clone .isra.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      395,
+      438,
+      597,
+      597,
+      395
+    ],
+    "post_sizes": [
+      395,
+      503,
+      597,
+      597,
+      395
+    ]
+  },
+  {
+    "name": "tomo::IoLoop::reap_dead()",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      1740
+    ],
+    "post_sizes": [
+      1239
+    ]
+  },
+  {
+    "name": "tomo::LbAutotune::KeyDamping::update(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int, int, unsigned long, unsigned long, unsigned long)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      957
+    ],
+    "post_sizes": [
+      957
+    ]
+  },
+  {
+    "name": "tomo::LbAutotune::QuietJitter::band(unsigned int) const [clone .isra.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      167
+    ],
+    "post_sizes": [
+      167
+    ]
+  },
+  {
+    "name": "tomo::MultiExecState::~MultiExecState()",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      2047
+    ],
+    "post_sizes": [
+      2031
+    ]
+  },
+  {
+    "name": "tomo::PubSubEvent::~PubSubEvent()",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      603
+    ],
+    "post_sizes": [
+      603
+    ]
+  },
+  {
+    "name": "tomo::Ring::msg_to(tomo::Ring&, unsigned long) [clone .isra.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      653,
+      653,
+      979
+    ],
+    "post_sizes": [
+      653,
+      653,
+      653,
+      979
+    ]
+  },
+  {
+    "name": "tomo::Ring::msg_to(tomo::Ring&, unsigned long) [clone .isra.0] [clone .cold]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      40,
+      40,
+      40
+    ],
+    "post_sizes": [
+      40,
+      40,
+      40,
+      40
+    ]
+  },
+  {
+    "name": "tomo::Server::defer_completion_notice(unsigned int, tomo::Client*)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      531
+    ]
+  },
+  {
+    "name": "tomo::Server::flipctl_debug_dump[abi:cxx11]() const",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      1769
+    ],
+    "post_sizes": [
+      1769
+    ]
+  },
+  {
+    "name": "tomo::Server::lb_controller_tick(unsigned int, unsigned long)::{lambda(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int)#1}::operator()(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int) const",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      559
+    ],
+    "post_sizes": [
+      559
+    ]
+  },
+  {
+    "name": "tomo::Server::lb_controller_tick_pad(unsigned int, unsigned long)::{lambda(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int)#1}::operator()(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int) const",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      559
+    ],
+    "post_sizes": [
+      559
+    ]
+  },
+  {
+    "name": "tomo::Server::lb_debug_move_client(unsigned long, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      724
+    ],
+    "post_sizes": [
+      782
+    ]
+  },
+  {
+    "name": "tomo::Server::monitor_controllers()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      921
+    ],
+    "post_sizes": [
+      1459
+    ]
+  },
+  {
+    "name": "tomo::Server::monitor_controllers() [clone .cold]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      45
+    ]
+  },
+  {
+    "name": "tomo::Server::monitor_controllers()::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      1291
+    ]
+  },
+  {
+    "name": "tomo::Server::monitor_controllers()::{lambda(unsigned int)#1}::operator()(unsigned int) const [clone .cold]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      22
+    ]
+  },
+  {
+    "name": "tomo::Server::~Server()",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      2281
+    ],
+    "post_sizes": [
+      2329
+    ]
+  },
+  {
+    "name": "tomo::Shard::watch_finish_unit(std::vector<tomo::TxnClaim, std::allocator<tomo::TxnClaim> > const&, void const*, tomo::MultiRetryPromoter const*)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      178
+    ],
+    "post_sizes": [
+      182
+    ]
+  },
+  {
+    "name": "tomo::SnapshotManager::post_chunk(unsigned int, std::unique_ptr<tomo::SnapshotChunk, std::default_delete<tomo::SnapshotChunk> >&, tomo::Ring&, tomo::LoopSignals&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      335
+    ],
+    "post_sizes": [
+      472
+    ]
+  },
+  {
+    "name": "tomo::SnapshotManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      980
+    ],
+    "post_sizes": [
+      1092
+    ]
+  },
+  {
+    "name": "tomo::SnapshotManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      226
+    ]
+  },
+  {
+    "name": "tomo::auth_dispatch_entry(tomo::IoLoop&, tomo::Client&, tomo::Op&, unsigned int)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      1191
+    ],
+    "post_sizes": [
+      1287
+    ]
+  },
+  {
+    "name": "tomo::blocking_atomic_published(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::ScatterState&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      429
+    ],
+    "post_sizes": [
+      445
+    ]
+  },
+  {
+    "name": "tomo::blocking_cancel_client(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&) [clone .part.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      706
+    ],
+    "post_sizes": [
+      689
+    ]
+  },
+  {
+    "name": "tomo::blocking_execute(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      2169
+    ],
+    "post_sizes": [
+      2367
+    ]
+  },
+  {
+    "name": "tomo::blocking_execute(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Shard&, tomo::Op&) [clone .cold]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      237
+    ],
+    "post_sizes": [
+      259
+    ]
+  },
+  {
+    "name": "tomo::blocking_execute_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      2169
+    ],
+    "post_sizes": [
+      2367
+    ]
+  },
+  {
+    "name": "tomo::blocking_execute_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Shard&, tomo::Op&) [clone .cold]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      237
+    ],
+    "post_sizes": [
+      259
+    ]
+  },
+  {
+    "name": "tomo::blocking_key_created(void const*, tomo::Slice)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      97
+    ],
+    "post_sizes": [
+      97
+    ]
+  },
+  {
+    "name": "tomo::blocking_owner_dirty_pending(tomo::ThreadCtx&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      83
+    ]
+  },
+  {
+    "name": "tomo::blocking_plain_mutation_published(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      152
+    ],
+    "post_sizes": [
+      152
+    ]
+  },
+  {
+    "name": "tomo::blocking_publish_key(tomo::Shard&, unsigned long, char const*, unsigned int, unsigned char)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      520
+    ],
+    "post_sizes": [
+      520
+    ]
+  },
+  {
+    "name": "tomo::blocking_scatter_repark(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::ScatterState&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      174
+    ],
+    "post_sizes": [
+      180
+    ]
+  },
+  {
+    "name": "tomo::blocking_scatter_retire(tomo::Server&, tomo::Client&, tomo::ScatterState&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      419
+    ],
+    "post_sizes": [
+      403
+    ]
+  },
+  {
+    "name": "tomo::blocking_stream_removed(void const*, tomo::Slice, tomo::KvObj const*)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      961
+    ],
+    "post_sizes": [
+      958
+    ]
+  },
+  {
+    "name": "tomo::cfg_client_output_buffer_limit_string[abi:cxx11](tomo::ClientOutputBufferLimits const&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      3694
+    ],
+    "post_sizes": [
+      3720
+    ]
+  },
+  {
+    "name": "tomo::cfgfix_rebind(tomo::Server&, unsigned int, unsigned short, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, int)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3428
+    ],
+    "post_sizes": [
+      4118
+    ]
+  },
+  {
+    "name": "tomo::cfgfix_rebind(tomo::Server&, unsigned int, unsigned short, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, int) [clone .cold]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      108
+    ],
+    "post_sizes": [
+      215
+    ]
+  },
+  {
+    "name": "tomo::cfgfix_rebind(tomo::Server&, unsigned int, unsigned short, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, int)::{lambda(void*, unsigned int)#1}::_FUN(void*, unsigned int)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      292
+    ]
+  },
+  {
+    "name": "tomo::command_client_pause(tomo::Server&, tomo::Op&, unsigned long)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      808
+    ],
+    "post_sizes": []
+  },
+  {
+    "name": "tomo::command_client_pause(tomo::Server&, tomo::Op&, unsigned long) [clone .cold]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      128
+    ],
+    "post_sizes": []
+  },
+  {
+    "name": "tomo::command_client_pause(tomo::Server&, tomo::Op&, unsigned long, unsigned int)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      1019
+    ]
+  },
+  {
+    "name": "tomo::command_client_pause(tomo::Server&, tomo::Op&, unsigned long, unsigned int) [clone .cold]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      128
+    ]
+  },
+  {
+    "name": "tomo::dtoa::grisu2_digits(double, char*, int&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      1043
+    ],
+    "post_sizes": [
+      1043
+    ]
+  },
+  {
+    "name": "tomo::info_stats_build_fields(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      981
+    ],
+    "post_sizes": [
+      981
+    ]
+  },
+  {
+    "name": "tomo::multi_exec_io_commands(tomo::IoLoop&, tomo::MultiExecState&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2468
+    ],
+    "post_sizes": [
+      2484
+    ]
+  },
+  {
+    "name": "tomo::multi_execute_task(tomo::Server&, tomo::Task const&, tomo::Shard&, unsigned int, unsigned int, tomo::AofOwnerContext*, tomo::MultiRetryPromoter const*)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      9532
+    ],
+    "post_sizes": [
+      9551
+    ]
+  },
+  {
+    "name": "tomo::multi_execute_task_tracked(tomo::Server&, tomo::Task const&, tomo::Shard&, unsigned int, unsigned int, tomo::AofOwnerContext*, tomo::MultiRetryPromoter const*)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      8228
+    ],
+    "post_sizes": [
+      8248
+    ]
+  },
+  {
+    "name": "tomo::multi_retire(tomo::Client&, tomo::Op&, std::vector<tomo::MultiExecState*, std::allocator<tomo::MultiExecState*> >&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2057
+    ],
+    "post_sizes": [
+      2060
+    ]
+  },
+  {
+    "name": "tomo::multi_retry_lane_note_pending()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      14
+    ]
+  },
+  {
+    "name": "tomo::multidb_flush(tomo::Shard&, unsigned char) [clone .cold]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      67
+    ],
+    "post_sizes": [
+      67
+    ]
+  },
+  {
+    "name": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      2169
+    ],
+    "post_sizes": [
+      2169
+    ]
+  },
+  {
+    "name": "tomo::notify_reserve_chain(tomo::Server&, std::unique_ptr<tomo::PubSubNotificationChain, std::default_delete<tomo::PubSubNotificationChain> >, std::shared_ptr<tomo::NotifyExpiryCompletion>)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      476
+    ],
+    "post_sizes": [
+      534
+    ]
+  },
+  {
+    "name": "tomo::notify_reserve_chain(tomo::Server&, std::unique_ptr<tomo::PubSubNotificationChain, std::default_delete<tomo::PubSubNotificationChain> >, std::shared_ptr<tomo::NotifyExpiryCompletion>) [clone .cold]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      267
+    ],
+    "post_sizes": [
+      267
+    ]
+  },
+  {
+    "name": "tomo::parse_double_strict(tomo::Slice, double&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      487
+    ],
+    "post_sizes": [
+      487
+    ]
+  },
+  {
+    "name": "tomo::redis_double_text(char*, unsigned long, double) [clone .isra.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      1043,
+      1043,
+      1043,
+      1043,
+      1043
+    ],
+    "post_sizes": [
+      1043,
+      1043,
+      1043,
+      1043,
+      1043
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::BlockingRegistry::service(tomo_db0::Shard&, tomo_db0::(anonymous namespace)::BlockingQueue&, long, tomo_db0::ThreadCtx&, tomo_db0::Ring&) [clone .isra.0]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      772
+    ],
+    "post_sizes": [
+      903
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::BlockingRegistry::sweep(tomo_db0::Shard&, long, bool, tomo_db0::ThreadCtx&, tomo_db0::Ring&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      744
+    ],
+    "post_sizes": [
+      904
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::blocking_notify_sender(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client*)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      495
+    ],
+    "post_sizes": [
+      932
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::blocking_notify_sender(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client*) [clone .cold]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      62
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      945
+    ],
+    "post_sizes": [
+      958
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::cmd_debug_impl(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      8806
+    ],
+    "post_sizes": [
+      9079
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::cmd_debug_impl(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      2071
+    ],
+    "post_sizes": [
+      2135
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      17336
+    ],
+    "post_sizes": [
+      17336
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      2770
+    ],
+    "post_sizes": [
+      2770
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::command_key_args(tomo_db0::MultiQueuedCommand const&, std::vector<unsigned int, std::allocator<unsigned int> >&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      2404
+    ],
+    "post_sizes": [
+      2404
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::execute_flush(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&) [clone .isra.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      688
+    ],
+    "post_sizes": [
+      689
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::execute_plain_element_mover(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&) [clone .isra.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      3494
+    ],
+    "post_sizes": [
+      3494
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::geo_encode(double, double)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      168
+    ],
+    "post_sizes": [
+      168
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::geohashDecode(tomo_db0::(anonymous namespace)::GeoHashRange, tomo_db0::(anonymous namespace)::GeoHashRange, tomo_db0::(anonymous namespace)::GeoHashBits, tomo_db0::(anonymous namespace)::GeoHashArea*) [clone .constprop.0] [clone .isra.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      314
+    ],
+    "post_sizes": [
+      314
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::geohashEncode(tomo_db0::(anonymous namespace)::GeoHashRange const*, tomo_db0::(anonymous namespace)::GeoHashRange const*, double, double, unsigned char, tomo_db0::(anonymous namespace)::GeoHashBits*) [clone .constprop.0] [clone .isra.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      334
+    ],
+    "post_sizes": [
+      334
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      920
+    ],
+    "post_sizes": [
+      685
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [clone .cold]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      40
+    ],
+    "post_sizes": [
+      40
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::parse_search(tomo_db0::Op&, tomo_db0::(anonymous namespace)::GeoSearchOptions&, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > const&)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      358
+    ],
+    "post_sizes": [
+      358
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::parse_zset_operation(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Kind, unsigned int&, std::vector<double, std::allocator<double> >&, tomo_db0::(anonymous namespace)::ZAggregate&, bool&, unsigned long&) [clone .constprop.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      2349
+    ],
+    "post_sizes": [
+      2349
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      13197
+    ],
+    "post_sizes": [
+      13197
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::prepare_debug_loadaof(tomo_db0::Server&, tomo_db0::Op&, unsigned int, tomo_db0::Client*, std::unique_ptr<tomo_db0::SnapshotLoadPlan, std::default_delete<tomo_db0::SnapshotLoadPlan> >&, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      508
+    ],
+    "post_sizes": [
+      578
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::script_random(lua_State*)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      509
+    ],
+    "post_sizes": [
+      509
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      181
+    ],
+    "post_sizes": [
+      181
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::submit_large_frame_wake(tomo_db0::AofOwnerContext*)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      68
+    ]
+  },
+  {
+    "name": "tomo_db0::AofManager::drain_producer(unsigned int, unsigned int&, unsigned int&, tomo_db0::Ring&, io_uring_sqe*&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1719
+    ],
+    "post_sizes": [
+      1735
+    ]
+  },
+  {
+    "name": "tomo_db0::AofManager::drain_producer(unsigned int, unsigned int&, unsigned int&, tomo_db0::Ring&, io_uring_sqe*&) [clone .cold]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      198
+    ],
+    "post_sizes": [
+      198
+    ]
+  },
+  {
+    "name": "tomo_db0::AofManager::writer_pass(tomo_db0::ThreadCtx&, tomo_db0::Ring&, bool)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1495
+    ],
+    "post_sizes": [
+      1562
+    ]
+  },
+  {
+    "name": "tomo_db0::AofManager::writer_pass(tomo_db0::ThreadCtx&, tomo_db0::Ring&, bool) [clone .cold]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      114
+    ],
+    "post_sizes": [
+      114
+    ]
+  },
+  {
+    "name": "tomo_db0::AofProducer::emit(unsigned char const*, unsigned long, bool, tomo_db0::AofOwnerContext*, unsigned long)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      482
+    ],
+    "post_sizes": [
+      523
+    ]
+  },
+  {
+    "name": "tomo_db0::AofProducer::record_bytes(tomo_db0::AofRecordKind, unsigned char, unsigned char, tomo_db0::Slice, long, unsigned long, unsigned char const*, unsigned long, tomo_db0::SnapshotTypeHooks const*, tomo_db0::SnapshotSaveCursor*, tomo_db0::AofOwnerContext*)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1645
+    ],
+    "post_sizes": [
+      1677
+    ]
+  },
+  {
+    "name": "tomo_db0::AofProducer::record_bytes(tomo_db0::AofRecordKind, unsigned char, unsigned char, tomo_db0::Slice, long, unsigned long, unsigned char const*, unsigned long, tomo_db0::SnapshotTypeHooks const*, tomo_db0::SnapshotSaveCursor*, tomo_db0::AofOwnerContext*) [clone .cold]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      122
+    ],
+    "post_sizes": [
+      122
+    ]
+  },
+  {
+    "name": "tomo_db0::DatabaseMap::drain_deadline_start(tomo_db0::Server&, unsigned long, unsigned long)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      313
+    ]
+  },
+  {
+    "name": "tomo_db0::DatabaseMap::note_drain_waiting()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      5
+    ]
+  },
+  {
+    "name": "tomo_db0::DatabaseMap::publish(std::unique_ptr<tomo_db0::DatabaseMap::Map, std::default_delete<tomo_db0::DatabaseMap::Map> >)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      498
+    ],
+    "post_sizes": [
+      498
+    ]
+  },
+  {
+    "name": "tomo_db0::DatabaseMap::state()",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      341
+    ],
+    "post_sizes": [
+      325
+    ]
+  },
+  {
+    "name": "tomo_db0::DatabaseMap::~DatabaseMap()",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      229
+    ],
+    "post_sizes": [
+      229
+    ]
+  },
+  {
+    "name": "tomo_db0::DebugSleepCoordinator<128u, 50u>::exclusive(unsigned int, unsigned int, void*, void (*)(void*, unsigned int))",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      575
+    ],
+    "post_sizes": []
+  },
+  {
+    "name": "tomo_db0::ExLoopT<false>::flip_quiesced() const",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      656
+    ],
+    "post_sizes": [
+      684
+    ]
+  },
+  {
+    "name": "tomo_db0::ExLoopT<false>::notify_sender_to(tomo_db0::Client*, unsigned int)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      355
+    ],
+    "post_sizes": [
+      865
+    ]
+  },
+  {
+    "name": "tomo_db0::ExLoopT<false>::run()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      9046
+    ],
+    "post_sizes": [
+      9234
+    ]
+  },
+  {
+    "name": "tomo_db0::ExLoopT<false>::service_notify_retries()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      174
+    ]
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::flip_quiesced() const",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      704
+    ],
+    "post_sizes": [
+      704
+    ]
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::notify_sender_to(tomo_db0::Client*, unsigned int)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      355
+    ],
+    "post_sizes": [
+      865
+    ]
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::run()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      8666
+    ],
+    "post_sizes": [
+      8845
+    ]
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::service_notify_retries()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      174
+    ]
+  },
+  {
+    "name": "tomo_db0::FlatStore::atomic_install_plain(unsigned long, tomo_db0::Slice, void*&, tomo_db0::KvObj*&, unsigned long)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      1172
+    ],
+    "post_sizes": [
+      986
+    ]
+  },
+  {
+    "name": "tomo_db0::FlipController::debug_dump[abi:cxx11]() const",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      6458
+    ],
+    "post_sizes": [
+      6458
+    ]
+  },
+  {
+    "name": "tomo_db0::FlipController::seek_after_reading(tomo_db0::Server&, unsigned int, unsigned long, double)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      1281
+    ],
+    "post_sizes": [
+      1281
+    ]
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+    "hot": true,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      19203
+    ],
+    "post_sizes": [
+      19264
+    ]
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+    "hot": true,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      711
+    ],
+    "post_sizes": [
+      714
+    ]
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)",
+    "hot": true,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      19998
+    ],
+    "post_sizes": [
+      20141
+    ]
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+    "hot": true,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      9804,
+      11407,
+      9804,
+      11067
+    ],
+    "post_sizes": [
+      9804,
+      11423,
+      9804,
+      10897
+    ]
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+    "hot": true,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      525,
+      592,
+      525,
+      596
+    ],
+    "post_sizes": [
+      525,
+      592,
+      525,
+      592
+    ]
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+    "hot": true,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      19168,
+      18673
+    ],
+    "post_sizes": [
+      19220,
+      18673
+    ]
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+    "hot": true,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      732,
+      732
+    ],
+    "post_sizes": [
+      719,
+      732
+    ]
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)",
+    "hot": true,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      20014
+    ],
+    "post_sizes": [
+      20067
+    ]
+  },
+  {
+    "name": "tomo_db0::IoLoop::climon_copy_client_filter(tomo_db0::PubSubEvent&, tomo_db0::PubSubEvent const&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      639
+    ],
+    "post_sizes": [
+      383
+    ]
+  },
+  {
+    "name": "tomo_db0::IoLoop::climon_start_client_command(tomo_db0::Client*, tomo_db0::Op&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1779
+    ],
+    "post_sizes": [
+      1789
+    ]
+  },
+  {
+    "name": "tomo_db0::IoLoop::lb_control_pass()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      4983
+    ],
+    "post_sizes": [
+      5048
+    ]
+  },
+  {
+    "name": "tomo_db0::IoLoop::reap_dead()",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      1740
+    ],
+    "post_sizes": [
+      1239
+    ]
+  },
+  {
+    "name": "tomo_db0::LbAutotune::KeyDamping::update(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int, int, unsigned long, unsigned long, unsigned long)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      957
+    ],
+    "post_sizes": [
+      957
+    ]
+  },
+  {
+    "name": "tomo_db0::LbAutotune::QuietJitter::band(unsigned int) const [clone .isra.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      167
+    ],
+    "post_sizes": [
+      167
+    ]
+  },
+  {
+    "name": "tomo_db0::MonitorScriptLine* std::__move_merge<__gnu_cxx::__normal_iterator<tomo_db0::MonitorScriptLine*, std::vector<tomo_db0::MonitorScriptLine, std::allocator<tomo_db0::MonitorScriptLine> > >, tomo_db0::MonitorScriptLine*, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::IoLoop::climon_monitor_script_deliver(unsigned long, std::vector<tomo_db0::MonitorScriptLine, std::allocator<tomo_db0::MonitorScriptLine> >&)::{lambda(auto:1 const&, auto:2 const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::MonitorScriptLine*, std::vector<tomo_db0::MonitorScriptLine, std::allocator<tomo_db0::MonitorScriptLine> > >, __gnu_cxx::__normal_iterator<tomo_db0::MonitorScriptLine*, std::vector<tomo_db0::MonitorScriptLine, std::allocator<tomo_db0::MonitorScriptLine> > >, __gnu_cxx::__normal_iterator<tomo_db0::MonitorScriptLine*, std::vector<tomo_db0::MonitorScriptLine, std::allocator<tomo_db0::MonitorScriptLine> > >, __gnu_cxx::__normal_iterator<tomo_db0::MonitorScriptLine*, std::vector<tomo_db0::MonitorScriptLine, std::allocator<tomo_db0::MonitorScriptLine> > >, tomo_db0::MonitorScriptLine*, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::IoLoop::climon_monitor_script_deliver(unsigned long, std::vector<tomo_db0::MonitorScriptLine, std::allocator<tomo_db0::MonitorScriptLine> >&)::{lambda(auto:1 const&, auto:2 const&)#1}>) [clone .isra.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      1016
+    ],
+    "post_sizes": [
+      1000
+    ]
+  },
+  {
+    "name": "tomo_db0::PubSubEvent::~PubSubEvent()",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      603
+    ],
+    "post_sizes": [
+      603
+    ]
+  },
+  {
+    "name": "tomo_db0::Ring::msg_to(tomo_db0::Ring&, unsigned long) [clone .isra.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      653,
+      653,
+      979
+    ],
+    "post_sizes": [
+      653,
+      653,
+      653,
+      979
+    ]
+  },
+  {
+    "name": "tomo_db0::Ring::msg_to(tomo_db0::Ring&, unsigned long) [clone .isra.0] [clone .cold]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      40,
+      40,
+      40
+    ],
+    "post_sizes": [
+      40,
+      40,
+      40,
+      40
+    ]
+  },
+  {
+    "name": "tomo_db0::Server::defer_completion_notice(unsigned int, tomo_db0::Client*)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      531
+    ]
+  },
+  {
+    "name": "tomo_db0::Server::flip_begin(unsigned int, unsigned int, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, unsigned long)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      6307
+    ],
+    "post_sizes": [
+      6311
+    ]
+  },
+  {
+    "name": "tomo_db0::Server::flipctl_debug_dump[abi:cxx11]() const",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      1883
+    ],
+    "post_sizes": [
+      1890
+    ]
+  },
+  {
+    "name": "tomo_db0::Server::lb_controller_tick(unsigned int, unsigned long)::{lambda(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int)#1}::operator()(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int) const",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      559
+    ],
+    "post_sizes": [
+      559
+    ]
+  },
+  {
+    "name": "tomo_db0::Server::lb_controller_tick_pad(unsigned int, unsigned long)::{lambda(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int)#1}::operator()(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int) const",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      559
+    ],
+    "post_sizes": [
+      559
+    ]
+  },
+  {
+    "name": "tomo_db0::Server::lb_debug_move_client(unsigned long, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      721
+    ],
+    "post_sizes": [
+      779
+    ]
+  },
+  {
+    "name": "tomo_db0::Server::monitor_controllers()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      925
+    ],
+    "post_sizes": [
+      1442
+    ]
+  },
+  {
+    "name": "tomo_db0::Server::monitor_controllers() [clone .cold]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      44
+    ]
+  },
+  {
+    "name": "tomo_db0::Server::monitor_controllers()::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      1291
+    ]
+  },
+  {
+    "name": "tomo_db0::Server::monitor_controllers()::{lambda(unsigned int)#1}::operator()(unsigned int) const [clone .cold]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      22
+    ]
+  },
+  {
+    "name": "tomo_db0::Server::~Server()",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      2376
+    ],
+    "post_sizes": [
+      2440
+    ]
+  },
+  {
+    "name": "tomo_db0::Shard::watch_finish_unit(std::vector<tomo_db0::TxnClaim, std::allocator<tomo_db0::TxnClaim> > const&, void const*, tomo_db0::MultiRetryPromoter const*)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      210
+    ],
+    "post_sizes": [
+      214
+    ]
+  },
+  {
+    "name": "tomo_db0::SnapshotManager::post_chunk(unsigned int, std::unique_ptr<tomo_db0::SnapshotChunk, std::default_delete<tomo_db0::SnapshotChunk> >&, tomo_db0::Ring&, tomo_db0::LoopSignals&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      335
+    ],
+    "post_sizes": [
+      472
+    ]
+  },
+  {
+    "name": "tomo_db0::SnapshotManager::writer_pass(tomo_db0::ThreadCtx&, tomo_db0::Ring&, bool)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      980
+    ],
+    "post_sizes": [
+      1092
+    ]
+  },
+  {
+    "name": "tomo_db0::SnapshotManager::writer_pass(tomo_db0::ThreadCtx&, tomo_db0::Ring&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      226
+    ]
+  },
+  {
+    "name": "tomo_db0::blocking_atomic_published(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::ScatterState&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      429
+    ],
+    "post_sizes": [
+      445
+    ]
+  },
+  {
+    "name": "tomo_db0::blocking_cancel_client(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client&) [clone .part.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      706
+    ],
+    "post_sizes": [
+      689
+    ]
+  },
+  {
+    "name": "tomo_db0::blocking_execute(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      2409
+    ],
+    "post_sizes": [
+      2526
+    ]
+  },
+  {
+    "name": "tomo_db0::blocking_execute(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      309
+    ],
+    "post_sizes": [
+      331
+    ]
+  },
+  {
+    "name": "tomo_db0::blocking_execute_iofused(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      2409
+    ],
+    "post_sizes": [
+      2526
+    ]
+  },
+  {
+    "name": "tomo_db0::blocking_execute_iofused(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      309
+    ],
+    "post_sizes": [
+      331
+    ]
+  },
+  {
+    "name": "tomo_db0::blocking_key_created(void const*, tomo_db0::Slice)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      97
+    ],
+    "post_sizes": [
+      97
+    ]
+  },
+  {
+    "name": "tomo_db0::blocking_owner_dirty_pending(tomo_db0::ThreadCtx&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      83
+    ]
+  },
+  {
+    "name": "tomo_db0::blocking_plain_mutation_published(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      152
+    ],
+    "post_sizes": [
+      152
+    ]
+  },
+  {
+    "name": "tomo_db0::blocking_publish_key(tomo_db0::Shard&, unsigned long, char const*, unsigned int, unsigned char)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      271
+    ],
+    "post_sizes": [
+      271
+    ]
+  },
+  {
+    "name": "tomo_db0::blocking_scatter_repark(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::ScatterState&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      174
+    ],
+    "post_sizes": [
+      180
+    ]
+  },
+  {
+    "name": "tomo_db0::blocking_scatter_retire(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::ScatterState&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      419
+    ],
+    "post_sizes": [
+      403
+    ]
+  },
+  {
+    "name": "tomo_db0::blocking_stream_removed(void const*, tomo_db0::Slice, tomo_db0::KvObj const*)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      829
+    ],
+    "post_sizes": [
+      840
+    ]
+  },
+  {
+    "name": "tomo_db0::blocking_stream_removed(void const*, tomo_db0::Slice, tomo_db0::KvObj const*) [clone .cold]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      25
+    ],
+    "post_sizes": [
+      25
+    ]
+  },
+  {
+    "name": "tomo_db0::cfg_client_output_buffer_limit_string[abi:cxx11](tomo_db0::ClientOutputBufferLimits const&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      3899
+    ],
+    "post_sizes": [
+      3880
+    ]
+  },
+  {
+    "name": "tomo_db0::cfgfix_rebind(tomo_db0::Server&, unsigned int, unsigned short, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, int)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3428
+    ],
+    "post_sizes": [
+      4086
+    ]
+  },
+  {
+    "name": "tomo_db0::cfgfix_rebind(tomo_db0::Server&, unsigned int, unsigned short, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, int) [clone .cold]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      108
+    ],
+    "post_sizes": [
+      215
+    ]
+  },
+  {
+    "name": "tomo_db0::cfgfix_rebind(tomo_db0::Server&, unsigned int, unsigned short, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, int)::{lambda(void*, unsigned int)#1}::_FUN(void*, unsigned int)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      292
+    ]
+  },
+  {
+    "name": "tomo_db0::command_client_pause(tomo_db0::Server&, tomo_db0::Op&, unsigned long)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      808
+    ],
+    "post_sizes": []
+  },
+  {
+    "name": "tomo_db0::command_client_pause(tomo_db0::Server&, tomo_db0::Op&, unsigned long) [clone .cold]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      128
+    ],
+    "post_sizes": []
+  },
+  {
+    "name": "tomo_db0::command_client_pause(tomo_db0::Server&, tomo_db0::Op&, unsigned long, unsigned int)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      1019
+    ]
+  },
+  {
+    "name": "tomo_db0::command_client_pause(tomo_db0::Server&, tomo_db0::Op&, unsigned long, unsigned int) [clone .cold]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      128
+    ]
+  },
+  {
+    "name": "tomo_db0::command_client_slowlog_identity(unsigned long, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      399
+    ],
+    "post_sizes": [
+      397
+    ]
+  },
+  {
+    "name": "tomo_db0::command_client_slowlog_identity(unsigned long, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .cold]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      19
+    ],
+    "post_sizes": [
+      19
+    ]
+  },
+  {
+    "name": "tomo_db0::dtoa::grisu2_digits(double, char*, int&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      1043
+    ],
+    "post_sizes": [
+      1043
+    ]
+  },
+  {
+    "name": "tomo_db0::info_stats_build_fields(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      981
+    ],
+    "post_sizes": [
+      981
+    ]
+  },
+  {
+    "name": "tomo_db0::multi_exec_io_commands(tomo_db0::IoLoop&, tomo_db0::MultiExecState&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2562
+    ],
+    "post_sizes": [
+      2562
+    ]
+  },
+  {
+    "name": "tomo_db0::multi_exec_io_commands(tomo_db0::IoLoop&, tomo_db0::MultiExecState&) [clone .cold]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      222
+    ],
+    "post_sizes": [
+      222
+    ]
+  },
+  {
+    "name": "tomo_db0::multi_execute_task(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*, tomo_db0::MultiRetryPromoter const*)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      9403
+    ],
+    "post_sizes": [
+      9267
+    ]
+  },
+  {
+    "name": "tomo_db0::multi_execute_task(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*, tomo_db0::MultiRetryPromoter const*) [clone .cold]",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      382
+    ],
+    "post_sizes": [
+      383
+    ]
+  },
+  {
+    "name": "tomo_db0::multi_execute_task_tracked(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*, tomo_db0::MultiRetryPromoter const*)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      8303
+    ],
+    "post_sizes": [
+      8323
+    ]
+  },
+  {
+    "name": "tomo_db0::multi_retire(tomo_db0::Client&, tomo_db0::Op&, std::vector<tomo_db0::MultiExecState*, std::allocator<tomo_db0::MultiExecState*> >&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2095
+    ],
+    "post_sizes": [
+      2098
+    ]
+  },
+  {
+    "name": "tomo_db0::multi_retry_lane_note_pending()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [],
+    "post_sizes": [
+      14
+    ]
+  },
+  {
+    "name": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      2034
+    ],
+    "post_sizes": [
+      2034
+    ]
+  },
+  {
+    "name": "tomo_db0::parse_double_strict(tomo_db0::Slice, double&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      503
+    ],
+    "post_sizes": [
+      503
+    ]
+  },
+  {
+    "name": "tomo_db0::redis_double_text(char*, unsigned long, double) [clone .isra.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      1043,
+      1043,
+      1043,
+      1043,
+      1043
+    ],
+    "post_sizes": [
+      1043,
+      1043,
+      1043,
+      1043,
+      1043
+    ]
+  },
+  {
+    "name": "tomokv_multidb_main(int, char**)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      12532
+    ],
+    "post_sizes": [
+      12564
+    ]
+  },
+  {
+    "name": "tomokv_multidb_main(int, char**) [clone .cold]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      5242
+    ],
+    "post_sizes": [
+      5242
+    ]
+  },
+  {
+    "name": "unsigned int tomo::ExLoopT<false>::sweep<32u, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1968
+    ],
+    "post_sizes": [
+      2017
+    ]
+  },
+  {
+    "name": "unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3466
+    ],
+    "post_sizes": [
+      3559
+    ]
+  },
+  {
+    "name": "unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3846
+    ],
+    "post_sizes": [
+      3956
+    ]
+  },
+  {
+    "name": "unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3607
+    ],
+    "post_sizes": [
+      3689
+    ]
+  },
+  {
+    "name": "unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3927
+    ],
+    "post_sizes": [
+      4005
+    ]
+  },
+  {
+    "name": "unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1227
+    ],
+    "post_sizes": [
+      924
+    ]
+  },
+  {
+    "name": "unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1147
+    ],
+    "post_sizes": [
+      1194
+    ]
+  },
+  {
+    "name": "unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1227
+    ],
+    "post_sizes": [
+      1275
+    ]
+  },
+  {
+    "name": "unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1510
+    ],
+    "post_sizes": [
+      1558
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, false, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5179
+    ],
+    "post_sizes": [
+      5215
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, false, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3839
+    ],
+    "post_sizes": [
+      3839
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2838
+    ],
+    "post_sizes": [
+      2838
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3775
+    ],
+    "post_sizes": [
+      3836
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2774
+    ],
+    "post_sizes": [
+      2774
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, false, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3839
+    ],
+    "post_sizes": [
+      3839
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2838
+    ],
+    "post_sizes": [
+      2838
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3775
+    ],
+    "post_sizes": [
+      3836
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2774
+    ],
+    "post_sizes": [
+      2774
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, false, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      6048
+    ],
+    "post_sizes": [
+      6062
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, false, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3878
+    ],
+    "post_sizes": [
+      3894
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3303
+    ],
+    "post_sizes": [
+      3335
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3814
+    ],
+    "post_sizes": [
+      3798
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3255
+    ],
+    "post_sizes": [
+      3271
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3878
+    ],
+    "post_sizes": [
+      3894
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3303
+    ],
+    "post_sizes": [
+      3335
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3814
+    ],
+    "post_sizes": [
+      3798
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3255
+    ],
+    "post_sizes": [
+      3271
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2950
+    ],
+    "post_sizes": [
+      2950
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2950
+    ],
+    "post_sizes": [
+      2950
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2950
+    ],
+    "post_sizes": [
+      2950
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2950
+    ],
+    "post_sizes": [
+      2950
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3463
+    ],
+    "post_sizes": [
+      3463
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3463
+    ],
+    "post_sizes": [
+      3463
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3463
+    ],
+    "post_sizes": [
+      3463
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3463
+    ],
+    "post_sizes": [
+      3463
+    ]
+  },
+  {
+    "name": "unsigned int tomo::multi_owner_pass_entry_impl<false>(tomo::IoLoop&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      12827
+    ],
+    "post_sizes": [
+      13113
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1968
+    ],
+    "post_sizes": [
+      2017
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3735
+    ],
+    "post_sizes": [
+      3833
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3846
+    ],
+    "post_sizes": [
+      3956
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      4169
+    ],
+    "post_sizes": [
+      4261
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      4290
+    ],
+    "post_sizes": [
+      4233
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::ExLoopT<true>::r7_sweep<32u, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1227
+    ],
+    "post_sizes": [
+      1275
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::ExLoopT<true>::r7_sweep<32u, true, false, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1510
+    ],
+    "post_sizes": [
+      1558
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::ExLoopT<true>::sweep<32u, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1227
+    ],
+    "post_sizes": [
+      1275
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::ExLoopT<true>::sweep<32u, true, false, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      1510
+    ],
+    "post_sizes": [
+      1558
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, false, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5147
+    ],
+    "post_sizes": [
+      5183
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3807
+    ],
+    "post_sizes": [
+      3807
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2854
+    ],
+    "post_sizes": [
+      2854
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3743
+    ],
+    "post_sizes": [
+      3804
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2790
+    ],
+    "post_sizes": [
+      2790
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, false, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3807
+    ],
+    "post_sizes": [
+      3807
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2854
+    ],
+    "post_sizes": [
+      2854
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3743
+    ],
+    "post_sizes": [
+      3804
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2790
+    ],
+    "post_sizes": [
+      2790
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, false, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      6016
+    ],
+    "post_sizes": [
+      6030
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, false, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3846
+    ],
+    "post_sizes": [
+      3862
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3367
+    ],
+    "post_sizes": [
+      3367
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3782
+    ],
+    "post_sizes": [
+      3766
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3287
+    ],
+    "post_sizes": [
+      3319
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, false, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3846
+    ],
+    "post_sizes": [
+      3862
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3367
+    ],
+    "post_sizes": [
+      3367
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3782
+    ],
+    "post_sizes": [
+      3766
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3287
+    ],
+    "post_sizes": [
+      3319
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, false, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2982
+    ],
+    "post_sizes": [
+      2982
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, false, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2982
+    ],
+    "post_sizes": [
+      2982
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2982
+    ],
+    "post_sizes": [
+      2982
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, true, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      2982
+    ],
+    "post_sizes": [
+      2982
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3479
+    ],
+    "post_sizes": [
+      3527
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3479
+    ],
+    "post_sizes": [
+      3527
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3479
+    ],
+    "post_sizes": [
+      3527
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      3479
+    ],
+    "post_sizes": [
+      3527
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::multi_owner_pass_entry_impl<false>(tomo_db0::IoLoop&)",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      13515
+    ],
+    "post_sizes": [
+      13802
+    ]
+  },
+  {
+    "name": "unsigned long tomo::FlatStore::scan<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}>(unsigned long, unsigned int, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}&&, bool) [clone .constprop.0]",
+    "hot": true,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      3807
+    ],
+    "post_sizes": [
+      3663
+    ]
+  },
+  {
+    "name": "unsigned long tomo::kvobj_external_bytes<false>(tomo::KvObj const*, void const*, tomo::KvObj const*) [clone .isra.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      1606,
+      1351,
+      306,
+      306,
+      306,
+      1431,
+      490,
+      306,
+      306,
+      306,
+      826,
+      1111,
+      810,
+      618,
+      306,
+      746,
+      1606,
+      1606,
+      810,
+      1606,
+      1606,
+      810
+    ],
+    "post_sizes": [
+      1606,
+      1351,
+      306,
+      306,
+      306,
+      1431,
+      490,
+      306,
+      306,
+      306,
+      826,
+      1111,
+      810,
+      602,
+      306,
+      746,
+      1606,
+      1606,
+      810,
+      1606,
+      1606,
+      810
+    ]
+  },
+  {
+    "name": "void std::__merge_adaptive<__gnu_cxx::__normal_iterator<tomo_db0::MonitorScriptLine*, std::vector<tomo_db0::MonitorScriptLine, std::allocator<tomo_db0::MonitorScriptLine> > >, long, tomo_db0::MonitorScriptLine*, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::IoLoop::climon_monitor_script_deliver(unsigned long, std::vector<tomo_db0::MonitorScriptLine, std::allocator<tomo_db0::MonitorScriptLine> >&)::{lambda(auto:1 const&, auto:2 const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::MonitorScriptLine*, std::vector<tomo_db0::MonitorScriptLine, std::allocator<tomo_db0::MonitorScriptLine> > >, __gnu_cxx::__normal_iterator<tomo_db0::MonitorScriptLine*, std::vector<tomo_db0::MonitorScriptLine, std::allocator<tomo_db0::MonitorScriptLine> > >, __gnu_cxx::__normal_iterator<tomo_db0::MonitorScriptLine*, std::vector<tomo_db0::MonitorScriptLine, std::allocator<tomo_db0::MonitorScriptLine> > >, long, long, tomo_db0::MonitorScriptLine*, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::IoLoop::climon_monitor_script_deliver(unsigned long, std::vector<tomo_db0::MonitorScriptLine, std::allocator<tomo_db0::MonitorScriptLine> >&)::{lambda(auto:1 const&, auto:2 const&)#1}>) [clone .isra.0]",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      792
+    ],
+    "post_sizes": [
+      847
+    ]
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_geoadd<false>(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      4178
+    ],
+    "post_sizes": [
+      4178
+    ]
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_geoadd<true>(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      4381
+    ],
+    "post_sizes": [
+      4381
+    ]
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_zadd_generic<false>(tomo::Shard&, tomo::Op&, bool)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      6184
+    ],
+    "post_sizes": [
+      6184
+    ]
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_zadd_generic<true>(tomo::Shard&, tomo::Op&, bool)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      6283
+    ],
+    "post_sizes": [
+      6283
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::adopt_client<false, false>(tomo::Client*, bool, bool)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      965
+    ],
+    "post_sizes": [
+      1476
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::cancel_client_transfer<false>(tomo::Client*)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      308
+    ],
+    "post_sizes": [
+      671
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::on_recv<false, false, false>(tomo::Client*, int)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      1364
+    ],
+    "post_sizes": [
+      800
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::on_recv<true, false, false>(tomo::Client*, int)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      1364
+    ],
+    "post_sizes": [
+      816
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::r7_run_loop<false, false, false, true, false>()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5840
+    ],
+    "post_sizes": [
+      5933
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::r7_run_loop<false, false, true, true, false>()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5606
+    ],
+    "post_sizes": [
+      5802
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::r7_run_loop<false, true, false, true, false>()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5884
+    ],
+    "post_sizes": [
+      6001
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::r7_run_loop<false, true, true, true, false>()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5606
+    ],
+    "post_sizes": [
+      5802
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::r7_run_loop<true, false, false, true, false>()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5917
+    ],
+    "post_sizes": [
+      6033
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::r7_run_loop<true, false, true, true, false>()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5606
+    ],
+    "post_sizes": [
+      5802
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::r7_run_loop<true, true, false, true, false>()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5950
+    ],
+    "post_sizes": [
+      6058
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::r7_run_loop<true, true, true, true, false>()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5606
+    ],
+    "post_sizes": [
+      5802
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, false, false, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      7170
+    ],
+    "post_sizes": [
+      7352
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, false, false, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5753
+    ],
+    "post_sizes": [
+      5519
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, false, false, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      7259
+    ],
+    "post_sizes": [
+      7448
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, false, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      6205
+    ],
+    "post_sizes": [
+      6391
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, false, true, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5665
+    ],
+    "post_sizes": [
+      5839
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, false, true, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      6283
+    ],
+    "post_sizes": [
+      6466
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, true, false, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      7608
+    ],
+    "post_sizes": [
+      7786
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, true, false, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5815
+    ],
+    "post_sizes": [
+      5571
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, true, false, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      7706
+    ],
+    "post_sizes": [
+      7916
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, true, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      6205
+    ],
+    "post_sizes": [
+      6391
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, true, true, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5665
+    ],
+    "post_sizes": [
+      5839
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, true, true, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      6283
+    ],
+    "post_sizes": [
+      6466
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, false, false, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      7671
+    ],
+    "post_sizes": [
+      7859
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, false, false, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5829
+    ],
+    "post_sizes": [
+      5617
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, false, false, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      7749
+    ],
+    "post_sizes": [
+      7940
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, false, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      6237
+    ],
+    "post_sizes": [
+      6423
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, false, true, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5678
+    ],
+    "post_sizes": [
+      5852
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, false, true, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      6311
+    ],
+    "post_sizes": [
+      6493
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, true, false, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      8069
+    ],
+    "post_sizes": [
+      8245
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, true, false, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5479
+    ],
+    "post_sizes": [
+      5666
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, true, false, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      8129
+    ],
+    "post_sizes": [
+      8340
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, true, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      6237
+    ],
+    "post_sizes": [
+      6423
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, true, true, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5678
+    ],
+    "post_sizes": [
+      5852
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, true, true, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      6311
+    ],
+    "post_sizes": [
+      6493
+    ]
+  },
+  {
+    "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+    "hot": true,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      16640
+    ],
+    "post_sizes": [
+      16640
+    ]
+  },
+  {
+    "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+    "hot": true,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      17797
+    ],
+    "post_sizes": [
+      17797
+    ]
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_geoadd<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      4326
+    ],
+    "post_sizes": [
+      4326
+    ]
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_geoadd<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      4676
+    ],
+    "post_sizes": [
+      4676
+    ]
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zadd_generic<false>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      6200
+    ],
+    "post_sizes": [
+      6200
+    ]
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zadd_generic<true>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      6283
+    ],
+    "post_sizes": [
+      6283
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::adopt_client<false, false>(tomo_db0::Client*, bool, bool)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      965
+    ],
+    "post_sizes": [
+      1476
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::cancel_client_transfer<false>(tomo_db0::Client*)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      308
+    ],
+    "post_sizes": [
+      671
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_recv<false, false, false>(tomo_db0::Client*, int)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      1364
+    ],
+    "post_sizes": [
+      800
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_recv<true, false, false>(tomo_db0::Client*, int)",
+    "hot": false,
+    "intended": false,
+    "displacement_only": false,
+    "pre_sizes": [
+      1364
+    ],
+    "post_sizes": [
+      816
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<false, false, false, true, false>()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5985
+    ],
+    "post_sizes": [
+      5771
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<false, false, true, true, false>()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5481
+    ],
+    "post_sizes": [
+      5566
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<false, true, false, true, false>()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      6018
+    ],
+    "post_sizes": [
+      5808
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<false, true, true, true, false>()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5481
+    ],
+    "post_sizes": [
+      5566
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<true, false, false, true, false>()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      6051
+    ],
+    "post_sizes": [
+      5833
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<true, false, true, true, false>()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5478
+    ],
+    "post_sizes": [
+      5566
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<true, true, false, true, false>()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      6097
+    ],
+    "post_sizes": [
+      5870
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<true, true, true, true, false>()",
+    "hot": false,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5478
+    ],
+    "post_sizes": [
+      5566
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, false, false, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      6918
+    ],
+    "post_sizes": [
+      7019
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, false, false, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5704
+    ],
+    "post_sizes": [
+      5632
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, false, false, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      7029
+    ],
+    "post_sizes": [
+      7093
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, false, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5951
+    ],
+    "post_sizes": [
+      6043
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, false, true, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5626
+    ],
+    "post_sizes": [
+      5717
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, false, true, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5998
+    ],
+    "post_sizes": [
+      6090
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, true, false, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      7347
+    ],
+    "post_sizes": [
+      7462
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, true, false, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5760
+    ],
+    "post_sizes": [
+      5693
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, true, false, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      7453
+    ],
+    "post_sizes": [
+      7532
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, true, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5951
+    ],
+    "post_sizes": [
+      6043
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, true, true, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5626
+    ],
+    "post_sizes": [
+      5717
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, true, true, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5998
+    ],
+    "post_sizes": [
+      6090
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, false, false, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      7400
+    ],
+    "post_sizes": [
+      7493
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, false, false, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5622
+    ],
+    "post_sizes": [
+      5710
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, false, false, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      7508
+    ],
+    "post_sizes": [
+      7592
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, false, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5983
+    ],
+    "post_sizes": [
+      6075
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, false, true, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5639
+    ],
+    "post_sizes": [
+      5581
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, false, true, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      6042
+    ],
+    "post_sizes": [
+      6134
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, true, false, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      7793
+    ],
+    "post_sizes": [
+      7889
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, true, false, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5668
+    ],
+    "post_sizes": [
+      5757
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, true, false, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      7900
+    ],
+    "post_sizes": [
+      7974
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, true, true, false, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5983
+    ],
+    "post_sizes": [
+      6075
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, true, true, true, false>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      5639
+    ],
+    "post_sizes": [
+      5726
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, true, true, true, true>()",
+    "hot": true,
+    "intended": true,
+    "displacement_only": false,
+    "pre_sizes": [
+      6042
+    ],
+    "post_sizes": [
+      6134
+    ]
+  },
+  {
+    "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": true,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      16757
+    ],
+    "post_sizes": [
+      16757
+    ]
+  },
+  {
+    "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": true,
+    "intended": false,
+    "displacement_only": true,
+    "pre_sizes": [
+      18094
+    ],
+    "post_sizes": [
+      18094
+    ]
+  }
+]
