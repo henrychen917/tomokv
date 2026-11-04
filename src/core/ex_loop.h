@@ -1588,10 +1588,12 @@ private:
                 // Judge quiescence only once the boundary epoch is confirmed live. An acknowledged
                 // or stale sample keeps the busy return of the former re-acknowledgement.
                 if (!flip_owed(stage)) return 1;
-                if (flip_quiesced()) {
-                    srv_->flip_ack(self_->id(), stage);
-                    return 1;
-                }
+                if (flip_quiesced()) srv_->flip_ack(self_->id(), stage);
+                // Spin while the acknowledgement is owed, as FLIP and LB drains do. Its remote
+                // predicates (atomic_inflight() leaves only when an IO retires the reply, read-
+                // local grace, notify output) signal nothing to this executor: a park would sleep
+                // to its timeout while every IO holds every client's frames (SWAPDB).
+                return 1;
             }
         }
         if (stage == FlipStage::IoDrain && flip_owed(stage)) {
