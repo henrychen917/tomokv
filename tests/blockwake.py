@@ -576,7 +576,66 @@ def case_f8(a):
                 max_ms=max(r['ms'] for r in rounds) if rounds else None, reasons=reasons)
 
 
-CASES = dict(cancel=case_cancel, strand=case_strand, f8=case_f8)
+# ------------------------------------------------------------------------------------------------
+# F7: a blocked client woken by a cross-thread push must not wait out the park timeout
+# ------------------------------------------------------------------------------------------------
+
+def case_f7(a):
+    reasons, waits = [], []
+    with Boot(a, f'f7-{a.mode}-{a.engine}') as boot:
+        admin = boot.admin
+        topo = topology(admin)
+        if len(topo.owners) < 2:
+            raise AssertionError(f'need two owners: {topo.owners}')
+        own_a, own_b = topo.owners[0], topo.owners[1]
+        q = keys_on(admin, 'bw:q', 1, owner=own_a)[0]      # waited key, owner A
+        r = keys_on(admin, 'bw:r', 1, owner=own_b)[0]      # second script key, owner B (committer)
+        # Waiter connection off both owners so its own thread is never A.
+        w = conns_off(boot, {own_a, own_b}, 1)[0]
+        feeder = boot.conn()
+        script = "redis.call('RPUSH', KEYS[2], ARGV[1]); return 1"
+        try:
+            for rnd in range(a.rounds):
+                admin.must('DEL', q)
+                w.send('BLPOP', q, '0')
+                deadline = time.monotonic() + 2
+                while stat(admin, 'blocked_clients', 'clients') < 1:
+                    if time.monotonic() > deadline:
+                        raise AssertionError('BLPOP never blocked')
+                    time.sleep(0.0003)
+                # Let A go idle and park before the cross-shard push (the lost-wake window is the
+                # owner's sweep -> arm_blocked transition). A small jittered settle, optionally a
+                # swept APPLY defer to time the commit into that window.
+                if a.apply_defer:
+                    admin.must('DEBUG', 'SCRIPT-APPLY-DEFER', str((rnd % a.apply_defer) * 1000))
+                time.sleep(0.002 + (rnd % 5) * 0.001)
+                t0 = time.monotonic()
+                feeder.must('EVAL', script, '2', r, q, f'v{rnd}')
+                w.sock.settimeout(2)
+                reply = w.read()
+                dt_ms = (time.monotonic() - t0) * 1000
+                waits.append(dt_ms)
+                if not (isinstance(reply, list) and reply and reply[1] == f'v{rnd}'.encode()):
+                    reasons.append(f'round {rnd}: BLPOP got {reply!r}')
+                    break
+        finally:
+            if a.apply_defer:
+                admin.must('DEBUG', 'SCRIPT-APPLY-DEFER', '0')
+            w.close(); feeder.close()
+        waits.sort()
+        mx = waits[-1] if waits else None
+        over = sum(x >= a.max_ms for x in waits)
+        print(json.dumps(dict(rounds=len(waits), max_ms=round(mx, 2) if mx else None,
+                              p50=round(waits[len(waits)//2], 2) if waits else None,
+                              ge_max=over, top=[round(x, 2) for x in waits[-8:]])), flush=True)
+        if over:
+            reasons.append(f'{over} of {len(waits)} wakes >= {a.max_ms} ms (max {mx:.1f})')
+    if not boot.clean_exit():
+        reasons.append(f'server exit {boot.exit}')
+    return dict(case='f7', rounds=len(waits), max_ms=mx, ge_max=over, reasons=reasons)
+
+
+CASES = dict(cancel=case_cancel, strand=case_strand, f8=case_f8, f7=case_f7)
 
 
 def main():
@@ -595,7 +654,8 @@ def main():
     p.add_argument('--big-b', type=int, default=1000000, help='list length whose SORT stalls B')
     p.add_argument('--rounds', type=int, default=120, help='f8 BLMOVE wake rounds')
     p.add_argument('--hogs', type=int, default=4, help='f8 MSET8 hogs per non-probe IO thread')
-    p.add_argument('--max-ms', type=float, default=20.0, help='f8 wake-latency bound')
+    p.add_argument('--max-ms', type=float, default=20.0, help='f8/f7 wake-latency bound')
+    p.add_argument('--apply-defer', type=int, default=0, help='f7: sweep SCRIPT-APPLY-DEFER 0..N-1 ms')
     p.add_argument('--output', type=Path, required=True)
     a = p.parse_args()
     assert 1024 <= a.port < 32768
