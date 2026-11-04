@@ -7085,6 +7085,10 @@ for atomwake_mode in 2s 1s; do for atomwake_engine in uring epoll; do
   collect_job "atomwake-live-$atomwake_mode-$atomwake_engine"
 done; done
 collect_job atomwake_unit
+# blockwake: four jobs x two rows (cancel, strand) before the quick-tier exit (DQ=+8, DF=+8).
+for blockwake_mode in 2s 1s; do for blockwake_engine in uring epoll; do
+  collect_job "blockwake-live-$blockwake_mode-$blockwake_engine"
+done; done
 # parkwake: 23 rows before the quick-tier exit (DQ=+23, DF=+23; see job_parkwake_live).
 for parkwake_case in retry control epoch slotless watchdog; do
   for parkwake_mode in 2s 1s; do for parkwake_engine in uring epoll; do
