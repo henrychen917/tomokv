@@ -1,0 +1,10 @@
+PARTIAL	0	GATE_ONLY_JOBS=txnorder_fifo_live at412-T6 at412-T9 atomwake-live-2s-uring atomwake-live-2s-epoll atomwake-live-1s-uring atomwake-live-1s-epoll atomwake_unit; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+ok	66.920000	atomwake lone-IO credit wake (2s, uring)
+ok	66.940000	atomwake lone-IO credit wake (2s, epoll)
+ok	67.000000	atomwake lone-IO credit wake (1s, uring)
+ok	67.000000	atomwake lone-IO credit wake (1s, epoll)
+ok	0.040000	atomwake credit doorbell unit (uring, epoll)
+ok	812.560000	at412 T6
+ok	4.030000	at412 T9
+ok	988.750000	txnorder FIFO live fairness
