@@ -1,0 +1,5 @@
+# parkwake diagnostic arms (make park-net-arm, PARK_NET_MS=2000); test-only, not in bins
+6b7a1a9ff1e06737451e96b85eeb62fc629d54203c11afc9811c97e8e0f87583  PRE-diag (8be4f68323 + item 0)
+ee3bc0546aa0d0a2173d0057c8c89b28c7081293d0f6430e1483e4600da84d91  POST-diag (final source, 2646077e16)
+ee824ef41d9c7f0de4b0dd57c4b352e6dcdedcb6541ace8e8bc2a1cd0d6c2183  POST-diag before the item-4 clamp (matrix-postdiag.json)
+b33a194b940cc3aedc8e2bfc35b54503181fedb734463bfe9f3393faab290906  no-predicate twin of POST-diag (F1 negative control, deleted)
