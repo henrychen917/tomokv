@@ -1661,21 +1661,22 @@ job_atomwake_unit(){
 # 2s and 1s x uring and epoll (20), script in 2s x uring and epoll (2; one executor is a split
 # geometry), and the serverless unit (1). DQ=+23, DF=+23; EXPECT_QUICK/EXPECT_FULL and the
 # label fixture remain maintainer-owned.
-parkwake_label(){
-  case "$1" in
-    retry) echo "IO retry lane: EXEC with PUBLISH/SUBSCRIBE, retries, escalation";;
-    script) echo "script re-post refused by its own executor lane";;
-    watchdog) echo "SWAPDB during a command longer than the namespace watchdog";;
-    control) echo "CONFIG rendezvous, CLIENT UNPAUSE and DEBUG CLIENT-LB wakes";;
-    epoch) echo "disconnect fd release across the park";;
-    slotless) echo "slot-less completion notices beyond a full channel";;
-  esac
-}
 job_parkwake_live(){
   local prefix case mode engine label databases=16,1
   IFS=- read -r prefix case mode engine <<< "$1"
   [ "$case" != watchdog ] || databases=16
-  label="parkwake $(parkwake_label "$case") ($mode, $engine)"
+  # A literal case map (as job_txnfix4/job_iowake): tests/gate_ledger_fixture.py reads these
+  # finite titles to declare the 22 row labels statically; no command substitution in a label.
+  case "$case" in
+    retry) label='IO retry lane: EXEC with PUBLISH/SUBSCRIBE, retries, escalation';;
+    script) label='script re-post refused by its own executor lane';;
+    watchdog) label='SWAPDB during a command longer than the namespace watchdog';;
+    control) label='CONFIG rendezvous, CLIENT UNPAUSE and DEBUG CLIENT-LB wakes';;
+    epoch) label='disconnect fd release across the park';;
+    slotless) label='slot-less completion notices beyond a full channel';;
+    *) echo "unknown parkwake case $case" >&2; return 2;;
+  esac
+  label="parkwake $label ($mode, $engine)"
   row_begin "$label"
   if py tests/parkwake.py --binary "$CANDIDATE_BINARY" --case "$case" --cores "$CORES" \
       --port "$PORT" --ratio "$GATE_RATIO" --mode "$mode" --engine "$engine" \

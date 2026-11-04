@@ -288,9 +288,25 @@ For the maintainer:
 - The ledger-label fixture needs the 35 labels:
   - blockwake: `blockwake cancel: no element lost to a cancelled waiter (<mode>, <engine>)` and
     `blockwake strand: a registering front waiter does not strand its followers (<mode>, <engine>)`;
-  - parkwake: `parkwake_label()` in gate.sh prints each label, plus the `parkwake_unit` row;
+  - parkwake: the literal case map in `job_parkwake_live`, plus the `parkwake_unit` row;
   - iowake: the four `iowake F…` labels in `job_iowake`.
 - No integration row was added.
+
+**Landing follow-up: static label declarations.**
+- **The refusal.** The landing script's `calib/fixture-sync.py` refused: `tests/gate_ledger_fixture.py`
+  cannot bind parkwake's `label="parkwake $(parkwake_label "$case") ..."`.
+- **gate.sh change.** `job_parkwake_live` now carries a literal case map, as `job_txnfix4` and
+  `job_iowake` do, followed by `label="parkwake $label ($mode, $engine)"`. The `parkwake_label()`
+  helper, which had no other user, is gone.
+- **Fixture extractor change.** `source_labels` gains two narrow special cases, `job_iowake` and
+  `job_parkwake_live`. Each requires its exact finite case set. A new fail-closed control,
+  `test_wake_lane_case_maps_stay_finite_and_literal`, refuses an extra case, a renamed case, or a
+  reintroduced `$(…)` in the label.
+- **Not changed.** No row's test logic or command changed. The 35 static labels equal, verbatim, the
+  labels the broad POST run printed (`docs/wave16/proof/post-p1-run1.ledger.tsv`).
+- **Result.** `source_labels(gate.sh)` declares 1229 rows: the 1194 previous ones plus exactly these
+  35. `tests/fixtures/nullrefresh-ledger-labels.json` was synced with `calib/fixture-sync.py`
+  (1194 → 1229, 35 added, 0 removed).
 
 ### Arms
 

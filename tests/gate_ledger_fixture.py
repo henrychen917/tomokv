@@ -204,6 +204,25 @@ def source_labels(gate):
             require(argument in labels, "unknown txnfix4 case")
             return evaluate(declarations(body),
                             dict(global_values, **{"1": argument, "label": labels[argument]}), collect)
+        if function == "job_iowake":
+            # Same literal case map as job_txnfix4: one public row per case, its label verbatim.
+            labels = dict(re.findall(r"^    (\w+)\) label='([^'\n]+)';;", body, re.M))
+            require(set(labels) == {"tls", "aof", "bgsave", "loadaof"},
+                    "iowake finite label declaration changed")
+            require(argument in labels, "unknown iowake case")
+            return evaluate(declarations(body),
+                            dict(global_values, **{"1": argument, "label": labels[argument]}), collect)
+        if function == "job_parkwake_live":
+            # The literal case map binds the title; the body's own split and its
+            # label="parkwake $label ($mode, $engine)" assignment complete the row label.
+            labels = dict(re.findall(r"^    (\w+)\) label='([^'\n]+)';;", body, re.M))
+            require(set(labels) == {"retry", "script", "watchdog", "control", "epoch", "slotless"},
+                    "parkwake finite label declaration changed")
+            parts = argument.split("-")
+            require(len(parts) == 4 and parts[0] == "parkwake" and parts[1] in labels,
+                    "unknown parkwake case")
+            return evaluate(declarations(body),
+                            dict(global_values, **{"1": argument, "label": labels[parts[1]]}), collect)
         if function == "job_release":
             # Source-build and external-candidate arms emit the SAME single row.
             pair = re.search(r'row_begin ("[^"\n]+")\n.*?\nelse\n  row_begin \1 external-candidate',
@@ -309,6 +328,19 @@ class FixtureControls(unittest.TestCase):
             gate = self.gate.replace('job_wbland_units(){', f'job_wbland_units(){{\n  row_begin "{expression}"')
             with self.subTest(expression=expression), self.assertRaisesRegex(ValueError, "unsupported"):
                 check(gate, self.labels)
+
+    def test_wake_lane_case_maps_stay_finite_and_literal(self):
+        parkwake = "    slotless) label='slot-less completion notices beyond a full channel';;"
+        iowake = "    loadaof) label='iowake F13 DEBUG LOADAOF on the AOF writer thread (both modes, both engines)';;"
+        composed = 'label="parkwake $label ($mode, $engine)"'
+        for old, new, message in (
+                (parkwake, parkwake + "\n    extra) label='undeclared case';;",
+                 "parkwake finite label declaration changed"),
+                (iowake, iowake.replace("    loadaof)", "    reload)"), "iowake finite label declaration changed"),
+                (composed, 'label="parkwake $(echo extra) ($mode, $engine)"', "unsupported")):
+            self.assertEqual(self.gate.count(old), 1, old)
+            with self.subTest(change=new), self.assertRaisesRegex(ValueError, message):
+                source_labels(self.gate.replace(old, new))
 
     def test_receipt_refuses_once_before_control_setup(self):
         import contextlib
