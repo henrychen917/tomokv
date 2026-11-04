@@ -4600,7 +4600,10 @@ ordinary_shard_ready:
                     // frontier. Only the recv completion may drive inbound TLS while armed.
                     if (!c->closing() && !c->recv_armed()) (void)drive_tls<kEp, Fused>(c);
                     else if (tls->userspace()) {
-                        (void)wb_.pump_tls<kEp>(*c, *tls);
+                        // A synchronous transport (socket-userspace SSL_write, epoll memory BIO)
+                        // sends one plaintext unit per call and completes no CQE. Progress is work,
+                        // or the loop parks with units left until the idle timeout (F5).
+                        if (wb_.pump_tls<kEp>(*c, *tls)) work++;
                         if (tls->socket_userspace() && tls->has_pinned_plain())
                             arm_tls_socket_poll<kEp>(c, tls->wanted());
                     }

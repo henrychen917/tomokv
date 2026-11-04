@@ -1,0 +1,604 @@
+[
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_121prepare_debug_loadaofERNS_6ServerERNS_2OpEjPNS_6ClientERSt10unique_ptrINS_16SnapshotLoadPlanESt14default_deleteIS8_EERSt6vectorIS7_INS_13AofReplayPlanES9_ISE_EESaISG_EE",
+    "name": "tomo_db0::(anonymous namespace)::prepare_debug_loadaof(tomo_db0::Server&, tomo_db0::Op&, unsigned int, tomo_db0::Client*, std::unique_ptr<tomo_db0::SnapshotLoadPlan, std::default_delete<tomo_db0::SnapshotLoadPlan> >&, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >&)",
+    "hot": false
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb0ELb0ELb0EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false, false>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb0ELb1ELb0EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true, false>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb1ELb0ELb0EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, false, false>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb1ELb1ELb0EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true, false>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb1ELb1ELb0ELb0ELb0EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, false, false>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb1ELb1ELb0ELb1ELb0EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, true, false>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb1ELb1ELb1ELb0ELb0EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, false, false>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb1ELb1ELb1ELb1ELb0EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, true, false>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb0ELb1ELb0ELb0ELb0EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, false, false, false>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb0ELb1ELb0ELb1ELb0EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, false, true, false>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb0ELb1ELb1ELb0ELb0EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, true, false, false>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb0ELb1ELb1ELb1ELb0EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, true, true, false>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb1ELb1ELb0ELb0ELb0EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, false, false>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb1ELb1ELb0ELb1ELb0EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, true, false>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb1ELb1ELb1ELb0ELb0EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, false, false>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb1ELb1ELb1ELb1ELb0EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, true, false>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db09FlatStore34atomic_prepare_capacity_read_localEj",
+    "name": "tomo_db0::FlatStore::atomic_prepare_capacity_read_local(unsigned int)",
+    "hot": false
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "kind": "changed",
+    "symbol": "_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZN8tomo_db0L26run_fused_server_reorderedERNS3_6ServerEPKNS3_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS3_13AofReplayPlanESt14default_deleteISB_EESaISE_EES8_PNS3_10TlsContextERNS3_16LateUnixListenerERNS3_23ShutdownReportFinalLineEEUlvE0_EEEEE6_M_runEv",
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+    "hot": false
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "kind": "changed",
+    "symbol": "_ZZZN8tomo_db0L26run_fused_server_reorderedERNS_6ServerEPKNS_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS_13AofReplayPlanESt14default_deleteIS7_EESaISA_EES4_PNS_10TlsContextERNS_16LateUnixListenerERNS_23ShutdownReportFinalLineEENKUlvE0_clEvENUlPvE1_4_FUNESM_",
+    "name": "tomo_db0::run_fused_server_reordered(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&)::{lambda()#2}::operator()() const::{lambda(void*)#3}::_FUN(void*)",
+    "hot": false
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "kind": "padding_only",
+    "symbol": "_ZZZN8tomo_db0L26run_fused_server_reorderedERNS_6ServerEPKNS_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS_13AofReplayPlanESt14default_deleteIS7_EESaISA_EES4_PNS_10TlsContextERNS_16LateUnixListenerERNS_23ShutdownReportFinalLineEENKUlvE0_clEvENUlPvPNS_15SnapshotManagerEE_4_FUNESM_SO_",
+    "name": "tomo_db0::run_fused_server_reordered(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&)::{lambda()#2}::operator()() const::{lambda(void*, tomo_db0::SnapshotManager*)#1}::_FUN(void*, tomo_db0::SnapshotManager*)",
+    "hot": false
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb0ELb0ELb1EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false, true>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb0ELb1ELb1EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true, true>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb1ELb0ELb1EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, false, true>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb1ELb1ELb1EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true, true>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb1ELb1ELb0ELb0ELb1EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, false, true>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb1ELb1ELb0ELb1ELb1EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, true, true>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb1ELb1ELb1ELb0ELb1EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, false, true>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb1ELb1ELb1ELb1ELb1EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, true, true>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop17flip_control_passILb1EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::flip_control_pass<true>()",
+    "hot": false
+  },
+  {
+    "object": "db0/src/main.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb0ELb0ELb0ELb0EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, false, false, false, false>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/main.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb1ELb0ELb0ELb0ELb0EEEjv",
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, false, false, false, false>()",
+    "hot": true
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db010AofManager11writer_passERNS_9ThreadCtxERNS_4RingEb",
+    "name": "tomo_db0::AofManager::writer_pass(tomo_db0::ThreadCtx&, tomo_db0::Ring&, bool)",
+    "hot": false
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db010AofManager14drain_producerEjRjS1_RNS_4RingERP12io_uring_sqe",
+    "name": "tomo_db0::AofManager::drain_producer(unsigned int, unsigned int&, unsigned int&, tomo_db0::Ring&, io_uring_sqe*&)",
+    "hot": false
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db011AofProducer12record_bytesENS_13AofRecordKindEhhNS_5SliceElmPKhmPKNS_17SnapshotTypeHooksEPNS_18SnapshotSaveCursorEPNS_15AofOwnerContextE",
+    "name": "tomo_db0::AofProducer::record_bytes(tomo_db0::AofRecordKind, unsigned char, unsigned char, tomo_db0::Slice, long, unsigned long, unsigned char const*, unsigned long, tomo_db0::SnapshotTypeHooks const*, tomo_db0::SnapshotSaveCursor*, tomo_db0::AofOwnerContext*)",
+    "hot": false
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db011AofProducer4emitEPKhmbPNS_15AofOwnerContextEm",
+    "name": "tomo_db0::AofProducer::emit(unsigned char const*, unsigned long, bool, tomo_db0::AofOwnerContext*, unsigned long)",
+    "hot": false
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_113manifest_nameERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+    "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+    "hot": false
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_113manifest_nameERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE.cold",
+    "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [clone .cold]",
+    "hot": false
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "kind": "added",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_123submit_large_frame_wakeEPNS_15AofOwnerContextE",
+    "name": "tomo_db0::(anonymous namespace)::submit_large_frame_wake(tomo_db0::AofOwnerContext*)",
+    "hot": false
+  },
+  {
+    "object": "db0/src/snapshot/snapshot.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db015SnapshotManager10post_chunkEjRSt10unique_ptrINS_13SnapshotChunkESt14default_deleteIS2_EERNS_4RingERNS_11LoopSignalsE",
+    "name": "tomo_db0::SnapshotManager::post_chunk(unsigned int, std::unique_ptr<tomo_db0::SnapshotChunk, std::default_delete<tomo_db0::SnapshotChunk> >&, tomo_db0::Ring&, tomo_db0::LoopSignals&)",
+    "hot": false
+  },
+  {
+    "object": "db0/src/snapshot/snapshot.o",
+    "kind": "changed",
+    "symbol": "_ZN8tomo_db015SnapshotManager11writer_passERNS_9ThreadCtxERNS_4RingEb",
+    "name": "tomo_db0::SnapshotManager::writer_pass(tomo_db0::ThreadCtx&, tomo_db0::Ring&, bool)",
+    "hot": false
+  },
+  {
+    "object": "db0/src/snapshot/snapshot.o",
+    "kind": "added",
+    "symbol": "_ZZN8tomo_db015SnapshotManager11writer_passERNS_9ThreadCtxERNS_4RingEbENKUljE_clEj",
+    "name": "tomo_db0::SnapshotManager::writer_pass(tomo_db0::ThreadCtx&, tomo_db0::Ring&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo12_GLOBAL__N_121prepare_debug_loadaofERNS_6ServerERNS_2OpEjPNS_6ClientERSt10unique_ptrINS_16SnapshotLoadPlanESt14default_deleteIS8_EERSt6vectorIS7_INS_13AofReplayPlanES9_ISE_EESaISG_EE",
+    "name": "tomo::(anonymous namespace)::prepare_debug_loadaof(tomo::Server&, tomo::Op&, unsigned int, tomo::Client*, std::unique_ptr<tomo::SnapshotLoadPlan, std::default_delete<tomo::SnapshotLoadPlan> >&, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > >&)",
+    "hot": false
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo20notify_reserve_chainERNS_6ServerESt10unique_ptrINS_23PubSubNotificationChainESt14default_deleteIS3_EESt10shared_ptrINS_22NotifyExpiryCompletionEE",
+    "name": "tomo::notify_reserve_chain(tomo::Server&, std::unique_ptr<tomo::PubSubNotificationChain, std::default_delete<tomo::PubSubNotificationChain> >, std::shared_ptr<tomo::NotifyExpiryCompletion>)",
+    "hot": false
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo27multi_owner_pass_entry_implILb0EEEjRNS_6IoLoopE",
+    "name": "unsigned int tomo::multi_owner_pass_entry_impl<false>(tomo::IoLoop&)",
+    "hot": false
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo9FlatStore4scanIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlPNS_5KvObjEE_EEmmjOT_b.constprop",
+    "name": "unsigned long tomo::FlatStore::scan<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}>(unsigned long, unsigned int, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}&&, bool) [clone .constprop]",
+    "hot": false
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "kind": "changed",
+    "symbol": "_ZZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm.constprop",
+    "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop]",
+    "hot": false
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "kind": "changed",
+    "symbol": "_ZZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm.constprop.cold",
+    "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop] [clone .cold]",
+    "hot": false
+  },
+  {
+    "object": "src/core/genthread.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo20kvobj_external_bytesILb1EEEmPKNS_5KvObjEPKvS3_",
+    "name": "unsigned long tomo::kvobj_external_bytes<true>(tomo::KvObj const*, void const*, tomo::KvObj const*)",
+    "hot": false
+  },
+  {
+    "object": "src/core/genthread.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop11flush_readyILb1ELb0ELb1ELb0ELb0ELb0EEEjv",
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, false, false>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/genthread.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop11flush_readyILb1ELb0ELb1ELb0ELb1ELb0EEEjv",
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, true, false>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/genthread.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop11flush_readyILb1ELb0ELb1ELb1ELb0ELb0EEEjv",
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, false, false>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/genthread.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop11flush_readyILb1ELb0ELb1ELb1ELb1ELb0EEEjv",
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, true, false>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/genthread.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb1ELb0ELb0ELb0EEEjv",
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, false, false>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/genthread.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb1ELb0ELb1ELb0EEEjv",
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, true, false>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/genthread.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb1ELb1ELb0ELb0EEEjv",
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false, false>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/genthread.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb1ELb1ELb1ELb0EEEjv",
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, true, false>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/reorder.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop14r7_flush_readyILb1ELb0ELb1ELb0ELb0ELb0EEEjv",
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, false, false>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/reorder.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop14r7_flush_readyILb1ELb0ELb1ELb0ELb1ELb0EEEjv",
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/reorder.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop14r7_flush_readyILb1ELb0ELb1ELb1ELb0ELb0EEEjv",
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, false, false>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/reorder.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop14r7_flush_readyILb1ELb0ELb1ELb1ELb1ELb0EEEjv",
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/reorder.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop14r7_flush_readyILb1ELb1ELb1ELb0ELb0ELb0EEEjv",
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, false, false>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/reorder.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop14r7_flush_readyILb1ELb1ELb1ELb0ELb1ELb0EEEjv",
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, true, false>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/reorder.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop14r7_flush_readyILb1ELb1ELb1ELb1ELb0ELb0EEEjv",
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, false, false>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/reorder.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop14r7_flush_readyILb1ELb1ELb1ELb1ELb1ELb0EEEjv",
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, true, false>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop11flush_readyILb1ELb0ELb1ELb0ELb0ELb1EEEjv",
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, false, true>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop11flush_readyILb1ELb0ELb1ELb0ELb1ELb1EEEjv",
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, true, true>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop11flush_readyILb1ELb0ELb1ELb1ELb0ELb1EEEjv",
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, false, true>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop11flush_readyILb1ELb0ELb1ELb1ELb1ELb1EEEjv",
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, true, true>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb1ELb0ELb0ELb1EEEjv",
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, false, true>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb1ELb0ELb1ELb1EEEjv",
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, true, true>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb1ELb1ELb0ELb1EEEjv",
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false, true>()",
+    "hot": true
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb1ELb1ELb1ELb1EEEjv",
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, true, true>()",
+    "hot": true
+  },
+  {
+    "object": "src/main.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop11flush_readyILb1ELb0ELb0ELb0ELb0ELb0EEEjv",
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, false, false, false, false>()",
+    "hot": true
+  },
+  {
+    "object": "src/main.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb0ELb0ELb0ELb0EEEjv",
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, false, false, false, false>()",
+    "hot": true
+  },
+  {
+    "object": "src/persist/aof.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo10AofManager11writer_passERNS_9ThreadCtxERNS_4RingEb",
+    "name": "tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)",
+    "hot": false
+  },
+  {
+    "object": "src/persist/aof.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo10AofManager14drain_producerEjRjS1_RNS_4RingERP12io_uring_sqe",
+    "name": "tomo::AofManager::drain_producer(unsigned int, unsigned int&, unsigned int&, tomo::Ring&, io_uring_sqe*&)",
+    "hot": false
+  },
+  {
+    "object": "src/persist/aof.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo10AofManager14drain_producerEjRjS1_RNS_4RingERP12io_uring_sqe.cold",
+    "name": "tomo::AofManager::drain_producer(unsigned int, unsigned int&, unsigned int&, tomo::Ring&, io_uring_sqe*&) [clone .cold]",
+    "hot": false
+  },
+  {
+    "object": "src/persist/aof.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo11AofProducer12record_bytesENS_13AofRecordKindEhhNS_5SliceElmPKhmPKNS_17SnapshotTypeHooksEPNS_18SnapshotSaveCursorEPNS_15AofOwnerContextE",
+    "name": "tomo::AofProducer::record_bytes(tomo::AofRecordKind, unsigned char, unsigned char, tomo::Slice, long, unsigned long, unsigned char const*, unsigned long, tomo::SnapshotTypeHooks const*, tomo::SnapshotSaveCursor*, tomo::AofOwnerContext*)",
+    "hot": false
+  },
+  {
+    "object": "src/persist/aof.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo11AofProducer4emitEPKhmbPNS_15AofOwnerContextEm",
+    "name": "tomo::AofProducer::emit(unsigned char const*, unsigned long, bool, tomo::AofOwnerContext*, unsigned long)",
+    "hot": false
+  },
+  {
+    "object": "src/persist/aof.o",
+    "kind": "added",
+    "symbol": "_ZN4tomo12_GLOBAL__N_123submit_large_frame_wakeEPNS_15AofOwnerContextE",
+    "name": "tomo::(anonymous namespace)::submit_large_frame_wake(tomo::AofOwnerContext*)",
+    "hot": false
+  },
+  {
+    "object": "src/snapshot/snapshot.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo15SnapshotManager10post_chunkEjRSt10unique_ptrINS_13SnapshotChunkESt14default_deleteIS2_EERNS_4RingERNS_11LoopSignalsE",
+    "name": "tomo::SnapshotManager::post_chunk(unsigned int, std::unique_ptr<tomo::SnapshotChunk, std::default_delete<tomo::SnapshotChunk> >&, tomo::Ring&, tomo::LoopSignals&)",
+    "hot": false
+  },
+  {
+    "object": "src/snapshot/snapshot.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo15SnapshotManager11writer_passERNS_9ThreadCtxERNS_4RingEb",
+    "name": "tomo::SnapshotManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)",
+    "hot": false
+  },
+  {
+    "object": "src/snapshot/snapshot.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo20kvobj_external_bytesILb0EEEmPKNS_5KvObjEPKvS3_.isra",
+    "name": "unsigned long tomo::kvobj_external_bytes<false>(tomo::KvObj const*, void const*, tomo::KvObj const*) [clone .isra]",
+    "hot": false
+  },
+  {
+    "object": "src/snapshot/snapshot.o",
+    "kind": "changed",
+    "symbol": "_ZN4tomo20kvobj_external_bytesILb1EEEmPKNS_5KvObjEPKvS3_",
+    "name": "unsigned long tomo::kvobj_external_bytes<true>(tomo::KvObj const*, void const*, tomo::KvObj const*)",
+    "hot": false
+  },
+  {
+    "object": "src/snapshot/snapshot.o",
+    "kind": "added",
+    "symbol": "_ZZN4tomo15SnapshotManager11writer_passERNS_9ThreadCtxERNS_4RingEbENKUljE_clEj",
+    "name": "tomo::SnapshotManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false
+  }
+]

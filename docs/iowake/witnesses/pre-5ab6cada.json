@@ -1,0 +1,485 @@
+{
+ "iowake-tls": [
+  {
+   "mode": "2s",
+   "engine": "uring",
+   "verdict": "FAIL",
+   "error": "AssertionError(['2s/uring/tls13: MGET 16 x 2 KiB took 877.9 ms on round 0 (bound 25.0 ms, idle park 50 ms)'])",
+   "tcp": {
+    "ulp": null,
+    "worst_ms": {
+     "MGET 16 x 2 KiB": 0.19,
+     "16 pipelined GET x 2 KiB": 0.16,
+     "MGET 4 x 64 KiB": 0.22,
+     "GET 1 MiB": 0.87
+    },
+    "error": null
+   },
+   "ktls12": {
+    "ulp": [
+     "kernel",
+     "kernel"
+    ],
+    "worst_ms": {
+     "MGET 16 x 2 KiB": 0.2,
+     "16 pipelined GET x 2 KiB": 0.13,
+     "MGET 4 x 64 KiB": 0.33,
+     "GET 1 MiB": 1.63
+    },
+    "error": null
+   },
+   "tls13": {
+    "ulp": [
+     "none",
+     "kernel"
+    ],
+    "worst_ms": null,
+    "error": "2s/uring/tls13: MGET 16 x 2 KiB took 877.9 ms on round 0 (bound 25.0 ms, idle park 50 ms)"
+   },
+   "cbc12": {
+    "ulp": [
+     "none",
+     "none"
+    ],
+    "worst_ms": {
+     "MGET 16 x 2 KiB": 0.75,
+     "16 pipelined GET x 2 KiB": 0.42,
+     "MGET 4 x 64 KiB": 1.24,
+     "GET 1 MiB": 4.71
+    },
+    "error": null
+   }
+  },
+  {
+   "mode": "2s",
+   "engine": "epoll",
+   "verdict": "FAIL",
+   "error": "AssertionError(['2s/epoll/tls13: MGET 16 x 2 KiB took 884.8 ms on round 0 (bound 25.0 ms, idle park 50 ms)', '2s/epoll/cbc12: MGET 16 x 2 KiB took 867.2 ms on round 0 (bound 25.0 ms, idle park 50 ms)'])",
+   "tcp": {
+    "ulp": null,
+    "worst_ms": {
+     "MGET 16 x 2 KiB": 0.12,
+     "16 pipelined GET x 2 KiB": 0.13,
+     "MGET 4 x 64 KiB": 0.19,
+     "GET 1 MiB": 0.69
+    },
+    "error": null
+   },
+   "ktls12": {
+    "ulp": [
+     "kernel",
+     "kernel"
+    ],
+    "worst_ms": {
+     "MGET 16 x 2 KiB": 0.19,
+     "16 pipelined GET x 2 KiB": 0.16,
+     "MGET 4 x 64 KiB": 0.37,
+     "GET 1 MiB": 1.72
+    },
+    "error": null
+   },
+   "tls13": {
+    "ulp": [
+     "none",
+     "kernel"
+    ],
+    "worst_ms": null,
+    "error": "2s/epoll/tls13: MGET 16 x 2 KiB took 884.8 ms on round 0 (bound 25.0 ms, idle park 50 ms)"
+   },
+   "cbc12": {
+    "ulp": [
+     "none",
+     "none"
+    ],
+    "worst_ms": null,
+    "error": "2s/epoll/cbc12: MGET 16 x 2 KiB took 867.2 ms on round 0 (bound 25.0 ms, idle park 50 ms)"
+   }
+  },
+  {
+   "mode": "1s",
+   "engine": "uring",
+   "verdict": "FAIL",
+   "error": "AssertionError(['1s/uring/tls13: MGET 4 x 64 KiB took 282.7 ms on round 0 (bound 25.0 ms, idle park 50 ms)'])",
+   "tcp": {
+    "ulp": null,
+    "worst_ms": {
+     "MGET 16 x 2 KiB": 0.16,
+     "16 pipelined GET x 2 KiB": 0.1,
+     "MGET 4 x 64 KiB": 0.44,
+     "GET 1 MiB": 1.3
+    },
+    "error": null
+   },
+   "ktls12": {
+    "ulp": [
+     "kernel",
+     "kernel"
+    ],
+    "worst_ms": {
+     "MGET 16 x 2 KiB": 0.18,
+     "16 pipelined GET x 2 KiB": 0.13,
+     "MGET 4 x 64 KiB": 0.55,
+     "GET 1 MiB": 1.73
+    },
+    "error": null
+   },
+   "tls13": {
+    "ulp": [
+     "none",
+     "kernel"
+    ],
+    "worst_ms": null,
+    "error": "1s/uring/tls13: MGET 4 x 64 KiB took 282.7 ms on round 0 (bound 25.0 ms, idle park 50 ms)"
+   },
+   "cbc12": {
+    "ulp": [
+     "none",
+     "none"
+    ],
+    "worst_ms": {
+     "MGET 16 x 2 KiB": 0.3,
+     "16 pipelined GET x 2 KiB": 0.25,
+     "MGET 4 x 64 KiB": 1.28,
+     "GET 1 MiB": 4.61
+    },
+    "error": null
+   }
+  },
+  {
+   "mode": "1s",
+   "engine": "epoll",
+   "verdict": "FAIL",
+   "error": "AssertionError(['1s/epoll/tls13: MGET 4 x 64 KiB took 284.1 ms on round 0 (bound 25.0 ms, idle park 50 ms)', '1s/epoll/cbc12: MGET 16 x 2 KiB took 50.4 ms on round 0 (bound 25.0 ms, idle park 50 ms)'])",
+   "tcp": {
+    "ulp": null,
+    "worst_ms": {
+     "MGET 16 x 2 KiB": 0.17,
+     "16 pipelined GET x 2 KiB": 0.11,
+     "MGET 4 x 64 KiB": 0.47,
+     "GET 1 MiB": 1.24
+    },
+    "error": null
+   },
+   "ktls12": {
+    "ulp": [
+     "kernel",
+     "kernel"
+    ],
+    "worst_ms": {
+     "MGET 16 x 2 KiB": 0.18,
+     "16 pipelined GET x 2 KiB": 0.12,
+     "MGET 4 x 64 KiB": 0.57,
+     "GET 1 MiB": 1.7
+    },
+    "error": null
+   },
+   "tls13": {
+    "ulp": [
+     "none",
+     "kernel"
+    ],
+    "worst_ms": null,
+    "error": "1s/epoll/tls13: MGET 4 x 64 KiB took 284.1 ms on round 0 (bound 25.0 ms, idle park 50 ms)"
+   },
+   "cbc12": {
+    "ulp": [
+     "none",
+     "none"
+    ],
+    "worst_ms": null,
+    "error": "1s/epoll/cbc12: MGET 16 x 2 KiB took 50.4 ms on round 0 (bound 25.0 ms, idle park 50 ms)"
+   }
+  },
+  {
+   "mode": "1s-r7",
+   "engine": "uring",
+   "verdict": "FAIL",
+   "error": "AssertionError(['1s-r7/uring/tls13: MGET 16 x 2 KiB took 836.8 ms on round 0 (bound 25.0 ms, idle park 50 ms)'])",
+   "tcp": {
+    "ulp": null,
+    "worst_ms": {
+     "MGET 16 x 2 KiB": 0.17,
+     "16 pipelined GET x 2 KiB": 0.16,
+     "MGET 4 x 64 KiB": 0.2,
+     "GET 1 MiB": 0.65
+    },
+    "error": null
+   },
+   "ktls12": {
+    "ulp": [
+     "kernel",
+     "kernel"
+    ],
+    "worst_ms": {
+     "MGET 16 x 2 KiB": 0.23,
+     "16 pipelined GET x 2 KiB": 0.19,
+     "MGET 4 x 64 KiB": 0.41,
+     "GET 1 MiB": 1.82
+    },
+    "error": null
+   },
+   "tls13": {
+    "ulp": [
+     "none",
+     "kernel"
+    ],
+    "worst_ms": null,
+    "error": "1s-r7/uring/tls13: MGET 16 x 2 KiB took 836.8 ms on round 0 (bound 25.0 ms, idle park 50 ms)"
+   },
+   "cbc12": {
+    "ulp": [
+     "none",
+     "none"
+    ],
+    "worst_ms": {
+     "MGET 16 x 2 KiB": 0.78,
+     "16 pipelined GET x 2 KiB": 0.27,
+     "MGET 4 x 64 KiB": 1.24,
+     "GET 1 MiB": 4.69
+    },
+    "error": null
+   }
+  },
+  {
+   "mode": "1s-r7",
+   "engine": "epoll",
+   "verdict": "FAIL",
+   "error": "AssertionError(['1s-r7/epoll/tls13: MGET 16 x 2 KiB took 888.9 ms on round 0 (bound 25.0 ms, idle park 50 ms)', '1s-r7/epoll/cbc12: MGET 16 x 2 KiB took 815.3 ms on round 0 (bound 25.0 ms, idle park 50 ms)'])",
+   "tcp": {
+    "ulp": null,
+    "worst_ms": {
+     "MGET 16 x 2 KiB": 0.17,
+     "16 pipelined GET x 2 KiB": 0.15,
+     "MGET 4 x 64 KiB": 0.2,
+     "GET 1 MiB": 0.66
+    },
+    "error": null
+   },
+   "ktls12": {
+    "ulp": [
+     "kernel",
+     "kernel"
+    ],
+    "worst_ms": {
+     "MGET 16 x 2 KiB": 0.21,
+     "16 pipelined GET x 2 KiB": 0.15,
+     "MGET 4 x 64 KiB": 0.41,
+     "GET 1 MiB": 1.6
+    },
+    "error": null
+   },
+   "tls13": {
+    "ulp": [
+     "none",
+     "kernel"
+    ],
+    "worst_ms": null,
+    "error": "1s-r7/epoll/tls13: MGET 16 x 2 KiB took 888.9 ms on round 0 (bound 25.0 ms, idle park 50 ms)"
+   },
+   "cbc12": {
+    "ulp": [
+     "none",
+     "none"
+    ],
+    "worst_ms": null,
+    "error": "1s-r7/epoll/cbc12: MGET 16 x 2 KiB took 815.3 ms on round 0 (bound 25.0 ms, idle park 50 ms)"
+   }
+  }
+ ],
+ "iowake-aof": [
+  {
+   "mode": "2s",
+   "engine": "uring",
+   "verdict": "FAIL",
+   "error": "AssertionError('2s/uring/hash#0: a gated PING waited 43.0 ms (bound 25.0 ms, idle park 50 ms) while the record was open')",
+   "writer": 5,
+   "owners": [
+    6,
+    7
+   ],
+   "writes": []
+  },
+  {
+   "mode": "2s",
+   "engine": "epoll",
+   "verdict": "FAIL",
+   "error": "AssertionError('2s/epoll/hash#0: a gated PING waited 50.1 ms (bound 25.0 ms, idle park 50 ms) while the record was open')",
+   "writer": 5,
+   "owners": [
+    6,
+    7
+   ],
+   "writes": []
+  },
+  {
+   "mode": "1s",
+   "engine": "uring",
+   "verdict": "FAIL",
+   "error": "AssertionError('1s/uring/hash#0: a gated PING waited 42.1 ms (bound 25.0 ms, idle park 50 ms) while the record was open')",
+   "writer": 7,
+   "owners": [
+    0,
+    5
+   ],
+   "writes": []
+  },
+  {
+   "mode": "1s",
+   "engine": "epoll",
+   "verdict": "FAIL",
+   "error": "AssertionError('1s/epoll/hash#0: a gated PING waited 50.1 ms (bound 25.0 ms, idle park 50 ms) while the record was open')",
+   "writer": 7,
+   "owners": [
+    4,
+    6
+   ],
+   "writes": []
+  }
+ ],
+ "iowake-bgsave": [
+  {
+   "mode": "2s",
+   "engine": "uring",
+   "verdict": "PASS",
+   "owner": 7,
+   "saver_io": 1,
+   "dataset_mib": 128,
+   "saves": [
+    {
+     "seconds": 0.3494,
+     "mib_per_s": 366.4,
+     "owner_channel_refusals": 1082470
+    },
+    {
+     "seconds": 0.4003,
+     "mib_per_s": 319.8,
+     "owner_channel_refusals": 1054031
+    },
+    {
+     "seconds": 0.444,
+     "mib_per_s": 288.3,
+     "owner_channel_refusals": 1009001
+    }
+   ]
+  },
+  {
+   "mode": "2s",
+   "engine": "epoll",
+   "verdict": "PASS",
+   "owner": 6,
+   "saver_io": 2,
+   "dataset_mib": 128,
+   "saves": [
+    {
+     "seconds": 0.2179,
+     "mib_per_s": 587.5,
+     "owner_channel_refusals": 1085515
+    },
+    {
+     "seconds": 0.2264,
+     "mib_per_s": 565.5,
+     "owner_channel_refusals": 1097122
+    },
+    {
+     "seconds": 0.2275,
+     "mib_per_s": 562.8,
+     "owner_channel_refusals": 1104403
+    }
+   ]
+  },
+  {
+   "mode": "1s",
+   "engine": "uring",
+   "verdict": "FAIL",
+   "error": "AssertionError(\"1s/uring: BGSAVE captured 90 MiB/s from one owner (bound 200.0 MiB/s): [{'seconds': 1.4187, 'mib_per_s': 90.2, 'owner_channel_refusals': 118}]\")",
+   "owner": null,
+   "saver_io": null,
+   "dataset_mib": null,
+   "saves": null
+  },
+  {
+   "mode": "1s",
+   "engine": "epoll",
+   "verdict": "FAIL",
+   "error": "AssertionError(\"1s/epoll: BGSAVE captured 89 MiB/s from one owner (bound 200.0 MiB/s): [{'seconds': 1.443, 'mib_per_s': 88.7, 'owner_channel_refusals': 1482}]\")",
+   "owner": null,
+   "saver_io": null,
+   "dataset_mib": null,
+   "saves": null
+  }
+ ],
+ "iowake-loadaof": [
+  {
+   "mode": "2s",
+   "engine": "uring",
+   "verdict": "FAIL",
+   "error": "AssertionError('2s/uring/writer#0: DEBUG LOADAOF did not reply in 5 s')",
+   "writer": null,
+   "attempts": null
+  },
+  {
+   "mode": "2s",
+   "engine": "epoll",
+   "verdict": "PASS",
+   "writer": 5,
+   "attempts": [
+    {
+     "issuer": "writer",
+     "issuer_io": 5,
+     "loadaof_ms": 0.48
+    },
+    {
+     "issuer": "writer",
+     "issuer_io": 5,
+     "loadaof_ms": 0.44
+    },
+    {
+     "issuer": "writer",
+     "issuer_io": 5,
+     "loadaof_ms": 0.5
+    },
+    {
+     "issuer": "control",
+     "issuer_io": 1,
+     "loadaof_ms": 0.62
+    }
+   ]
+  },
+  {
+   "mode": "1s",
+   "engine": "uring",
+   "verdict": "FAIL",
+   "error": "AssertionError('1s/uring/writer#0: DEBUG LOADAOF did not reply in 5 s')",
+   "writer": null,
+   "attempts": null
+  },
+  {
+   "mode": "1s",
+   "engine": "epoll",
+   "verdict": "PASS",
+   "writer": 7,
+   "attempts": [
+    {
+     "issuer": "writer",
+     "issuer_io": 7,
+     "loadaof_ms": 0.52
+    },
+    {
+     "issuer": "writer",
+     "issuer_io": 7,
+     "loadaof_ms": 0.43
+    },
+    {
+     "issuer": "writer",
+     "issuer_io": 7,
+     "loadaof_ms": 0.57
+    },
+    {
+     "issuer": "control",
+     "issuer_io": 1,
+     "loadaof_ms": 0.7
+    }
+   ]
+  }
+ ]
+}

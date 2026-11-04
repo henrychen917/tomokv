@@ -1,0 +1,1131 @@
+{
+  "db0/src/cmd/acl.o": {
+    "functions": 285,
+    "equal": 285,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/aclkeys.o": {
+    "functions": 3,
+    "equal": 3,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/autharity.o": {
+    "functions": 10,
+    "equal": 10,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/blocking_debug.o": {
+    "functions": 6,
+    "equal": 6,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/clientcompat.o": {
+    "functions": 37,
+    "equal": 37,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/climon.o": {
+    "functions": 266,
+    "equal": 266,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/cmdgap.o": {
+    "functions": 7,
+    "equal": 7,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/cmdmeta.o": {
+    "functions": 43,
+    "equal": 43,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/commands.o": {
+    "functions": 32,
+    "equal": 32,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/eviction.o": {
+    "functions": 32,
+    "equal": 32,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/functions.o": {
+    "functions": 114,
+    "equal": 114,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/geo.o": {
+    "functions": 123,
+    "equal": 123,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/geo_store.o": {
+    "functions": 5,
+    "equal": 5,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/glob.o": {
+    "functions": 2,
+    "equal": 2,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/hexpread.o": {
+    "functions": 45,
+    "equal": 45,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/hll.o": {
+    "functions": 30,
+    "equal": 30,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/info_stats.o": {
+    "functions": 26,
+    "equal": 26,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/l4prebuild.o": {
+    "functions": 74,
+    "equal": 74,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/latency_tracking.o": {
+    "functions": 192,
+    "equal": 192,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/lbsignals.o": {
+    "functions": 13,
+    "equal": 13,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/lcs.o": {
+    "functions": 18,
+    "equal": 18,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/multi_admin.o": {
+    "functions": 8,
+    "equal": 8,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/multidb.o": {
+    "functions": 75,
+    "equal": 75,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/objectpread.o": {
+    "functions": 15,
+    "equal": 15,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/pfdebug.o": {
+    "functions": 45,
+    "equal": 45,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/scripting.o": {
+    "functions": 203,
+    "equal": 203,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/serialize.o": {
+    "functions": 147,
+    "equal": 147,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/server_tail.o": {
+    "functions": 85,
+    "equal": 85,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/slowlog.o": {
+    "functions": 83,
+    "equal": 83,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/storesize.o": {
+    "functions": 19,
+    "equal": 19,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_hash.o": {
+    "functions": 242,
+    "equal": 242,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_hash_ttl.o": {
+    "functions": 107,
+    "equal": 107,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_list.o": {
+    "functions": 218,
+    "equal": 218,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_server.o": {
+    "functions": 274,
+    "equal": 274,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_set.o": {
+    "functions": 231,
+    "equal": 231,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_sort.o": {
+    "functions": 27,
+    "equal": 27,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_stream.o": {
+    "functions": 268,
+    "equal": 268,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_stream_groups.o": {
+    "functions": 175,
+    "equal": 175,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_string.o": {
+    "functions": 177,
+    "equal": 177,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_string_notify.o": {
+    "functions": 215,
+    "equal": 215,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_zset.o": {
+    "functions": 314,
+    "equal": 314,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_zset_ops.o": {
+    "functions": 1,
+    "equal": 1,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/tracking.o": {
+    "functions": 123,
+    "equal": 123,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/xshard.o": {
+    "functions": 1225,
+    "equal": 1224,
+    "padding_only": [],
+    "changed": [
+      "_ZN8tomo_db012_GLOBAL__N_121prepare_debug_loadaofERNS_6ServerERNS_2OpEjPNS_6ClientERSt10unique_ptrINS_16SnapshotLoadPlanESt14default_deleteIS8_EERSt6vectorIS7_INS_13AofReplayPlanES9_ISE_EESaISG_EE"
+    ],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/core/cfgfix.o": {
+    "functions": 21,
+    "equal": 21,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/core/eof.o": {
+    "functions": 102,
+    "equal": 102,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/core/flipctl.o": {
+    "functions": 73,
+    "equal": 73,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/core/fliplisten.o": {
+    "functions": 280,
+    "equal": 280,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/core/genthread.o": {
+    "functions": 831,
+    "equal": 823,
+    "padding_only": [],
+    "changed": [
+      "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb0ELb0ELb0EEEjv",
+      "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb0ELb1ELb0EEEjv",
+      "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb1ELb0ELb0EEEjv",
+      "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb1ELb1ELb0EEEjv",
+      "_ZN8tomo_db06IoLoop11flush_readyILb1ELb1ELb1ELb0ELb0ELb0EEEjv",
+      "_ZN8tomo_db06IoLoop11flush_readyILb1ELb1ELb1ELb0ELb1ELb0EEEjv",
+      "_ZN8tomo_db06IoLoop11flush_readyILb1ELb1ELb1ELb1ELb0ELb0EEEjv",
+      "_ZN8tomo_db06IoLoop11flush_readyILb1ELb1ELb1ELb1ELb1ELb0EEEjv"
+    ],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/core/lbplanner.o": {
+    "functions": 84,
+    "equal": 84,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/core/lbstall.o": {
+    "functions": 12,
+    "equal": 12,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/core/reorder.o": {
+    "functions": 890,
+    "equal": 878,
+    "padding_only": [
+      "_ZZZN8tomo_db0L26run_fused_server_reorderedERNS_6ServerEPKNS_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS_13AofReplayPlanESt14default_deleteIS7_EESaISA_EES4_PNS_10TlsContextERNS_16LateUnixListenerERNS_23ShutdownReportFinalLineEENKUlvE0_clEvENUlPvPNS_15SnapshotManagerEE_4_FUNESM_SO_"
+    ],
+    "changed": [
+      "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb0ELb1ELb0ELb0ELb0EEEjv",
+      "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb0ELb1ELb0ELb1ELb0EEEjv",
+      "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb0ELb1ELb1ELb0ELb0EEEjv",
+      "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb0ELb1ELb1ELb1ELb0EEEjv",
+      "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb1ELb1ELb0ELb0ELb0EEEjv",
+      "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb1ELb1ELb0ELb1ELb0EEEjv",
+      "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb1ELb1ELb1ELb0ELb0EEEjv",
+      "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb1ELb1ELb1ELb1ELb0EEEjv",
+      "_ZN8tomo_db09FlatStore34atomic_prepare_capacity_read_localEj",
+      "_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZN8tomo_db0L26run_fused_server_reorderedERNS3_6ServerEPKNS3_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS3_13AofReplayPlanESt14default_deleteISB_EESaISE_EES8_PNS3_10TlsContextERNS3_16LateUnixListenerERNS3_23ShutdownReportFinalLineEEUlvE0_EEEEE6_M_runEv",
+      "_ZZZN8tomo_db0L26run_fused_server_reorderedERNS_6ServerEPKNS_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS_13AofReplayPlanESt14default_deleteIS7_EESaISA_EES4_PNS_10TlsContextERNS_16LateUnixListenerERNS_23ShutdownReportFinalLineEENKUlvE0_clEvENUlPvE1_4_FUNESM_"
+    ],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/core/rl2s.o": {
+    "functions": 757,
+    "equal": 748,
+    "padding_only": [],
+    "changed": [
+      "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb0ELb0ELb1EEEjv",
+      "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb0ELb1ELb1EEEjv",
+      "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb1ELb0ELb1EEEjv",
+      "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb1ELb1ELb1EEEjv",
+      "_ZN8tomo_db06IoLoop11flush_readyILb1ELb1ELb1ELb0ELb0ELb1EEEjv",
+      "_ZN8tomo_db06IoLoop11flush_readyILb1ELb1ELb1ELb0ELb1ELb1EEEjv",
+      "_ZN8tomo_db06IoLoop11flush_readyILb1ELb1ELb1ELb1ELb0ELb1EEEjv",
+      "_ZN8tomo_db06IoLoop11flush_readyILb1ELb1ELb1ELb1ELb1ELb1EEEjv",
+      "_ZN8tomo_db06IoLoop17flip_control_passILb1EEEjv"
+    ],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/core/shutdown.o": {
+    "functions": 47,
+    "equal": 47,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/core/version.o": {
+    "functions": 1,
+    "equal": 1,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/main.o": {
+    "functions": 721,
+    "equal": 719,
+    "padding_only": [],
+    "changed": [
+      "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb0ELb0ELb0ELb0EEEjv",
+      "_ZN8tomo_db06IoLoop11flush_readyILb1ELb1ELb0ELb0ELb0ELb0EEEjv"
+    ],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/net/tls.o": {
+    "functions": 38,
+    "equal": 38,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/persist/aof.o": {
+    "functions": 380,
+    "equal": 373,
+    "padding_only": [],
+    "changed": [
+      "_ZN8tomo_db010AofManager11writer_passERNS_9ThreadCtxERNS_4RingEb",
+      "_ZN8tomo_db010AofManager14drain_producerEjRjS1_RNS_4RingERP12io_uring_sqe",
+      "_ZN8tomo_db011AofProducer12record_bytesENS_13AofRecordKindEhhNS_5SliceElmPKhmPKNS_17SnapshotTypeHooksEPNS_18SnapshotSaveCursorEPNS_15AofOwnerContextE",
+      "_ZN8tomo_db011AofProducer4emitEPKhmbPNS_15AofOwnerContextEm",
+      "_ZN8tomo_db012_GLOBAL__N_113manifest_nameERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+      "_ZN8tomo_db012_GLOBAL__N_113manifest_nameERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE.cold"
+    ],
+    "added": [
+      "_ZN8tomo_db012_GLOBAL__N_123submit_large_frame_wakeEPNS_15AofOwnerContextE"
+    ],
+    "removed": []
+  },
+  "db0/src/persist/aof_frame_debug.o": {
+    "functions": 6,
+    "equal": 6,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/snapshot/snapshot.o": {
+    "functions": 151,
+    "equal": 148,
+    "padding_only": [],
+    "changed": [
+      "_ZN8tomo_db015SnapshotManager10post_chunkEjRSt10unique_ptrINS_13SnapshotChunkESt14default_deleteIS2_EERNS_4RingERNS_11LoopSignalsE",
+      "_ZN8tomo_db015SnapshotManager11writer_passERNS_9ThreadCtxERNS_4RingEb"
+    ],
+    "added": [
+      "_ZZN8tomo_db015SnapshotManager11writer_passERNS_9ThreadCtxERNS_4RingEbENKUljE_clEj"
+    ],
+    "removed": []
+  },
+  "db0/src/store/flush.o": {
+    "functions": 93,
+    "equal": 93,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/acl.o": {
+    "functions": 283,
+    "equal": 283,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/aclkeys.o": {
+    "functions": 3,
+    "equal": 3,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/autharity.o": {
+    "functions": 10,
+    "equal": 10,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/blocking_debug.o": {
+    "functions": 6,
+    "equal": 6,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/clientcompat.o": {
+    "functions": 37,
+    "equal": 37,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/climon.o": {
+    "functions": 266,
+    "equal": 266,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/cmdgap.o": {
+    "functions": 7,
+    "equal": 7,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/cmdmeta.o": {
+    "functions": 43,
+    "equal": 43,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/commands.o": {
+    "functions": 32,
+    "equal": 32,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/eviction.o": {
+    "functions": 29,
+    "equal": 29,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/functions.o": {
+    "functions": 114,
+    "equal": 114,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/geo.o": {
+    "functions": 131,
+    "equal": 131,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/geo_store.o": {
+    "functions": 5,
+    "equal": 5,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/glob.o": {
+    "functions": 2,
+    "equal": 2,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/hexpread.o": {
+    "functions": 46,
+    "equal": 46,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/hll.o": {
+    "functions": 30,
+    "equal": 30,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/info_stats.o": {
+    "functions": 26,
+    "equal": 26,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/l4prebuild.o": {
+    "functions": 77,
+    "equal": 77,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/latency_tracking.o": {
+    "functions": 191,
+    "equal": 191,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/lbsignals.o": {
+    "functions": 13,
+    "equal": 13,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/lcs.o": {
+    "functions": 18,
+    "equal": 18,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/multi_admin.o": {
+    "functions": 9,
+    "equal": 9,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/multidb.o": {
+    "functions": 93,
+    "equal": 93,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/objectpread.o": {
+    "functions": 16,
+    "equal": 16,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/pfdebug.o": {
+    "functions": 45,
+    "equal": 45,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/scripting.o": {
+    "functions": 638,
+    "equal": 638,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/serialize.o": {
+    "functions": 146,
+    "equal": 146,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/server_tail.o": {
+    "functions": 85,
+    "equal": 85,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/slowlog.o": {
+    "functions": 83,
+    "equal": 83,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/storesize.o": {
+    "functions": 20,
+    "equal": 20,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_hash.o": {
+    "functions": 241,
+    "equal": 241,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_hash_ttl.o": {
+    "functions": 114,
+    "equal": 114,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_list.o": {
+    "functions": 220,
+    "equal": 220,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_server.o": {
+    "functions": 274,
+    "equal": 274,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_set.o": {
+    "functions": 232,
+    "equal": 232,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_sort.o": {
+    "functions": 27,
+    "equal": 27,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_stream.o": {
+    "functions": 269,
+    "equal": 269,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_stream_groups.o": {
+    "functions": 175,
+    "equal": 175,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_string.o": {
+    "functions": 181,
+    "equal": 181,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_string_notify.o": {
+    "functions": 216,
+    "equal": 216,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_zset.o": {
+    "functions": 314,
+    "equal": 314,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_zset_ops.o": {
+    "functions": 1,
+    "equal": 1,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/tracking.o": {
+    "functions": 123,
+    "equal": 123,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/xshard.o": {
+    "functions": 1250,
+    "equal": 1244,
+    "padding_only": [],
+    "changed": [
+      "_ZN4tomo12_GLOBAL__N_121prepare_debug_loadaofERNS_6ServerERNS_2OpEjPNS_6ClientERSt10unique_ptrINS_16SnapshotLoadPlanESt14default_deleteIS8_EERSt6vectorIS7_INS_13AofReplayPlanES9_ISE_EESaISG_EE",
+      "_ZN4tomo20notify_reserve_chainERNS_6ServerESt10unique_ptrINS_23PubSubNotificationChainESt14default_deleteIS3_EESt10shared_ptrINS_22NotifyExpiryCompletionEE",
+      "_ZN4tomo27multi_owner_pass_entry_implILb0EEEjRNS_6IoLoopE",
+      "_ZN4tomo9FlatStore4scanIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlPNS_5KvObjEE_EEmmjOT_b.constprop",
+      "_ZZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm.constprop",
+      "_ZZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm.constprop.cold"
+    ],
+    "added": [],
+    "removed": []
+  },
+  "src/core/cfgfix.o": {
+    "functions": 21,
+    "equal": 21,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/core/eof.o": {
+    "functions": 100,
+    "equal": 100,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/core/flipctl.o": {
+    "functions": 73,
+    "equal": 73,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/core/fliplisten.o": {
+    "functions": 285,
+    "equal": 285,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/core/genthread.o": {
+    "functions": 836,
+    "equal": 827,
+    "padding_only": [],
+    "changed": [
+      "_ZN4tomo20kvobj_external_bytesILb1EEEmPKNS_5KvObjEPKvS3_",
+      "_ZN4tomo6IoLoop11flush_readyILb1ELb0ELb1ELb0ELb0ELb0EEEjv",
+      "_ZN4tomo6IoLoop11flush_readyILb1ELb0ELb1ELb0ELb1ELb0EEEjv",
+      "_ZN4tomo6IoLoop11flush_readyILb1ELb0ELb1ELb1ELb0ELb0EEEjv",
+      "_ZN4tomo6IoLoop11flush_readyILb1ELb0ELb1ELb1ELb1ELb0EEEjv",
+      "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb1ELb0ELb0ELb0EEEjv",
+      "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb1ELb0ELb1ELb0EEEjv",
+      "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb1ELb1ELb0ELb0EEEjv",
+      "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb1ELb1ELb1ELb0EEEjv"
+    ],
+    "added": [],
+    "removed": []
+  },
+  "src/core/lbplanner.o": {
+    "functions": 84,
+    "equal": 84,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/core/lbstall.o": {
+    "functions": 12,
+    "equal": 12,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/core/reorder.o": {
+    "functions": 901,
+    "equal": 893,
+    "padding_only": [],
+    "changed": [
+      "_ZN4tomo6IoLoop14r7_flush_readyILb1ELb0ELb1ELb0ELb0ELb0EEEjv",
+      "_ZN4tomo6IoLoop14r7_flush_readyILb1ELb0ELb1ELb0ELb1ELb0EEEjv",
+      "_ZN4tomo6IoLoop14r7_flush_readyILb1ELb0ELb1ELb1ELb0ELb0EEEjv",
+      "_ZN4tomo6IoLoop14r7_flush_readyILb1ELb0ELb1ELb1ELb1ELb0EEEjv",
+      "_ZN4tomo6IoLoop14r7_flush_readyILb1ELb1ELb1ELb0ELb0ELb0EEEjv",
+      "_ZN4tomo6IoLoop14r7_flush_readyILb1ELb1ELb1ELb0ELb1ELb0EEEjv",
+      "_ZN4tomo6IoLoop14r7_flush_readyILb1ELb1ELb1ELb1ELb0ELb0EEEjv",
+      "_ZN4tomo6IoLoop14r7_flush_readyILb1ELb1ELb1ELb1ELb1ELb0EEEjv"
+    ],
+    "added": [],
+    "removed": []
+  },
+  "src/core/rl2s.o": {
+    "functions": 771,
+    "equal": 763,
+    "padding_only": [],
+    "changed": [
+      "_ZN4tomo6IoLoop11flush_readyILb1ELb0ELb1ELb0ELb0ELb1EEEjv",
+      "_ZN4tomo6IoLoop11flush_readyILb1ELb0ELb1ELb0ELb1ELb1EEEjv",
+      "_ZN4tomo6IoLoop11flush_readyILb1ELb0ELb1ELb1ELb0ELb1EEEjv",
+      "_ZN4tomo6IoLoop11flush_readyILb1ELb0ELb1ELb1ELb1ELb1EEEjv",
+      "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb1ELb0ELb0ELb1EEEjv",
+      "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb1ELb0ELb1ELb1EEEjv",
+      "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb1ELb1ELb0ELb1EEEjv",
+      "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb1ELb1ELb1ELb1EEEjv"
+    ],
+    "added": [],
+    "removed": []
+  },
+  "src/core/shutdown.o": {
+    "functions": 48,
+    "equal": 48,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/core/version.o": {
+    "functions": 0,
+    "equal": 0,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/main.o": {
+    "functions": 724,
+    "equal": 722,
+    "padding_only": [],
+    "changed": [
+      "_ZN4tomo6IoLoop11flush_readyILb1ELb0ELb0ELb0ELb0ELb0EEEjv",
+      "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb0ELb0ELb0ELb0EEEjv"
+    ],
+    "added": [],
+    "removed": []
+  },
+  "src/net/tls.o": {
+    "functions": 38,
+    "equal": 38,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/persist/aof.o": {
+    "functions": 381,
+    "equal": 375,
+    "padding_only": [],
+    "changed": [
+      "_ZN4tomo10AofManager11writer_passERNS_9ThreadCtxERNS_4RingEb",
+      "_ZN4tomo10AofManager14drain_producerEjRjS1_RNS_4RingERP12io_uring_sqe",
+      "_ZN4tomo10AofManager14drain_producerEjRjS1_RNS_4RingERP12io_uring_sqe.cold",
+      "_ZN4tomo11AofProducer12record_bytesENS_13AofRecordKindEhhNS_5SliceElmPKhmPKNS_17SnapshotTypeHooksEPNS_18SnapshotSaveCursorEPNS_15AofOwnerContextE",
+      "_ZN4tomo11AofProducer4emitEPKhmbPNS_15AofOwnerContextEm"
+    ],
+    "added": [
+      "_ZN4tomo12_GLOBAL__N_123submit_large_frame_wakeEPNS_15AofOwnerContextE"
+    ],
+    "removed": []
+  },
+  "src/persist/aof_frame_debug.o": {
+    "functions": 6,
+    "equal": 6,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "src/snapshot/snapshot.o": {
+    "functions": 151,
+    "equal": 146,
+    "padding_only": [],
+    "changed": [
+      "_ZN4tomo15SnapshotManager10post_chunkEjRSt10unique_ptrINS_13SnapshotChunkESt14default_deleteIS2_EERNS_4RingERNS_11LoopSignalsE",
+      "_ZN4tomo15SnapshotManager11writer_passERNS_9ThreadCtxERNS_4RingEb",
+      "_ZN4tomo20kvobj_external_bytesILb0EEEmPKNS_5KvObjEPKvS3_.isra",
+      "_ZN4tomo20kvobj_external_bytesILb1EEEmPKNS_5KvObjEPKvS3_"
+    ],
+    "added": [
+      "_ZZN4tomo15SnapshotManager11writer_passERNS_9ThreadCtxERNS_4RingEbENKUljE_clEj"
+    ],
+    "removed": []
+  },
+  "src/store/flush.o": {
+    "functions": 95,
+    "equal": 95,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "third_party/lua/helpers/fpconv.o": {
+    "functions": 4,
+    "equal": 4,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "third_party/lua/helpers/lua_bit.o": {
+    "functions": 13,
+    "equal": 13,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "third_party/lua/helpers/lua_cjson.o": {
+    "functions": 27,
+    "equal": 27,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "third_party/lua/helpers/lua_cmsgpack.o": {
+    "functions": 36,
+    "equal": 36,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "third_party/lua/helpers/lua_struct.o": {
+    "functions": 7,
+    "equal": 7,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  },
+  "third_party/lua/helpers/strbuf.o": {
+    "functions": 7,
+    "equal": 7,
+    "padding_only": [],
+    "changed": [],
+    "added": [],
+    "removed": []
+  }
+}
