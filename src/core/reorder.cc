@@ -989,18 +989,25 @@ void IoLoop::r7_run_loop() {
         const bool credit_room =
             __builtin_expect(self_->atomic_admission_state().credit_wait, false) &&
             srv_->atomic_credit_wait_arm(self_->id());
+        // The IO retry lane is a park predicate too. Its producers CAS the head (seq_cst) and
+        // then wake only a parked IO; this load after arm_blocked() is the other Dekker half,
+        // so either it sees the node or the producer sees parked_ set and rings.
+        const bool retry_ready = __builtin_expect(
+            srv_->multi_retry_lane(self_->id()).head.load(std::memory_order_seq_cst) != nullptr,
+            false);
+        if (retry_ready) multi_retry_lane_note_pending();
         if constexpr (kEp) {
             // The park. Same 50ms ceiling as the ring wait, and for the same reason: the stop
             // flag is only re-read at the top of the loop, so an unbounded block would make
             // shutdown depend on a connection arriving.
             if constexpr (Fused) {
-                if (!credit_room && !self_->any_fused_inbound()) {
+                if (!credit_room && !retry_ready && !self_->any_fused_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
                     r7_epoll_pass<HasUnix, HasTls, Fused>(wait_ms);
                 }
-            } else if (!credit_room && !self_->any_io_inbound()) {
+            } else if (!credit_room && !retry_ready && !self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                 tenure.park();
 #endif
@@ -1008,14 +1015,14 @@ void IoLoop::r7_run_loop() {
             }
         } else {
             if constexpr (Fused) {
-                if (!credit_room && !self_->any_fused_inbound()) {
+                if (!credit_room && !retry_ready && !self_->any_fused_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
                     ring_.submit_and_wait(1, wait_ms);
                 } else                            ring_.submit_and_reap();
             } else {
-                if (!credit_room && !self_->any_io_inbound()) {
+                if (!credit_room && !retry_ready && !self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif

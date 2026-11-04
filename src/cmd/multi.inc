@@ -2808,6 +2808,10 @@ void multi_bind_retry_lane(Server& server, uint32_t io) {
         multi_retry_signal.pending.store(true, std::memory_order_release);
 }
 
+__attribute__((noinline, cold)) void multi_retry_lane_note_pending() {
+    multi_retry_signal.pending.store(true, std::memory_order_release);
+}
+
 void multi_io_child_completed(void* raw) {
     multi_enqueue_retry(*static_cast<MultiExecState*>(raw));
 }
@@ -2905,6 +2909,9 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                 else
                     txn_group_redispatch<IofusedPrivateQueue>(
                         *loop.srv_, *loop.self_, loop.ring_, loop.scatter_pool_, previous);
+                // A redispatch may finish the command here (an error reply): serve it now, not
+                // at the every-64th-pass backstop. An empty serve costs one visit.
+                if (!client->dead()) loop.enqueue_serve(client);
                 loop.mark_active(client);
                 ++work;
                 continue;
@@ -2920,6 +2927,7 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                 if (previous->has_subscription) {
                     if (multi_exec_io_commands(loop, *previous)) {
                         op.state.store(OpState::Done, std::memory_order_release);
+                        loop.enqueue_serve(&client); // mark_active alone waits for the backstop
                         loop.mark_active(&client);
                     }
                     continue;
@@ -2953,6 +2961,7 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                     loop.pubsub_notification_enqueue(chain);
                 } else {
                     op.state.store(OpState::Done, std::memory_order_release);
+                    loop.enqueue_serve(&client); // mark_active alone waits for the backstop
                     loop.mark_active(&client);
                 }
                 ++work;
