@@ -23,7 +23,12 @@ for run in $(seq 1 "$runs"); do
       cp "$dir/jobs/$j/"*.json "$dir/jobs/$j/"*.log "$out/run$run-$j/" 2>/dev/null
       [ -d "$dir/jobs/$j/proof" ] && cp "$dir/jobs/$j/proof/result.json" "$out/run$run-$j/result.json" 2>/dev/null
     done
-    rm -rf "$dir"
+    # Keep a failing run's directory for diagnosis (deleted by hand once read).
+    if grep -q $'^FAIL\t' "$out/run$run.ledger" 2>/dev/null || [ "$rc" != 0 ]; then
+      echo "$dir" > "$out/run$run.kept"
+    else
+      rm -rf "$dir"
+    fi
   fi
   echo "$(date +%H:%M:%S) $label run$run rc=$rc $(grep -c $'^ok\t' "$out/run$run.ledger" 2>/dev/null) ok $(grep -c $'^FAIL\t' "$out/run$run.ledger" 2>/dev/null) FAIL" >> "$out/summary.txt"
 done
