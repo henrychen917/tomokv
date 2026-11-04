@@ -505,27 +505,58 @@ def case_watchdog(a, leg):
     try:
         admin = s.admin
         fill_list(admin, 'pw:long', a.long_elements)
+        # The SWAPDB and the probe arrive on IO threads other than the one running the long
+        # command (in the fused mode the key's owner is itself an IO); otherwise the boundary
+        # would start only after the command and the watchdog window would never open.
+        owner = admin.must('DEBUG', 'SHARDS', 'pw:long')[0][1]
+        free = [t for t in io_threads(admin, a.mode) if t != owner]
+        require(len(free) >= 2, f'two IO threads besides the owner t{owner} needed: {free}')
+        conns = placed(s, {free[0]: 1, free[1]: 1})
+        swapper, probe = conns[free[0]][0], conns[free[1]][0]
+        leg.update(owner_thread=owner, swap_thread=free[0], probe_thread=free[1])
         runner = s.conn(timeout=120)
-        swapper = s.conn(timeout=120)
+        for c in (swapper, probe):
+            c.sock.settimeout(120)
+        done = {}
+
+        def reader(name, conn):
+            try:
+                done[name] = (conn.read(), time.monotonic())
+            except (EOFError, ConnectionError, OSError) as error:
+                done[name] = (error, time.monotonic())
+
         t0 = time.monotonic()
         runner.send('SORT', 'pw:long', 'ALPHA', 'LIMIT', 0, 1)
         time.sleep(0.3)
         swapper.send('SWAPDB', 0, 1)
-        try:
-            long_reply = runner.read()
-            long_s = time.monotonic() - t0
-            swap_reply = swapper.read()
-            swap_s = time.monotonic() - t0
-        except (EOFError, ConnectionError, OSError) as error:
-            leg['reasons'].append(f'connection lost during the long command: {error!r} '
+        time.sleep(0.3)
+        probe.send('PING')
+        readers = [threading.Thread(target=reader, args=(n, c), daemon=True)
+                   for n, c in (('long', runner), ('swap', swapper), ('probe', probe))]
+        for t in readers:
+            t.start()
+        for t in readers:
+            t.join(150)
+        require(len(done) == 3, f'replies missing after 150 s: {sorted(done)}')
+        lost = [n for n, (r, _) in done.items() if isinstance(r, BaseException)]
+        if lost:
+            leg['reasons'].append(f'connection lost during the long command: {done[lost[0]][0]!r} '
                                   f'(server alive={s.alive()})')
             return
-        leg.update(long_command_s=round(long_s, 3), swapdb_done_s=round(swap_s, 3))
+        long_reply, swap_reply, probe_reply = (done[n][0] for n in ('long', 'swap', 'probe'))
+        long_s, swap_s, probe_s = (round(done[n][1] - t0, 3) for n in ('long', 'swap', 'probe'))
+        leg.update(long_command_s=long_s, swapdb_done_s=swap_s, probe_done_s=probe_s)
         require(isinstance(long_reply, list) and len(long_reply) == 1, f'SORT reply {long_reply!r}')
         require(swap_reply == b'OK', f'SWAPDB reply {swap_reply!r}')
+        require(probe_reply == b'PONG', f'probe reply {probe_reply!r}')
         if long_s < 3.0:
             leg['reasons'].append(f'vacuous: the long command took only {long_s:.2f} s '
                                   '(watchdog bound about 2.7 s)')
+        # Anti-vacuity: a PING sent while the boundary is pending is held behind it, so the probe
+        # must not answer before the command in progress ends.
+        if probe_s < long_s - 0.05:
+            leg['reasons'].append(f'vacuous: the probe answered at {probe_s:.2f} s, before the long '
+                                  f'command ended at {long_s:.2f} s (the SWAPDB boundary never opened)')
         require(swap_s >= long_s - 0.05, 'SWAPDB answered before the command in progress ended')
         require(admin.must('PING') == b'PONG' and s.alive(), 'server not answering after SWAPDB')
         require(admin.must('SELECT', 1) == b'OK' and admin.must('LLEN', 'pw:long') == a.long_elements,
