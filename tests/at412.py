@@ -395,6 +395,10 @@ class WoundNotObserved(AssertionError):
     """T6's contention window never opened on this fresh boot: no group wound occurred."""
 
 
+class BlindWindowNotOpened(AssertionError):
+    """T9's blind restart window never opened on this fresh boot in five checked rounds."""
+
+
 def storm(c, port, keys, call, oracle, seconds=30, bgsave=False, flip=False, refusals=None):
     c.must('MSET', keys[0], 0, keys[1], 0)
     before = stats(c)
@@ -609,7 +613,8 @@ def blind(c, port, keys, command, oracle):
         after = stats(c)
         if after['atomic_txn_blind_restarts'] > before['atomic_txn_blind_restarts']:
             break
-        assert rounds < 5, 'blind restart window never opened in five checked rounds'
+        if rounds >= 5:
+            raise BlindWindowNotOpened('blind restart window never opened in five checked rounds')
     if oracle:
         return dict(values=[v.decode() for v in result])
     after = stats(c)
@@ -1025,9 +1030,11 @@ def main():
                 label = f'{mode}-{engine}-{atomic}-{command}'
                 result = dict(case=args.case, leg=label)
                 # PROJECT.md: a window that never opened is re-rolled on fresh state, bounded.
-                # Only T6's wound window qualifies (two extra fresh boots); every attempt
-                # asserts the wound again, and any other failure is never retried.
-                attempts = 3 if args.case == 'T6' else 1
+                # Only T6's wound window and T9's blind restart window qualify (two extra fresh
+                # boots); every attempt asserts its window again, and any other failure,
+                # including a torn generation, is never retried.
+                unopened = {'T6': WoundNotObserved, 'T9': BlindWindowNotOpened}.get(args.case, ())
+                attempts = 3 if unopened else 1
                 for attempt in range(attempts):
                     leg = label if attempt == 0 else f'{label}-reroll{attempt}'
                     try:
@@ -1049,7 +1056,7 @@ def main():
                                     result['deviation'] = 'XS-OOM-1'
                         result['pass'] = True
                         break
-                    except WoundNotObserved:
+                    except unopened:
                         result.setdefault('unarmed_attempts', []).append(leg)
                         if attempt + 1 == attempts:
                             result.update(pass_=False, error=traceback.format_exc())
