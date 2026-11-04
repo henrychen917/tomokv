@@ -10,9 +10,9 @@ asserts that its window really opened (anti-vacuity). No reply is retried; a fai
 verdict, never re-rolled.
 
 cases (--case):
-  retry     F1  IO retry lane: EXEC with PUBLISH (served, delivered), EXEC with SUBSCRIBE,
-                contended cross-owner EXEC retries and forced script escalation, one call
-                outstanding; every call under --deadline-ms.
+  retry     F1  IO retry lane: EXEC with PUBLISH (served, delivered; also with a hot owner),
+                EXEC with SUBSCRIBE, contended cross-owner EXEC retries and forced script
+                escalation, one call outstanding; every call under --deadline-ms.
   script    F2  one-executor split boot: a blocker EVAL holds the executor while >= 300
                 cross-shard RPOPLPUSH and two-key EVALs queue; the own EX->EX lane fills
                 ("second hop queue is full") and a script wave is refused. Every reply in 5 s.
@@ -221,6 +221,41 @@ def case_retry(a, leg):
             if sum(x > a.deadline_ms for x in samples) >= a.stop_after:
                 break   # a failed deadline needs no further traffic
         out['exec_publish'] = summary(samples, a.deadline_ms)
+        # A2. The same unit while another connection keeps the owner hot (p1 GETs on a key of the
+        # same owner): a spinning owner finishes the unit while its IO is still inside its pass,
+        # which is the window of the retry lane's conditional wake (audit F1 form 2).
+        hot_key = next(k for k in (f'pw:hot:{j}' for j in range(4000))
+                       if admin.must('DEBUG', 'SHARDS', k)[0][1] == admin.must('DEBUG', 'SHARDS', 'pw:k')[0][1])
+        admin.must('SET', hot_key, 'h')
+        stop_hot = threading.Event()
+
+        def hot():
+            conn = s.conn()
+            try:
+                while not stop_hot.is_set():
+                    conn.cmd('GET', hot_key)
+            finally:
+                conn.close()
+
+        heater = threading.Thread(target=hot, daemon=True)
+        heater.start()
+        samples = []
+        try:
+            for i in range(a.calls):
+                gap(i)
+                ms, replies = timed(lambda: (c.send('MULTI'), c.send('SET', 'pw:k', str(i)),
+                                             c.send('PUBLISH', 'pw:ch', str(i)), c.send('EXEC'),
+                                             [c.read() for _ in range(4)])[-1])
+                require(replies[0] == b'OK' and replies[3] == [b'OK', 1], f'EXEC+PUBLISH reply {replies!r}')
+                message = sub.read()
+                require(message == [b'message', b'pw:ch', str(i).encode()], f'subscriber got {message!r}')
+                samples.append(ms)
+                if sum(x > a.deadline_ms for x in samples) >= a.stop_after:
+                    break
+        finally:
+            stop_hot.set()
+            heater.join(30)
+        out['exec_publish_hot_owner'] = summary(samples, a.deadline_ms)
         sub.close()
         # B. EXEC with SUBSCRIBE/UNSUBSCRIBE: the subscription half of the same path.
         samples = []
