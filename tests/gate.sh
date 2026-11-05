@@ -17,7 +17,8 @@
 #                         the candidate, same session, same box, threshold derived from the
 #                         reference's own spread; a missing reference SKIPS LOUDLY and stays red)
 #                         + NIC regression cells vs tests/gate_refs.txt (the NIC cells need the 25GbE
-#                         netns rig and its scratchpad CLI binary).
+#                         netns rig and an executable Redis CLI: GATE_NIC_CLI, /usr/bin/redis-cli,
+#                         or $REDIS74_ROOT/src/redis-cli, in that order).
 #
 #   Resource options (CPU lists accept ranges and commas):
 #     --server-cores LIST  --server-smt LIST  --load-cores LIST  --load-smt LIST
@@ -7590,9 +7591,28 @@ publish_abba || {
 ROW_T=$(date +%s.%N)
 
 # ---- 5. full tier: NIC regression cells vs pinned refs ----------------------------------------
-SPD=${GATE_SCRATCH:-/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad}
 NIC_CHECKED=0
-if [ -f tests/niclib.sh ] && [ -x "$SPD/bins/cli" ] && [ -f tests/gate_refs.txt ]; then
+NIC_CLI_BIN=; NIC_NOT_RUN=
+# An explicit override is authoritative: a typo must not silently select another client.
+if [ "${GATE_NIC_CLI+x}" = x ]; then
+  NIC_CLI_BIN=$GATE_NIC_CLI
+elif [ -f /usr/bin/redis-cli ] && [ -x /usr/bin/redis-cli ]; then
+  NIC_CLI_BIN=/usr/bin/redis-cli
+elif [ -f "$REDIS74_ROOT/src/redis-cli" ] && [ -x "$REDIS74_ROOT/src/redis-cli" ]; then
+  NIC_CLI_BIN=$REDIS74_ROOT/src/redis-cli
+fi
+if [ ! -f tests/niclib.sh ]; then
+  NIC_NOT_RUN='missing tests/niclib.sh'
+elif [ ! -f "$NIC_CLI_BIN" ] || [ ! -x "$NIC_CLI_BIN" ]; then
+  if [ "${GATE_NIC_CLI+x}" = x ]; then
+    NIC_NOT_RUN="GATE_NIC_CLI is not an executable file: ${GATE_NIC_CLI:-<empty>}"
+  else
+    NIC_NOT_RUN='no NIC client binary; set GATE_NIC_CLI'
+  fi
+elif [ ! -f tests/gate_refs.txt ]; then
+  NIC_NOT_RUN='missing tests/gate_refs.txt'
+fi
+if [ -z "$NIC_NOT_RUN" ]; then
   # The refs are only comparable on the kernel they were measured on (the 2026-09-02 kernel
   # change shifted race geometry box-wide). A mismatch is a WARN, never a re-pin: re-pinning is
   # an owner action on the box, and the WARN is what says the -3% verdict below is provisional.
@@ -7603,10 +7623,9 @@ if [ -f tests/niclib.sh ] && [ -x "$SPD/bins/cli" ] && [ -f tests/gate_refs.txt 
   fi
   row_begin "NIC regression cells (all within -3%)"
   ( set -u
-    # All process ownership/teardown is defined in the tracked helper below. The
-    # former scratchpad source supplied no called function and escaped this audit.
+    # All process ownership/teardown is defined in the tracked helper below.
     . tests/niclib.sh
-    NIC_PORT=$PORT; NIC_CLI_BIN=$SPD/bins/cli; BL_LOGDIR=$(mktemp -d)
+    NIC_PORT=$PORT; BL_LOGDIR=$(mktemp -d)
     nic_gate_cleanup(){
       local rc=$?
       trap - EXIT INT TERM
@@ -7697,11 +7716,11 @@ PY
   )
   case $? in
     0) NIC_CHECKED=1; ok "NIC regression cells (all within -3%)";;
-    9) row_unwatch; ROW_ID=; say "NIC regression cells" "SKIPPED (no rig)";;
+    9) row_unwatch; ROW_ID=; say "NIC regression cells" "NOT RUN (NIC link check failed; see LINK-FAIL above)";;
     *) NIC_CHECKED=1; bad "NIC regression cells";;
   esac
 else
-  say "NIC regression cells" "SKIPPED (no rig/refs)"
+  say "NIC regression cells" "NOT RUN ($NIC_NOT_RUN)"
 fi
 
 phase end
