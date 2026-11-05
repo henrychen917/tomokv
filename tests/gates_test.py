@@ -540,6 +540,146 @@ sleep(){ cp "$WIRE_AFTER" "$WIRE_STAT"; }
         self.assertIn('missing selected CPU counters', result.stderr)
 
 
+class NICPrerequisites(unittest.TestCase):
+    def run_section(self, *, override=None, override_kind='executable', system='executable',
+                    tree='executable', missing='', link_rc=0, rate='1000', kernel='fixture-running'):
+        root = Path(__file__).resolve().parents[1]
+        gate = (root / 'tests/gate.sh').read_text()
+        start = gate.index('# ---- 5. full tier: NIC regression cells vs pinned refs')
+        section = gate[start:gate.index('\nphase end', start)]
+        say = next(line for line in gate.splitlines() if line.startswith('say(){'))
+        # Execute the real section and verdict, including the ordinary informational
+        # printer. Only host observations and NIC work are fake; no namespace is touched.
+        stub = r'''
+PORT=25000; PERF_SERVER_CORES=96-103; PERF_LOAD_CORES=104-111; CANDIDATE_BINARY=/unused-server
+ROW_ID=
+[(){
+  if [[ $# = 3 && ( $1 = -f || $1 = -x ) && $2 = /usr/bin/redis-cli ]]; then
+    case "$1:$WIRE_SYSTEM" in -f:executable|-f:nonexecutable|-x:executable|-x:directory) return 0;; esac
+    return 1
+  fi
+  builtin [ "$@"
+}
+uname(){ printf '%s\n' "$WIRE_KERNEL"; }
+row_begin(){ printf 'begin\n' >> "$TMPDIR/events"; }
+row_unwatch(){ printf 'unwatch\n' >> "$TMPDIR/events"; }
+ok(){ printf 'ok\n' >> "$TMPDIR/rows"; say "$1" ok; }
+bad(){ printf 'FAIL\n' >> "$TMPDIR/rows"; say "$1" FAIL; }
+sudo(){ echo 'unexpected NIC access' >&2; exit 98; }
+python3(){
+  # Resource remapping is outside this test: feed the synthetic reference row
+  # through unchanged. The production -3% comparison still executes below.
+  if [ "${4:-}" = tests/gate_refs.txt ]; then cat "$4";
+  else command "$WIRE_PYTHON" "$@"; fi
+}
+'''
+        niclib = r'''
+NIC_SRV_IP=10.200.0.2
+nic_assert_link(){
+  printf 'link\n' >> "$TMPDIR/events"
+  [ "$WIRE_LINK_RC" = 0 ] && return 0
+  printf '  LINK-FAIL fixture link unavailable\n'
+  return "$WIRE_LINK_RC"
+}
+nic_kill_srv(){ :; }
+nic_tune(){ :; }
+nic_boot(){ printf '%s\n' "$NIC_CLI_BIN" >> "$TMPDIR/clients"; }
+nic_memtier(){ printf 'Totals %s\n' "$WIRE_RATE"; }
+'''
+        with tempfile.TemporaryDirectory(prefix='nic-prereqs-', dir=root / 'build') as temporary:
+            directory = Path(temporary)
+            (directory / 'tests').mkdir()
+            if missing != 'niclib':
+                (directory / 'tests/niclib.sh').write_text(niclib)
+            if missing != 'refs':
+                (directory / 'tests/gate_refs.txt').write_text(
+                    '# kernel: fixture-pinned\nfixture 96-103 6:2 16 1 104-111 8 32 0:1 1000\n')
+            explicit = directory / 'client override'
+            fallback = directory / 'Redis tree/src/redis-cli'
+            for path, kind in ((explicit, override_kind), (fallback, tree)):
+                path.parent.mkdir(parents=True, exist_ok=True)
+                if kind == 'directory':
+                    path.mkdir()
+                elif kind != 'missing':
+                    path.write_text('#!/bin/sh\nexit 99\n')
+                    path.chmod(0o755 if kind == 'executable' else 0o644)
+            for name in ('events', 'rows', 'clients'):
+                (directory / name).touch()
+            env = dict(os.environ, TMPDIR=temporary, REDIS74_ROOT=str(fallback.parents[1]),
+                       WIRE_SYSTEM=system, WIRE_LINK_RC=str(link_rc), WIRE_RATE=rate,
+                       WIRE_KERNEL=kernel, WIRE_PYTHON=sys.executable)
+            env.pop('GATE_NIC_CLI', None)
+            if override is not None:
+                env['GATE_NIC_CLI'] = str(explicit) if override else ''
+            result = subprocess.run(['bash', '-uc', say + '\n' + stub + section +
+                                     '\nprintf "%s\\n" "$NIC_CHECKED" > "$TMPDIR/checked"\n'],
+                                    cwd=directory, env=env, text=True, capture_output=True, timeout=5)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(result.stderr, '')
+            return SimpleNamespace(stdout=result.stdout, explicit=str(explicit), fallback=str(fallback),
+                checked=int((directory / 'checked').read_text()),
+                **{name: (directory / name).read_text().splitlines()
+                   for name in ('events', 'rows', 'clients')})
+
+    def assert_not_run(self, result, reason, *, link=False):
+        self.assertIn(f'  {"NIC regression cells":<52} NOT RUN ({reason})\n', result.stdout)
+        self.assertEqual(result.stdout.count('NOT RUN'), 1, result.stdout)
+        self.assertEqual(result.checked, 0)
+        self.assertEqual(result.rows, [])
+        self.assertEqual(result.clients, [])
+        self.assertEqual(result.events, ['begin', 'link', 'unwatch'] if link else [])
+
+    def test_client_resolution_order_without_session_scratchpad(self):
+        for override, system, expected in (
+                ('explicit', 'executable', 'explicit'),
+                (None, 'executable', '/usr/bin/redis-cli'),
+                (None, 'missing', 'fallback'),
+                (None, 'nonexecutable', 'fallback'),
+                (None, 'directory', 'fallback')):
+            with self.subTest(override=override, system=system):
+                result = self.run_section(override=override, system=system)
+                self.assertEqual(result.clients, [getattr(result, expected, expected)])
+                self.assertEqual(result.events, ['begin', 'link'])
+                self.assertEqual(result.rows, ['ok'])
+                self.assertEqual(result.checked, 1)
+                self.assertNotIn('NOT RUN', result.stdout)
+
+    def test_missing_prerequisites_are_named_without_ledger_rows(self):
+        for missing, reason in (('niclib', 'missing tests/niclib.sh'),
+                                ('refs', 'missing tests/gate_refs.txt')):
+            with self.subTest(missing=missing):
+                self.assert_not_run(self.run_section(missing=missing), reason)
+        for tree in ('missing', 'nonexecutable', 'directory'):
+            with self.subTest(tree=tree):
+                self.assert_not_run(self.run_section(system='missing', tree=tree),
+                                    'no NIC client binary; set GATE_NIC_CLI')
+        result = self.run_section(link_rc=1)
+        self.assert_not_run(result, 'NIC link check failed; see LINK-FAIL above', link=True)
+        self.assertIn('LINK-FAIL fixture link unavailable', result.stdout)
+
+    def test_invalid_explicit_client_fails_closed_with_working_fallbacks(self):
+        for override, kind in (('explicit', 'missing'), ('explicit', 'nonexecutable'),
+                               ('explicit', 'directory'), ('', 'executable')):
+            with self.subTest(override=override, kind=kind):
+                result = self.run_section(override=override, override_kind=kind)
+                self.assert_not_run(result, 'GATE_NIC_CLI is not an executable file: ' +
+                                    (result.explicit if override else '<empty>'))
+
+    def test_existing_bound_kernel_warning_and_optional_row_count(self):
+        for rate, verdict in (('970', 'ok'), ('969', 'FAIL'), ('', 'FAIL')):
+            with self.subTest(rate=rate):
+                result = self.run_section(rate=rate)
+                self.assertEqual(result.rows, [verdict])
+                self.assertEqual(result.checked, 1)
+                self.assertIn('NIC refs kernel pin', result.stdout)
+                self.assertIn("WARN (refs pinned on 'fixture-pinned', running fixture-running:",
+                              result.stdout)
+        result = self.run_section(kernel='fixture-pinned')
+        self.assertNotIn('WARN', result.stdout)
+        self.assertEqual(result.rows, ['ok'])
+        self.assertEqual(result.checked, 1)
+
+
 class NICOwnership(unittest.TestCase):
     def launch_cleanup(self, directory, *, listener='', body='exit 0'):
         root = Path(__file__).resolve().parents[1]
