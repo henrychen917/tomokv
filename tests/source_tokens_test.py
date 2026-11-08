@@ -3,6 +3,7 @@
 import unittest
 import json
 import re
+import sys
 from pathlib import Path
 import source_tokens as cpp
 
@@ -93,6 +94,27 @@ class TokensTest(unittest.TestCase):
         # A digit sequence inside another complete identifier is not a length.
         name = '_ZN4tomo11X6IoLoopXXXEv'
         self.assertEqual(cpp.rename_symbol(name, {'IoLoop':'NetworkLoop'}), name)
+
+    def test_make_controls_track_roles_and_reject_broken_anchors(self):
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools'))
+        import build_source_controls as controls
+        mask = cpp.Source('/* TOMO_TOOL_FUNCTION climon-mask-word */\n'
+                          'static constexpr uint32_t renamed(uint32_t owner)\n'
+                          '{ return owner\n >> 6; }')
+        self.assertIn('{ return 0; }', str(controls.climon_mask(mask)))
+        threshold = cpp.Source('/* TOMO_TOOL_ANCHOR l4-prebuild-threshold */\n'
+                               '# define RENAMED_LIMIT /* policy */ 512\n# endif')
+        self.assertEqual(controls.prebuild_threshold(threshold), '512')
+        for control, source in ((controls.climon_mask, mask),
+                                (controls.prebuild_threshold, threshold)):
+            for broken in (cpp.Source(str(source).replace('TOMO_TOOL_', 'MISSING_')),
+                           source + source):
+                with self.assertRaises(ValueError):
+                    control(broken)
+        with self.assertRaises(ValueError):
+            controls.climon_mask(cpp.Source(str(mask).replace('>> 6', '>> 7')))
+        with self.assertRaises(ValueError):
+            controls.prebuild_threshold(cpp.Source(str(threshold).replace('512', '512 + 1')))
 
 
 if __name__ == '__main__':

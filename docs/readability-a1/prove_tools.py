@@ -26,6 +26,8 @@ def cases():
     add('reorder_sync', ['tools/reorder_sync.py'], 'src/core/ex_loop.h', 'TOMO_TOOL_FUNCTION fused_pass_impl')
     add('r7shadow_sync_test', ['tests/r7shadow_sync_test.py'], 'src/core/io_loop.h', 'TOMO_TOOL_FUNCTION run_loop')
     add('lottery', ['tools/lottery_build.py','build/proof/lottery'], 'src/cmd/scatter_engine.inc', 'TOMO_TOOL_ANCHOR lottery-read-fragment')
+    add('make/climon-mask', ['tools/build_source_controls.py', 'climon-mask', 'src/core/climon_mask.h', 'build/proof/climon-mask.h'], 'src/core/climon_mask.h', 'TOMO_TOOL_FUNCTION climon-mask-word')
+    add('make/prebuild-threshold', python("import subprocess;subprocess.run(['make','-s','--eval','a1-proof:;@echo $(L4PREBUILD_TEST_FLAGS)','a1-proof'],check=True)"), 'src/cmd/l4prebuild.cc', 'TOMO_TOOL_ANCHOR l4-prebuild-threshold')
     add('racefix', ['tools/racefix_build.py','build/proof/racefix'], 'src/core/server.h', 'climon_armed_.exchange')
     add('persistfmt', ['tools/persistfmt_schedule.py','src/persist/aof.cc','build/proof/persistfmt.cc'], 'src/persist/aof.cc', 'void AofManager::fail')
     add('storesize', ['tests/storesize_checks.py','src/cmd/multidb.cc','build/proof/storesize.cc'], 'src/cmd/multidb.cc', 'TOMO_TOOL_BIND multidb_size')

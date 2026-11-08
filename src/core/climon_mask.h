@@ -10,7 +10,8 @@ struct ClimonIoMask {
     static constexpr uint32_t kBits = 128;
     uint64_t words[2] = {};
 
-    static constexpr uint32_t word(uint32_t io) { return io >> 6; }
+    /* TOMO_TOOL_FUNCTION climon-mask-word */
+    static constexpr uint32_t /* TOMO_TOOL_BIND word */ word(uint32_t /* TOMO_TOOL_BIND io */ io) { return io >> 6; }
     bool contains(uint32_t io) const { return (words[word(io)] >> (io & 63)) & 1; }
     void add(uint32_t io) { words[word(io)] |= uint64_t{1} << (io & 63); }
     explicit operator bool() const { return words[0] || words[1]; }

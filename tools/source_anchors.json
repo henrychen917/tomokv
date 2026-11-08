@@ -16,6 +16,10 @@
   "src/cmd/info_stats.cc": [
     "TOMO_TOOL_BIND info_stats_tick"
   ],
+  "src/cmd/l4prebuild.cc": [
+    "TOMO_TOOL_ANCHOR l4-prebuild-threshold",
+    "TOMO_TOOL_BIND TOMO_L4_PREBUILD_THRESHOLD"
+  ],
   "src/cmd/lcs.cc": [
     "TOMO_TOOL_BIND kTable"
   ],
@@ -103,6 +107,11 @@
     "TOMO_TOOL_BIND MultiOwnerRetryNode",
     "TOMO_TOOL_BIND link",
     "TOMO_TOOL_BIND unlink"
+  ],
+  "src/core/climon_mask.h": [
+    "TOMO_TOOL_FUNCTION climon-mask-word",
+    "TOMO_TOOL_BIND word",
+    "TOMO_TOOL_BIND io"
   ],
   "src/core/config.h": [
     "TOMO_TOOL_BIND process_configs",

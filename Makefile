@@ -553,9 +553,9 @@ build/config-parser-test: tests/config_parser_test.cc tests/boot_support_checks.
 build/climon-mask-unit: tests/climon_mask_unit.cc src/core/climon_mask.h Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. $< -o $@
-build/climon-mask-old-unit: tests/climon_mask_unit.cc src/core/climon_mask.h Makefile
+build/climon-mask-old-unit: tests/climon_mask_unit.cc src/core/climon_mask.h Makefile tools/build_source_controls.py tools/source_tokens.py tools/source_anchors.json
 	@mkdir -p build/climon-mask-old/src/core
-	sed 's/return io >> 6;/return 0;/' src/core/climon_mask.h > build/climon-mask-old/src/core/climon_mask.h
+	python3 tools/build_source_controls.py climon-mask src/core/climon_mask.h build/climon-mask-old/src/core/climon_mask.h
 	$(CXX) $(CXXFLAGS) -Ibuild/climon-mask-old -I. $< -o $@
 
 build/flipctl-unit: tests/flipctl_unit.cc tests/signalacct_checks.h src/core/flipctl.cc $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
@@ -918,8 +918,8 @@ owner-arena-unit: build/owner-arena-unit
 # IO-prebuild policy and lifetime regressions, using pinned serverless L4 workers.
 # Read the one production boundary at build time. The fixture's separate comparison oracle
 # still catches a disabled/inclusive policy; a one-line boundary edit rebuilds both binaries.
-L4PREBUILD_TEST_FLAGS := -DTOMO_L4_PREBUILD_TEST_BOUNDARY=$(shell sed -n 's/^\#define TOMO_L4_PREBUILD_THRESHOLD //p' src/cmd/l4prebuild.cc)
-build/l4prebuild-unit: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cmd/xshard.cc $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
+L4PREBUILD_TEST_FLAGS = -DTOMO_L4_PREBUILD_TEST_BOUNDARY=$(or $(shell python3 tools/build_source_controls.py prebuild-threshold src/cmd/l4prebuild.cc),$(error missing or invalid L4 prebuild threshold))
+build/l4prebuild-unit: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cmd/xshard.cc $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile tools/build_source_controls.py tools/source_tokens.py tools/source_anchors.json
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) $(L4PREBUILD_TEST_FLAGS) -I. $< \
 	  $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ \
@@ -958,7 +958,7 @@ l4prebuild-unit-tsan: build/l4prebuild-unit-tsan
 	TSAN_OPTIONS=halt_on_error=1:exitcode=66 setarch x86_64 -R ./build/l4prebuild-unit-tsan 2s read-local-0
 	TSAN_OPTIONS=halt_on_error=1:exitcode=66 setarch x86_64 -R ./build/l4prebuild-unit-tsan 2s read-local-1
 .PHONY: l4prebuild-unit l4prebuild-unit-tsan
-build/l4prebuild-unit build/l4prebuild-unit-tsan: tests/at_recycle_checks.inc
+build/l4prebuild-unit build/l4prebuild-unit-tsan: tests/at_recycle_checks.inc src/cmd/l4prebuild.cc tools/build_source_controls.py tools/source_tokens.py tools/source_anchors.json
 
 # Load drivers: not part of `all`, kept compiling here so they cannot rot unnoticed.
 build/benchtxn: tools/benchtxn.cc Makefile
