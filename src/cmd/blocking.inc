@@ -512,6 +512,9 @@ void blocking_finish_cancelled(BlockingState& state, ThreadCtx* self, Ring* ring
     // must not publish that slot again or let IO recycle a retained receipt.
     if (op.state.load(std::memory_order_acquire) == OpState::AofWait) return;
     slowlog_complete(op);
+    if (self && state.server->aof().configured() &&
+        state.server->aof().defer_completion(self->id(), op, state.client))
+        return;
     if (op.state.exchange(OpState::Done, std::memory_order_acq_rel) != OpState::Done && self &&
         ring)
         blocking_notify_sender(*state.server, *self, *ring, state.client);

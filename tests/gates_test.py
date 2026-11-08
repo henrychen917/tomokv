@@ -1828,21 +1828,26 @@ CORES=112-127
 row_begin(){ :; }
 unit_ready(){ [ "$1" = persistfix-units ] && [ "$READY" = 1 ]; }
 taskset(){
-  [ "$*" = '-c 112-127 python3 tests/persistfix_checks.py' ] || return 99
-  echo checked >> "$TMPDIR/calls"
-  return "$CHECK_RC"
+  case "$*" in
+    '-c 112-127 python3 tests/persistfix_checks.py')
+      echo checked >> "$TMPDIR/calls"; return "$CHECK_RC" ;;
+    '-c 112-127 ./build/persistfix-unit blocking')
+      echo blocking >> "$TMPDIR/calls"; return "$BLOCKING_RC" ;;
+    *) return 99 ;;
+  esac
 }
 ok(){ printf 'ok\t%s\n' "$1"; }
 bad(){ printf 'FAIL\t%s\n' "$1"; }
 '''
-        for ready, status in ((1, 0), (0, 0), (1, 1)):
-            with self.subTest(ready=ready, status=status), tempfile.TemporaryDirectory(dir=root / 'build') as temporary:
+        for ready, status, blocking in ((1, 0, 0), (0, 0, 0), (1, 1, 0), (1, 0, 1)):
+            with self.subTest(ready=ready, status=status, blocking=blocking), tempfile.TemporaryDirectory(dir=root / 'build') as temporary:
                 result = subprocess.run(['bash', '-c', stub + body + dependencies +
                                          '\njob_dependencies persistfix_units\njob_persistfix_units'],
-                    cwd=root, env=dict(os.environ, TMPDIR=temporary, READY=str(ready), CHECK_RC=str(status)),
+                    cwd=root, env=dict(os.environ, TMPDIR=temporary, READY=str(ready), CHECK_RC=str(status),
+                                       BLOCKING_RC=str(blocking)),
                     text=True, capture_output=True, timeout=5)
                 self.assertEqual(result.returncode, 0, result.stderr)
-                verdict = 'ok' if ready and status == 0 else 'FAIL'
+                verdict = 'ok' if ready and status == blocking == 0 else 'FAIL'
                 self.assertEqual(result.stdout.splitlines(), ['production_units',
                     verdict + '\tAOF publication/shutdown witnesses + negative controls'])
                 self.assertEqual((Path(temporary) / 'calls').exists(), bool(ready))

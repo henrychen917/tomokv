@@ -1,0 +1,101 @@
+{
+  "pre": "/home/user/Projects/bins/readability-pre-5c363128/tomokv",
+  "post": "build/tomokv",
+  "pre_sha256": "0de6bbdea50caf4f90f797c4e52a4e86be30e2c554fb544f257f5148bf4016cd",
+  "post_sha256": "5a233f162bc19c4040afd23dd81aad981a261fdc5fc548a335bcafed6446f3c2",
+  "equal_functions": 12856,
+  "changed": [
+    {
+      "name": "tomo::(anonymous namespace)::blocking_finish_cancelled(tomo::BlockingState&, tomo::ThreadCtx*, tomo::Ring*)",
+      "instance": 0,
+      "pre_address": "0x5a3950",
+      "post_address": "0x5a39a0",
+      "pre_size": 141,
+      "post_size": 209,
+      "pre_instructions": 46,
+      "post_instructions": 68,
+      "diff": "01.diff"
+    },
+    {
+      "name": "tomo::AofManager::defer_completion(unsigned int, tomo::Op&, tomo::Client*)",
+      "instance": 0,
+      "pre_address": "0x7715a0",
+      "post_address": "0x771640",
+      "pre_size": 707,
+      "post_size": 707,
+      "pre_instructions": 159,
+      "post_instructions": 159,
+      "diff": "02.diff"
+    },
+    {
+      "name": "tomo::DatabaseMap::join_workers(tomo::Server&, std::vector<std::thread, std::allocator<std::thread> >&)",
+      "instance": 0,
+      "pre_address": "0x8849c0",
+      "post_address": "0x884a60",
+      "pre_size": 888,
+      "post_size": 1091,
+      "pre_instructions": 220,
+      "post_instructions": 260,
+      "diff": "03.diff"
+    },
+    {
+      "name": "tomo::DatabaseMap::join_workers(tomo::Server&, std::vector<std::thread, std::allocator<std::thread> >&) [clone .cold]",
+      "instance": 0,
+      "pre_address": "0x99808",
+      "post_address": "0x99808",
+      "pre_size": 43,
+      "post_size": 44,
+      "pre_instructions": 9,
+      "post_instructions": 9,
+      "diff": "04.diff"
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::blocking_finish_cancelled(tomo_db0::BlockingState&, tomo_db0::ThreadCtx*, tomo_db0::Ring*)",
+      "instance": 0,
+      "pre_address": "0x178c40",
+      "post_address": "0x178c40",
+      "pre_size": 141,
+      "post_size": 209,
+      "pre_instructions": 46,
+      "post_instructions": 68,
+      "diff": "06.diff"
+    },
+    {
+      "name": "tomo_db0::AofManager::defer_completion(unsigned int, tomo_db0::Op&, tomo_db0::Client*)",
+      "instance": 0,
+      "pre_address": "0x347bb0",
+      "post_address": "0x347c00",
+      "pre_size": 707,
+      "post_size": 707,
+      "pre_instructions": 159,
+      "post_instructions": 159,
+      "diff": "07.diff"
+    }
+  ],
+  "build_metadata_only": [
+    {
+      "name": "tomo::info_stats_build_fields(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "instance": 0,
+      "pre_address": "0x7c8150",
+      "post_address": "0x7c81f0",
+      "pre_size": 981,
+      "post_size": 981,
+      "pre_instructions": 218,
+      "post_instructions": 218,
+      "diff": "05.diff"
+    },
+    {
+      "name": "tomo_db0::info_stats_build_fields(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "instance": 0,
+      "pre_address": "0x3a3eb0",
+      "post_address": "0x3a3f00",
+      "pre_size": 981,
+      "post_size": 981,
+      "pre_instructions": 218,
+      "post_instructions": 218,
+      "diff": "08.diff"
+    }
+  ],
+  "unexpected": [],
+  "passed": true
+}

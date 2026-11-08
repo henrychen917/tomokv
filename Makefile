@@ -341,7 +341,9 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # clientcompat: cold EXEC growth is isolated in clientcompat.cc. Bounded compile
 # and executed-count trials retain ordinary scopes at/below PRE; see
 # docs/clientcompat/budgets and the instruction census (including outlined STL).
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=168538 --param max-inline-insns-auto=14 --param early-inlining-insns=5
+# aofblock: cancellation's cold receipt claim adds 16 IPA insns in each namespace.
+# Preserve the PRE inline headroom; see MEASURE-REQUEST-aofblock.md.
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=168554 --param max-inline-insns-auto=14 --param early-inlining-insns=5
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
 # perfex2: compensate the inline cold clear reset; every other emitted body is PRE-identical.
 # clientcompat notification capture adds cold code; the 161773 neighbour keeps
@@ -352,7 +354,7 @@ $(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=
 # (171751 + 181); the normal namespace was unaffected. No runtime option or request-path branch.
 # wave16: merged blockwake + parkwake growth is 245 insns (136675 -> 136920); 172012 is the
 # re-derived pin for the merged tree (see the wave16 note above $(BUILD_ROOT)/src/main.o).
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=172012 --param max-inline-insns-auto=18 --param early-inlining-insns=10
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=172028 --param max-inline-insns-auto=18 --param early-inlining-insns=10
 # ACL key extraction is isolated from the IO templates. Keep the merged baseline's
 # ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
 # aclfix grows the unit by 749/765 insns (+739/+750 here): the shared reply helpers this
