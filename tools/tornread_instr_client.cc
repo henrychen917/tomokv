@@ -24,7 +24,7 @@ static std::string frame(const std::vector<std::string>& args) {
 }
 int main(int argc, char** argv) {
     try {
-        require(argc == 6, "expected port verb depth count worker");
+        require(argc == 6 || argc == 7, "expected port verb depth count worker [connected-fd]");
         const int port = std::stoi(argv[1]), depth = std::stoi(argv[3]);
         const int count = std::stoi(argv[4]), worker = std::stoi(argv[5]);
         const std::string verb = argv[2], value(64, 'v');
@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
             }
             batches[offset] += frame(args);
         }
-        const int fd = socket(AF_INET, SOCK_STREAM, 0);
+        const int fd = argc == 7 ? std::stoi(argv[6]) : socket(AF_INET, SOCK_STREAM, 0);
         require(fd >= 0, "socket failed");
         const int one = 1;
         require(setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one)) == 0,
@@ -67,8 +67,9 @@ int main(int argc, char** argv) {
         addr.sin_family = AF_INET;
         addr.sin_port = htons(port);
         addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-        require(connect(fd, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == 0,
-                "connect failed");
+        if (argc == 6)
+            require(connect(fd, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == 0,
+                    "connect failed");
         auto run = [&](int commands) {
             for (int i = 0; i < commands / depth; ++i) {
                 const auto& request = batches[i % batches.size()];

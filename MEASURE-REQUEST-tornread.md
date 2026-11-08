@@ -91,6 +91,10 @@ The reference registry remains conservative across that wrap, but this change do
 extend the owner's timestamp representation. That separate old-cut reconstruction issue
 is described in the supplied analysis's referenced read-cut-wrap report.
 
+Retaining a cut until IO retirement is conservative: reply backpressure can keep version
+cleanup pinned after execution has completed. This follows the requested lifetime and
+adds no owner-side completion channel.
+
 ### Regression rows and negative controls
 
 `tests/tornread.py` preserves Phase B's writer-tagged serial-order oracle, owner geometry
@@ -147,6 +151,11 @@ call/return; it is a layout control, not instruction-identical PRE.
 - `make -q all`: 0 after `make all`.
 - Broad selected atomics/MVCC/read-local/MULTI gate jobs: running; exact job list in
   `build/tornread/proof-jobs.txt`, output `build/tornread/gate-proof.log`.
+  Supplement: `build/tornread/proof-supplement-jobs.txt`, `gate-supplement.log`;
+  the optional fused transaction boot is queued separately with epoll.
+  `GATE_PROOF_NO_RATES=1` leaves throughput-only checks to the maintainer: the atomic
+  MGET/MSET throughput floor is NOT RUN, and the RYOW rate assertion is disabled;
+  their correctness witnesses retain their original assertions.
 - Endurance: all 11 arms complete, zero violations; table below.
 - Finite-work instruction accounting: **180/180 cells complete**; raw repeats and ranges below.
   No throughput benchmark or ABBA has been run.

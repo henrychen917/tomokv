@@ -38,7 +38,7 @@ def send(worker, message):
     worker.stdin.flush()
 
 
-def cell(binary, folder, seed, mode, atomic, verb, depth, count, clients):
+def cell(binary, folder, seed, mode, atomic, verb, depth, count, clients, place_io):
     folder.mkdir(parents=True)
     if seed.exists():
         shutil.copy2(seed, folder / "workload.tomo")
@@ -55,7 +55,10 @@ def cell(binary, folder, seed, mode, atomic, verb, depth, count, clients):
             "--dbfilename", "workload.tomo"]
     if mode == "2s":
         argv += ["--ratio", "6:2"]
+    if place_io:
+        argv += ["--enable-debug-command", "yes"]
     workers, worker_logs = [], []
+    placed = []
     perf = None
     server = None
     fds = []
@@ -82,12 +85,26 @@ def cell(binary, folder, seed, mode, atomic, verb, depth, count, clients):
                 assert admin.call("SAVE") == b"OK"
                 shutil.copy2(folder / "workload.tomo", seed)
             for worker in range(clients):
+                extra, inherited = [], ()
+                if place_io:
+                    target = worker % (6 if mode == "2s" else 8)
+                    for _ in range(128):
+                        conn = Conn("127.0.0.1", port)
+                        if conn.call("DEBUG", "IO-THREAD") == target:
+                            conn.sock.settimeout(None)
+                            placed.append((conn, target))
+                            inherited = (conn.sock.fileno(),)
+                            extra = [str(inherited[0])]
+                            break
+                        conn.close()
+                    else:
+                        raise RuntimeError(f"could not place worker {worker} on IO {target}")
                 worker_log = (folder / f"worker-{worker}.log").open("w")
                 worker_logs.append(worker_log)
                 proc = subprocess.Popen(["taskset", "-c", str(8 + worker % 4), str(CLIENT),
-                                         str(port), verb, str(depth), str(count), str(worker)],
+                                         str(port), verb, str(depth), str(count), str(worker), *extra],
                                         stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                        stderr=worker_log, text=True, env=env)
+                                        stderr=worker_log, text=True, env=env, pass_fds=inherited)
                 workers.append(proc)
             for worker in workers:
                 assert receive(worker) == "ready"
@@ -120,6 +137,8 @@ def cell(binary, folder, seed, mode, atomic, verb, depth, count, clients):
             calls = lambda row: int(row[key].split(",")[0].split("=")[1])
             completed = calls(after) - calls(before)
             assert completed == clients * count, (completed, clients * count)
+            for conn, target in placed:
+                assert conn.call("DEBUG", "IO-THREAD") == target
             for worker in workers:
                 send(worker, "close")
             for worker in workers:
@@ -132,6 +151,7 @@ def cell(binary, folder, seed, mode, atomic, verb, depth, count, clients):
             result = dict(binary=str(binary), mode=mode, atomic=atomic, command=verb,
                           pipeline=depth, clients=clients, commands=completed,
                           instructions=instructions, instructions_per_op=instructions / completed,
+                          io_placement=[target for _, target in placed],
                           seed_sha256=hashlib.sha256(seed.read_bytes()).hexdigest(),
                           counter_running_percent=running_percent, server_argv=argv, perf_argv=perf_argv)
             (folder / "result.json").write_text(json.dumps(result, indent=2) + "\n")
@@ -147,6 +167,8 @@ def cell(binary, folder, seed, mode, atomic, verb, depth, count, clients):
                     worker.wait(timeout=10)
             for worker_log in worker_logs:
                 worker_log.close()
+            for conn, _ in placed:
+                conn.close()
             for fd in fds:
                 os.close(fd)
             if server is not None and server.poll() is None:
@@ -166,6 +188,8 @@ def main():
     parser.add_argument("--modes", nargs="+", default=["2s", "1s"])
     parser.add_argument("--arms", nargs="+", default=["pre", "part1", "part2"])
     parser.add_argument("--smoke", action="store_true")
+    parser.add_argument("--place-io", action="store_true",
+                        help="hold each worker on a DEBUG-witnessed IO thread across all arms")
     args = parser.parse_args()
     out = ROOT / "build/tornread" / time.strftime("instructions-%Y%m%d-%H%M%S")
     out.mkdir(parents=True)
@@ -187,7 +211,7 @@ def main():
                 for arm in order:
                     name = f"{mode}-a{atomic}-{verb}-p{depth}-r{rep}-{arm}"
                     row = cell(arms[arm], out / name, out / "seed.tomo", mode, atomic, verb, depth,
-                               args.count, args.clients)
+                               args.count, args.clients, args.place_io)
                     row.update(arm=arm, repeat=rep)
                     results.append(row)
                     (out / "results.json").write_text(json.dumps(results, indent=2) + "\n")
