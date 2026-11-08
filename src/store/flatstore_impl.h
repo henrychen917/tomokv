@@ -7,7 +7,7 @@
 // retirement failures follow the declarations' contracts; helpers do not transfer shard ownership.
 #pragma once
 
-[[gnu::noinline]] inline KvObj* FlatStore::expire_found(int t, uint64_t h, Slice key) {
+KvObj* FlatStore::expire_found(int t, uint64_t h, Slice key) {
     if (snapshot_active_ && t == 1) return nullptr;
     if (client_pause_expiry_held()) return nullptr;
     // Logical expiry never needs reclamation. With a full armed ring, leave the object and

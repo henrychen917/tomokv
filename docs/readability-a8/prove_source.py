@@ -123,6 +123,7 @@ def definition_signature(signature):
     # This suffix has two standard attributes and no GNU attribute parameter lists.
     opening = values.index('(')
     name_index = opening - 1
+    member_name = values[name_index]
     for i in range(name_index - 1, -1, -1):
         if values[i] in ('TtlResult', 'InsertResult', 'OverwriteResult', 'SnapshotWriteResult'):
             values[i:i] = ['FlatStore', '::']
@@ -132,7 +133,13 @@ def definition_signature(signature):
     if values[prefix:prefix+2] == ['[', '[']:
         prefix = next(i + 2 for i in range(prefix, len(values) - 1)
                       if values[i:i+2] == [']', ']'])
-    values.insert(prefix, 'inline')
+    if member_name == 'expire_found':
+        # Keep both noinline and inline on the first declaration. Repeating either
+        # at the definition produces GCC's contradictory-attribute warning.
+        assert values[:prefix] == ['[', '[', 'gnu', '::', 'noinline', ']', ']']
+        values = values[prefix:]
+    else:
+        values.insert(prefix, 'inline')
     return tuple(values)
 
 
@@ -150,7 +157,10 @@ def restore_split(text):
     body_tokens = 0
     for (signature, _), (definition, body) in zip(originals, moved):
         assert tuple(t.text for t in cpp.lex(definition)) == definition_signature(signature), definition
-        hits = cpp.Source(text).spans(signature + ';')
+        declaration = signature
+        if 'expire_found' in [t.text for t in cpp.lex(signature)]:
+            declaration = signature.replace(']] KvObj*', ']] inline KvObj*')
+        hits = cpp.Source(text).spans(declaration + ';')
         assert len(hits) == 1, ('member declaration', signature, hits)
         first, last = hits[0]
         replacements.append((first, last, signature + body))

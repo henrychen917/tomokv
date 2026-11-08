@@ -96,13 +96,18 @@ these scopes once. No body tokens change during extraction. Static qualifiers/de
 stay on declarations, implicit in-class inline becomes explicit inline, and nested
 return types/member names acquire the required FlatStore qualification. An initial
 compile rejected two misplaced standard attributes in the extraction script; attribute
-placement was corrected before comparison. No compiler flags or budgets were changed.
+placement was corrected before comparison. GCC also warned when the `noinline`
+`expire_found` declaration was followed by an explicit-inline definition. Its declaration
+now carries both `noinline` and `inline`, which the definition inherits without repeating
+them. The initial unit-build pass was stopped for this correction and restarted.
+No compiler flags or budgets were changed.
 
 ```text
 IDENTICAL (11167504 bytes after stripping)
 ```
 
 [Class-by-class binary comparison](docs/readability-a8/evidence/split-binary.log),
+[declaration correction comparison](docs/readability-a8/evidence/split-declaration-binary.log),
 [moved-body comparison](docs/readability-a8/evidence/split-bodies.json).
 
 ### Binary and source proof

@@ -2806,7 +2806,7 @@ private:
 
     // Keep maintenance-only checks out of the non-expiring lookup's inline
     // body and register allocation. No pause clock is read for a live key.
-    [[gnu::noinline]] KvObj* expire_found(int t, uint64_t h, Slice key);
+    [[gnu::noinline]] inline KvObj* expire_found(int t, uint64_t h, Slice key);
 
     // `fresh` means a newly published object: charge its bytes and (re)register its deadline.
     // The one false caller is rehash_step(), moving an object that is already charged and already
