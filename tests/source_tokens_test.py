@@ -34,6 +34,8 @@ class TokensTest(unittest.TestCase):
         changed = source.replace('count += 2;', 'count += 3;', 1)
         self.assertIn('renamed += 3;', str(changed))
         self.assertNotEqual(cpp.tokens(changed), cpp.tokens(source))
+        full = source.replace('int count = 1;', 'int count = 2;', 1)
+        self.assertEqual(cpp.bindings(full), {'count': 'renamed'})
         with self.assertRaises(ValueError):
             cpp.Source('/* TOMO_TOOL_BIND x */a; /* TOMO_TOOL_BIND x */b;')
 

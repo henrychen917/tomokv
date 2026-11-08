@@ -156,7 +156,8 @@ class DriverTests(unittest.TestCase):
     def test_expiry_sections_are_marked_in_order_on_short_lived_connections(self):
         names = ('test_fanout_hook', 'test_transaction_family', 'test_script_clock',
                  'test_ordinary_expiry_still_works')
-        source = ''.join(f'def {name}(conn): pass\n' for name in names)
+        source = ''.join(f'# TOMO_TOOL_ANCHOR expiry-{role}\ndef {name}(conn): pass\n'
+                         for name, role in zip(names, ('fanout', 'exec', 'script', 'ordinary')))
         source += 'def main():\n    conn = None\n    if conn is None:\n'
         source += ''.join(f'        {name}(conn)\n' for name in names) + 'main()\n'
         calls = self.run_driver('expwide', source)
@@ -171,6 +172,22 @@ class DriverTests(unittest.TestCase):
         source = 'import time\ntime.sleep(0.01)\ntime.sleep(0.06)\n'
         calls = self.run_driver('blocking', source)
         self.assertEqual(calls, [('open', 25399), ('DEBUG', 'LOTTERY', 'CONFIG'), ('close',)])
+
+    def test_expiry_markers_survive_renames_and_reindent(self):
+        roles = ('fanout', 'exec', 'script', 'ordinary')
+        source = ''.join(f'# TOMO_TOOL_ANCHOR expiry-{role}\ndef renamed_{role}(c): pass\n'
+                         for role in roles)
+        source += 'if True:\n' + ''.join(f'  renamed_{role}(None)\n' for role in roles)
+        calls = self.run_driver('expwide', source)
+        self.assertEqual([c[3] for c in calls if c[:3] == ('DEBUG', 'LOTTERY', 'MARK')],
+                         ['expiry_section_' + role for role in roles])
+
+    def test_duplicate_anchor_and_absent_sleep_are_rejected(self):
+        with self.assertRaisesRegex(ValueError, 'changed expiry section anchor'):
+            self.run_driver('expwide', '# TOMO_TOOL_ANCHOR expiry-fanout\n'
+                            '# TOMO_TOOL_ANCHOR expiry-fanout\ndef f(c): pass\nf(None)\n')
+        with self.assertRaisesRegex(ValueError, 'missing propagation sleep anchor'):
+            self.run_driver('blocking', 'pass\n')
 
     def test_changed_battery_anchor_refuses_to_run(self):
         with self.assertRaisesRegex(ValueError, 'changed expiry section anchor'):

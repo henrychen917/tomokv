@@ -70,10 +70,11 @@ def mutation(case, source):
                 'if (false && g_server) blocking_key_counts(*g_server, blocking_keys, blocking_on_nokey);')
         return 't_server'
     elif case == 'refusal':
-        replace(blocking, '} remove_at_from_shard(shard, queue, i); work++;', '} work++;')
         before = ('if (!blocking_run_direct(state, shard, self, ring)) {'
-                  ' state.phase.store(BlockingPhase::Parked, std::memory_order_release);')
-        replace(blocking, before, 'remove_at_from_shard(shard, queue, i); ' + before)
+                  ' state.phase.store(BlockingPhase::Parked, std::memory_order_release);'
+                  ' shard.set_blocking_dirty(); return work + 1; }')
+        replace(blocking, before + ' remove_at_from_shard(shard, queue, i);',
+                'remove_at_from_shard(shard, queue, i); ' + before)
     else:
         raise ValueError(case)
     return 'xshard'

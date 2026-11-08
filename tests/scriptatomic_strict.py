@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """TM4.2: whole-battery DEBUG refusal with a live wire and temporary response fixture."""
 import os
+import ast
+from python_anchors import statement, insert
 from pathlib import Path
 import subprocess
 import sys
@@ -8,8 +10,8 @@ import tempfile
 
 source_path = Path(__file__).with_name("scriptatomic.py").resolve()
 source = source_path.read_text()
-marker = "\nconn = Conn()\n"
-assert source.count(marker) == 1
+tree = ast.parse(source)
+statement(source, tree, "scriptatomic-bootstrap")
 # Intercept only DEBUG. ACL -debug would also disable EVAL by the server's
 # script-permission policy, making a strict-skip control fail for another reason.
 denied = """
@@ -36,7 +38,9 @@ with tempfile.TemporaryDirectory(prefix="scriptatomic-strict-") as directory:
     results = []
     for name, addition in (("headline", denied), ("old-skip", denied + old_skip)):
         fixture = Path(directory) / (name + ".py")
-        fixture.write_text(source.replace(marker, "\n" + addition + marker))
+        tree = ast.parse(source)
+        anchor = statement(source, tree, "scriptatomic-bootstrap")
+        fixture.write_text(ast.unparse(insert(tree, {anchor: (ast.parse(addition).body, [])})))
         env = dict(os.environ, TOMO_GATE_STRICT="1", PYTHONPATH=str(source_path.parent))
         result = subprocess.run([sys.executable, str(fixture), sys.argv[1], sys.argv[2]],
                                 env=env, text=True, stdout=subprocess.PIPE,

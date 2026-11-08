@@ -160,7 +160,17 @@ class Source(str):
         replacement = rename(new, {old: new for new, old in self.aliases.items()})
         result = str(self)
         for start, end in reversed(hits):
-            result = result[:start] + replacement + result[end:]
+            rendered = replacement
+            # Keep a tool identity attached to an identifier retained by a
+            # control edit (for example, inserting a statement at function entry).
+            for stable, actual in bindings(str(self)[start:end]).items():
+                if stable in bindings(rendered):
+                    continue
+                target = next((t for t in lex(rendered) if t.text == actual), None)
+                if target is not None:
+                    rendered = (rendered[:target.start] + '/* TOMO_TOOL_BIND ' + stable + ' */'
+                                + rendered[target.start:])
+            result = result[:start] + rendered + result[end:]
         return Source(result, self.aliases)
 
 

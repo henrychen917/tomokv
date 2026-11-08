@@ -67,7 +67,7 @@ def documented_knobs(document):
 
 def regenerate_writeback(source, document):
     source = cpp.Source(source)
-    rule = (ROOT / "src/core/wb_rule.h").read_text()
+    rule = cpp.read(ROOT / "src/core/wb_rule.h")
     rows = []
     for name, field, constant, maximum, zero in (
             ("wb-small-pipe", "wb_small_pipe", "kSmallPipe", "64", "half rule, no completion"),
@@ -209,7 +209,7 @@ def main():
     args = parser.parse_args()
     try:
         if args.write:
-            args.document.write_text(regenerate_encodings(args.config_cpp.read(header), args.document.read_text()))
+            args.document.write_text(regenerate_encodings(cpp.read(args.config_header), args.document.read_text()))
         count = check(args.config_header, args.document)
         print(f"PASS {ASSERTION}: {count} spellings")
         if args.self_test:

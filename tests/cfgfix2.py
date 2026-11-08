@@ -590,6 +590,8 @@ def clock_ranges(binary):
         if len(parts) != 4:
             continue
         address, size, _, name = parts
+        from source_tokens import canonical_symbol
+        name = canonical_symbol(name)
         if name.endswith('FlatStore::configure_object_idle(bool)') or 'ObjectIdleClock::install(' in name:
             first = int(address, 16)
             ranges.append(f'{first:x}-{first + int(size, 16):x}')

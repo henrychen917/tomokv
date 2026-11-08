@@ -2440,7 +2440,7 @@ public:
     static constexpr uint32_t kClimonPause    = 1u << 2;  // a CLIENT PAUSE deadline is live
     static constexpr uint32_t kClimonReply    = 1u << 3;  // >=1 CLIENT REPLY OFF/SKIP client
 
-    uint32_t climon_armed() const { return climon_armed_.load(std::memory_order_relaxed); }
+    uint32_t climon_armed() const { return /* TOMO_TOOL_BIND climon_armed_ */climon_armed_.load(std::memory_order_relaxed); }
 
     void climon_monitor_added() {
         climon_monitors_.fetch_add(1, std::memory_order_relaxed);

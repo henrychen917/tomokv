@@ -162,7 +162,7 @@ def main():
         if (held) return 0;
     }
 '''
-        keys = 'read.second->keys' if 'auto& receipt = *read->second;' in (source / 'src/cmd/tracking.cc').read_text() else 'read.second'
+        keys = 'read.second->keys' if 'auto& receipt = *read->second;' in cpp.read(source / 'src/cmd/tracking.cc') else 'read.second'
         text = text.replace(anchor, anchor + hold.replace('READ_KEYS', keys))
     path.write_text(text)
     if args.prepare_only:

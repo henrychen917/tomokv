@@ -6,13 +6,11 @@
 #include <cstdlib>
 #include <thread>
 #include <unistd.h>
-#if TOMO_SINGLE_DATABASE
-#define SYMBOL "_ZN8tomo_db022function_snapshot_saveERSt6vectorIhSaIhEERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE"
-#define JOURNAL "_ZN8tomo_db010AofManager23append_function_journalENS_5SliceE"
-#else
-#define SYMBOL "_ZN4tomo22function_snapshot_saveERSt6vectorIhSaIhEERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE"
-#define JOURNAL "_ZN4tomo10AofManager23append_function_journalENS_5SliceE"
+#ifndef TOMO_WAVE14_SAVE_SYMBOL
+#error "build with tools/wave14_capture.py to bind the current symbols"
 #endif
+#define SYMBOL TOMO_WAVE14_SAVE_SYMBOL
+#define JOURNAL TOMO_WAVE14_JOURNAL_SYMBOL
 extern "C" bool real_save(std::vector<uint8_t>&, std::string&) asm("__real_" SYMBOL);
 extern "C" bool wrapped_save(std::vector<uint8_t>&, std::string&) asm("__wrap_" SYMBOL);
 extern "C" bool wrapped_save(std::vector<uint8_t>& image, std::string& error) {

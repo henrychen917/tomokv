@@ -2,17 +2,36 @@
 """Link a scheduling twin from the current production objects; never boot here."""
 import argparse
 import json
+import re
 from pathlib import Path
 import shlex
 import subprocess
+import source_tokens as cpp
 from wave14 import ROOT, sha, save
+
+
+def undefined_symbol(obj, role):
+    matches = [line.split()[-1] for line in subprocess.check_output(
+        ['nm', str(obj)], text=True).splitlines()
+        if ' U ' in line and re.search(r'(?<![0-9])' + str(len(role)) + re.escape(role),
+                                      cpp.canonical_symbol(line.split()[-1]))]
+    if len(matches) != 1:
+        raise ValueError(f'{obj}: expected one undefined {role}, found {len(matches)}')
+    return matches[0]
 
 p = argparse.ArgumentParser()
 p.add_argument('--output', type=Path, required=True)
 p.add_argument('--objects', type=Path, default=ROOT/'build')
+p.add_argument('--symbols-only', action='store_true', help='validate linker anchors without compiling')
 a = p.parse_args()
 a.output = a.output.resolve(); a.objects = a.objects.resolve()
 a.output.mkdir(parents=True, exist_ok=True)
+if a.symbols_only:
+    for ns in ('normal', 'db0'):
+        prefix = a.objects / ('db0' if ns == 'db0' else '.')
+        print(ns, undefined_symbol(prefix/'src/snapshot/snapshot.o', 'function_snapshot_save'),
+              undefined_symbol(prefix/'src/cmd/functions.o', 'append_function_journal'))
+    raise SystemExit(0)
 recipe = subprocess.check_output(['make', '-n', 'BUILD_ROOT='+str(a.objects),
     '-W', str(a.objects/'src/main.o'), 'all'], text=True)
 link = shlex.split(next(line for line in recipe.splitlines()
@@ -20,18 +39,18 @@ link = shlex.split(next(line for line in recipe.splitlines()
 commands = []
 for ns in ('normal', 'db0'):
     obj = a.output/(ns+'.o')
+    symbol = undefined_symbol(a.objects/('db0/' if ns=='db0' else '')/'src/snapshot/snapshot.o',
+                              'function_snapshot_save')
+    journal = undefined_symbol(a.objects/('db0/' if ns=='db0' else '')/'src/cmd/functions.o',
+                               'append_function_journal')
     command = ['g++', '-std=c++20', '-O2', '-g', '-gz=zlib', '-march=native',
                '-pthread', '-DTOMO_JEMALLOC', '-I.', '-c',
                str(ROOT/'tests/wave14_capture_hook.cc'), '-o', str(obj)]
+    command += ['-DTOMO_WAVE14_SAVE_SYMBOL=' + json.dumps(symbol),
+                '-DTOMO_WAVE14_JOURNAL_SYMBOL=' + json.dumps(journal)]
     if ns == 'db0': command += ['-DTOMO_SINGLE_DATABASE=1', '-Dtomo=tomo_db0']
     subprocess.run(command, check=True); commands.append(command)
-    symbol = next(line.split()[-1] for line in subprocess.check_output(
-        ['nm', str(a.objects/('db0/' if ns=='db0' else '')/'src/snapshot/snapshot.o')],
-        text=True).splitlines() if ' U ' in line and 'function_snapshot_save' in line)
     link += [str(obj), '-Wl,--wrap='+symbol]
-    journal = next(line.split()[-1] for line in subprocess.check_output(
-        ['nm', str(a.objects/('db0/' if ns=='db0' else '')/'src/cmd/functions.o')],
-        text=True).splitlines() if ' U ' in line and 'append_function_journal' in line)
     link += ['-Wl,--wrap='+journal]
 link[link.index('-o')+1] = str(a.output/'tomokv')
 subprocess.run(link, check=True)

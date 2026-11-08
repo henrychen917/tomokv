@@ -3,13 +3,30 @@
     "TOMO_TOOL_BIND kTable"
   ],
   "src/cmd/functions.cc": [
-    "TOMO_TOOL_BIND kTable"
+    "TOMO_TOOL_BIND kTable",
+    "TOMO_TOOL_BIND function_snapshot_save"
   ],
   "src/cmd/geo.cc": [
     "TOMO_TOOL_BIND kTable"
   ],
+  "src/cmd/hll.cc": [
+    "TOMO_TOOL_BIND hll",
+    "TOMO_TOOL_BIND count"
+  ],
+  "src/cmd/info_stats.cc": [
+    "TOMO_TOOL_BIND info_stats_tick"
+  ],
   "src/cmd/lcs.cc": [
     "TOMO_TOOL_BIND kTable"
+  ],
+  "src/cmd/multi.inc": [
+    "TOMO_TOOL_BIND multi_cancel_decision",
+    "TOMO_TOOL_BIND execute_watch_phase",
+    "TOMO_TOOL_BIND txn_wound"
+  ],
+  "src/cmd/multidb.cc": [
+    "TOMO_TOOL_BIND multidb_size",
+    "TOMO_TOOL_BIND multidb_stats"
   ],
   "src/cmd/pfdebug.cc": [
     "TOMO_TOOL_BIND kTable"
@@ -64,6 +81,14 @@
   "src/cmd/t_zset_ops.cc": [
     "TOMO_TOOL_BIND kTable"
   ],
+  "src/cmd/tracking.cc": [
+    "TOMO_TOOL_BIND tracking_handle_event",
+    "TOMO_TOOL_BIND tracking_forward_stale"
+  ],
+  "src/cmd/txn_group.inc": [
+    "TOMO_TOOL_BIND txn_group_ready",
+    "TOMO_TOOL_ANCHOR woundfix-group-blind-abort"
+  ],
   "src/core/config.h": [
     "TOMO_TOOL_BIND process_configs",
     "TOMO_TOOL_BIND settings",
@@ -77,10 +102,12 @@
     "TOMO_TOOL_FUNCTION fused_pass_impl",
     "TOMO_TOOL_BIND fused_pass_impl",
     "TOMO_TOOL_BIND drain_tasks",
+    "TOMO_TOOL_BIND drain_tasks_read_local_interleaved",
     "TOMO_TOOL_FUNCTION fused_baseline_sweep",
     "TOMO_TOOL_BIND fused_baseline_sweep",
     "TOMO_TOOL_FUNCTION fused_sweep_impl",
     "TOMO_TOOL_BIND fused_sweep_impl",
+    "TOMO_TOOL_BIND run",
     "TOMO_TOOL_FUNCTION sweep",
     "TOMO_TOOL_BIND sweep"
   ],
@@ -184,7 +211,17 @@
     "TOMO_TOOL_BIND Server",
     "TOMO_TOOL_BIND lb_cron_writer_pad",
     "TOMO_TOOL_BIND lb_should_pause_pad",
-    "TOMO_TOOL_BIND lb_client_move_pad"
+    "TOMO_TOOL_BIND lb_client_move_pad",
+    "TOMO_TOOL_BIND climon_armed_"
+  ],
+  "src/core/thread.h": [
+    "TOMO_TOOL_BIND ThreadCtx",
+    "TOMO_TOOL_BIND note_command",
+    "TOMO_TOOL_BIND command_calls",
+    "TOMO_TOOL_BIND command_rejected_calls",
+    "TOMO_TOOL_BIND command_failed_calls",
+    "TOMO_TOOL_BIND total_commands",
+    "TOMO_TOOL_BIND sample_depth"
   ],
   "src/core/wb_rule.h": [
     "TOMO_TOOL_BIND kSmallPipe",
@@ -192,6 +229,20 @@
   ],
   "src/net/uring.h": [
     "TOMO_TOOL_BIND kWaitTimeoutMs"
+  ],
+  "src/persist/aof.cc": [
+    "TOMO_TOOL_BIND fail",
+    "TOMO_TOOL_BIND defer_completion",
+    "TOMO_TOOL_BIND producers_stopped",
+    "TOMO_TOOL_BIND worker_shutdown"
+  ],
+  "src/persist/aof.h": [
+    "TOMO_TOOL_BIND AofManager",
+    "TOMO_TOOL_BIND append_function_journal"
+  ],
+  "src/store/flatstore.h": [
+    "TOMO_TOOL_BIND FlatStore",
+    "TOMO_TOOL_BIND configure_object_idle"
   ],
   "src/store/flush.cc": [
     "TOMO_TOOL_BIND atomic_flush_erase",
@@ -204,5 +255,9 @@
     "TOMO_TOOL_BIND kvobj_new_typeval",
     "TOMO_TOOL_BIND kvobj_new_embedded_typeval",
     "TOMO_TOOL_BIND kvobj_reheader"
+  ],
+  "src/store/object_idle.h": [
+    "TOMO_TOOL_BIND ObjectIdleClock",
+    "TOMO_TOOL_BIND install"
   ]
 }

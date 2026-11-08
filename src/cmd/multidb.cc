@@ -690,7 +690,7 @@ void multidb_select(Server* server, Client* client, Op& op) {
     reply_ok(op.sink());
 }
 
-uint64_t multidb_size(Shard& shard, uint8_t physical, uint64_t cut) {
+uint64_t /* TOMO_TOOL_BIND multidb_size */multidb_size(Shard& shard, uint8_t physical, uint64_t cut) {
     uint64_t size = 0;
     // Counts are physical: neither DBSIZE nor INFO may reap elapsed records.
     // This owner-local walk also counts each slot exactly once during rehash.
@@ -802,7 +802,7 @@ bool multidb_commit_swap(Server& server, Shard& shard, Op& op, uint64_t client_i
     return server.databases().swap(first, second, &shard.store().aof(), client_id);
 }
 
-void multidb_stats(Shard& shard, DatabaseStatsTable& stats) {
+void /* TOMO_TOOL_BIND multidb_stats */multidb_stats(Shard& shard, DatabaseStatsTable& stats) {
     shard.store().for_each([&](KvObj* object) {
             auto& row = stats[object->key_namespace()];
             ++row.keys;

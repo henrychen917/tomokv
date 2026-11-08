@@ -474,7 +474,7 @@ public:
                     if (xshard_retries_.empty() && ordered_deferred_.empty()) {
                         if (snapshot_owner_state_ == SnapshotOwnerState::None) {
                             if (fairlane_turn)
-                                did += drain_tasks_read_local_interleaved<
+                                did += /* TOMO_TOOL_BIND drain_tasks_read_local_interleaved */drain_tasks_read_local_interleaved<
                                     IofusedPrivateQueue>(false, owner_work_remains);
                             else
                                 did += drain_tasks<BatchOps, IofusedPrivateQueue>();
@@ -605,7 +605,7 @@ public:
     // tasks or shard housekeeping, even while FLIP installs its future EX shard vector.
     uint32_t split_read_local_pass();
 
-    void run() {
+    void /* TOMO_TOOL_BIND run */run() {
         const MemoryConfigBinding memory_config_binding(this);
         if constexpr (Fused) {
             // Only RL2S instantiates the owner loop with the fused-capable executor. Its lane

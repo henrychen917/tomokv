@@ -1235,7 +1235,7 @@ static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
 
 void function_final_cut(uint64_t epoch) { g_functions.final_cut(epoch); }
 
-bool function_snapshot_save(std::vector<uint8_t>& image, std::string& error) {
+bool /* TOMO_TOOL_BIND function_snapshot_save */function_snapshot_save(std::vector<uint8_t>& image, std::string& error) {
     try {
         std::vector<LibraryDef> libraries;
         uint64_t stamp = 0;

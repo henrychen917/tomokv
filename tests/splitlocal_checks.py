@@ -31,7 +31,7 @@ def emit(root, output):
     code = ['#include <cstdint>\n#include <cstdio>\n'
             'constexpr uint32_t kGenthreadIfidBatchOps = 32;\n'
             'struct Policy { bool borrow; uint32_t batch; bool local, fused, build, discard; };']
-    header = (root / 'src/core/genthread_pipeline.h').read_text()
+    header = cpp.read(root / 'src/core/genthread_pipeline.h')
     quantum = cpp.search(r'kGenthreadIfidBatchOps\s*=\s*([^;]+);', header)
     assert quantum, 'IFID quantum inventory'
     code[0] = code[0].replace('= 32;', '= ' + quantum[1] + ';')

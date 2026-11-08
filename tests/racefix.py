@@ -218,6 +218,7 @@ def symbolize(log, binary):
 
 
 def tsan_reports(log):
+    log = cpp.canonical_symbol(log)
     log = re.sub(r'\bsrc/[A-Za-z0-9_/.\-]+', lambda m: posixpath.normpath(m[0]), log)
     reports = re.findall(r'WARNING: ThreadSanitizer:.*?(?=\n={8,}|\Z)', log, re.S)
     # Accept a PRE confirmation only when both named sides are in the same

@@ -428,6 +428,7 @@ def run_crossshard(conn, mode):
 
 # ---------------------------------------------------------------------------------------------
 
+# TOMO_TOOL_ANCHOR scriptatomic-bootstrap
 conn = Conn()
 try:
     boot_mode = conn.cmd("CONFIG", "GET", "atomic")[1]

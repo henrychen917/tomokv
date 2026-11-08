@@ -8,6 +8,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def replace_body(source, signature, replacement):
+    if source.count(signature) != 1:
+        raise ValueError('missing or ambiguous control body: ' + signature)
     start = source.index(signature)
     opening = source.index('{', start)
     depth = 0

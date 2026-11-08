@@ -6,6 +6,7 @@ Every control restores its input in finally; the production checkout is refused.
 """
 import argparse
 import json
+import hashlib
 import os
 from pathlib import Path
 import subprocess
@@ -25,6 +26,14 @@ def cases():
     add('r7shadow_sync_test', ['tests/r7shadow_sync_test.py'], 'src/core/io_loop.h', 'TOMO_TOOL_FUNCTION run_loop')
     add('lottery', ['tools/lottery_build.py','build/proof/lottery'], 'src/cmd/scatter_engine.inc', 'TOMO_TOOL_ANCHOR lottery-read-fragment')
     add('racefix', ['tools/racefix_build.py','build/proof/racefix'], 'src/core/server.h', 'climon_armed_.exchange')
+    add('persistfmt', ['tools/persistfmt_schedule.py','src/persist/aof.cc','build/proof/persistfmt.cc'], 'src/persist/aof.cc', 'void AofManager::fail')
+    add('storesize', ['tests/storesize_checks.py','src/cmd/multidb.cc','build/proof/storesize.cc'], 'src/cmd/multidb.cc', 'TOMO_TOOL_BIND multidb_size')
+    for name in ('removed','wrongtype','slowlog','multi','counts','refusal'):
+        add('blockfix2/'+name, python("import shutil,blockfix2_controls as m;p=Path('build/proof/blockfix2/"+name+"');shutil.copytree('src',p/'src',dirs_exist_ok=True);print(m.mutation('"+name+"',p))"),
+            'src/cmd/t_server.cc' if name=='counts' else 'src/cmd/t_stream_groups.cc' if name=='multi' else 'src/cmd/blocking.inc',
+            {'removed':'const bool group_error','wrongtype':'if (blocking_is_move(block->kind))',
+             'slowlog':'SlowlogTiming timing','multi':'(void)stream_xreadgroup_execute(shard, op, false);',
+             'counts':'blocking_key_counts','refusal':'remove_at_from_shard'}[name])
     for name in ('aoforder','notifycompat','trackfix'):
         anchor = 'TOMO_TOOL_ANCHOR aoforder-expiry' if name=='aoforder' else 'void IoLoop::tracking_handle_event'
         file = 'src/cmd/scatter_engine.inc' if name=='aoforder' else 'src/cmd/tracking.cc'
@@ -83,7 +92,7 @@ def main():
                     if original.count(anchor)!=1:raise ValueError('nonunique proof marker '+anchor)
                     changed=original.replace(anchor,'BROKEN_A1_ANCHOR',1)
                 else:
-                    code=cpp.Source(original)
+                    code=cpp.read(path)
                     spans=code.spans(anchor)
                     if not spans:raise ValueError('proof anchor absent '+anchor)
                     # A field name may occur at multiple uses: corrupt every occurrence.
@@ -97,6 +106,15 @@ def main():
         (a.output/'results.json').write_text(json.dumps(rows,indent=2)+'\n')
         print(('PASS' if row['passed'] else 'FAIL'),name,'positive',row['positive'],'negative',row.get('negative'),flush=True)
         if not row['passed']:print(row.get('stderr','')+row.get('negative_stdout','')+row.get('negative_stderr',''),flush=True)
+    # Verify that formatting did not silently choose a different instrumentation
+    # branch: compare every emitted C++ token stream between source shapes.
+    generated={}
+    for directory in (root/'build/proof',root/'build/flushfix3/work-reference'):
+        for path in sorted(directory.rglob('*')):
+            if path.suffix in ('.cc','.h','.inc'):
+                code=cpp.Source(path.read_text().replace(str(root), "$SCRATCH"),cpp.source_aliases(root))
+                generated[str(path.relative_to(root))]=hashlib.sha256(cpp.normalized(code).encode()).hexdigest()
+    (a.output/'generated-tokens.json').write_text(json.dumps(generated,indent=2)+'\n')
     return int(not rows or not all(r['passed'] for r in rows))
 
 

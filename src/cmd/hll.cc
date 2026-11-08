@@ -14,7 +14,7 @@
 #include <cstdio>
 #include <limits>
 
-namespace tomo::hll {
+namespace tomo::/* TOMO_TOOL_BIND hll */hll {
 namespace {
 
 constexpr uint8_t kDense = 0;
@@ -449,7 +449,7 @@ int add(std::string& image, Slice element) {
     return -1;
 }
 
-uint64_t count(Slice image, bool& corrupt) {
+uint64_t /* TOMO_TOOL_BIND count */count(Slice image, bool& corrupt) {
     int histogram[64] = {};
     if (bytes(image)[4] == kDense) {
         const uint8_t* registers = bytes(image) + kHeaderBytes;

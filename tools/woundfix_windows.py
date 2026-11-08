@@ -41,8 +41,11 @@ def main():
     ]:
         text = cpp.read(path); lo, _, hi = cpp.function_span(text, begin.split()[-1][:-1])
         body = text[lo:hi]
-        # In txn_group_ready the first aborted store belongs to blind restart.
-        at = body.index(store)
+        # The blind-restart store has a stable identity; other abort stores in
+        # this function must never become an accidental first-match anchor.
+        anchor = '/* TOMO_TOOL_ANCHOR woundfix-group-blind-abort */' if site == 5 else store
+        assert body.count(anchor) == 1, ('unique abort seam', site)
+        at = body.index(anchor)
         body = body[:at] + f"::woundfix_pause({site}, " + ("holder.token" if site == 4 else "&state") + ");\n" + body[at:]
         path.write_text(text[:lo] + body + text[hi:])
     # EXEC's blind publication uses multi_cancel_decision on PRE. POST's local
@@ -58,6 +61,7 @@ def main():
     else:
         store = "state.decision.aborted.store(true, std::memory_order_release);"
         hook = "::woundfix_pause(6, &state);\n                "
+    assert body.count(store) == 1, 'unique EXEC cancellation seam'
     at = body.index(store)
     body = body[:at] + hook + body[at:]
     multi.write_text(text[:lo] + body + text[hi:])

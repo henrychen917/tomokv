@@ -38,7 +38,7 @@ def prepare(output):
 
     def patch(path, old, new, count=1):
         data, mode = staged[path]
-        text = cpp.Source(data.decode()) if path.startswith('src/') else data.decode()
+        text = cpp.Source(data.decode(), cpp.read(ROOT / path).aliases) if path.startswith('src/') else data.decode()
         if text.count(old) != count:
             raise ValueError(f'{path}: expected {count} anchors, found {text.count(old)}: {old[:80]}')
         staged[path] = (text.replace(old, new, count).encode(), mode)

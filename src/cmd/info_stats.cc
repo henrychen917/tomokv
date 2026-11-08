@@ -108,7 +108,7 @@ void info_stats_init(Server* server) {
     info_stats_reset(0, server ? used_memory(*server) : 0);
 }
 
-void info_stats_tick(Server& server) {
+void /* TOMO_TOOL_BIND info_stats_tick */info_stats_tick(Server& server) {
     std::lock_guard<std::mutex> lock(g_info_stats.mu);
     const uint64_t sampled_ns = now_ns();
     std::array<uint64_t, 3> totals{};

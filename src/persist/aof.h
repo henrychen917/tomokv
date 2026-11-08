@@ -128,7 +128,7 @@ struct AofOwnerContext {
     uint64_t client_id = 0;
 };
 
-class AofManager;
+class /* TOMO_TOOL_BIND AofManager */AofManager;
 
 class AofProducer {
 public:
@@ -222,7 +222,7 @@ public:
     void on_io_complete(ThreadCtx& writer, Ring& ring, void* request, int result);
     bool post_chunk(uint32_t producer, std::unique_ptr<AofChunk>& chunk,
                     Ring& producer_ring, LoopSignals& signals);
-    void append_function_journal(Slice payload);
+    void /* TOMO_TOOL_BIND append_function_journal */append_function_journal(Slice payload);
     bool request_rewrite();
     bool start_offline_rewrite(ThreadCtx& writer, Ring& ring, std::string& error);
     bool rewrite_mark(ThreadCtx& writer, Ring& ring, uint64_t snapshot_epoch,
