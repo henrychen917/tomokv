@@ -643,7 +643,8 @@ template <uint32_t BatchOps, bool ConsumeTasks, bool IofusedPrivateQueue,
             did += aof_flush_pass();
             did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
         }
-        // Phase 3: finish local tails and reclamation before acknowledging control work.
+        // Phase 3: finish local tails and reclamation, then run the control tail outside an
+        // LB freeze. An LB-frozen pass may already have acknowledged above and touches no shard here.
         if (fairlane_turn) {
             owner_work_remains |= fairlane_owner_debt_pending();
             if (!owner_work_remains) did += drain_local_read_tail();

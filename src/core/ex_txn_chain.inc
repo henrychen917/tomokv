@@ -6,9 +6,10 @@
 // Contract: the current shard owner services boundary notes before starting a new transaction
 // unit. It snapshots notes, removes markless Tasks from their indexes, then executes/forwards
 // them without retaining stale Client/ROB references in an index. Only this owner clears notes;
-// unconsumed watch/blind notes are restored. false means allocation failure or a still-closed
-// boundary, so the caller stops chaining. Reserve failure leaves queued tasks in place; later
-// execution uses the ordinary retry and release-Done publication paths.
+// unconsumed watch/blind notes are restored on normal return. false means the notes reservation
+// failed before state changed, or the boundary is still closed; only service_multi_chain acts
+// on it. Later allocation failures propagate without restoring cleared notes or removed Tasks.
+// Execution uses the ordinary retry and release-Done publication paths.
 template <bool IofusedPrivateQueue>
 __attribute__((noinline)) bool service_txn_boundary() {
     // Borrows this owner's recursion flag and restores its previous value on every exit,
