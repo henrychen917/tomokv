@@ -1263,11 +1263,11 @@ IoLoop::ClimonStartResult IoLoop::climon_begin_client_scatter(Client* client,
 
 // Dispatch validated MONITOR or CLIENT (argc >= 2) on the connection IO.
 // Borrow the current unpublished ROB slot and mutate this IO's control state.
-// Sync leaves completion to pubsub_start_command; Async helpers publish the
-// slot and install their barrier/deferred state. The fallback temporarily binds
-// command/snapshot context for the registry handler. Validation errors reply
-// synchronously; allocation exceptions propagate unless a delegated helper
-// handles them, and remote control requests can wait for transport space.
+// Sync returns through pubsub_start_command to dispatch's finish_prebuilt.
+// Async helpers publish the slot and install their barrier/deferred state.
+// The fallback temporarily binds command/snapshot context for the registry
+// handler. Validation errors reply synchronously; allocation exceptions propagate
+// unless a helper handles them. Remote requests can wait for transport space.
 IoLoop::ClimonStartResult IoLoop::climon_start_client_command(Client* client, Op& op) {
     if (op.cmd_name().eq_icase("monitor")) {
         if (op.argc() != 1) {
