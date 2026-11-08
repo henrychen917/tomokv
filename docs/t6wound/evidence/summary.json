@@ -29,6 +29,41 @@
       "misses": 0,
       "failed_legs": 0,
       "opening_wounds": null
+    },
+    {
+      "arm": "after-build-2",
+      "run_directory": "/home/user/Projects/cx-t6wound/build/gate-run.utXtVa",
+      "status": "ok",
+      "seconds": 813.11,
+      "attempts": 24,
+      "misses": 0,
+      "failed_legs": 0,
+      "opening_wounds": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
     }
   ]
 }
