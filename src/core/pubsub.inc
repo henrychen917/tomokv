@@ -1,31 +1,43 @@
-// pubsub.inc -- IO-owned Redis pub/sub implementation.
-//
-// This file is intentionally included inside IoLoop's private section.  Pub/sub needs the loop's
-// ring, active-set and send engine, but is not a new translation unit and exposes no path from an
-// executor to connection state.  Channel indexes below are touched only by their home IO thread.
+// Owns IO-side pub/sub indexes, subscription continuations, fanout, and cleanup.
+// Included in IoLoop's private section by core/io_loop.h, hence compiled in its including
+// server/command translation units in both database namespaces. Channel indexes belong
+// to their home IO; client catalogs belong to the connection IO and migrate with it.
+// Publish ROB slots before remote requests and queue deliveries before publish replies.
+// Mailbox handoff transfers events; blob references survive until delivery or shutdown.
+// Throwing container allocations have no general local recovery contract in these helpers.
 
 enum class PubSubPendingKind : uint8_t { Modify, Publish, Channels, Numsub, Numpat, Reset };
 enum class PubSubStartResult : uint8_t { Async, Sync };
 
-// Per destination IO thread, everything this home resolved during ONE pass.  Filled by
-// pubsub_home_publish, emptied once per pass by pubsub_pass_flush.  Coalescing here is what
-// turns a 64-deep pipelined publisher from 64 posts (and 64 sends per subscriber) into one.
+// Home-IO outbox for one destination. Owns a blob reference per delivery until flush
+// moves it into an event or consumes it locally; results are value records. The home
+// fills it during publication and flushes it at the pass boundary. No atomics are needed
+// until pubsub_post transfers the event. Allocation failure is not handled by this struct.
 struct PubSubOutbox {
     std::vector<PubSubDelivery> deliveries;
     std::vector<PubSubResult> results;
 };
 
+// Home-index identity for a remote subscriber: an IO number plus process-unique ID,
+// never a borrowed Client pointer. The channel home owns mutations; migration rebinds
+// against the live directory, and consumers recheck ownership before delivery.
 struct PubSubRef {
     uint32_t io = 0;
     uint64_t conn = 0;
     bool operator==(const PubSubRef& other) const { return io == other.io && conn == other.conn; }
 };
 
+// Home-owned pattern text and subscriber identity, replicated across channel homes.
+// No connection pointer crosses IO threads; the home removes or rebinds the value record.
 struct PubSubPatternRef {
     std::string pattern;
     PubSubRef ref;
 };
 
+// Connection-IO subscription catalog. Owns the sets and cleanup counters, borrows client,
+// and migrates with the connection at the ownership commit. Pending replies/cleanup
+// keep that client alive; teardown waits for every home acknowledgement before erasing
+// this record. Container allocation failures are not translated here.
 struct PubSubLocalConn {
     Client* client = nullptr;
     std::unordered_set<std::string> channels;
@@ -37,6 +49,10 @@ struct PubSubLocalConn {
     bool cleanup_done = false;
 };
 
+// Connection-IO command continuation. Owns copied arguments, home results, and deferred
+// push bytes; borrows a live ROB slot or committed EXEC child/state. Home replies arrive
+// through the mailbox before completion release-stores Done. The pending count/barrier
+// keeps the connection alive. No allocation rollback guarantee is established here.
 struct PubSubPending {
     PubSubPendingKind kind = PubSubPendingKind::Modify;
     uint64_t op_id = 0;
@@ -96,6 +112,11 @@ void pubsub_blob_unref(PubSubBlob* blob) {
     srv_->pubsub_blob_retired();
 }
 
+// Transfer event ownership from the calling IO to its local queue or the target's
+// mutex-protected inbox. Requires a valid target IO and a heap event counted as created.
+// Only the first event of a remote burst posts a wake marker; a full client channel
+// spins until that marker lands. Allocation failure is not handled locally. Consumers
+// own deletion and any delivery-blob references after a successful enqueue.
 void pubsub_post(uint32_t target_io, PubSubEvent* event) {
     if (target_io == self_->id()) {
         pubsub_local_events_.push_back(event);
@@ -326,13 +347,12 @@ void pubsub_emit(Client* client, const char* p, size_t n, bool resp3) {
             deferred.append(p, n);
         return;
     }
-    // A WHOLE FRAME, ON A FRAME BOUNDARY. This used to park the push on the newest live Op's
-    // `reply`, which is the reply's tail when it is copied and its HEAD when it is borrowed --
-    // so a push landed between a bulk header and its zero-copy body. Client::append_oob picks
-    // the output channel that can neither reorder the frame nor overwrite a live direct-reply
-    // region. The send engine also parks a frame behind the dispatch frontier it observes, so
-    // a delivery cannot overtake an earlier-issued reply such as its own SSUBSCRIBE ack. A
-    // genuinely parked blocking head is the latency-bounded exception.
+    // Append a complete frame at a frame boundary. A borrowed Op reply has a separate
+    // header and body, so appending to its reply buffer could split that frame.
+    // Client::append_oob chooses a channel that preserves framing and live direct-reply
+    // regions. The send engine defers behind the observed dispatch frontier so a delivery
+    // cannot overtake an earlier reply, including its own SSUBSCRIBE acknowledgement.
+    // A parked blocking head is the latency-bounded exception.
     const bool deferred =
         resp3 ? wb_.defer_oob(*client, &kPush, 1, p + 1, n - 1) : wb_.defer_oob(*client, p, n);
     if (__builtin_expect(deferred, false)) {
@@ -449,21 +469,18 @@ uint64_t /* TOMO_TOOL_BIND pubsub_home_publish */ pubsub_home_publish(
     return receivers;
 }
 
-// One pass' worth of resolved fanout, posted as ONE event per destination IO.  The publisher
-// cost is now O(#IO owners touched) per pass, not O(#subscribers) per publish, and each owner
-// appends a whole burst into its clients' buffers before it arms a single send.
+// Flush this home's resolved fanout once per destination IO and pass. Each receiving
+// owner appends the burst before serving its clients, allowing output coalescing.
 uint32_t pubsub_flush_outboxes() {
     uint32_t work = 0;
     std::vector<uint32_t> dirty;
     dirty.swap(pubsub_outbox_dirty_);
 
-    // PASS A -- deliveries, before any reply leaves this home. This is the ordering fence that
-    // replaced the old per-publish DeliveryReply: a publisher that waits for its reply before
-    // publishing again cannot have a later message overtake an earlier one at a shared
-    // subscriber, even when the two channels live on different homes. An owner's inbox is one
-    // totally ordered queue, so POSTED is sufficient here -- it need not be processed yet.
-    // (A pipelined publisher spanning several homes has no cross-channel order, in this design
-    // and in the one before it; a single channel is ordered by its single home either way.)
+    // Queue deliveries before any publish reply leaves this home. A publisher that waits
+    // for its reply before publishing again cannot have a later message overtake the first
+    // at a shared subscriber, even across channel homes. Posting into the ordered inbox is
+    // sufficient; processing need not have finished. Pipelined publishing across different
+    // homes has no cross-channel ordering guarantee; each home orders its own channel.
     for (uint32_t io : dirty) {
         PubSubOutbox& box = pubsub_outbox_[io];
         if (box.deliveries.empty()) continue;
@@ -540,6 +557,12 @@ void pubsub_notification_continue(PubSubEvent& event) {
     if (chain->completed) chain->completed(chain->completion);
 }
 
+// Handle a borrowed mailbox request on its channel/pattern home IO. Only that home
+// mutates its indexes; connection identities cross threads without Client pointers.
+// Transfer newly built result events through pubsub_post; notification continuations
+// follow flushed deliveries so the coordinator cannot reorder links. Unknown kinds do
+// nothing. Container/event allocation exceptions propagate; pubsub_post may spin for
+// the burst wake marker when its client channel is full.
 void pubsub_handle_home_request(PubSubEvent& event) {
     const PubSubRef ref{event.origin_io, event.conn_id};
     switch (event.kind) {
@@ -629,10 +652,9 @@ void pubsub_handle_home_request(PubSubEvent& event) {
             PubSubEvent* result = pubsub_new_event(PubSubEventKind::NumpatResult);
             result->conn_id = event.conn_id;
             result->op_id = event.op_id;
-            // Redis counts DISTINCT patterns that have at least one subscriber, not pattern
-            // subscriptions: two clients on "news.*" are one pattern. Patterns are replicated
-            // to every home, so one home's list holds them all. (Probed against redis 7.4;
-            // this used to report pubsub_patterns_.size() and over-counted shared patterns.)
+            // Count distinct patterns with at least one subscriber, not subscriptions: two clients
+            // on the same pattern contribute one. Patterns are replicated to every home, so this
+            // home's list covers the full pattern set.
             std::unordered_set<std::string> distinct;
             distinct.reserve(pubsub_patterns_.size());
             for (const PubSubPatternRef& entry : pubsub_patterns_) distinct.insert(entry.pattern);
@@ -724,6 +746,12 @@ void pubsub_clear_local_subscriptions(PubSubLocalConn& local) {
     if (local.client) local.client->set_subscriber_mode(false);
 }
 
+// Finish a fully collected command on its connection IO owner. The caller establishes
+// remaining == 0 and keeps the client/ROB or EXEC child alive. Assemble acknowledgements
+// and deferred pushes in protocol order, release-store Done, then remove pending state.
+// Absent pending/local entries return harmlessly; zero local pending count aborts.
+// Allocation exceptions are not recovered here; serving/completion continues through
+// the IO FIFO or the borrowed EXEC coordinator after this method returns.
 void pubsub_finish_pending(uint64_t conn_id) {
     auto pending_it = pubsub_pending_.find(conn_id);
     auto local_it = pubsub_local_.find(conn_id);
@@ -1106,6 +1134,12 @@ pubsub_begin_pending(Client* client, PubSubPending&& pending, std::vector<PubSub
     return PubSubStartResult::Async;
 }
 
+// Begin a validated subscription change on the connection IO worker. Copy arguments
+// before handing requests to channel homes (all homes for patterns). Empty unsubscribe
+// returns a synchronous acknowledgement; otherwise pubsub_begin_pending owns the
+// continuation/events and publishes the ROB slot before requests can answer. An EXEC
+// caller supplies a live child and coordinator state instead. Throwing allocations have
+// no local recovery path; async completion waits for every home result.
 PubSubStartResult pubsub_start_modify(Client* client, Op& op, bool pattern, bool subscribe,
                                       bool shard = false, void* exec_state = nullptr,
                                       uint64_t exec_id = 0) {
@@ -1202,19 +1236,15 @@ PubSubStartResult pubsub_start_publish(Client* client, Op& op, bool shard = fals
     // therefore need no per-connection scatter barrier: results can complete arbitrary ROB
     // slots while the channel home remains the sole delivery-order authority.
     client->rob().publish();
-    // No extra in-flight cap, and no inline drain. The ROB window is already the per-connection
-    // in-flight bound, and `client-output-buffer-limit pubsub` is already the subscriber-side
-    // bound -- Redis's own two mechanisms. The cap that used to sit here (10 regular / 11 shard)
-    // forced a home round trip every ten messages, which starved output coalescing: each
-    // subscriber got a send per ~10 frames where Redis gets one per pipeline. Deferring the
-    // drain to the pass boundary is the other half: a 64-deep pipeline now resolves as ONE
-    // batch per destination.
+    // The ROB window bounds this connection's in-flight publishes, and subscriber output
+    // limits bound buffered deliveries. Defer draining to the pass boundary so a pipeline
+    // can coalesce into one batch per destination without a separate publish cap.
     pubsub_post(event->target_io, event);
     return PubSubStartResult::Async;
 }
 
-// Redis reports arity failures on a PUBSUB arm through the subcommand-syntax reply, echoing
-// the subcommand token exactly as the client spelled it. Probed against redis 7.4.
+// PUBSUB syntax errors echo the subcommand token as the client spelled it;
+// command_reply_subcommand_error supplies that protocol grammar.
 void pubsub_reply_bad_subcommand(Op& op, bool unknown) {
     command_reply_subcommand_error(op, "PUBSUB", unknown);
 }
@@ -1323,6 +1353,11 @@ PubSubStartResult pubsub_start_help(Op& op) {
     return PubSubStartResult::Sync;
 }
 
+// Route a registry/arity-validated pub/sub or CLIENT/MONITOR command on its IO owner.
+// Check channel ACLs before publication. Sync leaves reply bytes for caller completion;
+// Async delegates ownership to the pending/home-event protocol, which publishes before
+// posting and later release-stores Done. Errors produce synchronous protocol replies;
+// allocation failure is not translated into a reply in this dispatcher.
 __attribute__((noinline, noipa)) PubSubStartResult pubsub_start_command(Client* client, Op& op) {
     LatencyTrackingScope latency(self_->id(), op);
     if (op.cmd_name().eq_icase("client") || op.cmd_name().eq_icase("monitor")) {
@@ -1424,7 +1459,7 @@ bool pubsub_disconnect_ready(Client* client) {
     // Wait for its ROB retirement before the one cleanup sweep, otherwise
     // a later child can install a home entry after that sweep has passed.
     if (client->multi_session() && !client->rob().quiesced()) return false;
-    // FLIP pin (IO4.1/IO4.4): both teardown paths pass this gate before the connection leaves
+    // FLIP pin: both teardown paths pass this gate before the connection leaves
     // ThreadCtx::clients and before cleanup reads Placement. While a FLIP holds this IO's
     // connection set, the close waits here (still owned, counted and allocated).
     if (__builtin_expect(flip_close_pin_, false) && flip_close_held()) return false;

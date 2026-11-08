@@ -1,9 +1,9 @@
-// read_local.h — fused read-lane owner-side deferred reclamation.
-//
-// Readers never enter/leave an epoch. Their entire foreign-pointer lifetime is bounded by one
-// coarse fused rotation, whose ThreadCtx tick is published by every FusedExLoop pass (including
-// snapshot-driven passes). A store owner unlinks first, then hands the retired allocation to this
-// fixed ring; each unsealed FIFO suffix receives one shared post-unlink stamp at its next drain.
+// Owns read-local key-overlap predicates and owner-side deferred reclamation. Included
+// by ex_loop.h into executor/IO translation units, not as a standalone TU.
+// Readers hold foreign pointers only within a coarse read-local rotation; they do not
+// enter/leave an epoch for each operation. Owners unlink before retirement. Sealing uses
+// a post-unlink epoch stamp, and reclamation waits for every active reader to cross it.
+// The full retire ring can delay its writer; it never asks readers to retry.
 #pragma once
 #include <algorithm>
 #include <cstddef>
@@ -149,6 +149,11 @@ inline bool read_local_commands_overlap(const Op& read, const Op& owner) {
 // every entry retired since the previous seal shares ONE stamp (the epoch that seal advanced past),
 // recorded once per sealed batch rather than once per entry. The drain tests one stamp per batch and
 // never scrubs a slot: the owner assigns every field of a slot before it is live again.
+// Single-owner index state; callers provide payload storage and post-unlink stamps.
+// No atomics or allocation live here. push requires room and complete slot initialization;
+// drain_below requires a proven reader grace floor and a callback that cannot invalidate
+// iteration. A full batch ring folds into the newest stamp, delaying reuse safely;
+// entry-capacity backpressure is the enclosing queue's responsibility.
 struct ReadLocalRetireRing {
     static constexpr uint32_t kCapacity = kReadLocalRetireRingCapacity;
     static_assert((kCapacity & (kCapacity - 1)) == 0);
@@ -158,6 +163,8 @@ struct ReadLocalRetireRing {
     static constexpr uint32_t kBatchCapacity = 256;
     static_assert((kBatchCapacity & (kBatchCapacity - 1)) == 0);
 
+    // Owner-private FIFO range descriptor. stamp covers count contiguous retired entries;
+    // merging may only replace it with a newer stamp, never shorten their grace period.
     struct Batch {
         uint64_t stamp;  // the OLD epoch value returned by the seal's fetch_add
         uint32_t count;  // entries in this batch, contiguous from the drain head
@@ -242,6 +249,13 @@ struct ReadLocalRetireRing {
     uint32_t batch_count = 0;
 };
 
+// Physical-owner reclamation queue. Borrow Server/ThreadCtx through shutdown; own the
+// fixed entry array, resize retirements, and reusable block cache. Stores must unlink
+// payloads before handing them to the sink, at most once each. Owner-only operations
+// seal via the server's seq_cst epoch RMW and reclaim only below the reader grace floor.
+// init returns false on allocation failure. A full entry ring waits for grace on the
+// writer; readers neither retry nor acquire a per-operation lock. After workers join,
+// the coordinator must drain_shutdown before destruction; the destructor frees the cache.
 class ReadLocalDeferredQueue {
 public:
     static constexpr uint32_t kCapacity = ReadLocalRetireRing::kCapacity;
@@ -287,11 +301,10 @@ public:
     void defer(void* reclaim_owner, void* payload, size_t auxiliary,
                ReadLocalRetireSink::ReclaimFn reclaim) {
 #ifdef TOMO_RL_CACHE_DEBUG
-        // A payload may be in this ring at most once. Retiring one object twice puts it into the
-        // owner's block cache twice, which splices a CYCLE into that class's free list; the block
-        // is then handed out while still linked, its header overwrites the `next` word, and the
-        // next take() either aborts on the allocation check or dereferences a wild head. That is
-        // the corruption this P0 is chasing, so name it at the double retire instead.
+        // A payload may occupy this ring only once. Double retirement inserts the same block
+        // into the owner's cache twice, creating a free-list cycle. Reallocation can then
+        // corrupt the next pointer or return a block that is still linked. Detect the duplicate
+        // at retirement so the failing invariant is identified before cache corruption.
         dbg_check_owner("defer");
         if (!dbg_pending_.insert(payload).second) {
             std::fprintf(
@@ -356,6 +369,9 @@ public:
 private:
     ResizeRetireQueue resizes_;
     // 32 bytes: two entries per cache line. No stamp here -- it belongs to the ring's sealed batch.
+    // One owned retired payload plus borrowed reclaim context/callback, valid until grace.
+    // Only the queue owner initializes/consumes live slots; the callback performs the release.
+    // The enclosing batch, not this entry, owns its retirement stamp.
     struct Entry {
         void* owner = nullptr;
         void* payload = nullptr;
