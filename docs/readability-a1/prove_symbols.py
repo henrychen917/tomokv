@@ -60,4 +60,4 @@ for name,command,pattern in cases:
     rows.append(row);(a.output/'results.json').write_text(json.dumps(rows,indent=2)+'\n')
     print('PASS' if row['passed'] else 'FAIL',name,'positive',positive.returncode,'negative',negative.returncode,flush=True)
     if not row['passed']:print(positive.stderr+negative.stderr,flush=True)
-raise SystemExit(int(not all(row['passed'] for row in rows)))
+raise SystemExit(int(not rows or not all(row['passed'] for row in rows)))

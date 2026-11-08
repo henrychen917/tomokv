@@ -1,0 +1,3 @@
+./build/l4prebuild-unit 1s read-local-0
+FAIL owner arena: fixture needs exactly eight allowed CPUs
+make: *** [Makefile:935: l4prebuild-unit] Error 1

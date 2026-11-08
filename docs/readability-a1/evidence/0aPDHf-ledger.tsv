@@ -1,0 +1,8 @@
+PARTIAL	0	GATE_ONLY_JOBS=ring_unit reorder_sync source_identity splitlocal_units; NOT A RECEIPT
+ok	0.050000	release build (+footprint locks)
+ok	1.150000	read-local write ring + arming transient unit
+ok	0.020000	climon 128-owner delivery mask
+ok	0.930000	read-local MGET fence symmetry unit
+ok	131.110000	production source identity + stable assertion ids
+ok	24.800000	R7 generated envelope parity
+ok	10.520000	splitlocal template forwarding + old-argument controls

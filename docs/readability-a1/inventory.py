@@ -15,10 +15,20 @@ SUFFIXES = {'.py', '.sh', '.mk', '.cc', '.c', '.h', '.inc'}
 
 def inventory():
     files = subprocess.check_output(['git', 'ls-tree', '-r', '--name-only', BASE, 'tools', 'tests'], cwd=ROOT, text=True).splitlines()
-    # Read the original checkout, so the report remains reproducible after retirement.
-    original = ROOT / 'build/readability-a1/original'
-    texts = {p: (original / p).read_text(errors='replace') for p in files if Path(p).suffix in SUFFIXES}
-    texts['Makefile'] = (original / 'Makefile').read_text()
+    # Read frozen blobs directly: an ignored scratch checkout is not a report input.
+    paths = [p for p in files if Path(p).suffix in SUFFIXES] + ['Makefile']
+    objects = subprocess.check_output(
+        ['git', 'cat-file', '--batch'], cwd=ROOT,
+        input=''.join(f'{BASE}:{path}\n' for path in paths).encode())
+    texts, offset = {}, 0
+    for path in paths:
+        end = objects.index(b'\n', offset)
+        _, kind, size = objects[offset:end].split()
+        assert kind == b'blob', (path, kind)
+        offset = end + 1
+        texts[path] = objects[offset:offset + int(size)].decode(errors='replace')
+        offset += int(size) + 1
+    assert offset == len(objects)
     bybase = {}
     for path in files:
         bybase.setdefault(Path(path).name, []).append(path)
@@ -57,6 +67,7 @@ def inventory():
 if __name__ == '__main__':
     files, texts, edges, live, callers = inventory()
     out = ROOT / 'build/readability-a1/inventory.json'
+    out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(dict(files=files, edges=edges, live=sorted(live), callers=callers), indent=2) + '\n')
     print('tracked files:', len(files), 'scripts:', sum(Path(p).suffix in ('.py', '.sh', '.mk') for p in files),
           'reachable:', len(live), 'tools reachable:', sum(p.startswith('tools/') for p in live))

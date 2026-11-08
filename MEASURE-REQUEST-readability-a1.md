@@ -2,9 +2,164 @@
 
 Baseline: `5c3631281815c1652b3894d1736840c8466a5015`. Branch `cx-readability-a1`; no push.
 
+### Result and scope
+
+Production remains binary-identical to `5c3631281`: **IDENTICAL (11,167,504 bytes after stripping)**. The 51 changed production files differ only in comments; their raw C++ preprocessing-token sequences equal PRE. `make all` produces one executable, `build/tomokv`. No server logic, layout, command, gate label or expected count was changed. No throughput measurement is requested or claimed.
+
+The inventory retired **468 unchanged files** (449 tools and 19 tests), with no live caller removed. The source-tool matrix passes **52/52** on each of the current, fully formatted and renamed trees. The three shapes emit the same **313** normalized C++ outputs ([token manifest](docs/readability-a1/evidence/emitted-tokens.json)). Nine ELF controls pass and reject missing symbols on both the formatted and renamed fixtures; the separate linker-wrapper control also rejects a missing role in the DB-0 namespace.
+
+The latest executions of the selected gate jobs contain **185 passing rows and zero failures** across 46 counted jobs, plus two build-only dependencies. The bounded lottery configuration row passes. The expiry lottery row remains **INSUFFICIENT**, and the historical blockfix rename builder and optional L4 fixture remain unusable; these are detailed below. This is a partial gate selection, not a full-gate certification.
+
+### Hardening contract
+
+`tools/source_tokens.py` supplies lexical token matching, balanced function extraction, unique replacement guards, stable identifier roles and ELF-name translation. Literal contents remain significant; comments, indentation, spacing and physical line numbers do not identify C++ operations. Explicit multi-site patches retain their reviewed exact counts (for example, the two shadow copies and six SplitLocal forwarding sites). Missing and ambiguous anchors are errors.
+
+`TOMO_TOOL_FUNCTION`, `TOMO_TOOL_ANCHOR` and `TOMO_TOOL_BIND` comments are tool interfaces. The manifest checks their presence and uniqueness. Function/type/helper renames must preserve these comments; code snippets are translated through the bound identifiers. The rename proof changes **142 bound roles**, including both ordinary and R7 functions, classes, constants, diagnostics and PAD entry points. It does not establish unrestricted alpha-renaming of every unbound local/field name: an unbound identifier used literally in an anchor still needs a binding or a corresponding tool update. This is an explicit limit of the rename coverage, not a claim that arbitrary identifier edits are safe.
+
+File moves must carry their Makefile prerequisites, per-object compilation budgets, marker-manifest paths and explicit caller paths in the same change. The per-object-rule test rejects a rule whose source disappeared. Files are not located by stale physical line numbers. This work does not automate arbitrary file moves.
+
+The Makefile’s Climon mask control and L4 threshold extraction now use `tools/build_source_controls.py`, replacing unguarded `sed` commands. The Climon control checks the unique marked function and its parameter/shift expression; the threshold reader checks the marked integer macro. Make rejects an empty or invalid threshold before compilation.
+
+Python battery controls now use AST statements selected by stable comments. The lottery driver rejects missing/duplicate section anchors and missing propagation-sleep calls. Symbol controls retain their exact expected inventories and opcode assertions. The length-prefixed symbol parser handles the digit at the end of `tomo_db0`; both namespace variants participate in the rename controls.
+
+All PAD controls exercised here are existing **kind A behaviour twins**: PRE behaviour with the candidate's text size/layout. There is no new layout experiment or performance arm.
+
+### Formatting and broken-anchor evidence
+
+Installed with pip: **clang-format 18.1.8**. All **202** `.cc`, `.h` and `.inc` files under `src/` were formatted in disposable trees under `build/readability-a1/`. None of those formatted or renamed sources is committed.
+
+```yaml
+BasedOnStyle: Google
+ColumnLimit: 100
+SortIncludes: Never
+BreakStringLiterals: false
+InsertBraces: false
+QualifierAlignment: Leave
+```
+
+| Fixture | Positive source cases | Broken-anchor rejections | Emitted token streams |
+|---|---:|---:|---|
+| Current source | 52/52 | 52/52 | 313 |
+| Fully formatted source | 52/52 | 52/52 | same 313 hashes |
+| Fully formatted + 142 role renames | 52/52 | 52/52 | same 313 hashes |
+
+Each source case runs successfully, then removes a stable marker or corrupts a required token anchor and requires a nonzero exit. Positive output hashes are captured **before** the negative attempt can overwrite a copied tree. The 41 WB controls, six flush-header sites, four WBLAND controls, nine LB controls, three persistence controls and six still-applicable blockfix controls are included within those invocations. The lottery builder prepares all **62** insertion sites, and its additional test removes and duplicates the selected seam independently.
+
+Before hardening, the frozen tools produced these results on the same source formatting transformation:
+
+| Original tool invocation | Original source | Formatted source | Hardened formatted result |
+|---|---|---|---|
+| R7 sync | pass | fail | pass + broken-anchor rejection |
+| reorder sync | pass | fail | pass + rejection |
+| lottery preparation | fail: ambiguous existing anchor | fail | 62 sites + missing/duplicate rejection |
+| command metadata coverage | pass | fail | pass + rejection |
+| documentation drift | pass | fail | pass + rejection |
+| LB planner PAD source proof | pass | fail | pass + rejection |
+| LB oscillation PAD source proof | pass | fail | pass + rejection |
+| storesize instrumentation | pass | pass | pass + rejection |
+| SplitLocal emission | pass | fail | pass + rejection |
+
+The original Makefile commands also returned zero after relevant names were changed: Climon emitted an unchanged header, and L4 emitted no threshold. Both replacements now fail on missing/duplicate anchors and pass the reformat/rename cases ([inline-command before evidence](docs/readability-a1/evidence/make-inline-before.json)).
+
+The table’s original-tool comparison is a nine-invocation smoke slice; the complete AFTER matrix is the 52-case three-shape test above. [Exact commands and results](docs/readability-a1/evidence/source-and-symbols.json), [original-tool stdout/stderr](docs/readability-a1/evidence/before.json), and [the 142 rename roles](docs/readability-a1/evidence/rename-roles.json) are retained. The source and ELF proof drivers are `docs/readability-a1/prove_tools.py` and `prove_symbols.py`.
+
+Additional checks:
+
+- Stable assertion/source-identity tests: **11/11** on the formatted tree and **11/11** after the role renames, including duplicate ids, macro semantics, expanded-source lint and empty-inventory rejection.
+- Shared lexer/anchor tests: **11/11**, including raw literals, spliced lines, numeric tokens, marker retention, duplicate/missing anchors, per-object rules, Makefile control failures, renamed function parameters/macros and digit-ending namespaces.
+- Lottery runner/AST tests: **20/20**, including renamed/reindented expiry functions and absent/duplicate anchors.
+- ELF controls: HLL, both executor checks, idle-clock allocation, both R7 capabilities, both LB controls and storesize. Renames change copied ELF symbol tables; they do not compile or boot a renamed production tree. Missing-role controls must fail. The linked-code identity assertions remain intact.
+- Function-capture wrapper: positive lookup of both namespace roles, followed by rejection after deleting a required undefined symbol, also using actual renamed object symbols.
+
+Reproduction (all source fixtures are disposable):
+
+```sh
+LC_ALL=C taskset -c 64-95 python3 -m pip install --target build/readability-a1/python clang-format==18.1.8
+LC_ALL=C taskset -c 64-95 python3 docs/readability-a1/prepare_scratch.py
+LC_ALL=C taskset -c 64-95 python3 docs/readability-a1/prove_tools.py --root build/readability-a1/formatted --output build/readability-a1/recheck-formatted
+```
+
+Repeat the last command for `current` and `renamed`. Preserve the unchanged frozen Redis 7.4 reference tree at the path used by the gate; generated-metadata checks deliberately use that external input. The preparation helper copies only source/test/build inputs and the two small documents needed by these checks.
+
+### Build and binary proof
+
+Compiler: **GCC 13.3.0**, original `-march=native` build flags. PRE was built at `5c3631281` before the lane edits. POST uses the same INFO metadata:
+
+```sh
+export LC_ALL=C TOMO_INFO_GIT_SHA1=5c363128 TOMO_INFO_GIT_DIRTY=0
+taskset -c 64-95 make -j32 all
+taskset -c 64-95 /home/user/Projects/calib/binary-neutral.sh build/readability-a1/PRE build/readability-a1/POST
+```
+
+The Makefile adds default-preserving overrides for these two existing INFO build values. Without pinning them, committing a change changes the advertised revision/dirty bit and therefore changes the production bytes even for comment-only work. The proof holds those build inputs fixed; it does not remove INFO fields or normalize executable sections beyond the supplied comparison script.
+
+PRE and POST both strip to SHA-256 `555037b272faec7b4ff5bd03012485b26bb81df904f0805a0c0a298d3104a842`. [Binary receipt](docs/readability-a1/evidence/binary.json), [IDENTICAL output](docs/readability-a1/evidence/binary-neutral.log), and [comment-only source audit](docs/readability-a1/evidence/source-neutral.json).
+
+All **61** targets listed in `job_production_units`, plus `all`, built successfully with `-j32`; all 62 passed `make -q`. The Climon positive/negative units and L4 unit also built, giving 65 successful primary targets. The supplementary multi-DB witness arms and blockfix targets also built through the gate. The final freshness sweep is **70/70**: [target list and exits](docs/readability-a1/evidence/make-freshness.json). Intentional negative-control executables are not production replacements, and are not claimed to be identical to the release server.
+
+### Gate and fixture proof
+
+- `LC_ALL=C GATE_TEST_PORT=25199 taskset -c 64-95 python3 tests/gates_test.py`: **83 tests, OK**.
+- `LC_ALL=C taskset -c 64-95 python3 -m unittest discover -s tests -p gate_ledger_fixture.py`: **12 tests, OK**.
+- `tests/fixtures/nullrefresh-ledger-labels.json` is unchanged: **1,230 rows, including NIC**.
+- No added/removed counted row. `EXPECT_QUICK=1212` and `EXPECT_FULL=1229` remain unchanged; the existing quick-tier collection boundary is unchanged. The new tool tests run inside the existing R7 parity row. The individual lottery selector remains outside landing counts.
+
+Every correctness boot inherited `LC_ALL=C`. Ordinary partial gate invocations used the gate's eight-core, 16-shard, 6:2 geometry, with `--server-cores 64-87 --load-cores 88-95 --load-smt ''` and allocated port ranges entirely inside 25100–25198. `GATE_PROOF_NO_RATES=1` excluded the optional release-rate assertions; their normal gate defaults were not changed. Oracle CPU overrides also stayed within 64–95. No full iteration, ABBA campaign or NIC benchmark ran.
+
+The selected jobs cover source identity, config/docs and metadata, R7 sync/identity/engagement/bounds, lottery source checks, LB/WB/WBLAND/SplitLocal/flush/persistence units, both TSan counter modes, climon, tracking/AOF schedules, the function wrapper, HLL controls, idle-buffer and portable ROB negatives, both debug batteries, all eight selected multi-DB configurations, and the remaining direct callers of the hardened source controls. The exact selections and ledgers are in [gate-runs.json](docs/readability-a1/evidence/gate-runs.json).
+
+| Gate invocation | Passed rows | Failed rows | Disposition |
+|---|---:|---:|---|
+| `gate-run.nRp2XT` | 82 | 16 | Units became stale while dependencies were still being edited; the gate correctly refused them. Rebuilt and rerun. |
+| `gate-run.TiMLu6` | 46 | 3 | Fixed an over-specific lottery error check, DB-0 symbol lookup, and the explicit R7 prefix in the SplitLocal negative. |
+| `gate-run.KEG70j` | 7 | 0 | All three failed jobs and the affected source/ROB/idle-buffer checks pass. |
+| `gate-run.EzuOth` | 79 | 0 | Additional debug, persistence schedule, EX, R7 and writeback callers pass. |
+| `gate-run.0aPDHf` | 7 | 0 | Final inline Makefile controls, ring, source identity, R7 and SplitLocal checks pass. |
+
+Taking the latest execution of each selected counted job gives **185/185 passing rows**, across **46 counted jobs**, with two additional build-only dependency jobs. This union is documented separately from a full-gate result; earlier failures have not been deleted from the evidence. One additional invocation selected the build-only `production_units` job directly and was rejected before running rows; the final invocation selected its consumers instead ([selector rejection](docs/readability-a1/evidence/gate-rejected-build-only-selector.log)).
+
+The lottery wrapper now accepts `tests/gate.sh lottery --row ID ...`, keeping its default whole-nightly invocation unchanged. It builds only the required non-ASAN witness unless row 503 is selected. Two bounded runs used 80–87 server CPUs, 92–95 client CPUs and ports 25170–25172:
+
+- Row **149**, `--hits 1 --cap 60 --attempt-timeout 120`: **PASS**, one attempt and one required witness. This exercises the compiled lottery hooks and AST propagation observations through the gate interface.
+- Row **159**, same bounds: **INSUFFICIENT**, two fresh attempts, zero complete W4 witnesses. Both batteries reported 101 checks and zero failures. Fanout and EXEC windows were observed, but the script expiry window was not. No skipped window, relaxed tolerance or passing lottery verdict was substituted. [149 receipt](docs/readability-a1/evidence/lottery-row149.json), [159 receipt](docs/readability-a1/evidence/lottery-row159.json).
+
+The additional optional `l4prebuild-unit` runtime check **fails**, despite a successful build and extraction of the expected 512 boundary. After correcting the first invocation from 32 allowed CPUs to the required eight (64–71), all four mode/read-local combinations report `owner completes fragment`. The frozen `5c3631281` fixture/header tree, linked to the same binary-identical production objects, reproduces the same failure in all four combinations. No source/test assertion was weakened ([frozen/current comparison](docs/readability-a1/evidence/l4-frozen-comparison.json)). This optional target is not a counted gate row.
+
+### Retirement and row-removal candidates
+
+All **468** archived files match the frozen Git blobs byte for byte ([archive audit](docs/readability-a1/evidence/archive-audit.json)). `tools/archive/README.md` lists what each proved/built; `docs/readability-a1/retired.json` records original path, archived path and digest. Their relative import/ROOT assumptions are deliberately unchanged: replay them at their original commit and original paths, not as new build entry points.
+
+**Rows whose only purpose is calling a retired tool: none.** Every archived file is outside the conservative live gate/build/import closure, and retained manual callers were protected too. Therefore this lane proposes no row deletion and no EXPECT change. Frozen-reference PAD/identity checks still test an active invariant and remain in place. Historical CLI branches inside modules that supply live library functions are explicitly identified in the inventory; those modules were not moved wholesale.
+
+### NOT RUN and remaining limits
+
+- Full iteration/full gate, ABBA, NIC and throughput benchmarks; the complete nightly lottery campaign; lottery ASAN row 503; the optional L4 TSan target. Only the bounded rows above ran.
+- Row 159 has no complete W4 witness and is not certified. This is a missing-window result, not an assertion pass.
+- `tools/blockfix2_controls.py mutation('rename')` is a pre-existing broken historical build branch at the frozen input: it restores `83e0b809d:src/cmd/xshard_commands.inc` and then searches `blocking.inc` for command-specific publication code that has since moved/disappeared. It fails loudly. The six still-applicable mutation branches were prepared on all three source shapes and rejected broken anchors; no historical blockfix Tcl negative campaign was built or run. Its optional gate receipt/check paths remain present; no counted row was removed.
+- The optional L4 unit runtime checks fail in both frozen and current fixtures as described above; they are not certified. The first 32-CPU invocation was rejected for geometry, before the eight-CPU comparison.
+- Historical command-line proof branches retained alongside live utility imports (notably `ttlstate_proof.source`, wave orchestration and frozen-PRE patchers) were not replayed. The inventory distinguishes those branches from the helpers actually used by current builds/tests.
+- The rename evidence covers the **142 bound roles**, plus the Python marker roles, not every possible unbound identifier or arbitrary file relocation. Preserve marker identities and update explicit build/path contracts when moving files. A blanket guarantee for arbitrary future renames remains outside the demonstrated coverage.
+- No push, merge or maintainer measurement was performed. No committed file exceeds 1 MB.
+
+### Files added by A1
+
+These are additional to the frozen-input inventory below; archived destinations are recorded in the corresponding original-file rows.
+
+| Tool/support file | Class | Caller | Action |
+|---|---|---|---|
+| `tools/build_source_controls.py` | LIVE; TEXT-MATCHER | Makefile Climon mask and L4 prebuild recipes | Checked function-body patch and integer macro reader; missing/duplicate anchors fail |
+| `tools/source_tokens.py` | LIVE; TEXT-MATCHER | hardened C++/ELF tools and tests | Shared lexer, checked replacements and stable role translation |
+| `tools/source_anchors.json` | LIVE | shared lexer and generated-source prerequisites | Required stable comments |
+| `tests/source_tokens.py` | LIVE | directly executed tests | Import bridge to the shared implementation |
+| `tests/source_tokens_test.py` | LIVE; TEXT-MATCHER | existing `reorder_sync` gate job | Lexer, marker, ELF-name, Makefile-control and per-object-rule checks |
+| `tests/lottery_build_test.py` | LIVE | existing `reorder_sync` gate job | All 62 sites and absent/duplicate seam controls |
+| `tests/python_anchors.py` | LIVE; TEXT-MATCHER | lottery driver and strict scriptatomic control | AST insertion at unique stable comments |
+
 ### Inventory
 
 The actual frozen tree has 1,290 tracked files under tools/ and tests/, including 978 Python/shell/Make scripts. This supersedes the assessment’s older estimates. LIVE includes the gate, its tests and opt-in Makefile targets conservatively; TEXT-MATCHER is an additional property. MANUAL means retained standalone/support material with no proven closed-lane status. FINISHED-LANE is archived only after checking the transitive gate/build graph and all retained manual callers.
+
+The frozen caller graph can be reproduced with `python3 docs/readability-a1/inventory.py`; it reads the baseline directly from Git. `update_inventory.py` applies the reviewed per-file classifications recorded in `triage-overrides.json`.
 
 Callers are source references/imports; a mention in documentation is not execution evidence. Dynamic gate paths are expanded conservatively. Full caller edges and baseline line references are included below.
 
@@ -17,14 +172,14 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/_differ_ccfix.py` | LIVE | `tests/differ.py` | retained |
 | `tests/_differ_history.py` | LIVE | `tests/differ.py`, `tests/differ_fanout.py`, `tests/differ_fanout_test.py`, `tests/differ_gate.sh`, `tests/lottery_attempt.py`, `tests/mode_equivalence.py` | retained |
 | `tests/_gate_process.py` | LIVE | `tests/abba_saturation_controls.py`, `tests/aof.py`, `tests/atomfix5.py`, `tests/atomfix6.py`, `tests/atomwake.py`, `tests/blockwake.py`, `tests/climon_128.py`, `tests/dbdefault.py`, `tests/feature_gate.py`, `tests/flushfix_checks.py`, `tests/gate_process_test.py`, `tests/gates_test.py`, `tests/legacy_reorder_witness.py`, `tests/lottery_attempt.py`, `tests/lottery_runner.py`, `tests/lottery_test_driver.py`, `tests/mode_equivalence.py`, `tests/mutants.py`, `tests/parkwake.py`, `tests/perf_gate.py`, `tests/racefix.py`, `tests/reordertrim.py`, `tests/servertail.py`, `tests/shutdown_persist.py`, `tests/trackorder.py`, `tools/mset8fix_latency.py`, `tools/overlapaxe_artifacts.py`, `tools/scriptfix3_jobs.py` | retained |
-| `tests/_iofix.py` | LIVE; TEXT-MATCHER | `tests/iofix_deferred.py`, `tests/iofix_hz.py`, `tests/iofix_signal.py`, `tests/iofix_sleep.py` | retained; see hardening evidence |
-| `tests/_lib.py` | LIVE; TEXT-MATCHER | `tests/_client_wait.py`, `tests/_differ_ccfix.py`, `tests/_gate_process.py`, `tests/_iofix.py`, `tests/_netfix.py`, `tests/abba_instrument.py`, `tests/abbagate.py`, `tests/aclfix.py`, `tests/aclkeys_wake.py`, `tests/aclkeys_wake_state.py`, `tests/aclreply.py`, `tests/aof.py`, `tests/aof_frame_order.py`, `tests/aoforder.py`, `tests/at412.py`, `tests/at412_diagnostics.py`, `tests/atomfix5.py`, `tests/atomfix5_accounting.py`, `tests/atomfix6.py`, `tests/atomic_hazards.py`, `tests/atomic_mode.py`, `tests/atomic_plain.py`, `tests/atomic_torn.py`, `tests/atomicwindow.py`, `tests/atomwake.py`, `tests/blockfix2_repro.py`, `tests/blockwake.py`, `tests/borrow_registry.py`, `tests/cd13b_checks.py`, `tests/cd13b_wire.py`, `tests/clientcompat.py`, `tests/climon_128.py`, `tests/climonfix4.py`, `tests/compat3_blockfix.py`, `tests/compat3_blockfix2.py`, `tests/compat3_functions.py`, `tests/compat3_lib.py`, `tests/compat3_lualibs.py`, `tests/compat3_pubsub.py`, `tests/compat3_streamfix.py`, `tests/compat3_streams.py`, `tests/connreset_repro.py`, `tests/contarity.py`, `tests/crlffix.py`, `tests/datafix2_idle.py`, `tests/datafix2_subkeys.py`, `tests/datafix2_watch.py`, `tests/dbdefault.py`, `tests/debug.py`, `tests/debug_load.py`, `tests/debug_load_test.py`, `tests/edgeenc.py`, `tests/encodingfix.py`, `tests/exbatch.py`, `tests/exec1s.py`, `tests/execiso.py`, `tests/expire_notify.py`, `tests/feature_atomic.py`, `tests/flip_under_load.py`, `tests/flipfix.py`, `tests/flipfix5.py`, `tests/flipfix6.py`, `tests/flipfix7.py`, `tests/flipfix_abort_probe.py`, `tests/fliplisten.py`, `tests/flushfix2.py`, `tests/flushfix2_siblings.py`, `tests/flushfix_checks.py`, `tests/gaterows_contract_test.py`, `tests/hexpire.py`, `tests/hexpread.py`, `tests/inline_protocol.py`, `tests/inline_quoted.py`, `tests/iowake.py`, `tests/knobs.py`, `tests/latencyfix.py`, `tests/lb_stationary.py`, `tests/lbsignals.py`, `tests/legacy_reorder_witness.py`, `tests/loading_ready_test.py`, `tests/lottery_test_driver.py`, `tests/mdbqsbr_live.py`, `tests/mode_lane.py`, `tests/moverfix.py`, `tests/multidb.py`, `tests/multidb_serial.py`, `tests/multifix.py`, `tests/multirace.py`, `tests/netcap.py`, `tests/netcmd.py`, `tests/netfix2.py`, `tests/notify_order.py`, `tests/notifycompat.py`, `tests/ntnew4_clock.py`, `tests/orthog.py`, `tests/parkwake.py`, `tests/perfex_checks.py`, `tests/perfio.py`, `tests/persistfix2.py`, `tests/pipeorder.py`, `tests/psfix.py`, `tests/publishfix_e2e.py`, `tests/pubtrackfix.py`, `tests/pushtear.py`, `tests/racefix.py`, `tests/read_local_lane.py`, `tests/read_local_lfu.py`, `tests/redis_tcl.py`, `tests/redisgap.py`, `tests/redisgap_atomic.py`, `tests/rehash_readonly.py`, `tests/reorder_flip.py`, `tests/replyoff_xshard.py`, `tests/resizefix.py`, `tests/respcompat.py`, `tests/respresume.py`, `tests/respresume_flip.py`, `tests/respresume_limits.py`, `tests/rl2s.py`, `tests/rlcache_churn.py`, `tests/rlfix.py`, `tests/rlfix3_info.py`, `tests/rlfix3_zc.py`, `tests/rlfix5.py`, `tests/rootcore.py`, `tests/savefix.py`, `tests/scancompact.py`, `tests/scriptatomic.py`, `tests/scriptfix2.py`, `tests/servertail.py`, `tests/session_monotonic.py`, `tests/shutdown_persist.py`, `tests/shutsave.py`, `tests/signalacct_live.py`, `tests/slotless.py`, `tests/slowlog_identity.py`, `tests/snapfix.py`, `tests/snapfix2_flush.py`, `tests/snapfix_neighbours.py`, `tests/sortstore.py`, `tests/splitlocal_live.py`, `tests/storefix5.py`, `tests/tailgen_stall.py`, `tests/trackfix.py`, `tests/tracking_redirect.py`, `tests/trackorder.py`, `tests/txn_movers.py`, `tests/txn_nx.py`, `tests/txnfix4.py`, `tests/txngroup.py`, `tests/txniso.py`, `tests/txnorder.py`, `tests/txnorder_watch.py`, `tests/wave10.py`, `tests/wave14_eof_data.py`, `tests/wave14_functions.py`, `tests/wave14_order.py`, `tests/wave15_aof.py`, `tests/wave15_block_repeat.py`, `tests/wave15_errorstats.py`, `tests/wave15_flip_eof.py`, `tests/wave15_rebind.py`, `tests/wave7.py`, `tests/wave8.py`, `tests/wave8b.py`, `tests/wave9.py`, `tests/wb_mixed.py`, `tests/wb_policy.py`, `tests/wiredump.py`, `tests/xshard_dispatch_scale.py`, `tools/blockfix3_repro.py`, `tools/ccfix5_probe.py`, `tools/exbatch_directed.py`, `tools/lb_episodes.py`, `tools/mkfix_counts.py`, `tools/mkprobe_probe.py`, `tools/mset8fix_latency.py`, `tools/ntfix_proof.py`, `tools/overlapaxe_artifacts.py`, `tools/respresume_probe.py`, `tools/setregress.py`, `tools/snapfix_long_storm.py`, `tools/snapfix_storm_capture.py`, `tools/storefix5_checks.py`, `tools/storesize_poller.py`, `tools/txnfix4_abort_site.py`, `tools/txnfix4_probes.py`, `tools/wave15_aof_stacks.py`, `tools/wave5b_trace.py`, `tools/woundfix_live.py` | retained; see hardening evidence |
+| `tests/_iofix.py` | LIVE | `tests/iofix_deferred.py`, `tests/iofix_hz.py`, `tests/iofix_signal.py`, `tests/iofix_sleep.py` | Retained protocol/log/fixture reader; no production source matching. |
+| `tests/_lib.py` | LIVE | `tests/_client_wait.py`, `tests/_differ_ccfix.py`, `tests/_gate_process.py`, `tests/_iofix.py`, `tests/_netfix.py`, `tests/abba_instrument.py`, `tests/abbagate.py`, `tests/aclfix.py`, `tests/aclkeys_wake.py`, `tests/aclkeys_wake_state.py`, `tests/aclreply.py`, `tests/aof.py`, `tests/aof_frame_order.py`, `tests/aoforder.py`, `tests/at412.py`, `tests/at412_diagnostics.py`, `tests/atomfix5.py`, `tests/atomfix5_accounting.py`, `tests/atomfix6.py`, `tests/atomic_hazards.py`, `tests/atomic_mode.py`, `tests/atomic_plain.py`, `tests/atomic_torn.py`, `tests/atomicwindow.py`, `tests/atomwake.py`, `tests/blockfix2_repro.py`, `tests/blockwake.py`, `tests/borrow_registry.py`, `tests/cd13b_checks.py`, `tests/cd13b_wire.py`, `tests/clientcompat.py`, `tests/climon_128.py`, `tests/climonfix4.py`, `tests/compat3_blockfix.py`, `tests/compat3_blockfix2.py`, `tests/compat3_functions.py`, `tests/compat3_lib.py`, `tests/compat3_lualibs.py`, `tests/compat3_pubsub.py`, `tests/compat3_streamfix.py`, `tests/compat3_streams.py`, `tests/connreset_repro.py`, `tests/contarity.py`, `tests/crlffix.py`, `tests/datafix2_idle.py`, `tests/datafix2_subkeys.py`, `tests/datafix2_watch.py`, `tests/dbdefault.py`, `tests/debug.py`, `tests/debug_load.py`, `tests/debug_load_test.py`, `tests/edgeenc.py`, `tests/encodingfix.py`, `tests/exbatch.py`, `tests/exec1s.py`, `tests/execiso.py`, `tests/expire_notify.py`, `tests/feature_atomic.py`, `tests/flip_under_load.py`, `tests/flipfix.py`, `tests/flipfix5.py`, `tests/flipfix6.py`, `tests/flipfix7.py`, `tests/flipfix_abort_probe.py`, `tests/fliplisten.py`, `tests/flushfix2.py`, `tests/flushfix2_siblings.py`, `tests/flushfix_checks.py`, `tests/gaterows_contract_test.py`, `tests/hexpire.py`, `tests/hexpread.py`, `tests/inline_protocol.py`, `tests/inline_quoted.py`, `tests/iowake.py`, `tests/knobs.py`, `tests/latencyfix.py`, `tests/lb_stationary.py`, `tests/lbsignals.py`, `tests/legacy_reorder_witness.py`, `tests/loading_ready_test.py`, `tests/lottery_test_driver.py`, `tests/mdbqsbr_live.py`, `tests/mode_lane.py`, `tests/moverfix.py`, `tests/multidb.py`, `tests/multidb_serial.py`, `tests/multifix.py`, `tests/multirace.py`, `tests/netcap.py`, `tests/netcmd.py`, `tests/netfix2.py`, `tests/notify_order.py`, `tests/notifycompat.py`, `tests/ntnew4_clock.py`, `tests/orthog.py`, `tests/parkwake.py`, `tests/perfex_checks.py`, `tests/perfio.py`, `tests/persistfix2.py`, `tests/pipeorder.py`, `tests/psfix.py`, `tests/publishfix_e2e.py`, `tests/pubtrackfix.py`, `tests/pushtear.py`, `tests/racefix.py`, `tests/read_local_lane.py`, `tests/read_local_lfu.py`, `tests/redis_tcl.py`, `tests/redisgap.py`, `tests/redisgap_atomic.py`, `tests/rehash_readonly.py`, `tests/reorder_flip.py`, `tests/replyoff_xshard.py`, `tests/resizefix.py`, `tests/respcompat.py`, `tests/respresume.py`, `tests/respresume_flip.py`, `tests/respresume_limits.py`, `tests/rl2s.py`, `tests/rlcache_churn.py`, `tests/rlfix.py`, `tests/rlfix3_info.py`, `tests/rlfix3_zc.py`, `tests/rlfix5.py`, `tests/rootcore.py`, `tests/savefix.py`, `tests/scancompact.py`, `tests/scriptatomic.py`, `tests/scriptfix2.py`, `tests/servertail.py`, `tests/session_monotonic.py`, `tests/shutdown_persist.py`, `tests/shutsave.py`, `tests/signalacct_live.py`, `tests/slotless.py`, `tests/slowlog_identity.py`, `tests/snapfix.py`, `tests/snapfix2_flush.py`, `tests/snapfix_neighbours.py`, `tests/sortstore.py`, `tests/splitlocal_live.py`, `tests/storefix5.py`, `tests/tailgen_stall.py`, `tests/trackfix.py`, `tests/tracking_redirect.py`, `tests/trackorder.py`, `tests/txn_movers.py`, `tests/txn_nx.py`, `tests/txnfix4.py`, `tests/txngroup.py`, `tests/txniso.py`, `tests/txnorder.py`, `tests/txnorder_watch.py`, `tests/wave10.py`, `tests/wave14_eof_data.py`, `tests/wave14_functions.py`, `tests/wave14_order.py`, `tests/wave15_aof.py`, `tests/wave15_block_repeat.py`, `tests/wave15_errorstats.py`, `tests/wave15_flip_eof.py`, `tests/wave15_rebind.py`, `tests/wave7.py`, `tests/wave8.py`, `tests/wave8b.py`, `tests/wave9.py`, `tests/wb_mixed.py`, `tests/wb_policy.py`, `tests/wiredump.py`, `tests/xshard_dispatch_scale.py`, `tools/blockfix3_repro.py`, `tools/ccfix5_probe.py`, `tools/exbatch_directed.py`, `tools/lb_episodes.py`, `tools/mkfix_counts.py`, `tools/mkprobe_probe.py`, `tools/mset8fix_latency.py`, `tools/ntfix_proof.py`, `tools/overlapaxe_artifacts.py`, `tools/respresume_probe.py`, `tools/setregress.py`, `tools/snapfix_long_storm.py`, `tools/snapfix_storm_capture.py`, `tools/storefix5_checks.py`, `tools/storesize_poller.py`, `tools/txnfix4_abort_site.py`, `tools/txnfix4_probes.py`, `tools/wave15_aof_stacks.py`, `tools/wave5b_trace.py`, `tools/woundfix_live.py` | Retained protocol/log/fixture reader; no production source matching. |
 | `tests/_netfix.py` | LIVE | `tests/cfgfix.py`, `tests/cfgfix2.py`, `tests/gates_test.py`, `tests/netfix2.py`, `tests/netfix_config.py`, `tests/netfix_idle_buffers.py`, `tests/netfix_query_stats.py`, `tests/netfix_tls.py`, `tests/netfix_unix.py`, `tests/wave15_rebind.py` | retained |
 | `tests/_nullrefresh_test.py` | LIVE | `tests/abbagate.py`, `tests/gate_receipt.py`, `tests/nullpublish4_test.py` | retained |
 | `tests/_save_timeout.py` | LIVE | `tests/differ.py`, `tests/psfix.py`, `tests/psfix_test.py` | retained |
 | `tests/_serverfix.py` | LIVE | `tests/_serverfix_alloc.py`, `tests/serverfix_acllog.py`, `tests/serverfix_config.py`, `tests/serverfix_hello.py`, `tests/serverfix_hll.py`, `tests/serverfix_lines.py`, `tests/serverfix_scalar.py`, `tests/serverfix_slowlog.py`, `tests/serverfix_waitaof.py` | retained |
 | `tests/_serverfix_alloc.py` | LIVE | `tests/serverfix_acllog.py`, `tests/serverfix_slowlog.py` | retained |
-| `tests/_serverfix_mutant.py` | LIVE; TEXT-MATCHER | `tests/serverfix_hll.py` | retained; see hardening evidence |
+| `tests/_serverfix_mutant.py` | LIVE; TEXT-MATCHER | `tests/serverfix_hll.py` | Canonical stable roles for HLL symbols; requires both namespace bodies. |
 | `tests/abba_aslr.py` | MANUAL | none in scoped code | retained |
 | `tests/abba_binaries.py` | LIVE | `tests/abbagate.py` | retained |
 | `tests/abba_calibration.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tests/abba_calibration.py` |
@@ -36,17 +191,17 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/abba_null_sampling.py` | LIVE | `tests/_nullrefresh_test.py`, `tests/abba_evidence.py`, `tests/abbagate.py`, `tests/gate_receipt.py` | retained |
 | `tests/abba_profile.py` | LIVE | `tests/abba_worker_affinity.py`, `tests/abbagate.py`, `tools/mkprobe_probe.py` | retained |
 | `tests/abba_reorder_control.py` | LIVE | `tests/_nullrefresh_test.py`, `tests/abba_evidence.py`, `tests/abbagate.py`, `tests/gate_receipt.py`, `tests/load_calibration.py` | retained |
-| `tests/abba_saturation.py` | LIVE; TEXT-MATCHER | `tests/_abba_test_fixtures.py`, `tests/_nullrefresh_test.py`, `tests/abba_ceiling.py`, `tests/abba_evidence.py`, `tests/abba_saturation_controls.py`, `tests/abbagate.py`, `tests/gate_measurements.py`, `tests/gate_receipt.py`, `tools/exbatch_directed.py`, `tools/mkprobe_probe.py` | retained; see hardening evidence |
+| `tests/abba_saturation.py` | LIVE | `tests/_abba_test_fixtures.py`, `tests/_nullrefresh_test.py`, `tests/abba_ceiling.py`, `tests/abba_evidence.py`, `tests/abba_saturation_controls.py`, `tests/abbagate.py`, `tests/gate_measurements.py`, `tests/gate_receipt.py`, `tools/exbatch_directed.py`, `tools/mkprobe_probe.py` | Retained protocol/log/fixture reader; no production source matching. |
 | `tests/abba_saturation_controls.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tests/abba_saturation_controls.py` |
 | `tests/abba_simple.py` | LIVE | `tests/abbagate.py`, `tests/gates_test.py` | retained |
 | `tests/abba_standing_null.py` | LIVE | `tests/abba_evidence.py`, `tests/abba_reorder_control.py`, `tests/abbagate.py`, `tests/gate_receipt.py`, `tests/nullpublish4_test.py` | retained |
 | `tests/abba_worker_affinity.py` | LIVE | `tests/abbagate.py` | retained |
 | `tests/abba_workloads.py` | LIVE | `tests/_abba_test_fixtures.py`, `tests/_nullrefresh_test.py`, `tests/abba_evidence.py`, `tests/abba_experiments.py`, `tests/abbagate.py`, `tests/gates_test.py`, `tests/tailgen_stall.py`, `tests/ttlcell_test.py`, `tools/exbatch_directed.py`, `tools/lb_episodes.py`, `tools/mkprobe_probe.py` | retained |
 | `tests/abbagate.py` | LIVE | `tests/_nullrefresh_test.py`, `tests/abba_aslr.py`, `tests/abba_binaries.py`, `tests/abba_ceiling.py`, `tests/abba_evidence.py`, `tests/abba_experiments.py`, `tests/abba_holdout.py`, `tests/abba_instrument.py`, `tests/abba_null_sampling.py`, `tests/abba_reorder_control.py`, `tests/abba_saturation_controls.py`, `tests/gate.sh`, `tests/gate_history.py`, `tests/gate_measurements.py`, `tests/gate_receipt.py`, `tests/gateplan.py`, `tests/gateprod.py`, `tests/gates_test.py`, `tests/legacy_reorder_witness.py`, `tests/load_calibration.py`, `tests/nullpublish4_test.py`, `tests/ttlcell_test.py`, `tools/mkprobe_probe.py`, `tools/wbknobs_measure.py` | retained |
-| `tests/acl.py` | LIVE; TEXT-MATCHER | `tests/gate.sh`, `tests/serverfix_acllog.py` | retained; see hardening evidence |
-| `tests/acl_categories.py` | LIVE; TEXT-MATCHER | `tests/gate.sh`, `tools/gen_acl_categories.py` | retained; see hardening evidence |
+| `tests/acl.py` | LIVE; TEXT-MATCHER | `tests/gate.sh`, `tests/serverfix_acllog.py` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
+| `tests/acl_categories.py` | LIVE; TEXT-MATCHER | `tests/gate.sh`, `tools/gen_acl_categories.py` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tests/acl_subcommands.py` | MANUAL | none in scoped code | retained |
-| `tests/aclfix.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | retained; see hardening evidence |
+| `tests/aclfix.py` | LIVE | `tests/gate.sh` | Retained protocol/log/fixture reader; no production source matching. |
 | `tests/aclkeys_test.py` | MANUAL | none in scoped code | retained |
 | `tests/aclkeys_unit.cc` | LIVE | `Makefile` | retained |
 | `tests/aclkeys_wake.py` | MANUAL | none in scoped code | retained |
@@ -57,7 +212,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/aof.py` | LIVE | `tests/flakeaudit_test.py`, `tests/gate.sh`, `tools/eoffix_final.py`, `tools/rootcore_proof.py` | retained |
 | `tests/aof_frame_order.py` | LIVE | `tests/aof_frame_order_test.py`, `tests/gate.sh` | retained |
 | `tests/aof_frame_order_test.py` | LIVE | `tests/gate.sh` | retained |
-| `tests/aof_frames.py` | LIVE; TEXT-MATCHER | `tests/aof_frame_order.py`, `tests/aoforder.py`, `tests/notify_order.py`, `tests/notifycompat.py` | retained; see hardening evidence |
+| `tests/aof_frames.py` | LIVE | `tests/aof_frame_order.py`, `tests/aoforder.py`, `tests/notify_order.py`, `tests/notifycompat.py` | Retained protocol/log/fixture reader; no production source matching. |
 | `tests/aof_fsync.py` | LIVE | `tests/flakeaudit_test.py`, `tests/gate.sh`, `tools/aoffix2_proof.py` | retained |
 | `tests/aof_rewrite.py` | LIVE | `tests/aof_rewrite_matrix.sh` | retained |
 | `tests/aof_rewrite_matrix.sh` | LIVE | `tests/gate.sh`, `tests/gates_test.py` | retained |
@@ -115,7 +270,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/blockfix4_repro/item6_mpop_null.py` | LIVE | `tests/blockfix4.py` | retained |
 | `tests/blockfix4_repro/lib/common.py` | LIVE | `tests/blockfix4_repro/item1_natural.py`, `tests/blockfix4_repro/item1_script_push.py`, `tests/blockfix4_repro/item2_move_nil.py`, `tests/blockfix4_repro/item4_creators.py`, `tests/blockfix4_repro/item5_stream_removed.py`, `tests/blockfix4_repro/item6_mpop_null.py`, `tools/txnfix4_auditors.py` | retained |
 | `tests/blockfix4_repro/lib/resp.py` | LIVE | `tests/blockfix4_repro/item1_natural.py`, `tests/blockfix4_repro/item1_script_push.py`, `tests/blockfix4_repro/item2_move_nil.py`, `tests/blockfix4_repro/item4_creators.py`, `tests/blockfix4_repro/item5_stream_removed.py`, `tests/blockfix4_repro/item6_mpop_null.py`, `tests/blockfix4_repro/lib/srv.py`, `tests/netfix2_audit.py`, `tests/rootcompat_tracking/srv.py`, `tests/rootcompat_tracking/t1_xsnotify.py`, `tests/rootcompat_tracking/t3_keylesscap.py`, `tests/txnfix_audit/t01_exec_counter.py`, `tests/txnfix_audit/t02_exec_directed.py`, `tests/txnfix_audit/t02b_exec_vs_exec.py`, `tests/txnfix_audit/t03_mover_replay.py`, `tests/txnfix_audit/t04_mover_stress.py`, `tests/txnfix_audit/t05_mover_only.py`, `tests/txnfix_audit/t10_msetnx_hold.py`, `tests/txnfix_audit/t14_exec_window.py`, `tests/txnfix_audit/t15_exec_only_stress.py`, `tests/txnfix_audit/t17_queue_exec.py`, `tests/txnfix_audit/t18_watch_cas.py`, `tests/txnfix_audit/t19_crossed_watch.py`, `tools/atomfix6_audit.py`, `tools/wave15_scan_expiry.py` | retained |
-| `tests/blockfix4_repro/lib/srv.py` | LIVE; TEXT-MATCHER | `tests/blockfix4_repro/item1_natural.py`, `tests/blockfix4_repro/item1_script_push.py`, `tests/blockfix4_repro/item2_move_nil.py`, `tests/blockfix4_repro/item4_creators.py`, `tests/blockfix4_repro/item5_stream_removed.py`, `tests/blockfix4_repro/item6_mpop_null.py`, `tests/blockfix4_repro/lib/common.py`, `tests/rootcompat_tracking/run.py`, `tests/rootcompat_tracking/t1_xsnotify.py`, `tests/rootcompat_tracking/t3_keylesscap.py` | retained; see hardening evidence |
+| `tests/blockfix4_repro/lib/srv.py` | LIVE | `tests/blockfix4_repro/item1_natural.py`, `tests/blockfix4_repro/item1_script_push.py`, `tests/blockfix4_repro/item2_move_nil.py`, `tests/blockfix4_repro/item4_creators.py`, `tests/blockfix4_repro/item5_stream_removed.py`, `tests/blockfix4_repro/item6_mpop_null.py`, `tests/blockfix4_repro/lib/common.py`, `tests/rootcompat_tracking/run.py`, `tests/rootcompat_tracking/t1_xsnotify.py`, `tests/rootcompat_tracking/t3_keylesscap.py` | Retained protocol/log/fixture reader; no production source matching. |
 | `tests/blockfix4_scope.cc` | LIVE | `tools/blockfix4_scope.py`, `tools/blockwake_counts.py`, `tools/eoffix_counts.py`, `tools/mset8fix_counts.py`, `tools/parkwake_counts.py`, `tools/rlfix5_proof.py`, `tools/storefix5_counts.py`, `tools/wave14_counts.py`, `tools/wave15_counts.py` | retained |
 | `tests/blockfix_cost.cc` | LIVE | `tools/blockfix_cost.mk` | retained |
 | `tests/blocking.py` | LIVE | `tests/gate.sh` | retained |
@@ -139,8 +294,8 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/cdfix_checks.py` | MANUAL; TEXT-MATCHER | none in scoped code | retained |
 | `tests/cdfix_oracle.c` | MANUAL | `tests/cdfix_checks.py` | retained |
 | `tests/cdfix_unit.cc` | MANUAL | `tests/cdfix_checks.py` | retained |
-| `tests/cfgfix.py` | LIVE | `tests/gate.sh` | retained |
-| `tests/cfgfix2.py` | LIVE; TEXT-MATCHER | `tests/gate.sh`, `tests/wave15_block_repeat.py`, `tests/wave15_flip_eof.py`, `tests/wave15_rebind.py` | retained; see hardening evidence |
+| `tests/cfgfix.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | Retained: parses the pinned Redis 7.4 reference config table; TomoKV edits do not alter that input. |
+| `tests/cfgfix2.py` | LIVE; TEXT-MATCHER | `tests/gate.sh`, `tests/wave15_block_repeat.py`, `tests/wave15_flip_eof.py`, `tests/wave15_rebind.py` | Canonical stable roles for ELF allocation sites; nonempty inventory remains mandatory. |
 | `tests/cfgfix2_alloc_fail.cc` | LIVE | `tests/cfgfix2.py` | retained |
 | `tests/clientcompat.py` | LIVE | `tests/gate.sh`, `tests/wave14_order.py` | retained |
 | `tests/clientcompat_pause_scope.cc` | MANUAL | `tools/clientcompat_pause_audit.py` | retained |
@@ -152,7 +307,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/climon2.py` | MANUAL | none in scoped code | retained |
 | `tests/climon_128.py` | MANUAL | none in scoped code | retained |
 | `tests/climon_mask_unit.cc` | LIVE | `Makefile` | retained |
-| `tests/climonfix4.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | retained; see hardening evidence |
+| `tests/climonfix4.py` | LIVE | `tests/gate.sh` | Retained protocol/log/fixture reader; no production source matching. |
 | `tests/climonfix4_scope.cc` | MANUAL | none in scoped code | retained |
 | `tests/climonfix5_scope.cc` | MANUAL | none in scoped code | retained |
 | `tests/climonfix_artifacts.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tests/climonfix_artifacts.py` |
@@ -162,7 +317,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/cmdgap2.py` | MANUAL | none in scoped code | retained |
 | `tests/cmdlookup_unit.cc` | MANUAL | none in scoped code | retained |
 | `tests/cmdmeta.py` | LIVE | `tests/cmdmeta_coverage.py`, `tests/cmdmeta_test.py`, `tools/gen_cmdmeta.py` | retained |
-| `tests/cmdmeta_coverage.py` | LIVE; TEXT-MATCHER | `tests/_differ_history.py`, `tests/autharity.py`, `tests/cmdmeta.py`, `tests/cmdmeta_test.py`, `tests/differ.py`, `tests/gate.sh` | retained; see hardening evidence |
+| `tests/cmdmeta_coverage.py` | LIVE; TEXT-MATCHER | `tests/_differ_history.py`, `tests/autharity.py`, `tests/cmdmeta.py`, `tests/cmdmeta_test.py`, `tests/differ.py`, `tests/gate.sh` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tests/cmdmeta_test.py` | MANUAL | none in scoped code | retained |
 | `tests/compat2_support.py` | MANUAL | `tests/acl_subcommands.py`, `tests/autharity.py`, `tests/dispatch_arity.py`, `tests/dispatch_children.py`, `tests/dispatch_errors.py`, `tests/expire_notify.py`, `tests/ktls_lifetime.py`, `tests/router_uniform.py` | retained |
 | `tests/compat3_blockfix.py` | LIVE | `tests/compat3_blockfix2.py` | retained |
@@ -183,7 +338,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/ctlfix.mk` | LIVE | `tests/gate.sh` | retained |
 | `tests/ctlfix_unit.cc` | LIVE | `tests/ctlfix.mk` | retained |
 | `tests/datafix1_bitfield.py` | LIVE | `tests/gate.sh` | retained |
-| `tests/datafix1_common.py` | LIVE; TEXT-MATCHER | `tests/cmdfix2.py`, `tests/datafix1_bitfield.py`, `tests/datafix1_geo.py`, `tests/datafix1_hexpire.py`, `tests/datafix1_lists.py`, `tests/datafix1_locale.py`, `tests/datafix1_randscan.py`, `tests/datafix1_spop.py`, `tools/cmdfix2_auditors.py` | retained; see hardening evidence |
+| `tests/datafix1_common.py` | LIVE | `tests/cmdfix2.py`, `tests/datafix1_bitfield.py`, `tests/datafix1_geo.py`, `tests/datafix1_hexpire.py`, `tests/datafix1_lists.py`, `tests/datafix1_locale.py`, `tests/datafix1_randscan.py`, `tests/datafix1_spop.py`, `tools/cmdfix2_auditors.py` | Retained protocol/log/fixture reader; no production source matching. |
 | `tests/datafix1_geo.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/datafix1_hexpire.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/datafix1_lists.py` | LIVE | `tests/gate.sh` | retained |
@@ -200,16 +355,16 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/debug.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/debug_load.py` | LIVE | `tests/aof_rewrite_matrix.sh`, `tests/gate.sh` | retained |
 | `tests/debug_load_test.py` | MANUAL | none in scoped code | retained |
-| `tests/differ.py` | LIVE; TEXT-MATCHER | `tests/_differ_history.py`, `tests/cmdmeta_test.py`, `tests/differ_fanout.py`, `tests/differ_fanout_test.py`, `tests/differ_gate.sh`, `tests/differ_test.py`, `tests/encodingfix.py`, `tests/infofields_test.py`, `tests/lottery_attempt.py`, `tests/lottery_test_driver.py`, `tests/psfix.py`, `tests/respresume_differ_frag.py`, `tools/ccfix3_wire.sh`, `tools/exec1sd_save.py`, `tools/exec1sd_save_native.py`, `tools/execfifo3_coverage.py`, `tools/infofields2_live.py`, `tools/infofields_monitor_strict.py` | retained; see hardening evidence |
+| `tests/differ.py` | LIVE | `tests/_differ_history.py`, `tests/cmdmeta_test.py`, `tests/differ_fanout.py`, `tests/differ_fanout_test.py`, `tests/differ_gate.sh`, `tests/differ_test.py`, `tests/encodingfix.py`, `tests/infofields_test.py`, `tests/lottery_attempt.py`, `tests/lottery_test_driver.py`, `tests/psfix.py`, `tests/respresume_differ_frag.py`, `tools/ccfix3_wire.sh`, `tools/exec1sd_save.py`, `tools/exec1sd_save_native.py`, `tools/execfifo3_coverage.py`, `tools/infofields2_live.py`, `tools/infofields_monitor_strict.py` | Retained protocol/log/fixture reader; no production source matching. |
 | `tests/differ_fanout.py` | LIVE | `tests/differ_fanout_test.py`, `tests/differ_gate.sh`, `tests/gate.sh`, `tests/gates_test.py`, `tools/ccfix5_collect.py`, `tools/flushfix3_receipts.py`, `tools/wave14_validation.py` | retained |
 | `tests/differ_fanout_test.py` | MANUAL | none in scoped code | retained |
-| `tests/differ_gate.sh` | LIVE; TEXT-MATCHER | `tests/cd13b_oracle.sh`, `tests/differ_fanout_test.py`, `tests/gate.sh`, `tests/gates_test.py`, `tests/lottery_attempt.py`, `tools/aoffix2_proof.py`, `tools/blockfix_climon.py`, `tools/ccfix3_wire.sh`, `tools/ccfix5_probe.sh`, `tools/exec1sd_save_full.py`, `tools/flushfix2_verification_receipts.py`, `tools/flushfix2_verify.py`, `tools/infofields2_live.py`, `tools/lualibs_proof.sh` | retained; see hardening evidence |
+| `tests/differ_gate.sh` | LIVE | `tests/cd13b_oracle.sh`, `tests/differ_fanout_test.py`, `tests/gate.sh`, `tests/gates_test.py`, `tests/lottery_attempt.py`, `tools/aoffix2_proof.py`, `tools/blockfix_climon.py`, `tools/ccfix3_wire.sh`, `tools/ccfix5_probe.sh`, `tools/exec1sd_save_full.py`, `tools/flushfix2_verification_receipts.py`, `tools/flushfix2_verify.py`, `tools/infofields2_live.py`, `tools/lualibs_proof.sh` | Retained protocol/log/fixture reader; no production source matching. |
 | `tests/differ_seeds.txt` | LIVE | `tests/_differ_history.py`, `tools/eoffix_verify.py`, `tools/execfifo3_coverage.py` | retained |
 | `tests/differ_test.py` | MANUAL | none in scoped code | retained |
 | `tests/dispatch_arity.py` | MANUAL | none in scoped code | retained |
 | `tests/dispatch_children.py` | MANUAL | none in scoped code | retained |
 | `tests/dispatch_errors.py` | MANUAL | none in scoped code | retained |
-| `tests/docs_drift.py` | LIVE; TEXT-MATCHER | `tests/gate.sh`, `tools/iopass_validate.py` | retained; see hardening evidence |
+| `tests/docs_drift.py` | LIVE; TEXT-MATCHER | `tests/gate.sh`, `tools/iopass_validate.py` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tests/doubles.py` | MANUAL | none in scoped code | retained |
 | `tests/dumprestore.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/dumpttl.py` | MANUAL | none in scoped code | retained |
@@ -224,7 +379,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/evict_battery.py` | LIVE | `tests/evict_battery_test.py`, `tests/gate.sh` | retained |
 | `tests/evict_battery_test.py` | MANUAL | none in scoped code | retained |
 | `tests/exbatch.py` | LIVE | `tests/gate.sh` | retained |
-| `tests/exbatch_checks.py` | LIVE | `tests/gate.sh`, `tools/iopass_validate.py` | retained |
+| `tests/exbatch_checks.py` | LIVE; TEXT-MATCHER | `tests/gate.sh`, `tools/iopass_validate.py` | Shared ELF role canonicalization; exact patch-table and instruction checks retained. |
 | `tests/exbatch_unit.cc` | LIVE | `Makefile` | retained |
 | `tests/exec1s.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/exec1s_alloc_scope.cc` | MANUAL | `tools/exec1s_aux.py`, `tools/exec1sd.py` | retained |
@@ -270,11 +425,11 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/flip_multikey_hold.py` | MANUAL; TEXT-MATCHER | none in scoped code | retained |
 | `tests/flip_ttl.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/flip_under_load.py` | LIVE | `tests/gate.sh` | retained |
-| `tests/flipctl.py` | LIVE; TEXT-MATCHER | `tests/flipctl_test.py`, `tests/gate.sh`, `tests/reorder_flip.py` | retained; see hardening evidence |
+| `tests/flipctl.py` | LIVE | `tests/flipctl_test.py`, `tests/gate.sh`, `tests/reorder_flip.py` | Retained protocol/log/fixture reader; no production source matching. |
 | `tests/flipctl_test.py` | MANUAL | none in scoped code | retained |
 | `tests/flipctl_unit.cc` | LIVE | `Makefile`, `tests/gate.sh`, `tools/flipreport_proof.py` | retained |
 | `tests/flipfix.py` | LIVE | `tests/flipfix7.py`, `tests/gate.sh` | retained |
-| `tests/flipfix5.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | retained; see hardening evidence |
+| `tests/flipfix5.py` | LIVE | `tests/gate.sh` | Retained protocol/log/fixture reader; no production source matching. |
 | `tests/flipfix5_checks.inc` | LIVE | `Makefile`, `tests/core_concurrency_unit.cc` | retained |
 | `tests/flipfix5_control_scope.cc` | MANUAL | `tools/flipfix5_counts.py` | retained |
 | `tests/flipfix6.py` | LIVE | `tests/flushfix2_siblings.py`, `tests/gate.sh` | retained |
@@ -297,10 +452,10 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/flushfix2_unit.cc` | MANUAL | none in scoped code | retained |
 | `tests/flushfix3.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/flushfix3_unit.cc` | LIVE | `tools/flushfix3_work_reference.py` | retained |
-| `tests/flushfix_checks.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/gate.sh`, `tools/iopass_validate.py` | retained; see hardening evidence |
+| `tests/flushfix_checks.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/gate.sh`, `tools/iopass_validate.py` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tests/flushfix_unit.cc` | MANUAL | none in scoped code | retained |
 | `tests/foreign_read_safety_test.cc` | LIVE | `tests/gate.sh`, `tests/mutants.py` | retained |
-| `tests/gate.sh` | LIVE; TEXT-MATCHER | `tests/abba_instrument.py`, `tests/abbagate.py`, `tests/at15_gate_test.py`, `tests/cd13b_oracle.sh`, `tests/differ_fanout_test.py`, `tests/execabort_watch_gate_test.py`, `tests/gate_history.py`, `tests/gate_ledger_fixture.py`, `tests/gate_receipt.py`, `tests/gate_subset_test.py`, `tests/gateprod.py`, `tests/gates_test.py`, `tests/lottery_attempt.py`, `tests/mutants.py`, `tests/redis_tcl_test.py`, `tests/rlfix5_gate_test.py`, `tests/tailgen_stall.py`, `tools/aoffix2_proof.py`, `tools/at412c_proof.py`, `tools/atomfix6_proof.py`, `tools/blockfix3_proof.py`, `tools/blockfix4_proof.py`, `tools/blockfix4_verify.py`, `tools/blockfix_climon.py`, `tools/ccfix3_wire.sh`, `tools/ccfix5_probe.sh`, `tools/cfgfix2_gate.py`, `tools/cfgfix2_units.py`, `tools/cmdfix2_final_main.py`, `tools/cmdfix2_freshness.py`, `tools/cmdfix2_more_jobs.py`, `tools/cmdfix2_related_jobs.py`, `tools/ctlfix_artifacts.py`, `tools/eoffix.py`, `tools/eoffix_verify.py`, `tools/exec1s_finish_proof.py`, `tools/exec1s_live_receipts.py`, `tools/exec1s_proof.py`, `tools/exec1sd_proof.py`, `tools/exec1sd_save_full.py`, `tools/execfifo2_freshness.py`, `tools/execfifo2_validate.py`, `tools/execfifo3_freshness.py`, `tools/execfifo3_validate.py`, `tools/flipfix7_freshness.py`, `tools/flipfix7_negative.py`, `tools/flipfix7_proof.py`, `tools/flushfix2_freshness.py`, `tools/flushfix2_verification_receipts.py`, `tools/flushfix2_verify.py`, `tools/flushfix3_freshness.py`, `tools/flushfix3_receipts.py`, `tools/flushfix3_verify.py`, `tools/infofields2_live.py`, `tools/lualibs_proof.sh`, `tools/mset8fix_loop.sh`, `tools/netfix2_diagnostics.py`, `tools/netfix2_proof.sh`, `tools/netfix_verify.py`, `tools/parkwake_loop.sh`, `tools/persistfmt_validate.py`, `tools/rlfix5_validate.py`, `tools/rootcore_freshness.py`, `tools/rootcore_proof.py`, `tools/rootcore_scheduler.py`, `tools/scriptfix3_jobs.py`, `tools/snapfix2_artifacts.py`, `tools/snapfix2_verify.py`, `tools/storefix5_audit.py`, `tools/storefix5_final_proof.py`, `tools/storefix5_inventory_proof.py`, `tools/storefix5_notification_proof.py`, `tools/storefix5_serial_proof.py`, `tools/trackorder_run.py`, `tools/trackorder_units.py`, `tools/txnfix4_proof.py`, `tools/wave14.py`, `tools/wave14_coverage.py`, `tools/wave15.py`, `tools/woundfix_gate.py` | retained; see hardening evidence |
+| `tests/gate.sh` | LIVE; TEXT-MATCHER | `tests/abba_instrument.py`, `tests/abbagate.py`, `tests/at15_gate_test.py`, `tests/cd13b_oracle.sh`, `tests/differ_fanout_test.py`, `tests/execabort_watch_gate_test.py`, `tests/gate_history.py`, `tests/gate_ledger_fixture.py`, `tests/gate_receipt.py`, `tests/gate_subset_test.py`, `tests/gateprod.py`, `tests/gates_test.py`, `tests/lottery_attempt.py`, `tests/mutants.py`, `tests/redis_tcl_test.py`, `tests/rlfix5_gate_test.py`, `tests/tailgen_stall.py`, `tools/aoffix2_proof.py`, `tools/at412c_proof.py`, `tools/atomfix6_proof.py`, `tools/blockfix3_proof.py`, `tools/blockfix4_proof.py`, `tools/blockfix4_verify.py`, `tools/blockfix_climon.py`, `tools/ccfix3_wire.sh`, `tools/ccfix5_probe.sh`, `tools/cfgfix2_gate.py`, `tools/cfgfix2_units.py`, `tools/cmdfix2_final_main.py`, `tools/cmdfix2_freshness.py`, `tools/cmdfix2_more_jobs.py`, `tools/cmdfix2_related_jobs.py`, `tools/ctlfix_artifacts.py`, `tools/eoffix.py`, `tools/eoffix_verify.py`, `tools/exec1s_finish_proof.py`, `tools/exec1s_live_receipts.py`, `tools/exec1s_proof.py`, `tools/exec1sd_proof.py`, `tools/exec1sd_save_full.py`, `tools/execfifo2_freshness.py`, `tools/execfifo2_validate.py`, `tools/execfifo3_freshness.py`, `tools/execfifo3_validate.py`, `tools/flipfix7_freshness.py`, `tools/flipfix7_negative.py`, `tools/flipfix7_proof.py`, `tools/flushfix2_freshness.py`, `tools/flushfix2_verification_receipts.py`, `tools/flushfix2_verify.py`, `tools/flushfix3_freshness.py`, `tools/flushfix3_receipts.py`, `tools/flushfix3_verify.py`, `tools/infofields2_live.py`, `tools/lualibs_proof.sh`, `tools/mset8fix_loop.sh`, `tools/netfix2_diagnostics.py`, `tools/netfix2_proof.sh`, `tools/netfix_verify.py`, `tools/parkwake_loop.sh`, `tools/persistfmt_validate.py`, `tools/rlfix5_validate.py`, `tools/rootcore_freshness.py`, `tools/rootcore_proof.py`, `tools/rootcore_scheduler.py`, `tools/scriptfix3_jobs.py`, `tools/snapfix2_artifacts.py`, `tools/snapfix2_verify.py`, `tools/storefix5_audit.py`, `tools/storefix5_final_proof.py`, `tools/storefix5_inventory_proof.py`, `tools/storefix5_notification_proof.py`, `tools/storefix5_serial_proof.py`, `tools/trackorder_run.py`, `tools/trackorder_units.py`, `tools/txnfix4_proof.py`, `tools/wave14.py`, `tools/wave14_coverage.py`, `tools/wave15.py`, `tools/woundfix_gate.py` | Existing job/label inventory retained; added source-tool tests inside the existing R7 parity row. No row or EXPECT change. |
 | `tests/gate_history.py` | LIVE | `tests/abba_instrument.py`, `tests/differ_fanout.py`, `tests/gate.sh`, `tests/gate_ledger_fixture.py`, `tests/gate_receipt.py`, `tests/gates_test.py` | retained |
 | `tests/gate_ledger_fixture.py` | LIVE | `tests/gate_receipt.py`, `tools/ctlfix_artifacts.py`, `tools/wave14.py`, `tools/wave14_coverage.py`, `tools/wave15.py` | retained |
 | `tests/gate_measurements.json` | LIVE | `tests/_nullrefresh_test.py`, `tests/abbagate.py`, `tests/gate_measurements.py`, `tests/gate_receipt.py`, `tests/gateplan.py`, `tests/load_calibration.py`, `tests/nullpublish_refreeze_test.py`, `tools/mdbqsbr_artifacts.py`, `tools/mkprobe_probe.py`, `tools/nullpublish_refreeze.py` | retained |
@@ -347,11 +502,11 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/gateprod-evidence/uring-line-sha256.json` | MANUAL | none in scoped code | retained |
 | `tests/gateprod.py` | LIVE | `tests/gate.sh`, `tests/gates_test.py` | retained |
 | `tests/gaterows_contract_test.py` | MANUAL | none in scoped code | retained |
-| `tests/gates_test.py` | LIVE; TEXT-MATCHER | `tests/gate.sh`, `tools/atomfix6_final.py`, `tools/atomfix6_proof.py`, `tools/eoffix_final.py`, `tools/exec1s_finish_proof.py`, `tools/exec1s_proof.py`, `tools/exec1sd_proof.py`, `tools/exec1sd_receipts.py`, `tools/rootcore_scheduler.py`, `tools/storefix5_final_proof.py`, `tools/storefix5_finish_proof.py`, `tools/storefix5_report.py` | retained; see hardening evidence |
+| `tests/gates_test.py` | LIVE; TEXT-MATCHER | `tests/gate.sh`, `tools/atomfix6_final.py`, `tools/atomfix6_proof.py`, `tools/eoffix_final.py`, `tools/exec1s_finish_proof.py`, `tools/exec1s_proof.py`, `tools/exec1sd_proof.py`, `tools/exec1sd_receipts.py`, `tools/rootcore_scheduler.py`, `tools/storefix5_final_proof.py`, `tools/storefix5_finish_proof.py`, `tools/storefix5_report.py` | Gate shell/receipt parser tests; all current source references remain explicit and fixture-checked. |
 | `tests/geo.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/globcase.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/headline_cells.txt` | LIVE | `tests/_nullrefresh_test.py`, `tests/abba_aslr.py`, `tests/abba_experiments.py`, `tests/abba_reorder_control.py`, `tests/abba_saturation_controls.py`, `tests/abbagate.py`, `tests/gate_measurements.py`, `tests/gate_receipt.py`, `tests/gateprod.py`, `tests/nullpublish_refreeze_test.py`, `tools/mkprobe_probe.py`, `tools/nullpublish_refreeze.py` | retained |
-| `tests/hexpire.py` | LIVE; TEXT-MATCHER | `tests/debug_load_test.py`, `tests/gate.sh`, `tests/hexpire_persist.sh` | retained; see hardening evidence |
+| `tests/hexpire.py` | LIVE | `tests/debug_load_test.py`, `tests/gate.sh`, `tests/hexpire_persist.sh` | Retained protocol/log/fixture reader; no production source matching. |
 | `tests/hexpire_oom_checks.inc` | LIVE | `Makefile`, `tests/netcmd_unit.cc` | retained |
 | `tests/hexpire_persist.sh` | MANUAL; TEXT-MATCHER | none in scoped code | retained |
 | `tests/hexpread.py` | LIVE | `tests/gate.sh`, `tests/objectpread.py` | retained |
@@ -398,21 +553,21 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/lottery_evidence.py` | LIVE | `tests/lottery_attempt.py`, `tests/lottery_evidence_test.py` | retained |
 | `tests/lottery_evidence_test.py` | MANUAL | none in scoped code | retained |
 | `tests/lottery_hooks.h` | LIVE | `Makefile`, `tools/lottery_build.py` | retained |
-| `tests/lottery_nightly.sh` | LIVE | `tests/gate.sh` | retained |
+| `tests/lottery_nightly.sh` | LIVE | `tests/gate.sh` | Added a single-row gate entry for bounded correctness checks; default nightly selection is unchanged. |
 | `tests/lottery_rows.json` | LIVE | `tests/lottery_runner.py`, `tools/exec1sd_lottery.py` | retained |
 | `tests/lottery_runner.py` | LIVE | `tests/lottery_attempt.py`, `tests/lottery_calibration.py`, `tests/lottery_evidence_test.py`, `tests/lottery_nightly.sh`, `tests/lottery_runner_test.py`, `tools/exec1sd_lottery.py` | retained |
 | `tests/lottery_runner_test.py` | MANUAL | none in scoped code | retained |
-| `tests/lottery_test_driver.py` | LIVE | `tests/lottery_attempt.py`, `tests/lottery_runner_test.py` | retained |
+| `tests/lottery_test_driver.py` | LIVE; TEXT-MATCHER | `tests/lottery_attempt.py`, `tests/lottery_runner_test.py` | AST edits at stable Python comments; unique calls and nonempty sleep inventory. |
 | `tests/lru_slow.sh` | MANUAL | none in scoped code | retained |
 | `tests/lua_scripting.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/lualibs_memory.cc` | MANUAL | `tools/lualibs_artifacts.py` | retained |
 | `tests/maskflood.py` | MANUAL | none in scoped code | retained |
-| `tests/matrix.sh` | LIVE; TEXT-MATCHER | `tests/gate.sh`, `tests/gates_test.py` | retained; see hardening evidence |
+| `tests/matrix.sh` | LIVE | `tests/gate.sh`, `tests/gates_test.py` | Retained protocol/log/fixture reader; no production source matching. |
 | `tests/maxmemrace.py` | LIVE | `tests/clientcompat.py`, `tests/gate.sh` | retained |
 | `tests/maxmemrace_run.py` | MANUAL | none in scoped code | retained |
 | `tests/maxmemrace_stress.cc` | MANUAL | none in scoped code | retained |
 | `tests/mdbqsbr_checks.py` | LIVE | `tests/gate.sh`, `tools/iopass_validate.py` | retained |
-| `tests/mdbqsbr_live.py` | LIVE; TEXT-MATCHER | `tests/gate.sh`, `tests/gates_test.py`, `tests/mdbqsbr_live_test.py`, `tests/signalacct_live.py` | retained; see hardening evidence |
+| `tests/mdbqsbr_live.py` | LIVE; TEXT-MATCHER | `tests/gate.sh`, `tests/gates_test.py`, `tests/mdbqsbr_live_test.py`, `tests/signalacct_live.py` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tests/mdbqsbr_live_test.py` | MANUAL | none in scoped code | retained |
 | `tests/mdbqsbr_probe.cc` | MANUAL | none in scoped code | retained |
 | `tests/mdbqsbr_unit.cc` | MANUAL | none in scoped code | retained |
@@ -450,7 +605,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/netfix2.tcl` | LIVE | `tests/netfix2.py` | retained |
 | `tests/netfix2_audit.py` | FINISHED-LANE | `tools/netfix2_proof.sh` | moved unchanged to `tools/archive/tests/netfix2_audit.py` |
 | `tests/netfix_config.py` | LIVE | `tests/gate.sh` | retained |
-| `tests/netfix_idle_buffers.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | retained; see hardening evidence |
+| `tests/netfix_idle_buffers.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tests/netfix_query_stats.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/netfix_tls.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/netfix_unix.py` | LIVE | `tests/gate.sh` | retained |
@@ -463,7 +618,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/notifycompat.py` | LIVE | `tests/gate.sh`, `tests/tracking_redirect.py` | retained |
 | `tests/ntnew4_clock.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/nullpublish4_test.py` | LIVE | `tests/gate_receipt.py` | retained |
-| `tests/nullpublish_refreeze_test.py` | LIVE; TEXT-MATCHER | `tests/gate_receipt.py` | retained; see hardening evidence |
+| `tests/nullpublish_refreeze_test.py` | LIVE; TEXT-MATCHER | `tests/gate_receipt.py` | Gate/receipt parser tests; unaffected by production C++ formatting. |
 | `tests/objectpread.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/orthog.py` | MANUAL | none in scoped code | retained |
 | `tests/owner_arena_unit.cc` | LIVE | `Makefile`, `tests/l4prebuild_unit.cc` | retained |
@@ -474,7 +629,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/parkwake_slowsync.c` | LIVE | `Makefile` | retained |
 | `tests/parkwake_unit.cc` | LIVE | `Makefile` | retained |
 | `tests/perf_gate.py` | LIVE | `tests/gates_test.py` | retained |
-| `tests/perfex_checks.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | retained; see hardening evidence |
+| `tests/perfex_checks.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | Canonical stable roles for ELF bodies and call operands; exact six/four body counts retained. |
 | `tests/perfio.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/persistfix.py` | LIVE | `tests/gate.sh`, `tests/gates_test.py`, `tests/persistfix2.py`, `tests/psfix.py`, `tests/savefix.py`, `tests/shutsave.py`, `tools/aoffix2_proof.py` | retained |
 | `tests/persistfix2.py` | LIVE | `tests/gate.sh`, `tests/rootcore.py`, `tests/wave14_eof_data.py`, `tests/wave14_functions.py`, `tests/wave14_order.py` | retained |
@@ -495,21 +650,21 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/pushtear.py` | MANUAL | none in scoped code | retained |
 | `tests/r7shadow_instr.cc` | LIVE | `Makefile` | retained |
 | `tests/r7shadow_mutants.py` | MANUAL; TEXT-MATCHER | none in scoped code | retained |
-| `tests/r7shadow_noop.py` | LIVE | `tests/reorder_receipt.py`, `tests/signalacct_byte_checks.py` | retained |
-| `tests/r7shadow_pad.py` | LIVE | `Makefile`, `tests/reorder_receipt.py`, `tests/reordertrim.py`, `tools/deadcode2_pad.py` | retained |
+| `tests/r7shadow_noop.py` | LIVE; TEXT-MATCHER | `tests/reorder_receipt.py`, `tests/signalacct_byte_checks.py` | Shared ELF/name canonicalization; existing body/clone/instruction controls retained. |
+| `tests/r7shadow_pad.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/reorder_receipt.py`, `tests/reordertrim.py`, `tools/deadcode2_pad.py` | Shared ELF role canonicalization; nonempty capability inventory and exact opcode checks retained. |
 | `tests/r7shadow_split_unit.cc` | LIVE | `Makefile` | retained |
 | `tests/r7shadow_split_witness.py` | MANUAL; TEXT-MATCHER | none in scoped code | retained |
-| `tests/r7shadow_sync.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/gate.sh`, `tests/r7shadow_split_witness.py`, `tests/r7shadow_sync_test.py`, `tests/signalacct_source_checks.py`, `tests/splitlocal_checks.py`, `tests/wbland_checks.py`, `tools/eoffix_source_sync.py`, `tools/exec1s_build.py`, `tools/iopass_validate.py`, `tools/iotemplates_proof.py`, `tools/reorder_sync.py`, `tools/rlfix5_refreeze_comments.py`, `tools/signalacct_artifacts.py`, `tools/wb_rule_2s_artifacts.py` | retained; see hardening evidence |
-| `tests/r7shadow_sync_test.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/gate.sh` | retained; see hardening evidence |
+| `tests/r7shadow_sync.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/gate.sh`, `tests/r7shadow_split_witness.py`, `tests/r7shadow_sync_test.py`, `tests/signalacct_source_checks.py`, `tests/splitlocal_checks.py`, `tests/wbland_checks.py`, `tools/eoffix_source_sync.py`, `tools/exec1s_build.py`, `tools/iopass_validate.py`, `tools/iotemplates_proof.py`, `tools/reorder_sync.py`, `tools/rlfix5_refreeze_comments.py`, `tools/signalacct_artifacts.py`, `tools/wb_rule_2s_artifacts.py` | Stable function comments, token parity, required nonempty policy inventory; rename-aware regeneration. |
+| `tests/r7shadow_sync_test.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/gate.sh` | Whole-source scratch copy preserves type/callee role bindings; stale-copy and regeneration controls retained. |
 | `tests/r7shadow_unit.cc` | LIVE | `Makefile`, `tests/r7shadow_mutants.py` | retained |
 | `tests/r7shadow_witness.h` | LIVE | `Makefile` | retained |
-| `tests/racefix.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | retained; see hardening evidence |
+| `tests/racefix.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tests/racefix_hook.h` | LIVE | `Makefile`, `tools/racefix_build.py` | retained |
 | `tests/read_local_lane.py` | LIVE | `tests/deadfused_checks.py`, `tests/gate.sh`, `tools/iopass_validate.py` | retained |
 | `tests/read_local_lfu.py` | MANUAL | none in scoped code | retained |
 | `tests/read_local_ring_unit.cc` | LIVE | `Makefile` | retained |
 | `tests/read_local_write_ring_unit.cc` | LIVE | `Makefile`, `tests/gate.sh`, `tests/mutants.py`, `tools/rlfence_artifacts.py` | retained |
-| `tests/redis_tcl.py` | LIVE; TEXT-MATCHER | `tests/blockfix2_repro.py`, `tests/climonfix4.py`, `tests/gate.sh`, `tests/gates_test.py`, `tests/redis_tcl_test.py`, `tools/blockfix2_controls.py`, `tools/blockfix3_controls.py`, `tools/blockfix3_proof.py`, `tools/blockfix3_repro.py`, `tools/blockfix3_tcl_compare.py`, `tools/exec1sd_slowlog.py`, `tools/scriptfix2_negative.py` | retained; see hardening evidence |
+| `tests/redis_tcl.py` | LIVE | `tests/blockfix2_repro.py`, `tests/climonfix4.py`, `tests/gate.sh`, `tests/gates_test.py`, `tests/redis_tcl_test.py`, `tools/blockfix2_controls.py`, `tools/blockfix3_controls.py`, `tools/blockfix3_proof.py`, `tools/blockfix3_repro.py`, `tools/blockfix3_tcl_compare.py`, `tools/exec1sd_slowlog.py`, `tools/scriptfix2_negative.py` | Retained protocol/log/fixture reader; no production source matching. |
 | `tests/redis_tcl_passing.json` | LIVE | `tests/gate.sh`, `tests/redis_tcl.py`, `tools/blockfix2_controls.py`, `tools/blockfix3_repro.py`, `tools/blockfix3_tcl_compare.py`, `tools/scriptfix2_negative.py`, `tools/wave14_arms.py` | retained |
 | `tests/redis_tcl_test.py` | LIVE | `tests/gate.sh`, `tests/gates_test.py` | retained |
 | `tests/redisgap.py` | MANUAL | none in scoped code | retained |
@@ -519,7 +674,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/reorder_batch_fixture.h` | LIVE | `Makefile`, `tests/r7shadow_unit.cc`, `tests/reorder_unit.cc` | retained |
 | `tests/reorder_engagement_unit.cc` | LIVE | `Makefile`, `tests/r7shadow_split_unit.cc`, `tests/reorderscan_paths.cc`, `tests/reordertrim.py`, `tools/iotemplates_proof.py` | retained |
 | `tests/reorder_flip.py` | MANUAL | none in scoped code | retained |
-| `tests/reorder_noop.py` | LIVE; TEXT-MATCHER | `tests/deadfused_checks.py`, `tests/r7shadow_noop.py`, `tests/reorder_receipt.py`, `tools/ctlfix_artifacts.py`, `tools/iofix3_artifacts.py`, `tools/lualibs_artifacts.py`, `tools/netfix_identity.py`, `tools/prefetch_artifacts.py`, `tools/rlfence_artifacts.py`, `tools/rltopo_artifacts.py`, `tools/serverfix_identity.py` | retained; see hardening evidence |
+| `tests/reorder_noop.py` | LIVE; TEXT-MATCHER | `tests/deadfused_checks.py`, `tests/r7shadow_noop.py`, `tests/reorder_receipt.py`, `tools/ctlfix_artifacts.py`, `tools/iofix3_artifacts.py`, `tools/lualibs_artifacts.py`, `tools/netfix_identity.py`, `tools/prefetch_artifacts.py`, `tools/rlfence_artifacts.py`, `tools/rltopo_artifacts.py`, `tools/serverfix_identity.py` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tests/reorder_receipt.py` | LIVE | `Makefile`, `tests/gate.sh`, `tools/iopass_validate.py` | retained |
 | `tests/reorder_scope.py` | MANUAL; TEXT-MATCHER | `tests/reorder_scope_test.py` | retained |
 | `tests/reorder_scope_test.py` | MANUAL; TEXT-MATCHER | none in scoped code | retained |
@@ -548,7 +703,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/respresume_migration.cc` | LIVE | `Makefile` | retained |
 | `tests/respresume_unit.cc` | LIVE | `Makefile` | retained |
 | `tests/rl2s.py` | MANUAL | none in scoped code | retained |
-| `tests/rlcache_churn.py` | LIVE; TEXT-MATCHER | `tests/gate.sh`, `tests/mutants.py`, `tests/rlcache_churn_test.py` | retained; see hardening evidence |
+| `tests/rlcache_churn.py` | LIVE | `tests/gate.sh`, `tests/mutants.py`, `tests/rlcache_churn_test.py` | Retained protocol/log/fixture reader; no production source matching. |
 | `tests/rlcache_churn_test.py` | MANUAL | none in scoped code | retained |
 | `tests/rlfence_unit.cc` | LIVE | `Makefile`, `tests/rob_portable_control.py`, `tools/rlfence_artifacts.py` | retained |
 | `tests/rlfix.py` | LIVE | `tests/gate.sh` | retained |
@@ -560,7 +715,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/rlfix5_gate_test.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/rlfix5_scope.cc` | LIVE | `tools/rlfix5.mk`, `tools/rlfix5_proof.py` | retained |
 | `tests/rltopo_unit.cc` | MANUAL | `tools/readreply_proof.py` | retained |
-| `tests/rob_portable_control.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | retained; see hardening evidence |
+| `tests/rob_portable_control.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tests/rootcompat.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/rootcompat_proc_fault.c` | LIVE | `tests/gate.sh` | retained |
 | `tests/rootcompat_tracking/resp.py` | LIVE | `tests/blockfix4_repro/item1_natural.py`, `tests/blockfix4_repro/item1_script_push.py`, `tests/blockfix4_repro/item2_move_nil.py`, `tests/blockfix4_repro/item4_creators.py`, `tests/blockfix4_repro/item5_stream_removed.py`, `tests/blockfix4_repro/item6_mpop_null.py`, `tests/blockfix4_repro/lib/srv.py`, `tests/netfix2_audit.py`, `tests/rootcompat_tracking/srv.py`, `tests/rootcompat_tracking/t1_xsnotify.py`, `tests/rootcompat_tracking/t3_keylesscap.py`, `tests/txnfix_audit/t01_exec_counter.py`, `tests/txnfix_audit/t02_exec_directed.py`, `tests/txnfix_audit/t02b_exec_vs_exec.py`, `tests/txnfix_audit/t03_mover_replay.py`, `tests/txnfix_audit/t04_mover_stress.py`, `tests/txnfix_audit/t05_mover_only.py`, `tests/txnfix_audit/t10_msetnx_hold.py`, `tests/txnfix_audit/t14_exec_window.py`, `tests/txnfix_audit/t15_exec_only_stress.py`, `tests/txnfix_audit/t17_queue_exec.py`, `tests/txnfix_audit/t18_watch_cas.py`, `tests/txnfix_audit/t19_crossed_watch.py`, `tools/atomfix6_audit.py`, `tools/wave15_scan_expiry.py` | retained |
@@ -576,8 +731,8 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/s6.py` | MANUAL | none in scoped code | retained |
 | `tests/savefix.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/scancompact.py` | MANUAL | none in scoped code | retained |
-| `tests/scriptatomic.py` | LIVE; TEXT-MATCHER | `tests/gaterows_contract_test.py`, `tests/scriptatomic_strict.py` | retained; see hardening evidence |
-| `tests/scriptatomic_strict.py` | LIVE | `tests/gate.sh` | retained |
+| `tests/scriptatomic.py` | LIVE | `tests/gaterows_contract_test.py`, `tests/scriptatomic_strict.py` | Retained protocol/log/fixture reader; no production source matching. |
+| `tests/scriptatomic_strict.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | AST insertion at a stable Python bootstrap comment; strict refusal assertions retained. |
 | `tests/scriptfix.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/scriptfix2.py` | LIVE | `tests/scriptfix3.py` | retained |
 | `tests/scriptfix2_counts.cc` | MANUAL | `tools/scriptfix2_counts.mk` | retained |
@@ -588,7 +743,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/scriptsurf.py` | MANUAL | none in scoped code | retained |
 | `tests/serverfix_acllog.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/serverfix_alloc.cc` | LIVE | `tests/_serverfix_alloc.py`, `tests/latencyfix.py` | retained |
-| `tests/serverfix_config.py` | LIVE; TEXT-MATCHER | `tests/gate.sh`, `tools/cfgfix_inventory.py` | retained; see hardening evidence |
+| `tests/serverfix_config.py` | LIVE; TEXT-MATCHER | `tests/gate.sh`, `tools/cfgfix_inventory.py` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tests/serverfix_hello.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/serverfix_hll.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/serverfix_lines.py` | LIVE | `tests/gate.sh` | retained |
@@ -633,7 +788,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/sortstore_checks.inc` | LIVE | `Makefile`, `tests/multidb_unit.cc` | retained |
 | `tests/sortstore_controls.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tests/sortstore_controls.py` |
 | `tests/spinprobe.py` | LIVE | `tests/gate.sh`, `tests/lottery_attempt.py` | retained |
-| `tests/splitlocal_checks.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/gate.sh`, `tools/iopass_validate.py`, `tools/overlapaxe_artifacts.py` | retained; see hardening evidence |
+| `tests/splitlocal_checks.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/gate.sh`, `tools/iopass_validate.py`, `tools/overlapaxe_artifacts.py` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tests/splitlocal_live.py` | MANUAL; TEXT-MATCHER | none in scoped code | retained |
 | `tests/spscmask_flip.py` | MANUAL | none in scoped code | retained |
 | `tests/standing-null/3dcdaa497a4f1e2a670342e17daa27bb9c36e9a2cbc633196d134d85b65efb9a-8149f97d7e9de4718100fe77606b28d5394d2c59b5dde92a6dddc6adffd31054.json.gz` | MANUAL | none in scoped code | retained |
@@ -652,7 +807,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/storefix5.py` | LIVE | `tests/gate.sh`, `tools/storefix5_checks.py` | retained |
 | `tests/storefix5_append.cc` | MANUAL | `tools/storefix5_append.py` | retained |
 | `tests/storeorder.py` | MANUAL | none in scoped code | retained |
-| `tests/storesize_checks.py` | LIVE | `Makefile`, `tests/gate.sh`, `tools/storesize_artifacts.py` | retained |
+| `tests/storesize_checks.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/gate.sh`, `tools/storesize_artifacts.py` | Token anchors and unique function scopes for the cold census instrumentation. |
 | `tests/storesize_unit.cc` | LIVE | `tools/flushfix2_verification_receipts.py`, `tools/storesize_artifacts.py` | retained |
 | `tests/stream.py` | MANUAL | none in scoped code | retained |
 | `tests/streamgroups.py` | MANUAL | none in scoped code | retained |
@@ -660,7 +815,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/tailgen_unit.cc` | LIVE | `Makefile` | retained |
 | `tests/tls.py` | LIVE | `tests/_netfix.py`, `tests/flipfix7.py`, `tests/fliplisten.py`, `tests/gate.sh`, `tests/iowake.py`, `tests/ktls_lifetime.py`, `tests/lottery_attempt.py`, `tests/netfix2.py`, `tools/ntfix_proof.py` | retained |
 | `tests/tlsserve_checks.inc` | LIVE | `Makefile`, `tests/netcmd_unit.cc`, `tools/tlsserve_proof.py` | retained |
-| `tests/tomo_assert_checks.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | retained; see hardening evidence |
+| `tests/tomo_assert_checks.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | Stable role names for diagnostic inventory; physical lines validate macro presence; empty-input negative added. |
 | `tests/tomo_assert_fail.cc` | LIVE | `Makefile` | retained |
 | `tests/torn_mset.py` | MANUAL | none in scoped code | retained |
 | `tests/torture.py` | LIVE | `tests/gate.sh` | retained |
@@ -673,10 +828,10 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/txn_movers.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/txn_nx.py` | LIVE | `tests/gate.sh`, `tools/snapfix2_nx_control.py`, `tools/woundfix_live.py` | retained |
 | `tests/txnfix4.mk` | LIVE | `tests/gate.sh` | retained |
-| `tests/txnfix4.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | retained; see hardening evidence |
+| `tests/txnfix4.py` | LIVE | `tests/gate.sh` | Retained protocol/log/fixture reader; no production source matching. |
 | `tests/txnfix4_hash.cc` | LIVE | `tests/txnfix4.mk` | retained |
 | `tests/txnfix4_scope.cc` | MANUAL | `tools/txnfix4_scope.py` | retained |
-| `tests/txnfix_audit/resp.py` | LIVE; TEXT-MATCHER | `tests/blockfix4_repro/item1_natural.py`, `tests/blockfix4_repro/item1_script_push.py`, `tests/blockfix4_repro/item2_move_nil.py`, `tests/blockfix4_repro/item4_creators.py`, `tests/blockfix4_repro/item5_stream_removed.py`, `tests/blockfix4_repro/item6_mpop_null.py`, `tests/blockfix4_repro/lib/srv.py`, `tests/netfix2_audit.py`, `tests/rootcompat_tracking/srv.py`, `tests/rootcompat_tracking/t1_xsnotify.py`, `tests/rootcompat_tracking/t3_keylesscap.py`, `tests/txnfix_audit/t01_exec_counter.py`, `tests/txnfix_audit/t02_exec_directed.py`, `tests/txnfix_audit/t02b_exec_vs_exec.py`, `tests/txnfix_audit/t03_mover_replay.py`, `tests/txnfix_audit/t04_mover_stress.py`, `tests/txnfix_audit/t05_mover_only.py`, `tests/txnfix_audit/t10_msetnx_hold.py`, `tests/txnfix_audit/t14_exec_window.py`, `tests/txnfix_audit/t15_exec_only_stress.py`, `tests/txnfix_audit/t17_queue_exec.py`, `tests/txnfix_audit/t18_watch_cas.py`, `tests/txnfix_audit/t19_crossed_watch.py`, `tools/atomfix6_audit.py`, `tools/wave15_scan_expiry.py` | retained; see hardening evidence |
+| `tests/txnfix_audit/resp.py` | LIVE | `tests/blockfix4_repro/item1_natural.py`, `tests/blockfix4_repro/item1_script_push.py`, `tests/blockfix4_repro/item2_move_nil.py`, `tests/blockfix4_repro/item4_creators.py`, `tests/blockfix4_repro/item5_stream_removed.py`, `tests/blockfix4_repro/item6_mpop_null.py`, `tests/blockfix4_repro/lib/srv.py`, `tests/netfix2_audit.py`, `tests/rootcompat_tracking/srv.py`, `tests/rootcompat_tracking/t1_xsnotify.py`, `tests/rootcompat_tracking/t3_keylesscap.py`, `tests/txnfix_audit/t01_exec_counter.py`, `tests/txnfix_audit/t02_exec_directed.py`, `tests/txnfix_audit/t02b_exec_vs_exec.py`, `tests/txnfix_audit/t03_mover_replay.py`, `tests/txnfix_audit/t04_mover_stress.py`, `tests/txnfix_audit/t05_mover_only.py`, `tests/txnfix_audit/t10_msetnx_hold.py`, `tests/txnfix_audit/t14_exec_window.py`, `tests/txnfix_audit/t15_exec_only_stress.py`, `tests/txnfix_audit/t17_queue_exec.py`, `tests/txnfix_audit/t18_watch_cas.py`, `tests/txnfix_audit/t19_crossed_watch.py`, `tools/atomfix6_audit.py`, `tools/wave15_scan_expiry.py` | Retained protocol/log/fixture reader; no production source matching. |
 | `tests/txnfix_audit/t01_exec_counter.py` | LIVE | `tests/txniso.py` | retained |
 | `tests/txnfix_audit/t02_exec_directed.py` | MANUAL | none in scoped code | retained |
 | `tests/txnfix_audit/t02b_exec_vs_exec.py` | MANUAL | none in scoped code | retained |
@@ -749,7 +904,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/wb_rule_2s_cells.txt` | MANUAL | `tools/wb_rule_2s_artifacts.py` | retained |
 | `tests/wb_rule_2s_cost.cc` | MANUAL | `tools/wb_rule_2s_artifacts.py` | retained |
 | `tests/wb_rule_cells.txt` | LIVE | `tests/ttlcell_test.py`, `tools/mkprobe_probe.py` | retained |
-| `tests/wb_rule_checks.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/gate.sh`, `tests/wbland_checks.py`, `tools/iopass_validate.py`, `tools/wb_rule_2s_artifacts.py` | retained; see hardening evidence |
+| `tests/wb_rule_checks.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/gate.sh`, `tests/wbland_checks.py`, `tools/iopass_validate.py`, `tools/wb_rule_2s_artifacts.py` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tests/wb_rule_codes.cc` | MANUAL | `tools/wb_rule_receipts.py` | retained |
 | `tests/wb_rule_completion_evidence.json` | MANUAL | none in scoped code | retained |
 | `tests/wb_rule_completion_unit.cc` | LIVE | `Makefile`, `tests/wb_rule_codes.cc`, `tests/wbknobs_cost.cc` | retained |
@@ -763,12 +918,12 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/wbknobs_cost.cc` | MANUAL | `tools/wbknobs_receipts.py` | retained |
 | `tests/wbknobs_sweep_cells.txt` | MANUAL | `tools/wbknobs_measure.py` | retained |
 | `tests/wbland_4096_cells.txt` | MANUAL | none in scoped code | retained |
-| `tests/wbland_checks.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/gate.sh`, `tools/iopass_validate.py` | retained; see hardening evidence |
+| `tests/wbland_checks.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/gate.sh`, `tools/iopass_validate.py` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tests/wbland_clause_unit.cc` | LIVE | `Makefile` | retained |
 | `tests/wbland_evidence.json` | MANUAL | none in scoped code | retained |
 | `tests/wbland_merit_cells.txt` | MANUAL | `tools/wbknobs_measure.py` | retained |
 | `tests/wbland_unit.cc` | LIVE | `Makefile` | retained |
-| `tests/wiredump.py` | LIVE; TEXT-MATCHER | `tests/persistfmt.py` | retained; see hardening evidence |
+| `tests/wiredump.py` | LIVE | `tests/persistfmt.py` | Retained protocol/log/fixture reader; no production source matching. |
 | `tests/writer_atomic.py` | MANUAL | `tests/writer_atomic_campaign.py` | retained |
 | `tests/writer_atomic_campaign.py` | MANUAL; TEXT-MATCHER | none in scoped code | retained |
 | `tests/xacct.py` | MANUAL | none in scoped code | retained |
@@ -793,9 +948,9 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tools/aoffix2_proof.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/aoffix2_proof.py` |
 | `tools/aoffix2_report.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/aoffix2_report.py` |
 | `tools/aoffix_artifacts.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/aoffix_artifacts.py` |
-| `tools/aoforder_schedule.py` | LIVE; TEXT-MATCHER | `Makefile` | retained; see hardening evidence |
+| `tools/aoforder_schedule.py` | LIVE; TEXT-MATCHER | `Makefile` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tools/assert_artifacts.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/assert_artifacts.py` |
-| `tools/assert_map.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/tomo_assert_checks.py`, `tools/aoforder_schedule.py`, `tools/crlffix_scope.py`, `tools/flipfix5_counts.py`, `tools/flipfix6_counts.py`, `tools/flipfix6_diag.py`, `tools/flipfix7_counts.py`, `tools/lottery_build.py`, `tools/notifycompat_schedule.py`, `tools/publishfix_schedule.py`, `tools/racefix_build.py`, `tools/source_identity.py`, `tools/trackfix_schedule.py` | retained; see hardening evidence |
+| `tools/assert_map.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/tomo_assert_checks.py`, `tools/aoforder_schedule.py`, `tools/crlffix_scope.py`, `tools/flipfix5_counts.py`, `tools/flipfix6_counts.py`, `tools/flipfix6_diag.py`, `tools/flipfix7_counts.py`, `tools/lottery_build.py`, `tools/notifycompat_schedule.py`, `tools/publishfix_schedule.py`, `tools/racefix_build.py`, `tools/source_identity.py`, `tools/trackfix_schedule.py` | Existing lexer retained; empty CLI assertion inventory now rejected. Physical lines remain diagnostic output only. |
 | `tools/at412_artifacts.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/at412_artifacts.py` |
 | `tools/at412_budget.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/at412_budget.py` |
 | `tools/at412c_proof.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/at412c_proof.py` |
@@ -819,11 +974,11 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tools/atomiccollapse_artifacts.py` | FINISHED-LANE; TEXT-MATCHER | `tests/atomiccollapse_controls.py` | moved unchanged to `tools/archive/tools/atomiccollapse_artifacts.py` |
 | `tools/benchtxn.cc` | LIVE | `Makefile` | retained |
 | `tools/blockfix2.mk` | LIVE | `tests/gate.sh`, `tools/atomfix6_final.py`, `tools/blockfix2_controls.py`, `tools/blockfix2_pad.py`, `tools/cfgfix2_units.py`, `tools/clientcompat_unit_build.py`, `tools/cmdfix2_freshness.py`, `tools/exec1sd_proof.py`, `tools/execfifo2_freshness.py`, `tools/execfifo3_freshness.py`, `tools/flipfix7_freshness.py`, `tools/flushfix2_freshness.py`, `tools/flushfix3_freshness.py`, `tools/rootcore_freshness.py`, `tools/trackorder_units.py` | retained |
-| `tools/blockfix2_controls.py` | LIVE; TEXT-MATCHER | `tests/gate.sh`, `tools/blockfix3_controls.py` | retained; see hardening evidence |
+| `tools/blockfix2_controls.py` | LIVE; TEXT-MATCHER | `tests/gate.sh`, `tools/blockfix3_controls.py` | Live receipt/check paths retained. Six available source-control branches use exact token guards. Historical rename build branch already fails at frozen input; see limitations. |
 | `tools/blockfix2_pad.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/blockfix2_pad.py` |
 | `tools/blockfix2_receipts.py` | LIVE | `tools/blockfix3_proof.py`, `tools/blockfix4_proof.py`, `tools/cmdfix2_evidence.py`, `tools/rlfix5_validate.py`, `tools/txnfix4_proof.py`, `tools/wave14.py`, `tools/wave15.py` | retained |
 | `tools/blockfix2_scope.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/blockfix2_scope.py` |
-| `tools/blockfix3_controls.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | retained; see hardening evidence |
+| `tools/blockfix3_controls.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | Retained live receipt/check paths; source controls delegate to the reviewed blockfix2 builder. |
 | `tools/blockfix3_pad.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/blockfix3_pad.py` |
 | `tools/blockfix3_proof.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/blockfix3_proof.py` |
 | `tools/blockfix3_repro.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/blockfix3_repro.py` |
@@ -915,7 +1070,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tools/eoffix_source_sync.py` | FINISHED-LANE; TEXT-MATCHER | `tools/eoffix_final.py`, `tools/eoffix_verify.py` | moved unchanged to `tools/archive/tools/eoffix_source_sync.py` |
 | `tools/eoffix_summary.py` | FINISHED-LANE | `tools/eoffix_final.py` | moved unchanged to `tools/archive/tools/eoffix_summary.py` |
 | `tools/eoffix_verify.py` | FINISHED-LANE | `tools/eoffix_final.py` | moved unchanged to `tools/archive/tools/eoffix_verify.py` |
-| `tools/exbatch_artifacts.py` | LIVE; TEXT-MATCHER | `tests/exbatch_checks.py` | retained; see hardening evidence |
+| `tools/exbatch_artifacts.py` | LIVE; TEXT-MATCHER | `tests/exbatch_checks.py` | Shared ELF role canonicalization; numeric patch-table inventory, exact byte checks and nonempty selections retained. |
 | `tools/exbatch_directed.py` | FINISHED-LANE | `tools/exbatch_rebuild_arms.py`, `tools/mkfix_counts.py`, `tools/mkprobe_probe.py` | moved unchanged to `tools/archive/tools/exbatch_directed.py` |
 | `tools/exbatch_rebuild_arms.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/exbatch_rebuild_arms.py` |
 | `tools/exbatch_source_proof.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/exbatch_source_proof.py` |
@@ -931,7 +1086,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tools/exec1s_pad_scope.py` | FINISHED-LANE; TEXT-MATCHER | `tools/exec1s_build.py` | moved unchanged to `tools/archive/tools/exec1s_pad_scope.py` |
 | `tools/exec1s_proof.py` | FINISHED-LANE | `tools/exec1s_finish_proof.py`, `tools/exec1sd_proof.py` | moved unchanged to `tools/archive/tools/exec1s_proof.py` |
 | `tools/exec1s_retire_probes.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/exec1s_retire_probes.py` |
-| `tools/exec1s_scope.py` | LIVE; TEXT-MATCHER | `tools/exec1s_aux.py`, `tools/exec1s_build.py`, `tools/exec1s_idle.py`, `tools/exec1s_pad_scope.py`, `tools/exec1s_retire_probes.py`, `tools/exec1s_trace.py`, `tools/exec1sd.py`, `tools/execfifo2_scope.py`, `tools/execfifo3_scope.py`, `tools/wave10.py`, `tools/wave11.py`, `tools/wave12.py`, `tools/wave13.py` | retained; see hardening evidence |
+| `tools/exec1s_scope.py` | LIVE; TEXT-MATCHER | `tools/exec1s_aux.py`, `tools/exec1s_build.py`, `tools/exec1s_idle.py`, `tools/exec1s_pad_scope.py`, `tools/exec1s_retire_probes.py`, `tools/exec1s_trace.py`, `tools/exec1sd.py`, `tools/execfifo2_scope.py`, `tools/execfifo3_scope.py`, `tools/wave10.py`, `tools/wave11.py`, `tools/wave12.py`, `tools/wave13.py` | Retained instruction census helper; public main/namespace boundaries and supplied fixture paths, no C++ text patch. |
 | `tools/exec1s_trace.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/exec1s_trace.py` |
 | `tools/exec1sd.py` | FINISHED-LANE; TEXT-MATCHER | `tools/exec1sd_alignment.py`, `tools/exec1sd_arms.py`, `tools/exec1sd_lottery.py`, `tools/exec1sd_pad.py`, `tools/exec1sd_proof.py`, `tools/exec1sd_receipts.py`, `tools/exec1sd_retire.py`, `tools/exec1sd_save.py`, `tools/exec1sd_save_full.py`, `tools/exec1sd_save_native.py`, `tools/exec1sd_scatter.py`, `tools/exec1sd_slowlog.py` | moved unchanged to `tools/archive/tools/exec1sd.py` |
 | `tools/exec1sd_alignment.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/exec1sd_alignment.py` |
@@ -1015,10 +1170,10 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tools/flushfix3_freshness.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/flushfix3_freshness.py` |
 | `tools/flushfix3_receipts.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/flushfix3_receipts.py` |
 | `tools/flushfix3_verify.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/flushfix3_verify.py` |
-| `tools/flushfix3_work_reference.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | retained; see hardening evidence |
-| `tools/gen_acl_categories.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | retained; see hardening evidence |
-| `tools/gen_cmddocs.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | retained; see hardening evidence |
-| `tools/gen_cmdmeta.py` | LIVE; TEXT-MATCHER | `tests/cmdmeta_coverage.py`, `tests/cmdmeta_test.py`, `tools/gen_cmddocs.py` | retained; see hardening evidence |
+| `tools/flushfix3_work_reference.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
+| `tools/gen_acl_categories.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
+| `tools/gen_cmddocs.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
+| `tools/gen_cmdmeta.py` | LIVE; TEXT-MATCHER | `tests/cmdmeta_coverage.py`, `tests/cmdmeta_test.py`, `tools/gen_cmddocs.py` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tools/gt14fix_evidence.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/gt14fix_evidence.py` |
 | `tools/infofields2_live.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/infofields2_live.py` |
 | `tools/infofields_artifacts.py` | FINISHED-LANE; TEXT-MATCHER | `tools/scriptfix2_artifacts.py`, `tools/versionstr_artifacts.py` | moved unchanged to `tools/archive/tools/infofields_artifacts.py` |
@@ -1054,15 +1209,15 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tools/latencyfix_pad.py` | FINISHED-LANE | `tools/scriptfix2_pad.py` | moved unchanged to `tools/archive/tools/latencyfix_pad.py` |
 | `tools/lb_episodes.py` | LIVE | `tests/connreset_harness_test.py`, `tools/lbosc3_report.py` | retained |
 | `tools/lbfix_artifacts.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/lbfix_artifacts.py` |
-| `tools/lbosc3_pad.py` | LIVE; TEXT-MATCHER | `Makefile` | retained; see hardening evidence |
+| `tools/lbosc3_pad.py` | LIVE; TEXT-MATCHER | `Makefile` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tools/lbosc3_report.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/lbosc3_report.py` |
-| `tools/lbplanner_controls.py` | LIVE; TEXT-MATCHER | `Makefile` | retained; see hardening evidence |
-| `tools/lbplanner_pad.py` | LIVE; TEXT-MATCHER | `Makefile`, `tools/lbosc3_pad.py`, `tools/lbplanner_receipts.py` | retained; see hardening evidence |
+| `tools/lbplanner_controls.py` | LIVE; TEXT-MATCHER | `Makefile` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
+| `tools/lbplanner_pad.py` | LIVE; TEXT-MATCHER | `Makefile`, `tools/lbosc3_pad.py`, `tools/lbplanner_receipts.py` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tools/lbplanner_pre_receipt.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/lbplanner_pre_receipt.py` |
 | `tools/lbplanner_receipts.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/lbplanner_receipts.py` |
 | `tools/lbplanner_trace.cc` | LIVE | `Makefile`, `tools/iopass_receipts.py` | retained |
-| `tools/lbstall_artifacts.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/cd13b_audit.py`, `tests/cdfix_checks.py`, `tests/climonfix_artifacts.py`, `tests/r7shadow_noop.py`, `tests/r7shadow_pad.py`, `tests/reordertrim.py`, `tests/respcompat_audit.py`, `tests/respcompat_pad.py`, `tests/signalacct_byte_checks.py`, `tests/wb_policy.py`, `tools/aclkeys_artifacts.py`, `tools/aoffix2_pad.py`, `tools/aoffix_artifacts.py`, `tools/assert_artifacts.py`, `tools/at412_artifacts.py`, `tools/at412_budget.py`, `tools/at_recycle_artifacts.py`, `tools/atomfix6_budget.py`, `tools/blockfix2_pad.py`, `tools/blockfix3_pad.py`, `tools/blockfix4_pad.py`, `tools/blockfix_identity.py`, `tools/blockfix_pad.py`, `tools/blockwake_pad.py`, `tools/boot_support_artifacts.py`, `tools/ccfix_audit.py`, `tools/cfgfix2_pad.py`, `tools/cfgfix_pad.py`, `tools/clientcompat_pad.py`, `tools/cmdfix2_compact_units.py`, `tools/cmdfix2_pad.py`, `tools/cmdfix_artifacts.py`, `tools/cmdmeta_audit.py`, `tools/crlffix_arms.py`, `tools/ctlfix_artifacts.py`, `tools/datafix1_pad.py`, `tools/deadcode2_artifacts.py`, `tools/deadcode2_linked.py`, `tools/deadcode2_pad.py`, `tools/deadfused_artifacts.py`, `tools/encodingfix_pad.py`, `tools/exbatch_artifacts.py`, `tools/exbatch_directed.py`, `tools/exbatch_source_proof.py`, `tools/exec1s_budget.py`, `tools/exec1s_pad.py`, `tools/exec1s_pad_scope.py`, `tools/execfifo3_artifacts.py`, `tools/execfifo_budget.py`, `tools/execindex_budget.py`, `tools/execindex_identity.py`, `tools/execindex_pad.py`, `tools/flipfix7_budgets.py`, `tools/flipreport_proof.py`, `tools/flipsettle_artifacts.py`, `tools/flushfix2_budget.py`, `tools/flushfix2_pad.py`, `tools/infofix_arms.py`, `tools/iofix_full_pad.py`, `tools/iofix_pad.py`, `tools/iopass_receipts.py`, `tools/iotemplates_proof.py`, `tools/iowake_budgets.py`, `tools/iowake_identity.py`, `tools/iowake_pad.py`, `tools/l4prebuild_artifacts.py`, `tools/lanefull_artifacts.py`, `tools/latencyfix_identity.py`, `tools/latencyfix_pad.py`, `tools/lbfix_artifacts.py`, `tools/lbosc3_pad.py`, `tools/lbplanner_pad.py`, `tools/lbplanner_receipts.py`, `tools/lualibs_artifacts.py`, `tools/mdbqsbr_artifacts.py`, `tools/mdbstamp_artifacts.py`, `tools/mkfix2_pad.py`, `tools/mset8fix_budgets.py`, `tools/mset8fix_pad.py`, `tools/multidb2_artifacts.py`, `tools/multidb3_artifacts.py`, `tools/multidb_artifacts.py`, `tools/netfix2_artifacts.py`, `tools/netfix2_diagnostics.py`, `tools/notifycompat_pad.py`, `tools/overlapaxe_artifacts.py`, `tools/parkwake_budgets.py`, `tools/parkwake_pad.py`, `tools/persistfix2_artifacts.py`, `tools/persistfix_artifacts.py`, `tools/prefetch_artifacts.py`, `tools/probeadapter_proof.py`, `tools/psfix_artifacts.py`, `tools/publishfix_pad.py`, `tools/readreply_proof.py`, `tools/reorder_pad.py`, `tools/reorderscan_pad.py`, `tools/rlfence_artifacts.py`, `tools/rltopo_artifacts.py`, `tools/rootcompat_budget.py`, `tools/rootcore_pad.py`, `tools/scriptfix2_artifacts.py`, `tools/scriptfix3_pad.py`, `tools/scriptfix4_pad.py`, `tools/serverfix_hot_identity.py`, `tools/serverfix_pad.py`, `tools/shutsave_audit.py`, `tools/shutsave_pad.py`, `tools/signalacct_artifacts.py`, `tools/signalacct_tail_artifacts.py`, `tools/snapfix2_artifacts.py`, `tools/snapfix_budget.py`, `tools/snapfix_pad.py`, `tools/splitlocal_artifacts.py`, `tools/storesize_artifacts.py`, `tools/tlsserve_proof.py`, `tools/trackorder_pad.py`, `tools/ttlstate_proof.py`, `tools/txnfix4_pad.py`, `tools/wave11_normalize.py`, `tools/wave14_summary.py`, `tools/wave16_budgets.py`, `tools/wave16_pad.py`, `tools/wb_rule_2s_artifacts.py`, `tools/wb_rule_artifacts.py`, `tools/wb_rule_receipts.py`, `tools/wbknobs_receipts.py`, `tools/wbland_artifacts.py` | retained; see hardening evidence |
-| `tools/lottery_build.py` | LIVE; TEXT-MATCHER | `Makefile` | retained; see hardening evidence |
+| `tools/lbstall_artifacts.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/cd13b_audit.py`, `tests/cdfix_checks.py`, `tests/climonfix_artifacts.py`, `tests/r7shadow_noop.py`, `tests/r7shadow_pad.py`, `tests/reordertrim.py`, `tests/respcompat_audit.py`, `tests/respcompat_pad.py`, `tests/signalacct_byte_checks.py`, `tests/wb_policy.py`, `tools/aclkeys_artifacts.py`, `tools/aoffix2_pad.py`, `tools/aoffix_artifacts.py`, `tools/assert_artifacts.py`, `tools/at412_artifacts.py`, `tools/at412_budget.py`, `tools/at_recycle_artifacts.py`, `tools/atomfix6_budget.py`, `tools/blockfix2_pad.py`, `tools/blockfix3_pad.py`, `tools/blockfix4_pad.py`, `tools/blockfix_identity.py`, `tools/blockfix_pad.py`, `tools/blockwake_pad.py`, `tools/boot_support_artifacts.py`, `tools/ccfix_audit.py`, `tools/cfgfix2_pad.py`, `tools/cfgfix_pad.py`, `tools/clientcompat_pad.py`, `tools/cmdfix2_compact_units.py`, `tools/cmdfix2_pad.py`, `tools/cmdfix_artifacts.py`, `tools/cmdmeta_audit.py`, `tools/crlffix_arms.py`, `tools/ctlfix_artifacts.py`, `tools/datafix1_pad.py`, `tools/deadcode2_artifacts.py`, `tools/deadcode2_linked.py`, `tools/deadcode2_pad.py`, `tools/deadfused_artifacts.py`, `tools/encodingfix_pad.py`, `tools/exbatch_artifacts.py`, `tools/exbatch_directed.py`, `tools/exbatch_source_proof.py`, `tools/exec1s_budget.py`, `tools/exec1s_pad.py`, `tools/exec1s_pad_scope.py`, `tools/execfifo3_artifacts.py`, `tools/execfifo_budget.py`, `tools/execindex_budget.py`, `tools/execindex_identity.py`, `tools/execindex_pad.py`, `tools/flipfix7_budgets.py`, `tools/flipreport_proof.py`, `tools/flipsettle_artifacts.py`, `tools/flushfix2_budget.py`, `tools/flushfix2_pad.py`, `tools/infofix_arms.py`, `tools/iofix_full_pad.py`, `tools/iofix_pad.py`, `tools/iopass_receipts.py`, `tools/iotemplates_proof.py`, `tools/iowake_budgets.py`, `tools/iowake_identity.py`, `tools/iowake_pad.py`, `tools/l4prebuild_artifacts.py`, `tools/lanefull_artifacts.py`, `tools/latencyfix_identity.py`, `tools/latencyfix_pad.py`, `tools/lbfix_artifacts.py`, `tools/lbosc3_pad.py`, `tools/lbplanner_pad.py`, `tools/lbplanner_receipts.py`, `tools/lualibs_artifacts.py`, `tools/mdbqsbr_artifacts.py`, `tools/mdbstamp_artifacts.py`, `tools/mkfix2_pad.py`, `tools/mset8fix_budgets.py`, `tools/mset8fix_pad.py`, `tools/multidb2_artifacts.py`, `tools/multidb3_artifacts.py`, `tools/multidb_artifacts.py`, `tools/netfix2_artifacts.py`, `tools/netfix2_diagnostics.py`, `tools/notifycompat_pad.py`, `tools/overlapaxe_artifacts.py`, `tools/parkwake_budgets.py`, `tools/parkwake_pad.py`, `tools/persistfix2_artifacts.py`, `tools/persistfix_artifacts.py`, `tools/prefetch_artifacts.py`, `tools/probeadapter_proof.py`, `tools/psfix_artifacts.py`, `tools/publishfix_pad.py`, `tools/readreply_proof.py`, `tools/reorder_pad.py`, `tools/reorderscan_pad.py`, `tools/rlfence_artifacts.py`, `tools/rltopo_artifacts.py`, `tools/rootcompat_budget.py`, `tools/rootcore_pad.py`, `tools/scriptfix2_artifacts.py`, `tools/scriptfix3_pad.py`, `tools/scriptfix4_pad.py`, `tools/serverfix_hot_identity.py`, `tools/serverfix_pad.py`, `tools/shutsave_audit.py`, `tools/shutsave_pad.py`, `tools/signalacct_artifacts.py`, `tools/signalacct_tail_artifacts.py`, `tools/snapfix2_artifacts.py`, `tools/snapfix_budget.py`, `tools/snapfix_pad.py`, `tools/splitlocal_artifacts.py`, `tools/storesize_artifacts.py`, `tools/tlsserve_proof.py`, `tools/trackorder_pad.py`, `tools/ttlstate_proof.py`, `tools/txnfix4_pad.py`, `tools/wave11_normalize.py`, `tools/wave14_summary.py`, `tools/wave16_budgets.py`, `tools/wave16_pad.py`, `tools/wb_rule_2s_artifacts.py`, `tools/wb_rule_artifacts.py`, `tools/wb_rule_receipts.py`, `tools/wbknobs_receipts.py`, `tools/wbland_artifacts.py` | Shared ELF name canonicalization for renamed stable roles; byte/relocation comparisons unchanged. |
+| `tools/lottery_build.py` | LIVE; TEXT-MATCHER | `Makefile` | 62 checked insertion sites, token replacements, two explicit publication markers; missing/duplicate anchors reject. |
 | `tools/lualibs_artifacts.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/lualibs_artifacts.py` |
 | `tools/lualibs_proof.sh` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/lualibs_proof.sh` |
 | `tools/mdbqsbr_artifacts.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/mdbqsbr_artifacts.py` |
@@ -1093,10 +1248,10 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tools/nicrestore.sh` | MANUAL | none in scoped code | retained |
 | `tools/notifycompat_identity.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/notifycompat_identity.py` |
 | `tools/notifycompat_pad.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/notifycompat_pad.py` |
-| `tools/notifycompat_schedule.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | retained; see hardening evidence |
+| `tools/notifycompat_schedule.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tools/nsrun.c` | MANUAL | none in scoped code | retained |
 | `tools/ntfix_proof.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/ntfix_proof.py` |
-| `tools/nullpublish_refreeze.py` | LIVE; TEXT-MATCHER | `tests/nullpublish_refreeze_test.py` | retained; see hardening evidence |
+| `tools/nullpublish_refreeze.py` | LIVE; TEXT-MATCHER | `tests/nullpublish_refreeze_test.py` | Gate/receipt text matcher; does not inspect production C++. Existing fixture/row tests retained. |
 | `tools/overlapaxe_artifacts.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/overlapaxe_artifacts.py` |
 | `tools/parkwake_budgets.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/parkwake_budgets.py` |
 | `tools/parkwake_counts.py` | FINISHED-LANE | `tools/wave16_counts.py` | moved unchanged to `tools/archive/tools/parkwake_counts.py` |
@@ -1107,11 +1262,11 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tools/parkwake_summary.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/parkwake_summary.py` |
 | `tools/persistfix2_artifacts.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/persistfix2_artifacts.py` |
 | `tools/persistfix_artifacts.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/persistfix_artifacts.py` |
-| `tools/persistfix_controls.py` | LIVE; TEXT-MATCHER | `Makefile` | retained; see hardening evidence |
+| `tools/persistfix_controls.py` | LIVE; TEXT-MATCHER | `Makefile` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tools/persistfmt.mk` | LIVE | `tests/gate.sh`, `tools/flushfix3_freshness.py` | retained |
 | `tools/persistfmt_counts.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/persistfmt_counts.py` |
 | `tools/persistfmt_pad.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/persistfmt_pad.py` |
-| `tools/persistfmt_schedule.py` | LIVE | `tools/persistfmt.mk` | retained |
+| `tools/persistfmt_schedule.py` | LIVE; TEXT-MATCHER | `tools/persistfmt.mk` | Token replacements with exact-one guards, including namespace insertion. |
 | `tools/persistfmt_validate.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/persistfmt_validate.py` |
 | `tools/prefetch_artifacts.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/prefetch_artifacts.py` |
 | `tools/probeadapter_proof.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/probeadapter_proof.py` |
@@ -1119,10 +1274,10 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tools/publishfix_pad.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/publishfix_pad.py` |
 | `tools/publishfix_schedule.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/publishfix_schedule.py` |
 | `tools/quietcheck.sh` | LIVE | `tests/gate.sh`, `tests/gates_test.py`, `tools/infofields2_live.py` | retained |
-| `tools/racefix_build.py` | LIVE; TEXT-MATCHER | `Makefile` | retained; see hardening evidence |
+| `tools/racefix_build.py` | LIVE; TEXT-MATCHER | `Makefile` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tools/readreply_proof.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/readreply_proof.py` |
 | `tools/reorder_pad.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/reorder_pad.py` |
-| `tools/reorder_sync.py` | LIVE | `Makefile`, `tests/r7shadow_sync.py`, `tests/signalacct_source_checks.py`, `tests/wbland_checks.py` | retained |
+| `tools/reorder_sync.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/r7shadow_sync.py`, `tests/signalacct_source_checks.py`, `tests/wbland_checks.py` | Alias to the same token-based R7 generator; exact unique generated-region markers. |
 | `tools/reorderscan_pad.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/reorderscan_pad.py` |
 | `tools/respresume_artifacts.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/respresume_artifacts.py` |
 | `tools/respresume_fastpath.py` | FINISHED-LANE | `tools/respresume_fastpath_report.py` | moved unchanged to `tools/archive/tools/respresume_fastpath.py` |
@@ -1135,7 +1290,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tools/respresume_trace.cc` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/respresume_trace.cc` |
 | `tools/respresume_trace.py` | FINISHED-LANE | `tools/respresume_fastpath.py`, `tools/respresume_fastpath_report.py` | moved unchanged to `tools/archive/tools/respresume_trace.py` |
 | `tools/ringmarker_proof.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/ringmarker_proof.py` |
-| `tools/rlfence_artifacts.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/respcompat_pad.py`, `tools/aclkeys_artifacts.py`, `tools/cmdmeta_audit.py`, `tools/crlffix_arms.py`, `tools/crlffix_fast_scope.py`, `tools/deadcode2_pad.py`, `tools/deadfused_artifacts.py`, `tools/exbatch_artifacts.py`, `tools/exbatch_source_proof.py`, `tools/flipfix5_artifacts.py`, `tools/flipfix5_counts.py`, `tools/flipfix6_counts.py`, `tools/flipfix7_counts.py`, `tools/infofix_scope.py`, `tools/lbosc3_pad.py`, `tools/lbplanner_pad.py`, `tools/lbplanner_receipts.py`, `tools/overlapaxe_artifacts.py` | retained; see hardening evidence |
+| `tools/rlfence_artifacts.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/respcompat_pad.py`, `tools/aclkeys_artifacts.py`, `tools/cmdmeta_audit.py`, `tools/crlffix_arms.py`, `tools/crlffix_fast_scope.py`, `tools/deadcode2_pad.py`, `tools/deadfused_artifacts.py`, `tools/exbatch_artifacts.py`, `tools/exbatch_source_proof.py`, `tools/flipfix5_artifacts.py`, `tools/flipfix5_counts.py`, `tools/flipfix6_counts.py`, `tools/flipfix7_counts.py`, `tools/infofix_scope.py`, `tools/lbosc3_pad.py`, `tools/lbplanner_pad.py`, `tools/lbplanner_receipts.py`, `tools/overlapaxe_artifacts.py` | Stable role translation for selected objdump symbol and disassembly labels; opcode checks unchanged. |
 | `tools/rlfix3_info_compare.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/rlfix3_info_compare.py` |
 | `tools/rlfix3_pad.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/rlfix3_pad.py` |
 | `tools/rlfix3_units.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/rlfix3_units.py` |
@@ -1153,7 +1308,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tools/rootcore_collect_proof.py` | FINISHED-LANE | `tools/rootcore_proof.py` | moved unchanged to `tools/archive/tools/rootcore_collect_proof.py` |
 | `tools/rootcore_counts.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/rootcore_counts.py` |
 | `tools/rootcore_freshness.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/rootcore_freshness.py` |
-| `tools/rootcore_inbox.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | retained; see hardening evidence |
+| `tools/rootcore_inbox.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tools/rootcore_pad.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/rootcore_pad.py` |
 | `tools/rootcore_proof.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/rootcore_proof.py` |
 | `tools/rootcore_scheduler.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/rootcore_scheduler.py` |
@@ -1193,7 +1348,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tools/snapfix_scope.py` | FINISHED-LANE; TEXT-MATCHER | `tools/snapfix2_artifacts.py` | moved unchanged to `tools/archive/tools/snapfix_scope.py` |
 | `tools/snapfix_stacks.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/snapfix_stacks.py` |
 | `tools/snapfix_storm_capture.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/snapfix_storm_capture.py` |
-| `tools/source_identity.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/tomo_assert_checks.py` | retained; see hardening evidence |
+| `tools/source_identity.py` | LIVE; TEXT-MATCHER | `Makefile`, `tests/tomo_assert_checks.py` | Existing lexer retained; empty production source inventory now rejected. |
 | `tools/splitlocal_artifacts.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/splitlocal_artifacts.py` |
 | `tools/storefix5_append.py` | FINISHED-LANE; TEXT-MATCHER | `tools/storefix5_final_proof.py` | moved unchanged to `tools/archive/tools/storefix5_append.py` |
 | `tools/storefix5_archive.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/storefix5_archive.py` |
@@ -1213,7 +1368,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tools/storefix5_report.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/storefix5_report.py` |
 | `tools/storefix5_retirement.py` | FINISHED-LANE; TEXT-MATCHER | `tools/storefix5_finish_proof.py` | moved unchanged to `tools/archive/tools/storefix5_retirement.py` |
 | `tools/storefix5_serial_proof.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/storefix5_serial_proof.py` |
-| `tools/storesize_artifacts.py` | LIVE; TEXT-MATCHER | `tests/storesize_checks.py` | retained; see hardening evidence |
+| `tools/storesize_artifacts.py` | LIVE; TEXT-MATCHER | `tests/storesize_checks.py` | Shared ELF role canonicalization; exactly two route bodies and exact opcode/layout checks retained. |
 | `tools/storesize_poller.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/storesize_poller.py` |
 | `tools/tailgen/README.md` | LIVE | `tools/execfifo3_perf_summary.py`, `tools/tailgen/main.cc` | retained |
 | `tools/tailgen/config.h` | LIVE | `Makefile`, `tests/config_parser_test.cc`, `tests/docs_drift.py`, `tests/ktls_keyupdate_unit.cc`, `tests/mkfix2_unit.cc`, `tests/r7shadow_unit.cc`, `tests/reorder_scope.py`, `tests/reordertrim.py`, `tests/serverfix_config.py`, `tests/tailgen_unit.cc`, `tests/waits_unit.cc`, `tests/wbland_unit.cc`, `tools/cfgfix_inventory.py`, `tools/tailgen/main.cc` | retained |
@@ -1227,12 +1382,12 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tools/tailgen/workload.h` | LIVE | `tools/tailgen/config.h`, `tools/tailgen/connection.h` | retained |
 | `tools/tlsserve_proof.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/tlsserve_proof.py` |
 | `tools/tomokv-nic.service` | MANUAL | none in scoped code | retained |
-| `tools/trackfix_schedule.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | retained; see hardening evidence |
+| `tools/trackfix_schedule.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 | `tools/trackorder_counts.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/trackorder_counts.py` |
 | `tools/trackorder_pad.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/trackorder_pad.py` |
 | `tools/trackorder_run.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/trackorder_run.py` |
 | `tools/trackorder_units.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/trackorder_units.py` |
-| `tools/ttlstate_proof.py` | LIVE; TEXT-MATCHER | `tools/boot_support_artifacts.py`, `tools/exbatch_artifacts.py`, `tools/flipreport_proof.py`, `tools/iotemplates_proof.py`, `tools/lanefull_artifacts.py`, `tools/probeadapter_proof.py`, `tools/readreply_proof.py`, `tools/ringmarker_proof.py`, `tools/splitlocal_artifacts.py`, `tools/tlsserve_proof.py` | retained; see hardening evidence |
+| `tools/ttlstate_proof.py` | LIVE; TEXT-MATCHER | `tools/boot_support_artifacts.py`, `tools/exbatch_artifacts.py`, `tools/flipreport_proof.py`, `tools/iotemplates_proof.py`, `tools/lanefull_artifacts.py`, `tools/probeadapter_proof.py`, `tools/readreply_proof.py`, `tools/ringmarker_proof.py`, `tools/splitlocal_artifacts.py`, `tools/tlsserve_proof.py` | LIVE ELF helper imports only. Historical source()/CLI fixed-line proof is not invoked by gate or make; retained with its library. |
 | `tools/txnfix4_abort_site.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/txnfix4_abort_site.py` |
 | `tools/txnfix4_auditors.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/txnfix4_auditors.py` |
 | `tools/txnfix4_pad.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/txnfix4_pad.py` |
@@ -1247,23 +1402,23 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tools/txnfix_scatter_audit.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/txnfix_scatter_audit.py` |
 | `tools/versionstr_artifacts.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/versionstr_artifacts.py` |
 | `tools/versionstr_smoke.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/versionstr_smoke.py` |
-| `tools/wave10.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | retained; see hardening evidence |
-| `tools/wave10_normalize.py` | LIVE; TEXT-MATCHER | `tools/wave10.py`, `tools/wave11_budgets.py`, `tools/wave11_normalize.py` | retained; see hardening evidence |
+| `tools/wave10.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | Retained utility imports/historical receipt orchestration; frozen-reference commands are not replayed by ordinary gate. |
+| `tools/wave10_normalize.py` | LIVE; TEXT-MATCHER | `tools/wave10.py`, `tools/wave11_budgets.py`, `tools/wave11_normalize.py` | Instruction/literal parser, not C++ source; its audit uses shared canonical ELF names. |
 | `tools/wave11.py` | FINISHED-LANE; TEXT-MATCHER | `tools/wave11_budgets.py` | moved unchanged to `tools/archive/tools/wave11.py` |
 | `tools/wave11_budgets.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/wave11_budgets.py` |
 | `tools/wave11_counts.py` | FINISHED-LANE; TEXT-MATCHER | `tools/iowake_counts.py`, `tools/netfix2_counts.py`, `tools/netfix2_diagnostics.py`, `tools/persistfmt_counts.py`, `tools/wave16_counts.py` | moved unchanged to `tools/archive/tools/wave11_counts.py` |
-| `tools/wave11_normalize.py` | LIVE; TEXT-MATCHER | `tools/wave11.py`, `tools/wave12_normalize.py` | retained; see hardening evidence |
+| `tools/wave11_normalize.py` | LIVE; TEXT-MATCHER | `tools/wave11.py`, `tools/wave12_normalize.py` | Instruction/literal parser, not C++ source; its audit uses shared canonical ELF names. |
 | `tools/wave12.py` | FINISHED-LANE; TEXT-MATCHER | `tools/wave12_budgets.py` | moved unchanged to `tools/archive/tools/wave12.py` |
 | `tools/wave12_budgets.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/wave12_budgets.py` |
 | `tools/wave12_counts.py` | FINISHED-LANE; TEXT-MATCHER | `tools/atomfix6_counts.py`, `tools/clientcompat_counts.py`, `tools/clientcompat_inline_trials.py`, `tools/clientcompat_pause_audit.py`, `tools/rootcore_counts.py`, `tools/scriptfix4_counts.py` | moved unchanged to `tools/archive/tools/wave12_counts.py` |
 | `tools/wave12_normalize.py` | LIVE | `tools/mset8fix_identity.py`, `tools/parkwake_identity.py`, `tools/rlfix5_artifacts.py`, `tools/wave12.py`, `tools/wave12_budgets.py`, `tools/wave13.py`, `tools/wave13_budgets.py`, `tools/wave14.py`, `tools/wave14_budgets.py`, `tools/wave15.py`, `tools/wave15_budgets.py` | retained |
 | `tools/wave13.py` | FINISHED-LANE; TEXT-MATCHER | `tools/wave13_budgets.py` | moved unchanged to `tools/archive/tools/wave13.py` |
 | `tools/wave13_budgets.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/wave13_budgets.py` |
-| `tools/wave13_counts.py` | LIVE; TEXT-MATCHER | `tools/blockwake_counts.py`, `tools/cfgfix2_counts.py`, `tools/cfgfix_counts.py`, `tools/cmdfix2_counts.py`, `tools/mset8fix_counts.py`, `tools/parkwake_counts.py`, `tools/rlfix5.mk`, `tools/rlfix5_artifacts.py`, `tools/rlfix5_proof.py`, `tools/rlfix5_validate.py`, `tools/storefix5_append.py`, `tools/storefix5_counts.py`, `tools/wave14_counts.py`, `tools/wave15_counts.py` | retained; see hardening evidence |
-| `tools/wave14.py` | LIVE; TEXT-MATCHER | `tools/eoffix_bind.py`, `tools/wave14_arms.py`, `tools/wave14_budgets.py`, `tools/wave14_capture.py`, `tools/wave14_cleanup.py`, `tools/wave14_closeout.py`, `tools/wave14_counts.py`, `tools/wave14_coverage.py`, `tools/wave14_eof_budgets.py`, `tools/wave14_fifo_controls.py`, `tools/wave14_followthrough.py`, `tools/wave14_r7_control.py`, `tools/wave14_summary.py`, `tools/wave14_txnorder_diagnostics.py`, `tools/wave14_validation.py`, `tools/wave14_xacct_followthrough.py` | retained; see hardening evidence |
+| `tools/wave13_counts.py` | LIVE; TEXT-MATCHER | `tools/blockwake_counts.py`, `tools/cfgfix2_counts.py`, `tools/cfgfix_counts.py`, `tools/cmdfix2_counts.py`, `tools/mset8fix_counts.py`, `tools/parkwake_counts.py`, `tools/rlfix5.mk`, `tools/rlfix5_artifacts.py`, `tools/rlfix5_proof.py`, `tools/rlfix5_validate.py`, `tools/storefix5_append.py`, `tools/storefix5_counts.py`, `tools/wave14_counts.py`, `tools/wave15_counts.py` | Retained instruction census helper; public main/namespace boundaries and supplied fixture paths, no C++ text patch. |
+| `tools/wave14.py` | LIVE; TEXT-MATCHER | `tools/eoffix_bind.py`, `tools/wave14_arms.py`, `tools/wave14_budgets.py`, `tools/wave14_capture.py`, `tools/wave14_cleanup.py`, `tools/wave14_closeout.py`, `tools/wave14_counts.py`, `tools/wave14_coverage.py`, `tools/wave14_eof_budgets.py`, `tools/wave14_fifo_controls.py`, `tools/wave14_followthrough.py`, `tools/wave14_r7_control.py`, `tools/wave14_summary.py`, `tools/wave14_txnorder_diagnostics.py`, `tools/wave14_validation.py`, `tools/wave14_xacct_followthrough.py` | LIVE ROOT/sha/save imports only; historical source-editing CLI is not invoked by the gate. |
 | `tools/wave14_arms.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/wave14_arms.py` |
 | `tools/wave14_budgets.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/wave14_budgets.py` |
-| `tools/wave14_capture.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | retained; see hardening evidence |
+| `tools/wave14_capture.py` | LIVE; TEXT-MATCHER | `tests/gate.sh` | Exact unique undefined-symbol roles in both namespaces; hook receives current mangled names. |
 | `tools/wave14_cleanup.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/wave14_cleanup.py` |
 | `tools/wave14_closeout.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/wave14_closeout.py` |
 | `tools/wave14_counts.py` | FINISHED-LANE | `tools/eoffix_counts.py`, `tools/eoffix_receive_counts.py` | moved unchanged to `tools/archive/tools/wave14_counts.py` |
@@ -1299,7 +1454,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tools/wbland_artifacts.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/wbland_artifacts.py` |
 | `tools/woundfix_gate.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/woundfix_gate.py` |
 | `tools/woundfix_live.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/woundfix_live.py` |
-| `tools/woundfix_windows.py` | LIVE; TEXT-MATCHER | `Makefile` | retained; see hardening evidence |
+| `tools/woundfix_windows.py` | LIVE; TEXT-MATCHER | `Makefile` | Token/role anchors and fail-closed inventory; see the per-tool formatted/rename/negative evidence. |
 
 ### Gate and Makefile reference lines
 

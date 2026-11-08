@@ -1,0 +1,8 @@
+PARTIAL	0	GATE_ONLY_JOBS=source_identity reorder_sync splitlocal_units wave14_functions netfix_idle_buffers rob_portable; NOT A RECEIPT
+ok	0.040000	release build (+footprint locks)
+ok	160.920000	production source identity + stable assertion ids
+ok	37.220000	wave14 function snapshot and journal history
+ok	1.300000	ROB portable completion without BMI
+ok	30.690000	R7 generated envelope parity
+ok	10.510000	splitlocal template forwarding + old-argument controls
+ok	291.310000	netfix NT4.19 idle buffer reclamation

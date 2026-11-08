@@ -1,0 +1,71 @@
+[
+  {
+    "tool": "climon-mask",
+    "shape": "current",
+    "command": [
+      "sed",
+      "s/return io >> 6;/return 0;/"
+    ],
+    "exit": 0,
+    "changed": true,
+    "extracted": null
+  },
+  {
+    "tool": "climon-mask",
+    "shape": "formatted",
+    "command": [
+      "sed",
+      "s/return io >> 6;/return 0;/"
+    ],
+    "exit": 0,
+    "changed": true,
+    "extracted": null
+  },
+  {
+    "tool": "climon-mask",
+    "shape": "renamed",
+    "command": [
+      "sed",
+      "s/return io >> 6;/return 0;/"
+    ],
+    "exit": 0,
+    "changed": false,
+    "extracted": null
+  },
+  {
+    "tool": "prebuild-threshold",
+    "shape": "current",
+    "command": [
+      "sed",
+      "-n",
+      "s/^#define TOMO_L4_PREBUILD_THRESHOLD //p"
+    ],
+    "exit": 0,
+    "changed": null,
+    "extracted": "512"
+  },
+  {
+    "tool": "prebuild-threshold",
+    "shape": "formatted",
+    "command": [
+      "sed",
+      "-n",
+      "s/^#define TOMO_L4_PREBUILD_THRESHOLD //p"
+    ],
+    "exit": 0,
+    "changed": null,
+    "extracted": "512"
+  },
+  {
+    "tool": "prebuild-threshold",
+    "shape": "renamed",
+    "command": [
+      "sed",
+      "-n",
+      "s/^#define TOMO_L4_PREBUILD_THRESHOLD //p"
+    ],
+    "exit": 0,
+    "changed": null,
+    "extracted": ""
+  }
+]
