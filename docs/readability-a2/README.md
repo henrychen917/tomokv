@@ -10,7 +10,7 @@ The installation uses the system pip's `--python` option, so Python's optional
 `src/`, `tests/` and `tools/`. Add new maintained files to this list. Vendored code,
 the three generated command metadata files, archived tools, historical `docs/`
 snapshots, and `scratch/`, `scratchpad/` and calibration experiments are excluded.
-No recursive file discovery runs during formatting or checks. Offending paths
+The formatter's file selection never recurses. Offending paths
 are printed in manifest order, and a failed check exits nonzero.
 
 The configuration preserves include and definition order, literal spelling,
@@ -23,7 +23,9 @@ directories.
 The R7 generated regions have `clang-format off/on` guards immediately outside
 their BEGIN/END markers. `make format` formats their handwritten inputs, then runs
 `tests/r7shadow_sync.py --write`. Only that generator writes those regions.
-`make format-check` checks formatting and R7 token parity without writing source.
+`make format-check` checks only the listed files without writing source. Run
+`python3 tests/r7shadow_sync.py` separately for generator parity; the existing
+`reorder_sync` gate job includes that check and its negative controls.
 
 `measure_style.py` measures the frozen baseline. `compare_formats.py` compares the
 three configurations in disposable directories under `build/readability-a2/`.

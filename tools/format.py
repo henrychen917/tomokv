@@ -76,10 +76,8 @@ def main():
         print(f'{len(pending)} files need formatting; run make format', file=sys.stderr)
         return 1
     # Only the generator writes its protected regions, after its inputs are formatted.
-    command = [sys.executable, 'tests/r7shadow_sync.py']
     if not args.check:
-        command.append('--write')
-    subprocess.run(command, cwd=ROOT, check=True)
+        subprocess.run([sys.executable, 'tests/r7shadow_sync.py', '--write'], cwd=ROOT, check=True)
     print(f'clang-format {pin}: {len(files)} files {"checked" if args.check else "formatted"}')
     return 0
 
