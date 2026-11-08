@@ -1,0 +1,733 @@
+[
+  {
+    "file": "src/core/flipctl.h",
+    "base_comment_line": 22,
+    "edits": [
+      "flip_fingerprint_window"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.h",
+    "base_comment_line": 56,
+    "edits": [
+      "FlipFingerprintPublication"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.h",
+    "base_comment_line": 149,
+    "edits": [
+      "FlipFingerprintWriter::published_since"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.h",
+    "base_comment_line": 215,
+    "edits": [
+      "flip_signature_distance"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.h",
+    "base_comment_line": 302,
+    "edits": [
+      "FlipctlReport"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.h",
+    "base_comment_line": 391,
+    "edits": [
+      "FlipController::observe_rate",
+      "FlipController::observe_rate"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.h",
+    "base_comment_line": 505,
+    "edits": [
+      "FlipController::begin_refinement"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.h",
+    "base_comment_line": 524,
+    "edits": [
+      "FlipController::baseline_band"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.h",
+    "base_comment_line": 224,
+    "edits": [
+      "FlipShiftDetector"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.h",
+    "base_comment_line": 246,
+    "edits": [
+      "FlipShiftDetector::noise_bound"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.h",
+    "base_comment_line": 260,
+    "edits": [
+      "FlipShiftDetector::signature_noise_"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.h",
+    "base_comment_line": 474,
+    "edits": [
+      "FlipController::model_margin_"
+    ]
+  },
+  {
+    "file": "src/core/flip_policy.h",
+    "base_comment_line": 202,
+    "edits": [
+      "flip_role_work"
+    ]
+  },
+  {
+    "file": "src/core/flip_policy.h",
+    "base_comment_line": 246,
+    "edits": [
+      "FlipEwVariance"
+    ]
+  },
+  {
+    "file": "src/core/flip_policy.h",
+    "base_comment_line": 301,
+    "edits": [
+      "FlipEwVariance::sigma"
+    ]
+  },
+  {
+    "file": "src/core/flip_policy.h",
+    "base_comment_line": 308,
+    "edits": [
+      "FlipEwBound"
+    ]
+  },
+  {
+    "file": "src/core/flip_policy.h",
+    "base_comment_line": 340,
+    "edits": [
+      "FlipEwBound::bound"
+    ]
+  },
+  {
+    "file": "src/core/flip_policy.h",
+    "base_comment_line": 390,
+    "edits": [
+      "flip_corrected_gain"
+    ]
+  },
+  {
+    "file": "src/core/flip_policy.h",
+    "base_comment_line": 401,
+    "edits": [
+      "flip_refine_bar"
+    ]
+  },
+  {
+    "file": "src/core/flip_policy.h",
+    "base_comment_line": 510,
+    "edits": [
+      "flip_cost_gate"
+    ]
+  },
+  {
+    "file": "src/core/flip_policy.h",
+    "base_comment_line": 496,
+    "edits": [
+      "flip_cost_gate"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 11,
+    "edits": [
+      "ctlfix_correctness"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 74,
+    "edits": [
+      "flip_signature_distance"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 120,
+    "edits": [
+      "FlipShiftDetector::update_band"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 137,
+    "edits": [
+      "FlipShiftDetector::update_band"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 152,
+    "edits": [
+      "FlipShiftDetector::update_band"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 182,
+    "edits": [
+      "FlipShiftDetector::observe"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 317,
+    "edits": [
+      "FlipController::sample_fingerprint"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 443,
+    "edits": [
+      "FlipController::stabilize_rate"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 708,
+    "edits": [
+      "FlipController::issue_flip"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 777,
+    "edits": [
+      "FlipController::sample_role_demand"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 824,
+    "edits": [
+      "FlipController::sample_role_demand"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 855,
+    "edits": [
+      "FlipController::decide_placement"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 926,
+    "edits": [
+      "FlipController::decide_placement"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 988,
+    "edits": [
+      "FlipController::decide_placement"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 1113,
+    "edits": [
+      "FlipController::seek_after_reading"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 1171,
+    "edits": [
+      "FlipController::anchor"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 1217,
+    "edits": [
+      "FlipController::anchor"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 1312,
+    "edits": [
+      "FlipController::tick"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 1326,
+    "edits": [
+      "FlipController::tick"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 1385,
+    "edits": [
+      "FlipController::tick"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 1432,
+    "edits": [
+      "FlipController::tick"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 603,
+    "edits": [
+      "FlipController::start_maneuver"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 751,
+    "edits": [
+      "FlipController::measure_flip"
+    ]
+  },
+  {
+    "file": "src/core/flipctl.cc",
+    "base_comment_line": 1411,
+    "edits": [
+      "FlipController::tick"
+    ]
+  },
+  {
+    "file": "src/core/climon_mask.h",
+    "base_comment_line": 21,
+    "edits": [
+      "ClimonIoMask::set"
+    ]
+  },
+  {
+    "file": "src/core/eof.cc",
+    "base_comment_line": 32,
+    "edits": [
+      "IoLoop::receive_fin"
+    ]
+  },
+  {
+    "file": "src/core/eof.cc",
+    "base_comment_line": 114,
+    "edits": [
+      "IoLoop::receive_eof_pass"
+    ]
+  },
+  {
+    "file": "src/core/lbstall.cc",
+    "base_comment_line": 6,
+    "edits": [
+      "lb_stall_reason"
+    ]
+  },
+  {
+    "file": "src/core/lbstall.cc",
+    "base_comment_line": 45,
+    "edits": [
+      "Server::lb_refuse_stalled"
+    ]
+  },
+  {
+    "file": "src/core/lbstall.cc",
+    "base_comment_line": 55,
+    "edits": [
+      "Server::lb_refuse_stalled"
+    ]
+  },
+  {
+    "file": "src/core/orthog.h",
+    "base_comment_line": 26,
+    "edits": [
+      "ModeScheduleStats"
+    ]
+  },
+  {
+    "file": "src/core/orthog.h",
+    "base_comment_line": 32,
+    "edits": [
+      "ModeScheduleStats"
+    ]
+  },
+  {
+    "file": "src/core/signalacct.h",
+    "base_comment_line": 102,
+    "edits": [
+      "IoTenure::account"
+    ]
+  },
+  {
+    "file": "src/core/signalacct.h",
+    "base_comment_line": 91,
+    "edits": [
+      "IoTenure"
+    ]
+  },
+  {
+    "file": "src/core/signal.h",
+    "base_comment_line": 58,
+    "edits": [
+      "thread_cpu_ns"
+    ]
+  },
+  {
+    "file": "src/core/signal.h",
+    "base_comment_line": 106,
+    "edits": [
+      "LoopSignals counters"
+    ]
+  },
+  {
+    "file": "src/core/signal.h",
+    "base_comment_line": 139,
+    "edits": [
+      "LoopSignals::configure_age_sampling"
+    ]
+  },
+  {
+    "file": "src/core/signal.h",
+    "base_comment_line": 269,
+    "edits": [
+      "ReadyMask::take"
+    ]
+  },
+  {
+    "file": "src/core/signal.h",
+    "base_comment_line": 325,
+    "edits": [
+      "NotifyMask::take"
+    ]
+  },
+  {
+    "file": "src/core/signal.h",
+    "base_comment_line": 365,
+    "edits": [
+      "Channel::push"
+    ]
+  },
+  {
+    "file": "src/core/signal.h",
+    "base_comment_line": 300,
+    "edits": [
+      "NotifyMask::set"
+    ]
+  },
+  {
+    "file": "src/core/wb_rule.h",
+    "base_comment_line": 15,
+    "edits": [
+      "wb_rule::kSmallPipe"
+    ]
+  },
+  {
+    "file": "src/core/wb_rule.h",
+    "base_comment_line": 20,
+    "edits": [
+      "wb_rule::kCompleteVisits"
+    ]
+  },
+  {
+    "file": "src/core/wb_rule.h",
+    "base_comment_line": 24,
+    "edits": [
+      "wb_rule::Settings"
+    ]
+  },
+  {
+    "file": "src/core/wb_rule.h",
+    "base_comment_line": 30,
+    "edits": [
+      "wb_rule::kIdleMultiplier"
+    ]
+  },
+  {
+    "file": "src/core/wb_rule.h",
+    "base_comment_line": 51,
+    "edits": [
+      "wb_rule::IdleWindow::active"
+    ]
+  },
+  {
+    "file": "src/core/wb_rule.h",
+    "base_comment_line": 56,
+    "edits": [
+      "wb_rule::kPolicyFraction"
+    ]
+  },
+  {
+    "file": "src/core/wb_rule.h",
+    "base_comment_line": 76,
+    "edits": [
+      "wb_rule::staged_bytes"
+    ]
+  },
+  {
+    "file": "src/core/wb_rule.h",
+    "base_comment_line": 160,
+    "edits": [
+      "wb_rule::defer"
+    ]
+  },
+  {
+    "file": "src/core/wb_rule.h",
+    "base_comment_line": 180,
+    "edits": [
+      "wb_rule::Phase2"
+    ]
+  },
+  {
+    "file": "src/core/wb_rule.h",
+    "base_comment_line": 35,
+    "edits": [
+      "wb_rule::IdleWindow"
+    ]
+  },
+  {
+    "file": "src/cmd/flip_session.inc",
+    "base_comment_line": 6,
+    "edits": [
+      "Client::flip_migration_protocol_idle"
+    ]
+  },
+  {
+    "file": "src/cmd/flip_session.inc",
+    "base_comment_line": 17,
+    "edits": [
+      "IoLoop::flip_session_drain_refused"
+    ]
+  },
+  {
+    "file": "src/cmd/flip_session.inc",
+    "base_comment_line": 35,
+    "edits": [
+      "IoLoop::closing_client_ready"
+    ]
+  },
+  {
+    "file": "src/cmd/flip_liveness.inc",
+    "base_comment_line": 1,
+    "edits": [
+      "flip_liveness_enabled"
+    ]
+  },
+  {
+    "file": "src/cmd/flip_liveness.inc",
+    "base_comment_line": 112,
+    "edits": [
+      "IoLoop::flip_output_adopt"
+    ]
+  },
+  {
+    "file": "src/cmd/flip_liveness.inc",
+    "base_comment_line": 144,
+    "edits": [
+      "IoLoop::flip_output_prepare"
+    ]
+  },
+  {
+    "file": "src/cmd/flip_liveness.inc",
+    "base_comment_line": 337,
+    "edits": [
+      "IoLoop::flip_borrow_resume"
+    ]
+  },
+  {
+    "file": "src/core/fliplisten.cc",
+    "base_comment_line": 661,
+    "edits": [
+      "IoLoop::fliplisten_cqe"
+    ]
+  },
+  {
+    "file": "src/core/fliplisten.cc",
+    "base_comment_line": 816,
+    "edits": [
+      "IoLoop::fliplisten_finish"
+    ]
+  },
+  {
+    "file": "src/core/fliplisten.cc",
+    "base_comment_line": 863,
+    "edits": [
+      "IoLoop::fliplisten_retry_accept"
+    ]
+  },
+  {
+    "file": "src/core/fliplisten.cc",
+    "base_comment_line": 881,
+    "edits": [
+      "IoLoop::fliplisten_retry_accept"
+    ]
+  },
+  {
+    "file": "src/core/fliplisten.cc",
+    "base_comment_line": 914,
+    "edits": [
+      "IoLoop::fliplisten_shutdown"
+    ]
+  },
+  {
+    "file": "src/core/weighted_lb.h",
+    "base_comment_line": 34,
+    "edits": [
+      "LbAutotune::ShardWindow"
+    ]
+  },
+  {
+    "file": "src/core/weighted_lb.h",
+    "base_comment_line": 54,
+    "edits": [
+      "LbAutotune::sampling_floor",
+      "LbAutotune::sampling_floor"
+    ]
+  },
+  {
+    "file": "src/core/weighted_lb.h",
+    "base_comment_line": 137,
+    "edits": [
+      "LbAutotune::stall",
+      "LbAutotune::KeyDamping"
+    ]
+  },
+  {
+    "file": "src/core/weighted_lb.h",
+    "base_comment_line": 334,
+    "edits": [
+      "weighted_lb_partition"
+    ]
+  },
+  {
+    "file": "src/core/weighted_lb.h",
+    "base_comment_line": 22,
+    "edits": [
+      "LbAutotune"
+    ]
+  },
+  {
+    "file": "src/core/placement.h",
+    "base_comment_line": 33,
+    "edits": [
+      "Placement::build_fused"
+    ]
+  },
+  {
+    "file": "src/core/placement.h",
+    "base_comment_line": 65,
+    "edits": [
+      "Placement::build_even"
+    ]
+  },
+  {
+    "file": "src/core/lbplanner.cc",
+    "base_comment_line": 10,
+    "edits": [
+      "lbosc3_level"
+    ]
+  },
+  {
+    "file": "src/core/lbplanner.cc",
+    "base_comment_line": 37,
+    "edits": [
+      "LbAutotune::KeyDamping::update"
+    ]
+  },
+  {
+    "file": "src/core/lbplanner.cc",
+    "base_comment_line": 57,
+    "edits": [
+      "LbAutotune::KeyDamping::update"
+    ]
+  },
+  {
+    "file": "src/core/lbplanner.cc",
+    "base_comment_line": 75,
+    "edits": [
+      "lbosc3_best_incremental_move"
+    ]
+  },
+  {
+    "file": "src/core/lbplanner.cc",
+    "base_comment_line": 264,
+    "edits": [
+      "Server::lb_controller_tick"
+    ]
+  },
+  {
+    "file": "src/core/lbplanner.cc",
+    "base_comment_line": 278,
+    "edits": [
+      "Server::lb_controller_tick"
+    ]
+  },
+  {
+    "file": "src/core/lbplanner.cc",
+    "base_comment_line": 553,
+    "edits": [
+      "Server::monitor_controllers"
+    ]
+  },
+  {
+    "file": "src/core/lbplanner.cc",
+    "base_comment_line": 555,
+    "edits": [
+      "Server::monitor_controllers"
+    ]
+  },
+  {
+    "file": "src/core/lbplanner.cc",
+    "base_comment_line": 608,
+    "edits": [
+      "Server::monitor_controllers"
+    ]
+  },
+  {
+    "file": "src/core/lbplanner.cc",
+    "base_comment_line": 614,
+    "edits": [
+      "Server::lb_controller_tick_pad"
+    ]
+  },
+  {
+    "file": "src/core/lbplanner.cc",
+    "base_comment_line": 984,
+    "edits": [
+      "IoLoop::lb_pass_begin_pad"
+    ]
+  },
+  {
+    "file": "src/core/lbplanner.cc",
+    "base_comment_line": 990,
+    "edits": [
+      "IoLoop::lb_control_pass_pad"
+    ]
+  },
+  {
+    "file": "src/core/lbplanner.cc",
+    "base_comment_line": 1003,
+    "edits": [
+      "Server::monitor_controllers_pad"
+    ]
+  }
+]

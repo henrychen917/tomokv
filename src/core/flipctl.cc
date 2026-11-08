@@ -1,3 +1,7 @@
+// FLIP controller sampling, model decisions and outcome accounting. The main monitor calls
+// tick; its mutex serializes the private state with INFO/DEBUG access. Server's
+// shape-transition mutex separately protects FLIP admission and completion consumption. The
+// controller proposes a role split; the Server/IoLoop protocol drains and transfers ownership.
 #include "flipctl.h"
 
 #include <algorithm>
@@ -8,9 +12,8 @@
 
 namespace tomo {
 
-// Offline PAD-A patch point. Production always takes the corrected controller;
-// the behaviour twin changes this return byte only, retaining POST text/layout.
-// No configuration or command can select the legacy branch.
+// Offline behaviour-twin patch point. Production returns true; an artifact tool can patch this
+// return in a copied ELF while retaining its text layout. There is no runtime selector.
 __attribute__((noinline, noipa)) bool ctlfix_correctness() { return true; }
 
 namespace {
@@ -76,14 +79,10 @@ double flip_signature_distance(const FlipSignature& left, const FlipSignature& r
     // probability-vector L1 is in [0,2] and each relative scalar distance is in [0,1], so dividing
     // by the family count keeps the distance normalized to [0,1].
     //
-    // pass_depth is NOT here. Measured on the multi-key regime this defect was found in: one
-    // controller step from io=5 to io=7 moved the pass-depth distance by 0.0476 -- eight to forty
-    // times its own learned trigger band -- while the three mix families moved by 4.2e-7, 0 and
-    // 5.4e-7 across the same seconds. Parse-pass occupancy describes how the io threads happened
-    // to batch arrivals, which is exactly what the actuator changes when it moves connections
-    // between owners. Judging placement with it is the sweep-abandon livelock: the controller
-    // re-fires on its own last move. Pipeline-depth changes that matter still reach the controller
-    // through the rate detector, which owns volume.
+    // pass_depth describes arrival batching, which changes when the actuator moves connections
+    // between IO owners. Feeding it into the trigger would allow a move to retrigger itself
+    // without a changed command mix. Pipeline-depth changes that affect volume reach the rate
+    // detector.
     return (class_l1 * 0.5 +
             unit_normalized_distance(left.keys_per_multikey, right.keys_per_multikey) +
             unit_normalized_distance(left.value_bytes_per_command, right.value_bytes_per_command)) /
@@ -117,41 +116,26 @@ void FlipShiftDetector::update_band() {
         band_ = 0;
         return;
     }
-    // SAMPLING SCALE, not counting resolution. Every family in the distance is a proportion or a
-    // per-command mean estimated from the N commands this window observed, so two windows drawn
-    // from one stationary workload differ by the ESTIMATOR'S OWN NOISE, which falls as 1/sqrt(N)
-    // -- never as 1/N. A Bernoulli proportion's standard error is at most 0.5/sqrt(N) and the
-    // difference of two independent estimates at most sqrt(2) of that, so 1/sqrt(N) bounds the
-    // per-family noise with room for the few terms an L1 sums. The old 1/N quantum understated it
-    // by sqrt(N) -- twentyfold at 13.5k commands a window -- which is how a window that merely
-    // drew 60 MSETs where the last one drew 50 could read as a workload change. A window that
-    // observed no commands supplies no evidence: saturate at one command (quantum 1.0) instead of
-    // collapsing to zero, or an anchor cut from an idle window freezes a zero band and judges the
-    // first busy wobble as a mix shift. Rate triggers, not fingerprints, own idle->busy.
-    //
-    // N IS WHAT THE SIGNATURE WAS ESTIMATED FROM, so when the writer samples the request stream the
-    // quantum grows with the sampling: at one command in a hundred a 100-command window resolves
-    // the mix to about 0.1, not to the 0.009 the underlying 10k commands would give.
+    // Each signature family is a proportion or per-command mean estimated from N sampled
+    // commands. Estimator noise scales as 1/sqrt(N), rather than the 1/N counting quantum. A
+    // Bernoulli proportion has standard error at most 0.5/sqrt(N); differencing two independent
+    // estimates adds at most sqrt(2). The 1/sqrt(N) scale leaves room for the L1 terms. N
+    // counts sampled commands, not the unsampled traffic they represent. Floor N at one for an
+    // empty sample: a zero band learned during idle would mistake the first busy fluctuation
+    // for a mix shift. Rate triggers handle idle-to-busy changes.
     const double quantum =
         1.0 / std::sqrt(static_cast<double>(std::max<uint64_t>(smoothed_.commands, 1)));
-    // A TYPED BAND IS A FLOOR, NOT A CEILING, AND IT CANNOT BUY RESOLUTION THE SIGNAL HAS NOT GOT.
-    // The internal detector's explicit-band unit-test control sets the mix change worth a maneuver;
-    // it says nothing about how
-    // still the signature holds, and it used to return here consulting neither the estimator's
-    // resolution nor the signal's measured movement. Measured by the gate-hygiene lane on a driver
-    // whose rate held to 0.07% across 34 samples: a fingerprint distance of 0.2518 against a flat
-    // 0.0200 band -- 12.6x -- fired a maneuver on a stationary load. Simulated here on a 1-in-100
-    // sampled stream, a typed 2% band produced three two-consecutive exceedances in 600 stationary
-    // windows (a spurious maneuver each); with the quantum applied it produces none, and a real mix
-    // change still clears the band by 3.3x. So both branches take the same two floors.
+    // An explicit test band sets a minimum worthwhile change, but cannot improve sample
+    // resolution or remove observed noise. Both explicit and learned bands therefore use the
+    // same two floors.
     const double floor = std::max(2.0 * quantum, signature_noise_.bound());
     if (configured_band_ > 0) {
         band_ = std::max(static_cast<double>(configured_band_) / 100.0, floor);
         return;
     }
-    // ... and the learned band adds the frozen learning-window jitter, floored the same way: that
-    // jitter is the largest adjacent step seen in the few windows before the anchor, so a learning
-    // window that happened to be still freezes a band the hold then trips over.
+    // The learned band also includes twice the frozen pre-anchor jitter. Its resolution and
+    // continuous-noise floors protect an anchor whose learning windows happened to be unusually
+    // quiet.
     band_ = std::max(2.0 * jitter_, floor);
 }
 
@@ -179,22 +163,12 @@ bool FlipShiftDetector::observe(const FlipFingerprintWindow& sample) {
     if (anchored_) {
         last_distance_ = flip_signature_distance(smoothed_, anchored_signature_);
         const bool fired = configured_band_ != 0 && last_distance_ > band_;
-        // LEARN THE STATISTIC THAT IS ACTUALLY TESTED. The trigger compares the distance from the
-        // ANCHOR; the adjacent-window distance is a different quantity -- smoothed and correlated,
-        // so systematically smaller -- and flooring an anchor-distance test with it underestimates.
-        // Measured on a simulated 1-in-100 sampled stream: adjacent-learned bound 0.054 against a
-        // quiet-state anchor distance reaching 0.101, which fired 15 times in 60 stationary windows.
-        // So the noise estimate is the anchored distance's own null distribution.
-        //
-        // JUDGE FIRST, FOLD ONLY IN-BAND WINDOWS. An excursion must never widen the threshold that
-        // judges it -- that is why this branch froze the band originally, and it stands. Folding
-        // every window instead cost exactly that: with the decaying maximum below, the FIRST window
-        // of a real mix change lifted the band to the excursion's own size, so the second window was
-        // judged against a band that had already absorbed it and the change never cleared its band
-        // (tests/flip_multikey_hold.py positive phase, reached 0.80x). A window that came back IN
-        // band is quiet-state evidence and is safe to learn from; one that did not is the thing
-        // under test. The estimate cannot get stuck too small, because the quantum below floors the
-        // band at the estimator's own resolution without needing any observation at all.
+        // Learn the statistic being tested: distance from the anchor. Adjacent-window distance
+        // is smoothed and correlated, so it can understate anchor excursions. Judge first and
+        // fold only in-band windows into signature_noise_; an excursion must not widen the
+        // threshold that judges it. Otherwise the first window of a real change could absorb
+        // the change before the second confirmation. The sample-resolution floor applies even
+        // without a noise observation.
         if (!fired) {
             signature_noise_.add(last_distance_);
             update_band();
@@ -314,7 +288,7 @@ bool FlipController::sample_fingerprint(Server& server) {
     bool any = false;
     for (uint32_t tid = 0; tid < server.nthreads(); tid++) {
         FlipFingerprintWindow& previous = fingerprint_last_[tid];
-        // Acquire the owner's window count and compare it BEFORE copying any counter (CT4.3).
+        // Acquire the owner's window count and compare it before copying any counter.
         FlipFingerprintWindow current;
         if (!server.thread(tid).flip_fingerprint().published_since(previous.closed_windows,
                                                                    current))
@@ -440,8 +414,8 @@ bool FlipController::stabilize_rate(double& rate) {
     if (!pair_rate(rate, prior_rate)) return false;
     double band = anchor_rate_band_;
     if (band <= 0) band = automatic_rate_band(stable_pair_delta_, rate);
-    // A pair is "stable" relative to how the load itself moves tick to tick, never to a band a
-    // lucky settle window learned below that (0.02% measured: no pair ever fit and Measuring stuck).
+    // Judge pair stability against the load's tick-to-tick noise as well as the anchor band. An
+    // unusually quiet settle window must not make all subsequent pairs inadmissible.
     band = std::max({band, 2.0 * rate_ew_.sigma(), rate_sampling_band()});
     if (stable_pair_delta_ > band) return false;
     // A stabilized reading represents the pair, not whichever of its two subwindows happened to
@@ -495,6 +469,10 @@ void FlipController::learn_anchored_rate(double rate) {
         std::max(anchor_rate_band_floor_, automatic_rate_band(anchor_rate_jitter_, anchor_rate_));
 }
 
+// Contract: Monitor tick calls this under mutex_ in BootPending. It updates boot learning from
+// cumulative rate/fingerprint samples; it publishes no shared payload. Idle resets learning,
+// missing evidence defers, and the non-idle tick cap bounds rate-based deferral after
+// fingerprint work is observed.
 bool FlipController::boot_load_stable(Server& server, uint64_t now_ms) {
     const auto reset_learning = [this]() {
         boot_rate_ewma_ = 0;
@@ -585,6 +563,10 @@ bool FlipController::boot_load_stable(Server& server, uint64_t now_ms) {
     return boot_rate_slope_ <= boot_rate_slope_threshold_;
 }
 
+// Contract: Monitor tick calls under mutex_ to reset model, rate and fingerprint learning for a
+// trigger. Per-thread vectors must have been sized by enabled init. It snapshots role counters
+// and release-stores the requested sampling rate; LoopSignals fields do not provide a coherent
+// cross-thread snapshot. It leaves ownership unchanged and starts Measuring.
 void FlipController::start_maneuver(Server& server, FlipctlTriggerReason reason, uint64_t now_ms) {
     last_trigger_ = reason;
     triggers_++;
@@ -600,9 +582,9 @@ void FlipController::start_maneuver(Server& server, FlipctlTriggerReason reason,
         forced_triggers_++;
 
     phase_ = Phase::Measuring;
-    // Where this maneuver started. If the search comes back here, the trigger that started it
-    // demanded a move and the measurements refused one: that excursion carries no placement
-    // information and anchor() turns it into a band floor.
+    // Remember the maneuver's starting split. If a workload-triggered maneuver returns here,
+    // anchor() increases that detector's confirmation count because the evidence produced no
+    // lasting placement change.
     maneuver_origin_io_ = server.role_count(Role::Ifid);
     shift_streak_ = 0;
     readings_.clear();
@@ -705,12 +687,9 @@ void FlipController::enter_settling() {
 
 bool FlipController::issue_flip(Server& server, uint32_t coordinator, uint32_t target_io,
                                 Phase after_flip, uint64_t now_ms, double rate_before) {
-    // A flip onto the live split is a no-op that flip_begin nevertheless counts as completed, and
-    // issue_flip would then report failure because the stage never left Idle -- an ownership
-    // transaction in the counters that the controller does not believe it made. The seek arithmetic
-    // does not produce one today (every wall case reverses direction first), so this is a guard,
-    // not the cause of the multi-key thrash; but the controller must be structurally incapable of
-    // spending a FLIP on the split it is already running.
+    // Reject the current split before calling flip_begin: a no-op there counts as completed
+    // without leaving Idle, while this method reports an issued flip from the non-Idle stage.
+    // The guard keeps the controller's ownership-transaction count consistent with that result.
     if (target_io == server.role_count(Role::Ifid)) return false;
     std::string error;
     // A manual completion after this tick's observation invalidates its evidence.
@@ -748,9 +727,10 @@ uint32_t FlipController::io_clients(const Server& server) const {
     return clients;
 }
 
-// Books the flip that just returned to Idle into the cost model. Called at the first look that
-// sees Idle, which wait_ms() makes a fraction of a tick after completion, so the served count is
-// contaminated by at most that fraction of post-flip traffic at the new rate.
+// Book a measured flip when tick observes Idle. wait_ms requests checks every fraction of a
+// tick while the flip is in flight, reducing post-completion traffic included in its cost
+// estimate. Scheduling delay can extend the interval; the polling cadence is not a wall-time
+// bound.
 void FlipController::measure_flip(Server& server, uint64_t now_ms) {
     if (!flip_measure_armed_) return;
     flip_measure_armed_ = false;
@@ -774,22 +754,12 @@ void FlipController::measure_flip(Server& server, uint64_t now_ms) {
     cost_.record_flip(lost, static_cast<double>(moved), flip_issue_naive_, ticks);
 }
 
-// One windowed observation of how the two roles split the server's real work, plus each role's
-// HEADROOM: the idle share of its busiest thread. Returns false while the window carries no
-// evidence; the caller keeps measuring rather than inventing a prior.
-//
-// WORK IS WALL MINUS IDLE. Historical evidence (2026-09-06): the io loop closed
-// its busy span before ring_.submit_and_reap(), so the io_uring_enter syscall -- the kernel
-// moving the bytes, which is io work -- was booked as neither busy nor idle. Measured on the
-// guard's own snapshots (single-key 1:1, 40 s): one io thread booked 16.4 s busy + 0.2 s idle of
-// 39.9 s on-CPU, 23.5 s unbooked; the busy share read io = 0.32 on a workload whose work share is
-// 0.51, and the model moved 2:2 -> 1:3 (measured -52%) and came back. idle_ns is the quantity both
-// loops book faithfully: the io loop's blocked wait after an empty sweep, the ex loop's empty
-// passes and blocked wait (ex_loop.h). The wall is the controller's own tick clock, the same for
-// every thread of the window, so nothing new is read on the hot path. IO tenure accounting
-// now includes submit/reap; this model deliberately remains wall-minus-idle. The historical
-// numbers were not reproduced by that cleanup. IO idle still includes epoll callbacks and
-// park publication/resumption, not merely the blocking syscall.
+// Observe each role's work share and busiest-thread idle headroom over the controller's wall
+// window. Work is wall minus booked idle, using the same tick clock for every thread. IO tenure
+// accounting includes submit/reap, but the demand model still uses wall-minus-idle rather than
+// busy_ns. IO idle includes epoll callbacks and park publication/resumption; EX idle includes
+// empty passes and blocked waits. Missing work evidence returns false for continued sampling.
+// The LoopSignals reads here do not establish a race-free C++ counter snapshot.
 bool FlipController::sample_role_demand(Server& server, uint64_t now_ms, double& io_frac,
                                         double& io_headroom, double& ex_headroom) {
     const double wall =
@@ -821,14 +791,10 @@ bool FlipController::sample_role_demand(Server& server, uint64_t now_ms, double&
     if (wall <= 0 || role_ops[0] <= 0 || role_ops[1] <= 0 || role_work[0] <= 0 || role_work[1] <= 0)
         return false;
 
-    // WORK CONSERVATION, WITH BOTH OPERANDS THE SAME QUANTITY. The throughput-optimal split gives
-    // each role the thread fraction its PER-COMMAND service cost demands,
-    //     n_io* / N = c_io / (c_io + c_ex),   c_role = (work ns that role spent) / (commands run),
-    // and the command count is the same divisor on both sides, so it cancels: the estimator is the
-    // work-time share, and it never has to name what an "op" is. (It used to divide each role's
-    // busy time by that role's OWN op counter; the ex loop counts one op per SHARD TASK, 7.576 per
-    // MGET8 command, so ex looked cheap and the model wanted io = 82% -- the 5:3 -> 7:1 -> 5:3
-    // round trip the operator saw as three flips and 993 moved connections.)
+    // Work conservation gives n_io/N = c_io/(c_io+c_ex), where each c is role work divided by
+    // the same completed-command count. That divisor cancels, leaving work-time share. Do not
+    // divide by each role's own ops counter: IO counts commands and EX counts shard tasks, so a
+    // multikey command contributes different operation counts to the two roles.
     if (!std::isfinite(role_work[0]) || !std::isfinite(role_work[1])) return false;
     io_frac = role_work[0] / (role_work[0] + role_work[1]);
     io_headroom = headroom[0];
@@ -852,13 +818,18 @@ double FlipController::verification_band(double rate) const {
     return std::max({anchor_rate_band_, automatic_rate_band(maneuver_rate_jitter_, rate), floor});
 }
 
-// The Measuring phase (flip_policy.h): one demand draw per stabilized reading into the policy
-// window, then decide or keep measuring. The server serves at its live split throughout, so time
-// spent here costs nothing but the maneuver's own sampling arm -- which is why every "not yet" below
-// is a return to sampling, not a hold: the interval tightens, the origin's noise estimate firms up,
-// and the stationarity horizon the cost gate credits grows, all for free.
+// The Measuring phase accumulates a demand observation per stabilized reading. The split keeps
+// serving while evidence improves: the demand interval tightens, the origin noise estimate
+// gains samples, and the demonstrated stationarity horizon grows. The maneuver's sampling
+// remains armed.
+// Contract: Monitor tick calls under mutex_ after a stabilized rate reading. Accumulate demand,
+// choose and price a hypothesis, then request Server FLIP admission. Missing evidence continues
+// sampling up to the reading cap; holds and refused admission enter Settling and return false.
+// A successful request returns true; issue_flip publishes through Server, not through these
+// local model fields.
 bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint64_t now_ms,
                                       double rate) {
+    // Phase 1: accumulate demand and the origin reading.
     maneuver_rate_jitter_ = std::max(maneuver_rate_jitter_, stable_pair_delta_);
     double io_frac = 0, io_headroom = 0, ex_headroom = 0;
     const bool corrected = ctlfix_correctness();
@@ -889,6 +860,7 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
     model_io_headroom_ = io_headroom;
     model_ex_headroom_ = ex_headroom;
 
+    // Phase 2: project candidate gains and apply any directed seek.
     const uint32_t unit = server.smt_units_enabled() ? 2u : 1u;
     const uint32_t total_units = server.nthreads() / unit;
     const uint32_t now_units = server.role_count(Role::Ifid) / unit;
@@ -923,13 +895,11 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
     model_gain_high_ = choice.gain_high;
     model_target_io_ = choice.target_units * unit;
 
-    // SATURATION GATE. The capacity model above is a statement about CPU-bound roles: throughput
-    // ~ min(io capacity, ex capacity) holds only while one role's busiest thread has no headroom.
-    // When BOTH roles idle more than the noise band, the rate is set by something the split does
-    // not touch -- a paced driver, the network, or the closed loop's own wake-up latency (measured
-    // here: memtier at 27% of its cores, io 86% / ex 93% busy, and neither side waiting on the
-    // other's capacity) -- and a flip can only cost. Read from the idle_ns the loops already
-    // account, once per reading, off the hot path. A forced seek is exempt: it is a directed test.
+    // The capacity model requires a CPU-constrained role. If both roles' busiest threads have
+    // idle share above the noise band, external pacing, the network or closed-loop wake latency
+    // may limit throughput. Read their booked idle once per reading and hold in that case. A
+    // forced DEBUG seek bypasses this gate so its outcome can still be tested.
+    // Phase 3: apply headroom, refinement and transfer-cost gates.
     const bool externally_bound = !debug_force && io_headroom > band && ex_headroom > band;
     const bool capped = model_readings_ >= model_readings_cap_;
 
@@ -985,16 +955,11 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
             return false;
         }
     }
-    // A BAR LARGER THAN ANY AVAILABLE GAIN IS A MEASUREMENT VERDICT, NOT A PLACEMENT ONE. When the
-    // model has picked a target and the only thing refusing it is the throughput bar, anchoring here
-    // records "this split is fine" on the strength of noise. Measured: a 3:1 boot whose executors
-    // were pinned (headroom_ex 0.0004, headroom_io 0.699) and whose demand interval was tight
-    // (0.395-0.424) projected the +100% move that 3:1 -> 2:2 is, and was refused because a
-    // neighbouring lane swung the box 2.8x per second, lifting the verification band past 1.0 --
-    // where min(1.0, band x margin) caps it exactly on the gain. Sampling costs nothing and the box
-    // may quieten, so keep measuring until the reading cap and let the cap deliver the honest
-    // "too noisy to decide" hold. The live split is the optimum is a different verdict and still
-    // decides immediately.
+    // A target rejected by the throughput bar does not establish that the current split is
+    // optimal. Continue sampling until the cap when noise is the remaining obstacle and neither
+    // role-headroom nor refinement rules already require a hold. The cap can then report an
+    // unresolved/below-bar hold. A choice that finds the current split optimal can decide
+    // immediately.
     const bool bar_bound =
         choice.decided && !choice.move && !visited && choice.target_units != now_units;
     if (bar_bound && !capped && !externally_bound) {
@@ -1003,6 +968,7 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
     }
     if (!choice.decided && !capped && !externally_bound) return false;  // keep measuring
 
+    // Phase 4: record a hold or publish the chosen hypothesis.
     record(now_units * unit, rate);
     if (externally_bound || !choice.decided || !choice.move || !pays) {
         const char* verdict = externally_bound                   ? "hold-unsaturated"
@@ -1110,14 +1076,11 @@ bool FlipController::settle(Server& server, uint32_t coordinator, uint64_t now_m
     return false;
 }
 
-// The Seeking phase: stabilized readings at the model's target, judged SEQUENTIALLY against the
-// origin's window. The hypothesis planned n_t readings from the origin's noise; after each one the
-// target's mean is compared at two standard errors of the difference (never below the origin's
-// own bracket or the learned band). Better => anchor here, early if the evidence is already in.
-// Clearly worse => straight back at once: no sitting at a split the model already lost on. At the
-// planned count, not better => back to the origin, where anchor() books the miss and raises the
-// bar. No walk, no overshoot: every extra visit is a flip plus a window at a split the model rated
-// lower, and that walk is what cost 19.5% on multi-key with the target unchanged.
+// Seeking compares the target's accumulating mean with the origin at two standard errors,
+// floored by the origin bracket and learned band. A gain accepts early and starts refinement; a
+// clear loss returns immediately. At the planned count, lack of a gain also returns to the
+// origin, where anchor records the miss and adjusts the margin. Extra visits to lower-rated
+// splits would add both transfer cost and observation time.
 bool FlipController::seek_after_reading(Server& server, uint32_t coordinator, uint64_t now_ms,
                                         double rate) {
     maneuver_rate_jitter_ = std::max(maneuver_rate_jitter_, stable_pair_delta_);
@@ -1155,6 +1118,10 @@ bool FlipController::seek_after_reading(Server& server, uint32_t coordinator, ui
     return settle(server, coordinator, now_ms);
 }
 
+// Contract: Monitor tick calls under mutex_ after settling readings. Record the current split,
+// judge null/returned hypotheses and learn trigger bands without moving ownership. Completion
+// of learning release-stores sampling rate zero and enters Anchored; no retry or back-pressure
+// loop runs here.
 void FlipController::anchor(Server& server, double rate) {
     const uint32_t current = server.role_count(Role::Ifid);
     anchor_io_ = current;
@@ -1168,19 +1135,11 @@ void FlipController::anchor(Server& server, double rate) {
                      relative_distance(anchor_learning_rate_min_, anchor_learning_rate_max_));
     }
     anchor_rate_jitter_ = anchor_learning_rate_jitter_;
-    // THE NULL-MANEUVER RULE, CLOSED ON THE OUTCOME. A maneuver that ends on the split it started
-    // from moved ownership, paid every quiesce and changed nothing -- thrash by this project's own
-    // definition. The trigger that started it was therefore not wrong about the workload, it was
-    // wrong that the workload's move was worth a maneuver, so what has to grow is the EVIDENCE the
-    // next such excursion must present, not the size it must reach. Double the confirming control
-    // passes the responsible detector needs; halve back toward the floor whenever a maneuver
-    // actually moves the split, so a workload that really is drifting stays cheap to follow.
-    //
-    // The rejected alternative was widening that detector's band by twice the excursion it just
-    // proved uninformative. Measured: a paced 8-key -> single-key change scores distance 0.630 on
-    // a metric whose maximum is 1.0, so one null result set a floor of 1.26 and the fingerprint
-    // detector could never fire again at any workload -- an accidentally disabled trigger.
-    // A threshold learned from an excursion can exceed every excursion; a window cannot.
+    // A workload-triggered maneuver that ends at its starting split supplies no lasting
+    // placement change. Double the responsible detector's required confirming passes; halve
+    // toward the floor when a maneuver moves the split. Increase evidence duration rather than
+    // excursion size: raising a band above the distance metric's maximum would disable future
+    // detection. The confirmation cap comes from the signature-learning window.
     const bool null_maneuver = current == maneuver_origin_io_ &&
                                (last_trigger_ == FlipctlTriggerReason::FingerprintShift ||
                                 last_trigger_ == FlipctlTriggerReason::AnchorRateSurge ||
@@ -1214,13 +1173,10 @@ void FlipController::anchor(Server& server, double rate) {
     // local hold is a move, not a trip.
     const bool round_trip = pending_miss_ && current == seek_origin_io_ && maneuver_flips_ > 0;
     if (round_trip) {
-        // Was the test valid? Re-judge the hypothesis against the origin as it reads AFTER the
-        // return: if the target's delivered gain, corrected for how far the baseline itself moved
-        // during the excursion, would have cleared the threshold, the baseline moved out from
-        // under the test -- voided, not refuted -- and the model's record must not carry a miss it
-        // did not earn. A baseline wobble smaller than the miss changes nothing: measured here, a
-        // closed-loop driver came back 2.2% faster after a round trip whose target had delivered
-        // -48%, and that miss stands.
+        // Rejudge a returned hypothesis against the origin's new rate. Invalidate the miss if
+        // the baseline-corrected target gain would clear the threshold; otherwise record the
+        // miss even when the baseline moved. This avoids charging the model for a changed
+        // comparison baseline.
         bool baseline_moved = false;
         if (pending_miss_ && origin_rate_ > 0 && anchor_rate_ > 0)
             baseline_moved = flip_corrected_gain(hyp_delivered_, anchor_rate_ / origin_rate_ -
@@ -1248,10 +1204,16 @@ void FlipController::anchor(Server& server, double rate) {
     previous_subwindow_valid_ = false;
 }
 
+// Contract: The main monitor serializes model progress with mutex_. Acquire the published
+// fingerprint count, consume forced requests with acq_rel exchange, and inspect FLIP completion
+// under shape_transition_mutex. A manual completion invalidates automatic evidence. Busy
+// transitions or missing samples return false; true means a new internal FLIP was issued, not
+// that it completed.
 bool FlipController::tick(Server& server, uint64_t now_ms) {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!enabled_) return false;
 
+    // Phase 1: consume observations and reconcile ownership completions.
     const bool shifted = sample_fingerprint(server);
     const bool forced = force_requested_.exchange(false, std::memory_order_acq_rel);
     if (ctlfix_correctness()) {
@@ -1309,9 +1271,10 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
         }
         if (advanced) return false;
         if (phase_ == Phase::WaitingFlip && !refused) return false;
-        // A refusal without completion retains the existing settle/return path
+        // A refusal without completion follows the settle/return path
         // below. Its baseline remains the last consumed completion count.
     }
+    // Phase 2: admit boot and forced triggers.
     if (phase_ == Phase::BootPending) {
         if (forced)
             start_maneuver(server, FlipctlTriggerReason::Forced, now_ms);
@@ -1323,10 +1286,10 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
         start_maneuver(server, FlipctlTriggerReason::Forced, now_ms);
         return false;
     }
-    // Mid-maneuver, ONLY a forced trigger may interrupt. The maneuver's own split changes move
-    // the pass-depth signature, so honoring `shifted` here lets the actuator re-trigger itself
-    // forever (the sweep-abandon law: a signal the actuator moves cannot police it). The
-    // detector re-baselines at anchor; a real workload change re-fires from the anchored state.
+    // A forced trigger can interrupt a maneuver; fingerprint shifts are considered in Anchored.
+    // Re-baselining at the anchor prevents measurements disturbed by role changes from
+    // restarting the maneuver. A workload change can trigger a new maneuver once the controller
+    // is anchored.
     if (phase_ != Phase::Anchored && phase_ != Phase::BootPending && forced) {
         const FlipctlTriggerReason reason = FlipctlTriggerReason::Forced;
         if (phase_ == Phase::WaitingFlip && server.flip_stage() != FlipStage::Idle) {
@@ -1340,6 +1303,7 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
         return false;
     }
 
+    // Phase 3: select a coordinator and advance a pending maneuver.
     uint32_t coordinator = UINT32_MAX;
     for (uint32_t tid = 0; tid < server.nthreads(); tid++)
         if (server.thread(tid).role() == Role::Ifid) {
@@ -1382,9 +1346,10 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
     }
     if (phase_ == Phase::Settling) {
         if (!anchor_sampling_disabled_) {
-            // Turning maneuver-only age sampling off changes the producer dispatch cost. Learn the
-            // anchored fingerprint only after every owner has observed the dormant rate, otherwise
-            // the controller detects its own disarm edge as a workload shift.
+            // Disarm maneuver age sampling before learning the anchor, then reset the rate
+            // window and fingerprint learning. Sampling changes producer dispatch cost, so the
+            // anchor should describe the disarmed regime. This release store requests
+            // disarming; no per-owner acknowledgement is checked here.
             signal_sample_rate_.store(0, std::memory_order_release);
             reset_settling_learning();
             anchor_sampling_disabled_ = true;
@@ -1407,12 +1372,12 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
         anchor(server, rate);
         return false;
     }
+    // Phase 4: confirm anchored changes before learning quiet drift.
     if (phase_ == Phase::Anchored) {
-        // A fingerprint shift asks for the same evidence a rate trigger already asks for: TWO
-        // consecutive out-of-band observations. One window can sit outside the band on ordinary
-        // sampling luck; a workload that actually changed keeps presenting the new mix. Only
-        // windows that closed real work vote -- a tick where no owner published is not evidence
-        // either way, so it neither adds to the streak nor clears it.
+        // Fingerprint shifts need consecutive out-of-band observations, starting at two and
+        // subject to null-maneuver backoff. One sampled window can exceed the band by chance.
+        // Ticks where no owner closes a work window provide no vote and neither advance nor
+        // clear the streak.
         if (fingerprint_sampled_this_tick_) shift_streak_ = shifted ? shift_streak_ + 1 : 0;
         const bool sustained_shift = shift_streak_ >= shift_confirmations_;
         if (!sample_anchored_rate(server, now_ms, rate)) {
@@ -1429,10 +1394,10 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
             return false;
         }
 
-        // Pass-depth is rate-sensitive: a genuine volume step can cross both detectors on its
-        // first tick. Preserve that first rate observation until the required second one instead
-        // of letting the fingerprint preempt it and re-anchor at the new rate. A pure mix shift,
-        // with no pending rate evidence, still starts immediately.
+        // Preserve an outstanding rate confirmation when a sustained fingerprint shift also
+        // appears. A fingerprint trigger must not preempt that rate evidence and anchor at the
+        // changed rate. With no pending rate streak, a sustained mix shift starts its maneuver
+        // immediately.
         if (sustained_shift && !surge_streak_ && !collapse_streak_) {
             last_shift_distance_ = shift_detector_.last_distance();
             last_shift_band_ = shift_detector_.band();
@@ -1523,6 +1488,9 @@ FlipctlReport FlipController::report() const {
     return report;
 }
 
+// Contract: DEBUG FLIPCTL callers receive a text copy while mutex_ protects model state.
+// Formatting publishes no controller work and does not move ownership. String allocation can
+// throw; snprintf lengths are used directly, so truncation handling is not established here.
 std::string FlipController::debug_dump() const {
     std::lock_guard<std::mutex> lock(mutex_);
     char head[4096];

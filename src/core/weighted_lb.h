@@ -1,11 +1,10 @@
-// weighted_lb.h -- the one placement policy shared by FLIP and the continuous controller.
-//
-// Demand is primary. An optional second load vector (bytes for buckets) is compared
-// lexicographically, never blended into demand. Count remains a hard invariant: every target
-// finishes with floor/ceil item count, including the all-zero boot window. Items are considered
-// largest-first and placed on the least loaded eligible target; current ownership and target id
-// only break exact ties. This is deterministic, allocation-only code and never runs on a request
-// path.
+// Weighted placement arithmetic and LB sampling/cost state shared by Server and controllers.
+// Partitioning assigns floor/ceil item counts to targets, including zero-demand windows;
+// incremental search instead uses count spread as a tie-breaker. Demand is the primary
+// objective and bytes can be a separate secondary objective, without blending their units.
+// Search mutates caller-owned temporary vectors, not client/shard ownership. Applying a plan
+// requires the migration protocol.
+
 #pragma once
 #include <atomic>
 #include <array>
@@ -21,8 +20,15 @@ namespace tomo {
 
 // Internal LB policy, allocated only if key-lb or client-lb is on. One decision spans three
 // sustained controller ticks; sampling targets a fixed number of key visits PER OWNER over it.
-// Executors latch the rate on their existing census beat and weight each sample by that rate,
+// Executors latch the rate on their census beat and weight each sample by that rate,
 // so a rate change or owner migration cannot reinterpret counters collected at another rate.
+// Contract: Server allocates this sidecar when key or client LB is enabled. lb_signal_mu_
+// protects folded shard history and sampling adaptation; the production monitor owns jitter and
+// damping decisions. sample_rate is a relaxed numeric publication. note_transfer adds duration
+// relaxed then release-increments transfers; move_cost_ns acquire-loads transfers before
+// duration. Those loads are cumulative observations, not a paired snapshot. Before cost
+// evidence, admit one move and retain a full decision-window cooldown. Allocation failures
+// belong to callers.
 struct LbAutotune {
     static constexpr uint32_t kTickMs = 1000;
     static constexpr uint32_t kDecisionTicks = 3;
@@ -33,7 +39,7 @@ struct LbAutotune {
     std::atomic<uint32_t> sample_rate{1};  // bootstrap until the first completed traffic window
     uint64_t last_fold_ns = 0;             // protected by Server::lb_signal_mu_
 
-    // Cold admission uses the existing monotonic shard operation counters. Keep the last
+    // Cold admission uses cumulative shard operation counters. Keep the last
     // decision window by physical shard, so an ownership change cannot reset its demand.
     struct ShardWindow {
         uint64_t last_ops = 0;
@@ -56,10 +62,10 @@ struct LbAutotune {
         // relative SE sqrt(2*M/N). Use flipctl's two-SE margin. Max/min selects among
         // P=M*(M-1)/2 pairs: multiplying the Gaussian tail bound by P requires
         // z^2=4+2*log(P), rather than treating the selected pair as fixed in advance.
-        // N=M*kSamplesPerDecision: retain the existing budget for EACH owner, not shared
+        // N=M*kSamplesPerDecision: the budget applies to each owner, not shared
         // across all owners. Thus the pair's SE is sqrt(2/kSamplesPerDecision); only
         // the logarithmic pair-selection penalty grows with M. The sampler uses this
-        // same budget, so the improved resolution is paid for with actual samples.
+        // same budget, so this resolution is backed by actual samples.
         // This is a resolution floor, not a claim that correlated samples are iid;
         // measured adjacent-window jitter can only widen it.
         const uint32_t count = std::max<uint32_t>(owners, 2);
@@ -134,9 +140,13 @@ struct LbAutotune {
         // A move must remain pinned through a complete fresh decision window.
         return std::max<uint64_t>(kDecisionTicks, ticks) * kTickMs;
     }
-    LbStallState stall;  // allocated with the existing LB-only policy, never when both knobs are 0
-    // Monitor-private damping; the optional sidecar leaves all existing policy offsets intact.
+    LbStallState stall;  // allocated with the LB sidecar; absent when both knobs are 0
+    // Monitor-private damping in an optional sidecar separate from the main policy fields.
     // INFO reads only the separately published atomics. No request-path reader or writer.
+    // Contract: The production monitor updates the non-atomic history and QuietJitter/streak
+    // references. INFO reads separately published relaxed atomics. update resets history on
+    // topology, counter or clock reversal and returns false until noise and sustained crossings
+    // admit a plan; it does not itself publish an ownership move.
     struct KeyDamping {
         uint64_t last_ms = 0, moves = 0, topology = UINT64_MAX;
         double recent = 0;
@@ -180,6 +190,11 @@ struct WeightedLbMoveChoice {
 // selected (the controller uses that for cooldown and already-selected candidates). A demand move
 // must strictly improve demand spread. A secondary-only move must not worsen demand and must
 // strictly improve the independent secondary spread. Count spread and stable ids break exact ties.
+// Contract: The LB planner (or a serialized test caller) supplies stable item/target vectors
+// and owns choice. Allocate temporary loads, leave inputs unchanged and return the best
+// admissible single move. Pins prohibit selection; missing owners or no improving candidate
+// return false. Target ids must describe the intended distinct owners. Allocation exceptions
+// propagate; this function has no cross-thread publication or authority to transfer an item.
 inline bool weighted_lb_best_incremental_move(const std::vector<WeightedLbItem>& items,
                                               const std::vector<uint32_t>& targets, bool demand_hot,
                                               bool secondary_hot, WeightedLbMoveChoice& choice) {
@@ -260,6 +275,11 @@ inline bool weighted_lb_best_incremental_move(const std::vector<WeightedLbItem>&
     return choice.item_index != UINT32_MAX;
 }
 
+// Contract: FLIP plan builders and standalone callers supply stable item/target vectors and own
+// out. Place pinned items first, fill count-bounded targets largest-first, then prefer a
+// feasible incumbent assignment with no worse spreads. Target ids must be distinct owner ids.
+// Return false when target/pin/count constraints cannot be met; allocation exceptions
+// propagate. The output is a plan by value and requires separate synchronized installation.
 inline bool weighted_lb_partition(const std::vector<WeightedLbItem>& items,
                                   const std::vector<uint32_t>& targets,
                                   std::vector<WeightedLbAssignment>& out) {
@@ -331,12 +351,10 @@ inline bool weighted_lb_partition(const std::vector<WeightedLbItem>& items,
     for (uint32_t c : count)
         if (c < low || c > high) return false;
 
-    // Ties keep the incumbent -- globally, not just per greedy step. The greedy fill above cannot
-    // see that a zero-move assignment with the same spread exists (once an item's incumbent has
-    // absorbed earlier items it looks "fuller" and the item is shipped elsewhere), so a balanced
-    // no-op FLIP reshuffled a hundred buckets for nothing. If assigning every item to its current
-    // owner is feasible under the same count bounds and no worse in weight or secondary spread
-    // than the greedy plan, prefer it wholesale: locality is free when balance ties.
+    // Prefer the incumbent assignment as a whole when it meets the same count bounds and
+    // neither demand nor secondary spread is worse. Greedy per-item ties cannot see that option
+    // once prior assignments make an incumbent appear full. The global comparison avoids moving
+    // balanced items when the resulting assignment offers no balance advantage.
     {
         std::vector<uint32_t> inc_count(targets.size(), 0);
         std::vector<double> inc_load(targets.size(), 0);
