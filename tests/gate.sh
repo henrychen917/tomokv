@@ -1049,6 +1049,7 @@ job_body(){
     feature-cell-*) job_feature_cell "$name";;
     snapshot-*) job_snapshot "$name";;
     aof-*) job_aof "$name";;
+    aofblock-*) job_aofblock "$name";;
     atomfix6-live-*) job_atomfix6_live "$name";;
     atomwake-live-*) job_atomwake_live "$name";;
     blockwake-live-*) job_blockwake_live "$name";;
@@ -1205,6 +1206,7 @@ plan_jobs(){
   fi
   JOB_NAMES+=(rootcore-inbox rootcore-eval rootcore-segments rootcore-notify rootcore-functions rootcore-waitaof rootcore-misconf)
   JOB_NAMES+=(wave14_functions)
+  JOB_NAMES+=(aofblock-epoll aofblock-uring)
   JOB_NAMES+=(netfix2-tls-watch netfix2-exclusive netfix2-fds netfix2-tls-idle netfix2-boot)
   for section in cap tracking blocked shutdown dirty; do JOB_NAMES+=("scriptfix4-$section"); done
   local atomic mode section slot FM FR FO FQ FF
@@ -5662,6 +5664,22 @@ python3 tests/pipeorder.py $PORT 400 >$TMPDIR/gate-pipeorder.txt 2>&1 \
 stop
 }
 
+job_aofblock(){
+  local NET_IO=${1##*-} AOF_BLOCK_MODE AOF_BLOCK_CASE
+  for AOF_BLOCK_MODE in 1s 2s; do
+    for AOF_BLOCK_CASE in blpop_now blpop_wake brpop blmpop bzpopmin bzpopmax bzmpop xreadgroup_now xreadgroup_wake; do
+      row_begin "aofblock $AOF_BLOCK_CASE ($AOF_BLOCK_MODE, $NET_IO)"
+      py tests/aofblock.py --binary "$CANDIDATE_BINARY" --mode "$AOF_BLOCK_MODE" \
+          --case "$AOF_BLOCK_CASE" --net-io "$NET_IO" --cores "$CORES" --ratio "$GATE_RATIO" \
+          --port "$PORT" --artifacts "$TMPDIR/aofblock" \
+          >"$TMPDIR/aofblock-$AOF_BLOCK_CASE-$AOF_BLOCK_MODE.log" 2>&1 \
+          && ok "aofblock $AOF_BLOCK_CASE ($AOF_BLOCK_MODE, $NET_IO)" \
+          || bad "aofblock $AOF_BLOCK_CASE ($AOF_BLOCK_MODE, $NET_IO)" \
+                 "see $TMPDIR/aofblock-$AOF_BLOCK_CASE-$AOF_BLOCK_MODE.log"
+    done
+  done
+}
+
 job_aof(){
 # ---- AOF boot/replay + non-vacuous DEBUG LOADAOF ---------------------------------------------
 local NET_IO=${1##*-} AOF_MODE=2s
@@ -7418,6 +7436,7 @@ collect_job flipfix7_tls
 collect_job atomic_floor
 
 for NET_IO in epoll uring; do collect_job "aof-$NET_IO"; done
+for NET_IO in epoll uring; do collect_job "aofblock-$NET_IO"; done
 
 collect_job aof_frame
 
