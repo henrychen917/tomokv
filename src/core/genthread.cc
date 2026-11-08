@@ -27,7 +27,8 @@
 namespace tomo {
 namespace {
 
-void pin_fused_thread(int cpu) {
+/* TOMO_TOOL_FUNCTION pin_fused_thread */
+void /* TOMO_TOOL_BIND pin_fused_thread */pin_fused_thread(int cpu) {
     if (cpu < 0) return;
     cpu_set_t set;
     CPU_ZERO(&set);
@@ -37,7 +38,8 @@ void pin_fused_thread(int cpu) {
 
 }  // namespace
 
-void IoLoop::run_fused() {
+/* TOMO_TOOL_FUNCTION IoLoop::run_fused */
+void IoLoop::/* TOMO_TOOL_BIND run_fused */run_fused() {
     if (!fused_executor_) std::abort();
     const bool has_unix = unix_listen_fd_ >= 0 ||
                           (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
@@ -66,7 +68,8 @@ void IoLoop::run_fused() {
     run();
 }
 
-int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
+/* TOMO_TOOL_FUNCTION run_fused_server */
+int /* TOMO_TOOL_BIND run_fused_server */run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                      const std::vector<std::unique_ptr<AofReplayPlan>>& aof_plans,
                      const SnapshotLoadPlan* load_plan, TlsContext* tls_context,
                      LateUnixListener& unix_listener,

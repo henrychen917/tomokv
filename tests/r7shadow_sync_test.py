@@ -4,6 +4,7 @@ from pathlib import Path
 import tempfile
 
 import r7shadow_sync as sync
+import source_tokens as cpp
 
 
 def main():
@@ -18,7 +19,7 @@ def main():
         # LB's IoDrain. The armed copy must retain that same progress rule;
         # otherwise the pending acknowledgement can prevent the drain itself.
         copied = target / 'src/core/reorder.cc'
-        original_copy = copied.read_text()
+        original_copy = cpp.read(copied)
         freeze = 'const bool lb_frozen = lb_controller_armed_ && srv_->lb_stage() == LbStage::ExDrain;'
         assert original_copy.count(freeze) == 1
         copied.write_text(original_copy.replace(freeze,
@@ -33,11 +34,11 @@ def main():
             else:
                 raise AssertionError('stale tracking/LB freeze negative control passed')
             sync.base.update(copied, bodies, True)
-            assert copied.read_text() == original_copy
+            assert cpp.tokens(cpp.read(copied)) == cpp.tokens(original_copy)
         finally:
             sync.ROOT = root
         io = target / 'src/core/io_loop.h'
-        original = io.read_text()
+        original = cpp.read(io)
         needle = 'self_->sample_depth(pass_ns / 1000)'
         assert needle in original, 'accounting mutation must edit a real sample site'
         # This is a generator input, not a C++ build: exercise the spelling that
