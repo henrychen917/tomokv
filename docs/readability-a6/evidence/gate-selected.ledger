@@ -1,0 +1,21 @@
+PARTIAL	0	GATE_ONLY_JOBS=source_identity reorder_sync reorder_identity perfex_units exbatch_units wb_rule_units wbland_units splitlocal_units reorder_engagement abba_selftest exbatch_live; NOT A RECEIPT
+ok	0.040000	release build (+footprint locks)
+ok	131.900000	production source identity + stable assertion ids
+ok	653.780000	ABBA comparison + saturation negative controls
+ok	29.630000	R7 generated envelope parity
+ok	18.030000	R7 production engagement (both database runtimes)
+ok	322.630000	R7 FIFO twin off-path identity + negative controls
+ok	1.310000	perfex clock binary regression
+ok	1.130000	perfex batch binary regression
+ok	21.560000	exbatch publication unit + negative controls
+ok	59.780000	exbatch watch unit + negative controls
+ok	23.540000	exbatch metadata unit + negative controls
+ok	0.360000	exbatch publication and WATCH lifecycle (1s)
+ok	0.310000	exbatch publication and WATCH lifecycle (2s)
+ok	0.180000	writeback c12 policy witnesses + negative controls
+ok	9.850000	writeback c12 phase witnesses + negative controls
+ok	4.010000	writeback c12 stages witnesses + negative controls
+ok	6.910000	writeback c12 split-phase witnesses + negative controls
+ok	34.470000	writeback policy clauses witnesses + negative controls
+ok	2.270000	writeback policy paths witnesses + negative controls
+ok	10.720000	splitlocal template forwarding + old-argument controls

@@ -1,7 +1,8 @@
+// Split read-local runtime: shard-less IO readers, owner loops and role-tenure
+// wiring. Each physical worker owns its rings and reader retirement sink until
+// join. Owners arm immutable replacement before any reader passes the boot gate;
+// IO never inspects a shard vector while FLIP can prepare its next ownership.
 #include "boot_support.h"
-// rl2s.cc — split placement with a shard-less fused-capable IO tier.
-// All reader-lane scheduling and split role-tenure wiring for this feature live here.
-// The ordinary split runtime and the 1s boot sequence remain independent.
 #include "genthread.h"
 
 #include <algorithm>
@@ -38,7 +39,11 @@ void pin_read_local_thread(int cpu) {
 
 }  // namespace
 
-// Same copy/validate/demote lane as 1s, with no owner work. In particular, do not
+// Called by the active shard-less IO role with read-local enabled; borrows its
+// bound reader lane and performs no owner work. Retires ready copies, adapts
+// admission pressure and seq_cst-publishes the QSBR tick after foreign pointers
+// die. Disabled read-local aborts; deferred work remains queued for later turns.
+// The copy/validate/demote lane is shared with fused mode. In particular, do not
 // inspect self_->shards(): FLIP may be installing a future owner's vector while
 // this IO tenure is still returning its final acknowledgements. Live CONFIG's
 // reader fields are independent of that vector. Foreign pointers die before
@@ -68,7 +73,10 @@ uint32_t ExLoopT<true>::split_read_local_pass() {
     return did;
 }
 
-// Preserve the split IO schedule; only the parser's reader capability and lane drain vary.
+// Run on the active IO thread after activation and reader-executor binding.
+// Select Unix/TLS/engine capabilities once; SplitLocal retains split scheduling
+// while enabling the parser's reader lane. run_loop owns waits and back-pressure;
+// this wrapper borrows loop state and adds no cross-thread publication.
 void IoLoop::run_split_read_local_baseline() {
     const bool has_unix =
         unix_listen_fd_ >= 0 || (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
@@ -101,11 +109,18 @@ void IoLoop::run_split_read_local_baseline() {
     run();
 }
 
+// Main-thread split lifecycle with read-local armed; other modes abort. Borrows
+// srv, recovery plans and TLS through worker join, owns the loop/worker arrays,
+// and transfers the Unix fd after recovery. The boot mutex publishes every
+// ring and retirement sink before readers run; ready roles use release stores.
+// Reported boot failures stop and join all workers. Observed shutdown returns 0,
+// other boot failures 1; waits have no deadline here and allocations may throw.
 int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                                 const std::vector<std::unique_ptr<AofReplayPlan>>& aof_plans,
                                 const SnapshotLoadPlan* load_plan, TlsContext* tls_context,
                                 LateUnixListener& unix_listener,
                                 ShutdownReportFinalLine& final_report) {
+    // Phase 1: allocate permanent loop/sink lifetimes and the boot rendezvous.
     const Config& cfg = srv.cfg();
     const uint32_t nthreads = srv.nthreads();
     if (cfg.thread_mode != ThreadMode::Split || !srv.read_local_enabled()) std::abort();
@@ -118,8 +133,8 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
     // Reuse the 1s boot gate's stop-aware loading/listener barriers. Every physical thread binds
     // its permanent sink and every owner arms its stores before any reader can enter the lane.
     FusedBootGate boot(nthreads);
-    // Identical to placement().ifid_threads().front() whenever a unixsocket is configured, but
-    // read from the server so the LB's unix_owner_tid_ and the actual attach point cannot drift.
+    // Use the server's Unix owner so listener attachment and load balancing
+    // agree on the physical thread that owns the listening fd.
     const uint32_t unix_owner = srv.unix_owner_tid();
     auto report_graceful_shutdown = [&] {
         srv.snapshot().cancel_after_join(srv);
@@ -145,7 +160,13 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
         acl_shutdown();
     };
 
+    // Phase 2: recover owned shards, bind reader sinks and enter the selected roles.
     for (uint32_t tid = 0; tid < nthreads; tid++)
+        // Physical worker tid owns both loop guards across role changes. It
+        // borrows the arrays until join and publishes setup through boot's
+        // mutex. Failed setup reports once and unwinds on the issuer. Exit from
+        // the role loop parks the reader epoch before issuer-side cancellation.
+        // Runtime activation failure aborts.
         pool.emplace_back([&, tid] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
             IoLoop::ShutdownOnIssuer shutdown_io{ios[tid]};
@@ -248,6 +269,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
             self.publish_read_local_parked(srv.read_local_epoch());
         });
 
+    // Phase 3: join failed workers or finish recovery before opening listeners.
     auto stop_workers = [&] {
         for (uint32_t tid = 0; tid < nthreads; tid++)
             srv.thread(tid).stop_flag().store(true, std::memory_order_relaxed);
@@ -269,6 +291,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
         return 0;
     }
 
+    // Phase 4: probe TCP/TLS, transfer the Unix fd and release the ready roles.
     const bool port_ok = probe_boot_listener(cfg, cfg.port, false, make_exclusive_boot_listener);
     const bool tls_port_ok =
         port_ok && probe_boot_listener(cfg, cfg.tls_port, true, make_exclusive_boot_listener);
@@ -302,53 +325,59 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
         return interrupted ? 0 : 1;
     }
 
-    // Reached only after every ring, sink and listener is ready and no stop edge was taken.
+    // Phase 5: announce readiness and monitor role/shard controllers.
+    // Every ring, sink and listener is ready; the gate observed no stop edge.
     print_ready_listeners(cfg, unix_listener.bound());
     cfgfix_process_ready();
 
     srv.monitor_controllers();
 
+    // Phase 6: join readers and owners before reclaiming records and reporting.
     srv.databases().join_workers(srv, pool);
     // The unix socket file is unlinked by its RAII owner in main, for every return path.
     report_graceful_shutdown();
     return 0;
 }
 
-// Keep the scratch arrays out of cmd_info's frame, including with LTO. Only an armed INFO SERVER
-// request reaches this helper; the boot/runtime paths install no reporting callback or sidecar.
+// INFO's caller must check read_local_enabled(). Borrow the published shard
+// directory, role and lifetime counters; never read a migrating shard vector.
+// Appends to the caller-owned string and aborts on fixed-buffer truncation.
+// A mutually consistent cross-thread snapshot is not established here. Keep
+// scratch arrays out of cmd_info's frame, including with LTO.
 __attribute__((noinline, cold)) void append_read_local_thread_info(std::string& body,
                                                                    const Server& srv) {
     uint32_t active_readers = 0;
-    uint32_t owned[kMaxThreads] = {};
+    uint32_t shards_by_thread[kMaxThreads] = {};
     // Read the published ownership directory, never a vector FLIP may be rewriting.
     for (uint32_t sid = 0; sid < srv.nshards(); sid++)
-        owned[srv.worker_of_shard(static_cast<int32_t>(sid))]++;
-    char row[192];  // fixed grammar, including full-width uint32/uint64 counters
+        shards_by_thread[srv.worker_of_shard(static_cast<int32_t>(sid))]++;
+    char row_buffer[192];  // fixed grammar, including full-width uint32/uint64 counters
     for (uint32_t tid = 0; tid < srv.nthreads(); tid++) {
         const ThreadCtx& thread = srv.thread(tid);
         const bool active = thread.read_local_lane_active();
         active_readers += active;
         const Role role = thread.role();
-        const char* name = role == Role::Idle                       ? "idle"
-                           : srv.thread_mode() == ThreadMode::Fused ? "unified"
-                           : role == Role::Ifid                     ? "ifid"
-                                                                    : "ex";
+        const char* role_name = role == Role::Idle                       ? "idle"
+                                : srv.thread_mode() == ThreadMode::Fused ? "unified"
+                                : role == Role::Ifid                     ? "ifid"
+                                                                         : "ex";
         const ReadLocalStats& stats = thread.read_local_stats();
-        // Lifetime counters survive FLIP and RESETSTAT; INFO stats retains its existing
-        // RESETSTAT-relative aggregate counters.
-        const int n = std::snprintf(row, sizeof(row),
-                                    "read_local_thread_%u:role=%s,shards=%u,active=%u,"
-                                    "hits_total=%llu,mget_hits_total=%llu\r\n",
-                                    tid, name, owned[tid], active ? 1u : 0u,
-                                    static_cast<unsigned long long>(stats.hits),
-                                    static_cast<unsigned long long>(stats.mget_local_hits));
-        if (n < 0 || static_cast<size_t>(n) >= sizeof(row)) std::abort();
-        body.append(row, static_cast<size_t>(n));
+        // Lifetime counters survive FLIP and RESETSTAT; INFO stats uses
+        // RESETSTAT-relative aggregate counters separately.
+        const int row_length =
+            std::snprintf(row_buffer, sizeof(row_buffer),
+                          "read_local_thread_%u:role=%s,shards=%u,active=%u,"
+                          "hits_total=%llu,mget_hits_total=%llu\r\n",
+                          tid, role_name, shards_by_thread[tid], active ? 1u : 0u,
+                          static_cast<unsigned long long>(stats.hits),
+                          static_cast<unsigned long long>(stats.mget_local_hits));
+        if (row_length < 0 || static_cast<size_t>(row_length) >= sizeof(row_buffer)) std::abort();
+        body.append(row_buffer, static_cast<size_t>(row_length));
     }
-    const int n =
-        std::snprintf(row, sizeof(row), "read_local_active_threads:%u\r\n", active_readers);
-    if (n < 0 || static_cast<size_t>(n) >= sizeof(row)) std::abort();
-    body.append(row, static_cast<size_t>(n));
+    const int row_length = std::snprintf(row_buffer, sizeof(row_buffer),
+                                         "read_local_active_threads:%u\r\n", active_readers);
+    if (row_length < 0 || static_cast<size_t>(row_length) >= sizeof(row_buffer)) std::abort();
+    body.append(row_buffer, static_cast<size_t>(row_length));
 }
 
 }  // namespace tomo

@@ -1,11 +1,14 @@
-// EXEC refinement telemetry. Owner-written, read only after worker join.
-// Keep cold observations outside all footprint-locked hot structures.
+// Per-thread EXEC counters and fused-owner scheduling hints, shared by core and ring headers.
+// Counters are single-writer and read after worker join. Atomic bells carry no object pointers;
+// the ordinary executor pass remains the liveness backstop. Storage is outside hot layout locks.
 #pragma once
 #include <array>
 #include <atomic>
 #include <cstdint>
 #include <cstdio>
 namespace tomo {
+// Contract: the indexed worker owns all non-atomic increments. Readers must wait for its join;
+// there is no live snapshot protocol. Fixed storage needs no allocation or backpressure.
 struct alignas(64) Exec1sCounters {
     uint64_t clients_live = 0, clients_peak = 0;
     uint64_t io_enters = 0, ex_enters = 0;
@@ -13,16 +16,18 @@ struct alignas(64) Exec1sCounters {
     uint64_t owner_passes = 0, extra_passes = 0;
     uint64_t eager_collapses = 0, wb_exec_holds = 0;
     uint64_t blind_clear = 0, record_visits = 0;
-    uint64_t parked_polls = 0, parked_visits = 0;  // former tail padding
+    uint64_t parked_polls = 0, parked_visits = 0;  // share the final counter cache line
 };
 inline std::array<Exec1sCounters, 128> exec1s_counters{};
-// Scheduling hints contain no shard/client pointer and survive ownership moves
-// harmlessly. The ordinary pass remains the liveness backstop.
+// Contract: a release store marks an owner's runnable work; the fused thread consumes the hint
+// with an acquire exchange. The bit owns no shard/client and is safe across ownership moves.
+// Coalesced or absent hints do not replace the ordinary pass's polling obligation.
 struct alignas(64) FusedOwnerBell {
     std::atomic<bool> runnable{false};
 };
 inline std::array<FusedOwnerBell, 128> fused_owner_bells{};
-// Each ring has one issuer. Adjacent thread IDs must not share counter lines.
+// Contract: each ring's issuer alone increments its counters; readers wait for worker join.
+// Cache-line alignment isolates adjacent issuers. No atomic publication is provided.
 struct alignas(64) Exec1sRingCounters {
     uint64_t enters = 0, waits = 0;
 };
@@ -54,6 +59,8 @@ inline void exec1s_print(const Exec1sCounters& c, bool json) {
 }
 #ifdef TOMO_EXEC1S_DEBUG
 inline thread_local Exec1sCounters* exec1s_debug_counter = nullptr;
+// Owner-thread diagnostic scope: borrows its counter row, binds it in TLS, and restores the
+// enclosing scope at destruction. The row outlives the scope; no cross-thread publication occurs.
 struct Exec1sVisitScope {
     Exec1sCounters* old = exec1s_debug_counter;
     explicit Exec1sVisitScope(uint32_t tid) { exec1s_debug_counter = &exec1s_counters[tid]; }

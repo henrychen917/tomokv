@@ -1,5 +1,8 @@
-// R7 role bodies are isolated so the FIFO compiler input stays unchanged.
-// tests/r7shadow_sync.py checks the copied envelopes against the current mainline methods.
+// Priority runtime selection, owner-drain queues and generated role bodies.
+// This translation unit isolates their compiler budget from the FIFO loops.
+// Queue debt drains before any shard/role boundary; tasks retain admission order
+// within each connection. tests/r7shadow_sync.py owns the protected envelopes,
+// including the fused boot copied from genthread.cc; edit their source methods.
 #include "genthread.h"
 #include "fused_boot_gate.h"
 #include "boot_support.h"
@@ -21,27 +24,33 @@ __attribute__((noipa)) bool /* TOMO_TOOL_BIND shadow_available */ shadow_availab
 }
 }
 
+// INFO caller borrows nthreads live atomic counter rows, or passes nullptr for
+// an empty inventory. Relaxed loads report totals without a coherent snapshot;
+// append to the caller's string, aborting if the fixed row buffer truncates.
 void append_reorder_info(std::string& body, const ModeScheduleStats* stats, uint32_t nthreads) {
     TOMO_R7_PATH();
-    uint64_t batches = 0, multi = 0, permutations = 0;
-    uint32_t max_batch = 0;
+    uint64_t batches = 0, multi_client_runs = 0, permutations = 0;
+    uint32_t largest_batch = 0;
     if (stats)
         for (uint32_t tid = 0; tid < nthreads; tid++) {
-            const auto& s = stats[tid];
-            batches += s.reorder_batches.load(std::memory_order_relaxed);
-            multi += s.reorder_multi_client_runs.load(std::memory_order_relaxed);
-            permutations += s.reorder_permuted_runs.load(std::memory_order_relaxed);
-            max_batch = std::max(max_batch, s.reorder_max_batch.load(std::memory_order_relaxed));
+            const auto& thread_stats = stats[tid];
+            batches += thread_stats.reorder_batches.load(std::memory_order_relaxed);
+            multi_client_runs +=
+                thread_stats.reorder_multi_client_runs.load(std::memory_order_relaxed);
+            permutations += thread_stats.reorder_permuted_runs.load(std::memory_order_relaxed);
+            largest_batch = std::max(
+                largest_batch, thread_stats.reorder_max_batch.load(std::memory_order_relaxed));
         }
-    char row[512];
-    const int n = std::snprintf(
-        row, sizeof(row),
+    char row_buffer[512];
+    const int row_length = std::snprintf(
+        row_buffer, sizeof(row_buffer),
         "reorder_batches:%llu\r\nreorder_multi_client_runs:%llu\r\n"
         "reorder_permuted_runs:%llu\r\nreorder_max_batch:%u\r\nreorder_shadow:%u\r\n",
-        static_cast<unsigned long long>(batches), static_cast<unsigned long long>(multi),
-        static_cast<unsigned long long>(permutations), max_batch, r7::shadow_available());
-    if (n < 0 || static_cast<size_t>(n) >= sizeof(row)) std::abort();
-    body.append(row, static_cast<size_t>(n));
+        static_cast<unsigned long long>(batches),
+        static_cast<unsigned long long>(multi_client_runs),
+        static_cast<unsigned long long>(permutations), largest_batch, r7::shadow_available());
+    if (row_length < 0 || static_cast<size_t>(row_length) >= sizeof(row_buffer)) std::abort();
+    body.append(row_buffer, static_cast<size_t>(row_length));
 }
 
 template <bool Fused>
@@ -56,6 +65,12 @@ __attribute__((noinline)) uint32_t ExLoopT<Fused>::r7_drain_tasks(bool unmasked)
     return r7_drain_tasks_impl<false, BatchOps, IofusedPrivateQueue>(unmasked);
 }
 
+// Active owner thread only, with its inbox/role lifetime held for this drain.
+// Borrows inbox tasks and owns stack-local queue scratch; finish empties it
+// before returning. Execution may publish Done, so no emitted Op is inspected
+// again. If cross-shard retries block execution, append selected tasks to the
+// owner's deferred queue instead. Invalid queue bounds abort; allocations in
+// that deferred queue are not caught here. Returns the number drained.
 template <bool Fused>
 template <bool Shadow, uint32_t BatchOps, bool IofusedPrivateQueue>
 uint32_t ExLoopT<Fused>::r7_drain_tasks_impl(bool unmasked) {
@@ -94,6 +109,9 @@ class IoLoop::r7_ReadLocalDemotionPlan {
     private:
         enum class ReadKind : uint8_t { Ordinary, Scatter, Error };
 
+        // Scratch owned by one demotion plan. Only initialized count_/nowners_ prefixes are
+        // read. Scatter pointers own unpublished states until commit or discard; arrays are
+        // worker-private and rely on the enclosing ROB/window bounds, with no atomic publication.
         struct Storage {
             uint64_t ids[kRobWindow];
             ScatterState* scatter[kRobWindow];
@@ -110,6 +128,12 @@ class IoLoop::r7_ReadLocalDemotionPlan {
         r7_ReadLocalDemotionPlan(const r7_ReadLocalDemotionPlan&) = delete;
         r7_ReadLocalDemotionPlan& operator=(const r7_ReadLocalDemotionPlan&) = delete;
 
+        // Prepare on the client's IO/fused worker with an inactive plan and valid fallback
+        // arrays/reason. Select overlapping pending reads, close MGET overlap transitively,
+        // and reserve every destination's producer credits before any hook can commit.
+        // Returns true for no work, a complete plan, or a partial older-read prefix; callers
+        // must inspect partial(). False cancels prepared resources for retry. Invalid argument
+        // combinations abort. No task or ROB completion is published here.
         bool prepare(IoLoop& loop, Client* client, uint64_t hash, bool require_hash_match,
                      int32_t reserve_shard = -1,
                      ReadLocalFallbackReason reason = ReadLocalFallbackReason::ContextOwnerKey,
@@ -118,6 +142,7 @@ class IoLoop::r7_ReadLocalDemotionPlan {
                      const ReadLocalFallbackReason* fallback_reasons = nullptr,
                      uint32_t fallback_count = 0, const Op* intersect_command = nullptr,
                      bool intersect_filter_miss = false) {
+            // Phase 1: validate the request and refine precise write hazards before early exits.
             if (loop_ || !client) std::abort();
             if (reason == ReadLocalFallbackReason::None) std::abort();
             if ((fallback_ids == nullptr) != (fallback_reasons == nullptr) ||
@@ -126,12 +151,12 @@ class IoLoop::r7_ReadLocalDemotionPlan {
                 (intersect_filter_miss && !intersect_command))
                 std::abort();
             Rob<kRobWindow>& rob = client->rob();
-            // RL4.4: the variadic registry routes even one-key DEL/UNLINK here,
+            // The variadic registry routes even one-key DEL/UNLINK here,
             // after mark_current_write() staged a conservative generation. Refine
             // this already-taken broad-write edge before either early-out: younger
             // reads need the point hash even when there are no pending older reads.
             // Ordinary GET/SET never enter this classification. The executor/scatter
-            // route remains unchanged (xshard_prepare already handles argc==2).
+            // route uses xshard_prepare, which handles argc==2.
             if (reason == ReadLocalFallbackReason::InflightWrite && !require_hash_match &&
                 reserve_shard < 0 && !fallback_count && !intersect_command) {
                 Op& write = rob.at(rob.dispatch_id());
@@ -147,7 +172,7 @@ class IoLoop::r7_ReadLocalDemotionPlan {
             const bool reserve_current = reserve_current_without_reads && reserve_shard >= 0;
             // A caller that already walked a complete precise keyset may pass its authoritative
             // pending-filter miss. Consume it before reloading the same filter; hit/unknown remains
-            // false and takes the unchanged exact-selection path below.
+            // false and takes the exact-selection path below.
             if (!reserve_current && !fallback_count && intersect_filter_miss) return true;
             // Current intersect callers also passed a known hit when they reach the exact path.
             // Unknown remains safe without this shortcut: collecting an empty set returns below.
@@ -157,13 +182,14 @@ class IoLoop::r7_ReadLocalDemotionPlan {
             // any still-pending local read of this connection can touch, so a miss PROVES that no
             // pending read shares the point hash / any declared key of the exact command. The
             // ordinary disjoint write returns here without allocating or walking anything; a hit
-            // runs the unchanged exact plan below. EX seeds are selected by id, and a reserved
+            // runs the exact plan below. EX seeds are selected by id, and a reserved
             // current op needs the plan regardless of reads, so neither consults the filter.
             if (!reserve_current && !fallback_count && !intersect_command && require_hash_match &&
                 !rob.read_local_pending_may_touch(hash))
                 return true;
             // Select on the stack; Storage is only paid for once a read is actually demoted or
             // the current op must be reserved.
+            // Phase 2: select pending reads and close transitive key overlap.
             uint64_t ids[kRobWindow];
             ReadLocalFallbackReason reasons[kRobWindow];
             bool selected[kRobWindow] = {};
@@ -243,6 +269,7 @@ class IoLoop::r7_ReadLocalDemotionPlan {
                 count = out;
             }
             if (!count && !reserve_current) return true;
+            // Phase 3: prepare scatter state for the selected prefix and count owner demand.
             storage_.reset(new (std::nothrow) Storage);
             if (!storage_) return false;
             count_ = count;
@@ -267,7 +294,7 @@ class IoLoop::r7_ReadLocalDemotionPlan {
                         xshard_prepare(*loop.srv_, op, loop.scatter_pool_, loop.self_->id(),
                                        client->id(), dispatch, false, client);
                     if (prepared == ScatterPrepare::Backpressure) {
-                        // A local run can contain more cross-shard reads than the existing
+                        // A local run can contain more cross-shard reads than the
                         // snapshot window admits concurrently. Publish the already prepared ROB
                         // prefix as one ordered wave and leave this op plus the exact selected
                         // remainder tagged in the local lane. The next EX pass demotes only entries
@@ -309,6 +336,7 @@ class IoLoop::r7_ReadLocalDemotionPlan {
                 add_owner(static_cast<uint32_t>(reserved_current_worker_));
             }
 
+            // Phase 4: reserve all producer credits, rolling back every partial reservation on refusal.
             uint32_t reserved = 0;
             for (; reserved < nowners_; reserved++) {
                 if (!loop.srv_->thread(storage_->owners[reserved])
@@ -332,6 +360,12 @@ class IoLoop::r7_ReadLocalDemotionPlan {
         bool partial() const { return partial_; }
         uint32_t read_count() const { return count_; }
 
+        // Commit a prepared plan on the same IO/fused worker after its admission gates pass.
+        // The selected local reads already occupy published ROB slots. Transfer scatter ownership
+        // to those Ops and release-post tasks using reserved credits; release-store Done for
+        // local errors. Preserve fallback tags on an uncommitted suffix. This consumes the read
+        // prefix once, retaining a current-operation reservation if needed; invalid accounting
+        // aborts, and this phase has no queue-capacity refusal.
         void commit_reads() {
             if (!loop_) return;
             Rob<kRobWindow>& rob = client_->rob();
@@ -496,8 +530,11 @@ template <uint32_t BatchOps, bool ConsumeTasks, bool IofusedPrivateQueue,
               bool InterleaveLocalReads>
     uint32_t  ExLoopT<Fused>::r7_fused_pass_impl() {
     TOMO_R7_PATH();
+        // Phase 1: bind the rotation lifetime, refresh clocks, and check ownership barriers.
         ++exec1s_counters[self_->id()].owner_passes;
         Server::ClientWorkScope client_work(*srv_, self_->id());
+        // Borrows this thread/server until scope exit and seq_cst-publishes quiescence only
+        // after nested drains have consumed every foreign capture; no Client lifetime is owned.
         struct RotationBoundary {
             bool enabled;
             ThreadCtx* self;
@@ -507,11 +544,9 @@ template <uint32_t BatchOps, bool ConsumeTasks, bool IofusedPrivateQueue,
             }
         } rotation_boundary{read_local_enabled(), self_, srv_};
         cached_now_ms_ = realtime_ms();
-        // A completed LB stage may have changed this owner's shard vector. Armed retirement sinks
-        // must follow ownership before any work; the literal baseline notification block remains in
-        // lb_control_pass below. Since the ownership edge itself now rebinds
-        // (Server::adopt_read_local_retire_sink) this is a no-op standing check, kept because a
-        // no-op is the cheapest proof that the eager rebind ran.
+        // LB can change this owner's shard vector. Retirement sinks must follow that ownership
+        // before any work. Server::adopt_read_local_retire_sink binds at the ownership edge;
+        // this pass reaffirms the binding. lb_control_pass also rebinds notification sinks.
         if (lb_rebind_pending_ && srv_->lb_stage() != LbStage::ExDrain)
             read_local_rebind_owned_shards_after_lb();
 #ifdef TOMO_RL_CACHE_DEBUG
@@ -531,14 +566,15 @@ template <uint32_t BatchOps, bool ConsumeTasks, bool IofusedPrivateQueue,
             static_assert(Fused && ConsumeTasks);
             static_assert(BatchOps == kReadLocalOwnerTaskChunkOps);
             if (!read_local_enabled()) std::abort();
-            // Exceptional debt keeps its established total order. The ordinary saturated turn is
-            // the only place that caps fresh owner work before WB.
+            // Retry, migration and snapshot debt keep their required order. Only a turn free
+            // of that debt caps fresh owner work before writeback.
             fairlane_turn = !lb_frozen && !fairlane_owner_debt_pending();
             if (fairlane_turn) {
                 compact_local_read_tombstones();
                 fairlane_turn = read_local_impl().lane_count != 0;
             }
         }
+        // Phase 2: drain local captures, then service frozen or runnable owner work in order.
         uint32_t did = 0;
         if (fairlane_turn) {
             // EARLY: reads parsed by the preceding IFID phase get the first execution/reply slots.
@@ -604,6 +640,7 @@ template <uint32_t BatchOps, bool ConsumeTasks, bool IofusedPrivateQueue,
             did += aof_flush_pass();
             did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
         }
+        // Phase 3: finish local tails and reclamation before acknowledging control work.
         if (fairlane_turn) {
             owner_work_remains |= fairlane_owner_debt_pending();
             if (!owner_work_remains) did += drain_local_read_tail();
@@ -615,11 +652,8 @@ template <uint32_t BatchOps, bool ConsumeTasks, bool IofusedPrivateQueue,
             // One rotation of the lane-admission pressure window has elapsed.
             if (__builtin_expect(read_local_impl().lane_pressure != 0, false))
                 read_local_impl().lane_pressure--;
-            // Adopt the test lane cap, if one is set. ONE relaxed load per ROTATION of a
-            // read-mostly word that production never writes (so it stays shared-clean in every
-            // core's L1), against ~1000 ops per rotation, and the store happens only when the
-            // value actually changes -- the admission path itself keeps reading a plain uint16 on
-            // a line it already owns. 0 means derive, which is what production always sees.
+            // Adopt the debug cap with one relaxed load per rotation, storing only on change.
+            // Admission reads the thread-local uint16. Zero derives the physical lane capacity.
             const uint32_t cap = srv_->debug_read_local_lane_cap();
             const uint16_t want = cap == 0
                                       ? static_cast<uint16_t>(kInboxSlots)
@@ -635,6 +669,7 @@ template <uint32_t BatchOps, bool ConsumeTasks, bool IofusedPrivateQueue,
             ring_.submit_and_reap();
             ++did;
         }
+        // Phase 4: account for progress, then audit queue state after bounded idle spinning.
         if (did) {
             fused_idle_spins_ = 0;
             return did;
@@ -674,6 +709,8 @@ template <uint32_t BatchOps, bool ConsumeTasks, bool IofusedPrivateQueue,
         ++exec1s_counters[self_->id()].owner_passes;
         if (lb_controller_armed_ && srv_->lb_dispatch_paused())
             return r7_fused_pass_impl<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+        // Borrows this thread/server until scope exit and seq_cst-publishes quiescence only
+        // after nested drains have consumed every foreign capture; no Client lifetime is owned.
         struct RotationBoundary {
             bool enabled;
             ThreadCtx* self;
@@ -760,6 +797,7 @@ template <uint32_t BatchOps, bool ConsumeTasks,
 template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool SplitLocal>
     void  IoLoop::/* TOMO_TOOL_BIND r7_run_loop */r7_run_loop() {
     TOMO_R7_PATH();
+        // Phase 1: bind tenure state, read-local publication, and listener receives.
         static_assert(!SplitLocal || Fused);
         LoopSignals& sig = self_->sig();
         IoTenure tenure(sig);
@@ -783,7 +821,7 @@ template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool SplitLocal>
         if constexpr (Fused) {
             if (srv_->read_local_enabled()) {
                 // A split EX tenure is permanently parked: it never probes the local lane.
-                // Resume BEFORE sampling the epoch, as at the existing network-wait boundary.
+                // Resume BEFORE sampling the epoch, as at the network-wait boundary.
                 if (ThreadCtx::read_local_publication_parked(self_->read_local_publication()))
                     self_->resume_read_local_tick();
                 self_->publish_read_local_tick(srv_->read_local_epoch());
@@ -797,6 +835,7 @@ template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool SplitLocal>
                 if (unix_listen_fd_ >= 0) arm_accept(UrKind::UnixAccept);
         }
         while (!self_->stop_flag().load(std::memory_order_relaxed) && self_->role() == Role::Ifid) {
+            // Phase 2: snapshot pass controls and reclaim clients past their grace steps.
             srv_->debug_sleep_poll(self_->id());
             const uint64_t pass_ns = tenure.pass();
             Server::DatabaseWorkScope database_work(*srv_, self_->id());
@@ -810,8 +849,8 @@ template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool SplitLocal>
             lb_pass_begin();    // one shared pause snapshot before any connection parsing
             flip_pass_begin();  // one acquire before any parser or cron in this IO pass
             refresh_notify_config();
-            // ONE relaxed load per io batch. Per-batch checks are free; this is what buys the
-            // per-operation hooks their zero-cost-when-off property.
+            // Refresh the shared feature mask once per IO batch; per-operation hooks use the
+            // cached armed decision.
             if (__builtin_expect(srv_->climon_armed() != climon_armed_cached_, false))
                 climon_refresh_armed();
             const bool pause_armed = climon_pause_armed();
@@ -856,11 +895,12 @@ template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool SplitLocal>
                 if (self_->sample_depth(pass_ns / 1000)) {
                     // CLOCK_THREAD_CPUTIME_ID can require a real syscall. cpu_ns is diagnostic
                     // only (model demand uses wall-idle; physical placement uses busy/idle), so sample it
-                    // on the existing 100us signal beat instead of every hot pass.
+                    // on the 100us signal beat instead of every hot pass.
                     sig.cpu_ns = thread_cpu_ns();
                     refresh_age_sampling();
                     if (age_signals_armed_) sample_rob_head_age(sig.cached_now_us);
                 }
+                // Phase 3: drain transport, migrations, owner work, and reply retirement.
                 // A dropped accept re-arm means the server stops taking connections entirely, so it
                 // is retried every pass until it lands.
                 if constexpr (!kEp) {
@@ -913,6 +953,7 @@ template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool SplitLocal>
                     if (owner_bell->runnable.load(std::memory_order_relaxed))
                         did += fused_executor_->fused_owner_turn<true>();
                 }
+                // Phase 4: advance role/load control and deadline-driven maintenance.
                 did += flip_control_pass<kEp>();
                 if (__builtin_expect(
                         client_lb_signal_armed && cached_now_ms_ >= lb_client_signal_beat_ms_,
@@ -940,6 +981,7 @@ template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool SplitLocal>
                 if (!did && wb_config_.policy && !pending_serve_.empty() && wb_idle.active(pass_ns))
                     did = 1;
             }
+            // Phase 5: submit useful work, or sweep all clients before considering a park.
             // Flush prepared SQEs before looping. Recv re-arms and cross-ring wakes are
             // PREPARED during the work section but only reach the kernel on submit; taking
             // the busy path without submitting strands them in the SQ forever, and the peer
@@ -974,8 +1016,9 @@ template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool SplitLocal>
                 continue;
             }
 
-            // Preserve the established classification: publication, inbound recheck,
-            // epoll callbacks, the wait and resume/clear are ALL inside this idle span.
+            // Phase 6: publish the park, recheck every wake source, then wait and resume.
+            // Idle accounting includes publication, inbound recheck,
+            // epoll callbacks, the wait, and resume/clear.
             Span idle(sig.idle_ns);
             if constexpr (!Fused) {
                 if (wb_config_.policy) wb_idle.park();
@@ -986,13 +1029,13 @@ template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool SplitLocal>
                     self_->publish_read_local_parked(srv_->read_local_epoch());
             }
             self_->arm_blocked();
-            // CREDIT DOORBELL, waiter half. No inbound channel announces a retired window credit,
-            // so a refused frame used to sleep until this park's timeout. Publish this IO after
-            // arm_blocked(), then re-check; a retirement's Server::atomic_credit_doorbell() rings it.
+            // Credit-doorbell waiter: retired window credit has no inbound-channel entry.
+            // Publish this IO after arm_blocked(), then recheck; a retirement's
+            // Server::atomic_credit_doorbell() rings it so credit need not wait for the park timeout.
             const bool credit_room =
                 __builtin_expect(self_->atomic_admission_state().credit_wait, false) &&
                 srv_->atomic_credit_wait_arm(self_->id());
-            // F7 (fused owners only): re-check owned shards' blocking dirty flags after the
+            // Fused owners: recheck owned shards' blocking dirty flags after the
             // arm_blocked fence, so a producer's lost conditional wake does not strand a blocked
             // client until the timeout. Cold: gated on a blocked client existing anywhere.
             [[maybe_unused]] const bool blocking_owed =
@@ -1063,6 +1106,7 @@ template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool SplitLocal>
             }
             self_->clear_blocked();
         }
+        // Phase 7: end the tenure, park read-local state, and finish deferred reclamation.
         const auto io_tenure = tenure.finish(self_->role() != Role::Ifid,
                                              self_->stop_flag().load(std::memory_order_relaxed));
         if constexpr (Fused) {
@@ -1122,12 +1166,9 @@ template <bool HasTls, bool kEp, bool Fused, bool HasUnix,
         backstop_pass_ = (++flush_tick_ >= kFlushBackstopEvery);
         if (backstop_pass_) flush_tick_ = 0;
 
-        // PHASE 1 -- the read side, every active conn, BEFORE any serving. At 2048 conns the old
-        // interleaved pass collapsed loop iterations 7.5x: each pass walked ~100 conns doing serve
-        // and send work while drained recvs sat un-armed, sockets backed up, and arrivals went
-        // bursty (113k park/wake round-trips where 22k belonged). Arming first keeps the arrival
-        // stream flowing no matter how deep the reply backlog is -- which is exactly the property
-        // that made 3s hold flat (-3.7%) at the conn count where 2s lost 21%.
+        // Phase 1: rearm and parse active connections before serving their replies.
+        // Receive arming precedes send work so reply backlogs do not leave drained sockets
+        // without a receive. Indexed traversal tolerates close/retry mutations of active_.
         for (size_t idx = 0; idx < active_.size();) {
             Client* c = active_.at(idx);
             Client& conn = *c;
@@ -1147,7 +1188,7 @@ template <bool HasTls, bool kEp, bool Fused, bool HasUnix,
                     else if (tls->userspace()) {
                         // A synchronous transport (socket-userspace SSL_write, epoll memory BIO)
                         // sends one plaintext unit per call and completes no CQE. Progress is work,
-                        // or the loop parks with units left until the idle timeout (F5).
+                        // or the loop parks with units left until the idle timeout.
                         if (wb_.pump_tls<kEp>(*c, *tls)) work++;
                         if (tls->socket_userspace() && tls->has_pinned_plain())
                             arm_tls_socket_poll<kEp>(c, tls->wanted());
@@ -1197,18 +1238,10 @@ template <bool HasTls, bool kEp, bool Fused, bool HasUnix,
             // Fill from the socket BEFORE the re-parse below, so bytes that arrived while the ROB
             // window was full are parsed in the same pass that freed the slots.
             if constexpr (kEp) {
-                // A CLOSING CONNECTION OWES NO EDGE. Under io_uring this is automatic: arm_recv
-                // refuses to re-arm a closing connection, so recv_armed_ falls to false as soon as
-                // the outstanding recv completes and safe_to_release() opens. Under epoll nothing
-                // completes -- the flag says "an edge is owed", and for a socket being torn down
-                // that is simply false. Leaving it set makes safe_to_release() refuse forever, and
-                // the connection is never released.
-                //
-                // The path that exposed this is CLIENT KILL on SELF, which reaches its victim
-                // through mark_closing() rather than close_client() (the reply has to go out
-                // first), so nothing else would ever clear the flag: the reply was delivered and
-                // the socket then stayed open indefinitely. tests/climon.py's
-                // "KILL self close-after-reply" is the regression cover.
+                // A closing epoll connection owes no readiness edge. Clear recv_armed_ here because
+                // there is no receive CQE to clear it; leaving it set prevents safe_to_release forever.
+                // CLIENT KILL on itself uses mark_closing() to send its reply before teardown, so it
+                // also needs this cleanup even when close_client() has not initiated the close.
                 if (c->closing()) c->set_recv_armed(false);
                 if (!c->closing()) {
                     if constexpr (HasTls) {
@@ -1234,12 +1267,10 @@ template <bool HasTls, bool kEp, bool Fused, bool HasUnix,
             // which is what makes the rest parseable.
             if (!c->closing() && conn.rpos() < conn.rlen() && !c->scatter_barrier() &&
                 !c->parse_backpressure()) {
-                // A CLIENT PAUSE hold deliberately leaves the parsed frame at rpos. Counting that
-                // as work would spin the ring at 100% until the deadline instead of parking it,
-                // so while a pause is live the pass reports progress only if the cursor moved.
-                // With no pause armed the accounting is byte-for-byte the pre-lane behaviour --
-                // one predicted-false test per active connection per pass. The dispatch variant
-                // stays keyed on c->is_tls() (the kTLS handoff's contract), not the slot pointer.
+                // CLIENT PAUSE leaves the parsed frame at rpos. Count progress only when the cursor
+                // moves while paused, so a held frame does not spin until its deadline. Select the
+                // parser using c->is_tls(): that transport property survives a kTLS handoff even when
+                // the userspace TLS slot is no longer the active engine.
                 if (__builtin_expect(climon_pause_armed(), false)) {
                     const uint32_t rpos_before = conn.rpos();
                     if constexpr (HasTls) {
@@ -1319,6 +1350,7 @@ template <bool HasTls, bool kEp, bool Fused, bool HasUnix,
             } else
                 idx++;
         }
+        // Phase 2: process deferred closes outside the active-set traversal.
         // The epoll engine's deferred closes. A synchronous recv/send discovers a dead peer several
         // frames inside the walk above; closing it THERE would mutate the set under the walk, so
         // the sites queue instead and the teardown happens here, between phases, where nothing is
@@ -1332,21 +1364,23 @@ template <bool HasTls, bool kEp, bool Fused, bool HasUnix,
             }
         }
 
+        // Phase 3: run the fused owner batch and collect its completions.
         // The fused loop rotates whole streams: finish the bounded IFID phase above, execute one
-        // batch, collect its local self-lane completions, then enter the existing write-back phase.
+        // batch, collect its local self-lane completions, then enter the write-back phase.
         if constexpr (Fused) {
             work += SweepPass ? fused_executor_->r7_fused_baseline_sweep()
                               : fused_executor_->r7_fused_baseline_pass();
             work += collect_retire_work<HasUnix, kEp>(SweepPass);
         }
 
+        // Phase 4: flush pub/sub fanout before any subscriber serving.
         // PUB/SUB PASS BOUNDARY -- between parsing and serving, on purpose. Everything this pass
         // parsed is resolved and appended to its subscribers' buffers HERE, so PHASE 2 sends one
         // coalesced write per subscriber instead of one per message. Off/unarmed servers pay one
         // predicted branch on a bool; all the machinery is out-of-line and cold.
         if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
 
-        // PHASE 2 -- both modes visit the captured FIFO once under the composite rule.
+        // Phase 5: honor the AOF reply fence, then serve the captured FIFO once.
         if (!pending_serve_.empty()) {
             AofManager& aof = srv_->aof();
             if (__builtin_expect(aof.configured(), false)) {
@@ -1427,12 +1461,9 @@ template <bool kEp, bool Fused>
             srv_->client_reserve_cancel();
             return;
         }
-        // NOTHING READ-LOCAL IS ALLOCATED HERE ANY MORE. The RYOW write-ring
-        // sidecar used to be built at accept for every connection on an armed boot, so a pure-read
-        // or idle connection carried 1216 bytes (a 1280-byte jemalloc class) it could never use.
-        // It is now built on the first write of a connection a local read has ARMED, from that
-        // connection's own IO thread; an allocation failure there falls back to the unarmed
-        // contract instead of rejecting a connection that is already established.
+        // Read-local sidecars are allocated on the first write after a local read arms the
+        // connection, by its IO owner. Idle and pure-read clients need no write-ring allocation.
+        // Allocation failure there uses the unarmed contract without rejecting this connection.
         if (tls_socket && !attach_tls(c)) {
             delete c;
             ::close(fd);
@@ -1520,9 +1551,9 @@ template <bool kEp, bool Fused>
             }
         } else
             arm_recv<kEp>(c);
-        // Reachability, not optimism: if that arm starved for an SQE, nothing else names this
-        // conn -- it would sit accepted and silent forever (audit finding). The active set's
-        // phase-1 re-arms it until the recv lands; one wasted visit if the arm succeeded.
+        // Keep the client reachable after SQE starvation: the active-set read phase retries
+        // receive arming until it succeeds. An accepted client with no receive and no active-set
+        // entry has no future event that can make it progress.
         mark_active(c);
     }
 
@@ -1755,18 +1786,11 @@ template <bool HasUnix, bool HasTls, bool Fused>
                     if constexpr (HasUnix) work += r7_epoll_accept<true, Fused>(UrKind::UnixAccept);
                     break;
                 case UrKind::Wake:
-                    // The doorbell. Draining it here rather than at the park keeps the level-
-                    // triggered registration from re-reporting the same wake every pass.
-                    //
-                    // work++ IS LOAD-BEARING, and it is not accounting. The bell and its payload
-                    // are separate: a peer pushes its tag into the mailbox and THEN writes the
-                    // eventfd, and the mailbox is drained by ring_.for_each_cqe() one step earlier
-                    // in this pass. A peer that lands in the window between those two steps leaves
-                    // us holding a rung bell with its payload still queued -- and if this pass then
-                    // reported no work, the loop would park and the payload would wait out the
-                    // whole 50 ms ceiling. Counting the bell as work sends the loop round again,
-                    // where for_each_cqe picks the tag up immediately. Exactly the shape of the
-                    // ~3.9 ms-per-operation reading DEFER_TASKRUN once produced on the other engine.
+                    // Drain the level-triggered doorbell so it cannot report the same edge every pass.
+                    // Count the wake as work: a producer posts its mailbox payload before ringing, but
+                    // this pass drains the mailbox before reaching epoll. A payload arriving between
+                    // those drains still needs another pass even after this bell is consumed. Otherwise
+                    // the loop could park until the bounded timeout with a queued, already-rung payload.
                     ring_.drain_wake_fd();
                     self_->sig().wakes_recv++;
                     work++;
@@ -1828,8 +1852,7 @@ template <bool kEp, bool Fused>
             return;
         }
         if (cqe->res < 0) {
-            // Do not swallow this silently: a failing accept with no trace is indistinguishable from
-            // a hung server, which is exactly how the 1024-connection failure presented.
+            // Report failed accepts: without the error a resource limit can look like a hung listener.
             self_->sig().accept_err++;
             if (cqe->res == -EMFILE || cqe->res == -ENFILE) {
                 accept_armed_ref(kind) = false;
@@ -1853,7 +1876,7 @@ template <bool HasTls, bool kEp, bool Fused>
     TOMO_R7_PATH();
         constexpr bool ImmediateSendProgress = true;
         if constexpr (!HasTls) {
-            // Keep the tls-port=0 completion dispatch byte-for-byte shaped like the base switch.
+            // The no-TLS specialization dispatches only plain transport and shared control tags.
             switch (ur_kind(cqe->user_data)) {
                 case UrKind::Accept:
                     r7_on_accept<kEp, Fused>(cqe, UrKind::Accept);
@@ -2110,6 +2133,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
     r7::LazyShadowDispatch shadow_dispatch(c->rob().dispatch_id());
 
     TOMO_R7_PATH();
+        // Phase 1: snapshot connection limits, controller gates, and the pass read cut.
         // Split readers and fused batches need the same ROB hazards, MGET fence,
         // admission, and demotion protocol as the baseline fused reader.
         static constexpr bool Fused = SplitLocal || (BatchOps == kGenthreadIfidBatchOps);
@@ -2183,6 +2207,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
         // retirement, and no WB stage runs inside this parse pass: acquire() already stops at
         // the 64-slot ROB boundary. Local/error completions publish Done; they do not retire.
         for (;;) {
+            // Phase 2: reserve a ROB slot and parse a frame without consuming retryable input.
             if constexpr (BatchOps != 0)
                 if (sig.ops - batch_start_ops >= BatchOps) break;
             // The coordinator's own connection already holds the unfinished FLIP head. Do not
@@ -2199,8 +2224,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
             if constexpr (Fused) {
                 op = read_local_enabled ? rob.acquire_read_local(conn.op_route_flags())
                                         : rob.acquire<true>(conn.op_route_flags());
-                // Preserve the unarmed parser's byte replies. acquire_read_local
-                // above uses the existing coded fused arm.
+                // The unarmed parser uses byte replies; the armed fused parser uses coded replies.
             } else {
                 op = rob.acquire<false>(conn.op_route_flags());  // 2s keeps the byte path
             }
@@ -2231,9 +2255,8 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
             uint32_t pos = conn.rpos();
             const char* err = nullptr;
             op->rbuf_off = pos;
-            // The authenticated/common path takes the constant-folded parser; only pre-AUTH
-            // connections (predicted false) pay real limit arguments. See resp.h for the
-            // +83 instr/op lesson behind this split.
+            // The authenticated path uses constant-folded parser limits. Pre-AUTH connections
+            // use the smaller explicit limits; a nondefault bulk limit selects the bounded parser.
             bool security_check = auth_required && !conn.authenticated();
             ParseResult pr;
             if (__builtin_expect(conn.multibulk_pending(), false)) {
@@ -2289,6 +2312,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
             // certain to be answered — see the dispatch-refusal path below for why.
             const uint32_t consumed = pos - conn.rpos();
 
+            // Phase 3: validate command grammar, choose handlers, and stamp the database map.
             const CommandSpec* spec = command_lookup(op->cmd_name());
             if (!spec) {
                 conn.advance_parse(consumed);
@@ -2372,15 +2396,10 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
                     if (!extend_read_local_batch) read_local_batch = false;
                 }
             }
-            // THE SOLE DISABLED-STATE FEATURE DECISION on an ordinary operation. The executor
-            // receives a spec whose handler pointer is already the clean or armed specialization;
-            // no notification mask load reaches its execute path.
-            //
-            // Lane F rides this ONE branch rather than adding its own. notify_armed_ is the union
-            // of "keyspace notifications configured" and "some CLIENT/MONITOR/TRACKING feature is
-            // armed" (see climon_refresh_armed), so with everything off the emitted code is
-            // byte-for-byte the pre-lane sequence: one predicted-not-taken test, then the tls
-            // variant select and the spec store. The armed side pays a cold out-of-line call.
+            // Select notification and TLS handler specializations before executor publication.
+            // notify_armed_ combines keyspace notifications with CLIENT/MONITOR/TRACKING arming
+            // (see climon_refresh_armed), so they share one dispatch decision. Executors receive
+            // the selected spec and need no notification-mask load on the execution path.
             if (__builtin_expect(notify_armed, false)) {
                 spec = command_notify_variant(spec);
                 if constexpr (NoBorrow) spec = command_tls_variant(spec);
@@ -2405,6 +2424,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
                 }
                 multidb_stamp(*srv_, *op, conn.session().db_index);
             }
+            // Phase 4: plan local-read admission/demotion before any stateful command hooks.
 #include "read_local_parse.inc"
             if constexpr (Fused) {
                 if (read_local_enabled && read_local_demotion.active() &&
@@ -2433,6 +2453,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
                 c->set_flip_backpressure(true);
                 break;
             }
+            // Phase 5: apply security/persistence gates and lower transactions and IO commands.
             // FLIP holds precede stateful hooks. Later backpressure exits may
             // reparse this frame; the armed gate keys its receipt by ROB number.
             if (__builtin_expect(notify_armed, false) &&
@@ -2591,7 +2612,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
                     break;
                 }
                 // DEBUG SLEEP orders behind older replies, then retains its ROB slot while
-                // every worker rendezvouses and pauses. Other DEBUG forms are unchanged.
+                // every worker rendezvouses and pauses. Other DEBUG forms use their own handler path.
                 if (__builtin_expect((spec->flags & CmdFlags::DebugSleep) != 0, false)) {
                     if (op->argc() == 2 && op->arg(1).eq_icase("rehash-state")) {
                         // This diagnostic reads mutable table counters. ConfigRoute normally
@@ -2673,8 +2694,8 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
                             // Released by the quiescence backstop, not here: a parked WAIT's own
                             // completion (deferred_timer_pass) fires before its op retires, and
                             // dropping the barrier there would let younger frames parse ahead of
-                            // the WAIT reply's staging. Owner bit named so the release is
-                            // attributable; the release site is deliberately unchanged.
+                            // the WAIT reply's staging. BarrierOwner::Wait identifies
+                            // this claim until retirement makes the ROB quiescent.
                             barrier_arm(c, BarrierOwner::Wait);
                             mark_active(c);
                             break;
@@ -2739,6 +2760,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
                 continue;
             }
 
+            // Phase 6: stamp owner hazards and lower blocking and cross-shard operations.
             // This command only needs an owner-local same-connection pending lookup when an older
             // cross-shard atomic group was already in flight. Set the immutable bit before the
             // current group increments the count, so a group never treats itself as a predecessor.
@@ -2864,25 +2886,16 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
                     break;
                 }
                 if (scatter_prepared == ScatterPrepare::Ready) {
-                    // SAME-CONNECTION PROGRAM ORDER ACROSS A SECOND WAVE OF TASKS.
+                    // Second-wave scatters require same-connection ordering on both sides.
+                    // Their later owner tasks originate on an EX producer channel (destination installs,
+                    // pop retries, or script apply), while ordinary tasks originate on this IO channel.
+                    // ThreadCtx::drain_tasks visits producer channels by ID, so the channels alone do not
+                    // order an older ordinary task before a later scatter's second wave.
                     //
-                    // A barriered scatter is exactly the set of commands that publish a SECOND wave of
-                    // owner tasks from an EX thread rather than from here: a two-hop store's phase-2
-                    // destination install (publish_phase2), an LMPOP/ZMPOP retry, the cross-owner
-                    // script apply wave. Those tasks enter the destination owner through the EX
-                    // producer's inbox channel, while this connection's ordinary ops entered through
-                    // THIS io thread's channel -- and ThreadCtx::drain_tasks visits channels in
-                    // producer-id order, so nothing orders the two. A phase-2 install could therefore
-                    // execute BEFORE an older op of the same connection that was still sitting in our
-                    // channel, and that older op then answered from after a store it precedes.
-                    // Measured: `ZDIFFSTORE d 2 a b` answering :1 with the very next `ZCARD d`
-                    // answering :2, and a `DEL` of a destination landing after a younger store.
-                    //
-                    // The barrier the dispatch sets below already keeps YOUNGER ops out; this keeps
-                    // older ones from still being in. Same lowering the blocking path uses: wait for
-                    // the ROB head, leave the frame unconsumed, and re-parse once the connection
-                    // quiesces. Read-only and single-wave scatters (MGET, MSET/DEL groups, a direct
-                    // RENAME) are not barriered and do not pay it -- they post every task from here.
+                    // Wait for the ROB head before starting the scatter, leave its frame unconsumed while
+                    // waiting, and arm the barrier against younger frames after publication. Read-only and
+                    // single-wave scatters (MGET, MSET/DEL groups, direct RENAME) post every task from this
+                    // IO and do not need this barrier.
                     if (scatter_dispatch.barrier && rob.in_flight() != 0) {
                         xshard_abandon_unpublished(scatter_dispatch.state, scatter_pool_, self_id);
                         break;
@@ -2966,7 +2979,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
 
         ordinary_dispatch:
             // The ordinary key position is registry metadata. Container children and the other
-            // special routes refine it in the existing CursorShard hook below.
+            // special routes refine it in the CursorShard hook below.
             if (spec->flags & CmdFlags::CursorShard) {
                 if (!command_prepare_scan_route(*srv_, *op)) {
                     conn.advance_parse(consumed);
@@ -3037,7 +3050,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
                         flip_fingerprint_note(*spec, *op);
                         mark_active(c);
                         read_local_batch = !read_local_mget_candidate;
-                        // Fill at most the existing fused IFID quantum; intervening ordinary frames
+                        // Fill at most the fused IFID quantum; intervening ordinary frames
                         // simply end this run. MGET holds a one-command cut fence until local
                         // validation or irrevocable owner demotion, so stop this parse pass now.
                         if (read_local_mget_candidate) break;
@@ -3046,6 +3059,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
                 }
             }
 
+            // Phase 7: publish an ordinary owner task, rolling back a refused queue push.
             const uint32_t worker_id = srv_->worker_of_shard(op->shard);
             ThreadCtx& worker = srv_->thread(worker_id);
             if constexpr (Fused && !SplitLocal) {
@@ -3054,23 +3068,14 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
                     l4prebuild_prepare_set(*op);
             }
 
-            // PUBLISH BEFORE DISPATCH. The old order posted the task first and published after, which
-            // left a window of two instructions in which a worker could receive the task, execute it,
-            // mark it Done and notify the sender -- all while dispatch_ still excluded the op. The
-            // sender then woke, drained a ROB that did not yet contain the op, retired nothing, and
-            // went back to sleep having spent its one notification. Nothing ever notified again, so
-            // the reply sat Done in the ROB forever.
+            // Publish the ROB slot before posting the task. Otherwise an owner could complete
+            // and notify before dispatch_ includes the operation; a consumer could spend that
+            // notification on an apparently empty ROB and leave the reply stranded.
             //
-            // It cost 3 lost replies in 87 million and wedged the connection permanently. Invisible in
-            // 2-stage, where io is the sender and re-drains its own active set unprompted; it was
-            // FATAL in the deleted remote-sender modes, and the ordering is kept because it is
-            // simply correct: publish, then tell.
-            // DIRECT-REPLY eligibility (owner's c->buf trick): this op is the ROB head and the
-            // fill buffer is empty, so its bytes can be formatted in place by the worker. True for
-            // every op at depth 1 and for the head of each fresh batch at depth. Evaluated ONLY for
-            // the first dispatch of the pass: later ops cannot be head, and the in_flight() read
-            // touches flush_, a line the sender writes -- checked per op it became a per-op
-            // cross-thread load and cost -2..-4% at p32 for a candidate that can never qualify.
+            // Direct replies require a ROB head and an empty fill buffer. Check only the first
+            // dispatch of a pass: later dispatches cannot qualify, and in_flight() reads flush_,
+            // a cache line written by reply retirement. The worker may format the eligible reply
+            // in the supplied fill-buffer region.
             if (head_candidate) {
                 head_candidate = false;
                 if (rob.in_flight() == 0 && c->nothing_to_write()) {
@@ -3092,13 +3097,9 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
             if (!posted && !post_task_quiet(worker, t)) {
                 rob.unpublish(); r7::ShadowLongIndex::unpublish(*c);  // a refused push must leave NO trace -- including in the ROB
                 if constexpr (Fused && !SplitLocal) l4prebuild_discard_set(*op);
-                // A REFUSED PUSH MUST LEAVE NO TRACE. Advancing the parse cursor before this point
-                // consumed the command's bytes while publishing no op, so the client waited forever
-                // for a reply that would never be produced and the connection wedged. This is not an
-                // edge case: with enough io threads feeding few workers the inbox fills routinely,
-                // and it hung a benchmark within seconds at io6/ex2. Leaving the cursor untouched
-                // means the command is simply re-parsed on a later pass, once retiring has freed
-                // inbox space.
+                // A refused push leaves both the ROB publication frontier and parse cursor untouched.
+                // Consuming bytes without queuing an operation would lose its reply. Leave this frame
+                // for a later parse pass after the owner inbox has room.
                 break;
             }
 #ifdef TOMO_CORE_CONCURRENCY_TEST
@@ -3120,7 +3121,8 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
             mark_active(c);
         }
         {
-            // Item 2: one notify per worker per parse pass, not per op. The pushes above are already
+            // Phase 8: notify each touched owner once and finish the pass fingerprint.
+            // One notify per worker per parse pass, not per op. The pushes above are already
             // visible in the queues; this publishes the "look here" bit and pays the wake decision
             // once.
             for (uint32_t i = 0; i < ntouched_; i++) {
@@ -3204,6 +3206,7 @@ static int  run_fused_server_reordered(
     const std::vector<std::unique_ptr<AofReplayPlan>>& aof_plans, const SnapshotLoadPlan* load_plan,
     TlsContext* tls_context, LateUnixListener& unix_listener,
     ShutdownReportFinalLine& final_report) {
+    // Phase 1: allocate loop lifetimes and the stop-aware boot rendezvous.
     const Config& cfg = srv.cfg();
     const uint32_t nthreads = srv.nthreads();
     print_boot_presentation(srv);
@@ -3211,14 +3214,12 @@ static int  run_fused_server_reordered(
     std::vector<std::thread> pool;
     std::vector<IoLoop> ios(nthreads);
     std::vector<FusedExLoop> executors(nthreads);
-    // ONE boot gate. The ad-hoc mutex/cv gate this replaced needed a separate `runners_stopped`
-    // counter so a thread that saw shutdown while parked still reported at the gate (without it a
-    // SIGTERM during a long snapshot recovery hung main forever). FusedBootGate keeps that property as a
-    // first-class `gave_up` arrival, and every wait/advance also takes the stop edge, so the two
-    // predicates cannot disagree.
+    // Every parked worker reports either readiness or giving up. Waits and
+    // phase advances observe stop, so shutdown during recovery cannot leave
+    // main waiting for a readiness arrival from a worker that has exited.
     FusedBootGate boot(nthreads);
-    // Identical to placement().ifid_threads().front() whenever a unixsocket is configured, but
-    // read from the server so the LB's unix_owner_tid_ and the actual attach point cannot drift.
+    // Use the server's Unix owner so listener attachment and load balancing
+    // agree on the physical thread that owns the pathname's listening fd.
     const uint32_t unix_owner = srv.unix_owner_tid();
     auto report_graceful_shutdown = [&] {
         srv.snapshot().cancel_after_join(srv);
@@ -3244,7 +3245,11 @@ static int  run_fused_server_reordered(
         acl_shutdown();
     };
 
+    // Phase 2: recover each worker's shards, wire its loops and await activation.
     for (uint32_t tid = 0; tid < nthreads; tid++)
+        // Runs only on tid; owns its ring/persistence guards and borrows the
+        // enclosing arrays until join. Arrival publishes initialization through
+        // boot's mutex. Failure reports once and unwinds on this issuer thread.
         pool.emplace_back([&, tid] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
             IoLoop::ShutdownOnIssuer shutdown_io{ios[tid]};
@@ -3315,9 +3320,9 @@ static int  run_fused_server_reordered(
                 boot.give_up(tid, "unified listener activation failed");
                 return;
             }
-            // arrive_ready() returns false on the stop edge: a worker can leave wait_until_ready(),
-            // spend time arming its listeners, and come back after main already saw a signal. That
-            // arrival is recorded as gave_up so main's wait still sees every thread report.
+            // A stop can race listener activation after wait_until_ready().
+            // arrive_ready records that worker as gave_up, so every participant
+            // is accounted for even when it never enters the running phase.
             if (!boot.arrive_ready(tid)) return;
             if (!boot.wait_until_running(tid, self.stop_flag())) return;
             self.publish_ready_role(Role::Ifid);
@@ -3326,6 +3331,7 @@ static int  run_fused_server_reordered(
             self.publish_ready_role(Role::Idle);
         });
 
+    // Phase 3: join failures or publish recovery completion before opening ports.
     auto stop_workers = [&] {
         for (uint32_t tid = 0; tid < nthreads; tid++)
             srv.thread(tid).stop_flag().store(true, std::memory_order_relaxed);
@@ -3347,6 +3353,7 @@ static int  run_fused_server_reordered(
         return 0;
     }
 
+    // Phase 4: probe TCP/TLS, transfer the Unix fd, then release the ready workers.
     const bool port_ok = probe_boot_listener(cfg, cfg.port, false, make_exclusive_boot_listener);
     const bool tls_port_ok =
         port_ok && probe_boot_listener(cfg, cfg.tls_port, true, make_exclusive_boot_listener);
@@ -3379,12 +3386,13 @@ static int  run_fused_server_reordered(
         return interrupted ? 0 : 1;
     }
 
-    // Reached only when advance_running() succeeded, i.e. no stop edge was taken; the old
-    // `if (!stopping)` guard around these lines is now the gate's own postcondition.
+    // Phase 5: announce the completed boot and monitor the running workers.
+    // advance_running succeeded without observing a stop at the boot barrier.
     print_ready_listeners(cfg, unix_listener.bound());
     cfgfix_process_ready();
     srv.monitor_controllers();
 
+    // Phase 6: join every issuer before reclaiming records and capturing the report.
     srv.databases().join_workers(srv, pool);
     // The unix socket file is unlinked by its RAII owner in main, for every return path.
     report_graceful_shutdown();
@@ -3398,13 +3406,16 @@ void IoLoop::run_split_read_local() {
     return run_split_read_local_baseline();
 }
 
+// Main-thread choice before worker launch. Borrow all arguments through the
+// chosen boot routine's join; that routine owns listener transfer and failure
+// unwind. The selector adds no publication, wait or recovery step of its own.
 int run_fused_server_selected(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                               const std::vector<std::unique_ptr<AofReplayPlan>>& aof_plans,
                               const SnapshotLoadPlan* load_plan, TlsContext* tls_context,
                               LateUnixListener& unix_listener,
                               ShutdownReportFinalLine& final_report) {
-    // One boot choice. The original fused TU sees no R7 bodies, callbacks, or selectors;
-    // even a callback-only choice there changes its unit-wide inlining budget.
+    // Keep the boot selector outside the FIFO fused translation unit so priority
+    // bodies and callbacks do not enter its unit-wide inlining budget.
     if (srv.cfg().reorder)
         return run_fused_server_reordered(srv, aof_base_plan, aof_plans, load_plan, tls_context,
                                           unix_listener, final_report);

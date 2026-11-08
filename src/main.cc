@@ -1,9 +1,12 @@
+// Process boot, split worker lifetimes, signal publication and final shutdown.
+// Main owns configuration storage, Server, listeners and guards through worker
+// join. Recovery restores hash material before routing; listeners accept only
+// after their owners load. Guards disarm signals before Server destruction.
+//
+// Fused and split read-local startup live in genthread.cc and rl2s.cc; separating
+// their instantiations keeps this translation unit's optimization independent.
 #include "core/boot_support.h"
 #include "core/cfgfix.h"
-// main.cc — boot, thread launch, pinning, shutdown.
-//
-// Split mode keeps the pure 2s design. Fused startup is isolated in genthread.cc so boot mode
-// selection cannot change the split loop translation unit's optimization or object code.
 #include <pthread.h>
 #include <sched.h>
 #include <sys/random.h>
@@ -43,10 +46,9 @@
 
 using namespace tomo;
 
-// WAIT's cold reply moved out of the parser, but main.o must keep supplying the
-// ordinary integer reply template. Otherwise the linker selects xshard.o's
-// differently inlined weak definition and charges every INCR eleven instructions.
-// Preserve the established link-order choice in both database runtimes.
+// Supply the ordinary integer reply template in main.o for both database
+// runtimes. Link order selects this weak definition rather than the differently
+// inlined xshard.o definition; it also serves integer replies outside WAIT.
 template void tomo::reply_int<tomo::Op::Sink>(tomo::Op::Sink&&, long long);
 
 // Signal-handler state. A handler may only touch lock-free atomics, so the thread table is a
@@ -58,8 +60,8 @@ template void tomo::reply_int<tomo::Op::Sink>(tomo::Op::Sink&&, long long);
 // Publication happens with SIGINT/SIGTERM blocked on this thread and the handlers are installed
 // only afterwards. Until arm() returns, SIGINT/SIGTERM keep the default action (terminate), which
 // is the right answer while Server::init is still allocating tables and no thread exists to stop
-// -- an earlier revision installed the handlers first and a signal in that window was silently
-// swallowed. disarm() restores SIG_IGN, so a signal after teardown cannot re-enter the handler.
+// rather than acknowledging a stop with no initialized target. disarm() installs
+// SIG_IGN, so a signal after teardown cannot re-enter the handler.
 static std::atomic<Server*> g_signal_server{nullptr};
 static std::array<std::atomic<ThreadCtx*>, kMaxThreads> g_signal_threads{};
 static std::atomic<uint32_t> g_signal_thread_count{0};
@@ -71,6 +73,10 @@ static_assert(std::atomic<uint32_t>::is_always_lock_free);
 static_assert(std::atomic<bool>::is_always_lock_free);
 static_assert(std::atomic<uint8_t>::is_always_lock_free);
 
+// Async handler after arm's release publication; borrows only published live
+// server/thread pointers. Requests a persisted stop while owners remain alive,
+// or sets relaxed stop flags and rings the doorbell. A repeated SIGINT exits
+// immediately with status 1. No allocation, locks or waits are allowed here.
 static void on_signal(int sig) {
     if (!g_signal_armed.load(std::memory_order_acquire)) return;
     if (Server* server = g_signal_server.load(std::memory_order_acquire)) {
@@ -101,6 +107,11 @@ static void on_signal(int sig) {
     signal_doorbell_notify();
 }
 
+// Main-thread RAII owner of process SIGINT/SIGTERM handlers and the global
+// borrowed Server/ThreadCtx table. Arm before launching workers; destroy after
+// join but before Server. Release stores pair with handler acquire loads.
+// Installation failure disarms and returns false. Disarm ignores sigaction
+// errors; concurrent teardown with a still-running worker is not supported.
 class ScopedSignalHandlers {
 public:
     bool arm(Server& server) {
@@ -147,9 +158,9 @@ private:
     }
 };
 
-// Pins to one cpu. Relative to the process's ALLOWED set by construction, because the caller takes
-// the cpu from Topology, which intersects with sched_getaffinity. A pin to a cpu outside the mask
-// silently leaves the thread floating rather than erroring — that was a real bug in the fork.
+// Worker entry pins to a CPU from Topology's intersection with sched_getaffinity.
+// A negative CPU leaves affinity unchanged. The setter's error is ignored, so
+// callers must supply an allowed CPU; failure leaves the thread unpinned.
 static void pin_to(int cpu) {
     if (cpu < 0) return;
     cpu_set_t set;
@@ -158,6 +169,13 @@ static void pin_to(int cpu) {
     pthread_setaffinity_np(pthread_self(), sizeof(set), &set);
 }
 
+// Entry contract for both compiled database variants below: run on the main
+// thread before workers exist; own configuration backing storage, Server and
+// guards until join. Recovery plans precede shard loading; load/boot mutexes
+// publish setup before serving and workers release-publish ready roles.
+// Returns 1 for reported setup/activation failures, 0 for help or clean stop.
+// Server::init allocation failure is handled; other allocation exceptions are
+// not translated here. Boot waits can block until workers report or stop.
 #if TOMO_SINGLE_DATABASE
 int tomokv_multidb_main(int argc, char** argv);
 // One boot decision; the kind-A artifact can force the legacy representation
@@ -169,19 +187,20 @@ int tomokv_multidb_main(int argc, char** argv) {
 #else
 int main(int argc, char** argv) {
 #endif
+    // Phase 1: establish teardown order, seed hashes and parse configuration.
     // Declared before every other automatic: once armed on a clean runtime shutdown, this emits
     // only after all later-declared objects (including server/loops/listeners/signals) destruct.
     ShutdownReportFinalLine final_shutdown_line;
 
-    // Hash key material, before anything hashes. getrandom never fails for 24 bytes on any kernel
-    // we run; if it somehow does, a zero seed degrades to the old deterministic behavior rather
-    // than refusing to boot.
+    // Initialize hash material before any key is hashed. Only a complete
+    // getrandom read replaces the defaults; failure or a short read leaves
+    // those deterministic defaults in place and does not prevent boot.
     {
-        uint64_t buf[3] = {};
-        if (getrandom(buf, sizeof(buf), 0) == sizeof(buf)) {
-            g_hash_seed = buf[0];
-            g_sip_k0 = buf[1];
-            g_sip_k1 = buf[2];
+        uint64_t hash_material[3] = {};
+        if (getrandom(hash_material, sizeof(hash_material), 0) == sizeof(hash_material)) {
+            g_hash_seed = hash_material[0];
+            g_sip_k0 = hash_material[1];
+            g_sip_k1 = hash_material[2];
         }
     }
 
@@ -219,12 +238,13 @@ int main(int argc, char** argv) {
 #if TOMO_SINGLE_DATABASE
     if (tomokv_multidb_boot(cfg.databases)) return tomokv_multidb_main(argc, argv);
 #endif
+    // Phase 2: resolve process, transport, command registry and placement state.
     if (!cfgfix_process_boot(cfg)) return 1;
     if (!reorder_available()) cfg.reorder = 0;
     cfg.reorder = reorder_for_mode(cfg.reorder, cfg.thread_mode);
-    // THE ENGINE IS LATCHED HERE, once, before anything that reads it exists. Every Ring in the
-    // process must agree (a uring ring cannot receive an eventfd doorbell and vice versa), and no
-    // thread has been spawned yet, so this store needs no synchronisation.
+    // Latch the engine before constructing any Ring. All rings must agree on
+    // the doorbell mechanism. No worker exists yet, so this plain store needs
+    // no cross-thread synchronization.
     if (cfg.net_io == NetIoEngine::Epoll) {
         g_ring_epoll_mode = true;
         std::fprintf(stderr, "--net-io epoll: using syscall persistence (no io_uring ring)\n");
@@ -250,6 +270,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    // Phase 3: select recovery input and restore its hash material before routing.
     std::unique_ptr<SnapshotLoadPlan> aof_base_plan;
     std::vector<std::unique_ptr<AofReplayPlan>> aof_plans;
     if (cfg.appendonly) {
@@ -275,7 +296,7 @@ int main(int argc, char** argv) {
 
     std::unique_ptr<SnapshotLoadPlan> load_plan;
     if (!aof_base_plan && aof_plans.empty()) {
-        // The recovery input derives from the existing persistence destination. AOF recovery
+        // The recovery input derives from the configured persistence destination. AOF recovery
         // keeps precedence; a missing dump boots empty, while an unreadable/corrupt dump fails.
         // Path construction and filesystem work remain entirely behind this boot-only gate.
         const std::string load_path = std::string(cfg.dir) + "/" + cfg.dbfilename;
@@ -306,8 +327,9 @@ int main(int argc, char** argv) {
         g_sip_k1 = load_plan->sip_k1;
     }
 
+    // Phase 4: validate allocation assumptions and initialize storage and ACLs.
     std::signal(SIGPIPE, SIG_IGN);  // send() errors arrive as -EPIPE on the CQE instead
-    // SIGINT/SIGTERM handlers are armed later, once the threads they stop exist.
+    // Arm SIGINT/SIGTERM later, once their target thread contexts exist.
 
     if (!good_size_matches_allocator()) {
         std::fprintf(stderr, "good_size() disagrees with the allocator's size classes\n");
@@ -339,12 +361,10 @@ int main(int argc, char** argv) {
         }
     }
 
-    // ONE RAII owner for the AF_UNIX pathname and its untransferred fd (LateUnixListener also
-    // carries the non-socket / already-accepting probes the inline version used to do here), and
-    // open() is deliberately deferred until after the persistence-load barrier in the selected
-    // runtime below, so no unix client can connect before every owner has decoded its shards.
-    // The pathname and any not-yet-transferred fd have one lifetime owner. open() is deliberately
-    // called only after the persistence-load barrier in the selected runtime below.
+    // Phase 5: own the Unix pathname, arm signal delivery and select the runtime.
+    // LateUnixListener owns the pathname and any untransferred fd, and checks
+    // for non-socket or already-accepting paths. Open only after the selected
+    // runtime's load barrier so clients cannot connect before shard recovery.
     LateUnixListener unix_listener(cfg.unixsocket);
     SignalDoorbell signal_doorbell;
     if (!signal_doorbell.init()) {
@@ -414,10 +434,13 @@ int main(int argc, char** argv) {
         acl_shutdown();
     };
 
-    // Workers and senders BEFORE io: an io thread that dispatches or hands off to a thread whose
-    // ring does not exist yet would find nothing to wake, and the work would sit until something
-    // unrelated poked the peer.
+    // Phase 6: launch split owners with both role endpoints provisioned.
+    // Owners must have rings before IO can dispatch or hand off clients; a
+    // doorbell sent to an absent ring cannot wake the peer to consume its work.
     for (uint32_t tid : srv.placement().ex_threads())
+        // Runs on physical worker tid, owning its persistence/ring guards across
+        // role changes. Publishes load outcome under load_mu; main joins before
+        // arrays die. Setup failure reports once and unwinds on this issuer.
         pool.emplace_back([&, tid] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
             IoLoop::ShutdownOnIssuer shutdown_io{ios[tid]};
@@ -503,8 +526,9 @@ int main(int argc, char** argv) {
             }
         });
 
-    // Main performed every read(2); the real owning executor threads now deserialize their own
-    // shard sections in parallel. No TCP listener exists until all owners report success.
+    // Phase 7: wait for every owner to finish decoding its recovery sections.
+    // Main reads the recovery bytes; owners deserialize their own shards.
+    // No TCP listener exists until every owner reports success under load_mu.
     {
         std::unique_lock<std::mutex> lock(load_mu);
         load_cv.wait(lock, [&] {
@@ -531,7 +555,8 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    // Probe only after boot load. Each io thread then opens its own SO_REUSEPORT listener.
+    // Phase 8: probe TCP/TLS and bind the Unix pathname after successful recovery.
+    // Each IO thread subsequently opens its own SO_REUSEPORT listener.
     if (!probe_boot_listener(cfg, cfg.port, false, make_exclusive_boot_listener)) {
         std::perror("bind");
         for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
@@ -552,9 +577,13 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    // Phase 9: launch IO workers, transfer the Unix fd and synchronize activation.
     const uint32_t unix_owner = srv.unix_owner_tid();
     uint32_t io_boot_slot = 0;
     for (uint32_t tid : srv.placement().ifid_threads())
+        // Runs on physical worker tid with one boot slot. Owns both role guards
+        // and any transferred listener until join. The boot mutex publishes
+        // setup/readiness; failure records the slot and stops all workers.
         pool.emplace_back([&, tid, slot = io_boot_slot++] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
             IoLoop::ShutdownOnIssuer shutdown_io{ios[tid]};
@@ -643,6 +672,7 @@ int main(int argc, char** argv) {
             }
         });
 
+    // Phase 10: publish readiness only after all IO workers activate, then monitor.
     if (!io_boot.wait_loaded(srv.shutting_down()) || !io_boot.advance_ready(srv.shutting_down()) ||
         !io_boot.wait_ready(srv.shutting_down()) || !io_boot.advance_running(srv.shutting_down())) {
         for (uint32_t i = 0; i < nthreads; i++)
@@ -658,9 +688,10 @@ int main(int argc, char** argv) {
     print_ready_listeners(cfg, unix_listener.bound());
     cfgfix_process_ready();
 
-    // Both controllers use the existing main/monitor thread.
+    // Main runs both controllers while the workers serve requests.
     srv.monitor_controllers();
 
+    // Phase 11: join every worker and capture the report before loop destruction.
     srv.databases().join_workers(srv, pool);
     report_graceful_shutdown();
     return io_boot_failed.load(std::memory_order_relaxed) ? 1 : 0;

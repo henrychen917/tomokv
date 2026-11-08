@@ -1,15 +1,14 @@
-// ex_loop.h — executes ops against owned shards. The connection's IO owner retires and sends
-// their replies, using the same Channel signalling and LoopSignals units.
+// Executor scheduling, shard maintenance, local reads, and completion notification.
+// Included by the runtime TUs (main.cc, genthread.cc, rl2s.cc, reorder.cc) and through io_loop.h;
+// latency_tracking.cc also supplies cold member definitions. ex_execute.inc supplies task bodies
+// and ex_txn_chain.inc supplies transaction retry members at fixed points inside ExLoopT.
 //
-//   in   task_in from IO threads         a parsed op to execute
-//   out  ready-mask bit / client_in      completed ops for the connection's IO owner
-//
-// The executor's Ring receives wakes and submits its snapshot/AOF persistence work.
-//
-// WAITING IS THE INTERESTING PART. A worker with an empty inbox must not spin a core at 100% — that
-// is a real cost at 64 workers and it distorts every utilisation reading a controller might use. It
-// also must not sleep so eagerly that it pays a wakeup per op under load. So: spin briefly, then arm
-// the blocked flag, re-check, and block. Producers only pay a wake syscall while that flag is armed.
+// Each active executor alone writes its owned shards. Routing is rechecked before store access,
+// and no owner work follows an ExDrain acknowledgement until ownership is installed. Read-local
+// captures stay within a QSBR rotation and use copy/validate/demote without reader retries.
+// Release Done publishes replies to the connection's IO owner, which retires and sends them.
+// Ready masks are hints: idle sweeps inspect queue state before the blocked-flag/recheck/wait
+// handshake. The executor ring carries wakeups and persistence work, not socket sends.
 #pragma once
 #include "../cmd/txn_retry_queue.h"
 #include "atomic_parked.h"
@@ -38,8 +37,7 @@
 
 namespace tomo {
 
-// "Long enough to cover an inter-arrival gap, short enough not to burn a core." A starting point to
-// measure, not a result.
+// Bound empty polling before the mask-independent sweep and blocked-flag handshake.
 inline constexpr uint32_t kExSpinBudget = 2048;
 
 // How many ops are gathered before executing, so their storage prefetches can overlap. Large enough
@@ -71,11 +69,10 @@ static_assert(kReadLocalDrainChunkOps == kExecBatch);
 static_assert(kReadLocalOwnerTaskChunkOps == kExecBatch);
 static_assert((kExecBatch & (kExecBatch - 1)) == 0);
 
-// Constructed only for an armed declared-key-precise write whose owner has since enabled eviction.
-// Keeping the existing maxmemory admission active but forcing NoEviction makes the IO-side promise
-// self-fulfilling: this operation can update its declared point/keyset or fail, but cannot delete a
-// different key behind a younger local read. The owner restores its live policy before the next
-// task.
+// Contract: the shard owner borrows a store for one declared-key-precise write when read-local
+// is armed. Suspend eviction but keep maxmemory admission: the operation updates only its declared
+// keys or fails, and cannot evict behind a younger local read. Destruction restores the policy
+// before the next task. No ownership transfer or cross-thread publication occurs.
 class ReadLocalPreciseWriteGuard {
 public:
     explicit ReadLocalPreciseWriteGuard(FlatStore& store) : store_(&store) {
@@ -90,21 +87,29 @@ private:
     MaxmemoryPolicy previous_ = MaxmemoryPolicy::NoEviction;
 };
 
+// The false specialization owns no storage. The true specialization owns optional per-thread
+// lane/reclamation state; only its physical thread may access the implementation.
 template <bool Enabled>
 struct ReadLocalExState;
 
 template <>
 struct ReadLocalExState<false> {};
 
+// Contract: init creates Impl only when read-local is enabled. The owning thread destroys it
+// after lane/reclamation shutdown; disabled operation allocates nothing. Server, ThreadCtx and
+// demotion context are borrowed. This wrapper provides no cross-thread synchronization.
 template <>
 struct ReadLocalExState<true> {
+    // Owns the bounded lane, fallback array and deferred reclamation queue. The local parser
+    // enqueues ROB handles and the same thread drains them. Demotion credits bound worst-case
+    // owner fanout; raw callbacks/Client handles stay live until completion or demotion. Shard
+    // retire sinks must follow ownership before this thread accesses a moved store.
     struct Impl {
         using DemoteFn = bool (*)(void*, Client*, const uint64_t*, const ReadLocalFallbackReason*,
                                   uint32_t, uint32_t&);
 
-        // A lane entry is the ROB handle only. The full 32-byte Task carried a shard and a
-        // scatter pointer that were always -1/nullptr here; at kInboxSlots entries that doubled
-        // the lane to the size of the whole L1D. Demotion builds its owner Tasks from the id.
+        // Borrowed ROB handle, valid until local completion/demotion removes it. A 16-byte
+        // entry needs no shard/scatter fields; demotion builds owner Tasks from the op id.
         struct LaneEntry {
             Client* client;
             uint64_t op_id;
@@ -129,16 +134,11 @@ struct ReadLocalExState<true> {
         bool point_writes_precise = true;
         bool keymiss_notify_armed = false;
         uint8_t reserved_schedule[2] = {};  // preserve the demotion-state offsets
-        // EFFECTIVE lane capacity for ADMISSION. The physical ring is always kInboxSlots entries
-        // and its index arithmetic still masks with kInboxSlots - 1; this only decides when the
-        // parser stops admitting, so lowering it can never overrun the ring. It derives to
-        // kInboxSlots and stays there unless DEBUG READ-LOCAL-LANE-CAP sets a test value, which
-        // fused_pass_impl copies here once per rotation. It occupies the two padding bytes that
-        // already sat at offset 38 between reserved_schedule and demote_context, on the same first
-        // cache line as lane_head/lane_tail/lane_count that every admission test already reads, so
-        // the struct does not grow, nothing moves, and reading it costs no line the caller did not
-        // already own. Lowering admission lets one pipelined socket write fill the lane inside
-        // one parse pass, before a drain can race the test; traffic volume alone cannot force it.
+        // Admission limit only: physical storage and index masking remain kInboxSlots. The
+        // default is kInboxSlots; each rotation adopts any DEBUG READ-LOCAL-LANE-CAP override.
+        // This uint16 shares the first cache line with the lane cursors (offset 38), so admission
+        // reads no additional line. A reduced cap lets a test fill the lane in one parse pass,
+        // before draining races it; lowering the cap cannot overrun physical storage.
         uint16_t lane_admit_cap = static_cast<uint16_t>(kInboxSlots);
         void* demote_context = nullptr;
         DemoteFn demote = nullptr;
@@ -157,16 +157,31 @@ struct ReadLocalExState<true> {
 using ReadLocalExImpl = ReadLocalExState<true>::Impl;
 static_assert(std::is_empty_v<ReadLocalExState<false>>);
 
+// Stack-only captures borrow immutable objects and table words within the current QSBR
+// rotation. Consumers validate before completing; no captured pointer may escape the rotation.
 template <uint32_t Capacity>
 struct ReadLocalCaptureBuffer {
     FlatStore::ReadLocalPrefetchCapture entries[Capacity];
 };
 
+// Contract: one physical thread owns the ring, retry queues, caches and optional local-read
+// lane. Server/ThreadCtx and queued Client/ROB handles are borrowed; their lifetimes must cover
+// all pending work. Fused=false serves split owners. Fused=true supports fused owners and the
+// split read-local runtime: its IO tenure must not service shards. Init precedes activation;
+// placement acknowledgements delimit every shard/vector access. Task queues publish across
+// threads; reply completion uses release Done and a fenced notification. Refused posts retain
+// work for later passes, never spin in place or drop it. Init reports resource failure; invalid
+// ownership/accounting aborts, and allocation failures are handled only where explicitly caught.
+// Path-bound/generated methods and their definition order are part of the source-tool interface.
 template <bool Fused>
 class /* TOMO_TOOL_BIND ExLoopT */ ExLoopT {
 public:
     using FusedCompletionFn = void (*)(void*, Client*);
 
+    // Bind the pinned physical thread's executor before entering its loop. Optional local-read
+    // allocation, ring initialization or database-wake registration can return false. Earlier
+    // bindings may already exist on failure; this is not a transactional initializer. A dormant
+    // executor waits for explicit activation before publishing its ring as the thread endpoint.
     bool init(Server* srv, ThreadCtx* self, bool dormant = false) {
         srv_ = srv;
         self_ = self;
@@ -297,22 +312,11 @@ public:
             1, state.lane_admit_cap / static_cast<uint32_t>(std::max<size_t>(1, live_connections)));
     }
 
-    // Is the lane-admission pressure window armed? ONE BYTE on the Impl's first cache line -- the
-    // same line (lane_head/lane_tail/lane_count/lane_demotion_demand at offsets 16..31, and
-    // lane_pressure at 32) that local_read_lane_has_room() already reads for every eligible read of
-    // the same pass -- so asking costs no cache line the pass did not already own.
-    //
-    // The parser MUST ask this before it evaluates read_local_lane_quota's argument. C++ evaluates
-    // arguments eagerly, so `read_local_lane_quota(active_.size())` loaded active_ on EVERY parse
-    // pass even though the callee returns UINT32_MAX immediately when the window is not armed --
-    // and IoLoop::active_ sits at offset 7728, on a line (7680-7743, shared only with unix_rr_,
-    // random_state_ and aof_gate_target_) that the parse pass never otherwise touches, while the
-    // IoLoop fields it does read live on two other lines entirely (notify_armed_ 7864,
-    // proto_max_bulk_len_ 7872). That made always-on machinery cost one cold-line demand fill per
-    // parse pass while every counter it owns still read zero -- measured on the owner's 32-core box
-    // at 512 connections as +11% DRAM and +3.4% same-CCX fills per op with instructions flat.
-    // A hint must never be load-bearing, and machinery that has not fired must be
-    // free: gate the argument, not just the answer.
+    // Parser-side pressure hint on the same first cache line as lane cursors/demotion demand.
+    // Test it before evaluating read_local_lane_quota(active_.size()): C++ eagerly evaluates
+    // arguments, so testing only inside quota would load the separate active-set line even when
+    // pressure is off. The hint changes admission fairness, not correctness. Cache observations
+    // motivating the argument gate are archived in docs/decisions/readability-a6.md.
     bool read_local_lane_under_pressure() const {
         static_assert(Fused);
         if (!read_local_enabled()) return false;
@@ -377,12 +381,21 @@ public:
 
 #include "fused_owner_turn.inc"
 
+    // Contract: run one owner turn on the fused physical thread. ConsumeTasks selects inbox
+    // service; IofusedPrivateQueue selects fixed fused lanes; InterleaveLocalReads alternates
+    // bounded local/owner chunks. Require initialized callbacks and stable ownership until the
+    // control tail. Captures die before the seq_cst QSBR tick at scope exit. Retry/forward/AOF
+    // queues retain blocked work; return value is work/needed polling, not completed replies.
+    // ExDrain skips shard work after acknowledgement, and this turn never blocks on the ring.
     /* TOMO_TOOL_FUNCTION fused_pass_impl */
     template <uint32_t BatchOps, bool ConsumeTasks, bool IofusedPrivateQueue = false,
               bool InterleaveLocalReads = false>
     uint32_t /* TOMO_TOOL_BIND fused_pass_impl */ fused_pass_impl() {
+        // Phase 1: bind the rotation lifetime, refresh clocks, and check ownership barriers.
         ++exec1s_counters[self_->id()].owner_passes;
         Server::ClientWorkScope client_work(*srv_, self_->id());
+        // Borrows this thread/server until scope exit and seq_cst-publishes quiescence only
+        // after nested drains have consumed every foreign capture; no Client lifetime is owned.
         struct RotationBoundary {
             bool enabled;
             ThreadCtx* self;
@@ -392,11 +405,9 @@ public:
             }
         } rotation_boundary{read_local_enabled(), self_, srv_};
         cached_now_ms_ = realtime_ms();
-        // A completed LB stage may have changed this owner's shard vector. Armed retirement sinks
-        // must follow ownership before any work; the literal baseline notification block remains in
-        // lb_control_pass below. Since the ownership edge itself now rebinds
-        // (Server::adopt_read_local_retire_sink) this is a no-op standing check, kept because a
-        // no-op is the cheapest proof that the eager rebind ran.
+        // LB can change this owner's shard vector. Retirement sinks must follow that ownership
+        // before any work. Server::adopt_read_local_retire_sink binds at the ownership edge;
+        // this pass reaffirms the binding. lb_control_pass also rebinds notification sinks.
         if (lb_rebind_pending_ && srv_->lb_stage() != LbStage::ExDrain)
             read_local_rebind_owned_shards_after_lb();
 #ifdef TOMO_RL_CACHE_DEBUG
@@ -416,14 +427,15 @@ public:
             static_assert(Fused && ConsumeTasks);
             static_assert(BatchOps == kReadLocalOwnerTaskChunkOps);
             if (!read_local_enabled()) std::abort();
-            // Exceptional debt keeps its established total order. The ordinary saturated turn is
-            // the only place that caps fresh owner work before WB.
+            // Retry, migration and snapshot debt keep their required order. Only a turn free
+            // of that debt caps fresh owner work before writeback.
             fairlane_turn = !lb_frozen && !fairlane_owner_debt_pending();
             if (fairlane_turn) {
                 compact_local_read_tombstones();
                 fairlane_turn = read_local_impl().lane_count != 0;
             }
         }
+        // Phase 2: drain local captures, then service frozen or runnable owner work in order.
         uint32_t did = 0;
         if (fairlane_turn) {
             // EARLY: reads parsed by the preceding IFID phase get the first execution/reply slots.
@@ -489,6 +501,7 @@ public:
             did += aof_flush_pass();
             did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
         }
+        // Phase 3: finish local tails and reclamation before acknowledging control work.
         if (fairlane_turn) {
             owner_work_remains |= fairlane_owner_debt_pending();
             if (!owner_work_remains) did += drain_local_read_tail();
@@ -500,11 +513,8 @@ public:
             // One rotation of the lane-admission pressure window has elapsed.
             if (__builtin_expect(read_local_impl().lane_pressure != 0, false))
                 read_local_impl().lane_pressure--;
-            // Adopt the test lane cap, if one is set. ONE relaxed load per ROTATION of a
-            // read-mostly word that production never writes (so it stays shared-clean in every
-            // core's L1), against ~1000 ops per rotation, and the store happens only when the
-            // value actually changes -- the admission path itself keeps reading a plain uint16 on
-            // a line it already owns. 0 means derive, which is what production always sees.
+            // Adopt the debug cap with one relaxed load per rotation, storing only on change.
+            // Admission reads the thread-local uint16. Zero derives the physical lane capacity.
             const uint32_t cap = srv_->debug_read_local_lane_cap();
             const uint16_t want = cap == 0
                                       ? static_cast<uint16_t>(kInboxSlots)
@@ -520,6 +530,7 @@ public:
             ring_.submit_and_reap();
             ++did;
         }
+        // Phase 4: account for progress, then audit queue state after bounded idle spinning.
         if (did) {
             fused_idle_spins_ = 0;
             return did;
@@ -550,6 +561,9 @@ public:
         return fused_sweep_impl<kGenthreadExBatchOps, true>();
     }
 
+    // Fused-thread idle audit: drain captures and queue state under one QSBR rotation. A paused
+    // LB stage delegates to the ordinary pass, which respects ExDrain. Interleaving is legal only
+    // with an armed lane; pending persistence work keeps the caller active. Does not wait.
     /* TOMO_TOOL_FUNCTION fused_sweep_impl */
     template <uint32_t BatchOps, bool ConsumeTasks, bool IofusedPrivateQueue = false,
               bool InterleaveLocalReads = false>
@@ -557,6 +571,8 @@ public:
         ++exec1s_counters[self_->id()].owner_passes;
         if (lb_controller_armed_ && srv_->lb_dispatch_paused())
             return fused_pass_impl<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+        // Borrows this thread/server until scope exit and seq_cst-publishes quiescence only
+        // after nested drains have consumed every foreign capture; no Client lifetime is owned.
         struct RotationBoundary {
             bool enabled;
             ThreadCtx* self;
@@ -603,7 +619,15 @@ public:
     // tasks or shard housekeeping, even while FLIP installs its future EX shard vector.
     uint32_t split_read_local_pass();
 
+    // Contract: the pinned thread runs its active EX tenure until stop or role change. Require
+    // successful init/activation and, for a fused-capable split owner, an empty local-read lane.
+    // Owns queue draining, shard maintenance, ring submission and blocked-flag publication;
+    // DatabaseWorkScope brackets database-map access. No store/vector access follows ExDrain
+    // acknowledgement. Refused work remains queued, idle sweeps ignore hints, and parking uses
+    // arm/recheck/wait so a racing producer cannot strand work. Completion is release-published
+    // by task paths; this loop sends no replies and reports no recoverable loop-level error.
     void /* TOMO_TOOL_BIND run */ run() {
+        // Phase 1: bind owner-only configuration hooks and initialize role-tenure state.
         const MemoryConfigBinding memory_config_binding(this);
         if constexpr (Fused) {
             // Only RL2S instantiates the owner loop with the fused-capable executor. Its lane
@@ -630,6 +654,7 @@ public:
 #ifdef TOMO_RL_CACHE_DEBUG
             if constexpr (Fused) srv_->debug_assert_read_local_sinks_follow_ownership(self_->id());
 #endif
+            // Phase 2: sample placement barriers before touching owned shard state.
             const bool flip_frozen = srv_->flip_stage() >= FlipStage::ExDrain;
             const bool lb_frozen = lb_controller_armed_ && srv_->lb_stage() == LbStage::ExDrain;
             const bool placement_frozen = flip_frozen || lb_frozen;
@@ -662,6 +687,7 @@ public:
                 if (maxmemory_enabled_)
                     cached_lru_clock_ = static_cast<uint8_t>(
                         (static_cast<uint64_t>(cached_now_ms_ / 1000) >> kLruClockShift) & 0x1f);
+                // Phase 3: drain prerequisite debt, then tasks and maintenance if permitted.
                 if (placement_frozen) {
                     // Once ExDrain is acknowledged this loop is a hard safe point: no expiry,
                     // cleanup, waiter walk, or task can reacquire a moved FlatStore before FLIP
@@ -717,12 +743,9 @@ public:
                     did += owner_control_tail();
                 }
             }
-            // A pass that found nothing -- every drain and control pass came back empty -- is
-            // polling, not work. Book it as idle so busy_ns means WORK: the FLIP placement model
-            // reads the roles' busy shares, and an executor spinning its 2048-pass budget between
-            // task batches would otherwise report the polling as demand (measured on 8-key
-            // MGET/MSET at 2:2 of 4: ex 97% "busy", three quarters of its passes empty; the model
-            // read io = 0.73 of a 0.47 workload). One local and one branch per pass.
+            // Phase 4: charge empty polling to idle time, then submit prepared ring work.
+            // FLIP derives demand from role busy shares; counting empty spin passes as busy
+            // would make the idle-spin budget look like executor demand.
             if (did)
                 sig.busy_ns += pass_ns;
             else
@@ -738,6 +761,7 @@ public:
                 continue;
             }
 
+            // Phase 5: respect the frozen safe point or audit all queues before parking.
             // A frozen executor must never fall through to sweep(): sweep owns expiry, MVCC
             // cleanup and blocking-waiter walks, any of which can touch a shard after ExDrain's
             // acknowledgement. Before the acknowledgement keep polling internal retry debt; after
@@ -777,7 +801,7 @@ public:
 
             Span idle(sig.idle_ns);
             self_->arm_blocked();
-            // F7: a producer that marked one of this owner's shards dirty just before arm_blocked
+            // A producer that marks one of this owner's shards dirty just before arm_blocked
             // may have lost its conditional wake. Re-check after the seq_cst fence; a set flag
             // means service it now, not at the 50 ms timeout. Cold: gated on a blocked client.
             const bool blocking_owed = __builtin_expect(srv_->blocking_waiters() != 0, false) &&
@@ -800,7 +824,7 @@ private:
 #ifdef TOMO_CORE_CONCURRENCY_TEST
     inline static void (*test_after_done_)(Client*) = nullptr;
     inline static void (*test_after_drain_ack_)() = nullptr;
-    // flipfix5: runs between the control pass's stage load and its first stage test.
+    // Test seam between sampling the control stage and testing its first action.
     inline static void (*test_after_stage_sample_)(uint32_t, FlipStage) = nullptr;
     inline static bool test_live_epoch_ack_test_ = false;
     inline static void (*test_local_read_copied_)() = nullptr;
@@ -884,6 +908,8 @@ private:
         return lane.demote(lane.demote_context, client, probed, fallbacks, probed_count, demoted);
     }
 
+    // Value-only result of one local attempt. Reply bytes remain private in Op until the caller
+    // commits a successful prefix; fallback carries no borrowed object/table pointer.
     struct PreparedLocalRead {
         ReadLocalFallbackReason fallback = ReadLocalFallbackReason::None;
         uint32_t keyspace_hits = 0;
@@ -915,8 +941,9 @@ private:
     // reply is private. Atomic exchanges still bracket the table word for point GET, but an exchange
     // of an unrelated key cannot move this key's epoch. Each probe retains its stable-topology
     // handshake; immutable replacement plus rotation QSBR then makes a second per-key table-word
-    // validation redundant. Above the bounded route cache,
-    // every shard keeps the legacy generation rule and per-key validation.
+    // validation redundant. Above the bounded route cache, every touched shard uses generation
+    // validation and each key probe validates separately. This stack object owns only sampled
+    // words; the caller must keep all captures inside the current QSBR rotation.
     struct LocalMgetWindow {
         static constexpr uint32_t kMaxShards = 256;
         static constexpr uint32_t kMaxEpochKeys = 128;
@@ -1012,20 +1039,11 @@ private:
     static constexpr uint8_t kForeignTouchLru = 1;
     static constexpr uint8_t kForeignTouchLfu = 2;
 
-    // Eviction accounting for one key served on the read-local lane, and the CLIENT NO-TOUCH
-    // answer for it. The owner does both for every key it serves (FlatStore::find -> touch(), and
-    // the per-task climon_note_no_touch() in execute_task); a lane-served read that did neither
-    // made the two paths disagree about what a read MEANS:
-    //   * LFU/LRU: a key kept hot purely by lane-served reads was never counted as accessed, so
-    //     the victim chooser saw it as the coldest thing in the shard and evicted it FIRST -- the
-    //     policy inverted (tests/evict_battery.py lfu, lruclock).
-    //   * CLIENT NO-TOUCH: the flag was never consulted here, so "suppressed" and "never looked"
-    //     were indistinguishable on the wire (tests/climon2.py, client_no_touch_ops).
-    // The call sites gate on maxmemory_enabled_ -- the SAME per-pass byte the owner path tests --
-    // so the default posture pays one predicted-not-taken branch per key and never loads the
-    // policy, the no-touch bit, or the LRU clock. Out of line and cold: reaching it at all means
-    // maxmemory is armed, and then this is a cache-cold decision on a path whose whole point is to
-    // stay inside this thread's own lines.
+    // Account for a successful lane-served access while maxmemory is enabled, honoring CLIENT
+    // NO-TOUCH. LFU/LRU must see local-read heat or they can evict a key that is hot only on this
+    // lane; the no-touch counter must distinguish deliberate suppression from no observation.
+    // Callers gate on maxmemory_enabled_, so disabled reads need not load policy or clock state.
+    // This cold helper borrows an immutable object within the current QSBR rotation.
     //
     // The arithmetic below is FlatStore::touch()'s, with the two differences foreignness forces:
     // the logarithmic-increment dice are this thread's own (the store's PRNG belongs to its owner
@@ -1068,22 +1086,23 @@ private:
         if (count != meta) touched->touch_eviction_meta_foreign(flags, count);
     }
 
-    // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER), the read-local half. A fused read-local MGET never
-    // enters the scatter engine, so the fan-out park there widens nothing for it and the one
-    // expiry-cut invariant expwide.py S1 polices went unexercised on the path that serves every
-    // clean MGET in the armed posture. This is the same window on that path: the cut
-    // (command_now_ms) is already pinned, no value has been loaded, and the hook holds the lane
-    // open between the two. It STALLS rather than parks because the local lane is synchronous --
-    // there is no fragment to re-queue and nothing else can run on this thread meanwhile -- and the
-    // stall is the point: every key is then read after the wall clock has passed a deadline the
-    // pinned cut still says is ahead, which is exactly the tear a per-key clock would produce.
-    // Cold and out of line; the caller's test is one thread-private word latched per pass, so an
-    // unarmed MGET pays a predicted-not-taken branch and no atomic load (see LiveConfigSnapshot).
+    // DEBUG ATOMIC-FANOUT-DEFER holds a local MGET after its command clock is pinned but before
+    // any value load. This synchronous lane has no fragment to park, so the test stalls here.
+    // Keys can then cross a wall-clock deadline while the pinned cut remains fixed, exposing a
+    // torn expiry decision if per-key clocks are used. A per-pass thread-local flag gates this
+    // cold helper; unarmed reads perform no debug atomic load (see LiveConfigSnapshot).
     __attribute__((noinline, cold)) void debug_fanout_stall_local() {
         Server::debug_stall_us(debug_fanout_defer_us_);
     }
 
+    // Contract: the local-read thread builds a private MGET reply within its current QSBR
+    // rotation. Require at least one key and at most kMaxShards shards (otherwise abort).
+    // Pin one command clock, capture immutable values, and validate the complete window once.
+    // No Done is published and no store pointer escapes. Any conflict, type, expiry or window
+    // failure clears the reply and returns a reason for owner demotion; there is no local retry.
+    // Reply allocation uses the ordinary Sink/SmallBuf failure policy.
     PreparedLocalRead prepare_captured_local_mget(Op& op) {
+        // Phase 1: resolve the touched shards and pin the command-wide expiry cut.
         const uint32_t key_count = op.argc() - 1;
         if (!key_count || srv_->nshards() > LocalMgetWindow::kMaxShards) std::abort();
 
@@ -1104,6 +1123,7 @@ private:
         const int64_t command_now_ms = cached_now_ms_;
         if (__builtin_expect(debug_fanout_defer_us_ != 0, false)) debug_fanout_stall_local();
 
+        // Phase 2: open the validation window and capture/copy bounded key batches.
         LocalMgetWindow window;
         PreparedLocalRead prepared;
         read_local_clear_reply(op);
@@ -1198,6 +1218,7 @@ private:
             }
         }
 
+        // Phase 3: validate the whole copied reply once, or clear it for owner demotion.
         // C0 performs each probe's topology validation. This one outer close then validates
         // every queried cell across the complete multi-shard capture/copy interval.
         if (!demote) {
@@ -1212,12 +1233,12 @@ private:
                                         transient)};
     }
 
-    // Build one local reply but do not publish Done. `fallback == None` means the bytes are
-    // complete and the reply retains no FlatStore pointer. A caller-owned capture may remain on
-    // this rotation's stack until drain_local_reads_bounded_impl returns. Selective commit below
-    // keeps an overlapping younger read behind any operation that needs the owner path.
-    // `op`, `store` and `mget` were resolved once by the chunk gather; a point read passes its
-    // home store, an MGET passes null and takes its own multi-store path.
+    // Contract: the local-read thread builds one private reply in the current QSBR rotation;
+    // it publishes no Done. A point read requires its home store and optionally one capture;
+    // MGET requires no capture and uses its own window. None means complete copied bytes with
+    // no retained FlatStore pointer. Failure clears bytes and returns an owner-demotion reason,
+    // never retries locally. The caller's ordered prefix commit preserves same-key dependencies.
+    // Reply allocation follows Sink/SmallBuf; caller-owned captures die before the rotation tick.
     PreparedLocalRead prepare_local_read(
         Op& op, FlatStore* home, bool mget,
         const FlatStore::ReadLocalPrefetchCapture* captured = nullptr) {
@@ -1245,7 +1266,7 @@ private:
         if (result == FlatStore::ReadLocalProbeResult::Missing) {
             read_local_clear_reply(op);
             // The same permission as local MGET: only the notify-aware owner may
-            // emit keymiss. Keep this check on the existing miss edge so GET hits
+            // emit keymiss. Keep this check on the miss edge so GET hits
             // do not pay another notification test. The per-pass bit is shared
             // with MGET's parse-time ContextKeymissNotify gate.
             if (read_local_keymiss_notify_armed())
@@ -1321,14 +1342,22 @@ private:
         }
     }
 
+    // Contract: the armed local-read thread consumes at most op_budget lane entries in
+    // same-client chunks. Require live ROB handles, bound demotion callback, and a current QSBR
+    // rotation. Captures are stack-only. Completed prefixes clear pending bits/credits before
+    // release Done; failed commands and their transitive same-key dependents transfer to owners.
+    // Demotion refusal leaves the suffix queued. YieldToOwner checks debt at chunk boundaries;
+    // tombstone removal does not release a Client and must precede writeback corpse reclamation.
     template <bool YieldToOwner>
     uint32_t drain_local_reads_bounded_impl(uint32_t op_budget) {
         static_assert(Fused);
+        // Phase 1: allocate stack scratch and establish bounded drain/yield accounting.
         auto& lane = read_local_impl();
         if (!lane.lane_count) return 0;
         // One record per chunk entry. Gather resolves the Op, its home store and its MGET class
         // exactly once; every later pass reads them from here instead of walking the ROB again.
-        // Stack-local to this bounded drain, so nothing here outlives the rotation's QSBR tick.
+        // Borrows Op/store pointers only on this thread's stack. No capture or Client/ROB
+        // handle may outlive the rotation's QSBR tick; fallback and completion consume them.
         struct LocalReadChunk {
             Op* ops[kReadLocalDrainChunkOps];
             FlatStore* stores[kReadLocalDrainChunkOps];  // null for an MGET (multi-store)
@@ -1369,6 +1398,7 @@ private:
             if constexpr (YieldToOwner)
                 capacity = std::min<uint32_t>(
                     capacity, kReadLocalDrainChunkOps - consumed % kReadLocalDrainChunkOps);
+            // Phase 2: gather one same-client chunk without crossing a ROB generation.
             // Gather: one ROB frontier snapshot for the whole same-client run (see
             // Rob::pending_read_local(id, dispatch, flush)), and each entry's Op, home store and
             // MGET class resolved here once. bit i of mget_mask marks an MGET entry.
@@ -1400,8 +1430,8 @@ private:
                 for (uint32_t i = 0; i < count; ++i) tracking_observe_local(*srv_, *chunk.ops[i]);
             const bool point_capture_batch = mget_mask == 0;
             if (point_capture_batch) {
-                // I0 retains the old whole-batch home-slot overlap. C0 consumes those warm
-                // words, records their decoded objects, and hints object/value bytes for E0.
+                // Prefetch the chunk's home slots, then capture decoded immutable objects
+                // and prefetch their value bytes before reply construction.
                 for (uint32_t i = 0; i < count; i++)
                     chunk.stores[i]->read_local_prefetch(chunk.ops[i]->hash);
                 for (uint32_t i = 0; i < count; i++) {
@@ -1411,6 +1441,7 @@ private:
                 }
             }
 
+            // Phase 3: build private replies and find the first dependent/failing command.
             // E0. The owner-map recheck is decided once per chunk: only this thread's parser and
             // demotion add owner slots, and neither runs inside a chunk, so an empty map stays
             // empty for every entry. Prefix keyspace counters accumulate only while no fallback
@@ -1463,7 +1494,7 @@ private:
             // Completion is chunk-aggregated: one pending-mask clear, one demand release and one
             // add per statistic instead of six read-modify-writes per op; the prefix accumulators
             // above describe exactly the entries `completed` names. The pending bits are cleared
-            // before any Done publish, as the per-op order did. note_command and Done stay per op.
+            // before any release Done publication. note_command and Done remain per operation.
             auto complete_local_prefix = [&](uint32_t completed) {
                 if (!completed) return;
                 rob.complete_pending_read_local_mask(prefix_bits);
@@ -1484,6 +1515,7 @@ private:
                 work += completed;
             };
 
+            // Phase 4: publish the independent prefix and demote or retain the suffix.
             if (first_fallback != count) {
                 // Publish the independent older prefix locally. Only the failing command and the
                 // transitive same-key set move owner-side; ROB retirement holds every younger Done
@@ -1574,7 +1606,7 @@ private:
     // was sampled at the top of this pass and may belong to a FLIP that has since finished.
     bool flip_owed(FlipStage stage) const {
 #ifdef TOMO_CORE_CONCURRENCY_TEST
-        // Planted regression for the serverless negative control: the pre-flipfix5 test.
+        // Negative control: consult acknowledgement without validating the live epoch.
         if (test_live_epoch_ack_test_) return !srv_->flip_acked(self_->id(), stage);
 #endif
         if (__builtin_expect(srv_->debug_flip_stage_hold_us() != 0, false))
@@ -1591,6 +1623,10 @@ private:
         while (srv_->flip_epoch() == epoch && now_ns() < deadline) __builtin_ia32_pause();
     }
 
+    // Owner-thread stage driver. A sampled stage is actionable only while flip_owed confirms
+    // its live epoch. ExDrain acknowledgement transfers permission to rewrite shard ownership;
+    // the caller must finish all owner work first. Preparation failure is reported to FLIP,
+    // remask failure aborts, and a drain awaiting remote retirement keeps the loop polling.
     uint32_t flip_control_pass() {
         const FlipStage stage = srv_->flip_stage();
 #ifdef TOMO_CORE_CONCURRENCY_TEST
@@ -1598,8 +1634,8 @@ private:
 #endif
         if constexpr (!kSingleDatabase) {
             if (stage == FlipStage::DatabaseExDrain) {
-                // Judge quiescence only once the boundary epoch is confirmed live. An acknowledged
-                // or stale sample keeps the busy return of the former re-acknowledgement.
+                // Check quiescence only for a live boundary epoch. An acknowledged or stale
+                // sample returns work so the frozen loop continues servicing stage changes.
                 if (!flip_owed(stage)) return 1;
                 if (flip_quiesced()) srv_->flip_ack(self_->id(), stage);
                 // Spin while the acknowledgement is owed, as FLIP and LB drains do. Its remote
@@ -1613,7 +1649,7 @@ private:
             // The coordinator wakes every live FLIP pass. Those CQ completions
             // can keep resetting idle_spins, starving sweep() after the last
             // EXEC retired. IoDrain waits for that state's record refs. Run the
-            // existing bounded owner cleanup here, before any ExDrain ack;
+            // bounded owner cleanup here, before any ExDrain ack;
             // no owner work is permitted after that safe point.
             return atomic_cleanup_cycle(64);
         }
@@ -1635,7 +1671,7 @@ private:
         }
         if (stage == FlipStage::ExInstall && flip_owed(stage)) {
             // ExDrain retired every old lane and IO dispatch remains parked until all ExInstall
-            // acknowledgements. Reassign blocks in the existing consumer-local allocation now;
+            // acknowledgements. Reassign blocks in the consumer-local allocation here;
             // no topology object is rebuilt and no producer can observe a half-installed mask.
             if (!self_->remask_task_inbox_quiesced(srv_->placement().ifid_threads(),
                                                    srv_->placement().ex_threads()))
@@ -1654,17 +1690,19 @@ private:
         return 0;
     }
 
+    // Owner-thread load-balancing barrier. Acknowledge only after every local lifetime is
+    // quiescent, then retry coordinator notification if the ring lacks an SQE. On adoption,
+    // bind notification pointers to this owner and force a state walk. Retirement sinks follow
+    // the ownership edge and are checked before owner work; the caller must not touch shards
+    // after this function publishes the ExDrain acknowledgement.
     uint32_t lb_control_pass() {
         if (!lb_controller_armed_) return 0;
         if (srv_->lb_stage() != LbStage::ExDrain) {
             lb_ack_wake_pending_ = false;
-            // A completed mover stage may have changed this loop's shard set. Every owned shard's
-            // keyless-notify pending pointer must aim at THIS loop, exactly as FlipStage::ExInstall
-            // rebinds after a flip -- the mover's lighter stage protocol shipped without this step,
-            // and a moved shard's expired-key events then pinged the OLD owner, whose drain walks
-            // only its own shards: active-expiry notifications stranded forever (notify battery,
-            // key-lb half, 2/6). Rebinding is a handful of pointer stores and runs only on the
-            // first pass after a stage ends.
+            // Each owned shard's keyless-notify pointer must target this loop after migration.
+            // Pointing at the previous owner strands expiry notifications because that owner's
+            // drain no longer visits the shard. Rebind once on the first pass after adoption;
+            // the forced drain below also observes events produced before this rebind.
             if (lb_rebind_pending_) {
                 lb_rebind_pending_ = false;
                 for (Shard* shard : self_->shards())
@@ -1777,7 +1815,9 @@ private:
                      static_cast<unsigned>(sh.id()));
     }
 
-    // Binds this executor as the thread's CONFIG maxmemory hook for one loop tenure.
+    // Contract: this physical thread borrows the executor for one loop tenure and installs its
+    // CONFIG maxmemory callback in TLS. Destruction restores the previous hook, including nested
+    // scopes. The executor outlives the binding; no allocation or cross-thread publication occurs.
     class MemoryConfigBinding {
     public:
         explicit MemoryConfigBinding(ExLoopT* loop) : previous_(owner_memory_config_hook) {
@@ -1807,11 +1847,11 @@ private:
         return work;
     }
 
-    // Visits only the IO threads that actually have work for us, via the notify mask, rather than
-    // polling every possible producer. retire() happens inside the helper, AFTER execution — see
-    // exqueue.h on why the retired frontier is separate from head.
-    // Mask-independent: the state backstop behind the notify hint, run only when this thread has
-    // already concluded it has nothing to do.
+    // Contract: idle owner-thread audit, called only while placement permits shard access.
+    // Inspect inbox state without the notify mask, after older retry/forward/release work.
+    // Drain helpers retire queue entries after callbacks, independently of the pop frontier.
+    // Maintenance and forced notification walks provide liveness when a hint is absent.
+    // Returns work/needed polling; retained commits or queues must keep the caller active.
     /* TOMO_TOOL_FUNCTION sweep */
     template <uint32_t BatchOps = kGenthreadExBatchOps, bool ConsumeTasks = true,
               bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
@@ -2019,10 +2059,9 @@ private:
         return n + local_work;
     }
 
-    // Once the captured owner set is empty, retain the old pure-read capacity by consuming further
-    // bounded chunks. Recheck the ordinary owner hint at every boundary so a newly visible writer
-    // normally yields the tail after at most one chunk; the existing unmasked idle audit remains
-    // the correctness backstop for a lost or racing hint.
+    // With captured owner work exhausted, consume further bounded local-read chunks. Recheck
+    // owner hints at each boundary to yield to newly visible writers. The unmasked idle audit
+    // remains the liveness backstop for a lost or racing hint.
     uint32_t drain_local_read_tail() {
         if (fairlane_owner_debt_pending() || self_->notified_task_depth_capped(1)) return 0;
         // Keep one scratch batch live across the pure-read tail. The bounded drain rechecks owner
@@ -2091,8 +2130,15 @@ private:
         snapshot_backlogs_.resize(srv_->nshards());
     }
 
+    // Contract: the shard owner advances one snapshot phase while its manager/epoch remain
+    // live. Owned vectors track per-shard chunks and post-cut task backlogs. Manager callbacks
+    // publish prepare/freeze/mark/finish acknowledgements; local state gates mutation between
+    // them. Serialization failure marks the manager failed and cancels captures before backlog
+    // draining. A successful shutdown capture holds post-cut tasks until stop; failed shutdown
+    // releases them. Returns progress and preserves unfinished work for the next pass.
     template <uint32_t BatchOps = kGenthreadExBatchOps, bool IofusedPrivateQueue = false>
     uint32_t snapshot_control_pass() {
+        // Phase 1: handle shutdown holds and cancellation before advancing capture state.
         if (snapshot_owner_state_ == SnapshotOwnerState::None) return 0;
         // A shutdown snapshot counts capture completion without executing post-cut backlogs.
         // Success stops us before releasing this hold; failure releases it and resumes service.
@@ -2116,6 +2162,7 @@ private:
             return 1;
         }
 
+        // Phase 2: prepare stores, then acknowledge the freeze and shared snapshot cut.
         if (snapshot_owner_state_ == SnapshotOwnerState::Preparing) {
             auto& shards = self_->shards();
             if (snapshot_prepare_cursor_ < shards.size()) {
@@ -2154,6 +2201,7 @@ private:
             snapshot_manager_->owner_marked(snapshot_epoch_);
             return 1;
         }
+        // Phase 3: capture bounded chunks, then discharge post-cut backlogs when permitted.
         if (snapshot_owner_state_ == SnapshotOwnerState::Marked &&
             phase == SnapshotManager::Phase::Capture) {
             snapshot_owner_state_ = SnapshotOwnerState::Capturing;
@@ -2191,6 +2239,11 @@ private:
         }
     }
 
+    // Contract: the capturing owner advances at most one eligible shard per pass. Require a
+    // live snapshot_manager_ and per-shard vectors initialized by begin_snapshot. The owner
+    // holds each chunk until post_chunk accepts it, then records end-frame handoff. Full output
+    // leaves the chunk pending; serialization failure fails the manager. Once all shards finish,
+    // transition to backlog draining or the shutdown hold before admitting more tasks.
     uint32_t progress_snapshot_capture() {
         auto& shards = self_->shards();
         if (shards.empty()) {
@@ -2354,17 +2407,11 @@ private:
 
     template <uint32_t BatchOps = kGenthreadExBatchOps, bool IofusedPrivateQueue = false>
     uint32_t drain_tasks_snapshot(bool unmasked = false) {
-        // ONE BOUNDED QUANTUM PER PRODUCER LANE, NOT "UNTIL EMPTY" (SNAP-STORM-1).
-        // While a shard captures, atomic_collapse() refuses to clean its MVCC pending list, so
-        // every plain-version write to a hot key walks a chain that grows with each write until
-        // that shard's capture ends -- and the capture advances only in snapshot_control_pass(),
-        // between drains. Draining a lane until empty therefore stopped returning as soon as a
-        // few closed-loop clients refilled one lane as fast as the growing walk emptied it: the
-        // capture stalled, the chain kept growing, and every other producer's tasks, every parked
-        // EXEC/WATCH/group retry and the capture itself waited behind that one lane until the
-        // load stopped. Capping each lane returns this owner to its control pass and retry
-        // queues every pass; a capped lane is re-flagged and resumes on the next pass. Only the
-        // snapshot path changes: an owner with no snapshot armed keeps the unbounded drains.
+        // Bound each producer to one quantum. During capture, atomic_collapse cannot clean
+        // pending MVCC entries, so hot-key write walks grow until snapshot_control_pass advances
+        // capture between drains. An always-refilled lane must not monopolize the owner and
+        // starve that progress, other producers or EXEC/WATCH/group retries. A capped lane is
+        // re-flagged for the next pass. Owners without a snapshot use ordinary unbounded drains.
         auto take = [&](const Task& task) {
             refresh_command_clock();
             schedule_snapshot_task<IofusedPrivateQueue>(task);
@@ -2448,13 +2495,10 @@ private:
         }
     }
 
-    // GCC 13.3 at release -O2 erases the nested bucket prefetch when this walk is inlined.
-    // Flatten this separate body before optimizing it, and retain the direct call so the hints
-    // survive. Decomposition retained this walk and found no rate benefit from splitting A/B:
-    // one direct call per gathered batch replaces the former n/2+1 calls. Execution, slowlog
-    // attribution and suffix deferral use the original whole-batch bodies in both modes.
-    // Ineligible batches keep the walk above. Keep both ownership guards identical: even a hint must
-    // not inspect a stale owner's mutable table. No store/slot pointer survives this call.
+    // The noinline/flatten boundary preserves nested bucket prefetches under release optimization
+    // (compiler evidence is in docs/decisions/readability-a6.md). One call handles the whole batch;
+    // execution, timing and suffix deferral keep that order. Ownership checks must match execution:
+    // even a hint must not inspect a stale owner's mutable table. No store/slot pointer escapes.
     __attribute__((noinline, flatten)) void prefetch_owner_batch(const Task* batch, uint32_t n) {
 #ifdef TOMO_OWNER_PREFETCH_WITNESS
         TOMO_OWNER_PREFETCH_WITNESS();
@@ -2469,10 +2513,9 @@ private:
         }
     }
 
-    // Measured policy: always prefetch eligible fused owner batches.
-    // Fused is a capability, so read-local split owners must also check placement. A singleton cannot
-    // amortize the walk, and exact slowlog escalation retains its original preparation path.
-    // No per-operation schedule state or additional storage is needed.
+    // Prefetch multi-operation batches only in fused placement. Fused is a capability, so split
+    // read-local owners must also test placement. Singletons and exact slowlog escalation skip
+    // the walk. Selection needs no per-operation state or additional storage.
     bool owner_prefetch_enabled(uint32_t n) const {
         return (Fused && srv_->thread_mode() == ThreadMode::Fused) && n > 1 &&
                (!slowlog_armed_ || !slowlog_state_.escalate_batches);
@@ -2537,6 +2580,9 @@ private:
         exec_batch_prefetched<IofusedPrivateQueue>(batch, n);
     }
 
+    // Execute/transfer one Task on its current owner; see ex_execute.inc for the full contract
+    // and phases. true includes queued/parked work; false requires caller-owned retry and suffix
+    // ordering. The ordinary specialization has no timing instrumentation; Done uses release.
     template <bool IofusedPrivateQueue = false, bool ReadLocalNoEvict = false>
     bool execute(const Task& t) {
         constexpr bool Timed = false;
@@ -2544,6 +2590,8 @@ private:
 #include "ex_execute.inc"
     }
 
+    // Same ownership, retry and release-Done contract as execute. This cold specialization
+    // completes exact slowlog timing before handing completion to persistence or the IO owner.
     template <bool IofusedPrivateQueue = false, bool ReadLocalNoEvict = false>
     __attribute__((noinline, cold)) bool execute_timed(const Task& t) {
         constexpr bool Timed = true;
@@ -2606,7 +2654,7 @@ private:
 
     // Four two-key EXECs amortize a prefix collapse against eight-record walks.
     // Only transaction completion reaches this helper; ordinary command paths
-    // do not acquire a cleanup clock/floor or update new per-operation state.
+    // do not acquire a cleanup clock/floor or update per-operation cleanup state.
     __attribute__((noinline)) void reclaim_multi_prefix(Shard& shard) {
         if (shard.store().atomic_live_records() < 8) return;
         const uint64_t cutoff = srv_->atomic_snapshot();  // must precede floor
@@ -2661,8 +2709,8 @@ private:
     template <bool IofusedPrivateQueue = false>
     uint32_t service_multi_retries() {
         if (multi_retries_.empty()) return 0;
-        // Snapshot the prefix and reserve the original rotation head. Promotions
-        // and demotions append behind it, exactly as in the former deque.
+        // Snapshot the fast prefix and reserve this pass's rotation head. Promotions and
+        // demotions append behind it, so new readiness cannot extend the captured prefix.
         const bool nested = multi_retries_.chaining;
         multi_retries_.chaining = true;
         const uint32_t fast = multi_retries_.fast_count;
@@ -2682,6 +2730,10 @@ private:
         return fast + rotate + service_multi_chain<IofusedPrivateQueue>();
     }
 
+    // Owner-only bounded poll of each connection's oldest parked operation. Remove its indexes
+    // before resuming execution can retire the Client/ROB; equal-op siblings rotate while held.
+    // Count held heads as work because remote decisions do not necessarily wake this executor.
+    // A failed execution transfers to xshard_retries_; younger same-key tasks cannot pass it.
     template <bool IofusedPrivateQueue = false>
     uint32_t service_atomic_deferred() {
         if (atomic_deferred_.empty()) return 0;
@@ -2800,6 +2852,11 @@ private:
         return true;
     }
 
+    // Owner-thread retry of refused forwarding, bounded by BatchOps across Tasks and releases.
+    // Re-read each route before touching a store. A full destination preserves FIFO debt; a local
+    // read fallback must republish at the inbox tail so it cannot pass earlier refused siblings.
+    // Pop ownership only after successful handoff or before local execution; never drop a borrow
+    // release. Shutdown snapshot holds prevent local task mutation until released.
     template <uint32_t BatchOps = kGenthreadExBatchOps, bool IofusedPrivateQueue = false>
     uint32_t service_stale_forwards() {
         uint32_t work = 0;
@@ -2883,10 +2940,9 @@ private:
                 return;
             }
         }
-        // THE READY-MASK PATH (#19/#20 ported): once the sender has assigned this connection a
-        // slot, completion signalling is one idempotent bit -- no claim, no channel entry, no
-        // pointer in flight. The empty->flagged RMW is the fence; whoever performs it owes the
-        // park-wake.
+        // A ready-slot assignment lets completion signal an idempotent bit with no Client
+        // pointer in flight. The empty-to-flagged RMW orders the park check; the thread that
+        // creates that edge owes the conditional wake.
         const uint32_t slot = c->wb_slot();
         if (slot != Client::kNoWbSlot) {
             // INSIDE AN EXECUTOR BATCH: record and return. The fence, the read-first set and the
@@ -2899,12 +2955,10 @@ private:
                 return;
             }
             ThreadCtx& snd = srv_->thread(target);
-            // FENCE BEFORE THE READ-FIRST CHECK -- defect 5's exact shape, third appearance. Our
-            // caller stored Done; ReadyMask::set() begins with a relaxed LOAD of the word, and TSO
-            // lets that load run ahead of the store draining. Unfenced, it can read a stale 1 from
-            // a signal the sender is consuming RIGHT NOW: we skip our set, the sender's drain reads
-            // our op before the Done lands, and nobody ever signals again. Twelve connections were
-            // stranded exactly this way at 4 nodes, where cross-CCD coherence stretches the window.
+            // Fence Done before ReadyMask::set's relaxed read-first check. TSO otherwise lets
+            // that load precede the store draining: it can see a stale set bit while the sender
+            // consumes the previous signal, skip our set, and leave the sender seeing no Done
+            // and no future notification. The seq_cst fence closes that store/load window.
             std::atomic_thread_fence(std::memory_order_seq_cst);
             if (snd.ready().set(slot)) snd.wake_if_parked(handoff_ring(), self_->sig());
             return;
@@ -2980,8 +3034,10 @@ private:
         }
     }
 
-    // Opens the record for one executor batch and flushes it at scope exit. Nest-safe: an inner
-    // scope restores the outer state and flushes early, which is always allowed.
+    // Contract: same-thread scope borrowing the executor's completion record. Destruction
+    // restores the enclosing open state and flushes with a seq_cst fence before ready-bit
+    // publication/wakes. Nested scopes may flush early; records hold ids, never Client pointers.
+    // The executor must outlive the scope. Full records flush in place instead of allocating.
     struct NotifyBatchScope {
         ExLoopT* loop;
         bool was_open;
@@ -2997,7 +3053,7 @@ private:
     };
 
     void on_cqe(io_uring_cqe* cqe) {
-        // Executors issue no sends; the ring exists for wakes.
+        // Dispatch wake, snapshot-start, database and shutdown events; executors issue no sends.
         if (ur_kind(cqe->user_data) == UrKind::Wake)
             self_->sig().wakes_recv++;
         else if (ur_kind(cqe->user_data) == UrKind::SnapshotStart)
@@ -3027,10 +3083,8 @@ private:
     bool lb_controller_armed_ = false;
     bool lb_ack_wake_pending_ = false;
     bool lb_rebind_pending_ = false;  // set at ExDrain ack; rebind owned shards after stage
-    // The next two live in the five bytes of padding this run already had between the bools above
-    // and the 8-aligned int64 below, so neither costs the object anything. Both are latched per
-    // pass with the rest of the live-config snapshot and read ONLY from cold code -- the hot path
-    // gates on maxmemory_enabled_ / a zero test and never loads either.
+    // These policy/debug values fill the alignment region before the following int64. They
+    // are latched with live configuration and used behind maxmemory/debug arming gates.
     uint8_t foreign_touch_policy_ = kForeignTouchNone;  // see note_local_read_access()
     // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER), read-local half; production 0. See
     // debug_fanout_stall_local().
@@ -3038,15 +3092,14 @@ private:
     int64_t lb_bytes_next_ms_ = 0;
     size_t lb_bytes_shard_cursor_ = 0;
     // LFU logarithmic-increment dice for a lane-served read, per thread: the store's PRNG belongs
-    // to its owner and must not be advanced from here. The only field in this class the read-local
-    // eviction accounting actually adds (see the sizeof lock at the bottom of the file).
+    // to its owner and must not be advanced by a foreign reader.
     uint64_t foreign_touch_random_ = 0x9e3779b97f4a7c15ULL;
     SnapshotManager* snapshot_manager_ = nullptr;
     SnapshotOwnerState snapshot_owner_state_ = SnapshotOwnerState::None;
-    uint32_t expire_beat_ms_ = 0;  // existing alignment padding before snapshot_epoch_
+    uint32_t expire_beat_ms_ = 0;  // occupies the alignment region before snapshot_epoch_
     uint64_t snapshot_epoch_ = 0;
     bool snapshot_was_cancelled_ = false;
-    uint32_t keyspace_shard_cursor_ = 0;  // existing padding before snapshot_prepare_cursor_
+    uint32_t keyspace_shard_cursor_ = 0;  // shares the snapshot control-state header
     size_t snapshot_prepare_cursor_ = 0;
     size_t snapshot_progress_cursor_ = 0;
     std::vector<uint8_t> snapshot_done_shards_;
@@ -3062,18 +3115,16 @@ private:
     std::deque<BorrowRelease> stale_releases_;
     bool notify_keyless_pending_ = false;
     bool initialized_ = false;
-    // Slow-log state at the true cold tail: nothing above it moves. `slowlog_armed_` is the single
-    // predicted-false branch exec_batch pays when the feature is off.
+    // Cold slowlog state: slowlog_armed_ gates timing once per batch when the feature is off.
     bool slowlog_armed_ = false;
     SlowlogArm slowlog_arm_{};
     SlowlogExState slowlog_state_{};
-    // Fused-only state stays at the true tail so every split ExLoop field keeps its offset.
+    // Completion callbacks are used only by fused-capable executors; common fields precede them.
     uint32_t fused_idle_spins_ = 0;
     void* fused_io_context_ = nullptr;
     FusedCompletionFn fused_completion_ = nullptr;
-    // Ordinary
-    // commands pay one predicted-true test at an executor boundary and never touch the TLS
-    // commit list.
+    // An empty commit queue needs only the boundary flag test; ordinary commands do not touch
+    // the TLS commit list.
     bool xshard_commit_pending_ = false;
     // Per-batch completion notification. While a batch is open, the slot
     // path of notify_sender records (io, slot) here instead of fencing and setting per op; the
@@ -3083,6 +3134,8 @@ private:
     // place regardless. (io, slot), never Client*: the flush may run a whole batch after the Done
     // store, and a connection is only guaranteed allocated until the io's second reap prologue
     // after close.
+    // Thread-owned completion identity, copied into the batch record. It deliberately owns no
+    // Client reference: the IO owner can retire/reap a Client before this batch flushes.
     struct NotifyEntry {
         uint32_t io;
         uint32_t slot;
@@ -3092,9 +3145,8 @@ private:
     uint32_t notify_batch_n_ = 0;
     NotifyEntry notify_batch_[kNotifyBatchMax] = {};
     [[no_unique_address]] ReadLocalExState<Fused> read_local_;
-    // Counted prefix keeps every existing empty-queue test unchanged. Cold tail
-    // preserves offsets of the ordinary executor fields.
-    uint32_t multi_retry_layout_pad_ = 0;  // former fast count; retain following offsets
+    // Explicit tail padding is part of the executor layout contract.
+    uint32_t multi_retry_layout_pad_ = 0;  // preserves following offsets
 public:
     // R7 bodies are isolated from the FIFO translation units.
     // clang-format off
@@ -3123,10 +3175,9 @@ template <>
 uint32_t ExLoopT<true>::split_read_local_pass();
 using FusedExLoop = ExLoopT<true>;
 
-// Both modes carry 32 notification entries. Removing the dead handoff-ring pointer
-// reduces the split executor from 5856 to 5848 bytes. Removing the unused 96-entry
-// notification tail also saves 768 bytes in fused mode: 6632 -> 5856.
-// The fused object's only additional state is its 8-byte read-local state pointer.
+// Layout contract: both modes carry 32 notification entries. The fused-capable executor's
+// additional state is one eight-byte read-local implementation pointer. Historical layout
+// comparisons are archived in docs/decisions/readability-a6.md; these assertions define the size.
 
 static_assert(sizeof(ExLoop) == 5856);
 static_assert(sizeof(FusedExLoop) == 5864);

@@ -1,20 +1,10 @@
-// op.h — one in-flight command. This is the execution context, and it is the ring slot of the ROB.
-//
-// GENERALITY BEYOND STRINGS comes from the reply representation, not from a type hierarchy: the
-// worker writes RESP bytes straight into the Op's own buffer. The one exception is the explicit
-// borrowed-byte descriptor used by large GETs; it describes lifetime and routing, not a value type.
-// A command that returns a hash, a range, or a nested array still uses the same byte sink.
-//
-// LIFETIME, which is the subtle part. argv entries are Slices INTO the connection's read buffer —
-// that is what makes parsing zero-copy. So the read buffer must stay pinned until this Op retires.
-// The ROB gives that for free: the buffer is pinned until flush_id passes the last Op referencing
-// it. Getting this wrong is the same shape as the fork's worker-argv refcount race, where a worker
-// touched argv after the owning thread had recycled it.
-//
-// OWNERSHIP HANDOFF. Exactly one field crosses threads: `state`. The IO thread publishes an Op with
-// a release store of Issued; the worker consumes it, fills `reply`, and publishes Done with a
-// release store; the IO thread observes Done with an acquire load and only then reads `reply`.
-// Everything else is touched by one thread at a time, ordered by that single pair.
+// In-flight command and reply storage shared by parser, executor and ROB headers.
+// An Op owns its argument array and reply buffer, but argv slices usually borrow the connection's
+// read buffer. The ROB must pin those bytes through retirement; heap transaction/script Ops have
+// caller-managed lifetimes. Task publication hands execution to an owner, and release Done pairs
+// with the connection owner's acquire before reading the completed reply. The connection owner
+// retires replies in order and sends them. Borrowed values and tagged state have separate cleanup
+// hooks; reset/destruction alone do not release those resources. sizeof(Op) is locked at 336 bytes.
 #pragma once
 #include <atomic>
 #include <cstdint>
@@ -40,26 +30,15 @@ enum class OpState : uint8_t {
 // Most commands are 2-3 arguments (GET k / SET k v / DEL k). Spill only for the multi-key forms.
 inline constexpr uint32_t kInlineArgv = 8;
 
-// A GET reply for a 64-byte value is ~72 bytes, so 96 inline still keeps the common case
-// allocation-free. 96, not 128: the direct-reply fields took 16 bytes and the zero-copy borrow
-// descriptor took 16 more; both are paid out of the inline reply so sizeof(Op) stays 336 -- the
-// 352B version measured -3.7% at 64c p32, where the server sits on the DRAM wall and ROB
-// footprint is the price of everything.
+// A GET reply for a 64-byte value is about 72 bytes, fitting the 96-byte inline buffer.
+// The inline capacity budgets room for direct-reply and borrowed-value descriptors within
+// the 336-byte Op stride. See docs/decisions/readability-a6.md for the footprint measurement.
 inline constexpr size_t kInlineReply = 96;
 
-// REPLY CODES -- the executor's side of the owner's split: "the executor writes only bytes it
-// alone knows; everything else it returns as a result, and the connection's owner formats."
-//
-// A read's reply is bytes the executor is holding (the value), so it writes them. A WRITE's reply
-// is either predetermined (+OK for every SET/MSET) or a NUMBER the executor computed (the count
-// from DEL, the new value from INCR) -- neither is a byte string the executor is uniquely
-// positioned to produce. Carrying a code plus an integer instead of five formatted bytes removes
-// the executor's store AND the owner's copy-back, and in split mode it removes a cross-core
-// transfer per write: the reply line was written by the executor and read by the io thread on
-// every single write, and now it is written and read by the owner alone.
-//
-// Codes are materialised by format_reply_code() in ../net/resp.h, at retire, by the thread that
-// owns the connection. The bytes on the wire are the same bytes, in the same order.
+// Coded replies carry a predetermined result or an executor-computed integer. For armed ROB
+// slots, the connection owner formats these at retirement with format_reply_code() in net/resp.h;
+// the executor need not write the final reply bytes. Reads carrying value bytes use the byte sink.
+// Code arming belongs to the ROB, so child/script Ops keep replies their callers can parse.
 enum class ReplyCode : uint8_t {
     None = 0,
     Ok = 1,         // "+OK\r\n"
@@ -77,6 +56,12 @@ enum class ReplyCode : uint8_t {
 // materialise to a single capacity test with no per-code arithmetic.
 inline constexpr uint32_t kReplyCodeMax = 16;
 
+// Contract: the parser initializes an unpublished slot, the routed executor writes its reply,
+// and the connection owner acquires Done before retirement/reuse. Scatter and persistence paths
+// own their completion protocols until they publish Done. Argument slices, direct buffers and
+// borrowed/tagged zc_ptr state must outlive their consumers; Op owns only its argv allocation and
+// SmallBuf. push_arg returns false on allocation failure; reply allocation follows SmallBuf's
+// failure policy. reset requires a reusable slot with all external resources already released.
 class Op {
 public:
     static constexpr int32_t kScatterStateMarker = -2;
@@ -119,8 +104,8 @@ public:
     }
 
     // Bit 7 overlaps Client::kBlocked; connection bit 6 is unused. The armed coarse parser
-    // clears both read-local classification bits before classifying the slot; reset() remains the
-    // literal baseline path for every ordinary ROB acquisition.
+    // clears both read-local classification bits before classifying the slot; ordinary ROB
+    // acquisition uses reset() without this read-local flag sanitization.
     void reset_read_local(uint8_t route_flags = 0) {
         reset<true>(static_cast<uint8_t>(
             route_flags & static_cast<uint8_t>(~(kReadLocal | kReadLocalPreciseWrite))));
@@ -133,13 +118,14 @@ public:
         }
         const uint32_t need = argc_ + 1;
         if (need > argv_cap_) {
-            uint32_t ncap = argv_cap_ ? argv_cap_ * 2 : kInlineArgv * 2;
-            while (ncap < need) ncap *= 2;
-            auto* n = static_cast<Slice*>(std::realloc(argv_heap_, ncap * sizeof(Slice)));
-            if (!n) return false;
-            if (!argv_heap_) std::memcpy(n, argv_inline_, kInlineArgv * sizeof(Slice));
-            argv_heap_ = n;
-            argv_cap_ = ncap;
+            uint32_t new_capacity = argv_cap_ ? argv_cap_ * 2 : kInlineArgv * 2;
+            while (new_capacity < need) new_capacity *= 2;
+            auto* new_argv =
+                static_cast<Slice*>(std::realloc(argv_heap_, new_capacity * sizeof(Slice)));
+            if (!new_argv) return false;
+            if (!argv_heap_) std::memcpy(new_argv, argv_inline_, kInlineArgv * sizeof(Slice));
+            argv_heap_ = new_argv;
+            argv_cap_ = new_capacity;
         }
         argv_heap_[argc_++] = s;
         return true;
@@ -148,7 +134,9 @@ public:
     uint32_t argc() const { return argc_; }
     Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
     Slice cmd_name() const { return argc_ ? arg(0) : Slice{}; }
-    Slice key() const { return argc_ > 1 ? arg(1) : Slice{}; }  // v1: key is always argv[1]
+    Slice key() const {
+        return argc_ > 1 ? arg(1) : Slice{};
+    }  // point-key accessor; routed subcommands may differ
 
     // Recycles heap growth so one MSET-1000 or one 64MB reply does not permanently inflate every
     // ring slot. Called from Rob::drain at retire, gated so the common case (inline argv, inline
@@ -169,20 +157,15 @@ public:
     const CommandSpec* spec = nullptr;
     int32_t shard = -1;  // resolved by the router before publishing
 
-    // THE READ CUT, PINNED IN PROGRAM ORDER. A multi-key read pins its epoch on IO at prepare and
-    // resolves against it later; a plain read used to sample the sequence at EXECUTION and answer
-    // with the newest committed world. On one connection that inverts time: `GET a` posted just
-    // before `MGET a b` executes after the MGET's pin, so a foreign atomic commit landing in
-    // between made the EARLIER reply newer than the LATER one. IO therefore stamps every
-    // read-only op with the sequence as of its own prepare, which is the connection's program
-    // order, and the owner resolves against that instead of "now". Writes deliberately keep
-    // "newest": a write's read is the base of its own update and staleness there is a lost update.
+    // IO stamps read-only operations at prepare so GET and multi-key reads on one connection
+    // use cuts in program order. Sampling a plain read only at execution could make an earlier
+    // GET newer than a following MGET pinned before a foreign commit. Writes use the newest
+    // view because a stale update base can lose an intervening write.
     //
-    // Only the low 32 bits are kept -- Op's 336-byte footprint has exactly this 4-byte hole and no
-    // more, and the owner widens the value against the live sequence. The reconstruction is exact
-    // while fewer than 2^31 commits separate dispatch from execution; the highest commit rate this
-    // engine has produced would need ~40 seconds of queueing to reach that, and the widening
-    // saturates to a stale-but-safe (older) cut rather than a newer one if it ever did.
+    // The low 32 bits fit the layout's four-byte routing field. read_cut() reconstructs the
+    // most recent congruent sequence at/before now; exact reconstruction requires less than
+    // 2^32 intervening commits. This helper does not enforce that age bound or saturate older
+    // stamps. A bound over the full dispatch-to-execution lifetime is not established here.
     uint32_t read_cut_lo = 0;
     uint64_t hash = 0;  // computed once by IO, reused by the worker
 
@@ -194,8 +177,8 @@ public:
 
     // IO knows whether this command was issued behind an unfinished cross-shard atomic group on
     // the same connection. Capture that fact before publish so executors can skip the owner-local
-    // pending lookup without reading a remote Client cache line. The bit occupies existing padding
-    // before SmallBuf; Op's signed 336-byte footprint is unchanged.
+    // pending lookup without reading a remote Client cache line. The bit shares route_flags_
+    // before SmallBuf within the 336-byte footprint.
     void mark_atomic_hazard() { route_flags_ |= kAtomicHazard; }
     bool atomic_hazard() const { return route_flags_ & kAtomicHazard; }
     void mark_no_borrow() { route_flags_ |= kNoBorrow; }
@@ -203,17 +186,16 @@ public:
     void mark_resp3() { route_flags_ |= kResp3; }
     bool resp3() const { return route_flags_ & kResp3; }
     // CLIENT REPLY OFF/SKIP. Marked by the io thread's armed gate, honoured by the cold
-    // suppressing serve variant. Bit 3 is free in BOTH this word and Client::connection_flags_,
-    // whose byte is copied in wholesale by reset(), so no existing capture changes meaning.
+    // suppressing serve variant. Bit 3 has the same meaning in this word and
+    // Client::connection_flags_, whose byte reset() copies wholesale.
     void mark_reply_skip() { route_flags_ |= kReplySkip; }
     void clear_reply_skip() { route_flags_ &= static_cast<uint8_t>(~kReplySkip); }
     bool reply_skip() const { return route_flags_ & kReplySkip; }
     // CLIENT NO-TOUCH, captured from the connection flag byte by reset(). Read only by ExLoop,
     // and only when maxmemory is enabled.
     bool no_touch() const { return route_flags_ & kNoTouch; }
-    // Bit 5 is free in BOTH this word and Client::connection_flags_, whose byte reset() copies in
-    // wholesale, so an unstamped op always reads "no cut" and takes the newest world exactly as
-    // before.
+    // Bit 5 is reserved for a read cut and is not set in Client::connection_flags_. An
+    // unstamped operation therefore uses the newest view after reset() copies those flags.
     void set_read_cut(uint64_t cut) {
         read_cut_lo = static_cast<uint32_t>(cut);
         route_flags_ |= kReadCut;
@@ -238,9 +220,8 @@ public:
     bool read_local_precise_write() const { return route_flags_ & kReadLocalPreciseWrite; }
     uint8_t route_flags_ = 0;
 
-    // THE CODED REPLY. Free real estate: rbuf_off ends at 28 and SmallBuf's pointer forces the
-    // next field to 32, so bytes 29..31 were pure padding. Op stays 336 bytes (asserted below).
-    // Non-zero means "this op's whole reply is this code"; the owner formats it at retire.
+    // The code shares the four-byte flag region before pointer-aligned SmallBuf, within the
+    // 336-byte stride. Nonzero selects a reply the connection owner formats at retirement.
     uint8_t reply_code_ = 0;
 
     // WHO MAY CARRY A CODE. Only an Op the ROB handed out, because only those retire through
@@ -250,11 +231,10 @@ public:
     // code: MULTI builds a heap child Op per queued command and splices its reply into the public
     // op's buffer (multi.inc make_child_op / set_state_reply), and redis.call() runs into a
     // stack-local Op whose bytes Lua parses back into a Lua value (scripting.cc). Those are
-    // reset() but never acquired, so they default to unarmed and keep the byte path exactly as
-    // before -- the split is structural rather than a list of sites to remember. reset() must NOT
-    // touch this: a ROB slot is armed once and is a ROB slot forever.
+    // reset() but never acquired, so they default to unarmed and use byte replies. reset()
+    // must not touch the arming: a ROB slot is armed once for its entire lifetime.
     uint8_t reply_code_ok_ = 0;
-    uint8_t db = 0;  // logical database at parse time (former padding)
+    uint8_t db = 0;  // logical database captured at parse time
 
     SmallBuf<kInlineReply> reply;  // worker writes RESP here (the spill/general sink)
 
@@ -267,7 +247,7 @@ public:
     // grow the buffer in the window: there are no prior unretired ops (head) and no staged bytes
     // (empty), so no append and no fill/send swap can occur before our own retire.
     // Replies that do not fit fall back to `reply` mid-op; retire emits direct bytes first, then the
-    // spill, preserving RESP order. This is NOT exwb: the send syscall stays with the sender.
+    // spill, preserving RESP order. The connection owner performs the send syscall.
     char* direct = nullptr;
     uint32_t direct_cap = 0;
     uint32_t direct_len = 0;
@@ -279,7 +259,7 @@ public:
     uint32_t zc_len = 0;
     int32_t zc_shard = -1;
 
-    // The only cross-thread field. Acquire/release on this orders everything else.
+    // Completion publication: a release Done orders reply fields before the IO acquire.
     std::atomic<OpState> state{OpState::Free};
     uint8_t physical_db = 0;   // immutable routing namespace for this operation
     uint8_t secondary_db = 0;  // COPY/MOVE destination, captured with physical_db
@@ -293,14 +273,15 @@ public:
     }
 
     // The integer that goes with ReplyCode::Int -- a value the executor computed, not a format.
-    // `state` is one byte at offset 184 and the argv header needs 8-byte alignment at 192, so 185..191
-    // was padding; this lands at the 4-aligned 188 and costs nothing. int32 rather than int64
-    // because that is what the hole holds: a count or a counter outside +/-2^31 simply keeps the
-    // byte path, which emits the identical digits.
+    // It occupies the four-byte-aligned field at 188 before the argv header at 192. Integers
+    // outside the int32 range use byte replies, preserving the numeric result without growing Op.
     int32_t reply_ival_ = 0;
 
-    // The handler-facing reply sink: prefers the direct region while the whole reply fits, spills
-    // to op.reply otherwise. Same interface as SmallBuf, so the resp.h helpers take either.
+    // Contract: a handler's temporary, non-owning view of one Op; the caller exclusively owns
+    // reply construction. reserve/advance must stay paired on this Sink and within reserved
+    // capacity. Direct storage is used until spill; SmallBuf owns spill allocation. Source bytes
+    // must not overlap the destination. Sink publishes nothing: the enclosing completion path
+    // releases Done. code() refuses unarmed/nonempty replies so callers can emit bytes instead.
     class Sink {
     public:
         explicit Sink(Op& o) : op_(o) {}
@@ -321,10 +302,9 @@ public:
         // Runtime-length append: values, members, error texts -- every reply a handler builds from
         // bytes whose length it did not know at compile time. reserve() returns either the
         // connection's direct region or op.reply's storage, and neither can alias a handler's
-        // source bytes, so the no-overlap contract holds. The fixed replies take the literal
-        // overload below instead; reverting THIS line to the plain library call once the literals
-        // had moved was measured anyway and is much worse -- SET overwrite falls from -55
-        // instructions to -4 -- so the inline copy earns its place here too.
+        // source bytes, so the no-overlap contract holds. Small runtime copies use bytes_copy;
+        // larger copies use memcpy. Fixed replies take the array overload below. The archived
+        // instruction-count comparison is in docs/decisions/readability-a6.md.
         void append(const char* s, size_t n) {
             char* p = reserve(n);
             if (__builtin_expect(n > kInlineByteCopyMax, false))
@@ -334,13 +314,9 @@ public:
             advance(n);
         }
         void append(std::string_view s) { append(s.data(), s.size()); }
-        // RESP LITERALS. "+OK\r\n" and "$-1\r\n" are the reply of every SET and every GET miss,
-        // and their length is a compile-time constant -- but this append is out of line with 225
-        // callers, so the constant never reached the copy and each reply paid a call to get here
-        // and a second one to memcpy five bytes. Taken as an array the length survives, and a
-        // reply that fits in one machine word becomes one store at the call site with no call at
-        // all. Bounded at 16 bytes so the 68-byte WRONGTYPE text and its like stay out of line;
-        // the semantics are exactly the string_view overload's, NUL excluded.
+        // Array references preserve literal length at compile time, allowing short RESP replies
+        // to inline their copy. The 16-byte bound leaves larger texts on the runtime append path.
+        // Both overloads append the same bytes, excluding the terminating NUL.
         template <size_t N>
         __attribute__((always_inline)) void append(const char (&lit)[N]) {
             static_assert(N >= 1, "append() takes a string literal");
@@ -359,7 +335,7 @@ public:
         }
 
         // CODED REPLY. Records "the reply is this" instead of writing its bytes. Returns false
-        // when this sink is not empty, and then the caller formats bytes exactly as before -- that
+        // when this sink is not empty, so the caller must format bytes. That
         // is what keeps composition safe: EXEC writes its array header first, so every element
         // reply inside it sees a non-empty sink and takes the byte path, and the coded form can
         // only ever stand for a WHOLE reply.
@@ -370,12 +346,9 @@ public:
         // "code, then more bytes" and "bytes only" both keep RESP order, and the direct region
         // loses nothing -- the owner is writing into that very buffer either way.
         __attribute__((always_inline)) bool code(ReplyCode c, int32_t v = 0) {
-            // THE ARMING TEST CARRIES NO STATIC HINT, deliberately. Folded into the chain below
-            // under __builtin_expect(..., false) it told the compiler "expect code() to succeed",
-            // which is right in fused and wrong on EVERY call in split -- a mispredict per reply
-            // for a decision that is 100% biased for the life of the process, and therefore one
-            // the hardware predictor gets right for free in both modes once it is its own branch.
-            // Costs no instructions either way; it is the branch that was being paid for.
+            // Arming has its own unhinted branch: it is stable for a slot's lifetime but differs
+            // by mode. Combining it with the unlikely nonempty test would bias all modes toward
+            // the same answer. Keep the layout/branch decision in the decision log.
             if (!op_.reply_code_ok_) return false;
             if (__builtin_expect(op_.reply_code_ != 0 || op_.direct_len != 0 || !op_.reply.empty(),
                                  false))
@@ -395,8 +368,7 @@ public:
     // "Has a handler already written a reply?" BOTH regions have to be consulted. A short reply
     // lands in the direct region and leaves `reply` empty, so `reply.empty()` alone reads as
     // "nothing written yet" and a caller that then emits its own fallback error puts TWO replies
-    // on the wire, permanently shifting every later reply on that connection. XTRIM's option
-    // errors did exactly that on an unpipelined connection.
+    // on the wire, permanently shifting every later reply on that connection.
     bool replied() const { return !reply.empty() || direct_len != 0 || reply_code_ != 0; }
 
     // THE reply reset. Every caller that discards a half-written reply to put an error in its
@@ -462,7 +434,7 @@ public:
     // Notifications have two local slots: the ordinary non-borrow pointer and
     // the local-crossing marker plus pointer. The route marker is immutable
     // through attachment and abort; AOF, Rule-P and snapshot consumers still
-    // need it after handlers emit their first event. No Op bit or byte grows.
+    // need it after handlers emit their first event.
     bool has_notify_state() const {
         return zc_ptr != nullptr && (zc_shard == -1 || zc_shard == kLocalXshardMarker);
     }
@@ -480,7 +452,7 @@ public:
 
 private:
     // The cold inline decoder packs immutable argv bytes after this Op's heap
-    // Slices; the existing retry, shrink and destruction lifetimes own both.
+    // Slices; retry, shrink and destruction manage both allocations as one block.
     friend struct RespInlineDecoder;
     static constexpr uint8_t kAtomicHazard = 1u << 0;
     static constexpr uint8_t kNoBorrow = 1u << 1;
@@ -492,25 +464,18 @@ private:
     static constexpr uint8_t kReadLocalPreciseWrite = 1u << 7;
     // The hot pair is argc_ (reset/incremented by parsing, checked by execution) and argv_heap_
     // (tested by push_arg, every arg access, and oversized at retirement even when it is null).
-    // Moving them from the tail beside the first argument slots reduces the short-command field
-    // footprint; separating completion from reply writes alone would leave those tail accesses.
-    // At a 64-aligned base, GET's header and two slots now occupy 192..239 instead of separate
-    // lines at 192..223 and 320..335. Op is only 8-aligned, so the saving depends on its address.
-    // Parsing also stops dirtying the terminal argc word, which can share the next Op's routing
-    // line. This is a locality hypothesis, not a claim that each removed access was a cache miss.
-    // argv_cap_ is cold for inline commands. Carry it with the hot pair to fill their 4-byte
-    // alignment gap before the Slice array; leaving it after the array would grow Op to 344.
-    // Only this 16-byte header and argv_inline_ trade places. Reply/direct/borrow/state offsets,
-    // the 336-byte stride, and deep/heap-argv storage, growth and retirement paths stay fixed.
+    // The 16-byte argv header sits beside the first argument slots. At a 64-aligned base a GET's
+    // header and two slots occupy 192..239; Op itself is only 8-aligned, so cache-line placement
+    // depends on its address. argv_cap_ fills the header's four-byte alignment gap, keeping the
+    // inline Slice array and the complete Op within the 336-byte stride.
     Slice* argv_heap_ = nullptr;
     uint32_t argv_cap_ = 0;
     uint32_t argc_ = 0;
     Slice argv_inline_[kInlineArgv];
 };
 
-// THE FOOTPRINT LOCK (owner law, 2026-08-24): +16 bytes on Op measured -3.7% at 64c p32 -- at
-// the DRAM wall, ROB footprint is throughput. Growing Op requires paying for it elsewhere in the
-// struct (kInlineReply bought the direct-reply fields) or re-earning the size with an A/B.
+// Layout contract: the ROB uses a 336-byte Op stride. New fields must fit that budget.
+// Historical footprint evidence is archived in docs/decisions/readability-a6.md.
 static_assert(sizeof(Op) == 336, "Op grew: pay for it inside the struct or re-run the 64c A/B");
 
 }  // namespace tomo

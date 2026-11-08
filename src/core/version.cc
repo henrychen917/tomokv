@@ -1,6 +1,6 @@
-// Keep version presentation outside every execution-loop translation unit.
-// The release link wraps only the C runtime's main reference; main.o and its
-// include graph retain their original source and compiler settings.
+// Server-only entry wrapper and fixed read-only-data padding. The link wraps the C
+// runtime main reference; only the single-database variant defines __wrap_main.
+// The other, last-linked variant owns the padding that fixes following section addresses.
 #include "version.h"
 
 #include <cstdio>
@@ -22,8 +22,8 @@ int __wrap_main(int argc, char** argv) {
 #endif
 
 #if !TOMO_SINGLE_DATABASE
-// PRE -> stable assertions shrinks the linked, suffix-merged .rodata by 1152
-// bytes. Preserve the following sections' addresses; this is measured ELF size,
-// not the sum of the removed literals. Only the last-linked variant owns it.
+// Stable assertion metadata requires 1152 bytes of padding in the suffix-merged .rodata
+// section to preserve the following sections' addresses. This is a linked-section size,
+// not a sum of source literal sizes; only the last-linked variant owns the padding.
 [[gnu::used, gnu::aligned(1)]] static const unsigned char assertion_rodata_pad[1152] = {};
 #endif

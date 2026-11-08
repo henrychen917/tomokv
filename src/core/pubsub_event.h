@@ -1,8 +1,8 @@
-// pubsub_event.h -- heap-owned messages carried between IO threads.
-//
-// This is transport data only.  Subscriber indexes and connection state stay in IoLoop, so this
-// header does not give executors (or shards) a path to either.  Events name a connection by its
-// process-unique id and owning IO; no cross-thread Client pointer is retained.
+// Owns transport records shared by IO threads; included by thread.h and io_loop.h's
+// pub/sub implementation through server/thread declarations; t_server.cc also includes it.
+// Subscriber indexes and connection state stay in IoLoop. Events identify clients by process-unique ID and IO
+// owner; only notification reply slots carry a borrowed Op*, used on coordinator IO.
+// Mailbox locking transfers event ownership; immutable blobs use reference counts.
 #pragma once
 
 #include "climon_mask.h"
@@ -40,7 +40,7 @@ enum class PubSubEventKind : uint8_t {
     ClientListResult,
     ClientKillRequest,
     ClientKillResult,
-    // Lane F. All four are produced only while the CLIENT/MONITOR armed word is non-zero.
+    // Produced only while the CLIENT/MONITOR armed word is nonzero.
     MonitorFeed,         // one pre-formatted feed line, encoded once and shared by every owner
     TrackingInvalidate,  // keys whose value changed; each owner filters against its own table
     TrackingFlush,       // FLUSHALL/FLUSHDB: deliver the null invalidation to every tracker
@@ -82,6 +82,9 @@ struct PubSubEventItem {
 // byte-identical except for the leading '*' -> '>' (both element counts are single digits), so one
 // encoding serves both protocols.  `body_off` is the offset of the `$<len>\r\n<channel>...` tail,
 // which `pmessage` reuses verbatim behind its own 4-element header.
+// The home builds immutable frame bytes before mailbox publication. Each queued delivery
+// owns one reference: increments are relaxed before transfer, final release uses acq_rel.
+// Only the last releaser deletes the blob; building/allocation failure has no local retry.
 struct PubSubBlob {
     std::atomic<uint32_t> refs{0};
     bool shard = false;
@@ -92,6 +95,9 @@ struct PubSubBlob {
 // One (blob, destination connection) pair queued for an owning IO thread.  Connections are named
 // by process-unique id, never by a cross-thread Client*. `is_pattern` selects the
 // `pmessage` shape, including a valid empty pattern.  Each item holds ONE reference on `blob`.
+// The source outbox transfers this reference through a mailbox to destination IO;
+// forwarding transfers it again without incrementing. Delivery or event cleanup must
+// unref exactly once. This value type has no automatic unref destructor.
 struct PubSubDelivery {
     PubSubBlob* blob = nullptr;
     uint64_t conn = 0;
@@ -106,6 +112,9 @@ struct PubSubResult {
     uint64_t count = 0;
 };
 
+// Chain-owned channel/message values; reply is a borrowed committed EXEC child slot.
+// Only coordinator IO writes that reply, before the chain completion callback releases
+// the parent continuation. The chain must outlive every home request/continuation.
 struct PubSubNotificationItem {
     std::string channel;
     std::string message;
@@ -113,6 +122,11 @@ struct PubSubNotificationItem {
     bool shard = false;
 };
 
+// Shared lifetime for a serialized notification sequence. Coordinator IO advances index
+// and completes borrowed replies; the current home consumes that item's message only
+// while it owns the mailbox link. Mutex handoffs order these accesses; shared_ptr alone
+// does not synchronize mutation. Exactly one link is active; invalid continuation/index
+// aborts, and allocation exceptions are not recovered by this record.
 struct PubSubNotificationChain {
     uint32_t coordinator_io = 0;
     uint32_t index = 0;
@@ -121,6 +135,12 @@ struct PubSubNotificationChain {
     void* completion = nullptr;
 };
 
+// Heap message owned by the producer until pubsub_post, then by one queued/consuming IO.
+// Mailbox mutex handoff orders mutable fields. Deliveries own blob references released
+// by delivery or pubsub_delete_event; notification/blob shared_ptrs own their payloads.
+// ACL permissions and notification reply pointers are borrowed under their protocols.
+// Local/remote queues may allocate; wake-marker pressure is handled by the posting path,
+// not by this aggregate. Consumers must not retain a raw event pointer after deletion.
 struct PubSubEvent {
     PubSubEventKind kind = PubSubEventKind::DeliveryBatch;
     uint32_t origin_io = 0;
@@ -157,8 +177,7 @@ struct PubSubEvent {
     std::vector<PubSubDelivery> deliveries;
     std::vector<PubSubResult> results;
     std::shared_ptr<PubSubNotificationChain> notification;
-    // Encode-once payload shared by every receiving owner (MONITOR feed line). Null on every
-    // pre-Lane-F event kind, so no existing path pays for it beyond the empty shared_ptr.
+    // Encode-once MONITOR payload shared by receiving owners; other event kinds leave it null.
     std::shared_ptr<const std::string> blob;
 };
 

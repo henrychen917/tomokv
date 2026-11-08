@@ -1,12 +1,8 @@
-// atomic_tripwire.h -- explicitly-armed, process-cold MVCC resolver diagnostics.
-//
-// The state deliberately lives outside Server, Shard, FlatStore, Task, Op, ScatterState and
-// AtomicEntry.  --enable-debug-command=no allocates nothing, and none of the footprint-locked
-// request/MVCC objects grows.  Allocation alone does NOT arm the probes: observation starts only
-// at DEBUG TRIPWIRE ARM, because the armed cost (a shared mutex plus a pending-list walk on every
-// atomic read) is a per-op tax that must never ride along with debug-enabled boots -- it once cost
-// 9x on atomic multi-key throughput while every harness ran debug-enabled.  A disarmed server --
-// debug-enabled or not -- sees one predicted-false flag test at the call sites and no atomic RMWs.
+// Explicitly armed MVCC diagnostics shared by server.h and FlatStore's header-only resolver.
+// State is process-lifetime storage outside footprint-locked request objects, configured before
+// workers start. Debug-disabled configuration allocates nothing. Observation requires a separate
+// DEBUG TRIPWIRE ARM: armed probes take a mutex and inspect pending versions. Disarmed call sites
+// test a relaxed flag and perform no diagnostic RMW; enabling debug commands alone does not arm it.
 #pragma once
 
 #include <array>
@@ -22,8 +18,7 @@
 
 namespace tomo {
 
-// DEBUG TRIPWIRE rows are intentionally the requested four-tuple.  `phase` makes the rows of the
-// one-shot dump self-describing without adding another field to the wire format.
+// Each DEBUG TRIPWIRE row is a four-tuple. phase identifies its observation in the one-shot dump.
 enum class AtomicTripwirePhase : uint32_t {
     PlainBegin = 1,
     PlainExecution = 2,
@@ -41,12 +36,11 @@ struct AtomicTripwireRow {
 struct AtomicTripwireCounts {
     uint64_t plain_path_changes = 0;
     uint64_t chain_smaller_tickets = 0;
-    // Discrimination for the chain_smaller geometry, from an unmasked same-key re-walk (armed
-    // only).  masked_out is the smoking gun: an entry HOLDS the key with a visible ticket at or
-    // below the cut, but the membership-bit filter hid it from the chain walk, so the read
-    // answered from an older version -- the resolver failure class the seed-19 EXISTS overcount
-    // needs.  visible_lost means the walk saw such an entry and base still won (ranking defect).
-    // undecided counts matched foreign groups whose ticket was still unpublished at the read.
+    // An armed-only unmasked same-key walk classifies chain_smaller observations. masked_out
+    // means a key-holding entry with a visible ticket at/below the cut was hidden by the
+    // membership filter, so the read used an older version. visible_lost means the walk saw the
+    // entry but selected the base version (a ranking defect). undecided counts matching foreign
+    // groups whose tickets were unpublished at the read.
     uint64_t samekey_masked_out = 0;
     uint64_t samekey_visible_lost = 0;
     uint64_t samekey_undecided = 0;
@@ -60,7 +54,7 @@ struct AtomicTripwireCounts {
     // consider() exclusions (armed only): a chain candidate rejected by the visibility test
     // !(epoch <= snapshot || own_committed).  reader_zero means the read carried no origin conn
     // (read context never set for that path); mismatch means it carried one different from the
-    // entry's.  The ring latches the first exclusion's geometry via phases 5/6.
+    // entry's. The ring records the first exclusion using ChainAnswer and ParkedSmaller.
     uint64_t excluded_reader_zero = 0;
     uint64_t excluded_conn_mismatch = 0;
     // Collapse writes that could resurrect a deleted key (armed only): an absent physical slot or
@@ -72,6 +66,8 @@ struct AtomicTripwireCounts {
 
 namespace atomic_tripwire_detail {
 
+// Non-owning identity for one command occurrence. Pointer values are keys only; callers must
+// forget the scope before its addresses can be reused, and pair begin/execution with one slot.
 struct ProbeKey {
     const void* scope = nullptr;     // transaction/scatter lifetime owner
     const void* fragment = nullptr;  // child command or scatter state
@@ -103,6 +99,10 @@ struct Probe {
     bool needs_version = false;
 };
 
+// Contract: owns diagnostic counts, the first captured ring, and pending probes. Worker/debug
+// callers hold mu for every access to those fields; probes own values but not their identity
+// pointers. Ring capture truncates at 64 rows. Probe allocation may fail without failing a
+// command; dump allocation failures propagate. Configure/destruction require stopped workers.
 struct State {
     static constexpr size_t kRingRows = 64;
     std::mutex mu;
@@ -113,9 +113,8 @@ struct State {
     std::unordered_map<ProbeKey, Probe, ProbeKeyHash> probes;
 };
 
-// Written once during Server::init(), before worker threads exist, and never replaced while the
-// server runs.  Inline storage keeps the header usable by the header-only FlatStore resolver
-// without adding a translation unit or build-system edge.
+// Configured during Server::init(), before workers exist, and stable while they run. Inline
+// storage gives the FlatStore resolver and debug handlers the same state within each namespace.
 inline std::unique_ptr<State> state;
 
 // Runtime observation switch.  The pointer above is fixed at init so workers may read it without
@@ -131,6 +130,8 @@ inline void capture_locked(State& s, const AtomicTripwireRow* rows, size_t count
 
 }  // namespace atomic_tripwire_detail
 
+// Startup-only: allocate optional state with nothrow new, or destroy it while workers are absent.
+// Allocation failure leaves diagnostics unavailable; configure(true) does not arm observations.
 inline void atomic_tripwire_configure(bool enabled) {
     if (enabled) {
         if (!atomic_tripwire_detail::state)
@@ -146,10 +147,10 @@ inline bool atomic_tripwire_enabled() {
            atomic_tripwire_detail::state != nullptr;
 }
 
-// Flip observation on or off at runtime; false means there is no state to arm (debug disabled).
-// Both transitions drop pending begin-probes: a probe recorded under one arming session must not
-// pair with an execution observed in a later one, and disarming mid-flight would otherwise strand
-// entries whose consuming call sites have stopped firing.
+// Debug callers enable/disable observation; false means no state is available. Both transitions
+// clear pending probes under mu so disarmed probes do not remain indefinitely. The relaxed flag
+// controls sampling, not object lifetime. A strict boundary against probes already in flight is
+// not established by this function; the flag store occurs after releasing mu.
 inline bool atomic_tripwire_arm(bool on) {
     auto* state = atomic_tripwire_detail::state.get();
     if (!state) return false;
@@ -241,9 +242,8 @@ enum class AtomicTripwireSamekey : uint32_t {
     UndecidedGtCut = 4,
 };
 
-// A collapse write that changed a slot (armed only).  was_null && !now_null is the resurrection
-// direction: an absent key overwritten with a value by cleanup -- the un-delete a lost-DEL
-// divergence needs.  Everything else counts as write_other for rate context.
+// An armed collapse observation: was_null && !now_null means cleanup replaced an absent key
+// with a value, which can expose deletion resurrection. Other writes supply comparison counts.
 inline void atomic_tripwire_collapse_write(uint64_t key_hash, bool was_null, bool now_null,
                                            uint64_t winner_epoch) {
     auto* state = atomic_tripwire_detail::state.get();
@@ -309,9 +309,9 @@ inline AtomicTripwireCounts atomic_tripwire_counts() {
     return state->counts;
 }
 
-// Empty state deliberately formats as an empty bulk/verbatim payload: a clean acceptance run can
-// assert DEBUG TRIPWIRE == b"" without parsing a header.  Once latched, each line is exactly
-// `<key-hash> <cut> <ticket> <phase>`; phase values are documented by AtomicTripwirePhase above.
+// Debug readers copy the first captured rows under mu. Empty state produces an empty payload;
+// otherwise each line is `<key-hash> <cut> <ticket> <phase>` (see AtomicTripwirePhase).
+// Output allocation can throw; no resolver or command-state ownership is transferred.
 inline std::string atomic_tripwire_dump() {
     auto* state = atomic_tripwire_detail::state.get();
     if (!state) return {};

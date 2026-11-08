@@ -1,0 +1,44 @@
+[
+  {
+    "file": "wb_rule_units-wb-rule-stages.log",
+    "raw_sha256": "a50d4112c89bd5ba38fe7a097f1c69d6c6789b78ce547c28b18d4a462449c3cc",
+    "committed_sha256": "e05d3d6a510454bd77411ec26f35e092db2bd45859fb51759fb11a62d2838e6c",
+    "removed_trailing_bytes": 12
+  },
+  {
+    "file": "wb_rule_units-wb-rule-phase.log",
+    "raw_sha256": "2df6deb00e87452104356b453d84d07625f254e6d696579a064b4c9635d0d966",
+    "committed_sha256": "22bb2f1aed6aab3301804073ab4a7665d7c4463fbcc3b200a7fd3c85c7d37d7b",
+    "removed_trailing_bytes": 20
+  },
+  {
+    "file": "gate-selftests.log",
+    "raw_sha256": "6aa008d0dcbdcced6e1588d2195b3adda812208c5b9733396fd5e360756fd053",
+    "committed_sha256": "7194835a6379c703b7e92cce7bdf1da55932a5cf2b0354a91b3ab697c0cb40eb",
+    "removed_trailing_bytes": 6
+  },
+  {
+    "file": "wb_rule_units-wb-rule-split-phase.log",
+    "raw_sha256": "20f0e6a4123def17120dc81ceecdd81a00671b7357ca47bce0116c1a90c3b3cb",
+    "committed_sha256": "d9e793e5eb5d2a061435a6d6fd0966f11e5dab5b0c63f5591248157a578adbc9",
+    "removed_trailing_bytes": 35
+  },
+  {
+    "file": "wb_rule_units-wb-rule-policy.log",
+    "raw_sha256": "df6a4bffe8dba93b258a0ed8e6c30cabbc21f9781475727234e472f80245583a",
+    "committed_sha256": "beb5dbcc108471cf736c5640d1a1790f87844ebdf7e1e90f2d956e9e28695c60",
+    "removed_trailing_bytes": 37
+  },
+  {
+    "file": "wbland_units-wbland-paths.log",
+    "raw_sha256": "fe875692f86aecbe8113a9e41711024749c05dd32736f07e97205f8e5481c5cf",
+    "committed_sha256": "30adf4143582874a2521796aeebca89e62a74109671591284720b0bffc127572",
+    "removed_trailing_bytes": 14
+  },
+  {
+    "file": "wbland_units-wbland-clauses.log",
+    "raw_sha256": "144f51b38a846780bd3eb3001b43d6c1cfcc3e0b16ba518d14cbf0175ca4c9f0",
+    "committed_sha256": "b2a732d31ac05c98b3ef22bfc137a5baf1a0d77a729179b322235cb737ea44f1",
+    "removed_trailing_bytes": 69
+  }
+]

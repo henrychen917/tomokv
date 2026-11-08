@@ -1,9 +1,16 @@
-// Final connection ownership, after every physical worker (including former IO
-// owners) has joined. This file is never entered by a request or a role change.
+// Final IO lifetime cleanup: issuer-thread cancellation before join, then
+// coordinator-only connection/borrow reclamation after every worker joins.
+// IoLoop's guards/destructor call these methods; request and role-change paths
+// do not. Kernel cancellation/queue exit fence every buffer freed here.
 #include "io_loop.h"
 
 namespace tomo {
 
+// Called by ShutdownOnIssuer on the physical ring issuer after snapshot/AOF
+// guards drain, before that worker exits. Borrows the initialized loop; cancels
+// uring requests synchronously and releases registered listener files. EINTR
+// retries; any cancellation error other than ENOENT aborts rather than losing
+// the buffer lifetime fence. Uninitialized/epoll loops need no uring cancellation.
 void IoLoop::shutdown_on_issuer() {
     if (!initialized_) return;
     // SINGLE_ISSUER applies to synchronous cancellation too. This guard runs on
@@ -27,12 +34,23 @@ void IoLoop::shutdown_on_issuer() {
     }
 }
 
+// Coordinator only, after all readers/owners join and before atomic records or
+// IO pools die. Release abandoned script activation pins in every shard; join
+// provides quiescence, so this walk adds no publication or peer wait.
 void IoLoop::shutdown_release_abandoned_script_pins(Server& srv) {
     for (uint32_t sid = 0; sid < srv.nshards(); ++sid)
         srv.shard(static_cast<int32_t>(sid)).store().atomic_release_abandoned_script_pins();
 }
 
+// Coordinator/destructor only after every physical worker joins and issuer-side
+// cancellation finishes. Owns remaining Clients gathered from all loop queues;
+// Server, shards, TLS engines and IO pools must still be alive. Retire only the
+// ready ordered reply prefix, then fence kernel pointers with queue exit before
+// freeing clients and borrows. No command admission or peer waits are allowed.
+// Sends are attempted without waiting for delivery; pending output/events may
+// be discarded. Partial initialization is a no-op; allocations may throw.
 void IoLoop::shutdown_clients_after_join() {
+    // Phase 1: replace callbacks that require live owners with joined-owner cleanup.
     // Serverless fixtures may borrow stack Clients. Only init() creates an owning
     // IO lifetime; partial initialization cannot have admitted a connection.
     if (!initialized_) return;
@@ -40,7 +58,7 @@ void IoLoop::shutdown_clients_after_join() {
     // Normal WB callbacks post releases, tracking and notifications to live
     // owners. All owners have joined: complete only the already-issued reply
     // here, return borrows directly, and discard undeliverable notifications.
-    // Rebinding preserves WB accounting and its existing staged output. The
+    // Rebinding preserves WB accounting and staged output. The
     // transaction arm sees only multi_shutdown_retirable() states (see below).
     // Static: wb_ keeps this pointer after the destructor's last use.
     static const std::atomic<bool> no_limits{false};
@@ -75,6 +93,7 @@ void IoLoop::shutdown_clients_after_join() {
         },
         &no_limits, nullptr, [](void*, Client&) { return false; }, &cached_now_s_, &self_->sig());
 
+    // Phase 2: consume cancellation/send completions and close unclaimed accepts.
     // The issuer has cancelled network requests after draining persistence. Its
     // CQEs remain available here; successful accepts own fds without Clients.
     if (!ring_.shutdown_complete()) {
@@ -93,6 +112,7 @@ void IoLoop::shutdown_clients_after_join() {
         });
     }
 
+    // Phase 3: gather and deduplicate every remaining connection ownership source.
     std::vector<Client*> clients;
     auto keep = [&](Client* c) {
         if (c) clients.push_back(c);
@@ -121,8 +141,9 @@ void IoLoop::shutdown_clients_after_join() {
     std::sort(clients.begin(), clients.end(), std::less<Client*>{});
     clients.erase(std::unique(clients.begin(), clients.end()), clients.end());
 
+    // Phase 4: attempt the completed reply prefix without executing deferred commands.
     // A completion already owed may have reached Done during the last IO pass.
-    // Retire that prefix and perform the existing nonblocking send path once;
+    // Retire that prefix and perform the nonblocking send path once;
     // never parse more requests, run commands, wait on peers, or restart a save.
     // An EXEC retires by running its queued connection-local commands on this
     // IO owner, so one that still has them is not an owed reply: end the
@@ -153,6 +174,7 @@ void IoLoop::shutdown_clients_after_join() {
         }
     }
     for (Op* op : withheld) op->state.store(OpState::Done, std::memory_order_relaxed);
+    // Phase 5: fence kernel lifetimes, discard residual operations and free clients.
     // No callbacks below may submit work. Queue exit is the final fence for raw
     // Client/buffer pointers, independent of whether their original CQE arrived.
     ring_.shutdown();
@@ -170,7 +192,8 @@ void IoLoop::shutdown_clients_after_join() {
                 else if (op.has_multi_state()) {
                     // A withheld EXEC, or a Done one behind an unfinished older op
                     // (EXEC's barrier admits nothing after it). An unfinished
-                    // transaction keeps its existing shutdown ownership.
+                    // transaction remains owned by transaction shutdown; this
+                    // walk discards only completed transaction state.
                     if (op.state.load(std::memory_order_acquire) == OpState::Done)
                         multi_shutdown_discard(*srv_, wb_, *c, op, scatter_pool_, self_->id(),
                                                multi_deferred_);
@@ -191,6 +214,7 @@ void IoLoop::shutdown_clients_after_join() {
         latency_tracking_forget_client(*c);
         delete c;
     }
+    // Phase 6: clear owning queues and drain releases/events with every producer joined.
     // No producer remains. Dropping these references is a real join fence, not
     // a relaxation of the normal reaper's serve_pending/recv/send conditions.
     self_->clients().clear();

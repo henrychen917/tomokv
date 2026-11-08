@@ -1,6 +1,10 @@
-// io_loop.h — accepts, receives, parses, routes, publishes, retires, and sends for its clients.
+// Owns connection IO: accept, receive, parse, route, publish, retire, and send.
+// Included by the server/command translation units that need IoLoop; pubsub.inc and climon.inc
+// supply members inside this class, and read_local_parse.inc supplies parser statements.
 // In fused mode the same physical thread also executes its owned shards; split mode hands tasks
 // to executor threads. Reply retirement and sending stay with the connection's IO owner.
+// Publish ROB entries before owner tasks, retain receive buffers while argv/kernel references
+// exist, and recheck inbound work after announcing a park. R7 envelopes mirror marked methods.
 //
 //   out  task_in of the shard's owner        a parsed op to execute
 //   in   ready mask / client_in             completed ops to retire and send
@@ -59,6 +63,12 @@ namespace tomo {
 //   io    IoLoop    recv+parse+retire+send; owns the whole client
 //   ex    ExLoop    execute+notify; never sends
 
+// Each instance owns one physical thread's transport state and its current IO-role clients.
+// Boot configures it before worker entry; connection work runs on self_'s thread, including
+// fused execution. Coordinator-only teardown requires joined workers. Server/ThreadCtx and the
+// TLS context are borrowed. Task queues publish with release ordering; reply retirement observes
+// executor completion before releasing buffers. Migration must quiesce kernel and executor users.
+// Full queues leave frames/retries pending; transport failures close through deferred reclamation.
 class /* TOMO_TOOL_BIND IoLoop */ IoLoop {
     friend struct FlipListenerState;
     friend bool cfgfix_rebind(Server&, uint32_t, uint16_t, const std::string&, std::string&, int);
@@ -69,7 +79,7 @@ class /* TOMO_TOOL_BIND IoLoop */ IoLoop {
     // Fixture observes successful ordinary-owner dispatch, after publication and before retirement.
     // No observer storage, branch or call exists in release builds.
     inline static void (*test_owner_publication_)(const Task&) = nullptr;
-    // flipfix5: runs between the FLIP control pass's stage load and its first stage test.
+    // Runs between the FLIP control pass's stage load and its first stage test.
     inline static void (*test_after_stage_sample_)(uint32_t, FlipStage) = nullptr;
     inline static bool test_live_epoch_ack_test_ = false;
 #endif
@@ -81,18 +91,14 @@ public:
         return scatter_pool_.reap_deferred() + multi_owner_reap_entry(*this);
     }
 
-    // BOOT: ONE LISTENING SOCKET PER IO THREAD, via SO_REUSEPORT (FLIP transfers them intact).
-    //
-    // Sharing a single listen fd across io threads does NOT distribute connections: every thread
-    // arms a multishot accept on it and the kernel satisfies them all from one ring. Measured
-    // consequence with 6 io threads and 577 connections — t5 took every single one and t0..t4 sat
-    // idle for the entire run, so the server was really running on one io thread. It looked like a
-    // latency problem (uniform ~3.5 ms at p1) and was actually a distribution problem.
-    //
-    // With SO_REUSEPORT the kernel hashes each incoming connection to one of the listening sockets,
-    // which spreads them across threads without any userspace handoff. Note this is safe WITHIN one
-    // process; two SERVER PROCESSES sharing a port is the failure mode that once faked data loss,
-    // so a boot must still verify nothing else holds the port.
+    // Boot-only initialization: borrow srv/self/TLS context, take the supplied Unix listener,
+    // and bind completion callbacks before activating this IO role. The caller must keep the
+    // borrowed objects alive through teardown; dormant initialization leaves listeners inactive.
+    // Returns false on ring, wake registration, epoll, or activation failure; partial resources
+    // remain attached for teardown. Initialization itself makes no cross-thread publication.
+    // Each IO has its own SO_REUSEPORT listener so kernel hashing distributes connections.
+    // Boot must exclude another server process on the port: reuseport also permits that process
+    // to receive connections, so successful bind alone cannot establish exclusive server ownership.
     bool init(Server* srv, ThreadCtx* self, const char* addr, uint16_t port,
               int unix_listen_fd = -1, const TlsContext* tls_context = nullptr,
               bool dormant = false) {
@@ -186,8 +192,10 @@ public:
     void shutdown_on_issuer();
     // Coordinator only, after all workers join and before the stores release their atomic
     // records: drop the PIN references of cross-owner script activations abandoned between their
-    // PIN and UNPIN waves (XS-SHUT-1). Defined in shutdown.cc, like the two members above.
+    // PIN and UNPIN waves. Defined in shutdown.cc, like the two members above.
     static void shutdown_release_abandoned_script_pins(Server& srv);
+    // Worker-stack guard borrowing this loop; runs issuer-side shutdown before the worker
+    // exits. The loop must outlive the guard. It owns no client and publishes no state itself.
     struct ShutdownOnIssuer {
         IoLoop& loop;
         ~ShutdownOnIssuer() { loop.shutdown_on_issuer(); }
@@ -468,15 +476,10 @@ public:
         return true;
     }
 
-    // THE ENGINE DECISION, MADE ONCE, HERE. It joins the two shape decisions this loop already
-    // resolved by instantiation (has a unix listener / has a TLS listener) rather than adding a
-    // third kind of runtime state. Everything below is `if constexpr` on kEp, so the uring build
-    // contains no epoll code and no test for it, and the epoll build contains no ring code and no
-    // test for it. This is the same compile-or-boot-time-variant pattern the registry uses for
-    // keyspace notifications (handler_notify in cmd/command.h: two instantiations of the handler,
-    // one pointer chosen off a per-batch flag, zero per-operation branching) applied at the loop
-    // level instead of the handler level -- the engine is a property of the whole loop, so the
-    // choice belongs at its outermost frame.
+    // Choose the split-loop specialization once per role entry. Template arguments select
+    // Unix listeners, TLS listeners, and epoll versus io_uring, keeping those engine/shape
+    // branches outside per-operation dispatch. Notification handler selection follows the
+    // same principle at its own per-batch boundary.
     void run_split() {
         const bool has_unix =
             unix_listen_fd_ >= 0 || (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
@@ -545,6 +548,10 @@ private:
         Closed,
     };
 
+    // Source-IO transfer record. Borrows client until the owner edge; owns rollback fd,
+    // catalog/routing allocations, and destination registration until commit or cancellation
+    // explicitly consumes them. It is not RAII cleanup. The source keeps the client alive
+    // until the original receive releases its kernel pointer; failed preparation rolls back.
     struct ClientMigration {
         Client* client = nullptr;
         uint32_t destination = 0;
@@ -578,9 +585,18 @@ private:
     friend void notify_retire_batch_entry(IoLoop&, NotifyBatch*, uint64_t);
 #include "pubsub.inc"
 
+    // Run an IO tenure on self_'s physical worker until stop or a role change. HasUnix/HasTls
+    // select listener support; kEp selects socket readiness; Fused permits local owner work;
+    // SplitLocal uses the fused read-local plumbing without a fused owner turn (requires Fused).
+    // Requires initialized transport and the matching fused executor when that path is enabled.
+    // Owns client queues during the tenure. Publish read-local epochs before foreign probes and
+    // park the publication before waiting; arm_blocked plus inbound rechecks prevents lost wakes.
+    // Queue/SQE pressure is retried on later passes; idle waits are bounded. Exit parks read-local
+    // state and drains deferred closes, while the shutdown guards own final issuer/join teardown.
     /* TOMO_TOOL_FUNCTION run_loop */
     template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false, bool SplitLocal = false>
     void /* TOMO_TOOL_BIND run_loop */ run_loop() {
+        // Phase 1: bind tenure state, read-local publication, and listener receives.
         static_assert(!SplitLocal || Fused);
         LoopSignals& sig = self_->sig();
         IoTenure tenure(sig);
@@ -595,7 +611,7 @@ private:
         if constexpr (Fused) {
             if (srv_->read_local_enabled()) {
                 // A split EX tenure is permanently parked: it never probes the local lane.
-                // Resume BEFORE sampling the epoch, as at the existing network-wait boundary.
+                // Resume BEFORE sampling the epoch, as at the network-wait boundary.
                 if (ThreadCtx::read_local_publication_parked(self_->read_local_publication()))
                     self_->resume_read_local_tick();
                 self_->publish_read_local_tick(srv_->read_local_epoch());
@@ -609,6 +625,7 @@ private:
                 if (unix_listen_fd_ >= 0) arm_accept(UrKind::UnixAccept);
         }
         while (!self_->stop_flag().load(std::memory_order_relaxed) && self_->role() == Role::Ifid) {
+            // Phase 2: snapshot pass controls and reclaim clients past their grace steps.
             srv_->debug_sleep_poll(self_->id());
             const uint64_t pass_ns = tenure.pass();
             Server::DatabaseWorkScope database_work(*srv_, self_->id());
@@ -622,8 +639,8 @@ private:
             lb_pass_begin();    // one shared pause snapshot before any connection parsing
             flip_pass_begin();  // one acquire before any parser or cron in this IO pass
             refresh_notify_config();
-            // ONE relaxed load per io batch. Per-batch checks are free; this is what buys the
-            // per-operation hooks their zero-cost-when-off property.
+            // Refresh the shared feature mask once per IO batch; per-operation hooks use the
+            // cached armed decision.
             if (__builtin_expect(srv_->climon_armed() != climon_armed_cached_, false))
                 climon_refresh_armed();
             const bool pause_armed = climon_pause_armed();
@@ -668,11 +685,12 @@ private:
                 if (self_->sample_depth(pass_ns / 1000)) {
                     // CLOCK_THREAD_CPUTIME_ID can require a real syscall. cpu_ns is diagnostic
                     // only (model demand uses wall-idle; physical placement uses busy/idle), so sample it
-                    // on the existing 100us signal beat instead of every hot pass.
+                    // on the 100us signal beat instead of every hot pass.
                     sig.cpu_ns = thread_cpu_ns();
                     refresh_age_sampling();
                     if (age_signals_armed_) sample_rob_head_age(sig.cached_now_us);
                 }
+                // Phase 3: drain transport, migrations, owner work, and reply retirement.
                 // A dropped accept re-arm means the server stops taking connections entirely, so it
                 // is retried every pass until it lands.
                 if constexpr (!kEp) {
@@ -725,6 +743,7 @@ private:
                     if (owner_bell->runnable.load(std::memory_order_relaxed))
                         did += fused_executor_->fused_owner_turn();
                 }
+                // Phase 4: advance role/load control and deadline-driven maintenance.
                 did += flip_control_pass<kEp>();
                 if (__builtin_expect(
                         client_lb_signal_armed && cached_now_ms_ >= lb_client_signal_beat_ms_,
@@ -752,6 +771,7 @@ private:
                 if (!did && wb_config_.policy && !pending_serve_.empty() && wb_idle.active(pass_ns))
                     did = 1;
             }
+            // Phase 5: submit useful work, or sweep all clients before considering a park.
             // Flush prepared SQEs before looping. Recv re-arms and cross-ring wakes are
             // PREPARED during the work section but only reach the kernel on submit; taking
             // the busy path without submitting strands them in the SQ forever, and the peer
@@ -786,8 +806,9 @@ private:
                 continue;
             }
 
-            // Preserve the established classification: publication, inbound recheck,
-            // epoll callbacks, the wait and resume/clear are ALL inside this idle span.
+            // Phase 6: publish the park, recheck every wake source, then wait and resume.
+            // Idle accounting includes publication, inbound recheck,
+            // epoll callbacks, the wait, and resume/clear.
             Span idle(sig.idle_ns);
             if constexpr (!Fused) {
                 if (wb_config_.policy) wb_idle.park();
@@ -798,13 +819,13 @@ private:
                     self_->publish_read_local_parked(srv_->read_local_epoch());
             }
             self_->arm_blocked();
-            // CREDIT DOORBELL, waiter half. No inbound channel announces a retired window credit,
-            // so a refused frame used to sleep until this park's timeout. Publish this IO after
-            // arm_blocked(), then re-check; a retirement's Server::atomic_credit_doorbell() rings it.
+            // Credit-doorbell waiter: retired window credit has no inbound-channel entry.
+            // Publish this IO after arm_blocked(), then recheck; a retirement's
+            // Server::atomic_credit_doorbell() rings it so credit need not wait for the park timeout.
             const bool credit_room =
                 __builtin_expect(self_->atomic_admission_state().credit_wait, false) &&
                 srv_->atomic_credit_wait_arm(self_->id());
-            // F7 (fused owners only): re-check owned shards' blocking dirty flags after the
+            // Fused owners: recheck owned shards' blocking dirty flags after the
             // arm_blocked fence, so a producer's lost conditional wake does not strand a blocked
             // client until the timeout. Cold: gated on a blocked client existing anywhere.
             [[maybe_unused]] const bool blocking_owed =
@@ -875,6 +896,7 @@ private:
             }
             self_->clear_blocked();
         }
+        // Phase 7: end the tenure, park read-local state, and finish deferred reclamation.
         const auto io_tenure = tenure.finish(self_->role() != Role::Ifid,
                                              self_->stop_flag().load(std::memory_order_relaxed));
         if constexpr (Fused) {
@@ -945,8 +967,7 @@ private:
     //
     // EPOLL READS THE SOCKET HERE INSTEAD. There is no submission to make, so the same call site
     // that "arms" a uring recv performs the recv itself, and recv_armed_ changes meaning to
-    // "we reached EAGAIN, an edge is owed" (see net/epoll.h). Its two consumers keep working
-    // unchanged: `stuck` in flush_ready keeps a connection in the active set while it is false, so
+    // "we reached EAGAIN, an edge is owed" (see net/epoll.h). Its two lifetime/progress consumers are `stuck` in flush_ready keeps a connection in the active set while it is false, so
     // a read that stopped for lack of buffer space is retried; and safe_to_release refuses to free
     // a connection while it is true.
     uint64_t query_buffer_limit(const Client& c) const {
@@ -1001,7 +1022,7 @@ private:
     // is how we remember that no further edge is coming and that we owe ourselves a retry.
     // Bytes are committed but NOT parsed here: this runs inside flush_ready's walk over the active
     // set, and parse_and_dispatch can close connections (CLIENT KILL) whose removal from that set
-    // would invalidate the walk's iterator. The pass's existing re-parse step consumes them.
+    // would invalidate the walk's iterator. The pass's re-parse step consumes them.
     void epoll_recv(Client* c) {
         for (;;) {
             size_t avail = 0;
@@ -1120,7 +1141,7 @@ private:
             io_uring_prep_poll_add(s, c->fd(), mask);
             s->user_data =
                 ur_tag(wanted == TlsOp::WantWrite ? UrKind::TlsWritePoll : UrKind::TlsReadPoll, c);
-            // Reuse the existing kernel-reference fence: a poll CQE names Client just like recv.
+            // The kernel-reference fence covers polls: a poll CQE names Client just like recv.
             tls->set_poll_armed(wanted, true);
             c->set_recv_armed(true);
         }
@@ -1142,6 +1163,11 @@ private:
     // it from here, mid-event-array, would mean a Client is freed while a later epoll_event in the
     // same batch still names it. Second, keeping every state transition in one place is what makes
     // "epoll changes only how the thread waits" true rather than aspirational.
+    // Consume readiness on this IO worker; ep_ and registrations must be initialized.
+    // Only listeners admit clients here. Client events change readiness/active-set state,
+    // not application parsing, because later events may still name a client. Ignore foreign
+    // or installing clients. Timeout/error returns zero; accepted work and wake edges count
+    // as progress so the next loop pass drains payloads that arrived after its earlier drain.
     /* TOMO_TOOL_FUNCTION epoll_pass */
     template <bool HasUnix, bool HasTls, bool Fused = false>
     uint32_t /* TOMO_TOOL_BIND epoll_pass */ epoll_pass(int timeout_ms) {
@@ -1162,18 +1188,11 @@ private:
                     if constexpr (HasUnix) work += epoll_accept<true, Fused>(UrKind::UnixAccept);
                     break;
                 case UrKind::Wake:
-                    // The doorbell. Draining it here rather than at the park keeps the level-
-                    // triggered registration from re-reporting the same wake every pass.
-                    //
-                    // work++ IS LOAD-BEARING, and it is not accounting. The bell and its payload
-                    // are separate: a peer pushes its tag into the mailbox and THEN writes the
-                    // eventfd, and the mailbox is drained by ring_.for_each_cqe() one step earlier
-                    // in this pass. A peer that lands in the window between those two steps leaves
-                    // us holding a rung bell with its payload still queued -- and if this pass then
-                    // reported no work, the loop would park and the payload would wait out the
-                    // whole 50 ms ceiling. Counting the bell as work sends the loop round again,
-                    // where for_each_cqe picks the tag up immediately. Exactly the shape of the
-                    // ~3.9 ms-per-operation reading DEFER_TASKRUN once produced on the other engine.
+                    // Drain the level-triggered doorbell so it cannot report the same edge every pass.
+                    // Count the wake as work: a producer posts its mailbox payload before ringing, but
+                    // this pass drains the mailbox before reaching epoll. A payload arriving between
+                    // those drains still needs another pass even after this bell is consumed. Otherwise
+                    // the loop could park until the bounded timeout with a queued, already-rung payload.
                     ring_.drain_wake_fd();
                     self_->sig().wakes_recv++;
                     work++;
@@ -1264,12 +1283,16 @@ private:
         }
     }
 
+    // Dispatch one ring completion on its issuing IO worker, with template flags matching
+    // the loop's transport/role. The CQE is borrowed for this call; tagged clients remain
+    // alive through the receive/send/poll fences. Handlers release pins or transfer work,
+    // close failed transports, and retain retryable submissions; this switch owns no queue.
     /* TOMO_TOOL_FUNCTION on_cqe */
     template <bool HasTls, bool kEp, bool Fused = false>
     void /* TOMO_TOOL_BIND on_cqe */ on_cqe(io_uring_cqe* cqe) {
         constexpr bool ImmediateSendProgress = true;
         if constexpr (!HasTls) {
-            // Keep the tls-port=0 completion dispatch byte-for-byte shaped like the base switch.
+            // The no-TLS specialization dispatches only plain transport and shared control tags.
             switch (ur_kind(cqe->user_data)) {
                 case UrKind::Accept:
                     on_accept<kEp, Fused>(cqe, UrKind::Accept);
@@ -1407,7 +1430,7 @@ private:
         const FlipStage stage = srv_->flip_stage();
         // SWAPDB borrows the dispatch fence, but never converts an IO owner.
         // Closing accepts here resets a concurrent swapper before its first
-        // command. Admit it normally; its unconsumed frames obey the existing
+        // command. Admit it normally; its unconsumed frames obey the
         // execution boundary, including after this IO acknowledged the drain.
         // Use one stage snapshot so admission cannot mix two transitions.
         if constexpr (!kSingleDatabase)
@@ -1432,8 +1455,7 @@ private:
             return;
         }
         if (cqe->res < 0) {
-            // Do not swallow this silently: a failing accept with no trace is indistinguishable from
-            // a hung server, which is exactly how the 1024-connection failure presented.
+            // Report failed accepts: without the error a resource limit can look like a hung listener.
             self_->sig().accept_err++;
             if (cqe->res == -EMFILE || cqe->res == -ENFILE) {
                 accept_armed_ref(kind) = false;
@@ -1494,6 +1516,11 @@ private:
         admit_retained_fd<kEp, Fused>(fd, kind);
     }
 
+    // Take an accepted fd on this IO worker, reserve the global client slot, then adopt it
+    // or release-post a Unix handoff. Requires a listener kind matching the fd and live IO
+    // placement. Admission/allocation/TLS refusal closes the fd and cancels the reservation;
+    // a full handoff channel retains the Client in pending_handoffs_ for retry. Container
+    // allocation exceptions are not recovered in this method.
     /* TOMO_TOOL_FUNCTION admit_retained_fd */
     template <bool kEp, bool Fused = false>
     __attribute__((always_inline)) void /* TOMO_TOOL_BIND admit_retained_fd */ admit_retained_fd(
@@ -1548,12 +1575,9 @@ private:
             srv_->client_reserve_cancel();
             return;
         }
-        // NOTHING READ-LOCAL IS ALLOCATED HERE ANY MORE. The RYOW write-ring
-        // sidecar used to be built at accept for every connection on an armed boot, so a pure-read
-        // or idle connection carried 1216 bytes (a 1280-byte jemalloc class) it could never use.
-        // It is now built on the first write of a connection a local read has ARMED, from that
-        // connection's own IO thread; an allocation failure there falls back to the unarmed
-        // contract instead of rejecting a connection that is already established.
+        // Read-local sidecars are allocated on the first write after a local read arms the
+        // connection, by its IO owner. Idle and pure-read clients need no write-ring allocation.
+        // Allocation failure there uses the unarmed contract without rejecting this connection.
         if (tls_socket && !attach_tls(c)) {
             delete c;
             ::close(fd);
@@ -1703,6 +1727,12 @@ private:
         arm_recv<kEp>(client);
     }
 
+    // Begin migration on the source IO worker while it still owns client. Require protocol,
+    // executor, and writeback quiescence and a current/prepared destination IO. Reserve local
+    // state and both epoll outcomes before detach; io_uring waits for the original receive.
+    // No client owner publication occurs until finish_client_transfer. Return false with an
+    // error for preflight failure; return true while asynchronous preparation remains pending.
+    // Rollback-registration inconsistencies abort rather than waive the ownership fence.
     template <bool kEp>
     bool request_client_transfer_impl(Client* client, uint32_t destination, bool hold_for_commit,
                                       std::string& error) {
@@ -2034,7 +2064,7 @@ private:
         }
     }
 
-    // IoDrain ordering (IO4.4a). The plan reads every IO's client vector once all acknowledged,
+    // IoDrain ordering. The plan reads every IO's client vector once all acknowledged,
     // so nothing may still be on its way into one: an LB connection move admitted before the FLIP
     // is posted before LB leaves ClientMoving, and the UNIX owner's pending hand-offs are posted
     // before it acknowledges. Acknowledging after both makes this IO's drain see them.
@@ -2120,9 +2150,9 @@ private:
     template <class Id>
     __attribute__((always_inline)) bool lb_parse_paused(Id id) const {
         uint64_t pause;
-        // POST executes exactly its ordinary private load. A copied PAD-A ELF replaces
-        // that instruction with a jump to the retained PRE gate. Metadata inherits the
-        // enclosing COMDAT group, so discarded inline copies cannot leave stale sites.
+        // The ordinary path loads its private pause snapshot. An offline behaviour-twin ELF
+        // can replace this patch site with a jump to the comparison gate. Metadata shares the
+        // COMDAT group so discarded inline copies cannot leave stale patch sites.
         asm goto(
             "1: movq %[cache], %[pause]\n"
             "2:\n"
@@ -2138,7 +2168,7 @@ private:
         return lb_controller_armed_ && srv_->lb_should_pause_pad(self_->id(), id());
     }
 
-    // Retained comparison bodies; the POST call graph never enters either one.
+    // Comparison entry points for offline controls; the ordinary call graph does not enter them.
     void lb_pass_begin_pad();
     uint32_t lb_control_actuate_pad();
     uint32_t lb_control_pass_pad();
@@ -2159,6 +2189,11 @@ private:
         lb_pause_id_ = pause;
     }
 
+    // Advance load-balancer control at this IO's pass tail, after all sampled owner tasks
+    // are posted or abandoned. Stage reads acquire the controller's publication; acknowledgements
+    // and wakes let the coordinator progress only after the corresponding drains. This IO
+    // mutates only its source/destination migration state. Busy clients or resource failures
+    // refuse a move; pending stages and failed wakes remain runnable for retry/timeout.
     __attribute__((noinline)) uint32_t lb_control_pass() {
         if (!lb_controller_armed_) return 0;
         // Observe drains published during this pass as well as those seen at its start.
@@ -2314,6 +2349,11 @@ private:
         flip_publish_stage(FlipStage::RoleReady);
     }
 
+    // Advance a database-map boundary on this IO worker after dispatch. Acquire Done states
+    // before acknowledging IO drain; the elected boundary owner advances stages and wakes
+    // workers only after all required acknowledgements. The initiating ROB operation keeps
+    // dispatch fenced until completion. Closing clients in active_ participate in the drain;
+    // unready work retains the boundary and reports progress for another control pass.
     __attribute__((noinline)) uint32_t database_control_pass() {
         auto& map = srv_->databases();
         const auto stage = srv_->flip_stage();
@@ -2378,20 +2418,27 @@ private:
         return 1;
     }
 
-    // flipfix5: the per-thread stage test of every FLIP and database-boundary control action.
+    // Test whether this thread still owes the sampled FLIP/database-boundary stage.
     bool flip_owed(FlipStage stage) const {
 #ifdef TOMO_CORE_CONCURRENCY_TEST
-        // Planted regression for the serverless negative control: the pre-flipfix5 test.
+        // Negative control: ignore epoch identity and consult only the stage acknowledgement.
         if (test_live_epoch_ack_test_) return !srv_->flip_acked(self_->id(), stage);
 #endif
         return srv_->flip_stage_owed(self_->id(), stage);
     }
 
+    // Advance FLIP on this IO worker using the pass snapshot plus a live acquired stage.
+    // Each acknowledgement must belong to the sampled epoch; an Idle snapshot cannot ACK
+    // a drain that later parsing might cross. Prepare resources and quiesce owners before
+    // publishing client/role changes. This IO owns its local migration/pin state; only the
+    // coordinator advances global stages. Before ClientCommit, refusal/timeout rolls back;
+    // after ownership commit, complete installation without exposing ambiguous ownership.
     template <bool kEp>
     uint32_t flip_control_pass() {
         // An Idle pass may finish publishing work before acknowledging a newly opened drain.
         // Defer that acknowledgement to the next pass: sweep/epoll can still parse after this
         // tail, and they must never dispatch through an Idle snapshot AFTER a drain ACK.
+        // Phase 1: reconcile the pass snapshot with the live epoch and resume held resources.
         if (__builtin_expect(flip_stage_snapshot_ == FlipStage::Idle, true)) return 0;
         // Keep the live acquire on the armed control path. A previous stage may have finished
         // and a new epoch started during this pass; its stage/ACK must not use the old sample.
@@ -2421,7 +2468,8 @@ private:
         }
 
         // Each stage action tests Server::flip_stage_owed(), never flip_acked() alone: `stage` was
-        // sampled above and may belong to a FLIP that has since finished (flipfix5).
+        // sampled above and may belong to a FLIP that has since finished.
+        // Phase 2: perform this worker's drain, prepare, install, or rollback action.
         if (stage == FlipStage::IoDrain && flip_owed(stage)) {
             // A pin left by an earlier FLIP must not hide a detached close from this drain.
             flip_close_pin_ = false;
@@ -2450,13 +2498,10 @@ private:
                 flip_skip_stayers();
                 std::string ready_error;
                 if (!flip_candidate_clients_ready(ready_error)) {
-                    // A saturated pipelined connection is momentarily busy at ANY instant, so a
-                    // one-shot readiness snapshot let a single in-flight reply veto the whole
-                    // flip -- under 512-conn p16 load FLIP was refused essentially always, while
-                    // 8-conn tests sailed through. Dispatch is already held for this stage, so
-                    // busy connections drain within milliseconds: leave the epoch unclaimed and
-                    // retry every loop pass, and only convert not-ready into failure when the
-                    // flip's own 5s deadline expires (a genuinely stuck connection still fails).
+                    // A busy pipelined connection can drain while dispatch is held. Leave the epoch
+                    // unclaimed and retry readiness on each pass; report failure only at the FLIP deadline.
+                    // A transient in-flight reply must not veto preparation, and a stuck connection must
+                    // still fail rather than bypass the quiescence fences.
                     if (srv_->flip_timed_out()) {
                         flip_prepare_epoch_ = srv_->flip_epoch();
                         srv_->flip_note_failure("ERR FLIP cannot quiesce a connection: " +
@@ -2521,7 +2566,7 @@ private:
             srv_->flip_ack(self_->id(), stage);
         } else if (stage == FlipStage::ClientInstall && flip_owed(stage)) {
             const bool converting_to_ex = srv_->flip_candidate_target(self_->id()) == Role::Ex;
-            // EX is frozen now, so this execution/transit drain fences notify,
+            // EX is frozen at this stage, so this execution/transit drain fences notify,
             // pub/sub, tracking, and client-scatter messages which were posted just after a peer's
             // earlier IoDrain acknowledgement. The global event count prevents every consumer
             // from acknowledging while a payload is still between queues. Listener accepts stay
@@ -2552,10 +2597,11 @@ private:
             }
         }
 
+        // Phase 3: let the coordinator decide rollback and advance acknowledged stages.
         if (self_->id() != srv_->flip_coordinator()) return 1;
 
         std::string failure;
-        // IO4.2: a pending SIGTERM/SIGINT stop is served by the save cron, which no IO runs while
+        // A pending SIGTERM/SIGINT stop is served by the save cron, which no IO runs while
         // a FLIP stage is live. Withdraw a reversible FLIP at once (later stages are bounded and
         // complete); a FLIP begun while the stop is pending is withdrawn the same way.
         if (stage < FlipStage::ClientCommit && stage != FlipStage::Rollback &&
@@ -2601,8 +2647,8 @@ private:
                 break;
             case FlipStage::ClientPrepare:
                 if (srv_->flip_all_role_acked(Role::Ifid, stage)) {
-                    // Serialize the irreversible edge with the new cold close refusal.
-                    // The listener handover itself and its ordering are unchanged.
+                    // Serialize the irreversible listener/ownership commit with cold close refusal.
+                    // A failure observed under this mutex prevents entering ClientCommit.
                     std::lock_guard<std::mutex> lock(srv_->flip_error_mu_);
                     if (!srv_->flip_failed_.load(std::memory_order_acquire)) {
                         fliplisten_commit();
@@ -2653,6 +2699,11 @@ private:
         return 1;
     }
 
+    // Adopt a live accepted/handed-off client on its destination IO worker. Requires an
+    // owned fd and reserved global client slot; transfer reception supplies cross-thread
+    // visibility before entry. Install local epoll/WB/catalog state before arming input.
+    // Registration failure enters deferred close. SQE starvation keeps the client active
+    // for receive retry; container/catalog allocation recovery is not established here.
     /* TOMO_TOOL_FUNCTION adopt_client */
     template <bool kEp, bool Fused = false>
     void /* TOMO_TOOL_BIND adopt_client */ adopt_client(Client* c, bool unix_socket,
@@ -2716,9 +2767,9 @@ private:
             }
         } else
             arm_recv<kEp>(c);
-        // Reachability, not optimism: if that arm starved for an SQE, nothing else names this
-        // conn -- it would sit accepted and silent forever (audit finding). The active set's
-        // phase-1 re-arms it until the recv lands; one wasted visit if the arm succeeded.
+        // Keep the client reachable after SQE starvation: the active-set read phase retries
+        // receive arming until it succeeds. An accepted client with no receive and no active-set
+        // entry has no future event that can make it progress.
         mark_active(c);
     }
 
@@ -2734,6 +2785,11 @@ private:
         return sent;
     }
 
+    // Consume the original receive completion on the issuing IO worker. The kernel has
+    // released its buffer pointer at entry; preserve bytes racing migration cancellation
+    // without parsing on the departing owner. Live normal clients commit bytes then parse
+    // and remain active. EOF enters the drain lifecycle; failures/limits close, while a
+    // cancel used for buffer maintenance keeps the connection eligible for retry.
     /* TOMO_TOOL_FUNCTION on_recv */
     template <bool HasTls, bool kEp, bool Fused = false>
     void /* TOMO_TOOL_BIND on_recv */ on_recv(Client* c, int res) {
@@ -2812,6 +2868,12 @@ private:
         mark_active(c);
     }
 
+    // Advance this IO-owned client's TLS handshake, pending output, and plaintext parsing.
+    // Requires no pinned inbound BIO frontier while calling SSL read/handshake; callers
+    // check recv_armed before driving. Borrow the TLS slot, flush output before further reads,
+    // and grow receive storage only at ROB quiescence. WANT_READ/WRITE arms retry readiness;
+    // EOF/errors initiate close (possibly draining alerts). True means the TLS engine has
+    // not failed or is waiting, not that application work necessarily progressed.
     /* TOMO_TOOL_FUNCTION drive_tls */
     template <bool kEp, bool Fused = false>
     bool /* TOMO_TOOL_BIND drive_tls */ drive_tls(Client* c) {
@@ -3005,13 +3067,10 @@ private:
         op.zc_shard = -1;
     }
 
-    // ATTRIBUTION FOR A DEMOTED READ, on the demote path only. Arm-on-demand has two distinct
-    // reasons to hold a read back and they must not be summed into one counter: an explicit key
-    // conflict with a live write descriptor (InflightWrite, the steady state), and the ARMING
-    // TRANSIENT -- writes this connection published before any local read armed it, which no
-    // descriptor describes and which are therefore fenced wholesale until they retire. The second
-    // is per-connection and one-shot; a bench arm whose ArmTransient count keeps growing has an
-    // arming bug, which is exactly what makes reporting it separately worth a counter.
+    // Attribute demoted reads to explicit live-write conflict (InflightWrite) or to the
+    // one-time arming fence (ArmTransient). Writes published before the first local read
+    // have no descriptors, so they fence subsequent local reads until they retire. Keep
+    // that transient distinct from steady-state key conflicts to diagnose repeated arming.
     static ReadLocalFallbackReason read_local_write_fallback_reason(const Rob<kRobWindow>& rob) {
         return rob.read_local_arm_fence_live() ? ReadLocalFallbackReason::ArmTransient
                                                : ReadLocalFallbackReason::InflightWrite;
@@ -3019,15 +3078,24 @@ private:
 
     // A demotion is planned before the stateful MONITOR/tracking gate. A complete plan is not
     // published until ACL and FLIP admit the current frame; per-producer reservations make that
-    // later commit infallible. If the existing scatter snapshot window accepts only a prefix, that
+    // later commit infallible. If the scatter snapshot window accepts only a prefix, that
     // prefix contains exclusively older, already-admitted reads and is committed before the
     // current frame crosses any stateful hook; the unconsumed frame is then safe to reparse.
-    // MGET remains one ROB operation, but its cold fallback expands here through the unchanged
+    // MGET remains one ROB operation, but its cold fallback expands here through the
     // scatter planner into one owner Task per touched shard.
+    // IO-worker-local reservation owner, also used by the fused executor on that same
+    // physical thread. Borrows loop/client; owns scratch, unpublished scatter states, and
+    // producer task credits until commit transfers them. Requires immutable live ROB metadata
+    // and stable routing during the parse/owner pass. Destruction cancels unused credits and
+    // scatter state; no work is published by preparation alone. Allocation/capacity refusal
+    // leaves a retryable frame; partial success contains only older, already-admitted reads.
     class /* TOMO_TOOL_BIND ReadLocalDemotionPlan */ ReadLocalDemotionPlan {
     private:
         enum class ReadKind : uint8_t { Ordinary, Scatter, Error };
 
+        // Scratch owned by one demotion plan. Only initialized count_/nowners_ prefixes are
+        // read. Scatter pointers own unpublished states until commit or discard; arrays are
+        // worker-private and rely on the enclosing ROB/window bounds, with no atomic publication.
         struct Storage {
             uint64_t ids[kRobWindow];
             ScatterState* scatter[kRobWindow];
@@ -3044,6 +3112,12 @@ private:
         ReadLocalDemotionPlan(const ReadLocalDemotionPlan&) = delete;
         ReadLocalDemotionPlan& operator=(const ReadLocalDemotionPlan&) = delete;
 
+        // Prepare on the client's IO/fused worker with an inactive plan and valid fallback
+        // arrays/reason. Select overlapping pending reads, close MGET overlap transitively,
+        // and reserve every destination's producer credits before any hook can commit.
+        // Returns true for no work, a complete plan, or a partial older-read prefix; callers
+        // must inspect partial(). False cancels prepared resources for retry. Invalid argument
+        // combinations abort. No task or ROB completion is published here.
         bool prepare(IoLoop& loop, Client* client, uint64_t hash, bool require_hash_match,
                      int32_t reserve_shard = -1,
                      ReadLocalFallbackReason reason = ReadLocalFallbackReason::ContextOwnerKey,
@@ -3052,6 +3126,7 @@ private:
                      const ReadLocalFallbackReason* fallback_reasons = nullptr,
                      uint32_t fallback_count = 0, const Op* intersect_command = nullptr,
                      bool intersect_filter_miss = false) {
+            // Phase 1: validate the request and refine precise write hazards before early exits.
             if (loop_ || !client) std::abort();
             if (reason == ReadLocalFallbackReason::None) std::abort();
             if ((fallback_ids == nullptr) != (fallback_reasons == nullptr) ||
@@ -3060,12 +3135,12 @@ private:
                 (intersect_filter_miss && !intersect_command))
                 std::abort();
             Rob<kRobWindow>& rob = client->rob();
-            // RL4.4: the variadic registry routes even one-key DEL/UNLINK here,
+            // The variadic registry routes even one-key DEL/UNLINK here,
             // after mark_current_write() staged a conservative generation. Refine
             // this already-taken broad-write edge before either early-out: younger
             // reads need the point hash even when there are no pending older reads.
             // Ordinary GET/SET never enter this classification. The executor/scatter
-            // route remains unchanged (xshard_prepare already handles argc==2).
+            // route uses xshard_prepare, which handles argc==2.
             if (reason == ReadLocalFallbackReason::InflightWrite && !require_hash_match &&
                 reserve_shard < 0 && !fallback_count && !intersect_command) {
                 Op& write = rob.at(rob.dispatch_id());
@@ -3081,7 +3156,7 @@ private:
             const bool reserve_current = reserve_current_without_reads && reserve_shard >= 0;
             // A caller that already walked a complete precise keyset may pass its authoritative
             // pending-filter miss. Consume it before reloading the same filter; hit/unknown remains
-            // false and takes the unchanged exact-selection path below.
+            // false and takes the exact-selection path below.
             if (!reserve_current && !fallback_count && intersect_filter_miss) return true;
             // Current intersect callers also passed a known hit when they reach the exact path.
             // Unknown remains safe without this shortcut: collecting an empty set returns below.
@@ -3091,13 +3166,14 @@ private:
             // any still-pending local read of this connection can touch, so a miss PROVES that no
             // pending read shares the point hash / any declared key of the exact command. The
             // ordinary disjoint write returns here without allocating or walking anything; a hit
-            // runs the unchanged exact plan below. EX seeds are selected by id, and a reserved
+            // runs the exact plan below. EX seeds are selected by id, and a reserved
             // current op needs the plan regardless of reads, so neither consults the filter.
             if (!reserve_current && !fallback_count && !intersect_command && require_hash_match &&
                 !rob.read_local_pending_may_touch(hash))
                 return true;
             // Select on the stack; Storage is only paid for once a read is actually demoted or
             // the current op must be reserved.
+            // Phase 2: select pending reads and close transitive key overlap.
             uint64_t ids[kRobWindow];
             ReadLocalFallbackReason reasons[kRobWindow];
             bool selected[kRobWindow] = {};
@@ -3177,6 +3253,7 @@ private:
                 count = out;
             }
             if (!count && !reserve_current) return true;
+            // Phase 3: prepare scatter state for the selected prefix and count owner demand.
             storage_.reset(new (std::nothrow) Storage);
             if (!storage_) return false;
             count_ = count;
@@ -3201,7 +3278,7 @@ private:
                         xshard_prepare(*loop.srv_, op, loop.scatter_pool_, loop.self_->id(),
                                        client->id(), dispatch, false, client);
                     if (prepared == ScatterPrepare::Backpressure) {
-                        // A local run can contain more cross-shard reads than the existing
+                        // A local run can contain more cross-shard reads than the
                         // snapshot window admits concurrently. Publish the already prepared ROB
                         // prefix as one ordered wave and leave this op plus the exact selected
                         // remainder tagged in the local lane. The next EX pass demotes only entries
@@ -3243,6 +3320,7 @@ private:
                 add_owner(static_cast<uint32_t>(reserved_current_worker_));
             }
 
+            // Phase 4: reserve all producer credits, rolling back every partial reservation on refusal.
             uint32_t reserved = 0;
             for (; reserved < nowners_; reserved++) {
                 if (!loop.srv_->thread(storage_->owners[reserved])
@@ -3266,6 +3344,12 @@ private:
         bool partial() const { return partial_; }
         uint32_t read_count() const { return count_; }
 
+        // Commit a prepared plan on the same IO/fused worker after its admission gates pass.
+        // The selected local reads already occupy published ROB slots. Transfer scatter ownership
+        // to those Ops and release-post tasks using reserved credits; release-store Done for
+        // local errors. Preserve fallback tags on an uncommitted suffix. This consumes the read
+        // prefix once, retaining a current-operation reservation if needed; invalid accounting
+        // aborts, and this phase has no queue-capacity refusal.
         void commit_reads() {
             if (!loop_) return;
             Rob<kRobWindow>& rob = client_->rob();
@@ -3439,6 +3523,12 @@ private:
         touched_list_[ntouched_++] = worker;
     }
 
+    // Dispatch a prepared atomic write on its connection's IO worker. Requires nonempty
+    // valid shard routing, an unpublished current ROB slot, and zero dispatch_needed_ entries.
+    // Check every owner inbox before attaching state and publishing the group/ROB entry;
+    // then release-post one ordered bundle per owner and defer their wakes to the parse tail.
+    // Capacity refusal abandons unpublished scatter state and restores scratch to zero.
+    // After publication a refused post or inconsistent shard total is an invariant abort.
     /* TOMO_TOOL_FUNCTION dispatch_atomic_scatter */
     __attribute__((noinline)) bool /* TOMO_TOOL_BIND dispatch_atomic_scatter */
     dispatch_atomic_scatter(Client* c, Op& op, const ScatterDispatch& dispatch) {
@@ -3472,9 +3562,8 @@ private:
                 return false;
             }
         }
-        // Allocate the bundle only after capacity succeeds. Construct each used Task exactly
-        // once (including its zero enqueue stamp), instead of default-constructing 256 Tasks
-        // and overwriting the live prefix. Destruction is trivial after the queues copy them.
+        // Allocate the bundle only after capacity succeeds. Construct only the used Tasks,
+        // including their zero enqueue stamps. Destruction is trivial after the queues copy them.
         static_assert(std::is_trivially_destructible_v<Task>);
         auto* posts = static_cast<Task*>(__builtin_alloca(sizeof(Task) * nshards));
         auto* participant_begin =
@@ -3501,8 +3590,8 @@ private:
             const uint32_t tid = participants[p];
             const uint32_t begin = participant_begin[p];
             const uint32_t end = p + 1 < nparticipants ? participant_begin[p + 1] : nshards;
-            // Capacity precedes publication; each owner still receives one ordered bundle
-            // with one queue-tail store. The parse pass folds notification exactly as before.
+            // Capacity precedes publication; each owner receives one ordered bundle with one
+            // queue-tail store. The parse pass folds notification for all touched owners.
             if (!srv_->thread(tid).post_tasks_quiet(self_id, posts + begin, end - begin,
                                                     self_->sig()))
                 std::abort();
@@ -3512,9 +3601,18 @@ private:
     }
 
     // ---- parse -> route -> publish -----------------------------------------------------------------
+    // Parse buffered frames on the connection's IO owner. Requires stable receive storage and
+    // a matching fused executor for local-read paths; NoBorrow selects handlers safe for TLS.
+    // BatchOps bounds a fused pass; zero uses ROB capacity as the bound. SplitLocal shares the
+    // local-read protocol. Stamp one read cut/map before routing, publish ROB entries before
+    // release-posting tasks, and advance input only once a reply or task is committed.
+    // Full queues, barriers, or admission limits leave input for retry; incomplete input returns
+    // NeedInput. Protocol/size errors close or stage a closing reply. Completion is ordered by
+    // the ROB, and touched owners receive their folded notifications before this pass returns.
     /* TOMO_TOOL_FUNCTION parse_and_dispatch */
     template <bool NoBorrow, uint32_t BatchOps = 0, bool SplitLocal = false>
     DispatchResult /* TOMO_TOOL_BIND parse_and_dispatch */ parse_and_dispatch(Client* c) {
+        // Phase 1: snapshot connection limits, controller gates, and the pass read cut.
         // Split readers and fused batches need the same ROB hazards, MGET fence,
         // admission, and demotion protocol as the baseline fused reader.
         static constexpr bool Fused = SplitLocal || (BatchOps == kGenthreadIfidBatchOps);
@@ -3588,6 +3686,7 @@ private:
         // retirement, and no WB stage runs inside this parse pass: acquire() already stops at
         // the 64-slot ROB boundary. Local/error completions publish Done; they do not retire.
         for (;;) {
+            // Phase 2: reserve a ROB slot and parse a frame without consuming retryable input.
             if constexpr (BatchOps != 0)
                 if (sig.ops - batch_start_ops >= BatchOps) break;
             // The coordinator's own connection already holds the unfinished FLIP head. Do not
@@ -3604,8 +3703,7 @@ private:
             if constexpr (Fused) {
                 op = read_local_enabled ? rob.acquire_read_local(conn.op_route_flags())
                                         : rob.acquire<true>(conn.op_route_flags());
-                // Preserve the unarmed parser's byte replies. acquire_read_local
-                // above uses the existing coded fused arm.
+                // The unarmed parser uses byte replies; the armed fused parser uses coded replies.
             } else {
                 op = rob.acquire<false>(conn.op_route_flags());  // 2s keeps the byte path
             }
@@ -3636,9 +3734,8 @@ private:
             uint32_t pos = conn.rpos();
             const char* err = nullptr;
             op->rbuf_off = pos;
-            // The authenticated/common path takes the constant-folded parser; only pre-AUTH
-            // connections (predicted false) pay real limit arguments. See resp.h for the
-            // +83 instr/op lesson behind this split.
+            // The authenticated path uses constant-folded parser limits. Pre-AUTH connections
+            // use the smaller explicit limits; a nondefault bulk limit selects the bounded parser.
             bool security_check = auth_required && !conn.authenticated();
             ParseResult pr;
             if (__builtin_expect(conn.multibulk_pending(), false)) {
@@ -3694,6 +3791,7 @@ private:
             // certain to be answered — see the dispatch-refusal path below for why.
             const uint32_t consumed = pos - conn.rpos();
 
+            // Phase 3: validate command grammar, choose handlers, and stamp the database map.
             const CommandSpec* spec = command_lookup(op->cmd_name());
             if (!spec) {
                 conn.advance_parse(consumed);
@@ -3777,15 +3875,10 @@ private:
                     if (!extend_read_local_batch) read_local_batch = false;
                 }
             }
-            // THE SOLE DISABLED-STATE FEATURE DECISION on an ordinary operation. The executor
-            // receives a spec whose handler pointer is already the clean or armed specialization;
-            // no notification mask load reaches its execute path.
-            //
-            // Lane F rides this ONE branch rather than adding its own. notify_armed_ is the union
-            // of "keyspace notifications configured" and "some CLIENT/MONITOR/TRACKING feature is
-            // armed" (see climon_refresh_armed), so with everything off the emitted code is
-            // byte-for-byte the pre-lane sequence: one predicted-not-taken test, then the tls
-            // variant select and the spec store. The armed side pays a cold out-of-line call.
+            // Select notification and TLS handler specializations before executor publication.
+            // notify_armed_ combines keyspace notifications with CLIENT/MONITOR/TRACKING arming
+            // (see climon_refresh_armed), so they share one dispatch decision. Executors receive
+            // the selected spec and need no notification-mask load on the execution path.
             if (__builtin_expect(notify_armed, false)) {
                 spec = command_notify_variant(spec);
                 if constexpr (NoBorrow) spec = command_tls_variant(spec);
@@ -3810,6 +3903,7 @@ private:
                 }
                 multidb_stamp(*srv_, *op, conn.session().db_index);
             }
+            // Phase 4: plan local-read admission/demotion before any stateful command hooks.
 #include "read_local_parse.inc"
             if constexpr (Fused) {
                 if (read_local_enabled && read_local_demotion.active() &&
@@ -3838,6 +3932,7 @@ private:
                 c->set_flip_backpressure(true);
                 break;
             }
+            // Phase 5: apply security/persistence gates and lower transactions and IO commands.
             // FLIP holds precede stateful hooks. Later backpressure exits may
             // reparse this frame; the armed gate keys its receipt by ROB number.
             if (__builtin_expect(notify_armed, false) &&
@@ -3996,7 +4091,7 @@ private:
                     break;
                 }
                 // DEBUG SLEEP orders behind older replies, then retains its ROB slot while
-                // every worker rendezvouses and pauses. Other DEBUG forms are unchanged.
+                // every worker rendezvouses and pauses. Other DEBUG forms use their own handler path.
                 if (__builtin_expect((spec->flags & CmdFlags::DebugSleep) != 0, false)) {
                     if (op->argc() == 2 && op->arg(1).eq_icase("rehash-state")) {
                         // This diagnostic reads mutable table counters. ConfigRoute normally
@@ -4078,8 +4173,8 @@ private:
                             // Released by the quiescence backstop, not here: a parked WAIT's own
                             // completion (deferred_timer_pass) fires before its op retires, and
                             // dropping the barrier there would let younger frames parse ahead of
-                            // the WAIT reply's staging. Owner bit named so the release is
-                            // attributable; the release site is deliberately unchanged.
+                            // the WAIT reply's staging. BarrierOwner::Wait identifies
+                            // this claim until retirement makes the ROB quiescent.
                             barrier_arm(c, BarrierOwner::Wait);
                             mark_active(c);
                             break;
@@ -4144,6 +4239,7 @@ private:
                 continue;
             }
 
+            // Phase 6: stamp owner hazards and lower blocking and cross-shard operations.
             // This command only needs an owner-local same-connection pending lookup when an older
             // cross-shard atomic group was already in flight. Set the immutable bit before the
             // current group increments the count, so a group never treats itself as a predecessor.
@@ -4269,25 +4365,16 @@ private:
                     break;
                 }
                 if (scatter_prepared == ScatterPrepare::Ready) {
-                    // SAME-CONNECTION PROGRAM ORDER ACROSS A SECOND WAVE OF TASKS.
+                    // Second-wave scatters require same-connection ordering on both sides.
+                    // Their later owner tasks originate on an EX producer channel (destination installs,
+                    // pop retries, or script apply), while ordinary tasks originate on this IO channel.
+                    // ThreadCtx::drain_tasks visits producer channels by ID, so the channels alone do not
+                    // order an older ordinary task before a later scatter's second wave.
                     //
-                    // A barriered scatter is exactly the set of commands that publish a SECOND wave of
-                    // owner tasks from an EX thread rather than from here: a two-hop store's phase-2
-                    // destination install (publish_phase2), an LMPOP/ZMPOP retry, the cross-owner
-                    // script apply wave. Those tasks enter the destination owner through the EX
-                    // producer's inbox channel, while this connection's ordinary ops entered through
-                    // THIS io thread's channel -- and ThreadCtx::drain_tasks visits channels in
-                    // producer-id order, so nothing orders the two. A phase-2 install could therefore
-                    // execute BEFORE an older op of the same connection that was still sitting in our
-                    // channel, and that older op then answered from after a store it precedes.
-                    // Measured: `ZDIFFSTORE d 2 a b` answering :1 with the very next `ZCARD d`
-                    // answering :2, and a `DEL` of a destination landing after a younger store.
-                    //
-                    // The barrier the dispatch sets below already keeps YOUNGER ops out; this keeps
-                    // older ones from still being in. Same lowering the blocking path uses: wait for
-                    // the ROB head, leave the frame unconsumed, and re-parse once the connection
-                    // quiesces. Read-only and single-wave scatters (MGET, MSET/DEL groups, a direct
-                    // RENAME) are not barriered and do not pay it -- they post every task from here.
+                    // Wait for the ROB head before starting the scatter, leave its frame unconsumed while
+                    // waiting, and arm the barrier against younger frames after publication. Read-only and
+                    // single-wave scatters (MGET, MSET/DEL groups, direct RENAME) post every task from this
+                    // IO and do not need this barrier.
                     if (scatter_dispatch.barrier && rob.in_flight() != 0) {
                         xshard_abandon_unpublished(scatter_dispatch.state, scatter_pool_, self_id);
                         break;
@@ -4367,7 +4454,7 @@ private:
 
         ordinary_dispatch:
             // The ordinary key position is registry metadata. Container children and the other
-            // special routes refine it in the existing CursorShard hook below.
+            // special routes refine it in the CursorShard hook below.
             if (spec->flags & CmdFlags::CursorShard) {
                 if (!command_prepare_scan_route(*srv_, *op)) {
                     conn.advance_parse(consumed);
@@ -4438,7 +4525,7 @@ private:
                         flip_fingerprint_note(*spec, *op);
                         mark_active(c);
                         read_local_batch = !read_local_mget_candidate;
-                        // Fill at most the existing fused IFID quantum; intervening ordinary frames
+                        // Fill at most the fused IFID quantum; intervening ordinary frames
                         // simply end this run. MGET holds a one-command cut fence until local
                         // validation or irrevocable owner demotion, so stop this parse pass now.
                         if (read_local_mget_candidate) break;
@@ -4447,6 +4534,7 @@ private:
                 }
             }
 
+            // Phase 7: publish an ordinary owner task, rolling back a refused queue push.
             const uint32_t worker_id = srv_->worker_of_shard(op->shard);
             ThreadCtx& worker = srv_->thread(worker_id);
             if constexpr (Fused && !SplitLocal) {
@@ -4455,23 +4543,14 @@ private:
                     l4prebuild_prepare_set(*op);
             }
 
-            // PUBLISH BEFORE DISPATCH. The old order posted the task first and published after, which
-            // left a window of two instructions in which a worker could receive the task, execute it,
-            // mark it Done and notify the sender -- all while dispatch_ still excluded the op. The
-            // sender then woke, drained a ROB that did not yet contain the op, retired nothing, and
-            // went back to sleep having spent its one notification. Nothing ever notified again, so
-            // the reply sat Done in the ROB forever.
+            // Publish the ROB slot before posting the task. Otherwise an owner could complete
+            // and notify before dispatch_ includes the operation; a consumer could spend that
+            // notification on an apparently empty ROB and leave the reply stranded.
             //
-            // It cost 3 lost replies in 87 million and wedged the connection permanently. Invisible in
-            // 2-stage, where io is the sender and re-drains its own active set unprompted; it was
-            // FATAL in the deleted remote-sender modes, and the ordering is kept because it is
-            // simply correct: publish, then tell.
-            // DIRECT-REPLY eligibility (owner's c->buf trick): this op is the ROB head and the
-            // fill buffer is empty, so its bytes can be formatted in place by the worker. True for
-            // every op at depth 1 and for the head of each fresh batch at depth. Evaluated ONLY for
-            // the first dispatch of the pass: later ops cannot be head, and the in_flight() read
-            // touches flush_, a line the sender writes -- checked per op it became a per-op
-            // cross-thread load and cost -2..-4% at p32 for a candidate that can never qualify.
+            // Direct replies require a ROB head and an empty fill buffer. Check only the first
+            // dispatch of a pass: later dispatches cannot qualify, and in_flight() reads flush_,
+            // a cache line written by reply retirement. The worker may format the eligible reply
+            // in the supplied fill-buffer region.
             if (head_candidate) {
                 head_candidate = false;
                 if (rob.in_flight() == 0 && c->nothing_to_write()) {
@@ -4492,13 +4571,9 @@ private:
             if (!posted && !post_task_quiet(worker, t)) {
                 rob.unpublish();  // a refused push must leave NO trace -- including in the ROB
                 if constexpr (Fused && !SplitLocal) l4prebuild_discard_set(*op);
-                // A REFUSED PUSH MUST LEAVE NO TRACE. Advancing the parse cursor before this point
-                // consumed the command's bytes while publishing no op, so the client waited forever
-                // for a reply that would never be produced and the connection wedged. This is not an
-                // edge case: with enough io threads feeding few workers the inbox fills routinely,
-                // and it hung a benchmark within seconds at io6/ex2. Leaving the cursor untouched
-                // means the command is simply re-parsed on a later pass, once retiring has freed
-                // inbox space.
+                // A refused push leaves both the ROB publication frontier and parse cursor untouched.
+                // Consuming bytes without queuing an operation would lose its reply. Leave this frame
+                // for a later parse pass after the owner inbox has room.
                 break;
             }
 #ifdef TOMO_CORE_CONCURRENCY_TEST
@@ -4520,7 +4595,8 @@ private:
             mark_active(c);
         }
         {
-            // Item 2: one notify per worker per parse pass, not per op. The pushes above are already
+            // Phase 8: notify each touched owner once and finish the pass fingerprint.
+            // One notify per worker per parse pass, not per op. The pushes above are already
             // visible in the queues; this publishes the "look here" bit and pays the wake decision
             // once.
             for (uint32_t i = 0; i < ntouched_; i++) {
@@ -4547,11 +4623,9 @@ private:
         return posted;
     }
 
-    // The per-operation gate of the SAMPLED fingerprint: one load of the
-    // writer's own word -- the line the old enabled() test already read -- and one predicted-false
-    // branch. The body below (the argv walk and its five counter stores, 63-86 instr/op when it ran
-    // on every frame) runs only inside a sampled parse pass. Dark writer (--flip-auto 0, every 1s
-    // boot): the word is never 0 and nothing else runs.
+    // Sampled fingerprint gate: one owner-private word decides whether this pass walks
+    // argv and updates the fingerprint counters. With --flip-auto 0 (including every 1s
+    // boot), the sampling word is never zero and the body is skipped.
     void flip_fingerprint_note(const CommandSpec& spec, const Op& op) {
         if (__builtin_expect(self_->flip_fingerprint().pass_sampled(), false))
             flip_fingerprint_note_sampled(spec, op);
@@ -4711,7 +4785,7 @@ private:
                 pubsub_work += pubsub_drain_events();
                 return;
             }
-            // AF_UNIX accept handoffs use this existing channel without claiming retirement.
+            // AF_UNIX accept handoffs use this channel without claiming retirement.
             // Executor completions always CAS retire_queued false->true before posting, so the bit
             // distinguishes the two meanings without adding a Client field or a catalog lock here.
             if constexpr (HasUnix)
@@ -4724,11 +4798,9 @@ private:
             mark_active(c);
         };
         uint32_t n = unmasked ? self_->drain_clients_unmasked(take) : self_->drain_clients(take);
-        // The ready-mask path: workers set one bit per completed-work burst; we map slot -> client,
-        // flag it FOR SERVING, and put it back in the active set. The flag is the point: serving
-        // every active conn every pass measured 93% EMPTY serves at 8 nodes -- 526M drain-checks
-        // that each pulled a remote worker's cache line to learn there was nothing to do. Targeted
-        // serving turns the poll into a response.
+        // Workers mark completed-work bursts in the ready mask. Map each slot to its client,
+        // enqueue serving, and mark it active. Read-side activity alone need not poll an
+        // executor-written completion line on every pass.
         const uint32_t words = self_->wb_slot_words();
         for (uint32_t w = 0; w < words; w++) {
             uint64_t bits = self_->ready().take(w);
@@ -4750,6 +4822,12 @@ private:
     // The io thread's own work per active client. In 2-stage it also owns the reply side and calls
     // serve() here; in ex-wb and 3-stage the sender does that on its own thread and io only keeps
     // the READ side moving — reclaim the buffer once nothing points into it, and re-arm.
+    // Service this IO worker's active clients, then the captured serving FIFO. Requires
+    // matching transport/role flags and stable client lifetimes; callbacks may mutate active_,
+    // so traverse it by index. Respect receive/BIO pins before buffer reuse and observe ROB
+    // completion before retirement. Fused owner work follows parsing; pub/sub fanout precedes
+    // serving. Full ROBs, SQE shortage, and close fences retain retry reachability; AOF send
+    // gating returns accumulated work without sending until the durability target is ready.
     /* TOMO_TOOL_FUNCTION flush_ready */
     template <bool HasTls, bool kEp, bool Fused = false, bool HasUnix = false,
               bool SweepPass = false, bool SplitLocal = false>
@@ -4758,12 +4836,9 @@ private:
         backstop_pass_ = (++flush_tick_ >= kFlushBackstopEvery);
         if (backstop_pass_) flush_tick_ = 0;
 
-        // PHASE 1 -- the read side, every active conn, BEFORE any serving. At 2048 conns the old
-        // interleaved pass collapsed loop iterations 7.5x: each pass walked ~100 conns doing serve
-        // and send work while drained recvs sat un-armed, sockets backed up, and arrivals went
-        // bursty (113k park/wake round-trips where 22k belonged). Arming first keeps the arrival
-        // stream flowing no matter how deep the reply backlog is -- which is exactly the property
-        // that made 3s hold flat (-3.7%) at the conn count where 2s lost 21%.
+        // Phase 1: rearm and parse active connections before serving their replies.
+        // Receive arming precedes send work so reply backlogs do not leave drained sockets
+        // without a receive. Indexed traversal tolerates close/retry mutations of active_.
         for (size_t idx = 0; idx < active_.size();) {
             Client* c = active_.at(idx);
             Client& conn = *c;
@@ -4783,7 +4858,7 @@ private:
                     else if (tls->userspace()) {
                         // A synchronous transport (socket-userspace SSL_write, epoll memory BIO)
                         // sends one plaintext unit per call and completes no CQE. Progress is work,
-                        // or the loop parks with units left until the idle timeout (F5).
+                        // or the loop parks with units left until the idle timeout.
                         if (wb_.pump_tls<kEp>(*c, *tls)) work++;
                         if (tls->socket_userspace() && tls->has_pinned_plain())
                             arm_tls_socket_poll<kEp>(c, tls->wanted());
@@ -4833,18 +4908,10 @@ private:
             // Fill from the socket BEFORE the re-parse below, so bytes that arrived while the ROB
             // window was full are parsed in the same pass that freed the slots.
             if constexpr (kEp) {
-                // A CLOSING CONNECTION OWES NO EDGE. Under io_uring this is automatic: arm_recv
-                // refuses to re-arm a closing connection, so recv_armed_ falls to false as soon as
-                // the outstanding recv completes and safe_to_release() opens. Under epoll nothing
-                // completes -- the flag says "an edge is owed", and for a socket being torn down
-                // that is simply false. Leaving it set makes safe_to_release() refuse forever, and
-                // the connection is never released.
-                //
-                // The path that exposed this is CLIENT KILL on SELF, which reaches its victim
-                // through mark_closing() rather than close_client() (the reply has to go out
-                // first), so nothing else would ever clear the flag: the reply was delivered and
-                // the socket then stayed open indefinitely. tests/climon.py's
-                // "KILL self close-after-reply" is the regression cover.
+                // A closing epoll connection owes no readiness edge. Clear recv_armed_ here because
+                // there is no receive CQE to clear it; leaving it set prevents safe_to_release forever.
+                // CLIENT KILL on itself uses mark_closing() to send its reply before teardown, so it
+                // also needs this cleanup even when close_client() has not initiated the close.
                 if (c->closing()) c->set_recv_armed(false);
                 if (!c->closing()) {
                     if constexpr (HasTls) {
@@ -4870,12 +4937,10 @@ private:
             // which is what makes the rest parseable.
             if (!c->closing() && conn.rpos() < conn.rlen() && !c->scatter_barrier() &&
                 !c->parse_backpressure()) {
-                // A CLIENT PAUSE hold deliberately leaves the parsed frame at rpos. Counting that
-                // as work would spin the ring at 100% until the deadline instead of parking it,
-                // so while a pause is live the pass reports progress only if the cursor moved.
-                // With no pause armed the accounting is byte-for-byte the pre-lane behaviour --
-                // one predicted-false test per active connection per pass. The dispatch variant
-                // stays keyed on c->is_tls() (the kTLS handoff's contract), not the slot pointer.
+                // CLIENT PAUSE leaves the parsed frame at rpos. Count progress only when the cursor
+                // moves while paused, so a held frame does not spin until its deadline. Select the
+                // parser using c->is_tls(): that transport property survives a kTLS handoff even when
+                // the userspace TLS slot is no longer the active engine.
                 if (__builtin_expect(climon_pause_armed(), false)) {
                     const uint32_t rpos_before = conn.rpos();
                     if constexpr (HasTls) {
@@ -4955,6 +5020,7 @@ private:
             } else
                 idx++;
         }
+        // Phase 2: process deferred closes outside the active-set traversal.
         // The epoll engine's deferred closes. A synchronous recv/send discovers a dead peer several
         // frames inside the walk above; closing it THERE would mutate the set under the walk, so
         // the sites queue instead and the teardown happens here, between phases, where nothing is
@@ -4968,21 +5034,23 @@ private:
             }
         }
 
+        // Phase 3: run the fused owner batch and collect its completions.
         // The fused loop rotates whole streams: finish the bounded IFID phase above, execute one
-        // batch, collect its local self-lane completions, then enter the existing write-back phase.
+        // batch, collect its local self-lane completions, then enter the write-back phase.
         if constexpr (Fused) {
             work += SweepPass ? fused_executor_->fused_baseline_sweep()
                               : fused_executor_->fused_baseline_pass();
             work += collect_retire_work<HasUnix, kEp>(SweepPass);
         }
 
+        // Phase 4: flush pub/sub fanout before any subscriber serving.
         // PUB/SUB PASS BOUNDARY -- between parsing and serving, on purpose. Everything this pass
         // parsed is resolved and appended to its subscribers' buffers HERE, so PHASE 2 sends one
         // coalesced write per subscriber instead of one per message. Off/unarmed servers pay one
         // predicted branch on a bool; all the machinery is out-of-line and cold.
         if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
 
-        // PHASE 2 -- both modes visit the captured FIFO once under the composite rule.
+        // Phase 5: honor the AOF reply fence, then serve the captured FIFO once.
         if (!pending_serve_.empty()) {
             AofManager& aof = srv_->aof();
             if (__builtin_expect(aof.configured(), false)) {
@@ -5052,6 +5120,10 @@ private:
         ReceiveEof,
         AcceptRetry
     };
+    // IO-owned tagged continuation. Client/ROB references are borrowed until completion
+    // or cancellation. Kind selects deadline/ticket and overloaded op_id/slow_started_ns;
+    // AcceptRetry carries a listener generation without a Client. Vector removal owns no
+    // client deletion; completion publishes Done, and close cancels client timers first.
     struct DeferredTimer {
         Client* client = nullptr;
         uint64_t op_id = 0;
@@ -5072,7 +5144,7 @@ private:
     bool receive_eof_pass(size_t index, uint64_t now_ms);
 
     [[gnu::cold, gnu::noinline]] void backoff_accept(UrKind kind) {
-        // Stop level-triggered readiness as well as uring rearming. The existing
+        // Stop level-triggered readiness as well as uring rearming. The
         // owner-local timer service wakes the issuer; no per-command state or
         // sleeping worker is introduced. Generation checks discard retired roles.
         const int fd = kind == UrKind::UnixAccept  ? unix_listen_fd_
@@ -5128,6 +5200,11 @@ private:
         return true;
     }
 
+    // Advance timers on their IO owner using the pass's monotonic millisecond sample.
+    // Timer-held clients/ROB slots must remain live until completion/cancellation. Dispatch
+    // EOF/accept continuations by kind; release-store completed command replies as Done,
+    // remove the timer, and enqueue serving. Unready timers stay pending; stale listener
+    // generations are discarded and failed accept registration schedules another retry.
     uint32_t deferred_timer_pass(uint64_t now_ms) {
         uint32_t completed = 0;
         for (size_t i = 0; i < deferred_timers_.size();) {
@@ -5351,8 +5428,8 @@ private:
     }
 
     bool aof_writer_bound() const {
-        // bind_writer succeeds on every configured IO, but only the elected one writes.
-        // aof_bound_ stays sticky across IO->EX->IO: ring lifetime/binding is unchanged.
+        // bind_writer succeeds on each configured IO, but only the elected one writes.
+        // aof_bound_ stays sticky across IO->EX->IO because the ring binding spans role tenures.
         return aof_bound_ && srv_->aof().writer_is(self_->id());
     }
 
@@ -5368,7 +5445,7 @@ private:
     void flip_pass_begin() { flip_stage_snapshot_ = srv_->flip_stage(); }
 
     __attribute__((noinline)) bool flip_dispatch_paused() const {
-        // Standalone/cold callers outside run_loop have no pass snapshot. Keep their existing
+        // Standalone/cold callers outside run_loop have no pass snapshot. Use their
         // live fence (including serverless witnesses); every production pass sets this byte.
         return (flip_stage_snapshot_ == kNoFlipSnapshot ? srv_->flip_stage()
                                                         : flip_stage_snapshot_) != FlipStage::Idle;
@@ -5416,17 +5493,20 @@ private:
         notify_config_version_ = snapshot.version;
     }
 
+    // Close on the connection's IO owner; c must remain allocated and cannot be migrated
+    // concurrently. Cancel timers/blocking state and stop transport input, but retain TLS
+    // output when requested. Pub/sub, ROB/kernel, and acquired executor-scope fences must
+    // all clear before releasing catalogs, the fd, and WB slot. Mark dead once and defer
+    // Client deletion across inbox-drain grace passes. Unready fences reinsert active work;
+    // allocation failure in the executor fence also keeps the client alive for retry.
     void close_client(Client* c, bool drain_tls_output = false
 #ifdef TOMO_CONNRESET_TRACE
                       ,
                       std::source_location site = std::source_location::current()
 #endif
     ) {
-        // IDEMPOTENT, and that is load-bearing: an abrupt disconnect can close a conn twice --
-        // once when the recv fails and again when the in-flight reply's send CQE comes back
-        // failed. The second call found the client already parked on the deferred-free list and
-        // parked it AGAIN: a double delete, one reap later. Caught by the torture battery's RST
-        // churn under ASAN; latent since the first teardown path was written.
+        // Closing is idempotent: receive and send failures may both request it. A dead client
+        // is already on the deferred-free list; inserting it twice would cause a double delete.
         if (c->dead()) return;
         receive_eof_forget(c);
         command_client_closing(c);
@@ -5450,10 +5530,9 @@ private:
                 (void)tls->shutdown();
                 (void)wb_.pump_tls_any(*c, *tls);
             }
-            // Under epoll recv_armed_ records an owed EDGE, not a kernel-held buffer pointer, and
-            // a torn-down socket owes nothing. Leaving it set would make safe_to_release() refuse
-            // forever and leak the whole Client -- the same ~137KB-per-disconnect shape the retry
-            // note below describes, reached by a different route.
+            // Under epoll recv_armed_ records an owed edge, not a kernel buffer pointer.
+            // A closing socket owes no edge; clear these flags or safe_to_release can retain
+            // the Client indefinitely.
             if (epoll_) {
                 c->set_recv_armed(false);
                 c->set_send_inflight(false);
@@ -5483,10 +5562,9 @@ private:
         active_.erase(c);
         idle_buffers_.forget(c->id());
         (void)self_->remove_client(c);
-        // THE RETRY IS THE LOAD-BEARING PART of this wait: the client left the active set when it
-        // went quiet, so nothing revisits it unless mark_active puts it back -- returning without
-        // doing so leaked the entire client (~137KB) per disconnect once. Only a quiesced,
-        // claim-free conn may release its slot and die.
+        // A quiescence wait must remain reachable: mark_active puts an otherwise idle
+        // client back on the retry path. Only a quiesced, claim-free client may release
+        // its slot and die; returning without that retry would retain the whole allocation.
         if (!c->safe_to_release() || !client_executor_quiesced(c) || !c->safe_to_release()) {
             mark_active(c);
             return;
@@ -5535,7 +5613,7 @@ private:
             bool ready = true;
             for (uint32_t tid = 0; tid < srv_->nthreads(); tid++) {
                 // This IO's synchronous fused stack cannot run concurrently with teardown;
-                // its existing pipeline/serve fences cover retained local handles.
+                // its pipeline/serve fences cover retained local handles.
                 if (tid == self_->id() || !(fence.epochs[tid] & 1)) continue;
                 if (srv_->client_work_epoch(tid) == fence.epochs[tid])
                     ready = false;
@@ -5552,12 +5630,11 @@ private:
     // this pass's drains, so a corpse parked in pass N is freed in pass N+2's prologue -- after the
     // whole of pass N+1 (including its channel drains) ran with the corpse still readable.
     void reap_dead() {
-        // Hold a corpse while ANY outside reference can still surface: a pending_serve_ FIFO
-        // entry (the budget serves 16/pass, so an entry can outlive two prologues -- audit
-        // finding), or a kernel CQE not yet reaped (a send pins msghdr/iovecs/BORROWs; a recv
-        // pins the buffer and the Client* in its user_data). Two prologues are the minimum grace;
-        // these fences extend it exactly as long as a reference exists. teardown() before delete
-        // returns any BORROW the close path could not (idempotent: release_all empties the queue).
+        // Keep dead clients while a serving FIFO entry or kernel CQE can still name them.
+        // The serving budget can extend a FIFO entry beyond the minimum two-prologue grace;
+        // send CQEs pin msghdr/iovecs/borrowed payloads, and receives pin buffer/user_data.
+        // These fences extend grace for exactly that lifetime. teardown() before deletion
+        // idempotently returns borrowed records that the close path could not release.
         size_t keep = 0;
         for (Client* c : dead_ready_) {
             if (c->serve_pending() || c->send_inflight() || c->recv_armed()) {
@@ -5581,6 +5658,9 @@ private:
     }
 
     Server* srv_ = nullptr;
+    // IO-private snapshot of executor scopes for a non-dispatching, ROB-quiescent client.
+    // Acquired completion precedes epoch capture. Odd captured scopes must end before
+    // migration/free; dispatch identifies when to recapture. Holds no executor ownership.
     struct ClientWorkFence {
         uint64_t dispatch = 0;
         uint64_t epochs[kMaxThreads] = {};
@@ -5604,7 +5684,7 @@ private:
     ScatterArenaPool scatter_pool_;  // touched only by this connection-owning IO thread
     uint32_t flush_tick_ = 0;
     bool backstop_pass_ = false;
-    wb_rule::Settings wb_config_;  // three bytes of existing padding, fixed for this IO lifetime
+    wb_rule::Settings wb_config_;  // three padding bytes; settings are fixed for this IO lifetime
     static constexpr uint32_t kClientCronMinVisits = 5;
     uint64_t client_cron_beat_ms_ = 0;
     uint64_t lb_client_signal_beat_ms_ = 0;
@@ -5622,16 +5702,16 @@ private:
     bool save_cron_writer_ = false;  // elected owner, independent of live save/shutdown policy
     static constexpr FlipStage kNoFlipSnapshot = static_cast<FlipStage>(UINT8_MAX);
     FlipStage flip_stage_snapshot_ = kNoFlipSnapshot;
-    // FLIP connection-set pin (IO4.1/IO4.4). Set at this IO's IoDrain acknowledgement (or at an
+    // FLIP connection-set pin. Set at this IO's IoDrain acknowledgement (or at an
     // IO tenure activated inside a live FLIP); close_client then stops BEFORE the connection
     // leaves ThreadCtx::clients until the FLIP retires. Counts stay equal to the plan's quotas,
     // planned Client* stay allocated, and no close reads Placement while roles are stored. A
-    // converting IO releases it once its ClientPrepare is decided. Occupies an existing hole.
+    // converting IO releases it once its ClientPrepare is decided. Uses padding without shifting hot members.
     bool flip_close_pin_ = false;
     uint32_t age_sample_rate_cached_ = 0;
     uint32_t lb_wake_cursor_ = UINT32_MAX;
     // Planned connections this source dropped (closing at ClientPrepare) in flip_prepare_epoch_.
-    // Owner-private; occupies the existing hole before lb_client_observations_.
+    // Owner-private; occupies padding before lb_client_observations_.
     uint32_t flip_dropped_local_ = 0;
     std::vector<LbClientObservation> lb_client_observations_;
     struct RobHeadAge {
@@ -5685,14 +5765,11 @@ private:
     uint64_t random_state_ = 0x9e3779b97f4a7c15ULL;
     uint64_t aof_gate_target_ = 0;
 
-    // Clients with work outstanding. Populated by dispatch and by the retire channel, never by
-    // scanning every client: at 10k+ connections that scan dominates the loop.
-    // INDEXED, NOT ITERATED, and that is a correctness property rather than a style choice. The
-    // phase-1 walk below can reach close_client (a TLS handshake failure, a peer that hung up, a
-    // synchronous send that failed), and close_client's retry paths call mark_active, which
-    // push_back()s -- reallocating the vector and invalidating any iterator the walk was holding.
-    // ASAN caught exactly that as a heap-buffer-overflow in erase() the first time a connection
-    // closed under the epoll engine. An index survives reallocation; an iterator does not.
+    // Owner-private active clients, borrowed until deferred reclamation; membership is guarded
+    // by Client::in_active. Dispatch and retirement add work without scanning idle clients.
+    // Walk by index: close/retry paths can append and reallocate the vector, invalidating
+    // iterators. Erase swaps the last client into the gap, so callers must recheck the occupant.
+    // This container publishes nothing across threads. Allocation failure is not handled here.
     struct PtrSet {
         std::vector<Client*> v;
         void insert(Client* c) { v.push_back(c); }
@@ -5715,19 +5792,18 @@ private:
     } active_;
     std::vector<MultiExecState*> multi_deferred_;
     std::deque<MultiExecState*> pending_multi_cleanups_;
-    // Cold live-config cache. Appended so every pre-existing IoLoop field retains its offset.
+    // Cold live-config cache; keep this tail placement to preserve hot member offsets.
     uint64_t notify_config_version_ = UINT64_MAX;
     bool notify_armed_ = false;
     bool notify_config_armed_ = false;  // keyspace-notification half of notify_armed_
     bool save_config_armed_ = false;
     uint64_t proto_max_bulk_len_ = 512ull * 1024 * 1024;
-    // Slow-log arm for connection-local commands. Appended here rather than earlier so no
-    // pre-existing IoLoop member offset moves.
+    // Read-local and slow-log control cache for connection-local dispatch; keep tail placement.
     bool read_local_bookkeeping_ = false;  // boot-latched; runtime timing never disables ordering
     bool slowlog_armed_ = false;
     SlowlogArm slowlog_arm_{};
-    // Notification publications are sequenced through one coordinator IO. Keep this v2-only
-    // carriage at the true cold tail so the entire pre-notification IoLoop layout remains fixed.
+    // Notification publications are sequenced through one coordinator IO. This cold-tail
+    // queue keeps their ownership separate from the hot connection fields.
     std::deque<std::shared_ptr<PubSubNotificationChain>> pubsub_notification_chains_;
     // Allocated only when tls-port is non-zero. Slots are released at the same deferred-free fence
     // as Client because in-flight recv/send CQEs point into the BIO pair owned by TlsConn.
@@ -5735,12 +5811,20 @@ private:
     std::vector<std::unique_ptr<TlsConn>> tls_slots_;
     std::vector<uint32_t> tls_free_slots_;
 #include "../cmd/climon.inc"
+    // Source-IO forwarding receipt retained until destination installation is acknowledged.
+    // Contains feature flags, never a Client pointer; stale events resolve the live owner.
+    // The routing mailbox/ownership commit supplies ordering, not atomics in this record.
     struct ClientForwardRoute {
         bool installed = false;
         bool monitor = false;
         bool tracking = false;
     };
 
+    // Move-only catalog payload prepared on source IO and consumed on destination IO.
+    // Owns extracted map nodes and unposted rebind/installation events; posted events must
+    // be removed/nullified so destruction frees only untransferred objects. Client IDs are
+    // values. Ownership publication and transfer-queue ordering bracket the install;
+    // preparation may fail while rollback still owns the source catalogs.
     struct ClientRoutingMigration {
         using PubSubNode = std::unordered_map<uint64_t, PubSubLocalConn>::node_type;
         using ClimonNode = std::unordered_map<uint64_t, ClimonConn>::node_type;
@@ -5765,7 +5849,7 @@ private:
         }
     };
     std::unordered_map<uint64_t, ClientForwardRoute> routing_forward_;
-    // Boot-selected fused loop only; appended so split-mode IoLoop offsets stay unchanged.
+    // Borrowed boot-selected fused executor; keep this cold-tail placement for member offsets.
     FusedExLoop* fused_executor_ = nullptr;
     // Cold safety views into run-loop locals. Streams may retain the IFID view across its one
     // bounded residual rotation; teardown and migration defer while either context owns a Client.
@@ -5842,8 +5926,8 @@ public:
     // Cold config cache at the tail: established IO members retain their offsets.
     uint64_t client_query_buffer_limit_ = 1024ull * 1024 * 1024;
     IdleBuffers idle_buffers_;
-    // A cold deferred-serve queue. serve_pending is its existing lifetime and
-    // deduplication pin, so ordinary command/send paths acquire no new branch.
+    // Cold deferred-serve queue. serve_pending supplies both its lifetime pin and its
+    // deduplication state, shared with ordinary command/send paths.
     std::vector<Client*> flip_held_output_;
     std::vector<Client*> flip_stayers_;
     std::vector<BorrowRelease> flip_borrow_releases_;
