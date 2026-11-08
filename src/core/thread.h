@@ -644,7 +644,7 @@ public:
         return transfer_in_[from].producer_free_slots();
     }
 
-    // Pub/sub payloads use one cold MPSC inbox per owning IO, but wake through the existing
+    // Pub/sub payloads use one cold MPSC inbox per owning IO, but wake through the
     // client_in mesh.  `true` means the caller owns posting the single nullptr marker for this
     // non-empty burst.  The mutex is never touched before the first pub/sub command.
     bool post_pubsub_event(PubSubEvent* event) {

@@ -78,7 +78,6 @@ public:
     }
     // The consumer release-publishes an applied version; TRACKING ON acknowledges it with
     // an acquire load. The acknowledgement occupies the consumer's cache line.
-    // TRACKING ON acknowledgement. Fits the consumer line's existing padding.
     void applied(uint64_t version) { applied_.store(version, std::memory_order_release); }
     uint64_t applied() const { return applied_.load(std::memory_order_acquire); }
 

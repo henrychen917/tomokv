@@ -131,3 +131,115 @@ well as fused mode. Notification masks come from committed live-config mailboxes
 not a seqlock. Plain telemetry fields retain their exceptional INFO read path;
 a general C++ race-free snapshot guarantee is not established by these structs.
 This lane documents that limitation without changing the implementation.
+
+## 2026-11-08 — Boot placement, admission and sampling
+
+`Server::prepare_boot` generalizes an even IO/EX split, with IO taking an odd
+remainder and SMT roles using whole pairs. The old comment called the 4:4-class
+shape a measured split-mode center. `Server::init` keeps the credit capacity
+`min(16 * resolved shards, 1024)`, previously described as the measured optimum.
+The enabled FLIP fingerprint writer's historical comment names a 1-in-100 policy;
+its actual policy remains supplied by `flip_fingerprint_window`. Disabled DEBUG
+tripwires use no added Server/Shard/MVCC fields.
+
+## 2026-11-08 — Cold teardown stays out of inline budgets
+
+`Server::lb_forget_client` remains noinline. The source records that sharing its
+mutex/erase tail with notification code outlined an unrelated SWAPDB lock and
+changed the atomic-MGET scatter layout. The contract keeps this code-generation
+constraint, without presenting it as a current code change.
+
+## 2026-11-08 — A same-shape FLIP completes without rebalancing
+
+`Server::flip_begin`: a same-split request reports completion immediately.
+Weight-driven movement belongs to LB's hysteresis/cooldown policy. Empty plans do
+not establish the distribution invariants checked by migration stages. The source
+records an older reshuffle moving a hundred buckets on an already balanced
+request; that observation explains the explicit no-op path.
+
+## 2026-11-08 — Preserve targets and spread conversions across domains
+
+`Server::flip_begin` / `flip_refuse_active`: retain requested target counts after
+refusal so reporting exposes live/target disagreement. The source describes
+clearing targets as a prototype control-plane blind spot. Candidate selection
+balances conversions across L3 domains before occupancy ranking within a domain;
+reverse-id ties with cold signals otherwise cluster conversions in the highest
+domain. AOF writer, coordinator and UNIX listener exclusions are invariants,
+including pinned SMT siblings, not merely selection preferences.
+
+## 2026-11-08 — Validate sampled FLIP stages against one epoch
+
+`Server::flip_stage_owed`: the source records a 70–250 microsecond delay inside
+io_uring work without a context switch. A sampled ExInstall could outlive its
+FLIP and otherwise remask queues while IO fills them. Read the acknowledgement
+token first, then validate the stage between matching epoch loads. Release token
+clears after Planning make a newly cleared token order that later stage read.
+`set_debug_flip_stage_hold` reproduces this delay on either engine; its negative
+control reads the token after validation. The memory-ordering proof stays in source.
+
+## 2026-11-08 — Retire sinks move with ownership
+
+`Server::adopt_read_local_retire_sink`: a store's sink names both the owner's
+single-producer QSBR retire ring and its unlocked block-cache free list. The
+source records shard 1 moving to thread 1, followed by SET using thread 7's cache
+before deferred rebinding. Observed outcomes included a self-linked free block
+and a later invalid next-pointer dereference. The destination sink must be
+installed in the same quiesced critical section as ownership, before routes
+publish. Both callers require executor drains, including an empty retire ring.
+
+## 2026-11-08 — Check the mapping, not a probabilistic write window
+
+`Server::debug_assert_read_local_sinks_follow_ownership`: debug passes compare
+each owner/sink mapping at Idle. Checking only during a write makes detection
+depend on a write landing before deferred rebinding. A transient between the
+sink and owner stores inside the quiesced transfer is not a violation; a mismatch
+outside migration is. `TOMO_RL_CACHE_NO_EAGER_ADOPT` / `rlcache-nofix` must fail
+that detector. The historical test geometry uses 16–256 shards.
+
+## 2026-11-08 — Read cuts use the published watermark
+
+`Server::atomic_commit_reserve`, `atomic_commit_publish`, `atomic_commit_batch`
+and `debug_hop_delay`: ticket reservation precedes decision publication, so the
+drawn sequence alone cannot be a read cut. The source records a torn MGET about
+once per 1.1 million pipelined batches, with preemption widening a nanosecond
+interval to milliseconds. The in-flight bracket and last-committer publication
+make all tickets through the visible watermark decided. A peer's later ticket is
+handled by the post-publication recheck. Readers still load one word without
+retrying; DEBUG widens the window for directed checks.
+
+## 2026-11-08 — Snapshot drains count apply completion
+
+`Server::atomic_apply_inflight`: waiting on admitted groups until reply retirement
+can deadlock blocking SAVE on the IO loop needed to retire those replies. The
+source records `rdb_bgsave_in_progress=1` with 13 leases held. Open/close counters
+instead track installation through owner completion or pre-dispatch teardown;
+closes are scanned before opens so a visible close cannot hide its matching open.
+
+## 2026-11-08 — Retain completion claims when channels fill
+
+`Server::notify_retries` / `defer_completion_notice`: a full completion channel
+for a client without a ready slot keeps `retire_queued` claimed while the owner
+reposts on later passes. The old dropped-notice path depended on every-64th-pass
+IO service, described as about a second on idle IO. Allocation failure still
+releases the claim and falls back to that service; the comment states this limit.
+
+## 2026-11-08 — Test counters require real mechanism engagement
+
+`note_script_key_armed`, `note_script_forced_write`, `note_atomic_fanout_cut`,
+`note_atomic_exec_read_cut` and the out-of-band/barrier counters preserve separate
+proofs for actual reservations, MVCC conflicts, bare fan-out and EXEC fan-out.
+Phase counters alone do not prove arming; a clean response alone does not prove
+that the hazard window opened. `set_debug_script_stage_defer` parks gathers to
+allow a competing write; `set_debug_atomic_read_delay` exposes the per-connection
+session-monotonicity interval. Owner-scoped barrier release needs a second owner
+injected by DEBUG, and the release must wake an IO parked without a timer.
+
+## 2026-11-08 — Server cold layout and offline controls
+
+`Server` keeps optional read-local state, IO mask high halves, transaction counters,
+script diagnostics and completion retry vectors in cold-tail storage. The commit
+sequence, safe watermark and in-flight count share a line, and credit waiters
+share the admission-credit line. Cold additions must not reshuffle those paths.
+`lb_controller_tick_pad` and the marked inline PAD helpers remain offline kind A
+behavior twins; production calls do not reach them. No PAD arm or measurement is
+requested by this lane, and no marker or patch-site function is moved.

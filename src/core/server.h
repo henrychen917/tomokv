@@ -1,17 +1,16 @@
-// server.h — process-wide shared state. Everything here is either immutable after boot or
-// explicitly synchronised; nothing in it is written on the hot path.
+// Process-wide ownership, routing, configuration publication and control-plane state.
+// Included by main.cc, IO/executor loops and command implementations; no fixed inclusion
+// point. Server owns worker/shard allocations and their shared coordination objects.
 //
-// THAT IS THE RULE, and it is worth stating because it is easy to violate by accident. A counter
-// bumped per command from a struct every thread shares is a shared-line write on the hot path, and
-// at this thread count it shows up immediately. Per-command counters live in Shard::Stats or
-// LoopSignals, both single-writer; INFO sums them on request.
+// Per-command statistics belong to single-writer Shard::Stats/LoopSignals. Shared
+// atomic state also exists for admission, commit publication and client lifetime; its
+// ordering is documented at the methods below. Router owns bucket routes; shard_owner_
+// is its derived shard-level dispatch map.
 //
-// THE ONE MUTABLE HOT-PATH STRUCTURE is shard_owner_: shard id -> thread id, one atomic load per
-// dispatch. Router's packed bucket array remains the bucket-granularity authority; shard_owner_ is
-// its derived shard-granularity fast path, published only at a quiesced commit. Shards move only
-// after executing, deferred, group and pinned-read work drains; destination routes publish after
-// the ownership edge. An IO may enqueue using an old route after that edge, so tasks and borrow
-// releases recheck ownership and forward before shard access instead of carrying routing epochs.
+// Shard moves require executing, deferred, group and pinned-read work to drain. The
+// store's per-owner bindings move in the same quiesced critical section as ownership,
+// and destination routes publish after that edge. An IO can still enqueue via an old
+// route; tasks and borrow releases recheck ownership and forward before store access.
 #pragma once
 #include "../cmd/debug_sleep.h"
 #include <algorithm>
@@ -51,12 +50,16 @@
 
 namespace tomo {
 
+// Value-only observation assembled by a connection owner and copied into the
+// Server's mutex-protected signal fold; it borrows no Client pointer.
 struct LbClientObservation {
     uint64_t id = 0;
     uint64_t dispatched_ops = 0;
     uint32_t pipeline_depth = 0;
 };
 
+// Per-connection history owned by Server::lb_clients_ under lb_signal_mu_. Its stable
+// id key lets history follow IO moves; these fields do not publish independently.
 struct LbClientSignal {
     uint64_t last_ops = 0;
     double weight = 0;
@@ -83,7 +86,7 @@ enum class FlipStage : uint8_t {
     ExInstall,
     Rollback,
 #if TOMO_SINGLE_DATABASE
-    // Keep the original role-state values in the single-keyspace runtime.
+    // Single-database role-stage numeric values are fixed; database-only states follow them.
     DatabaseIoDrain,
     DatabaseExDrain,
     DatabaseRun,
@@ -99,6 +102,8 @@ enum class LbStage : uint8_t {
     PlanReady,  // immutable monitor result; dispatch remains open until IO consumes it
 };
 
+// Value-only move plan: physical shard id plus source/destination worker ids.
+// The controller owns the plan until its stage publication transfers it to the coordinator.
 struct LbShardMove {
     uint32_t sid = UINT32_MAX;
     uint32_t source = UINT32_MAX;
@@ -107,6 +112,8 @@ struct LbShardMove {
     uint64_t bytes = 0;
 };
 
+// Value-only client move record, published by the controller. Readers hold LbClientRead
+// while using the record; ids do not themselves keep a Client allocation alive.
 struct LbClientMove {
     uint64_t id = 0;
     uint32_t source = UINT32_MAX;
@@ -129,16 +136,18 @@ struct FlipReport {
     bool moving = false;
 };
 
-// Allocated only for the boot-armed read-local lane. The Server keeps only one pointer at its
-// true tail, so baseline member offsets and cache-line sharing remain unchanged.
+// Optional epoch state owned by Server only while read-local is boot-enabled. Workers
+// use seq_cst loads/increments to order retirement stamps and rotation publications.
+// The state is never resized after boot; allocation failure makes init return false.
 struct ReadLocalServerState {
     std::atomic<uint64_t> epoch{1};
 };
 
-// A snapshot/placement drain is the only reader, while opens and closes happen on unrelated
-// physical threads.  Monotonic halves avoid the false-zero a signed per-thread delta can expose
-// when a scan observes an executor's close before the admitting IO's open.  Cache-line spacing
-// keeps those writers independent.
+// One physical thread writes each slot's opened/closed counters; a group can open and
+// close on different workers. Snapshot/placement drains scan all closes before opens.
+// Release counter updates plus the group's published open flag and acquire scan prevent
+// a false zero from observing a close without its matching open. Cache-line spacing
+// is fixed; the slots own no allocation or blocking operation.
 struct alignas(64) AtomicApplySlot {
     std::atomic<uint64_t> opened{0};
     std::atomic<uint64_t> closed{0};
@@ -149,6 +158,15 @@ static_assert(alignof(AtomicApplySlot) == 64);
 struct FlipListenerState;
 bool fliplisten_reserve(/* TOMO_TOOL_BIND Server */ Server&, std::string&);
 
+// Owns shards, physical worker contexts and shared managers for one server lifetime.
+// Boot prepares topology and initializes storage before workers use it. Afterwards,
+// private owner state is accessed only by its physical worker or a quiesced transfer
+// coordinator; shared fields use their stated atomics/mutexes. CONFIG writers serialize
+// mailbox publication, and shape_transition_mu_ serializes control admission/commit.
+// Acquire routes identify a current or preceding owner; executors forward stale work.
+// Workers/managers must stop before owned storage is destroyed. Initializers/planners
+// return false for checked failures, some allocations throw, and broken ownership
+// invariants abort. Full channels/credits retain work at callers for later progress.
 class Server {
     friend class IoLoop;
     friend struct FlipListenerState;
@@ -159,9 +177,12 @@ class Server {
     friend struct LbPlannerTest;
 
 public:
-    // Done releases the ROB slot, but executor code may still be notifying its IO.
-    // Odd means an executor scope can hold Client pointers; an even value ends that
-    // scope. Nested calls retain the outer scope. Writers own separate cache lines.
+    // Physical-worker RAII scope borrowing its Server epoch. An odd release-published
+    // epoch permits Client pointer use; the matching even epoch ends that scope. Nested
+    // scopes preserve the outer scope, and acquire readers fence close/client migration.
+    // Server must outlive the guard; one physical worker writes each cache-line slot.
+    // No allocation or waiting occurs here: reclamation callers wait for even/progressed
+    // epochs. A parked guard must hold no Client pointer until resume opens a fresh scope.
     class ClientWorkScope {
     public:
         ClientWorkScope(Server& server, uint32_t tid) : epoch_(server.client_work_[tid].epoch) {
@@ -197,8 +218,12 @@ public:
     uint64_t client_work_epoch(uint32_t tid) const {
         return client_work_[tid].epoch.load(std::memory_order_acquire);
     }
-    // Entire IO/owner passes, including idle callbacks, are map-reader regions.
-    // Keep ClientWorkScope's nesting/Client proof unchanged. DB0 emits no work.
+    // Wrap each physical IO/owner pass, including idle callbacks, in a map-reader region.
+    // Borrow Server/worker state; safe_point services pending database reclamation before
+    // entering ClientWorkScope. park releases the pointer scope across a blocking wait,
+    // and resume reopens it. The single-database production variant performs no work.
+    // The wrapper adds no allocation or independent failure/back-pressure handling;
+    // Server lifetime and ClientWorkScope's no-pointer-while-parked rule still apply.
     class DatabaseWorkScope {
     public:
 #if TOMO_SINGLE_DATABASE && !defined(TOMO_MDBQSBR_DB0_NEGATIVE)
@@ -254,7 +279,11 @@ public:
     Server(const Server&) = delete;
     Server& operator=(const Server&) = delete;
 
-    // Resolve placement and the shard default once, before AOF/snapshot recovery reads geometry.
+    // Boot-thread preparation before recovery or worker startup. Owns topology/placement
+    // construction, resolves cfg.shards, and reserves runtime role capacity. Requires an
+    // unstarted Server and exclusive cfg access; no worker publication occurs.
+    // False reports discovery/placement failures and can leave partial boot state;
+    // allocation exceptions from dependencies are not caught here.
     bool prepare_boot(Config& cfg) {
         const char* domains = std::getenv("TOMOKV_L3_DOMAINS");
         if (domains && *domains) {
@@ -275,8 +304,8 @@ public:
         if (cfg.thread_mode == ThreadMode::Fused) {
             placed = placement_.build_fused(topo_, cfg.place);
         } else {
-            // Default shape: an even io/ex split of every allowed cpu, io taking the odd one out --
-            // the measured 2s center (4:4-class) generalized to any core count.
+            // Default split divides allowed CPUs evenly between IO and EX; IO receives
+            // the odd remainder. SMT mode assigns complete sibling pairs.
             uint32_t di = cfg.even_ifid, de = cfg.even_ex;
             if (!cfg.place && !(di | de)) {
                 uint32_t n = 0;
@@ -304,7 +333,15 @@ public:
         return true;
     }
 
+    // Initialize owned shards, workers, optional state and persistence bindings on the
+    // boot thread after prepare_boot, before any worker runs. cfg string storage and
+    // aof_replay must remain valid for their consumers. Boot stores initialize shared
+    // state; worker startup, not this call alone, makes the complete graph usable.
+    // Returns false for validation or checked allocation failures, with partial state
+    // retained in Server. Some make_unique/vector/manager allocations can throw; there
+    // is no general rollback or retry contract. Do not start workers after failure.
     bool init(const Config& cfg, const AofReplayPlan* aof_replay = nullptr) {
+        // Phase 1: validate prepared geometry and seed live configuration/admission state.
         if (placement_.total_threads() == 0) {
             std::fprintf(stderr, "server init requires prepare_boot before persistence recovery\n");
             return false;
@@ -319,8 +356,8 @@ public:
             std::fprintf(stderr, "maxmemory-samples must be between 1 and 64\n");
             return false;
         }
-        // #77 diagnostics ship dark with DEBUG itself. The registry is process-cold heap state,
-        // initialized before any worker exists; no Server/Shard/MVCC object gains a field.
+        // Atomic diagnostics are enabled only with DEBUG. Their process-cold registry
+        // is initialized before workers and does not add fields to shard/MVCC objects.
         atomic_tripwire_configure(cfg.enable_debug_command != DebugCommandMode::No);
         live_maxmemory_.store(cfg.maxmemory, std::memory_order_relaxed);
         live_maxmemory_policy_.store(static_cast<uint8_t>(cfg.maxmemory_policy),
@@ -346,7 +383,7 @@ public:
                                               std::memory_order_relaxed);
         save_clauses_ = cfg.save;
         atomic_activity_.store(cfg.atomic ? kAtomicEnabledBit : 0, std::memory_order_relaxed);
-        // Measured in-flight credit optimum, always derived from the resolved geometry.
+        // Credit capacity derives from resolved shards: 16 per shard, capped at 1024.
         atomic_credits_.init(std::min<uint32_t>(16u * cfg.shards, 1024u));
         script_stage_bytes_ =
             cfg.maxmemory ? std::max<uint64_t>(4ull * 1024 * 1024,
@@ -361,7 +398,7 @@ public:
         // Shard maps are resolved exactly once at boot; parsing never leaks onto a request path.
         if (!placement_.assign_shard_homes(cfg.shards, cfg.shard_home)) return false;
 
-        // ---- shards: bucket ranges, fixed for the life of the process ----------------------------
+        // Phase 2: allocate physical shards and their immutable bucket ranges.
         shards_.resize(cfg.shards);
         for (uint32_t i = 0; i < cfg.shards; i++) {
             const uint32_t b0 = Router::uniform_begin(i, cfg.shards);
@@ -379,12 +416,10 @@ public:
         }
         router_.build_uniform(static_cast<int32_t>(cfg.shards));
 
-        // ---- threads ---------------------------------------------------------------------------
-        // Every front-end has already lowered to dense per-thread entries. Every thread still gets
-        // a producer lane from every other, because a role change must not require re-wiring
-        // the mesh; the TASK lanes are a role-partitioned masked monolith whose block sizes are
-        // re-derived at each role change (ThreadCtx::remask_quiesced), while the client, release
-        // and transfer channels stay uniform per-thread arrays.
+        // Phase 3: allocate worker contexts, mailboxes and optional controller/read-local state.
+        // Every worker can produce to every other after a role change. Task storage is
+        // remasked at quiesced role changes; client/release/transfer arrays keep uniform
+        // per-thread lanes, so conversion does not rewire the mesh.
         const uint32_t nthreads = placement_.total_threads();
         if constexpr (!kSingleDatabase) {
             if (!databases_.bind_workers(nthreads, this)) {
@@ -408,9 +443,9 @@ public:
             live_config_mailboxes_[i].init(live_config_committed_);
         for (uint32_t i = 0; i < nthreads; i++) {
             threads_[i] = std::make_unique<ThreadCtx>();
-            // The fingerprint writer is armed only when its one reader, the flip controller, is
-            // enabled: with --flip-auto 0 and in 1s mode it is dark and costs
-            // one predicted branch per op. The enabled sampler keeps its measured 1-in-100 policy.
+            // Only the enabled flip controller arms its fingerprint writer. With
+            // flip-auto off or in 1s it performs no fingerprint stores; the enabled
+            // sampler uses the policy supplied by flip_fingerprint_window.
             threads_[i]->init(i, placement_.role_of(i), nthreads, 0,
                               flip_fingerprint_window(flipctl_.enabled()));
             threads_[i]->init_command_counts(command_registry_size());
@@ -481,9 +516,8 @@ public:
         flip_target_ex_.store(static_cast<uint32_t>(placement_.ex_threads().size()),
                               std::memory_order_relaxed);
 
-        // ---- shards directly onto workers ------------------------------------------------------
-        // Locality resolution stops at the individual EX thread. There is no contiguous node range:
-        // the default is one flat round-robin across every executor in thread-id order.
+        // Phase 4: bind initial owners/routes, then snapshot and AOF state.
+        // Default locality is flat round-robin across executor ids, with no node range.
         for (uint32_t sid = 0; sid < cfg.shards; sid++) {
             const uint32_t tid = placement_.shard_home(sid);
             threads_[tid]->shards().push_back(shards_[sid].get());
@@ -583,9 +617,9 @@ public:
         lb_client_owner_weight_[owner].store(static_cast<uint64_t>(total * 1024.0 + 0.5),
                                              std::memory_order_release);
     }
-    // Connection teardown only. Keep its mutex/erase work out of callers' inline
-    // budgets: sharing this tail with notification code otherwise outlines the
-    // unrelated SWAPDB lock and changes the atomic MGET scatter body's layout.
+    // Connection teardown removes client history under lb_signal_mu_. Keep this
+    // noinline so the cold mutex/erase body does not consume notification callers'
+    // inline budgets or alter unrelated atomic-scatter code layout.
     [[gnu::noinline]] void lb_forget_client(uint64_t id) {
         if (!client_lb_signals_enabled()) return;
         std::lock_guard<std::mutex> lock(lb_signal_mu_);
@@ -598,8 +632,8 @@ public:
         return found == lb_clients_.end() ? 0.0 : found->second.weight;
     }
 
-    // The admission fold reads only existing shard counters/publications and loop counters.
-    // No store walk, bucket walk, allocation, expiry or request-path writer is needed.
+    // The admission fold reads shard counter publications and loop counters.
+    // It does not walk stores/buckets, allocate, expire keys or add request-path writers.
     void lb_fold_signals(uint64_t now = now_ns()) {
         if (!lb_controller_enabled()) return;
         std::lock_guard<std::mutex> lock(lb_signal_mu_);
@@ -624,19 +658,17 @@ public:
             }
             lb_policy_->window_ticks = ticks;
             lb_policy_->window_slot = (lb_policy_->window_slot + 1) % LbAutotune::kDecisionTicks;
-            // Existing shard execution counts are a cheap rate proxy for key visits. Multi-key
-            // and retried fragments can change the achieved sample count; each sampled visit
-            // still carries its latched rate. No per-operation census is added.
-            // Match the controller's eligible owners, including empty destinations. Read
-            // live roles so a split-mode FLIP cannot leave the sample budget at boot size.
+            // Shard execution counts proxy key visits. Multi-key and retried fragments
+            // can alter the achieved sample count; each sampled visit carries its latched
+            // rate. Count live eligible owners, including empty destinations, so FLIP
+            // does not leave the sample budget tied to boot geometry.
             uint32_t owners = 0;
             for (uint32_t tid = 0; tid < nthreads(); tid++) owners += owns_shards(tid);
             lb_policy_->observe_visits(visits, now, owners);
         }
-        // Occupancy is booked busy / (busy + idle), smoothed below. IO now covers its whole
-        // loop tenure; EX keeps productive/empty-pass accounting. This fold feeds the
-        // physical FLIP victim picker as well as INFO. cpu_ns deliberately does not enter:
-        // polling/spinning is scheduled CPU but does not mean the role has useful work available.
+        // Occupancy is booked busy / (busy + idle), smoothed below. IO covers its
+        // whole loop tenure; EX counts productive/empty passes. FLIP selection and INFO
+        // use this fold. cpu_ns is excluded: scheduled spinning need not be useful work.
         for (uint32_t tid = 0; tid < nthreads(); tid++) {
             const LoopSignals& signal = thread(tid).sig();
             const uint64_t busy = __atomic_load_n(&signal.busy_ns, __ATOMIC_RELAXED);
@@ -770,16 +802,12 @@ public:
         if (!read_local_state_) std::abort();
         return read_local_state_->epoch.fetch_add(1, std::memory_order_seq_cst);
     }
-    // Grace floor for a QSBR drain, bounded by what the caller needs. `stamp` is the oldest sealed
-    // retirement stamp; the drain releases an entry only when the floor is STRICTLY above its stamp.
-    // Returns the exact floor (minimum tick over active participants) when that floor is above
-    // `stamp`; otherwise returns a value <= `stamp` as soon as one active participant with
-    // tick <= `stamp` is found. Both answers produce exactly the decision a full scan would: with a
-    // blocking participant the true floor is <= its tick <= stamp, so nothing is releasable and the
-    // caller stops at its first batch either way. What changes is the cost of the not-ready case:
-    // one or two foreign tick lines instead of one per thread. `hint` remembers the blocking
-    // participant so the next pass tests it first; it is caller-owned scratch and never read for
-    // anything else. Parked participants contribute infinity because they hold no foreign pointer.
+    // Bounded QSBR grace scan: release an entry only when the floor is strictly above
+    // its retirement stamp. Return the exact minimum active tick when it exceeds stamp,
+    // or stop at the first tick <= stamp, which proves that reclamation cannot proceed.
+    // The caller-owned hint tests the previous blocker first and has no other meaning.
+    // Parked participants contribute infinity because they hold no foreign pointer.
+    // This scan performs no reader retry and does not wait for a participant to advance.
     uint64_t read_local_grace_floor(uint64_t stamp, uint32_t& hint) const {
         const uint32_t participants = static_cast<uint32_t>(threads_.size());
         if (hint < participants) {
@@ -859,10 +887,12 @@ public:
     // The io thread that owns the unix listener (UINT32_MAX without --unixsocket). Latched once
     // in init(); both boot paths and the FLIP candidate filter read this one value.
     uint32_t unix_owner_tid() const { return unix_owner_tid_; }
-    // A stage acquire publishes this drain's record, but does not protect a delayed
-    // reader across cancellation and publication of another drain. This cold read scope
-    // lets such readers finish before the coordinator reuses the record. No mutex, wait,
-    // retry, or per-connection access: only ClientDrain pass starts/tails enter it.
+    // Cold read guard borrowing lb_plan_ while LB is enabled. A seq_cst reader count
+    // and stage check protect a ClientDrain record across cancellation/republication.
+    // Only a truthy guard permits reading lb_client_move_; destruction releases the
+    // claim before the coordinator reuses that record. Server/plan must outlive it.
+    // No allocation, wait, retry or per-connection access occurs here; callers seeing
+    // a false guard skip the record and allow a later control pass to retry.
     class LbClientRead {
         std::atomic<uint32_t>& readers_;
         bool active_;
@@ -1003,9 +1033,9 @@ public:
     void flip_note_session_transferred() {
         flip_session_clients_transferred_.fetch_add(1, std::memory_order_relaxed);
     }
-    // One reason/counter per refused episode. A close racing the irreversible
-    // edge either wins this lock and rolls back, or keeps its existing pin until
-    // completion. Never publish cleanup into acknowledged executor lanes.
+    // One reason/counter per refused episode. A close racing ClientCommit either
+    // wins this lock and requests rollback, or holds its pin until completion.
+    // Cleanup must not publish into executor lanes that have already acknowledged.
     void flip_note_session_refusal(bool s2) {
         std::lock_guard<std::mutex> lock(flip_error_mu_);
         const auto stage = flip_stage();
@@ -1122,6 +1152,12 @@ public:
         if (flip_stage() == FlipStage::Idle) std::abort();
         flip_active_transfers_.fetch_add(1, std::memory_order_relaxed);
     }
+    // The FLIP coordinator builds client assignments after acquiring every IoDrain ack.
+    // IO client vectors must remain frozen and close-pinned until plan publication;
+    // coordinator_client is borrowed and, if present, stays on its source. This writes
+    // Server plan vectors/quotas for a later release stage, without moving clients.
+    // Returns false with error on conservation, capacity, partition or allocation failure;
+    // partial plan state remains for refusal/rollback. Impossible assignment ids abort.
     bool flip_build_client_plan(Client* coordinator_client, std::string& error) {
         if (!flip_surviving_io_count_) {
             error = "ERR FLIP would leave no connection owner";
@@ -1138,11 +1174,11 @@ public:
             return false;
         }
         const uint32_t total = static_cast<uint32_t>(total64);
-        // Cross-thread read of every IO's private client vector (IO4.4a). It is frozen here: each
-        // IO acknowledged IoDrain (release; this coordinator acquired every ack) only after its own
-        // closes, LB move and UNIX hand-offs settled, and from that ack its closes stop before
-        // remove_client (flip_close_pin_), accepted fds are retained and no transfer is posted. The next
-        // write to any vector follows this plan's IoPrepare publication.
+        // Every IO releases its IoDrain ack only after closes, LB moves and UNIX
+        // hand-offs settle; the coordinator acquires all acks before reading the private
+        // vectors. After ack, flip_close_pin_ stops closes before remove_client, accepted
+        // fds are retained, and no transfer is posted. The next vector write follows
+        // this plan's IoPrepare publication.
         flip_dropped_client_transfers_.store(0, std::memory_order_relaxed);
         try {
             for (uint32_t tid = 0; tid < nthreads(); tid++) {
@@ -1262,6 +1298,12 @@ public:
         return source < nthreads() ? flip_source_clients_[source].load(std::memory_order_acquire)
                                    : 0;
     }
+    // The FLIP coordinator plans whole-shard moves while ownership is quiesced and
+    // flip_convert_ names the proposed roles. Requires an intact one-owner partition
+    // and cleared quotas from flip_begin. Writes destinations/quotas and reserves
+    // worker vector capacity before any ownership edge; a later stage publishes them.
+    // False plus error refuses invalid ownership, partition/capacity or allocation
+    // failures, leaving partial plan data. Impossible assignment ids abort.
     bool flip_reserve_shard_plan(std::string& error) {
         if (!flip_shard_ownership_conserved()) {
             error = "ERR FLIP shard ownership is not a complete one-owner partition";
@@ -1379,12 +1421,12 @@ public:
     // The monitor alone gathers and searches. The IO tail only installs a finished result.
     bool lb_controller_tick(uint32_t coordinator, uint64_t now_ms);
     bool lb_consume_plan(uint32_t coordinator);
-    // DEBUG-only admission from the destination's own IO thread. Normal LB policy is unchanged.
+    // DEBUG-only admission from the destination IO thread; ordinary LB uses its controller.
     bool lb_debug_move_client(uint64_t id, uint32_t destination, std::string& error);
     void monitor_controllers();
 
-    // Offline PAD-A targets only. No production call reaches these retained PRE bodies;
-    // tools/lbplanner_pad.py verifies every retarget and all other executable bytes.
+    // Offline kind-A behavior-control targets; production does not call these bodies.
+    // tools/lbplanner_pad.py verifies each retarget and all other executable bytes.
     bool lb_controller_tick_pad(uint32_t coordinator, uint64_t now_ms);
     void monitor_controllers_pad();
     bool /* TOMO_TOOL_BIND lb_cron_writer_pad */ lb_cron_writer_pad(uint32_t tid) const {
@@ -1520,8 +1562,16 @@ public:
         return flip_deadline_ns_.load(std::memory_order_acquire) != 0 &&
                now_ns() >= flip_deadline_ns_.load(std::memory_order_acquire);
     }
+    // Admit a split-mode role change on its designated IO coordinator. Serializes with
+    // other shape transitions; coordinator must remain IO and target counts must conserve
+    // threads/SMT pairs. Publishes Planning, then an epoch-tagged IoDrain plan with release
+    // ordering; it does not move clients or shards. Supersedes uncommitted LB plans.
+    // Returns false with error on refusal, retaining the requested target for reporting
+    // after admission. A same-shape request completes immediately. Allocation exceptions
+    // are not generally caught; the stage machine handles subsequent drains/timeouts.
     bool flip_begin(uint32_t target_io, uint32_t target_ex, uint32_t coordinator,
                     std::string& error, uint64_t observed_completed = UINT64_MAX) {
+        // Phase 1: serialize admission and refuse incompatible runtime state.
         if (cfg_.thread_mode == ThreadMode::Fused) {
             error = "ERR FLIP is unavailable with --thread-mode 1s: threads are fused";
             return false;
@@ -1544,7 +1594,7 @@ public:
             // An explicit shape change wins over an uncommitted cron candidate. No ownership edge
             // exists in either stage, so withdrawing it is exact. A ClientMoving request has
             // already crossed its reversible preflight; FLIP admits it and IoDrain waits for that
-            // existing transfer to settle before it counts or moves any connection.
+            // in-flight transfer to settle before it counts or moves any connection.
             lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
             lb_stage_.store(LbStage::Idle, std::memory_order_release);
             lb_deadline_ns_.store(0, std::memory_order_release);
@@ -1561,8 +1611,8 @@ public:
             flip_refused_.fetch_add(1, std::memory_order_relaxed);
             return false;
         }
-        // Publish intent before validation. A refused request remains observable as live != target
-        // through the report form; erasing it was the fork's most damaging control-plane blind spot.
+        // Publish target intent before validation so a refused request remains visible
+        // as live != target in the report.
         flip_target_io_.store(target_io, std::memory_order_release);
         flip_target_ex_.store(target_ex, std::memory_order_release);
         auto refuse = [&](const std::string& message) {
@@ -1586,6 +1636,7 @@ public:
         flip_conservation_check();
         if (lb_controller_enabled()) lb_fold_signals();
 
+        // Phase 2: reset the plan and complete a same-shape request without migration.
         const uint32_t live_io = role_count(Role::Ifid);
         for (uint32_t tid = 0; tid < kMaxThreads; tid++) {
             flip_convert_[tid] = Role::Idle;
@@ -1606,12 +1657,10 @@ public:
         const uint32_t conversions =
             live_io > target_io ? live_io - target_io : target_io - live_io;
         if (conversions == 0) {
-            // A same-split request is a completed no-op, not a rebalance trigger: weight-driven
-            // movement belongs to the cron mover with its hysteresis and cooldown. Entering the
-            // stage machine with an empty plan is not an option either -- every stage predicate
-            // (client quotas, RoleReady acks, the completion balance audit) judges distributions
-            // a no-op deliberately leaves alone. Complete here; the caller replies OK on seeing
-            // Idle. (The reshuffle this replaces moved a hundred buckets on a balanced no-op.)
+            // A same-split request completes without rebalancing; weighted moves belong
+            // to LB with hysteresis/cooldown. The stage machine checks quotas, RoleReady
+            // acks and completion balance that a no-op does not establish. Complete here
+            // so the caller can acknowledge Idle without running an empty migration plan.
             flip_last_transfers_.store(0, std::memory_order_relaxed);
             flip_completed_.fetch_add(1, std::memory_order_relaxed);
             flip_target_io_.store(target_io, std::memory_order_release);
@@ -1619,6 +1668,7 @@ public:
             flip_stage_.store(FlipStage::Idle, std::memory_order_release);
             return true;
         }
+        // Phase 3: rank eligible workers/SMT pairs and distribute conversions across domains.
         struct RoleUnit {
             uint32_t first = UINT32_MAX;
             uint32_t second = UINT32_MAX;
@@ -1628,11 +1678,10 @@ public:
         uint32_t unit_count = 0;
         uint32_t selected = 0;
         if (target_io < live_io) {
-            // LOAD-BEARING exclusions, not tie-breakers: the AOF writer (and, in smt mode, its
-            // sibling) must never be converted io->ex: only IO services the writer's AofIo CQEs
-            // during normal operation. The physical-worker shutdown guard drains it after every
-            // owner stops posting. The unix-listener owner likewise cannot leave the io role
-            // without taking its listener with it.
+            // The AOF writer and its SMT sibling cannot convert IO-to-EX: only IO
+            // services AofIo CQEs during normal operation. Physical-worker shutdown
+            // drains it after owners stop posting. The UNIX-listener owner also stays IO
+            // because it cannot leave that role without transferring its listener.
             const uint32_t aof_writer = aof_.writer_tid();
             for (uint32_t tid : placement_.ifid_threads()) {
                 if (!smt_mode_) {
@@ -1662,14 +1711,12 @@ public:
         }
         std::sort(units, units + unit_count, [](const RoleUnit& a, const RoleUnit& b) {
             if (a.occupancy != b.occupancy) return a.occupancy < b.occupancy;
-            return a.first > b.first;  // disabled/all-zero signal preserves the old reverse-id tie
+            return a.first > b.first;  // Zero/equal occupancy breaks ties by descending thread id.
         });
-        // Domain-even selection. Boot placement spreads both roles evenly across L3 domains
-        // (build_even); a picker that ignores topology un-evens it -- occupancy ties broke by
-        // reverse id, so with cold signals every conversion clustered into the highest domain and
-        // one L3 went role-lopsided after a single flip. Conversions round-robin across domains
-        // (always the domain with the fewest taken so far, most remaining candidates on ties) and
-        // occupancy keeps deciding WITHIN a domain via the sort above.
+        // Distribute conversions across L3 domains: choose the domain with the fewest
+        // selected units, breaking ties by remaining candidates. Occupancy ranks units
+        // within that domain. This prevents cold/equal signals and reverse-id ties from
+        // concentrating all conversions in the highest-numbered domain.
         const Role target_role = target_io < live_io ? Role::Ex : Role::Ifid;
         uint32_t unit_domain[kMaxThreads];
         uint32_t domain_taken[kMaxThreads] = {};
@@ -1718,6 +1765,7 @@ public:
                 flip_surviving_io_[flip_surviving_io_count_++] = tid;
         if (!flip_surviving_io_count_) return refuse("ERR FLIP would leave no connection owner");
 
+        // Phase 4: publish coordinator, epoch, deadline and the IO drain stage.
         flip_coordinator_ = coordinator;
         flip_target_io_.store(target_io, std::memory_order_release);
         flip_target_ex_.store(target_ex, std::memory_order_release);
@@ -1744,21 +1792,17 @@ public:
         const uint64_t token = (flip_epoch() << 8) | static_cast<uint8_t>(stage);
         return flip_ack_[tid].load(std::memory_order_acquire) == token;
     }
-    // A control pass dispatches on the stage it loaded at the top of the pass, and its thread can
-    // be held between that load and the acknowledgement test (flipfix5 measured 70-250 us on
-    // io_uring executors, without a context switch). Meanwhile the sampled FLIP can finish and
-    // the next one begin. flip_acked() then tests the OLD stage against the NEW epoch, finds no
-    // token and replays the stage body outside its quiesce: ExInstall re-masked lanes that IO
-    // dispatch was refilling and aborted. A sampled stage is owed only while it is still the live
-    // stage of one consistent epoch and this thread has not acknowledged it there.
-    //   * The token is read FIRST. flip_begin() clears every token (release) after its Planning
-    //     CAS, so a token cleared by the next FLIP makes the stage reload below see Planning or
-    //     later, never the sampled stage; a token read after the validation could be that clear.
-    //   * flip_begin() stores Planning before its epoch increment and every later stage after
-    //     it; a database boundary increments from Idle. An epoch unchanged across the stage
-    //     reload pins the reloaded stage to that epoch.
-    // An owed stage cannot advance without this thread's acknowledgement (failure turns only into
-    // Rollback of the same epoch), so the caller's flip_ack() still stamps this epoch.
+    // A control pass can be delayed after sampling a stage while that FLIP completes
+    // and another begins. Testing only that stage against the new epoch could replay
+    // ExInstall outside quiescence while IO refills the remasked lanes. A stage is owed
+    // only if it is still live in a consistent epoch and this worker has not acked it.
+    // Read the token first: flip_begin clears it with release after publishing Planning,
+    // so observing the clear forces the later stage load to see Planning or later.
+    // Reading the token after validation would lose that ordering.
+    // Planning precedes the epoch increment and later stages follow it; a database
+    // boundary increments from Idle. Matching epoch loads around the stage load pin it
+    // to one epoch. An owed stage cannot advance without this worker's ack; failure can
+    // only enter Rollback of that epoch, so the caller's eventual ack still names it.
     __attribute__((noinline)) bool flip_stage_owed(uint32_t tid, FlipStage stage) const {
         uint64_t token = flip_ack_[tid].load(std::memory_order_acquire);
         const uint64_t epoch = flip_epoch();
@@ -1770,23 +1814,23 @@ public:
 #endif
         if (__builtin_expect(live, true))
             return token != ((epoch << 8) | static_cast<uint8_t>(stage));
-        // The pre-flipfix5 test passed here whenever the live epoch carried no such token.
+        // Count a stale sample whose current epoch does not contain that stage token.
         if (token != ((flip_epoch() << 8) | static_cast<uint8_t>(stage)))
             flip_stale_stage_refusals_.fetch_add(1, std::memory_order_relaxed);
         return false;
     }
 #ifdef TOMO_CORE_CONCURRENCY_TEST
-    // flipfix5: runs inside flip_stage_owed() after the epoch/stage validation.
+    // Test callback inside flip_stage_owed after epoch/stage validation.
     inline static void (*test_flip_owed_validated_)(uint32_t, FlipStage) = nullptr;
     inline static bool test_flip_owed_late_token_ = false;
 #endif
     uint64_t flip_stale_stage_refusals() const {
         return flip_stale_stage_refusals_.load(std::memory_order_relaxed);
     }
-    // TEST HOOK (DEBUG FLIP-STAGE-HOLD <us>). An executor that has already acknowledged ExInstall
-    // and samples it again is held before its owed test until the next FLIP is admitted or the
-    // bound expires: the hold flipfix5 measured from io_uring kernel work, made deterministic for
-    // the live directed row on both engines. Read only inside a matching non-Idle control branch.
+    // DEBUG FLIP-STAGE-HOLD delays an executor that samples an already-acked ExInstall
+    // before its owed check, until another FLIP is admitted or the bound expires.
+    // This makes stale-stage validation deterministic on both engines. Read only in
+    // a matching non-Idle control branch; zero disables the hold.
     void set_debug_flip_stage_hold(uint16_t microseconds) {
         debug_flip_stage_hold_us_.store(microseconds, std::memory_order_relaxed);
     }
@@ -1898,8 +1942,8 @@ public:
 
 private:
 #if TOMO_SINGLE_DATABASE
-    // Identity-only, never published or allocated. Keep every Server offset at
-    // its pre-database value; the configured runtime owns its mutable map.
+    // Single-database identity object: no mutable mapping allocation/publication and
+    // no per-Server field. The configured multi-database runtime owns its mutable map.
     inline static DatabaseMap databases_;
 #else
     DatabaseMap databases_;
@@ -2099,43 +2143,23 @@ public:
         shard_owner_[shard_id].store(thread_id, std::memory_order_release);
     }
 
-    // The caller must hold both executor loops at the safe point:
-    // no executing/retry/group/snapshot work may touch this shard.  Queue entries which arrive via
-    // a stale pre-commit route are harmless because ExLoop rechecks and forwards before access.
-    // Vector capacity and membership are settled while PREPARING still names the source.  The
-    // phase store in commit_transfer() is the sole ownership edge; bucket entries and the derived
-    // shard array publish destination only after that edge.
-    // THE OWNERSHIP EDGE OWNS THE SINK.
-    //
-    // A shard's read-local retire sink names TWO structures that belong to one thread and are
-    // protected by nothing else: the owner's QSBR retire ring (`defer`, a single-producer ring) and
-    // the owner's private block cache (`block_cache`, an unlocked free list). Every armed write on
-    // the shard reaches both through the shard's store, so the sink must name the thread that is
-    // executing that shard's writes -- at every instant, not eventually.
-    //
-    // Moving the shard without moving the sink leaves the DESTINATION executing writes through the
-    // SOURCE's ring and free list. Two threads then splice one unlocked list: the loser's update is
-    // lost, a block ends up linked twice, and the damage surfaces later as either
-    // KvBlockCache::put's `heads[cls] == memory` abort or a take() of a still-linked block whose
-    // KvObj header overwrites the list `next`, so that the NEXT take dereferences a wild pointer.
-    // Both were observed.
-    //
-    // The rebind used to be deferred to the destination's own next executor pass
-    // (`lb_rebind_pending_` -> `read_local_rebind_owned_shards_after_lb`). Nothing ordered that
-    // pass before the destination's first write to the shard it had just been given, and the
-    // reproduction shows exactly that gap: transfer sid 1 to thread 1, then thread 1 executing
-    // cmd_set on it against thread 7's cache, with no rebind in between.
-    //
-    // Here there is no gap. Both callers hold every executor at the quiesced safe point (the LB
-    // commits only once every EX thread has acked ExDrain, which `flip_quiesced()` grants only with
-    // an EMPTY retire ring), so the source has nothing outstanding for this shard and the
-    // destination has not started. The sink moves with ownership, in the same critical section.
+    // Rebind the borrowed retire sink inside the quiesced ownership critical section.
+    // Both callers hold every executor at a safe point: no executing/retry/group/snapshot
+    // work may touch the shard, and ExDrain requires an empty retire ring. Capacity and
+    // membership settle while Preparing names the source; commit_transfer publishes
+    // the sole ownership edge, then bucket and shard routes expose the destination.
+    // Stale queued routes are forwarded by ExLoop before access.
+    // The sink names the owner's single-producer QSBR ring and unlocked block-cache free
+    // list. Every armed write must use its executing owner's sink; deferring rebinding
+    // until a later destination pass permits two threads to splice one free list. That
+    // can lose links, double-link a block or overwrite a list pointer with a KvObj header,
+    // causing put's self-link assertion or a later invalid dereference in take.
+    // Disabled stores need no sink; an armed destination without a bound sink aborts.
     void adopt_read_local_retire_sink(Shard& shard, uint32_t destination) {
 #ifdef TOMO_RL_CACHE_NO_EAGER_ADOPT
-        // NEGATIVE CONTROL (Makefile target `rlcache-nofix`): restores the pre-fix behaviour, where
-        // the sink was left for the destination's own later pass to rebind. Every invariant added
-        // for this defect MUST fail against this build; a detector that cannot report failure
-        // proves nothing about the runs that pass.
+        // Negative control rlcache-nofix omits eager sink adoption. Tests must detect
+        // a stale owner/sink mapping on this build; a detector that cannot fail here
+        // does not establish the migration invariant.
         (void)shard;
         (void)destination;
         return;
@@ -2148,22 +2172,14 @@ public:
     }
 
 #ifdef TOMO_RL_CACHE_DEBUG
-    // THE INVARIANT THAT WOULD HAVE CAUGHT THIS, stated where it can be checked cheaply and
-    // continuously rather than only where it is violated.
-    //
-    // Every shard's read-local retire sink must name its CURRENT owner, at every instant. Checking
-    // it only at the point of USE (KvBlockCache's owner assertion) makes detection depend on the
-    // new owner happening to write to the moved shard inside the window, which is a coin flip per
-    // move. Checking the mapping itself makes ANY move with a stale sink fire, deterministically,
-    // whether or not a write lands in the window -- which is what lets a gate row rest on it.
-    //
-    // 16-256 pointer compares, debug builds only, once per executor pass.
+    // Debug-only, once per executor pass: every armed shard sink must name its current
+    // owner outside migration. Comparing mappings detects any stale sink without
+    // requiring a write to land in the vulnerable interval. Cost is one pointer-pair
+    // check per shard (16..256 in the directed test geometries).
     void debug_assert_read_local_sinks_follow_ownership(uint32_t checker) const {
-        // Only outside a migration stage. The transfer functions publish the sink and the new owner
-        // as two separate stores inside one quiesced critical section, so a thread parked at the
-        // ExDrain ack can observe the instant between them; that transient is not the defect. The
-        // defect outlives the stage -- the pre-fix rebind did not happen until the destination's
-        // own later pass -- so checking at Idle still catches it on the very next pass.
+        // Only check at Idle: the sink and owner are separate stores inside one
+        // quiesced critical section. An acknowledged executor can observe the interval
+        // between them, but a mismatch after the migration stage is an invariant failure.
         if (lb_stage() != LbStage::Idle || flip_stage() != FlipStage::Idle) return;
         for (uint32_t sid = 0; sid < nshards(); sid++) {
             const Shard& shard = *shards_[sid];
@@ -2429,11 +2445,9 @@ public:
         refresh_client_cron_armed();
         end_live_config_update(version);
     }
-    // ---- Lane F: the single CLIENT/MONITOR/TRACKING armed word ---------------------------------
-    // Every feature this lane adds is OFF by default and must cost nothing while off.  Instead of
-    // giving each one its own hot-path test, they share ONE word that the IO loop caches per
-    // batch and folds into the notification-armed decision parse_and_dispatch already makes.  A
-    // zero word means the io side takes byte-for-byte the pre-lane path.
+    // CLIENT/MONITOR/TRACKING features share one armed word, cached once per IO batch
+    // and folded into parse_and_dispatch's notification decision. These features are
+    // off by default; zero selects the unarmed IO path without separate feature checks.
     static constexpr uint32_t kClimonMonitor = 1u << 0;   // >=1 MONITOR client exists
     static constexpr uint32_t kClimonTracking = 1u << 1;  // >=1 CLIENT TRACKING client exists
     static constexpr uint32_t kClimonPause = 1u << 2;     // a CLIENT PAUSE deadline is live
@@ -2549,17 +2563,13 @@ public:
     uint64_t monitor_forwarded_stale() const {
         return monitor_forwarded_stale_.load(std::memory_order_relaxed);
     }
-    // PROOF-OF-MECHANISM for the out-of-band frame channel, and the reason it exists is the
-    // vacuous-validation trap: the geometry that used to splice a push into a borrowed reply is
-    // "an out-of-band frame arrives while ops are still in flight", and a battery that never
-    // reaches that state passes without testing anything. These two counters name the two output
-    // routes, so a check can assert the gate OPENED before it believes its own clean result.
-    //
-    //   segmented -- frame took the segment channel immediately. The important busy-ROB case is a
-    //                genuinely parked blocking head, which must not hold a delivery for its whole
-    //                timeout; an already-existing segment queue can also select this route.
-    //   deferred  -- frame parked behind the replies of commands issued before it, including both
-    //                Done-but-unretired replies and the partial staging window inside a drain.
+    // Out-of-band delivery counters require tests to demonstrate arrival while commands
+    // are in flight, where a push frame could otherwise splice into a borrowed reply.
+    // segmented counts immediate segment-channel delivery: a genuinely parked blocking
+    // head cannot hold the frame for its whole timeout; an existing segment queue also
+    // selects this route. deferred counts frames parked behind earlier command replies,
+    // including Done-but-unretired replies and partial staging during a drain. A clean
+    // reply check without an observed route does not prove this window was exercised.
     void note_oob_frame_segmented() {
         oob_frames_segmented_.fetch_add(1, std::memory_order_relaxed);
     }
@@ -2716,8 +2726,8 @@ public:
             return false;
         }
         thread(owner_io).note_atomic_group();
-        // Existing EXEC/scatter state has a receipt word named admission_generation. Keep its
-        // representation (and layouts) while removing generation-dependent credit accounting.
+        // EXEC/scatter receipts carry admission_generation with fixed representation/layout.
+        // Credit accounting does not depend on that receipt value.
         admission_token = 1;
         return true;
     }
@@ -2786,8 +2796,8 @@ public:
             for (uint32_t io = pos; io < nthreads(); io += 64) {
                 ThreadCtx& waiter = thread(io);
                 if (io == self_tid || !waiter.ring() || !waiter.parked()) continue;
-                // The existing wake: one msg_ring Wake (an eventfd mail under epoll) to the
-                // parked thread, prepared on this thread's ring and counted in wakes_sent.
+                // Send one msg_ring Wake (eventfd mail under epoll) using this thread's ring
+                // and count it in wakes_sent.
                 waiter.wake_if_parked(*mine, self.sig());
                 rang = true;
             }
@@ -2796,23 +2806,15 @@ public:
             if (!all) return;
         }
     }
-    // GROUP COMMIT IS TWO STEPS AND A READER MUST NEVER SEE THE FIRST WITHOUT THE SECOND.
-    // A cross-shard group installs its versions on every owner while the shared epoch word still
-    // reads zero (undecided ⇒ invisible), and only the last owner turns it into a ticket. That
-    // ticket used to be drawn straight out of commit_seq_, so between the draw and the
-    // `epoch.store(ticket)` two instructions later the sequence already named a commit whose
-    // records still answered "undecided". A reader whose cut landed in that hole saw the group
-    // for the fragments it read AFTER the store and missed it for the fragments it read BEFORE --
-    // one MGET, two generations. The hole is nanoseconds wide and a preemption between the two
-    // instructions makes it milliseconds wide; it produced exactly one torn MGET per ~1.1M
-    // pipelined batches on the session-monotonicity hammer.
-    //
-    // So the visible read watermark is no longer the drawn sequence. Committers bracket
-    // [draw, publish] in atomic_commit_inflight_, and whoever takes the count to zero republishes
-    // the drawn sequence it read BEFORE its own decrement into atomic_commit_safe_: at that
-    // instant every ticket at or below that value has already stored its epoch, because a
-    // committer that had not would still be holding the count up. Readers load one word exactly
-    // as before -- the commit side pays two RMWs on a line commits already own.
+    // A reader must never see a commit ticket before every decision word it names is
+    // published. Owners install versions while epoch is zero (undecided/invisible),
+    // then committers bracket ticket reservation and decision publication with
+    // atomic_commit_inflight_. commit_seq_ alone is not a safe read watermark: a reader
+    // straddling reservation/publication could otherwise return two generations.
+    // The last committer publishes to atomic_commit_safe_ the drawn sequence it loaded
+    // before decrementing the count. Every ticket through that value has stored its
+    // epoch, because an unfinished committer would still hold the count up. Readers
+    // load the safe watermark once; committers bear the synchronization cost.
     void restore_aof_ticket_floor(uint64_t floor);  // Boot only, before owners run.
     uint64_t atomic_commit_reserve(uint64_t tickets = 1) {
         if (!tickets) std::abort();
@@ -2852,12 +2854,10 @@ public:
             drawn = newer;
         }
     }
-    // Reserve a consecutive run under ONE commit bracket, then let the caller release-store every
-    // decision word in its completion order before the safe watermark moves. The stall before the
-    // first store is the atomic-ON use of DEBUG's shared hop delay: it widens the closed window on
-    // demand, is zero in production, and the load is on an already-cold group/batch path. For a
-    // one-ticket batch this is exactly the historical reserve/delay/store/publish sequence, while a
-    // larger batch widens one common closed window.
+    // Reserve consecutive tickets in one commit bracket. The callback must publish every
+    // decision word before atomic_commit_publish advances the safe watermark. DEBUG
+    // hop delay stalls before the first store (zero in production), widening this closed
+    // window for a single ticket or a batch without adding a per-read retry.
     template <typename StoreTickets>
     uint64_t atomic_commit_batch(uint64_t tickets, StoreTickets&& store_tickets) {
         const uint64_t first = atomic_commit_reserve(tickets);
@@ -2906,17 +2906,21 @@ public:
         return total;
     }
     MultiRetryLane& multi_retry_lane(uint32_t io) { return multi_retry_lanes_[io]; }
-    // Completion notices an owner could not post to a full EX->IO channel (a connection without a
-    // ready-mask slot). Worker `tid` alone touches its vector. Dropping such a notice left the
-    // reply to its IO's every-64th-pass serve backstop, about a second on an idle IO. Instead the
-    // claim (retire_queued) stays set -- the client can then be neither released nor migrated --
-    // and the owner reposts it on its following passes, counted as work.
+    // Worker tid alone owns its completion-notice retry vector. For a full EX-to-IO
+    // channel without a ready-mask slot, keep retire_queued claimed so the Client can
+    // be neither released nor migrated, and repost on later owner passes counted as
+    // work. Dropping the claim leaves progress to the IO's periodic serve backstop.
+    // If retry-vector allocation fails, defer_completion_notice releases the claim
+    // with release ordering and relies on that backstop.
     std::vector<Client*>& notify_retries(uint32_t tid) { return notify_retries_[tid]; }
     void defer_completion_notice(uint32_t tid, Client* client) {
         try {
             notify_retries_[tid].push_back(client);
         } catch (const std::bad_alloc&) {
-            client->retire_queued().store(false, std::memory_order_release);  // the old drop
+            client->retire_queued().store(
+                false,
+                std::
+                    memory_order_release);  // Allocation failure falls back to periodic IO service.
         }
     }
     bool txn_retry_held(const void* = nullptr) const {
@@ -3026,17 +3030,12 @@ public:
     void note_script_abort_oom() {
         script_group_aborts_oom_.fetch_add(1, std::memory_order_relaxed);
     }
-    // THE THREE COUNTERS THAT MAKE THE RESERVATION SUB-WAVE FALSIFIABLE.
-    //
-    // AMENDMENT 1 requires proof that reservation ARMED, not proof that the phases ran: an
-    // activation whose PIN wave silently armed nothing looks identical from the outside -- same
-    // replies, same phase counters, same commit -- right up until a competing write is missed.
-    //   script_keys_armed          one per declared key, per owner PIN task
-    //   script_keys_released       one per UNPIN; armed - released must be 0 at rest
-    //   script_write_tickets_forced a plain write that would have taken the untracked physical
-    //                              path and instead materialized an MVCC version BECAUSE the key
-    //                              was reserved. This is the counter that proves the arming is
-    //                              load-bearing rather than merely present.
+    // Reservation instrumentation distinguishes actual key arming from merely running
+    // PIN phases: a phase with no reservations could miss a competing write.
+    // script_keys_armed counts declared keys per owner PIN; script_keys_released counts
+    // UNPIN, and their difference must be zero at rest. script_write_tickets_forced
+    // counts plain writes that materialize MVCC versions because of a reserved key.
+    // Tests require that last path to show reservations affect conflicting writes.
     void note_script_key_armed() { script_keys_armed_.fetch_add(1, std::memory_order_relaxed); }
     void note_script_key_released() {
         script_keys_released_.fetch_add(1, std::memory_order_relaxed);
@@ -3112,16 +3111,12 @@ public:
         return groups;
     }
     uint64_t atomic_inflight() const { return atomic_credits_.active(); }
-    // GROUPS WHOSE RECORDS ARE ONLY PARTLY INSTALLED -- the quantity a snapshot cut must wait on.
-    // It is NOT atomic_inflight(). A group leaves atomic_inflight() only when its REPLY retires on
-    // the IO thread that admitted it, and that retire runs in the very loop a blocking SAVE is
-    // sitting inside: waiting for atomic_inflight()==0 from a SAVE wedges the server (measured --
-    // rdb_bgsave_in_progress stuck at 1 with 13 leases held). Records, by contrast, are dispatched
-    // to every participating owner in ONE indivisible IO step (io_loop.h checks free slots on all
-    // participants and only then posts, aborting on a failed post), and they finish on the OWNER
-    // threads, which keep running while a SAVE blocks. So this window opens at admission and closes
-    // either at the owner-side completion or at the synchronous pre-dispatch teardown -- never on a
-    // thread a snapshot can be occupying.
+    // Count groups whose records are only partly installed, the window a snapshot
+    // cut must drain. atomic_inflight instead lasts until reply retirement on IO; a
+    // blocking SAVE occupies that loop and cannot wait for its own reply retirement.
+    // Group dispatch reserves every participating channel before posting indivisibly.
+    // The apply window closes on owner completion or synchronous pre-dispatch teardown,
+    // so it does not depend on a thread blocked serving the snapshot.
     uint64_t atomic_apply_inflight() const {
         uint64_t closed = 0;
         uint64_t opened = 0;
@@ -3179,21 +3174,19 @@ public:
     void set_debug_atomic_direct_defer(uint32_t passes) {
         debug_atomic_direct_defer_.store(passes, std::memory_order_relaxed);
     }
-    // TEST HOOK shared by DEBUG ATOMIC-COMMIT-DELAY and ATOMIC-OFF-HOP-DELAY. Atomic ON stalls a
-    // commit batch between its ticket reservation and the decision stores (read by
-    // atomic_commit_batch(), a cold group/batch path); atomic OFF parks non-lead owners at the
-    // first cross-owner mutation wave. Both aliases write this one word, so last writer wins and
-    // zero disarms both. It turns the reserve/publish hole into a window wide enough for a reader
-    // to straddle, which is how the torn MGET is reproduced on demand instead of once per 1.1M
-    // batches. Reads occur only on the cold group/scatter paths, never GET/SET.
+    // DEBUG ATOMIC-COMMIT-DELAY and ATOMIC-OFF-HOP-DELAY share one word; last writer
+    // wins, and zero disarms both. Atomic ON stalls between ticket reservation and
+    // decision stores; OFF parks non-lead owners in the first cross-owner mutation wave.
+    // These cold group/scatter reads widen the torn-read window deterministically,
+    // without loading the hook on ordinary GET/SET paths.
     uint32_t debug_hop_delay() const { return debug_hop_delay_.load(std::memory_order_relaxed); }
     void set_debug_hop_delay(uint32_t microseconds) {
         debug_hop_delay_.store(microseconds, std::memory_order_relaxed);
     }
-    // DEBUG ATOMIC-COMMIT-HOLD: retain the existing owner-private commit queue before drawing
-    // tickets, without blocking the executor. Admission/reconfiguration tests can then run
-    // CONFIG while groups are live. The ticket-publication delay above serves a different test:
-    // it deliberately stalls INSIDE the reserve/publish interval to exercise safe read cuts.
+    // DEBUG ATOMIC-COMMIT-HOLD holds the owner-private commit queue before ticket
+    // reservation, without blocking the executor, so CONFIG can run while groups live.
+    // The publication-delay hook instead stalls inside reservation/publication to
+    // exercise safe read cuts.
     bool debug_atomic_commit_hold() const {
         return debug_atomic_commit_hold_.load(std::memory_order_relaxed);
     }
@@ -3232,24 +3225,21 @@ public:
     uint64_t debug_atomic_conditional_deadline() const {
         return debug_atomic_conditional_deadline_.load(std::memory_order_relaxed);
     }
-    // TEST HOOK (DEBUG SCRIPT-STAGE-DEFER). Microseconds every cross-owner script GATHER task
-    // except the one on the coordinator's own shard is PARKED -- re-queued, not spun -- after the
-    // activation has reserved all of its declared keys and pinned its cut. That park IS the window
-    // AMENDMENT 1 is about: the coordinator's own key is read from the world before a competing
-    // plain write, the parked ones read after it, and an activation whose reservation did not
-    // actually arm those keys therefore composes two generations into one reply and never notices.
-    // Parking rather than stalling keeps the executor free so the racing write can really run.
-    // Zero in production; read once per activation at prepare time on the cold scatter path.
+    // DEBUG SCRIPT-STAGE-DEFER parks non-coordinator GATHER tasks after a cross-owner
+    // script reserves declared keys and pins its cut. The coordinator can read before
+    // a competing plain write while parked tasks read after it; missing reservations
+    // would then compose two generations. Parking leaves executors free for that write.
+    // Zero in production; read once per activation on the cold prepare path.
     void set_debug_script_stage_defer(uint32_t microseconds) {
         debug_script_stage_defer_.store(microseconds, std::memory_order_relaxed);
     }
     uint32_t debug_script_stage_defer() const {
         return debug_script_stage_defer_.load(std::memory_order_relaxed);
     }
-    // TEST HOOK (DEBUG ATOMIC-READ-DELAY). Microseconds a plain read is held on its owner before
-    // it resolves, widening the gap between the IO-side dispatch of a pipelined read and its
-    // execution. That gap is the session-monotonicity window: foreign commits landing inside it
-    // used to make the earlier command answer with a newer world than the later one.
+    // DEBUG ATOMIC-READ-DELAY holds a plain read on its owner in microseconds before
+    // resolution. Foreign commits in the dispatch-to-execution interval exercise the
+    // session-monotonicity hazard: an earlier command must not observe a newer cut
+    // than a later command from that connection.
     void set_debug_atomic_read_delay(uint32_t microseconds) {
         debug_atomic_read_delay_.store(microseconds, std::memory_order_relaxed);
     }
@@ -3273,7 +3263,7 @@ public:
     // nothing left to do and parks on submit_and_wait(1) -- unbounded under io_uring. A hold that
     // expired on a clock would therefore never be noticed, and the connection would hang instead
     // of resuming. The releasing edge has to be an EVENT. The test clears this latch from a second
-    // connection and then wakes every io thread through an existing fan-out (CLIENT LIST), which
+    // connection and then wakes every io thread through a fan-out (CLIENT LIST), which
     // is what makes the resume observable rather than theoretical.
     void set_debug_barrier_hold(uint32_t armed) {
         debug_barrier_hold_.store(armed, std::memory_order_relaxed);
@@ -3307,10 +3297,9 @@ public:
     uint64_t barrier_owner_overlaps() const {
         return barrier_owner_overlaps_.load(std::memory_order_relaxed);
     }
-    // A blocking retirement released its own claim and the barrier STAYED UP because another owner
-    // still held it. This is the instruction the old unconditional clear got wrong, so a validation
-    // run that never moves this counter never reached the geometry it claims to cover -- it must
-    // FAIL LOUDLY rather than report a pass.
+    // Counts a blocking retirement that releases its own claim while another owner
+    // keeps the parse barrier raised. Tests must advance this counter before accepting
+    // the owner-scoped-release check; otherwise they never exercise overlapping claims.
     void note_barrier_release_held() {
         barrier_releases_held_.fetch_add(1, std::memory_order_relaxed);
     }
@@ -3326,22 +3315,17 @@ public:
     uint64_t atomic_commit_windows() const {
         return atomic_commit_windows_.load(std::memory_order_relaxed);
     }
-    // The guarded path of the EXEC fan-out fix: a cross-shard READ that pinned a cut although the
-    // tracking word read zero at prepare time. Before the fix that exact sample sent the read out
-    // with no cut at all, so every fragment answered "newest committed right now" and a transaction
-    // committing inside the fan-out was seen by some fragments and missed by others. A regression
-    // that never moves this counter never entered the window it claims to close.
+    // Counts cross-shard reads that pin a cut while the tracking word is zero at prepare
+    // time. Without a pinned cut, fragments can observe different sides of one commit.
+    // Tests must advance this counter to demonstrate that the untracked fan-out case ran.
     void note_atomic_fanout_cut() { atomic_fanout_cuts_.fetch_add(1, std::memory_order_relaxed); }
     uint64_t atomic_fanout_cuts() const {
         return atomic_fanout_cuts_.load(std::memory_order_relaxed);
     }
-    // The EXEC half of the same story, counted separately so a gate row cannot be satisfied by
-    // ordinary bare traffic moving atomic_fanout_cuts underneath it. One per transaction that
-    // published a read cut because it carries a read whose fragments span more than one owner.
-    // Before this lane a MULTI child ran with `!force_atomic`, never reached the read-cut
-    // machinery, and its fragments each answered "newest committed right now": a transaction
-    // committing inside the fan-out was seen by some and missed by others, so MULTI/EXEC gave a
-    // cross-shard read LESS isolation than the same command run bare.
+    // Count transactions that publish a cut for reads spanning multiple owners. Keep
+    // this separate from bare atomic_fanout_cuts so ordinary traffic cannot satisfy
+    // the EXEC witness. Every child fragment must use the common cut; sampling newest
+    // committed independently can tear a transaction's cross-shard read.
     void note_atomic_exec_read_cut() {
         atomic_exec_read_cuts_.fetch_add(1, std::memory_order_relaxed);
         atomic_fanout_cuts_.fetch_add(1, std::memory_order_relaxed);
@@ -3455,9 +3439,9 @@ public:
     void pubsub_event_retired() {
         if (pubsub_inflight_.fetch_sub(1, std::memory_order_relaxed) == 0) std::abort();
     }
-    // Fanout reporting. `blobs` is a lifetime gauge that must drain to zero (the refcount proof);
-    // `deliveries / delivery_batches` is the batching proof -- a ratio of 1.0 means the scatter
-    // machinery is posting one event per delivery again, which is the thing this design removed.
+    // Fanout reporting: blobs is a lifetime gauge that must drain to zero.
+    // deliveries / delivery_batches witnesses batching; one event per delivery
+    // would yield a ratio of 1. Tests must observe real batching to validate that path.
     void pubsub_blob_created() { pubsub_blobs_.fetch_add(1, std::memory_order_relaxed); }
     void pubsub_blob_retired() {
         if (pubsub_blobs_.fetch_sub(1, std::memory_order_relaxed) == 0) std::abort();
@@ -3739,13 +3723,13 @@ private:
     Role flip_convert_[kMaxThreads] = {};
     uint32_t flip_surviving_io_[kMaxThreads] = {};
     uint32_t flip_surviving_io_count_ = 0;
-    // Planned connection transfers that a source dropped because the connection was closing at
-    // ClientPrepare (IO4.1). Occupies the existing hole after flip_surviving_io_count_.
+    // Count planned transfers dropped because a source finds a closing client during
+    // ClientPrepare. The counter occupies the slot after flip_surviving_io_count_.
     std::atomic<uint32_t> flip_dropped_client_transfers_{0};
     std::vector<Client*> flip_client_plan_[kMaxThreads];
     std::vector<uint32_t> flip_client_destinations_[kMaxThreads];
-    // Final connection count per surviving IO. Written by the planner, then adjusted by a source
-    // that drops a closing planned connection; same size/alignment as the former plain array.
+    // Final count per surviving IO: the planner writes it, then sources adjust it
+    // when dropping a closing planned client. Atomic quotas permit those updates.
     std::atomic<uint32_t> flip_client_quota_[kMaxThreads] = {};
     uint32_t flip_bucket_quota_[kMaxThreads] = {};
     uint32_t flip_shard_destination_[256] = {};
@@ -3756,11 +3740,10 @@ private:
     uint32_t flip_coordinator_ = UINT32_MAX;
     uint32_t unix_owner_tid_ = UINT32_MAX;
     std::atomic<bool> flip_failed_{false};
-    // TEST HOOK (DEBUG FLIP-STAGE-HOLD); production 0. Existing padding after flip_failed_.
+    // DEBUG FLIP-STAGE-HOLD defaults to zero; occupies padding after flip_failed_.
     std::atomic<uint16_t> debug_flip_stage_hold_us_{0};
-    // Control-pass stage samples that the pre-flipfix5 acknowledgement test would have acted on
-    // after their stage stopped being live (flip_stage_owed). Diagnostic; wraps at 2^32. Both
-    // fields occupy the existing padding after flip_failed_, so no Server member moves.
+    // Diagnostic stale-stage refusals from flip_stage_owed; wraps at 2^32. Shares
+    // the fixed padding after flip_failed_ with the stage-hold hook.
     mutable std::atomic<uint32_t> flip_stale_stage_refusals_{0};
     mutable std::mutex flip_error_mu_;
     std::string flip_error_;
@@ -3778,9 +3761,9 @@ private:
     std::atomic<uint64_t> flip_conservation_checks_{0};
     std::atomic<uint64_t> flip_conservation_violations_{0};
 
-    // The monitor publishes PlanReady; the IO coordinator alone starts the existing drains.
-    // EX movement reuses FLIP's quiescence fence; client movement pauses one selected connection
-    // until the existing asynchronous transfer primitive takes ownership.
+    // The monitor publishes PlanReady; the IO coordinator alone starts drains.
+    // EX movement uses FLIP quiescence; client movement pauses the selected
+    // connection until the asynchronous transfer takes ownership.
     std::atomic<LbStage> lb_stage_{LbStage::Idle};
     std::atomic<uint64_t> lb_epoch_{0};
     std::atomic<uint64_t> lb_deadline_ns_{0};
@@ -3860,8 +3843,8 @@ private:
     std::atomic<uint32_t> live_notify_events_{0};
     std::atomic<uint8_t> live_save_armed_{kSaveConfigured};
     std::atomic<uint64_t> live_proto_max_bulk_len_{512ull * 1024 * 1024};
-    // Lane F cold tail. Every field here is read once per io batch (or never, while the armed
-    // word is zero); none of them is on a per-operation path.
+    // Cold CLIENT/MONITOR/TRACKING state: read once per IO batch or skipped while
+    // the armed word is zero, outside the ordinary per-operation path.
     std::atomic<uint32_t> climon_armed_{0};
     std::atomic<uint64_t> climon_monitors_{0};
     std::atomic<uint64_t> climon_tracking_{0};
@@ -3879,11 +3862,10 @@ private:
     std::atomic<uint64_t> climon_tracking_keys_{0};
     std::atomic<uint64_t> climon_tracking_items_{0};
     std::atomic<uint64_t> climon_tracking_prefixes_{0};
-    // Preserve the commit-watermark block's placement after folding window into atomic_credits_.
+    // Fixed padding keeps the commit-watermark block at its required cache-line position.
     uint32_t atomic_window_layout_padding_ = 0;
-    // The drawn sequence and the visible read watermark share a line on purpose: readers used to
-    // load commit_seq_ itself, so keeping the watermark beside it leaves reader traffic exactly
-    // where it was, and a committer touches all three in one go.
+    // The drawn sequence, safe read watermark and in-flight committer count share
+    // a cache line. Readers touch that line; committers access all three together.
     std::atomic<uint64_t> commit_seq_{0};
     std::atomic<uint64_t> atomic_commit_inflight_{0};
     std::atomic<uint64_t> atomic_commit_safe_{0};
@@ -3908,10 +3890,9 @@ private:
     std::atomic<uint64_t> atomic_fanout_cuts_{0};
     std::atomic<uint64_t> atomic_exec_read_cuts_{0};
     AtomicAdmissionCredits atomic_credits_;
-    // IOs parked behind a frame the window refused: bit b for thread ids b and b+64. The word and
-    // the remaining padding fill exactly the 16 bytes the former uint32_t[3] layout padding and its
-    // alignment hole held before atomic_activity_, so every following offset is preserved, and the
-    // word shares atomic_credits_'s cache line: the retirer loads the line its RMW just wrote.
+    // Credit waiters: bit b names physical ids b and b+64. The word shares the
+    // atomic_credits_ cache line, so retirement reads a line its RMW already writes.
+    // The word and padding occupy a fixed 16-byte slot before atomic_activity_.
     std::atomic<uint64_t> atomic_credit_waiters_{0};
     uint32_t atomic_credit_layout_padding_[2] = {};
     static_assert(kMaxThreads <= 128, "atomic_credit_waiters_ maps two thread ids to each bit");
@@ -3957,8 +3938,8 @@ private:
     std::atomic<uint64_t> pubsub_shard_subscriptions_{0};
     std::atomic<uint64_t> tracking_forwarded_stale_{0};
     std::atomic<uint64_t> monitor_forwarded_stale_{0};
-    // Security and DEBUG state is cold and appended after every pre-existing hot atomic so this
-    // feature cannot reshuffle cache-line sharing in dispatch, atomic admission, or pub/sub.
+    // Security/DEBUG state belongs after hot atomics so it does not alter cache-line
+    // sharing in dispatch, admission or pub/sub.
     std::atomic<uint8_t> security_flags_{0};
     std::atomic<uint32_t> acl_kill_broadcasts_{0};
     std::atomic<bool> acl_active_desired_{false};
@@ -3973,11 +3954,11 @@ private:
     // Cold observability for proving CLIENT catalog work reached every IO owner.
     std::atomic<uint64_t> client_scatter_requests_{0};
     std::atomic<uint64_t> client_scatter_io_responses_{0};
-    // Slow-log arming, published through the same mailboxes as the eviction/notify knobs and read
-    // once per executor pass. Appended at the true tail so no pre-existing offset moves.
+    // Slow-log arming uses the eviction/notification mailboxes and is read once
+    // per executor pass. Cold-tail placement keeps hot-field offsets fixed.
     std::atomic<int64_t> live_slowlog_us_{10000};
     std::atomic<uint32_t> live_latency_ms_{0};
-    std::atomic<bool> live_latency_tracking_{false};  // existing alignment before save_mu_
+    std::atomic<bool> live_latency_tracking_{false};  // Alignment before save_mu_.
     // Periodic snapshot policy is cold: one designated IO owner locks it once per second. Mutation
     // accounting remains per shard, so armed writes never contend on a process-global cache line.
     mutable std::mutex save_mu_;
@@ -3985,16 +3966,19 @@ private:
     std::atomic<uint64_t> save_change_baseline_{0};
     std::atomic<uint64_t> scheduled_save_triggers_{0};
     std::atomic<uint64_t> save_cron_checks_{0};
-    // Appended cold state: disabled servers allocate no epoch state and no established offset
-    // moves. Later test-only knobs stay behind this pointer for the same reason.
+    // Read-local epoch state is absent when disabled. The owning pointer and test
+    // knobs occupy cold-tail slots, keeping hot offsets fixed.
     std::unique_ptr<ReadLocalServerState> read_local_state_;
     std::unique_ptr<ModeScheduleStats[]> mode_schedule_stats_;
-    // Appended at the true tail: this test-only knob must not move any production member.
+    // Cold test-only deadline; keep its position after production state.
     std::atomic<uint64_t> debug_atomic_conditional_deadline_{0};
-    // Registered at executor construction (including dormant FLIP roles), then read
-    // only while all executors are quiesced at an ownership transfer. Keep this state
-    // at the tail so existing members retain their offsets.
+    // Borrowed notification-pending pointers are registered at executor initialization,
+    // including dormant roles, and read only while executors are quiesced for transfer.
+    // Their pointed-to executor state must outlive every such transfer.
     bool* owner_notify_pending_[kMaxThreads] = {};
+    // One physical-worker writer release-publishes pointer-scope entry/exit. Peer
+    // acquire readers use the epoch to delay Client/map reclamation; each slot has
+    // its own cache line and lives as long as Server.
     struct alignas(64) ClientWorkEpoch {
         std::atomic<uint64_t> epoch{0};
     };
@@ -4003,9 +3987,9 @@ private:
     // CONFIG copies into this storage; arbitrarily many updates or a stopped reader cannot grow it.
     std::unique_ptr<LiveConfigMailbox[]> live_config_mailboxes_;
     LiveConfigValues live_config_committed_{};  // serialized CONFIG writer only
-    // Cold diagnostics share no existing producer/consumer line and no normal-pass access.
+    // Cold IO-tenure diagnostics have their own cache line and no normal-pass access.
     alignas(64) IoTenureHistory<kMaxThreads> io_accounting_history_;
-    // SV1: high halves at the true tail preserve every existing hot field's offset.
+    // High IO-mask halves occupy cold-tail slots to preserve hot-field offsets.
     static_assert(kMaxThreads == ClimonIoMask::kBits);
     std::atomic<uint64_t> climon_monitor_io_mask_high_{0};
     std::atomic<uint64_t> climon_tracking_io_mask_high_{0};
@@ -4014,6 +3998,11 @@ private:
     std::atomic<uint32_t> shutdown_snapshot_holds_{0};
     std::atomic<uint64_t> live_client_query_buffer_limit_{1024ull * 1024 * 1024};
     std::atomic<uint64_t> signal_shutdown_deadline_ns_{0};
+    // Owned only when LB is enabled. The monitor fills vectors/epochs under the
+    // shape-transition lock and seq_cst-publishes PlanReady; the IO coordinator
+    // acquires and consumes it. client_readers protects the separate active drain
+    // record during cancellation. Allocation failure refuses planning; a stale
+    // epoch or a live reader defers/discards consumption before record reuse.
     struct LbPlan {
         uint64_t flip_epoch = 0, lb_epoch = 0;
         bool choose_client = false;
@@ -4026,16 +4015,16 @@ private:
     std::unique_ptr<LbPlan> lb_plan_;                    // absent with both balancers off
     std::shared_ptr<FlipListenerState> flip_listeners_;  // first real FLIP; never on an operation
 
-    // Transaction-only counters live after the established Server layout. Each
-    // slot has one physical owner writer; INFO reads them with relaxed loads.
+    // Transaction-only counters occupy the cold tail. Each slot has one physical
+    // owner writer; INFO reads them with relaxed loads.
     TxnOwnerCounters txn_counters_[kMaxThreads];
     MultiRetryLane multi_retry_lanes_[kMaxThreads];
     std::atomic<uint32_t> debug_txn_place_defer_{0};
-    // Cold cron policy at the tail: all prior owner/publication offsets stay fixed.
+    // Cold client-cron policy occupies the tail, outside owner/publication fields.
     ClientHz client_hz_;
     DebugSleepCoordinator<kMaxThreads, Ring::kWaitTimeoutMs> debug_sleep_;
 
-    // AT4.12 cold state at the true tail preserves all established offsets.
+    // Cold script-escalation state stays at the tail, outside ordinary dispatch.
     std::atomic<uint64_t> script_crossshard_window_waits_{0};
     std::atomic<uint64_t> script_escalations_{0};
     std::atomic<uint64_t> script_escalated_commits_{0};
@@ -4045,7 +4034,7 @@ private:
     std::atomic<uint64_t> debug_script_stage_watch_{0};
     std::atomic<uint64_t> debug_script_stage_watch_tasks_{0};
 
-    // D18 diagnostics: control paths only, at the tail to preserve all existing offsets.
+    // Control-path diagnostics occupy the tail without shifting hot state.
     alignas(64) std::atomic<uint64_t> flip_session_clients_transferred_{0};
     std::atomic<uint64_t> flip_refused_s2_{0};
     std::atomic<uint64_t> flip_refused_close_{0};
@@ -4054,11 +4043,11 @@ private:
     std::atomic<uint64_t> flip_skipped_class_[3]{};
     std::atomic<uint64_t> flip_refused_class_[3]{};
 
-    // F6c reproduction (cold, DEBUG-only): a one-shot microsecond stall the blocking registration
-    // inserts between its empty probe and its registry add, widening the probe/add window a
-    // cross-owner committer must lose a wake into. Consumed once; zero in production.
+    // DEBUG-only blocking-registration delay, consumed once in microseconds. It
+    // widens the interval between the empty probe and registry add to test whether
+    // a cross-owner committer can lose a wake. Zero is the production default.
     std::atomic<uint32_t> debug_blocking_register_defer_{0};
-    // parkwake F12 (notify_retries): at the tail, so every established offset stays fixed.
+    // Completion-notice retry vectors stay in the cold tail with one physical owner each.
     std::vector<Client*> notify_retries_[kMaxThreads];
 };
 

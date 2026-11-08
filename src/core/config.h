@@ -1598,8 +1598,8 @@ inline int /* TOMO_TOOL_BIND parse_config_args */ parse_config_args(
             }
             st.place_source = source;
             cfg.place = next("");
-            // Phase 5: report help or reject an unmatched option.
         } else if (!std::strcmp(a, "--help")) {
+            // Phase 5: report help or reject an unmatched option.
             std::printf(
                 "usage: %s [conf-file] [--port N] [--bind A] [--unixsocket PATH]\n"
                 "       [--shards N] [--zc-min N] [--no-pin]\n"
