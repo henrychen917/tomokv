@@ -291,6 +291,11 @@ Use the gate's instrument and matched offered-load/null controls. Compare PRE→
 and PART1→PART2 independently; also compare PRE→PAD1(A) and PART1→PAD1(A). Minimum
 cells are GET p1/p32 at atomic 0/1, SET p32, MGET-8/MSET-8 p8 at atomic 0/1, both thread
 modes, plus the armed read-local twins and the established headline regression cells.
+Add default-mode GET p1/p32 with concurrent cross-owner EXEC writers. That cell
+prices the now-unconditional load while commits modify its shared watermark line;
+read-only instruction cells cannot expose that coherence cost. Include retained-record
+and cleanup progress counters under the pipelined read/write mix, since read retirement
+now extends the protected version window.
 Record rate, cycles/op, instructions/op and IPC. Rate at matched load is the merit
 verdict; instruction counts above only price work. No weakening of the correctness
 oracle is an acceptable way to avoid PART2's cost.
