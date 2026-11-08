@@ -1,0 +1,2810 @@
+[
+  {
+    "original": "tests/abba_calibration.py",
+    "archive": "tools/archive/tests/abba_calibration.py",
+    "sha256": "e538bbdf0a44c1b815059f18549ce389eb51023468d25da7033d9cda52168b33",
+    "purpose": "Unwired calibration prototype: two training ABBA blocks and one independent holdout."
+  },
+  {
+    "original": "tests/abba_saturation_controls.py",
+    "archive": "tools/archive/tests/abba_saturation_controls.py",
+    "sha256": "78a0ffbf60547fe54f355d98965f376e4aa6f2d93b5573a0408b0587e0ce3957",
+    "purpose": "Prepare loaded probes or capture idle controls; the campaign stays UNVALIDATED."
+  },
+  {
+    "original": "tests/at412_diagnostics.py",
+    "archive": "tools/archive/tests/at412_diagnostics.py",
+    "sha256": "55efcbfd19eb5efa9dd7f4d07e06b643729d8f9aa5f867f6ade7d6f6a118f2fc",
+    "purpose": "Non-gate reproductions for SNAP-STORM-1, XS-SHUT-1 and XS-NOTIFY-1."
+  },
+  {
+    "original": "tests/atomiccollapse_controls.py",
+    "archive": "tools/archive/tests/atomiccollapse_controls.py",
+    "sha256": "485412b96573d9ab4a29b90d3cc504b0e7e8a8499fae93b756a986bae2a04345",
+    "purpose": "Generate/build/run serverless collapse controls; never launches tomokv."
+  },
+  {
+    "original": "tests/cd13b_audit.py",
+    "archive": "tools/archive/tests/cd13b_audit.py",
+    "sha256": "c769a898263e49d412e6510cf3702a02b062e435ccfac71fd16702c736a4f688",
+    "purpose": "CD13b full-body byte audit. Only verified address fields are normalized."
+  },
+  {
+    "original": "tests/cd13b_window_test.py",
+    "archive": "tools/archive/tests/cd13b_window_test.py",
+    "sha256": "3e5a6fc3596b317406a57930262950a055624dff6cb2282fa64489b323de7cb3",
+    "purpose": "The real GEO property must rearm moved placement and reject a never-open window."
+  },
+  {
+    "original": "tests/climonfix_artifacts.py",
+    "archive": "tools/archive/tests/climonfix_artifacts.py",
+    "sha256": "1dd361c3c56a6e887ee4c05c81e86eb4d126960d6693e087be9231feae0e5c50",
+    "purpose": "Offline/serverless SV1/SV2 controls and type-A layout twin. Never starts a server."
+  },
+  {
+    "original": "tests/flip_close_controls.py",
+    "archive": "tools/archive/tests/flip_close_controls.py",
+    "sha256": "216243ed9582c3ffceef7c5e5637dabe2080a49fc96b560361f290972b10a697",
+    "purpose": "Serverless FLIP close/drain regression and an exact removal negative control."
+  },
+  {
+    "original": "tests/mdbstamp_controls.py",
+    "archive": "tools/archive/tests/mdbstamp_controls.py",
+    "sha256": "b5aecabbef19a161ff235fc1ff2d70271f2dcc5694301926ea1a45ae50036054",
+    "purpose": "Build/run deterministic serverless negative controls, never a server or timer."
+  },
+  {
+    "original": "tests/netfix2_audit.py",
+    "archive": "tools/archive/tests/netfix2_audit.py",
+    "sha256": "10f97c087b879b2611771c6660595ba02cc1670630a89ffd2e43111a7cd71ed8",
+    "purpose": "Run the auditors' owned tests with confined resources and POST expectations."
+  },
+  {
+    "original": "tests/respcompat_audit.py",
+    "archive": "tools/archive/tests/respcompat_audit.py",
+    "sha256": "64b566580a53702fd988de376e5478928073e6fee5529dc62cb86b2686d83e1d",
+    "purpose": "Offline RESP lane byte/instruction evidence; never executes either server."
+  },
+  {
+    "original": "tests/respcompat_replay.py",
+    "archive": "tools/archive/tests/respcompat_replay.py",
+    "sha256": "d886bc8635ee3ca2c708b329cf0bcf5cef9e8c0ebab2f02f85c38c9cdd5e093a",
+    "purpose": "Replay the unchanged wire inventory through the production parser, without sockets."
+  },
+  {
+    "original": "tests/signalacct_byte_checks.py",
+    "archive": "tools/archive/tests/signalacct_byte_checks.py",
+    "sha256": "4a3dfab84838d0b2c9811e5347da61be03a5c5b14a5537699b2dc9074c27a88a",
+    "purpose": "Serverless positive/negative controls for the existing strict ELF body checker."
+  },
+  {
+    "original": "tests/signalacct_controls.py",
+    "archive": "tools/archive/tests/signalacct_controls.py",
+    "sha256": "51f7a2a3c2ba204dbb244f0bfb4bf8a8d30ec12d20b246f277ff327f2d24e331",
+    "purpose": "Serverless accounting/parser negative controls. Run pinned to CPUs 112-127."
+  },
+  {
+    "original": "tests/signalacct_core_controls.py",
+    "archive": "tools/archive/tests/signalacct_core_controls.py",
+    "sha256": "961acaa0ad9703cc042a779bea301c3ab85705f76a9f855ee7551bb20faf0e9f",
+    "purpose": "Serverless negative controls of the actual model/fold/picker; never starts IO."
+  },
+  {
+    "original": "tests/signalacct_source_checks.py",
+    "archive": "tools/archive/tests/signalacct_source_checks.py",
+    "sha256": "0be639316660f000396e647bdbcaae079111d88a40da190cb47d0249c4cc0216",
+    "purpose": "Serverless IO scope/idle/R7 source proofs against the frozen launch reference."
+  },
+  {
+    "original": "tests/slowlog_identity.py",
+    "archive": "tools/archive/tests/slowlog_identity.py",
+    "sha256": "6dc149392f9f37211a34fd1d17f5ca247ba748a4eda2e730c849b1a51a4f681d",
+    "purpose": "SV4.3: immutable six-column SLOWLOG entries across rename and disconnect."
+  },
+  {
+    "original": "tests/sortstore_controls.py",
+    "archive": "tools/archive/tests/sortstore_controls.py",
+    "sha256": "0b3f7961fb7bdeef8e17463a83c4f965d5b11732613330970665eaa395f5cf1b",
+    "purpose": "Build the fix-removed unit/server controls; only --run-units executes proofs."
+  },
+  {
+    "original": "tests/txnfix_audit/t03_mover_replay.py",
+    "archive": "tools/archive/tests/txnfix_audit/t03_mover_replay.py",
+    "sha256": "f1478a5c74c9f41ee7722b05d60f7677c40ce64e99454726ec29813da1a2a829",
+    "purpose": "T03: atomic-ON cross-shard movers replay phase-one images. While the mover's group is installed"
+  },
+  {
+    "original": "tools/aclkeys3_audit.py",
+    "archive": "tools/archive/tools/aclkeys3_audit.py",
+    "sha256": "4641d6a1af7981d6f1529b748a835426dfb48f630ae17fe9c0fced6ec0193970",
+    "purpose": "Account for every PRE/POST object body and type layout without running a server."
+  },
+  {
+    "original": "tools/aclkeys3_budget.py",
+    "archive": "tools/archive/tools/aclkeys3_budget.py",
+    "sha256": "c6156ebcaf169152811e5ff4be4d2931347b476c43f7ae8a5b53131fd1d43aab",
+    "purpose": "Compile/byte-audit only the two changed TUs; never starts a listener or workload."
+  },
+  {
+    "original": "tools/aclkeys3_controls.py",
+    "archive": "tools/archive/tools/aclkeys3_controls.py",
+    "sha256": "5b5992d547f2ea7332a493744feb9a29c12f26808c571e96e6cd1c9372c65871",
+    "purpose": "Build throwaway, single-mechanism negative controls; never runs them or a server."
+  },
+  {
+    "original": "tools/aclkeys3_link_audit.py",
+    "archive": "tools/archive/tools/aclkeys3_link_audit.py",
+    "sha256": "2de32881e38bb30ebfa5a9fac9170f6356d5197eabea3395f396d3eb4422cac1",
+    "purpose": "Prove linker selection for changed/new weak copies; no opcode masking or execution."
+  },
+  {
+    "original": "tools/aclkeys3_text_audit.py",
+    "archive": "tools/archive/tools/aclkeys3_text_audit.py",
+    "sha256": "3ba4632aa35d931928ed2d2854186b611e5dccea1706e41428f4c16c1dbc6e35",
+    "purpose": "Grep tests for changed literal text and repository encodings; no server execution."
+  },
+  {
+    "original": "tools/aclkeys4_audit.py",
+    "archive": "tools/archive/tools/aclkeys4_audit.py",
+    "sha256": "0e134f7f64ef3384cb53b9712d0524fa1777a127810bf8bc7eb3b94b468bd249",
+    "purpose": "Inventory mainline PRE, merged aclkeys3, and POST without executing a server."
+  },
+  {
+    "original": "tools/aclkeys4_budget.py",
+    "archive": "tools/archive/tools/aclkeys4_budget.py",
+    "sha256": "2fb3e2e4eff33e12030b38ffeddcb5bcf159d108e52ffc3fc3baa0f8b4d92f4b",
+    "purpose": "Compile only a changed TU and reject every unrelated emitted-body difference."
+  },
+  {
+    "original": "tools/aclkeys_artifacts.py",
+    "archive": "tools/archive/tools/aclkeys_artifacts.py",
+    "sha256": "cca5536640a193337c608e820fac182325087eed4f88b6673a3d6c4797b63b63",
+    "purpose": "Offline ACL lane evidence and inverse text-size control; never runs a server."
+  },
+  {
+    "original": "tools/aoffix2_pad.py",
+    "archive": "tools/archive/tools/aoffix2_pad.py",
+    "sha256": "f9c1c0f446e92828c736db21fd10d16495391dae3dddf03065567e5fbae99f25",
+    "purpose": "PAD A: PRE behavior, POST AOF-only layouts and total linked .text size."
+  },
+  {
+    "original": "tools/aoffix2_proof.py",
+    "archive": "tools/archive/tools/aoffix2_proof.py",
+    "sha256": "ac7758c53ce0203d504e6c853ab3c1f0e56b51fe3d7f9e01a3e97be6abbbf80c",
+    "purpose": "Focused aoffix2 proof runner; no gate or throughput benchmark invocation."
+  },
+  {
+    "original": "tools/aoffix2_report.py",
+    "archive": "tools/archive/tools/aoffix2_report.py",
+    "sha256": "70b36d14cfea0d674142ca91c6a5384b7e81b4766272300616f4730cba5cc86a",
+    "purpose": "Summarize recorded AOF proof timings; never starts a server."
+  },
+  {
+    "original": "tools/aoffix_artifacts.py",
+    "archive": "tools/archive/tools/aoffix_artifacts.py",
+    "sha256": "1e279eb07410fa088b1f5ad4023982db2904340986cb700c873c60278f5505d4",
+    "purpose": "Build a kind-A P15 control offline: PRE probes in the exact POST ELF layout."
+  },
+  {
+    "original": "tools/assert_artifacts.py",
+    "archive": "tools/archive/tools/assert_artifacts.py",
+    "sha256": "a6f60df7018b7a3ffafdd20063cd05946d983ae8a7d1b92552e2e535277c367d",
+    "purpose": "Audit stable-assertion ELF changes and make an offline PAD-A behaviour twin."
+  },
+  {
+    "original": "tools/at412_artifacts.py",
+    "archive": "tools/archive/tools/at412_artifacts.py",
+    "sha256": "2d5f4591603c3d1af92b37ca22afee402c5ad4f83c7ede98c6457b9eaf4bd548",
+    "purpose": "AT4.12 offline identity, bounded instruction counts and PAD-A artifacts."
+  },
+  {
+    "original": "tools/at412_budget.py",
+    "archive": "tools/archive/tools/at412_budget.py",
+    "sha256": "86441e546deef74d0e9deec93f440e3ebd3d8861b578ee8cd1f028d45d887e4c",
+    "purpose": "AT4.12 compile-only per-unit IPA budget trials (no server, no workload, no rates)."
+  },
+  {
+    "original": "tools/at412c_proof.py",
+    "archive": "tools/archive/tools/at412c_proof.py",
+    "sha256": "f558b42c961f13d44dca7f49900f5617de5d21410f044ee94c178e29aaa22908",
+    "purpose": "Run authorized correctness jobs only, on at412c's CPU and port allocation."
+  },
+  {
+    "original": "tools/at412c_record.py",
+    "archive": "tools/archive/tools/at412c_record.py",
+    "sha256": "24c4707239f41d0b186384cf1ae29f05d58af939f2314c52abf533fed5d11e51",
+    "purpose": "Archive completed native correctness jobs, including every failed attempt."
+  },
+  {
+    "original": "tools/at_recycle_analyze.py",
+    "archive": "tools/archive/tools/at_recycle_analyze.py",
+    "sha256": "d14122c21fa6bc8d4763b66756cd94a2687ab420b6bc3837c69c263b73ba83df",
+    "purpose": "Strict OFFLINE window analyzer. Missing fields are errors; never drives a server."
+  },
+  {
+    "original": "tools/at_recycle_artifacts.py",
+    "archive": "tools/archive/tools/at_recycle_artifacts.py",
+    "sha256": "d5722393bcbb66a1d32aefec9fb8f83a4db25c6dc03707a944adedc4fdaefc0b",
+    "purpose": "Build-only source mirrors and audited fixed-width kind-A ELF patch; never starts a server."
+  },
+  {
+    "original": "tools/atomfix5_arms.py",
+    "archive": "tools/archive/tools/atomfix5_arms.py",
+    "sha256": "6f2b1514f85d5fdf29415cdfcbf19bf7cbca4ec1707853144e13aba00ba682d7",
+    "purpose": "Offline PAD-A and isolated broken-writer test control; never patch POST in place."
+  },
+  {
+    "original": "tools/atomfix6_archive.py",
+    "archive": "tools/archive/tools/atomfix6_archive.py",
+    "sha256": "37827a90a0f41f4b6574b98b0ae436f66fddf650c51e815ee19800fede31ecd5",
+    "purpose": "Losslessly archive large evidence files after their gate job has completed."
+  },
+  {
+    "original": "tools/atomfix6_audit.py",
+    "archive": "tools/archive/tools/atomfix6_audit.py",
+    "sha256": "99971bcbb48c59fafb197a4b003121b8f5d8fecc4ba1cbd0e7abe35d39a1eecf",
+    "purpose": "Run a copied round-5 correctness detector inside this lane's CPU/port limits."
+  },
+  {
+    "original": "tools/atomfix6_budget.py",
+    "archive": "tools/archive/tools/atomfix6_budget.py",
+    "sha256": "c80a591ae72ddab319c161df749ec2e247fc3afdf55abb519831f3d8f4f828c9",
+    "purpose": "Compile-only xshard budget trials to preserve the atomic-off instruction path."
+  },
+  {
+    "original": "tools/atomfix6_compress.py",
+    "archive": "tools/archive/tools/atomfix6_compress.py",
+    "sha256": "37108b7aadae89c7a069627da0697f5feb7733a7f72f119bffcd84daeae2fdf2",
+    "purpose": "Compress only generated unit debug sections, preserving executable sections."
+  },
+  {
+    "original": "tools/atomfix6_counts.py",
+    "archive": "tools/archive/tools/atomfix6_counts.py",
+    "sha256": "3b44df4737e4a757c4e3fb2210dff34c9812dd7e3d9fb125e7e5774ddacc473b",
+    "purpose": "Finite production instruction scopes, no servers, rates or PMU sampling."
+  },
+  {
+    "original": "tools/atomfix6_final.py",
+    "archive": "tools/archive/tools/atomfix6_final.py",
+    "sha256": "bc30e2196f6571bb5128be99965d9d0ad31852459cbd901e1f496c3b09d446f7",
+    "purpose": "Final harness, production-target freshness, and delivered-arm identity checks."
+  },
+  {
+    "original": "tools/atomfix6_park_pre.py",
+    "archive": "tools/archive/tools/atomfix6_park_pre.py",
+    "sha256": "849ae703e8ff032ae418120d8fff651c3c8fb91b341ab42038f740fb61a197f4",
+    "purpose": "Repeat the observed PRE park witness in both namespaces/read-local settings."
+  },
+  {
+    "original": "tools/atomfix6_proof.py",
+    "archive": "tools/archive/tools/atomfix6_proof.py",
+    "sha256": "5ba66c1d2b8b82fcae20f67f8b9530724bbb5824636ba595093cac3870a2438d",
+    "purpose": "Selected gate jobs on the lane allocation; never run ABBA or a full iteration."
+  },
+  {
+    "original": "tools/atomfix6_receipts.py",
+    "archive": "tools/archive/tools/atomfix6_receipts.py",
+    "sha256": "f1c3dc8e1c908f517a19c88afb9320c3ffe0f669dbea8e82552b31ca56502174",
+    "purpose": "Collect completed lane receipts, retaining failures and exact count denominators."
+  },
+  {
+    "original": "tools/atomfix6_retire.py",
+    "archive": "tools/archive/tools/atomfix6_retire.py",
+    "sha256": "a6a51d40b8c927301153fdcc1839f084659d95b8331584862e58b0e124bc9f16",
+    "purpose": "Retire large payloads only after their correctness job has passed."
+  },
+  {
+    "original": "tools/atomfix6_suite.py",
+    "archive": "tools/archive/tools/atomfix6_suite.py",
+    "sha256": "b421815bf8f4ca20da946a1438fe289907cbe8c3bfafce16ab79a3df961bca25",
+    "purpose": "Sequential selected correctness jobs; no iteration or performance driver."
+  },
+  {
+    "original": "tools/atomfix_controls.py",
+    "archive": "tools/archive/tools/atomfix_controls.py",
+    "sha256": "b8e84bdf17aa85435b9504fd861f99b27e03036562664d04dd31514271529ac6",
+    "purpose": "Prepare a throwaway AT1/AT2 PRE twin under build/, retaining the new bug counter/tests."
+  },
+  {
+    "original": "tools/atomiccollapse_artifacts.py",
+    "archive": "tools/archive/tools/atomiccollapse_artifacts.py",
+    "sha256": "1e8270e8d5bce0787fb72a8d77849d6a11426fd1ad005adf1676e3f104253672",
+    "purpose": "Raw ELF audit for atomic-collapse factoring. Never executes an audited artifact."
+  },
+  {
+    "original": "tools/blockfix2_pad.py",
+    "archive": "tools/archive/tools/blockfix2_pad.py",
+    "sha256": "005401fc4c272fa36cd726969068619288e729f19f30dff51cdf9ceafb493151",
+    "purpose": "Offline PAD-A: PRE behaviour, POST BlockingState layout and .text size."
+  },
+  {
+    "original": "tools/blockfix2_scope.py",
+    "archive": "tools/archive/tools/blockfix2_scope.py",
+    "sha256": "75ce94c92adc6c96b9f0548a656b55c8fb02b6a7a80697f9545936bc26a18d5b",
+    "purpose": "Bounded serverless paths in linked production routines, no rates."
+  },
+  {
+    "original": "tools/blockfix3_pad.py",
+    "archive": "tools/archive/tools/blockfix3_pad.py",
+    "sha256": "79b44cf05d2f04c435facf6a37301197dd3a225f877ef448bf669474c0d53d53",
+    "purpose": "PAD-A: PRE behaviour, inert POST cold-statistics layout and total text size."
+  },
+  {
+    "original": "tools/blockfix3_proof.py",
+    "archive": "tools/archive/tools/blockfix3_proof.py",
+    "sha256": "78a4efd159590cb982af264a9f651414da3924f70b547b1c49a9f58516c4ebfb",
+    "purpose": "Run selected whole gate jobs serially on the lane's CPUs and ports."
+  },
+  {
+    "original": "tools/blockfix3_repro.py",
+    "archive": "tools/archive/tools/blockfix3_repro.py",
+    "sha256": "dffe51463d89b9eb2265cd0e0ce1dd641c8198a72780c24990a1d70ddf5733cc",
+    "purpose": "Bounded PRE/oracle reproductions and unchanged upstream Tcl assertions."
+  },
+  {
+    "original": "tools/blockfix3_scope.py",
+    "archive": "tools/archive/tools/blockfix3_scope.py",
+    "sha256": "a98d9d6a018d98cea96dec70dbebae90d1c76bcda830c9c90a977e7e09c18ac3",
+    "purpose": "Bounded serverless paths in linked production routines, no rates."
+  },
+  {
+    "original": "tools/blockfix3_tcl_compare.py",
+    "archive": "tools/archive/tools/blockfix3_tcl_compare.py",
+    "sha256": "f35875da15157c1b515a1b7c16f776deb4d4958b5738704486994ed2cc0d69d7",
+    "purpose": "Fresh-server, bounded PRE/POST/oracle checks for full-job Tcl failures."
+  },
+  {
+    "original": "tools/blockfix4_budget.py",
+    "archive": "tools/archive/tools/blockfix4_budget.py",
+    "sha256": "c6bdf184d8e2c5cd51fe056b8ef7c384987d80ba46bbcf5143fe12f7cd5d3204",
+    "purpose": "Compile-only PRE/POST headroom survey for the two affected hot emitters."
+  },
+  {
+    "original": "tools/blockfix4_pad.py",
+    "archive": "tools/archive/tools/blockfix4_pad.py",
+    "sha256": "b1c269b0261400776d9b66099da7ab617066f2e5d8b84b337ce7c62e36141ec2",
+    "purpose": "PAD-A: PRE behaviour, inert POST blocking-registry layout and total text size."
+  },
+  {
+    "original": "tools/blockfix4_proof.py",
+    "archive": "tools/archive/tools/blockfix4_proof.py",
+    "sha256": "61b34ef09af887442a4d3a05d2906144ae0832b5d08cbed98c0eea4d67773a0a",
+    "purpose": "Run whole correctness jobs on the lane CPUs/ports; retain every verdict."
+  },
+  {
+    "original": "tools/blockfix4_scope.py",
+    "archive": "tools/archive/tools/blockfix4_scope.py",
+    "sha256": "7d232f4d719ba70447ec71f4a2baf4bcd3897383727a78c2d9c5d557481dcc4f",
+    "purpose": "Bounded serverless paths in linked production routines, no rates."
+  },
+  {
+    "original": "tools/blockfix4_summary.py",
+    "archive": "tools/archive/tools/blockfix4_summary.py",
+    "sha256": "7e9182893a5a54db29f19cf4f067a9dcfd6a0944345cddb2a89613bb15fb03bf",
+    "purpose": "Summarize archived gate verdicts and black-box counts without changing verdicts."
+  },
+  {
+    "original": "tools/blockfix4_verify.py",
+    "archive": "tools/archive/tools/blockfix4_verify.py",
+    "sha256": "f75250f321a5405820b054b476a797ffcef7aa7dc84b736f00f2f430d2544fa8",
+    "purpose": "Audit the retained final correctness receipts; never boot a server."
+  },
+  {
+    "original": "tools/blockfix_climon.py",
+    "archive": "tools/archive/tools/blockfix_climon.py",
+    "sha256": "a5282a57a4d98dbd0b657a3194f576ff815f3ee021313d7f99ede1df111d2c44",
+    "purpose": "Replay interrupted Climon legs through differ_gate.sh's focused-proof interface."
+  },
+  {
+    "original": "tools/blockfix_identity.py",
+    "archive": "tools/archive/tools/blockfix_identity.py",
+    "sha256": "e11f2dbdb1774e05500665880529db86fe730a0e1fe1f81308724f9a5771a68e",
+    "purpose": "Audit the actual MGET/MSET entry points as well as GET/SET handlers."
+  },
+  {
+    "original": "tools/blockfix_pad.py",
+    "archive": "tools/archive/tools/blockfix_pad.py",
+    "sha256": "17bf6df91a7dfd7b835e85774c3e550486f1b6929d9bacc75290728dc0ce8279",
+    "purpose": "Link a PRE-behaviour PAD-A control with POST's total .text size, without running it."
+  },
+  {
+    "original": "tools/blockfix_ports.py",
+    "archive": "tools/archive/tools/blockfix_ports.py",
+    "sha256": "7a8fd5dd7797e1bf617d563fadef3c81a789759116490f79f38ec03a24fe400b",
+    "purpose": "Reserve lane ports against ephemeral clients while running the real gate job."
+  },
+  {
+    "original": "tools/blockfix_receipts.py",
+    "archive": "tools/archive/tools/blockfix_receipts.py",
+    "sha256": "2490c186b8033551345a7f1ddbc68b204d0922f4aed56b9fa46e40cdea470da7",
+    "purpose": "Collect completed blockfix gate receipts without starting any workload."
+  },
+  {
+    "original": "tools/blockwake_counts.py",
+    "archive": "tools/archive/tools/blockwake_counts.py",
+    "sha256": "d875118f1f077ce7eb3867f61137c4807421d3dbab213d29e9e169e760330fca",
+    "purpose": "blockwake: finite production instruction scopes, PRE vs POST. No server, load, timing or rates."
+  },
+  {
+    "original": "tools/blockwake_pad.py",
+    "archive": "tools/archive/tools/blockwake_pad.py",
+    "sha256": "a7d8f9d1acc8f19d62221ca1d0a9f5717d53d0758e2f75a13de96a4af96940de",
+    "purpose": "blockwake PAD-A: unmodified PRE behaviour linked to POST's .text extent (kind A, behaviour"
+  },
+  {
+    "original": "tools/boot_support_artifacts.py",
+    "archive": "tools/archive/tools/boot_support_artifacts.py",
+    "sha256": "428ee6cde0c375c0581f898a931ea14506172a401817dd124796b8fa2619c2dc",
+    "purpose": "Offline ELF audit and cleanup-boot PAD controls. Never executes a server ELF."
+  },
+  {
+    "original": "tools/boot_support_controls.py",
+    "archive": "tools/archive/tools/boot_support_controls.py",
+    "sha256": "7265107d282d798c7f839b6d5cae554076391983ca1d25bb96ebf63ed9d76a74",
+    "purpose": "Compile/run throwaway SERVERLESS boot-helper controls; never start a server."
+  },
+  {
+    "original": "tools/ccfix2_prove.py",
+    "archive": "tools/archive/tools/ccfix2_prove.py",
+    "sha256": "321e0df0b4c27584fb83947ae48922334b0c90891092d6269ffb640275564c19",
+    "purpose": "Build/run ccfix2 serverless witnesses; never starts a server or load generator."
+  },
+  {
+    "original": "tools/ccfix3_prove.py",
+    "archive": "tools/archive/tools/ccfix3_prove.py",
+    "sha256": "039e817a8acfbcd93511b0bf5bf32e93bc2f93fd437744f8b8a31e55abe49c70",
+    "purpose": "Build/run ccfix3 serverless witnesses on CPUs 112-127; never starts a server or load generator."
+  },
+  {
+    "original": "tools/ccfix3_wire.sh",
+    "archive": "tools/archive/tools/ccfix3_wire.sh",
+    "sha256": "fb94e635a608d123952e8904e4abddd609f477d9b25787abfb52e9cd70d2864b",
+    "purpose": "Focused CC11/12/13/18 proof. Reuse the gate's exact listener ownership helpers;"
+  },
+  {
+    "original": "tools/ccfix4_budget.py",
+    "archive": "tools/archive/tools/ccfix4_budget.py",
+    "sha256": "ec90f9bc2f32cd6f798d9d17666c4e9abf33a5ef5fcee241238831b1aa2d07fd",
+    "purpose": "Reproducible db0/main.o budget search; compile and inspect only, on CPUs 112-127."
+  },
+  {
+    "original": "tools/ccfix4_prove.py",
+    "archive": "tools/archive/tools/ccfix4_prove.py",
+    "sha256": "ecbb594075257f509d20a2ec1086671bc321715e33445d0c7e7b89086273dae6",
+    "purpose": "Run unchanged ccfix3 witnesses against the fresh ccfix4 arms on CPUs 112-127."
+  },
+  {
+    "original": "tools/ccfix4_server_budget.py",
+    "archive": "tools/archive/tools/ccfix4_server_budget.py",
+    "sha256": "b2464b34b79dfe2b3fb874e145488997f7ca121def6486d2ec6f409c0aa4a587",
+    "purpose": "Audit merged PS/CC cold emitter budgets without changing production source."
+  },
+  {
+    "original": "tools/ccfix5_collect.py",
+    "archive": "tools/archive/tools/ccfix5_collect.py",
+    "sha256": "c2a207cebb1f9ca9179c833650a880190a4b9741ae2f25ba5aa9b4db2c731d75",
+    "purpose": "Retain a ccfix5 correctness receipt without converting outer gate failures to PASS."
+  },
+  {
+    "original": "tools/ccfix5_probe.py",
+    "archive": "tools/archive/tools/ccfix5_probe.py",
+    "sha256": "b0094ffb1c430a87588bdedd074dd70d9d38c009f6499a10c7ada452d5e12c13",
+    "purpose": "Focused diagnosis on a listener owned by ccfix5_probe.sh, not a gate receipt."
+  },
+  {
+    "original": "tools/ccfix5_probe.sh",
+    "archive": "tools/archive/tools/ccfix5_probe.sh",
+    "sha256": "3711d8944fcda7d5fc54ea79a425d3631df632671b76345fe36fc57b42677834",
+    "purpose": "Import the gate's exact armed-fused boot and listener ownership helpers."
+  },
+  {
+    "original": "tools/ccfix5_prove.py",
+    "archive": "tools/archive/tools/ccfix5_prove.py",
+    "sha256": "79e03935b753d22a1aaa831a71cf273b0267f93d60ba60dc46f80ba592d040f9",
+    "purpose": "Run the unchanged ccfix instruction/unit/layout witnesses on ccfix5 arms."
+  },
+  {
+    "original": "tools/ccfix_audit.py",
+    "archive": "tools/archive/tools/ccfix_audit.py",
+    "sha256": "4b609e796e270375bfba96e2f073451a1738e5d76354c73cb5b79286b7bc4c06",
+    "purpose": "Offline PRE/POST function-byte inventory. No listeners or workloads are started."
+  },
+  {
+    "original": "tools/ccfix_tables.py",
+    "archive": "tools/archive/tools/ccfix_tables.py",
+    "sha256": "6a5260ed5350c55019ff452a13730046e9273e9e2c7fc387bd13e159208a07f1",
+    "purpose": "Supplement the linked checker with exact data/case-target proofs; never executes an arm."
+  },
+  {
+    "original": "tools/cfgfix2_counts.py",
+    "archive": "tools/archive/tools/cfgfix2_counts.py",
+    "sha256": "8b41a519f1b585da7cf4eb58cf02b7e0a25c33543f1bf631e79a528235657572",
+    "purpose": "Serverless production command census. No server, rate, or load generator."
+  },
+  {
+    "original": "tools/cfgfix2_gate.py",
+    "archive": "tools/archive/tools/cfgfix2_gate.py",
+    "sha256": "ac903c712f3df61d17742321061e3920f0d41bbeddae49b0eb40a74aba9c47a8",
+    "purpose": "Run selected tests/gate.sh jobs for lane cfgfix2 and archive the partial receipt."
+  },
+  {
+    "original": "tools/cfgfix2_pad.py",
+    "archive": "tools/archive/tools/cfgfix2_pad.py",
+    "sha256": "2c7943645a3120f7a9f55b03618ff9998eae251d1e820cdbe8e695cba413bf4a",
+    "purpose": "PAD-A: unmodified PRE behaviour with POST's total .text extent. No workload."
+  },
+  {
+    "original": "tools/cfgfix2_table.py",
+    "archive": "tools/archive/tools/cfgfix2_table.py",
+    "sha256": "24fe4301c9a71588ad964f36e1d97ce1ce39b5a30d8163547a9a7022f93cbc5e",
+    "purpose": "PRE/POST command-scope instruction table for lane cfgfix2. Reads the census JSON only."
+  },
+  {
+    "original": "tools/cfgfix2_tcl_compare.py",
+    "archive": "tools/archive/tools/cfgfix2_tcl_compare.py",
+    "sha256": "8d7ff3109942b102180e126c5114d9dac7da9d4b215bc994e1122749a541e878",
+    "purpose": "Compare tests/redis_tcl.py survey summaries (no manifest) between PRE and POST."
+  },
+  {
+    "original": "tools/cfgfix2_units.py",
+    "archive": "tools/archive/tools/cfgfix2_units.py",
+    "sha256": "443e9573c31eb297fb5c60411eafb9368913a6ae0d161063115519f9ebd2e357",
+    "purpose": "Build `make all` plus every job_production_units target, then prove freshness with make -q."
+  },
+  {
+    "original": "tools/cfgfix_counts.py",
+    "archive": "tools/archive/tools/cfgfix_counts.py",
+    "sha256": "60716524bf8074ea7959d4a43116606cd4838afe4c1cfd75ea8963e2cecd3eb2",
+    "purpose": "Serverless production command census. No server, rate, or load generator."
+  },
+  {
+    "original": "tools/cfgfix_inventory.py",
+    "archive": "tools/archive/tools/cfgfix_inventory.py",
+    "sha256": "f442016bb35d43edd89efbaf25caafdd1be175d13a01212f0d1f9c4dd22a0b9f",
+    "purpose": "Inventory the local Redis standardConfig table and captured CONFIG replies."
+  },
+  {
+    "original": "tools/cfgfix_pad.py",
+    "archive": "tools/archive/tools/cfgfix_pad.py",
+    "sha256": "8cd511e47a57ba230f2fc20be3226d0978609a70713c725fdf53d9b89ef57e9f",
+    "purpose": "PAD-A: unmodified PRE behaviour with POST's total .text extent. No workload."
+  },
+  {
+    "original": "tools/clientcompat_budgets.py",
+    "archive": "tools/archive/tools/clientcompat_budgets.py",
+    "sha256": "9ef8564839447fb82dadf6711d2c888840e0c7abb738fd668103eb720c1e7dfa",
+    "purpose": "Compile-only GCC unit-growth evidence; bounded to this lane's CPUs."
+  },
+  {
+    "original": "tools/clientcompat_counts.py",
+    "archive": "tools/archive/tools/clientcompat_counts.py",
+    "sha256": "b3f40b6948d543955fc642406f0c16797712434d0f8bdb434355206755b0c8fa",
+    "purpose": "Finite production instruction census. No server, timing, or rates."
+  },
+  {
+    "original": "tools/clientcompat_inline_trials.py",
+    "archive": "tools/archive/tools/clientcompat_inline_trials.py",
+    "sha256": "20236fea74a4d1ac86d21a2931873903fe0dfc7e1bc1a1cf736f574729586a4f",
+    "purpose": "Bounded compile and instruction-count trials of scatter inlining limits."
+  },
+  {
+    "original": "tools/clientcompat_pad.py",
+    "archive": "tools/archive/tools/clientcompat_pad.py",
+    "sha256": "bd9a04ed7192f3bc8098484a281d2d9b76e46201dc93573a52f0d544290d33e3",
+    "purpose": "PAD-A: PRE compatibility behavior at POST's exact ELF/text/data layout."
+  },
+  {
+    "original": "tools/clientcompat_pause_audit.py",
+    "archive": "tools/archive/tools/clientcompat_pause_audit.py",
+    "sha256": "31e1d4278fb43327de3bdbc306d1eb5a1adf9ac6081041fccfc0e7ec6c3e5953",
+    "purpose": "Compare every Redis metadata command/subcommand against the production classifier."
+  },
+  {
+    "original": "tools/clientcompat_receipts.py",
+    "archive": "tools/archive/tools/clientcompat_receipts.py",
+    "sha256": "1d1f4c79da3ebe092bfab4be48d6f9089fcfac1973770e23e546dcbf9dff2eaa",
+    "purpose": "Retain whole gate-job receipts without treating a partial run as a full gate."
+  },
+  {
+    "original": "tools/clientcompat_report.py",
+    "archive": "tools/archive/tools/clientcompat_report.py",
+    "sha256": "b0e0eaba1e7ed5b71e122321a7e10af91e8c4e56cc5f6e9466196724c9444831",
+    "purpose": "Validate the complete finite instruction product and attribute every changed symbol."
+  },
+  {
+    "original": "tools/clientcompat_unit_build.py",
+    "archive": "tools/archive/tools/clientcompat_unit_build.py",
+    "sha256": "02c55000cabe3175b81b2084a1cfb7b3fe5e6caffec3de65c60bb52c330308b4",
+    "purpose": "Rebuild required units in bounded disk batches, retaining ELF identity receipts."
+  },
+  {
+    "original": "tools/clientcompat_verdict.py",
+    "archive": "tools/archive/tools/clientcompat_verdict.py",
+    "sha256": "8fbf3b79ec56472d9b3cdec4626f46e4547c5ce48ab096d29bc09e9852ee2652",
+    "purpose": "Check the final selected-job verdict, preserving superseded failures."
+  },
+  {
+    "original": "tools/cmdfix2_auditors.py",
+    "archive": "tools/archive/tools/cmdfix2_auditors.py",
+    "sha256": "47e387b5f3a13333e5186ae002db70f4f9a80e74e39a6d26258a744089c1d717",
+    "purpose": "Rerun the supplied audit code, changing only lifecycle CPUs, ports and paths."
+  },
+  {
+    "original": "tools/cmdfix2_compact_units.py",
+    "archive": "tools/archive/tools/cmdfix2_compact_units.py",
+    "sha256": "5676ad278a9ba230c1d449a61118902e71de9cd6474743aa5de4c92e1e77f2ef",
+    "purpose": "Compress only unit-binary debug sections; assert every loaded section is unchanged."
+  },
+  {
+    "original": "tools/cmdfix2_counts.py",
+    "archive": "tools/archive/tools/cmdfix2_counts.py",
+    "sha256": "8b275977dda17b7deb9a72586965682510cc360002927458b2806e1121722022",
+    "purpose": "Finite serverless instruction counts; production code, no workload rate."
+  },
+  {
+    "original": "tools/cmdfix2_evidence.py",
+    "archive": "tools/archive/tools/cmdfix2_evidence.py",
+    "sha256": "c8edd31ec07269b0f407e0c2dd8c3ad84cb9cf72baf13abc00362b6e115e6129",
+    "purpose": "Summarize original receipts; archive red controls as well as green runs."
+  },
+  {
+    "original": "tools/cmdfix2_fifo_diagnostic.py",
+    "archive": "tools/archive/tools/cmdfix2_fifo_diagnostic.py",
+    "sha256": "65859a139eaa212844752889ad8af92c49d7724455451f7a69a03795560b0567",
+    "purpose": "One serial PRE/POST diagnostic for the gate's failed FIFO latency-guard leg."
+  },
+  {
+    "original": "tools/cmdfix2_final_main.py",
+    "archive": "tools/archive/tools/cmdfix2_final_main.py",
+    "sha256": "80f0e8fbac2e1fbfc375532d8c137ff41391861266195686fdb92886b51bf500",
+    "purpose": "Bind the final command-family/differential gate jobs to the delivered POST."
+  },
+  {
+    "original": "tools/cmdfix2_freshness.py",
+    "archive": "tools/archive/tools/cmdfix2_freshness.py",
+    "sha256": "0d901af7cff5df0c85ab3bccf48c1db75853ffac903bbe47fa4f0bacf7b9622c",
+    "purpose": "Build every production_units target and record make -q without hand-copying its list."
+  },
+  {
+    "original": "tools/cmdfix2_more_jobs.py",
+    "archive": "tools/archive/tools/cmdfix2_more_jobs.py",
+    "sha256": "a1ef1a3c6e15314f86609e0ef132af02d8e141784d626663699c58a63a4abaab",
+    "purpose": "Run the remaining mode/engine legs through the gate's selected-job interface."
+  },
+  {
+    "original": "tools/cmdfix2_pad.py",
+    "archive": "tools/archive/tools/cmdfix2_pad.py",
+    "sha256": "f3e86e0bda35b1dc7480c6cf6321f5a965feb4ab4d53b78c88af0814e1f9b016",
+    "purpose": "Serverless PAD-A (PRE behaviour, POST text extent) and inverse PAD-B."
+  },
+  {
+    "original": "tools/cmdfix2_related_jobs.py",
+    "archive": "tools/archive/tools/cmdfix2_related_jobs.py",
+    "sha256": "4398216ff5a7e579f7c22caa02418a2da36edb6c0df89551cf11c4640cc4bdfd",
+    "purpose": "Complete related command-family jobs through the gate's own interface."
+  },
+  {
+    "original": "tools/cmdfix_artifacts.py",
+    "archive": "tools/archive/tools/cmdfix_artifacts.py",
+    "sha256": "d02b48220f6349524f3a87f6cb3a9f012a76d372d91c6c5f1599e5a3ecf8454b",
+    "purpose": "Build a kind-A fingerprint control without executing a server."
+  },
+  {
+    "original": "tools/cmdmeta_audit.py",
+    "archive": "tools/archive/tools/cmdmeta_audit.py",
+    "sha256": "0396a9b45e8e3c5d034edfff6ca5232c9f519859b2ac98554e2bade0d0d0df87",
+    "purpose": "EX9 offline ordinary-command byte, instruction and linked-layout receipts; no ELF execution."
+  },
+  {
+    "original": "tools/compat2_mset_control.py",
+    "archive": "tools/archive/tools/compat2_mset_control.py",
+    "sha256": "75d192730baa702f89e54223ef0eb78f311afaf216461013814396d50b2e1284",
+    "purpose": "Disposable C2 state injector: give marker-valued MSET candidates a TTL."
+  },
+  {
+    "original": "tools/compat2_pad.py",
+    "archive": "tools/archive/tools/compat2_pad.py",
+    "sha256": "5fae967038935ee2456ba2d28335c6ba295dfd8b96f4a9b700ae265f8c658683",
+    "purpose": "PAD kind A: restore PRE behavior in POST's exact ELF section/symbol layout."
+  },
+  {
+    "original": "tools/crlffix_arms.py",
+    "archive": "tools/archive/tools/crlffix_arms.py",
+    "sha256": "a4069920cec5b94ac5dfdd288ea698539e52efb15ab8afaebe33d632e017fe59",
+    "purpose": "Offline exact-layout PAD-A and one-helper sanitizer-bypass control."
+  },
+  {
+    "original": "tools/crlffix_fast_scope.py",
+    "archive": "tools/archive/tools/crlffix_fast_scope.py",
+    "sha256": "12c4d9819a176ab2148e3aa7564cd2f658603f76662c1678ede38aacd744fc92",
+    "purpose": "Same command fixture and named-function scope as crlffix_scope.py, via ptrace."
+  },
+  {
+    "original": "tools/crlffix_scope.py",
+    "archive": "tools/archive/tools/crlffix_scope.py",
+    "sha256": "dedb9179adffc7a42d89524dc0b35185421125d146e1e91465a0b9e3cd99b6ea",
+    "purpose": "Bounded serverless paths in linked production routines, no rates."
+  },
+  {
+    "original": "tools/ctlfix_artifacts.py",
+    "archive": "tools/archive/tools/ctlfix_artifacts.py",
+    "sha256": "e3876a54821af29f992b604272d8d15e9d6aa4feac5312e651392e59fbe0bad6",
+    "purpose": "Offline ctlfix PAD-A, linked-body audit and gate evidence archiving."
+  },
+  {
+    "original": "tools/datafix1_pad.py",
+    "archive": "tools/archive/tools/datafix1_pad.py",
+    "sha256": "f18f9566c77e349b557c49e58051efcd6093d1e271dbc1973e87bd67595e7b01",
+    "purpose": "PAD-A: link PRE objects unchanged, matching POST total executable .text size."
+  },
+  {
+    "original": "tools/deadcode2_artifacts.py",
+    "archive": "tools/archive/tools/deadcode2_artifacts.py",
+    "sha256": "810fe2bc2e420302977939df0c316572c6d3313b78f0a04a490b5581fa9c295d",
+    "purpose": "Serverless, complete object-function inventory for the deadcode2 cleanup."
+  },
+  {
+    "original": "tools/deadcode2_budget.py",
+    "archive": "tools/archive/tools/deadcode2_budget.py",
+    "sha256": "304109e69fdecdb829827a957856ebec838a4e3a3fe945c59c7ba122a7cbe437",
+    "purpose": "Compile-only search for the touched IO translation units' PRE hot-body budgets."
+  },
+  {
+    "original": "tools/deadcode2_linked.py",
+    "archive": "tools/archive/tools/deadcode2_linked.py",
+    "sha256": "5cc51e13990bf97da95d377e89120eade9cad26a58a2b8d04cc508456363bea2",
+    "purpose": "Explain, without weakening r7shadow_noop, its three unnamed jump-table moves."
+  },
+  {
+    "original": "tools/deadcode2_pad.py",
+    "archive": "tools/archive/tools/deadcode2_pad.py",
+    "sha256": "c5630a0fa1a8bb1e985083bf3cc9d5db8bcea9e6a7afc8c5ef87e81b3aa0771c",
+    "purpose": "Offline type-A diagnostic compatibility twin at POST's exact executable layout."
+  },
+  {
+    "original": "tools/deadfused_artifacts.py",
+    "archive": "tools/archive/tools/deadfused_artifacts.py",
+    "sha256": "e744966a3c16afb5b198da1a1e806dc58adfa2da3480a077cb69cb648c821d81",
+    "purpose": "Offline deadfused ELF receipts and the cold INFO compatibility twin."
+  },
+  {
+    "original": "tools/encodingfix_pad.py",
+    "archive": "tools/archive/tools/encodingfix_pad.py",
+    "sha256": "d31ac4ffd9c2a48a72456d70f0d19857131e3fca42f5a2d1fff159a8a6dcf4d3",
+    "purpose": "Type-A encodingfix control: PRE's intset default in POST's exact text/layout."
+  },
+  {
+    "original": "tools/eoffix.py",
+    "archive": "tools/archive/tools/eoffix.py",
+    "sha256": "37d28cdcf9c61630083a59bf2d27affc898713d999af37325c2cca0e80ccc651",
+    "purpose": "Selected correctness jobs on the eoffix allocation; never measure rates."
+  },
+  {
+    "original": "tools/eoffix_aof.py",
+    "archive": "tools/archive/tools/eoffix_aof.py",
+    "sha256": "b6d15cb8ee62dab391b50b166ababdb8eab2f1da9e4921cab473ac2fb0a70817",
+    "purpose": "Build native AOF/QSBR controls from an arm's production objects."
+  },
+  {
+    "original": "tools/eoffix_archive_data.py",
+    "archive": "tools/archive/tools/eoffix_archive_data.py",
+    "sha256": "a78da7179117e545fa834b23a8918ddcf96493a7d57b3dcd902bd5936a60e70d",
+    "purpose": "Preserve completed correctness-job data before reclaiming build disk space."
+  },
+  {
+    "original": "tools/eoffix_bind.py",
+    "archive": "tools/archive/tools/eoffix_bind.py",
+    "sha256": "f479cf099dd39171f6b713b9f707c98adaba0516c1c2d7465728ac91da04eb6d",
+    "purpose": "Bind actual entered instruction addresses to each production arm."
+  },
+  {
+    "original": "tools/eoffix_compare.py",
+    "archive": "tools/archive/tools/eoffix_compare.py",
+    "sha256": "1090e2378173fb72ce9b3546b5583b94dff696d0a42d1e00809a377d8385fe65",
+    "purpose": "Compare final production-bound instruction scopes without aggregating away a cell."
+  },
+  {
+    "original": "tools/eoffix_counts.py",
+    "archive": "tools/archive/tools/eoffix_counts.py",
+    "sha256": "ea7d04811d43d8253a088d8ed77ae212110eee7deefac0fe4ff2cbe4882380bc",
+    "purpose": "Reuse wave14's serverless instruction instrument with eoffix source arms."
+  },
+  {
+    "original": "tools/eoffix_dedup.py",
+    "archive": "tools/archive/tools/eoffix_dedup.py",
+    "sha256": "2ff2772b006ad7654a66f4e5dea30163e31ea179061a0b7e5c41c0998718bb0e",
+    "purpose": "Share byte-identical Redis tools in completed, private Tcl checkouts."
+  },
+  {
+    "original": "tools/eoffix_final.py",
+    "archive": "tools/archive/tools/eoffix_final.py",
+    "sha256": "8eead8fead138ea05e069b018aa71283f0d4cab337188e517ee3ace4bf8c9af1",
+    "purpose": "Serialize final-arm correctness work on the lane's eight CPUs; never measure rates."
+  },
+  {
+    "original": "tools/eoffix_receive_counts.py",
+    "archive": "tools/archive/tools/eoffix_receive_counts.py",
+    "sha256": "e38e9ee2f44a672c50c386ce8a477379a6989ad73f178cba7daee74ac78ae9cd",
+    "purpose": "Count the ordinary epoll event plus short receive in production bodies."
+  },
+  {
+    "original": "tools/eoffix_retire_layout.py",
+    "archive": "tools/archive/tools/eoffix_retire_layout.py",
+    "sha256": "f03b313386a7c39997ba825fe973f8880049d6da72a8f4bd3e41da90078061d0",
+    "purpose": "Retain the verified layout twins and retire their reproducible link objects."
+  },
+  {
+    "original": "tools/eoffix_retire_scopes.py",
+    "archive": "tools/archive/tools/eoffix_retire_scopes.py",
+    "sha256": "e7c988ffcf5b4ee020103f0e6365af3863f8afb252fec79cca987a257ea64462",
+    "purpose": "Retire only completed, production-bound transient probes; keep every receipt."
+  },
+  {
+    "original": "tools/eoffix_source_sync.py",
+    "archive": "tools/archive/tools/eoffix_source_sync.py",
+    "sha256": "529504e61f6b8c36ad070cef66f0f07d320a57d1f6b97a31a4bd09726d2003b3",
+    "purpose": "Repair comment-only R7 parity, rebuild, and prove the frozen runtime unchanged."
+  },
+  {
+    "original": "tools/eoffix_summary.py",
+    "archive": "tools/archive/tools/eoffix_summary.py",
+    "sha256": "f354053ac2d9450e05a539f8e8c5b9089cf32ab86fd19162cc18ec427a55adad",
+    "purpose": "Fold retained receipts without converting a failed or incomplete run to a pass."
+  },
+  {
+    "original": "tools/eoffix_verify.py",
+    "archive": "tools/archive/tools/eoffix_verify.py",
+    "sha256": "8da5560235776c38e873ebec09bcec293c075e044515ac650ba3517acd201312",
+    "purpose": "Require the complete final proof inventory; an interrupted run is not a pass."
+  },
+  {
+    "original": "tools/exbatch_directed.py",
+    "archive": "tools/archive/tools/exbatch_directed.py",
+    "sha256": "164c2666c96a6d959c56851c2ee1f32056e985a99e2b2b03a819f80e3e1318b3",
+    "purpose": "Mainline-only EX1/EX3/EX6 directed measurements (never part of the gate)."
+  },
+  {
+    "original": "tools/exbatch_rebuild_arms.py",
+    "archive": "tools/archive/tools/exbatch_rebuild_arms.py",
+    "sha256": "9163c6f8513ed4fce7e43d8ae094c8a9e51286c557128343dc9e50d18413051d",
+    "purpose": "Rebuild the frozen lane arms without starting a server or load generator."
+  },
+  {
+    "original": "tools/exbatch_source_proof.py",
+    "archive": "tools/archive/tools/exbatch_source_proof.py",
+    "sha256": "914ba56c89ef8105756a09b53d50110f5c7264f8434904e4f335267e584ec83f",
+    "purpose": "Frozen PRE-source closure and static instruction receipts; executes no ELF."
+  },
+  {
+    "original": "tools/exec1s_aux.py",
+    "archive": "tools/archive/tools/exec1s_aux.py",
+    "sha256": "0205a1799b386f61620a74cc279c624e4b3ecfc73a0866b78bbe1815c2142505",
+    "purpose": "Bounded allocation and linked IO scopes, no network or rate measurements."
+  },
+  {
+    "original": "tools/exec1s_budget.py",
+    "archive": "tools/archive/tools/exec1s_budget.py",
+    "sha256": "1c27f70cc5d0c0d5af0903192d77f2bd028d0cc94732f3ddd8d83b178c3135a0",
+    "purpose": "Compile-only exec1s inline-budget controls; no workload/rate measurements."
+  },
+  {
+    "original": "tools/exec1s_build.py",
+    "archive": "tools/archive/tools/exec1s_build.py",
+    "sha256": "c246974b0737207e122396985a9535a362ae604bc70f3d54c9f32dfc5a274455",
+    "purpose": "Rebuild frozen arms serially; keep binaries/probes, remove source/object trees."
+  },
+  {
+    "original": "tools/exec1s_debug.py",
+    "archive": "tools/archive/tools/exec1s_debug.py",
+    "sha256": "6b6de11eee70f704a2ccb06ca41bd2ebf7fcb8b063779c1f949b119fea5a2b88",
+    "purpose": "Build visit-counter instruments. These are not release rate arms."
+  },
+  {
+    "original": "tools/exec1s_directed.py",
+    "archive": "tools/archive/tools/exec1s_directed.py",
+    "sha256": "7fabc3d0bbbbe02c9d1bb192d32710613b4ba95fd38efafd93144139e23cc129",
+    "purpose": "Re-prove X2 with production helpers and throwaway, discriminating controls."
+  },
+  {
+    "original": "tools/exec1s_finish_proof.py",
+    "archive": "tools/archive/tools/exec1s_finish_proof.py",
+    "sha256": "90b34f84536ff913086e1a929a9e1211e69f3d351f18107ecc723d3453f3f893",
+    "purpose": "POST correctness jobs and their supplementary legs; never a complete gate."
+  },
+  {
+    "original": "tools/exec1s_idle.py",
+    "archive": "tools/archive/tools/exec1s_idle.py",
+    "sha256": "8a4caae02df711aa7bcdf608d4c9797da96ddd96b88f2f96c53b211c52a4e28a",
+    "purpose": "Exact named-production instruction counts for one quiet fused rotation."
+  },
+  {
+    "original": "tools/exec1s_live_receipts.py",
+    "archive": "tools/archive/tools/exec1s_live_receipts.py",
+    "sha256": "bcf3154fa05048b4323ef69f385688e6c5fb81ac31b6eb45e8565927aa7d3a8b",
+    "purpose": "Retain the gate's individual verdicts and hashes after the live proof ends."
+  },
+  {
+    "original": "tools/exec1s_pad.py",
+    "archive": "tools/archive/tools/exec1s_pad.py",
+    "sha256": "1bfbc4329cea22d19c049c7494c559074891906171b77fdaa32fdcde4aeb79ba",
+    "purpose": "Build an exact-image type-A control pair; never starts a server."
+  },
+  {
+    "original": "tools/exec1s_pad_scope.py",
+    "archive": "tools/archive/tools/exec1s_pad_scope.py",
+    "sha256": "7b7ab13ff15551a7fe1e2a7abfb9c0ee1c8ad33ae3c7038c826478c2bb4e73f8",
+    "purpose": "Build command fixtures in the same two-image layout as PAD-A, no servers."
+  },
+  {
+    "original": "tools/exec1s_proof.py",
+    "archive": "tools/archive/tools/exec1s_proof.py",
+    "sha256": "cbf4e9ef1cb681b1710924464d678725c636d24ba4f7d5ecac8d960b98a30039",
+    "purpose": "Run the exec1s correctness inventory through the gate job interface only."
+  },
+  {
+    "original": "tools/exec1s_retire_probes.py",
+    "archive": "tools/archive/tools/exec1s_retire_probes.py",
+    "sha256": "b1b1dc1d5fe84f8628a41c958942d3b683f321c78c1efb4d6bad561748b183a6",
+    "purpose": "Delete only fully completed, hash-verified probes; retain their proof binding."
+  },
+  {
+    "original": "tools/exec1s_trace.py",
+    "archive": "tools/archive/tools/exec1s_trace.py",
+    "sha256": "f2bb00ff241660c8f529429a0d7572683a30fba8ec54ac50c38542139f8f2b67",
+    "purpose": "Reduced re-proof: 48 ordinary scopes per PRE/POST/PAD-A, relevant lever scopes."
+  },
+  {
+    "original": "tools/exec1sd.py",
+    "archive": "tools/archive/tools/exec1sd.py",
+    "sha256": "8213c152ed6af31adeac0903cc13a343ea681c4a82d26b0e52e4f26618cdce72",
+    "purpose": "exec1s-d frozen builds and bounded instruction scopes; no performance work."
+  },
+  {
+    "original": "tools/exec1sd_alignment.py",
+    "archive": "tools/archive/tools/exec1sd_alignment.py",
+    "sha256": "4ba0377e1a15ee847c7cf910846ef82c184f074041368d524edca20bd64c7355",
+    "purpose": "Compile-only scatter jump-padding trial, with linked production count scopes."
+  },
+  {
+    "original": "tools/exec1sd_arms.py",
+    "archive": "tools/archive/tools/exec1sd_arms.py",
+    "sha256": "6abf9e876a3c04b17fe4182edd291ea9fbecc435c4b340d0ba58304eea066c17",
+    "purpose": "Frozen attribution arms, built serially; never starts a workload."
+  },
+  {
+    "original": "tools/exec1sd_lottery.py",
+    "archive": "tools/archive/tools/exec1sd_lottery.py",
+    "sha256": "22a8ca9da639b7b9640d17f65edd24f6ab8e99a9477d0b2f4f802a88f7c22255",
+    "purpose": "Bounded W16 smoke for the copied-source witness image, not a nightly verdict."
+  },
+  {
+    "original": "tools/exec1sd_pad.py",
+    "archive": "tools/archive/tools/exec1sd_pad.py",
+    "sha256": "d8b02ab3529c8ca9fc8b003a8372d8e902e3ecf3fa157454eb5c82a0979bc3a2",
+    "purpose": "Type-A common-image control, using headline PRE and the final production POST."
+  },
+  {
+    "original": "tools/exec1sd_proof.py",
+    "archive": "tools/archive/tools/exec1sd_proof.py",
+    "sha256": "b7f360e43ab80128a5f56ca14170bad8b1fbbd00bd497684a46b80391fa414ff",
+    "purpose": "Lane CPU/port-bound partial gate invocations; no full iteration or load generators."
+  },
+  {
+    "original": "tools/exec1sd_receipts.py",
+    "archive": "tools/archive/tools/exec1sd_receipts.py",
+    "sha256": "f01e00330abd20c3bde112c5cb84c8bb77ee0e9de25587c44317608511e7ae12",
+    "purpose": "Bind the lane's bounded counts, frozen images and individual-job verdicts."
+  },
+  {
+    "original": "tools/exec1sd_retire.py",
+    "archive": "tools/archive/tools/exec1sd_retire.py",
+    "sha256": "8e018878738065d74256cbd7051c224ac24b32c9e933026e54fdbfc62ce468b0",
+    "purpose": "Retire large payloads only from completed, passing private gate jobs."
+  },
+  {
+    "original": "tools/exec1sd_save.py",
+    "archive": "tools/archive/tools/exec1sd_save.py",
+    "sha256": "cd3b1f6d91a0fed8fd583cafca54e6d4ad409cf259c8c41750e9a436b49aace2",
+    "purpose": "Repeat the unchanged seed-22 psfix leg and observe native SAVE refusal branches."
+  },
+  {
+    "original": "tools/exec1sd_save_full.py",
+    "archive": "tools/archive/tools/exec1sd_save_full.py",
+    "sha256": "896bdda7d2da3de4ca50a230a8787cc84cbcd15df9d6d2f997401decc24aece3",
+    "purpose": "Replay the original complete split-0 seed plan, observing SAVE's actual result."
+  },
+  {
+    "original": "tools/exec1sd_save_native.py",
+    "archive": "tools/archive/tools/exec1sd_save_native.py",
+    "sha256": "776120de3cdeae6a68ee46a6f1cb34ef97c131026e21f88b6d0a1fe5a057f466",
+    "purpose": "Bounded, unchanged psfix seed-22 rerolls on native frozen servers."
+  },
+  {
+    "original": "tools/exec1sd_scatter.py",
+    "archive": "tools/archive/tools/exec1sd_scatter.py",
+    "sha256": "554077e8e652e6e4b8c63bf0ca92183d35a429914bb00d3fe0b6b7d045d10220",
+    "purpose": "Count true scatter children without replacing any frozen merit binary."
+  },
+  {
+    "original": "tools/exec1sd_slowlog.py",
+    "archive": "tools/archive/tools/exec1sd_slowlog.py",
+    "sha256": "bc90f83d6d264abfdd419244acdb5f24c6e33ebef9bb81f6b84ec74b687cf9d4",
+    "purpose": "Replay the unchanged isolated upstream assertion on frozen PRE and POST."
+  },
+  {
+    "original": "tools/execfifo2_attribution.py",
+    "archive": "tools/archive/tools/execfifo2_attribution.py",
+    "sha256": "a94587096c786ebb320a3db922d033bfc1b611d0977cce456e5b775478080844",
+    "purpose": "Account for every measured EXEC instruction delta; no residual bucket."
+  },
+  {
+    "original": "tools/execfifo2_control_smoke.py",
+    "archive": "tools/archive/tools/execfifo2_control_smoke.py",
+    "sha256": "642b58f4a566d5445c9a5d04e890384fbb1be60490cd9dcbb49cd61ad6172ace",
+    "purpose": "Bounded correctness smoke of the exact-image control pair, no load generator."
+  },
+  {
+    "original": "tools/execfifo2_coverage.py",
+    "archive": "tools/archive/tools/execfifo2_coverage.py",
+    "sha256": "c73a89ce4b1133196cca8277a14ed7224b84511096dde1e9a94d1fb0a3aa123a",
+    "purpose": "Check completed selected-job groups and explicit live-leg inventories."
+  },
+  {
+    "original": "tools/execfifo2_freshness.py",
+    "archive": "tools/archive/tools/execfifo2_freshness.py",
+    "sha256": "29d3359d4207036d2e3ca144685ffd13138b4bbeb93115e964af63fad0e42237",
+    "purpose": "Query the complete gate production-unit inventory without rebuilding it."
+  },
+  {
+    "original": "tools/execfifo2_negative.py",
+    "archive": "tools/archive/tools/execfifo2_negative.py",
+    "sha256": "ca95a0f41ceb921451855b88e20ab4af24bba17608279c524286e0cc3676112f",
+    "purpose": "Serverless process-local breaks; no broken source or binary is published."
+  },
+  {
+    "original": "tools/execfifo2_proof_record.py",
+    "archive": "tools/archive/tools/execfifo2_proof_record.py",
+    "sha256": "b964ad0d10b3eacfbd863f690a41bce7be2170bf5b34f13c53545afb68f734d8",
+    "purpose": "Archive all selected-job attempts, their legs, digests and explicit failures."
+  },
+  {
+    "original": "tools/execfifo2_scope.py",
+    "archive": "tools/archive/tools/execfifo2_scope.py",
+    "sha256": "0896674773a06e6917cf45d3708579f2801f6224109679b1da280a491808c41c",
+    "purpose": "Reproducible serverless command/EXEC counts, bound to each linked image."
+  },
+  {
+    "original": "tools/execfifo2_storm.py",
+    "archive": "tools/archive/tools/execfifo2_storm.py",
+    "sha256": "e40050c23ab06e744f18bd2b787c580b306103671fbac6367ede6de8ba717ce2",
+    "purpose": "Maintainer-only Redis adapter for the unchanged shared T6 storm workload."
+  },
+  {
+    "original": "tools/execfifo2_validate.py",
+    "archive": "tools/archive/tools/execfifo2_validate.py",
+    "sha256": "189e80a4a889479722d4aa7ae6ffb3aa48b6dbea662aca2fcd8cbaadcc93caef",
+    "purpose": "Selected correctness jobs only; never the iteration or performance tiers."
+  },
+  {
+    "original": "tools/execfifo3_archive_intermediates.py",
+    "archive": "tools/archive/tools/execfifo3_archive_intermediates.py",
+    "sha256": "afb9a0220bd52d38b290db396a6deb5b64815b4957c25c2082cc85a88f9ab187",
+    "purpose": "Losslessly archive superseded images; never touch the five final arms."
+  },
+  {
+    "original": "tools/execfifo3_artifacts.py",
+    "archive": "tools/archive/tools/execfifo3_artifacts.py",
+    "sha256": "71345ed93712ac4419c98acddd2fb35fba5b96ae629aadb293130635133e4143",
+    "purpose": "Freeze release arms and the explicit type-A common-image control pair."
+  },
+  {
+    "original": "tools/execfifo3_compact.py",
+    "archive": "tools/archive/tools/execfifo3_compact.py",
+    "sha256": "cb9a5b2c7f4e176cbe4b51e235a8aa03d6142d400f17208b8bfefb22eebf28cb",
+    "purpose": "Compress debug data in completed unit binaries; preserve executable text."
+  },
+  {
+    "original": "tools/execfifo3_control_smoke.py",
+    "archive": "tools/archive/tools/execfifo3_control_smoke.py",
+    "sha256": "59751dc6c4760f929dff724079d65b9c78f84ef75bf36caa51b919e7a5f58e38",
+    "purpose": "Bounded correctness smoke of the exact-image control pair, no load generator."
+  },
+  {
+    "original": "tools/execfifo3_coverage.py",
+    "archive": "tools/archive/tools/execfifo3_coverage.py",
+    "sha256": "49d08a7440626285b76172fa52eac344fc1b52dda1a2c073a5481836ccd0e8ab",
+    "purpose": "Check completed selected-job groups and explicit live-leg inventories."
+  },
+  {
+    "original": "tools/execfifo3_freshness.py",
+    "archive": "tools/archive/tools/execfifo3_freshness.py",
+    "sha256": "809c66fb5736d5c7189053495e3916fdf5af712be85cae72f18f94d6e71ac0f3",
+    "purpose": "Query the complete gate production-unit inventory without rebuilding it."
+  },
+  {
+    "original": "tools/execfifo3_input_scope.py",
+    "archive": "tools/archive/tools/execfifo3_input_scope.py",
+    "sha256": "3f198cec1826b42efd58b2e84fd39e8630d3612401348407eb38590b048ceaf0",
+    "purpose": "Classify parser buffer, TLS and otherwise unlabelled load sites."
+  },
+  {
+    "original": "tools/execfifo3_negative.py",
+    "archive": "tools/archive/tools/execfifo3_negative.py",
+    "sha256": "8674d092407518ed1e7480b016e4b101449ec8748222c50aa2a94b089ac94d45",
+    "purpose": "Serverless process-local breaks; no broken source or binary is published."
+  },
+  {
+    "original": "tools/execfifo3_perf.py",
+    "archive": "tools/archive/tools/execfifo3_perf.py",
+    "sha256": "f10c895c60dace42a3f1ad50e858485737d854a3db69e58d4b5231fe16af4135",
+    "purpose": "perf stat on bounded serverless fixtures, no servers or throughput output."
+  },
+  {
+    "original": "tools/execfifo3_perf_summary.py",
+    "archive": "tools/archive/tools/execfifo3_perf_summary.py",
+    "sha256": "942b53f98375159a3b699fb9bfdb7d0ed8a169575572b4583306503e176b091a",
+    "purpose": "Summarize the complete finite-counter matrix without reporting rates."
+  },
+  {
+    "original": "tools/execfifo3_probe_archive.py",
+    "archive": "tools/archive/tools/execfifo3_probe_archive.py",
+    "sha256": "addd6ac91dd984bfc2c9e0c336ab35069768c590c43e3e9da326abf49225e2e7",
+    "purpose": "Losslessly archive completed scope probes while retaining their identities."
+  },
+  {
+    "original": "tools/execfifo3_proof_record.py",
+    "archive": "tools/archive/tools/execfifo3_proof_record.py",
+    "sha256": "6a95b4c862816379884a383ac8097d46ce60d9e0a4852b2fb9c2784600fa94d8",
+    "purpose": "Archive all selected-job attempts, their legs, digests and explicit failures."
+  },
+  {
+    "original": "tools/execfifo3_scope.py",
+    "archive": "tools/archive/tools/execfifo3_scope.py",
+    "sha256": "0267263737f80d87bbe0d0fb71ab686067df13c2fe63c27b83dc324580319be7",
+    "purpose": "Linked production instruction/memory scopes; finite fixtures, never rates."
+  },
+  {
+    "original": "tools/execfifo3_scope_consistency.py",
+    "archive": "tools/archive/tools/execfifo3_scope_consistency.py",
+    "sha256": "1c199dd6f4f4ee03dcffd0e1f8930ee6a7d5442bb9a9039b9b351df29b4a2831",
+    "purpose": "Compare saved scopes, including calls outside the counted production bodies."
+  },
+  {
+    "original": "tools/execfifo3_validate.py",
+    "archive": "tools/archive/tools/execfifo3_validate.py",
+    "sha256": "2a2cfe7858c5f78fe4aa4c7799fb19c23bc61251437860bdae0b61fba5c4b83d",
+    "purpose": "execfifo2's complete job groups, pinned to execfifo3's allocation."
+  },
+  {
+    "original": "tools/execfifo_budget.py",
+    "archive": "tools/archive/tools/execfifo_budget.py",
+    "sha256": "0e36a8ea9586edad75b17b970afd2c9989cd8e881c9baeade7809aa5872b2ef1",
+    "purpose": "Compile-only execfifo inline-budget controls; no workload/rate measurements."
+  },
+  {
+    "original": "tools/execindex_budget.py",
+    "archive": "tools/archive/tools/execindex_budget.py",
+    "sha256": "2c54e59e8e3e55c66c350e01640183a6aa015bd85f925e64c988ac31c2dc0d2a",
+    "purpose": "Compile-only execindex inline-budget controls; no workload/rate measurements."
+  },
+  {
+    "original": "tools/execindex_control_smoke.py",
+    "archive": "tools/archive/tools/execindex_control_smoke.py",
+    "sha256": "a97596ca193cfa0fc1bf75269e95dc9d96ffabca41910e986b5ae840b9be8f7a",
+    "purpose": "Bounded correctness smoke of the exact-image control pair, no load generator."
+  },
+  {
+    "original": "tools/execindex_debug.py",
+    "archive": "tools/archive/tools/execindex_debug.py",
+    "sha256": "363d6d391a6fc3ad923dea0e72d1866b1d20b3fde83048c2239a7a1b14f4cd30",
+    "purpose": "Build instrumented PRE/POST registry-visit servers; never execute workloads."
+  },
+  {
+    "original": "tools/execindex_identity.py",
+    "archive": "tools/archive/tools/execindex_identity.py",
+    "sha256": "4e46384d031be1aed81ad65d90cee12b7c2e6941b81f15637fa4d5f5458166b2",
+    "purpose": "PRE identity audit including INCR and MGET/MSET's shared dispatch bodies."
+  },
+  {
+    "original": "tools/execindex_pad.py",
+    "archive": "tools/archive/tools/execindex_pad.py",
+    "sha256": "17eecb94dc8a1b141a8ba7a44c43d0e41c6cda3b9756156cbccb6e638750ad1a",
+    "purpose": "Build an exact-image type-A control pair; never starts a server."
+  },
+  {
+    "original": "tools/execindex_proof_record.py",
+    "archive": "tools/archive/tools/execindex_proof_record.py",
+    "sha256": "cdc0472af5bdf6f765bca2d823cbeddc051122e76b1ba8be021284d3c9ae17b6",
+    "purpose": "Archive selected-job ledgers and explicit failures, never infer a full gate pass."
+  },
+  {
+    "original": "tools/execindex_scope.py",
+    "archive": "tools/archive/tools/execindex_scope.py",
+    "sha256": "3fc5ea89b4582c04d6f080bcfc0aba6218cd08ba4fcc13892654cd0f0a02370e",
+    "purpose": "Bounded serverless paths in linked production routines, no rates."
+  },
+  {
+    "original": "tools/flipfix5_artifacts.py",
+    "archive": "tools/archive/tools/flipfix5_artifacts.py",
+    "sha256": "e9b8c41d310b66b529d0772691f3972f27eac198d5377d2740314fd6ccdda7ee",
+    "purpose": "flipfix5 PAD-A: PRE behaviour in POST's exact ELF layout. No server, no load generator."
+  },
+  {
+    "original": "tools/flipfix5_counts.py",
+    "archive": "tools/archive/tools/flipfix5_counts.py",
+    "sha256": "2eec56e3fcc9667fefdfe6900bb4c8fff8756f6c37ad26895e5a5475ada40bd1",
+    "purpose": "flipfix5 serverless instruction scopes, using the established production fixture."
+  },
+  {
+    "original": "tools/flipfix6_artifacts.py",
+    "archive": "tools/archive/tools/flipfix6_artifacts.py",
+    "sha256": "5b8f806bcb5d7b782842ade448c42e4a458faf498c029eb7b960bb5c92df40d6",
+    "purpose": "PAD-A behaviour twin: POST layout with PRE's session-null FLIP predicate."
+  },
+  {
+    "original": "tools/flipfix6_counts.py",
+    "archive": "tools/archive/tools/flipfix6_counts.py",
+    "sha256": "8fab792a098200ef02f5895739d8b03677a376efe6175683681d1e5eaab1d476",
+    "purpose": "flipfix6 serverless instruction scopes, using the established production fixture."
+  },
+  {
+    "original": "tools/flipfix6_diag.py",
+    "archive": "tools/archive/tools/flipfix6_diag.py",
+    "sha256": "abece0f6b2a689cd5d9cffbf4b087dbb3c2b480882d268e5e7e7a91adbc4908c",
+    "purpose": "Make an isolated PRE diagnostic source copy. Never edits production sources."
+  },
+  {
+    "original": "tools/flipfix6_evidence.py",
+    "archive": "tools/archive/tools/flipfix6_evidence.py",
+    "sha256": "847e46d3d6f026f0d2279219fb598fe9d0f4476b43b1618885bada2b3ff6971b",
+    "purpose": "Archive the lane's owned correctness evidence and classify every diagnostic refusal."
+  },
+  {
+    "original": "tools/flipfix7_artifacts.py",
+    "archive": "tools/archive/tools/flipfix7_artifacts.py",
+    "sha256": "f979367feca5361253b7bf9e04265884af7f3d6bdbfeaf9b04192a2f665e2f8c",
+    "purpose": "PAD-A: PRE FLIP liveness decisions with POST's exact text size and layout."
+  },
+  {
+    "original": "tools/flipfix7_budget_counts.py",
+    "archive": "tools/archive/tools/flipfix7_budget_counts.py",
+    "sha256": "f72156edd3a5b37997fb36418abc543e8ab3694d7934ca6d17648b6e7e41d48a",
+    "purpose": "Finite instruction scopes with the source-derived compiler budgets."
+  },
+  {
+    "original": "tools/flipfix7_budgets.py",
+    "archive": "tools/archive/tools/flipfix7_budgets.py",
+    "sha256": "f2ce535c0ff748f1c121c8c722faf85605a48a480b8ab0447336ec124fc3f2be",
+    "purpose": "Source-accurate compile-only budget derivation; no server or rates."
+  },
+  {
+    "original": "tools/flipfix7_capture.py",
+    "archive": "tools/archive/tools/flipfix7_capture.py",
+    "sha256": "b4ae6639b20849178520811a06d103024a902ead6ffdf23b1083d371ad7d9eb0",
+    "purpose": "Archive gate job ledgers and raw textual correctness evidence, never build objects."
+  },
+  {
+    "original": "tools/flipfix7_compact_build.py",
+    "archive": "tools/archive/tools/flipfix7_compact_build.py",
+    "sha256": "68bfcf0f7ba1d62d87319f8d10f80c69b506cb89bdd6c9c482126a248474732a",
+    "purpose": "Compress completed proof binaries' debug sections; preserve every allocated byte/address."
+  },
+  {
+    "original": "tools/flipfix7_counts.py",
+    "archive": "tools/archive/tools/flipfix7_counts.py",
+    "sha256": "f0042de12136f7098fff4008ffe9a4a45a96c4e78c9b8438e38fec7e404e824b",
+    "purpose": "flipfix7 serverless instruction scopes, using the established production fixture."
+  },
+  {
+    "original": "tools/flipfix7_freshness.py",
+    "archive": "tools/archive/tools/flipfix7_freshness.py",
+    "sha256": "3e6dbe70ed40f035e47a180945aafc0aadf533678608dd9d162af2dab4d1c388",
+    "purpose": "Check every production-unit output via make -q, plus delivery identities."
+  },
+  {
+    "original": "tools/flipfix7_negative.py",
+    "archive": "tools/archive/tools/flipfix7_negative.py",
+    "sha256": "f138674a4f280cb293f4561c206dc361a8914d21ddff6520c678336a1fab7932",
+    "purpose": "Strict PRE gate rejection and PAD-A liveness witnesses; correctness only."
+  },
+  {
+    "original": "tools/flipfix7_proof.py",
+    "archive": "tools/archive/tools/flipfix7_proof.py",
+    "sha256": "72077d0ee6955113dd7caa8e5e570b9a27b084bb2bf3334c9b972f426e1031db",
+    "purpose": "Selected gate jobs on the assigned lane only. No iteration or rate tier."
+  },
+  {
+    "original": "tools/flipreport_proof.py",
+    "archive": "tools/archive/tools/flipreport_proof.py",
+    "sha256": "34eeee14f9e9ca6108735633fe7f194fc1372a76f37644f00390c95714072b2b",
+    "purpose": "Offline cleanup-flipreport evidence and serverless controls; pin to CPUs 112-127."
+  },
+  {
+    "original": "tools/flipsettle_artifacts.py",
+    "archive": "tools/archive/tools/flipsettle_artifacts.py",
+    "sha256": "da97a8f30007e7b93ba499decb8daef0889a650c6baf3a61a010fe43689e6aa0",
+    "purpose": "Exact ELF proof for cleanup-flipsettle. Offline only; never executes an input ELF."
+  },
+  {
+    "original": "tools/flipsettle_controls.py",
+    "archive": "tools/archive/tools/flipsettle_controls.py",
+    "sha256": "9ecb628a7829c6bf19b13ceb48b37ffd4a72e65ae4fc5d54f3402fea5b139cda",
+    "purpose": "Generate throwaway controller mutants and run the existing serverless transition checks."
+  },
+  {
+    "original": "tools/flushfix2_budget.py",
+    "archive": "tools/archive/tools/flushfix2_budget.py",
+    "sha256": "7898ba337a50d3472732be6557083ae15db24fff8df9fcc6cdeb0b4f3a79b11c",
+    "purpose": "Compile-only IPA surveys and trials; every child inherits CPUs 0-15."
+  },
+  {
+    "original": "tools/flushfix2_budget_counts.py",
+    "archive": "tools/archive/tools/flushfix2_budget_counts.py",
+    "sha256": "e2698244052e92f26d12ad442bece89fd5a2db8986ec81dded2e656cedafde73",
+    "purpose": "Use compile-only budget trial objects in finite serverless scopes."
+  },
+  {
+    "original": "tools/flushfix2_counts.py",
+    "archive": "tools/archive/tools/flushfix2_counts.py",
+    "sha256": "f58d3aa6351b6bf4c7616b85d1ac8d682d50665d71fca05c8693037ad60c8229",
+    "purpose": "Finite serverless command scopes, using the established production fixture."
+  },
+  {
+    "original": "tools/flushfix2_freshness.py",
+    "archive": "tools/archive/tools/flushfix2_freshness.py",
+    "sha256": "c14655c00c442dd911610a05324b283dc12538b1b9f7ea2860e4497f9078e0f6",
+    "purpose": "Check every literal production-unit target with its actual makefile set."
+  },
+  {
+    "original": "tools/flushfix2_identity.py",
+    "archive": "tools/archive/tools/flushfix2_identity.py",
+    "sha256": "b428f8ecb7aa9a6a6fb02cf2d92987fd1c0b28b2a274fb77c46c5230796b88c3",
+    "purpose": "Extend the established exact-body inventory to the new FLUSH-only objects."
+  },
+  {
+    "original": "tools/flushfix2_live.py",
+    "archive": "tools/archive/tools/flushfix2_live.py",
+    "sha256": "2c8c4e84ed30cdbedcfd32ee41b3a1f36289df9670b63c1f534fdee3e82645d9",
+    "purpose": "Finite MGET scopes with eight live EXEC-format records, no listening server."
+  },
+  {
+    "original": "tools/flushfix2_pad.py",
+    "archive": "tools/archive/tools/flushfix2_pad.py",
+    "sha256": "dcc59e4b68071dbeee28a3b48adc251144c190346ed729a259830a26035fa9e9",
+    "purpose": "PAD-A behaviour twin: legacy FLUSH routing in the candidate's exact ELF layout."
+  },
+  {
+    "original": "tools/flushfix2_receipts.py",
+    "archive": "tools/archive/tools/flushfix2_receipts.py",
+    "sha256": "e96b4d3c054df69c55f4cf284df3b931a7a82f9b42c951c26a8b4ae57b39541c",
+    "purpose": "Retain compact, hashed correctness receipts before pruning build artifacts."
+  },
+  {
+    "original": "tools/flushfix2_sweep.py",
+    "archive": "tools/archive/tools/flushfix2_sweep.py",
+    "sha256": "bfa3445933ce33c351c57ee8b550679ff0a9ea4205f199fe54791d7b2a0dd5e5",
+    "purpose": "Bounded correctness/oracle sweep; no rate or timing verdict."
+  },
+  {
+    "original": "tools/flushfix2_verification_receipts.py",
+    "archive": "tools/archive/tools/flushfix2_verification_receipts.py",
+    "sha256": "278e137cd99e5091ed01d5aba40bdb00b4f547941441fd8eeb2280be055e7034",
+    "purpose": "Archive completed gate-job and differential receipts without changing verdicts."
+  },
+  {
+    "original": "tools/flushfix2_verify.py",
+    "archive": "tools/archive/tools/flushfix2_verify.py",
+    "sha256": "b88fb182672afd6ec0f89f656f7de0eb26bc1512c887becea83745759eb903ca",
+    "purpose": "Owned correctness jobs and standard differential seeds; never iteration/perf."
+  },
+  {
+    "original": "tools/flushfix3_budget.py",
+    "archive": "tools/archive/tools/flushfix3_budget.py",
+    "sha256": "cf69cdb0f1880c0f03325f1c3e040f8cbf73023aae1c08cc3d9c2ded3b4fafda",
+    "purpose": "Compile isolated scatter budget trials and count finite MGET/MSET scopes."
+  },
+  {
+    "original": "tools/flushfix3_counts.py",
+    "archive": "tools/archive/tools/flushfix3_counts.py",
+    "sha256": "e2a497c12e2f0c3f79c94eb4159e07a516900b52a43543b6d7dbe35a576af94f",
+    "purpose": "Run the established finite command scopes against the wave 10 headline."
+  },
+  {
+    "original": "tools/flushfix3_freshness.py",
+    "archive": "tools/archive/tools/flushfix3_freshness.py",
+    "sha256": "9a2583d997309ba22aba58cd8569cb18bf5d5c6cf44010a3a792ae25715f0080",
+    "purpose": "Record make -q for every literal production-unit target and both FLUSH suites."
+  },
+  {
+    "original": "tools/flushfix3_receipts.py",
+    "archive": "tools/archive/tools/flushfix3_receipts.py",
+    "sha256": "92ada9518aa018b399c096dfe73bddd30d9f12c5e31d4e745a6ced7f1cc66526",
+    "purpose": "Archive completed selected-job evidence, preserving earlier failures."
+  },
+  {
+    "original": "tools/flushfix3_verify.py",
+    "archive": "tools/archive/tools/flushfix3_verify.py",
+    "sha256": "4a3f6e757811aa4146dcbae2add96a9513c9b877141cf6ee5b71a511a4b695e9",
+    "purpose": "Run selected correctness jobs on the lane's CPUs/ports; never iteration/perf."
+  },
+  {
+    "original": "tools/gt14fix_evidence.py",
+    "archive": "tools/archive/tools/gt14fix_evidence.py",
+    "sha256": "2947137322c6c557856582eb8f31f1d33d0f9f6360e0e19259ee27eae7e6d1f4",
+    "purpose": "Collect gt14fix subset evidence; never launches a server or changes test results."
+  },
+  {
+    "original": "tools/infofields2_live.py",
+    "archive": "tools/archive/tools/infofields2_live.py",
+    "sha256": "e24fb6d7aefb901ab59dbc98dcc914d4325d9999db847bff9ce8c534907f4d6d",
+    "purpose": "Serial infofields2 proof runner on the assigned server/load CPUs."
+  },
+  {
+    "original": "tools/infofields_artifacts.py",
+    "archive": "tools/archive/tools/infofields_artifacts.py",
+    "sha256": "13b3714b384eb26fa3023b3296baecd99e245dd7d91e6bc8d350729c42c3e29b",
+    "purpose": "SV6/SV7/SV9 offline byte, instruction, link and layout proof; never runs an ELF."
+  },
+  {
+    "original": "tools/infofields_budget.py",
+    "archive": "tools/archive/tools/infofields_budget.py",
+    "sha256": "32c733d842eb640812ca05595f56f33621b77075c41dba723b35cd0b622792a0",
+    "purpose": "Offline, TU-local compiler-budget trials; never executes a server."
+  },
+  {
+    "original": "tools/infofields_controls.py",
+    "archive": "tools/archive/tools/infofields_controls.py",
+    "sha256": "84e02dd8b617dadc57023a6b43047904167d32d49bcc228b1d3b8079888805e6",
+    "purpose": "Build/run only serverless cron units, including two failing mechanism controls."
+  },
+  {
+    "original": "tools/infofields_monitor_strict.py",
+    "archive": "tools/archive/tools/infofields_monitor_strict.py",
+    "sha256": "8c341b7042d434933ae1f2b10300b5dcb20804a09f130a24c46b00b7c8795862",
+    "purpose": "Non-gated MONITOR witnesses against two already-running peers."
+  },
+  {
+    "original": "tools/infofix_arms.py",
+    "archive": "tools/archive/tools/infofix_arms.py",
+    "sha256": "43db88deb00e5cbbd5278d86281f75ea484790a7d2264dc0539b60f492cb58a3",
+    "purpose": "Link frozen PRE objects into a behaviour-twin PAD-A and cold-root regression."
+  },
+  {
+    "original": "tools/infofix_latency_controls.py",
+    "archive": "tools/archive/tools/infofix_latency_controls.py",
+    "sha256": "a4dbe608cf568d0d70b57de1c9583d0bea61a8404c1511d770044aecae66cf31",
+    "purpose": "Build serverless PRE, no-batch and averaged-duration falsification arms."
+  },
+  {
+    "original": "tools/infofix_scope.py",
+    "archive": "tools/archive/tools/infofix_scope.py",
+    "sha256": "c01077a0e66161bb9080785c8913f4cfa2d7139e69b390bdafb52b23c37a5281",
+    "purpose": "Infofix production-object command scopes via the existing ptrace instrument."
+  },
+  {
+    "original": "tools/iofix3_artifacts.py",
+    "archive": "tools/archive/tools/iofix3_artifacts.py",
+    "sha256": "a59fe83a72fb36ca7d67af50933f714459e9904a49d135d046535f9fc86d7282",
+    "purpose": "Offline WB4.1 linked-body identity and exact-layout kind-A control."
+  },
+  {
+    "original": "tools/iofix3_ports.py",
+    "archive": "tools/archive/tools/iofix3_ports.py",
+    "sha256": "4f94ce7e9fcea9bd73a79f9acc9040a82862fa24c42a7701f4eea74cfe95080f",
+    "purpose": "Keep correctness ports out of automatic client-port allocation between boots."
+  },
+  {
+    "original": "tools/iofix_budget.py",
+    "archive": "tools/archive/tools/iofix_budget.py",
+    "sha256": "4dd3d20ffff4d6fa5d609fdf4f07e47d5902aba270b70d60318b6e92cfdca565",
+    "purpose": "Compile-only IO refinement budget trials, constrained to the lane's CPUs."
+  },
+  {
+    "original": "tools/iofix_full_pad.py",
+    "archive": "tools/archive/tools/iofix_full_pad.py",
+    "sha256": "a6517750766b80c829825df23d27901bf06569ddf8d5183002a205aa5847a1b8",
+    "purpose": "Kind A: full PRE behavior with POST's exact .text size, not function placement."
+  },
+  {
+    "original": "tools/iofix_identity.py",
+    "archive": "tools/archive/tools/iofix_identity.py",
+    "sha256": "b6a1f4c15e210c120c65ab4c7b32643f9eb452e0b0a15bb5809fafda63a32451",
+    "purpose": "Annotate the full byte inventory and check linked GET/SET/MGET/MSET bodies."
+  },
+  {
+    "original": "tools/iofix_pad.py",
+    "archive": "tools/archive/tools/iofix_pad.py",
+    "sha256": "511bc716be0269acf3c2a9187213f63294349e995739c308098b2ed38fd1c469",
+    "purpose": "Offline kind-A writeback behaviour twin for the nominated merit cells."
+  },
+  {
+    "original": "tools/iopass_controls.py",
+    "archive": "tools/archive/tools/iopass_controls.py",
+    "sha256": "f9c05a7c2e3932ec0fa858964b9cd5cb2ffdec5beece4bd6c4b16f9d27586431",
+    "purpose": "Compile throwaway missing-fence controls and require their directed witness to fail."
+  },
+  {
+    "original": "tools/iopass_receipts.py",
+    "archive": "tools/archive/tools/iopass_receipts.py",
+    "sha256": "dedf09a0b7a9080a932b764089323c641511276b778beb5da0eb8561b4495e4c",
+    "purpose": "Serverless IO-pass instruction receipts, using the existing ptrace tracer."
+  },
+  {
+    "original": "tools/iopass_validate.py",
+    "archive": "tools/archive/tools/iopass_validate.py",
+    "sha256": "989817e5109b8ecebd3be8905aa05d461488a4b62c78a7e9e2e0192f4de149fd",
+    "purpose": "Run existing serverless gate witnesses directly; never run gate.sh or a server."
+  },
+  {
+    "original": "tools/iotemplates_proof.py",
+    "archive": "tools/archive/tools/iotemplates_proof.py",
+    "sha256": "adb44d9a4ed1e75d97c697b4d162694f8183195ff809b7e58eaebdfdea352828",
+    "purpose": "Offline IO-interface proofs. Never starts a server or measures an ELF arm."
+  },
+  {
+    "original": "tools/iowake_budgets.py",
+    "archive": "tools/archive/tools/iowake_budgets.py",
+    "sha256": "70bdfd35bf33c2a65964013fcd306591a9c802308b06c2fbd45bcce7872e7ddd",
+    "purpose": "iowake: compile-only GCC IPA unit sizes and per-function bodies; no server, no workload."
+  },
+  {
+    "original": "tools/iowake_counts.py",
+    "archive": "tools/archive/tools/iowake_counts.py",
+    "sha256": "4655a69c709ddfb028d8d4b3bf2c96f9181ea4a736d24bdaf9629662d78b37bb",
+    "purpose": "iowake zero-cost census: finite production-object command scopes, no server or rates."
+  },
+  {
+    "original": "tools/iowake_identity.py",
+    "archive": "tools/archive/tools/iowake_identity.py",
+    "sha256": "0776cace0f238fd042b1a4a2809ab176b07fc4c084ea33ddfa3acffae7b496f0",
+    "purpose": "iowake function-body identity between PRE and POST production objects (no server, no rates)."
+  },
+  {
+    "original": "tools/iowake_pad.py",
+    "archive": "tools/archive/tools/iowake_pad.py",
+    "sha256": "b4f3b5e7b7071e1226e6f386cf8e1f1b179ac057d8fa5376e3680fb9d78d37e8",
+    "purpose": "Build an exact-image type-A control pair; never starts a server (copied from tools/snapfix_pad.py)."
+  },
+  {
+    "original": "tools/l4prebuild_artifacts.py",
+    "archive": "tools/archive/tools/l4prebuild_artifacts.py",
+    "sha256": "ab850bff1e60d04166c4b86816678e7dcccbbdd15adaf5a5a4cacfda4adcc0bd",
+    "purpose": "Make a kind-A prebuild control by patching a COPY of a linked ELF; never execute it."
+  },
+  {
+    "original": "tools/lanefull_artifacts.py",
+    "archive": "tools/archive/tools/lanefull_artifacts.py",
+    "sha256": "6a3fc1827167c50808a401b0803612d7704c99918d9b5df26764d6a813404aa8",
+    "purpose": "Offline LaneFull ELF proofs and schema controls. Never executes a server arm."
+  },
+  {
+    "original": "tools/lanefull_controls.py",
+    "archive": "tools/archive/tools/lanefull_controls.py",
+    "sha256": "b2e4e6a72fa72a96e8eb58ec5a5fc8c860dfbc1489aff23e19606a7d69bb74f7",
+    "purpose": "Build/run serverless LaneFull controls; all throwaway edits stay under build/."
+  },
+  {
+    "original": "tools/latencyfix_budget.py",
+    "archive": "tools/archive/tools/latencyfix_budget.py",
+    "sha256": "6a2c22c09b4b0ab86f61653a02b1f39eff939f16fd7150d16d3f772283c1a035",
+    "purpose": "Compile-only IO refinement budget trials, constrained to the lane's CPUs."
+  },
+  {
+    "original": "tools/latencyfix_count_trials.py",
+    "archive": "tools/archive/tools/latencyfix_count_trials.py",
+    "sha256": "519362a8a053c6ee7ef26b4064bab39c3512ccc7bf8e78bdb7d099bacf592363",
+    "purpose": "Link the production command-scope witness with one compile-only budget trial."
+  },
+  {
+    "original": "tools/latencyfix_counts.mk",
+    "archive": "tools/archive/tools/latencyfix_counts.mk",
+    "sha256": "629ff19704c8d80d97e44d74590f7fae7679e1e6028c0950e2e1c82241896759",
+    "purpose": "Same objects and weak-symbol order as the production normal namespace."
+  },
+  {
+    "original": "tools/latencyfix_histogram.mk",
+    "archive": "tools/archive/tools/latencyfix_histogram.mk",
+    "sha256": "134384caee2e68830e02ac317e89fdee4ab45684cce5fa3eca8f347681e4a2df",
+    "purpose": "Only the numeric oracle witness links Redis's independently vendored HDR library."
+  },
+  {
+    "original": "tools/latencyfix_identity.py",
+    "archive": "tools/archive/tools/latencyfix_identity.py",
+    "sha256": "2420f6376d7db67539bd3c948e61dec966b0afe3e435e68af173e9a47afa2440",
+    "purpose": "Audit the actual MGET/MSET entry points as well as GET/SET handlers."
+  },
+  {
+    "original": "tools/latencyfix_pad.py",
+    "archive": "tools/archive/tools/latencyfix_pad.py",
+    "sha256": "e7c7693121c7ad5df2716b292a2389e0f1f308970866869e817a652574bd18a2",
+    "purpose": "Build a PRE-behavior, POST-text-size PAD-A; never run a workload."
+  },
+  {
+    "original": "tools/lbfix_artifacts.py",
+    "archive": "tools/archive/tools/lbfix_artifacts.py",
+    "sha256": "26b859d6f4940e8df08e54391b09333a08315a6a783e35b95127f6129bcd34c0",
+    "purpose": "Prepare serverless LB negative controls, TSan build, and a labelled text-size control."
+  },
+  {
+    "original": "tools/lbosc3_report.py",
+    "archive": "tools/archive/tools/lbosc3_report.py",
+    "sha256": "9db6e3b588658808ce073a0c36fc18005d45a722a02decaf16a497b7e28f7bf1",
+    "purpose": "Read-only pooled lbosc3 judge. Scores telemetry, never the harness PASS flag."
+  },
+  {
+    "original": "tools/lbplanner_pre_receipt.py",
+    "archive": "tools/archive/tools/lbplanner_pre_receipt.py",
+    "sha256": "35e030fb328f0de7701be636ece8a4e50e043b6786171dea452164a347201caf",
+    "purpose": "Freeze launch source and emit a PRE serverless pass witness; never compile or run it."
+  },
+  {
+    "original": "tools/lbplanner_receipts.py",
+    "archive": "tools/archive/tools/lbplanner_receipts.py",
+    "sha256": "d47ffc1845108b71f35d457cbe8eaf519bf15111517d93cebf9e3c53dce73e34",
+    "purpose": "Serverless instruction/load and layout receipts; no clocks, perf events or live server."
+  },
+  {
+    "original": "tools/lualibs_artifacts.py",
+    "archive": "tools/archive/tools/lualibs_artifacts.py",
+    "sha256": "cb45a903894225ec55b6e7191b954a4f42e21a427667e8a22348b8c3d47e98b6",
+    "purpose": "Offline CC4.7 PAD-A, identity and serverless per-state memory evidence."
+  },
+  {
+    "original": "tools/lualibs_proof.sh",
+    "archive": "tools/archive/tools/lualibs_proof.sh",
+    "sha256": "58371f3b53936b7fa072d98d29121825006dae4b12dbfbdb01873b4cb2013d3a",
+    "purpose": "Reproduce CC4.7 correctness via complete gate jobs, never the performance tier."
+  },
+  {
+    "original": "tools/mdbqsbr_artifacts.py",
+    "archive": "tools/archive/tools/mdbqsbr_artifacts.py",
+    "sha256": "41f75f0db48694fc31969c26ea7401b938962558857f220e26cac06d58b6391d",
+    "purpose": "Offline map structural audit and size-matched type-A control. Never starts a server."
+  },
+  {
+    "original": "tools/mdbstamp_artifacts.py",
+    "archive": "tools/archive/tools/mdbstamp_artifacts.py",
+    "sha256": "707ab98626112a5c8bd19987d1528074c1f9851675d502f1e900e7c043f914e4",
+    "purpose": "Offline kind-A stamp control: PRE behavior in POST's exact ELF layout."
+  },
+  {
+    "original": "tools/mkfix2_pad.py",
+    "archive": "tools/archive/tools/mkfix2_pad.py",
+    "sha256": "c2fc4aa306db513b620210aa5bb907133912064dba7668c62541e4908b31e6a0",
+    "purpose": "Build A's type-A control: PRE reply timing in A's exact linked layout."
+  },
+  {
+    "original": "tools/mkfix_counts.py",
+    "archive": "tools/archive/tools/mkfix_counts.py",
+    "sha256": "1f9e57081f45fbf176a92454eef8204c57f05f49e82262a1ed891f92e4204a95",
+    "purpose": "Fixed-command mkfix count runs. No rate or latency measurement or claims."
+  },
+  {
+    "original": "tools/mkprobe_probe.py",
+    "archive": "tools/archive/tools/mkprobe_probe.py",
+    "sha256": "a5ac6cec7803101f684f9014e053ce45da7e5e417cd1510a0e73109f6c7ae7ab",
+    "purpose": "Directed multi-key diagnostics. Mainline only; NEVER a gate row."
+  },
+  {
+    "original": "tools/mset8fix_budgets.py",
+    "archive": "tools/archive/tools/mset8fix_budgets.py",
+    "sha256": "7dcf5b540fc4c66028bc84e941661457551f012455dfeb3942e230c7737720a3",
+    "purpose": "mset8fix: compile-only GCC IPA unit sizes and per-function bodies; no server, no workload."
+  },
+  {
+    "original": "tools/mset8fix_counts.py",
+    "archive": "tools/archive/tools/mset8fix_counts.py",
+    "sha256": "07e43c597129adc294763f7335c1f36c417997744993646792ac5f0fac7b6528",
+    "purpose": "mset8fix: finite production instruction scopes, PRE vs POST. No server, load, timing or rates."
+  },
+  {
+    "original": "tools/mset8fix_identity.py",
+    "archive": "tools/archive/tools/mset8fix_identity.py",
+    "sha256": "67f8d9418140f214e4d6130a5831832722dde2facad2fa6c74fb20157ca1a254",
+    "purpose": "mset8fix: linked-body inventory, PRE vs POST, with the gate's strict instruction normalizer."
+  },
+  {
+    "original": "tools/mset8fix_latency.py",
+    "archive": "tools/archive/tools/mset8fix_latency.py",
+    "sha256": "0148bcb4248a55819d6358b60847360503d5e5ed80642e383047134e99e39f4a",
+    "purpose": "mset8fix: the survey's hot-key MSET8 latency cell against one TomoKV binary. Correctness only."
+  },
+  {
+    "original": "tools/mset8fix_loop.sh",
+    "archive": "tools/archive/tools/mset8fix_loop.sh",
+    "sha256": "506c8536804e83fb9e8a38a002748a29ce4480e0fc5711540b42e3987833618e",
+    "purpose": "mset8fix: run tests/gate.sh GATE_ONLY_JOBS=JOBS RUNS times against BINARY on fixed CPUs and"
+  },
+  {
+    "original": "tools/mset8fix_pad.py",
+    "archive": "tools/archive/tools/mset8fix_pad.py",
+    "sha256": "b89c10369f1993abee320e6e2349a290e8701c839dec51fc65679bc5b6474555",
+    "purpose": "mset8fix PAD-A: unmodified PRE behaviour with POST's total .text extent. No workload."
+  },
+  {
+    "original": "tools/mset8fix_proof.py",
+    "archive": "tools/archive/tools/mset8fix_proof.py",
+    "sha256": "7b801470e4d885be2ed97862490f18183e3ce3219acad3f104b10543ef10877d",
+    "purpose": "mset8fix: fold the gate-job proof runs into docs/mset8fix/proof/summary.json. No server."
+  },
+  {
+    "original": "tools/multidb3_artifacts.py",
+    "archive": "tools/archive/tools/multidb3_artifacts.py",
+    "sha256": "5f6d665b980b1a4921ee3c83b0a90b624437e0a38a82d0316ab43bd0ec34a5d9",
+    "purpose": "Offline DB-0 code audit and kind-A boot control. Never runs an executable."
+  },
+  {
+    "original": "tools/netfix2_artifacts.py",
+    "archive": "tools/archive/tools/netfix2_artifacts.py",
+    "sha256": "cefd84e941dbc1240ddebd7128168f5f245f6247d848c39abc209fb3d82f2342",
+    "purpose": "Freeze release arms and an exact-layout type-A PRE behaviour control."
+  },
+  {
+    "original": "tools/netfix2_counts.py",
+    "archive": "tools/archive/tools/netfix2_counts.py",
+    "sha256": "b506e64b770669ba03091dcc7b3791133c73d22924d6392ef20f7c7ce2a9ff97",
+    "purpose": "Finite production-object instruction scopes; no server or rate measurement."
+  },
+  {
+    "original": "tools/netfix2_diagnostics.py",
+    "archive": "tools/archive/tools/netfix2_diagnostics.py",
+    "sha256": "1f85337141930ec6d60e4e47184622f08d643a65fd920d474c31fbd375a03b7a",
+    "purpose": "PRE/POST controls for existing optional EOF and INFO diagnostic gate jobs."
+  },
+  {
+    "original": "tools/netfix2_proof.sh",
+    "archive": "tools/archive/tools/netfix2_proof.sh",
+    "sha256": "7a6f97fbf8413a7c7ea8cbae329d47f1c9dd5d79c06501402e1a1ac84090f20f",
+    "purpose": "Only the gate's selected correctness jobs; no iteration, ABBA or load generator."
+  },
+  {
+    "original": "tools/netfix2_tls_counts.py",
+    "archive": "tools/archive/tools/netfix2_tls_counts.py",
+    "sha256": "91177d584ec97e317b7f914c48c102509d15b8cbff1a85032e40d53d4797929b",
+    "purpose": "20KB TLS GET owner scopes, clean and WATCHed, with exact replies on both arms."
+  },
+  {
+    "original": "tools/netfix_collect.py",
+    "archive": "tools/archive/tools/netfix_collect.py",
+    "sha256": "a0e9e7c137383d1d736d5da792fe16883945b9e8c343df0de78f31eab2cb7b79",
+    "purpose": "Retain netfix gate attempts and their verdicts without turning retries into passes."
+  },
+  {
+    "original": "tools/netfix_identity.py",
+    "archive": "tools/archive/tools/netfix_identity.py",
+    "sha256": "24a0f9f8ded443675967c6e9d0f9e4e75a355a6bbd9f656267abee949e3fca21",
+    "purpose": "Strict linked-body identity against PRE, using the gate's unchanged normalizer."
+  },
+  {
+    "original": "tools/netfix_pad.py",
+    "archive": "tools/archive/tools/netfix_pad.py",
+    "sha256": "3ff1f1515f8d64e98d2426c75dd118cf550f6efdf64d7ebdcc914718c129b80a",
+    "purpose": "PAD-A for periodic reclamation: retain POST layout, restore PRE idle retention."
+  },
+  {
+    "original": "tools/netfix_pad_b.py",
+    "archive": "tools/archive/tools/netfix_pad_b.py",
+    "sha256": "55a67b5862a81f470e3d9209b9604953b95f242209ec4e5c8c7ec6918860a2d6",
+    "purpose": "PAD-B inverse control: candidate behavior, PRE's exact .text size."
+  },
+  {
+    "original": "tools/netfix_verify.py",
+    "archive": "tools/archive/tools/netfix_verify.py",
+    "sha256": "259a7c313c1d996eeef63702dd7559025438c142aa1b273c0e11b91c45438d6a",
+    "purpose": "Run netfix correctness only through gate.sh's job interface, on the lane allocation."
+  },
+  {
+    "original": "tools/notifycompat_identity.py",
+    "archive": "tools/archive/tools/notifycompat_identity.py",
+    "sha256": "f5fffb30ba039fc110dfaea5c5e74da16b36cd11a336ee2cb79e1f4de235cefb",
+    "purpose": "Per-commit GET/SET/MGET/MSET object-code diagnostic (no runtime workload)."
+  },
+  {
+    "original": "tools/notifycompat_pad.py",
+    "archive": "tools/archive/tools/notifycompat_pad.py",
+    "sha256": "04e3217e8c911d165797dbb21e69e0b58dd7e882dad118a00308505eaf1de5c3",
+    "purpose": "Kind A: full PRE behavior with POST's exact .text size, not function placement."
+  },
+  {
+    "original": "tools/ntfix_proof.py",
+    "archive": "tools/archive/tools/ntfix_proof.py",
+    "sha256": "3c1b4af996da6a384e076256a3ffc46a56bd27b8e3298b992b0bbcdabe9e10f7",
+    "purpose": "Lane ntfix correctness receipts. Only CPUs 80-95 and ports 22800-22803."
+  },
+  {
+    "original": "tools/overlapaxe_artifacts.py",
+    "archive": "tools/archive/tools/overlapaxe_artifacts.py",
+    "sha256": "61a9f7f33c28238c2d5424ff6c293282b788ac6c3f115e577048dbce8505ada3",
+    "purpose": "Overlap retirement receipts; only the explicit smoke action starts servers."
+  },
+  {
+    "original": "tools/parkwake_budgets.py",
+    "archive": "tools/archive/tools/parkwake_budgets.py",
+    "sha256": "3e26020c9b9f60ce8d844c00d2d89b1b9e04b1d2347ccac3c52636d466e0e018",
+    "purpose": "parkwake: compile-only GCC IPA unit sizes and per-function bodies; no server, no workload."
+  },
+  {
+    "original": "tools/parkwake_counts.py",
+    "archive": "tools/archive/tools/parkwake_counts.py",
+    "sha256": "2593ab4e76ac4eea7cfc894a428ecd1f346aad507dd7df2ccbae54269fc0f016",
+    "purpose": "parkwake: finite production instruction scopes, PRE vs POST. No server, load, timing or rates."
+  },
+  {
+    "original": "tools/parkwake_identity.py",
+    "archive": "tools/archive/tools/parkwake_identity.py",
+    "sha256": "0a42afe9615b9363c1c60bbae2c57028009c353c8b2ef1230c2e25510f5cc659",
+    "purpose": "parkwake: linked-body inventory, PRE vs POST, with the gate's strict instruction normalizer."
+  },
+  {
+    "original": "tools/parkwake_loop.sh",
+    "archive": "tools/archive/tools/parkwake_loop.sh",
+    "sha256": "0ba18fa609ea1d4e23c47349c53d9ae58181c87d09f2333280b1c9861d617cc2",
+    "purpose": "parkwake: run tests/gate.sh GATE_ONLY_JOBS=JOBS RUNS times against BINARY on fixed CPUs and"
+  },
+  {
+    "original": "tools/parkwake_matrix.py",
+    "archive": "tools/archive/tools/parkwake_matrix.py",
+    "sha256": "fa31c55e1caaadb92926941b2867a0f6f9a68925cb1f14a4ec3696425d6c595a",
+    "purpose": "parkwake: run tests/parkwake.py over every declared case x mode x engine for one arm."
+  },
+  {
+    "original": "tools/parkwake_pad.py",
+    "archive": "tools/archive/tools/parkwake_pad.py",
+    "sha256": "22751e16262be58983179cc23db5fa267b2774ca44ae13e20475b86de95fdd47",
+    "purpose": "parkwake PAD-A: unmodified PRE behaviour with POST's total .text extent. No workload."
+  },
+  {
+    "original": "tools/parkwake_summary.py",
+    "archive": "tools/archive/tools/parkwake_summary.py",
+    "sha256": "799a3bbe04176bfadda2fe013030bf4aec8ef7f9cf89c45a19bbf4be91c826ae",
+    "purpose": "parkwake: one line per matrix row (tools/parkwake_matrix.py output), case-specific metric."
+  },
+  {
+    "original": "tools/persistfix2_artifacts.py",
+    "archive": "tools/archive/tools/persistfix2_artifacts.py",
+    "sha256": "0e5c7466c5e352b1be289f6b2bb888810f62e2106463ebae501690fd931ba145",
+    "purpose": "Offline persistfix2 PRE/control linking and identity evidence. No workloads."
+  },
+  {
+    "original": "tools/persistfix_artifacts.py",
+    "archive": "tools/archive/tools/persistfix_artifacts.py",
+    "sha256": "5cfac37ba341bbac28fd07cf25ba9b5695471f6167e4fccc06f2d68b7e8160a8",
+    "purpose": "Offline layout audit and kind-A PS1 control; never execute/attach to a server."
+  },
+  {
+    "original": "tools/persistfmt_counts.py",
+    "archive": "tools/archive/tools/persistfmt_counts.py",
+    "sha256": "aeb4d66913f4ba76ffed74a20d916c926f8f9359205691d922f5ba116803f946",
+    "purpose": "PRE/POST bounded production instruction counts; no servers, PMU or rates."
+  },
+  {
+    "original": "tools/persistfmt_pad.py",
+    "archive": "tools/archive/tools/persistfmt_pad.py",
+    "sha256": "7065c288cb25daf7371210c583ac18cb9a214a3319a6c65a68468d96246d2c1f",
+    "purpose": "Build PAD-A: PRE persistence behavior, POST headers and total .text size."
+  },
+  {
+    "original": "tools/persistfmt_validate.py",
+    "archive": "tools/archive/tools/persistfmt_validate.py",
+    "sha256": "529f6ad69eb3afbc840c4f93c5a81df7e7d73f415e3ae362f9738f043098e6ff",
+    "purpose": "Run complete selected gate jobs on the lane's CPUs/ports; never run perf."
+  },
+  {
+    "original": "tools/prefetch_artifacts.py",
+    "archive": "tools/archive/tools/prefetch_artifacts.py",
+    "sha256": "d8930f904b6f5b43122b64313ac1db3a7ec836eacf196cdabdff7a3dad389c89",
+    "purpose": "EX4.1: offline disassembly witness, exact-layout PAD-A, and linked identity."
+  },
+  {
+    "original": "tools/probeadapter_proof.py",
+    "archive": "tools/archive/tools/probeadapter_proof.py",
+    "sha256": "8c5c3e005d11f19f922d2a8ec8bef7e98f1b3b349759feac3da8a10231d5d36c",
+    "purpose": "Offline probe adapter proofs and throwaway serverless controls; never run a server."
+  },
+  {
+    "original": "tools/psfix_artifacts.py",
+    "archive": "tools/archive/tools/psfix_artifacts.py",
+    "sha256": "cc41239692d10ed2018bd6fdda03bb8a0fe6d0b39db59ce2140c9c4db1810dad",
+    "purpose": "Offline PS5/PS7 function-byte and layout audit; does not execute either binary."
+  },
+  {
+    "original": "tools/publishfix_pad.py",
+    "archive": "tools/archive/tools/publishfix_pad.py",
+    "sha256": "2579e797c12688c4535b95ad371bc3d5676e18ca7e4c9cd093e9721f20a4d2af",
+    "purpose": "PAD-A: PRE publication behaviour in an exact-layout copy of the POST ELF."
+  },
+  {
+    "original": "tools/publishfix_schedule.py",
+    "archive": "tools/archive/tools/publishfix_schedule.py",
+    "sha256": "8b3461531ed79f775986e9a9218c8db08c67cb4d9365711d41f6884716faa407",
+    "purpose": "Full disposable build that parks one committer after loading drawn."
+  },
+  {
+    "original": "tools/readreply_proof.py",
+    "archive": "tools/archive/tools/readreply_proof.py",
+    "sha256": "21f5af9a9f6f58e4a71cda22d1a10f35fe8b754b8874031fa0dcc80340d4e2e0",
+    "purpose": "Offline cleanup-readreply proofs. Pin to 112-127; never execute a production ELF."
+  },
+  {
+    "original": "tools/reorder_pad.py",
+    "archive": "tools/archive/tools/reorder_pad.py",
+    "sha256": "01e5554c568b23291715caa4b29299570272d77986e2f3d19220347bfa01b3cc",
+    "purpose": "Make a kind-A R7 scheduler control by patching a COPY of a linked ELF; never execute it."
+  },
+  {
+    "original": "tools/reorderscan_pad.py",
+    "archive": "tools/archive/tools/reorderscan_pad.py",
+    "sha256": "e72684f80e99ac8b74f33c933041c69b8b525630c0f3178e649d42ac9d7fef88",
+    "purpose": "Build a kind-A text-size control from frozen PRE objects; never run a server."
+  },
+  {
+    "original": "tools/respresume_artifacts.py",
+    "archive": "tools/archive/tools/respresume_artifacts.py",
+    "sha256": "9cf28cdde337e41258667f292c267fbb5dafcb301922197b501e66f2ec953aa0",
+    "purpose": "Static objdump inventory, including every local/COMDAT/db0 parser clone."
+  },
+  {
+    "original": "tools/respresume_fastpath.py",
+    "archive": "tools/archive/tools/respresume_fastpath.py",
+    "sha256": "5eb0206c5130dc402f0375a071d6646509aacb751aead97a10dee436e769b340",
+    "purpose": "Complete-frame parse-selection path of every dispatcher clone, from objdump."
+  },
+  {
+    "original": "tools/respresume_fastpath_report.py",
+    "archive": "tools/archive/tools/respresume_fastpath_report.py",
+    "sha256": "450055830d72c9216acb86aed7cc66e83d114030b21e6904db595f29ffbf6f86",
+    "purpose": "Render docs/respresume/fastpath.md from the PRE/POST objdump inventories."
+  },
+  {
+    "original": "tools/respresume_observer.py",
+    "archive": "tools/archive/tools/respresume_observer.py",
+    "sha256": "e0922328e3f505dbcb60d2e1b395b0316c23bb37f145367f046aa63d75fddb70",
+    "purpose": "Make a throwaway incidence observer source tree; never edit production code."
+  },
+  {
+    "original": "tools/respresume_pad.py",
+    "archive": "tools/archive/tools/respresume_pad.py",
+    "sha256": "8e4e1dffd15584a8d589b95c881d7856a75583dc8efacef29070f078328b9c49",
+    "purpose": "PAD (A), behavior twin: discard partial argv with POST's exact text layout."
+  },
+  {
+    "original": "tools/respresume_probe.py",
+    "archive": "tools/archive/tools/respresume_probe.py",
+    "sha256": "ebf0921744300bb3bc51ce650868a618d1ff122d17b6dfb96218b540b61b768f",
+    "purpose": "NT4.2 incidence probe: the round-4 audit's nt4_probe.py cells, re-pinned."
+  },
+  {
+    "original": "tools/respresume_repro.py",
+    "archive": "tools/archive/tools/respresume_repro.py",
+    "sha256": "7092bfdefdc8d698b035e2b7d03019c16bd6489d2d91236332cfd5d8412130c6",
+    "purpose": "Run the audit's T12/T12b scripts without touching their originals."
+  },
+  {
+    "original": "tools/respresume_t12x.py",
+    "archive": "tools/archive/tools/respresume_t12x.py",
+    "sha256": "4412c609f0438cbb59a0cebbb95dea456f0f91b5b2d6a7a0e60bd87f09218713",
+    "purpose": "T12 at nanosecond CPU resolution, repeated, for the \"within 3x of Redis\" bound."
+  },
+  {
+    "original": "tools/respresume_trace.cc",
+    "archive": "tools/archive/tools/respresume_trace.cc",
+    "sha256": "28caf83f744d03bdd9dfe1c8845a6e2370dad3ec2385a34fcc46946b5256595f",
+    "purpose": "Execute only an allocation-free complete-frame parser body copied from the"
+  },
+  {
+    "original": "tools/respresume_trace.py",
+    "archive": "tools/archive/tools/respresume_trace.py",
+    "sha256": "1a162378fc41326389f68443e63b64acd8c8bcfc135e360ebf0a24000b7e211f",
+    "purpose": "Count executed complete GET/SET instructions in every production parser body."
+  },
+  {
+    "original": "tools/ringmarker_proof.py",
+    "archive": "tools/archive/tools/ringmarker_proof.py",
+    "sha256": "41eb5709d1e964c023bb3e94c4b3746cbfb70003d85e17e4a535556e2e2d3b0a",
+    "purpose": "Serverless removal inventory, raw ELF controls, and a same-layout kind-A PAD."
+  },
+  {
+    "original": "tools/rlfix3_info_compare.py",
+    "archive": "tools/archive/tools/rlfix3_info_compare.py",
+    "sha256": "2d2327ad18c8fc2604ae71bf42dbf1af06b9a0d65f4084361895cafb4c6909e3",
+    "purpose": "Compare complete INFO RESP frames under fixed external facts; no normalization."
+  },
+  {
+    "original": "tools/rlfix3_pad.py",
+    "archive": "tools/archive/tools/rlfix3_pad.py",
+    "sha256": "9bb98719b293e8d826d12083ceca6247392ad9bca9a90395eed199973b41a4fb",
+    "purpose": "Build PAD-A: PRE behaviour at POST's exact .text size, from frozen PRE objects."
+  },
+  {
+    "original": "tools/rlfix3_units.py",
+    "archive": "tools/archive/tools/rlfix3_units.py",
+    "sha256": "91b2aafe2675d26384647b24a96113c9cb66d806a2982049d59f39d1f5a471ea",
+    "purpose": "Link the current RL4.15 witness with frozen PRE objects in both namespaces."
+  },
+  {
+    "original": "tools/rlfix5_artifacts.py",
+    "archive": "tools/archive/tools/rlfix5_artifacts.py",
+    "sha256": "bf47c114eac6d9d4905408578118bf177b2393fb500d0f92587560d6adf62b16",
+    "purpose": "Offline PAD-A construction and strict linked hot-body inventory; no workloads."
+  },
+  {
+    "original": "tools/rlfix5_refreeze_comments.py",
+    "archive": "tools/archive/tools/rlfix5_refreeze_comments.py",
+    "sha256": "a3ff3942c6d2fb7c3c13cf72ec0c6ea7bee16f4a7c8caa42ccae80fc848932e4",
+    "purpose": "Synchronize R7's comment, rebuild, and require identical runtime sections."
+  },
+  {
+    "original": "tools/rlfix5_validate.py",
+    "archive": "tools/archive/tools/rlfix5_validate.py",
+    "sha256": "bbb1a518fc70f5439421cf0dc2723fd2671b85dea774278566acaaa759bd9681",
+    "purpose": "Run selected gate jobs within the rlfix5 CPU/port allocation and retain receipts."
+  },
+  {
+    "original": "tools/rltopo_artifacts.py",
+    "archive": "tools/archive/tools/rltopo_artifacts.py",
+    "sha256": "430746a136d5609432f2c983ae36b0e1530f02719b4ff1cde71a51c0aac0b67f",
+    "purpose": "Offline read-path audit and kind-A behaviour twin; never executes a server."
+  },
+  {
+    "original": "tools/rootcompat_budget.py",
+    "archive": "tools/archive/tools/rootcompat_budget.py",
+    "sha256": "cc39fb2e10af260572b4e23f1b847ee2cb72422f0fa1eeda4a126988290cac1e",
+    "purpose": "Compile-only rootcompat inline-budget controls; no workload/rate measurements."
+  },
+  {
+    "original": "tools/rootcompat_counts.py",
+    "archive": "tools/archive/tools/rootcompat_counts.py",
+    "sha256": "3a54da909b1fce4462ffbb6f82298ec1570fdb5b78f1f703c069de6ae8c823c8",
+    "purpose": "Finite production command scopes for rootcompat, on the lane's CPUs only."
+  },
+  {
+    "original": "tools/rootcompat_pad.py",
+    "archive": "tools/archive/tools/rootcompat_pad.py",
+    "sha256": "3dab001983ad59eb744aee50448c0e7511e70c52a97cccd0af2408612e040951",
+    "purpose": "Rootcompat PAD-A exact-image pair; builds only, never starts a workload."
+  },
+  {
+    "original": "tools/rootcore_archive_data.py",
+    "archive": "tools/archive/tools/rootcore_archive_data.py",
+    "sha256": "69267f720a529a991a48cedad2eb7b28787447f54e53e90c018559bbab8009f0",
+    "purpose": "Archive generated persistence data only after its completed proof is retained."
+  },
+  {
+    "original": "tools/rootcore_collect_proof.py",
+    "archive": "tools/archive/tools/rootcore_collect_proof.py",
+    "sha256": "f4a321336e0a02a68c42a9d82ddcc18a1f234beadbbf2455a3900cead9bc652d",
+    "purpose": "Preserve completed gate phases, including failures and private job logs."
+  },
+  {
+    "original": "tools/rootcore_counts.py",
+    "archive": "tools/archive/tools/rootcore_counts.py",
+    "sha256": "1b78b3e598269d917c73fed9670f093a0ad46d36e42ef45c986aeb6afe8ffae8",
+    "purpose": "Rootcore's bounded serverless command census; no listener or rate measurement."
+  },
+  {
+    "original": "tools/rootcore_freshness.py",
+    "archive": "tools/archive/tools/rootcore_freshness.py",
+    "sha256": "5ab88f09d9f3a487bd18ef30789f04276f28cd52c2306ffec2c948547ff4150d",
+    "purpose": "Verify every production_units build target, plus the release executable."
+  },
+  {
+    "original": "tools/rootcore_pad.py",
+    "archive": "tools/archive/tools/rootcore_pad.py",
+    "sha256": "1521bbef2561fa2ff48a2f236fd568e60bf49a1ace72abe8dc5c8fc8860c0a4f",
+    "purpose": "PRE behavior with POST text extent; no server or workload is run."
+  },
+  {
+    "original": "tools/rootcore_proof.py",
+    "archive": "tools/archive/tools/rootcore_proof.py",
+    "sha256": "6587e277b08a089b8ad63f418c797ea96855a2af581b420d743d1aac1b64d613",
+    "purpose": "Selected correctness jobs only, on rootcore's CPUs/ports; no rate workloads."
+  },
+  {
+    "original": "tools/rootcore_scheduler.py",
+    "archive": "tools/archive/tools/rootcore_scheduler.py",
+    "sha256": "de644a3ba92919f275c93cc41077abb90346b7c730c873537316de13a52d77d2",
+    "purpose": "Compare the unchanged single-slot scheduler deadline on PRE and POST plans."
+  },
+  {
+    "original": "tools/scriptfix2_artifacts.py",
+    "archive": "tools/archive/tools/scriptfix2_artifacts.py",
+    "sha256": "7c57e0be4f254d34fd4a9ca500559a896d4afe031d1f8db7a0744c472aa00226",
+    "purpose": "Serverless instruction, selected-definition, layout, and binary receipts."
+  },
+  {
+    "original": "tools/scriptfix2_counts.mk",
+    "archive": "tools/archive/tools/scriptfix2_counts.mk",
+    "sha256": "512ee174002b8106dcc2313de3c216389b43b3a98a1112b3ba51e884badfb19c",
+    "purpose": "Link both compiled engines in the production weak-symbol order. The fixture"
+  },
+  {
+    "original": "tools/scriptfix2_mutant.py",
+    "archive": "tools/archive/tools/scriptfix2_mutant.py",
+    "sha256": "44dea610aafea41300e17cbddedfa2aa194a399bca70ebf251b708a91607f3e9",
+    "purpose": "Build throwaway, selectable cold-path regressions using POST production objects."
+  },
+  {
+    "original": "tools/scriptfix2_negative.py",
+    "archive": "tools/archive/tools/scriptfix2_negative.py",
+    "sha256": "5e8dad84498aa5e3709085c2f30d7729cdf807218e1ae6a35a04eb6427b0fcec",
+    "purpose": "Independently select each planted regression and require its named Tcl witness."
+  },
+  {
+    "original": "tools/scriptfix2_pad.py",
+    "archive": "tools/archive/tools/scriptfix2_pad.py",
+    "sha256": "b54415d61d254ee801fe0d7d54a4d4e78a7c08ae1a28e9ffc128223f32595da1",
+    "purpose": "Relink frozen PRE objects as a size-controlled PAD-A; no workload is run."
+  },
+  {
+    "original": "tools/scriptfix3_attribution.py",
+    "archive": "tools/archive/tools/scriptfix3_attribution.py",
+    "sha256": "092905c36b84e8c44c558780b9e7edfa6e2694b1324df51027eba694d55f23e7",
+    "purpose": "Isolate the four scriptfix2 production commits on the landed PRE geometry."
+  },
+  {
+    "original": "tools/scriptfix3_counts.py",
+    "archive": "tools/archive/tools/scriptfix3_counts.py",
+    "sha256": "63d178f5cef72b8e88a440fd30782338db48f49fa4e4d0e909feaa917e682774",
+    "purpose": "Bounded warm-call instruction census using linked production objects, no rates."
+  },
+  {
+    "original": "tools/scriptfix3_jobs.py",
+    "archive": "tools/archive/tools/scriptfix3_jobs.py",
+    "sha256": "451466d2abb688db395f80219e0ea4bc451b925955de20a682427697c40cf5b9",
+    "purpose": "Invoke only gate.sh's whole-job interface, retain every exit and run directory."
+  },
+  {
+    "original": "tools/scriptfix3_pad.py",
+    "archive": "tools/archive/tools/scriptfix3_pad.py",
+    "sha256": "272aacef1a0aef6152e0ebd49c2055aac4f1724c5ade14a13b25b168e678ae77",
+    "purpose": "Build a PRE-behavior, POST-text-size PAD-A; never run a workload."
+  },
+  {
+    "original": "tools/scriptfix3_proof.py",
+    "archive": "tools/archive/tools/scriptfix3_proof.py",
+    "sha256": "8c5128628cd02345f82d2ae46ae4ed374f2a527fe23e92d33996b024a577d628",
+    "purpose": "Finish the lane's selected gate jobs serially on its one eight-core slot."
+  },
+  {
+    "original": "tools/scriptfix3_receipts.py",
+    "archive": "tools/archive/tools/scriptfix3_receipts.py",
+    "sha256": "d238ddf7f9b6c8cc18c06d98cedeedcec0a97f6ee64af4c9e777c31241dc1480",
+    "purpose": "Archive completed selected-job evidence without disposable checkouts or data."
+  },
+  {
+    "original": "tools/scriptfix4_counts.py",
+    "archive": "tools/archive/tools/scriptfix4_counts.py",
+    "sha256": "6e0270bc443f9b2653d500a7d0b58da735fa34f097009e85134beef7352dd60b",
+    "purpose": "scriptfix4 finite instruction census: linked production objects, no server, no rates."
+  },
+  {
+    "original": "tools/scriptfix4_pad.py",
+    "archive": "tools/archive/tools/scriptfix4_pad.py",
+    "sha256": "bde2368e14038f5a656ce2f86e371f676a8a9449192a246c37b68c62546454c6",
+    "purpose": "PAD-A (A: behaviour twin): unmodified PRE objects plus padding to POST's .text."
+  },
+  {
+    "original": "tools/serverfix_hot_identity.py",
+    "archive": "tools/archive/tools/serverfix_hot_identity.py",
+    "sha256": "c59920234855b90366863777b5e3f745fa8be9c39e8464877b85b1a0ab8a4f92",
+    "purpose": "Audit the actual MGET/MSET entry points as well as GET/SET handlers."
+  },
+  {
+    "original": "tools/serverfix_identity.py",
+    "archive": "tools/archive/tools/serverfix_identity.py",
+    "sha256": "9e74f5929e11f69dd5519c88da718cc13652529f693421a5c2ea5420096d1296",
+    "purpose": "Strict linked-body identity against PRE, using the gate's unchanged normalizer."
+  },
+  {
+    "original": "tools/serverfix_pad.py",
+    "archive": "tools/archive/tools/serverfix_pad.py",
+    "sha256": "89936bd1cb62a882d949402d9cfc52cae3ffe5f6d3664625f7365c3a2b324a47",
+    "purpose": "Build a PRE-behavior, POST-text-size PAD-A; never run a workload."
+  },
+  {
+    "original": "tools/shutsave_artifacts.py",
+    "archive": "tools/archive/tools/shutsave_artifacts.py",
+    "sha256": "e4e2750bf5e1f9705fe80d330afcd1f5d0779b1ad5b2d4162c1f6da075ec7cac",
+    "purpose": "Build/run serverless shutdown controls against frozen PRE and POST objects."
+  },
+  {
+    "original": "tools/shutsave_audit.py",
+    "archive": "tools/archive/tools/shutsave_audit.py",
+    "sha256": "30b395f3305dcc306e53dfe32dd6e33a727afea7ec01ca0b623648f4cb15b36b",
+    "purpose": "Annotate the full PSFIX byte audit with shutdown-specific instruction receipts."
+  },
+  {
+    "original": "tools/shutsave_pad.py",
+    "archive": "tools/archive/tools/shutsave_pad.py",
+    "sha256": "34316eb9b3432dc30d7dc47d30052e0d82d679d4b9b02298b33917625b917590",
+    "purpose": "Offline PAD A: PRE behavior, POST cold DatabaseMap::State layout and .text size."
+  },
+  {
+    "original": "tools/signalacct_artifacts.py",
+    "archive": "tools/archive/tools/signalacct_artifacts.py",
+    "sha256": "eb2cc7165d50edf8d370737b912b74e2ab2a3e3e5ac7547ef7eb22d252680fcd",
+    "purpose": "Prepare isolated IO accounting controls and audit ELF identities; never run servers."
+  },
+  {
+    "original": "tools/signalacct_tail_artifacts.py",
+    "archive": "tools/archive/tools/signalacct_tail_artifacts.py",
+    "sha256": "a8de72cf835e27de6a2fe1bac6565c2825d4caf491e3bb040f559aa9e8381da6",
+    "purpose": "Serverless tail controls and isolated build trees; never starts a server."
+  },
+  {
+    "original": "tools/snapfix2_artifacts.py",
+    "archive": "tools/archive/tools/snapfix2_artifacts.py",
+    "sha256": "714474ebe9c215cdff541c196d85c7723c3396c8930a2efec6dbcec0bba08f12",
+    "purpose": "Compile/identity/serverless instruction evidence for snapfix2; no performance workloads."
+  },
+  {
+    "original": "tools/snapfix2_nx_control.py",
+    "archive": "tools/archive/tools/snapfix2_nx_control.py",
+    "sha256": "cf3cf89a8050f1dc8ae8facf954187c1a5e445fc22a166ad29ee48a37004fde3",
+    "purpose": "Classify the supplementary fused txn_nx failure without changing its check."
+  },
+  {
+    "original": "tools/snapfix2_verify.py",
+    "archive": "tools/archive/tools/snapfix2_verify.py",
+    "sha256": "4d3518f3c4c3d77e7d6d2387ce4cfb06ac0df5875e91011ff87b755c8e19c2b2",
+    "purpose": "Run snapfix2 correctness receipts on CPUs 0-15 / ports 20100-20199 only."
+  },
+  {
+    "original": "tools/snapfix_budget.py",
+    "archive": "tools/archive/tools/snapfix_budget.py",
+    "sha256": "866db1d0df8a7b1890d99da77b78d8a4e12047a4f8f18624f2cf067b885423a5",
+    "purpose": "Compile-only inline-budget survey/trials for the snapfix units; no workload, no rates."
+  },
+  {
+    "original": "tools/snapfix_budget_bodies.py",
+    "archive": "tools/archive/tools/snapfix_budget_bodies.py",
+    "sha256": "8c4e5809c3db7c661ebbf991821ad7f7dd93319522a125809edd15fbb219c4a5",
+    "purpose": "Second budget criterion: ALL function bodies (not only HOT) of kept compile-only trial objects."
+  },
+  {
+    "original": "tools/snapfix_identity.py",
+    "archive": "tools/archive/tools/snapfix_identity.py",
+    "sha256": "c5a414f8621f9a357a416099318ace29724d1e785594b6c6df1e55fde25b7ded",
+    "purpose": "Function-body identity between the PRE and POST object sets (no server, no rates)."
+  },
+  {
+    "original": "tools/snapfix_long_storm.py",
+    "archive": "tools/archive/tools/snapfix_long_storm.py",
+    "sha256": "1edc8c1c4c3b81b32bb2900892de92de171d0191b0421de3ac3ffc9286a9177d",
+    "purpose": "Timeline of one tests/snapfix.py storm leg (no rates claimed): INFO sampled every --every s."
+  },
+  {
+    "original": "tools/snapfix_pad.py",
+    "archive": "tools/archive/tools/snapfix_pad.py",
+    "sha256": "69ba11f7296c0f4f41eb65c0b1dc3732965164eada7bab78a1a64e320503bfad",
+    "purpose": "Build an exact-image type-A control pair; never starts a server (copied from tools/execindex_pad.py)."
+  },
+  {
+    "original": "tools/snapfix_record.py",
+    "archive": "tools/archive/tools/snapfix_record.py",
+    "sha256": "3c2d61f73d3a75d37335007bde4bbf6f14f6210e0b9ddf5ac6461927d6e8cee6",
+    "purpose": "Archive one finished tests/gate.sh run (partial ledger, per-job verdicts, small results) into"
+  },
+  {
+    "original": "tools/snapfix_reproduce.py",
+    "archive": "tools/archive/tools/snapfix_reproduce.py",
+    "sha256": "53de65e3f88efb1e27b4b3ccb916ad169bcae9fd5f73bd7d36b1599ed35d5a68",
+    "purpose": "Run the unmodified at412 diagnostics in the snapfix allocation (no rates)."
+  },
+  {
+    "original": "tools/snapfix_scope.py",
+    "archive": "tools/archive/tools/snapfix_scope.py",
+    "sha256": "0fcdc62fc09c53993f49fc2920aa0b82ded44d817e3989b3e9edf7eb49d578f0",
+    "purpose": "Bounded serverless paths in linked production routines, no rates."
+  },
+  {
+    "original": "tools/snapfix_stacks.py",
+    "archive": "tools/archive/tools/snapfix_stacks.py",
+    "sha256": "d03252dac9becc06b8b745b4bb5ae071607eb6def739eff0b985a9de5c0f814f",
+    "purpose": "Retain GDB stacks for one bounded at412 diagnostic cell."
+  },
+  {
+    "original": "tools/snapfix_storm_capture.py",
+    "archive": "tools/archive/tools/snapfix_storm_capture.py",
+    "sha256": "7b8da38ac408b5b42d383efa0979fd46495968ee14fb515f4e57592e494200ee",
+    "purpose": "Reproduce SNAP-STORM-1 and keep the stuck clients CONNECTED while capturing state."
+  },
+  {
+    "original": "tools/splitlocal_artifacts.py",
+    "archive": "tools/archive/tools/splitlocal_artifacts.py",
+    "sha256": "6aac4d689e06a1d82e05ea881ee7302e5ca197c88bb3317cd8d38414f038801d",
+    "purpose": "Offline PAD-A and byte receipts for splitlocal. Never executes an ELF."
+  },
+  {
+    "original": "tools/storefix5_append.py",
+    "archive": "tools/archive/tools/storefix5_append.py",
+    "sha256": "d1602e15167f0b2ca760fa9f51bdc17452142cbe221eaaf0b40c631ef1490b9e",
+    "purpose": "Link the same copy witness against either arm's ordinary production objects."
+  },
+  {
+    "original": "tools/storefix5_archive.py",
+    "archive": "tools/archive/tools/storefix5_archive.py",
+    "sha256": "ba6f6a78b80d78741f16ffc471f563161daf0fe7f45f50369ded0206d565bd84",
+    "purpose": "Preserve gate receipts and wire transcripts, excluding executables/persistence data."
+  },
+  {
+    "original": "tools/storefix5_arm.py",
+    "archive": "tools/archive/tools/storefix5_arm.py",
+    "sha256": "00fc1715109b275482e2b9ca58009358bfe5b23158bfdc9f7f0c1959eb182e84",
+    "purpose": "Link an isolated arm from production objects and explicit cold-unit trials."
+  },
+  {
+    "original": "tools/storefix5_audit.py",
+    "archive": "tools/archive/tools/storefix5_audit.py",
+    "sha256": "2288a038f14d825a3c0a5644d9c7d9122d2763a6cf6a1430dc8536e4aea216e9",
+    "purpose": "Check the frozen lane artifacts and final receipts without starting a server."
+  },
+  {
+    "original": "tools/storefix5_budgets.py",
+    "archive": "tools/archive/tools/storefix5_budgets.py",
+    "sha256": "972dd85a0416931aac6fee4e026b23f7591d1059210187b35fd416beffc35083",
+    "purpose": "Compile-only inlining-budget controls for unchanged command-path bodies."
+  },
+  {
+    "original": "tools/storefix5_checks.py",
+    "archive": "tools/archive/tools/storefix5_checks.py",
+    "sha256": "a1423c5b8e7a9c584565ca2ffacedb51e9a912dcfe0c2cc1a0cdae69bd069340",
+    "purpose": "Finite correctness/footprint checks. No offered-load or throughput measurement."
+  },
+  {
+    "original": "tools/storefix5_clock_geometry.cc",
+    "archive": "tools/archive/tools/storefix5_clock_geometry.cc",
+    "sha256": "ac3c725513e3fb403e9425472340b3a8113c5b557ecb86864e60550d086c864a",
+    "purpose": "Serverless allocation geometry control for post-freeze alternatives. This is"
+  },
+  {
+    "original": "tools/storefix5_counts.py",
+    "archive": "tools/archive/tools/storefix5_counts.py",
+    "sha256": "230740cf6ca4d7291ffdc71f1f26f7487ba65462ac2995ffc512575cb39ac81e",
+    "purpose": "Finite command-scope instruction counts; no listener, PMU, load or rate."
+  },
+  {
+    "original": "tools/storefix5_final_proof.py",
+    "archive": "tools/archive/tools/storefix5_final_proof.py",
+    "sha256": "cf2a4f5ae022b31ce5ddf4a978f295d183f7e7c5f47a3d0331c00c171fd086d8",
+    "purpose": "Run the final frozen-arm proof; differential jobs own the lane CPUs serially."
+  },
+  {
+    "original": "tools/storefix5_finish_proof.py",
+    "archive": "tools/archive/tools/storefix5_finish_proof.py",
+    "sha256": "76eb9b29d5aaf50ca0aca44337c5ca403b19d4d130782e72ce9b545b164190ef",
+    "purpose": "Serialize the remaining PAD, falsifier and selected-job proofs."
+  },
+  {
+    "original": "tools/storefix5_inventory_proof.py",
+    "archive": "tools/archive/tools/storefix5_inventory_proof.py",
+    "sha256": "4baa90c763237a79a347cc85a8598615204df885f784bdd68c6b70cd022ea26c",
+    "purpose": "Complete related-job coverage after the main and quiet proof queues stop."
+  },
+  {
+    "original": "tools/storefix5_memory.py",
+    "archive": "tools/archive/tools/storefix5_memory.py",
+    "sha256": "cbc2b37748c35423da1a122bf520eda7caf8cb6e87cd4101b59eb650c93743aa",
+    "purpose": "Finite maxmemory footprint matrix; no throughput measurement."
+  },
+  {
+    "original": "tools/storefix5_notification_proof.py",
+    "archive": "tools/archive/tools/storefix5_notification_proof.py",
+    "sha256": "5449d8385a79388b3625ea68e1e6cd181f6f10c82e52133f1b5e3445f08ae024",
+    "purpose": "Check the accounted-memory notification fixture through complete gate jobs."
+  },
+  {
+    "original": "tools/storefix5_pad.py",
+    "archive": "tools/archive/tools/storefix5_pad.py",
+    "sha256": "0ef44551a68bf0afb145d375f3c957b6076c50e8bd8c4547481b02ae52a85549",
+    "purpose": "PAD-A: PRE behavior, POST's cold helper size and aggregate .text extent."
+  },
+  {
+    "original": "tools/storefix5_proofs.py",
+    "archive": "tools/archive/tools/storefix5_proofs.py",
+    "sha256": "20098f07602eeb33bb6f15b63a29b91c95b24520d47fbc121be3d39de0904a0c",
+    "purpose": "Collect selected gate job receipts without changing their verdicts."
+  },
+  {
+    "original": "tools/storefix5_report.py",
+    "archive": "tools/archive/tools/storefix5_report.py",
+    "sha256": "bd56865705f6eecfa86fbb6738ec6d06a5a83b5f834b4dd264b0b75b12c74219",
+    "purpose": "Render the finite footprint/command-scope receipts, without running workloads."
+  },
+  {
+    "original": "tools/storefix5_retirement.py",
+    "archive": "tools/archive/tools/storefix5_retirement.py",
+    "sha256": "c0cdb1294d7a15bf5614d35667724d7567048b599fc4b2191ca8496fde560e8b",
+    "purpose": "Serverless sampler/retirement falsifiers; production sources stay unchanged."
+  },
+  {
+    "original": "tools/storefix5_serial_proof.py",
+    "archive": "tools/archive/tools/storefix5_serial_proof.py",
+    "sha256": "ffdb79e0a8992137e9ca285134ed106d4b04bccac02a8e9d437e8aa101ebd2cf",
+    "purpose": "Run the quiet-preflight and standard differential jobs serially on lane CPUs."
+  },
+  {
+    "original": "tools/storesize_poller.py",
+    "archive": "tools/archive/tools/storesize_poller.py",
+    "sha256": "4f550fe1e20ed200ea4055eb5434d0424b145ab078a265d8877698b56b409aa1",
+    "purpose": "Maintainer-only 1 Hz bare-INFO poller for an already-running measurement arm."
+  },
+  {
+    "original": "tools/tlsserve_proof.py",
+    "archive": "tools/archive/tools/tlsserve_proof.py",
+    "sha256": "cfbc853ee427c92be30e543ff6def95c3695ac614f0d0080fd73123e337217eb",
+    "purpose": "Offline TLS staging proofs. Pin to 112-127. Never execute a production ELF."
+  },
+  {
+    "original": "tools/trackorder_counts.py",
+    "archive": "tools/archive/tools/trackorder_counts.py",
+    "sha256": "517ffb78ade21b589ec512dfb82b19dbe9e4b66204cfccace6ca907b4f844656",
+    "purpose": "Reuse the production command-scope tracer on trackorder's frozen headline."
+  },
+  {
+    "original": "tools/trackorder_pad.py",
+    "archive": "tools/archive/tools/trackorder_pad.py",
+    "sha256": "767bcf198b969dfefc888fe18e77820370f1a6c080a835979c9a7e1c4f76dc16",
+    "purpose": "PAD-A behaviour twin: PRE deferral at POST's exact file/text/layout."
+  },
+  {
+    "original": "tools/trackorder_run.py",
+    "archive": "tools/archive/tools/trackorder_run.py",
+    "sha256": "261ae0df507a32a96765c32348d63ae23eee4ca606cf7f4b3aca0a4362f231c7",
+    "purpose": "Lane-confined correctness receipts through whole gate jobs; never perf/full gate."
+  },
+  {
+    "original": "tools/trackorder_units.py",
+    "archive": "tools/archive/tools/trackorder_units.py",
+    "sha256": "8b4abcc84f753adf1d8c1be7a3cf9225312e03f6c7abc144bb2c4f7c4cb0c90a",
+    "purpose": "Build exactly the gate's production prerequisites at lane -j16, then check freshness."
+  },
+  {
+    "original": "tools/txnfix4_abort_site.py",
+    "archive": "tools/archive/tools/txnfix4_abort_site.py",
+    "sha256": "0bd3de4f99769b297c8dfd97e65f44fc8d11799f5ee668935231c703dec3d78e",
+    "purpose": "CD5.6 abort-site witness: run Z-T6's mpop-watch-then-tracking shape under gdb, no rates."
+  },
+  {
+    "original": "tools/txnfix4_auditors.py",
+    "archive": "tools/archive/tools/txnfix4_auditors.py",
+    "sha256": "89a5fa717b10a9f5d9ea54158c6c785be97f95e0cb21e1e512e0a9083a78468a",
+    "purpose": "Re-run the round-5 auditors' own tests for CD5.3/CD5.4/CD5.5/CD5.6/TM5.1 on one binary."
+  },
+  {
+    "original": "tools/txnfix4_pad.py",
+    "archive": "tools/archive/tools/txnfix4_pad.py",
+    "sha256": "dbd3d2dad13ea97c192c61c529c62405162117271778e3e5561775a6cf25db86",
+    "purpose": "PAD-A (behaviour twin): PRE objects linked with inert padding to POST's total .text size."
+  },
+  {
+    "original": "tools/txnfix4_probes.py",
+    "archive": "tools/archive/tools/txnfix4_probes.py",
+    "sha256": "4de1eb8e8259edbfba0ae089a884ee8ca67d347ce7411dd69a59d5d3c6b464d6",
+    "purpose": "txnfix4 supplementary probes (receipts only, no gate row, no rates)."
+  },
+  {
+    "original": "tools/txnfix4_proof.py",
+    "archive": "tools/archive/tools/txnfix4_proof.py",
+    "sha256": "8881cef6bed50eca5f8a266db2f72ebef62c4f578e3917ab10df9486469812cf",
+    "purpose": "Run whole gate jobs through tests/gate.sh's partial-job interface on the lane's CPUs and"
+  },
+  {
+    "original": "tools/txnfix4_scope.py",
+    "archive": "tools/archive/tools/txnfix4_scope.py",
+    "sha256": "632d98a5314e63c5995cd7d554c38d8e91e84576c81ba69dc6e604dcf51fcdc7",
+    "purpose": "Bounded serverless paths in linked production routines, no rates."
+  },
+  {
+    "original": "tools/txnfix_admission_control.py",
+    "archive": "tools/archive/tools/txnfix_admission_control.py",
+    "sha256": "11f75cbfa7afe342f22e125f3baf286cd006fe8b8ca5d7e9c0df2eaf2f922bbd",
+    "purpose": "Build serverless negative controls for the exclusive admission/drain proof."
+  },
+  {
+    "original": "tools/txnfix_barrier_control.py",
+    "archive": "tools/archive/tools/txnfix_barrier_control.py",
+    "sha256": "2a2e5530ee60092f8a835672d5e1541962d8fee978964cf392f5104eb932b238",
+    "purpose": "Build an isolated MSETNX barrier-removed control; never starts a server."
+  },
+  {
+    "original": "tools/txnfix_budget.py",
+    "archive": "tools/archive/tools/txnfix_budget.py",
+    "sha256": "b7a4c042090a177cc19a1a6edb3e31c6bd41d23cb591463a9de694a9f0cbf709",
+    "purpose": "Compile and compare one object's hot bodies; never starts a workload."
+  },
+  {
+    "original": "tools/txnfix_pad.py",
+    "archive": "tools/archive/tools/txnfix_pad.py",
+    "sha256": "ca0de7c0c28465c2266cd5d2ce084ab3de3bf44ae95d0db0009433760a80edcf",
+    "purpose": "Link a type-A aggregate-text-size control from the unchanged merged PRE objects."
+  },
+  {
+    "original": "tools/txnfix_path_counts.py",
+    "archive": "tools/archive/tools/txnfix_path_counts.py",
+    "sha256": "6cfb227a9a62cc3d73f659e42416dbd6d4f9e5d15e6614a11e46abd423264dc9",
+    "purpose": "Summarize paired production-object instruction traces without accepting a cost bar."
+  },
+  {
+    "original": "tools/txnfix_scatter_audit.py",
+    "archive": "tools/archive/tools/txnfix_scatter_audit.py",
+    "sha256": "2d3c1bdb44ff0ef9aee77df8effcd176e0c7fae78fff0c370bbdcc8c1155e6d0",
+    "purpose": "Preserve the complete scatter function inventory and both disassemblies."
+  },
+  {
+    "original": "tools/versionstr_artifacts.py",
+    "archive": "tools/archive/tools/versionstr_artifacts.py",
+    "sha256": "f2ac56a9fd2dc999caf2ec002c55fbdb5af8b72142dc0887c6d5ce2365153b7f",
+    "purpose": "Version-string lane's offline body/link/layout proof; never runs a server."
+  },
+  {
+    "original": "tools/versionstr_smoke.py",
+    "archive": "tools/archive/tools/versionstr_smoke.py",
+    "sha256": "aa1954a75c00e0a1328aa2fc88034d481c01b65ccc9eb5a9d3ac917dc1afb142",
+    "purpose": "redis-py smoke against an existing listener; never starts a server or installs packages."
+  },
+  {
+    "original": "tools/wave11.py",
+    "archive": "tools/archive/tools/wave11.py",
+    "sha256": "088b082b227afdca6c819d4051ce59cd8eba0fc76fa1c8a433882ec6c5b125d9",
+    "purpose": "Wave11 compile-only artifacts and bounded correctness orchestration."
+  },
+  {
+    "original": "tools/wave11_budgets.py",
+    "archive": "tools/archive/tools/wave11_budgets.py",
+    "sha256": "78d0ccf157f9f623c639b8ebcbdce923d8d649a8b5146b2aa32ee8eaabfc3d6e",
+    "purpose": "Compile-only per-unit trials and linked reference scoring; no server or workload."
+  },
+  {
+    "original": "tools/wave11_counts.py",
+    "archive": "tools/archive/tools/wave11_counts.py",
+    "sha256": "beb98c63386858e4996da496d30adad56885bf112d674ff8c4e0ed1c2134c67d",
+    "purpose": "Bounded warm-call instruction census using linked production objects, no rates."
+  },
+  {
+    "original": "tools/wave12.py",
+    "archive": "tools/archive/tools/wave12.py",
+    "sha256": "905c1a6180d17b10c56a3fda8e0582d95d9175ee266dc4b6c73bdef976654bb2",
+    "purpose": "Wave12 compile-only artifacts and bounded correctness orchestration."
+  },
+  {
+    "original": "tools/wave12_budgets.py",
+    "archive": "tools/archive/tools/wave12_budgets.py",
+    "sha256": "eda315a36499d2beb8c518908f8e0865fe20e0af634b54bd28aa4b109d20017b",
+    "purpose": "Compile-only per-unit trials and linked reference scoring; no server or workload."
+  },
+  {
+    "original": "tools/wave12_counts.py",
+    "archive": "tools/archive/tools/wave12_counts.py",
+    "sha256": "f0cfaa66203c4d4d70d2edc9bd21df7c4a808bed776fddf6ec865c1770f48559",
+    "purpose": "Bounded warm-call instruction census using linked production objects, no rates."
+  },
+  {
+    "original": "tools/wave13.py",
+    "archive": "tools/archive/tools/wave13.py",
+    "sha256": "ea968f69c12a7c14025ae8ae9b6aa9a910cabf8760d0679b8ed3e64ff77b9c77",
+    "purpose": "Wave12 compile-only artifacts and bounded correctness orchestration."
+  },
+  {
+    "original": "tools/wave13_budgets.py",
+    "archive": "tools/archive/tools/wave13_budgets.py",
+    "sha256": "494f865e4d6f5e9a62f2f7b6f6779bdd668d25ab747ee7c5f3b29bcd8f91a366",
+    "purpose": "Compile-only per-unit trials and linked reference scoring; no server or workload."
+  },
+  {
+    "original": "tools/wave14_arms.py",
+    "archive": "tools/archive/tools/wave14_arms.py",
+    "sha256": "55059f013613d9710f37c49d6e2238b52274e8c7b27663048b30598f5b2469cf",
+    "purpose": "Build-only wave14 layout twins and the Tcl planted regression."
+  },
+  {
+    "original": "tools/wave14_budgets.py",
+    "archive": "tools/archive/tools/wave14_budgets.py",
+    "sha256": "2ed9f721723c863551166f0ffad510ee6b346873545c33ec18939ea52e537ca2",
+    "purpose": "Compile-only per-unit trials and linked reference scoring; no server or workload."
+  },
+  {
+    "original": "tools/wave14_cleanup.py",
+    "archive": "tools/archive/tools/wave14_cleanup.py",
+    "sha256": "f791f2e2750be7e39e8c7089d3b5fe5aa244220d0d6eb3164874ccdc349796ea",
+    "purpose": "Retain completed jobs' persistence data before removing their loose copies."
+  },
+  {
+    "original": "tools/wave14_closeout.py",
+    "archive": "tools/archive/tools/wave14_closeout.py",
+    "sha256": "c5f3de14811c8c530d0afc8a2d5bb5d7ae140c7a183d17dcb5382b461294f253",
+    "purpose": "Bind completed wave14 controls without replacing any original verdict."
+  },
+  {
+    "original": "tools/wave14_counts.py",
+    "archive": "tools/archive/tools/wave14_counts.py",
+    "sha256": "54f9d216a6ccfda331d8ed44e621cee5940f18c81a6ff29f1827fc2020ee8c24",
+    "purpose": "Finite production instruction scopes, including outlined STL and Lua VM code."
+  },
+  {
+    "original": "tools/wave14_coverage.py",
+    "archive": "tools/archive/tools/wave14_coverage.py",
+    "sha256": "9577b33802a56ec6007fd65dd109150413007060556fd79955d93079934edb51",
+    "purpose": "Account for every declared public row without turning failures into passes."
+  },
+  {
+    "original": "tools/wave14_eof_budgets.py",
+    "archive": "tools/archive/tools/wave14_eof_budgets.py",
+    "sha256": "4227b49823072655839366ad011577ad874732251402f637ef01bd1462d60493",
+    "purpose": "Link the EOF trial budgets against frozen production objects; compile-only."
+  },
+  {
+    "original": "tools/wave14_fifo_controls.py",
+    "archive": "tools/archive/tools/wave14_fifo_controls.py",
+    "sha256": "7b50cb2d959f6e8dc725e99b6bdb2c40516f103b88d7bb02bf93758a852cd688",
+    "purpose": "Repeat the unchanged FIFO gate job with explicit client CPU controls."
+  },
+  {
+    "original": "tools/wave14_followthrough.py",
+    "archive": "tools/archive/tools/wave14_followthrough.py",
+    "sha256": "55242f281517aa5e3800cd0383bc07c702445a6e3add353bfb1456f259c8aa35",
+    "purpose": "Repeat the declared correctness jobs after the R7 integration correction."
+  },
+  {
+    "original": "tools/wave14_r7_control.py",
+    "archive": "tools/archive/tools/wave14_r7_control.py",
+    "sha256": "20eac12f5a3f2b08f2fe6ee4e36b7d0ccb72b9aecdaee2158ab38c067f036da5",
+    "purpose": "Run the stale-owner native control through the unchanged gate job interface."
+  },
+  {
+    "original": "tools/wave14_summary.py",
+    "archive": "tools/archive/tools/wave14_summary.py",
+    "sha256": "4e7111e98b4adbc9d353994305da72cc40ea5208d21ca2e335270a9f38296851",
+    "purpose": "Summarize finite instruction scopes and bind entered bodies to each arm."
+  },
+  {
+    "original": "tools/wave14_txnorder_diagnostics.py",
+    "archive": "tools/archive/tools/wave14_txnorder_diagnostics.py",
+    "sha256": "d66280845273866c23a6a7e835b9d546589cf72eab87ded7fbd1c0fdbf7e2b8f",
+    "purpose": "Run the unchanged transaction-order gate job with failure-only stack capture."
+  },
+  {
+    "original": "tools/wave14_validation.py",
+    "archive": "tools/archive/tools/wave14_validation.py",
+    "sha256": "181a71bab2f423b839fdd4d2e3d12c584855dc811518792bace03aeefecee832",
+    "purpose": "Audit wave14's selected gate receipts without changing their verdicts."
+  },
+  {
+    "original": "tools/wave14_xacct_followthrough.py",
+    "archive": "tools/archive/tools/wave14_xacct_followthrough.py",
+    "sha256": "0c484dbd8c78dc89e1530652777d2712eaad934c5d4afc233089ff12790b66e6",
+    "purpose": "Repeat debug jobs after applying the gate's existing no-rate policy to XACCT."
+  },
+  {
+    "original": "tools/wave15.py",
+    "archive": "tools/archive/tools/wave15.py",
+    "sha256": "b2d4fcf6cb5e618294a7bc18eb93a80a6975038f6d525ae84da733e343116273",
+    "purpose": "Wave15 selected gate jobs, source inventories, and linked identity receipts."
+  },
+  {
+    "original": "tools/wave15_aof_stacks.py",
+    "archive": "tools/archive/tools/wave15_aof_stacks.py",
+    "sha256": "1b016a4e2d9c4fe8bd7beb3a4437a226efb1110cfd23b92ea84fcd0e691fcdc3",
+    "purpose": "Own-child GDB checks of the two pre-fix AOF hangs; no attach permission needed."
+  },
+  {
+    "original": "tools/wave15_bind.py",
+    "archive": "tools/archive/tools/wave15_bind.py",
+    "sha256": "b57ed2acea4d45b21c3e19c1b5fe47721ce454b8273d2915746b665d75c8db86",
+    "purpose": "Bind counted PCs to the frozen server bodies before pruning probe binaries."
+  },
+  {
+    "original": "tools/wave15_budgets.py",
+    "archive": "tools/archive/tools/wave15_budgets.py",
+    "sha256": "ffbf4d9b69645fdeb0b747b4ce76ca5f923dd37a278e82c51b8a34ae009e784a",
+    "purpose": "Compile-only per-unit trials and linked reference scoring; no server or workload."
+  },
+  {
+    "original": "tools/wave15_counts.py",
+    "archive": "tools/archive/tools/wave15_counts.py",
+    "sha256": "8a40d7b6727bd11ed14900d14994fe22474cf56bf3b460ed0aab866b28acefe6",
+    "purpose": "Finite production instruction scopes, including outlined STL and Lua VM code."
+  },
+  {
+    "original": "tools/wave15_lua_binding.py",
+    "archive": "tools/archive/tools/wave15_lua_binding.py",
+    "sha256": "c9535d8db22a94109dc5a1d341865b621847f71c70a95ef6c88e6dcf0e87fb0a",
+    "purpose": "Verify the one anonymous Lua literal missed by the strict body normalizer."
+  },
+  {
+    "original": "tools/wave15_refine.py",
+    "archive": "tools/archive/tools/wave15_refine.py",
+    "sha256": "058f7caba60959fd33897926e528ccfd445c61ab59b70249d33cb6db63b7f6d1",
+    "purpose": "Rebase compile-only inlining trials onto the final integration source."
+  },
+  {
+    "original": "tools/wave15_scan_expiry.py",
+    "archive": "tools/archive/tools/wave15_scan_expiry.py",
+    "sha256": "ca12fb0a5712661c2a4545cf1020a6462a7e08d0511ff3dd4131d0419ae95a28",
+    "purpose": "SCAN's physical expiry of the keys it visits, per arm (owner decision 4, wave15 phase 2)."
+  },
+  {
+    "original": "tools/wave16_budgets.py",
+    "archive": "tools/archive/tools/wave16_budgets.py",
+    "sha256": "97095342f3f5edf1cbebfd4602555f6091f40f248a45d04d66a90dabb7cc84c3",
+    "purpose": "wave16: compile-only GCC IPA unit sizes and per-function bodies for the merged tree; no server,"
+  },
+  {
+    "original": "tools/wave16_counts.py",
+    "archive": "tools/archive/tools/wave16_counts.py",
+    "sha256": "5ada896822a5cddb7515442eb88872b98e13ed134f5566ea87e53e40431548a4",
+    "purpose": "wave16: command-scope instruction census of the merged tree against the 8be4f68323 receipts."
+  },
+  {
+    "original": "tools/wave16_identity.py",
+    "archive": "tools/archive/tools/wave16_identity.py",
+    "sha256": "a87758fef767f2d792c67ce665a45d14f67548aaec3d2b11f3b4fef23d2c201a",
+    "purpose": "wave16: linked-body inventory of the merged POST against PRE 8be4f68323. No server or workload."
+  },
+  {
+    "original": "tools/wave16_pad.py",
+    "archive": "tools/archive/tools/wave16_pad.py",
+    "sha256": "5e58b1c2b5a1c3e352c12635c31c8332c310d3345225ca3f343cb5e3f7c82c36",
+    "purpose": "wave16 PAD-A: unmodified PRE behaviour with the merged POST's total .text extent. No workload."
+  },
+  {
+    "original": "tools/wave5b_trace.py",
+    "archive": "tools/archive/tools/wave5b_trace.py",
+    "sha256": "e3ba9e86cb1dcd5d98f9d6985bc4cba8a60fd4bcf84c589778c7df0ecec24721",
+    "purpose": "Disposable owner-local counters and fixed-request-count mechanism runs."
+  },
+  {
+    "original": "tools/wb_rule_2s_artifacts.py",
+    "archive": "tools/archive/tools/wb_rule_2s_artifacts.py",
+    "sha256": "980905130a26b2699a61789cc89f9173840c7749fad24847c5680546cfabf34e",
+    "purpose": "Offline 2s arm, byte-identity, PAD and instruction receipts. Never run tomokv."
+  },
+  {
+    "original": "tools/wb_rule_2s_trace.cc",
+    "archive": "tools/archive/tools/wb_rule_2s_trace.cc",
+    "sha256": "01d495849e7162c122dc983c68ed7707c3b19f2d0b70d1ae49a3c2a28cb66b55",
+    "purpose": "Single-pass instruction audit of a serverless witness; no clock/perf events."
+  },
+  {
+    "original": "tools/wb_rule_artifacts.py",
+    "archive": "tools/archive/tools/wb_rule_artifacts.py",
+    "sha256": "81a4a277a02aad99e52484c0dbbe73d257714a34a3e0d967e2d6f987933454df",
+    "purpose": "Offline c12 source and emitted-code receipts. No server or measurement."
+  },
+  {
+    "original": "tools/wb_rule_receipts.py",
+    "archive": "tools/archive/tools/wb_rule_receipts.py",
+    "sha256": "34c57caefd743b8e0d824e12362449bd3e3cd574a3c6551bfc1f8980f1303290",
+    "purpose": "Audit the production writeback rule against frozen serverless witnesses."
+  },
+  {
+    "original": "tools/wbknobs_measure.py",
+    "archive": "tools/archive/tools/wbknobs_measure.py",
+    "sha256": "f40233c7ad818a01d320ca4d89b66a7eccbb37ed4c62a0917afde63b0e5ca2e4",
+    "purpose": "Mainline-only writeback null/sweep coordinator around the existing ABBA instrument."
+  },
+  {
+    "original": "tools/wbknobs_receipts.py",
+    "archive": "tools/archive/tools/wbknobs_receipts.py",
+    "sha256": "1eba254f5b0e83612d278c8c474b285eeed95cbdc8f6f17b89eaafef6f8b2691",
+    "purpose": "Offline writeback knob instruction/layout receipts. Never starts a server or load."
+  },
+  {
+    "original": "tools/wbland_artifacts.py",
+    "archive": "tools/archive/tools/wbland_artifacts.py",
+    "sha256": "c0c656a08bb065424a96ae53b1e9d46bd7bcb2c330c7e236b77dee7765edff04",
+    "purpose": "Freeze policy 0/1 arms and audit every writeback-dependent object's text."
+  },
+  {
+    "original": "tools/woundfix_gate.py",
+    "archive": "tools/archive/tools/woundfix_gate.py",
+    "sha256": "71b915e0f08bc61d96c40fdd06bd3744919f1b4deaead30dc5d42113bc21e510",
+    "purpose": "Run named correctness jobs through gate.sh's real interface, never a full tier."
+  },
+  {
+    "original": "tools/woundfix_live.py",
+    "archive": "tools/archive/tools/woundfix_live.py",
+    "sha256": "4feff483ef0118c2a03e3a6d388ac9f010b397c31d0a8d66b8b53b3d4e517c7e",
+    "purpose": "AT4-WOUND-1 correctness only: oversubscribe this lane's CPUs, measure no rates."
+  }
+]
