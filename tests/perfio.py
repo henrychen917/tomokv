@@ -110,6 +110,19 @@ def audit(pid, phase, expected):
     return registered
 
 
+def wait_epoll_move(pid, inode, destination_ep, deadline):
+    # Observe this socket without waking it: unrelated client-LB moves cannot
+    # complete this wait, and duplicate registrations cannot satisfy it either.
+    while True:
+        _, registered = epoll_snapshot(pid)
+        if registered.get(inode) == [destination_ep]:
+            return
+        assert time.monotonic() < deadline, (
+            "selected client-LB move never completed within 35 seconds",
+            inode, destination_ep, registered.get(inode))
+        time.sleep(.001)
+
+
 def traffic(peers, rounds=40, batch=1):
     request = encode("PING") * batch
     for _ in range(rounds):
@@ -199,17 +212,15 @@ def epoll_lb(args):
             assert time.monotonic() < deadline, "client-LB owner observation never armed within 35 seconds"
             time.sleep(.01)
         # Wake the source through a DIFFERENT client, leaving the selected client
-        # idle until the normal LB counter witnesses its committed transfer.
+        # idle until its own inode is registered on the destination epoll.
         assert waker.must("PING") == b"PONG"
-        after = before
-        while after == before and time.monotonic() < deadline:
-            after = int(info(admin, "LB")["tomokv_clientlb_moves"])
-            if after == before:
-                time.sleep(.001)
+        wait_epoll_move(p.pid, inode, destination_ep, deadline)
+        after = int(info(admin, "LB")["tomokv_clientlb_moves"])
         emit(event="lb-witness", trigger="DEBUG CLIENT-LB", attempts=attempts,
              client_id=client_id, source_io=source_io, destination_io=destination_io,
              before=before, after=after)
-        assert after == before + 1, "directed client-LB move never completed within 35 seconds"
+        # Other clients may move too; the selected socket above is the witness.
+        assert after >= before + 1, "directed client-LB move was not counted"
         traffic(peers, 2)  # replies prove destination installation, without a guessed sleep
         moved = audit(p.pid, "lb-moved", len(peers)+1)
         current_io = selected.must("DEBUG", "IO-THREAD")
