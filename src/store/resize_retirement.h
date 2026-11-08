@@ -1,3 +1,5 @@
+// resize_retirement.h — table-retirement records and the owner's deferred FIFO, included by
+// read_local_reclaim.h and used by FlatStore and ReadLocalDeferredQueue.
 // A resize reserves its retirement record before publishing a second table. Completion can
 // therefore unlink the old table without allocation or a wait for the object-retirement ring.
 // Records follow their store until handoff, then belong only to the retiring owner's QSBR FIFO.
@@ -7,6 +9,8 @@
 
 namespace tomo {
 
+// Owns table once handed to ResizeRetireQueue; its destructor frees that table. Before handoff
+// FlatStore owns the record with table null. The record must not be copied or freed while queued.
 struct ResizeRetirement {
     uint64_t* table = nullptr;
     uint64_t stamp = 0;
@@ -14,6 +18,10 @@ struct ResizeRetirement {
     ~ResizeRetirement() { std::free(table); }
 };
 
+// Takes ownership of records/tables without allocating. The accepting physical owner pushes
+// nondecreasing stamps and drains below a caller-proven grace floor; no atomics establish grace
+// here. head_stamp requires a nonempty queue. drain_all/destruction require reader quiescence
+// (including post-join shutdown), since they bypass stamps. No bounded-capacity refusal or wait.
 class ResizeRetireQueue {
 public:
     ~ResizeRetireQueue() { drain_all(); }

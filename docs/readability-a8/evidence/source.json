@@ -1,0 +1,137 @@
+{
+  "base": "7595a6705",
+  "release": "5c36312818",
+  "rows": [
+    {
+      "file": "src/store/flatstore.h",
+      "tokens": 25635,
+      "literal_tokens": 24,
+      "token_sha256": "afee687eccc7e5fab8348a91828a51622577c8adb836ecf200c9f08bf7236e3a",
+      "literal_sha256": "9951959f1c74e5c2cd54de3691784bf29898532e5b5f2d9e8668663f4d003520",
+      "renamed_token_occurrences": {
+        "snapshot_progress_record:n": 4,
+        "snapshot_progress_record_read_local:n": 4,
+        "random_hash:t": 9
+      },
+      "rewritten_comment_groups": 59,
+      "new_comment_boundaries": 15,
+      "landmarks": 0,
+      "header": true,
+      "long_functions": [
+        {
+          "name": "snapshot_progress_record",
+          "line": 2199,
+          "nloc": 59,
+          "physical": 61
+        },
+        {
+          "name": "choose_victim",
+          "line": 2520,
+          "nloc": 65,
+          "physical": 68
+        }
+      ]
+    },
+    {
+      "file": "src/store/flatstore_atomic.inc",
+      "tokens": 16241,
+      "literal_tokens": 1,
+      "token_sha256": "ccc01e95be35ce573af73dc8732eba441459a27b937d07f7ba32b468703a7073",
+      "literal_sha256": "703a20a4a4fd12dc5c51ccb2bbf1b7daf25c1a40869868405e4611d5fd617065",
+      "renamed_token_occurrences": {},
+      "rewritten_comment_groups": 32,
+      "new_comment_boundaries": 12,
+      "landmarks": 11,
+      "header": true,
+      "long_functions": [
+        {
+          "name": "atomic_tombstone_all",
+          "line": 895,
+          "nloc": 55,
+          "physical": 63
+        },
+        {
+          "name": "atomic_resolve_internal",
+          "line": 1300,
+          "nloc": 120,
+          "physical": 159
+        },
+        {
+          "name": "atomic_exchange_physical_read_local",
+          "line": 1495,
+          "nloc": 68,
+          "physical": 75
+        },
+        {
+          "name": "atomic_exchange_physical",
+          "line": 1577,
+          "nloc": 68,
+          "physical": 69
+        },
+        {
+          "name": "atomic_collapse_impl",
+          "line": 1819,
+          "nloc": 360,
+          "physical": 393
+        }
+      ]
+    },
+    {
+      "file": "src/store/flatstore_flush.inc",
+      "tokens": 108,
+      "literal_tokens": 0,
+      "token_sha256": "9dc07ab2a7c7f6756df0ba8d0da6a50687da000276d81d8211d45ee78750bc1f",
+      "literal_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "renamed_token_occurrences": {},
+      "rewritten_comment_groups": 1,
+      "new_comment_boundaries": 0,
+      "landmarks": 0,
+      "header": true,
+      "long_functions": []
+    },
+    {
+      "file": "src/store/flatstore_random.inc",
+      "tokens": 458,
+      "literal_tokens": 0,
+      "token_sha256": "ebfae1fca34811f7ca552a62bd283de1b9d01807c2b86f33bdebd2b649f3aa73",
+      "literal_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "renamed_token_occurrences": {
+        "random_live:paused": 3,
+        "random_live:choose": 3
+      },
+      "rewritten_comment_groups": 2,
+      "new_comment_boundaries": 1,
+      "landmarks": 0,
+      "header": true,
+      "long_functions": []
+    }
+  ],
+  "split": {
+    "file": "src/store/flatstore_impl.h",
+    "definitions": 60,
+    "body_tokens": 6809,
+    "header": true,
+    "long_functions": [
+      {
+        "name": "snapshot_progress_record_read_local",
+        "line": 230,
+        "nloc": 56,
+        "physical": 58
+      },
+      {
+        "name": "choose_victim_read_local",
+        "line": 446,
+        "nloc": 62,
+        "physical": 63
+      }
+    ]
+  },
+  "totals": {
+    "tokens": 42442,
+    "literal_tokens": 25,
+    "rewritten_comment_groups": 94,
+    "landmarks": 11,
+    "file_headers": 5,
+    "renamed_bindings": 7
+  }
+}

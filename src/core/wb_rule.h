@@ -1,4 +1,8 @@
-// One writeback policy in both modes: bounded small-pipe completion OR bytes OR half.
+// IO-owned writeback eligibility and bounded ready-client service, included by io_loop.h and
+// configuration. Both thread modes use small-pipeline completion, byte threshold or half-prefix
+// eligibility. Reply sizing acquires each Done state; retirement/encoding remain in writeback.
+// Deferred clients retain their FIFO lifetime pin, and closing clients still drain their ROB.
+
 #pragma once
 #include <cstdio>
 #include <ratio>
@@ -12,29 +16,30 @@ bool multi_wb_prefix_hold(Client&);
 }
 #endif
 namespace tomo::wb_rule {
-// MEASURED default S=16, not derived from a batch size or reply size. Constants ledger
-// addendum 12, S=16 KEEP (2026-10-02); PLAN-SERIAL 2026-10-01 16:54 and
-// 2026-10-02 06:54: p8 saturation, p8@512K attainment, floor-0.4 bursts.
-// See MEASURE-REQUEST-wbhybrid.md: no honest derivation from existing sizings.
+// Small-pipeline cutoff; this policy constant is independent of batch and reply sizes. Its
+// selection evidence is recorded in docs/decisions/readability-a7.md.
 inline constexpr unsigned /* TOMO_TOOL_BIND kSmallPipe */ kSmallPipe = 16;
-// MEASURED default D=3. Constants ledger addendum 12, D=3 DERIVE-BY-MEASUREMENT
-// (2026-10-02); PLAN-SERIAL 06:54 D-curve row 3: p8 GET/SET/rl-SET
-// +9.4/+10.4/+6.6%, with floor-0.4 p99/p999 inside the same-binary band.
+// Maximum counted visits before a small pipeline falls back to the half-prefix rule. Its
+// selection evidence is recorded in docs/decisions/readability-a7.md.
 inline constexpr unsigned /* TOMO_TOOL_BIND kCompleteVisits */ kCompleteVisits = 3;
-// Boot-latched in IoLoop padding; no allocation or per-visit configuration lookup.
+// Copied into IoLoop padding during init; no allocation or per-visit configuration lookup.
 struct Settings {
     uint8_t policy = 1;
     uint8_t small_pipe = kSmallPipe;
     uint8_t complete_visits = kCompleteVisits;
 };
-// Measurement arms only; the maintainer keeps the smallest multiplier that
-// passes merit and removes this override. No runtime knob or machine time bound.
-// WB4.1 merit selected the two-completion grace window.
+// Split IO uses two learned completion intervals as its busy grace window. This is a
+// dimensionless policy constant; there is no runtime knob or fixed machine-time bound.
 inline constexpr uint64_t kIdleMultiplier = 2;
 
 // Learn completion intervals only within a busy split-IO tenure. A completion
 // after a park must not teach the duration of the long operation we waited for.
-// Stack-local, with the existing pass clock cut: no allocation or extra clock read.
+// Stack-local, using the pass clock cut: no allocation or extra clock read.
+// Contract: The split IO loop owns this stack state. Its pass clock supplies now, with
+// monotonic timestamps required by unsigned subtraction. park breaks completion-interval
+// learning; a later completion cannot teach the duration of the blocked wait. No allocation,
+// publication or waiting occurs here; active reports whether the caller should continue its
+// busy grace period.
 struct IdleWindow {
     uint64_t completion = 0, interval = 0, previous_pass = 0;
     bool waited = true;
@@ -48,13 +53,13 @@ struct IdleWindow {
         previous_pass = now;
     }
     bool active(uint64_t now) const {
-        // Division preserves wave5b's boundary and avoids multiplication overflow.
+        // Division defines the inclusive grace boundary without multiplication overflow.
         return !waited && completion && (now - completion) / kIdleMultiplier <= interval;
     }
     void park() { waited = true; }
 };
-// Dimensionless POLICY fraction, not a byte/count/time bound. Competition record
-// section 39 (2026-09-23/24), w4-c12: parse 32 / EX 32 / composite 1/2.
+// Dimensionless fraction of the in-flight ROB that must have a contiguous Done prefix after the
+// small-pipeline completion allowance is exhausted.
 inline constexpr std::ratio<1, 2> kPolicyFraction{};
 
 // Cold artifact selector: only the default 0/1 policy, no detector/probe bits.
@@ -73,10 +78,9 @@ inline void info(std::string& body, int policy, unsigned small_pipe, unsigned co
     body += line;
 }
 
-// IO-owned sizes only; exclude submitted send/segment bytes from the next batch.
-// buffered_output_bytes() already walks the existing segment queue, without a
-// byte counter or allocation. Its send remainder equals send_buf().size()-wsent()
-// at every valid writeback frontier, as in the measured arm's accessor.
+// Use IO-owned sizes, excluding submitted send/segment bytes from the next batch.
+// buffered_output_bytes walks the segment queue without a byte counter or allocation. At a
+// valid writeback frontier its send remainder is send_buf().size()-wsent().
 template <class Connection>
 inline size_t staged_bytes(Connection& c) {
     return c.send_inflight() ? c.fill_buf().size() : c.buffered_output_bytes();
@@ -157,7 +161,7 @@ inline bool defer(Connection& c, const Settings& cfg) {
     while (prefix < threshold) {
         const auto& op = rob.at(head + prefix);
         if (op.state.load(std::memory_order_acquire) != OpState::Done) break;
-        // Separate measured candidate: assembly stays in ordinary WB, in ROB order.
+        // Reply assembly remains in writeback, in ROB order.
         // A Done scatter's byte size is unknown here; do not traverse its sub-ops.
         if (op.zc_ptr && op.zc_shard == Op::kScatterStateMarker) return false;
         bytes += reply_bytes(op);
@@ -178,8 +182,14 @@ inline bool defer(Connection& c, int policy = 1, unsigned small_pipe = kSmallPip
     return defer(c, cfg);
 }
 // Both modes use the same acquire walk and FIFO lifetime rule. Coded preserves
-// each caller's existing encoder capability; it is not a policy selector.
+// the caller's encoder capability; it is not a policy selector.
 struct Phase2 {
+    // Contract: The owning IoLoop calls serve from its FIFO or generated R7 sweep in
+    // split/fused mode. Capture the current ready-list size as the visit budget. defer acquires
+    // Done before reading replies; deferred clients keep their pin and closing clients keep
+    // draining. A dead client is skipped after removing the FIFO pin. TLS/epoll failures use
+    // the IO close paths; return value counts work/served clients rather than guaranteeing a
+    // successful socket send.
     template <bool HasTls, bool kEp, class Loop, bool Coded = true>
     __attribute__((always_inline)) static inline uint32_t serve(Loop& loop) {
         using ServerType = std::remove_pointer_t<decltype(loop.srv_)>;

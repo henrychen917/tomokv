@@ -1,0 +1,306 @@
+{
+  "exit_code": 0,
+  "partial_gate": true,
+  "full_gate_receipt": false,
+  "run_dir": "/home/user/Projects/cx-readability-a9/build/gate-run.5Cfo4M",
+  "environment": {
+    "LC_ALL": "C",
+    "TOMO_INFO_GIT_SHA1": "5c363128",
+    "TOMO_INFO_GIT_DIRTY": "0",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_TEST_PORT": "25399",
+    "GATE_ONLY_JOBS": "source_identity reorder_sync reorder_identity atomic_units flushfix3_units abba_selftest"
+  },
+  "command": [
+    "taskset",
+    "-c",
+    "56-83",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "56-79",
+    "--load-cores",
+    "80-83",
+    "--load-smt",
+    "",
+    "--ports",
+    "25300-25398"
+  ],
+  "passed_rows": 34,
+  "failed_rows": 0,
+  "jobs": [
+    {
+      "name": "release",
+      "done_marker": "0\t1\t0\n",
+      "rows": [
+        {
+          "status": "ok",
+          "duration_seconds": 115.71,
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    },
+    {
+      "name": "production_units",
+      "done_marker": "0\t0\t0\n",
+      "rows": []
+    },
+    {
+      "name": "source_identity",
+      "done_marker": "0\t1\t0\n",
+      "rows": [
+        {
+          "status": "ok",
+          "duration_seconds": 132.66,
+          "label": "production source identity + stable assertion ids"
+        }
+      ]
+    },
+    {
+      "name": "abba_selftest",
+      "done_marker": "0\t1\t0\n",
+      "rows": [
+        {
+          "status": "ok",
+          "duration_seconds": 611.27,
+          "label": "ABBA comparison + saturation negative controls"
+        }
+      ]
+    },
+    {
+      "name": "flushfix3_units",
+      "done_marker": "0\t2\t0\n",
+      "rows": [
+        {
+          "status": "ok",
+          "duration_seconds": 57.57,
+          "label": "flushfix3-unit linear collapse, collisions, OOM and saturated ranges"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 28.04,
+          "label": "flushfix3-db0-unit linear collapse, collisions, OOM and saturated ranges"
+        }
+      ]
+    },
+    {
+      "name": "reorder_sync",
+      "done_marker": "0\t1\t0\n",
+      "rows": [
+        {
+          "status": "ok",
+          "duration_seconds": 28.03,
+          "label": "R7 generated envelope parity"
+        }
+      ]
+    },
+    {
+      "name": "reorder_identity",
+      "done_marker": "0\t1\t0\n",
+      "rows": [
+        {
+          "status": "ok",
+          "duration_seconds": 223.24,
+          "label": "R7 FIFO twin off-path identity + negative controls"
+        }
+      ]
+    },
+    {
+      "name": "atomic_units",
+      "done_marker": "0\t27\t0\n",
+      "rows": [
+        {
+          "status": "ok",
+          "duration_seconds": 0.17,
+          "label": "atomic commit publication catches up at quiescence"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 2.73,
+          "label": "flushfix flush witnesses"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.07,
+          "label": "flushfix headers witnesses"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 4.06,
+          "label": "multidb serverless owners"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.05,
+          "label": "multidb global namespace boundary"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 16.37,
+          "label": "storesize published monitoring"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.35,
+          "label": "MULTI admin command replies"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.1,
+          "label": "EXECABORT releases WATCH reservation"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.01,
+          "label": "atomic survivors unit build"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.02,
+          "label": "atomic survivor: admission"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.01,
+          "label": "atomic survivor: closure"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.01,
+          "label": "atomic survivor: script_keys"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.01,
+          "label": "atomic survivor: rename_overlay"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.01,
+          "label": "atomic survivor: write_latest"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.0,
+          "label": "atomic survivor: script_apply"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.01,
+          "label": "atomic survivor: post_apply_probe"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.01,
+          "label": "atomic survivor: lua_conversion"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.0,
+          "label": "atomic survivor: watch_parent"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.01,
+          "label": "atomic survivor: watch_cycle"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.0,
+          "label": "atomic survivor: mset_arity"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.0,
+          "label": "atomic survivor: watch_oom"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.0,
+          "label": "atomic survivor: lua_lines"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.01,
+          "label": "atomic survivor: library_limit"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.01,
+          "label": "atomic survivor: stage_flag"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.01,
+          "label": "atomic survivor: instruction_limit"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.01,
+          "label": "armed resize retirement: atomic-growth"
+        },
+        {
+          "status": "ok",
+          "duration_seconds": 0.01,
+          "label": "armed resize retirement: flush-prepared"
+        }
+      ]
+    }
+  ],
+  "explicit_requested_fixture_results": {
+    "tests/gates_test.py": {
+      "tests": 83,
+      "status": "OK"
+    },
+    "tests/gate_ledger_fixture.py": {
+      "tests": 12,
+      "status": "OK",
+      "invocation": "tests/gate_receipt.py --self-test inside abba_selftest"
+    }
+  },
+  "archived_logs": [
+    {
+      "path": "docs/readability-a9/evidence/gate-final.log",
+      "bytes": 6295,
+      "sha256": "154ef1e9cb9bffdcb7249357918d51fb5de9b5782059ce24e7c7f0235ecf8701"
+    },
+    {
+      "path": "docs/readability-a9/evidence/gate-ledger.tsv",
+      "bytes": 1741,
+      "sha256": "b0c3191d20fd3aa918b5d4d980ec9860a117db1f213ff5530065480870af7a3f"
+    },
+    {
+      "path": "docs/readability-a9/evidence/gate-fixtures.log",
+      "bytes": 164092,
+      "sha256": "e340c2820eca6209629145ea9541871e25eab41f4d39954621ebeac7a0b7b8c2",
+      "source_bytes": 164098,
+      "source_sha256": "58b9793ee41412eb7db3d510f025bebffa15aa129bae1f47521dd7adfa20a887",
+      "normalization": "Trailing horizontal whitespace removed from archived log lines; raw log remains in the gate run directory."
+    },
+    {
+      "path": "docs/readability-a9/evidence/r7-sync.log",
+      "bytes": 308,
+      "sha256": "d2387c22e4b7379401629cd1bec1fa736ea82a11585500b9bcda3e7e733d6519"
+    },
+    {
+      "path": "docs/readability-a9/evidence/r7-identity.log",
+      "bytes": 246,
+      "sha256": "ca0852c2375c69dccecda9433f7d608cde08a0cb9331ea9ff99e29a4b34d5354"
+    },
+    {
+      "path": "docs/readability-a9/evidence/source-identity-checks.log",
+      "bytes": 1251,
+      "sha256": "f759a4e05aab29e5dfc5063a1a22b4b9a6cd39cddbc20fc6728a4612e75f5765"
+    },
+    {
+      "path": "docs/readability-a9/evidence/flushfix-headers.log",
+      "bytes": 756,
+      "sha256": "86533acae59a2869c4f0faf3db17e4c5be0a7fd9a82215921724f620d7c14960"
+    },
+    {
+      "path": "docs/readability-a9/evidence/flushfix-flush.log",
+      "bytes": 1028,
+      "sha256": "44231a0ae290285c82badb630362f4a0e2be491cb78becc42ce9b56694428942"
+    }
+  ]
+}

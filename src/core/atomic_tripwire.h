@@ -18,7 +18,8 @@
 
 namespace tomo {
 
-// Each DEBUG TRIPWIRE row is a four-tuple. phase identifies its observation in the one-shot dump.
+// Each DEBUG TRIPWIRE row is a four-tuple. phase names the row's role;
+// ChainAnswer/ParkedSmaller are shared by several capture kinds.
 enum class AtomicTripwirePhase : uint32_t {
     PlainBegin = 1,
     PlainExecution = 2,
@@ -36,7 +37,8 @@ struct AtomicTripwireRow {
 struct AtomicTripwireCounts {
     uint64_t plain_path_changes = 0;
     uint64_t chain_smaller_tickets = 0;
-    // An armed-only unmasked same-key walk classifies chain_smaller observations. masked_out
+    // An armed-only unmasked same-key walk runs for every finite-cut read answered from the
+    // chain, whether or not a smaller ticket was found. masked_out
     // means a key-holding entry with a visible ticket at/below the cut was hidden by the
     // membership filter, so the read used an older version. visible_lost means the walk saw the
     // entry but selected the base version (a ranking defect). undecided counts matching foreign
@@ -54,7 +56,8 @@ struct AtomicTripwireCounts {
     // consider() exclusions (armed only): a chain candidate rejected by the visibility test
     // !(epoch <= snapshot || own_committed).  reader_zero means the read carried no origin conn
     // (read context never set for that path); mismatch means it carried one different from the
-    // entry's. The ring records the first exclusion using ChainAnswer and ParkedSmaller.
+    // entry's. If an exclusion is the first capture of any kind, the ring records
+    // (key-hash, snapshot, epoch, ChainAnswer) and (reader-conn, owner-conn, epoch, ParkedSmaller).
     uint64_t excluded_reader_zero = 0;
     uint64_t excluded_conn_mismatch = 0;
     // Collapse writes that could resurrect a deleted key (armed only): an absent physical slot or
@@ -147,8 +150,9 @@ inline bool atomic_tripwire_enabled() {
            atomic_tripwire_detail::state != nullptr;
 }
 
-// Debug callers enable/disable observation; false means no state is available. Both transitions
-// clear pending probes under mu so disarmed probes do not remain indefinitely. The relaxed flag
+// Debug callers enable/disable observation; false means no state is available. Clearing probes
+// under mu at ARM keeps leftovers from an earlier session from pairing with new executions;
+// clearing at DISARM frees probes whose call sites stop firing. The relaxed flag
 // controls sampling, not object lifetime. A strict boundary against probes already in flight is
 // not established by this function; the flag store occurs after releasing mu.
 inline bool atomic_tripwire_arm(bool on) {
@@ -262,7 +266,8 @@ inline void atomic_tripwire_collapse_write(uint64_t key_hash, bool was_null, boo
 
 // A consider() exclusion by the visibility filter, with the geometry the filter judged.  The two
 // counters split by whether the read carried an origin connection at all; the ring latches the
-// first occurrence as a (cut, epoch) pair plus a (reader, owner) conn-id pair.
+// first occurrence as a (cut, epoch) pair plus a (reader, owner) conn-id pair only if no
+// other kind of observation has already captured the ring.
 inline void atomic_tripwire_excluded(uint64_t key_hash, uint64_t snapshot, uint64_t epoch,
                                      uint64_t reader_conn, uint64_t owner_conn) {
     auto* state = atomic_tripwire_detail::state.get();
@@ -309,8 +314,10 @@ inline AtomicTripwireCounts atomic_tripwire_counts() {
     return state->counts;
 }
 
-// Debug readers copy the first captured rows under mu. Empty state produces an empty payload;
-// otherwise each line is `<key-hash> <cut> <ticket> <phase>` (see AtomicTripwirePhase).
+// Debug readers copy the first captured rows under mu. Empty state deliberately yields an
+// empty DEBUG TRIPWIRE payload so acceptance runs can assert it without parsing; add no header.
+// Lines normally hold `<key-hash> <cut> <ticket> <phase>` (see AtomicTripwirePhase); collapse
+// uses cut for the winner epoch, and exclusion's second row uses the first two columns for conn IDs.
 // Output allocation can throw; no resolver or command-state ownership is transferred.
 inline std::string atomic_tripwire_dump() {
     auto* state = atomic_tripwire_detail::state.get();

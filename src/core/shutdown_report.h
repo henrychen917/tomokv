@@ -187,8 +187,8 @@ ShutdownReport collect_shutdown_report(Server& server, IoLoops& io_loops) {
                                           : ShutdownReport::ThreadRole::Idle;
             // Split rollup charges lifetime-cumulative LoopSignals::ops to the
             // final role: IO counts as dispatched, all other roles as executed.
-            // This is not exact attribution across role tenures; collecting a
-            // shutdown report adds no increments to the operation path.
+            // This is not exact across role tenures: exact per-tenure attribution
+            // would need new operation-path increments, which shutdown reporting must not add.
             (role == Role::Ifid ? report.work_.dispatched : report.work_.executed) += signals.ops;
         }
 

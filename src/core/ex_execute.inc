@@ -39,10 +39,11 @@ if (multi_task_tagged(t)) {
         // atomic_resolve_internal's own_private overlay is connection-scoped, so this
         // transaction could otherwise copy that undecided value and commit it permanently.
         //
-        // Park at dispatch, before this fragment installs anything. The older fragment drains
-        // first on each shard; parked_predecessor_in keeps that order when it is deferred.
-        // Parking inside prepare_write_key would instead hold partial installs while waiting
-        // for an older group's order-blind key probe, allowing a circular dependency.
+        // Park at dispatch before this fragment installs anything, never holding a half-applied
+        // command. The older unit can never wait on this fragment: its fragment drains first
+        // on every shard, and parked_predecessor_in keeps this one behind it if it is deferred.
+        // Parking in prepare_write_key deadlocked: the transaction held partial installs while
+        // waiting on an older group whose order-blind key probe waited on those installs.
         if (__builtin_expect(shard.store().atomic_has_records(), false) &&
             shard.store().atomic_has_foreign_unit_undecided(
                 t.client->id(),

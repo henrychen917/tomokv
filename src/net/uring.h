@@ -1,17 +1,10 @@
-// uring.h — one io_uring per thread. The native network backend, and the default.
+// Per-worker io_uring submission/completion engine and epoll-mode eventfd mailbox. IoLoop,
+// ExLoopT and persistence code use Ring; each native ring has one submission issuer. Under epoll
+// Ring creates no io_uring instance and supplies tagged cross-thread notifications instead.
 //
-// SECOND ENGINE (--net-io epoll, see net/epoll.h). When epoll is selected this class becomes a
-// pure CROSS-THREAD DOORBELL and issues no io_uring syscall at all -- not even io_uring_setup. That
-// is the whole point of the mode: the server has to boot where io_uring is unavailable.
-//
-// Why the doorbell lives HERE rather than in a new abstraction. Every cross-thread wake in the tree
-// is spelled `my_ring.msg_to(peer_ring, tag)` -- Channel::wake, ThreadCtx::wake_if_parked, the
-// snapshot epoch barrier. Those call sites belong to the EX side and to the channel mesh, which the
-// engine change is not allowed to touch. So the ENGINE-DEPENDENT PART IS HIDDEN BEHIND THE SAME
-// FOUR METHODS instead: in epoll mode msg_to() posts the tag into the target's mailbox and rings its
-// eventfd, and for_each_cqe() hands those tags back shaped exactly like CQEs. Both loops' on_cqe
-// switches therefore see the identical tag stream in either engine, and ex_loop.h, thread.h and
-// signal.h are unmodified.
+// msg_to/for_each_cqe preserve the wake interface used by Channel::wake, ThreadCtx::wake_if_parked
+// and the snapshot epoch barrier. The epoll implementation queues the tag under mail_mu_ before
+// ringing eventfd, then presents it as a CQE to the receiving loop's on_cqe switch.
 //
 // THE TAG MUST SURVIVE, not just the wake. The snapshot epoch barrier posts UrKind::SnapshotStart
 // carrying a SnapshotManager*, and the executor that receives it calls begin_snapshot() on that
@@ -22,20 +15,13 @@
 // Cost when NOT selected: one predicted-not-taken test on wake_fd_ per outer-loop step (submit,
 // wait, drain) and per park-wake. Nothing per operation, nothing per event.
 //
-// RING PER THREAD, NEVER SHARED. A shared ring needs locking around the submission queue and
-// serialises every thread through one completion path. Per-thread rings with SINGLE_ISSUER let the
-// kernel skip its own internal locking, and it is the configuration where io_uring actually wins:
-// naively swapped in, io_uring is roughly net-neutral, and the large gains come from exploiting it
-// deliberately (ring per thread + DEFER_TASKRUN).
-//
-// DEFER_TASKRUN is on, with one consequence recorded here because it already caused a wrong reading
-// once: it defers completion processing to the point where the thread waits on the ring, which means
-// the thread's CPU time no longer reflects how busy it is. Any controller that reads thread busyness
-// to make decisions will be BLIND under this flag and must sample CPUTIME explicitly instead of
-// inferring it from loop behaviour.
+// Per-thread rings avoid a shared submission lock and completion bottleneck. SINGLE_ISSUER
+// declares one submitting task; DEFER_TASKRUN defers task work until an event-requesting enter.
+// Controllers must distinguish loop activity from measured thread CPU time (CPUTIME); deferred
+// completion work prevents loop iteration counts from describing the cost of a completed request.
 //
 // USER DATA encodes what a completion was for. x86-64 user pointers are canonical 48-bit, so the
-// top 16 bits carry the kind — same trick as the FlatStore slot.
+// tag stores the kind in bits 56..63 and the pointer in bits 0..47; bits 48..55 are unused.
 #pragma once
 #include <liburing.h>
 #include <poll.h>
@@ -90,6 +76,12 @@ inline T* ur_ptr(uint64_t tag) {
     return reinterpret_cast<T*>(tag & ((1ULL << 48) - 1));
 }
 
+// Owns the native ring or eventfd/mailbox and deferred CQEs; the process shutdown fd is borrowed.
+// The issuer performs SQ/CQ work; the joined shutdown coordinator drains residual CQEs.
+// Peers post mailbox tags under mail_mu_, whose unlock/lock pairs
+// publish payloads before consumption. Native ordering follows liburing's SQ/CQ protocol. Teardown
+// requires issuer/peer quiescence before freeing objects named by tags. init reports failure;
+// sqe retries one submission when full and can still return null, while callers retain retry work.
 class Ring {
 public:
     static constexpr unsigned /* TOMO_TOOL_BIND kWaitTimeoutMs */ kWaitTimeoutMs = 50;
@@ -124,9 +116,8 @@ public:
         if (track_owned_) p.flags |= IORING_SETUP_TASKRUN_FLAG;
         int rc = io_uring_queue_init_params(entries, &r_, &p);
         if (rc < 0) {
-            // Fall back rather than refuse to boot: an older kernel should still run, just slower.
-            // The fork had the opposite failure — a build without uring support hung on the first
-            // connection instead of degrading, which is far worse than being slow.
+            // Retry without setup flags for kernels that reject them. If this also fails, init
+            // returns false; a successful retry records that deferred completion mode is absent.
             std::memset(&p, 0, sizeof(p));
             rc = io_uring_queue_init_params(entries, &r_, &p);
             if (rc < 0) {
@@ -148,8 +139,9 @@ public:
 
     // POST-JOIN FENCE. io_uring CQEs carry raw Client*/buffer pointers and the epoll fallback's
     // mailbox carries the same tagged pointers. Queue teardown must therefore precede destruction
-    // of any connection those entries can name. Only the coordinator calls this, after every ring
-    // issuer has joined; making it idempotent also keeps partially initialized boot failures safe.
+    // of any connection those entries can name. Normal shutdown calls this after every ring
+    // issuer has joined; idempotence also supports destructor cleanup and
+    // partially initialized boot failures.
     void shutdown() {
         if (inited_) {
             io_uring_queue_exit(&r_);
@@ -172,7 +164,9 @@ public:
     }
 
     // Registration is task-local. The guard ends on the issuer, before the
-    // post-join teardown can call liburing from the coordinator thread.
+    // post-join teardown can call liburing from the coordinator thread. This guard borrows Ring;
+    // it must outlive the guard. Registration failure leaves the guard empty; unregister failure
+    // aborts. It adds no cross-thread synchronization.
     class RegisteredFd {
         Ring* ring_ = nullptr;
 
@@ -237,11 +231,9 @@ public:
                static_cast<ssize_t>(sizeof(counter)));
     }
 
-    // Never returns nullptr in uring mode: a full SQ ring is flushed rather than reported, because
-    // every caller would otherwise have to invent the same retry and one of them would get it
-    // wrong. In epoll mode there is no submission queue and this returns nullptr -- every caller
-    // already handles that (it is the sqe-starved path), and no caller reaches it: network
-    // submission is engine-selected in IoLoop, and persistence derives the syscall engine.
+    // Get an SQE on the issuer, submitting once to make space if the ring is full. The second
+    // get can still fail, so callers must handle nullptr. Epoll mode has no SQ and returns null;
+    // IoLoop selects network submission by engine, and persistence selects its syscall backend.
     io_uring_sqe* sqe() {
         if (__builtin_expect(wake_fd_ >= 0, false)) return nullptr;
         io_uring_sqe* s = io_uring_get_sqe(&r_);
@@ -271,17 +263,9 @@ public:
         return io_uring_submit(&r_);
     }
 
-    // Submit AND run pending completion work.
-    //
-    // THIS IS NOT AN OPTIMISATION, IT IS REQUIRED UNDER DEFER_TASKRUN. That flag defers completion
-    // processing until the thread enters the kernel asking for events; a plain io_uring_submit()
-    // does not ask. So a busy loop that submits and then reads the CQ sees it EMPTY -- not because
-    // nothing finished, but because nothing has been allowed to finish yet. Completions only surface
-    // when the loop eventually parks, which turns every request's latency into "however long until
-    // this thread next runs out of work".
-    //
-    // Measured cost of getting this wrong: a uniform ~3.9 ms per operation at p1, matching p99
-    // exactly, i.e. paid by every request rather than a tail.
+    // Submit and request pending completion work. DEFER_TASKRUN needs an event-requesting enter:
+    // a plain submit followed by CQ inspection can leave completed work deferred until the loop
+    // next parks. submit_and_get_events lets a busy loop reap it without waiting for idleness.
     template <bool ClearSendClassification = false>
     int submit_and_reap() {
         if constexpr (ClearSendClassification) send_pending_ = false;
@@ -395,8 +379,8 @@ public:
     }
 
     // SEND-bearing batches are latency carrying: a request/response client cannot create the next
-    // arrival until this SQE reaches the kernel. Keep only that classification rather than
-    // restoring the generic per-SQE shadow counter removed by the instruction-diet stack.
+    // arrival until this SQE reaches the kernel. Track that scheduling classification separately
+    // from liburing's own count of queued SQEs.
     template <bool Classify>
     void note_send_pending() {
         if constexpr (Classify) send_pending_ = true;
@@ -404,8 +388,7 @@ public:
     bool send_pending() const { return send_pending_; }
 
     // Schedule boundaries occasionally need to know whether a later stage prepared real SQEs.
-    // Query liburing's own tail/head state there instead of restoring the per-SQE shadow counter
-    // removed by the instruction-diet stack.
+    // Query liburing's tail/head state at those boundaries, without a per-SQE shadow counter.
     unsigned sq_ready() const {
         return __builtin_expect(wake_fd_ >= 0, false) ? 0 : io_uring_sq_ready(&r_);
     }
@@ -435,8 +418,9 @@ private:
     }
     // The epoll-mode doorbell. PAYLOAD FIRST, THEN THE BELL -- the same push-then-flag order the
     // channel mesh uses, and for the same reason: a consumer woken by the bell must be able to see
-    // everything the bell was rung for. The mutex is only ever contended by a peer that found this
-    // thread parked, which is by construction a thread that had nothing to do.
+    // the tag that triggered the wake. mail_mu_ unlock/lock publishes the queued payload to
+    // for_each_mail; producers may contend with each other or with the receiving drain. A failed
+    // eventfd write returns false after enqueueing, leaving the tag for a later drain.
     bool post_mail(uint64_t tag) {
         {
             std::lock_guard<std::mutex> lock(mail_mu_);
@@ -468,15 +452,15 @@ private:
     bool inited_ = false;
     bool deferred_ = true;
     bool send_pending_ = false;
-    bool track_owned_ = false;  // existing five-byte hole
+    bool track_owned_ = false;  // packed with the ring-state flags
     uint32_t owned_completions_ = 0;
     std::vector<io_uring_cqe> deferred_cqes_;
     bool raw_callback_active_ = false;
     bool raw_callback_taken_ = false;
-    uint16_t counter_slot_ = 256;  // pre-existing two-byte alignment hole
+    uint16_t counter_slot_ = 256;  // two-byte alignment hole
     unsigned raw_callback_index_ = 0;
     // Epoll-mode doorbell state. -1 in uring mode, which is the single test every method above
-    // branches on; the vector and mutex are never constructed into use there.
+    // branches on; the mailbox remains empty there, though its vector and mutex are constructed.
     int wake_fd_ = -1;
     int shutdown_fd_ = -1;  // borrowed from main; never drained or closed by a Ring
     std::mutex mail_mu_;

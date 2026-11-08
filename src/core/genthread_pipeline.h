@@ -1,5 +1,6 @@
-// Task quanta shared by ex_loop.h and reorder.h in their including translation
-// units. Boot selects a fixed schedule; these compile-time constants introduce
+// Task quanta used by io_loop.h (parse batch and the Fused test
+// BatchOps == kGenthreadIfidBatchOps), ex_loop.h and reorder.cc.
+// Boot selects a fixed schedule; these compile-time constants introduce
 // no mutable tuning state or ownership hand-off on the operation path.
 #pragma once
 #include <cstdint>

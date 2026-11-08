@@ -1,0 +1,24 @@
+PARTIAL	0	GATE_ONLY_JOBS=config_unit flip_unit climonfix lbplanner_units wb_rule_units wbland_units source_identity reorder_sync reorder_identity abba_selftest; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	8.560000	configuration docs match parser
+ok	8.290000	Redis config quoting + mid-value #
+ok	19.810000	flip controller model unit
+ok	131.990000	production source identity + stable assertion ids
+FAIL	660.110000	ABBA comparison + saturation negative controls
+ok	25.170000	R7 generated envelope parity
+ok	209.440000	R7 FIFO twin off-path identity + negative controls
+ok	0.060000	shutdown policy + signal handoff serverless
+ok	0.350000	shutdown persistence (1s, command)
+ok	0.140000	shutdown persistence (1s, sigterm)
+ok	0.140000	shutdown persistence (1s, sigint)
+ok	0.340000	shutdown persistence (2s, command)
+ok	0.140000	shutdown persistence (2s, sigterm)
+ok	0.140000	shutdown persistence (2s, sigint)
+ok	0.210000	LB sampler exceptional cleanup + negative control
+ok	0.650000	LB monitor plan handoff + negative controls
+ok	0.140000	writeback c12 policy witnesses + negative controls
+ok	10.370000	writeback c12 phase witnesses + negative controls
+ok	2.590000	writeback c12 stages witnesses + negative controls
+ok	7.570000	writeback c12 split-phase witnesses + negative controls
+ok	38.130000	writeback policy clauses witnesses + negative controls
+ok	2.430000	writeback policy paths witnesses + negative controls

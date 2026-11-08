@@ -1,9 +1,13 @@
 // In-flight command and reply storage shared by parser, executor and ROB headers.
 // An Op owns its argument array and reply buffer, but argv slices usually borrow the connection's
-// read buffer. The ROB must pin those bytes through retirement; heap transaction/script Ops have
-// caller-managed lifetimes. Task publication hands execution to an owner, and release Done pairs
-// with the connection owner's acquire before reading the completed reply. The connection owner
-// retires replies in order and sends them. Borrowed values and tagged state have separate cleanup
+// read buffer. The ROB pins those bytes through retirement. MULTI's heap child Ops and the
+// stack-local Ops used by scripts and MULTI are never ROB slots; callers manage their lifetimes.
+// Ownership handoff: IO fills an unpublished slot; Task publication hands its mutable fields
+// to the executing owner, whose release Done hands them back before IO's acquire and retirement.
+// Apart from state, no field may be written while another thread reads it. While an owner runs
+// the Op, others may read only state and parser-published immutable metadata
+// (see ShadowDispatch::length); special completion protocols are described below.
+// The connection owner retires replies in order and sends them. Borrowed values and tagged state have separate cleanup
 // hooks; reset/destruction alone do not release those resources. sizeof(Op) is locked at 336 bytes.
 #pragma once
 #include <atomic>
@@ -22,7 +26,7 @@ struct BlockingState;
 
 enum class OpState : uint8_t {
     Free = 0,     // slot is reusable
-    Issued = 1,   // IO published it; the owning worker may take it
+    Issued = 1,   // shutdown drain sentinel; runtime dispatch does not store Issued
     Done = 2,     // worker finished; reply is complete and safe to read
     AofWait = 3,  // owner finished; persistence still owns the completion
 };
@@ -56,12 +60,15 @@ enum class ReplyCode : uint8_t {
 // materialise to a single capacity test with no per-code arithmetic.
 inline constexpr uint32_t kReplyCodeMax = 16;
 
-// Contract: the parser initializes an unpublished slot, the routed executor writes its reply,
-// and the connection owner acquires Done before retirement/reuse. Scatter and persistence paths
-// own their completion protocols until they publish Done. Argument slices, direct buffers and
+// The parser initializes an unpublished slot. Its completer writes the reply and publishes
+// Done with release: the routed shard owner for an ordinary Task, or the connection owner for
+// connection-local commands, local errors and read-local hits. Scatter, blocking, MULTI,
+// pub/sub, script-escalation and persistence paths own their completion protocols until Done.
+// The connection owner acquires Done before retirement/reuse. Argument slices, direct buffers and
 // borrowed/tagged zc_ptr state must outlive their consumers; Op owns only its argv allocation and
-// SmallBuf. push_arg returns false on allocation failure; reply allocation follows SmallBuf's
-// failure policy. reset requires a reusable slot with all external resources already released.
+// SmallBuf. push_arg returns false on allocation failure; SmallBuf::grow does not check malloc's
+// result, so reply allocation failure is not handled. reset requires a reusable slot with all
+// external resources already released.
 class Op {
 public:
     static constexpr int32_t kScatterStateMarker = -2;
@@ -162,7 +169,8 @@ public:
     // GET newer than a following MGET pinned before a foreign commit. Writes use the newest
     // view because a stale update base can lose an intervening write.
     //
-    // The low 32 bits fit the layout's four-byte routing field. read_cut() reconstructs the
+    // Only the low 32 bits are kept, filling the four-byte alignment hole after shard within
+    // the fixed 336-byte Op. read_cut() reconstructs the
     // most recent congruent sequence at/before now; exact reconstruction requires less than
     // 2^32 intervening commits. This helper does not enforce that age bound or saturate older
     // stamps. A bound over the full dispatch-to-execution lifetime is not established here.
@@ -186,8 +194,9 @@ public:
     void mark_resp3() { route_flags_ |= kResp3; }
     bool resp3() const { return route_flags_ & kResp3; }
     // CLIENT REPLY OFF/SKIP. Marked by the io thread's armed gate, honoured by the cold
-    // suppressing serve variant. Bit 3 has the same meaning in this word and
-    // Client::connection_flags_, whose byte reset() copies wholesale.
+    // suppressing serve variant. Bit 3 is unused in Client::connection_flags_, so reset's
+    // wholesale byte copy leaves reply-skip clear; only the IO armed gate sets it.
+    // Keep Op-only bits 0, 1, 3, 5 and 6 unused in connection_flags_.
     void mark_reply_skip() { route_flags_ |= kReplySkip; }
     void clear_reply_skip() { route_flags_ &= static_cast<uint8_t>(~kReplySkip); }
     bool reply_skip() const { return route_flags_ & kReplySkip; }
@@ -232,7 +241,9 @@ public:
     // op's buffer (multi.inc make_child_op / set_state_reply), and redis.call() runs into a
     // stack-local Op whose bytes Lua parses back into a Lua value (scripting.cc). Those are
     // reset() but never acquired, so they default to unarmed and use byte replies. reset()
-    // must not touch the arming: a ROB slot is armed once for its entire lifetime.
+    // must not touch the arming. Rob::acquire<true>() and acquire_read_local() arm on every
+    // acquisition; acquire<false>() leaves split slots unarmed. A borrowed-MGET splice
+    // disarms its Op for the rest of that operation.
     uint8_t reply_code_ok_ : 1 = 0;
     uint8_t read_cut_registered_ : 1 = 0;  // IO owns this reference through retirement/rollback.
     uint8_t db = 0;  // logical database captured at parse time
@@ -260,7 +271,9 @@ public:
     uint32_t zc_len = 0;
     int32_t zc_shard = -1;
 
-    // Completion publication: a release Done orders reply fields before the IO acquire.
+    // The mutable field accessed concurrently. Release Done (or AofWait) publishes every
+    // write the completer made to this Op, including flags/descriptors, before an acquiring
+    // observer; IO must acquire Done before retirement.
     std::atomic<OpState> state{OpState::Free};
     uint8_t physical_db = 0;   // immutable routing namespace for this operation
     uint8_t secondary_db = 0;  // COPY/MOVE destination, captured with physical_db
@@ -347,8 +360,9 @@ public:
         // "code, then more bytes" and "bytes only" both keep RESP order, and the direct region
         // loses nothing -- the owner is writing into that very buffer either way.
         __attribute__((always_inline)) bool code(ReplyCode c, int32_t v = 0) {
-            // Arming has its own unhinted branch: it is stable for a slot's lifetime but differs
-            // by mode. Combining it with the unlikely nonempty test would bias all modes toward
+            // Arming has its own unhinted branch: fused acquisitions arm each time, split
+            // slots stay unarmed, and borrowed-MGET assembly may disarm mid-op. Combining
+            // it with the unlikely nonempty test would bias all modes toward
             // the same answer. Keep the layout/branch decision in the decision log.
             if (!op_.reply_code_ok_) return false;
             if (__builtin_expect(op_.reply_code_ != 0 || op_.direct_len != 0 || !op_.reply.empty(),
@@ -452,8 +466,8 @@ public:
     void* notify_state() const { return has_notify_state() ? const_cast<char*>(zc_ptr) : nullptr; }
 
 private:
-    // The cold inline decoder packs immutable argv bytes after this Op's heap
-    // Slices; retry, shrink and destruction manage both allocations as one block.
+    // The cold inline decoder stores Slices and their decoded bytes in one malloc block
+    // at argv_heap_; shrink() and ~Op release both with the single argv free.
     friend struct RespInlineDecoder;
     static constexpr uint8_t kAtomicHazard = 1u << 0;
     static constexpr uint8_t kNoBorrow = 1u << 1;

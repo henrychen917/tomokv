@@ -1,6 +1,7 @@
-// Owns transport records shared by IO threads; included by thread.h and io_loop.h's
+// Owns transport records posted by IO and executor threads to IO consumers; included by thread.h and io_loop.h's
 // pub/sub implementation through server/thread declarations; t_server.cc also includes it.
-// Subscriber indexes and connection state stay in IoLoop. Events identify clients by process-unique ID and IO
+// Subscriber indexes and connection state stay private to IoLoop; executors and shards
+// only post heap events and never reach that state. Events identify clients by process-unique ID and IO
 // owner; only notification reply slots carry a borrowed Op*, used on coordinator IO.
 // Mailbox locking transfers event ownership; immutable blobs use reference counts.
 #pragma once
@@ -40,7 +41,8 @@ enum class PubSubEventKind : uint8_t {
     ClientListResult,
     ClientKillRequest,
     ClientKillResult,
-    // Produced only while the CLIENT/MONITOR armed word is nonzero.
+    // These four kinds (MonitorFeed, TrackingInvalidate, TrackingFlush, TrackingDeliver)
+    // are produced only while the CLIENT/MONITOR armed word is nonzero.
     MonitorFeed,         // one pre-formatted feed line, encoded once and shared by every owner
     TrackingInvalidate,  // keys whose value changed; each owner filters against its own table
     TrackingFlush,       // FLUSHALL/FLUSHDB: deliver the null invalidation to every tracker
@@ -122,9 +124,10 @@ struct PubSubNotificationItem {
     bool shard = false;
 };
 
-// Shared lifetime for a serialized notification sequence. Coordinator IO advances index
-// and completes borrowed replies; the current home consumes that item's message only
-// while it owns the mailbox link. Mutex handoffs order these accesses; shared_ptr alone
+// Shared lifetime for a serialized notification sequence. Only coordinator IO accesses
+// index, items and replies; it moves each item's channel/message into the NotificationRequest
+// before posting. The home reads only that event and coordinator_io. Mailbox mutex handoffs
+// order these accesses; shared_ptr alone
 // does not synchronize mutation. Exactly one link is active; invalid continuation/index
 // aborts, and allocation exceptions are not recovered by this record.
 struct PubSubNotificationChain {
@@ -135,7 +138,9 @@ struct PubSubNotificationChain {
     void* completion = nullptr;
 };
 
-// Heap message owned by the producer until pubsub_post, then by one queued/consuming IO.
+// Heap message owned by its producer until enqueued: IO posts via pubsub_post, EX via
+// ThreadCtx::post_pubsub_event_nonblocking. A refused post leaves ownership with the producer;
+// after enqueue, the consuming IO owns it.
 // Mailbox mutex handoff orders mutable fields. Deliveries own blob references released
 // by delivery or pubsub_delete_event; notification/blob shared_ptrs own their payloads.
 // ACL permissions and notification reply pointers are borrowed under their protocols.

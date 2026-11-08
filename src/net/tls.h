@@ -1,8 +1,9 @@
-// tls.h — handshake and userspace-fallback TLS engine.
+// TLS context and connection interfaces used by IoLoop and WbEngine; implemented in tls.cc.
+// BIO ciphertext cursors and Client plaintext cursors have separate completion accounting.
 //
 // A kTLS attempt starts with a non-blocking socket BIO so OpenSSL can install the kernel record
 // layer. For TLS 1.2, once both directions engage, SSL becomes a cold lifetime holder and ordinary
-// io_uring recv/send owns application data.  Forced fallback uses the original BIO-pair engine;
+// io_uring recv/send owns application data.  Forced fallback uses the BIO-pair engine;
 // automatic fallback uses it when neither direction engaged and retains the socket BIO when a
 // direction is already irreversible, preserving a valid userspace transport in either case.
 // TLS 1.3 always retains OpenSSL on RX for post-handshake messages and KeyUpdate.
@@ -22,7 +23,7 @@ namespace tomo {
 struct Config;
 enum class TlsAuthClients : uint8_t;
 
-// Process-lifetime counters; no per-operation traffic or layout changes to the core structs.
+// Process-lifetime counters for declined TLS 1.3 RX offload and successful TX re-keying.
 uint64_t tls_ktls_rx_declined_13();
 uint64_t tls_ktls_tx_rekeys();
 
@@ -39,6 +40,9 @@ struct TlsIoResult {
     uint32_t bytes = 0;  // plaintext bytes only
 };
 
+// Owns SSL_CTX until destruction; main creates it before workers use it to make SSL objects.
+// create returns an owning pointer or nullptr with an error for checked OpenSSL failures.
+// The wrapper does not synchronize mutation; callers use native() to create per-client SSL state.
 class TlsContext {
 public:
     static std::unique_ptr<TlsContext> create(const Config& cfg, std::string& error);
@@ -53,6 +57,11 @@ private:
     SSL_CTX* ctx_ = nullptr;
 };
 
+// Connection-owner TLS state; IoLoop owns it in tls_slots_ and WbEngine drives writes. Owns SSL
+// and the external BIO endpoint, while the socket fd and pending plaintext bytes are borrowed.
+// The caller keeps receive/send BIO reservations and retry plaintext alive until completion;
+// no internal locking publishes this state. WantRead/WantWrite request later progress, while
+// Error/GracefulEof hand teardown to the caller. Destruction releases SSL/BIO and cleanses key bytes.
 class TlsConn {
 public:
     static constexpr int kBioBytes = 64 * 1024;

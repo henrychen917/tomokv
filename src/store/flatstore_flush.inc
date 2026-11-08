@@ -1,4 +1,8 @@
-// Cold range operations. Definitions live in flush.cc.
+// FlatStore's cold namespace-range MVCC declarations. Included by flatstore_atomic.inc
+// inside FlatStore; definitions compile in src/store/flush.cc (both database namespaces).
+// Range entries retain their group lifetime while logical clear and physical reclamation
+// are separate phases. Callers hold shard ownership, or run after workers join at shutdown;
+// atomic_flush_ready checks reader floor/cutoff before reclaiming a decided range.
 AtomicEntry* atomic_install_flush(ScatterState* group, int ns, std::atomic<uint64_t>* epoch,
                                   std::atomic<bool>* aborted, std::atomic<uint32_t>* refs,
                                   uint64_t origin, uint32_t shard);

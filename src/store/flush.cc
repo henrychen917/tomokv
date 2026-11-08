@@ -1,3 +1,8 @@
+// flush.cc — FlatStore's out-of-line namespace-range MVCC implementation.
+// Compiled in both database namespaces; flatstore_flush.inc declares these members inside the
+// class. The shard owner installs/resolves/collapses ranges; shutdown also releases records after
+// workers join. Shared decisions are acquired, owner lists remain private, and read-local poison
+// covers unsafe range mutation until reclamation can preserve post-flush versions.
 #include "flatstore.h"
 #include "../core/signal.h"
 #include <optional>
@@ -7,7 +12,10 @@ int64_t atomic_flush_now_ms() { return now_realtime_ms(); }
 bool atomic_flush_covers(const AtomicEntry& entry, Slice key) {
     return atomic_range_covers(entry, key);
 }
-// Namespace records: cold FLUSH publication, resolution and reclamation.
+// Install a range for execute_flush on the shard owner. The caller retains group/decision/ref
+// storage; the returned record owns one group reference. nullptr means prepare/allocation failed
+// before linking. Read-local poison precedes linking; atomic_link_entry publishes first activity
+// with a release RMW, while group commit is published separately by the command layer.
 AtomicEntry* FlatStore::atomic_install_flush(ScatterState* group, int ns,
                                              std::atomic<uint64_t>* epoch,
                                              std::atomic<bool>* aborted,
@@ -35,6 +43,9 @@ AtomicEntry* FlatStore::atomic_install_flush(ScatterState* group, int ns,
     return entry;
 }
 
+// Unlink a live range on its shard owner, or in post-join shutdown. The representation must be
+// safe before closing read-local poison. Invalid/unlinked input aborts; group_refs and last
+// activity are decremented with release ordering before the record returns to its pool.
 void FlatStore::atomic_flush_release(AtomicEntry* entry) {
     if (!entry || !entry->namespace_range || !entry->linked) std::abort();
     if (entry->prev)
@@ -98,12 +109,15 @@ bool FlatStore::atomic_flush_has_post(const AtomicEntry& range) const {
 }
 
 namespace {
-// Built only by the cold owner collapse, before changing any resident/parked
-// pointer. Keys borrow stable record storage, never the values we retire.
-// Capped probing avoids a quadratic hash-cluster case. Overflow uses a Patricia
-// tree over hash, namespace and length-delimited key bits; each descent visits
-// strictly increasing bit positions, bounded by 72 + 9 * maximum key length.
+// Scratch index owned by atomic_flush_erase on the shard owner, built before resident/parked
+// mutation. Owns vectors but borrows record keys and parked-slot addresses; those records must
+// outlive the index. insert retains the first occurrence. Allocation can throw to the caller's
+// pre-mutation catch; find returns null on absence. No concurrent publication or waiting occurs.
+// Sixteen probes cap hash clustering; overflow uses a Patricia tree on hash, eight namespace
+// bits and length-delimited key bits, with increasing descent positions bounded by
+// 72 + 9 * maximum key length.
 class FlushPostIndex {
+    // Borrows key bytes and the predecessor slot; neither is released by this scratch record.
     struct Slot {
         uint64_t hash = 0;
         Slice key;
@@ -237,8 +251,13 @@ public:
 };
 }  // namespace
 
-// The first later occurrence owns the pre-flush resident. Removing that
-// slot also makes a later abort roll back to absence, never resurrect it.
+// execute_flush calls on the shard owner after atomic_flush_ready admits the decided range;
+// covered snapshot preimages must already be captured. Build scratch before mutating anything:
+// overflow/allocation failure returns false so the owner task can defer, without replying OOM
+// for a decided FLUSH. The first later key occurrence owns its pre-flush predecessor; clearing
+// that slot makes later abort restore absence. Owner-local list mutation needs no publication;
+// read-local physical erasure release-stores a tombstone before QSBR retirement under range poison.
+// Retirement can encounter deferred-ring back-pressure; unarmed retirement preserves send borrows.
 bool FlatStore::/* TOMO_TOOL_BIND atomic_flush_erase */ atomic_flush_erase(AtomicEntry& range) {
     uint64_t work = 0;
     size_t occurrences = 0;
@@ -323,8 +342,15 @@ uint64_t FlatStore::/* TOMO_TOOL_BIND atomic_flush_resolved_size */ atomic_flush
     return visible;
 }
 
+// Resolve one key, including namespace ranges, for atomic_resolve_internal on the shard owner.
+// Pending records/physical objects and the per-store origin/read context must remain valid through
+// this walk. Acquire loads of group_aborted and group_epoch supply decisions; ordinary chain state
+// is owner-local. Returns a borrowed visible value (or null), preserving same-connection ordering
+// and private-write precedence. No allocation or normal-path waiting occurs. Armed diagnostics
+// can re-poll an undecided ticket at most 4096 times; they do not change the selected answer.
 AtomicResolved FlatStore::atomic_resolve_range(uint64_t hash, Slice key, uint64_t snapshot,
                                                bool count_predecessor) {
+    // Phase 1: capture the physical fallback and initialize version ranking.
     KvObj* physical_value = atomic_find_physical(hash, key);
     if (!atomic_pending_ || !atomic_pending_->live)
         return AtomicResolved{atomic_live_value(physical_value), false, true};
@@ -337,16 +363,9 @@ AtomicResolved FlatStore::atomic_resolve_range(uint64_t hash, Slice key, uint64_
     bool winner_private = false;
     AtomicEntry* winner_entry = nullptr;
     bool matched = false;
-    // THE SAME PROGRAM-ORDER REPAIR atomic_collapse() APPLIES, AND IT IS LOAD-BEARING HERE.
-    // A read reaches this chain whenever it beats the owner's post-batch cleanup to the pair,
-    // and it must then rank a connection's records the way that connection sent them, not by
-    // their commit tickets -- otherwise it answers from the older cross-shard group after the
-    // younger transaction's write, which is the stale-read half of the defect.
-    // This was measured, deleted, and restored: with the target on 16 cores the cleanup pass
-    // always won the race, so removing this scored an identical 0 on the stale-read probe and
-    // looked free. With the target correctly pinned to 8 cores the read wins often enough that
-    // collapse-alone failed tests/multires.py in 3 of 8 runs while this restores 0 of 8. The
-    // cost is real (~2% on the atomic-path A/B) and is bought deliberately.
+    // Apply the same program-order repair as atomic_collapse: a read can reach this chain before
+    // post-batch cleanup. Rank a connection's records in dispatch order, even when commit tickets
+    // disagree; otherwise an older cross-shard group can hide a later transaction's write.
     uint64_t prev_conn_id = 0;
     uint64_t prev_epoch = 0;
     auto consider = [&](AtomicEntry& owner, KvObj* candidate, bool is_physical) {
@@ -369,36 +388,30 @@ AtomicResolved FlatStore::atomic_resolve_range(uint64_t hash, Slice key, uint64_
         const bool own_committed =
             atomic_read_origin_conn_id_ != 0 && owner.origin_conn_id == atomic_read_origin_conn_id_;
         // A transaction's own still-private installs are its RYOW overlay.  Foreign epoch-zero
-        // candidates remain invisible exactly as before; ordinary pipelined commands still
+        // candidates remain invisible; ordinary pipelined commands still
         // defer on their own undecided predecessor before reaching this resolver.
         if (owner.group_epoch && epoch == 0 && !own_committed) {
-            // Armed-only: the undecided-foreign skip. Under a single-connection workload the
-            // entry IS the reader's own earlier write, so landing here means the read failed
-            // the own_committed test -- the RYOW hole the seed-19 divergence goes through.
+            // Armed diagnostic for an undecided foreign skip. In a single-connection workload
+            // an earlier own write should pass own_committed; failure points to missing/wrong
+            // origin context and a possible read-your-own-writes exclusion.
             if (__builtin_expect(atomic_tripwire_enabled(), false))
                 atomic_tripwire_excluded(hash, snapshot, 0, atomic_read_origin_conn_id_,
                                          owner.origin_conn_id);
             return;
         }
         if (!(epoch <= snapshot || own_committed)) {
-            // Armed-only: latch WHY a candidate was invisible. Under a single-connection
-            // workload every entry is the reader's own, so any exclusion here is either a
-            // read that carried no origin conn (context never set on its path) or a stale
-            // one -- the two candidate mechanisms for the seed-19 stale-read divergence.
+            // Armed diagnostic for exclusion above the read cut. In a single-connection
+            // workload, missing or stale origin context can incorrectly exclude an own write.
             if (__builtin_expect(atomic_tripwire_enabled(), false))
                 atomic_tripwire_excluded(hash, snapshot, epoch, atomic_read_origin_conn_id_,
                                          owner.origin_conn_id);
             return;
         }
-        // RANK, NOT EPOCH.  An own still-private candidate carries epoch 0 because its ticket is
-        // not drawn yet -- it is the NEWEST value this connection has, not the oldest.  Ranking
-        // it by its epoch made it lose to any older but committed version of the same key, so
-        // the second touch of a key inside one transaction answered from before the first, and
-        // an in-place read-modify-write (RPUSH/APPEND/INCRBY) then mutated the parked
-        // predecessor -- a write that replies normally and is discarded at collapse.  A private
-        // candidate therefore outranks every committed one; among private candidates, and among
-        // committed ones, the later occurrence still wins (equal epochs are several physical
-        // installs inside one command, whose last occurrence is that command's final value).
+        // An own private candidate has no ticket yet (epoch zero) but outranks committed values.
+        // Otherwise a repeated key access in one transaction can read or mutate its parked
+        // predecessor (RPUSH/APPEND/INCRBY), then lose that acknowledged write at collapse.
+        // Among private candidates, or committed candidates with equal epochs, later occurrence
+        // wins: multiple physical installs in one command leave its last value authoritative.
         const bool own_private = owner.group_epoch && epoch == 0;
         if (!winner_set || (own_private ? true : (!winner_private && epoch >= winner_epoch))) {
             winner = candidate;
@@ -409,6 +422,7 @@ AtomicResolved FlatStore::atomic_resolve_range(uint64_t hash, Slice key, uint64_
             winner_entry = &owner;
         }
     };
+    // Phase 2: walk ranges and key occurrences, recovering each displaced candidate.
     base = physical_value;
     bool key_matched = false;
     for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
@@ -442,17 +456,16 @@ AtomicResolved FlatStore::atomic_resolve_range(uint64_t hash, Slice key, uint64_
             consider(*entry, candidate, physical);
         }
     }
+    // Phase 3: select the visible version and account for a predecessor read.
     if (!matched) return AtomicResolved{atomic_live_value(physical_value), false, true};
     KvObj* value = winner_set ? winner : base;
     const bool from_physical = winner_set && winner_physical;
     if (!from_physical && count_predecessor && atomic_predecessor_reads_)
         (*atomic_predecessor_reads_)++;
-    // #77 TRIPWIRE B. A finite read cut answered from a parked predecessor while this shard
-    // still held a decided group with an older ticket. That conjunction is the rare resolver /
-    // cleanup geometry the preserved seed-19 EXISTS overcount needs diagnosed. It is not a
-    // correctness gate: count every occurrence, and let the process-global one-shot retain the
-    // first answer/ticket pair. The armed check precedes the extra list walk, so a production
-    // server pays none of the diagnostic work and performs no new atomic operation.
+    // Phase 4: when armed, diagnose finite-cut predecessor answers against pending decisions.
+    // Count each answer with an older decided group and retain the first answer/ticket pair in
+    // the process-wide one-shot. This is observation, not a correctness verdict. The armed check
+    // precedes the extra list walk, so disabled diagnostics perform no extra atomic operation.
     if (__builtin_expect(!from_physical && snapshot != UINT64_MAX && atomic_tripwire_enabled(),
                          false)) {
         const uint64_t answer_ticket = winner_entry ? atomic_epoch(*winner_entry) : 0;
@@ -471,7 +484,7 @@ AtomicResolved FlatStore::atomic_resolve_range(uint64_t hash, Slice key, uint64_
         // membership bit; re-walk WITHOUT that filter and compare full hash+key.  Only an
         // entry strictly newer than the answered version matters -- an older visible version
         // losing is ordinary MVCC.  A qualifying entry the walk never saw (bit clear) is the
-        // mask-inconsistency smoking gun; one the walk did see is a ranking defect; a matched
+        // membership-mask inconsistency; one the walk did see is a ranking defect; a matched
         // foreign group with its ticket still unpublished is the publication-race window.
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
             const bool walked = (entry->membership & bit) != 0;

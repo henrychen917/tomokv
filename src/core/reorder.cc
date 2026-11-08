@@ -109,8 +109,11 @@ class IoLoop::r7_ReadLocalDemotionPlan {
     private:
         enum class ReadKind : uint8_t { Ordinary, Scatter, Error };
 
-        // Scratch owned by one demotion plan. Only initialized count_/nowners_ prefixes are
-        // read. Scatter pointers own unpublished states until commit or discard; arrays are
+        // Scratch owned by one demotion plan. ids/reasons/kinds/scatter/scatter_tasks are
+        // initialized for the whole selected set. A partial plan shrinks count_ to the prepared
+        // prefix; commit_reads still reads suffix ids/reasons in
+        // [partial_begin_, partial_begin_ + partial_count_). owners/remaining are valid below
+        // nowners_. Scatter pointers own unpublished states until commit or discard; arrays are
         // worker-private and rely on the enclosing ROB/window bounds, with no atomic publication.
         struct Storage {
             uint64_t ids[kRobWindow];
@@ -640,7 +643,8 @@ template <uint32_t BatchOps, bool ConsumeTasks, bool IofusedPrivateQueue,
             did += aof_flush_pass();
             did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
         }
-        // Phase 3: finish local tails and reclamation before acknowledging control work.
+        // Phase 3: finish local tails and reclamation, then run the control tail outside an
+        // LB freeze. An LB-frozen pass may already have acknowledged above and touches no shard here.
         if (fairlane_turn) {
             owner_work_remains |= fairlane_owner_debt_pending();
             if (!owner_work_remains) did += drain_local_read_tail();
@@ -849,8 +853,8 @@ template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool SplitLocal>
             lb_pass_begin();    // one shared pause snapshot before any connection parsing
             flip_pass_begin();  // one acquire before any parser or cron in this IO pass
             refresh_notify_config();
-            // Refresh the shared feature mask once per IO batch; per-operation hooks use the
-            // cached armed decision.
+            // One relaxed (unordered) load of the shared feature mask per IO batch;
+            // per-operation hooks use the cached armed decision.
             if (__builtin_expect(srv_->climon_armed() != climon_armed_cached_, false))
                 climon_refresh_armed();
             const bool pause_armed = climon_pause_armed();
@@ -1242,6 +1246,8 @@ template <bool HasTls, bool kEp, bool Fused, bool HasUnix,
                 // there is no receive CQE to clear it; leaving it set prevents safe_to_release forever.
                 // CLIENT KILL on itself uses mark_closing() to send its reply before teardown, so it
                 // also needs this cleanup even when close_client() has not initiated the close.
+                // io_uring needs no clear: arm_recv refuses closing clients, and the outstanding
+                // receive CQE clears the flag. Cover: tests/climon.py "KILL self close-after-reply".
                 if (c->closing()) c->set_recv_armed(false);
                 if (!c->closing()) {
                     if constexpr (HasTls) {
@@ -1364,7 +1370,8 @@ template <bool HasTls, bool kEp, bool Fused, bool HasUnix,
             }
         }
 
-        // Phase 3: run the fused owner batch and collect its completions.
+        // Phase 3: run one fused executor pass and collect its completions: the owner batch
+        // in 1s, or split_read_local_pass with no owner work in SplitLocal.
         // The fused loop rotates whole streams: finish the bounded IFID phase above, execute one
         // batch, collect its local self-lane completions, then enter the write-back phase.
         if constexpr (Fused) {
@@ -1375,8 +1382,9 @@ template <bool HasTls, bool kEp, bool Fused, bool HasUnix,
 
         // Phase 4: flush pub/sub fanout before any subscriber serving.
         // PUB/SUB PASS BOUNDARY -- between parsing and serving, on purpose. Everything this pass
-        // parsed is resolved and appended to its subscribers' buffers HERE, so PHASE 2 sends one
-        // coalesced write per subscriber instead of one per message. Off/unarmed servers pay one
+        // parsed is resolved and appended to its subscribers' buffers HERE, so the serving phase
+        // (Phase 5, wb_rule::Phase2::serve) sends one coalesced write per subscriber instead of
+        // one per message. Off/unarmed servers pay one
         // predicted branch on a bool; all the machinery is out-of-line and cold.
         if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
 
@@ -2223,7 +2231,8 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
             if constexpr (Fused) {
                 op = read_local_enabled ? rob.acquire_read_local(conn.op_route_flags())
                                         : rob.acquire<true>(conn.op_route_flags());
-                // The unarmed parser uses byte replies; the armed fused parser uses coded replies.
+                // Both fused arms set reply_code_ok_ and use coded replies;
+                // only the split parser below keeps byte replies.
             } else {
                 op = rob.acquire<false>(conn.op_route_flags());  // 2s keeps the byte path
             }
@@ -2883,16 +2892,18 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
                     break;
                 }
                 if (scatter_prepared == ScatterPrepare::Ready) {
-                    // Second-wave scatters require same-connection ordering on both sides.
-                    // Their later owner tasks originate on an EX producer channel (destination installs,
-                    // pop retries, or script apply), while ordinary tasks originate on this IO channel.
-                    // ThreadCtx::drain_tasks visits producer channels by ID, so the channels alone do not
-                    // order an older ordinary task before a later scatter's second wave.
+                    // scatter_dispatch.barrier covers second-wave scatters and all-shard commands.
+                    // Second-wave owner tasks originate on an EX producer channel
+                    // (publish_phase2 destination installs, LMPOP/ZMPOP
+                    // retries, or script apply), while ordinary tasks originate on this IO channel.
+                    // ThreadCtx::drain_tasks visits producer channels by ID: without this wait an
+                    // older ordinary op could run after the second wave and answer from after a
+                    // store it precedes. Same-connection ordering is required on both sides.
                     //
                     // Wait for the ROB head before starting the scatter, leave its frame unconsumed while
-                    // waiting, and arm the barrier against younger frames after publication. Read-only and
-                    // single-wave scatters (MGET, MSET/DEL groups, direct RENAME) post every task from this
-                    // IO and do not need this barrier.
+                    // waiting, and arm the barrier against younger frames after publication. Plain
+                    // single-wave scatters such as MGET, MSET/DEL groups and direct RENAME post every
+                    // task from this IO and do not need this barrier.
                     if (scatter_dispatch.barrier && rob.in_flight() != 0) {
                         xshard_abandon_unpublished(scatter_dispatch.state, scatter_pool_, self_id);
                         break;
@@ -3224,8 +3235,9 @@ static int  run_fused_server_reordered(
     // phase advances observe stop, so shutdown during recovery cannot leave
     // main waiting for a readiness arrival from a worker that has exited.
     FusedBootGate boot(nthreads);
-    // Use the server's Unix owner so listener attachment and load balancing
-    // agree on the physical thread that owns the pathname's listening fd.
+    // The Unix owner is placement().ifid_threads().front() with a configured unixsocket,
+    // UINT32_MAX otherwise. Read Server's field so the listener attach point and the
+    // LB/FLIP exclusions on unix_owner_tid_ cannot drift.
     const uint32_t unix_owner = srv.unix_owner_tid();
     auto report_graceful_shutdown = [&] {
         srv.snapshot().cancel_after_join(srv);
@@ -3327,8 +3339,9 @@ static int  run_fused_server_reordered(
                 return;
             }
             // A stop can race listener activation after wait_until_ready().
-            // arrive_ready records that worker as gave_up, so every participant
-            // is accounted for even when it never enters the running phase.
+            // If main already moved the gate to Stopping, arrive_ready records gave_up
+            // and returns false. If only the stop flag is set, wait_until_running records
+            // the give-up instead. Either way main sees every worker report.
             if (!boot.arrive_ready(tid)) return;
             if (!boot.wait_until_running(tid, self.stop_flag())) return;
             self.publish_ready_role(Role::Ifid);

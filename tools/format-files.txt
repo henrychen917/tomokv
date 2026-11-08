@@ -138,6 +138,7 @@ src/core/lbstall.h
 src/core/live_config.h
 src/core/orthog.h
 src/core/placement.h
+src/core/placement_impl.h
 src/core/pubsub.inc
 src/core/pubsub_event.h
 src/core/read_local.h
@@ -187,6 +188,7 @@ src/store/eviction.h
 src/store/flatstore.h
 src/store/flatstore_atomic.inc
 src/store/flatstore_flush.inc
+src/store/flatstore_impl.h
 src/store/flatstore_random.inc
 src/store/flush.cc
 src/store/foreign_read_safety.h

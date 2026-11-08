@@ -1,0 +1,58 @@
+[
+  {
+    "tool": "tests/docs_drift.py",
+    "direct_names": [
+      "src/core/wb_rule.h"
+    ]
+  },
+  {
+    "tool": "tests/gate.sh",
+    "direct_names": [
+      "src/core/flipctl.cc"
+    ]
+  },
+  {
+    "tool": "tests/r7shadow_noop.py",
+    "direct_names": [
+      "src/core/fliplisten.cc"
+    ]
+  },
+  {
+    "tool": "tests/wb_rule_checks.py",
+    "direct_names": [
+      "src/core/wb_rule.h"
+    ]
+  },
+  {
+    "tool": "tests/wbland_checks.py",
+    "direct_names": [
+      "src/cmd/flip_liveness.inc",
+      "src/core/wb_rule.h"
+    ]
+  },
+  {
+    "tool": "tools/flushfix3_work_reference.py",
+    "direct_names": [
+      "src/core/signal.h"
+    ]
+  },
+  {
+    "tool": "tools/lbosc3_pad.py",
+    "direct_names": [
+      "src/core/lbplanner.cc",
+      "src/core/weighted_lb.h"
+    ]
+  },
+  {
+    "tool": "tools/lbplanner_controls.py",
+    "direct_names": [
+      "src/core/lbplanner.cc"
+    ]
+  },
+  {
+    "tool": "tools/lbplanner_pad.py",
+    "direct_names": [
+      "src/core/lbplanner.cc"
+    ]
+  }
+]

@@ -1,5 +1,6 @@
 // Fused worker lifecycle and FIFO IO instantiations. Main owns the loop arrays
-// until join; each worker initializes, runs and cancels its own rings. Recovery
+// until join; each worker initializes and runs its loops. ShutdownOnIssuer cancels
+// the IO ring on its issuer; the executor ring is torn down after join. Recovery
 // and listener activation are separate stop-aware barriers. rl2s.cc owns the
 // split read-local runtime; reorder.cc contains generated priority counterparts.
 #include "boot_support.h"
@@ -87,7 +88,10 @@ void IoLoop::/* TOMO_TOOL_BIND run_fused */ run_fused() {
 // after recovery. FusedBootGate's mutex publishes initialization and listener
 // readiness; workers release-publish their ready roles. Reported setup failures
 // stop and join workers; an observed shutdown returns 0, other boot failures 1.
-// Waits have no completion deadline here, and allocation exceptions propagate.
+// Waits have no completion deadline. Allocation failures are not recovered: before
+// launch or after join they propagate to main, which does not catch them. While workers
+// run, unwinding can destroy their live state and joinable threads terminate; exceptions
+// escaping a worker also terminate.
 /* TOMO_TOOL_FUNCTION run_fused_server */
 int /* TOMO_TOOL_BIND run_fused_server */ run_fused_server(
     Server& srv, const SnapshotLoadPlan* aof_base_plan,
@@ -106,8 +110,9 @@ int /* TOMO_TOOL_BIND run_fused_server */ run_fused_server(
     // phase advances observe stop, so shutdown during recovery cannot leave
     // main waiting for a readiness arrival from a worker that has exited.
     FusedBootGate boot(nthreads);
-    // Use the server's Unix owner so listener attachment and load balancing
-    // agree on the physical thread that owns the pathname's listening fd.
+    // The Unix owner is placement().ifid_threads().front() with a configured unixsocket,
+    // UINT32_MAX otherwise. Read Server's field so the listener attach point and the
+    // LB/FLIP exclusions on unix_owner_tid_ cannot drift.
     const uint32_t unix_owner = srv.unix_owner_tid();
     auto report_graceful_shutdown = [&] {
         srv.snapshot().cancel_after_join(srv);
@@ -209,8 +214,9 @@ int /* TOMO_TOOL_BIND run_fused_server */ run_fused_server(
                 return;
             }
             // A stop can race listener activation after wait_until_ready().
-            // arrive_ready records that worker as gave_up, so every participant
-            // is accounted for even when it never enters the running phase.
+            // If main already moved the gate to Stopping, arrive_ready records gave_up
+            // and returns false. If only the stop flag is set, wait_until_running records
+            // the give-up instead. Either way main sees every worker report.
             if (!boot.arrive_ready(tid)) return;
             if (!boot.wait_until_running(tid, self.stop_flag())) return;
             self.publish_ready_role(Role::Ifid);

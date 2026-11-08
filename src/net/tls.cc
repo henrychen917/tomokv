@@ -1,3 +1,6 @@
+// OpenSSL context setup, handshake transport selection and per-connection TLS progress.
+// IoLoop/WbEngine serialize each TlsConn; TLS 1.3 keeps OpenSSL on receive for control records.
+// BIO reservations stay valid until the caller commits/abandons input or consumes sent output.
 #include "tls.h"
 
 #include <algorithm>
@@ -178,6 +181,9 @@ static std::string default_cipher_order(SSL_CTX* context, bool tls13) {
 uint64_t tls_ktls_rx_declined_13() { return rx_declined_13.load(std::memory_order_relaxed); }
 uint64_t tls_ktls_tx_rekeys() { return tx_rekeys.load(std::memory_order_relaxed); }
 
+// Build the boot thread's shared TLS context from cfg before worker startup. The returned
+// unique_ptr owns SSL_CTX; it is not published here. Protocol/cipher/certificate/CA failures
+// checked below return nullptr with error and free the context through RAII; allocation can throw.
 std::unique_ptr<TlsContext> TlsContext::create(const Config& cfg, std::string& error) {
     error.clear();
     ERR_clear_error();
@@ -422,7 +428,7 @@ TlsOp TlsConn::handshake() {
         const bool ktls_send = BIO_get_ktls_send(wbio);
         const bool ktls_recv = BIO_get_ktls_recv(rbio);
         const bool tls13 = SSL_version(ssl_) == TLS1_3_VERSION;
-        // NET2: never install RX from CLIENT_TRAFFIC_SECRET_0 or give TLS 1.3 records to raw
+        // Do not install RX from CLIENT_TRAFFIC_SECRET_0 or give TLS 1.3 records to raw
         // recv. OpenSSL must consume KeyUpdate/control records and keep its RX secrets current.
         // If a newer OpenSSL installed RX itself, retain its socket BIO and record layer too.
         if (BIO_flush(wbio) == 1 && !tls13 && ktls_send && ktls_recv) {

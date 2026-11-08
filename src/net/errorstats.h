@@ -1,5 +1,6 @@
-// Redis afterErrorReply accounting. Entirely cold: successful reply builders
-// never consult it. Fixed storage also keeps error reporting usable under OOM.
+// Error-reply accounting shared by reply builders, scripting and INFO/RESETSTAT.
+// Recording uses fixed storage under a mutex, including when allocation has failed.
+// The thread-local probe guard suppresses disposable metadata-parser errors.
 #pragma once
 #include <array>
 #include <cstdint>
@@ -8,6 +9,8 @@
 #include <string>
 
 namespace tomo {
+// Shared counters and bounded prefix storage. Record, INFO and reset callers serialize access
+// with mutex; exhausting the 128 entries disables prefix detail until reset, but not total counts.
 struct ErrorStats {
     struct Entry {
         std::array<char, 31> prefix{};
@@ -25,6 +28,8 @@ inline ErrorStats error_stats;
 // Its real dispatch owns the error. This guard is used only by that cold probe;
 // successful command/reply paths never inspect the suppression state.
 inline thread_local uint32_t error_stats_suppressed = 0;
+// Stack guard for tracking_register_read's disposable argv probe. Nesting is thread-local;
+// construction/destruction must stay paired on that thread and do not publish shared state.
 struct ErrorStatsProbe {
     ErrorStatsProbe() { ++error_stats_suppressed; }
     ~ErrorStatsProbe() { --error_stats_suppressed; }
