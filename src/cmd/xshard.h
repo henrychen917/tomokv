@@ -140,6 +140,7 @@ private:
     uint32_t unresolved_floor_refs_ = 0;
     uint64_t published_snapshot_floor_ = UINT64_MAX;
     PlainReadCuts plain_read_cuts_;
+    uint64_t confirmed_snapshot_cut_ = 0;
 };
 
 struct ScatterDispatch {

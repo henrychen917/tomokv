@@ -466,6 +466,8 @@ void ScatterArenaPool::publish_snapshot_floor(Server& server, uint32_t owner_io)
 
 bool ScatterArenaPool::register_plain_read(Server& server, Op& op, uint64_t& cut,
                                            uint32_t owner_io) {
+    // An intervening scatter may have confirmed a newer cut during this same parse pass.
+    cut = std::max(cut, confirmed_snapshot_cut_);
     if (!plain_read_cuts_.reuse(cut)) {
         try {
             plain_read_cuts_.reserve_one();
@@ -520,6 +522,7 @@ bool ScatterArenaPool::register_snapshot(Server& server, SnapshotCut* state, uin
     // window, adopt the confirmed (newer) cut; cleanup can only have retained its winner. If the
     // sequence is unchanged, promotion of that winner is also a valid representation of our cut.
     const uint64_t confirmed = server.atomic_snapshot();
+    confirmed_snapshot_cut_ = confirmed;
     if (confirmed != state->snapshot) {
         const uint64_t old_cut = cut;
         state->snapshot = confirmed;
