@@ -457,43 +457,67 @@ SnapshotFloor active_snapshot_floor(const std::vector<SnapshotCut*>& unresolved_
 }  // namespace
 
 void ScatterArenaPool::publish_snapshot_floor(Server& server, uint32_t owner_io) {
-    const uint64_t floor = std::min(unresolved_snapshot_floor_, plain_read_cuts_.floor());
+    const uint64_t floor = std::min(unresolved_snapshot_floor_, holds_.floor());
     if (floor != published_snapshot_floor_) {
         published_snapshot_floor_ = floor;
         server.publish_atomic_read_floor(owner_io, floor);
     }
 }
 
-bool ScatterArenaPool::register_plain_read(Server& server, Op& op, uint64_t& cut,
-                                           uint32_t owner_io) {
-    // An intervening scatter may have confirmed a newer cut during this same parse pass.
+uint64_t ScatterArenaPool::plain_hold_begin(Server& server, PlainReadHold& hold, uint64_t cut,
+                                           uint16_t next_id, uint8_t& bucket, uint32_t owner_io) {
     cut = std::max(cut, confirmed_snapshot_cut_);
-    if (!plain_read_cuts_.reuse(cut)) {
-        try {
-            plain_read_cuts_.reserve_one();
-        } catch (const std::bad_alloc&) {
-            return false;
-        }
-        plain_read_cuts_.add(cut);
+    if (hold.b_slot != PlainReadHold::kNone) {
+        bucket = 2;
+        return cut;
+    }
+    bool created = false;
+    const uint16_t slot = holds_.acquire(cut, created);
+    if (created) {
         publish_snapshot_floor(server, owner_io);
         // A cleanup that missed publication sampled its cutoff before this confirmation.
-        // Keep all older references while advancing only this read and the rest of its pass.
         const uint64_t confirmed = server.atomic_snapshot();
         if (confirmed != cut) {
-            plain_read_cuts_.release(static_cast<uint32_t>(cut));
-            plain_read_cuts_.add(confirmed);
+            holds_.raise_newest(confirmed);
             cut = confirmed;
             publish_snapshot_floor(server, owner_io);
         }
     }
-    op.set_read_cut(cut);
-    op.read_cut_registered_ = 1;
-    return true;
+    if (!hold.live()) {
+        hold.a_slot = slot;
+        hold.a_end = next_id;
+        bucket = 1;
+    } else {
+        hold.b_slot = slot;
+        hold.b_end = next_id;
+        bucket = 2;
+    }
+    return cut;
 }
 
-void ScatterArenaPool::unregister_plain_read(Server& server, Op& op, uint32_t owner_io) {
-    plain_read_cuts_.release(op.read_cut_lo);
-    op.read_cut_registered_ = 0;
+void ScatterArenaPool::plain_hold_retire(Server& server, PlainReadHold& hold, uint64_t flush,
+                                        bool quiesced, uint32_t owner_io) {
+    const uint16_t frontier = static_cast<uint16_t>(flush);
+    const auto done = [&](uint16_t end) {
+        return quiesced || static_cast<int16_t>(end - frontier) <= 0;
+    };
+    if (!done(hold.a_end)) return;
+    holds_.release(hold.a_slot);
+    hold.a_slot = hold.b_slot;
+    hold.a_end = hold.b_end;
+    hold.b_slot = PlainReadHold::kNone;
+    if (hold.live() && done(hold.a_end)) {
+        holds_.release(hold.a_slot);
+        hold.a_slot = PlainReadHold::kNone;
+    }
+    publish_snapshot_floor(server, owner_io);
+}
+
+void ScatterArenaPool::plain_hold_discard(Server& server, PlainReadHold& hold, uint32_t owner_io) {
+    if (!hold.live()) return;
+    holds_.release(hold.a_slot);
+    if (hold.b_slot != PlainReadHold::kNone) holds_.release(hold.b_slot);
+    hold.a_slot = hold.b_slot = PlainReadHold::kNone;
     publish_snapshot_floor(server, owner_io);
 }
 

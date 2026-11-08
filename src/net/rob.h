@@ -62,6 +62,18 @@ namespace tomo {
 // its unreachability proof is written against. net/conn.h re-exports it by including this file.
 inline constexpr uint32_t kRobWindow = 64;  // max in-flight ops per connection
 
+// IO-owned buckets interpreted by ScatterArenaPool. Release and migration require
+// both empty; their exclusive ends name the last covered publications, not barriers.
+struct PlainReadHold {
+    static constexpr uint16_t kNone = UINT16_MAX;
+    uint16_t a_slot = kNone;
+    uint16_t a_end = 0;
+    uint16_t b_slot = kNone;
+    uint16_t b_end = 0;
+    bool live() const { return a_slot != kNone; }
+};
+static_assert(sizeof(PlainReadHold) == 8);
+
 // Counters embedded in ThreadCtx's ReadLocalStats and borrowed by Rob. The connection IO owner
 // updates them when arming, allocating a sidecar or committing a write record; adopt/migration
 // installs the owning thread's pointer. Unarmed write streams do not commit ring records, so the
@@ -194,6 +206,7 @@ public:
     uint32_t in_flight() const { return static_cast<uint32_t>(dispatch_id() - flush_id()); }
     bool full() const { return in_flight() >= Capacity; }
     bool quiesced() const { return dispatch_id() == flush_id(); }
+    PlainReadHold& plain_hold() { return plain_hold_; }
 
     // Claim the next slot to fill. Null when the window is full — the caller must stop parsing and
     // let the sender drain. That backpressure is what bounds memory under a client that pipelines
@@ -718,6 +731,7 @@ public:
     }
 
 private:
+    friend struct CoreConcurrencyTest;
     static constexpr uint32_t kChunkOps = 8;
     static constexpr uint32_t kChunks = Capacity / kChunkOps;
     static_assert(Capacity % kChunkOps == 0);
@@ -996,7 +1010,7 @@ private:
     uint32_t read_local_write_force_ = 0;
     // ARM-ON-DEMAND, and the MGET latest-read fence, in the same trailing padding. All four are
     // parser-owned, all four are read or written by the frame that has just stored dispatch_, and
-    // together they fill this line exactly to its 64-byte boundary -- so the 192-byte Rob lock
+    // together they leave eight bytes for plain_hold_ at the line's tail. The 192-byte Rob lock
     // below covers the complete line without another per-connection allocation.
     uint32_t read_local_arm_state_ = kReadLocalUnarmed;
     // While unarmed: the newest write this connection has published, and the only thing recorded
@@ -1005,6 +1019,7 @@ private:
     uint64_t read_local_unarmed_write_id_ = UINT64_MAX;
     uint64_t local_mget_fence_id_ = UINT64_MAX;
     ReadLocalArmStats* read_local_arm_stats_ = nullptr;
+    PlainReadHold plain_hold_;  // the dispatch line's existing eight-byte tail
     alignas(64) std::atomic<uint64_t> flush_{0};
     // Venue-pending and owner-tail bitmaps distinguish work that a write must still demote from
     // work already sequenced on ordinary owner queues. The sidecar pointer's low alignment bit

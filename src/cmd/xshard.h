@@ -1,6 +1,7 @@
 // xshard.h -- arena-backed scatter/gather lowering for multi-key commands.
 #pragma once
-#include "../core/plain_read_cuts.h"
+#include "../core/plain_read_holds.h"
+#include "../net/rob.h"
 
 #include <atomic>
 #include <cstddef>
@@ -123,8 +124,17 @@ public:
     // it back rather than reusing the value you asked for.
     bool register_snapshot(Server& server, SnapshotCut* cut, uint32_t owner_io);
     void unregister_snapshot(Server& server, SnapshotCut* cut, uint32_t owner_io);
-    bool register_plain_read(Server& server, Op& op, uint64_t& cut, uint32_t owner_io);
-    void unregister_plain_read(Server& server, Op& op, uint32_t owner_io);
+    uint64_t plain_hold_begin(Server& server, PlainReadHold& hold, uint64_t cut,
+                              uint16_t next_id, uint8_t& bucket, uint32_t owner_io);
+    static void plain_hold_cover(PlainReadHold& hold, uint8_t bucket, uint16_t end) {
+        if (!bucket) return;
+        uint16_t& previous = bucket == 1 ? hold.a_end : hold.b_end;
+        if (static_cast<int16_t>(end - previous) > 0) previous = end;
+    }
+    void plain_hold_retire(Server& server, PlainReadHold& hold, uint64_t flush,
+                           bool quiesced, uint32_t owner_io);
+    void plain_hold_discard(Server& server, PlainReadHold& hold, uint32_t owner_io);
+    uint64_t confirmed_snapshot_cut() const { return confirmed_snapshot_cut_; }
 
 private:
     void publish_snapshot_floor(Server& server, uint32_t owner_io);
@@ -139,7 +149,7 @@ private:
     uint64_t unresolved_snapshot_floor_ = UINT64_MAX;
     uint32_t unresolved_floor_refs_ = 0;
     uint64_t published_snapshot_floor_ = UINT64_MAX;
-    PlainReadCuts plain_read_cuts_;
+    PlainReadHolds holds_;
     uint64_t confirmed_snapshot_cut_ = 0;
 };
 

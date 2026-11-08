@@ -129,8 +129,6 @@ public:
             this,
             [](void* ctx, Client& client, Op& op) {
                 auto* loop = static_cast<IoLoop*>(ctx);
-                if (op.read_cut_registered_)
-                    loop->scatter_pool_.unregister_plain_read(*loop->srv_, op, loop->self_->id());
                 if (__builtin_expect(loop->climon_local_trackers_ != 0, false))
                     loop->tracking_retire_read(client, op);
                 const bool was_blocked = client.blocked();
@@ -176,6 +174,12 @@ public:
                 return static_cast<IoLoop*>(ctx)->client_obuf_check(&client, true);
             },
             &cached_now_s_, &self_->sig());
+        wb_.bind_plain_hold([](void* ctx, Client& client) {
+            auto* loop = static_cast<IoLoop*>(ctx);
+            auto& rob = client.rob();
+            loop->scatter_pool_.plain_hold_retire(*loop->srv_, rob.plain_hold(), rob.flush_id(),
+                                                  rob.quiesced(), loop->self_->id());
+        });
         wb_.set_cold_send_classification(false);  // O1 submits at the ordinary IO boundary.
         initialized_ = true;
         return dormant || activate();
@@ -1857,6 +1861,7 @@ private:
     bool commit_client_transfer(Client* client) {
         ClientMigration* migration = find_client_migration(client);
         if (!migration || !migration->catalog || client->recv_armed()) return false;
+        if (client->rob().plain_hold().live()) std::abort();
         const uint32_t destination = migration->destination;
         const bool flip_transfer = migration->hold_for_commit;
         const bool session_transfer = flip_transfer && client->multi_session();
@@ -1966,6 +1971,7 @@ private:
         auto take = [&](const ClientTransfer& transfer) {
             Client* client = transfer.client;
             if (!client || client->ifid_thread() != self_->id()) std::abort();
+            if (client->rob().plain_hold().live()) std::abort();
             if (!command_client_migration_install(transfer.catalog)) std::abort();
             if (!client_routing_install(transfer.routing, client, transfer.source)) std::abort();
             try {
@@ -3690,6 +3696,9 @@ private:
         // EXEC and scripts remain atomic at --atomic 0, including groups admitted after this
         // pass begins. Their future versions must be excluded even if tracking is idle now.
         uint64_t pass_read_cut = srv_->atomic_snapshot();
+        bool pass_hold = false;
+        uint8_t pass_hold_bucket = 0;
+        uint64_t pass_hold_end = 0;
         uint64_t batch_start_ops = 0;
         [[maybe_unused]] bool read_local_batch = false;
         // LANE ADMISSION: how many lane slots (pending local reads) this connection may
@@ -4280,8 +4289,17 @@ private:
             // it. They need no cut anyway -- a blocking command is a whole-connection barrier
             // (it waits to be ROB head and stops the parse pass), so nothing younger on this
             // connection is even prepared until it has finished.
-            if (!(spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite | CmdFlags::Blocking)))
+            if (!(spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite | CmdFlags::Blocking))) {
+                if (__builtin_expect(!pass_hold, false) && rob.in_flight() != 0) {
+                    auto& hold = rob.plain_hold();
+                    pass_read_cut = scatter_pool_.plain_hold_begin(
+                        *srv_, hold, pass_read_cut, static_cast<uint16_t>(rob.dispatch_id()),
+                        pass_hold_bucket, self_id);
+                    pass_hold_end = pass_hold_bucket == 1 ? hold.a_end : hold.b_end;
+                    pass_hold = true;
+                }
                 op->set_read_cut(pass_read_cut);
+            }
 
             if (spec->flags & CmdFlags::Blocking) {
                 // XREAD is registered as blocking so the ordinary GET/SET branch remains
@@ -4371,6 +4389,7 @@ private:
                 ScatterDispatch scatter_dispatch;
                 const ScatterPrepare scatter_prepared = xshard_prepare(
                     *srv_, *op, scatter_pool_, self_id, c->id(), scatter_dispatch, false, c);
+                pass_read_cut = std::max(pass_read_cut, scatter_pool_.confirmed_snapshot_cut());
                 if (scatter_prepared == ScatterPrepare::Error) {
                     conn.advance_parse(consumed);
                     finish_prebuilt(c, *op);
@@ -4438,6 +4457,7 @@ private:
                         const uint64_t op_id = rob.dispatch_id();
                         op->attach_scatter_state(scatter_dispatch.state);
                         rob.publish();
+                        pass_hold_end = rob.dispatch_id();
                         for (uint32_t i = 0; i < scatter_dispatch.nshards; i++) {
                             const int32_t sid = xshard_dispatch_shard(scatter_dispatch, i);
                             const uint32_t tid = srv_->worker_of_shard(sid);
@@ -4507,13 +4527,6 @@ private:
             }
 
         ordinary_shard_ready:
-            if (op->has_read_cut() && rob.in_flight() != 0 &&
-                !scatter_pool_.register_plain_read(*srv_, *op, pass_read_cut, self_id)) {
-                conn.advance_parse(consumed);
-                reply_err(op->sink(), "ERR out of memory");
-                finish_prebuilt(c, *op);
-                continue;
-            }
             if constexpr (Fused) {
                 if (read_local_enabled && read_local_commit_at_ordinary) {
                     // prepare() reserved the selected reads and this operation before any stateful
@@ -4548,6 +4561,7 @@ private:
                             rob.mark_current_read_local_hash(op_id, op->hash);
                         if (read_local_mget_candidate) rob.arm_current_local_mget_fence();
                         rob.publish();
+                        pass_hold_end = rob.dispatch_id();
                         // Room was proved by local_read_lane_has_room(read_local_lane_demand)
                         // above for this very op (run extension at the top of the frame, run head
                         // in the gate chain); nothing between there and here consumes lane room.
@@ -4602,14 +4616,13 @@ private:
             }
             if (!posted && !post_task_quiet(worker, t)) {
                 rob.unpublish();  // a refused push must leave NO trace -- including in the ROB
-                if (op->read_cut_registered_)
-                    scatter_pool_.unregister_plain_read(*srv_, *op, self_id);
                 if constexpr (Fused && !SplitLocal) l4prebuild_discard_set(*op);
                 // A refused push leaves both the ROB publication frontier and parse cursor untouched.
                 // Consuming bytes without queuing an operation would lose its reply. Leave this frame
                 // for a later parse pass after the owner inbox has room.
                 break;
             }
+            pass_hold_end = rob.dispatch_id();
 #ifdef TOMO_CORE_CONCURRENCY_TEST
             if (test_owner_publication_) test_owner_publication_(t);
 #endif
@@ -4630,6 +4643,9 @@ private:
         }
         {
             // Phase 8: notify each touched owner once and finish the pass fingerprint.
+            if (pass_hold)
+                ScatterArenaPool::plain_hold_cover(rob.plain_hold(), pass_hold_bucket,
+                                                   static_cast<uint16_t>(pass_hold_end));
             // One notify per worker per parse pass, not per op. The pushes above are already
             // visible in the queues; this publishes the "look here" bit and pays the wake decision
             // once.
@@ -5607,6 +5623,7 @@ private:
             mark_active(c);
             return;
         }
+        if (c->rob().plain_hold().live()) std::abort();
         client_work_fences_.erase(c);
         climon_untrack_client(c);
         command_client_disconnected(c);

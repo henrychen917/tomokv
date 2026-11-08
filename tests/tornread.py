@@ -10,6 +10,7 @@ READERS  Loop over key groups {a, b}. One burst issues the pair GET a, GET b (th
            pipe   all pairs of the burst in ONE write (the pairs share one IO parse pass)
            split  per pair, two writes back to back without waiting for the first reply
            seq    strict round trips (send GET, read the reply, send the next GET); the control
+           getmget GET a; MGET b c, with a outside both MGET owners and b/c on distinct shards
 NOISE    --lag-noise N   processes keep the owner of the "a" keys busy (LPOS over a long list,
                          or pipelined SETs), so a pipelined GET a tends to execute after GET b.
          --mget-noise N  processes loop MGET over every group key. MGET registers a snapshot,
@@ -196,7 +197,6 @@ def writer_proc(slot, wid, cfg, group, stop, counters, events):
     conn = None
     try:
         conn = Conn(cfg["host"], cfg["port"])
-        a, b = group
         wtag = b"w%d" % wid
         seq = 0
         depth = cfg["writer_pipeline"]
@@ -207,16 +207,16 @@ def writer_proc(slot, wid, cfg, group, stop, counters, events):
                 seq += 1
                 v = b"%s:%d" % (wtag, seq)
                 if exec_kind:
-                    parts.append(enc(b"MULTI") + enc(b"SET", a, v) + enc(b"SET", b, v) +
+                    parts.append(enc(b"MULTI") + b"".join(enc(b"SET", key, v) for key in group) +
                                  enc(b"EXEC"))
                 else:
-                    parts.append(enc(b"MSET", a, v, b, v))
+                    parts.append(enc(b"MSET", *[item for key in group for item in (key, v)]))
             conn.send(b"".join(parts))
             for _ in range(depth):
                 if exec_kind:
-                    r = [conn.reply() for _ in range(4)]
-                    ok = (r[0] == b"OK" and r[1] == b"QUEUED" and r[2] == b"QUEUED" and
-                          isinstance(r[3], list) and len(r[3]) == 2)
+                    r = [conn.reply() for _ in range(len(group) + 2)]
+                    ok = (r[0] == b"OK" and all(item == b"QUEUED" for item in r[1:-1]) and
+                          r[-1] == [b"OK"] * len(group))
                 else:
                     r = conn.reply()
                     ok = r == b"OK"
@@ -249,7 +249,7 @@ def reader_proc(slot, rid, cfg, groups, stop, counters, events):
         t0 = cfg["t0"]
         while not stop.is_set():
             gi = burst % len(groups)
-            a, b = groups[gi]
+            a, b = groups[gi][:2]
             # Alternate the order per full sweep over the groups, so every group is read both
             # a-first and b-first (the a and b keys sit on two different owners).
             if order_cfg == "ab" or (order_cfg == "alt" and (burst // len(groups)) % 2 == 0):
@@ -257,7 +257,35 @@ def reader_proc(slot, rid, cfg, groups, stop, counters, events):
             else:
                 first, second = b, a
             pair = enc(b"GET", first) + enc(b"GET", second)
-            if mode == "pipe":
+            stride = 2
+            if mode == "getmget":
+                first, second = a, b
+                third = groups[gi][2]
+                g1, g2 = enc(b"GET", a), enc(b"MGET", b, third)
+                values = []
+                if not cfg["getmget_sequential"]:
+                    conn.send((g1 + g2) * depth)
+                for _ in range(depth):
+                    if cfg["getmget_sequential"]:
+                        conn.send(g1)
+                    values.append(conn.reply())
+                    if cfg["getmget_sequential"]:
+                        conn.send(g2)
+                    mget = conn.reply()
+                    if not isinstance(mget, list) or len(mget) != 2:
+                        raise AssertionError(("GET/MGET reply shape", mget))
+                    if mget[0] != mget[1]:
+                        _bump(counters, slot, F_VIOL)
+                        _bump(counters, slot, F_TORN)
+                        if reported < 20:
+                            reported += 1
+                            events.put(("violation", {
+                                "reader": rid, "mode": mode, "kind": "TORN-MGET",
+                                "replies": [repr(value) for value in mget],
+                            }))
+                    values.extend(mget)
+                stride = 3
+            elif mode == "pipe":
                 conn.send(pair * depth)
                 values = [conn.reply() for _ in range(2 * depth)]
             elif mode == "split":
@@ -292,7 +320,7 @@ def reader_proc(slot, rid, cfg, groups, stop, counters, events):
                     _bump(counters, slot, F_ERR)
                     events.put(("error", "reader %d %s %r" % (rid, why, raw)))
                     continue
-                torn = (idx % 2) == 1
+                torn = (idx % stride) != 0
                 _bump(counters, slot, F_VIOL)
                 if torn:
                     _bump(counters, slot, F_TORN)
@@ -307,7 +335,8 @@ def reader_proc(slot, rid, cfg, groups, stop, counters, events):
                         "kind": "TORN-PAIR" if torn else "SESSION-BACKWARDS",
                         "reason": why,
                         "index": idx,
-                        "order": [first.decode(), second.decode()],
+                        "order": ([key.decode() for key in groups[gi]] if mode == "getmget"
+                                  else [first.decode(), second.decode()]),
                         "replies": [v.decode() if isinstance(v, bytes) else v for v in values],
                         "tracker_before_burst": before,
                     }))
@@ -343,8 +372,10 @@ def mget_noise_proc(slot, nid, cfg, groups, stop, counters, events):
                     stop.set()
                     return
                 for gi in range(len(groups)):
-                    va, vb = values[2 * gi], values[2 * gi + 1]
-                    torn = va != vb
+                    width = len(groups[gi])
+                    row = values[width * gi:width * (gi + 1)]
+                    va, vb = row[0], row[-1]
+                    torn = any(value != va for value in row)
                     w1 = trackers[gi].observe(va)
                     w2 = trackers[gi].observe(vb)
                     bad_value = [w for w in (w1, w2)
@@ -458,6 +489,9 @@ def choose_geometry(admin, args, prefix):
     if rows is None:
         groups = [(("tt:%s:g%d:a" % (prefix, g)).encode(), ("tt:%s:g%d:b" % (prefix, g)).encode())
                   for g in range(args.groups)]
+        if args.read_mode == "getmget":
+            groups = [group + (("tt:%s:g%d:c" % (prefix, g)).encode(),)
+                      for g, group in enumerate(groups)]
         noise = {"list": ("tt:%s:noise:list" % prefix).encode(),
                  "keys": [("tt:%s:noise:%d" % (prefix, i)).encode() for i in range(need_noise)]}
         return groups, noise, {"proven": False, "note": "DEBUG SHARDS unavailable; owners unproven"}
@@ -477,14 +511,26 @@ def choose_geometry(admin, args, prefix):
     noise_list = by_owner[x][args.groups]
     noise_keys = by_owner[x][args.groups + 1:args.groups + 1 + need_noise]
     groups = list(zip(a_keys, b_keys))
+    if args.read_mode == "getmget":
+        groups = []
+        used = set(b_keys)
+        for a, b in zip(a_keys, b_keys):
+            c = next((key for key in by_owner[y]
+                      if key not in used and placement[key][0] != placement[b][0]), None)
+            if c is None:
+                raise SystemExit("geometry: MGET needs two distinct shards outside GET's owner")
+            used.add(c)
+            groups.append((a, b, c))
     geo = {
         "proven": True,
         "owner_a": x,
         "owner_b": y,
         "owners_seen": sorted(by_owner),
-        "groups": [{"a": a.decode(), "a_shard": placement[a][0], "a_owner": placement[a][1],
-                    "b": b.decode(), "b_shard": placement[b][0], "b_owner": placement[b][1]}
-                   for a, b in groups],
+        "groups": [{field: value for letter, key in zip("abc", group)
+                    for field, value in ((letter, key.decode()),
+                                         (letter + "_shard", placement[key][0]),
+                                         (letter + "_owner", placement[key][1]))}
+                   for group in groups],
         "noise_list": noise_list.decode(),
     }
     return groups, {"list": noise_list, "keys": noise_keys}, geo
@@ -497,9 +543,12 @@ def recheck_geometry(admin, geo, groups):
     rows = debug_shards(admin, keys)
     if rows is None:
         return False
-    for i, (a, b) in enumerate(groups):
-        if rows[2 * i][1] != geo["owner_a"] or rows[2 * i + 1][1] != geo["owner_b"]:
-            return False
+    offset = 0
+    for group, proof in zip(groups, geo["groups"]):
+        for letter, _ in zip("abc", group):
+            if rows[offset] != (proof[letter + "_shard"], proof[letter + "_owner"]):
+                return False
+            offset += 1
     return True
 
 
@@ -518,7 +567,9 @@ def main():
     p.add_argument("--writers", type=int, default=2)
     p.add_argument("--groups", type=int, default=2)
     p.add_argument("--readers", type=int, default=6)
-    p.add_argument("--read-mode", choices=("pipe", "split", "seq"), default="pipe")
+    p.add_argument("--read-mode", choices=("pipe", "split", "seq", "getmget"), default="pipe")
+    p.add_argument("--getmget-sequential", action="store_true",
+                   help="strict round-trip control for GET followed by MGET")
     p.add_argument("--depth", type=int, default=8, help="GET pairs per burst")
     p.add_argument("--order", choices=("ab", "ba", "alt"), default="alt")
     p.add_argument("--writer-kind", choices=("mset", "exec"), default="mset")
@@ -568,8 +619,8 @@ def main():
     groups, noise, geo = choose_geometry(admin, args, prefix)
 
     # Seed every group atomically so readers never see a missing key.
-    for a, b in groups:
-        r = admin.call(b"MSET", a, b"init:0", b, b"init:0")
+    for group in groups:
+        r = admin.call(b"MSET", *[item for key in group for item in (key, b"init:0")])
         if r != b"OK":
             print("SETUP FAIL: seed MSET replied %r" % (r,))
             return 2
@@ -627,6 +678,9 @@ def main():
         for g in geo["groups"]:
             print("      %s (shard %d, owner %d)   %s (shard %d, owner %d)" %
                   (g["a"], g["a_shard"], g["a_owner"], g["b"], g["b_shard"], g["b_owner"]))
+            if "c" in g:
+                print("      MGET second key: %s (shard %d, owner %d)" %
+                      (g["c"], g["c_shard"], g["c_owner"]))
     else:
         print("    geometry: %s" % geo.get("note"))
 
@@ -634,6 +688,7 @@ def main():
     cfg = {
         "host": args.host, "port": args.port, "read_mode": args.read_mode, "depth": args.depth,
         "order": args.order, "writer_kind": args.writer_kind,
+        "getmget_sequential": args.getmget_sequential,
         "writer_pipeline": args.writer_pipeline, "mget_pipeline": args.mget_pipeline,
         "lag_pipeline": args.lag_pipeline, "t0": t0,
     }
@@ -765,6 +820,7 @@ def main():
         "effective_configuration": effective,
         "port": args.port, "elapsed_s": round(elapsed, 1), "stop_reason": stop_reason,
         "read_mode": args.read_mode, "depth": args.depth, "order": args.order,
+        "getmget_sequential": args.getmget_sequential,
         "readers": args.readers, "writers": args.writers, "writer_kind": args.writer_kind,
         "groups": len(groups), "lag_noise": args.lag_noise, "lag_kind": noise["kind"],
         "mget_noise": args.mget_noise, "read_delay_us": args.read_delay_us,

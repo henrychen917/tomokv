@@ -74,8 +74,6 @@ void IoLoop::shutdown_clients_after_join() {
         &ring_, this, release_joined, this,
         [](void* context, Client& client, Op& op) {
             auto* loop = static_cast<IoLoop*>(context);
-            if (op.read_cut_registered_)
-                loop->scatter_pool_.unregister_plain_read(*loop->srv_, op, loop->self_->id());
             NotifyBatch* notifications = nullptr;
             if (op.has_scatter_state()) {
                 notifications = notify_take_batch(op);
@@ -98,6 +96,12 @@ void IoLoop::shutdown_clients_after_join() {
             notify_discard_batch(notifications);
         },
         &no_limits, nullptr, [](void*, Client&) { return false; }, &cached_now_s_, &self_->sig());
+    wb_.bind_plain_hold([](void* context, Client& client) {
+        auto* loop = static_cast<IoLoop*>(context);
+        auto& rob = client.rob();
+        loop->scatter_pool_.plain_hold_retire(*loop->srv_, rob.plain_hold(), rob.flush_id(),
+                                              rob.quiesced(), loop->self_->id());
+    });
 
     // Phase 2: consume cancellation/send completions and close unclaimed accepts.
     // The issuer has cancelled network requests after draining persistence. Its
@@ -193,8 +197,6 @@ void IoLoop::shutdown_clients_after_join() {
         if (!c->dead()) {
             for (uint64_t id = c->rob().flush_id(); id != c->rob().dispatch_id(); ++id) {
                 Op& op = c->rob().at(id);
-                if (op.read_cut_registered_)
-                    scatter_pool_.unregister_plain_read(*srv_, op, self_->id());
                 if (op.has_blocking_state())
                     blocking_retire(*srv_, *c, op, *self_);
                 else if (op.has_multi_state()) {
@@ -218,6 +220,7 @@ void IoLoop::shutdown_clients_after_join() {
             ::close(c->fd());
             srv_->client_released();
         }
+        scatter_pool_.plain_hold_discard(*srv_, c->rob().plain_hold(), self_->id());
         release_tls(c);
         latency_tracking_forget_client(*c);
         delete c;
