@@ -287,8 +287,8 @@ candidate must not erase an active generation (write-ring unit case 8).
 
 ## 2026-11-08 — interface-first candidate exclusions
 
-`Client` has 359 in-class code lines, `WbEngine` 592 and `Rob` 485 by the lane's
-lizard inventory; `Ring` has 236 and does not reach the approximately 300-line
+`Client` has 347 in-class code lines, `WbEngine` 592 and `Rob` 485 by the lane's
+lizard inventory; `Ring` has 242 and does not reach the approximately 300-line
 threshold. Client::migration_protocol_idle is a file-path patch site in
 `tools/archive/tools/flipfix6_diag.py`. WbEngine is read/patched by
 `tests/wbland_checks.py` and inspected by `tests/racefix.py`; Rob is explicitly
