@@ -1,65 +1,38 @@
-// flip_policy.h -- the FLIP controller's placement POLICY: when a role move is worth making.
+// Arithmetic for FLIP demand, placement, verification and transfer-cost decisions.
+// Included by flipctl.h; these helpers have no Server dependency. FlipController supplies
+// serialized
+// state and one demand observation per stabilized reading; tests can supply independent
+// windows.
+// The helpers do not publish shared state or perform ownership transfers.
 //
-// Pure arithmetic, no Server, so tests/flipctl_unit.cc can run it against scripted numbers. The
-// controller (flipctl.cc) feeds it one demand observation per stabilized throughput reading and
-// asks one question: is there a split whose PROJECTED gain over the live split clears the
-// evidence bar? Three rules, one invariant -- a move must be able to pay for itself:
+// Demand windows use Welford mean/variance. The chooser tests each split under work
+// conservation:
+// R(s) ~ min(s/f, (N-s)/(1-f)), with f the IO share of wall-minus-idle work and SMT pairs
+// counted as
+// units. It moves when the chosen target's pessimistic gain clears the required bar, holds when
+// no
+// split's optimistic gain does, and samples otherwise. Current placement keeps serving during
+// this
+// observation; changing sample density is not part of the decision.
 //
-//   1. WINDOW + VARIANCE. One demand draw is not an estimate. Observations accumulate (Welford)
-//      and every projection is evaluated across the window's own confidence interval; the
-//      decision is SEQUENTIAL: move as soon as the pessimistic end of the interval clears the bar,
-//      hold as soon as the optimistic end cannot, keep sampling in between. Accuracy comes from
-//      the window, never from a denser sample (user-lb-never-inhibits-hot-path). The server keeps
-//      serving at its current split for as long as that takes; sampling costs no throughput.
+// The controller scales its learned throughput band by an outcome margin. Verification compares
+// origin and target readings at two standard errors; a miss returns to the origin and increases
+// the
+// margin, while a delivered move reduces it. The caller bounds the required gain at 100%.
 //
-//   2. COST GATE, in throughput space. The old jump rounded N * io_frac to a thread count and
-//      overshot it. Measured on 8-key MGET/MSET at 5:3 (8 threads) with the estimator then in
-//      use (io 82%): round(8 * 0.82) = 7, overshoot to 8 clamped 7 -- a split this very model
-//      rates at 0.69x the origin (ex, 1 of 8 threads, carries 18% of the work and saturates
-//      first). The gate evaluates every split under work conservation,
-//          R(s) ~ min(s / f, (N - s) / (1 - f)),   f = io share of busy time,
-//      picks the argmax, and moves only if its gain over the live split -- at the PESSIMISTIC end
-//      of the window's interval -- exceeds the required gain. The required gain is the
-//      controller's own throughput noise band (a gain the seek could not verify cannot pay for
-//      the flip it costs) scaled by the outcome margin below. No machine constants: N is the live
-//      pool, f and its interval are measured, the band is learned.
+// The cost gate uses commands over the demonstrated stationary horizon: benefit = g_low * R0 *
+// max(0, T_stat-T_black); cost = margin * [C_xfer * (1+P_miss) + P_miss * R0 * T_black]. Gains
+// are
+// calibrated before this call. T_black includes flip, settle and planned readings. C_xfer is
+// the
+// observed commands lost per transferred client times predicted transfers. Unknown transfer
+// cost
+// starts at zero so the first flip can measure it. P_miss uses Laplace's rule.
 //
-//   3. OUTCOME LOOP. After the jump the controller measures the target against the origin's
-//      stabilized rate; not better by the band => straight back to the origin, and the margin the
-//      model must clear next time doubles (a projection that did not deliver was wrong about
-//      the WORKLOAD, and more samples of a biased estimator only make it more confidently wrong
-//      -- the bar has to rise, not the window). A move that delivered halves the margin back
-//      toward one band. The margin is capped where required gain would exceed 100%: past that
-//      the model could never fire again on any workload, which is a silent `--flip-auto 0`.
-//
-// REVISION 2026-09-06 (the actuator redesign). The three rules above were the placement policy's
-// first cut; this revision gives each of them the quantity it was missing, in units:
-//
-//   SIGNAL. Role demand is measured as WORK = wall - idle per thread (flip_role_work), not as the
-//      loops' busy_ns. In that 2026-09-06 measurement the io loop closed its busy span
-//      before ring_.submit_and_reap(), so the
-//      io_uring_enter syscall -- the kernel moving the bytes, which is io work -- was booked as
-//      neither busy nor idle: 23.5 s of a 40 s window on one single-key io thread. The busy share
-//      read io = 0.32 on a workload whose work share is 0.51, and the model moved 2:2 -> 1:3
-//      (measured -52%) and came back. IO tenure accounting now includes that gap; the model remains wall-minus-idle.
-//      The inherited measurement above is not a result of the accounting cleanup.
-//
-//   COST GATE, in commands over the horizon the workload has demonstrated (flip_cost_gate). A move
-//      must pay for itself: kappa g_low R0 (T_stat - T_black) > margin [C_xfer (1 + P_miss) +
-//      P_miss kappa g_mean R0 T_black]. T_stat is how long the workload has held still, T_black
-//      how long the controller is blind after the flip (flip + settle + planned readings), C_xfer
-//      = measured commands lost per transferred client x predicted transfers, P_miss the model's
-//      own miss rate (Laplace). First flip: the transfer cost is unknown and stays zero -- that
-//      flip is the measurement.
-//
-//   WINDOW FROM VARIANCE (flip_verify_window / flip_verify_threshold). The post-move window is as
-//      long as the origin's own noise says it has to be to resolve the predicted gain at two
-//      standard errors, and no longer; verification is sequential (accept early, reject early).
-//
-//   OUTCOME LOOP (FlipCostModel::record_outcome). Every move is a hypothesis with a predicted
-//      delta. A miss reverts and doubles the margin (sign); kappa = (sum delivered + gbar) /
-//      (sum predicted + gbar) learns the model's MAGNITUDE bias with the credence of one delivered
-//      move of average size as its only prior, and never exceeds one.
+// FlipCostModel learns magnitude bias from raw predicted and delivered gains. Its kappa has the
+// credence of one average-size delivered move and is clamped to [0,1]; a non-positive
+// prediction
+// counts toward miss frequency but supplies no calibration evidence.
 
 #pragma once
 
@@ -199,7 +172,7 @@ inline FlipPlacementChoice flip_choose_split(uint32_t now_units, uint32_t total_
     return choice;
 }
 
-// ---- REVISION 2026-09-06: signal, cost gate, verification window, outcome ---------------------
+// Work accounting, transfer cost, verification windows and outcomes.
 
 // Work a thread did over a window: everything it did not book as idle. `wall_ns` is the window the
 // controller's own clock measured; `idle_ns` the loop's booked idle over that window.
@@ -243,24 +216,17 @@ struct FlipRateWindow {
     double bracket_band() const { return flip_baseline_band(lo, hi); }
 };
 
-// The load's own variability over the LONGEST window the controller has, DETRENDED: an
-// exponentially weighted variance of the SECOND relative difference of every per-tick rate sample,
-//     rel2 = (r_t - 2 r_{t-1} + r_{t-2}) / r_{t-1}.
-// Every other band in the controller is learned from stabilized PAIRS -- readings the controller
-// selected because two adjacent sub-windows agreed -- and that selection is biased quiet: two
-// readings taken inside one phase of a driver's six-second rate triangle read sigma = 0.05% on a
-// load that swings +-20%, the target's +24% (the swing, not the flip) cleared every band, and the
-// boot maneuver anchored on a rail; a settle window that happened to be still learned an anchor
-// band of 0.02% and then fired four maneuvers on a stationary load. This estimator sees every tick,
-// quiet or not. It is the SECOND difference because the first attempt -- deviation from an EW mean --
-// blew up on the boot ramp (a near-idle first sample followed by the full rate read +12400% and the
-// 1/30 decay kept it alive for 130 ticks: sigma 16.9, every band dead): a linear ramp has zero second
-// difference, a level shift leaves two blips that decay, a periodic swing keeps its full amplitude.
-// Samples at or below the idle floor are not evidence and break the chain; a second difference
-// beyond 100% is a level change, not noise, and resets the estimator. The time constant is the boot
-// deferral bound in ticks -- the one wall-clock allowance the controller already grants -- with a
-// plain running average over the warm-up so one early blip is diluted, not remembered. The
-// controller also resets it when a flip it issued completes: the level moved by design.
+// Rate-noise state owned by the caller; production accesses it under FlipController's mutex.
+// The exponentially weighted variance uses every eligible tick's second relative difference,
+// rel2 = (r_t - 2*r_{t-1} + r_{t-2}) / r_{t-1}. Stabilized pairs select quiet observations and
+// can
+// miss periodic movement. A linear ramp has zero second difference, a level shift leaves two
+// decaying impulses, and a periodic swing keeps contributing. Samples at/below the caller's
+// idle
+// floor break the chain; a second difference above 100% resets the variance as a regime change.
+// The configured time constant is the boot-deferral bound in ticks. Warm-up uses a running
+// average
+// to dilute early impulses. The controller resets this state when its measured flip completes.
 struct FlipEwVariance {
     uint32_t samples = 0;  // second differences folded in
     double alpha = 0;
@@ -298,17 +264,16 @@ struct FlipEwVariance {
         prev2 = prev1;
         prev1 = rate;
     }
-    // The rms second difference, reported AS the per-reading noise scale. For white noise that
-    // overstates sigma by sqrt(6) -- conservative; for a swing of a few ticks' period it is right
-    // (the six-second triangle: 0.15 both ways), and that swing is what the pair bands were blind
-    // to. Dividing by sqrt(6) would be exact for white noise and read the triangle at 0.06.
+    // Report the RMS second difference as the per-reading noise scale. For white noise it
+    // overestimates sigma by sqrt(6); retaining that factor also covers periodic swings that
+    // stabilized-pair bands can miss. Return zero until two differences contribute.
     double sigma() const { return samples > 1 ? std::sqrt(std::max(0.0, var)) : 0; }
 };
 
-// A one-sided noise bound for a NON-NEGATIVE observation (a distance): exponentially weighted mean
-// and variance, reported as mean + 2 sd. Used for the fingerprint's adjacent-window movement, where
-// the rate's second-difference estimator does not apply -- a distance has no trend to remove, it is
-// already a difference, and it cannot go below zero.
+// Caller-owned one-sided bound for nonnegative fingerprint distances. It combines a decaying
+// peak with mean + 2 standard deviations; a distance is already a difference with no negative
+// side or trend to remove. FlipShiftDetector supplies adjacent distances before anchoring and
+// in-band anchor distances afterward, under its caller's serialization.
 struct FlipEwBound {
     uint32_t samples = 0;
     double alpha = 0;
@@ -337,15 +302,9 @@ struct FlipEwBound {
         peak = std::max(peak, value);
         samples++;
     }
-    // A DECAYING MAXIMUM, not a quantile. The observation this bounds (a signature's distance from
-    // its anchor) is AUTOCORRELATED -- the smoothed signature random-walks around the anchor -- so
-    // its excursions CLUSTER, and a mean + 2 sd quantile is exceeded on consecutive windows far more
-    // often than independence would predict: measured on a simulated 1-in-100 sampled stream, a
-    // mean+2sd bound still produced three two-consecutive exceedances in 600 stationary windows,
-    // which is a spurious maneuver. The band must cover the SUSTAINED excursion, so it retains the
-    // largest value seen and decays toward the mean -- the same "quiet jitter is a band, not a trend
-    // estimate" convention the signature's own jitter_ already uses. It settles just above the true
-    // running maximum and falls back if the signal genuinely quietens.
+    // The smoothed signature's anchor-distance excursions are correlated and can persist across
+    // windows. Preserve a peak that decays toward the mean, in addition to mean + 2 standard
+    // deviations, so sustained excursions influence the band and quiet periods can lower it.
     double peak = 0;
     double bound() const {
         return samples > 1 ? std::max(peak, mean + 2.0 * std::sqrt(std::max(0.0, var))) : 0;
@@ -387,25 +346,22 @@ inline double flip_verify_threshold(double sigma, uint32_t n_origin, uint32_t k,
     return std::max(two_se, std::max(0.0, floor));
 }
 
-// A target's delivered gain re-expressed against the origin as it reads AFTER the return flip,
-// when the baseline itself moved by `baseline_shift` during the excursion. A miss is voided
-// (invalidated, not refuted) only when this corrected gain would have cleared the threshold: the
-// question is not whether the baseline wobbled but whether the wobble would have changed the
-// verdict. Measured: a closed-loop driver came back 2.2% faster after a round trip whose target
-// had delivered -48%; (1 - 0.48) / 1.022 - 1 is still -49%, and that miss stands.
+// Re-express a target's delivered gain against the origin after the return flip, accounting for
+// baseline_shift during the excursion. The caller invalidates a miss when this corrected gain
+// would have cleared the threshold; baseline movement alone does not invalidate it. If the new
+// baseline factor is nonpositive, return the uncorrected gain.
 inline double flip_corrected_gain(double delivered, double baseline_shift) {
     if (!(1.0 + baseline_shift > 0)) return delivered;
     return (1.0 + delivered) / (1.0 + baseline_shift) - 1.0;
 }
 
-// The bar a REFINEMENT step must clear beyond the noise bar: the model's error just demonstrated on
-// this workload, predicted minus delivered of the step that landed here (zero when it delivered at
-// least what it promised). Work conservation is a V with its point at the optimum and the real
-// curve is rounded there (owner box, 64-shard multi-key: 13:19 -> 11:21 is +2.5%, the model says
-// +10%; past it 10:22 is -6.6%), so a projection smaller than the error the model has just shown
-// is not evidence of a gain, and a chain that respected only the noise bar would round-trip in the
-// flat region or cross the peak. Stopping short costs 2.5%; crossing costs 6.6% and up. No
-// constant: the bar is the outcome record.
+// A refinement step must exceed the previous projection's observed error as well as the noise
+// bar. Return predicted minus delivered, floored at zero. The capacity model's sharp optimum
+// need
+// not match the real curve near its peak; an improvement smaller than this error does not
+// justify
+// another transfer or crossing that peak. The bar comes from the outcome, without a fixed
+// margin.
 inline double flip_refine_bar(double previous_predicted, double previous_delivered) {
     return std::max(0.0, previous_predicted - previous_delivered);
 }
@@ -420,6 +376,12 @@ inline FlipOutcome flip_judge(double delivered, double threshold, uint32_t k, ui
 }
 
 // The cost model: what every flip so far cost and what every move so far delivered.
+// Contract: Caller-serialized cumulative cost and outcome state; FlipController owns the
+// production
+// instance under its mutex. Updates allocate nothing and publish nothing across threads.
+// Negative
+// cost inputs are floored, non-positive predictions omit calibration, and the accessors provide
+// explicit zero-history defaults rather than waiting for samples.
 struct FlipCostModel {
     // Every flip, out or back, measured by the controller: commands the server did not serve while
     // the flip was in flight, connections the planner moved, the naive count it had to move, and
@@ -506,8 +468,7 @@ struct FlipCostVerdict {
 inline FlipCostVerdict flip_cost_gate(double gain_low, double gain_mean, double rate,
                                       double stationary_s, double blackout_s, double transfer_cost,
                                       double p_miss, uint32_t margin) {
-    (void)
-        gain_mean;  // retained in the signature for the trail; the blackout risks R0, not the gain
+    (void)gain_mean;  // diagnostic input; blackout cost uses the full origin rate
     FlipCostVerdict v;
     v.blackout_s = std::max(0.0, blackout_s);
     v.horizon_s = std::max(0.0, stationary_s);
