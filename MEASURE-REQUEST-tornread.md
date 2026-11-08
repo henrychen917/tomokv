@@ -206,10 +206,15 @@ call/return; it is a layout control, not instruction-identical PRE.
 - Existing storage/filter/read-local ring jobs: **17/17 PASS**;
   `build/gate-run.LvyVcg/ledger.partial`.
 - `make -q all`: 0 after `make all`.
-- Broad selected atomics/MVCC/read-local/MULTI gate jobs: running; exact job list in
-  `build/tornread/proof-jobs.txt`, output `build/tornread/gate-proof.log`.
-  Supplement: `build/tornread/proof-supplement-jobs.txt`, `gate-supplement.log`;
-  the optional fused transaction boot is queued separately with epoll.
+- Broad selected atomics/MVCC/read-local/MULTI run: **373 PASS, 30 FAIL** across
+  83 jobs (`build/gate-run.YYggSe/ledger.partial`). All 30 failures are retained:
+  INFO selective collection (8) and rlfix5 (6) refuse native witnesses after the
+  source/parser change; txnorder2 (15) and txnorder_wake (1) cannot find companion
+  executables beside the frozen external image. The live WATCH-flush row passes.
+  These are rerun with the final native build and colocated witnesses; no failed
+  row is counted as passing on the strength of this run.
+  Exact selections: `build/tornread/proof-jobs.txt`, `proof-supplement-jobs.txt`,
+  and `proof-final-jobs.txt`. The fused transaction boot is running with epoll.
   `GATE_PROOF_NO_RATES=1` leaves throughput-only checks to the maintainer: the atomic
   MGET/MSET throughput floor is NOT RUN, and the RYOW rate assertion is disabled;
   their correctness witnesses retain their original assertions.
