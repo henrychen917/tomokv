@@ -853,6 +853,9 @@ $(BUILD_ROOT)/publishfix-unit: tests/publishfix_unit.cc $(PUBLISHFIX_OBJ) $(wild
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_PUBLISHFIX_TEST -I. $< $(PUBLISHFIX_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
+build/tornread-unit: tests/tornread_unit.cc $(filter-out build/src/main.o,$(OBJ)) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(filter-out build/src/main.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+
 build/atomic-survivors-unit: tests/atomiccollapse_checks.inc tests/atomic_plain_checks.inc tests/txnorder_checks.inc
 build/atomic-survivors-unit: tests/atomic_survivors_unit.cc src/cmd/xshard.cc $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
 	@mkdir -p $(dir $@)

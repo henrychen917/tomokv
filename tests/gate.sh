@@ -1041,6 +1041,7 @@ job_body(){
     wave14_eof_data) job_wave14_eof_data;;
     rootcompat) job_rootcompat all;;
     rootcompat-*) job_rootcompat "${name#rootcompat-}";;
+    tornread-*) job_tornread "$name";;
     multifix-*) job_multifix "$name";;
     climonfix4-*) job_climonfix4 "$name";;
     scriptfix4-*) job_scriptfix4 "${name#scriptfix4-}";;
@@ -1186,6 +1187,11 @@ plan_jobs(){
   # ASAN and standalone units do not delay boots, and full-only builds start immediately too.
   JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build pubtrackfix maxmemrace storefix5)
   JOB_NAMES+=(txnfix4-oom txnfix4-watch txnfix4-crash txnfix4-hash txnfix4-placement)
+  for TR_SHAPE in 2s-0 1s-0 1s-1; do for TR_ENGINE in uring epoll; do
+    for TR_ATOMIC in 0 1; do
+      JOB_NAMES+=("tornread-$TR_SHAPE-$TR_ENGINE-$TR_ATOMIC")
+    done
+  done; done
   JOB_NAMES+=(clientcompat-pause clientcompat-disconnect clientcompat-multi-tracking clientcompat-multi-controls clientcompat-enable-race)
   JOB_NAMES+=(cmdfix2-geo cmdfix2-scores cmdfix2-hll cmdfix2-lcs cmdfix2-channels cmdfix2-xsetid)
   for MF_MODE in 1s 2s; do for MF_ENGINE in uring epoll; do
@@ -3153,6 +3159,29 @@ job_moverfix(){
     shutdown_clean || rc=1
     [ "$rc" = 0 ] && ok "$label" || bad "$label" "see $TMPDIR/{unit,live}-$mode-$engine-$databases-*.log"
   done; done; done
+}
+
+job_tornread(){
+  local prefix mode read_local engine atomic boot_fn=boot writer=mset shape label
+  IFS=- read -r prefix mode read_local engine atomic <<< "$1"
+  [ "$mode" != 1s ] || boot_fn=boot_fused
+  [ "$atomic" != 0 ] || writer=exec
+  for shape in pipe seq; do
+    label="tornread $shape ($mode read-local $read_local $engine atomic $atomic)"
+    row_begin "$label"
+    if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" --atomic "$atomic" \
+        --read-local "$read_local" --key-lb 0 --client-lb 0 --flip-auto 0 \
+        --enable-debug-command yes &&
+      py tests/tornread.py --port "$PORT" --label "$1-$shape" --seconds 15 \
+        --max-violations 1 --geometry debug --require-atomic "$atomic" \
+        --read-mode "$shape" --writer-kind "$writer" --json "$TMPDIR/$shape.json" \
+        >"$TMPDIR/$shape.log" 2>&1; then
+      ok "$label"
+    else
+      bad "$label" "see $TMPDIR/$shape.log and $SRVLOG"
+    fi
+    stop
+  done
 }
 
 job_atomic_batteries(){
@@ -7238,6 +7267,13 @@ collect_job readonly
 
 collect_job release_batteries
 
+# Twelve boots, two rows each, collected BEFORE the quick exit: DQ=DF=+24.
+# EXPECT and the label fixture remain maintainer-owned.
+for TR_SHAPE in 2s-0 1s-0 1s-1; do for TR_ENGINE in uring epoll; do
+  for TR_ATOMIC in 0 1; do
+    collect_job "tornread-$TR_SHAPE-$TR_ENGINE-$TR_ATOMIC"
+  done
+ done; done
 collect_job atomic_batteries
 collect_job moverfix
 # hexpread: eight independently scored rows before the quick exit (DQ +8 / DF +8).
