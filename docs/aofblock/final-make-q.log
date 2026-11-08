@@ -1,0 +1,1 @@
+make -q all rc=0
