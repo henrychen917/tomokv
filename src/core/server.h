@@ -2203,6 +2203,13 @@ public:
     }
 #endif
 
+    // Synchronous control/test caller: serialize transfers and quiesce affected owners
+    // and producers before calling; this method does not establish those drains.
+    // Moves a contiguous range of whole stores between live executors. Reserves vector
+    // capacity before Preparing, rebinds owner state, commits Router ownership, then
+    // release-publishes shard routes. False rejects invalid ranges/ownership, a busy
+    // router or allocation failure before ownership changes. Missing required owner
+    // bindings abort; optional idle-clock allocation failure warns and transfer continues.
     bool transfer_bucket_range_quiesced(uint32_t begin, uint32_t end, uint32_t source,
                                         uint32_t destination) {
         if (begin >= end || end > kNumBuckets || source >= threads_.size() ||
