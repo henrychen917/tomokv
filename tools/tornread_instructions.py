@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import select
 import signal
+import shutil
 import socket
 import subprocess
 import sys
@@ -69,8 +70,10 @@ def receive(channel, timeout=120):
     return channel.recv()
 
 
-def cell(binary, folder, mode, atomic, verb, depth, count, clients):
+def cell(binary, folder, seed, mode, atomic, verb, depth, count, clients):
     folder.mkdir(parents=True)
+    if seed.exists():
+        shutil.copy2(seed, folder / "workload.tomo")
     port = 26095
     guard = socket.socket()
     guard.bind(("127.0.0.1", port))
@@ -79,7 +82,8 @@ def cell(binary, folder, mode, atomic, verb, depth, count, clients):
     argv = ["taskset", "-c", "0-7", str(binary), "--port", str(port), "--bind", "127.0.0.1",
             "--thread-mode", mode, "--shards", "16", "--ratio", "6:2", "--atomic", str(atomic),
             "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0",
-            "--save", "", "--databases", "1", "--dir", str(folder)]
+            "--save", "", "--databases", "1", "--dir", str(folder),
+            "--dbfilename", "workload.tomo"]
     workers, pipes = [], []
     perf = None
     server = None
@@ -101,6 +105,9 @@ def cell(binary, folder, mode, atomic, verb, depth, count, clients):
                 for i in range(0, 512, 32):
                     args = [item for k in range(i, i + 32) for item in (f"instr:{worker}:{k}", VALUE)]
                     assert admin.call("MSET", *args) == b"OK"
+            if not seed.exists():
+                assert admin.call("SAVE") == b"OK"
+                shutil.copy2(folder / "workload.tomo", seed)
             ctx = mp.get_context("fork")
             for worker in range(clients):
                 parent, child = ctx.Pipe()
@@ -153,6 +160,7 @@ def cell(binary, folder, mode, atomic, verb, depth, count, clients):
             result = dict(binary=str(binary), mode=mode, atomic=atomic, command=verb,
                           pipeline=depth, clients=clients, commands=completed,
                           instructions=instructions, instructions_per_op=instructions / completed,
+                          seed_sha256=hashlib.sha256(seed.read_bytes()).hexdigest(),
                           counter_running_percent=running_percent, server_argv=argv, perf_argv=perf_argv)
             (folder / "result.json").write_text(json.dumps(result, indent=2) + "\n")
             admin.close()
@@ -202,7 +210,8 @@ def main():
                 order = args.arms if rep % 2 == 0 else list(reversed(args.arms))
                 for arm in order:
                     name = f"{mode}-a{atomic}-{verb}-p{depth}-r{rep}-{arm}"
-                    row = cell(arms[arm], out / name, mode, atomic, verb, depth, args.count, args.clients)
+                    row = cell(arms[arm], out / name, out / "seed.tomo", mode, atomic, verb, depth,
+                               args.count, args.clients)
                     row.update(arm=arm, repeat=rep)
                     results.append(row)
                     (out / "results.json").write_text(json.dumps(results, indent=2) + "\n")
