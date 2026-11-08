@@ -195,6 +195,19 @@ void blocking_state_release(BlockingState* state) {
     if (state && state->refs.fetch_sub(1, std::memory_order_acq_rel) == 1) delete state;
 }
 
+#ifdef TOMO_BLOCKING_COMPLETION_UNIT
+// Test-only (blockrace): fires between the phase store and the participant decision in
+// blocking_publish_completion, so a unit can drive the second offerer deterministically.
+// Guarded out of every production build; see calib/binary-neutral.sh proof.
+void (*blocking_completion_unit_hook)(BlockingState&, ThreadCtx&, Ring&) = nullptr;
+#endif
+#ifdef TOMO_BLOCKING_UAF_UNIT
+// Test-only (blockrace): fires after op.state.exchange(Done) and before the post-Done read of
+// state.server/state.client, so a unit can free the BlockingState from a second thread and expose
+// the read-after-Done. Guarded out of every production build.
+void (*blocking_uaf_after_done_hook)(BlockingState&) = nullptr;
+#endif
+
 bool blocking_phase_live(BlockingPhase phase) {
     return phase == BlockingPhase::Registering || phase == BlockingPhase::Parked;
 }
@@ -516,8 +529,12 @@ void blocking_finish_cancelled(BlockingState& state, ThreadCtx* self, Ring* ring
         state.server->aof().defer_completion(self->id(), op, state.client))
         return;
     if (op.state.exchange(OpState::Done, std::memory_order_acq_rel) != OpState::Done && self &&
-        ring)
+        ring) {
+#ifdef TOMO_BLOCKING_UAF_UNIT
+        if (blocking_uaf_after_done_hook) blocking_uaf_after_done_hook(state);
+#endif
         blocking_notify_sender(*state.server, *self, *ring, state.client);
+    }
 }
 
 void blocking_task_done(BlockingState& state, ThreadCtx& self, Ring& ring) {
@@ -536,8 +553,12 @@ void blocking_task_done(BlockingState& state, ThreadCtx& self, Ring& ring) {
         if (state.server->aof().configured() &&
             state.server->aof().defer_completion(self.id(), op, state.client))
             return;
-        if (op.state.exchange(OpState::Done, std::memory_order_acq_rel) != OpState::Done)
+        if (op.state.exchange(OpState::Done, std::memory_order_acq_rel) != OpState::Done) {
+#ifdef TOMO_BLOCKING_UAF_UNIT
+            if (blocking_uaf_after_done_hook) blocking_uaf_after_done_hook(state);
+#endif
             blocking_notify_sender(*state.server, self, ring, state.client);
+        }
     } else if (phase == BlockingPhase::MovePending) {
         // Registration reprobes close the XADD-before-waiter window. Publish
         // IO's resumable phase only when the last owner Task has departed.
@@ -722,6 +743,9 @@ void blocking_request_move(BlockingState& state, ThreadCtx& self, Ring& ring) {
 void blocking_publish_completion(BlockingState& state, ThreadCtx& self, Ring& ring) {
     latency_tracking_pause(state.client->rob().at(state.op_id));
     state.phase.store(BlockingPhase::Completed, std::memory_order_release);
+#ifdef TOMO_BLOCKING_COMPLETION_UNIT
+    if (blocking_completion_unit_hook) blocking_completion_unit_hook(state, self, ring);
+#endif
     // Probe/registration barriers count Tasks separately from their pending phase. The owner that
     // drops pending to zero may run before another participant has executed task_done(), so reply
     // retirement must wait for the final raw Client reference too. Registry wakeups have no active
@@ -732,8 +756,12 @@ void blocking_publish_completion(BlockingState& state, ThreadCtx& self, Ring& ri
     if (state.server->aof().configured() &&
         state.server->aof().defer_completion(self.id(), op, state.client))
         return;
-    if (op.state.exchange(OpState::Done, std::memory_order_acq_rel) != OpState::Done)
+    if (op.state.exchange(OpState::Done, std::memory_order_acq_rel) != OpState::Done) {
+#ifdef TOMO_BLOCKING_UAF_UNIT
+        if (blocking_uaf_after_done_hook) blocking_uaf_after_done_hook(state);
+#endif
         blocking_notify_sender(*state.server, self, ring, state.client);
+    }
 }
 
 void blocking_finish_error(BlockingState& state, ThreadCtx& self, Ring& ring) {
