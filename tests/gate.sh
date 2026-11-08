@@ -1187,7 +1187,7 @@ plan_jobs(){
   # ASAN and standalone units do not delay boots, and full-only builds start immediately too.
   JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build pubtrackfix maxmemrace storefix5)
   JOB_NAMES+=(txnfix4-oom txnfix4-watch txnfix4-crash txnfix4-hash txnfix4-placement)
-  for TR_SHAPE in 2s-0 1s-0 1s-1; do for TR_ENGINE in uring epoll; do
+  for TR_SHAPE in 2s-0 2s-1 1s-0 1s-1; do for TR_ENGINE in uring epoll; do
     for TR_ATOMIC in 0 1; do
       JOB_NAMES+=("tornread-$TR_SHAPE-$TR_ENGINE-$TR_ATOMIC")
     done
@@ -7267,9 +7267,9 @@ collect_job readonly
 
 collect_job release_batteries
 
-# Twelve boots, two rows each, collected BEFORE the quick exit: DQ=DF=+24.
+# Sixteen boots, two rows each, collected BEFORE the quick exit: DQ=DF=+32.
 # EXPECT and the label fixture remain maintainer-owned.
-for TR_SHAPE in 2s-0 1s-0 1s-1; do for TR_ENGINE in uring epoll; do
+for TR_SHAPE in 2s-0 2s-1 1s-0 1s-1; do for TR_ENGINE in uring epoll; do
   for TR_ATOMIC in 0 1; do
     collect_job "tornread-$TR_SHAPE-$TR_ENGINE-$TR_ATOMIC"
   done

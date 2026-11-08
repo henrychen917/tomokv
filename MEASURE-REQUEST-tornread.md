@@ -97,17 +97,20 @@ adds no owner-side completion channel.
 
 ### Regression rows and negative controls
 
+The additional `2s/read-local 1` jobs are queued for fixed/release proof after the instruction run.
+
 `tests/tornread.py` preserves Phase B's writer-tagged serial-order oracle, owner geometry
 proof, worker errors, writes/read pairs/value-change checks, MGET-noise oracle, and
 post-run placement check. Both within-pair and cross-pair regressions fail; zero
 violations are allowed. The 15-second gate rows use atomic MSET writers at atomic 1,
 and EXEC writers at atomic 0, each with strict round-trip controls.
 
-Matrix: `2s/read-local 0`, `1s/read-local 0`, `1s/read-local 1`, crossed with both atomic
-settings and both epoll/uring engines. Twelve whole jobs, two counted rows each.
-**DQ=+24, DF=+24**, counted at the `collect_job "tornread-..."` loop at `tests/gate.sh:7274`, BEFORE the quick
-exit at `tests/gate.sh:7516`, not at the job definition. At this base EXPECT_QUICK must become **1236**
-(1212+24), EXPECT_FULL **1253** (1229+24). The maintainer must add the 24 corresponding
+Matrix: both `2s`/`1s` × both read-local settings × both atomic settings × both
+epoll/uring engines, matching the current atomics/read-local rows (including the split
+read-local runtime). Sixteen whole jobs, two counted rows each.
+**DQ=+32, DF=+32**, counted at the `collect_job "tornread-..."` loop at `tests/gate.sh:7274`, BEFORE the quick
+exit at `tests/gate.sh:7516`, not at the job definition. At this base EXPECT_QUICK must become **1244**
+(1212+32), EXPECT_FULL **1261** (1229+32). The maintainer must add the 32 corresponding
 labels; neither EXPECT nor `tests/fixtures/nullrefresh-ledger-labels.json` was edited.
 
 - Specified release `/home/user/Projects/bins/readability-pre-5c363128/tomokv`:
@@ -144,8 +147,9 @@ call/return; it is a layout control, not instruction-identical PRE.
   unfinished-read hold), final UINT64_MAX floor, and all locked sizes pass.
 - `python3 tests/gates_test.py`: **83 tests PASS**, 317.373 s.
 - `python3 tests/gate_ledger_fixture.py --self-test`: **12 tests, 1 failure + 1 error**,
-  both due to the explicitly deferred 24-row fixture/EXPECT update. The source census
-  is 1253, the unchanged fixture/EXPECT_FULL is 1229; no extra obsolete fixture labels.
+  both due to the explicitly deferred fixture/EXPECT update. That first check had 24 new
+  labels; the expanded 32-row inventory will be checked again before completion.
+  The unchanged fixture/EXPECT_FULL is 1229; no extra obsolete fixture labels.
 - Existing storage/filter/read-local ring jobs: **17/17 PASS**;
   `build/gate-run.LvyVcg/ledger.partial`.
 - `make -q all`: 0 after `make all`.
@@ -206,7 +210,12 @@ Each entry below is **median [minimum–maximum] instructions/public command**. 
 whole-process counts, including idle polling and scheduling paths. Wide repeat ranges
 (on unchanged cells too) prevent attributing small differences to the fix. They are not
 box noise, confidence intervals, or proof of a speedup/regression. The fixed request
-count and key placement do not fix connection-to-IO assignment or interleaving. The
+count and key placement do not fix connection-to-IO assignment or interleaving. In the
+three PRE 2s/atomic-0/GET-p1 repeats, the busiest IO held 5, 4 and 3 readers respectively;
+executor lifetime loop counts were 40.1M, 30.4M and 24.7M, accompanying 67,211, 52,959
+and 43,712 instructions/op. Those lifetime counters include warmup and are diagnostic,
+not the perf interval denominator. A second run with `--place-io` verifies each worker’s
+IO both before and after its finite workload; its results will be reported separately. The
 maintainer’s matched-load ABBA remains necessary for an attributable cost/merit verdict.
 
 | Mode | Atomic | Command | Pipeline | PRE | PART1 | PART2 |
