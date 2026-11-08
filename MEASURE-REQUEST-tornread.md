@@ -92,6 +92,17 @@ The dangerous direction in the task's wording is above that bound.
    reference retires. This prevents ambiguous removal, leaking entries, and premature
    cleanup. The directed unit covers this alias case.
 
+Why the first read need not register: before a younger read publishes, an older
+unregistered read may see a base above its original cut. Any cleanup that produced
+that base has a cutoff at or below the younger read's confirmed cut. After the
+publication, cleanup cannot promote a newer group while the younger reference lives.
+The older read's retained-record resolver also uses a cut no greater than that younger
+cut. It therefore cannot observe an atomic group newer than the younger read's cut.
+ROB retirement cannot release the younger reference before the older read has finished.
+For a strict round trip, the subsequent parse samples after the earlier reply, so the
+existing round-trip argument applies. This is why registration is needed only when
+an older ROB operation exists, while stamping is needed even for the first read.
+
 Existing limitation, not silently claimed fixed: owner `Op::read_cut(now)` still uses
 the pre-existing less-than-2^32-intervening-commits assumption documented in `op.h`.
 The reference registry remains conservative across that wrap, but this change does not
@@ -157,6 +168,8 @@ call/return; it is a layout control, not instruction-identical PRE.
   both due to the explicitly deferred fixture/EXPECT update. That first check had 24 new
   labels; the expanded 32-row inventory will be checked again before completion.
   The unchanged fixture/EXPECT_FULL is 1229; no extra obsolete fixture labels.
+- Supplemental transaction/eviction/multidb/snapshot/executor/migration jobs:
+  **104/104 PASS**, `build/gate-run.WfPjrS/ledger.partial`.
 - Existing storage/filter/read-local ring jobs: **17/17 PASS**;
   `build/gate-run.LvyVcg/ledger.partial`.
 - `make -q all`: 0 after `make all`.
