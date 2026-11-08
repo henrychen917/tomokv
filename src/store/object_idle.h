@@ -10,7 +10,7 @@ namespace tomo {
 // One owner creates nodes; readers only traverse published immutable links and
 // make one unretried timestamp CAS. Object addresses cannot be reused before
 // their existing QSBR grace period. Nodes live until this clock is retired.
-class ObjectIdleClock {
+class /* TOMO_TOOL_BIND ObjectIdleClock */ObjectIdleClock {
     struct Branch { std::array<std::atomic<void*>, 512> child{}; };
     struct Leaf { std::array<std::atomic<uint32_t>, 512> time{}; };
     std::atomic<Branch*> root_{nullptr};
@@ -60,7 +60,7 @@ public:
         }
         return 0;
     }
-    bool install(const void* object, uint32_t timestamp, size_t& accounted) {
+    bool /* TOMO_TOOL_BIND install */install(const void* object, uint32_t timestamp, size_t& accounted) {
         auto* root = root_.load(std::memory_order_relaxed);
         if (!root) {
             root = new (std::nothrow) Branch;

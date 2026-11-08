@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Emit cold-walk instrumentation; never starts a server or a benchmark."""
+import source_tokens as cpp
 import argparse
 import subprocess
 import sys
@@ -7,13 +8,12 @@ from pathlib import Path
 
 
 def instrument(source, output):
-    text = Path(source).read_text()
+    text = cpp.read(Path(source))
     anchor = 'namespace tomo {'
     assert text.count(anchor) == 1
     text = text.replace(anchor, anchor + '\nuint64_t storesize_walk_slots = 0, storesize_walk_objects = 0;\n', 1)
     for name in ('uint64_t multidb_size(', 'void multidb_stats('):
-        start = text.index(name)
-        end = text.index('\n}', start)
+        start, _, end = cpp.function_span(text, name.split()[-1][:-1])
         body = text[start:end]
         walk = 'shard.store().for_each([&](KvObj* object) {'
         assert body.count(walk) == 1, name

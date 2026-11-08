@@ -13,6 +13,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
 import reorder_sync as base
+import source_tokens as cpp
 
 IO = ('run_loop', 'sweep', 'flush_ready', 'admit_fd', 'admit_retained_fd', 'adopt_client',
       'arm_tls_recv', 'drive_tls', 'epoll_accept', 'epoll_pass',
@@ -25,69 +26,47 @@ def removal_inventory(root):
     removed = ('Targeted' + 'Ifid', 'SuppressOrdinary' + 'ActiveMark',
                'mark_active_' + 'known', 'multi_dispatch_entry_' + 'iofused',
                'multi_owner_pass_entry_' + 'iofused')
-    hits = []
-    for path in sorted((root / 'src').rglob('*')):
-        if path.suffix not in ('.h', '.cc', '.inc'):
-            continue
-        for line, text in enumerate(path.read_text().splitlines(), 1):
-            if any(re.search(r'\b' + name + r'\b', text) for name in removed):
-                hits.append((str(path.relative_to(root)), line, text))
-    assert not hits, ('removed IO interface reintroduced', hits)
-    for filename in ('src/core/io_loop.h', 'src/core/reorder.cc'):
-        text = (root / filename).read_text()
-        # The similarly named live executor and MULTI implementation templates
-        # are intentionally outside the IO parser's interface/body.
-        for match in re.finditer(r'(?:DispatchResult|IoLoop::DispatchResult) '
-                                r'(?:IoLoop::)?(?:r7_)?parse_and_dispatch\(', text):
-            start = text.rfind('template <', 0, match.start())
-            interface = text[start:text.find(')', match.end()) + 1]
-            assert 'IofusedPrivateQueue' not in interface, 'removed private-queue IO parameter'
-    parser = function((root / 'src/core/io_loop.h').read_text(), 'parse_and_dispatch')
-    assert 'IofusedPrivateQueue' not in parser, 'removed private-queue IO body'
+    hits, calls = [], 0
     for directory in ('src', 'tests'):
-        for path in (root / directory).rglob('*'):
+        for path in sorted((root / directory).rglob('*')):
             if path.suffix not in ('.h', '.cc', '.inc'):
                 continue
-            for call in re.finditer(r'\b(?:r7_)?parse_and_dispatch\s*<([^>]*)>\s*\(', path.read_text()):
-                assert len(call[1].split(',')) <= 3, ('obsolete IO call arity', str(path), call[0])
+            source = cpp.read(path)
+            code = cpp.tokens(source)
+            if directory == 'src':
+                hits.extend((str(path.relative_to(root)), token) for token in code if token in removed)
+            for i, token in enumerate(code):
+                if token not in ('parse_and_dispatch', 'r7_parse_and_dispatch') or code[i+1:i+2] != ('<',):
+                    continue
+                depth, arity, j = 1, 1, i + 2
+                while j < len(code) and depth:
+                    if code[j] == '<': depth += 1
+                    elif code[j] == '>': depth -= 1
+                    elif code[j] == ',' and depth == 1: arity += 1
+                    j += 1
+                if not depth and code[j:j+1] == ('(',):
+                    calls += 1
+                    assert arity <= 3, ('obsolete IO call arity', str(path), arity)
+    assert not hits, ('removed IO interface reintroduced', hits)
+    assert calls, 'missing parser call inventory'
+    for filename, name in (('io_loop.h', 'parse_and_dispatch'), ('reorder.cc', 'r7_parse_and_dispatch')):
+        parser = cpp.function(cpp.read(root / 'src/core' / filename), name)
+        assert 'IofusedPrivateQueue' not in cpp.tokens(parser), 'removed private-queue IO interface/body'
+
     return dict(okay=True, removed=list(removed), scope='all production C++ source')
 
 
 def function(source, name, member=True):
-    if not member:
-        return base.function(source, name, False)
-    match = re.search(r'^    (?:__attribute__\(\((?:noinline|always_inline)\)\) )?'
-                      r'(?:uint32_t|void|bool|DispatchResult) ' + re.escape(name) + r'\(', source, re.M)
-    if not match:
-        raise ValueError('missing source method ' + name)
-    start = match.start()
-    for line in reversed(source[:start].splitlines(keepends=True)[-8:]):
-        if not (line.startswith('              ') or line.startswith('    template <') or
-                line.startswith('    __attribute__')):
-            break
-        start -= len(line)
-        if line.startswith('    template <'):
-            break
-    opening = source.index('{', match.end())
-    depth = 0
-    for token in re.finditer(r'//[^\n]*|/\*[\s\S]*?\*/|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|[{}]', source[opening:]):
-        if token[0] == '{': depth += 1
-        elif token[0] == '}': depth -= 1
-        if depth == 0:
-            return '\n'.join(line[4:] if line.startswith('    ') else line
-                             for line in source[start:opening + token.end()].splitlines())
-    raise ValueError('unclosed method ' + name)
+    return cpp.Source(base.function(source, name, member))
 
 
 def envelopes():
-    ex = (ROOT / 'src/core/ex_loop.h').read_text()
-    io = (ROOT / 'src/core/io_loop.h').read_text()
-    boot = (ROOT / 'src/core/genthread.cc').read_text()
+    ex = cpp.read(ROOT / 'src/core/ex_loop.h')
+    io = cpp.read(ROOT / 'src/core/io_loop.h')
+    boot = cpp.read(ROOT / 'src/core/genthread.cc')
     start = io.index('    class ReadLocalDemotionPlan {')
     end = io.index('\npublic:\n    bool fused_demote_local_read_batch(', start)
-    demotion = '\n'.join(line[4:] if line.startswith('    ') else line
-                         for line in io[start:end].rstrip().splitlines())
-    demotion = re.sub(r'\bReadLocalDemotionPlan\b', 'r7_ReadLocalDemotionPlan', demotion)
+    demotion = cpp.Source(base.rename(io[start:end].rstrip(), {'ReadLocalDemotionPlan': 'r7_ReadLocalDemotionPlan'}))
     demotion = demotion.replace('class r7_ReadLocalDemotionPlan {', 'class IoLoop::r7_ReadLocalDemotionPlan {')
     needle = 'Task{client_, storage_->ids[i], -1, nullptr}'
     assert demotion.count(needle) == 1
@@ -106,7 +85,7 @@ def envelopes():
             names.update({name: 'r7_' + name for name in base.EX if name.startswith('fused_')})
         decls = []
         for method in methods:
-            body = base.rename(function(source, method), names)
+            body = cpp.Source(base.rename(function(source, method), names))
             opening = body.index('{') + 1
             body = body[:opening] + '\n    TOMO_R7_PATH();' + body[opening:]
             if method == 'run_loop':
@@ -114,13 +93,13 @@ def envelopes():
                 # as the ordinary owner opportunity in this envelope.
                 needle = 'fused_executor_->fused_owner_turn()'
                 assert body.count(needle) == 2
-                body = body.replace(needle, 'fused_executor_->fused_owner_turn<true>()')
+                body = body.replace(needle, 'fused_executor_->fused_owner_turn<true>()', 2)
                 # Accounting belongs to the ordinary envelope. Copy its current
                 # clock/sample sites too, including later accounting fixes.
                 body = body.replace('DatabaseMapTestHooks::loop_pass(*srv_, *self_, 0);',
                                     'DatabaseMapTestHooks::loop_pass(*srv_, *self_, 1);')
                 # Include the cold armed-role binding in the same IO tenure.
-                opening = body.index('IoTenure tenure(sig);') + len('IoTenure tenure(sig);')
+                opening = body.spans('IoTenure tenure(sig);')[0][1]
                 body = body[:opening] + '''
     // Bind once at armed fused IO role entry.
     if constexpr (Fused) if (srv_->read_local_enabled() && r7::shadow_available())
@@ -163,23 +142,19 @@ def envelopes():
                 needle = 'if (!dispatch_atomic_scatter(c, *op, scatter_dispatch)) break;'
                 assert body.count(needle) == 1
                 assert body.count('rob.publish();') == 11
-                body = re.sub(r'^( *)rob.publish\(\);',
-                              r'\1r7::ShadowLongIndex::record(*c, *op);\n\1rob.publish();',
-                              body, flags=re.M)
+                body = body.replace('rob.publish();', 'r7::ShadowLongIndex::record(*c, *op); rob.publish();', 11)
                 body = body.replace(needle, '''r7::ShadowLongIndex::record(*c, *op);
             if (!dispatch_atomic_scatter(c, *op, scatter_dispatch)) {
                 r7::ShadowLongIndex::unpublish(*c);
                 break;
             }''')
                 assert body.count('rob.unpublish();') == 1
-                body = re.sub(r'^( *)rob.unpublish\(\);([^\n]*)',
-                              r'\1rob.unpublish();\2\n\1r7::ShadowLongIndex::unpublish(*c);',
-                              body, flags=re.M)
+                body = body.replace('rob.unpublish();', 'rob.unpublish(); r7::ShadowLongIndex::unpublish(*c);', 1)
                 body = body.replace('Fused, ReadLocalDemotionPlan,', 'Fused, r7_ReadLocalDemotionPlan,')
             signature, rest = body.split('{', 1)
             decls.append(signature.rstrip() + ';')
-            signature = re.sub(r' = (?:false|true|void|nullptr|0|kGenthreadExBatchOps)', '', signature)
-            signature = signature.replace(' r7_' + method + '(', ' ' + owner + '::r7_' + method + '(')
+            signature = re.sub(r'\s*=\s*(?:false|true|void|nullptr|0|kGenthreadExBatchOps)\b', '', signature)
+            signature = cpp.Source(signature).replace('r7_' + method + '(', owner + '::r7_' + method + '(', 1)
             if method == 'parse_and_dispatch':
                 signature = signature.replace('DispatchResult ', 'IoLoop::DispatchResult ')
             if owner.startswith('Ex'):
@@ -191,7 +166,14 @@ def envelopes():
     bodies.append('namespace {\n' + function(boot, 'pin_fused_thread', False) + '\n}')
     bodies.append('static ' + base.rename(function(boot, 'run_fused_server', False),
                     {'run_fused_server': 'run_fused_server_reordered', 'run_fused': 'run_fused_reordered'}))
-    return '\n\n'.join(bodies) + '\n', declarations
+    generated = '\n\n'.join(bodies) + '\n'
+    names = {'r7_' + name for name in (*IO, *base.EX)}
+    for name in sorted(names):
+        spans = [token for token in cpp.lex(generated) if token.text == name]
+        if not spans: raise ValueError('missing generated binding: ' + name)
+        at = spans[0].start
+        generated = generated[:at] + '/* TOMO_TOOL_BIND ' + name + ' */' + generated[at:]
+    return generated, declarations
 
 
 if __name__ == '__main__':

@@ -1,0 +1,599 @@
+{
+  "archive_digests": "all unchanged",
+  "known_references": [
+    {
+      "calls": [],
+      "disposition": "Docstring and comment in tests/at412.py; no import or execution.",
+      "path": "tests/at412_diagnostics.py",
+      "references": [
+        {
+          "caller": "tests/at412.py",
+          "line": 377,
+          "text": "The original storm remains in tools/archive/tests/at412_diagnostics.py, outside the gate."
+        },
+        {
+          "caller": "tests/at412.py",
+          "line": 940,
+          "text": "# in-flight teardown defect reproduced by tools/archive/tests/at412_diagnostics.py."
+        }
+      ]
+    },
+    {
+      "calls": [
+        {
+          "caller": "tests/gate.sh",
+          "expression": "py \"tests/$suite.py\" >\"$TMPDIR/$suite.log\" 2>&1 || failed=1",
+          "kind": "shell/make-path",
+          "line": 6283,
+          "target": "tests/cd13b_window_test.py"
+        }
+      ],
+      "disposition": "CALL: witness_contracts expands tests/$suite.py.",
+      "path": "tests/cd13b_window_test.py",
+      "references": [
+        {
+          "caller": "tests/gate.sh",
+          "line": 6282,
+          "text": "for suite in flakeaudit_test flipctl_test cd13b_window_test gaterows_contract_test; do"
+        }
+      ]
+    },
+    {
+      "calls": [
+        {
+          "caller": "tests/gate.sh",
+          "expression": "py \"tests/$test.py\" 127.0.0.1 \"$PORT\" >\"$TMPDIR/$test-$mode-$engine-$atomic.log\" 2>&1 || failed=1",
+          "kind": "shell/make-path",
+          "line": 3604,
+          "target": "tests/slowlog_identity.py"
+        }
+      ],
+      "disposition": "CALL: bugs5 expands tests/$test.py in all eight mode/engine/atomic legs.",
+      "path": "tests/slowlog_identity.py",
+      "references": [
+        {
+          "caller": "tests/gate.sh",
+          "line": 3590,
+          "text": "for test in scancompact slowlog_identity read_local_lfu; do"
+        },
+        {
+          "caller": "tests/gate.sh",
+          "line": 3594,
+          "text": "slowlog_identity) battery=slowlog;;"
+        }
+      ]
+    },
+    {
+      "calls": [],
+      "disposition": "Gate row label names the eoffix lane; the job executes a supplied native binary.",
+      "path": "tools/eoffix.py",
+      "references": [
+        {
+          "caller": "tests/gate.sh",
+          "line": 6404,
+          "text": "label=\"eoffix AOF QSBR ($namespace, $engine, $schedule)\""
+        }
+      ]
+    },
+    {
+      "calls": [],
+      "disposition": "eoffix_aof is a shell job name, not a Python call; its native binary comes from EOFFIX_AOF_DIRECTORY.",
+      "path": "tools/eoffix_aof.py",
+      "references": [
+        {
+          "caller": "tests/gate.sh",
+          "line": 1257,
+          "text": "JOB_NAMES+=(wave14_order wave14_epoll_eof wave14_eof_data eoffix_aof wave15_survey_harness)"
+        }
+      ]
+    },
+    {
+      "calls": [],
+      "disposition": "Gate greps ARMED wave13 receipt text; Makefile cites a docs/wave13 budget receipt.",
+      "path": "tools/wave13.py",
+      "references": [
+        {
+          "caller": "Makefile",
+          "line": 6,
+          "text": "# Selected values and exceptions: docs/wave13/budgets/final-selected.json."
+        },
+        {
+          "caller": "tests/gate.sh",
+          "line": 1908,
+          "text": "[ \"$(grep -c '^ARMED wave13 ' \"$TMPDIR/flipfix6.txt\")\" = 12 ] && \\"
+        },
+        {
+          "caller": "tests/gate.sh",
+          "line": 1912,
+          "text": "[ \"$(grep -c '^ARMED wave13 ' \"$TMPDIR/tsan-core-concurrency-tsan-flipfix6.log\")\" = 12 ] && \\"
+        },
+        {
+          "caller": "tools/wave13_counts.py",
+          "line": 11,
+          "text": "BUILD=ROOT/'build/wave13/counts'"
+        },
+        {
+          "caller": "tools/wave13_counts.py",
+          "line": 12,
+          "text": "DOC=ROOT/'docs/wave13/instructions'"
+        }
+      ]
+    },
+    {
+      "calls": [],
+      "disposition": "Gate row labels and inventory enum/flag/key names; no import or Python invocation.",
+      "path": "tools/wave15.py",
+      "references": [
+        {
+          "caller": "tests/gate.sh",
+          "line": 4668,
+          "text": "local label='wave15 CONFIG listener exclusivity and rollback (oracle, both modes, engines and namespaces)'"
+        },
+        {
+          "caller": "tests/gate.sh",
+          "line": 4676,
+          "text": "local label='wave15 survey harness selftests (native and six Python entry points)' passed=1 script"
+        },
+        {
+          "caller": "tests/gate.sh",
+          "line": 4687,
+          "text": "local label='wave15 decided stream deletion before owner notification (both modes and namespaces)' passed=1 unit mode"
+        },
+        {
+          "caller": "tests/gate.sh",
+          "line": 4699,
+          "text": "local label='wave15 idle-clock failure accounting and grace (both namespaces)' passed=1 unit"
+        },
+        {
+          "caller": "tests/gate.sh",
+          "line": 4709,
+          "text": "local label='wave15 generic errorstats (Redis oracle, both modes, engines, atomic and namespaces)'"
+        },
+        {
+          "caller": "tests/gate.sh",
+          "line": 4717,
+          "text": "local label='wave15 AOF EXEC task participants (oracle, both modes, engines, atomic and namespaces)'"
+        },
+        {
+          "caller": "tests/gate.sh",
+          "line": 4725,
+          "text": "local label='wave15 AOF snapshot producer progress (oracle, both modes, engines, atomic and namespaces)'"
+        },
+        {
+          "caller": "tests/gate.sh",
+          "line": 4882,
+          "text": "local label=\"wave15 half-close input across FLIP (both engines, atomic and namespaces)\" unit passed=1"
+        },
+        {
+          "caller": "tests/gate.sh",
+          "line": 4896,
+          "text": "label=\"wave15 deleted-stream repeated 200 times ($mode $engine read-local $read_local db $databases)\""
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 80,
+          "text": "wave15=False):"
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 85,
+          "text": "Historical inventories remain usable for frozen inputs. wave15 applies the"
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 104,
+          "text": "if wave15:"
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 113,
+          "text": "assert added in fillers, f'missing wave15 split-local closure: {added}'"
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 259,
+          "text": "and the integration steps build/wave15/{merged-before-integration-fixes, aof-fixed,"
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 312,
+          "text": "def exec1s_inventory(binary, *, snapshot_capped=False, wave14=False, flipfix7=False, wave15=False):"
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 320,
+          "text": "flipfix7=flipfix7, wave15=wave15)"
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 320,
+          "text": "flipfix7=flipfix7, wave15=wave15)"
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 322,
+          "text": "label = ('wave15' if wave15 else 'flipfix7' if flipfix7 else 'wave14' if wave14 else"
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 322,
+          "text": "label = ('wave15' if wave15 else 'flipfix7' if flipfix7 else 'wave14' if wave14 else"
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 325,
+          "text": "# wave15: +34/-8 bodies over flipfix7 (normal +18/-5, DB0 +16/-3)."
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 326,
+          "text": "return Counter({'tomo': 176, 'tomo_db0': 176} if wave15 else"
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 337,
+          "text": "wave15=True) if name not in base]"
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 340,
+          "text": "def exec1s_expected(*, snapshot_capped=False, wave14=False, flipfix7=False, wave15=False):"
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 387,
+          "text": "if wave15:"
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 398,
+          "text": "parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe', 'wave5', 'execfair', 'wave6', 'latencyfix', 'wave8', 'exec1s', 'wave10', 'wave14', 'flipfix7', 'wave15'), default='r7',"
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 478,
+          "text": "if args.inventory in ('exec1s', 'wave10', 'wave14', 'flipfix7', 'wave15'):"
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 480,
+          "text": "expected = exec1s_inventory(binary, snapshot_capped=args.inventory in ('wave10', 'wave14', 'flipfix7', 'wave15'),"
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 481,
+          "text": "wave14=args.inventory in ('wave14', 'flipfix7', 'wave15'),"
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 482,
+          "text": "flipfix7=args.inventory in ('flipfix7', 'wave15'),"
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 483,
+          "text": "wave15=args.inventory == 'wave15')"
+        },
+        {
+          "caller": "tests/r7shadow_noop.py",
+          "line": 483,
+          "text": "wave15=args.inventory == 'wave15')"
+        },
+        {
+          "caller": "tests/reorder_receipt.py",
+          "line": 24,
+          "text": "flipfix7=inventory in ('flipfix7', 'wave15'),"
+        },
+        {
+          "caller": "tests/reorder_receipt.py",
+          "line": 25,
+          "text": "wave15=inventory == 'wave15')"
+        },
+        {
+          "caller": "tests/reorder_receipt.py",
+          "line": 25,
+          "text": "wave15=inventory == 'wave15')"
+        },
+        {
+          "caller": "tests/reorder_receipt.py",
+          "line": 68,
+          "text": "if inventory in ('flipfix7', 'wave15'):"
+        },
+        {
+          "caller": "tests/reorder_receipt.py",
+          "line": 85,
+          "text": "if inventory == 'wave15':"
+        },
+        {
+          "caller": "tests/reorder_receipt.py",
+          "line": 88,
+          "text": "assert len(scans) == (4 if inventory == 'wave15' else 1), scans"
+        },
+        {
+          "caller": "tests/reorder_receipt.py",
+          "line": 98,
+          "text": "if inventory == 'wave15':"
+        },
+        {
+          "caller": "tests/reorder_receipt.py",
+          "line": 99,
+          "text": "# Every wave15 addition is required: drop each and the strict inventory must fail."
+        },
+        {
+          "caller": "tests/reorder_receipt.py",
+          "line": 106,
+          "text": "assert 'wave15 named inventory differs' in str(error), str(error)"
+        },
+        {
+          "caller": "tests/reorder_receipt.py",
+          "line": 108,
+          "text": "raise AssertionError('missing wave15 body control passed: ' + name)"
+        },
+        {
+          "caller": "tests/reorder_receipt.py",
+          "line": 110,
+          "text": "wave15 = inventory == 'wave15'"
+        },
+        {
+          "caller": "tests/reorder_receipt.py",
+          "line": 110,
+          "text": "wave15 = inventory == 'wave15'"
+        },
+        {
+          "caller": "tests/reorder_receipt.py",
+          "line": 112,
+          "text": "wave15=wave15)"
+        },
+        {
+          "caller": "tests/reorder_receipt.py",
+          "line": 112,
+          "text": "wave15=wave15)"
+        },
+        {
+          "caller": "tests/reorder_receipt.py",
+          "line": 116,
+          "text": "wave15=wave15)"
+        },
+        {
+          "caller": "tests/reorder_receipt.py",
+          "line": 116,
+          "text": "wave15=wave15)"
+        },
+        {
+          "caller": "tests/reorder_receipt.py",
+          "line": 145,
+          "text": "storefix5 = inventory == 'wave15'"
+        },
+        {
+          "caller": "tests/reorder_receipt.py",
+          "line": 188,
+          "text": "parser.add_argument('--inventory', choices=('wave14', 'flipfix7', 'wave15'), default='wave15')"
+        },
+        {
+          "caller": "tests/reorder_receipt.py",
+          "line": 188,
+          "text": "parser.add_argument('--inventory', choices=('wave14', 'flipfix7', 'wave15'), default='wave15')"
+        },
+        {
+          "caller": "tests/wave15_aof.py",
+          "line": 37,
+          "text": "names = [f'wave15:{i}' for i in range(1024)]"
+        },
+        {
+          "caller": "tests/wave15_flip_eof.py",
+          "line": 40,
+          "text": "held.raw(encode('DEBUG', 'SLEEP', '.1') + encode('INCR', 'wave15:fin:flip')*count)"
+        },
+        {
+          "caller": "tests/wave15_flip_eof.py",
+          "line": 79,
+          "text": "assert observer.must('GET','wave15:fin:flip') == str(count).encode()"
+        }
+      ]
+    },
+    {
+      "calls": [],
+      "disposition": "Comment in climonfix4.py and docstring in flipfix5.py; no imports.",
+      "path": "tools/wave11.py",
+      "references": [
+        {
+          "caller": "tests/climonfix4.py",
+          "line": 100,
+          "text": "# wave11: runtime library globals and the protected EVAL VM persist"
+        },
+        {
+          "caller": "tests/flipfix5.py",
+          "line": 213,
+          "text": "\"\"\"wave11: connection-local metadata and close cleanup across live FLIPs.\"\"\""
+        }
+      ]
+    },
+    {
+      "calls": [],
+      "disposition": "wave10.py dictionary key identifies an external frozen binary; no import.",
+      "path": "tools/exec1sd.py",
+      "references": [
+        {
+          "caller": "tools/wave10.py",
+          "line": 52,
+          "text": "'exec1sd': '/home/user/Projects/bins/exec1sd-post-4111f5c6',"
+        }
+      ]
+    },
+    {
+      "calls": [],
+      "disposition": "rlfix5_proof.py selects tests/blockfix4_scope.cc, a distinct C++ fixture.",
+      "path": "tools/blockfix4_scope.py",
+      "references": [
+        {
+          "caller": "tools/rlfix5_proof.py",
+          "line": 88,
+          "text": "'tests/blockfix4_scope.cc' if scatter else 'tests/rlfix5_scope.cc')"
+        }
+      ]
+    },
+    {
+      "calls": [],
+      "disposition": "Comment in exec1s_scope.py only.",
+      "path": "tools/exec1s_pad_scope.py",
+      "references": [
+        {
+          "caller": "tools/exec1s_scope.py",
+          "line": 32,
+          "text": "# PAD scopes are constructed by tools/archive/tools/exec1s_pad_scope.py from symbol-isolated PRE."
+        }
+      ]
+    },
+    {
+      "calls": [],
+      "disposition": "Makefile provenance comment only.",
+      "path": "tests/cd13b_audit.py",
+      "references": [
+        {
+          "caller": "Makefile",
+          "line": 285,
+          "text": "# in both namespaces. tools/archive/tests/cd13b_audit.py checks every emitted body and linker selection."
+        }
+      ]
+    },
+    {
+      "calls": [],
+      "disposition": "Makefile provenance comment only.",
+      "path": "tools/aclkeys4_audit.py",
+      "references": [
+        {
+          "caller": "Makefile",
+          "line": 226,
+          "text": "# Keep every other list body identical; tools/archive/tools/aclkeys4_audit.py checks all bodies."
+        }
+      ]
+    },
+    {
+      "calls": [],
+      "disposition": "Makefile provenance comment only.",
+      "path": "tools/at412_budget.py",
+      "references": [
+        {
+          "caller": "Makefile",
+          "line": 236,
+          "text": "# handler outside cmd_info/cmd_debug_impl PRE-identical (tools/archive/tools/at412_budget.py, docs/at412/budgets2)."
+        }
+      ]
+    },
+    {
+      "calls": [],
+      "disposition": "Makefile provenance comment only.",
+      "path": "tools/infofields_artifacts.py",
+      "references": [
+        {
+          "caller": "Makefile",
+          "line": 238,
+          "text": "# SV7/SV9 keep new INFO formatting cold; tools/archive/tools/infofields_artifacts.py checks every ordinary body."
+        }
+      ]
+    },
+    {
+      "calls": [],
+      "disposition": "Makefile provenance comment only.",
+      "path": "tools/psfix_artifacts.py",
+      "references": [
+        {
+          "caller": "Makefile",
+          "line": 229,
+          "text": "# for every ordinary command and storage body; tools/archive/tools/psfix_artifacts.py audits both variants."
+        }
+      ]
+    },
+    {
+      "calls": [],
+      "disposition": "Makefile provenance comment only.",
+      "path": "tools/rltopo_artifacts.py",
+      "references": [
+        {
+          "caller": "Makefile",
+          "line": 366,
+          "text": "# tools/archive/tools/rltopo_artifacts.py checks the PRE point-read/parser/scheduler bodies byte for byte."
+        }
+      ]
+    },
+    {
+      "calls": [],
+      "disposition": "Makefile provenance comment only.",
+      "path": "tools/iowake_budgets.py",
+      "references": [
+        {
+          "caller": "Makefile",
+          "line": 441,
+          "text": "# size-compensated value (tools/archive/tools/iowake_budgets.py, docs/iowake/budgets/selected.json) keep every"
+        }
+      ]
+    },
+    {
+      "calls": [],
+      "disposition": "Makefile provenance comment only.",
+      "path": "tools/mset8fix_budgets.py",
+      "references": [
+        {
+          "caller": "Makefile",
+          "line": 433,
+          "text": "# each size-compensated value (tools/archive/tools/mset8fix_budgets.py, docs/mset8fix/budgets) select, per unit,"
+        }
+      ]
+    },
+    {
+      "calls": [],
+      "disposition": "Makefile provenance comment only.",
+      "path": "tools/wave16_budgets.py",
+      "references": [
+        {
+          "caller": "Makefile",
+          "line": 447,
+          "text": "# tree by tools/archive/tools/wave16_budgets.py: PRE pin + merged IPA unit growth, then the value with the fewest"
+        }
+      ]
+    }
+  ],
+  "reachable": 968,
+  "remaining_archive_count": 465,
+  "restored": {
+    "tests/cd13b_window_test.py": [
+      {
+        "caller": "tests/gate.sh",
+        "expression": "py \"tests/$suite.py\" >\"$TMPDIR/$suite.log\" 2>&1 || failed=1",
+        "kind": "shell/make-path",
+        "line": 6283,
+        "target": "tests/cd13b_window_test.py"
+      }
+    ],
+    "tests/slowlog_identity.py": [
+      {
+        "caller": "tests/gate.sh",
+        "expression": "py \"tests/$test.py\" 127.0.0.1 \"$PORT\" >\"$TMPDIR/$test-$mode-$engine-$atomic.log\" 2>&1 || failed=1",
+        "kind": "shell/make-path",
+        "line": 3604,
+        "target": "tests/slowlog_identity.py"
+      }
+    ],
+    "tools/ccfix_audit.py": [
+      {
+        "caller": "docs/wave9/budgets.py",
+        "expression": "ccfix_audit",
+        "kind": "from-import",
+        "line": 13,
+        "target": "tools/ccfix_audit.py"
+      }
+    ]
+  },
+  "roots": 742,
+  "script_reviews": [
+    {
+      "caller": "tests/scriptatomic_strict.py",
+      "expression": "subprocess.run([sys.executable, str(fixture), sys.argv[1], sys.argv[2]], env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=60)",
+      "kind": "process-argv",
+      "line": 45,
+      "pattern": "*/*.py",
+      "resolution": "Generated TemporaryDirectory script: tests/scriptatomic.py is read, parsed and instrumented, written to fixture, then executed with PYTHONPATH=tests. No archived input.",
+      "source_sha256": "f84bd6520908ad07fa17bfb9a12fd7b6f31f1a42d91dc85c76fc972267947b37"
+    }
+  ]
+}

@@ -219,7 +219,7 @@ public:
 
 // The first later occurrence owns the pre-flush resident. Removing that
 // slot also makes a later abort roll back to absence, never resurrect it.
-bool FlatStore::atomic_flush_erase(AtomicEntry& range) {
+bool FlatStore::/* TOMO_TOOL_BIND atomic_flush_erase */atomic_flush_erase(AtomicEntry& range) {
     uint64_t work = 0;
     size_t occurrences = 0;
     for (auto* e = range.next; e; e = e->next) {
@@ -289,7 +289,7 @@ bool FlatStore::atomic_flush_erase(AtomicEntry& range) {
     return true;
 }
 
-uint64_t FlatStore::atomic_flush_resolved_size(uint64_t snapshot) {
+uint64_t FlatStore::/* TOMO_TOOL_BIND atomic_flush_resolved_size */atomic_flush_resolved_size(uint64_t snapshot) {
     uint64_t visible = 0;
     for_each([&](KvObj* object) {
         const Slice key = object->key();

@@ -181,7 +181,7 @@ void cmd_pfdebug_impl(Shard& shard, Op& op) {
 void cmd_pfdebug(Shard& shard, Op& op) { cmd_pfdebug_impl<false>(shard, op); }
 void cmd_pfdebug_notify(Shard& shard, Op& op) { cmd_pfdebug_impl<true>(shard, op); }
 
-static const CommandSpec kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
     // name       min max flags                                      handler first last step notify
     {"PFDEBUG",   3,  3, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::Admin,
                                                     cmd_pfdebug, 2, 2, 1, cmd_pfdebug_notify},

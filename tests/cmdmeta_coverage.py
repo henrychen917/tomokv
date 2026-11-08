@@ -12,6 +12,8 @@ This check is static -- no server or build. The drift check reads pinned Redis 7
 """
 
 import argparse
+import ast
+import source_tokens as cpp
 import difflib
 import os
 import pathlib
@@ -28,24 +30,30 @@ def registered_commands():
     found = {}
     for source in sorted((REPO / "src/cmd").glob("*.cc")):
         text = source.read_text()
-        table = re.search(r"static const CommandSpec kTable\[\] = \{(.*?)\n\};", text, re.DOTALL)
-        if not table:
+        if not cpp.search(r'static const CommandSpec \w+\[\]', text):
             continue
-        for name in re.findall(r'^\s*\{"([A-Z][A-Z0-9_-]*)"\s*,', table.group(1), re.MULTILINE):
+        for name in cpp.command_names(text):
+            if name in found:
+                raise ValueError('duplicate registered command: ' + name)
             found[name] = source.relative_to(REPO).as_posix()
+    if not found:
+        raise ValueError('empty command registry')
     return found
 
 
 def generated_rows():
-    text = GENERATED.read_text()
-    block = text[text.index("kGeneratedMetadata[] = {"):]
+    text = cpp.compact(cpp.read(GENERATED))
+    block = text[text.index("kGeneratedMetadata[]={"):]
     return {name.upper() for name in re.findall(r'\{\s*"([A-Za-z][A-Za-z0-9_|-]*)"', block)}
 
 
 def generator_sources():
-    text = GENERATOR.read_text()
-    block = re.search(r"COMMAND_SOURCES = \[(.*?)\]", text, re.DOTALL)
-    return set(re.findall(r'"([^"]+)"', block.group(1))) if block else set()
+    tree = ast.parse(GENERATOR.read_text())
+    values = [ast.literal_eval(node.value) for node in tree.body if isinstance(node, ast.Assign)
+              and any(isinstance(t, ast.Name) and t.id == 'COMMAND_SOURCES' for t in node.targets)]
+    if len(values) != 1 or not values[0]:
+        raise ValueError('missing or ambiguous generator source manifest')
+    return set(values[0])
 
 
 def main():
@@ -80,7 +88,7 @@ def main():
     try:
         expected = generated_text(REPO, redis_root=args.redis_root)
         actual = GENERATED.read_text()
-        if actual != expected:
+        if cpp.tokens(actual) != cpp.tokens(expected):
             failures.append("cmdmeta_generated.inc differs from pinned Redis JSON + registry")
             sys.stderr.writelines(difflib.unified_diff(
                 actual.splitlines(True), expected.splitlines(True),

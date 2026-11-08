@@ -656,7 +656,7 @@ void IoLoop::tracking_broadcast_keys(const std::vector<std::string>& keys, uint6
     local.items.reserve(interesting.size());
     for (const std::string& key : interesting)
         local.items.push_back(PubSubEventItem{0, false, stamp, key});
-    if (mask.contains(self_->id())) tracking_handle_event(local);
+    if (mask.contains(self_->id())) /* TOMO_TOOL_BIND tracking_handle_event */tracking_handle_event(local);
     for (uint32_t io : srv_->placement().ifid_threads()) {
         if (io == self_->id()) continue;
         if (!mask.contains(io)) continue;
@@ -697,7 +697,7 @@ void IoLoop::tracking_handle_event(PubSubEvent& event) {
                 tracking_invalidate_local(
                     Slice(item.value.data(), static_cast<uint32_t>(item.value.size())),
                     event.caller_id, item.count);
-            tracking_forward_stale(event);
+            /* TOMO_TOOL_BIND tracking_forward_stale */tracking_forward_stale(event);
             break;
         case PubSubEventKind::TrackingFlush: {
             for (auto& entry : climon_conn_) {

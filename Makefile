@@ -100,7 +100,11 @@ build/atomfix6-queue-asan build/atomfix6-queue-tsan: tests/atomfix6_queue_unit.c
 	$(CXX) $(CXXFLAGS) -O1 $(if $(findstring asan,$@),$(ATOMFIX6_ASAN_FLAGS),-fsanitize=thread -fno-omit-frame-pointer -no-pie) -I. $< -o $@
 
 # Cold INFO identity only: leave execution translation units and their flags alone.
-$(BUILD_ROOT)/src/cmd/info_stats.o $(BUILD_ROOT)/db0/src/cmd/info_stats.o: CXXFLAGS += -DTOMO_INFO_GIT_SHA1='"$(shell git rev-parse --short=8 HEAD 2>/dev/null || echo 00000000)"' -DTOMO_INFO_GIT_DIRTY='"$(shell git diff --quiet -- src Makefile && echo 0 || echo 1)"'
+# A frozen release can pin these two INFO fields across binary-neutral edits.
+# Defaults retain ordinary developer-build identity; comparison arms use the same values.
+TOMO_INFO_GIT_SHA1 ?= $(shell git rev-parse --short=8 HEAD 2>/dev/null || echo 00000000)
+TOMO_INFO_GIT_DIRTY ?= $(shell git diff --quiet -- src Makefile && echo 0 || echo 1)
+$(BUILD_ROOT)/src/cmd/info_stats.o $(BUILD_ROOT)/db0/src/cmd/info_stats.o: CXXFLAGS += -DTOMO_INFO_GIT_SHA1='"$(TOMO_INFO_GIT_SHA1)"' -DTOMO_INFO_GIT_DIRTY='"$(TOMO_INFO_GIT_DIRTY)"'
 
 # The source map is a build artifact: duplicate ids or a Python/C++ hash mismatch
 # fail make all. Its mtime also participates in make -q freshness checks.
@@ -118,7 +122,7 @@ $(ASSERT_MAP): tools/assert_map.py $(ASSERT_SOURCES) $(ASSERT_DIRS) Makefile
 
 # Opt-in lottery observation arm. Production sources and default objects remain
 # untouched; the copied tree adds only DEBUG-armed counters, never pause points.
-build/lottery/tomokv: tools/lottery_build.py tools/assert_map.py tests/lottery_hooks.h $(SRC) $(SERVER_ONLY_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+build/lottery/tomokv: tools/lottery_build.py tools/assert_map.py tests/lottery_hooks.h $(SRC) $(SERVER_ONLY_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile tools/source_tokens.py tools/source_anchors.json tests/source_tokens.py
 	python3 tools/lottery_build.py build/lottery/source
 	$(MAKE) -C build/lottery/source BUILD_ROOT=$(abspath build/lottery/objects) all
 	cp build/lottery/objects/tomokv $@
@@ -134,13 +138,13 @@ build/respresume-unit: tests/respresume_unit.cc $(wildcard src/*/*.h) $(wildcard
 	$(CXX) $(CXXFLAGS) -I. $< -o $@
 
 # AOF ordering schedule control: production contains no fragment-parking hook.
-build/aoforder-scheduled: tools/aoforder_schedule.py $(BIN)
+build/aoforder-scheduled: tools/aoforder_schedule.py $(BIN) tools/source_tokens.py tools/source_anchors.json tests/source_tokens.py
 	python3 tools/aoforder_schedule.py --objects build --output build/aoforder/scheduled
 	cp build/aoforder/scheduled/tomokv $@
 
 # SV4.10: the DEBUG parser and pre-store hook exist only in this copied test
 # tree. Default production objects never contain a hook, branch or test state.
-build/racefix-climon: tools/racefix_build.py tools/assert_map.py tests/racefix_hook.h $(SRC) $(SERVER_ONLY_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+build/racefix-climon: tools/racefix_build.py tools/assert_map.py tests/racefix_hook.h $(SRC) $(SERVER_ONLY_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile tools/source_tokens.py tools/source_anchors.json tests/source_tokens.py
 	python3 tools/racefix_build.py build/racefix-climon-source
 	$(MAKE) -C build/racefix-climon-source BUILD_ROOT=$(abspath build/racefix-climon-objects) all
 	cp build/racefix-climon-objects/tomokv $@
@@ -163,7 +167,7 @@ build/persistfix/unit.o: tests/persistfix_unit.cc $(wildcard src/*/*.h) $(wildca
 build/persistfix-unit: build/persistfix/unit.o build/persistfix/aof-test.o $(PERSISTFIX_CORE)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
-build/persistfix-controls/%/aof.cc: tools/persistfix_controls.py src/persist/aof.cc Makefile
+build/persistfix-controls/%/aof.cc: tools/persistfix_controls.py src/persist/aof.cc Makefile tools/source_tokens.py tools/source_anchors.json tests/source_tokens.py
 	@mkdir -p $(dir $@)
 	python3 tools/persistfix_controls.py $* $@
 build/persistfix-controls/%/aof.o: build/persistfix-controls/%/aof.cc $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
@@ -219,19 +223,19 @@ $(BUILD_ROOT)/db0/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-in
 # Armed handlers include the same implementation; incremental builds must see its edits.
 $(BUILD_ROOT)/src/cmd/t_string_notify.o $(BUILD_ROOT)/db0/src/cmd/t_string_notify.o: src/cmd/t_string.cc
 # ACLKEYS4's physical namespace argument changes only blocking list publication.
-# Keep every other list body identical; tools/aclkeys4_audit.py checks all bodies.
+# Keep every other list body identical; tools/archive/tools/aclkeys4_audit.py checks all bodies.
 $(BUILD_ROOT)/src/cmd/t_list.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=25633
 # PS5/PS7 add cold CONFIG/INFO/finalization code. Retain PRE's inlining decisions
-# for every ordinary command and storage body; tools/psfix_artifacts.py audits both variants.
+# for every ordinary command and storage body; tools/archive/tools/psfix_artifacts.py audits both variants.
 # wave1b: IPA unit +58 in both namespaces (racefix/authfix); scans 31297-31400 / 31629-31760: no
 # unattributed body and fewest changed bodies at 31330 / 31725.
 # rlresize: see the budget note above $(BUILD_ROOT)/src/main.o.
 # wave2: see the re-derivation note above $(BUILD_ROOT)/src/main.o (31379 kept, db0 31776).
 # wave3: see the re-derivation note above $(BUILD_ROOT)/src/main.o (31388 / db0 31787).
 # at412: the new INFO fields / DEBUG hooks grow this unit; 32853 keeps cmd_reset and every other
-# handler outside cmd_info/cmd_debug_impl PRE-identical (tools/at412_budget.py, docs/at412/budgets2).
+# handler outside cmd_info/cmd_debug_impl PRE-identical (tools/archive/tools/at412_budget.py, docs/at412/budgets2).
 $(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34174
-# SV7/SV9 keep new INFO formatting cold; infofields_artifacts.py checks every ordinary body.
+# SV7/SV9 keep new INFO formatting cold; tools/archive/tools/infofields_artifacts.py checks every ordinary body.
 # CC18/PS5/PS7/SV9 composition: preserve every unrelated server-command body.
 # txnorder2: compile-only trials retained in docs/txnorder2/budgets; remaining spillover is explicit.
 # perfex2: the two cold inline sample resets need 31737 to retain every ordinary
@@ -278,7 +282,7 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # xshard inlining decisions outside MULTI; docs/gt13split/audit_bodies.py checks
 # every function, including ordinary xshard_plain_prepare and cold clones.
 # CD13b adds owner-side GEO metadata calls; +51/+53 retains ordinary command/notify bodies
-# in both namespaces. tests/cd13b_audit.py checks every emitted body and linker selection.
+# in both namespaces. tools/archive/tests/cd13b_audit.py checks every emitted body and linker selection.
 # ACLKEYS3's held registration and final-task wake preserve every outside-path
 # xshard body at these budgets, including both blocked queue specializations.
 # aclfix's pre-execution wake check grows both units by 30 insns (+29/+30 here); the
@@ -359,7 +363,7 @@ $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 # Reorder cleanup removes cold parser/controller code. Keep each database variant's
 # original FIFO inlining decisions; r7shadow_noop audits all 336 surviving bodies.
 # The cold topology demotion and relaxed cache gauge perturb the fused TU's budget.
-# rltopo_artifacts.py checks the PRE point-read/parser/scheduler bodies byte for byte.
+# tools/archive/tools/rltopo_artifacts.py checks the PRE point-read/parser/scheduler bodies byte for byte.
 # Pin the single-database R7 TU's compiler budget as well: its source is unchanged,
 # and both surviving parser bodies must retain their PRE instructions.
 # Encoding setup and LBOSC3 change the boot parser and policy initialization in these two
@@ -426,7 +430,7 @@ $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 # hot bodies; composed C1/N3/N4 dispatchers remain explicit merit inputs.
 # mset8fix: the credit doorbell grows the IO units' initial IPA size by 126/129 (main, genthread,
 # rl2s, reorder), xshard by 27/29 and snapshot by 50 (src/db0). Compile-only scans over +/-40 around
-# each size-compensated value (tools/mset8fix_budgets.py, docs/mset8fix/budgets) select, per unit,
+# each size-compensated value (tools/archive/tools/mset8fix_budgets.py, docs/mset8fix/budgets) select, per unit,
 # the fewest changed hot bodies, then the fewest unintended and total changes, centred on the widest
 # plateau of identical code: genthread 134842/135506, rl2s 168119/169904, reorder 152568 (kept)/
 # 153552, xshard 168287/171751, snapshot 16744/16184, db0 main 150687. src main keeps 152477: it is
@@ -434,13 +438,13 @@ $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 # spillover is inventoried in docs/mset8fix/identity; instruction scopes in docs/mset8fix/counts.
 # iowake: F5/F4/F9 grow the initial IPA units by 8 (main), 32 (genthread, rl2s, reorder), 53 (aof)
 # and 131 (snapshot), src and db0 alike; xshard is unchanged. Compile-only scans around each
-# size-compensated value (tools/iowake_budgets.py, docs/iowake/budgets/selected.json) keep every
+# size-compensated value (tools/archive/tools/iowake_budgets.py, docs/iowake/budgets/selected.json) keep every
 # unedited hot body PRE-identical (main restores the 2s parse_and_dispatch); remaining cold
 # spillover is inventoried in docs/iowake/identity.
 # wave16 (blockwake + parkwake + iowake merged over 8be4f68323): the lanes re-derived these pins
 # independently, so all 24 grown units (main, genthread, rl2s, reorder, xshard, t_server, climon,
 # latency_tracking, multidb, fliplisten, aof, snapshot; src and db0) are re-derived for the merged
-# tree by tools/wave16_budgets.py: PRE pin + merged IPA unit growth, then the value with the fewest
+# tree by tools/archive/tools/wave16_budgets.py: PRE pin + merged IPA unit growth, then the value with the fewest
 # changed bodies in a +-24 compile-only scan (select). Eight units that still changed an unedited hot
 # body (parse_and_dispatch, flush_ready<false,..>, FlatStore) were re-ranked over a +-96 scan by
 # unintended hot bodies first (refine; docs/wave16/budgets/refined.json). The GET/SET/INCR/MGET/MSET
@@ -537,7 +541,7 @@ build/ktls-keyupdate-unit: tests/ktls_keyupdate_unit.cc src/net/tls.cc src/net/t
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -I. tests/ktls_keyupdate_unit.cc src/net/tls.cc -o $@ \
 	  -Wl,--wrap=BIO_ctrl -Wl,--wrap=setsockopt -lssl -lcrypto
-build/splitlocal-unit.cc: tests/splitlocal_checks.py tests/r7shadow_sync.py tools/reorder_sync.py src/core/io_loop.h src/core/reorder.cc src/core/genthread_pipeline.h
+build/splitlocal-unit.cc: tests/splitlocal_checks.py tests/r7shadow_sync.py tools/reorder_sync.py src/core/io_loop.h src/core/reorder.cc src/core/genthread_pipeline.h tools/source_tokens.py tools/source_anchors.json tests/source_tokens.py
 	@mkdir -p $(dir $@)
 	python3 tests/splitlocal_checks.py emit $@
 build/splitlocal-unit: build/splitlocal-unit.cc Makefile
@@ -549,9 +553,9 @@ build/config-parser-test: tests/config_parser_test.cc tests/boot_support_checks.
 build/climon-mask-unit: tests/climon_mask_unit.cc src/core/climon_mask.h Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. $< -o $@
-build/climon-mask-old-unit: tests/climon_mask_unit.cc src/core/climon_mask.h Makefile
+build/climon-mask-old-unit: tests/climon_mask_unit.cc src/core/climon_mask.h Makefile tools/build_source_controls.py tools/source_tokens.py tools/source_anchors.json
 	@mkdir -p build/climon-mask-old/src/core
-	sed 's/return io >> 6;/return 0;/' src/core/climon_mask.h > build/climon-mask-old/src/core/climon_mask.h
+	python3 tools/build_source_controls.py climon-mask src/core/climon_mask.h build/climon-mask-old/src/core/climon_mask.h
 	$(CXX) $(CXXFLAGS) -Ibuild/climon-mask-old -I. $< -o $@
 
 build/flipctl-unit: tests/flipctl_unit.cc tests/signalacct_checks.h src/core/flipctl.cc $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
@@ -642,7 +646,7 @@ $(BUILD_ROOT)/aclkeys-wake-db0-unit: tests/aclkeys_wake_unit.cc $(filter-out $(B
 # ST2 cost witness: only the two cold census walks are instrumented. The fixture
 # dispatches real commands and counts work; it never boots a listener or workers.
 STORESIZE_CORE_OBJ := $(filter-out build/src/cmd/xshard.o build/src/cmd/multidb.o build/db0/src/cmd/xshard.o build/db0/src/cmd/multidb.o,$(CORE_TEST_OBJ) $(DB0_TEST_OBJ))
-build/storesize/multidb.cc: tests/storesize_checks.py src/cmd/multidb.cc
+build/storesize/multidb.cc: tests/storesize_checks.py src/cmd/multidb.cc tools/source_tokens.py tools/source_anchors.json tests/source_tokens.py
 	@mkdir -p $(dir $@)
 	python3 $< src/cmd/multidb.cc $@
 build/storesize/multidb.o: build/storesize/multidb.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
@@ -693,7 +697,7 @@ build/flushfix-unit: $(FLUSHFIX_UNIT_OBJ) $(DB0_TEST_OBJ) $(CORE_TEST_OBJ)
 build/flushfix-pre-unit: $(FLUSHFIX_UNIT_OBJ) $(filter-out $(FLUSHFIX_COMMAND_OBJ),$(DB0_TEST_OBJ) $(CORE_TEST_OBJ)) $(addprefix build/flushfix/pre/,$(patsubst build/%,%,$(FLUSHFIX_COMMAND_OBJ)))
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
-build/flushfix/pre-source/.emitted: tests/flushfix_checks.py
+build/flushfix/pre-source/.emitted: tests/flushfix_checks.py tools/source_tokens.py tools/source_anchors.json tests/source_tokens.py
 	@mkdir -p $(dir $@)
 	python3 tests/flushfix_checks.py emit-pre build/flushfix/pre-source
 build/flushfix/pre/src/cmd/%.o: build/flushfix/pre-source/.emitted
@@ -709,7 +713,7 @@ build/kvobj-header-db0-unit: tests/kvobj_header_unit.cc $(wildcard src/*/*.h) $(
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< -o $@ $(JELIBS)
 FLUSHFIX_HEADER_SITES := raw int string typeval embedded reheader
-build/flushfix-header-controls/%/unit: tests/kvobj_header_unit.cc tests/flushfix_checks.py $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
+build/flushfix-header-controls/%/unit: tests/kvobj_header_unit.cc tests/flushfix_checks.py $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile tools/source_tokens.py tools/source_anchors.json tests/source_tokens.py
 	@mkdir -p build/flushfix-header-controls/$*/source
 	python3 tests/flushfix_checks.py emit-header $* build/flushfix-header-controls/$*/source
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Ibuild/flushfix-header-controls/$*/source -I. $< -o $@ $(JELIBS)
@@ -801,10 +805,10 @@ build/multidb-cost-unit: tests/multidb_cost_unit.cc $(CORE_TEST_OBJ) $(DB0_TEST_
 build/multidb-cost-unit-multi: tests/multidb_cost_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_COST_NAMESPACED=1 -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
-build/tomokv-multidb2-pad: build/tomokv tools/multidb2_artifacts.py tools/lbstall_artifacts.py
+build/tomokv-multidb2-pad: build/tomokv tools/multidb2_artifacts.py tools/lbstall_artifacts.py tools/source_tokens.py tools/source_anchors.json tests/source_tokens.py
 	@mkdir -p $(dir $@)
 	python3 tools/multidb2_artifacts.py $< $@ > build/multidb2-pad.json
-build/tomokv-multidb-pad: build/tomokv tools/multidb_artifacts.py tools/lbstall_artifacts.py
+build/tomokv-multidb-pad: build/tomokv tools/multidb_artifacts.py tools/lbstall_artifacts.py tools/source_tokens.py tools/source_anchors.json tests/source_tokens.py
 	@mkdir -p $(dir $@)
 	python3 tools/multidb_artifacts.py $< $@ > build/multidb-pad.json
 build/rehash-waits-unit: tests/rehash_waits_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
@@ -860,7 +864,7 @@ build/txnorder-watch-db0-unit: tests/txnorder_watch_unit.cc $(TXNORDER_UNIT_DEPS
 
 # Wound publication and allocation-failure owner turns, both namespaces.
 # Pause seams exist only in the copied fixture source, never in release objects.
-build/woundfix-windows/stamp: tools/woundfix_windows.py $(wildcard src/*/*.cc) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+build/woundfix-windows/stamp: tools/woundfix_windows.py $(wildcard src/*/*.cc) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile tools/source_tokens.py tools/source_anchors.json tests/source_tokens.py
 	python3 tools/woundfix_windows.py build/woundfix-windows
 build/txnorder-wound-unit: tests/txnorder_wound_window.cc $(TXNORDER_UNIT_DEPS) build/woundfix-windows/stamp $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ))
 	$(CXX) $(filter-out -O3,$(CXXFLAGS)) -O0 $(JEFLAGS) -Ibuild/woundfix-windows -I. $< $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
@@ -914,8 +918,8 @@ owner-arena-unit: build/owner-arena-unit
 # IO-prebuild policy and lifetime regressions, using pinned serverless L4 workers.
 # Read the one production boundary at build time. The fixture's separate comparison oracle
 # still catches a disabled/inclusive policy; a one-line boundary edit rebuilds both binaries.
-L4PREBUILD_TEST_FLAGS := -DTOMO_L4_PREBUILD_TEST_BOUNDARY=$(shell sed -n 's/^\#define TOMO_L4_PREBUILD_THRESHOLD //p' src/cmd/l4prebuild.cc)
-build/l4prebuild-unit: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cmd/xshard.cc $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
+L4PREBUILD_TEST_FLAGS = -DTOMO_L4_PREBUILD_TEST_BOUNDARY=$(or $(shell python3 tools/build_source_controls.py prebuild-threshold src/cmd/l4prebuild.cc),$(error missing or invalid L4 prebuild threshold))
+build/l4prebuild-unit: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cmd/xshard.cc $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile tools/build_source_controls.py tools/source_tokens.py tools/source_anchors.json
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) $(L4PREBUILD_TEST_FLAGS) -I. $< \
 	  $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ \
@@ -923,7 +927,7 @@ build/l4prebuild-unit: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cm
 
 # R7 kind A: mainline FIFO behavior in an exact copy of POST text and layout.
 # The offline patch disables only the boot capability; L4 prebuild stays enabled.
-build/tomokv-pad: $(BIN) tests/r7shadow_pad.py tools/lbstall_artifacts.py
+build/tomokv-pad: $(BIN) tests/r7shadow_pad.py tools/lbstall_artifacts.py tools/source_tokens.py tools/source_anchors.json tests/source_tokens.py
 	@mkdir -p $(dir $@)
 	python3 tests/r7shadow_pad.py $< $@ --scope fifo --receipt $@.json
 
@@ -954,7 +958,7 @@ l4prebuild-unit-tsan: build/l4prebuild-unit-tsan
 	TSAN_OPTIONS=halt_on_error=1:exitcode=66 setarch x86_64 -R ./build/l4prebuild-unit-tsan 2s read-local-0
 	TSAN_OPTIONS=halt_on_error=1:exitcode=66 setarch x86_64 -R ./build/l4prebuild-unit-tsan 2s read-local-1
 .PHONY: l4prebuild-unit l4prebuild-unit-tsan
-build/l4prebuild-unit build/l4prebuild-unit-tsan: tests/at_recycle_checks.inc
+build/l4prebuild-unit build/l4prebuild-unit-tsan: tests/at_recycle_checks.inc src/cmd/l4prebuild.cc tools/build_source_controls.py tools/source_tokens.py tools/source_anchors.json
 
 # Load drivers: not part of `all`, kept compiling here so they cannot rot unnoticed.
 build/benchtxn: tools/benchtxn.cc Makefile
@@ -1099,7 +1103,7 @@ build/signalacct-core-unit: tests/core_concurrency_unit.cc tests/signalacct_core
 # mutants live only in build/ header overlays; no selector enters production.
 WB_RULE_POLICY_CONTROLS := scatter-exit fastpath staged-clause staged-source submitted done-bytes spill direct borrow crlf no-sum floor whole hole marker code relaxed pre-read walk-tail
 WB_RULE_PHASE_CONTROLS := budget rotation head pin capture visit dead work split-policy split-local split-budget split-ex parse split-aof
-WB_RULE_CONTROL_DEPS := tests/wb_rule_checks.py tests/wb_rule_unit.cc tests/wb_rule_phase_unit.cc $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
+WB_RULE_CONTROL_DEPS := tests/wb_rule_checks.py tests/wb_rule_unit.cc tests/wb_rule_phase_unit.cc $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile tools/source_tokens.py tools/source_anchors.json tests/source_tokens.py
 WB_RULE_WRAP := -Wl,--wrap=io_uring_submit -Wl,--wrap=io_uring_submit_and_get_events
 build/wb-rule-unit: tests/wb_rule_unit.cc $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
 	@mkdir -p build
@@ -1129,7 +1133,7 @@ build/wb-rule-units: build/wb-rule-unit build/wb-rule-db0-unit build/wb-rule-pha
 
 # Completion witnesses and clause-deletion controls share the existing wbland rows.
 WB_RULE_COMPLETION_CONTROLS := small-early small-late visits-early visits-late serve-reset knob-small-ignored knob-unbounded-ignored knob-unbounded-wrap
-WB_RULE_COMPLETION_DEPS := tests/wb_rule_completion_unit.cc tests/wb_rule_checks.py $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
+WB_RULE_COMPLETION_DEPS := tests/wb_rule_completion_unit.cc tests/wb_rule_checks.py $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile tools/source_tokens.py tools/source_anchors.json tests/source_tokens.py
 WB_RULE_COMPLETION_UNITS := build/wb-rule-completion-unit build/wb-rule-db0-completion-unit $(foreach name,$(WB_RULE_COMPLETION_CONTROLS),build/wb-rule-completion-controls/$(name)/unit build/wb-rule-completion-controls/$(name)/db0-unit)
 build/wb-rule-completion-unit: $(WB_RULE_COMPLETION_DEPS)
 	@mkdir -p build
@@ -1162,7 +1166,7 @@ build/wbland-clause-unit: tests/wbland_clause_unit.cc tests/wb_rule_unit.cc $(wi
 build/wbland-db0-clause-unit: tests/wbland_clause_unit.cc tests/wb_rule_unit.cc $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< -o $@ $(JELIBS)
-$(addprefix build/wbland-controls/,$(addsuffix /unit,$(WBLAND_CONTROLS))): build/wbland-controls/%/unit: tests/wbland_checks.py tests/wbland_unit.cc $(WB_RULE_CONTROL_DEPS)
+$(addprefix build/wbland-controls/,$(addsuffix /unit,$(WBLAND_CONTROLS))): build/wbland-controls/%/unit: tests/wbland_checks.py tests/wbland_unit.cc $(WB_RULE_CONTROL_DEPS) tools/source_tokens.py tools/source_anchors.json tests/source_tokens.py
 	@mkdir -p build/wbland-controls/$*/source
 	python3 tests/wbland_checks.py emit $* build/wbland-controls/$*/source
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Ibuild/wbland-controls/$*/source -I. tests/wbland_unit.cc -o $@ $(JELIBS)
@@ -1211,13 +1215,13 @@ build/lbplanner-unit-tsan: tests/lbplanner_unit.cc tests/core_concurrency_unit.c
 
 LBPLANNER_CONTROLS := no-publish stale-flip stale-lb duplicate copy-on-io record-reuse
 LBPLANNER_TIMING_CONTROLS := timing-lock timing-late-pause timing-budget
-build/lbplanner-controls/%/source/src/core/io_loop.h: tools/lbplanner_controls.py $(SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc)
+build/lbplanner-controls/%/source/src/core/io_loop.h: tools/lbplanner_controls.py $(SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) tools/source_tokens.py tools/source_anchors.json tests/source_tokens.py
 	@mkdir -p $(dir $@)
 	python3 tools/lbplanner_controls.py $* $@
 $(foreach arm,$(LBPLANNER_TIMING_CONTROLS),build/lbplanner-controls/$(arm)/unit): build/lbplanner-controls/%/unit: build/lbplanner-controls/%/source/src/core/io_loop.h tests/lbplanner_unit.cc tests/core_concurrency_unit.cc $(CORE_TEST_OBJ) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -Ibuild/lbplanner-controls/$*/source -I. tests/lbplanner_unit.cc $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm $(LBPLANNER_WRAP)
-build/lbplanner-controls/%/lbplanner.cc: tools/lbplanner_controls.py src/core/lbplanner.cc
+build/lbplanner-controls/%/lbplanner.cc: tools/lbplanner_controls.py src/core/lbplanner.cc tools/source_tokens.py tools/source_anchors.json tests/source_tokens.py
 	@mkdir -p $(dir $@)
 	python3 tools/lbplanner_controls.py $* $@
 build/lbplanner-controls/%/lbplanner.o: build/lbplanner-controls/%/lbplanner.cc $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
@@ -1226,13 +1230,13 @@ build/lbplanner-controls/%/lbplanner.o: build/lbplanner-controls/%/lbplanner.cc 
 build/lbplanner-controls/%/unit: build/lbplanner-controls/%/lbplanner.o tests/lbplanner_unit.cc tests/core_concurrency_unit.cc $(CORE_TEST_OBJ) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -I. tests/lbplanner_unit.cc $< $(filter-out build/src/core/lbplanner.o,$(CORE_TEST_OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm $(LBPLANNER_WRAP)
-build/lbplanner-unit-pad: build/lbplanner-unit tools/lbplanner_pad.py tools/rlfence_artifacts.py tools/lbstall_artifacts.py
+build/lbplanner-unit-pad: build/lbplanner-unit tools/lbplanner_pad.py tools/rlfence_artifacts.py tools/lbstall_artifacts.py tools/source_tokens.py tools/source_anchors.json tests/source_tokens.py
 	@mkdir -p $(dir $@) build/lbplanner-unit-pad-proof
 	python3 tools/lbplanner_pad.py $< $@ build/lbplanner-unit-pad-proof > build/lbplanner-unit-pad.log
-build/tomokv-lbplanner-pad: build/tomokv tools/lbplanner_pad.py tools/rlfence_artifacts.py tools/lbstall_artifacts.py
+build/tomokv-lbplanner-pad: build/tomokv tools/lbplanner_pad.py tools/rlfence_artifacts.py tools/lbstall_artifacts.py tools/source_tokens.py tools/source_anchors.json tests/source_tokens.py
 	@mkdir -p $(dir $@) build/lbplanner-pad-proof
 	python3 tools/lbplanner_pad.py $< $@ build/lbplanner-pad-proof > build/lbplanner-pad.log
-build/lbosc3-unit-pad: build/lbplanner-unit tools/lbosc3_pad.py
+build/lbosc3-unit-pad: build/lbplanner-unit tools/lbosc3_pad.py tools/source_tokens.py tools/source_anchors.json tests/source_tokens.py
 	@mkdir -p build/lbosc3/unit-pad-proof
 	python3 tools/lbosc3_pad.py $< $@ build/lbosc3/unit-pad-proof > build/lbosc3/unit-pad.log
 build/lbplanner-units: build/lbplanner-unit build/lbplanner-unit-pad build/lbosc3-unit-pad $(foreach arm,$(LBPLANNER_CONTROLS) $(LBPLANNER_TIMING_CONTROLS),build/lbplanner-controls/$(arm)/unit)

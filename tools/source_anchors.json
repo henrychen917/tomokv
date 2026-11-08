@@ -1,0 +1,297 @@
+{
+  "src/cmd/cmdgap.cc": [
+    "TOMO_TOOL_BIND kTable"
+  ],
+  "src/cmd/functions.cc": [
+    "TOMO_TOOL_BIND kTable",
+    "TOMO_TOOL_BIND function_snapshot_save"
+  ],
+  "src/cmd/geo.cc": [
+    "TOMO_TOOL_BIND kTable"
+  ],
+  "src/cmd/hll.cc": [
+    "TOMO_TOOL_BIND hll",
+    "TOMO_TOOL_BIND count"
+  ],
+  "src/cmd/info_stats.cc": [
+    "TOMO_TOOL_BIND info_stats_tick"
+  ],
+  "src/cmd/l4prebuild.cc": [
+    "TOMO_TOOL_ANCHOR l4-prebuild-threshold",
+    "TOMO_TOOL_BIND TOMO_L4_PREBUILD_THRESHOLD"
+  ],
+  "src/cmd/lcs.cc": [
+    "TOMO_TOOL_BIND kTable"
+  ],
+  "src/cmd/multi.inc": [
+    "TOMO_TOOL_BIND multi_cancel_decision",
+    "TOMO_TOOL_BIND execute_watch_phase",
+    "TOMO_TOOL_BIND txn_wound"
+  ],
+  "src/cmd/multidb.cc": [
+    "TOMO_TOOL_BIND multidb_size",
+    "TOMO_TOOL_BIND multidb_stats"
+  ],
+  "src/cmd/pfdebug.cc": [
+    "TOMO_TOOL_BIND kTable"
+  ],
+  "src/cmd/scatter_engine.inc": [
+    "TOMO_TOOL_ANCHOR aoforder-expiry",
+    "TOMO_TOOL_ANCHOR lottery-read-fragment",
+    "TOMO_TOOL_ANCHOR lottery-move-remove"
+  ],
+  "src/cmd/scripting.cc": [
+    "TOMO_TOOL_BIND kTable"
+  ],
+  "src/cmd/server_tail.cc": [
+    "TOMO_TOOL_BIND kTable"
+  ],
+  "src/cmd/slowlog.cc": [
+    "TOMO_TOOL_BIND kTable"
+  ],
+  "src/cmd/storesize.cc": [
+    "TOMO_TOOL_BIND storesize_published_route",
+    "TOMO_TOOL_BIND storesize_replace",
+    "TOMO_TOOL_BIND storesize_deadline"
+  ],
+  "src/cmd/t_hash.cc": [
+    "TOMO_TOOL_BIND kTable"
+  ],
+  "src/cmd/t_hash_ttl.cc": [
+    "TOMO_TOOL_BIND kTable"
+  ],
+  "src/cmd/t_list.cc": [
+    "TOMO_TOOL_BIND kTable"
+  ],
+  "src/cmd/t_server.cc": [
+    "TOMO_TOOL_BIND init_config",
+    "TOMO_TOOL_BIND find_config",
+    "TOMO_TOOL_BIND cmd_debug_impl",
+    "TOMO_TOOL_BIND kTable"
+  ],
+  "src/cmd/t_set.cc": [
+    "TOMO_TOOL_BIND kTable"
+  ],
+  "src/cmd/t_stream.cc": [
+    "TOMO_TOOL_BIND kTable"
+  ],
+  "src/cmd/t_stream_groups.cc": [
+    "TOMO_TOOL_BIND kTable"
+  ],
+  "src/cmd/t_string.cc": [
+    "TOMO_TOOL_BIND kTable"
+  ],
+  "src/cmd/t_zset.cc": [
+    "TOMO_TOOL_BIND kTable"
+  ],
+  "src/cmd/t_zset_ops.cc": [
+    "TOMO_TOOL_BIND kTable"
+  ],
+  "src/cmd/tracking.cc": [
+    "TOMO_TOOL_BIND tracking_handle_event",
+    "TOMO_TOOL_BIND tracking_forward_stale"
+  ],
+  "src/cmd/txn_group.inc": [
+    "TOMO_TOOL_BIND txn_group_ready",
+    "TOMO_TOOL_ANCHOR woundfix-group-blind-abort"
+  ],
+  "src/cmd/txn_key_queue.h": [
+    "TOMO_TOOL_BIND TxnWaiter"
+  ],
+  "src/cmd/txn_key_queue.inc": [
+    "TOMO_TOOL_BIND txn_unlink_waiter",
+    "TOMO_TOOL_BIND txn_link_waiter"
+  ],
+  "src/cmd/txn_retry_queue.h": [
+    "TOMO_TOOL_BIND TxnRetryQueues",
+    "TOMO_TOOL_BIND MultiOwnerRetryNode",
+    "TOMO_TOOL_BIND link",
+    "TOMO_TOOL_BIND unlink"
+  ],
+  "src/core/climon_mask.h": [
+    "TOMO_TOOL_FUNCTION climon-mask-word",
+    "TOMO_TOOL_BIND word",
+    "TOMO_TOOL_BIND io"
+  ],
+  "src/core/config.h": [
+    "TOMO_TOOL_BIND process_configs",
+    "TOMO_TOOL_BIND settings",
+    "TOMO_TOOL_BIND parse_config_args",
+    "TOMO_TOOL_BIND validate_config"
+  ],
+  "src/core/ex_loop.h": [
+    "TOMO_TOOL_BIND ExLoopT",
+    "TOMO_TOOL_FUNCTION fused_baseline_pass",
+    "TOMO_TOOL_BIND fused_baseline_pass",
+    "TOMO_TOOL_FUNCTION fused_pass_impl",
+    "TOMO_TOOL_BIND fused_pass_impl",
+    "TOMO_TOOL_BIND drain_tasks",
+    "TOMO_TOOL_BIND drain_tasks_read_local_interleaved",
+    "TOMO_TOOL_FUNCTION fused_baseline_sweep",
+    "TOMO_TOOL_BIND fused_baseline_sweep",
+    "TOMO_TOOL_FUNCTION fused_sweep_impl",
+    "TOMO_TOOL_BIND fused_sweep_impl",
+    "TOMO_TOOL_BIND run",
+    "TOMO_TOOL_FUNCTION sweep",
+    "TOMO_TOOL_BIND sweep"
+  ],
+  "src/core/genthread.cc": [
+    "TOMO_TOOL_FUNCTION pin_fused_thread",
+    "TOMO_TOOL_BIND pin_fused_thread",
+    "TOMO_TOOL_FUNCTION IoLoop::run_fused",
+    "TOMO_TOOL_BIND run_fused",
+    "TOMO_TOOL_FUNCTION run_fused_server",
+    "TOMO_TOOL_BIND run_fused_server"
+  ],
+  "src/core/genthread_pipeline.h": [
+    "TOMO_TOOL_BIND kGenthreadIfidBatchOps",
+    "TOMO_TOOL_BIND kGenthreadExBatchOps"
+  ],
+  "src/core/io_loop.h": [
+    "TOMO_TOOL_BIND IoLoop",
+    "TOMO_TOOL_FUNCTION run_loop",
+    "TOMO_TOOL_BIND run_loop",
+    "TOMO_TOOL_BIND lb_pass_begin",
+    "TOMO_TOOL_BIND lb_control_pass",
+    "TOMO_TOOL_FUNCTION arm_tls_recv",
+    "TOMO_TOOL_BIND arm_tls_recv",
+    "TOMO_TOOL_FUNCTION epoll_pass",
+    "TOMO_TOOL_BIND epoll_pass",
+    "TOMO_TOOL_FUNCTION on_cqe",
+    "TOMO_TOOL_BIND on_cqe",
+    "TOMO_TOOL_FUNCTION on_accept",
+    "TOMO_TOOL_BIND on_accept",
+    "TOMO_TOOL_FUNCTION epoll_accept",
+    "TOMO_TOOL_BIND epoll_accept",
+    "TOMO_TOOL_FUNCTION admit_fd",
+    "TOMO_TOOL_BIND admit_fd",
+    "TOMO_TOOL_FUNCTION admit_retained_fd",
+    "TOMO_TOOL_BIND admit_retained_fd",
+    "TOMO_TOOL_FUNCTION adopt_client",
+    "TOMO_TOOL_BIND adopt_client",
+    "TOMO_TOOL_FUNCTION on_recv",
+    "TOMO_TOOL_BIND on_recv",
+    "TOMO_TOOL_FUNCTION drive_tls",
+    "TOMO_TOOL_BIND drive_tls",
+    "TOMO_TOOL_FUNCTION on_tls_socket_poll",
+    "TOMO_TOOL_BIND on_tls_socket_poll",
+    "TOMO_TOOL_FUNCTION on_tls_recv",
+    "TOMO_TOOL_BIND on_tls_recv",
+    "TOMO_TOOL_BIND ReadLocalDemotionPlan",
+    "TOMO_TOOL_FUNCTION fused_demote_local_read_batch",
+    "TOMO_TOOL_BIND fused_demote_local_read_batch",
+    "TOMO_TOOL_FUNCTION dispatch_atomic_scatter",
+    "TOMO_TOOL_BIND dispatch_atomic_scatter",
+    "TOMO_TOOL_FUNCTION parse_and_dispatch",
+    "TOMO_TOOL_BIND parse_and_dispatch",
+    "TOMO_TOOL_FUNCTION sweep",
+    "TOMO_TOOL_BIND sweep",
+    "TOMO_TOOL_FUNCTION flush_ready",
+    "TOMO_TOOL_BIND flush_ready"
+  ],
+  "src/core/lbplanner.cc": [
+    "TOMO_TOOL_BIND lbosc3_level",
+    "TOMO_TOOL_BIND lb_controller_tick",
+    "TOMO_TOOL_ANCHOR lbosc3-admission",
+    "TOMO_TOOL_BIND lb_consume_plan",
+    "TOMO_TOOL_BIND monitor_controllers",
+    "TOMO_TOOL_BIND lb_controller_tick_pad",
+    "TOMO_TOOL_BIND lb_control_actuate_pad",
+    "TOMO_TOOL_BIND lb_pass_begin_pad",
+    "TOMO_TOOL_BIND lb_control_pass_pad",
+    "TOMO_TOOL_BIND monitor_controllers_pad"
+  ],
+  "src/core/pubsub.inc": [
+    "TOMO_TOOL_BIND pubsub_deliver_one",
+    "TOMO_TOOL_BIND pubsub_home_publish"
+  ],
+  "src/core/reorder.cc": [
+    "TOMO_TOOL_BIND reorder_available",
+    "TOMO_TOOL_BIND r7",
+    "TOMO_TOOL_BIND shadow_available",
+    "TOMO_TOOL_BIND r7_fused_baseline_pass",
+    "TOMO_TOOL_BIND r7_fused_pass_impl",
+    "TOMO_TOOL_BIND r7_sweep",
+    "TOMO_TOOL_BIND r7_fused_baseline_sweep",
+    "TOMO_TOOL_BIND r7_fused_sweep_impl",
+    "TOMO_TOOL_BIND r7_run_loop",
+    "TOMO_TOOL_BIND r7_fused_demote_local_read_batch",
+    "TOMO_TOOL_BIND r7_on_cqe",
+    "TOMO_TOOL_BIND r7_epoll_pass",
+    "TOMO_TOOL_BIND r7_flush_ready",
+    "TOMO_TOOL_BIND r7_drive_tls",
+    "TOMO_TOOL_BIND r7_arm_tls_recv",
+    "TOMO_TOOL_BIND r7_parse_and_dispatch",
+    "TOMO_TOOL_BIND r7_admit_fd",
+    "TOMO_TOOL_BIND r7_admit_retained_fd",
+    "TOMO_TOOL_BIND r7_adopt_client",
+    "TOMO_TOOL_BIND r7_on_tls_recv",
+    "TOMO_TOOL_BIND r7_epoll_accept",
+    "TOMO_TOOL_BIND r7_on_accept",
+    "TOMO_TOOL_BIND r7_on_recv",
+    "TOMO_TOOL_BIND r7_on_tls_socket_poll"
+  ],
+  "src/core/server.h": [
+    "TOMO_TOOL_BIND Server",
+    "TOMO_TOOL_BIND lb_cron_writer_pad",
+    "TOMO_TOOL_BIND lb_should_pause_pad",
+    "TOMO_TOOL_BIND lb_client_move_pad",
+    "TOMO_TOOL_BIND climon_armed_"
+  ],
+  "src/core/shard.h": [
+    "TOMO_TOOL_BIND Shard",
+    "TOMO_TOOL_BIND init",
+    "TOMO_TOOL_BIND watch_append_reservation"
+  ],
+  "src/core/signal.h": [
+    "TOMO_TOOL_BIND net_input_bytes",
+    "TOMO_TOOL_BIND net_output_bytes"
+  ],
+  "src/core/thread.h": [
+    "TOMO_TOOL_BIND ThreadCtx",
+    "TOMO_TOOL_BIND note_command",
+    "TOMO_TOOL_BIND command_calls",
+    "TOMO_TOOL_BIND command_rejected_calls",
+    "TOMO_TOOL_BIND command_failed_calls",
+    "TOMO_TOOL_BIND total_commands",
+    "TOMO_TOOL_BIND sample_depth"
+  ],
+  "src/core/wb_rule.h": [
+    "TOMO_TOOL_BIND kSmallPipe",
+    "TOMO_TOOL_BIND kCompleteVisits"
+  ],
+  "src/net/uring.h": [
+    "TOMO_TOOL_BIND kWaitTimeoutMs"
+  ],
+  "src/persist/aof.cc": [
+    "TOMO_TOOL_BIND fail",
+    "TOMO_TOOL_BIND defer_completion",
+    "TOMO_TOOL_BIND producers_stopped",
+    "TOMO_TOOL_BIND worker_shutdown"
+  ],
+  "src/persist/aof.h": [
+    "TOMO_TOOL_BIND AofManager",
+    "TOMO_TOOL_BIND append_function_journal"
+  ],
+  "src/store/flatstore.h": [
+    "TOMO_TOOL_BIND FlatStore",
+    "TOMO_TOOL_BIND configure_object_idle",
+    "TOMO_TOOL_BIND make_word"
+  ],
+  "src/store/flush.cc": [
+    "TOMO_TOOL_BIND atomic_flush_erase",
+    "TOMO_TOOL_BIND atomic_flush_resolved_size"
+  ],
+  "src/store/kvobj.h": [
+    "TOMO_TOOL_BIND kvobj_init_raw_string",
+    "TOMO_TOOL_BIND kvobj_init_int",
+    "TOMO_TOOL_BIND kvobj_new_string",
+    "TOMO_TOOL_BIND kvobj_new_typeval",
+    "TOMO_TOOL_BIND kvobj_new_embedded_typeval",
+    "TOMO_TOOL_BIND kvobj_reheader"
+  ],
+  "src/store/object_idle.h": [
+    "TOMO_TOOL_BIND ObjectIdleClock",
+    "TOMO_TOOL_BIND install"
+  ]
+}

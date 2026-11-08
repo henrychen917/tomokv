@@ -1,4 +1,4 @@
-// Included in the existing, unmodified CoreConcurrencyTest fixture by iopass_receipts.py.
+// Included in the existing, unmodified CoreConcurrencyTest fixture by tools/archive/tools/iopass_receipts.py.
 template<class IO> static void iopass_begin(IO& io) {
     if constexpr (requires { io.flip_pass_begin(); }) io.flip_pass_begin();
 }

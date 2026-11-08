@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """Directed runtime check for the generated Redis 7.4 ACL category table."""
 
+import source_tokens as cpp
 import pathlib
 import re
 import socket
 import sys
 
 
-HOST, PORT = sys.argv[1], int(sys.argv[2])
+SOURCE_CHECK = sys.argv[1:] == ['--source-check']
+HOST, PORT = ('', 0) if SOURCE_CHECK else (sys.argv[1], int(sys.argv[2]))
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 GENERATED = (ROOT / "src/cmd/acl_categories_generated.h").read_text()
 METADATA = (ROOT / "src/cmd/cmdmeta_generated.inc").read_text()
@@ -21,10 +23,10 @@ METADATA = (ROOT / "src/cmd/cmdmeta_generated.inc").read_text()
 # real 7.4 lists object|encoding .. object|refcount under @keyspace, and the registry has no row for
 # them because OBJECT is a single command there. So membership must be derived from the METADATA
 # table; deriving it from the registry table under-reports by exactly the subcommands.
-METADATA_ROWS = re.findall(
+METADATA_ROWS = cpp.findall(
     r'\{"([a-z0-9|_-]+)",\s*(?:-?\d+),\s*0x[0-9a-fA-F]+ULL,\s*[^,]+,\s*[^,]+,\s*[^,]+,'
     r'\s*0x([0-9a-fA-F]+)ULL',
-    METADATA[METADATA.index("kGeneratedMetadata[] = {"):])
+    cpp.read(ROOT / "src/cmd/cmdmeta_generated.inc")[cpp.read(ROOT / "src/cmd/cmdmeta_generated.inc").index("kGeneratedMetadata[] = {"):])
 
 
 class RespError(Exception):
@@ -66,10 +68,16 @@ def command(sock, *args):
     return read()
 
 
-category_rows = re.findall(r'\{"([a-z]+)", uint64_t\{1\} << (\d+)\}', GENERATED)
-command_rows = re.findall(r'\{"([A-Z0-9_-]+)", 0x([0-9a-f]{16})ULL\}', GENERATED)
+category_rows = cpp.findall(r'\{"([a-z]+)", uint64_t\{1\} << (\d+)\}', GENERATED)
+command_rows = cpp.findall(r'\{"([A-Z0-9_-]+)", 0x([0-9a-f]{16})ULL\}', GENERATED)
 if len(category_rows) != 21 or not command_rows:
     raise AssertionError("could not read generated category table")
+
+if SOURCE_CHECK:
+    if not METADATA_ROWS:
+        raise ValueError('empty generated metadata')
+    print('PASS ACL source rows:', len(category_rows), len(command_rows), len(METADATA_ROWS))
+    raise SystemExit(0)
 
 sock = socket.create_connection((HOST, PORT), timeout=10)
 bare = command(sock, "ACL", "CAT")

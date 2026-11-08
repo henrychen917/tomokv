@@ -16,6 +16,7 @@ import re
 import subprocess
 import tempfile
 import time
+import source_tokens as cpp
 
 from _lib import Conn, encode, info, shards_of, topology, wait_ready
 
@@ -30,6 +31,8 @@ def symbols(binary, pattern):
     text = subprocess.check_output(["nm", "-S", "-C", "--defined-only", str(binary)], text=True)
     for line in text.splitlines():
         parts = line.split(None, 3)
+        if len(parts) == 4:
+            parts[3] = cpp.canonical_symbol(parts[3])
         if len(parts) == 4 and re.fullmatch(pattern, parts[3]):
             rows.append((int(parts[0], 16), int(parts[1], 16), parts[3]))
     return rows
@@ -40,7 +43,7 @@ def instructions(binary, symbol):
     text = subprocess.check_output([
         "objdump", "-dC", "--no-show-raw-insn", f"--start-address={addr}",
         f"--stop-address={addr + size}", str(binary)], text=True)
-    return [(int(m[1], 16), m[2], m[3].strip()) for line in text.splitlines()
+    return [(int(m[1], 16), m[2], cpp.canonical_symbol(m[3].strip())) for line in text.splitlines()
             if (m := re.match(r"\s*([0-9a-f]+):\s+(\S+)\s*(.*)", line))]
 
 

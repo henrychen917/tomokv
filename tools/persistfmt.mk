@@ -3,7 +3,7 @@
 PERSISTFMT_OBJECTS ?= build
 PERSISTFMT_AOF ?= src/persist/aof.cc
 PERSISTFMT_SCHEDULE ?= build/persistfmt/scheduled
-$(PERSISTFMT_SCHEDULE)/aof.cc: tools/persistfmt_schedule.py $(PERSISTFMT_AOF)
+$(PERSISTFMT_SCHEDULE)/aof.cc: tools/persistfmt_schedule.py tools/source_tokens.py tools/source_anchors.json $(PERSISTFMT_AOF)
 	python3 tools/persistfmt_schedule.py $(PERSISTFMT_AOF) $@
 $(PERSISTFMT_SCHEDULE)/aof.o: $(PERSISTFMT_SCHEDULE)/aof.cc
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Isrc/persist -I. -c $< -o $@

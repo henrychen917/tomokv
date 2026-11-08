@@ -1,4 +1,4 @@
-// Inserted into CoreConcurrencyTest::run by tools/persistfmt_counts.py, after
+// Inserted into CoreConcurrencyTest::run by tools/archive/tools/persistfmt_counts.py, after
 // the unchanged command fixture's server setup. No socket or worker is started.
   if (command == "SNAPSHOT-SAVE" || command == "SNAPSHOT-LOAD") {
    constexpr unsigned sid = 1; // per-key loop; global metadata is once per file

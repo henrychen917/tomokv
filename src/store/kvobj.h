@@ -787,7 +787,7 @@ inline Slice kvobj_string_value(const KvObj* object, KvObjRawReadBuffer&) {
 // the resulting out-of-line call cost the first-insert path about twenty instructions -- more than
 // the copy saved. Keeping it inlined is what makes the change a win there instead of a wash.
 __attribute__((always_inline))
-inline KvObj* kvobj_init_raw_string(void* mem, Slice key, Slice val,
+inline KvObj* /* TOMO_TOOL_BIND kvobj_init_raw_string */kvobj_init_raw_string(void* mem, Slice key, Slice val,
                                     int64_t expire_at_ms = -1,
                                     bool reserve_ttl_slot = false) {
     if (!mem || val.n > kEmbedThreshold) return nullptr;
@@ -809,7 +809,7 @@ inline KvObj* kvobj_init_raw_string(void* mem, Slice key, Slice val,
     return o;
 }
 
-inline KvObj* kvobj_init_int(void* mem, Slice key, int64_t value,
+inline KvObj* /* TOMO_TOOL_BIND kvobj_init_int */kvobj_init_int(void* mem, Slice key, int64_t value,
                              int64_t expire_at_ms = -1,
                              bool reserve_ttl_slot = false) {
     if (!mem) return nullptr;
@@ -828,7 +828,7 @@ inline KvObj* kvobj_init_int(void* mem, Slice key, int64_t value,
     return o;
 }
 
-inline KvObj* kvobj_new_string(
+inline KvObj* /* TOMO_TOOL_BIND kvobj_new_string */kvobj_new_string(
     Slice key, Slice val, int64_t expire_at_ms = -1, bool reserve_ttl_slot = false,
     bool force_raw = false
 ) {
@@ -877,7 +877,7 @@ inline KvObj* kvobj_new_int(
     return kvobj_init_int(mem, key, value, expire_at_ms, reserve_ttl_slot);
 }
 
-inline KvObj* kvobj_new_typeval(Slice key, Type type, void* value, uint32_t value_size,
+inline KvObj* /* TOMO_TOOL_BIND kvobj_new_typeval */kvobj_new_typeval(Slice key, Type type, void* value, uint32_t value_size,
                                 int64_t expire_at_ms = -1, bool owns = true,
                                 bool reserve_ttl_slot = false) {
     if (type == Type::String || !value) return nullptr;
@@ -901,7 +901,7 @@ inline KvObj* kvobj_new_typeval(Slice key, Type type, void* value, uint32_t valu
     return o;
 }
 
-inline KvObj* kvobj_new_embedded_typeval(Slice key, Type type, const Compact& compact,
+inline KvObj* /* TOMO_TOOL_BIND kvobj_new_embedded_typeval */kvobj_new_embedded_typeval(Slice key, Type type, const Compact& compact,
                                          uint64_t aux0 = 0, uint64_t aux1 = 0,
                                          int64_t expire_at_ms = -1,
                                          bool reserve_ttl_slot = false) {
@@ -1042,7 +1042,7 @@ inline KvObj* kvobj_adopt_stream(Slice key, StreamVal*& value, int64_t expire_at
 // slot; later changes retain it even when the logical deadline becomes -1. Strings are copied
 // because their bytes may be borrowed by a zero-copy send. Collections are single-owner and move
 // their external ownership in FlatStore::rewrite_expire().
-inline KvObj* kvobj_reheader(KvObj* src, int64_t expire_at_ms) {
+inline KvObj* /* TOMO_TOOL_BIND kvobj_reheader */kvobj_reheader(KvObj* src, int64_t expire_at_ms) {
     const Type type = static_cast<Type>(src->type);
     const bool reserve_ttl_slot = src->has_ttl_slot();
     KvObj* replacement = nullptr;

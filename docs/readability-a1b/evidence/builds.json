@@ -1,0 +1,636 @@
+[
+  {
+    "name": "primary",
+    "flags": [],
+    "targets": [
+      "all",
+      "build/wave15-stream-unit",
+      "build/wave15-stream-db0-unit",
+      "build/wave15-flip-eof-unit",
+      "build/wave15-flip-eof-db0-unit",
+      "build/wave15-idle-unit",
+      "build/wave15-idle-db0-unit",
+      "build/expire-notify-unit",
+      "build/ktls-lifetime-unit",
+      "build/moverfix-unit",
+      "build/moverfix-db0-unit",
+      "build/publishfix-unit",
+      "build/at15-unit",
+      "build/at15-db0-unit",
+      "build/execabort-watch-unit",
+      "build/execabort-watch-db0-unit",
+      "build/core-concurrency-unit",
+      "build/atomic-survivors-unit",
+      "build/exec1s-unit",
+      "build/exec1s-word-tsan",
+      "build/at412-owner",
+      "build/txnorder-fifo-unit",
+      "build/txnorder-fifo-db0-unit",
+      "build/txnorder-chain-unit",
+      "build/txnorder-chain-db0-unit",
+      "build/txnorder-index-unit",
+      "build/txnorder-index-db0-unit",
+      "build/txnorder-retry-unit",
+      "build/txnorder-wound-unit",
+      "build/txnorder-wound-db0-unit",
+      "build/txnorder-wake-unit",
+      "build/txnorder-episodes",
+      "build/txnorder-episodes-debug",
+      "build/txnorder-watch-unit",
+      "build/txnorder-watch-db0-unit",
+      "build/netcmd-unit",
+      "build/encodingfix-unit",
+      "build/netcap-unit",
+      "build/waits-unit",
+      "build/rehash-waits-unit",
+      "build/multidb-unit",
+      "build/multidb-boundary-unit",
+      "build/storesize-unit",
+      "build/respresume-unit",
+      "build/respresume-migration",
+      "build/gaterows5-units",
+      "build/exbatch-unit",
+      "build/exbatch-db0-unit",
+      "build/wb-rule-units",
+      "build/wbland-units",
+      "build/rltopo-unit",
+      "build/lbplanner-units",
+      "build/shutdown-unit",
+      "build/persistfix-units",
+      "build/ktls-keyupdate",
+      "build/ktls-keyupdate-unit",
+      "build/flushfix-units",
+      "build/splitlocal-unit",
+      "build/reorder-engagement-unit",
+      "build/reorder-engagement-unit-db0",
+      "build/racefix-climon",
+      "build/aoforder-scheduled"
+    ],
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-k",
+      "-j16",
+      "all",
+      "build/wave15-stream-unit",
+      "build/wave15-stream-db0-unit",
+      "build/wave15-flip-eof-unit",
+      "build/wave15-flip-eof-db0-unit",
+      "build/wave15-idle-unit",
+      "build/wave15-idle-db0-unit",
+      "build/expire-notify-unit",
+      "build/ktls-lifetime-unit",
+      "build/moverfix-unit",
+      "build/moverfix-db0-unit",
+      "build/publishfix-unit",
+      "build/at15-unit",
+      "build/at15-db0-unit",
+      "build/execabort-watch-unit",
+      "build/execabort-watch-db0-unit",
+      "build/core-concurrency-unit",
+      "build/atomic-survivors-unit",
+      "build/exec1s-unit",
+      "build/exec1s-word-tsan",
+      "build/at412-owner",
+      "build/txnorder-fifo-unit",
+      "build/txnorder-fifo-db0-unit",
+      "build/txnorder-chain-unit",
+      "build/txnorder-chain-db0-unit",
+      "build/txnorder-index-unit",
+      "build/txnorder-index-db0-unit",
+      "build/txnorder-retry-unit",
+      "build/txnorder-wound-unit",
+      "build/txnorder-wound-db0-unit",
+      "build/txnorder-wake-unit",
+      "build/txnorder-episodes",
+      "build/txnorder-episodes-debug",
+      "build/txnorder-watch-unit",
+      "build/txnorder-watch-db0-unit",
+      "build/netcmd-unit",
+      "build/encodingfix-unit",
+      "build/netcap-unit",
+      "build/waits-unit",
+      "build/rehash-waits-unit",
+      "build/multidb-unit",
+      "build/multidb-boundary-unit",
+      "build/storesize-unit",
+      "build/respresume-unit",
+      "build/respresume-migration",
+      "build/gaterows5-units",
+      "build/exbatch-unit",
+      "build/exbatch-db0-unit",
+      "build/wb-rule-units",
+      "build/wbland-units",
+      "build/rltopo-unit",
+      "build/lbplanner-units",
+      "build/shutdown-unit",
+      "build/persistfix-units",
+      "build/ktls-keyupdate",
+      "build/ktls-keyupdate-unit",
+      "build/flushfix-units",
+      "build/splitlocal-unit",
+      "build/reorder-engagement-unit",
+      "build/reorder-engagement-unit-db0",
+      "build/racefix-climon",
+      "build/aoforder-scheduled"
+    ],
+    "exit": 0,
+    "freshness": [
+      {
+        "target": "all",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/wave15-stream-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/wave15-stream-db0-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/wave15-flip-eof-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/wave15-flip-eof-db0-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/wave15-idle-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/wave15-idle-db0-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/expire-notify-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/ktls-lifetime-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/moverfix-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/moverfix-db0-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/publishfix-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/at15-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/at15-db0-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/execabort-watch-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/execabort-watch-db0-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/core-concurrency-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/atomic-survivors-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/exec1s-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/exec1s-word-tsan",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/at412-owner",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/txnorder-fifo-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/txnorder-fifo-db0-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/txnorder-chain-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/txnorder-chain-db0-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/txnorder-index-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/txnorder-index-db0-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/txnorder-retry-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/txnorder-wound-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/txnorder-wound-db0-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/txnorder-wake-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/txnorder-episodes",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/txnorder-episodes-debug",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/txnorder-watch-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/txnorder-watch-db0-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/netcmd-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/encodingfix-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/netcap-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/waits-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/rehash-waits-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/multidb-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/multidb-boundary-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/storesize-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/respresume-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/respresume-migration",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/gaterows5-units",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/exbatch-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/exbatch-db0-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/wb-rule-units",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/wbland-units",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/rltopo-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/lbplanner-units",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/shutdown-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/persistfix-units",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/ktls-keyupdate",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/ktls-keyupdate-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/flushfix-units",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/splitlocal-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/reorder-engagement-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/reorder-engagement-unit-db0",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/racefix-climon",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/aoforder-scheduled",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      }
+    ]
+  },
+  {
+    "name": "mdbqsbr",
+    "flags": [],
+    "targets": [
+      "mdbqsbr-live-arms"
+    ],
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-k",
+      "-j16",
+      "mdbqsbr-live-arms"
+    ],
+    "exit": 0,
+    "freshness": [
+      {
+        "target": "all",
+        "variables": [
+          "BUILD_ROOT=build/mdbqsbr2-park",
+          "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK"
+        ],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "all",
+        "variables": [
+          "BUILD_ROOT=build/mdbqsbr2-no-wake",
+          "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE"
+        ],
+        "exit": 0,
+        "stderr": ""
+      }
+    ]
+  },
+  {
+    "name": "blockfix-cost",
+    "flags": [
+      "-f",
+      "Makefile",
+      "-f",
+      "tools/blockfix_cost.mk"
+    ],
+    "targets": [
+      "build/blockfix-cost",
+      "build/tomokv.blockfix-cost.sha256"
+    ],
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-k",
+      "-j16",
+      "-f",
+      "Makefile",
+      "-f",
+      "tools/blockfix_cost.mk",
+      "build/blockfix-cost",
+      "build/tomokv.blockfix-cost.sha256"
+    ],
+    "exit": 0,
+    "freshness": [
+      {
+        "target": "build/blockfix-cost",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/tomokv.blockfix-cost.sha256",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      }
+    ]
+  },
+  {
+    "name": "blockfix2",
+    "flags": [
+      "-f",
+      "Makefile",
+      "-f",
+      "tools/blockfix2.mk"
+    ],
+    "targets": [
+      "build/blockfix2-unit",
+      "build/blockfix2-db0-unit"
+    ],
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-k",
+      "-j16",
+      "-f",
+      "Makefile",
+      "-f",
+      "tools/blockfix2.mk",
+      "build/blockfix2-unit",
+      "build/blockfix2-db0-unit"
+    ],
+    "exit": 0,
+    "freshness": [
+      {
+        "target": "build/blockfix2-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      },
+      {
+        "target": "build/blockfix2-db0-unit",
+        "variables": [],
+        "exit": 0,
+        "stderr": ""
+      }
+    ]
+  }
+]

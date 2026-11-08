@@ -29,7 +29,7 @@ ARMS = {arm: (ROOT, ROOT / "build") for arm in ("X5", "POST")}
 for _arm in ("PRE", "X0", "X1", "X2", "X3", "X4"):
     _source = ROOT / "build/exec1s" / ("pre-source" if _arm == "PRE" else _arm.lower() + "-current-source")
     ARMS[_arm] = (_source, _source / "build")
-# PAD scopes are constructed by exec1s_pad_scope.py from symbol-isolated PRE.
+# PAD scopes are constructed by tools/archive/tools/exec1s_pad_scope.py from symbol-isolated PRE.
 SYMBOL_PREFIXES = {"PAD-A": "exec1s_pre_"}
 
 # Compile-only controls may replace selected production objects before linking.

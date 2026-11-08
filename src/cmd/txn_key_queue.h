@@ -8,7 +8,7 @@
 #include <vector>
 namespace tomo {
 class Client;
-struct TxnWaiter;
+struct /* TOMO_TOOL_BIND TxnWaiter */TxnWaiter;
 struct TxnKeyQueue;
 struct TxnReservation {
         const void* token = nullptr;

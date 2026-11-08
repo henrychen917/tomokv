@@ -4,6 +4,8 @@
 Usage: tests/acl.py HOST PORT ACLFILE
 """
 
+import source_tokens as cpp
+from pathlib import Path
 import glob
 import os
 import select
@@ -15,23 +17,27 @@ import time
 from _client_wait import wait_client_state
 
 
-HOST, PORT, ACLFILE = sys.argv[1], int(sys.argv[2]), sys.argv[3]
+SOURCE_CHECK = sys.argv[1:] == ['--source-check']
+HOST, PORT, ACLFILE = ('', 0, '') if SOURCE_CHECK else (sys.argv[1], int(sys.argv[2]), sys.argv[3])
 
 
 def assert_notification_delivery_not_acl_checked():
     """Keyspace notifications share pubsub_deliver and must bypass & rules."""
     source_path = os.path.join(os.path.dirname(__file__), "..", "src", "core", "pubsub.inc")
     with open(source_path, "r", encoding="utf-8") as source_file:
-        source = source_file.read()
+        source = cpp.read(Path(source_path))
     # The fanout redesign split delivery into deliver_one/deliver_batch; the span still ends at
     # home_publish, so the whole delivery path stays inside the checked region.
     start = source.index("    void pubsub_deliver_one(")
     end = source.index("\n    uint64_t pubsub_home_publish(", start)
-    if "acl_" in source[start:end]:
+    if any(token.startswith("acl_") for token in cpp.tokens(source[start:end])):
         raise AssertionError("pubsub delivery must not apply ACL channel rules")
 
 
 assert_notification_delivery_not_acl_checked()
+if SOURCE_CHECK:
+    print('PASS notification delivery source inventory')
+    raise SystemExit(0)
 
 
 class RespError(Exception):

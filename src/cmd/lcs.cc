@@ -190,7 +190,7 @@ void lcs_reply(Op& op, const LcsOptions& options, const LcsResult& result) {
 }
 
 namespace {
-static const CommandSpec kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
     // Two string keys, read-only, lowered by the scatter engine exactly like the other two-key
     // reads. min_arity 3 is `LCS k1 k2`; the trailing options are unbounded.
     {"LCS", 3, -1, CmdFlags::Readonly | CmdFlags::MultiShard, cmd_xshard_only, 1, 2, 1},

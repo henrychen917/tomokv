@@ -19,7 +19,8 @@ namespace tomo {
 // 16:03 ruling: keep 512 unless pooled MSETNX stays <= -3%, then switch to 768.
 // Keep the comparison out of caller TUs; bisect by rebuilding this constant only.
 #ifndef TOMO_L4_PREBUILD_THRESHOLD
-#define TOMO_L4_PREBUILD_THRESHOLD 512
+/* TOMO_TOOL_ANCHOR l4-prebuild-threshold */
+#define /* TOMO_TOOL_BIND TOMO_L4_PREBUILD_THRESHOLD */ TOMO_L4_PREBUILD_THRESHOLD 512
 #endif
 static_assert(TOMO_L4_PREBUILD_THRESHOLD >= kEmbedThreshold);
 

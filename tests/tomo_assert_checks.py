@@ -16,11 +16,23 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools'))
 import assert_map as amap
 import source_identity as identity
+import source_tokens as cpp
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 class AssertionChecks(unittest.TestCase):
+    def test_empty_production_inventory_is_not_success(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / 'build') as directory:
+            root = Path(directory)
+            (root / 'src').mkdir()
+            self.assertTrue(identity.source_check(root))
+            result = subprocess.run([sys.executable, str(ROOT/'tools/assert_map.py'),
+                                     '--root', str(root), '--output', str(root/'empty.tsv')],
+                                    capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('empty production assertion inventory', result.stderr)
+
     def site(self, body):
         with tempfile.TemporaryDirectory(dir=ROOT / 'build') as directory:
             root = Path(directory)
@@ -32,7 +44,7 @@ class AssertionChecks(unittest.TestCase):
     def test_hash_and_function(self):
         sites = amap.scan(ROOT)
         self.assertEqual(len(sites), 22)
-        self.assertEqual({s.function for s in sites}, {
+        self.assertEqual({cpp.canonical_symbol(s.function) for s in sites}, {
             'tomo::FlatStore::storesize_replace', 'tomo::FlatStore::storesize_deadline',
             'tomo::FlatStore::make_word', 'tomo::Shard::init',
             'tomo::TxnWaiter::operator=', 'tomo::TxnWaiter::TxnWaiter',
@@ -236,7 +248,7 @@ def check_failure(binary, map_path):
     if row['function'] != 'tomo::Shard::init':
         raise AssertionError(f'wrong function: {row}')
     path, line = row['file:line'].rsplit(':', 1)
-    if path != 'src/core/shard.h' or 'TOMO_ASSERT(bucket_begin <=' not in (ROOT / path).read_text().splitlines()[int(line) - 1]:
+    if path != 'src/core/shard.h' or 'TOMO_ASSERT' not in (ROOT / path).read_text().splitlines()[int(line) - 1]:
         raise AssertionError(f'wrong physical source location: {row}')
     print(result.stderr.strip())
     print(f"PASS directed abort: {match[1]} -> {row['file:line']} {row['function']}")

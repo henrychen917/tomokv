@@ -1,0 +1,36 @@
+[
+  {
+    "attempts": 1,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": true,
+    "errors": 0,
+    "estimated_attempts_for_k": 1.0,
+    "estimated_seconds_for_k": 1.0159760527312756,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 1,
+    "incomplete": 0,
+    "mean_attempt_seconds": 1.0159760527312756,
+    "row": {
+      "family": "servertail",
+      "id": "149",
+      "job": "feature-split-0",
+      "name": "servertail battery (atomic 0)",
+      "observable": "witness",
+      "primitives": [
+        "W1"
+      ],
+      "requires": [
+        "W1"
+      ]
+    },
+    "seconds": 1.0159760527312756,
+    "target_hits": 1,
+    "upper_95": 0.95,
+    "verdict": "PASS",
+    "witness_attempts": {
+      "W1": 1
+    }
+  }
+]

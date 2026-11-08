@@ -9,7 +9,7 @@
 namespace tomo {
 // One offline PAD-A patch point: returning zero restores PRE policy on this exact
 // layout. Production returns the configured level; no ordinary operation calls it.
-__attribute__((noipa)) int32_t lbosc3_level(int32_t configured) { return configured; }
+__attribute__((noipa)) int32_t /* TOMO_TOOL_BIND lbosc3_level */lbosc3_level(int32_t configured) { return configured; }
 
 void Server::lb_key_damping_init() {
     if (lbosc3_level(cfg_.key_lb_damping) && !lb_policy_->key_damping)
@@ -151,7 +151,7 @@ bool lbosc3_best_incremental_move(const std::vector<WeightedLbItem>& items,
     return choice.item_index != UINT32_MAX;
 }
 
-bool Server::lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {
+bool Server::/* TOMO_TOOL_BIND lb_controller_tick */lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {
     if (!lb_controller_enabled() || coordinator >= nthreads()) return false;
     const int32_t damping = lbosc3_level(cfg_.key_lb_damping);
     const bool key_enabled = key_lb_signals_enabled();
@@ -249,6 +249,7 @@ bool Server::lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {
                 std::memory_order_relaxed);
             lb_bucket_bytes_spread_current_.store(
                 static_cast<uint64_t>(bytes_before + 0.5), std::memory_order_relaxed);
+            /* TOMO_TOOL_ANCHOR lbosc3-admission */
             // LBOSC3 BEGIN admission: only the key planner sees damping.
             bool key_admitted;
             if (damping && lb_policy_->key_damping) {
@@ -498,7 +499,7 @@ bool Server::lb_debug_move_client(uint64_t id, uint32_t destination, std::string
 }
 
 
-bool Server::lb_consume_plan(uint32_t coordinator) {
+bool Server::/* TOMO_TOOL_BIND lb_consume_plan */lb_consume_plan(uint32_t coordinator) {
     // Only an observed PlanReady reaches this cold path. Never wait behind a monitor gather.
     std::unique_lock lock(shape_transition_mu_, std::try_to_lock);
     if (!lock || lb_stage() != LbStage::PlanReady || coordinator != lb_coordinator_) return false;
@@ -545,7 +546,7 @@ bool Server::lb_consume_plan(uint32_t coordinator) {
     return true;
 }
 
-void Server::monitor_controllers() {
+void Server::/* TOMO_TOOL_BIND monitor_controllers */monitor_controllers() {
     // INFO sampling also needs this existing cold thread when both controllers are off.
     uint64_t next_lb_ms = 0, next_flip_ms = 0, next_info_ms = 0;
     // This thread publishes automatic FLIPs and LB plans to a coordinator IO that may be parked,
@@ -608,7 +609,7 @@ void Server::monitor_controllers() {
 // the existing tail/monitor calls and each private gate load in a COPY of POST.
 // Keep the admission body and actuator body mechanically equal to cd02ecbab;
 // the artifact verifier compares them before allowing a twin to be built.
-bool Server::lb_controller_tick_pad(uint32_t coordinator, uint64_t now_ms) {
+bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */lb_controller_tick_pad(uint32_t coordinator, uint64_t now_ms) {
     if (!lb_controller_enabled() || coordinator >= nthreads()) return false;
     const bool key_enabled = key_lb_signals_enabled();
     const bool client_enabled = client_lb_signals_enabled();
@@ -871,7 +872,7 @@ bool Server::lb_controller_tick_pad(uint32_t coordinator, uint64_t now_ms) {
     }
 }
 
-__attribute__((always_inline)) inline uint32_t IoLoop::lb_control_actuate_pad() {
+__attribute__((always_inline)) inline uint32_t IoLoop::/* TOMO_TOOL_BIND lb_control_actuate_pad */lb_control_actuate_pad() {
     if (!lb_controller_armed_) return 0;
     const LbStage stage = srv_->lb_stage();
     if (stage != LbStage::ClientDrain) lb_client_wake_pending_ = false;
@@ -979,9 +980,9 @@ __attribute__((always_inline)) inline uint32_t IoLoop::lb_control_actuate_pad() 
 
 // PRE had no per-pass pause snapshot; its live per-connection gate is restored in PAD.
 // In particular, do not overwrite the same eight bytes that PAD uses as its cron deadline.
-void IoLoop::lb_pass_begin_pad() {}
+void IoLoop::/* TOMO_TOOL_BIND lb_pass_begin_pad */lb_pass_begin_pad() {}
 
-uint32_t IoLoop::lb_control_pass_pad() {
+uint32_t IoLoop::/* TOMO_TOOL_BIND lb_control_pass_pad */lb_control_pass_pad() {
     uint32_t did = lb_control_actuate_pad();
     // The same eight bytes were the PRE per-IO cron deadline. PAD never writes
     // a cached pause ID; its parser reads the live stage, as PRE did.
@@ -995,7 +996,7 @@ uint32_t IoLoop::lb_control_pass_pad() {
     return did;
 }
 
-void Server::monitor_controllers_pad() {
+void Server::/* TOMO_TOOL_BIND monitor_controllers_pad */monitor_controllers_pad() {
     if (cfg_.thread_mode == ThreadMode::Fused) return; // PRE fused boots joined workers directly.
     if (flipctl_enabled()) {
         while (!shutting_down().load(std::memory_order_relaxed)) {

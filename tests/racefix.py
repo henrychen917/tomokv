@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import posixpath
 import re
+import source_tokens as cpp
 import subprocess
 import time
 
@@ -217,6 +218,7 @@ def symbolize(log, binary):
 
 
 def tsan_reports(log):
+    log = cpp.canonical_symbol(log)
     log = re.sub(r'\bsrc/[A-Za-z0-9_/.\-]+', lambda m: posixpath.normpath(m[0]), log)
     reports = re.findall(r'WARNING: ThreadSanitizer:.*?(?=\n={8,}|\Z)', log, re.S)
     # Accept a PRE confirmation only when both named sides are in the same
@@ -224,9 +226,22 @@ def tsan_reports(log):
     sites = []
     root = Path(__file__).resolve().parents[1]
     for name in ('src/core/io_loop.h', 'src/core/reorder.cc', 'src/net/wb.h'):
-        for line, text in enumerate((root / name).read_text().splitlines(), 1):
-            if re.search(r'net_(?:input|output)_bytes(?:\s*\+=|\.store)', text):
-                sites.append(re.escape(name) + ':' + str(line) + r'\b')
+        source = cpp.read(root / name)
+        code = cpp.lex(str(source))
+        values = cpp.tokens(source)
+        for i, token in enumerate(values):
+            if token not in ('net_input_bytes', 'net_output_bytes'):
+                continue
+            if values[i+1:i+2] == ('+=',) or values[i+1:i+3] == ('.', 'store'):
+                # A split expression may be attributed to any line in this statement.
+                end = next((j for j in range(i, len(code)) if values[j] == ';'), None)
+                if end is None: raise ValueError('unclosed counter write')
+                first = str(source)[:code[i].start].count('\n') + 1
+                last = str(source)[:code[end].end].count('\n') + 1
+                sites.extend(re.escape(name) + ':' + str(line) + r'\b'
+                             for line in range(first, last + 1))
+    if not sites:
+        raise ValueError('missing counter-write source inventory')
     writer = r'ThreadCtx::note_command|'+ '|'.join(sites)
     confirmed = [r for r in reports if 'info_stats_tick' in r and re.search(writer, r)]
     family = [r for r in reports if r in confirmed or

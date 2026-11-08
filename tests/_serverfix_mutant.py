@@ -3,6 +3,7 @@ import hashlib
 import re
 import struct
 import subprocess
+import source_tokens as cpp
 
 
 def zero_hll_count(source, destination, oracle=False):
@@ -16,7 +17,7 @@ def zero_hll_count(source, destination, oracle=False):
         match = re.fullmatch(r'([0-9a-f]+) ([0-9a-f]+) [TtWw] (.*)', line)
         if not match:
             continue
-        name = match[3]
+        name = match[3] if oracle else cpp.canonical_symbol(match[3])
         wanted = name == 'hllCount' if oracle else bool(re.fullmatch(r'tomo(?:_db0)?::hll::count\(.*', name))
         if not wanted:
             continue

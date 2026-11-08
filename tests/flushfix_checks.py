@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import source_tokens as cpp
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,14 +32,11 @@ def overlay(output, directory, replacements):
 
 
 def emit_header(site, output):
-    source = (ROOT / "src/store/kvobj.h").read_text()
-    begin = source.index(f"inline KvObj* {SITES[site]}(")
-    end = source.find("\ninline ", begin + 1)
-    if end < 0:
-        end = len(source)
+    source = cpp.read(ROOT / "src/store/kvobj.h")
+    begin, _, end = cpp.function_span(source, SITES[site])
     body = source[begin:end]
     assert body.count("key.identity() >= 255") == 3, (site, "header predicate moved")
-    body = body.replace("key.identity() >= 255", "key.n >= 255")
+    body = body.replace("key.identity() >= 255", "key.n >= 255", 3)
     overlay(output, "store", {"kvobj.h": source[:begin] + body + source[end:]})
 
 

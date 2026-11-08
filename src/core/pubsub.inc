@@ -345,7 +345,7 @@
         mark_active(client);
     }
 
-    void pubsub_deliver_one(const PubSubDelivery& item) {
+    void /* TOMO_TOOL_BIND pubsub_deliver_one */pubsub_deliver_one(const PubSubDelivery& item) {
         auto local_it = pubsub_local_.find(item.conn);
         if (local_it == pubsub_local_.end()) return;
         Client* client = local_it->second.client;
@@ -409,7 +409,7 @@
         pubsub_outbox_for(io).results.push_back(PubSubResult{conn_id, op_id, count});
     }
 
-    uint64_t pubsub_home_publish(PubSubEvent& request, bool reply_to_publisher = true) {
+    uint64_t /* TOMO_TOOL_BIND pubsub_home_publish */pubsub_home_publish(PubSubEvent& request, bool reply_to_publisher = true) {
         auto& index = request.shard ? pubsub_shard_channels_ : pubsub_channels_;
         auto exact = index.find(request.channel);
         const bool has_exact = exact != index.end();

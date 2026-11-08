@@ -110,6 +110,19 @@ def audit(pid, phase, expected):
     return registered
 
 
+def wait_epoll_move(pid, inode, destination_ep, deadline):
+    # Observe this socket without waking it: unrelated client-LB moves cannot
+    # complete this wait, and duplicate registrations cannot satisfy it either.
+    while True:
+        _, registered = epoll_snapshot(pid)
+        if registered.get(inode) == [destination_ep]:
+            return
+        assert time.monotonic() < deadline, (
+            "selected client-LB move never completed within 35 seconds",
+            inode, destination_ep, registered.get(inode))
+        time.sleep(.001)
+
+
 def traffic(peers, rounds=40, batch=1):
     request = encode("PING") * batch
     for _ in range(rounds):
@@ -182,6 +195,7 @@ def epoll_lb(args):
         destination_ep, destination_peers = next((ep, group) for ep, group in owners.items()
                                                  if ep != source_ep)
         destination = destination_peers[0]
+        destination_inode = ports[destination.sock.getsockname()[1]]
         client_id = selected.must("CLIENT", "ID")
         source_io = selected.must("DEBUG", "IO-THREAD")
         destination_io = destination.must("DEBUG", "IO-THREAD")
@@ -192,24 +206,45 @@ def epoll_lb(args):
         attempts = 0
         while True:
             attempts += 1
-            reply = destination.cmd("DEBUG", "CLIENT-LB", client_id)
+            # The destination can itself migrate while owner observation is
+            # still arming. Pipeline its IO witness with the directed request:
+            # the same connection cannot migrate between these commands while
+            # its protocol/ROB is busy. Do not reuse its pre-retry owner.
+            destination.raw(encode("DEBUG", "CLIENT-LB", client_id) +
+                            encode("DEBUG", "IO-THREAD"))
+            reply = destination.read()
+            requested_io = destination.read()
             if reply == b"OK":
+                destination_io = requested_io
+                _, armed = epoll_snapshot(p.pid)
+                assert len(armed.get(destination_inode, [])) == 1, (
+                    "destination socket is not uniquely registered", destination_inode,
+                    armed.get(destination_inode))
+                destination_ep = armed[destination_inode][0]
                 break
             assert isinstance(reply, RespError) and str(reply) == "ERR DEBUG CLIENT-LB client has no owner observation", reply
             assert time.monotonic() < deadline, "client-LB owner observation never armed within 35 seconds"
             time.sleep(.01)
         # Wake the source through a DIFFERENT client, leaving the selected client
-        # idle until the normal LB counter witnesses its committed transfer.
+        # idle until its own inode is registered on the destination epoll.
         assert waker.must("PING") == b"PONG"
-        after = before
-        while after == before and time.monotonic() < deadline:
-            after = int(info(admin, "LB")["tomokv_clientlb_moves"])
-            if after == before:
-                time.sleep(.001)
+        emit(event="lb-armed", client_id=client_id, inode=inode, attempts=attempts,
+             source_io=source_io, destination_io=destination_io,
+             source_ep=source_ep, destination_ep=destination_ep)
+        try:
+            wait_epoll_move(p.pid, inode, destination_ep, deadline)
+        except AssertionError:
+            emit(event="lb-timeout", client_id=client_id,
+                 actual_io=selected.must("DEBUG", "IO-THREAD"),
+                 destination_io=destination.must("DEBUG", "IO-THREAD"),
+                 lb=info(admin, "LB"))
+            raise
+        after = int(info(admin, "LB")["tomokv_clientlb_moves"])
         emit(event="lb-witness", trigger="DEBUG CLIENT-LB", attempts=attempts,
              client_id=client_id, source_io=source_io, destination_io=destination_io,
              before=before, after=after)
-        assert after == before + 1, "directed client-LB move never completed within 35 seconds"
+        # Other clients may move too; the selected socket above is the witness.
+        assert after >= before + 1, "directed client-LB move was not counted"
         traffic(peers, 2)  # replies prove destination installation, without a guessed sleep
         moved = audit(p.pid, "lb-moved", len(peers)+1)
         current_io = selected.must("DEBUG", "IO-THREAD")

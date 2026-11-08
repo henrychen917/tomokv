@@ -522,7 +522,7 @@ inline uint64_t scan_cursor_next(uint64_t cursor, uint64_t mask) {
 template <typename Fn>
 inline constexpr bool kScanExpiresVisited = requires { requires Fn::kExpiresVisited; };
 
-class FlatStore;
+class /* TOMO_TOOL_BIND FlatStore */FlatStore;
 struct FlatStoreLayoutLock;
 
 // Armed stores extend the already-cold atomic pending allocation. Keeping AtomicPendingState first
@@ -1497,7 +1497,7 @@ public:
     // False only when enabling cannot allocate the clock (SO5.1). Nothing escapes: the partial
     // clock is freed here and the slot stays empty, so OBJECT IDLETIME reads 0 for this store.
     // Eviction is unaffected: the victim chooser reads the five-bit LRU meta, not this clock.
-    [[gnu::noinline, gnu::cold]] bool configure_object_idle(bool enabled) {
+    [[gnu::noinline, gnu::cold]] bool /* TOMO_TOOL_BIND configure_object_idle */configure_object_idle(bool enabled) {
         auto* current = object_idle_slot()->load(std::memory_order_relaxed);
         if (enabled == (current != nullptr)) return true;
         if (enabled) {
@@ -2334,7 +2334,7 @@ private:
     static uint16_t tag_of(uint64_t h)      { return static_cast<uint16_t>((h >> 49) & 0x7fff); }
     static uint16_t tag_of_word(uint64_t w) { return static_cast<uint16_t>((w >> 49) & 0x7fff); }
     static KvObj*   ptr_of(uint64_t w)      { return reinterpret_cast<KvObj*>(w & kPtrMask); }
-    static uint64_t make_word(uint16_t tag, KvObj* o) {
+    static uint64_t /* TOMO_TOOL_BIND make_word */make_word(uint16_t tag, KvObj* o) {
         const uint64_t pointer = reinterpret_cast<uint64_t>(o);
         TOMO_ASSERT((pointer & ~kPtrMask) == 0 && "KvObj pointer exceeds FlatStore's 48-bit encoding");
         return (static_cast<uint64_t>(tag) << 49) | pointer;

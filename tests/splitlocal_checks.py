@@ -12,16 +12,18 @@ import re
 import subprocess
 
 import r7shadow_sync as sync
+import source_tokens as cpp
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def method(source, name):
-    # Normalize the generated member definitions for the same anchored extractor.
     if name.startswith('r7_'):
-        source = source.replace('IoLoop::DispatchResult IoLoop::', 'DispatchResult ')
-        source = re.sub(r'^(uint32_t|void|bool) IoLoop::', r'\1 ', source, flags=re.M)
-        source = '\n'.join('    ' + line for line in source.splitlines())
+        result = cpp.function(cpp.Source(source), name)
+        result = result.replace('IoLoop::DispatchResult IoLoop::', 'DispatchResult ', 1) if name == 'r7_parse_and_dispatch' else result
+        if name != 'r7_parse_and_dispatch':
+            result = result.replace('IoLoop::' + name, name, 1)
+        return result
     return sync.function(source, name)
 
 
@@ -29,16 +31,16 @@ def emit(root, output):
     code = ['#include <cstdint>\n#include <cstdio>\n'
             'constexpr uint32_t kGenthreadIfidBatchOps = 32;\n'
             'struct Policy { bool borrow; uint32_t batch; bool local, fused, build, discard; };']
-    header = (root / 'src/core/genthread_pipeline.h').read_text()
-    quantum = re.search(r'kGenthreadIfidBatchOps\s*=\s*([^;]+);', header)
+    header = cpp.read(root / 'src/core/genthread_pipeline.h')
+    quantum = cpp.search(r'kGenthreadIfidBatchOps\s*=\s*([^;]+);', header)
     assert quantum, 'IFID quantum inventory'
     code[0] = code[0].replace('= 32;', '= ' + quantum[1] + ';')
     for filename, prefix in [('src/core/io_loop.h', ''), ('src/core/reorder.cc', 'r7_')]:
-        source = (root / filename).read_text()
+        source = cpp.read(root / filename)
         parser = method(source, prefix + 'parse_and_dispatch')
         defaults = parser[:parser.index('DispatchResult')].strip()
-        formula = re.search(r'static constexpr bool Fused = ([\s\S]*?);', parser)
-        guards = re.findall(r'if constexpr \((Fused && !SplitLocal)\)', parser)
+        formula = cpp.search(r'static constexpr bool Fused = ([\s\S]*?);', parser)
+        guards = cpp.findall(r'if constexpr \((Fused && !SplitLocal)\)', parser)
         assert formula and len(guards) == 2, 'prebuild/discard policy inventory'
         assert 'srv_->thread_mode() == ThreadMode::Fused)' in parser, 'prebuild runtime mode gate'
         code.append('namespace ' + ('r7' if prefix else 'fifo') + ' {\n' + defaults +
@@ -48,7 +50,7 @@ def emit(root, output):
                     guards[0] + ', ' + guards[1] + '};\n}')
         for name in ('flush_ready',):
             body = method(source, prefix + name)
-            calls = re.findall(r'\b' + prefix + r'parse_and_dispatch<[^>]+>\(c\)', body)
+            calls = cpp.findall(r'\b' + prefix + r'parse_and_dispatch<[^>]+>\(c\)', body)
             assert len(calls) == 6, (name, 'six TLS/plain/pause parse sites')
             code.append('template<bool Fused, bool SplitLocal> consteval bool ' + name + '() {\n'
                         'void* c = nullptr;\nconstexpr bool no_borrow[] = {true,false,false,true,false,false};\n'
@@ -63,7 +65,7 @@ def emit(root, output):
                 code.append('static_assert(' + name + '<' + str(fused).lower() + ',' + str(local).lower() +
                             '>(), "' + ('r7: ' if prefix else 'fifo: ') + name + ' preserves SplitLocal and prebuild policy");')
         loop = method(source, prefix + 'run_loop')
-        polls = re.findall(r'\b' + prefix + r'epoll_pass<([^>]+)>\((0|wait_ms)\)', loop)
+        polls = cpp.findall(r'\b' + prefix + r'epoll_pass<([^>]+)>\((0|wait_ms)\)', loop)
         assert len(polls) == 3 and [p[1] for p in polls] == ['0', 'wait_ms', 'wait_ms'], 'epoll callback inventory'
         assert loop.count('const unsigned wait_ms = idle_timeout_ms();') == 1, 'both parks share the cron deadline'
         code.append('template<bool U, bool T, bool F> consteval bool ' + prefix +
@@ -97,11 +99,14 @@ def check(binary, output):
          'epoll_pass<HasUnix, HasTls, !SplitLocal>(wait_ms)', 'park/hot callback Fused policy mismatch')]:
         dest = output / name
         for relative in ('src/core/io_loop.h', 'src/core/reorder.cc', 'src/core/genthread_pipeline.h'):
-            text = (ROOT / relative).read_text()
+            text = cpp.read(ROOT / relative)
             if relative.endswith(('io_loop.h', 'reorder.cc')):
                 count = 6 if name == 'old-forwarding' else 1
-                assert text.count(old) == count, (name, relative, text.count(old))
-                text = text.replace(old, new)
+                anchor, replacement = old, new
+                if name == 'old-park' and relative.endswith('reorder.cc'):
+                    anchor, replacement = 'r7_' + old, 'r7_' + new
+                assert text.count(anchor) == count, (name, relative, text.count(anchor))
+                text = text.replace(anchor, replacement, count)
             target = dest / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(text)

@@ -1422,7 +1422,7 @@ void cmd_type(Shard& sh, Op& op) {
 #define TOMO_HANDLER_PAIR(fn, first, last, step) \
     fn<false>, first, last, step, fn##_notify
 
-static const CommandSpec kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
     // name          min max flags                                  handler          first last step
     {"GET",           2,  2,  CmdFlags::Readonly | CmdFlags::ReadLocalEligible,
                                                                     TOMO_HANDLER_PAIR(cmd_get, 1, 1, 1)},

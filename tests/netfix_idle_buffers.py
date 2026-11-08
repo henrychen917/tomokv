@@ -6,11 +6,18 @@ import socket
 import subprocess
 import resource
 from pathlib import Path
+import source_tokens as cpp
 import time
 import _netfix as n
 
 CLIENTS = 10000
 BURST = b'netfix-burst-' * 10923  # >128 KiB; copied ECHO exercises both input and output.
+
+
+def broken_policy(header):
+    old = 'std::max(kWbufInline, p.output[i] + 1)'
+    assert header.count(old) == 1, 'unique idle-buffer policy anchor'
+    return header.replace(old, 'kWbufInline')
 
 
 def policy_unit(a):
@@ -57,10 +64,8 @@ int main() {
     # shrink must fail this same test. No production switch or binary is changed.
     control = a.output / 'control/src/net'
     control.mkdir(parents=True, exist_ok=True)
-    header = Path('src/net/idle_buffers.h').read_text()
-    old = 'std::max(kWbufInline, p.output[i] + 1)'
-    assert header.count(old) == 1
-    (control / 'idle_buffers.h').write_text(header.replace(old, 'kWbufInline'))
+    header = cpp.read(Path('src/net/idle_buffers.h'))
+    (control / 'idle_buffers.h').write_text(broken_policy(header))
     broken = a.output / 'policy-control'
     subprocess.run(['g++', '-std=c++20', '-O2', '-pthread', '-I'+str(a.output / 'control'),
                     '-Isrc/net', '-I.', '-x', 'c++', '-', '-o', str(broken)],

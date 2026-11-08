@@ -1,0 +1,2 @@
+before [0, 1794119675, 3, [b'SET', b'bugs5:slowlog:marker', b'value'], b'127.0.0.1:54804', b'bugs5-before'] renamed [0, 1794119675, 3, [b'SET', b'bugs5:slowlog:marker', b'value'], b'127.0.0.1:54804', b'bugs5-before'] disconnected [0, 1794119675, 3, [b'SET', b'bugs5:slowlog:marker', b'value'], b'127.0.0.1:54804', b'bugs5-before']
+slowlog historical identity PASS

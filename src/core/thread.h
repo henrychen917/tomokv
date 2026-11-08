@@ -309,7 +309,7 @@ static_assert(offsetof(ReadLocalThreadState, lane_active) == 368,
 static_assert(sizeof(ReadLocalThreadState) == 376,
               "dead retry counter removed only from the armed sidecar, never ThreadCtx");
 
-class ThreadCtx {
+class /* TOMO_TOOL_BIND ThreadCtx */ThreadCtx {
     friend struct FlipListenerState;
     friend uint32_t xshard_flush_snapshot_progress(Server&, ThreadCtx&);
 public:
@@ -446,11 +446,11 @@ public:
 
     // The owner is the only writer; INFO and its cron may read concurrently. Relaxed
     // load/store increments publish race-free counts without a lock-prefixed RMW or fence.
-    __attribute__((always_inline)) void note_command(uint16_t id) {
+    __attribute__((always_inline)) void /* TOMO_TOOL_BIND note_command */note_command(uint16_t id) {
         if (id < command_count_size_) { auto& n = command_counts_[id]; n.store(n.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed); }
         total_commands_.store(total_commands_.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed);
     }
-    uint64_t command_calls(uint32_t id) const {
+    uint64_t /* TOMO_TOOL_BIND command_calls */command_calls(uint32_t id) const {
         return id < command_count_size_ ? command_counts_[id].load(std::memory_order_relaxed) : 0;
     }
     void note_command_rejected(uint16_t id) {
@@ -459,13 +459,13 @@ public:
     void note_command_failed(uint16_t id) {
         if (id < command_count_size_) { auto& n = command_counts_[size_t(command_count_size_) * 2 + id]; n.store(n.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed); }
     }
-    uint64_t command_rejected_calls(uint32_t id) const {
+    uint64_t /* TOMO_TOOL_BIND command_rejected_calls */command_rejected_calls(uint32_t id) const {
         return id < command_count_size_ ? command_counts_[command_count_size_ + id].load(std::memory_order_relaxed) : 0;
     }
-    uint64_t command_failed_calls(uint32_t id) const {
+    uint64_t /* TOMO_TOOL_BIND command_failed_calls */command_failed_calls(uint32_t id) const {
         return id < command_count_size_ ? command_counts_[size_t(command_count_size_) * 2 + id].load(std::memory_order_relaxed) : 0;
     }
-    uint64_t total_commands() const { return total_commands_.load(std::memory_order_relaxed); }
+    uint64_t /* TOMO_TOOL_BIND total_commands */total_commands() const { return total_commands_.load(std::memory_order_relaxed); }
     FlipFingerprintWriter& flip_fingerprint() { return flip_fingerprint_; }
     const FlipFingerprintWriter& flip_fingerprint() const { return flip_fingerprint_; }
     void note_atomic_group() { atomic_groups_++; }
@@ -900,7 +900,7 @@ public:
     // Sample inbound pressure on a monotonic time gate. The old iteration gate let thousands of
     // idle spins over-contribute zeros and paid a 4*nchan scan on every pass. At most one sample per
     // ~100us makes depth_sum/depth_samples a time-weighted signal without another clock read.
-    bool sample_depth(uint64_t cached_now_us) {
+    bool /* TOMO_TOOL_BIND sample_depth */sample_depth(uint64_t cached_now_us) {
         sig_.cached_now_us = cached_now_us;
         if (cached_now_us < depth_sample_next_us_) return false;
         depth_sample_next_us_ = cached_now_us + 100;

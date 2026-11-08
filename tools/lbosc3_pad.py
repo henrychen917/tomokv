@@ -10,6 +10,7 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
+import source_tokens as cpp
 
 from lbstall_artifacts import Elf
 from lbplanner_pad import body, normalized
@@ -49,9 +50,9 @@ PARKWAKE_MONITOR_WAKES = (
 
 
 def outside_parkwake_wakes(text):
-    text = normalized(text)
+    text = cpp.Source(text)
     for added, original in PARKWAKE_MONITOR_WAKES:
-        added = normalized(added)
+        added = cpp.Source(added)
         assert text.count(added) == 1, ("parkwake monitor wake inventory changed", added[:48])
         text = text.replace(added, original)
     return normalized(text)
@@ -60,7 +61,7 @@ def outside_parkwake_wakes(text):
 def source_proof():
     def old(path):
         return subprocess.check_output(["git", "show", BASE + ":" + path], cwd=ROOT, text=True)
-    planner = (ROOT / "src/core/lbplanner.cc").read_text()
+    planner = cpp.read(ROOT / "src/core/lbplanner.cc")
     def outside_config_transition(text, expected):
         # cfgfix adds the same cold admission exclusion to both policy arms.
         # Verify exactly those gates, then retain the original complete-body
@@ -68,14 +69,14 @@ def source_proof():
         # the patched binary itself keeps every exclusion in place.
         gate = "cfgfix_control_busy(*this) || "
         assert text.count(gate) == expected, "CONFIG admission gate inventory changed"
-        return text.replace(gate, "")
+        return text.replace(gate, "", expected) if expected else text
     candidate = body(planner, "lb_controller_tick")
     candidate = outside_config_transition(candidate, 3)
     level = "    const int32_t damping = lbosc3_level(cfg_.key_lb_damping);\n"
     assert candidate.count(level) == 1
     candidate = candidate.replace(level, "")
-    begin = candidate.index("            // LBOSC3 BEGIN admission:")
-    end = candidate.index("            if (key_admitted) {", begin) + len("            if (key_admitted) {")
+    begin = candidate.index("/* TOMO_TOOL_ANCHOR lbosc3-admission */")
+    end = candidate.spans("if (key_admitted) {", begin)[0][1]
     candidate = candidate[:begin] + """            if (update_streak(std::max(weight_ratio, byte_ratio), lb_policy_->key_jitter,
                               lb_bucket_hot_streak_, executors.size())) {""" + candidate[end:]
     band = """                const double band = damping && lb_policy_->key_damping
@@ -94,7 +95,7 @@ def source_proof():
                                 shard_items, executors, demand_hot, memory_hot, choice)) {""")
     original = body(old("src/core/lbplanner.cc"), "lb_controller_tick")
     assert normalized(candidate) == normalized(original), "zero policy does not restore PRE controller"
-    weighted = (ROOT / "src/core/weighted_lb.h").read_text()
+    weighted = cpp.read(ROOT / "src/core/weighted_lb.h")
     assert normalized(body(weighted, "weighted_lb_best_incremental_move")) == normalized(
         body(old("src/core/weighted_lb.h"), "weighted_lb_best_incremental_move")), "PRE search changed"
     for name in ("lb_consume_plan", "monitor_controllers", "lb_controller_tick_pad"):
@@ -102,7 +103,7 @@ def source_proof():
         if name == "monitor_controllers":
             candidate_body = outside_parkwake_wakes(candidate_body)
         assert normalized(candidate_body) == normalized(body(old("src/core/lbplanner.cc"), name)), name
-    assert normalized(body(planner, "lbosc3_level")) == "{ return configured; }"
+    assert normalized(body(planner, "lbosc3_level")) == normalized("{ return configured; }")
     return {"base": BASE, "zero_policy_equals_pre": True,
             "scope": "PRE key policy outside a CONFIG transition; both arms retain cfgfix exclusion",
             "cfgfix_admission_gates": {"lb_controller_tick": 3, "lb_consume_plan": 1},

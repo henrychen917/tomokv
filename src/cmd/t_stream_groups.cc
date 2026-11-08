@@ -1256,7 +1256,7 @@ void cmd_xinfo(Shard& shard, Op& op) {
         reply_group_info(op, object, header, name, group, true, count);
 }
 
-static const CommandSpec kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
     {"XGROUP",      2, -1, CmdFlags::Write | CmdFlags::CursorShard | CmdFlags::SubcmdRoute,
                               cmd_xgroup<false>, 2, 2, 1, notify_handler<cmd_xgroup<true>>},
     {"XREADGROUP",  7, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard |

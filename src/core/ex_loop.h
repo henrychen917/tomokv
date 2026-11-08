@@ -164,7 +164,7 @@ struct ReadLocalCaptureBuffer {
 };
 
 template <bool Fused>
-class ExLoopT {
+class /* TOMO_TOOL_BIND ExLoopT */ExLoopT {
 public:
     using FusedCompletionFn = void (*)(void*, Client*);
 
@@ -373,7 +373,8 @@ public:
         if (read_local_enabled()) (void)read_local_impl().deferred.drain_shutdown();
     }
 
-    uint32_t fused_baseline_pass() {
+    /* TOMO_TOOL_FUNCTION fused_baseline_pass */
+    uint32_t /* TOMO_TOOL_BIND fused_baseline_pass */fused_baseline_pass() {
         static_assert(Fused);
         if (srv_->thread_mode() == ThreadMode::Split) return split_read_local_pass();
         if (read_local_enabled())
@@ -383,9 +384,10 @@ public:
 
 #include "fused_owner_turn.inc"
 
+    /* TOMO_TOOL_FUNCTION fused_pass_impl */
     template <uint32_t BatchOps, bool ConsumeTasks,
               bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
-    uint32_t fused_pass_impl() {
+    uint32_t /* TOMO_TOOL_BIND fused_pass_impl */fused_pass_impl() {
         ++exec1s_counters[self_->id()].owner_passes;
         Server::ClientWorkScope client_work(*srv_, self_->id());
         struct RotationBoundary {
@@ -449,7 +451,7 @@ public:
                     did += service_ordered_deferred<BatchOps, IofusedPrivateQueue>();
                 if constexpr (ConsumeTasks)
                     if (xshard_retries_.empty() && ordered_deferred_.empty()) {
-                        did += drain_tasks<BatchOps, IofusedPrivateQueue>(true);
+                        did += /* TOMO_TOOL_BIND drain_tasks */drain_tasks<BatchOps, IofusedPrivateQueue>(true);
                     }
                 flush_xshard_commits();
                 did += aof_flush_pass();
@@ -472,7 +474,7 @@ public:
                     if (xshard_retries_.empty() && ordered_deferred_.empty()) {
                         if (snapshot_owner_state_ == SnapshotOwnerState::None) {
                             if (fairlane_turn)
-                                did += drain_tasks_read_local_interleaved<
+                                did += /* TOMO_TOOL_BIND drain_tasks_read_local_interleaved */drain_tasks_read_local_interleaved<
                                     IofusedPrivateQueue>(false, owner_work_remains);
                             else
                                 did += drain_tasks<BatchOps, IofusedPrivateQueue>();
@@ -541,7 +543,8 @@ public:
         return did;
     }
 
-    uint32_t fused_baseline_sweep() {
+    /* TOMO_TOOL_FUNCTION fused_baseline_sweep */
+    uint32_t /* TOMO_TOOL_BIND fused_baseline_sweep */fused_baseline_sweep() {
         static_assert(Fused);
         if (srv_->thread_mode() == ThreadMode::Split) return split_read_local_pass();
         if (read_local_enabled())
@@ -549,9 +552,10 @@ public:
         return fused_sweep_impl<kGenthreadExBatchOps, true>();
     }
 
+    /* TOMO_TOOL_FUNCTION fused_sweep_impl */
     template <uint32_t BatchOps, bool ConsumeTasks,
               bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
-    uint32_t fused_sweep_impl() {
+    uint32_t /* TOMO_TOOL_BIND fused_sweep_impl */fused_sweep_impl() {
         ++exec1s_counters[self_->id()].owner_passes;
         if (lb_controller_armed_ && srv_->lb_dispatch_paused())
             return fused_pass_impl<BatchOps, ConsumeTasks,
@@ -601,7 +605,7 @@ public:
     // tasks or shard housekeeping, even while FLIP installs its future EX shard vector.
     uint32_t split_read_local_pass();
 
-    void run() {
+    void /* TOMO_TOOL_BIND run */run() {
         const MemoryConfigBinding memory_config_binding(this);
         if constexpr (Fused) {
             // Only RL2S instantiates the owner loop with the fused-capable executor. Its lane
@@ -1815,9 +1819,10 @@ private:
     // exqueue.h on why the retired frontier is separate from head.
     // Mask-independent: the state backstop behind the notify hint, run only when this thread has
     // already concluded it has nothing to do.
+    /* TOMO_TOOL_FUNCTION sweep */
     template <uint32_t BatchOps = kGenthreadExBatchOps, bool ConsumeTasks = true,
               bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
-    uint32_t sweep() {
+    uint32_t /* TOMO_TOOL_BIND sweep */sweep() {
         Server::ClientWorkScope client_work(*srv_, self_->id());
         [[maybe_unused]] bool owner_work_remains = false;
         uint32_t n = snapshot_control_pass<BatchOps, IofusedPrivateQueue>() +

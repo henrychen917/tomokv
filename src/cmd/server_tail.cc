@@ -1081,7 +1081,7 @@ bool command_prepare_subcmd_route(Server& server, Op& op) {
     return true;
 }
 
-static const CommandSpec kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
     // name       min max flags                                                  handler       first last step
     {"TIME",        1,  1, CmdFlags::ConnLocal,                                  cmd_time,       0,  0, 0},
     {"LOLWUT",      1, -1, CmdFlags::ConnLocal,                                  cmd_lolwut,     0,  0, 0},

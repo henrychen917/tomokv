@@ -6,6 +6,7 @@ It retains POST's complete section/symbol tables and every other byte. Plans
 are written before mutation; verification independently derives them again.
 Run all commands with taskset -c 112-127.
 """
+import source_tokens as cpp
 import argparse
 import hashlib
 import json
@@ -35,8 +36,9 @@ def sha(data):
 def disassemble(path, symbol=None):
     cmd = ['objdump', '-dw']
     if symbol:
-        cmd += ['--disassemble=' + symbol]
-    return subprocess.check_output(cmd + [str(path)], text=True)
+        cmd += ['--disassemble=' + cpp.actual_symbol(symbol)]
+    text = subprocess.check_output(cmd + [str(path)], text=True)
+    return re.sub(r'<([^>]+)>', lambda m: '<' + cpp.canonical_symbol(m[1]) + '>', text)
 
 
 def instructions(text):

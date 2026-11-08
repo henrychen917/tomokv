@@ -10,6 +10,7 @@ import difflib
 import json
 import pathlib
 import re
+import source_tokens as cpp
 import socket
 import sys
 
@@ -187,13 +188,8 @@ def oracle_command(host, port):
 def tomo_commands(repo_root):
     names = []
     for relative in COMMAND_SOURCES:
-        source = (repo_root / relative).read_text()
-        match = re.search(r"static const CommandSpec kTable\[\] = \{(.*?)\n\};",
-                          source, re.DOTALL)
-        if not match:
-            raise ValueError("cannot find CommandSpec table in %s" % relative)
-        names.extend(re.findall(r'^\s*\{"([A-Z][A-Z0-9_-]*)"\s*,',
-                                match.group(1), re.MULTILINE))
+        source = cpp.read(repo_root / relative)
+        names.extend(cpp.command_names(source))
     duplicates = sorted({name for name in names if names.count(name) > 1})
     if duplicates:
         raise ValueError("duplicate TomoKV commands: %s" % ", ".join(duplicates))
@@ -392,7 +388,7 @@ def main():
         pathlib.Path(args.output).write_text(generated)
         return
     actual = pathlib.Path(args.check).read_text() if pathlib.Path(args.check).exists() else ""
-    if actual != generated:
+    if cpp.tokens(actual) != cpp.tokens(generated):
         sys.stderr.writelines(difflib.unified_diff(
             actual.splitlines(True), generated.splitlines(True),
             fromfile=args.check, tofile="regenerated Redis metadata"))

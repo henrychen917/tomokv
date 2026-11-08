@@ -147,7 +147,7 @@ static_assert(sizeof(AtomicApplySlot) == 64);
 static_assert(alignof(AtomicApplySlot) == 64);
 
 struct FlipListenerState;
-bool fliplisten_reserve(Server&, std::string&);
+bool fliplisten_reserve(/* TOMO_TOOL_BIND Server */Server&, std::string&);
 
 class Server {
     friend class IoLoop;
@@ -1389,19 +1389,19 @@ public:
     // tools/lbplanner_pad.py verifies every retarget and all other executable bytes.
     bool lb_controller_tick_pad(uint32_t coordinator, uint64_t now_ms);
     void monitor_controllers_pad();
-    bool lb_cron_writer_pad(uint32_t tid) const {
+    bool /* TOMO_TOOL_BIND lb_cron_writer_pad */lb_cron_writer_pad(uint32_t tid) const {
         if (!lb_controller_enabled() || flip_dispatch_paused()) return false;
         for (uint32_t candidate = 0; candidate < nthreads(); candidate++)
             if (thread(candidate).role() == Role::Ifid) return candidate == tid;
         return false;
     }
-    bool lb_should_pause_pad(uint32_t owner, uint64_t id) const {
+    bool /* TOMO_TOOL_BIND lb_should_pause_pad */lb_should_pause_pad(uint32_t owner, uint64_t id) const {
         const LbStage stage = lb_stage();
         return stage == LbStage::IoDrain || stage == LbStage::ExDrain ||
                (stage == LbStage::ClientDrain && lb_client_move_.source == owner &&
                 lb_client_move_.id == id);
     }
-    LbClientMove lb_client_move_pad() const { return lb_client_move_; }
+    LbClientMove /* TOMO_TOOL_BIND lb_client_move_pad */lb_client_move_pad() const { return lb_client_move_; }
 
     bool lb_commit_shard_plan(uint64_t now_ms) {
         std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
@@ -2440,7 +2440,7 @@ public:
     static constexpr uint32_t kClimonPause    = 1u << 2;  // a CLIENT PAUSE deadline is live
     static constexpr uint32_t kClimonReply    = 1u << 3;  // >=1 CLIENT REPLY OFF/SKIP client
 
-    uint32_t climon_armed() const { return climon_armed_.load(std::memory_order_relaxed); }
+    uint32_t climon_armed() const { return /* TOMO_TOOL_BIND climon_armed_ */climon_armed_.load(std::memory_order_relaxed); }
 
     void climon_monitor_added() {
         climon_monitors_.fetch_add(1, std::memory_order_relaxed);

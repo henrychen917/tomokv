@@ -1,0 +1,442 @@
+[
+  {
+    "target": "all",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/wave15-stream-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/wave15-stream-db0-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/wave15-flip-eof-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/wave15-flip-eof-db0-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/wave15-idle-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/wave15-idle-db0-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/expire-notify-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/ktls-lifetime-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/moverfix-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/moverfix-db0-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/publishfix-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/at15-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/at15-db0-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/execabort-watch-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/execabort-watch-db0-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/core-concurrency-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/atomic-survivors-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/exec1s-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/exec1s-word-tsan",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/at412-owner",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/txnorder-fifo-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/txnorder-fifo-db0-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/txnorder-chain-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/txnorder-chain-db0-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/txnorder-index-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/txnorder-index-db0-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/txnorder-retry-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/txnorder-wound-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/txnorder-wound-db0-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/txnorder-wake-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/txnorder-episodes",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/txnorder-episodes-debug",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/txnorder-watch-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/txnorder-watch-db0-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/netcmd-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/encodingfix-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/netcap-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/waits-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/rehash-waits-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/multidb-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/multidb-boundary-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/storesize-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/respresume-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/respresume-migration",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/gaterows5-units",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/exbatch-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/exbatch-db0-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/wb-rule-units",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/wbland-units",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/rltopo-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/lbplanner-units",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/shutdown-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/persistfix-units",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/ktls-keyupdate",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/ktls-keyupdate-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/flushfix-units",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/splitlocal-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/reorder-engagement-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/reorder-engagement-unit-db0",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/racefix-climon",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/aoforder-scheduled",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "mdbqsbr-live-arms",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/blockfix2-unit",
+    "flags": [
+      "-f",
+      "Makefile",
+      "-f",
+      "tools/blockfix2.mk"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/blockfix2-db0-unit",
+    "flags": [
+      "-f",
+      "Makefile",
+      "-f",
+      "tools/blockfix2.mk"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/blockfix-cost",
+    "flags": [
+      "-f",
+      "Makefile",
+      "-f",
+      "tools/blockfix_cost.mk"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/tomokv.blockfix-cost.sha256",
+    "flags": [
+      "-f",
+      "Makefile",
+      "-f",
+      "tools/blockfix_cost.mk"
+    ],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/climon-mask-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/climon-mask-old-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/l4prebuild-unit",
+    "flags": [],
+    "exit": 0,
+    "stderr": ""
+  }
+]

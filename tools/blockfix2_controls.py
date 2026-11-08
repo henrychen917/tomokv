@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import json
 from pathlib import Path
+import source_tokens as cpp
 import shlex
 import shutil
 import subprocess
@@ -32,7 +33,7 @@ TCL = {
 
 
 def replace(path, before, after):
-    text = path.read_text()
+    text = cpp.read(path)
     assert text.count(before) == 1, (str(path), before, text.count(before))
     path.write_text(text.replace(before, after, 1))
 
@@ -44,7 +45,7 @@ def mutation(case, source):
         source.joinpath('src/cmd/xshard_commands.inc').write_bytes(subprocess.check_output(
             ['git', 'show', '83e0b809d:src/cmd/xshard_commands.inc'], cwd=ROOT))
         replace(blocking, ' ||\n             !std::strcmp(name, "RENAME") || !std::strcmp(name, "RENAMENX")', '')
-        text = blocking.read_text()
+        text = cpp.read(blocking)
         begin = text.index('    } else if (!std::strcmp(name, "SORT")) {')
         end = text.index('    } else if (!std::strcmp(name, "XGROUP")) {', begin)
         blocking.write_text(text[:begin] + text[end:])
@@ -69,11 +70,11 @@ def mutation(case, source):
                 'if (false && g_server) blocking_key_counts(*g_server, blocking_keys, blocking_on_nokey);')
         return 't_server'
     elif case == 'refusal':
-        replace(blocking, '            if (!blocking_run_direct(state, shard, self, ring)) {',
-                '            remove_at_from_shard(shard, queue, i);\n'
-                '            if (!blocking_run_direct(state, shard, self, ring)) {')
-        replace(blocking, '            remove_at_from_shard(shard, queue, i);\n'
-                '            // Consume sequentially', '            // Consume sequentially')
+        before = ('if (!blocking_run_direct(state, shard, self, ring)) {'
+                  ' state.phase.store(BlockingPhase::Parked, std::memory_order_release);'
+                  ' shard.set_blocking_dirty(); return work + 1; }')
+        replace(blocking, before + ' remove_at_from_shard(shard, queue, i);',
+                'remove_at_from_shard(shard, queue, i); ' + before)
     else:
         raise ValueError(case)
     return 'xshard'

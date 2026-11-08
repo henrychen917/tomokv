@@ -218,6 +218,7 @@ def arm(conn, deadline_keys, offset_ms, plain_keys=(), value=b"v", make=None):
 # S2 by a window made of real work instead.
 
 
+# TOMO_TOOL_ANCHOR expiry-fanout
 def test_fanout_hook(conn):
     if not sharded(conn):
         NOTES.append("S1 fan-out hook: skipped (one keyspace, nothing to fan out)")
@@ -342,6 +343,7 @@ def run_block(conn, stretch, reps, commands, armed_at, offset_ms):
     return exec_reply[-len(commands):], took, inside
 
 
+# TOMO_TOOL_ANCHOR expiry-exec
 def test_transaction_family(conn):
     set_active(conn, 0)
     conn.cmd("FLUSHALL")
@@ -517,6 +519,7 @@ def test_transaction_agreement(conn):
 SCRIPT_TWO = "return {redis.call('GET', KEYS[1]) or 'NIL', redis.call('GET', KEYS[2]) or 'NIL'}"
 
 
+# TOMO_TOOL_ANCHOR expiry-script
 def test_script_clock(conn):
     set_active(conn, 0)
     conn.cmd("FLUSHALL")
@@ -560,6 +563,7 @@ def test_script_clock(conn):
 # S5. The cut must not become a licence to ignore deadlines.
 
 
+# TOMO_TOOL_ANCHOR expiry-ordinary
 def test_ordinary_expiry_still_works(conn):
     set_active(conn, 0)
     conn.cmd("FLUSHALL")

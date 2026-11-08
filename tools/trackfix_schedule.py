@@ -10,6 +10,7 @@ import io
 import json
 import os
 from pathlib import Path
+import source_tokens as cpp
 import shlex
 import shutil
 import subprocess
@@ -104,6 +105,7 @@ bool trackfix_hold_read(Client* client, Op* op, const std::string& key) {
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--prepare-only', action='store_true', help='validate and emit hooks without compiling')
     parser.add_argument('--objects', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--ref')
@@ -126,7 +128,7 @@ def main():
         (source / 'tools').mkdir(exist_ok=True)
         shutil.copy2(root / 'tools/assert_map.py', source / 'tools/assert_map.py')
     path = source / 'src/cmd/tracking.cc'
-    text = path.read_text()
+    text = cpp.read(path)
     patches = [('namespace tomo {', 'namespace tomo {\n' + STATE + SERVE),
                ('void IoLoop::tracking_handle_event(PubSubEvent& event) {', HOLD),
                ('    if (read == state->tracking_reads.end()) return;', REPLAY)]
@@ -140,12 +142,12 @@ def main():
                             'for (const std::string& key : read->second->keys)')
         text = text.replace('pending->second != &op',
             'std::find(pending->second.reads.begin(), pending->second.reads.end(), &op) == pending->second.reads.end()')
-    anchor = '            tracking_forward_stale(event);'
+    anchor = 'event.caller_id, item.count); tracking_forward_stale(event);'
     assert anchor in text
-    text = text.replace(anchor, LATE + anchor, 1)
+    text = text.replace(anchor, 'event.caller_id, item.count);' + LATE + 'tracking_forward_stale(event);', 1)
     path.write_text(text)
     path = source / 'src/cmd/climon.cc'
-    text = path.read_text().replace('namespace tomo {',
+    text = cpp.read(path).replace('namespace tomo {',
         'namespace tomo {\nbool trackfix_hold_read(Client*, Op*, const std::string&);', 1)
     for anchor in ('uint32_t IoLoop::climon_serve_suppressed(Client* client) {',
                    'uint32_t IoLoop::climon_prepare_suppressed(Client* client, bool& submit_allowed) {'):
@@ -160,9 +162,12 @@ def main():
         if (held) return 0;
     }
 '''
-        keys = 'read.second->keys' if 'auto& receipt = *read->second;' in (source / 'src/cmd/tracking.cc').read_text() else 'read.second'
+        keys = 'read.second->keys' if 'auto& receipt = *read->second;' in cpp.read(source / 'src/cmd/tracking.cc') else 'read.second'
         text = text.replace(anchor, anchor + hold.replace('READ_KEYS', keys))
     path.write_text(text)
+    if args.prepare_only:
+        print('source hooks prepared:', source)
+        return
     dry = subprocess.check_output(['make', '-n', '-B', f'BUILD_ROOT={objects}', str(objects / 'tomokv')], cwd=source, text=True)
     commands = [shlex.split(line) for line in dry.splitlines() if line.startswith(('g++ ', 'c++ ', 'clang++ '))]
     compiles = [cmd for cmd in commands if '-c' in cmd and any(p in cmd for p in ('src/cmd/tracking.cc', 'src/cmd/climon.cc'))]

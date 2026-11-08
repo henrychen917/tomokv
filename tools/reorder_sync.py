@@ -6,6 +6,7 @@ never builds or runs an executable.
 """
 from pathlib import Path
 import re
+import source_tokens as cpp
 
 ROOT = Path(__file__).resolve().parents[1]
 EX = ('fused_baseline_pass', 'fused_pass_impl', 'fused_baseline_sweep',
@@ -15,56 +16,30 @@ END = '// END R7 GENERATED ENVELOPES\n'
 
 
 def function(source, name, member=True):
-    pattern = (r'^    (?:uint32_t|void) ' if member else r'^(?:int|void) ') + re.escape(name) + r'\('
-    match = re.search(pattern, source, re.M)
-    if not match:
-        raise ValueError(f'missing source function {name}')
-    start = match.start()
-    if member:
-        lines = source[:start].splitlines(keepends=True)
-        for line in reversed(lines[-5:]):
-            if not (line.startswith('              ') or line.startswith('    template <')):
-                break
-            start -= len(line)
-            if line.startswith('    template <'):
-                break
-    opening = source.index('{', match.end())
-    # Ignore braces in comments and string/character literals while finding the body.
-    tokens = re.finditer(r'//[^\n]*|/\*[\s\S]*?\*/|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|[{}]',
-                         source[opening:])
-    depth = 0
-    for token in tokens:
-        if token[0] == '{': depth += 1
-        if token[0] == '}': depth -= 1
-        if depth == 0:
-            end = opening + token.end()
-            break
-    else:
-        raise ValueError(f'unclosed source function {name}')
-    result = source[start:end]
-    if member:
-        result = '\n'.join(line[4:] if line.startswith('    ') else line
-                           for line in result.splitlines())
-    return result
+    if str(source).count('TOMO_TOOL_FUNCTION ' + name + ' ') != 1:
+        raise ValueError('missing or duplicate source function marker ' + name)
+    return cpp.function(cpp.Source(source), name).strip()
 
 
 def rename(text, names):
-    for before, after in names.items():
-        text = re.sub(r'\b' + before + r'(?=\s*[<(])', after, text)
-    return text
+    aliases = {new: old for old, new in cpp.bindings(str(text)).items()}
+    aliases.update(getattr(text, 'aliases', {}))
+    text = cpp.rename(text, aliases)
+    text = re.sub(r'/\*\s*TOMO_TOOL_(?:BIND|FUNCTION)\s+[^*]+\*/', '', text)
+    return cpp.rename(text, names)
 
 
 def update(path, generated, write):
-    old = path.read_text()
-    prefix, sep, tail = old.partition(BEGIN)
-    if not sep: raise ValueError(f'missing begin marker in {path}')
-    _, sep, suffix = tail.partition(END)
-    if not sep: raise ValueError(f'missing end marker in {path}')
-    new = prefix + BEGIN + generated + END + suffix
-    if old != new:
-        if not write: raise ValueError(f'stale R7 envelope: {path}; run tools/reorder_sync.py --write')
-        path.write_text(new)
-
+    old = cpp.read(path)
+    if old.count(BEGIN.strip()) != 1 or old.count(END.strip()) != 1:
+        raise ValueError(f'missing or duplicate generated envelope marker in {path}')
+    prefix, _, tail = old.partition(BEGIN.strip())
+    current, _, suffix = tail.partition(END.strip())
+    if cpp.tokens(cpp.Source(current, old.aliases)) != cpp.tokens(cpp.Source(generated)):
+        if not write:
+            raise ValueError(f'stale R7 envelope: {path}; run tools/reorder_sync.py --write')
+        generated = cpp.rename(generated, {stable: actual for actual, stable in old.aliases.items()})
+        path.write_text(prefix + BEGIN + generated + END.rstrip() + suffix)
 
 if __name__ == '__main__':
     # One generator owns the surviving shadow envelopes; retain this old command

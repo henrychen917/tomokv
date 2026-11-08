@@ -3,7 +3,7 @@
 #include "../core/server.h"
 
 namespace tomo {
-__attribute__((noipa)) bool storesize_published_route() { return true; }
+__attribute__((noipa)) bool /* TOMO_TOOL_BIND storesize_published_route */storesize_published_route() { return true; }
 
 // One owner-batch call. Keeping the complete body out of hot translation units
 // prevents the sampler/state graph from consuming their inlining budgets.
@@ -149,7 +149,7 @@ uint64_t FlatStore::published_database_counts(uint8_t physical) const {
     else return static_cast<const MultiStoreSizeState*>(storesize_state())->published[physical].counts.load(std::memory_order_relaxed);
 }
 
-void FlatStore::storesize_replace(const KvObj* before, const KvObj* after) {
+void FlatStore::/* TOMO_TOOL_BIND storesize_replace */storesize_replace(const KvObj* before, const KvObj* after) {
     if constexpr (!kSingleDatabase) {
         auto& state = *static_cast<MultiStoreSizeState*>(storesize_state());
         const auto account = [&](const KvObj* object, bool add) {
@@ -173,7 +173,7 @@ void FlatStore::storesize_replace(const KvObj* before, const KvObj* after) {
     }
 }
 
-void FlatStore::storesize_deadline(const KvObj* object, int64_t deadline) {
+void FlatStore::/* TOMO_TOOL_BIND storesize_deadline */storesize_deadline(const KvObj* object, int64_t deadline) {
     if constexpr (!kSingleDatabase) {
         auto& state = *static_cast<MultiStoreSizeState*>(storesize_state());
         const auto db = object->key_namespace();

@@ -3011,6 +3011,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
     const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0 || shard.has_watches();
     NotifyExecutionScope notify_scope(shard, op, notify, shard.notify_order_base());
     ScatterState& state = *task.scatter;
+    /* TOMO_TOOL_ANCHOR aoforder-expiry */
     // ONE EXPIRY CUT FOR THE WHOLE FAN-OUT. Before this, each fragment compared deadlines against
     // its own executor's per-pass clock, so an eight-owner MGET could report a key alive on one
     // owner and elapsed on another -- a keyspace that existed at no instant. Cheap enough to be
@@ -3022,7 +3023,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
     if (__builtin_expect(state.kind >= Kind::Script, false) &&
         (state.script_phase != ScriptPhase::Apply || state.script_resume_post))
         return execute_script_phase(task, shard, op);
-    ShardGroup& group = *group_for(state, shard.id());
+    ShardGroup& group = *group_for(state, shard.id()); /* TOMO_TOOL_ANCHOR lottery-read-fragment */
     if (shard.store().atomic_has_records() && xshard_owner_mutation_phase(state, op))
         for (uint32_t i = 0; i < group.count; ++i) {
             const KeyRef& key = state.keys[state.key_order[group.begin + i]];
@@ -3427,7 +3428,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
             return ScatterTaskResult::Complete;
         }
 
-        if (state.phase == 2) {
+        if (state.phase == 2) { /* TOMO_TOOL_ANCHOR lottery-move-remove */
             if (state.kind == Kind::Lmpop || state.kind == Kind::Zmpop)
                 return execute_live_pop(task, shard, op);
             if (!state.atomic_apply && is_plain_hop_kind(state.kind))

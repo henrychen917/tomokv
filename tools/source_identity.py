@@ -105,7 +105,10 @@ def lint_source(source, path):
 
 def source_check(root):
     errors = []
-    for path in production_paths(root):
+    paths = list(production_paths(root))
+    if not paths:
+        return ['empty production source inventory']
+    for path in paths:
         errors.extend(lint_source(path.read_text(), path.relative_to(root)))
     return errors
 

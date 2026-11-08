@@ -1219,7 +1219,7 @@ void cmd_function(Shard&, Op& op) {
     command_reply_subcommand_error(op, "FUNCTION");
 }
 
-static const CommandSpec kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
     // name       min max flags                                       handler      first last step
     {"FCALL",      3, -1, CmdFlags::Write | CmdFlags::CursorShard | CmdFlags::ScriptRoute |
                               CmdFlags::MultiShard,
@@ -1235,7 +1235,7 @@ static const CommandSpec kTable[] = {
 
 void function_final_cut(uint64_t epoch) { g_functions.final_cut(epoch); }
 
-bool function_snapshot_save(std::vector<uint8_t>& image, std::string& error) {
+bool /* TOMO_TOOL_BIND function_snapshot_save */function_snapshot_save(std::vector<uint8_t>& image, std::string& error) {
     try {
         std::vector<LibraryDef> libraries;
         uint64_t stamp = 0;

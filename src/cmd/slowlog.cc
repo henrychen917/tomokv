@@ -520,7 +520,7 @@ void cmd_latency(Shard&, Op& op) {
     }
 }
 
-static const CommandSpec kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
     // Both are cold introspection commands answered entirely on the connection's IO thread.
     {"SLOWLOG", 2, 3, CmdFlags::ConnLocal | CmdFlags::Admin, cmd_slowlog, 0, 0, 0},
     {"LATENCY", 2, -1, CmdFlags::ConnLocal | CmdFlags::Admin, cmd_latency, 0, 0, 0},

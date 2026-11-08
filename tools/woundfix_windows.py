@@ -6,6 +6,7 @@ another owner's bounded fixture turn synchronously; no threads or timing delay.
 """
 import argparse
 from pathlib import Path
+import source_tokens as cpp
 import shutil
 
 
@@ -20,7 +21,7 @@ def main():
     multi = dest / "src/cmd/multi.inc"
     group = dest / "src/cmd/txn_group.inc"
     def insert(path, anchor, addition):
-        text = path.read_text()
+        text = cpp.read(path)
         assert text.count(anchor) == 1, (path, anchor, text.count(anchor))
         path.write_text(text.replace(anchor, anchor + addition))
     insert(multi, "std::memory_order_acq_rel)) return false;\n    uint64_t zero = 0;",
@@ -28,7 +29,7 @@ def main():
     # The phase hook is before the epoch CAS; the local zero initialization is
     # intentionally allowed (it publishes nothing). The following hook observes
     # the other half of cancellation, between the epoch and aborted stores.
-    insert(group, "std::memory_order_acq_rel)) {\n            uint64_t zero = 0;",
+    insert(group, "if (attempt->phase.compare_exchange_strong(placing, TxnPhase::Wounded, std::memory_order_acq_rel)) { uint64_t zero = 0;",
            "\n            ::woundfix_pause(2, &state);")
     insert(multi, "std::memory_order_acq_rel)) {\n                state.backoff.store(true, std::memory_order_relaxed);",
            "\n                ::woundfix_pause(3, &state);")
@@ -38,25 +39,29 @@ def main():
         (multi, "bool txn_wound(", "\n}\n}", "holder.aborted->store(true, std::memory_order_release);", 4),
         (group, "bool txn_group_ready(", "\nvoid txn_group_cancel(", "state.aborted.store(true, std::memory_order_release);", 5),
     ]:
-        text = path.read_text(); lo = text.index(begin); hi = text.index(end, lo)
+        text = cpp.read(path); lo, _, hi = cpp.function_span(text, begin.split()[-1][:-1])
         body = text[lo:hi]
-        # In txn_group_ready the first aborted store belongs to blind restart.
-        at = body.index(store)
+        # The blind-restart store has a stable identity; other abort stores in
+        # this function must never become an accidental first-match anchor.
+        anchor = '/* TOMO_TOOL_ANCHOR woundfix-group-blind-abort */' if site == 5 else store
+        assert body.count(anchor) == 1, ('unique abort seam', site)
+        at = body.index(anchor)
         body = body[:at] + f"::woundfix_pause({site}, " + ("holder.token" if site == 4 else "&state") + ");\n" + body[at:]
         path.write_text(text[:lo] + body + text[hi:])
     # EXEC's blind publication uses multi_cancel_decision on PRE. POST's local
     # helper may move its store into execute_watch_phase; choose exactly one.
-    text = multi.read_text()
-    lo = text.index("bool execute_watch_phase("); hi = text.index("void finalize_reservations(", lo)
+    text = cpp.read(multi)
+    lo, _, hi = cpp.function_span(text, 'execute_watch_phase')
     body = text[lo:hi]
     if "multi_cancel_decision(state.decision, shard.id(), TxnCounter::BlindRestarts);" in body:
-        lo = text.index("uint64_t multi_cancel_decision("); hi = text.index("\n}\n}", lo)
+        lo, _, hi = cpp.function_span(text, 'multi_cancel_decision')
         body = text[lo:hi]
         store = "decision.aborted.store(true, std::memory_order_release);"
         hook = "::woundfix_pause(6, decision.owner);\n        "
     else:
         store = "state.decision.aborted.store(true, std::memory_order_release);"
         hook = "::woundfix_pause(6, &state);\n                "
+    assert body.count(store) == 1, 'unique EXEC cancellation seam'
     at = body.index(store)
     body = body[:at] + hook + body[at:]
     multi.write_text(text[:lo] + body + text[hi:])

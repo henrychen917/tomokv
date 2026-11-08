@@ -59,7 +59,7 @@ namespace tomo {
 //   io    IoLoop    recv+parse+retire+send; owns the whole client
 //   ex    ExLoop    execute+notify; never sends
 
-class IoLoop {
+class /* TOMO_TOOL_BIND IoLoop */IoLoop {
     friend struct FlipListenerState;
     friend bool cfgfix_rebind(Server&, uint32_t, uint16_t, const std::string&, std::string&, int);
     friend bool fliplisten_reserve(Server&, std::string&);
@@ -542,8 +542,9 @@ private:
     friend void notify_retire_batch_entry(IoLoop&, NotifyBatch*, uint64_t);
 #include "pubsub.inc"
 
+    /* TOMO_TOOL_FUNCTION run_loop */
     template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false, bool SplitLocal = false>
-    void run_loop() {
+    void /* TOMO_TOOL_BIND run_loop */run_loop() {
         static_assert(!SplitLocal || Fused);
         LoopSignals& sig = self_->sig();
         IoTenure tenure(sig);
@@ -580,7 +581,7 @@ private:
                 continue;
             }
 #endif
-            lb_pass_begin(); // one shared pause snapshot before any connection parsing
+            /* TOMO_TOOL_BIND lb_pass_begin */lb_pass_begin(); // one shared pause snapshot before any connection parsing
             flip_pass_begin(); // one acquire before any parser or cron in this IO pass
             refresh_notify_config();
             // ONE relaxed load per io batch. Per-batch checks are free; this is what buys the
@@ -698,7 +699,7 @@ private:
                     did += lb_client_signal_pass();
                     lb_client_signal_beat_ms_ = cached_now_ms_ + 1000;
                 }
-                did += lb_control_pass();
+                did += /* TOMO_TOOL_BIND lb_control_pass */lb_control_pass();
                 did += lb_wake_all_pass();
                 if (__builtin_expect(client_cron_armed &&
                                      cached_now_ms_ >= client_cron_beat_ms_, false)) {
@@ -974,8 +975,9 @@ private:
         }
     }
 
+    /* TOMO_TOOL_FUNCTION arm_tls_recv */
     template <bool kEp, bool Fused = false>
-    void arm_tls_recv(Client* c) {
+    void /* TOMO_TOOL_BIND arm_tls_recv */arm_tls_recv(Client* c) {
         if (c->recv_armed() || c->closing()) return;
         TlsConn* tls = tls_engine(c);
         if (!tls || !tls->memory_bio()) return;
@@ -1065,8 +1067,9 @@ private:
     // it from here, mid-event-array, would mean a Client is freed while a later epoll_event in the
     // same batch still names it. Second, keeping every state transition in one place is what makes
     // "epoll changes only how the thread waits" true rather than aspirational.
+    /* TOMO_TOOL_FUNCTION epoll_pass */
     template <bool HasUnix, bool HasTls, bool Fused = false>
-    uint32_t epoll_pass(int timeout_ms) {
+    uint32_t /* TOMO_TOOL_BIND epoll_pass */epoll_pass(int timeout_ms) {
         const int n = ep_.wait(timeout_ms);
         if (n <= 0) return 0;
         self_->sig().epoll_events += static_cast<uint64_t>(n);
@@ -1182,8 +1185,9 @@ private:
         }
     }
 
+    /* TOMO_TOOL_FUNCTION on_cqe */
     template <bool HasTls, bool kEp, bool Fused = false>
-    void on_cqe(io_uring_cqe* cqe) {
+    void /* TOMO_TOOL_BIND on_cqe */on_cqe(io_uring_cqe* cqe) {
         constexpr bool ImmediateSendProgress = true;
         if constexpr (!HasTls) {
             // Keep the tls-port=0 completion dispatch byte-for-byte shaped like the base switch.
@@ -1318,8 +1322,9 @@ private:
         return accepts_quiesced();
     }
 
+    /* TOMO_TOOL_FUNCTION on_accept */
     template <bool kEp, bool Fused = false>
-    void on_accept(io_uring_cqe* cqe, UrKind kind) {
+    void /* TOMO_TOOL_BIND on_accept */on_accept(io_uring_cqe* cqe, UrKind kind) {
         const uint64_t generation = reinterpret_cast<uintptr_t>(ur_ptr<void>(cqe->user_data));
         if (generation != accept_generation_ || self_->role() != Role::Ifid) {
             fliplisten_stale(cqe, kind);
@@ -1349,8 +1354,9 @@ private:
     // Epoll's accept: the listener only told us there is a backlog, so drain it. Level-triggered
     // registration means an unfinished drain is re-reported rather than lost, but draining to
     // EAGAIN here keeps one epoll_wait per burst instead of one per connection.
+    /* TOMO_TOOL_FUNCTION epoll_accept */
     template <bool kEp, bool Fused = false>
-    uint32_t epoll_accept(UrKind kind) {
+    uint32_t /* TOMO_TOOL_BIND epoll_accept */epoll_accept(UrKind kind) {
         if (accepts_paused()) return 0;
         const int listener = kind == UrKind::UnixAccept ? unix_listen_fd_ :
                              kind == UrKind::TlsAccept ? tls_listen_fd_ : listen_fd_;
@@ -1376,14 +1382,16 @@ private:
     // Everything an accepted fd goes through before it becomes a served connection. Shared by both
     // engines verbatim: maxclients, protected mode, Client allocation, TLS attachment, unix
     // round-robin handoff. Only the way the fd ARRIVED differs, which is the whole engine boundary.
+    /* TOMO_TOOL_FUNCTION admit_fd */
     template <bool kEp, bool Fused = false>
-    void admit_fd(int fd, UrKind kind) {
+    void /* TOMO_TOOL_BIND admit_fd */admit_fd(int fd, UrKind kind) {
         if (accepts_paused()) { fliplisten_retain(fd, kind); return; }
         admit_retained_fd<kEp, Fused>(fd, kind);
     }
 
+    /* TOMO_TOOL_FUNCTION admit_retained_fd */
     template <bool kEp, bool Fused = false>
-    __attribute__((always_inline)) void admit_retained_fd(int fd, UrKind kind) {
+    __attribute__((always_inline)) void /* TOMO_TOOL_BIND admit_retained_fd */admit_retained_fd(int fd, UrKind kind) {
         const bool unix_socket = kind == UrKind::UnixAccept;
         const bool tls_socket = kind == UrKind::TlsAccept;
         self_->sig().accepts++;
@@ -2513,8 +2521,9 @@ private:
         return 1;
     }
 
+    /* TOMO_TOOL_FUNCTION adopt_client */
     template <bool kEp, bool Fused = false>
-    void adopt_client(Client* c, bool unix_socket, bool tls_socket = false) {
+    void /* TOMO_TOOL_BIND adopt_client */adopt_client(Client* c, bool unix_socket, bool tls_socket = false) {
         // ARMED ONCE FOR THIS OWNERSHIP TENURE. Both directions are edge triggered. Normal teardown
         // still lets ::close() deregister; migration alone pre-registers destination + rollback
         // interests and removes the old tenure's original registration around the owner edge.
@@ -2590,8 +2599,9 @@ private:
         return sent;
     }
 
+    /* TOMO_TOOL_FUNCTION on_recv */
     template <bool HasTls, bool kEp, bool Fused = false>
-    void on_recv(Client* c, int res) {
+    void /* TOMO_TOOL_BIND on_recv */on_recv(Client* c, int res) {
         c->set_recv_armed(false);       // the kernel has released its pointer
         if (res > 0) self_->sig().net_input_bytes.store(self_->sig().net_input_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(res), std::memory_order_relaxed);
         if (find_client_migration(c)) {
@@ -2656,8 +2666,9 @@ private:
         mark_active(c);
     }
 
+    /* TOMO_TOOL_FUNCTION drive_tls */
     template <bool kEp, bool Fused = false>
-    bool drive_tls(Client* c) {
+    bool /* TOMO_TOOL_BIND drive_tls */drive_tls(Client* c) {
         TlsConn* tls = tls_slot_conn(c);
         if (!tls) return false;
         if (tls->ktls()) return true;
@@ -2777,8 +2788,9 @@ private:
         return !tls->failed();
     }
 
+    /* TOMO_TOOL_FUNCTION on_tls_socket_poll */
     template <bool kEp, bool Fused = false>
-    void on_tls_socket_poll(Client* c, int res, TlsOp wanted) {
+    void /* TOMO_TOOL_BIND on_tls_socket_poll */on_tls_socket_poll(Client* c, int res, TlsOp wanted) {
         TlsConn* tls = tls_slot_conn(c);
         if (!tls) { close_client(c); return; }
         tls->set_poll_armed(wanted, false);
@@ -2789,8 +2801,9 @@ private:
         mark_active(c);
     }
 
+    /* TOMO_TOOL_FUNCTION on_tls_recv */
     template <bool kEp, bool Fused = false>
-    void on_tls_recv(Client* c, int res) {
+    void /* TOMO_TOOL_BIND on_tls_recv */on_tls_recv(Client* c, int res) {
         c->set_recv_armed(false);
         TlsConn* tls = tls_engine(c);
         if (!tls) { close_client(c); return; }
@@ -2844,7 +2857,7 @@ private:
     // current frame crosses any stateful hook; the unconsumed frame is then safe to reparse.
     // MGET remains one ROB operation, but its cold fallback expands here through the unchanged
     // scatter planner into one owner Task per touched shard.
-    class ReadLocalDemotionPlan {
+    class /* TOMO_TOOL_BIND ReadLocalDemotionPlan */ReadLocalDemotionPlan {
     private:
         enum class ReadKind : uint8_t { Ordinary, Scatter, Error };
 
@@ -3244,7 +3257,8 @@ private:
     };
 
 public:
-    bool fused_demote_local_read_batch(Client* client, const uint64_t* probed,
+    /* TOMO_TOOL_FUNCTION fused_demote_local_read_batch */
+    bool /* TOMO_TOOL_BIND fused_demote_local_read_batch */fused_demote_local_read_batch(Client* client, const uint64_t* probed,
                                        const ReadLocalFallbackReason* fallbacks,
                                        uint32_t probed_count, uint32_t& demoted) {
         ReadLocalDemotionPlan plan;
@@ -3269,7 +3283,8 @@ private:
         touched_list_[ntouched_++] = worker;
     }
 
-    __attribute__((noinline)) bool dispatch_atomic_scatter(
+    /* TOMO_TOOL_FUNCTION dispatch_atomic_scatter */
+    __attribute__((noinline)) bool /* TOMO_TOOL_BIND dispatch_atomic_scatter */dispatch_atomic_scatter(
             Client* c, Op& op, const ScatterDispatch& dispatch) {
         // Only atomic writes enter this frame. Ordinary GET/SET and the plain scatter arm keep
         // their own scratch; no capacity-sized Task default construction lives on their frame.
@@ -3337,9 +3352,10 @@ private:
     }
 
     // ---- parse -> route -> publish -----------------------------------------------------------------
+    /* TOMO_TOOL_FUNCTION parse_and_dispatch */
     template <bool NoBorrow, uint32_t BatchOps = 0,
               bool SplitLocal = false>
-    DispatchResult parse_and_dispatch(Client* c) {
+    DispatchResult /* TOMO_TOOL_BIND parse_and_dispatch */parse_and_dispatch(Client* c) {
         // Split readers and fused batches need the same ROB hazards, MGET fence,
         // admission, and demotion protocol as the baseline fused reader.
         static constexpr bool Fused = SplitLocal || (
@@ -4485,8 +4501,9 @@ ordinary_shard_ready:
     // ---- inbound: workers telling us a client has completed ops -----------------------------------
     // Inbound from workers: "ops are Done" -- the claimed-post fallback for a conn with no
     // ready-mask slot. Either way the answer is the same: put the client back in the active set.
+    /* TOMO_TOOL_FUNCTION sweep */
     template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false, bool SplitLocal = false>
-    uint32_t sweep() {
+    uint32_t /* TOMO_TOOL_BIND sweep */sweep() {
         uint32_t work = 0;
         if constexpr (HasUnix) work += flush_handoffs();
         if constexpr (Fused) {
@@ -4571,9 +4588,10 @@ ordinary_shard_ready:
     // The io thread's own work per active client. In 2-stage it also owns the reply side and calls
     // serve() here; in ex-wb and 3-stage the sender does that on its own thread and io only keeps
     // the READ side moving — reclaim the buffer once nothing points into it, and re-arm.
+    /* TOMO_TOOL_FUNCTION flush_ready */
     template <bool HasTls, bool kEp, bool Fused = false, bool HasUnix = false,
               bool SweepPass = false, bool SplitLocal = false>
-    uint32_t flush_ready() {
+    uint32_t /* TOMO_TOOL_BIND flush_ready */flush_ready() {
         uint32_t work = 0;
         backstop_pass_ = (++flush_tick_ >= kFlushBackstopEvery);
         if (backstop_pass_) flush_tick_ = 0;

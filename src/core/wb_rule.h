@@ -14,11 +14,11 @@ namespace tomo::wb_rule {
 // addendum 12, S=16 KEEP (2026-10-02); PLAN-SERIAL 2026-10-01 16:54 and
 // 2026-10-02 06:54: p8 saturation, p8@512K attainment, floor-0.4 bursts.
 // See MEASURE-REQUEST-wbhybrid.md: no honest derivation from existing sizings.
-inline constexpr unsigned kSmallPipe = 16;
+inline constexpr unsigned /* TOMO_TOOL_BIND kSmallPipe */kSmallPipe = 16;
 // MEASURED default D=3. Constants ledger addendum 12, D=3 DERIVE-BY-MEASUREMENT
 // (2026-10-02); PLAN-SERIAL 06:54 D-curve row 3: p8 GET/SET/rl-SET
 // +9.4/+10.4/+6.6%, with floor-0.4 p99/p999 inside the same-binary band.
-inline constexpr unsigned kCompleteVisits = 3;
+inline constexpr unsigned /* TOMO_TOOL_BIND kCompleteVisits */kCompleteVisits = 3;
 // Boot-latched in IoLoop padding; no allocation or per-visit configuration lookup.
 struct Settings {
     uint8_t policy = 1;
@@ -56,7 +56,7 @@ struct IdleWindow {
 inline constexpr std::ratio<1, 2> kPolicyFraction{};
 
 // Cold artifact selector: only the default 0/1 policy, no detector/probe bits.
-// tools/wbland_artifacts.py patches this immediate for the frozen pol0 arm.
+// tools/archive/tools/wbland_artifacts.py patches this immediate for the frozen pol0 arm.
 __attribute__((noinline, noclone)) inline int default_policy() {
     int policy;
     asm volatile("mov $1, %0" : "=a"(policy));

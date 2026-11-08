@@ -1,0 +1,50 @@
+PARTIAL	0	GATE_ONLY_JOBS=reorder_sync lbplanner_units wb_rule_units wbland_units splitlocal_units atomic_units persistfix_units txnorder_wound racefix_counters perfex_units serverfix_hll cfgfix2-maxmemory wave14_functions; NOT A RECEIPT
+ok	0.040000	release build (+footprint locks)
+ok	14.310000	cfgfix2 maxmemory (oracle, both modes and engines)
+FAIL	3.900000	wave14 function snapshot and journal history
+FAIL	24.360000	R7 generated envelope parity
+ok	2.990000	INFO command/socket counters (TSan, both modes)
+ok	0.050000	AOF publication/shutdown witnesses + negative controls
+ok	2.220000	perfex clock binary regression
+ok	1.910000	perfex batch binary regression
+ok	0.180000	LB sampler exceptional cleanup + negative control
+ok	0.250000	LB monitor plan handoff + negative controls
+ok	0.120000	writeback c12 policy witnesses + negative controls
+ok	5.760000	writeback c12 phase witnesses + negative controls
+ok	2.260000	writeback c12 stages witnesses + negative controls
+ok	6.260000	writeback c12 split-phase witnesses + negative controls
+ok	34.030000	writeback policy clauses witnesses + negative controls
+ok	2.240000	writeback policy paths witnesses + negative controls
+FAIL	9.710000	splitlocal template forwarding + old-argument controls
+ok	0.010000	atomic commit publication catches up at quiescence
+ok	2.280000	flushfix flush witnesses
+ok	0.060000	flushfix headers witnesses
+ok	3.570000	multidb serverless owners
+ok	0.050000	multidb global namespace boundary
+ok	15.510000	storesize published monitoring
+ok	0.220000	MULTI admin command replies
+ok	0.070000	EXECABORT releases WATCH reservation
+ok	0.000000	atomic survivors unit build
+ok	0.010000	atomic survivor: admission
+ok	0.000000	atomic survivor: closure
+ok	0.010000	atomic survivor: script_keys
+ok	0.010000	atomic survivor: rename_overlay
+ok	0.010000	atomic survivor: write_latest
+ok	0.010000	atomic survivor: script_apply
+ok	0.010000	atomic survivor: post_apply_probe
+ok	0.000000	atomic survivor: lua_conversion
+ok	0.010000	atomic survivor: watch_parent
+ok	0.010000	atomic survivor: watch_cycle
+ok	0.000000	atomic survivor: mset_arity
+ok	0.000000	atomic survivor: watch_oom
+ok	0.010000	atomic survivor: lua_lines
+ok	0.000000	atomic survivor: library_limit
+ok	0.020000	atomic survivor: stage_flag
+ok	0.010000	atomic survivor: instruction_limit
+ok	0.010000	armed resize retirement: atomic-growth
+ok	0.000000	armed resize retirement: flush-prepared
+ok	11.950000	serverfix SV4.8 HyperLogLog self-test controls
+ok	0.030000	txnorder wound group
+ok	0.030000	txnorder wound exec
+ok	0.020000	txnorder wound oom
+ok	0.090000	txnorder wound d2

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Run an existing battery with observation-only markers; leave assertions intact."""
 import hashlib
+import ast
+from python_anchors import statement, insert
 import json
 import os
 from pathlib import Path
@@ -54,28 +56,50 @@ def main():
 
     source = path.read_text()
     original_hash = hashlib.sha256(source.encode()).hexdigest()
+    tree = ast.parse(source)
+    changes = {}
     if family in ('blocking', 'servertail', 'slowlog'):
-        source = source.replace('time.sleep(', 'lottery_config_sleep(')
+        modules = {alias.asname or 'time' for node in ast.walk(tree)
+                   if isinstance(node, ast.Import) for alias in node.names if alias.name == 'time'}
+        calls = [node for node in ast.walk(tree) if isinstance(node, ast.Call)
+                 and isinstance(node.func, ast.Attribute) and node.func.attr == 'sleep'
+                 and isinstance(node.func.value, ast.Name) and node.func.value.id in modules]
+        if not calls:
+            raise ValueError('missing propagation sleep anchor')
+        for call in calls:
+            call.func = ast.Name(id='lottery_config_sleep', ctx=ast.Load())
     if family == 'expwide':
-        for function, name in [('test_fanout_hook', 'fanout'), ('test_transaction_family', 'exec'),
-                               ('test_script_clock', 'script'),
-                               ('test_ordinary_expiry_still_works', 'ordinary')]:
-            anchor = f'        {function}(conn)'
-            if source.count(anchor) != 1:
-                raise ValueError(f'changed expiry section anchor: {function}')
-            source = source.replace(anchor, f'        lottery_mark("expiry_section_{name}")\n' + anchor)
+        for name in ('fanout', 'exec', 'script', 'ordinary'):
+            try:
+                function = statement(source, tree, 'expiry-' + name)
+                if not isinstance(function, ast.FunctionDef):
+                    raise ValueError('expiry anchor must name a function')
+                calls = [node for node in ast.walk(tree) if isinstance(node, ast.Expr)
+                         and isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name)
+                         and node.value.func.id == function.name]
+                if len(calls) != 1:
+                    raise ValueError('expiry invocation is missing or ambiguous')
+            except ValueError as error:
+                raise ValueError('changed expiry section anchor: ' + name) from error
+            changes[calls[0]] = (ast.parse(f'lottery_mark("expiry_section_{name}")').body, [])
     if path.name == 'differ.py':
-        anchor = '        a = parked["t"] + collect(tt); b = parked["o"] + collect(ot)'
-        if source.count(anchor) != 1:
-            raise ValueError('changed tracking collector anchor')
-        source = source.replace(anchor, '        lottery_mark("tracking_compare_begin")\n' + anchor)
-        anchor = '        parked["t"] = parked["o"] = b""'
-        if source.count(anchor) != 1:
-            raise ValueError('changed tracking result anchor')
-        source = source.replace(anchor, anchor + '\n        lottery_mark("tracking_compare_zero" if a == b == b"" else "tracking_compare_data")')
+        compare = statement(source, tree, 'tracking-compare')
+        reset = statement(source, tree, 'tracking-reset')
+        # Bind the comparison to the two collector results even when their local
+        # identifiers change or the two assignments move onto separate lines.
+        assigns = sorted([node for node in ast.walk(tree) if isinstance(node, ast.Assign)
+                          and compare.lineno <= node.lineno < reset.lineno],
+                         key=lambda node: (node.lineno, node.col_offset))
+        if len(assigns) != 2 or any(len(node.targets) != 1 or not isinstance(node.targets[0], ast.Name)
+                                   for node in assigns):
+            raise ValueError('tracking collector anchor must contain two assignments')
+        left, right = [node.targets[0].id for node in assigns]
+        changes[compare] = (ast.parse('lottery_mark("tracking_compare_begin")').body, [])
+        changes[reset] = ([], ast.parse(f'lottery_mark("tracking_compare_zero" if {left} == {right} == b"" else "tracking_compare_data")').body)
+    tree = insert(tree, changes)
     print(f'LOTTERY battery sha256={original_hash} markers_only=1', flush=True)
     try:
-        exec(compile(source, str(path), 'exec'), dict(__name__='__main__', __file__=str(path),
+        exec(compile(tree, str(path), 'exec'), dict(__name__='__main__', __file__=str(path),
              lottery_mark=mark, lottery_config_sleep=config_sleep))
     finally:
         if metadata is not None:

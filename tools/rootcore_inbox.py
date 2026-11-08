@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Build a diagnostic source copy; no hooks or storage enter production."""
+import source_tokens as cpp
 import argparse
 import os
 from pathlib import Path
@@ -8,6 +9,7 @@ import resource
 import subprocess
 
 p=argparse.ArgumentParser()
+p.add_argument('--prepare-only', action='store_true')
 p.add_argument('--output',type=Path,required=True)
 p.add_argument('--revision')
 p.add_argument('--kinds', default='client,transfer,task,fused,flush')
@@ -23,7 +25,10 @@ if a.revision:
 else:
     shutil.copytree('src',source/'src',dirs_exist_ok=True)
 h=source/'src/core/thread.h'
-h.write_text(h.read_text().replace('private:', 'public:'))
+h.write_text(cpp.read(h).replace('private:', 'public:', 1))
+if a.prepare_only:
+    print('inbox source prepared:', source)
+    raise SystemExit(0)
 binary=a.output/'inbox'
 subprocess.run(['g++','-std=c++20','-O2','-g','-march=native','-pthread',
                 '-I'+str(source),'-I.','tests/rootcore_inbox.cc','-o',str(binary),

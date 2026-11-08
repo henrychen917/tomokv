@@ -371,7 +371,7 @@ void add_config(const char* name, ConfigKind kind, uint64_t value) {
     g_config.push_back(ConfigValue{name, kind, std::to_string(value)});
 }
 
-void init_config(const Config& cfg) {
+void /* TOMO_TOOL_BIND init_config */init_config(const Config& cfg) {
     ConfigLock lock;
     g_config.clear();
     for (size_t i = 0; i < kProcessConfigCount; ++i) {
@@ -515,7 +515,7 @@ void init_config(const Config& cfg) {
     }
 }
 
-ConfigValue* find_config(Slice name) {
+ConfigValue* /* TOMO_TOOL_BIND find_config */find_config(Slice name) {
     const int encoding = EncodingConfig::find(name);
     if (encoding >= 0) {
         const char* canonical = EncodingConfig::settings[encoding].name;
@@ -1054,7 +1054,7 @@ void cmd_reset(Shard&, Op& op) {
     reply_simple(op.sink(), "RESET");
 }
 
-void cmd_debug_impl(Shard& shard, Op& op) {
+void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
     const Slice subcommand = op.arg(1);
 #ifdef TOMO_CONNRESET_TRACE
     if (eq_icase(subcommand, "close-stats") && op.argc() == 2) {
@@ -3541,7 +3541,7 @@ void cmd_transaction_control(Shard&, Op& op) {
     reply_err(op.sink(), "ERR internal transaction routing error");
 }
 
-static const CommandSpec kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
     // name       min max flags                                                    handler        first last step
     {"PING",       1,  2, CmdFlags::ConnLocal,                                    cmd_ping,       0,  0, 0},
     {"ACL",        2, -1, CmdFlags::ConnLocal,                                    cmd_acl,        0,  0, 0},

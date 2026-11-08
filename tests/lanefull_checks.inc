@@ -1,5 +1,5 @@
 // Included inside CoreConcurrencyTest. Real parser/executor and INFO handlers; no listener,
-// worker, socket traffic or measurement. Mutation recipes live in lanefull_controls.py.
+// worker, socket traffic or measurement. Mutation recipes live in tools/archive/tools/lanefull_controls.py.
     inline static uint64_t lane_owner_publications = 0;
     static void lane_published(const Task&) { ++lane_owner_publications; }
 

@@ -1,0 +1,99 @@
+PARTIAL	0	GATE_ONLY_JOBS=source_identity config_unit acl_metadata cmd_metadata reorder_sync reorder_identity lbplanner_units wb_rule_units wbland_units splitlocal_units atomic_units flushfix3_units persistfix_units txnorder_wound rob_portable rootcore-inbox racefix_climon aoforder trackfix_order tracking_redirect serverfix_config netfix_idle_buffers release_batteries authfix multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1; NOT A RECEIPT
+ok	5.760000	release build (+footprint locks)
+ok	3.630000	configuration docs match parser
+ok	10.110000	Redis config quoting + mid-value #
+ok	137.670000	production source identity + stable assertion ids
+ok	0.570000	generated Redis 7.4 ACL categories
+ok	2.670000	cmdmeta covers every registered command
+ok	15.390000	rootcore inbox
+ok	13.610000	flushfix3-unit linear collapse, collisions, OOM and saturated ranges
+ok	13.710000	flushfix3-db0-unit linear collapse, collisions, OOM and saturated ranges
+ok	1.300000	ROB portable completion without BMI
+ok	4.990000	multidb (1s, read-local 0, atomic 0)
+ok	0.120000	multidb (1s, read-local 0, atomic 0) SWAPDB serial order
+ok	0.280000	multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB
+ok	4.980000	multidb (1s, read-local 0, atomic 1)
+ok	0.120000	multidb (1s, read-local 0, atomic 1) SWAPDB serial order
+ok	0.280000	multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB
+ok	5.020000	multidb (1s, read-local 1, atomic 0)
+ok	0.120000	multidb (1s, read-local 1, atomic 0) SWAPDB serial order
+ok	0.270000	multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB
+ok	5.010000	multidb (1s, read-local 1, atomic 1)
+ok	0.110000	multidb (1s, read-local 1, atomic 1) SWAPDB serial order
+ok	0.310000	multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB
+ok	4.920000	multidb (2s, read-local 0, atomic 0)
+ok	0.120000	multidb (2s, read-local 0, atomic 0) SWAPDB serial order
+ok	0.280000	multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB
+ok	4.990000	multidb (2s, read-local 0, atomic 1)
+ok	0.120000	multidb (2s, read-local 0, atomic 1) SWAPDB serial order
+ok	0.280000	multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB
+ok	4.870000	multidb (2s, read-local 1, atomic 0)
+ok	0.120000	multidb (2s, read-local 1, atomic 0) SWAPDB serial order
+ok	0.320000	multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB
+ok	4.860000	multidb (2s, read-local 1, atomic 1)
+ok	0.130000	multidb (2s, read-local 1, atomic 1) SWAPDB serial order
+ok	0.280000	multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB
+ok	17.970000	R7 generated envelope parity
+ok	198.770000	R7 FIFO twin off-path identity + negative controls
+ok	1.680000	Climon armed refresh + stale-store suppression control
+FAIL	0.000000	AOF publication/shutdown witnesses + negative controls
+ok	0.270000	LB sampler exceptional cleanup + negative control
+FAIL	0.000000	LB monitor plan handoff + negative controls
+FAIL	0.000000	writeback c12 policy witnesses + negative controls
+FAIL	0.000000	writeback c12 phase witnesses + negative controls
+FAIL	0.000000	writeback c12 stages witnesses + negative controls
+FAIL	0.000000	writeback c12 split-phase witnesses + negative controls
+FAIL	0.010000	writeback policy clauses witnesses + negative controls
+FAIL	0.010000	writeback policy paths witnesses + negative controls
+FAIL	0.010000	splitlocal template forwarding + old-argument controls
+ok	0.000000	atomic commit publication catches up at quiescence
+FAIL	0.000000	flushfix flush witnesses
+FAIL	0.000000	flushfix headers witnesses
+ok	3.560000	multidb serverless owners
+ok	0.050000	multidb global namespace boundary
+FAIL	0.000000	storesize published monitoring
+ok	0.220000	MULTI admin command replies
+ok	0.070000	EXECABORT releases WATCH reservation
+ok	0.010000	atomic survivors unit build
+ok	0.040000	atomic survivor: admission
+ok	0.010000	atomic survivor: closure
+ok	0.060000	atomic survivor: script_keys
+ok	0.010000	atomic survivor: rename_overlay
+ok	0.010000	atomic survivor: write_latest
+ok	0.010000	atomic survivor: script_apply
+ok	0.000000	atomic survivor: post_apply_probe
+ok	0.010000	atomic survivor: lua_conversion
+ok	0.010000	atomic survivor: watch_parent
+ok	0.010000	atomic survivor: watch_cycle
+ok	0.000000	atomic survivor: mset_arity
+ok	0.010000	atomic survivor: watch_oom
+ok	0.010000	atomic survivor: lua_lines
+ok	0.000000	atomic survivor: library_limit
+ok	0.020000	atomic survivor: stage_flag
+ok	0.010000	atomic survivor: instruction_limit
+ok	0.010000	armed resize retirement: atomic-growth
+ok	0.010000	armed resize retirement: flush-prepared
+ok	291.680000	netfix NT4.19 idle buffer reclamation
+ok	6.620000	torture battery
+ok	1.210000	RYOW battery
+ok	0.650000	ACL category runtime table
+ok	0.580000	ACL LOAD/SAVE no-file errors
+ok	1.030000	idle loop ceiling (LBSIGNALS, 1s)
+ok	0.040000	shutdown invariants (nothing stuck)
+ok	0.030000	direct-reply fired (direct=N)
+ok	0.040000	dispatched==executed (N)
+ok	2.100000	authfix CG4.1 binary config requirepass
+ok	8.310000	authfix CG4.2 missing config value refuses boot
+ok	2.100000	authfix SV4.2 binary requirepass rewrite restart
+ok	0.620000	authfix SV4.1 slowlog credential redaction (1s)
+ok	0.610000	authfix SV4.1 slowlog credential redaction (2s)
+ok	3.390000	serverfix SV4.6 CONFIG validation matrix
+ok	41.650000	tracking REDIRECT close vs Redis 7.4
+ok	225.820000	tracking delayed-write order vs Redis 7.4
+ok	14.000000	AOF commit order single
+ok	5.190000	AOF commit order crossing
+ok	6.470000	AOF commit order rewrite
+FAIL	0.020000	txnorder wound group
+FAIL	0.040000	txnorder wound exec
+FAIL	0.000000	txnorder wound oom
+FAIL	0.010000	txnorder wound d2

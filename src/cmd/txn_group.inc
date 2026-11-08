@@ -135,7 +135,7 @@ bool txn_group_arrive(ScatterState& state, Shard& shard, Op& op) {
     return attempt->arrivals.load(std::memory_order_acquire) == attempt->participants;
 }
 
-bool txn_group_ready(ScatterState& state, Shard& shard, Op& op) {
+bool /* TOMO_TOOL_BIND txn_group_ready */txn_group_ready(ScatterState& state, Shard& shard, Op& op) {
     auto* attempt = state.group_attempt();
     if (!attempt) return true; // forced EXEC child is covered by its parent's claims
     if (state.aborted.load(std::memory_order_acquire)) return false;
@@ -158,6 +158,7 @@ bool txn_group_ready(ScatterState& state, Shard& shard, Op& op) {
             state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::BlindRestarts);
             attempt->retry_after_ns = now_ns() + std::min(kTxnRetryBackoffMax,
                 uint64_t{1000} << std::min(attempt->attempt, uint32_t{10}));
+            /* TOMO_TOOL_ANCHOR woundfix-group-blind-abort */
             state.aborted.store(true, std::memory_order_release);
         }
         return false;

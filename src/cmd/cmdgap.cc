@@ -16,7 +16,7 @@ void cmd_cluster_disabled(Shard&, Op& op) {
     reply_err(op.sink(), "ERR This instance has cluster support disabled");
 }
 
-static const CommandSpec kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
     // name             min max flags                                      handler
     //                                                               first last step notify
     {"ASKING",           1,  1, CmdFlags::ConnLocal,                       cmd_cluster_disabled, 0, 0, 0},

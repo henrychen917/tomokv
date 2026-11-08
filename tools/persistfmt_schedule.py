@@ -9,9 +9,10 @@ latches. A fresh attempt is required when the gate and writer cannot rendezvous.
 """
 from pathlib import Path
 import sys
+import source_tokens as cpp
 
 source, destination = map(Path, sys.argv[1:])
-text = source.read_text()
+text = cpp.read(source)
 declaration = '''
 namespace {
 std::atomic<unsigned> persistfmt_schedule{0};

@@ -465,7 +465,7 @@ std::unique_ptr<AofChunk> AofProducer::make_chunk(uint32_t flags, uint64_t ticke
         manager_->note_buffered(sid_);
         return chunk;
     } catch (const std::bad_alloc&) {
-        if (manager_) manager_->fail("out of memory allocating AOF chunk");
+        if (manager_) manager_->/* TOMO_TOOL_BIND fail */fail("out of memory allocating AOF chunk");
         return nullptr;
     }
 }
@@ -2863,7 +2863,7 @@ void AofManager::note_buffered(int32_t sid) {
     counter.store(counter.load(std::memory_order_relaxed) + 1, std::memory_order_release);
 }
 
-bool AofManager::defer_completion(uint32_t producer, Op& op, Client* client) {
+bool AofManager::/* TOMO_TOOL_BIND defer_completion */defer_completion(uint32_t producer, Op& op, Client* client) {
     if (!configured_ || fsync_policy() != AppendFsyncPolicy::Always ||
         (!(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) &&
          !op.has_multi_state())) return false; // EXEC's public spec is ConnLocal|Transaction
@@ -2971,7 +2971,7 @@ uint32_t AofManager::finish_completions(uint32_t producer, bool all_posted,
     return work;
 }
 
-bool AofManager::producers_stopped() const {
+bool AofManager::/* TOMO_TOOL_BIND producers_stopped */producers_stopped() const {
     if (!chunk_in_) return true;
     for (uint32_t tid = 0; tid < nthreads_; ++tid)
         if (!chunk_in_[tid].stopped.load(std::memory_order_acquire)) return false;
@@ -2985,7 +2985,7 @@ static void aof_debug_marker(const char* path, const char* suffix) {
     std::fclose(file);
 }
 
-void AofManager::worker_shutdown(uint32_t tid) {
+void AofManager::/* TOMO_TOOL_BIND worker_shutdown */worker_shutdown(uint32_t tid) {
     if (!configured_ || !chunk_in_) return;
     ThreadCtx& self = server_->thread(tid);
     Ring* ring = self.ring();

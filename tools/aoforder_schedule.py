@@ -11,6 +11,7 @@ import io
 import json
 import os
 from pathlib import Path
+import source_tokens as cpp
 import shlex
 import shutil
 import subprocess
@@ -33,6 +34,7 @@ HOOK = '''
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--prepare-only', action='store_true', help='validate and emit hooks without compiling')
     p.add_argument('--objects', type=Path, required=True)
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--ref', help='source revision for a historical arm; default: current files')
@@ -59,12 +61,15 @@ def main():
         (source / 'tools').mkdir(exist_ok=True)
         shutil.copy2(root / 'tools/assert_map.py', source / 'tools/assert_map.py')
     path = source / 'src/cmd/scatter_engine.inc'
-    text = path.read_text()
-    anchor = '    // ONE EXPIRY CUT FOR THE WHOLE FAN-OUT.'
+    text = cpp.read(path)
+    anchor = '/* TOMO_TOOL_ANCHOR aoforder-expiry */'
     assert text.count(anchor) == 1
     path.write_text(text.replace(anchor, HOOK + anchor))
     # This minimal copy needs only compile/link commands, not make all's
     # generated source maps or other sidecars. Ask for the executable itself.
+    if args.prepare_only:
+        print('source hooks prepared:', source)
+        return
     dry = subprocess.check_output(prefix + ['make', '-n', '-B',
         f'BUILD_ROOT={objects}', str(objects / 'tomokv')], cwd=source, text=True)
     commands = [shlex.split(line) for line in dry.splitlines()

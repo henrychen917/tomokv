@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Offline ELF byte comparison and an exact-layout LB negative control. Never runs a server."""
+import source_tokens as cpp
 import argparse
 import hashlib
 import json
@@ -32,7 +33,7 @@ class Elf:
             table = []
             for at in range(s[4], s[4] + s[5], s[9]):
                 name, info, other, sec, value, length = struct.unpack_from('<IBBHQQ', self.data, at)
-                symbol = dict(name=self.string(strings, name), info=info, sec=sec,
+                symbol = dict(name=cpp.canonical_symbol(self.string(strings, name)), info=info, sec=sec,
                               value=value, size=length)
                 table.append(symbol)
                 if s[1] == 2:

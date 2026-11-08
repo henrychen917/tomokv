@@ -355,7 +355,7 @@ void multi_help_child(AtomicEntry& entry, uint64_t ticket) {
     entry.group->epoch.compare_exchange_strong(zero, ticket, std::memory_order_acq_rel);
 }
 
-uint64_t multi_cancel_decision(MultiDecision& decision, uint32_t shard,
+uint64_t /* TOMO_TOOL_BIND multi_cancel_decision */multi_cancel_decision(MultiDecision& decision, uint32_t shard,
                                TxnCounter cause = TxnCounter::Dooms) {
     uint64_t epoch = decision.epoch.load(std::memory_order_acquire);
     if (decision.phase.load(std::memory_order_acquire) == TxnPhase::Executing) {
@@ -1960,7 +1960,7 @@ void multi_local_runnable(MultiExecState& state, int32_t current,
         if (sid != current) promoter->promote(promoter->context, state.owner_retries[state.slot(sid)]);
 }
 
-__attribute__((always_inline)) inline bool execute_watch_phase(MultiExecState& state, Shard& shard,
+__attribute__((always_inline)) inline bool /* TOMO_TOOL_BIND execute_watch_phase */execute_watch_phase(MultiExecState& state, Shard& shard,
                          const MultiRetryPromoter* promoter = nullptr) {
     if (state.watch_shard_done[state.slot(static_cast<uint32_t>(shard.id()))]) return true;
     if (state.kind == MultiStateKind::Execute && !state.read_only &&
@@ -3462,7 +3462,7 @@ bool txn_reservation_live(const Shard::WatchReservation& r) {
         r.epoch->load(std::memory_order_acquire) == 0 &&
         !(r.aborted && r.aborted->load(std::memory_order_acquire)));
 }
-bool txn_wound(const Shard::WatchReservation& holder, Shard& shard, Server& server) {
+bool /* TOMO_TOOL_BIND txn_wound */txn_wound(const Shard::WatchReservation& holder, Shard& shard, Server& server) {
     auto view = txn_unit_view(holder);
     TxnPhase placing = TxnPhase::Placing;
     if (!view.phase->compare_exchange_strong(placing, TxnPhase::Wounded,

@@ -9,6 +9,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import source_tokens as cpp
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -80,7 +81,7 @@ def emit(name, output):
         dest = core / path.name
         if dest.exists() or dest.is_symlink(): dest.unlink()
         if path == ROOT / file:
-            source = path.read_text()
+            source = cpp.read(path)
             assert source.count(old) == 1, (name, "mutation site changed", source.count(old))
             dest.write_text(source.replace(old, new))
         elif not dest.exists(): dest.symlink_to(path)

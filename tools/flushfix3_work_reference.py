@@ -11,6 +11,7 @@ import json
 import os
 from pathlib import Path
 import re
+import source_tokens as cpp
 import shlex
 import subprocess
 
@@ -25,6 +26,7 @@ def sha(path):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--prepare-only', action='store_true')
     p.add_argument('--namespace', choices=('normal', 'db0'), required=True)
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--cores', default='0-15', help='caller-owned build/test CPU allocation')
@@ -61,14 +63,16 @@ def main():
                         'for (uint32_t i = 0; i < e->count; ++i) { visit();')
     at = body.rfind('}')
     body = body[:at] + '    atomic_flush_counters.slow_work.fetch_add(work);\n    return true;\n' + body[at:]
-    current = (ROOT / 'src/store/flush.cc').read_text()
-    begin = current.index('bool FlatStore::atomic_flush_erase(')
-    end = current.index('\nuint64_t FlatStore::atomic_flush_resolved_size', begin)
+    current = cpp.read(ROOT / 'src/store/flush.cc')
+    begin, _, end = cpp.function_span(current, 'atomic_flush_erase')
     source = '#include <stdexcept>\n' + current[:begin] + body + current[end:]
     source = source.replace('#include "flatstore.h"', '#include "src/store/flatstore.h"')
     source = source.replace('#include "../core/signal.h"', '#include "src/core/signal.h"')
     generated = BUILD / ('reference-' + a.namespace + '.cc')
     generated.write_text(source)
+    if a.prepare_only:
+        print('source reference prepared:', generated)
+        return
     target = 'build/flushfix3-' + ('db0-' if a.namespace == 'db0' else '') + 'unit'
     recipe = subprocess.check_output(['make', '-f', 'Makefile', '-f', 'tools/flushfix3.mk',
         '-n', '-W', 'tests/flushfix3_unit.cc', target], cwd=ROOT, text=True)

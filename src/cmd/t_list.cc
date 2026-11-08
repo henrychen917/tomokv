@@ -976,7 +976,7 @@ void cmd_lpos(Shard& shard, Op& op) {
 
 #define TOMO_HANDLER_PAIR(fn) fn<false>, 1, 1, 1, notify_handler<fn<true>>
 
-static const CommandSpec kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
     // name       min max flags               handler       first last step
     {"LPUSH",      3, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_lpush)},
     {"RPUSH",      3, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_rpush)},

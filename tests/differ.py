@@ -5127,7 +5127,9 @@ def run_climon_suite(rng):
                 out += chunk
                 deadline = time.time() + 0.2
             return out
+        # TOMO_TOOL_ANCHOR tracking-compare
         a = parked["t"] + collect(tt); b = parked["o"] + collect(ot)
+        # TOMO_TOOL_ANCHOR tracking-reset
         parked["t"] = parked["o"] = b""
         if a != b:
             diffs += 1

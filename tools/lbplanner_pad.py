@@ -12,6 +12,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import source_tokens as cpp
 import struct
 import subprocess
 
@@ -27,28 +28,19 @@ def save(path, value):
 
 
 def body(text, name):
-    match = re.search(r'\b' + re.escape(name) + r'\([^)]*\)\s*(?:const\s*)?\{', text)
-    assert match, ('missing body', name)
-    start = match.end() - 1
-    depth = 0
-    for token in re.finditer(r'//[^\n]*|/\*[\s\S]*?\*/|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|[{}]', text[start:]):
-        if token[0] == '{': depth += 1
-        elif token[0] == '}': depth -= 1
-        if depth == 0:
-            return text[start:start + token.end()]
-    raise AssertionError(('unclosed body', name))
+    return cpp.body(cpp.Source(text), name)
 
 
 def normalized(text):
-    return re.sub(r'\s+', ' ', text).strip()
+    return cpp.compact(text)
 
 
 def source_proof():
     def pre(path):
         return subprocess.check_output(['git', 'show', BASE + ':' + path], cwd=ROOT, text=True)
     old_server, old_io = pre('src/core/server.h'), pre('src/core/io_loop.h')
-    server = (ROOT / 'src/core/server.h').read_text()
-    planner = (ROOT / 'src/core/lbplanner.cc').read_text()
+    server = cpp.read(ROOT / 'src/core/server.h')
+    planner = cpp.read(ROOT / 'src/core/lbplanner.cc')
     proofs = []
     for name, old, new, old_name in [
         ('lb_controller_tick_pad', old_server, planner, 'lb_controller_tick'),
@@ -68,7 +60,8 @@ def source_proof():
             reference = reference.replace(needle, 'ratio < release')
             cleanup = 'CT19: zero ratio is already below the strictly positive release band'
         a = normalized(reference)
-        b = normalized(body(new, name).replace('lb_client_move_pad()', 'lb_client_move()'))
+        b = normalized(cpp.rename(cpp.normalized(body(new, name)),
+                                  {'lb_client_move_pad':'lb_client_move'}))
         assert a == b, ('PAD PRE body changed', name)
         proofs.append(dict(function=name, sha256=hashlib.sha256(a.encode()).hexdigest(),
                            reference_cleanup=cleanup))
@@ -83,7 +76,7 @@ def source_proof():
     assert wrapper.index('lb_control_actuate_pad()') < wrapper.index('cached_now_ms_'), 'PAD tail ordering'
     # Every boot used this same monitor body on PRE. Compare the complete block.
     monitor = body(planner, 'monitor_controllers_pad')[1:-1]
-    fused_guard = 'if (cfg_.thread_mode == ThreadMode::Fused) return; // PRE fused boots joined workers directly.'
+    fused_guard = 'if (cfg_.thread_mode == ThreadMode::Fused) return;'
     assert fused_guard in monitor, 'PAD PRE fused monitor bypass missing'
     monitor = monitor.replace(fused_guard, '')
     for path in ('src/main.cc', 'src/core/genthread.cc', 'src/core/rl2s.cc', 'src/core/reorder.cc'):
