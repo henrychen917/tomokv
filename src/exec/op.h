@@ -26,7 +26,7 @@ struct BlockingState;
 
 enum class OpState : uint8_t {
     Free = 0,     // slot is reusable
-    Issued = 1,   // shutdown drain sentinel; runtime Task publication leaves the reset state
+    Issued = 1,   // shutdown drain sentinel; runtime dispatch does not store Issued
     Done = 2,     // worker finished; reply is complete and safe to read
     AofWait = 3,  // owner finished; persistence still owns the completion
 };

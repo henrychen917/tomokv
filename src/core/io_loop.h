@@ -4389,17 +4389,18 @@ private:
                     break;
                 }
                 if (scatter_prepared == ScatterPrepare::Ready) {
-                    // scatter_dispatch.barrier marks scatters whose second-wave owner tasks originate
-                    // on an EX producer channel (publish_phase2 destination installs, LMPOP/ZMPOP
+                    // scatter_dispatch.barrier covers second-wave scatters and all-shard commands.
+                    // Second-wave owner tasks originate on an EX producer channel
+                    // (publish_phase2 destination installs, LMPOP/ZMPOP
                     // retries, or script apply), while ordinary tasks originate on this IO channel.
                     // ThreadCtx::drain_tasks visits producer channels by ID: without this wait an
                     // older ordinary op could run after the second wave and answer from after a
                     // store it precedes. Same-connection ordering is required on both sides.
                     //
                     // Wait for the ROB head before starting the scatter, leave its frame unconsumed while
-                    // waiting, and arm the barrier against younger frames after publication. Read-only and
-                    // single-wave scatters (MGET, MSET/DEL groups, direct RENAME) post every task from this
-                    // IO and do not need this barrier.
+                    // waiting, and arm the barrier against younger frames after publication. Plain
+                    // single-wave scatters such as MGET, MSET/DEL groups and direct RENAME post every
+                    // task from this IO and do not need this barrier.
                     if (scatter_dispatch.barrier && rob.in_flight() != 0) {
                         xshard_abandon_unpublished(scatter_dispatch.state, scatter_pool_, self_id);
                         break;
