@@ -64,8 +64,9 @@ namespace tomo {
 //   ex    ExLoop    execute+notify; never sends
 
 // Each instance owns one physical thread's transport state and its current IO-role clients.
-// Boot configures it before worker entry; connection work runs on self_'s thread, including
-// fused execution. Coordinator-only teardown requires joined workers. Server/ThreadCtx and the
+// Each worker initializes its own loop dormant during boot and activates it on that same
+// thread before its role loop. Connection work, including fused execution, runs there too.
+// Coordinator-only teardown requires joined workers. Server/ThreadCtx and the
 // TLS context are borrowed. Task queues publish with release ordering; reply retirement observes
 // executor completion before releasing buffers. Migration must quiesce kernel and executor users.
 // Full queues leave frames/retries pending; transport failures close through deferred reclamation.
@@ -95,7 +96,9 @@ public:
     // and bind completion callbacks before activating this IO role. The caller must keep the
     // borrowed objects alive through teardown; dormant initialization leaves listeners inactive.
     // Returns false on ring, wake registration, epoll, or activation failure; partial resources
-    // remain attached for teardown. Initialization itself makes no cross-thread publication.
+    // remain attached for teardown. Runs on self_'s worker thread. Dormant initialization
+    // (every current caller) publishes nothing cross-thread; otherwise activate() release-
+    // publishes ring_/wb_ through ThreadCtx::set_ring/set_wb_engine.
     // Each IO has its own SO_REUSEPORT listener so kernel hashing distributes connections.
     // Boot must exclude another server process on the port: reuseport also permits that process
     // to receive connections, so successful bind alone cannot establish exclusive server ownership.
@@ -478,8 +481,9 @@ public:
 
     // Choose the split-loop specialization once per role entry. Template arguments select
     // Unix listeners, TLS listeners, and epoll versus io_uring, keeping those engine/shape
-    // branches outside per-operation dispatch. Notification handler selection follows the
-    // same principle at its own per-batch boundary.
+    // branches outside per-operation dispatch. Notification handlers follow the same principle:
+    // parse_and_dispatch selects CommandSpec::handler_notify shadow rows (cmd/command.h)
+    // from the per-batch notify_armed_ cache.
     void run_split() {
         const bool has_unix =
             unix_listen_fd_ >= 0 || (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
@@ -639,8 +643,8 @@ private:
             lb_pass_begin();    // one shared pause snapshot before any connection parsing
             flip_pass_begin();  // one acquire before any parser or cron in this IO pass
             refresh_notify_config();
-            // Refresh the shared feature mask once per IO batch; per-operation hooks use the
-            // cached armed decision.
+            // One relaxed (unordered) load of the shared feature mask per IO batch;
+            // per-operation hooks use the cached armed decision.
             if (__builtin_expect(srv_->climon_armed() != climon_armed_cached_, false))
                 climon_refresh_armed();
             const bool pause_armed = climon_pause_armed();
@@ -967,9 +971,10 @@ private:
     //
     // EPOLL READS THE SOCKET HERE INSTEAD. There is no submission to make, so the same call site
     // that "arms" a uring recv performs the recv itself, and recv_armed_ changes meaning to
-    // "we reached EAGAIN, an edge is owed" (see net/epoll.h). Its two lifetime/progress consumers are `stuck` in flush_ready keeps a connection in the active set while it is false, so
-    // a read that stopped for lack of buffer space is retried; and safe_to_release refuses to free
-    // a connection while it is true.
+    // "we reached EAGAIN, an edge is owed" (see net/epoll.h). Two consumers enforce lifetime
+    // and progress: `stuck` in flush_ready keeps the connection active while the flag is false,
+    // so a read stopped by buffer pressure is retried; safe_to_release refuses to free the
+    // connection while the flag is true.
     uint64_t query_buffer_limit(const Client& c) const {
         return __builtin_expect(
                    (srv_->security_flags() & Server::kSecurityAuth) && !c.authenticated(), false)
@@ -1165,9 +1170,10 @@ private:
     // "epoll changes only how the thread waits" true rather than aspirational.
     // Consume readiness on this IO worker; ep_ and registrations must be initialized.
     // Only listeners admit clients here. Client events change readiness/active-set state,
-    // not application parsing, because later events may still name a client. Ignore foreign
-    // or installing clients. Timeout/error returns zero; accepted work and wake edges count
-    // as progress so the next loop pass drains payloads that arrived after its earlier drain.
+    // not application parsing, because later events may still name a client. Skip foreign,
+    // dead, installing or migrating clients. Timeout/error returns zero. Accepted connections,
+    // wake/database/shutdown edges and client readiness count as progress, so the next pass
+    // drains payloads that arrived after its earlier drain.
     /* TOMO_TOOL_FUNCTION epoll_pass */
     template <bool HasUnix, bool HasTls, bool Fused = false>
     uint32_t /* TOMO_TOOL_BIND epoll_pass */ epoll_pass(int timeout_ms) {
@@ -1730,8 +1736,11 @@ private:
     // Begin migration on the source IO worker while it still owns client. Require protocol,
     // executor, and writeback quiescence and a current/prepared destination IO. Reserve local
     // state and both epoll outcomes before detach; io_uring waits for the original receive.
-    // No client owner publication occurs until finish_client_transfer. Return false with an
-    // error for preflight failure; return true while asynchronous preparation remains pending.
+    // commit_client_transfer publishes ownership: inside this call for epoll non-FLIP moves,
+    // from service_client_migrations after io_uring's receive fence, or later from
+    // commit_prepared_client_transfers for FLIP. False means preflight refusal with error set
+    // or an epoll preparation rollback with error empty. True means committed, prepared or
+    // waiting for the io_uring receive fence; a synchronous io_uring rollback also returns true.
     // Rollback-registration inconsistencies abort rather than waive the ownership fence.
     template <bool kEp>
     bool request_client_transfer_impl(Client* client, uint32_t destination, bool hold_for_commit,
@@ -2191,8 +2200,11 @@ private:
 
     // Advance load-balancer control at this IO's pass tail, after all sampled owner tasks
     // are posted or abandoned. Stage reads acquire the controller's publication; acknowledgements
-    // and wakes let the coordinator progress only after the corresponding drains. This IO
-    // mutates only its source/destination migration state. Busy clients or resource failures
+    // and wakes let the coordinator progress after the corresponding drains. Each IO may
+    // attempt plan consumption and acknowledge drains in shared controller state; the elected
+    // coordinator consumes the plan, advances stages/timeouts and commits shard transfers.
+    // In ClientDrain the destination reserves capacity and acknowledges; the source CASes
+    // the stage to ClientMoving and starts the transfer. Busy clients or resource failures
     // refuse a move; pending stages and failed wakes remain runnable for retry/timeout.
     __attribute__((noinline)) uint32_t lb_control_pass() {
         if (!lb_controller_armed_) return 0;
@@ -2350,9 +2362,11 @@ private:
     }
 
     // Advance a database-map boundary on this IO worker after dispatch. Acquire Done states
-    // before acknowledging IO drain; the elected boundary owner advances stages and wakes
-    // workers only after all required acknowledgements. The initiating ROB operation keeps
-    // dispatch fenced until completion. Closing clients in active_ participate in the drain;
+    // before acknowledging IO drain. The elected owner advances DatabaseIoDrain ->
+    // DatabaseExDrain -> DatabaseRun after the required acknowledgements. It ends the boundary
+    // (Idle + wake) when the initiating op is Done or retired, or immediately if its client
+    // closes while that op is still unpublished. Ordinary dispatch stays fenced until the
+    // boundary ends. Closing clients in active_ participate in the drain;
     // unready work retains the boundary and reports progress for another control pass.
     __attribute__((noinline)) uint32_t database_control_pass() {
         auto& map = srv_->databases();
@@ -2414,14 +2428,15 @@ private:
             }
         }
         // Keep the control transaction progressing even if all network peers sleep.
-        // Ordinary dispatch remains fenced until the initiating operation is Done.
+        // Ordinary dispatch remains fenced until the boundary ends, including abandonment.
         return 1;
     }
 
     // Test whether this thread still owes the sampled FLIP/database-boundary stage.
     bool flip_owed(FlipStage stage) const {
 #ifdef TOMO_CORE_CONCURRENCY_TEST
-        // Negative control: ignore epoch identity and consult only the stage acknowledgement.
+        // Negative control: use the current epoch's acknowledgement without revalidating
+        // that the sampled stage is still live.
         if (test_live_epoch_ack_test_) return !srv_->flip_acked(self_->id(), stage);
 #endif
         return srv_->flip_stage_owed(self_->id(), stage);
@@ -2869,8 +2884,11 @@ private:
     }
 
     // Advance this IO-owned client's TLS handshake, pending output, and plaintext parsing.
-    // Requires no pinned inbound BIO frontier while calling SSL read/handshake; callers
-    // check recv_armed before driving. Borrow the TLS slot, flush output before further reads,
+    // Requires no pinned inbound BIO frontier during SSL read/handshake. flush_ready's
+    // io_uring path skips this call while recv_armed(); on_tls_recv commits the BIO first,
+    // and adopt_client runs before receive arming. Socket-poll and epoll callers may have
+    // recv_armed() set: poll arming and epoll's owed-edge flag pin no BIO frontier.
+    // Borrow the TLS slot, flush output before further reads,
     // and grow receive storage only at ROB quiescence. WANT_READ/WRITE arms retry readiness;
     // EOF/errors initiate close (possibly draining alerts). True means the TLS engine has
     // not failed or is waiting, not that application work necessarily progressed.
@@ -3068,7 +3086,8 @@ private:
     }
 
     // Attribute demoted reads to explicit live-write conflict (InflightWrite) or to the
-    // one-time arming fence (ArmTransient). Writes published before the first local read
+    // arming fence (ArmTransient), which can recur after sidecar allocation failure.
+    // Writes published before the first local read
     // have no descriptors, so they fence subsequent local reads until they retire. Keep
     // that transient distinct from steady-state key conflicts to diagnose repeated arming.
     static ReadLocalFallbackReason read_local_write_fallback_reason(const Rob<kRobWindow>& rob) {
@@ -3093,8 +3112,11 @@ private:
     private:
         enum class ReadKind : uint8_t { Ordinary, Scatter, Error };
 
-        // Scratch owned by one demotion plan. Only initialized count_/nowners_ prefixes are
-        // read. Scatter pointers own unpublished states until commit or discard; arrays are
+        // Scratch owned by one demotion plan. ids/reasons/kinds/scatter/scatter_tasks are
+        // initialized for the whole selected set. A partial plan shrinks count_ to the prepared
+        // prefix; commit_reads still reads suffix ids/reasons in
+        // [partial_begin_, partial_begin_ + partial_count_). owners/remaining are valid below
+        // nowners_. Scatter pointers own unpublished states until commit or discard; arrays are
         // worker-private and rely on the enclosing ROB/window bounds, with no atomic publication.
         struct Storage {
             uint64_t ids[kRobWindow];
@@ -3605,9 +3627,10 @@ private:
     // a matching fused executor for local-read paths; NoBorrow selects handlers safe for TLS.
     // BatchOps bounds a fused pass; zero uses ROB capacity as the bound. SplitLocal shares the
     // local-read protocol. Stamp one read cut/map before routing, publish ROB entries before
-    // release-posting tasks, and advance input only once a reply or task is committed.
-    // Full queues, barriers, or admission limits leave input for retry; incomplete input returns
-    // NeedInput. Protocol/size errors close or stage a closing reply. Completion is ordered by
+    // release-posting tasks, and advance input only once a reply or task is committed (empty
+    // inline frames excepted). Full queues, barriers, or admission limits leave input for retry.
+    // NeedInput means no complete frame was consumed this pass; an incomplete tail after
+    // progress returns Progress. Protocol/size errors close or stage a closing reply. Completion is ordered by
     // the ROB, and touched owners receive their folded notifications before this pass returns.
     /* TOMO_TOOL_FUNCTION parse_and_dispatch */
     template <bool NoBorrow, uint32_t BatchOps = 0, bool SplitLocal = false>
@@ -3703,7 +3726,8 @@ private:
             if constexpr (Fused) {
                 op = read_local_enabled ? rob.acquire_read_local(conn.op_route_flags())
                                         : rob.acquire<true>(conn.op_route_flags());
-                // The unarmed parser uses byte replies; the armed fused parser uses coded replies.
+                // Both fused arms set reply_code_ok_ and use coded replies;
+                // only the split parser below keeps byte replies.
             } else {
                 op = rob.acquire<false>(conn.op_route_flags());  // 2s keeps the byte path
             }
@@ -4365,11 +4389,12 @@ private:
                     break;
                 }
                 if (scatter_prepared == ScatterPrepare::Ready) {
-                    // Second-wave scatters require same-connection ordering on both sides.
-                    // Their later owner tasks originate on an EX producer channel (destination installs,
-                    // pop retries, or script apply), while ordinary tasks originate on this IO channel.
-                    // ThreadCtx::drain_tasks visits producer channels by ID, so the channels alone do not
-                    // order an older ordinary task before a later scatter's second wave.
+                    // scatter_dispatch.barrier marks scatters whose second-wave owner tasks originate
+                    // on an EX producer channel (publish_phase2 destination installs, LMPOP/ZMPOP
+                    // retries, or script apply), while ordinary tasks originate on this IO channel.
+                    // ThreadCtx::drain_tasks visits producer channels by ID: without this wait an
+                    // older ordinary op could run after the second wave and answer from after a
+                    // store it precedes. Same-connection ordering is required on both sides.
                     //
                     // Wait for the ROB head before starting the scatter, leave its frame unconsumed while
                     // waiting, and arm the barrier against younger frames after publication. Read-only and
@@ -4818,14 +4843,14 @@ private:
         return n + pubsub_work;
     }
 
-    // ---- retire -> stage bytes -> send or hand off -------------------------------------------------
-    // The io thread's own work per active client. In 2-stage it also owns the reply side and calls
-    // serve() here; in ex-wb and 3-stage the sender does that on its own thread and io only keeps
-    // the READ side moving — reclaim the buffer once nothing points into it, and re-arm.
+    // ---- retire -> stage bytes -> send -------------------------------------------------------------
+    // In both thread modes this IO owner reclaims unpinned receive buffers, rearms receives,
+    // retires replies and serves output.
     // Service this IO worker's active clients, then the captured serving FIFO. Requires
     // matching transport/role flags and stable client lifetimes; callbacks may mutate active_,
     // so traverse it by index. Respect receive/BIO pins before buffer reuse and observe ROB
-    // completion before retirement. Fused owner work follows parsing; pub/sub fanout precedes
+    // completion before retirement. A fused executor pass follows parsing (owner work in 1s,
+    // local reads only in SplitLocal); pub/sub fanout precedes
     // serving. Full ROBs, SQE shortage, and close fences retain retry reachability; AOF send
     // gating returns accumulated work without sending until the durability target is ready.
     /* TOMO_TOOL_FUNCTION flush_ready */
@@ -4912,6 +4937,8 @@ private:
                 // there is no receive CQE to clear it; leaving it set prevents safe_to_release forever.
                 // CLIENT KILL on itself uses mark_closing() to send its reply before teardown, so it
                 // also needs this cleanup even when close_client() has not initiated the close.
+                // io_uring needs no clear: arm_recv refuses closing clients, and the outstanding
+                // receive CQE clears the flag. Cover: tests/climon.py "KILL self close-after-reply".
                 if (c->closing()) c->set_recv_armed(false);
                 if (!c->closing()) {
                     if constexpr (HasTls) {
@@ -5034,7 +5061,8 @@ private:
             }
         }
 
-        // Phase 3: run the fused owner batch and collect its completions.
+        // Phase 3: run one fused executor pass and collect its completions: the owner batch
+        // in 1s, or split_read_local_pass with no owner work in SplitLocal.
         // The fused loop rotates whole streams: finish the bounded IFID phase above, execute one
         // batch, collect its local self-lane completions, then enter the write-back phase.
         if constexpr (Fused) {
@@ -5045,8 +5073,9 @@ private:
 
         // Phase 4: flush pub/sub fanout before any subscriber serving.
         // PUB/SUB PASS BOUNDARY -- between parsing and serving, on purpose. Everything this pass
-        // parsed is resolved and appended to its subscribers' buffers HERE, so PHASE 2 sends one
-        // coalesced write per subscriber instead of one per message. Off/unarmed servers pay one
+        // parsed is resolved and appended to its subscribers' buffers HERE, so the serving phase
+        // (Phase 5, wb_rule::Phase2::serve) sends one coalesced write per subscriber instead of
+        // one per message. Off/unarmed servers pay one
         // predicted branch on a bool; all the machinery is out-of-line and cold.
         if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
 
@@ -5798,12 +5827,13 @@ private:
     bool notify_config_armed_ = false;  // keyspace-notification half of notify_armed_
     bool save_config_armed_ = false;
     uint64_t proto_max_bulk_len_ = 512ull * 1024 * 1024;
-    // Read-local and slow-log control cache for connection-local dispatch; keep tail placement.
+    // Boot-latched read-local enable for the fused parser (all frames), plus the slow-log arm
+    // for connection-local commands. Cold-tail placement preserves earlier member offsets.
     bool read_local_bookkeeping_ = false;  // boot-latched; runtime timing never disables ordering
     bool slowlog_armed_ = false;
     SlowlogArm slowlog_arm_{};
-    // Notification publications are sequenced through one coordinator IO. This cold-tail
-    // queue keeps their ownership separate from the hot connection fields.
+    // Notification publications are sequenced through one coordinator IO. Cold-tail
+    // placement keeps earlier IoLoop member offsets fixed.
     std::deque<std::shared_ptr<PubSubNotificationChain>> pubsub_notification_chains_;
     // Allocated only when tls-port is non-zero. Slots are released at the same deferred-free fence
     // as Client because in-flight recv/send CQEs point into the BIO pair owned by TlsConn.
@@ -5811,7 +5841,9 @@ private:
     std::vector<std::unique_ptr<TlsConn>> tls_slots_;
     std::vector<uint32_t> tls_free_slots_;
 #include "../cmd/climon.inc"
-    // Source-IO forwarding receipt retained until destination installation is acknowledged.
+    // Source-IO forwarding receipt, erased by client_routing_cleanup_pass only after
+    // destination installation is acknowledged and srv_->pubsub_inflight() is zero, so
+    // stale MONITOR/tracking events addressed to this source can still be forwarded.
     // Contains feature flags, never a Client pointer; stale events resolve the live owner.
     // The routing mailbox/ownership commit supplies ordering, not atomics in this record.
     struct ClientForwardRoute {
@@ -5820,7 +5852,9 @@ private:
         bool tracking = false;
     };
 
-    // Move-only catalog payload prepared on source IO and consumed on destination IO.
+    // Heap-allocated, non-copyable, non-movable catalog payload. A raw pointer owns it from
+    // source-IO preparation through ClientMigration::routing -> ClientTransfer::routing
+    // until destination-IO installation or discard.
     // Owns extracted map nodes and unposted rebind/installation events; posted events must
     // be removed/nullified so destruction frees only untransferred objects. Client IDs are
     // values. Ownership publication and transfer-queue ordering bracket the install;
