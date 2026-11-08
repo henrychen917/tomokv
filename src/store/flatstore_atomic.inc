@@ -1,14 +1,15 @@
-// flatstore_atomic.inc — epoch-MVCC members textually included inside class FlatStore.
-//
-// This file is intentionally not a standalone header. Keeping these definitions inside the
-// header-only class preserves the original single-TU concatenation model without new external
-// symbols, translation units, or build-system changes.
-
+// FlatStore's owner-local epoch-MVCC methods and state. Included inside the class in
+// flatstore.h, in every translation unit using it; this is not a standalone header.
+// Entries retain displaced objects and group references until collapse/shutdown releases
+// them. Group epochs/abort flags are acquire-loaded; entry lists and accounting are owner
+// state. Armed physical exchanges release-publish slots inside a topology bracket, and
+// retired objects reach the owner's QSBR sink before reuse. Preparation may fail; cleanup
+// can defer while a cut, undecided entry, snapshot, or allocation prevents safe collapse.
 // Main calls this only after every IO/ex thread has joined. It releases group references before
 // IO-owned arena pools are destroyed; the destructor repeats it harmlessly for early exits.
 void atomic_shutdown_release_records() { atomic_promote_all_for_shutdown(); }
 
-// XS-SHUT-1. A cross-owner script activation holds one reference on each declared key's PIN
+// A cross-owner script activation holds one reference on each declared key's PIN
 // (kind 0, always the list prefix) from its PIN wave until its own UNPIN wave, or the APPLY
 // owner's ScriptApplyPins, drops it. SHUTDOWN NOSAVE or a signal can stop the owners between
 // those waves. The activation is then abandoned: it was never acknowledged, and no wave will
@@ -98,15 +99,10 @@ bool atomic_has_script_intent(uint64_t hash, Slice key) const {
     }
     return false;
 }
-// THE SINGLE DECISION POINT FOR "THIS WRITE MUST GO THROUGH MVCC".
-//
-// A cross-owner script's reservation is worth nothing unless every write that lands on a
-// declared key afterwards leaves an epoch behind: that epoch is the only thing APPLY-side
-// validation can see, and the whole reservation sub-wave exists to create it. Testing only
-// atomic_has_record() here is what made the reservation inert -- an ordinary key carries no
-// record, so the competing write took the untracked physical path and validation had nothing
-// to find. Every caller that decides whether to materialize a plain version asks THIS, so
-// the answer cannot drift between call sites again.
+// Version admission covers both pending records and script intents. A cross-owner script
+// PIN needs every subsequent write on its declared keys to leave an epoch for APPLY-side
+// validation, even when the key has no version record yet. Callers deciding whether to
+// materialize a plain version use this shared predicate.
 [[gnu::always_inline]] bool atomic_needs_version(uint64_t hash, Slice key) const {
     return atomic_has_record(hash, key) || atomic_has_script_intent(hash, key);
 }
@@ -213,7 +209,7 @@ bool atomic_has_script_pin(uint64_t hash, Slice key) const {
 
 // Returns 1 for a new intent, 0 for an already covered key and -1 on OOM.
 // Unit nodes follow the PIN prefix. A wildcard uses an impossible namespace
-// so atomic_has_script_intent's unchanged key predicate never matches it.
+// so atomic_has_script_intent's key predicate does not match it.
 int atomic_unit_pin(const UnitRef& unit, uint64_t hash, Slice key, bool wildcard = false) {
     if (!atomic_ensure_pending()) return -1;
     AtomicScriptIntent** insertion = &atomic_pending_->script_intents;
@@ -338,12 +334,10 @@ void atomic_visit_unit_records(uint64_t hash, Slice key, bool wildcard, Visit&& 
 // published its epoch. Completing this validation wave and restarting the activation lets that
 // group make progress without ever parking an owner.
 //
-// The test used to also require `epoch < reserved_ticket`, on the reasoning that a newer ticket
-// legally serializes after the script. It does not: a writer whose ticket is newer still READ
-// the pre-activation value (the script has installed nothing yet at validation time), so
-// ordering it after the activation is only sound for a blind write and silently loses a plain
-// read-modify-write. Restarting is unobservable and the fresh cut clears the conflict, so the
-// conservative test costs at most one retry and cannot livelock.
+// Do not bound conflicts by the script's reserved ticket: a newer-ticket writer may have
+// read the pre-activation value, since validation precedes script installation. Ordering
+// that read-modify-write after the script could lose an update. Restart with a fresh cut;
+// this predicate does not establish a bound on retries under continued conflicting writes.
 bool atomic_script_changed(uint64_t hash, Slice key, uint64_t cut) const {
     if (!atomic_pending_ || !atomic_pending_->live) return false;
     const uint64_t bit = atomic_membership_bit(hash);
@@ -435,9 +429,9 @@ bool atomic_group_has_own_undecided(const ScatterState* group, uint32_t count,
 // unit publishes through, not just one: an EXEC's plain per-key installs use the transaction's
 // epoch, while each cross-shard child command lowered inside that EXEC keeps its own
 // ScatterState and therefore its own. Answering with only the transaction's word makes a
-// transaction hold against its own RENAME/LMPOP child and hang. Testing group pointers instead
-// also deadlocked: an EXEC child's scatter record names a group, while the same EXEC's plain
-// installs do not. Plain single-command pseudo-entries
+// transaction wait against its own RENAME/LMPOP child. Group-pointer comparison has the same
+// hazard: an EXEC child's scatter record names a group, while that EXEC's plain installs do not.
+// Plain single-command pseudo-entries
 // carry no group_epoch at all: they draw their ticket in the same owner turn that installs
 // them, so they are never undecided and are skipped here.
 template <typename IsOwnUnit>
@@ -565,14 +559,10 @@ void atomic_finish_group_install(size_t parked_bytes, size_t installed_bytes) {
     atomic_gauge_sub(installed_bytes);
 }
 
-// THE ONE PLACE THE VERSION-BYTES GAUGE SHRINKS.  It used to be `-=` at eleven sites plus one
-// std::abort() guard at the group-install site, which meant an over-decrement anywhere wrapped
-// the gauge and the process died in whichever unrelated group pass next noticed the wrap.  The
-// over-decrement it was catching was real (a read-modify-write mutated an already-parked
-// predecessor in place, so collapse returned more bytes than install had charged), but that is
-// a resolver defect, fixed in atomic_resolve_internal; killing the server over a memory
-// ACCOUNTING number is a strictly worse failure than carrying a mis-sized one.  Clamp, count,
-// and let a test assert the count is zero.  atomic_gauge_underflows is in INFO stats.
+// Central version-byte decrement: clamp underflow to zero and count it in INFO's
+// atomic_gauge_underflows rather than wrapping the accounting gauge. Tests require that
+// count to stay zero. In particular, mutating a parked predecessor can make collapse
+// subtract more than installation charged; resolver selection must protect that predecessor.
 void atomic_gauge_sub(size_t bytes) {
     if (__builtin_expect(bytes > atomic_version_bytes_, false)) {
         if (atomic_gauge_underflows_) (*atomic_gauge_underflows_)++;
@@ -596,7 +586,7 @@ void atomic_gauge_sub(size_t bytes) {
 // guarantees: (1) grow at kLoadPct (70%), not at 100% -- a table run to full has no free slot
 // and insert_into would fail; (2) reclaim tombstones. Every atomic detach leaves a tombstone,
 // and DELETE passes attach nothing, so without a reclaiming trigger on every pass (this is
-// called for deletes too, unlike the old value-writes-only reserve) tombstones fill the table.
+// called for deletes too) tombstones fill the table.
 // Once it returns true, the group's physical install pass cannot hit a capacity
 // failure. A busy rehash can refuse a pass until bounded progress frees the old table.
 bool atomic_prepare_capacity(uint32_t additional) {
@@ -828,8 +818,8 @@ bool atomic_physical_key_visible(uint64_t hash, Slice key, uint64_t snapshot) {
 // Does the table hold a physical slot for this key, ignoring every pending version? This is
 // exactly the question the conditional movers' NX validator asks when the destination carries
 // a foreign undecided record: a physical candidate means the reservation may still materialize
-// and the validation must be re-run once that group decides. It used to be answered with a
-// full for_each walk of both tables on every retry; the probe visits the same two tables.
+// and validation must be re-run once that group decides. Probe the two tables by key instead
+// of walking every resident object.
 bool atomic_has_physical(uint64_t hash, Slice key) const {
     return atomic_find_physical(hash, key) != nullptr;
 }
@@ -895,10 +885,13 @@ uint32_t atomic_sweep(uint64_t floor, uint64_t cleanup_cutoff, uint32_t budget) 
     return atomic_collapse(floor, cleanup_cutoff) ? 1 : 0;
 }
 
-// FLUSH is outside the cross-shard atomic set, but it must coexist with live entries. Prepare
-// every pseudo-entry first, then give this owner's logical clear one committed ticket. The
-// subsequent table clear sees tombstones for tracked keys, so protected predecessors remain
-// parked while unrelated plain keys are reclaimed immediately.
+// Owner-side logical clear used by scatter FLUSH and the transaction helper. Cancel
+// matching units, then prepare copied-key tombstones for tracked keys before drawing one
+// ticket through the bound reserve/publish callback. Entries retain predecessors for older
+// cuts; the subsequent physical clear can reclaim unrelated keys. Preserve the caller's
+// read context. Allocation failure discards prepared entries and returns false, but prior
+// unit cancellation is not rolled back; the caller may retry. Ticket binding is required
+// when records exist. Armed preparation publishes exclusions before physical exchanges.
 bool atomic_tombstone_all(int namespace_filter = -1) {
     if (atomic_pending_) {
         for (auto* entry = atomic_pending_->head; entry; entry = entry->next)
@@ -914,6 +907,8 @@ bool atomic_tombstone_all(int namespace_filter = -1) {
                 atomic_cancel_unit_intent(*intent);
     }
     if (!atomic_pending_ || atomic_pending_->live == 0) return true;
+    // Temporary owner-local preparation: owns copied key bytes and an unlinked entry handle.
+    // The catch path discards handles; successful installation transfers them to the store.
     struct PreparedClear {
         uint64_t hash;
         std::string key;
@@ -942,14 +937,11 @@ bool atomic_tombstone_all(int namespace_filter = -1) {
         return false;
     }
 
-    // atomic_install_plain selects the freshly installed version as the store's read cut,
-    // because its ordinary caller (begin_plain_version) needs the handler that follows to see
-    // the clone it just installed. FLUSH is not that caller: it runs under an unbound read
-    // context and nothing after it restores the cut, so the store was left resolving every
-    // later unbound chain read (a direct RENAME's source lookup, a MULTI child's pop hop) at
-    // FLUSH's ticket with no origin connection -- a newer committed group of the same
-    // connection was then invisible and RENAME answered "no such key" for a key its own MSET
-    // had acknowledged. Preserve whatever context the caller had.
+    // atomic_install_plain selects the newly installed version as the read cut so its usual
+    // begin_plain_version caller can read the clone in the following handler. FLUSH has no
+    // such handler and can run with an unbound context: leaving its ticket installed would
+    // hide newer same-connection groups from later unbound chain reads (direct RENAME's
+    // source lookup and a MULTI child's pop hop). Save and restore both cut and origin.
     const uint64_t saved_epoch = atomic_read_epoch_;
     const uint64_t saved_origin = atomic_read_origin_conn_id_;
     const uint64_t ticket = atomic_ticket_fn_(atomic_ticket_ctx_);
@@ -1200,7 +1192,7 @@ void atomic_destroy_pending() {
     // Only shutdown reaches this destructor, after all workers have joined.
     // A stopped EXEC may still own read intents although its value records
     // have just been rolled back. Release those cold nodes before the
-    // existing empty-list check; PIN accounting remains independent.
+    // empty-list check; PIN accounting remains independent.
     atomic_remove_unit_intents([](const UnitRef& ref) {
         auto& intent =
             *const_cast<AtomicScriptIntent*>(reinterpret_cast<const AtomicScriptIntent*>(&ref + 1));
@@ -1299,8 +1291,15 @@ KvObj* atomic_find_physical(uint64_t hash, Slice key) const {
     return rehashing() ? find_in(1, hash, key) : nullptr;
 }
 
+// Resolve an owner-thread read at snapshot using the store's connection context. Returns
+// a borrowed physical/predecessor pointer, filtered by the cached expiry clock; no ownership
+// moves. Acquire-load group epochs and abort flags, hide foreign undecided candidates and
+// prefer the connection's private overlay. The caller must keep records/objects valid and
+// bind the logical read context. Missing/expired answers return null; no allocation or
+// retirement occurs. An armed diagnostic can bounded-poll an undecided ticket below.
 AtomicResolved atomic_resolve_internal(uint64_t hash, Slice key, uint64_t snapshot,
                                        bool count_predecessor) {
+    // Phase 1: select the physical fast path or range-aware resolver.
     KvObj* physical_value = atomic_find_physical(hash, key);
     if (!atomic_pending_ || !atomic_pending_->live)
         return AtomicResolved{atomic_live_value(physical_value), false, true};
@@ -1316,18 +1315,12 @@ AtomicResolved atomic_resolve_internal(uint64_t hash, Slice key, uint64_t snapsh
     bool winner_private = false;
     AtomicEntry* winner_entry = nullptr;
     bool matched = false;
-    // THE SAME PROGRAM-ORDER REPAIR atomic_collapse() APPLIES, AND IT IS LOAD-BEARING HERE.
-    // A read reaches this chain whenever it beats the owner's post-batch cleanup to the pair,
-    // and it must then rank a connection's records the way that connection sent them, not by
-    // their commit tickets -- otherwise it answers from the older cross-shard group after the
-    // younger transaction's write, which is the stale-read half of the defect.
-    // This was measured, deleted, and restored: with the target on 16 cores the cleanup pass
-    // always won the race, so removing this scored an identical 0 on the stale-read probe and
-    // looked free. With the target correctly pinned to 8 cores the read wins often enough that
-    // collapse-alone failed tests/multires.py in 3 of 8 runs while this restores 0 of 8. The
-    // cost is real (~2% on the atomic-path A/B) and is bought deliberately.
+    // Apply the same adjacent same-connection epoch repair as atomic_collapse_impl. A read
+    // can reach these records before post-batch cleanup and must not prefer an older group
+    // over a younger same-connection install merely because commit tickets inverted.
     uint64_t prev_conn_id = 0;
     uint64_t prev_epoch = 0;
+    // Phase 2: rank visible occurrences, including the connection's private overlay.
     auto consider = [&](AtomicEntry& owner, KvObj* candidate, bool is_physical) {
         if (owner.group_epoch && owner.group_aborted &&
             owner.group_aborted->load(std::memory_order_acquire))
@@ -1348,12 +1341,12 @@ AtomicResolved atomic_resolve_internal(uint64_t hash, Slice key, uint64_t snapsh
         const bool own_committed =
             atomic_read_origin_conn_id_ != 0 && owner.origin_conn_id == atomic_read_origin_conn_id_;
         // A transaction's own still-private installs are its RYOW overlay.  Foreign epoch-zero
-        // candidates remain invisible exactly as before; ordinary pipelined commands still
+        // candidates remain invisible; ordinary pipelined commands still
         // defer on their own undecided predecessor before reaching this resolver.
         if (owner.group_epoch && epoch == 0 && !own_committed) {
             // Armed-only: the undecided-foreign skip. Under a single-connection workload the
             // entry IS the reader's own earlier write, so landing here means the read failed
-            // the own_committed test -- the RYOW hole the seed-19 divergence goes through.
+            // the own_committed test, exposing a missing or mismatched connection context.
             if (__builtin_expect(atomic_tripwire_enabled(), false))
                 atomic_tripwire_excluded(hash, snapshot, 0, atomic_read_origin_conn_id_,
                                          owner.origin_conn_id);
@@ -1363,21 +1356,17 @@ AtomicResolved atomic_resolve_internal(uint64_t hash, Slice key, uint64_t snapsh
             // Armed-only: latch WHY a candidate was invisible. Under a single-connection
             // workload every entry is the reader's own, so any exclusion here is either a
             // read that carried no origin conn (context never set on its path) or a stale
-            // one -- the two candidate mechanisms for the seed-19 stale-read divergence.
+            // one. The diagnostic distinguishes these connection-context failures.
             if (__builtin_expect(atomic_tripwire_enabled(), false))
                 atomic_tripwire_excluded(hash, snapshot, epoch, atomic_read_origin_conn_id_,
                                          owner.origin_conn_id);
             return;
         }
-        // RANK, NOT EPOCH.  An own still-private candidate carries epoch 0 because its ticket is
-        // not drawn yet -- it is the NEWEST value this connection has, not the oldest.  Ranking
-        // it by its epoch made it lose to any older but committed version of the same key, so
-        // the second touch of a key inside one transaction answered from before the first, and
-        // an in-place read-modify-write (RPUSH/APPEND/INCRBY) then mutated the parked
-        // predecessor -- a write that replies normally and is discarded at collapse.  A private
-        // candidate therefore outranks every committed one; among private candidates, and among
-        // committed ones, the later occurrence still wins (equal epochs are several physical
-        // installs inside one command, whose last occurrence is that command's final value).
+        // An own private candidate has epoch zero because no ticket is published yet; it must
+        // outrank committed versions. Otherwise a second RPUSH/APPEND/INCRBY in the transaction
+        // could mutate a parked predecessor and lose its write when collapse discards it.
+        // Later private occurrences win; committed candidates use the repaired epoch, with
+        // later occurrences winning ties so repeated installs expose the command's final value.
         const bool own_private = owner.group_epoch && epoch == 0;
         if (!winner_set || (own_private ? true : (!winner_private && epoch >= winner_epoch))) {
             winner = candidate;
@@ -1388,6 +1377,7 @@ AtomicResolved atomic_resolve_internal(uint64_t hash, Slice key, uint64_t snapsh
             winner_entry = &owner;
         }
     };
+    // Phase 3: reconstruct each installed candidate from its successor or the physical slot.
     for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
         if (!(entry->membership & bit)) continue;
         for (uint32_t i = 0; i < entry->count; i++) {
@@ -1407,12 +1397,10 @@ AtomicResolved atomic_resolve_internal(uint64_t hash, Slice key, uint64_t snapsh
     const bool from_physical = winner_set && winner_physical;
     if (!from_physical && count_predecessor && atomic_predecessor_reads_)
         (*atomic_predecessor_reads_)++;
-    // #77 TRIPWIRE B. A finite read cut answered from a parked predecessor while this shard
-    // still held a decided group with an older ticket. That conjunction is the rare resolver /
-    // cleanup geometry the preserved seed-19 EXISTS overcount needs diagnosed. It is not a
-    // correctness gate: count every occurrence, and let the process-global one-shot retain the
-    // first answer/ticket pair. The armed check precedes the extra list walk, so a production
-    // server pays none of the diagnostic work and performs no new atomic operation.
+    // Phase 4: diagnose predecessor answers when the explicit tripwire is armed.
+    // For a finite cut, count a parked answer alongside a decided group with an older ticket;
+    // the process-global one-shot retains the first answer/ticket pair. This observes geometry,
+    // not a correctness verdict. The arming check precedes the extra list walks/atomic work.
     if (__builtin_expect(!from_physical && snapshot != UINT64_MAX && atomic_tripwire_enabled(),
                          false)) {
         const uint64_t answer_ticket = winner_entry ? atomic_epoch(*winner_entry) : 0;
@@ -1431,7 +1419,7 @@ AtomicResolved atomic_resolve_internal(uint64_t hash, Slice key, uint64_t snapsh
         // membership bit; re-walk WITHOUT that filter and compare full hash+key.  Only an
         // entry strictly newer than the answered version matters -- an older visible version
         // losing is ordinary MVCC.  A qualifying entry the walk never saw (bit clear) is the
-        // mask-inconsistency smoking gun; one the walk did see is a ranking defect; a matched
+        // mask inconsistency; one the walk did see indicates a ranking discrepancy; a matched
         // foreign group with its ticket still unpublished is the publication-race window.
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
             const bool walked = (entry->membership & bit) != 0;
@@ -1499,6 +1487,11 @@ void atomic_for_each_unique_key(Fn&& fn) {
     }
 }
 
+// Owner-side armed exchange for install/collapse. Requires capacity for a new key and the
+// caller's key exclusion. Takes the replacement into the table and returns the displaced
+// pointer to the caller without freeing it. Release slot stores and the topology guard
+// publish the physical change; MVCC decides logical visibility separately. Missing deletes
+// return null; missing insertion capacity aborts. Expiry/accounting follow the slot change.
 KvObj* atomic_exchange_physical_read_local(uint64_t hash, Slice key, KvObj* replacement) {
     // The key filter was release-published before this call. Enclose every possible physical
     // exchange or direct insertion in the table sequence so a reader that observed the old
@@ -1559,10 +1552,9 @@ KvObj* atomic_exchange_physical_read_local(uint64_t hash, Slice key, KvObj* repl
         live_[0]++;
         const size_t added_bytes = kvobj_size(replacement);
         obj_bytes_ += added_bytes;
-        // The folded probe publishes without insert_into_read_local, so it owes the selected
-        // tracker the same registration that path performs. Going through the flag alone would
-        // register a PERSISTed key that merely RETAINS its slot, and would hand the sidecar
-        // prototype an entry with no deadline payload.
+        // This folded probe bypasses insert_into_read_local and must register expiry itself.
+        // Check the logical deadline, not the physical TTL-slot flag: PERSIST can retain a
+        // slot without a deadline and must not leave a volatile-index entry.
         (void)track_expire(hash, replacement);
     };
     if (KvObj* object = exchange(0)) return object;
@@ -1576,10 +1568,12 @@ KvObj* atomic_exchange_physical_read_local(uint64_t hash, Slice key, KvObj* repl
     return nullptr;
 }
 
-// Swap a key in its existing slot, or retain the first tombstone and terminal empty while
-// proving it absent so a new replacement installs without repeating the current-table probe.
-// Atomic ownership needs the displaced pointer, so insert_into's ordinary retire-in-place path
-// is not usable.
+// Owner-side physical exchange for atomic install/collapse, with capacity preflighted.
+// Takes replacement ownership and returns the displaced pointer to its MVCC caller;
+// ordinary insert_into retirement is deliberately bypassed. Remember the first tombstone
+// and terminal empty while probing so insertion needs no second current-table lookup.
+// Missing deletes return null; absent insertion capacity aborts. Armed calls delegate to
+// release slot publication and the topology bracket; logical epoch publication is separate.
 KvObj* atomic_exchange_physical(uint64_t hash, Slice key, KvObj* replacement) {
     if (__builtin_expect(read_local_enabled_, false))
         return atomic_exchange_physical_read_local(hash, key, replacement);
@@ -1677,7 +1671,8 @@ bool atomic_recycle_value(KvObj* object) {
 // The cache itself belongs to the fused OWNER and is reached through the retire sink this store
 // is already bound to; the store contributes only the eligibility a shard can judge (object
 // shape and the borrow registry) and whether it still has live objects. The sink
-// pointer is boot-latched with `read_local_enabled_`, so the armed path needs no null test.
+// binding is validated when armed and rebound at quiesced ownership handoff, so the armed
+// path needs no null test.
 
 // Post-grace return. `capacity` is the retire-time kvobj_capacity: the exact class this block
 // was requested at. Returns false when the block was not cached and the caller must free it.
@@ -1707,10 +1702,9 @@ void* read_local_cache_take(size_t allocation) {
     return cache->take(allocation);
 }
 
-// Hand every cached block back to the allocator: maxmemory pressure (return cached memory
-// before evicting user data) and FLUSH. Not an accounting event -- these bytes were never in
-// obj_bytes_. The cache is the owner's, so this also releases blocks its sibling shards
-// contributed; that is correct for both callers, which are whole-server events.
+// Release the owner's cached blocks on FLUSH or allocation/admission refusal. These bytes
+// are outside obj_bytes_, so this is not a logical accounting event. The cache also holds
+// blocks contributed by sibling shards; releasing it returns that physical memory too.
 void read_local_cache_release_all() {
     if (!read_local_enabled_) return;
     read_local_store_state_armed().retire_sink.block_cache->release_all();
@@ -1772,15 +1766,10 @@ bool atomic_collapse_read_local(uint64_t floor, uint64_t cleanup_cutoff) {
     return atomic_collapse_impl<true>(floor, cleanup_cutoff);
 }
 
-// Inline into the existing wrappers so factoring does not add a call boundary.
-// ReadLocal selects retirement at compile time: a detached armed value must
-// reach the owner's QSBR sink before its storage can be reclaimed or reused.
-// A collapsed winner becomes an epoch-less base. It must not leave a
-// lower-ticket candidate for the same key in the retained suffix: that
-// candidate would outrank the base, both in reads and in the next collapse.
-// Inspect the entire suffix, including occurrences beyond its first match.
-// Holding the whole prefix is conservative and leaves every existing floor,
-// cutoff, winner-selection and QSBR rule unchanged.
+// A collapsed winner becomes an epoch-less base. Do not leave a lower-ticket candidate
+// for the same key in the retained suffix: it would outrank that base in reads and later
+// collapse. Inspect the entire suffix, including occurrences beyond the first match.
+// Refusing the prefix preserves floor, cutoff, winner-selection and QSBR requirements.
 __attribute__((noinline)) bool atomic_collapse_preserves_tickets(
     const AtomicEntry* boundary) const {
     if (!boundary) return true;
@@ -1818,6 +1807,14 @@ __attribute__((noinline)) bool atomic_collapse_preserves_tickets(
     return true;
 }
 
+// Owner cleanup (or post-join shutdown) of a reclaimable prefix. floor/cutoff must reflect
+// the caller's reader lifetime protocol; snapshot capture blocks cleanup unless the range
+// flush caller has prepared pre-images. Acquire-load decisions, preserve suffix ticket
+// ordering, select winners and transfer/free predecessors, closing filter cells before
+// release-decrementing group pins. ReadLocal selects QSBR retirement at compile time.
+// False means no eligible work or failed capacity/allocation preflight; records remain for
+// a later pass, though preflight may advance rehash. Armed retirement can wait for sink
+// capacity. This routine does not establish a per-call work bound.
 template <bool ReadLocal>
 __attribute__((always_inline)) bool atomic_collapse_impl(uint64_t floor, uint64_t cleanup_cutoff,
                                                          bool capture_prepared = false) {
@@ -1829,6 +1826,7 @@ __attribute__((always_inline)) bool atomic_collapse_impl(uint64_t floor, uint64_
                                         : &FlatStore::atomic_exchange_physical;
     if (!atomic_pending_ || !atomic_pending_->live || (snapshot_active_ && !capture_prepared))
         return false;
+    // Phase 1: select a decided prefix below the reader floor and cleanup cutoff.
     uint64_t occurrences = 0;
     AtomicEntry* first_unselected = atomic_pending_->head;
     while (first_unselected) {
@@ -1845,6 +1843,7 @@ __attribute__((always_inline)) bool atomic_collapse_impl(uint64_t floor, uint64_
     if (!occurrences) return false;
     if (!atomic_collapse_preserves_tickets(first_unselected)) return false;
 
+    // Phase 2: prove whether the prefix can be freed without selecting per-key winners.
     // Only an actual key overlap whose commit tickets invert needs argmax collapse. Masks reject
     // almost all inverted entry pairs; when no such pair exists, the prefix reduces to freeing
     // parked predecessors and unlinking group entries. The usual monotonic case touches no key,
@@ -1894,6 +1893,7 @@ __attribute__((always_inline)) bool atomic_collapse_impl(uint64_t floor, uint64_
             }
         }
     }
+    // Phase 3: retire the direct prefix and close its group references.
     if (direct) {
         atomic_pending_->cleanup_fast += occurrences;
         AtomicEntry* entry = atomic_pending_->head;
@@ -1927,6 +1927,7 @@ __attribute__((always_inline)) bool atomic_collapse_impl(uint64_t floor, uint64_
         return true;
     }
 
+    // Phase 4: handle disjoint keys, restoring aborted candidates where necessary.
     // Detect overlap only inside the reclaimable prefix. A successor after the prefix already
     // parks the prefix's last installed candidate, so a committed non-overlapping entry needs
     // no table probe or chain surgery at all.
@@ -2041,7 +2042,8 @@ __attribute__((always_inline)) bool atomic_collapse_impl(uint64_t floor, uint64_
         return true;
     }
 
-    // Actual overlap is rare, but install order and commit-ticket order may invert. Collapse
+    // Phase 5: allocate the overlap map and reconstruct each key's winning candidate.
+    // Install order and commit-ticket order may invert. Collapse
     // the prefix by committed argmax, then splice its winner into the first unselected
     // occurrence (or the physical table when no successor exists).
     uint64_t table_cap = 8;
@@ -2088,19 +2090,11 @@ __attribute__((always_inline)) bool atomic_collapse_impl(uint64_t floor, uint64_
                              owner.group_aborted->load(std::memory_order_acquire);
         if (aborted) return;
         uint64_t epoch = atomic_epoch(owner);
-        // PROGRAM ORDER BEATS TICKET ORDER WITHIN ONE CONNECTION.
-        // This walk visits a key's records in list order, and for records from the SAME
-        // connection that order IS the client's program order: owner tasks are posted to a
-        // shard in arrival order and drained in order, so a connection's later command
-        // cannot install ahead of its earlier one on the same owner.
-        // Their commit TICKETS may still invert, because a cross-shard unit draws its ticket
-        // only when its LAST fragment has installed: a wide MSET/DEL group that is still
-        // waiting on other shards can be overtaken at the ticket counter by a MULTI/EXEC the
-        // same connection sent afterwards. Ranking those two by raw ticket then re-installed
-        // the OLDER group's value over the newer transaction's, destroying a write EXEC had
-        // already acknowledged -- reproduced at 246/1120.
-        // Repairing the epoch to be monotone per connection removes the inversion without
-        // reordering anything across connections, where the ticket remains the only truth.
+        // Same-connection list order follows owner installation order. A wide MSET/DEL can
+        // wait on its last shard while a later MULTI/EXEC obtains a ticket first; raw ticket
+        // ranking could then restore the older group over an acknowledged transaction.
+        // When consecutive considered records share a connection, raise the later epoch to
+        // the preceding epoch. Different-connection comparisons keep their ticket ordering.
         if (key.prev_set && owner.origin_conn_id == key.prev_conn_id && epoch < key.prev_epoch)
             epoch = key.prev_epoch;
         key.prev_conn_id = owner.origin_conn_id;
@@ -2147,6 +2141,7 @@ __attribute__((always_inline)) bool atomic_collapse_impl(uint64_t floor, uint64_
     }
     if (restore && !atomic_prepare_capacity(restore)) return false;
 
+    // Phase 6: install winners, then retire the deduplicated losing objects.
     for (AtomicCollapseKey& key : atomic_collapse_keys_) {
         if (key.boundary) {
             KvObj*& slot = key.boundary->parked()[key.boundary_index];
@@ -2188,6 +2183,7 @@ __attribute__((always_inline)) bool atomic_collapse_impl(uint64_t floor, uint64_
         atomic_collapse_retire_.end());
     for (KvObj* object : atomic_collapse_retire_) (this->*retire)(object);
 
+    // Phase 7: close filter cells before dropping group pins and unlinking the prefix.
     AtomicEntry* entry = atomic_pending_->head;
     uint32_t freed_entries = 0;
     while (entry != first_unselected) {
@@ -2231,12 +2227,10 @@ void atomic_promote_all_for_shutdown() {
     atomic_version_bytes_ = 0;
 }
 
-// ---- OWNER-WRITTEN ATOMIC BLOCK. Everything from here to atomic_read_origin_conn_id_ is
-// written by the owner on the atomic write / group-resolution path, and NOTHING here may be
-// read by a foreign probe. atomic_pending_ used to be the second word of this block; it is a
-// foreign read on EVERY read-local probe, so it now lives with the reader's topology words in
-// flatstore.h and FlatStoreLayoutLock keeps it 64 offset-bytes away. See the block comment
-// there before adding a field to either side.
+// Owner-written atomic state through atomic_read_origin_conn_id_. Foreign probes use
+// atomic_pending_ in flatstore.h's topology range, not these accounting/scratch fields.
+// FlatStoreLayoutLock keeps those named ranges at least 64 offset bytes apart; maintain
+// its endpoints when adding fields on either side.
 size_t atomic_version_bytes_ = 0;
 std::vector<AtomicCollapseKey> atomic_collapse_keys_;
 std::vector<AtomicCollapseSlot> atomic_collapse_slots_;
@@ -2246,12 +2240,10 @@ uint64_t atomic_read_epoch_ = UINT64_MAX;
 // LAST owner-written word of the atomic block; FlatStoreLayoutLock::atomic_owner_last names it.
 uint64_t atomic_read_origin_conn_id_ = 0;
 
-// ---- SEPARATOR. Bind-once counter bindings and the ticket hook: written exactly once by
-// bind_atomic_state() at boot and read-only afterwards, so a foreign reader sharing a line with
-// any of it never sees an owner invalidation. Eighty bytes of it stand between the atomic block
-// above and the reader block in flatstore.h, which is what makes that separation free. Adding
-// a per-operation counter HERE is the way to silently reintroduce the false sharing: the
-// atomic_separator_first assert below is what stops it.
+// Counter bindings and ticket callback, installed by bind_atomic_state during shard setup.
+// The 80-byte binding range separates atomic owner state from foreign topology. The
+// atomic_separator_first assertion fixes its start at the end of the named owner range;
+// it does not detect per-operation writes to fields inside this separator.
 AtomicTicketFn atomic_ticket_fn_ = nullptr;
 void* atomic_ticket_ctx_ = nullptr;
 std::atomic<uint64_t>* atomic_activity_ = nullptr;
@@ -2261,16 +2253,16 @@ uint64_t* atomic_chain_max_ = nullptr;
 uint64_t* atomic_promotions_ = nullptr;
 uint64_t* atomic_records_freed_ = nullptr;
 uint64_t* atomic_entries_ = nullptr;
-// Cold: written only on the clamped path in atomic_gauge_sub, read only by INFO.
+// Bound counter target: atomic_gauge_sub increments it on clamping; INFO reports it.
 uint64_t* atomic_gauge_underflows_ = nullptr;
 
 public:
-// Hash reads may lazily reap only the owner-visible physical value, and never while a
-// foreign group still has a candidate for this key. The caller holds the shard owner;
-// publication can decide a group concurrently, but cannot install/move its local objects.
-// Keep this cold predicate separate from the resolver and every ordinary string body.
 #include "flatstore_flush.inc"
 
+// Hash reads may lazily reap the owner-visible physical value when no foreign undecided
+// group covers the key. The caller holds shard ownership; another thread may publish a
+// group decision, but does not install or move this owner's local objects. This predicate
+// is separate from the resolver and ordinary string bodies.
 bool atomic_read_owns_value(uint64_t hash, Slice key, const KvObj* value) const {
     if (!atomic_has_record(hash, key)) return true;
     if (atomic_find_physical(hash, key) != value) return false;
