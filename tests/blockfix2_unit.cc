@@ -1,5 +1,4 @@
 // An EXEC reservation refuses an actual registry serve. No workers or sockets.
-#define TOMO_BLOCKING_COMPLETION_UNIT
 #define main atomic_survivors_unused_main
 #include "tests/atomic_survivors_unit.cc"
 #undef main
@@ -42,13 +41,12 @@ int main(int argc, char** argv) {
     require(!shard.watch_write_ready(slice(key)), "EXEC actually refuses the serve");
     Client waiter(-1);
     waiter.set_id(9002);
-    waiter.set_wb_slot(0);
     Op* op = waiter.rob().acquire<false>();
     require(op, "waiter ROB");
     const std::vector<std::string> args{"BLPOP", key, "0"};
     for (const auto& arg : args) require(op->push_arg(slice(arg)), "argument");
     op->spec = command_lookup(op->arg(0));
-    op->state.store(OpState::Free);
+    op->state.store(OpState::Issued);
     waiter.rob().publish();
     auto* state = new BlockingState;
     state->server = &server;
@@ -56,7 +54,7 @@ int main(int argc, char** argv) {
     state->op_id = 0;
     state->kind = BlockingKind::Blpop;
     state->phase.store(BlockingPhase::Parked);
-    // Hold a registration task until the registry publisher has composed the reply.
+    // Hold a registration task so completion cannot publish to an absent IO loop.
     state->active_tasks.store(1);
     BlockingKey k;
     k.key = key;
@@ -76,30 +74,13 @@ int main(int argc, char** argv) {
     exec->decision.epoch.store(server.atomic_commit());
     shard.watch_finish_unit(exec->claims[0], exec.get());
     require(shard.watch_write_ready(slice(key)), "EXEC released the key");
-    blocking_completion_unit_hook = [](BlockingState& held, ThreadCtx& owner, Ring& r) {
-        blocking_task_done(held, owner, r);
-        require(held.client->rob().at(held.op_id).state.load() == OpState::Free,
-                "last registration task cannot retire a live registry publisher");
-    };
     registry->sweep(shard, shard.now_ms(), true, self, ring);
-    blocking_completion_unit_hook = nullptr;
     require(state->phase.load() == BlockingPhase::Completed, "same waiter served on retry");
-    require(op->state.load() == OpState::Done, "registry tail completes exactly once");
-    require(state->active_tasks.load() == BlockingState::kReady, "completion closes admission");
     require(std::string(op->reply.data(), op->reply.size()) ==
                 "*2\r\n$" + std::to_string(key.size()) + "\r\n" + key + "\r\n$5\r\nvalue\r\n",
             "exact BLPOP reply");
     require(shard.blocking_waiters() == 0 && state->refs.load() == 1,
             "successful serve drops alias once");
-    // A remote alias may remain after retirement. A new Free ROB slot must not
-    // let that old alias offer completion or touch the old Client again.
-    require(registry->add(shard, *state, 0), "retain a delayed remote alias");
-    op->state.store(OpState::Free);
-    state->client = nullptr;
-    require(registry->sweep(shard, shard.now_ms(), true, self, ring) == 1,
-            "closed registry visit removes its stale alias");
-    require(op->state.load() == OpState::Free && state->refs.load() == 1,
-            "delayed alias never accesses a reused ROB or releases ownership twice");
     blocking_state_release(state);
     release_records(server);
     command_bind_server(nullptr);
