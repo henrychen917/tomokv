@@ -1,4 +1,6 @@
 // eviction.h — maxmemory policy names shared by boot/config parsing and the owner-local store.
+// Header-only conversions own no policy state. Parsing accepts case-insensitive names and leaves
+// the output unchanged on failure; the five-bit LRU bucket width is shared with FlatStore.
 #pragma once
 
 #include <cstdint>

@@ -1,0 +1,24 @@
+{
+  "cpu_affinity": "56-83",
+  "locale": "C",
+  "formatter": "clang-format 18.1.8",
+  "configuration": ".clang-format",
+  "checks": [
+    {
+      "command": [
+        "make",
+        "format"
+      ],
+      "exit_code": 0,
+      "output": "build/clang-format-18.1.8/bin/python tools/format.py\nR7 shadow production envelopes: current\nclang-format 18.1.8: 418 files formatted\n"
+    },
+    {
+      "command": [
+        "make",
+        "format-check"
+      ],
+      "exit_code": 0,
+      "output": "build/clang-format-18.1.8/bin/python tools/format.py --check\nclang-format 18.1.8: 418 files checked\n"
+    }
+  ]
+}

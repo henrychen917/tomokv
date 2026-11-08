@@ -1,10 +1,11 @@
 // foreign_read_safety.h -- per-shard fail-closed publication for foreign local reads.
+// Included by flatstore.h; ReadLocalStoreState contains the filter and owns its lifetime.
 //
 // One shard owner writes these cells. Foreign IO/fused readers perform one acquire load for the
 // queried key and never follow a pointer into owner state. Fingerprint collisions are deliberately
 // false-positive: a wildcard cell sends the read to the owner until the complete bucket drains.
 //
-// Beside the counting cells sits one monotonic 32-bit touch epoch per cell. The count gates a read;
+// Beside the counting cells sits one wrapping 32-bit touch epoch per cell. The count gates a read;
 // the epoch validates a multi-key read window: it advances after every cell transition the owner
 // publishes (add, close, poison, rebuild), so a bucket that went 0 -> 1 -> 0 inside one MGET window
 // still reads +2. Owner order is cell store first, epoch store second, both release.
@@ -19,6 +20,12 @@
 
 namespace tomo {
 
+// FlatStore's shard owner mutates counts/epochs; foreign readers acquire them without following
+// owner lists. Open all relevant cells before unsafe mutation, and close after raw state is safe.
+// Cell stores precede epoch stores, both release. Counts saturate positive until a full drain;
+// total/nesting overflow poisons permanently, and detected close underflows abort. No allocation or wait
+// occurs here. Equal epoch samples alone cannot exclude a complete wrap in their window;
+// this class does not enforce a bound on reader suspension.
 class alignas(64) ForeignReadSafety {
 public:
     static constexpr uint32_t kCellCount = 4096;
@@ -55,7 +62,9 @@ public:
     }
 
     // Reader-side touch epoch of the cell `hash` maps to. Two equal loads bracketing a copy window
-    // prove that no owner add/close/poison touched that bucket in between. A reader whose first
+    // detect completed owner add/close/poison transitions unless the counter wraps completely.
+    // Equal loads alone do not exclude a transition still in progress; caller validation also
+    // checks the store's publication sequence. A reader whose first
     // load already contains a bump synchronizes with the epoch store, which is sequenced after the
     // cell store, so its cell probe cannot miss the positive bucket.
     uint32_t cell_epoch(uint64_t hash) const {
@@ -180,9 +189,9 @@ private:
 
     // Owner-only accounting, published for INFO without reading the cell array.
     // These gauges are exact after a transition completes. Like the other INFO
-    // gauges they can sample an in-progress owner update; no timer/cache lag is
-    // introduced, and readers never retry. Only occupancy/wildcard edges store
-    // a counter. The extra words fit the existing tail cache line.
+    // gauges they can sample an in-progress owner update. There is no timer/cache lag or reader
+    // retry. Occupancy/wildcard counters are stored on their respective edges and occupy the
+    // tail cache line with the other witnesses.
     void replace_cell(uint32_t index, uint64_t old, uint64_t next) {
         cells_[index].store(next, std::memory_order_release);
         if ((old != 0) != (next != 0))
@@ -216,8 +225,8 @@ private:
     }
 
     // Owner-only. The cell transition is already release-published; a reader that acquires this
-    // newer epoch therefore also sees that transition. Wrap needs 2^32 touches of one bucket inside
-    // a single reader window, which the bounded owner rate cannot produce.
+    // newer epoch therefore also sees that transition. Equality-based validation assumes fewer
+    // than 2^32 touches of one bucket during its window; a scheduling bound is not established here.
     void touch_epoch(uint32_t index) {
         epochs_[index].store(epochs_[index].load(std::memory_order_relaxed) + 1,
                              std::memory_order_release);
@@ -270,7 +279,7 @@ private:
 
     std::array<std::atomic<uint64_t>, kCellCount> cells_{};
     // Per-cell touch epochs, read only for keys whose shard word carries the pending bit. Kept as
-    // a separate array so the proven 64-bit cell packing is untouched.
+    // a separate array from the 64-bit packed cells.
     std::array<std::atomic<uint32_t>, kCellCount> epochs_{};
     // These are exact owner-side lifecycle witnesses. They are atomic only so INFO may sample them
     // from another fused thread without creating a data race; updates remain sole-writer stores.

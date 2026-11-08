@@ -1,0 +1,15 @@
+{
+  "removed_scratch_copies": [
+    {
+      "path": "build/readability-a9/typeval-before-split.h",
+      "bytes": 39184
+    },
+    {
+      "path": "build/gate-run.5Cfo4M/jobs/reorder_identity/receipt/fifo-twin",
+      "bytes": 247488320
+    }
+  ],
+  "retained": "Build targets, generated prerequisites and logs remain for make -q/review; no scratch binaries committed.",
+  "worktree_disk_bytes": 25461112832,
+  "limit_bytes": 30000000000
+}

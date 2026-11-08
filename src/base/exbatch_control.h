@@ -1,4 +1,5 @@
-// Offline kind-A controls for the exbatch competition. There is no runtime switch.
+// Compiler-visible executor batching patch sites, included by shard.h and cmdmeta.cc.
+// Offline behaviour-twin controls use these sites without a runtime switch.
 // The five-byte NOP is replaced by an equal-width jump only in a copied ELF.
 // Non-allocated records let the verifier enumerate every site, including inlines
 // and both database namespaces. The label remains a compiler-visible CFG edge,
