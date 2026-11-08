@@ -30,12 +30,6 @@
     "purpose": "CD13b full-body byte audit. Only verified address fields are normalized."
   },
   {
-    "original": "tests/cd13b_window_test.py",
-    "archive": "tools/archive/tests/cd13b_window_test.py",
-    "sha256": "3e5a6fc3596b317406a57930262950a055624dff6cb2282fa64489b323de7cb3",
-    "purpose": "The real GEO property must rearm moved placement and reject a never-open window."
-  },
-  {
     "original": "tests/climonfix_artifacts.py",
     "archive": "tools/archive/tests/climonfix_artifacts.py",
     "sha256": "1dd361c3c56a6e887ee4c05c81e86eb4d126960d6693e087be9231feae0e5c50",
@@ -94,12 +88,6 @@
     "archive": "tools/archive/tests/signalacct_source_checks.py",
     "sha256": "0be639316660f000396e647bdbcaae079111d88a40da190cb47d0249c4cc0216",
     "purpose": "Serverless IO scope/idle/R7 source proofs against the frozen launch reference."
-  },
-  {
-    "original": "tests/slowlog_identity.py",
-    "archive": "tools/archive/tests/slowlog_identity.py",
-    "sha256": "6dc149392f9f37211a34fd1d17f5ca247ba748a4eda2e730c849b1a51a4f681d",
-    "purpose": "SV4.3: immutable six-column SLOWLOG entries across rename and disconnect."
   },
   {
     "original": "tests/sortstore_controls.py",
@@ -502,12 +490,6 @@
     "archive": "tools/archive/tools/ccfix5_prove.py",
     "sha256": "79e03935b753d22a1aaa831a71cf273b0267f93d60ba60dc46f80ba592d040f9",
     "purpose": "Run the unchanged ccfix instruction/unit/layout witnesses on ccfix5 arms."
-  },
-  {
-    "original": "tools/ccfix_audit.py",
-    "archive": "tools/archive/tools/ccfix_audit.py",
-    "sha256": "4b609e796e270375bfba96e2f073451a1738e5d76354c73cb5b79286b7bc4c06",
-    "purpose": "Offline PRE/POST function-byte inventory. No listeners or workloads are started."
   },
   {
     "original": "tools/ccfix_tables.py",

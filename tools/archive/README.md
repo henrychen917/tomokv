@@ -1,6 +1,6 @@
 # Finished lane proofs
 
-These 468 files are byte-for-byte copies from `5c3631281`. No gate or Makefile caller reaches them; retained standalone callers were also protected.
+These 465 files are byte-for-byte copies from `5c3631281`. The readability-a1b caller audit restored three files missed by A1: `tests/cd13b_window_test.py`, `tests/slowlog_identity.py`, and `tools/ccfix_audit.py`. The remaining files are outside the reviewed gate/build/live-tool closure. See `docs/readability-a1b/evidence/caller-audit.json` and the `readability-a1b` section of `MEASURE-REQUEST-readability-a1.md` for the import, dynamic-name and provenance classifications.
 
 Paths below preserve the original `tools/` or `tests/` prefix. These are historical evidence, not current build entry points. To replay a historical lane, use its original commit and original paths; relative imports and ROOT assumptions are intentionally unchanged. Gate rows, fixture labels, and expected counts are unchanged.
 
@@ -11,7 +11,6 @@ Paths below preserve the original `tools/` or `tests/` prefix. These are histori
 | `tests/at412_diagnostics.py` | Non-gate reproductions for SNAP-STORM-1, XS-SHUT-1 and XS-NOTIFY-1. |
 | `tests/atomiccollapse_controls.py` | Generate/build/run serverless collapse controls; never launches tomokv. |
 | `tests/cd13b_audit.py` | CD13b full-body byte audit. Only verified address fields are normalized. |
-| `tests/cd13b_window_test.py` | The real GEO property must rearm moved placement and reject a never-open window. |
 | `tests/climonfix_artifacts.py` | Offline/serverless SV1/SV2 controls and type-A layout twin. Never starts a server. |
 | `tests/flip_close_controls.py` | Serverless FLIP close/drain regression and an exact removal negative control. |
 | `tests/mdbstamp_controls.py` | Build/run deterministic serverless negative controls, never a server or timer. |
@@ -22,7 +21,6 @@ Paths below preserve the original `tools/` or `tests/` prefix. These are histori
 | `tests/signalacct_controls.py` | Serverless accounting/parser negative controls. Run pinned to CPUs 112-127. |
 | `tests/signalacct_core_controls.py` | Serverless negative controls of the actual model/fold/picker; never starts IO. |
 | `tests/signalacct_source_checks.py` | Serverless IO scope/idle/R7 source proofs against the frozen launch reference. |
-| `tests/slowlog_identity.py` | SV4.3: immutable six-column SLOWLOG entries across rename and disconnect. |
 | `tests/sortstore_controls.py` | Build the fix-removed unit/server controls; only --run-units executes proofs. |
 | `tests/txnfix_audit/t03_mover_replay.py` | T03: atomic-ON cross-shard movers replay phase-one images. While the mover's group is installed |
 | `tools/aclkeys3_audit.py` | Account for every PRE/POST object body and type layout without running a server. |
@@ -90,7 +88,6 @@ Paths below preserve the original `tools/` or `tests/` prefix. These are histori
 | `tools/ccfix5_probe.py` | Focused diagnosis on a listener owned by ccfix5_probe.sh, not a gate receipt. |
 | `tools/ccfix5_probe.sh` | Import the gate's exact armed-fused boot and listener ownership helpers. |
 | `tools/ccfix5_prove.py` | Run the unchanged ccfix instruction/unit/layout witnesses on ccfix5 arms. |
-| `tools/ccfix_audit.py` | Offline PRE/POST function-byte inventory. No listeners or workloads are started. |
 | `tools/ccfix_tables.py` | Supplement the linked checker with exact data/case-target proofs; never executes an arm. |
 | `tools/cfgfix2_counts.py` | Serverless production command census. No server, rate, or load generator. |
 | `tools/cfgfix2_gate.py` | Run selected tests/gate.sh jobs for lane cfgfix2 and archive the partial receipt. |

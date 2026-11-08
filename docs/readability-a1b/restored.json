@@ -1,0 +1,20 @@
+[
+  {
+    "original": "tests/cd13b_window_test.py",
+    "archive": "tools/archive/tests/cd13b_window_test.py",
+    "sha256": "3e5a6fc3596b317406a57930262950a055624dff6cb2282fa64489b323de7cb3",
+    "purpose": "The real GEO property must rearm moved placement and reject a never-open window."
+  },
+  {
+    "original": "tests/slowlog_identity.py",
+    "archive": "tools/archive/tests/slowlog_identity.py",
+    "sha256": "6dc149392f9f37211a34fd1d17f5ca247ba748a4eda2e730c849b1a51a4f681d",
+    "purpose": "SV4.3: immutable six-column SLOWLOG entries across rename and disconnect."
+  },
+  {
+    "original": "tools/ccfix_audit.py",
+    "archive": "tools/archive/tools/ccfix_audit.py",
+    "sha256": "4b609e796e270375bfba96e2f073451a1738e5d76354c73cb5b79286b7bc4c06",
+    "purpose": "Offline PRE/POST function-byte inventory. No listeners or workloads are started."
+  }
+]

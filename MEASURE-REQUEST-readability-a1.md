@@ -6,7 +6,7 @@ Baseline: `5c3631281815c1652b3894d1736840c8466a5015`. Branch `cx-readability-a1`
 
 Production remains binary-identical to `5c3631281`: **IDENTICAL (11,167,504 bytes after stripping)**. The 51 changed production files differ only in comments; their raw C++ preprocessing-token sequences equal PRE. `make all` produces one executable, `build/tomokv`. No server logic, layout, command, gate label or expected count was changed. No throughput measurement is requested or claimed.
 
-The inventory retired **468 unchanged files** (449 tools and 19 tests), with no live caller removed. The source-tool matrix passes **52/52** on each of the current, fully formatted and renamed trees. The three shapes emit the same **313** normalized C++ outputs ([token manifest](docs/readability-a1/evidence/emitted-tokens.json)). Nine ELF controls pass and reject missing symbols on both the formatted and renamed fixtures; the separate linker-wrapper control also rejects a missing role in the DB-0 namespace.
+A1 initially archived **468 unchanged files** (449 tools and 19 tests). That caller analysis was incomplete: the landing gate exposed two missing dynamic test paths, and A1b found an additional transitive tool import. A1b restores all three; **465 files** (448 tools and 17 tests) remain archived. The corrected caller proof is in the appended `readability-a1b` section. The source-tool matrix passes **52/52** on each of the current, fully formatted and renamed trees. The three shapes emit the same **313** normalized C++ outputs ([token manifest](docs/readability-a1/evidence/emitted-tokens.json)). Nine ELF controls pass and reject missing symbols on both the formatted and renamed fixtures; the separate linker-wrapper control also rejects a missing role in the DB-0 namespace.
 
 The latest executions of the selected gate jobs contain **185 passing rows and zero failures** across 46 counted jobs, plus two build-only dependencies. The bounded lottery configuration row passes. The expiry lottery row remains **INSUFFICIENT**, and the historical blockfix rename builder and optional L4 fixture remain unusable; these are detailed below. This is a partial gate selection, not a full-gate certification.
 
@@ -127,9 +127,9 @@ The additional optional `l4prebuild-unit` runtime check **fails**, despite a suc
 
 ### Retirement and row-removal candidates
 
-All **468** archived files match the frozen Git blobs byte for byte ([archive audit](docs/readability-a1/evidence/archive-audit.json)). `tools/archive/README.md` lists what each proved/built; `docs/readability-a1/retired.json` records original path, archived path and digest. Their relative import/ROOT assumptions are deliberately unchanged: replay them at their original commit and original paths, not as new build entry points.
+All **465 remaining** archived files match the frozen Git blobs byte for byte (the linked A1 audit predates the three A1b restorations) ([archive audit](docs/readability-a1/evidence/archive-audit.json)). `tools/archive/README.md` lists what each proved/built; `docs/readability-a1/retired.json` records original path, archived path and digest. Their relative import/ROOT assumptions are deliberately unchanged: replay them at their original commit and original paths, not as new build entry points.
 
-**Rows whose only purpose is calling a retired tool: none.** Every archived file is outside the conservative live gate/build/import closure, and retained manual callers were protected too. Therefore this lane proposes no row deletion and no EXPECT change. Frozen-reference PAD/identity checks still test an active invariant and remain in place. Historical CLI branches inside modules that supply live library functions are explicitly identified in the inventory; those modules were not moved wholesale.
+**Rows whose only purpose is calling a retired tool: none.** The original closure missed dynamic test paths and a transitive import. After A1b restores those three files, the remaining archive is outside the reviewed live gate/build/import closure, including retained manual tool entry points. Therefore this lane proposes no row deletion and no EXPECT change. Frozen-reference PAD/identity checks still test an active invariant and remain in place. Historical CLI branches inside modules that supply live library functions are explicitly identified in the inventory; those modules were not moved wholesale.
 
 ### NOT RUN and remaining limits
 
@@ -159,7 +159,7 @@ These are additional to the frozen-input inventory below; archived destinations 
 
 The actual frozen tree has 1,290 tracked files under tools/ and tests/, including 978 Python/shell/Make scripts. This supersedes the assessment’s older estimates. LIVE includes the gate, its tests and opt-in Makefile targets conservatively; TEXT-MATCHER is an additional property. MANUAL means retained standalone/support material with no proven closed-lane status. FINISHED-LANE is archived only after checking the transitive gate/build graph and all retained manual callers.
 
-The frozen caller graph can be reproduced with `python3 docs/readability-a1/inventory.py`; it reads the baseline directly from Git. `update_inventory.py` applies the reviewed per-file classifications recorded in `triage-overrides.json`.
+The original frozen caller graph can be reproduced with `python3 docs/readability-a1/inventory.py`; it reads the baseline directly from Git. Its retirement conclusions are superseded by the A1b executable caller graph and reviewed dynamic sites (`docs/readability-a1b/caller_inventory.py` and `prove_inventory.py`). `update_inventory.py` applies the reviewed per-file classifications recorded in `triage-overrides.json`.
 
 Callers are source references/imports; a mention in documentation is not execution evidence. Dynamic gate paths are expanded conservatively. Full caller edges and baseline line references are included below.
 
@@ -289,7 +289,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/cd13b_checks.py` | MANUAL; TEXT-MATCHER | `tests/cd13b_oracle.sh` | retained |
 | `tests/cd13b_oracle.sh` | MANUAL; TEXT-MATCHER | none in scoped code | retained |
 | `tests/cd13b_unit.cc` | MANUAL | `tests/cd13b_checks.py` | retained |
-| `tests/cd13b_window_test.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tests/cd13b_window_test.py` |
+| `tests/cd13b_window_test.py` | LIVE | `tests/gate.sh:6283`, `witness_contracts` via `tests/$suite.py` | A1b: restored unchanged; mandatory moved-placement/never-open-window falsification contracts. |
 | `tests/cd13b_wire.py` | LIVE | `tests/cd13b_checks.py`, `tests/cd13b_window_test.py`, `tests/differ.py` | retained |
 | `tests/cdfix_checks.py` | MANUAL; TEXT-MATCHER | none in scoped code | retained |
 | `tests/cdfix_oracle.c` | MANUAL | `tests/cdfix_checks.py` | retained |
@@ -774,7 +774,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tests/slotless_unit.cc` | LIVE | `Makefile` | retained |
 | `tests/slowlog.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/slowlog_completion_checks.inc` | LIVE | `Makefile`, `tests/core_concurrency_unit.cc` | retained |
-| `tests/slowlog_identity.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tests/slowlog_identity.py` |
+| `tests/slowlog_identity.py` | LIVE | `tests/gate.sh:3604`, `bugs5` via `tests/$test.py` | A1b: restored unchanged; all eight mode/engine/atomic legs remain required. |
 | `tests/snap_cut_battery.py` | LIVE | `tests/flakeaudit_test.py`, `tests/gate.sh`, `tests/lottery_attempt.py` | retained |
 | `tests/snap_typed_race.py` | LIVE | `tests/gate.sh` | retained |
 | `tests/snap_typed_roundtrip.py` | LIVE | `tests/gate.sh` | retained |
@@ -1010,7 +1010,7 @@ Callers are source references/imports; a mention in documentation is not executi
 | `tools/ccfix5_probe.py` | FINISHED-LANE | `tools/ccfix5_probe.sh` | moved unchanged to `tools/archive/tools/ccfix5_probe.py` |
 | `tools/ccfix5_probe.sh` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/ccfix5_probe.sh` |
 | `tools/ccfix5_prove.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/ccfix5_prove.py` |
-| `tools/ccfix_audit.py` | FINISHED-LANE; TEXT-MATCHER | `tools/aclkeys3_audit.py`, `tools/aclkeys3_link_audit.py`, `tools/aclkeys4_audit.py`, `tools/at412_artifacts.py`, `tools/at412_budget.py`, `tools/ccfix3_prove.py`, `tools/ccfix4_budget.py`, `tools/ccfix_tables.py`, `tools/flushfix2_budget.py`, `tools/flushfix2_identity.py`, `tools/infofields_budget.py`, `tools/iofix_identity.py`, `tools/iowake_budgets.py`, `tools/latencyfix_identity.py`, `tools/mset8fix_budgets.py`, `tools/notifycompat_identity.py`, `tools/parkwake_budgets.py`, `tools/storefix5_budgets.py`, `tools/txnfix_budget.py`, `tools/txnfix_scatter_audit.py`, `tools/wave11_budgets.py`, `tools/wave12_budgets.py`, `tools/wave13_budgets.py`, `tools/wave14_budgets.py`, `tools/wave15_budgets.py`, `tools/wave16_budgets.py`, `tools/wbknobs_receipts.py` | moved unchanged to `tools/archive/tools/ccfix_audit.py` |
+| `tools/ccfix_audit.py` | LIVE; TEXT-MATCHER | `tools/wave10.py:165` → `docs/wave9/budgets.py:13` | A1b: restored unchanged; transitive import from a retained manual tool; historical budget campaign not replayed. |
 | `tools/ccfix_tables.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/ccfix_tables.py` |
 | `tools/cfgfix2_counts.py` | FINISHED-LANE | none in scoped code | moved unchanged to `tools/archive/tools/cfgfix2_counts.py` |
 | `tools/cfgfix2_gate.py` | FINISHED-LANE; TEXT-MATCHER | none in scoped code | moved unchanged to `tools/archive/tools/cfgfix2_gate.py` |
@@ -2110,3 +2110,48 @@ Every baseline line mentioning a scoped tool or test is listed, including prereq
 | `tests/gate.sh:7646` | `python3 - "$PERF_SERVER_CORES" "$PERF_LOAD_CORES" tests/gate_refs.txt \` |
 | `tests/gate.sh:7736` | `python3 tests/gate_receipt.py coordinator "${RECEIPT_COORDINATOR_ARGS[@]}" \` |
 | `tests/gate.sh:7743` | `python3 tests/gate_receipt.py finish --start "$RECEIPT_START" --gate-result "$RUN_DIR/gate-result.json" \` |
+
+## readability-a1b
+
+Follow-up on `a527de5d58`, on the same branch without rewriting history or pushing. The maintainer's landing run `build/gate-run.4Nvzey` had 1,230 rows and three failures. A1b restores the two missing test entry points and a further transitive import, and changes perfio's completion witness to the selected socket's destination registration. Production code and EXPECT constants are unchanged.
+
+### Corrected caller analysis
+
+`docs/readability-a1b/caller_inventory.py` scans the current worktree, treating archive entries at their original logical paths. Every retained test/tool entry point and Makefile is a root; imports and file dependencies are followed through helper scripts under docs as well. Python AST analysis includes imports inside functions, aliases, `from` imports, importlib, `__import__`, runpy, sys.path insertion/slicing, finite assignments/loops, Path joins, f-strings and subprocess command strings. Shell/Make analysis expands both `$name` and `${name}` and Make variables from assignments and finite case lists. Each argv word is expanded independently, so a large unrelated output-path expansion cannot erase the executable name.
+
+Unresolved module imports conservatively retain candidates; unresolved executable script paths require explicit review. The current frontier has one generated temporary script in `tests/scriptatomic_strict.py`, derived from the live `tests/scriptatomic.py`; its producer and source hash are recorded. This is a bounded repository analysis with a reviewed frontier, not a claim of decidability for arbitrary Python or shell. Twelve fixture tests cover the caller forms, transitive imports, comment exclusion and unresolved-input handling. The independent full-stem sweep finds all 20 supplied names, and the validation script requires their classifications and every restored/remaining archive digest.
+
+The supplied list's claimed imports are not present at this HEAD. Two of the 20 are real calls; the remaining 18 are provenance comments, labels, external binary receipts or a C++ filename. The additional live dependency is `tools/wave10.py` → `docs/wave9/budgets.py` → `tools/ccfix_audit.py`. All three restores use `git mv` and retain their exact original bytes. There are no additional gate consumers of the third file; its caller is a manual budget phase.
+
+| Supplied path | Reviewed disposition |
+|---|---|
+| `tests/at412_diagnostics.py` | Docstring and comment in tests/at412.py; no import or execution. |
+| `tests/cd13b_window_test.py` | CALL: witness_contracts expands tests/$suite.py. |
+| `tests/slowlog_identity.py` | CALL: bugs5 expands tests/$test.py in all eight mode/engine/atomic legs. |
+| `tools/eoffix.py` | Gate row label names the eoffix lane; the job executes a supplied native binary. |
+| `tools/eoffix_aof.py` | eoffix_aof is a shell job name, not a Python call; its native binary comes from EOFFIX_AOF_DIRECTORY. |
+| `tools/wave13.py` | Gate greps ARMED wave13 receipt text; Makefile cites a docs/wave13 budget receipt. |
+| `tools/wave15.py` | Gate row labels and inventory enum/flag/key names; no import or Python invocation. |
+| `tools/wave11.py` | Comment in climonfix4.py and docstring in flipfix5.py; no imports. |
+| `tools/exec1sd.py` | wave10.py dictionary key identifies an external frozen binary; no import. |
+| `tools/blockfix4_scope.py` | rlfix5_proof.py selects tests/blockfix4_scope.cc, a distinct C++ fixture. |
+| `tools/exec1s_pad_scope.py` | Comment in exec1s_scope.py only. |
+| `tests/cd13b_audit.py` | Makefile provenance comment only. |
+| `tools/aclkeys4_audit.py` | Makefile provenance comment only. |
+| `tools/at412_budget.py` | Makefile provenance comment only. |
+| `tools/infofields_artifacts.py` | Makefile provenance comment only. |
+| `tools/psfix_artifacts.py` | Makefile provenance comment only. |
+| `tools/rltopo_artifacts.py` | Makefile provenance comment only. |
+| `tools/iowake_budgets.py` | Makefile provenance comment only. |
+| `tools/mset8fix_budgets.py` | Makefile provenance comment only. |
+| `tools/wave16_budgets.py` | Makefile provenance comment only. |
+
+The complete line-level evidence is [caller-audit.json](docs/readability-a1b/evidence/caller-audit.json); the full graph is [caller-graph.json.gz](docs/readability-a1b/evidence/caller-graph.json.gz). The corrected archive manifest contains 465 entries. No gate row was added or removed: `EXPECT_QUICK=1212`, `EXPECT_FULL=1229`, and the 1,230-label fixture remain unchanged, including the existing quick-exit placement.
+
+### Perfio and proof status
+
+The completion poll requires the selected inode's registrations to equal `[destination_ep]` within the existing deadline measured before arming. It does not send commands to that idle socket. A global move count is supplementary and may increase by more than one when other clients move. The post-move audit, selected IO-thread equality, zero stale/duplicate registrations, and exact events-per-command checks remain mandatory. Four serverless controls require unrelated moves, missing registration and duplicate registration to fail.
+
+Proof is restricted to CPUs 64–95, ports 25100–25199 and `LC_ALL=C`. The initial gate selection (`witness_contracts bugs5 flip`) passed 14/14 rows, including all eight slowlog-identity legs and their legacy controls. Gate selftests passed 83 tests; label-fixture tests passed 12. Final repetition/build/binary receipts are recorded below when complete.
+
+The two pre-existing modified RL5 build receipts were preserved verbatim under `docs/readability-a1b/evidence/landing-build/`; their original tracked locations were restored to HEAD so this follow-up does not replace historical lane evidence.

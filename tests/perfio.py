@@ -214,7 +214,17 @@ def epoll_lb(args):
         # Wake the source through a DIFFERENT client, leaving the selected client
         # idle until its own inode is registered on the destination epoll.
         assert waker.must("PING") == b"PONG"
-        wait_epoll_move(p.pid, inode, destination_ep, deadline)
+        emit(event="lb-armed", client_id=client_id, inode=inode, attempts=attempts,
+             source_io=source_io, destination_io=destination_io,
+             source_ep=source_ep, destination_ep=destination_ep)
+        try:
+            wait_epoll_move(p.pid, inode, destination_ep, deadline)
+        except AssertionError:
+            emit(event="lb-timeout", client_id=client_id,
+                 actual_io=selected.must("DEBUG", "IO-THREAD"),
+                 destination_io=destination.must("DEBUG", "IO-THREAD"),
+                 lb=info(admin, "LB"))
+            raise
         after = int(info(admin, "LB")["tomokv_clientlb_moves"])
         emit(event="lb-witness", trigger="DEBUG CLIENT-LB", attempts=attempts,
              client_id=client_id, source_io=source_io, destination_io=destination_io,
