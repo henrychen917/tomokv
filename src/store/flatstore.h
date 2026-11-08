@@ -2334,7 +2334,7 @@ private:
     static uint16_t tag_of(uint64_t h)      { return static_cast<uint16_t>((h >> 49) & 0x7fff); }
     static uint16_t tag_of_word(uint64_t w) { return static_cast<uint16_t>((w >> 49) & 0x7fff); }
     static KvObj*   ptr_of(uint64_t w)      { return reinterpret_cast<KvObj*>(w & kPtrMask); }
-    static uint64_t make_word(uint16_t tag, KvObj* o) {
+    static uint64_t /* TOMO_TOOL_BIND make_word */make_word(uint16_t tag, KvObj* o) {
         const uint64_t pointer = reinterpret_cast<uint64_t>(o);
         TOMO_ASSERT((pointer & ~kPtrMask) == 0 && "KvObj pointer exceeds FlatStore's 48-bit encoding");
         return (static_cast<uint64_t>(tag) << 49) | pointer;

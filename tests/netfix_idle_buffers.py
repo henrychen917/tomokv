@@ -14,6 +14,12 @@ CLIENTS = 10000
 BURST = b'netfix-burst-' * 10923  # >128 KiB; copied ECHO exercises both input and output.
 
 
+def broken_policy(header):
+    old = 'std::max(kWbufInline, p.output[i] + 1)'
+    assert header.count(old) == 1, 'unique idle-buffer policy anchor'
+    return header.replace(old, 'kWbufInline')
+
+
 def policy_unit(a):
     # An active connection must keep its sampled recent peak, not just the inline
     # minimum. This source-level check supplements the binary/RSS matrix below.
@@ -59,9 +65,7 @@ int main() {
     control = a.output / 'control/src/net'
     control.mkdir(parents=True, exist_ok=True)
     header = cpp.read(Path('src/net/idle_buffers.h'))
-    old = 'std::max(kWbufInline, p.output[i] + 1)'
-    assert header.count(old) == 1
-    (control / 'idle_buffers.h').write_text(header.replace(old, 'kWbufInline'))
+    (control / 'idle_buffers.h').write_text(broken_policy(header))
     broken = a.output / 'policy-control'
     subprocess.run(['g++', '-std=c++20', '-O2', '-pthread', '-I'+str(a.output / 'control'),
                     '-Isrc/net', '-I.', '-x', 'c++', '-', '-o', str(broken)],

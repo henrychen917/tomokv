@@ -309,21 +309,34 @@ def findall(pattern, text, flags=0):
     return re.findall(pattern.replace(' ', r'\s*'), compact(text), flags)
 
 
-def canonical_symbol(name, root=None):
-    aliases = source_aliases(root or Path(__file__).resolve().parents[1])
-    # Itanium identifiers carry their length; change the complete identifier,
-    # never an arbitrary substring in a mangled name or an instruction operand.
-    if name.startswith('_Z'):
-        for current, stable in sorted(aliases.items(), key=lambda x: -len(x[0])):
-            name = re.sub(r'(?<![0-9])' + str(len(current)) + re.escape(current),
-                          str(len(stable)) + stable, name)
+def rename_symbol(name, aliases):
+    if not aliases:
         return name
-    return rename(name, aliases)
+    if not name.startswith('_Z'):
+        return rename(name, aliases)
+    # Consume complete length-prefixed identifiers. A namespace may end in a
+    # digit (tomo_db0), so a lookbehind on the preceding character is incorrect.
+    # Integral literals, substitutions and array extents are not name lengths.
+    parts, at = [], 0
+    while at < len(name):
+        field = re.match(r'L[bchstijlmxyon](?:n)?[0-9]+E|S[0-9A-Z]*_|A[0-9]+_', name[at:])
+        if field:
+            parts.append(field[0]); at += len(field[0]); continue
+        length = re.match(r'[1-9][0-9]*', name[at:])
+        if length:
+            start = at + len(length[0]); end = start + int(length[0])
+            word = name[start:end]
+            if end <= len(name) and re.fullmatch(r'[a-zA-Z_][a-zA-Z_0-9]*', word):
+                replacement = aliases.get(word, word)
+                parts.extend((str(len(replacement)), replacement)); at = end; continue
+        parts.append(name[at]); at += 1
+    return ''.join(parts)
+
+
+def canonical_symbol(name, root=None):
+    return rename_symbol(name, source_aliases(root or Path(__file__).resolve().parents[1]))
 
 
 def actual_symbol(name):
     aliases = source_aliases(Path(__file__).resolve().parents[1])
-    for current, stable in sorted(aliases.items(), key=lambda x: -len(x[1])):
-        name = re.sub(r'(?<![0-9])' + str(len(stable)) + re.escape(stable),
-                      str(len(current)) + current, name)
-    return name
+    return rename_symbol(name, {stable: current for current, stable in aliases.items()})

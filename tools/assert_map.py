@@ -261,6 +261,8 @@ def main():
     args = parser.parse_args()
     try:
         sites = scan(args.root.resolve())
+        if not sites:
+            raise ValueError('empty production assertion inventory')
         if args.pin:
             selected = [site for site in sites if site.location == args.pin]
             if len(selected) != 1:

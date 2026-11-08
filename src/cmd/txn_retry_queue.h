@@ -4,8 +4,8 @@
 #include <atomic>
 #include "../base/tomo_assert.h"
 namespace tomo {
-struct TxnRetryQueues;
-struct MultiOwnerRetryNode {
+struct /* TOMO_TOOL_BIND TxnRetryQueues */TxnRetryQueues;
+struct /* TOMO_TOOL_BIND MultiOwnerRetryNode */MultiOwnerRetryNode {
     MultiOwnerRetryNode *prev = nullptr, *next = nullptr;
     // A shard may move while its old owner still has a forwarded retry. Only
     // the named lane may read the links; foreign-owner promotion is a no-op.
@@ -27,7 +27,7 @@ struct TxnRetryQueues {
     bool chaining = false;
     std::byte layout_pad[sizeof(std::deque<Task>) - 6 * sizeof(void*) - 3 * sizeof(uint32_t) - 1]{};
     bool empty() const { return count == 0; }
-    void link(MultiOwnerRetryNode& node, bool fast) {
+    void /* TOMO_TOOL_BIND link */link(MultiOwnerRetryNode& node, bool fast) {
         TOMO_ASSERT(!node.lane.load(std::memory_order_relaxed));
         auto*& head = fast ? fast_head : rotation_head;
         auto*& tail = fast ? fast_tail : rotation_tail;
@@ -36,7 +36,7 @@ struct TxnRetryQueues {
         tail = &node; ++count; fast_count += fast; markless_count += node.markless;
         node.lane.store(this, std::memory_order_release);
     }
-    void unlink(MultiOwnerRetryNode& node) {
+    void /* TOMO_TOOL_BIND unlink */unlink(MultiOwnerRetryNode& node) {
         TOMO_ASSERT(node.lane.load(std::memory_order_relaxed) == this);
         auto*& head = node.fast ? fast_head : rotation_head;
         auto*& tail = node.fast ? fast_tail : rotation_tail;

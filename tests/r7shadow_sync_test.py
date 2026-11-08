@@ -2,6 +2,7 @@
 """Stale-copy negative control and forward regeneration of ordinary accounting."""
 from pathlib import Path
 import tempfile
+import shutil
 
 import r7shadow_sync as sync
 import source_tokens as cpp
@@ -11,10 +12,8 @@ def main():
     root = sync.ROOT
     with tempfile.TemporaryDirectory() as temp:
         target = Path(temp)
-        for name in ('io_loop.h', 'ex_loop.h', 'genthread.cc', 'reorder.cc'):
-            path = target / 'src/core' / name
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text((root / 'src/core' / name).read_text())
+        # Type and callee bindings may live outside the three envelope headers.
+        shutil.copytree(root / 'src', target / 'src')
         # clientcompat lets owners publish TRACKING acknowledgements during
         # LB's IoDrain. The armed copy must retain that same progress rule;
         # otherwise the pending acknowledgement can prevent the drain itself.

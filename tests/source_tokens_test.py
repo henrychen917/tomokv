@@ -81,6 +81,19 @@ class TokensTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 cpp.command_names(broken)
 
+    def test_symbol_lengths_and_digit_ending_namespace(self):
+        aliases = {'function_snapshot_save': 'snapshot_image', 'ExLoopT': 'Executor', 'run': 'loop'}
+        for prefix in ('_ZN4tomo', '_ZN8tomo_db0'):
+            name = prefix + '22function_snapshot_saveEv'
+            changed = cpp.rename_symbol(name, aliases)
+            self.assertEqual(changed, prefix + '14snapshot_imageEv')
+            self.assertEqual(cpp.rename_symbol(changed, {v:k for k,v in aliases.items()}), name)
+        self.assertEqual(cpp.rename_symbol('_ZN4tomo7ExLoopTILb1EE3runEv', aliases),
+                         '_ZN4tomo8ExecutorILb1EE4loopEv')
+        # A digit sequence inside another complete identifier is not a length.
+        name = '_ZN4tomo11X6IoLoopXXXEv'
+        self.assertEqual(cpp.rename_symbol(name, {'IoLoop':'NetworkLoop'}), name)
+
 
 if __name__ == '__main__':
     unittest.main()

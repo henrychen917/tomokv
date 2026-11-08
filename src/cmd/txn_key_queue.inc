@@ -1,6 +1,6 @@
 // Per-key index operations. Only the shard owner mutates nodes or queues.
 namespace {
-void txn_unlink_waiter(TxnWaiter& node, bool release = true) {
+void /* TOMO_TOOL_BIND txn_unlink_waiter */txn_unlink_waiter(TxnWaiter& node, bool release = true) {
     auto& q = *node.queue;
     TOMO_ASSERT(node.waiting);
     if (node.prev) node.prev->next = node.next; else q.head = node.next;
@@ -33,7 +33,7 @@ TxnWaiter* txn_live_head(TxnKeyQueue& q, bool writes = false) {
     }
     return nullptr;
 }
-void txn_link_waiter(TxnKeyQueue& q, TxnWaiter& node,
+void /* TOMO_TOOL_BIND txn_link_waiter */txn_link_waiter(TxnKeyQueue& q, TxnWaiter& node,
                      const Shard::WatchReservation& entry, bool acquire = true) {
     TOMO_ASSERT(!node.waiting);
     auto* before = q.tail;

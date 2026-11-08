@@ -11,10 +11,12 @@ from wave14 import ROOT, sha, save
 
 
 def undefined_symbol(obj, role):
+    suffix = {'function_snapshot_save': '22function_snapshot_save',
+              'append_function_journal': '10AofManager23append_function_journal'}[role]
     matches = [line.split()[-1] for line in subprocess.check_output(
         ['nm', str(obj)], text=True).splitlines()
-        if ' U ' in line and re.search(r'(?<![0-9])' + str(len(role)) + re.escape(role),
-                                      cpp.canonical_symbol(line.split()[-1]))]
+        if ' U ' in line and any(cpp.canonical_symbol(line.split()[-1]).startswith(prefix + suffix)
+                                 for prefix in ('_ZN4tomo', '_ZN8tomo_db0'))]
     if len(matches) != 1:
         raise ValueError(f'{obj}: expected one undefined {role}, found {len(matches)}')
     return matches[0]

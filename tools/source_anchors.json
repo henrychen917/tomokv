@@ -46,7 +46,9 @@
     "TOMO_TOOL_BIND kTable"
   ],
   "src/cmd/storesize.cc": [
-    "TOMO_TOOL_BIND storesize_published_route"
+    "TOMO_TOOL_BIND storesize_published_route",
+    "TOMO_TOOL_BIND storesize_replace",
+    "TOMO_TOOL_BIND storesize_deadline"
   ],
   "src/cmd/t_hash.cc": [
     "TOMO_TOOL_BIND kTable"
@@ -88,6 +90,19 @@
   "src/cmd/txn_group.inc": [
     "TOMO_TOOL_BIND txn_group_ready",
     "TOMO_TOOL_ANCHOR woundfix-group-blind-abort"
+  ],
+  "src/cmd/txn_key_queue.h": [
+    "TOMO_TOOL_BIND TxnWaiter"
+  ],
+  "src/cmd/txn_key_queue.inc": [
+    "TOMO_TOOL_BIND txn_unlink_waiter",
+    "TOMO_TOOL_BIND txn_link_waiter"
+  ],
+  "src/cmd/txn_retry_queue.h": [
+    "TOMO_TOOL_BIND TxnRetryQueues",
+    "TOMO_TOOL_BIND MultiOwnerRetryNode",
+    "TOMO_TOOL_BIND link",
+    "TOMO_TOOL_BIND unlink"
   ],
   "src/core/config.h": [
     "TOMO_TOOL_BIND process_configs",
@@ -214,6 +229,15 @@
     "TOMO_TOOL_BIND lb_client_move_pad",
     "TOMO_TOOL_BIND climon_armed_"
   ],
+  "src/core/shard.h": [
+    "TOMO_TOOL_BIND Shard",
+    "TOMO_TOOL_BIND init",
+    "TOMO_TOOL_BIND watch_append_reservation"
+  ],
+  "src/core/signal.h": [
+    "TOMO_TOOL_BIND net_input_bytes",
+    "TOMO_TOOL_BIND net_output_bytes"
+  ],
   "src/core/thread.h": [
     "TOMO_TOOL_BIND ThreadCtx",
     "TOMO_TOOL_BIND note_command",
@@ -242,7 +266,8 @@
   ],
   "src/store/flatstore.h": [
     "TOMO_TOOL_BIND FlatStore",
-    "TOMO_TOOL_BIND configure_object_idle"
+    "TOMO_TOOL_BIND configure_object_idle",
+    "TOMO_TOOL_BIND make_word"
   ],
   "src/store/flush.cc": [
     "TOMO_TOOL_BIND atomic_flush_erase",

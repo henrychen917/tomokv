@@ -56,14 +56,14 @@ inline constexpr uint32_t kBucketMask = kNumBuckets - 1;
 // independent of these — see the clustering trap in flatstore.h.
 inline uint32_t bucket_of(uint64_t hash) { return static_cast<uint32_t>(hash) & kBucketMask; }
 
-class Shard {
+class /* TOMO_TOOL_BIND Shard */Shard {
 public:
     Shard() = default;
     ~Shard();
     Shard(const Shard&) = delete;
     Shard& operator=(const Shard&) = delete;
 
-    void init(Server* server, int32_t id, uint32_t bucket_begin, uint32_t bucket_end, uint32_t zc_min,
+    void /* TOMO_TOOL_BIND init */init(Server* server, int32_t id, uint32_t bucket_begin, uint32_t bucket_end, uint32_t zc_min,
               const TypeLimits& type_limits, const StreamLimits& stream_limits) {
         TOMO_ASSERT(bucket_begin <= bucket_end && bucket_end <= kNumBuckets);
         server_ = server;
@@ -333,7 +333,7 @@ public:
                              std::atomic<uint32_t>* refs);
     bool watch_finalize_reservation(const std::string& key);
     bool watch_finalize_queue(const std::string& key, TxnKeyQueue& queue);
-    bool watch_append_reservation(const std::string& key, const WatchReservation& reservation,
+    bool /* TOMO_TOOL_BIND watch_append_reservation */watch_append_reservation(const std::string& key, const WatchReservation& reservation,
                                    TxnWaiter* handle = nullptr);
     void watch_prune_stale(const std::string& key);
 

@@ -34,7 +34,7 @@ def main():
                 try:
                     lottery_build.prepare(root / 'build/negative')
                 except ValueError as error:
-                    assert 'anchors' in str(error), error
+                    assert 'anchor' in str(error).lower(), error
                 else:
                     raise AssertionError('broken lottery source anchor passed')
             print('PASS lottery: 62 insertion sites; missing and duplicate seam rejected')

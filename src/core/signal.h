@@ -110,8 +110,8 @@ struct LoopSignals {
 
     // Socket bytes have one IO-owner writer and concurrent INFO/cron readers. Updates use
     // relaxed load/store, preserving the single writer without a shared atomic RMW.
-    std::atomic<uint64_t> net_input_bytes{0};
-    std::atomic<uint64_t> net_output_bytes{0};
+    std::atomic<uint64_t> /* TOMO_TOOL_BIND net_input_bytes */net_input_bytes{0};
+    std::atomic<uint64_t> /* TOMO_TOOL_BIND net_output_bytes */net_output_bytes{0};
 
     // TLS counters are written only by the owning IO thread. With tls-port=0 the clean loop
     // specialization contains no increments or per-operation TLS tests.

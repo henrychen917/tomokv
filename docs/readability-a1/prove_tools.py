@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import time
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -28,6 +29,9 @@ def cases():
     add('racefix', ['tools/racefix_build.py','build/proof/racefix'], 'src/core/server.h', 'climon_armed_.exchange')
     add('persistfmt', ['tools/persistfmt_schedule.py','src/persist/aof.cc','build/proof/persistfmt.cc'], 'src/persist/aof.cc', 'void AofManager::fail')
     add('storesize', ['tests/storesize_checks.py','src/cmd/multidb.cc','build/proof/storesize.cc'], 'src/cmd/multidb.cc', 'TOMO_TOOL_BIND multidb_size')
+    add('rob_portable',['tests/rob_portable_control.py','--prepare-only'], 'src/net/rob.h', 'if (bits & read_local_slot_bit(local_mget_fence_id_)) local_mget_fence_id_ = UINT64_MAX;')
+    add('netfix_idle',python("import netfix_idle_buffers as m,source_tokens as c;print(len(m.broken_policy(c.read('src/net/idle_buffers.h'))))"),'src/net/idle_buffers.h','std::max(kWbufInline, p.output[i] + 1)')
+    add('racefix_reports',python("import racefix as m;print(m.tsan_reports(''))"),'src/core/io_loop.h','TOMO_TOOL_FUNCTION run_loop')
     for name in ('removed','wrongtype','slowlog','multi','counts','refusal'):
         add('blockfix2/'+name, python("import shutil,blockfix2_controls as m;p=Path('build/proof/blockfix2/"+name+"');shutil.copytree('src',p/'src',dirs_exist_ok=True);print(m.mutation('"+name+"',p))"),
             'src/cmd/t_server.cc' if name=='counts' else 'src/cmd/t_stream_groups.cc' if name=='multi' else 'src/cmd/blocking.inc',
@@ -78,14 +82,31 @@ def main():
     sys.path.insert(0,str(ROOT/'tools'))
     import source_tokens as cpp
     rows=[];a.output.mkdir(parents=True,exist_ok=True)
+    generated={};digests={}
     for name,command,file,anchor in cases():
         if a.only and a.only not in name:continue
         path=root/file;original=path.read_text()
         env=dict(os.environ,LC_ALL='C',PYTHONDONTWRITEBYTECODE='1')
         def run():return subprocess.run([sys.executable,*command],cwd=root,env=env,capture_output=True,text=True,timeout=90)
+        started=time.time_ns()
         positive=run()
         row=dict(tool=name,command=command,positive=positive.returncode,stdout=positive.stdout,stderr=positive.stderr)
         if positive.returncode==0:
+            # Capture outputs before a rejected patch can overwrite its scratch
+            # copy. copy2 preserves input mtimes, so unchanged copied headers
+            # need not be re-hashed for every control.
+            emitted={}
+            for directory in (root/'build/proof',root/'build/flushfix3/work-reference'):
+                for output in directory.rglob('*'):
+                    if output.suffix not in ('.cc','.h','.inc') or output.stat().st_mtime_ns < started:
+                        continue
+                    raw=output.read_text().replace(str(root), '$SCRATCH')
+                    if raw not in digests:
+                        code=cpp.Source(raw,cpp.source_aliases(root))
+                        digests[raw]=hashlib.sha256(cpp.normalized(code).encode()).hexdigest()
+                    emitted[str(output.relative_to(root))]=digests[raw]
+            row['emitted_tokens']=emitted
+            generated.update(emitted)
             try:
                 # Marker text and code anchors have separate lexical treatment.
                 if anchor.startswith('TOMO_TOOL_'):
@@ -108,12 +129,6 @@ def main():
         if not row['passed']:print(row.get('stderr','')+row.get('negative_stdout','')+row.get('negative_stderr',''),flush=True)
     # Verify that formatting did not silently choose a different instrumentation
     # branch: compare every emitted C++ token stream between source shapes.
-    generated={}
-    for directory in (root/'build/proof',root/'build/flushfix3/work-reference'):
-        for path in sorted(directory.rglob('*')):
-            if path.suffix in ('.cc','.h','.inc'):
-                code=cpp.Source(path.read_text().replace(str(root), "$SCRATCH"),cpp.source_aliases(root))
-                generated[str(path.relative_to(root))]=hashlib.sha256(cpp.normalized(code).encode()).hexdigest()
     (a.output/'generated-tokens.json').write_text(json.dumps(generated,indent=2)+'\n')
     return int(not rows or not all(r['passed'] for r in rows))
 

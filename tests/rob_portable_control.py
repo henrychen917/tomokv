@@ -7,6 +7,7 @@ import shlex
 import shutil
 import subprocess
 import tempfile
+import sys
 
 root = Path(__file__).resolve().parents[1]
 with tempfile.TemporaryDirectory(prefix="rob-portable-control-") as temporary:
@@ -17,6 +18,9 @@ with tempfile.TemporaryDirectory(prefix="rob-portable-control-") as temporary:
     old = "if (bits & read_local_slot_bit(local_mget_fence_id_)) local_mget_fence_id_ = UINT64_MAX;"
     assert text.count(old) == 1, "portable control seam changed"
     header.write_text(text.replace(old, "/* throwaway: retain stale completed MGET fence */"))
+    if sys.argv[1:] == ['--prepare-only']:
+        print('portable ROB negative source prepared')
+        raise SystemExit(0)
     source = work / "control.cc"
     source.write_text('#ifdef __BMI__\n#error portable control unexpectedly enables BMI\n#endif\n'
                       + '#include "' + str(root / "tests/rlfence_unit.cc") + '"\n')

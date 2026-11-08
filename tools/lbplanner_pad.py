@@ -60,7 +60,8 @@ def source_proof():
             reference = reference.replace(needle, 'ratio < release')
             cleanup = 'CT19: zero ratio is already below the strictly positive release band'
         a = normalized(reference)
-        b = normalized(cpp.rename(body(new, name), {'lb_client_move_pad':'lb_client_move'}))
+        b = normalized(cpp.rename(cpp.normalized(body(new, name)),
+                                  {'lb_client_move_pad':'lb_client_move'}))
         assert a == b, ('PAD PRE body changed', name)
         proofs.append(dict(function=name, sha256=hashlib.sha256(a.encode()).hexdigest(),
                            reference_cleanup=cleanup))
