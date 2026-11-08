@@ -242,6 +242,6 @@ small `atomic_sweep` budget argument.
 at their paths, and preceding definitions stay before them. All moved body tokens retain
 their order. The candidate compares IDENTICAL to frozen release `5c36312818`, so this
 partial split is kept; no runtime redesign or translation-unit change is needed.
-`expire_found` retains `noinline` and the in-class definition's inline linkage on its
+`expire_found` retains `noinline` and the in-class definition's implicit inline property on its
 declaration. The out-of-class definition inherits both; repeating the attributes there
 causes a GCC warning, even though the compared binary is unchanged.
