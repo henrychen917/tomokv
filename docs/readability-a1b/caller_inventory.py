@@ -232,7 +232,7 @@ class Inventory:
                             self.review.append(item)
                     continue
                 if pattern.startswith('tools/archive/'):
-                    continue
+                    pattern = pattern.removeprefix('tools/archive/')
                 if '/' in pattern and not pattern.startswith(('tests/', 'tools/', 'docs/')):
                     embedded = re.search(r'(?:tests|tools|docs)/.*', pattern)
                     if embedded:

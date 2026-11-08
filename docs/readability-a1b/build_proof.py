@@ -26,10 +26,17 @@ for group in groups:
     with (OUT / (group['name'] + '.log')).open('w') as log:
         result = subprocess.run(command, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT)
     row = dict(**group, command=command, exit=result.returncode, freshness=[])
-    for target in group['targets']:
-        check = subprocess.run(['taskset', '-c', '80-95', 'make', *group['flags'], '-q', target],
+    checks = [(target, []) for target in group['targets']]
+    if group['name'] == 'mdbqsbr':
+        # Query both concrete recursive all targets explicitly, rather than
+        # relying on the PHONY wrapper's recursive-make query behavior.
+        common = '-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK'
+        checks = [('all', ['BUILD_ROOT=build/mdbqsbr2-park', 'CXXFLAGS=' + common]),
+                  ('all', ['BUILD_ROOT=build/mdbqsbr2-no-wake', 'CXXFLAGS=' + common + ' -DTOMO_MDBQSBR_NO_WAKE'])]
+    for target, variables in checks:
+        check = subprocess.run(['taskset', '-c', '80-95', 'make', *group['flags'], *variables, '-q', target],
                                cwd=ROOT, env=env, text=True, capture_output=True)
-        row['freshness'].append(dict(target=target, exit=check.returncode, stderr=check.stderr))
+        row['freshness'].append(dict(target=target, variables=variables, exit=check.returncode, stderr=check.stderr))
     results.append(row)
     (ROOT / 'docs/readability-a1b/evidence/builds.json').write_text(json.dumps(results, indent=2) + '\n')
     print(group['name'], 'build', row['exit'], 'fresh', sum(x['exit'] == 0 for x in row['freshness']),

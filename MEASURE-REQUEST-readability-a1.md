@@ -2119,7 +2119,7 @@ Follow-up on `a527de5d58`, on the same branch without rewriting history or pushi
 
 `docs/readability-a1b/caller_inventory.py` scans the current worktree, treating archive entries at their original logical paths. Every retained test/tool entry point and Makefile is a root; imports and file dependencies are followed through helper scripts under docs as well. Python AST analysis includes imports inside functions, aliases, `from` imports, importlib, `__import__`, runpy, sys.path insertion/slicing, finite assignments/loops, Path joins, f-strings and subprocess command strings. Shell/Make analysis expands both `$name` and `${name}` and Make variables from assignments and finite case lists. Each argv word is expanded independently, so a large unrelated output-path expansion cannot erase the executable name.
 
-Unresolved module imports conservatively retain candidates; unresolved executable script paths require explicit review. The current frontier has one generated temporary script in `tests/scriptatomic_strict.py`, derived from the live `tests/scriptatomic.py`; its producer and source hash are recorded. This is a bounded repository analysis with a reviewed frontier, not a claim of decidability for arbitrary Python or shell. Thirteen fixture tests cover the caller forms, transitive imports, comment exclusion and unresolved-input handling. The independent full-stem sweep finds all 20 supplied names, and the validation script requires their classifications and every restored/remaining archive digest.
+Unresolved module imports conservatively retain candidates; unresolved executable script paths require explicit review. The current frontier has one generated temporary script in `tests/scriptatomic_strict.py`, derived from the live `tests/scriptatomic.py`; its producer and source hash are recorded. This is a bounded repository analysis with a reviewed frontier, not a claim of decidability for arbitrary Python or shell. Fourteen fixture tests cover the caller forms, transitive imports, comment exclusion and unresolved-input handling. The independent full-stem sweep finds all 20 supplied names, and the validation script requires their classifications and every restored/remaining archive digest.
 
 The supplied list's claimed imports are not present at this HEAD. Two of the 20 are real calls; the remaining 18 are provenance comments, labels, external binary receipts or a C++ filename. The additional live dependency is `tools/wave10.py` → `docs/wave9/budgets.py` → `tools/ccfix_audit.py`. All three restores use `git mv` and retain their exact original bytes. There are no additional gate consumers of the third file; its caller is a manual budget phase.
 
@@ -2152,6 +2152,50 @@ The complete line-level evidence is [caller-audit.json](docs/readability-a1b/evi
 
 The destination can migrate during owner-observation retries. The accepted DEBUG CLIENT-LB request is pipelined with DEBUG IO-THREAD, and its socket registration is sampled again, so the expected destination belongs to the accepted request. The completion poll requires the selected inode's registrations to equal `[destination_ep]` within the existing deadline measured before arming. It does not send commands to that idle socket. A global move count is supplementary and may increase by more than one when other clients move. The post-move audit, selected IO-thread equality, zero stale/duplicate registrations, and exact events-per-command checks remain mandatory. Five serverless controls cover unrelated moves, missing/duplicate registration and a destination migration during observation retries. The latter runs the real epoll_lb orchestration with a deterministic transport. Removing each of the three required caller edges independently makes the inventory validator fail.
 
-Proof is restricted to CPUs 64–95, ports 25100–25199 and `LC_ALL=C`. The initial gate selection (`witness_contracts bugs5 flip`) passed 14/14 rows, including all eight slowlog-identity legs and their legacy controls. Gate selftests passed 83 tests; label-fixture tests passed 12. Final repetition/build/binary receipts are recorded below when complete.
+Proof is restricted to CPUs 64–95, ports 25100–25199 and `LC_ALL=C`. The initial gate selection (`witness_contracts bugs5 flip`) passed 14/14 rows, including all eight slowlog-identity legs and their legacy controls. Gate selftests passed 83 tests; label-fixture tests passed 12. The final repetition/build/binary receipts follow below.
 
 The two pre-existing modified RL5 build receipts were preserved verbatim under `docs/readability-a1b/evidence/landing-build/`; their original tracked locations were restored to HEAD so this follow-up does not replace historical lane evidence.
+
+### Completed A1b proof
+
+| Check | Result |
+|---|---|
+| Gate jobs `witness_contracts bugs5 flip` | **14/14 rows**, zero FAIL; includes release build, all eight slowlog-identity legs and their eight legacy controls, and both perfio rows |
+| `cd13b_window_test.py` through `witness_contracts` | **8 tests, OK** |
+| Final `flip` job repeated 20 times | **20/20 epoll-lb passes; 200/200 total rows**, zero FAIL, one unchanged perfio source hash |
+| `python3 tests/gates_test.py` | **83 tests, OK** (also runs its nested identity controls) |
+| Label-fixture unittest | **12 tests, OK** after comment updates |
+| Caller-form fixtures / removed-edge controls | **14 tests, OK** / **3 of 3 deleted caller edges rejected** |
+| Perfio deterministic controls | **5 tests, OK**, including a destination that moves during owner-observation retries |
+| Restored manual helper | Import chain `wave10 → docs/wave9/budgets → ccfix_audit` and `ccfix_audit --help` pass |
+| `make all` plus all 61 primary `job_production_units` targets | Build succeeds; **62/62** `make -q` checks pass |
+| Supplemental `job_production_units` targets | Both MDB witness builds, blockfix cost + digest, and both blockfix2 namespaces build; concrete freshness checks pass |
+| Default `make -q` | Exit **0**, with INFO inputs pinned |
+| `/home/user/Projects/calib/binary-neutral.sh` vs retained `5c36312818` PRE | **IDENTICAL (11,167,504 bytes after stripping)** |
+
+The binary proof uses GCC 13.3.0 and `TOMO_INFO_GIT_SHA1=5c363128 TOMO_INFO_GIT_DIRTY=0`. PRE's raw SHA-256 matches A1's frozen receipt. The sole A1b production-source edit is an archive-path comment in `src/core/wb_rule.h`; its raw preprocessing tokens are unchanged. Makefile edits are comments only. No performance measurement or PAD arm is requested.
+
+The first 20-run trial had **19 passes and one timeout** (`gate-run.wsvpFQ`); it established that waiting for the selected inode alone still encountered stale arming state. A diagnostic trial retained another timeout (`gate-run.vtcuXU`): the accepted request followed a destination connection that migrated from IO 1 to IO 2 during 89 observation attempts; the selected connection was on IO 2 at timeout, while the old expected epoll was still IO 1's. This is why the accepted request and its destination IO witness are now pipelined and the destination registration is resampled. That trial spans the fix and is retained as intermediate evidence, not counted as final proof. The final, separate 20-run cohort uses the same final perfio hash in every run and has zero failures. Every run retains selected-inode equality, selected IO equality, zero stale/duplicate registrations, and exactly one epoll event per command. The deadline remains 35 seconds; no failed window is skipped.
+
+[Gate ledgers, resource arguments and per-run selected-client witnesses](docs/readability-a1b/evidence/gate-runs.json), [final gate transcripts](docs/readability-a1b/evidence/final-gate.log), [earlier timeout evidence](docs/readability-a1b/evidence/earlier-failures/), [build/freshness targets](docs/readability-a1b/evidence/builds.json), [binary inputs and hashes](docs/readability-a1b/evidence/binary.json), and [IDENTICAL receipt](docs/readability-a1b/evidence/binary-neutral.log). Raw compiler logs and full gate directories remain under `build/readability-a1b/` and the recorded `build/gate-run.*` paths; no large binaries/logs are committed.
+
+Reproduction (individual correctness jobs only):
+
+```sh
+export LC_ALL=C TOMO_INFO_GIT_SHA1=5c363128 TOMO_INFO_GIT_DIRTY=0
+GATE_TEST_PORT=25199 GATE_PROOF_NO_RATES=1 GATE_ONLY_JOBS='witness_contracts bugs5 flip' \
+  taskset -c 64-79 tests/gate.sh iteration --server-cores 64-71 \
+  --load-cores 72-79 --load-smt '' --ports 25100-25119
+taskset -c 64-79 python3 docs/readability-a1b/repeat_flip.py
+GATE_TEST_PORT=25199 taskset -c 80-95 python3 tests/gates_test.py
+taskset -c 80-95 python3 -m unittest discover -s tests -p gate_ledger_fixture.py
+taskset -c 80-95 python3 docs/readability-a1b/build_proof.py
+taskset -c 80-95 /home/user/Projects/calib/binary-neutral.sh \
+  build/readability-a1/PRE build/tomokv
+taskset -c 80-95 python3 docs/readability-a1b/caller_inventory_test.py
+taskset -c 80-95 python3 docs/readability-a1b/caller_inventory.py
+taskset -c 80-95 python3 docs/readability-a1b/prove_inventory.py
+taskset -c 80-95 python3 docs/readability-a1b/perfio_wait_test.py
+```
+
+All requested individual gate jobs ran. No full iteration, benchmark, ABBA, NIC measurement, push or merge was run. The historical manual budget campaign behind `wave10.py` was not replayed; its restored dependency was imported directly, and the caller graph has no path to it from a gate job or Makefile target. Gate script, expected counts and label fixture are byte-for-byte unchanged from `a527de5d58`.

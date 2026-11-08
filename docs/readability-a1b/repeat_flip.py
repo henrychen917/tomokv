@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Twenty real gate job invocations; preserve failures and every final ledger."""
 import json
+import hashlib
 import os
 from pathlib import Path
 import subprocess
@@ -14,12 +15,15 @@ command = ['taskset', '-c', '64-79', 'tests/gate.sh', 'iteration',
            '--server-cores', '64-71', '--load-cores', '72-79', '--load-smt', '', '--ports', '25100-25119']
 records = []
 for i in range(1, 21):
+    revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
+    test_sha256 = hashlib.sha256((ROOT / 'tests/perfio.py').read_bytes()).hexdigest()
     log = OUT / f'{i:02d}.log'
     with log.open('w') as stream:
         result = subprocess.run(command, cwd=ROOT, env=env, stdout=stream, stderr=subprocess.STDOUT)
     text = log.read_text()
     run = next((line.split('artifacts: ', 1)[1] for line in text.splitlines() if 'artifacts: ' in line), None)
-    records.append(dict(iteration=i, returncode=result.returncode, log=str(log.relative_to(ROOT)), run=run))
+    records.append(dict(iteration=i, returncode=result.returncode, log=str(log.relative_to(ROOT)), run=run,
+                        revision=revision, perfio_sha256=test_sha256))
     (OUT / 'results.json').write_text(json.dumps(dict(command=command, env={k:env[k] for k in (
         'LC_ALL', 'TOMO_INFO_GIT_SHA1', 'TOMO_INFO_GIT_DIRTY', 'GATE_TEST_PORT', 'GATE_PROOF_NO_RATES', 'GATE_ONLY_JOBS')},
         records=records), indent=2) + '\n')

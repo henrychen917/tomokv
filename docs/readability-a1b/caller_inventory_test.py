@@ -72,6 +72,10 @@ class CallerGraph(unittest.TestCase):
         graph, _ = self.graph('import runpy,sys\nrunpy.run_path(sys.argv[1])\n', {'tools/child.py': ''})
         self.assertTrue(graph.review)
 
+    def test_explicit_archive_execution_still_requires_the_file(self):
+        _, live = self.graph("import runpy\nrunpy.run_path('tools/archive/tools/child.py')\n", {'tools/child.py': ''})
+        self.assertIn('tools/child.py', live)
+
     def test_unresolved_module_keeps_candidates(self):
         graph, live = self.graph('import importlib,sys\nimportlib.import_module(sys.argv[1])\n', {'tools/child.py': ''})
         self.assertIn('tools/child.py', live)
