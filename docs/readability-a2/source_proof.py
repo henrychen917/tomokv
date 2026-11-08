@@ -3,6 +3,7 @@
 import hashlib
 import json
 from pathlib import Path
+import re
 import subprocess
 import sys
 
@@ -16,6 +17,12 @@ def digest(values):
     return hashlib.sha256(json.dumps(values, ensure_ascii=False).encode()).hexdigest()
 
 
+def comments(text):
+    return tuple(re.sub(r'\s+', '', m[0]) for m in cpp.LEXER.finditer(text)
+                 if m.lastgroup == 'comment'
+                 and m[0].strip() not in ('// clang-format off', '// clang-format on'))
+
+
 rows = []
 for filename in file_list():
     before, after = original(filename), (ROOT / filename).read_bytes().decode()
@@ -27,6 +34,7 @@ for filename in file_list():
                      tokens_equal=pre_tokens == post_tokens,
                      literals_equal=pre_literals == post_literals,
                      anchors_equal=anchors(before) == anchors(after),
+                     comments_equal=comments(before) == comments(after),
                      token_sha256=digest(post_tokens), literal_sha256=digest(post_literals),
                      raw_literals=sum(m.lastgroup == 'raw' for m in cpp.LEXER.finditer(before))))
 excluded = sorted(GENERATED)
@@ -35,7 +43,7 @@ excluded.extend(subprocess.check_output(['git', 'ls-tree', '-r', '--name-only', 
                                        cwd=ROOT, text=True).splitlines())
 changed_exclusions = [p for p in excluded if subprocess.check_output(
     ['git', 'show', f'{BASE}:{p}'], cwd=ROOT) != (ROOT / p).read_bytes()]
-exceptions = [r for r in rows if not all(r[k] for k in ('tokens_equal', 'literals_equal', 'anchors_equal'))]
+exceptions = [r for r in rows if not all(r[k] for k in ('tokens_equal', 'literals_equal', 'anchors_equal', 'comments_equal'))]
 result = dict(base=BASE, files=len(rows), changed_files=sum(r['changed'] for r in rows),
               tokens=sum(r['tokens'] for r in rows), literals=sum(r['literals'] for r in rows),
               raw_literals=sum(r['raw_literals'] for r in rows),

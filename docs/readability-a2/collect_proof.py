@@ -83,7 +83,8 @@ sys.path.insert(0, str(ROOT / 'tests'))
 import gate_ledger_fixture as fixture
 declared = fixture.validate_fixture(ROOT)
 fixture_rows = json.loads((ROOT / fixture.FIXTURE).read_text())['labels']
-write('labels.json', dict(declared=len(declared), fixture_including_nic=len(fixture_rows),
+write('labels.json', dict(declared=len(declared), fixture_rows=len(fixture_rows),
+      nic='separate optional ledger row; not exercised by this partial run',
       gate_sha256=sha(ROOT / 'tests/gate.sh'), fixture_sha256=sha(ROOT / fixture.FIXTURE)))
 
 pre = Path('/home/user/Projects/bins/readability-pre-5c363128/tomokv')
