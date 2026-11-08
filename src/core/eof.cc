@@ -1,4 +1,9 @@
-// End-of-stream admission and retirement. Ordinary receives never enter here.
+// IoLoop end-of-stream admission and retirement for FIN/EOF paths.
+// The connection's IO owner maintains deferred timers and synthetic receive holds. Complete
+// buffered frames still use ordinary admission; a FLIP must not wait behind its own dispatch
+// pause.
+// Retirement or output progress renews the grace period for peers with stalled output.
+
 #include "io_loop.h"
 
 namespace tomo {
@@ -29,13 +34,11 @@ bool IoLoop::receive_eof_pending(const Client* client) const {
 
 void IoLoop::receive_fin(Client* client, bool input_ended) {
     if (client->dead() || client->closing()) return;
-    // From its drain acknowledgement this IO's FLIP pin holds every close, and a close
-    // before the ownership commit refuses the FLIP at once (flipfix6). A FIN is that close
-    // for a draining connection, but its EOF timer cannot finish behind the FLIP: the
-    // pinned output's serve stays pending and complete input waits for admission, while a
-    // planned connection with a pending EOF is never transferable. Refuse the same way now
-    // rather than at the five-second deadline; the drain completes after rollback. After
-    // the commit this notes nothing and the timer resumes at Idle as before.
+    // From its drain acknowledgement the IO's FLIP pin holds closes. A close before ownership
+    // commit refuses FLIP. FIN needs the same refusal: held output cannot finish serving and
+    // complete buffered input waits for admission, while a planned client with pending EOF is
+    // not transferable. Refuse before the five-second deadline so rollback can resume draining.
+    // After commit, flip_session_close_held records no refusal and the timer resumes at Idle.
     if (flip_close_pin_) (void)flip_session_close_held();
     for (auto& timer : deferred_timers_) {
         if (timer.client != client || (timer.kind != DeferredTimerKind::ReceiveFin &&
@@ -83,6 +86,14 @@ void IoLoop::receive_eof_forget(Client* client) {
     }
 }
 
+// Contract: The IO owner's deferred-timer pass supplies a valid FIN/EOF timer index. Inspect
+// local buffered input and the ROB's quiescence, preserving normal admission for complete
+// frames
+// and synchronous DEBUG SLEEP/TRACKING continuations. Progress renews the deadline. Closure
+// removes
+// the timer, releases its synthetic receive hold and returns true; false keeps it for another
+// pass.
+// This function performs no separate cross-thread publication.
 bool IoLoop::receive_eof_pass(size_t index, uint64_t now_ms) {
     auto& timer = deferred_timers_[index];
     Client* client = timer.client;
@@ -112,7 +123,7 @@ bool IoLoop::receive_eof_pass(size_t index, uint64_t now_ms) {
                          client->nothing_to_write() && !client->send_inflight() &&
                          !client->serve_pending();
     // A blocked command cannot consume future input after FIN. Cancel it using
-    // the existing close path, just as Redis does. Incomplete final frames and
+    // the close path, just as Redis does. Incomplete final frames and
     // peers which no longer read replies cannot retain a connection forever.
     bool control_pending = false;
     if (client->blocked()) {

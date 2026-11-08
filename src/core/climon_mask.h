@@ -1,4 +1,7 @@
-// MONITOR/tracking destinations, including the forwarding history carried by an event.
+// MONITOR/tracking destination membership and event-forwarding history, shared by Server and
+// pubsub events. The two words cover IO ids 0..127. Membership atomics use relaxed ordering;
+// they do not publish event payloads or implement NotifyMask's wake protocol.
+
 #pragma once
 
 #include <atomic>
@@ -6,6 +9,11 @@
 
 namespace tomo {
 
+// Contract: A value mask owns two ordinary words; callers serialize add/contains on that value.
+// set/load operate on caller-owned atomic words with relaxed RMW/load operations. IO ids must
+// be
+// below kBits; there is no bounds check, allocation or queue back-pressure. Reading both words
+// does not establish a simultaneous snapshot of membership.
 struct ClimonIoMask {
     static constexpr uint32_t kBits = 128;
     uint64_t words[2] = {};
@@ -18,8 +26,8 @@ struct ClimonIoMask {
     void add(uint32_t io) { words[word(io)] |= uint64_t{1} << (io & 63); }
     explicit operator bool() const { return words[0] || words[1]; }
 
-    // The low word stays at its established Server offset; the high word is cold tail storage.
-    // These are membership bits, not NotifyMask's wake protocol: retain relaxed ordering.
+    // Server stores the low word in its main state and the high word in its cold tail.
+    // Membership uses relaxed ordering; NotifyMask separately supplies the wake protocol.
     static void set(std::atomic<uint64_t>& low, std::atomic<uint64_t>& high, uint32_t io,
                     bool present) {
         auto& bits = word(io) ? high : low;

@@ -1,24 +1,21 @@
-// lbsignals.h — the READ side of the signal system: capture, derive, export.
+// Value snapshots and renderers for LB diagnostics; capture is implemented in cmd/lbsignals.cc.
+// Loop signals use operations, nanoseconds and queue entries; shards also expose foreign
+// operations.
+// INFO/DEBUG capture cumulative counters without retaining a shared reader window, so each
+// reader
+// derives its own rates. Placement and role controllers also read the underlying signals.
 //
-// signal.h makes every loop report LoopSignals in the same units (ops, nanoseconds, entries)
-// and every shard report locality (foreign_ops). This interface captures those signals and
-// derives the quantities exported by INFO's # LB section and DEBUG LBSIGNALS. Placement and
-// role controllers also consume the underlying signals.
+// Writers use ordinary owner-local stores for many scheduling counters; capture's relaxed
+// __atomic_load_n on those fields does not establish a race-free C++ publication. The snapshot
+// is
+// not a coherent instant across threads. Atomic socket counters have their own defined loads.
 //
-// COST: zero on the hot path. Everything here runs on the cold command path (DEBUG/INFO) or in a
-// controller beat. Writers keep their plain single-owner stores; capture reads each counter with
-// a relaxed __atomic_load_n (same MOV on x86). That is still a C++ data race, not a defined
-// publication (TSan; flipfix CT4.3). Counters are MONOTONIC — rates are the reader's job;
-// the server keeps no window state, so any number of readers can watch at their own cadence
-// without stepping on each other. That statelessness is itself a signal-quality feature: the
-// fork's sampled-cputime hack had one global window that every consumer fought over.
-//
-// Role ns_per_op is diagnostic only: executor ops count shard tasks while IO ops count
-// commands. Their ratio is not a thread-split estimator on multi-key workloads. The role
-// controller uses wall-minus-idle demand instead (flip_policy.h).
-// Queue delay and oldest-age may TRIGGER a controller investigation, but they do not judge a
-// placement: only measured throughput after the move can do that. Latency signals show pressure,
-// not whether a different owner split will process more work.
+// Role ns_per_op is diagnostic: EX counts shard tasks while IO counts commands. Their ratio
+// cannot
+// estimate a multikey role split; flip_policy.h uses wall-minus-idle demand. Queue delay/age
+// can
+// motivate investigation but do not establish that a different placement improves throughput.
+
 #pragma once
 #include <cstdint>
 #include <string>
@@ -121,6 +118,11 @@ struct LbRoleRollup {
     }
 };
 
+// Contract: The capturing caller owns these vectors and rollups by value. Capture/format run
+// on cold INFO/DEBUG paths; the struct adds no synchronization to the sampled counters.
+// Allocation
+// can throw. Zero denominators render as zero, and rows do not promise a coherent cross-thread
+// snapshot or transfer authority over clients/shards.
 struct LbSnapshot {
     uint64_t stamp_ns = 0;  // CLOCK_MONOTONIC at capture
     bool fused_mode = false;

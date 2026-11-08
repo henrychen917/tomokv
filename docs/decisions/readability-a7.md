@@ -1,22 +1,16 @@
 # Controller decisions preserved during readability-a7
-
 Entries are dated by this documentation pass (2026-11-08). Quoted passages are inherited source comments from `7595a6705a`, not new measurements or independently verified results. Original dates, when present, remain in the quotes. The production comments state the current behavior; these entries retain the rationale and history removed from them.
-
 ## 2026-11-08 — 1. file overview
-
 Source: `src/core/flipctl.h`, `file overview`. Preserved source rationale:
-
 > flipctl.h -- allocation-free IO fingerprints and the single-owner FLIP controller.
-> 
+>
 > The writer is embedded in ThreadCtx, but only that physical thread mutates it while playing the
 > IO role.  The monitor/controller reads completed cumulative windows; no per-operation atomic or
 > shared-line write is introduced.  FlipController itself is written only by the main monitor
 > thread.  INFO/DEBUG take its cold mutex and DEBUG's forced trigger is a single cold atomic flag.
 
 ## 2026-11-08 — 2. flip_fingerprint_window
-
 Source: `src/core/flipctl.h`, `flip_fingerprint_window`. Preserved source rationale:
-
 > Preserve the measured sampler: one whole parse pass in 100 on average. At a matched 512k ops/s,
 > a GET-only -> SET-only swap triggered the fingerprint detector once with both exhaustive and
 > 1-in-100 sampling; the sampled writer still detected the shift with the rate held fixed.
@@ -24,9 +18,7 @@ Source: `src/core/flipctl.h`, `flip_fingerprint_window`. Preserved source ration
 > per-operation work is needed; the detector already derives its bands from actual samples.
 
 ## 2026-11-08 — 3. FlipFingerprintWriter
-
 Source: `src/core/flipctl.h`, `FlipFingerprintWriter`. Preserved source rationale:
-
 > SAMPLED BY PARSE PASS. A per-op countdown would restore the store this sampler removes: no
 > existing io-side command counter covers both the point paths and all io-local commands.
 > The io loop asks pass_sampled() once per dispatched frame -- one load of this writer's own word,
@@ -48,9 +40,7 @@ Source: `src/core/flipctl.h`, `FlipFingerprintWriter`. Preserved source rational
 > ever writes it, so the gate word reads false from a clean line and no other code runs.
 
 ## 2026-11-08 — 4. flip_signature_distance
-
 Source: `src/core/flipctl.h`, `flip_signature_distance`. Preserved source rationale:
-
 > The workload-mix distance. It deliberately EXCLUDES pass_depth: parse-pass occupancy is an
 > arrival-batching observation the controller's own actuator moves (a measured io 5->7 step moved
 > it by 0.048 while the mix families moved by 4e-7), and the sweep-abandon law says a signal the
@@ -58,16 +48,12 @@ Source: `src/core/flipctl.h`, `flip_signature_distance`. Preserved source ration
 > diagnosis; it is simply not trigger evidence.
 
 ## 2026-11-08 — 5. FlipctlReport
-
 Source: `src/core/flipctl.h`, `FlipctlReport`. Preserved source rationale:
-
 > Redesign 2026-09-06: the decision the model last took, its calibration and outcome record,
 > and the measured transfer cost the gate charges.
 
 ## 2026-11-08 — 6. FlipController::begin_refinement
-
 Source: `src/core/flipctl.h`, `FlipController::begin_refinement`. Preserved source rationale:
-
 > REFINEMENT. A projection from the origin's demand reading is only as good as the assumption
 > that per-command io and ex costs are the same at the target as at the origin; they are not
 > (the io side batches better with fewer threads), so a one-shot argmax from an io-heavy origin
@@ -80,9 +66,7 @@ Source: `src/core/flipctl.h`, `FlipController::begin_refinement`. Preserved sour
 > maneuver started from (the null-maneuver rule).
 
 ## 2026-11-08 — 7. FlipController::baseline_band
-
 Source: `src/core/flipctl.h`, `FlipController::baseline_band`. Preserved source rationale:
-
 > The ORIGIN's stabilized readings while the model was deciding (Measuring never moves the
 > split): their mean is R0, their relative stdev is the noise the verification window is sized
 > from, and their bracket (min/max) floors every band of the maneuver -- a gain smaller than
@@ -90,23 +74,21 @@ Source: `src/core/flipctl.h`, `FlipController::baseline_band`. Preserved source 
 > once anchored a boot maneuver on a rail.
 
 ## 2026-11-08 — 8. file overview
-
 Source: `src/core/flip_policy.h`, `file overview`. Preserved source rationale:
-
 > flip_policy.h -- the FLIP controller's placement POLICY: when a role move is worth making.
-> 
+>
 > Pure arithmetic, no Server, so tests/flipctl_unit.cc can run it against scripted numbers. The
 > controller (flipctl.cc) feeds it one demand observation per stabilized throughput reading and
 > asks one question: is there a split whose PROJECTED gain over the live split clears the
 > evidence bar? Three rules, one invariant -- a move must be able to pay for itself:
-> 
+>
 > 1. WINDOW + VARIANCE. One demand draw is not an estimate. Observations accumulate (Welford)
 > and every projection is evaluated across the window's own confidence interval; the
 > decision is SEQUENTIAL: move as soon as the pessimistic end of the interval clears the bar,
 > hold as soon as the optimistic end cannot, keep sampling in between. Accuracy comes from
 > the window, never from a denser sample (user-lb-never-inhibits-hot-path). The server keeps
 > serving at its current split for as long as that takes; sampling costs no throughput.
-> 
+>
 > 2. COST GATE, in throughput space. The old jump rounded N * io_frac to a thread count and
 > overshot it. Measured on 8-key MGET/MSET at 5:3 (8 threads) with the estimator then in
 > use (io 82%): round(8 * 0.82) = 7, overshoot to 8 clamped 7 -- a split this very model
@@ -118,7 +100,7 @@ Source: `src/core/flip_policy.h`, `file overview`. Preserved source rationale:
 > controller's own throughput noise band (a gain the seek could not verify cannot pay for
 > the flip it costs) scaled by the outcome margin below. No machine constants: N is the live
 > pool, f and its interval are measured, the band is learned.
-> 
+>
 > 3. OUTCOME LOOP. After the jump the controller measures the target against the origin's
 > stabilized rate; not better by the band => straight back to the origin, and the margin the
 > model must clear next time doubles (a projection that did not deliver was wrong about
@@ -126,10 +108,10 @@ Source: `src/core/flip_policy.h`, `file overview`. Preserved source rationale:
 > -- the bar has to rise, not the window). A move that delivered halves the margin back
 > toward one band. The margin is capped where required gain would exceed 100%: past that
 > the model could never fire again on any workload, which is a silent `--flip-auto 0`.
-> 
+>
 > REVISION 2026-09-06 (the actuator redesign). The three rules above were the placement policy's
 > first cut; this revision gives each of them the quantity it was missing, in units:
-> 
+>
 > SIGNAL. Role demand is measured as WORK = wall - idle per thread (flip_role_work), not as the
 > loops' busy_ns. In that 2026-09-06 measurement the io loop closed its busy span
 > before ring_.submit_and_reap(), so the
@@ -138,7 +120,7 @@ Source: `src/core/flip_policy.h`, `file overview`. Preserved source rationale:
 > read io = 0.32 on a workload whose work share is 0.51, and the model moved 2:2 -> 1:3
 > (measured -52%) and came back. IO tenure accounting now includes that gap; the model remains wall-minus-idle.
 > The inherited measurement above is not a result of the accounting cleanup.
-> 
+>
 > COST GATE, in commands over the horizon the workload has demonstrated (flip_cost_gate). A move
 > must pay for itself: kappa g_low R0 (T_stat - T_black) > margin [C_xfer (1 + P_miss) +
 > P_miss kappa g_mean R0 T_black]. T_stat is how long the workload has held still, T_black
@@ -146,26 +128,22 @@ Source: `src/core/flip_policy.h`, `file overview`. Preserved source rationale:
 > = measured commands lost per transferred client x predicted transfers, P_miss the model's
 > own miss rate (Laplace). First flip: the transfer cost is unknown and stays zero -- that
 > flip is the measurement.
-> 
+>
 > WINDOW FROM VARIANCE (flip_verify_window / flip_verify_threshold). The post-move window is as
 > long as the origin's own noise says it has to be to resolve the predicted gain at two
 > standard errors, and no longer; verification is sequential (accept early, reject early).
-> 
+>
 > OUTCOME LOOP (FlipCostModel::record_outcome). Every move is a hypothesis with a predicted
 > delta. A miss reverts and doubles the margin (sign); kappa = (sum delivered + gbar) /
 > (sum predicted + gbar) learns the model's MAGNITUDE bias with the credence of one delivered
 > move of average size as its only prior, and never exceeds one.
 
 ## 2026-11-08 — 9. flip_role_work
-
 Source: `src/core/flip_policy.h`, `flip_role_work`. Preserved source rationale:
-
 > ---- REVISION 2026-09-06: signal, cost gate, verification window, outcome ---------------------
 
 ## 2026-11-08 — 10. FlipEwVariance
-
 Source: `src/core/flip_policy.h`, `FlipEwVariance`. Preserved source rationale:
-
 > The load's own variability over the LONGEST window the controller has, DETRENDED: an
 > exponentially weighted variance of the SECOND relative difference of every per-tick rate sample,
 > rel2 = (r_t - 2 r_{t-1} + r_{t-2}) / r_{t-1}.
@@ -186,27 +164,21 @@ Source: `src/core/flip_policy.h`, `FlipEwVariance`. Preserved source rationale:
 > controller also resets it when a flip it issued completes: the level moved by design.
 
 ## 2026-11-08 — 11. FlipEwVariance::sigma
-
 Source: `src/core/flip_policy.h`, `FlipEwVariance::sigma`. Preserved source rationale:
-
 > The rms second difference, reported AS the per-reading noise scale. For white noise that
 > overstates sigma by sqrt(6) -- conservative; for a swing of a few ticks' period it is right
 > (the six-second triangle: 0.15 both ways), and that swing is what the pair bands were blind
 > to. Dividing by sqrt(6) would be exact for white noise and read the triangle at 0.06.
 
 ## 2026-11-08 — 12. FlipEwBound
-
 Source: `src/core/flip_policy.h`, `FlipEwBound`. Preserved source rationale:
-
 > A one-sided noise bound for a NON-NEGATIVE observation (a distance): exponentially weighted mean
 > and variance, reported as mean + 2 sd. Used for the fingerprint's adjacent-window movement, where
 > the rate's second-difference estimator does not apply -- a distance has no trend to remove, it is
 > already a difference, and it cannot go below zero.
 
 ## 2026-11-08 — 13. FlipEwBound::bound
-
 Source: `src/core/flip_policy.h`, `FlipEwBound::bound`. Preserved source rationale:
-
 > A DECAYING MAXIMUM, not a quantile. The observation this bounds (a signature's distance from
 > its anchor) is AUTOCORRELATED -- the smoothed signature random-walks around the anchor -- so
 > its excursions CLUSTER, and a mean + 2 sd quantile is exceeded on consecutive windows far more
@@ -218,9 +190,7 @@ Source: `src/core/flip_policy.h`, `FlipEwBound::bound`. Preserved source rationa
 > running maximum and falls back if the signal genuinely quietens.
 
 ## 2026-11-08 — 14. flip_corrected_gain
-
 Source: `src/core/flip_policy.h`, `flip_corrected_gain`. Preserved source rationale:
-
 > A target's delivered gain re-expressed against the origin as it reads AFTER the return flip,
 > when the baseline itself moved by `baseline_shift` during the excursion. A miss is voided
 > (invalidated, not refuted) only when this corrected gain would have cleared the threshold: the
@@ -229,9 +199,7 @@ Source: `src/core/flip_policy.h`, `flip_corrected_gain`. Preserved source ration
 > had delivered -48%; (1 - 0.48) / 1.022 - 1 is still -49%, and that miss stands.
 
 ## 2026-11-08 — 15. flip_refine_bar
-
 Source: `src/core/flip_policy.h`, `flip_refine_bar`. Preserved source rationale:
-
 > The bar a REFINEMENT step must clear beyond the noise bar: the model's error just demonstrated on
 > this workload, predicted minus delivered of the step that landed here (zero when it delivered at
 > least what it promised). Work conservation is a V with its point at the optimum and the real
@@ -242,17 +210,13 @@ Source: `src/core/flip_policy.h`, `flip_refine_bar`. Preserved source rationale:
 > constant: the bar is the outcome record.
 
 ## 2026-11-08 — 16. ctlfix_correctness
-
 Source: `src/core/flipctl.cc`, `ctlfix_correctness`. Preserved source rationale:
-
 > Offline PAD-A patch point. Production always takes the corrected controller;
 > the behaviour twin changes this return byte only, retaining POST text/layout.
 > No configuration or command can select the legacy branch.
 
 ## 2026-11-08 — 17. flip_signature_distance
-
 Source: `src/core/flipctl.cc`, `flip_signature_distance`. Preserved source rationale:
-
 > pass_depth is NOT here. Measured on the multi-key regime this defect was found in: one
 > controller step from io=5 to io=7 moved the pass-depth distance by 0.0476 -- eight to forty
 > times its own learned trigger band -- while the three mix families moved by 4.2e-7, 0 and
@@ -263,9 +227,7 @@ Source: `src/core/flipctl.cc`, `flip_signature_distance`. Preserved source ratio
 > through the rate detector, which owns volume.
 
 ## 2026-11-08 — 18. FlipShiftDetector::update_band
-
 Source: `src/core/flipctl.cc`, `FlipShiftDetector::update_band`. Preserved source rationale:
-
 > SAMPLING SCALE, not counting resolution. Every family in the distance is a proportion or a
 > per-command mean estimated from the N commands this window observed, so two windows drawn
 > from one stationary workload differ by the ESTIMATOR'S OWN NOISE, which falls as 1/sqrt(N)
@@ -277,15 +239,13 @@ Source: `src/core/flipctl.cc`, `FlipShiftDetector::update_band`. Preserved sourc
 > observed no commands supplies no evidence: saturate at one command (quantum 1.0) instead of
 > collapsing to zero, or an anchor cut from an idle window freezes a zero band and judges the
 > first busy wobble as a mix shift. Rate triggers, not fingerprints, own idle->busy.
-> 
+>
 > N IS WHAT THE SIGNATURE WAS ESTIMATED FROM, so when the writer samples the request stream the
 > quantum grows with the sampling: at one command in a hundred a 100-command window resolves
 > the mix to about 0.1, not to the 0.009 the underlying 10k commands would give.
 
 ## 2026-11-08 — 19. FlipShiftDetector::update_band
-
 Source: `src/core/flipctl.cc`, `FlipShiftDetector::update_band`. Preserved source rationale:
-
 > A TYPED BAND IS A FLOOR, NOT A CEILING, AND IT CANNOT BUY RESOLUTION THE SIGNAL HAS NOT GOT.
 > The internal detector's explicit-band unit-test control sets the mix change worth a maneuver;
 > it says nothing about how
@@ -298,24 +258,20 @@ Source: `src/core/flipctl.cc`, `FlipShiftDetector::update_band`. Preserved sourc
 > change still clears the band by 3.3x. So both branches take the same two floors.
 
 ## 2026-11-08 — 20. FlipShiftDetector::update_band
-
 Source: `src/core/flipctl.cc`, `FlipShiftDetector::update_band`. Preserved source rationale:
-
 > ... and the learned band adds the frozen learning-window jitter, floored the same way: that
 > jitter is the largest adjacent step seen in the few windows before the anchor, so a learning
 > window that happened to be still freezes a band the hold then trips over.
 
 ## 2026-11-08 — 21. FlipShiftDetector::observe
-
 Source: `src/core/flipctl.cc`, `FlipShiftDetector::observe`. Preserved source rationale:
-
 > LEARN THE STATISTIC THAT IS ACTUALLY TESTED. The trigger compares the distance from the
 > ANCHOR; the adjacent-window distance is a different quantity -- smoothed and correlated,
 > so systematically smaller -- and flooring an anchor-distance test with it underestimates.
 > Measured on a simulated 1-in-100 sampled stream: adjacent-learned bound 0.054 against a
 > quiet-state anchor distance reaching 0.101, which fired 15 times in 60 stationary windows.
 > So the noise estimate is the anchored distance's own null distribution.
-> 
+>
 > JUDGE FIRST, FOLD ONLY IN-BAND WINDOWS. An excursion must never widen the threshold that
 > judges it -- that is why this branch froze the band originally, and it stands. Folding
 > every window instead cost exactly that: with the decaying maximum below, the FIRST window
@@ -327,16 +283,12 @@ Source: `src/core/flipctl.cc`, `FlipShiftDetector::observe`. Preserved source ra
 > band at the estimator's own resolution without needing any observation at all.
 
 ## 2026-11-08 — 22. FlipController::stabilize_rate
-
 Source: `src/core/flipctl.cc`, `FlipController::stabilize_rate`. Preserved source rationale:
-
 > A pair is "stable" relative to how the load itself moves tick to tick, never to a band a
 > lucky settle window learned below that (0.02% measured: no pair ever fit and Measuring stuck).
 
 ## 2026-11-08 — 23. FlipController::issue_flip
-
 Source: `src/core/flipctl.cc`, `FlipController::issue_flip`. Preserved source rationale:
-
 > A flip onto the live split is a no-op that flip_begin nevertheless counts as completed, and
 > issue_flip would then report failure because the stage never left Idle -- an ownership
 > transaction in the counters that the controller does not believe it made. The seek arithmetic
@@ -345,13 +297,11 @@ Source: `src/core/flipctl.cc`, `FlipController::issue_flip`. Preserved source ra
 > spending a FLIP on the split it is already running.
 
 ## 2026-11-08 — 24. FlipController::sample_role_demand
-
 Source: `src/core/flipctl.cc`, `FlipController::sample_role_demand`. Preserved source rationale:
-
 > One windowed observation of how the two roles split the server's real work, plus each role's
 > HEADROOM: the idle share of its busiest thread. Returns false while the window carries no
 > evidence; the caller keeps measuring rather than inventing a prior.
-> 
+>
 > WORK IS WALL MINUS IDLE. Historical evidence (2026-09-06): the io loop closed
 > its busy span before ring_.submit_and_reap(), so the io_uring_enter syscall -- the kernel
 > moving the bytes, which is io work -- was booked as neither busy nor idle. Measured on the
@@ -366,9 +316,7 @@ Source: `src/core/flipctl.cc`, `FlipController::sample_role_demand`. Preserved s
 > park publication/resumption, not merely the blocking syscall.
 
 ## 2026-11-08 — 25. FlipController::sample_role_demand
-
 Source: `src/core/flipctl.cc`, `FlipController::sample_role_demand`. Preserved source rationale:
-
 > WORK CONSERVATION, WITH BOTH OPERANDS THE SAME QUANTITY. The throughput-optimal split gives
 > each role the thread fraction its PER-COMMAND service cost demands,
 > n_io* / N = c_io / (c_io + c_ex),   c_role = (work ns that role spent) / (commands run),
@@ -379,9 +327,7 @@ Source: `src/core/flipctl.cc`, `FlipController::sample_role_demand`. Preserved s
 > round trip the operator saw as three flips and 993 moved connections.)
 
 ## 2026-11-08 — 26. FlipController::decide_placement
-
 Source: `src/core/flipctl.cc`, `FlipController::decide_placement`. Preserved source rationale:
-
 > The Measuring phase (flip_policy.h): one demand draw per stabilized reading into the policy
 > window, then decide or keep measuring. The server serves at its live split throughout, so time
 > spent here costs nothing but the maneuver's own sampling arm -- which is why every "not yet" below
@@ -389,9 +335,7 @@ Source: `src/core/flipctl.cc`, `FlipController::decide_placement`. Preserved sou
 > and the stationarity horizon the cost gate credits grows, all for free.
 
 ## 2026-11-08 — 27. FlipController::decide_placement
-
 Source: `src/core/flipctl.cc`, `FlipController::decide_placement`. Preserved source rationale:
-
 > SATURATION GATE. The capacity model above is a statement about CPU-bound roles: throughput
 > ~ min(io capacity, ex capacity) holds only while one role's busiest thread has no headroom.
 > When BOTH roles idle more than the noise band, the rate is set by something the split does
@@ -401,9 +345,7 @@ Source: `src/core/flipctl.cc`, `FlipController::decide_placement`. Preserved sou
 > account, once per reading, off the hot path. A forced seek is exempt: it is a directed test.
 
 ## 2026-11-08 — 28. FlipController::decide_placement
-
 Source: `src/core/flipctl.cc`, `FlipController::decide_placement`. Preserved source rationale:
-
 > A BAR LARGER THAN ANY AVAILABLE GAIN IS A MEASUREMENT VERDICT, NOT A PLACEMENT ONE. When the
 > model has picked a target and the only thing refusing it is the throughput bar, anchoring here
 > records "this split is fine" on the strength of noise. Measured: a 3:1 boot whose executors
@@ -416,9 +358,7 @@ Source: `src/core/flipctl.cc`, `FlipController::decide_placement`. Preserved sou
 > decides immediately.
 
 ## 2026-11-08 — 29. FlipController::seek_after_reading
-
 Source: `src/core/flipctl.cc`, `FlipController::seek_after_reading`. Preserved source rationale:
-
 > The Seeking phase: stabilized readings at the model's target, judged SEQUENTIALLY against the
 > origin's window. The hypothesis planned n_t readings from the origin's noise; after each one the
 > target's mean is compared at two standard errors of the difference (never below the origin's
@@ -429,9 +369,7 @@ Source: `src/core/flipctl.cc`, `FlipController::seek_after_reading`. Preserved s
 > lower, and that walk is what cost 19.5% on multi-key with the target unchanged.
 
 ## 2026-11-08 — 30. FlipController::anchor
-
 Source: `src/core/flipctl.cc`, `FlipController::anchor`. Preserved source rationale:
-
 > THE NULL-MANEUVER RULE, CLOSED ON THE OUTCOME. A maneuver that ends on the split it started
 > from moved ownership, paid every quiesce and changed nothing -- thrash by this project's own
 > definition. The trigger that started it was therefore not wrong about the workload, it was
@@ -439,7 +377,7 @@ Source: `src/core/flipctl.cc`, `FlipController::anchor`. Preserved source ration
 > next such excursion must present, not the size it must reach. Double the confirming control
 > passes the responsible detector needs; halve back toward the floor whenever a maneuver
 > actually moves the split, so a workload that really is drifting stays cheap to follow.
-> 
+>
 > The rejected alternative was widening that detector's band by twice the excursion it just
 > proved uninformative. Measured: a paced 8-key -> single-key change scores distance 0.630 on
 > a metric whose maximum is 1.0, so one null result set a floor of 1.26 and the fingerprint
@@ -447,9 +385,7 @@ Source: `src/core/flipctl.cc`, `FlipController::anchor`. Preserved source ration
 > A threshold learned from an excursion can exceed every excursion; a window cannot.
 
 ## 2026-11-08 — 31. FlipController::anchor
-
 Source: `src/core/flipctl.cc`, `FlipController::anchor`. Preserved source rationale:
-
 > Was the test valid? Re-judge the hypothesis against the origin as it reads AFTER the
 > return: if the target's delivered gain, corrected for how far the baseline itself moved
 > during the excursion, would have cleared the threshold, the baseline moved out from
@@ -459,28 +395,254 @@ Source: `src/core/flipctl.cc`, `FlipController::anchor`. Preserved source ration
 > -48%, and that miss stands.
 
 ## 2026-11-08 — 32. FlipController::tick
-
 Source: `src/core/flipctl.cc`, `FlipController::tick`. Preserved source rationale:
-
 > Mid-maneuver, ONLY a forced trigger may interrupt. The maneuver's own split changes move
 > the pass-depth signature, so honoring `shifted` here lets the actuator re-trigger itself
 > forever (the sweep-abandon law: a signal the actuator moves cannot police it). The
 > detector re-baselines at anchor; a real workload change re-fires from the anchored state.
 
 ## 2026-11-08 — 33. FlipController::tick
-
 Source: `src/core/flipctl.cc`, `FlipController::tick`. Preserved source rationale:
-
 > Turning maneuver-only age sampling off changes the producer dispatch cost. Learn the
 > anchored fingerprint only after every owner has observed the dormant rate, otherwise
 > the controller detects its own disarm edge as a workload shift.
 
 ## 2026-11-08 — 34. FlipController::tick
-
 Source: `src/core/flipctl.cc`, `FlipController::tick`. Preserved source rationale:
-
 > Pass-depth is rate-sensitive: a genuine volume step can cross both detectors on its
 > first tick. Preserve that first rate observation until the required second one instead
 > of letting the fingerprint preempt it and re-anchor at the new rate. A pure mix shift,
 > with no pending rate evidence, still starts immediately.
+
+## 2026-11-08 — 35. file overview
+Source: `src/core/client_hz.h`, `file overview`. Preserved source rationale:
+> Redis 7.4 config.c updateHZ and server.c serverCron/clientsCron.
+
+## 2026-11-08 — 36. file overview
+Source: `src/core/climon_mask.h`, `file overview`. Preserved source rationale:
+> MONITOR/tracking destinations, including the forwarding history carried by an event.
+
+## 2026-11-08 — 37. file overview
+Source: `src/core/connreset.h`, `file overview`. Preserved source rationale:
+> Optional connection-teardown diagnostics. No code/storage in ordinary builds.
+> Build with -DTOMO_CONNRESET_TRACE and query DEBUG CLOSE-STATS. All writes are
+> on failure/teardown paths; no Client/ThreadCtx/Op fields or request-path probes.
+
+## 2026-11-08 — 38. file overview
+Source: `src/core/eof.cc`, `file overview`. Preserved source rationale:
+> End-of-stream admission and retirement. Ordinary receives never enter here.
+
+## 2026-11-08 — 39. IoLoop::receive_fin
+Source: `src/core/eof.cc`, `IoLoop::receive_fin`. Preserved source rationale:
+> From its drain acknowledgement this IO's FLIP pin holds every close, and a close
+> before the ownership commit refuses the FLIP at once (flipfix6). A FIN is that close
+> for a draining connection, but its EOF timer cannot finish behind the FLIP: the
+> pinned output's serve stays pending and complete input waits for admission, while a
+> planned connection with a pending EOF is never transferable. Refuse the same way now
+> rather than at the five-second deadline; the drain completes after rollback. After
+> the commit this notes nothing and the timer resumes at Idle as before.
+
+## 2026-11-08 — 40. file overview
+Source: `src/core/lbstall.h`, `file overview`. Preserved source rationale:
+> Cold LB drain accounting. Nothing here is visited by a stable placement's request path.
+
+## 2026-11-08 — 41. file overview
+Source: `src/core/lbstall.cc`, `file overview`. Preserved source rationale:
+> LB may decline a move; it may never turn a readiness fence into a traffic timeout.
+
+## 2026-11-08 — 42. Server::lb_refuse_stalled
+Source: `src/core/lbstall.cc`, `Server::lb_refuse_stalled`. Preserved source rationale:
+> A separate body also supplies an exact-size negative control: the measurement helper can
+> replace this function by `return false` in a COPY of the binary, retaining every text address.
+
+## 2026-11-08 — 43. Server::lb_refuse_stalled
+Source: `src/core/lbstall.cc`, `Server::lb_refuse_stalled`. Preserved source rationale:
+> Diagnostic negative control, never a runtime knob: keep the old timeout policy while
+> reporting the predicate and its pending duration. Used only in the maintainer's debug PRE.
+
+## 2026-11-08 — 44. file overview
+Source: `src/core/orthog.h`, `file overview`. Preserved source rationale:
+> Orthogonal schedule witnesses. Optional storage, no request-level hooks when disabled.
+
+## 2026-11-08 — 45. file overview
+Source: `src/core/lbsignals.h`, `file overview`. Preserved source rationale:
+> lbsignals.h — the READ side of the signal system: capture, derive, export.
+>
+> signal.h makes every loop report LoopSignals in the same units (ops, nanoseconds, entries)
+> and every shard report locality (foreign_ops). This interface captures those signals and
+> derives the quantities exported by INFO's # LB section and DEBUG LBSIGNALS. Placement and
+> role controllers also consume the underlying signals.
+>
+> COST: zero on the hot path. Everything here runs on the cold command path (DEBUG/INFO) or in a
+> controller beat. Writers keep their plain single-owner stores; capture reads each counter with
+> a relaxed __atomic_load_n (same MOV on x86). That is still a C++ data race, not a defined
+> publication (TSan; flipfix CT4.3). Counters are MONOTONIC — rates are the reader's job;
+> the server keeps no window state, so any number of readers can watch at their own cadence
+> without stepping on each other. That statelessness is itself a signal-quality feature: the
+> fork's sampled-cputime hack had one global window that every consumer fought over.
+>
+> Role ns_per_op is diagnostic only: executor ops count shard tasks while IO ops count
+> commands. Their ratio is not a thread-split estimator on multi-key workloads. The role
+> controller uses wall-minus-idle demand instead (flip_policy.h).
+> Queue delay and oldest-age may TRIGGER a controller investigation, but they do not judge a
+> placement: only measured throughput after the move can do that. Latency signals show pressure,
+> not whether a different owner split will process more work.
+
+## 2026-11-08 — 46. file overview
+Source: `src/core/signalacct.h`, `file overview`. Preserved source rationale:
+> IO accounting owns [begin_ns,end_ns) of ONE invocation of the IO loop. Consecutive
+> publication cuts include the prologue, submit/reap, sweep and every continue edge. The
+> final cut precedes read-local teardown, close draining and persistence shutdown.
+> EX tenures and those teardown operations are outside this interval.
+
+## 2026-11-08 — 47. IoTenureHistory
+Source: `src/core/signalacct.h`, `IoTenureHistory`. Preserved source rationale:
+> Appended to Server's cold tail, never to an array of IO loops or ThreadCtxs.
+> One owner writes each row at tenure exit; shutdown reads only after join. Keeping
+> this here preserves every IO-loop object's size, stride and existing cache lines.
+
+## 2026-11-08 — 48. IoTenure
+Source: `src/core/signalacct.h`, `IoTenure`. Preserved source rationale:
+> Owner-local stack state only. Keep the clock every pass: cron, queue-age stamps
+> and the depth beat already consume it. Book the COMPLETE elapsed interval only
+> once per 100us signal window, not once per pass. Uneven passes and parked time
+> are never extrapolated from a sampled turn. finish() always flushes the remainder.
+> This has the same cadence as ThreadCtx::sample_depth; the controller's window is
+> much longer. There is no per-client state, allocation, runtime knob or layout change.
+> WindowNs=0 is the eager test/control specialization; production uses the default.
+
+## 2026-11-08 — 49. IoTenure::account
+Source: `src/core/signalacct.h`, `IoTenure::account`. Preserved source rationale:
+> Keep the conservation checks and shared-counter store out of ordinary
+> passes. Inlining this block enlarged every IO specialization and kept its
+> accounting state live across recv/dispatch/send even when nothing changed.
+
+## 2026-11-08 — 50. file overview
+Source: `src/core/signal_doorbell.h`, `file overview`. Preserved source rationale:
+> Process-wide shutdown doorbell: a save request wake, then a sticky terminal wake.
+>
+> eventfd accepts only an eight-byte counter write.  A signal contributes one logical event by
+> writing uint64_t{1}. Only the elected save owner consumes a nonterminal request before doing
+> the save, including a publisher's late write after a failed request ended. A separate terminal
+> latch restores any stop edge caught by that drain, so all workers still observe shutdown.
+
+## 2026-11-08 — 51. file overview
+Source: `src/core/signal.h`, `file overview`. Preserved source rationale:
+> signal.h — cross-thread handoffs and LoopSignals in common units for the IO and EX roles.
+>
+> Channels pair queue publication with notification, so load measurements use the same units
+> across directions. Ready-mask completion notifications share those wake and work counters.
+>
+> IO -> EX    MaskedChannelArray dispatch a parsed Task to the shard's owner
+> EX -> IO    ready mask / Channel<Client*> notify the connection owner to retire and send
+>
+> UNITS, fixed here so nothing has to be converted at the point of comparison:
+> work      operations (uint64 monotonic count)
+> time      NANOSECONDS, and busy is TIME-WEIGHTED, not an event count. A balancer that counts
+> events treats one expensive op the same as one cheap one; the fork's working pressure
+> balancer is time-weighted for exactly this reason.
+> pressure  queue depth in ENTRIES, accumulated with a sample count so a consumer can take a
+> time-average rather than a spot reading. Spot depth is noisy enough to make a
+> controller chase its own tail.
+>
+> THE 3% RULE. This machinery is always on, so it must cost under 3% or it does not ship. Hence:
+> scheduling counters are owner-written. Socket totals also have cross-thread INFO readers;
+> their single-writer atomic updates use relaxed load/store, never a shared atomic RMW.
+
+## 2026-11-08 — 52. thread_cpu_ns
+Source: `src/core/signal.h`, `thread_cpu_ns`. Preserved source rationale:
+> Thread CPU time. Needed because DEFER_TASKRUN defers completion work to the point where the thread
+> waits on the ring, so wall-clock "time spent in the work section" understates how busy the thread
+> really is. A controller that reads only wall time under DEFER_TASKRUN is measuring the wrong thing
+> — that already produced one wrong reading in the fork.
+
+## 2026-11-08 — 53. ReadyMask
+Source: `src/core/signal.h`, `ReadyMask`. Preserved source rationale:
+> THE #19/#20 DESIGN, ported: workers signal reply-readiness by setting an IDEMPOTENT bit in the
+> sender's mask instead of posting the Client* through a channel. Three properties fall out, and
+> each one retires a bug class this tree has already paid for:
+> - no claim protocol: a bit set twice is one bit, so the CAS-claim dance (and its StoreLoad
+> fence discipline) is not needed on this path;
+> - no pointers in flight: a channel entry can outlive the client (the teardown UAF); a bit
+> cannot -- the sender maps slot -> client through a table IT owns and IT clears;
+> - no stranding: the bit stays set until the sender takes it, and any completion after a take
+> re-sets it, so "both sides walk away" is unrepresentable.
+> Same take-then-serve ordering as NotifyMask; same read-first guard so a busy producer pays a
+> shared-line read, not an RMW. set() returns true on the empty->flagged transition (that RMW is a
+> full fence) -- the caller who gets true owes the park-wake, exactly like the channel protocol.
+
+## 2026-11-08 — 54. NotifyMask::take
+Source: `src/core/signal.h`, `NotifyMask::take`. Preserved source rationale:
+> Load-first, for the same reason ReadyMask::take is: an exchange is a locked RMW that takes
+> the line exclusive even when the word is zero, and every consumer pass takes every word of
+> every mask it drains -- four locked RMWs per io pass and four per ex pass, ~100 cycles that
+> at p1 are paid per OP because a pass is one op. A zero word is the common case and the
+> relaxed read costs a shared-line load. A bit set between the load and the skipped exchange
+> is not lost: it is still set, the next pass takes it, and the park path re-checks masks AND
+> queue depths behind a seq_cst fence (ThreadCtx::arm_blocked) so no wake can be missed.
+
+## 2026-11-08 — 55. Channel::push
+Source: `src/core/signal.h`, `Channel::push`. Preserved source rationale:
+> Returns false when full. A false MUST be handled — never dropped. Losing a queued item here
+> loses a reply and wedges the connection waiting for it, which is precisely the bug that
+> shipped in the fork.
+> `peer_ring` is the CONSUMER's ring, passed in rather than bound at construction: a bound
+> pointer would need every thread's ring to exist before any channel is wired, and getting that
+> startup order wrong leaves the pointer null and NO WAKE IS EVER SENT — a consumer that blocks
+> then sleeps forever on a non-empty queue. Passing it makes the dependency impossible to forget.
+> SPLIT IN TWO ON PURPOSE. The consumer's decision to sleep is made by reading the notify mask,
+> so the mask bit must be published BETWEEN the push and the wake decision. When this was one
+> call that set the bit afterwards, the producer read blocked_ before the bit existed and the
+> consumer read the bit before the producer wrote it -- both sides saw "nothing to do" and an
+> isolated request hung forever. Pipelined traffic hid it, because the next request re-poked the
+> consumer; only a lone command exposed it.
+
+## 2026-11-08 — 56. MaskedChannelArray
+Source: `src/core/signal.h`, `MaskedChannelArray`. Preserved source rationale:
+> One wake endpoint around one consumer-owned masked slot array.  Queue frontiers remain per
+> producer; only the blocked flag is shared, which is equivalent to the old code arming every task
+> channel together and removes nproducer stores from the sleep-only path.
+
+## 2026-11-08 — 57. file overview
+Source: `src/core/wb_rule.h`, `file overview`. Preserved source rationale:
+> One writeback policy in both modes: bounded small-pipe completion OR bytes OR half.
+
+## 2026-11-08 — 58. wb_rule::kSmallPipe
+Source: `src/core/wb_rule.h`, `wb_rule::kSmallPipe`. Preserved source rationale:
+> MEASURED default S=16, not derived from a batch size or reply size. Constants ledger
+> addendum 12, S=16 KEEP (2026-10-02); PLAN-SERIAL 2026-10-01 16:54 and
+> 2026-10-02 06:54: p8 saturation, p8@512K attainment, floor-0.4 bursts.
+> See MEASURE-REQUEST-wbhybrid.md: no honest derivation from existing sizings.
+
+## 2026-11-08 — 59. wb_rule::kCompleteVisits
+Source: `src/core/wb_rule.h`, `wb_rule::kCompleteVisits`. Preserved source rationale:
+> MEASURED default D=3. Constants ledger addendum 12, D=3 DERIVE-BY-MEASUREMENT
+> (2026-10-02); PLAN-SERIAL 06:54 D-curve row 3: p8 GET/SET/rl-SET
+> +9.4/+10.4/+6.6%, with floor-0.4 p99/p999 inside the same-binary band.
+
+## 2026-11-08 — 60. wb_rule::kIdleMultiplier
+Source: `src/core/wb_rule.h`, `wb_rule::kIdleMultiplier`. Preserved source rationale:
+> Measurement arms only; the maintainer keeps the smallest multiplier that
+> passes merit and removes this override. No runtime knob or machine time bound.
+> WB4.1 merit selected the two-completion grace window.
+
+## 2026-11-08 — 61. wb_rule::IdleWindow::active
+Source: `src/core/wb_rule.h`, `wb_rule::IdleWindow::active`. Preserved source rationale:
+> Division preserves wave5b's boundary and avoids multiplication overflow.
+
+## 2026-11-08 — 62. wb_rule::kPolicyFraction
+Source: `src/core/wb_rule.h`, `wb_rule::kPolicyFraction`. Preserved source rationale:
+> Dimensionless POLICY fraction, not a byte/count/time bound. Competition record
+> section 39 (2026-09-23/24), w4-c12: parse 32 / EX 32 / composite 1/2.
+
+## 2026-11-08 — 63. wb_rule::staged_bytes
+Source: `src/core/wb_rule.h`, `wb_rule::staged_bytes`. Preserved source rationale:
+> IO-owned sizes only; exclude submitted send/segment bytes from the next batch.
+> buffered_output_bytes() already walks the existing segment queue, without a
+> byte counter or allocation. Its send remainder equals send_buf().size()-wsent()
+> at every valid writeback frontier, as in the measured arm's accessor.
+
+## 2026-11-08 — 64. wb_rule::defer
+Source: `src/core/wb_rule.h`, `wb_rule::defer`. Preserved source rationale:
+> Separate measured candidate: assembly stays in ordinary WB, in ROB order.
 
