@@ -1,11 +1,9 @@
 // Weighted placement arithmetic and LB sampling/cost state shared by Server and controllers.
 // Partitioning assigns floor/ceil item counts to targets, including zero-demand windows;
-// incremental
-// search instead uses count spread as a tie-breaker. Demand is the primary objective and bytes
-// can
-// be a separate secondary objective, without blending their units. Search mutates caller-owned
-// temporary vectors, not client/shard ownership. Applying a plan requires the migration
-// protocol.
+// incremental search instead uses count spread as a tie-breaker. Demand is the primary
+// objective and bytes can be a separate secondary objective, without blending their units.
+// Search mutates caller-owned temporary vectors, not client/shard ownership. Applying a plan
+// requires the migration protocol.
 
 #pragma once
 #include <atomic>
@@ -28,10 +26,9 @@ namespace tomo {
 // protects folded shard history and sampling adaptation; the production monitor owns jitter and
 // damping decisions. sample_rate is a relaxed numeric publication. note_transfer adds duration
 // relaxed then release-increments transfers; move_cost_ns acquire-loads transfers before
-// duration.
-// Those loads are cumulative observations, not a paired snapshot. Before cost evidence, admit
-// one
-// move and retain a full decision-window cooldown. Allocation failures belong to callers.
+// duration. Those loads are cumulative observations, not a paired snapshot. Before cost
+// evidence, admit one move and retain a full decision-window cooldown. Allocation failures
+// belong to callers.
 struct LbAutotune {
     static constexpr uint32_t kTickMs = 1000;
     static constexpr uint32_t kDecisionTicks = 3;
@@ -148,10 +145,8 @@ struct LbAutotune {
     // INFO reads only the separately published atomics. No request-path reader or writer.
     // Contract: The production monitor updates the non-atomic history and QuietJitter/streak
     // references. INFO reads separately published relaxed atomics. update resets history on
-    // topology,
-    // counter or clock reversal and returns false until noise and sustained crossings admit a
-    // plan;
-    // it does not itself publish an ownership move.
+    // topology, counter or clock reversal and returns false until noise and sustained crossings
+    // admit a plan; it does not itself publish an ownership move.
     struct KeyDamping {
         uint64_t last_ms = 0, moves = 0, topology = UINT64_MAX;
         double recent = 0;
@@ -197,10 +192,9 @@ struct WeightedLbMoveChoice {
 // strictly improve the independent secondary spread. Count spread and stable ids break exact ties.
 // Contract: The LB planner (or a serialized test caller) supplies stable item/target vectors
 // and owns choice. Allocate temporary loads, leave inputs unchanged and return the best
-// admissible
-// single move. Pins prohibit selection; missing owners or no improving candidate return false.
-// Target ids must describe the intended distinct owners. Allocation exceptions propagate; this
-// function has no cross-thread publication or authority to transfer an item.
+// admissible single move. Pins prohibit selection; missing owners or no improving candidate
+// return false. Target ids must describe the intended distinct owners. Allocation exceptions
+// propagate; this function has no cross-thread publication or authority to transfer an item.
 inline bool weighted_lb_best_incremental_move(const std::vector<WeightedLbItem>& items,
                                               const std::vector<uint32_t>& targets, bool demand_hot,
                                               bool secondary_hot, WeightedLbMoveChoice& choice) {
@@ -281,12 +275,11 @@ inline bool weighted_lb_best_incremental_move(const std::vector<WeightedLbItem>&
     return choice.item_index != UINT32_MAX;
 }
 
-// Contract: FLIP plan builders and standalone callers supply stable item/target vectors and
-// own out. Place pinned items first, fill count-bounded targets largest-first, then prefer a
+// Contract: FLIP plan builders and standalone callers supply stable item/target vectors and own
+// out. Place pinned items first, fill count-bounded targets largest-first, then prefer a
 // feasible incumbent assignment with no worse spreads. Target ids must be distinct owner ids.
 // Return false when target/pin/count constraints cannot be met; allocation exceptions
-// propagate.
-// The output is a plan by value and requires separate synchronized installation.
+// propagate. The output is a plan by value and requires separate synchronized installation.
 inline bool weighted_lb_partition(const std::vector<WeightedLbItem>& items,
                                   const std::vector<uint32_t>& targets,
                                   std::vector<WeightedLbAssignment>& out) {
@@ -359,11 +352,9 @@ inline bool weighted_lb_partition(const std::vector<WeightedLbItem>& items,
         if (c < low || c > high) return false;
 
     // Prefer the incumbent assignment as a whole when it meets the same count bounds and
-    // neither
-    // demand nor secondary spread is worse. Greedy per-item ties cannot see that option once
-    // prior
-    // assignments make an incumbent appear full. The global comparison avoids moving balanced
-    // items when the resulting assignment offers no balance advantage.
+    // neither demand nor secondary spread is worse. Greedy per-item ties cannot see that option
+    // once prior assignments make an incumbent appear full. The global comparison avoids moving
+    // balanced items when the resulting assignment offers no balance advantage.
     {
         std::vector<uint32_t> inc_count(targets.size(), 0);
         std::vector<double> inc_load(targets.size(), 0);

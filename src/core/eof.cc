@@ -1,8 +1,7 @@
-// IoLoop end-of-stream admission and retirement for FIN/EOF paths.
-// The connection's IO owner maintains deferred timers and synthetic receive holds. Complete
-// buffered frames still use ordinary admission; a FLIP must not wait behind its own dispatch
-// pause.
-// Retirement or output progress renews the grace period for peers with stalled output.
+// IoLoop end-of-stream admission and retirement for FIN/EOF paths. The connection's IO owner
+// maintains deferred timers and synthetic receive holds. Complete buffered frames still use
+// ordinary admission; a FLIP must not wait behind its own dispatch pause. Retirement or output
+// progress renews the grace period for peers with stalled output.
 
 #include "io_loop.h"
 
@@ -88,12 +87,9 @@ void IoLoop::receive_eof_forget(Client* client) {
 
 // Contract: The IO owner's deferred-timer pass supplies a valid FIN/EOF timer index. Inspect
 // local buffered input and the ROB's quiescence, preserving normal admission for complete
-// frames
-// and synchronous DEBUG SLEEP/TRACKING continuations. Progress renews the deadline. Closure
-// removes
-// the timer, releases its synthetic receive hold and returns true; false keeps it for another
-// pass.
-// This function performs no separate cross-thread publication.
+// frames and synchronous DEBUG SLEEP/TRACKING continuations. Progress renews the deadline.
+// Closure removes the timer, releases its synthetic receive hold and returns true; false keeps
+// it for another pass. This function performs no separate cross-thread publication.
 bool IoLoop::receive_eof_pass(size_t index, uint64_t now_ms) {
     auto& timer = deferred_timers_[index];
     Client* client = timer.client;

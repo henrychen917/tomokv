@@ -16,11 +16,11 @@ bool multi_wb_prefix_hold(Client&);
 }
 #endif
 namespace tomo::wb_rule {
-// Small-pipeline cutoff; this policy constant is independent of batch and reply sizes.
-// Its selection evidence is recorded in docs/decisions/readability-a7.md.
+// Small-pipeline cutoff; this policy constant is independent of batch and reply sizes. Its
+// selection evidence is recorded in docs/decisions/readability-a7.md.
 inline constexpr unsigned /* TOMO_TOOL_BIND kSmallPipe */ kSmallPipe = 16;
-// Maximum counted visits before a small pipeline falls back to the half-prefix rule.
-// Its selection evidence is recorded in docs/decisions/readability-a7.md.
+// Maximum counted visits before a small pipeline falls back to the half-prefix rule. Its
+// selection evidence is recorded in docs/decisions/readability-a7.md.
 inline constexpr unsigned /* TOMO_TOOL_BIND kCompleteVisits */ kCompleteVisits = 3;
 // Copied into IoLoop padding during init; no allocation or per-visit configuration lookup.
 struct Settings {
@@ -36,12 +36,10 @@ inline constexpr uint64_t kIdleMultiplier = 2;
 // after a park must not teach the duration of the long operation we waited for.
 // Stack-local, using the pass clock cut: no allocation or extra clock read.
 // Contract: The split IO loop owns this stack state. Its pass clock supplies now, with
-// monotonic
-// timestamps required by unsigned subtraction. park breaks completion-interval learning; a
-// later
-// completion cannot teach the duration of the blocked wait. No allocation, publication or
-// waiting
-// occurs here; active reports whether the caller should continue its busy grace period.
+// monotonic timestamps required by unsigned subtraction. park breaks completion-interval
+// learning; a later completion cannot teach the duration of the blocked wait. No allocation,
+// publication or waiting occurs here; active reports whether the caller should continue its
+// busy grace period.
 struct IdleWindow {
     uint64_t completion = 0, interval = 0, previous_pass = 0;
     bool waited = true;
@@ -60,8 +58,8 @@ struct IdleWindow {
     }
     void park() { waited = true; }
 };
-// Dimensionless fraction of the in-flight ROB that must have a contiguous Done prefix after
-// the small-pipeline completion allowance is exhausted.
+// Dimensionless fraction of the in-flight ROB that must have a contiguous Done prefix after the
+// small-pipeline completion allowance is exhausted.
 inline constexpr std::ratio<1, 2> kPolicyFraction{};
 
 // Cold artifact selector: only the default 0/1 policy, no detector/probe bits.
@@ -187,13 +185,11 @@ inline bool defer(Connection& c, int policy = 1, unsigned small_pipe = kSmallPip
 // the caller's encoder capability; it is not a policy selector.
 struct Phase2 {
     // Contract: The owning IoLoop calls serve from its FIFO or generated R7 sweep in
-    // split/fused
-    // mode. Capture the current ready-list size as the visit budget. defer acquires Done before
-    // reading replies; deferred clients keep their pin and closing clients keep draining. A
-    // dead
-    // client is skipped after removing the FIFO pin. TLS/epoll failures use the IO close paths;
-    // return value counts work/served clients rather than guaranteeing a successful socket
-    // send.
+    // split/fused mode. Capture the current ready-list size as the visit budget. defer acquires
+    // Done before reading replies; deferred clients keep their pin and closing clients keep
+    // draining. A dead client is skipped after removing the FIFO pin. TLS/epoll failures use
+    // the IO close paths; return value counts work/served clients rather than guaranteeing a
+    // successful socket send.
     template <bool HasTls, bool kEp, class Loop, bool Coded = true>
     __attribute__((always_inline)) static inline uint32_t serve(Loop& loop) {
         using ServerType = std::remove_pointer_t<decltype(loop.srv_)>;

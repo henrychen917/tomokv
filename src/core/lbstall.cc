@@ -1,9 +1,7 @@
-// Cold LB refusal and parked-input accounting for Server.
-// shape_transition_mu_ serializes refusal with commit/stage changes; lb_signal_mu_ protects
-// cooldown
-// records. A release store of Idle resumes dispatch after refusal. Readiness and lifetime
-// fences
-// remain mandatory even when the controller gives up on a move.
+// Cold LB refusal and parked-input accounting for Server. shape_transition_mu_ serializes
+// refusal with commit/stage changes; lb_signal_mu_ protects cooldown records. A release store
+// of Idle resumes dispatch after refusal. Readiness and lifetime fences remain mandatory even
+// when the controller gives up on a move.
 
 #include "server.h"
 
@@ -49,13 +47,13 @@ bool Server::lb_drain_pass_expired(uint32_t tid, LbStage stage) {
 }
 
 // This out-of-line body is also an offline negative-control patch point: a copied ELF can
-// return
-// false here while retaining every text address. Production refusal follows the protocol below.
+// return false here while retaining every text address. Production refusal follows the protocol
+// below.
 // Contract: IO LB tails may request refusal for an observed epoch. Recheck epoch/stage under
 // shape_transition_mu_, then update cooldowns under lb_signal_mu_ and release-store Idle after
 // clearing the deadline. A stale or ineligible request returns false. No readiness fence is
-// waived;
-// the observe-only test build records evidence and returns false without cancelling the move.
+// waived; the observe-only test build records evidence and returns false without cancelling the
+// move.
 __attribute__((noinline)) bool Server::lb_refuse_stalled(uint64_t epoch, LbStallReason reason) {
     std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
     const LbStage stage = lb_stage();

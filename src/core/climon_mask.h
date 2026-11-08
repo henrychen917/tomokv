@@ -11,9 +11,8 @@ namespace tomo {
 
 // Contract: A value mask owns two ordinary words; callers serialize add/contains on that value.
 // set/load operate on caller-owned atomic words with relaxed RMW/load operations. IO ids must
-// be
-// below kBits; there is no bounds check, allocation or queue back-pressure. Reading both words
-// does not establish a simultaneous snapshot of membership.
+// be below kBits; there is no bounds check, allocation or queue back-pressure. Reading both
+// words does not establish a simultaneous snapshot of membership.
 struct ClimonIoMask {
     static constexpr uint32_t kBits = 128;
     uint64_t words[2] = {};

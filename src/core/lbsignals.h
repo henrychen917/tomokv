@@ -1,20 +1,18 @@
 // Value snapshots and renderers for LB diagnostics; capture is implemented in cmd/lbsignals.cc.
 // Loop signals use operations, nanoseconds and queue entries; shards also expose foreign
-// operations.
-// INFO/DEBUG capture cumulative counters without retaining a shared reader window, so each
-// reader
-// derives its own rates. Placement and role controllers also read the underlying signals.
+// operations. INFO/DEBUG capture cumulative counters without retaining a shared reader window,
+// so each reader derives its own rates. Placement and role controllers also read the underlying
+// signals.
 //
 // Writers use ordinary owner-local stores for many scheduling counters; capture's relaxed
 // __atomic_load_n on those fields does not establish a race-free C++ publication. The snapshot
-// is
-// not a coherent instant across threads. Atomic socket counters have their own defined loads.
+// is not a coherent instant across threads. Atomic socket counters have their own defined
+// loads.
 //
 // Role ns_per_op is diagnostic: EX counts shard tasks while IO counts commands. Their ratio
-// cannot
-// estimate a multikey role split; flip_policy.h uses wall-minus-idle demand. Queue delay/age
-// can
-// motivate investigation but do not establish that a different placement improves throughput.
+// cannot estimate a multikey role split; flip_policy.h uses wall-minus-idle demand. Queue
+// delay/age can motivate investigation but do not establish that a different placement improves
+// throughput.
 
 #pragma once
 #include <cstdint>
@@ -118,9 +116,8 @@ struct LbRoleRollup {
     }
 };
 
-// Contract: The capturing caller owns these vectors and rollups by value. Capture/format run
-// on cold INFO/DEBUG paths; the struct adds no synchronization to the sampled counters.
-// Allocation
+// Contract: The capturing caller owns these vectors and rollups by value. Capture/format run on
+// cold INFO/DEBUG paths; the struct adds no synchronization to the sampled counters. Allocation
 // can throw. Zero denominators render as zero, and rows do not promise a coherent cross-thread
 // snapshot or transfer authority over clients/shards.
 struct LbSnapshot {

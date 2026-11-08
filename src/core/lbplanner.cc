@@ -1,8 +1,6 @@
-// Cold LB admission, evidence gathering and search for the main monitor.
-// The monitor prepares a plan under epoch checks and seq_cst-publishes PlanReady. The selected
-// IO
-// coordinator uses shape_transition_mu_ to consume it and release-publishes a drain stage.
-// Cancelled
+// Cold LB admission, evidence gathering and search for the main monitor. The monitor prepares a
+// plan under epoch checks and seq_cst-publishes PlanReady. The selected IO coordinator uses
+// shape_transition_mu_ to consume it and release-publishes a drain stage. Cancelled
 // client-drain readers must finish before record reuse. Offline comparison bodies model IO-side
 // planning on the same executable layout; production does not select those bodies at runtime.
 
@@ -13,9 +11,8 @@
 #include <tuple>
 
 namespace tomo {
-// Offline behaviour-twin patch point. Production returns the configured damping level; a
-// copied ELF can return zero to use undamped policy on the same layout. Calls are in cold
-// control
+// Offline behaviour-twin patch point. Production returns the configured damping level; a copied
+// ELF can return zero to use undamped policy on the same layout. Calls are in cold control
 // paths, not command execution.
 __attribute__((noipa)) int32_t /* TOMO_TOOL_BIND lbosc3_level */ lbosc3_level(int32_t configured) {
     return configured;
@@ -85,12 +82,10 @@ bool LbAutotune::KeyDamping::update(double ratio, QuietJitter& noise, uint32_t& 
 // weighted_lb_partition from the same shared policy header.
 // Contract: The monitor's key planner supplies stable items/targets and owns choice. Temporary
 // load arrays score moves by out-of-band residual, transferred load and deterministic
-// tie-breakers.
-// Pins prohibit selection; absent owners or no improving move return false. Targets must
-// describe
-// distinct owners. Allocation can throw; this function neither changes input items nor
-// publishes
-// ownership, and the caller installs any selected plan through LB stages.
+// tie-breakers. Pins prohibit selection; absent owners or no improving move return false.
+// Targets must describe distinct owners. Allocation can throw; this function neither changes
+// input items nor publishes ownership, and the caller installs any selected plan through LB
+// stages.
 bool lbosc3_best_incremental_move(const std::vector<WeightedLbItem>& items,
                                   const std::vector<uint32_t>& targets, bool demand_hot,
                                   bool secondary_hot, WeightedLbMoveChoice& choice, double band) {
@@ -179,10 +174,9 @@ bool lbosc3_best_incremental_move(const std::vector<WeightedLbItem>& items,
 // Contract: The main monitor supplies a candidate IO coordinator and monotonic milliseconds.
 // Build a cold plan while shape_transition_mu_ protects topology/epoch checks and lb_signal_mu_
 // protects signal folds. Recheck epochs before writing the plan slot, then seq_cst-store
-// PlanReady.
-// False covers disabled/busy state, insufficient evidence, no move and caught bad_alloc; no
-// drain
-// starts until the IO coordinator consumes the plan. Tests serialize their own monitor calls.
+// PlanReady. False covers disabled/busy state, insufficient evidence, no move and caught
+// bad_alloc; no drain starts until the IO coordinator consumes the plan. Tests serialize their
+// own monitor calls.
 bool Server::/* TOMO_TOOL_BIND lb_controller_tick */ lb_controller_tick(uint32_t coordinator,
                                                                         uint64_t now_ms) {
     // Phase 1: validate admission and capture the topology.
@@ -543,8 +537,8 @@ __attribute__((cold, noinline)) bool Server::lb_debug_move_client(uint64_t id, u
 // validate epochs and exclusions, and wait by returning false if cancelled-drain readers still
 // hold the move record. Reuse starts after the seq_cst reader-count check; release-publish the
 // chosen drain stage after initializing it. Shard vectors swap without IO
-// allocation/reclamation.
-// Invalid plans release-store Idle; lock contention leaves the plan available for a later pass.
+// allocation/reclamation. Invalid plans release-store Idle; lock contention leaves the plan
+// available for a later pass.
 bool Server::/* TOMO_TOOL_BIND lb_consume_plan */ lb_consume_plan(uint32_t coordinator) {
     // Only an observed PlanReady reaches this cold path. Never wait behind a monitor gather.
     std::unique_lock lock(shape_transition_mu_, std::try_to_lock);
@@ -590,11 +584,10 @@ bool Server::/* TOMO_TOOL_BIND lb_consume_plan */ lb_consume_plan(uint32_t coord
 
 // Contract: Boot hosts call on the main thread while workers run. Drive database supervision,
 // INFO sampling, LB planning and FLIP ticks at their own deadlines; wake a coordinator after
-// plan
-// or automatic-FLIP publication. A lazily created wake ring belongs to this thread. Failed ring
-// initialization leaves worker park timeouts as the wake fallback. Exit on shutdown or any
-// worker
-// stop flag; signal_doorbell_wait observes readiness without consuming the shutdown event.
+// plan or automatic-FLIP publication. A lazily created wake ring belongs to this thread. Failed
+// ring initialization leaves worker park timeouts as the wake fallback. Exit on shutdown or any
+// worker stop flag; signal_doorbell_wait observes readiness without consuming the shutdown
+// event.
 void Server::/* TOMO_TOOL_BIND monitor_controllers */ monitor_controllers() {
     // INFO sampling uses this cold thread even when both controllers are off.
     uint64_t next_lb_ms = 0, next_flip_ms = 0, next_info_ms = 0;
@@ -662,12 +655,10 @@ void Server::/* TOMO_TOOL_BIND monitor_controllers */ monitor_controllers() {
 // verifier checks admission/actuation against its recorded baseline before building that twin.
 // Contract: The offline twin's elected IO cron writer supplies coordinator/time; this body
 // performs admission and planning in that IO tail. shape_transition_mu_ serializes admission
-// and
-// drain publication; lb_signal_mu_ protects folds/gathers. Publish ClientDrain by release store
-// or
-// start shard drain after populating records. There is no PlanReady handoff or epoch
-// revalidation
-// equivalent to the monitor planner here. Busy/no-candidate/bad_alloc paths return false.
+// and drain publication; lb_signal_mu_ protects folds/gathers. Publish ClientDrain by release
+// store or start shard drain after populating records. There is no PlanReady handoff or epoch
+// revalidation equivalent to the monitor planner here. Busy/no-candidate/bad_alloc paths return
+// false.
 bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */ lb_controller_tick_pad(
     uint32_t coordinator, uint64_t now_ms) {
     // Phase 1: validate admission and capture the topology.
@@ -932,8 +923,7 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */ lb_controller_tick_pad(
 // Contract: The offline twin calls on the connection-owning IO's control tail. Advance IO/EX
 // drain ACKs or client readiness/transfer using Server's stage protocol and cached time. Refuse
 // expired or busy client moves without weakening readiness/lifetime predicates. Failed wake
-// SQEs
-// leave a retry obligation. Return a work count to keep required drain progress active.
+// SQEs leave a retry obligation. Return a work count to keep required drain progress active.
 __attribute__((always_inline)) inline uint32_t
     IoLoop::/* TOMO_TOOL_BIND lb_control_actuate_pad */ lb_control_actuate_pad() {
     if (!lb_controller_armed_) return 0;
@@ -1051,8 +1041,7 @@ void IoLoop::/* TOMO_TOOL_BIND lb_pass_begin_pad */ lb_pass_begin_pad() {}
 uint32_t IoLoop::/* TOMO_TOOL_BIND lb_control_pass_pad */ lb_control_pass_pad() {
     uint32_t did = lb_control_actuate_pad();
     // The twin uses lb_pause_id_ storage as its per-IO cron deadline. Its parser reads the
-    // stage
-    // directly, so this value does not carry a cached pause id.
+    // stage directly, so this value does not carry a cached pause id.
     if (__builtin_expect(lb_controller_armed_ && cached_now_ms_ >= lb_pause_id_, false)) {
         lb_pause_id_ = cached_now_ms_ + srv_->lb_tick_ms();
         if (srv_->lb_cron_writer_pad(self_->id()) &&

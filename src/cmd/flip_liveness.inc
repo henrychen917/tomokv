@@ -1,7 +1,6 @@
-// FLIP connection liveness, output holds and deferred borrow releases. Included by multi.inc
-// in cmd/xshard.cc after MultiSession and flip_session.inc, with BlockingState already defined.
-// IO owners maintain client holds; blocking continuations consult the FLIP acknowledgement
-// before
+// FLIP connection liveness, output holds and deferred borrow releases. Included by multi.inc in
+// cmd/xshard.cc after MultiSession and flip_session.inc, with BlockingState already defined. IO
+// owners maintain client holds; blocking continuations consult the FLIP acknowledgement before
 // publishing owner work. A surviving IO may retain blocked/TLS/non-draining clients, but a
 // converting IO must refuse them. Borrow releases resume after final executor masks are
 // installed.
@@ -250,10 +249,10 @@ bool IoLoop::flip_immovable_refused() {
 
 // Contract: The IO FLIP drain supplies its client and whether it is the coordinator client.
 // Check WB migration state for possible movers; deliberately omit that check for stationary,
-// post-install and coordinator paths because their deferred frames keep the installed IO.
-// The coordinator keeps one FLIP op; other paths use stationary, execution or full drain
-// predicates.
-// False postpones acknowledgement without relaxing ROB, borrow or send lifetime requirements.
+// post-install and coordinator paths because their deferred frames keep the installed IO. The
+// coordinator keeps one FLIP op; other paths use stationary, execution or full drain
+// predicates. False postpones acknowledgement without relaxing ROB, borrow or send lifetime
+// requirements.
 bool IoLoop::flip_client_drained(const Client* client, bool coordinator) const {
     const bool enabled = flip_liveness_enabled();
     const bool post = enabled && srv_->flip_stage() == FlipStage::ClientInstall;

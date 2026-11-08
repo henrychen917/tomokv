@@ -1,7 +1,6 @@
-// LB drain refusal reasons, per-IO pass budgets and diagnostic counters.
-// Included by weighted_lb.h as the optional LB policy's stall state. ClientDrain may be refused
-// after bounded readiness/ACK attempts; shard IO/EX drains have separate completion
-// obligations.
+// LB drain refusal reasons, per-IO pass budgets and diagnostic counters. Included by
+// weighted_lb.h as the optional LB policy's stall state. ClientDrain may be refused after
+// bounded readiness/ACK attempts; shard IO/EX drains have separate completion obligations.
 
 #pragma once
 #include <array>
@@ -27,8 +26,8 @@ LbStallReason lb_stall_reason(const std::string& error);
 // Contract: The Server-owned LB sidecar contains one Watch per physical IO. That IO updates its
 // epoch/pass/timestamp fields; refusal and diagnostic totals use atomics. The three-pass budget
 // applies to a ClientDrain source waiting for readiness/ACK, not shard drains or deferred
-// record
-// lookup. Refusal resumes traffic without weakening migration readiness or lifetime fences.
+// record lookup. Refusal resumes traffic without weakening migration readiness or lifetime
+// fences.
 struct LbStallState {
     // A ready client's source gives its destination three unsuccessful IO tails to acknowledge.
     // Charge only an actual readiness/ACK wait, never a deferred control-record lookup;

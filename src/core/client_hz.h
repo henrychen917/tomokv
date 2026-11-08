@@ -15,10 +15,8 @@
 namespace tomo {
 // Contract: Server owns this state; configuration setters store atomic values and IO cron/INFO
 // read effective(). Callers must keep configured in 1..500, as parse does, to make division
-// valid.
-// No payload is published with the relaxed loads. Parse failure leaves value untouched and
-// returns
-// an error string; computing the cadence neither allocates nor waits.
+// valid. No payload is published with the relaxed loads. Parse failure leaves value untouched
+// and returns an error string; computing the cadence neither allocates nor waits.
 struct ClientHz {
     static constexpr uint32_t kDefault = 10, kMin = 1, kMax = 500;
     static constexpr uint32_t kClientsPerTick = 200;

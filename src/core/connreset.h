@@ -16,11 +16,9 @@ namespace tomo::connreset {
 inline std::mutex mutex;
 inline std::map<std::string, uint64_t> counts;
 
-// Contract: The connection's IO owner supplies a valid Client on teardown/failure paths.
-// mutex serializes the shared map and stderr output, not the Client itself. Map/string
-// allocation
-// may throw; fprintf failure is not returned. This is diagnostic code under
-// TOMO_CONNRESET_TRACE.
+// Contract: The connection's IO owner supplies a valid Client on teardown/failure paths. mutex
+// serializes the shared map and stderr output, not the Client itself. Map/string allocation may
+// throw; fprintf failure is not returned. This is diagnostic code under TOMO_CONNRESET_TRACE.
 inline void note(const Client& client, uint32_t owner, const char* event,
                  std::source_location site = std::source_location::current(), int result = 0) {
     std::lock_guard guard(mutex);

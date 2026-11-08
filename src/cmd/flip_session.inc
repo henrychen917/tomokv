@@ -1,7 +1,6 @@
 // FLIP session-readiness and closing-client cleanup predicates. Included by multi.inc in
-// cmd/xshard.cc immediately after MultiSession, with BlockingState already defined.
-// The session, queued argv/error and watched aliases belong to the stable Client. An
-// unpublished
+// cmd/xshard.cc immediately after MultiSession, with BlockingState already defined. The
+// session, queued argv/error and watched aliases belong to the stable Client. An unpublished
 // attempt still owns admission on its source IO. The session-preserving migration exception is
 // used during ClientPrepare after IoDrain/ExDrain; safe_to_release still requires zero pins.
 bool Client::flip_session_pending() const { return multi_session_ && multi_session_->pending; }

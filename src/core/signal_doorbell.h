@@ -1,10 +1,8 @@
 // Process-wide shutdown eventfd: a nonterminal save-request wake and a sticky terminal wake.
 // Shared by main's signal handlers, worker rings, the monitor and the save-owner shutdown path.
 // Writes use the eventfd-required eight-byte uint64_t{1}. The save owner drains nonterminal
-// requests,
-// including late writes after failed saves. A release/acquire terminal latch restores any stop
-// edge
-// caught by that drain so other workers can still observe shutdown.
+// requests, including late writes after failed saves. A release/acquire terminal latch restores
+// any stop edge caught by that drain so other workers can still observe shutdown.
 
 #pragma once
 
@@ -23,11 +21,10 @@ inline volatile sig_atomic_t g_signal_doorbell_fd = -1;
 inline std::atomic<bool> g_signal_doorbell_terminal{false};
 static_assert(std::atomic<bool>::is_always_lock_free);
 
-// Contract: main owns the descriptor lifetime. Initialize before installing users of the
-// global fd and tear down after those users stop; concurrent replacement is not supported here.
-// init returns false for reinitialization or eventfd failure. Notification preserves errno,
-// retries EINTR and cannot report other write errors from a signal handler. The lock-free
-// terminal
+// Contract: main owns the descriptor lifetime. Initialize before installing users of the global
+// fd and tear down after those users stop; concurrent replacement is not supported here. init
+// returns false for reinitialization or eventfd failure. Notification preserves errno, retries
+// EINTR and cannot report other write errors from a signal handler. The lock-free terminal
 // atomic carries stop state; wait observes readiness without consuming it.
 class SignalDoorbell {
 public:

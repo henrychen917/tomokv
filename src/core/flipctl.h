@@ -1,12 +1,9 @@
 // FLIP workload fingerprints and the role-placement controller, shared by ThreadCtx and Server.
 // The physical IO owner accumulates sampled parse passes and release-publishes cumulative
-// windows;
-// the monitor acquires the window count before reading counters. A window is not a coherent
-// snapshot
-// of all fields. FlipController serializes tick, INFO and DEBUG state with its cold mutex;
-// forced
-// requests and the sampling rate have separate atomics. No fingerprint allocation occurs per
-// frame.
+// windows; the monitor acquires the window count before reading counters. A window is not a
+// coherent snapshot of all fields. FlipController serializes tick, INFO and DEBUG state with
+// its cold mutex; forced requests and the sampling rate have separate atomics. No fingerprint
+// allocation occurs per frame.
 
 #pragma once
 
@@ -75,28 +72,21 @@ static_assert(sizeof(FlipFingerprintPublication) == sizeof(FlipFingerprintWindow
 // Contract: ThreadCtx configures this writer during initialization; its physical IO owner then
 // calls note_command in sampled parse passes and finish_parse_pass/arm at pass end. The monitor
 // reads published_since. Local partial counters have no synchronization; publication uses
-// relaxed
-// counter stores followed by closed_windows.store(release), paired with its acquire reader.
-// Call finish_parse_pass and arm with a nonzero work_window; note_command follows the frame's
-// last
-// refusal/back-pressure point. A zero window leaves the gate false and requires no sample
-// storage
-// beyond this embedded object. The writer allocates nothing and has no queue-full failure.
+// relaxed counter stores followed by closed_windows.store(release), paired with its acquire
+// reader. Call finish_parse_pass and arm with a nonzero work_window; note_command follows the
+// frame's last refusal/back-pressure point. A zero window leaves the gate false and requires no
+// sample storage beyond this embedded object. The writer allocates nothing and has no
+// queue-full failure.
 //
 // Sampling is by parse pass: no IO command counter covers both point paths and all IO-local
 // commands. pass_sampled reads the countdown for each dispatched frame, without a per-frame
-// store.
-// A sampled pass fingerprints every admitted frame; partial_.commands supplies its depth. At
-// pass
-// end the caller's xorshift draws a gap, so this object needs no generator state. Gaps are
-// uniform
-// over [1, 2W-1] passes, mean W. Including gap 1 avoids aliasing a fixed stride with periodic
-// command
-// mixes (a 1:1 mix has period 2). In expectation one frame in W is sampled at every pipeline
-// depth.
-// W=1 samples every pass and supplies the exhaustive unit-test oracle. W=0 leaves
-// pass_countdown_
-// at 1; the callers' enabled checks omit finish/arm, so the false gate stays on a clean line.
+// store. A sampled pass fingerprints every admitted frame; partial_.commands supplies its
+// depth. At pass end the caller's xorshift draws a gap, so this object needs no generator
+// state. Gaps are uniform over [1, 2W-1] passes, mean W. Including gap 1 avoids aliasing a
+// fixed stride with periodic command mixes (a 1:1 mix has period 2). In expectation one frame
+// in W is sampled at every pipeline depth. W=1 samples every pass and supplies the exhaustive
+// unit-test oracle. W=0 leaves pass_countdown_ at 1; the callers' enabled checks omit
+// finish/arm, so the false gate stays on a clean line.
 class FlipFingerprintWriter {
 public:
     void configure(uint32_t commands_per_sample) {
@@ -220,10 +210,9 @@ struct FlipSignature {
 
 FlipSignature flip_signature(const FlipFingerprintWindow& sample);
 // Workload-mix distance excludes pass_depth: changing the IO split also changes arrival
-// batching,
-// so that signal cannot judge the actuator that moves it. pass_depth remains sampled, published
-// and available for diagnostics. Command class, keys per multikey command and value bytes per
-// command supply the trigger evidence; rate detection covers volume changes.
+// batching, so that signal cannot judge the actuator that moves it. pass_depth remains sampled,
+// published and available for diagnostics. Command class, keys per multikey command and value
+// bytes per command supply the trigger evidence; rate detection covers volume changes.
 double flip_signature_distance(const FlipSignature& left, const FlipSignature& right);
 // Whole-signature distance including pass_depth. Diagnostics only -- never a trigger input.
 double flip_signature_pass_distance(const FlipSignature& left, const FlipSignature& right);
@@ -232,11 +221,10 @@ double flip_signature_pass_distance(const FlipSignature& left, const FlipSignatu
 // continuous in-band noise and 2/sqrt(N) for N sampled commands. Explicit and disabled forms
 // support detector fixtures; the production controller constructs the learned form.
 // Contract: Accumulate caller-owned fingerprint history and compare against an anchor.
-// Production calls
-// run under FlipController's mutex; standalone tests provide their own serialization. No atomic
-// publication or allocation occurs here. Empty samples return false, and an out-of-band sample
-// is
-// judged before noise learning so it cannot widen its own threshold.
+// Production calls run under FlipController's mutex; standalone tests provide their own
+// serialization. No atomic publication or allocation occurs here. Empty samples return false,
+// and an out-of-band sample is judged before noise learning so it cannot widen its own
+// threshold.
 class FlipShiftDetector {
 public:
     explicit FlipShiftDetector(int32_t configured_band = -1, uint32_t noise_windows = 1)
@@ -257,8 +245,7 @@ public:
     double last_distance() const { return last_distance_; }
     double jitter() const { return jitter_; }
     // The in-band anchor-distance noise bound, learned after anchoring; pre-anchor learning
-    // uses
-    // adjacent-window distances. It floors the learned production band.
+    // uses adjacent-window distances. It floors the learned production band.
     double noise_bound() const { return signature_noise_.bound(); }
     uint32_t noise_samples() const { return signature_noise_.samples; }
 
@@ -273,10 +260,8 @@ private:
     double jitter_ = 0;
     // Noise learning uses adjacent-window distance before anchoring and in-band distance from
     // anchored_signature_ afterward. jitter_ freezes the pre-anchor learning maximum so an
-    // excursion
-    // cannot widen the threshold that judges it. signature_noise_ keeps learning quiet-state
-    // noise
-    // while the anchor holds.
+    // excursion cannot widen the threshold that judges it. signature_noise_ keeps learning
+    // quiet-state noise while the anchor holds.
     FlipEwBound signature_noise_{};
     double band_ = 0;
     double last_distance_ = 0;
@@ -331,17 +316,13 @@ struct FlipctlReport {
 };
 
 // Contract: Server initializes this cold state before workers start; the main monitor drives
-// tick.
-// tick, report, debug_dump, debug_seek, debug_cost and wait_ms take mutex_. Forced requests use
-// a
-// release store consumed by tick's acq_rel exchange. Sampling rates use release stores; readers
-// load the numeric rate without a payload dependency. Private helpers require that
-// serialization.
-// Disabled init allocates no vectors; enabled init returns false on bad_alloc. tick returns
-// true
-// when it issues a FLIP; false includes sampling, holding, disabled state and refused
-// admission.
-// Ownership transfer belongs to Server/IoLoop's FLIP protocol, not to this model.
+// tick. tick, report, debug_dump, debug_seek, debug_cost and wait_ms take mutex_. Forced
+// requests use a release store consumed by tick's acq_rel exchange. Sampling rates use release
+// stores; readers load the numeric rate without a payload dependency. Private helpers require
+// that serialization. Disabled init allocates no vectors; enabled init returns false on
+// bad_alloc. tick returns true when it issues a FLIP; false includes sampling, holding,
+// disabled state and refused admission. Ownership transfer belongs to Server/IoLoop's FLIP
+// protocol, not to this model.
 class FlipController {
 public:
     FlipController() = default;
@@ -500,10 +481,8 @@ private:
     const char* model_last_decision_ = "none";
     // Outcome margin scales the throughput band a projected gain must clear. A returned miss
     // doubles it when band*margin is below 1; a delivered split change halves it toward 1.
-    // Candidate
-    // admission clamps the required gain to 1. More observations cannot remove an estimator's
-    // bias,
-    // so misses raise this bar rather than merely extending observation.
+    // Candidate admission clamps the required gain to 1. More observations cannot remove an
+    // estimator's bias, so misses raise this bar rather than merely extending observation.
     uint32_t model_margin_ = 1;
     uint64_t round_trips_ = 0;
     uint32_t maneuver_flips_ = 0;
@@ -531,15 +510,11 @@ private:
     Seek seek_ = Seek::None;
     uint32_t seek_target_io_ = 0;
     // Refinement remeasures demand after a delivered move because IO batching and per-command
-    // IO/EX
-    // costs depend on the split. Another outcome-judged step requires a different local argmax
-    // and a
-    // gain that pays the measured transfer cost. Stop at a fixed point or a split already
-    // visited in
-    // this maneuver. seek_origin_io_ is the current hypothesis's departure split (a miss
-    // returns
-    // there); maneuver_origin_io_ remains the maneuver's starting split for the null-maneuver
-    // rule.
+    // IO/EX costs depend on the split. Another outcome-judged step requires a different local
+    // argmax and a gain that pays the measured transfer cost. Stop at a fixed point or a split
+    // already visited in this maneuver. seek_origin_io_ is the current hypothesis's departure
+    // split (a miss returns there); maneuver_origin_io_ remains the maneuver's starting split
+    // for the null-maneuver rule.
     uint32_t seek_origin_io_ = 0;
     bool refining_ = false;
     double refine_bar_ = 0;  // flip_refine_bar of the step that landed here
@@ -550,12 +525,9 @@ private:
     // (flip_policy.h): the floor under every band the controller learns from stabilized pairs.
     FlipEwVariance rate_ew_{};
     // The origin's stabilized readings are taken while Measuring leaves the split in place.
-    // Their
-    // mean is R0, relative standard deviation sizes verification, and min/max bracket floors
-    // every
-    // maneuver band. A gain smaller than the baseline's own movement does not establish a gain
-    // from
-    // the role change.
+    // Their mean is R0, relative standard deviation sizes verification, and min/max bracket
+    // floors every maneuver band. A gain smaller than the baseline's own movement does not
+    // establish a gain from the role change.
     FlipRateWindow origin_window_{};
     // The TARGET's stabilized readings during the seek: judged sequentially against the origin.
     FlipRateWindow target_window_{};

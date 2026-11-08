@@ -1,38 +1,28 @@
-// Arithmetic for FLIP demand, placement, verification and transfer-cost decisions.
-// Included by flipctl.h; these helpers have no Server dependency. FlipController supplies
-// serialized
-// state and one demand observation per stabilized reading; tests can supply independent
-// windows.
-// The helpers do not publish shared state or perform ownership transfers.
+// Arithmetic for FLIP demand, placement, verification and transfer-cost decisions. Included by
+// flipctl.h; these helpers have no Server dependency. FlipController supplies serialized state
+// and one demand observation per stabilized reading; tests can supply independent windows. The
+// helpers do not publish shared state or perform ownership transfers.
 //
 // Demand windows use Welford mean/variance. The chooser tests each split under work
-// conservation:
-// R(s) ~ min(s/f, (N-s)/(1-f)), with f the IO share of wall-minus-idle work and SMT pairs
-// counted as
-// units. It moves when the chosen target's pessimistic gain clears the required bar, holds when
-// no
-// split's optimistic gain does, and samples otherwise. Current placement keeps serving during
-// this
-// observation; changing sample density is not part of the decision.
+// conservation: R(s) ~ min(s/f, (N-s)/(1-f)), with f the IO share of wall-minus-idle work and
+// SMT pairs counted as units. It moves when the chosen target's pessimistic gain clears the
+// required bar, holds when no split's optimistic gain does, and samples otherwise. Current
+// placement keeps serving during this observation; changing sample density is not part of the
+// decision.
 //
 // The controller scales its learned throughput band by an outcome margin. Verification compares
 // origin and target readings at two standard errors; a miss returns to the origin and increases
-// the
-// margin, while a delivered move reduces it. The caller bounds the required gain at 100%.
+// the margin, while a delivered move reduces it. The caller bounds the required gain at 100%.
 //
 // The cost gate uses commands over the demonstrated stationary horizon: benefit = g_low * R0 *
 // max(0, T_stat-T_black); cost = margin * [C_xfer * (1+P_miss) + P_miss * R0 * T_black]. Gains
-// are
-// calibrated before this call. T_black includes flip, settle and planned readings. C_xfer is
-// the
-// observed commands lost per transferred client times predicted transfers. Unknown transfer
-// cost
-// starts at zero so the first flip can measure it. P_miss uses Laplace's rule.
+// are calibrated before this call. T_black includes flip, settle and planned readings. C_xfer
+// is the observed commands lost per transferred client times predicted transfers. Unknown
+// transfer cost starts at zero so the first flip can measure it. P_miss uses Laplace's rule.
 //
 // FlipCostModel learns magnitude bias from raw predicted and delivered gains. Its kappa has the
 // credence of one average-size delivered move and is clamped to [0,1]; a non-positive
-// prediction
-// counts toward miss frequency but supplies no calibration evidence.
+// prediction counts toward miss frequency but supplies no calibration evidence.
 
 #pragma once
 
@@ -219,14 +209,12 @@ struct FlipRateWindow {
 // Rate-noise state owned by the caller; production accesses it under FlipController's mutex.
 // The exponentially weighted variance uses every eligible tick's second relative difference,
 // rel2 = (r_t - 2*r_{t-1} + r_{t-2}) / r_{t-1}. Stabilized pairs select quiet observations and
-// can
-// miss periodic movement. A linear ramp has zero second difference, a level shift leaves two
-// decaying impulses, and a periodic swing keeps contributing. Samples at/below the caller's
-// idle
-// floor break the chain; a second difference above 100% resets the variance as a regime change.
-// The configured time constant is the boot-deferral bound in ticks. Warm-up uses a running
-// average
-// to dilute early impulses. The controller resets this state when its measured flip completes.
+// can miss periodic movement. A linear ramp has zero second difference, a level shift leaves
+// two decaying impulses, and a periodic swing keeps contributing. Samples at/below the caller's
+// idle floor break the chain; a second difference above 100% resets the variance as a regime
+// change. The configured time constant is the boot-deferral bound in ticks. Warm-up uses a
+// running average to dilute early impulses. The controller resets this state when its measured
+// flip completes.
 struct FlipEwVariance {
     uint32_t samples = 0;  // second differences folded in
     double alpha = 0;
@@ -357,11 +345,9 @@ inline double flip_corrected_gain(double delivered, double baseline_shift) {
 
 // A refinement step must exceed the previous projection's observed error as well as the noise
 // bar. Return predicted minus delivered, floored at zero. The capacity model's sharp optimum
-// need
-// not match the real curve near its peak; an improvement smaller than this error does not
-// justify
-// another transfer or crossing that peak. The bar comes from the outcome, without a fixed
-// margin.
+// need not match the real curve near its peak; an improvement smaller than this error does not
+// justify another transfer or crossing that peak. The bar comes from the outcome, without a
+// fixed margin.
 inline double flip_refine_bar(double previous_predicted, double previous_delivered) {
     return std::max(0.0, previous_predicted - previous_delivered);
 }
@@ -377,11 +363,9 @@ inline FlipOutcome flip_judge(double delivered, double threshold, uint32_t k, ui
 
 // The cost model: what every flip so far cost and what every move so far delivered.
 // Contract: Caller-serialized cumulative cost and outcome state; FlipController owns the
-// production
-// instance under its mutex. Updates allocate nothing and publish nothing across threads.
-// Negative
-// cost inputs are floored, non-positive predictions omit calibration, and the accessors provide
-// explicit zero-history defaults rather than waiting for samples.
+// production instance under its mutex. Updates allocate nothing and publish nothing across
+// threads. Negative cost inputs are floored, non-positive predictions omit calibration, and the
+// accessors provide explicit zero-history defaults rather than waiting for samples.
 struct FlipCostModel {
     // Every flip, out or back, measured by the controller: commands the server did not serve while
     // the flip was in flight, connections the planner moved, the naive count it had to move, and
@@ -457,11 +441,10 @@ struct FlipCostVerdict {
 
 // The cost gate credits kappa-scaled gain over the demonstrated stationary horizon minus blind
 // time. Cost includes a flip, a possible revert and the entire origin rate at risk during a
-// wrong
-// split's blackout: a bad target can serve nothing. Pricing blackout as gain_mean*rate would
-// scale
-// cost and benefit together, erasing the intended dependence on gain. Larger projected gains
-// therefore require less stationary time to pay for the move; no fixed wait is added.
+// wrong split's blackout: a bad target can serve nothing. Pricing blackout as gain_mean*rate
+// would scale cost and benefit together, erasing the intended dependence on gain. Larger
+// projected gains therefore require less stationary time to pay for the move; no fixed wait is
+// added.
 inline FlipCostVerdict flip_cost_gate(double gain_low, double gain_mean, double rate,
                                       double stationary_s, double blackout_s, double transfer_cost,
                                       double p_miss, uint32_t margin) {

@@ -1,10 +1,8 @@
-// IO-tenure wall-time accounting shared by IoLoop, Server and shutdown reporting.
-// Each tenure owns [begin_ns,end_ns) of one IO loop invocation. Consecutive cuts include
-// prologue,
+// IO-tenure wall-time accounting shared by IoLoop, Server and shutdown reporting. Each tenure
+// owns [begin_ns,end_ns) of one IO loop invocation. Consecutive cuts include prologue,
 // submit/reap, sweep and continue edges; the final cut precedes read-local teardown, close
-// draining
-// and persistence shutdown. EX tenures and those teardown operations are outside this interval.
-// Owner-local busy plus idle must equal the elapsed interval; invalid cuts abort.
+// draining and persistence shutdown. EX tenures and those teardown operations are outside this
+// interval. Owner-local busy plus idle must equal the elapsed interval; invalid cuts abort.
 
 #pragma once
 
@@ -51,13 +49,11 @@ struct IoAccountingClock {
 // Contract: one IO loop invocation owns this stack state and its LoopSignals reference. pass
 // returns the clock used by cron, age stamps and depth sampling; it books the complete elapsed
 // interval at the 100us window cadence shared with ThreadCtx::sample_depth, which is shorter
-// than
-// the controller window. It does not extrapolate uneven passes or parked time from a sampled
-// turn.
-// Call finish exactly once to flush the remainder before teardown. Decreasing time/counters,
-// idle beyond elapsed time, overflow or a second finish abort. No internal allocation or
-// cross-thread publication occurs; Server separately records the returned value. WindowNs=0
-// provides eager test/control accounting; production uses the default.
+// than the controller window. It does not extrapolate uneven passes or parked time from a
+// sampled turn. Call finish exactly once to flush the remainder before teardown. Decreasing
+// time/counters, idle beyond elapsed time, overflow or a second finish abort. No internal
+// allocation or cross-thread publication occurs; Server separately records the returned value.
+// WindowNs=0 provides eager test/control accounting; production uses the default.
 template <class Clock = IoAccountingClock, uint64_t WindowNs = 100000>
 class IoTenure {
 public:

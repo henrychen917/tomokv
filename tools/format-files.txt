@@ -138,6 +138,7 @@ src/core/lbstall.h
 src/core/live_config.h
 src/core/orthog.h
 src/core/placement.h
+src/core/placement_impl.h
 src/core/pubsub.inc
 src/core/pubsub_event.h
 src/core/read_local.h

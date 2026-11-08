@@ -1,10 +1,9 @@
 // Listener descriptors and accepted-fd retention across IO role changes and CONFIG rebinds.
 // Physical IO issuers operate their own rings/epoll instances. FLIP stage acknowledgements
-// fence
-// listener cancellation, registration and ownership changes; admission/resumed release-acquire
-// epochs fence retained-fd admission. CONFIG uses a worker rendezvous with barriers before
-// replacing
-// descriptors. A listener's home identifies its slot independently of its current IO owner.
+// fence listener cancellation, registration and ownership changes; admission/resumed
+// release-acquire epochs fence retained-fd admission. CONFIG uses a worker rendezvous with
+// barriers before replacing descriptors. A listener's home identifies its slot independently of
+// its current IO owner.
 
 #include "io_loop.h"
 #include <sys/resource.h>
@@ -27,24 +26,20 @@ constexpr UrKind kinds[] = {UrKind::Accept, UrKind::TlsAccept, UrKind::UnixAccep
 
 // Contract: Server holds this shared metadata beyond an individual IO tenure. Listener records
 // name descriptors whose registration/close work belongs to the relevant IO issuers. Each IO
-// owns
-// its Local list and indexed Pending entries while admitting/retaining accepts; a quiescent
-// FLIP
-// coordinator splices lists and changes owners before stage publication. admission and resumed
-// use release/acquire epochs before draining retained fds. reserve bounds pending storage by
-// RLIMIT_NOFILE; allocation/registration failures refuse preparation, and fd bounds violations
-// abort.
+// owns its Local list and indexed Pending entries while admitting/retaining accepts; a
+// quiescent FLIP coordinator splices lists and changes owners before stage publication.
+// admission and resumed use release/acquire epochs before draining retained fds. reserve bounds
+// pending storage by RLIMIT_NOFILE; allocation/registration failures refuse preparation, and fd
+// bounds violations abort.
 struct FlipListenerState {
     struct Pending {
         int next;
         UrKind kind;
     };
     // Contract: home identifies the stable array slot; owner selects the current issuer and
-    // target
-    // is the prepared destination. Issuers mutate accept/cancel flags; FLIP or CONFIG changes
-    // descriptor
-    // ownership after cancellation/rendezvous fences. This record does not close fd on
-    // destruction.
+    // target is the prepared destination. Issuers mutate accept/cancel flags; FLIP or CONFIG
+    // changes descriptor ownership after cancellation/rendezvous fences. This record does not
+    // close fd on destruction.
     struct Listener {
         int fd = -1;
         uint32_t home = 0, owner = 0, target = 0;
@@ -53,11 +48,9 @@ struct FlipListenerState {
         bool armed = false, cancel_pending = false, cancel_submitted = false;
     };
     // Contract: The indexed physical IO owns registration flags and retained-list head/tail
-    // during
-    // normal processing. Quiescent coordinator splicing precedes release-published admission.
-    // resumed
-    // release-publishes completion after retained admission, accept rearming and transfer
-    // quiescence.
+    // during normal processing. Quiescent coordinator splicing precedes release-published
+    // admission. resumed release-publishes completion after retained admission, accept rearming
+    // and transfer quiescence.
     struct Local {
         int head = -1, tail = -1;
         bool registered[kListeners] = {};
@@ -142,11 +135,9 @@ struct FlipListenerState {
     // identity. Only the physical issuer touches its ring or epoll instance.
     // Contract: cfgfix_rebind owns this plan through an exclusive worker rendezvous. next owns
     // replacement descriptors until commit exchanges them into listener records; destruction
-    // closes
-    // unconsumed replacements. All workers meet join barriers, and all_okay uses two barriers
-    // so no
-    // worker overwrites a phase result before peers read it. Failed preparation leaves commit
-    // false.
+    // closes unconsumed replacements. All workers meet join barriers, and all_okay uses two
+    // barriers so no worker overwrites a phase result before peers read it. Failed preparation
+    // leaves commit false.
     struct Rebind {
         Server& server;
         FlipListenerState& state;
@@ -202,10 +193,9 @@ struct FlipListenerState {
     }
     // Contract: Each rendezvous worker calls with its physical tid and any IO context. Barriers
     // coordinate the elected AOF writer with per-owner queue flush/binding work. Existing
-    // atomic work,
-    // drain timeout or persistence failure sets okay false; all_okay propagates refusal before
-    // rebinding.
-    // Bindings are removed on all owners before the writer frees AOF state.
+    // atomic work, drain timeout or persistence failure sets okay false; all_okay propagates
+    // refusal before rebinding. Bindings are removed on all owners before the writer frees AOF
+    // state.
     static void aof_worker(Rebind& plan, IoLoop* loop, unsigned tid) {
         if (plan.old_aof == plan.want_aof) return;
         if (!plan.all_okay()) return;
@@ -259,12 +249,10 @@ struct FlipListenerState {
     }
     // Contract: The exclusive CONFIG rendezvous calls once per physical worker with a shared
     // Rebind plan. Each issuer reserves/cancels/registers its own kernel state; join barriers
-    // separate
-    // reservation, cancellation/AOF, descriptor commit and rearming. The caller holds
-    // listener-control
-    // admission. okay=false rolls back replacement registrations; failures of required
-    // committed
-    // kernel updates abort. Successful accepts keep their ordinary-loop lifetime obligations.
+    // separate reservation, cancellation/AOF, descriptor commit and rearming. The caller holds
+    // listener-control admission. okay=false rolls back replacement registrations; failures of
+    // required committed kernel updates abort. Successful accepts keep their ordinary-loop
+    // lifetime obligations.
     static void rebind_worker(void* context, unsigned tid) {
         auto& plan = *static_cast<Rebind*>(context);
         auto& state = plan.state;
@@ -401,8 +389,8 @@ namespace {
 // Contract: The CONFIG rebind caller supplies stable listener records under control admission.
 // Use a local netlink socket to inspect IPv4/IPv6 listening sockets, excluding this server's
 // descriptor inodes. Return false with an error on conflicts, incomplete inspection or
-// syscalls;
-// the RAII socket closes on exit. This preflight does not reserve the port against later binds.
+// syscalls; the RAII socket closes on exit. This preflight does not reserve the port against
+// later binds.
 bool rebind_exclusive(const FlipListenerState& state, const char* address, uint16_t port,
                       std::string& error) {
     if (!port) return true;
@@ -519,12 +507,10 @@ bool rebind_exclusive(const FlipListenerState& state, const char* address, uint1
 
 // Contract: The CONFIG command's executing worker supplies caller for the global exclusive
 // rendezvous. Acquire cfgfix control admission, prepare descriptors, then have each physical
-// issuer
-// apply its part behind worker barriers. Errors return false with diagnostics; scope guards
-// release
-// admission and close uncommitted sockets. Successful commit transfers descriptor ownership and
-// may request AOF rewrite; no partially prepared replacement is installed before the commit
-// decision.
+// issuer apply its part behind worker barriers. Errors return false with diagnostics; scope
+// guards release admission and close uncommitted sockets. Successful commit transfers
+// descriptor ownership and may request AOF rewrite; no partially prepared replacement is
+// installed before the commit decision.
 bool cfgfix_rebind(Server& server, uint32_t caller, uint16_t port, const std::string& bind,
                    std::string& error, int appendonly) {
     if (port == server.cfg().port && bind == server.cfg().bind_addr &&
@@ -750,9 +736,9 @@ uint32_t IoLoop::fliplisten_epoll(uint64_t tag) {
 // Contract: The FLIP coordinator calls after old IOs acknowledge listener cancellation/drain.
 // Create missing destination TCP/TLS listeners and reserve a rollback kernel reference before
 // listen; choose targets without yet changing existing owners. Socket/registration failure
-// returns
-// false and closes a failed new socket. Later stage publication exposes this prepared metadata;
-// the commit waits for destination registration and source preparation acknowledgements.
+// returns false and closes a failed new socket. Later stage publication exposes this prepared
+// metadata; the commit waits for destination registration and source preparation
+// acknowledgements.
 bool IoLoop::fliplisten_plan() {
     if (!srv_->flip_listeners_) return true;  // serverless role models
     auto& state = *srv_->flip_listeners_;
@@ -928,8 +914,7 @@ void IoLoop::fliplisten_resume() {
 
 void IoLoop::fliplisten_retry_accept(UrKind kind) {
     // The per-pass accept_pending_ branch calls this retry helper. Keep the listener scan
-    // outside
-    // arm_accept so ordinary native accept rearming does not carry its extra register
+    // outside arm_accept so ordinary native accept rearming does not carry its extra register
     // requirements.
     if (!accept_quiescing_) {
         arm_accept(kind);

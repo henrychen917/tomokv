@@ -1,7 +1,7 @@
-// Optional reorder-schedule counters shared by Server and the reorder implementation.
-// Server allocates the per-thread array when reorder is enabled. Writers update their physical
-// thread's row with relaxed atomics; INFO reads those counters without a coherent snapshot.
-// The default TOMO_R7_PATH/TOMO_R7_ALLOC macros emit no request-path code or storage.
+// Optional reorder-schedule counters shared by Server and the reorder implementation. Server
+// allocates the per-thread array when reorder is enabled. Writers update their physical
+// thread's row with relaxed atomics; INFO reads those counters without a coherent snapshot. The
+// default TOMO_R7_PATH/TOMO_R7_ALLOC macros emit no request-path code or storage.
 
 #pragma once
 #include <algorithm>
@@ -28,9 +28,9 @@ struct ReorderResult {
 
 // Contract: Server owns an optional array indexed by physical thread id. The corresponding
 // reorder executor updates a row across role changes; INFO loads its atomic fields. add
-// requires
-// one serialized writer per counter because it uses relaxed load/store rather than fetch_add.
-// The static assertions fix offsets and stride; updates allocate nothing and do not block.
+// requires one serialized writer per counter because it uses relaxed load/store rather than
+// fetch_add. The static assertions fix offsets and stride; updates allocate nothing and do not
+// block.
 struct alignas(64) ModeScheduleStats {
     uint8_t schedule_reserved[16]{};  // fixed prefix for the counter offsets below
     std::atomic<uint64_t> reorder_batches{0};
