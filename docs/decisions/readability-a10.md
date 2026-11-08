@@ -87,3 +87,210 @@ Keep SmallBuf growth out of WbEngine's per-op retire lambda. The inherited comme
 reports 186 to 263 instructions when this growth path was inlined, with a cost
 on a split GET cell but no quantified rate. Preserve both the internal code-zero
 check and any call-site guards.
+
+## 2026-11-08 — unified connection layout
+
+`Client`: the inherited 2026-08-24 note describes replacing ConnIn/ConnOut and their
+64-byte firewall after removing multi-sender architectures. The current IO owner
+parses and sends. Keep receive/send scalars packed and executor routing fields on
+one tail line; `obuf_bytes_` and `atomic_groups_io_` stay on IO-private lines. The
+old note attributes a pure-MGET regression, without a number, to executor reads
+of Client atomic bookkeeping. Op carries the needed snapshot instead.
+
+## 2026-11-08 — connection output capacity and cursor width
+
+`Client::fill_buf`, `swap_buffers`, `submit_legacy`: two 512-byte inline buffers
+replace the historical two 16-KiB allocations. On-demand capacity remains after
+clear. A 64-bit `wsent_` covers output buffers beyond 4 GiB; a 32-bit cursor wrapped
+and resent from earlier offsets. The one-byte fill index preserves offsets 32..47.
+The 1984-byte Client lock includes segment/iovec/msghdr state; the old note gives
+1408 bytes as the earlier layout and cites a 64-core zero-copy A/B without results.
+The TLS slot is at 1980; the historical audit's offset 12 is the interaction clock.
+
+## 2026-11-08 — independent parse-barrier claims
+
+`BarrierOwner`, `barrier_release`, `barrier_release_quiesced`: use one bit per
+mechanism, not a shared boolean. Blocking waits for an empty ROB and barrier
+producers end the parse pass; independent bits protect against future relaxation
+and the DEBUG BARRIER-HOLD overlap. The old six-owner/seventh-spare-bit wording
+is stale: seven production bits and the debug bit are assigned. This lane changes
+no barrier behavior or field width.
+
+## 2026-11-08 — out-of-band frame boundaries
+
+`Client::append_oob` / `WbEngine::defer_oob`: never attach a push to a live Op's
+reply buffer. A borrowed GET keeps its bulk header there, so that insertion
+splits header/body and can race a worker's SmallBuf growth. Never overwrite a
+live direct-reply region in fill spare capacity. Seal older fill bytes into the
+segment queue before a frame, then respect its dispatch frontier; a parked
+blocking operation remains the explicit bounded-latency exception.
+
+## 2026-11-08 — client release and queued completion pointers
+
+`Client::safe_to_release`: ROB quiescence alone does not consume a pending
+Client* retire notification. The inherited ASAN incident describes IO retirement
+through flush_ready, disconnect/free, then a late notification drain. The claimed
+retire flag, receive/send pins and WATCH references remain separate lifetime
+fences. This is a corrected description, not a lifetime-protocol change.
+
+## 2026-11-08 — ring fallback and explicit completion service
+
+`Ring::init` / `submit_and_reap`: retry initialization without optional flags when
+the kernel rejects them. The former fork anecdote is not a contract of this tree.
+DEFER_TASKRUN requires an event-requesting enter even on a busy loop; the inherited
+comment reports about 3.9 ms per depth-one operation, matching p99, when only plain
+submit was used. No timing result is produced by this lane. `sqe` retries once
+and can still return null; source comments now acknowledge the existing callers'
+back-pressure path.
+
+## 2026-11-08 — tagged eventfd wakeups
+
+`Ring::msg_to`, `post_mail`, `for_each_mail`: the snapshot barrier needs its
+SnapshotManager pointer as well as a wake, so epoll uses a mutex-protected tag
+mailbox before ringing eventfd. This preserves Channel/ThreadCtx notification
+interfaces without an io_uring setup syscall. The old assertion that only parked
+peers contend is not established by post_mail; the comment states the actual
+mutex publication and retained-tag behavior after an eventfd write failure.
+
+## 2026-11-08 — send classification without a shadow count
+
+`Ring::note_send_pending` / `sq_ready`: classify batches containing SEND because
+depth-one request/response clients wait for the send before producing another
+arrival. Query liburing's own tail/head state for queue occupancy; no generic
+per-SQE shadow counter is needed.
+
+## 2026-11-08 — sender architecture history
+
+`WbEngine`: the inherited 2026-08-24 header records deletion of dedicated-writeback
+and executor-writeback variants. Its historical figures were +2–4% at 64c/p32,
+−22..−35% at p1, −8% at p32 up to 32 cores, −8% overload with double the tail, and
+large-value wire-wall ties with worse tail; a p1..p32 sweep was −33% to +4% with a
+p16–32 crossover. It also says exwb won no measured cell. A later sentence in the
+same header contradicts its overload account, so neither is promoted to a current
+claim. The header's width-law discussion and fork WbGuard anecdote are historical:
+this implementation's current IO owner retires, stages and sends without a sender
+mutex. The removed WbGuard discussion described capturing one lock target to avoid
+locking and unlocking different re-derived objects, observed on a NIC but not
+loopback. Neither deleted architecture is proposed here.
+
+## 2026-11-08 — coded-reply staging without scratch arrays
+
+`stage_coded_reply`: render into the fill frontier or materialize into op.reply for
+segment/borrow paths. The inherited account says a scratch array changed retire
+lambdas from 139–196 to 237–280 instructions and added two to three stack-canary
+sequences, including on uncoded GETs. Keep buffer-growth code in the out-of-line
+helper. No compiler-cost or throughput experiment is rerun here.
+
+## 2026-11-08 — compile-time coded retirement
+
+`WbEngine::serve_impl` / `serve_tls_impl`: preserve Coded as a template parameter
+and the macro expansion inside each method's lambda context. The inherited note
+reports roughly 0.9% split-path work loss with a runtime forwarding boundary,
+compared with a dead-pad placement control (placement −0.11..−0.30%; binary
+−0.83..−1.48%). These inherited observations explain the preserved code shape;
+this lane adds no PAD arm and draws no new performance conclusion.
+
+## 2026-11-08 — chunked ROB slots
+
+`Rob::slot`: allocate eight contiguous Ops per touched chunk instead of a heap
+allocation per slot. The inherited comment reports a 3% SET/p32 loss for scattered
+slots. It also used an obsolete approximately 328-byte context size; the current
+336-byte Op lock makes a full 64-slot window 21 KiB. Chunk allocation, reuse and
+oversized-buffer shrink behavior are unchanged.
+
+## 2026-11-08 — read-local sidecar capacity
+
+`ReadLocalRobState` / `Rob::read_local_resolve_pending_body`: ring capacity follows
+the ROB window, while the precise blind-MSET keyset policy stays at 16 keys.
+The inherited independent instrument (`scratchpad/ringsize`) observed 63 live
+writes at depth 64/all writes and 19 at depth 32/41% reads. The invariant remains
+structural: prune before inserting the incoming Op's distinct window id.
+
+## 2026-11-08 — sidecar footprint and MGET fence
+
+`ReadLocalRobState` / `Rob::arm_current_local_mget_fence`: the inherited size
+account gives 1216 bytes, jemalloc's 1280-byte class and +965 RSS bytes per owning
+connection versus a 296/320-byte sixteen-slot sidecar. Allocate on the first write
+after arming, not accept; keep the MGET fence in Rob so read-only MGET does not
+allocate write history. No RSS measurement is performed here.
+
+## 2026-11-08 — coded-reply eligibility
+
+`Rob::acquire` / `acquire_read_local`: the inherited comment reports fused SET
+−2.4% and DEL −3.2% cycles/op, but a split GET result of −1.4% on both ABBA repeats.
+Keep the ordinary split acquisition's eligibility off. The source now also
+acknowledges the SplitLocal parser's Fused=true specialization and WbEngine's Coded
+template, which the old claim of shared, unreachable split coded blocks overlooked.
+
+## 2026-11-08 — staged-write resolver boundary
+
+`Rob::acquire_read_local` / `resolve_read_local_write`: the inherited note reports
+a 917-byte combined body that GCC would not inline into the parser. Keep an inline
+shell and a noinline resolver gated by the Staged tag, not general armedness;
+read frames with no candidate skip sidecar resolution. Publication/rollback and
+ring age ordering remain the same.
+
+## 2026-11-08 — pending-read admission and summary reset
+
+`Rob::pending_read_local_count` / `complete_pending_read_local_mask`: admission
+counts unpublished-to-owner local work, not completed replies still waiting for
+flush_ready's bounded serving FIFO after the AOF fence. The inherited observation
+says counting in_flight halved operations per rotation. The stale “PHASE 2” pointer
+now identifies that step by content. Clearing the complete pending set also
+clears its filter, including chunk completion; the old note cites `fcab80884` and
+a missing chunk reset that accumulated false hits across read-heavy batches.
+
+## 2026-11-08 — owner-conflict walk shape
+
+`Rob::read_local_owner_conflicts_before`: keep the predicate-templated body together.
+The inherited `scratchpad/robdiet/bisect.csv` D-versus-C account reports +2613 bytes
+of fused parsing, +1367 bytes of fused draining and 0.13 points more instructions
+per read for a forced-inline shell across roughly a dozen predicates.
+
+## 2026-11-08 — tag rejection before the exact write walk
+
+`Rob::read_local_write_conflicts` / `read_local_write_tag_may_match`: keep the empty
+check inline (the old combined function was reported as 612 bytes/out of line),
+and compare tags in sixteen-lane groups selected by the live-slot bitmap. The
+inherited GCC 13.3 account describes a flat 64-lane loop as eight scalar
+instructions per iteration, 599 instructions/145 cycles per rejected probe, and
+an initial −8% result at 61% reads. It reports mean live histories of six writes
+at 61% reads and nine at 41%, and attributes the grouped form to vpcmpeqw plus
+bit-weight OR reduction. The old pending-read filter comment separately estimated
+under 1% false hits for about eight pending GETs; no such estimate is asserted by
+the current source comment.
+
+Inherited `scratchpad/ringsize/probe_cost.sh` table, one connection / 20M probes:
+
+| Live writes | 1..15 | 19 | 40 | 63 |
+| --- | ---: | ---: | ---: | ---: |
+| Sixteen-slot instructions | 32 | 88 | n/a | n/a |
+| Grouped sweep instructions | 49 | 73 | 97 | 121 |
+| Sixteen-slot cycles | 5.1 | 15.1 | n/a | n/a |
+| Grouped sweep cycles | 8.1 | 11.7 | 16.2 | 19.5 |
+
+At 19, the sixteen-slot history uses a conservative generation, ending every
+probe in a false conflict. The old note describes the trade as 17 instructions /
+3 cycles more while the smaller ring fits, and 15 fewer instructions after it
+fills. The exact descriptor walk remains bounded by the ROB window; nineteen was
+an observed mix, not a capacity guarantee.
+
+## 2026-11-08 — arming transient and overflow-force lifetime
+
+`Rob::read_local_arm` / `mark_current_write` / `read_local_write_enter_overflow`:
+the inherited 2026-09-27 ruling accepts the bounded owner-path transient for
+pre-arming writes and sidecar allocation failure. The latter can reset arming, so
+“at most once” is not a valid lifetime claim. The arming fence freezes the newest
+unrecorded id rather than extending like an overflow generation. Change force_
+with overflow transitions, not speculatively during resolution: an abandoned
+candidate must not erase an active generation (write-ring unit case 8).
+
+## 2026-11-08 — interface-first candidate exclusions
+
+`Client` has 359 in-class code lines, `WbEngine` 592 and `Rob` 485 by the lane's
+lizard inventory; `Ring` has 236 and does not reach the approximately 300-line
+threshold. Client::migration_protocol_idle is a file-path patch site in
+`tools/archive/tools/flipfix6_diag.py`. WbEngine is read/patched by
+`tests/wbland_checks.py` and inspected by `tests/racefix.py`; Rob is explicitly
+comments-only for A20. No class-body split is attempted, so none is kept or
+reverted. Definitions and includes retain their order and locations.

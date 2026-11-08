@@ -1,52 +1,11 @@
-// wb.h — write-back: turning completed replies into bytes on a socket.
+// Reply retirement, staging and socket sending for each IoLoop's WbEngine. The connection's
+// current IO owner sends its output, preserving reply order and one in-flight send per socket.
+// The engine borrows Ring/callback state; Client owns output buffers and send iovecs, and the
+// shard release callback returns borrowed values after completion or teardown.
 //
-// PURE 2s (owner ruling 2026-08-24): the io thread that owns a connection is its only sender,
-// for life. The 3s posture (dedicated wb threads) was measured and deleted -- its one win was
-// +2-4% at 64c p32 (deep pipe + ex-scarce, the split tax amortized), and it lost everything
-// else: p1 -22..-35%, p32<=32c -8%, overload -8% with double the tail, large values tied at the
-// wire wall with worse tail. The depth sweep (p1..p32: -33% -> +4%, crossover ~p16-32) is the
-// architecture story: the split's per-op tax (extra kernel transitions, Client/sock line
-// migration, one hop) amortizes with batching, and only then can decoupled edges convert saved
-// cores into ex. One base is worth more than that corner.
-//
-// (Executor-issued sends (exwb) existed and were DELETED
-// 2026-08-24: #1 in zero measured cells. Send work rides the scarce ex role: nearly free at p1,
-// ruinous at p32. The p1 width law explains its old small-size p1 second places, and 2s dominates
-// those anyway.)
-//
-// The width law (2026-08-24): p1 throughput = min(recv lanes, send lanes) x per-lane rate; a 2s io
-// thread is both lanes at once, so 2s buys width ~twice as cheaply and owns p1. 3s protects ex from
-// send work and wins high-core high-pipe (64c p32) and overload.
-//
-// ============================================================================================
-// THE LOCK BUG THIS FILE EXISTS TO PREVENT
-//
-// In the fork, lock and unlock each independently re-derived the write-back object from the client:
-//
-//     tomoWbLockClient(c)   { wc = clientTail(c)->wb; ...lock(wc); }
-//     tomoWbUnlockClient(c) { wc = clientTail(c)->wb; unlock(wc); assert(before > 0); }
-//
-// If that expression yielded a different object between the two calls, unlock released a mutex it
-// never held and decremented a counter lock never incremented. It crashed on the 25GbE NIC and was
-// NOT reproducible on loopback — the worst possible shape.
-//
-// WbGuard resolves the target ONCE, in its constructor, and uses that captured pointer in its
-// destructor. Re-derivation is impossible, so the entire bug class is gone by construction rather
-// than by discipline.
-// ============================================================================================
-//
-// TWO ENGINES, ONE REPLY STRUCTURE (--net-io, 2026-08-28). Under io_uring a send is SUBMITTED and
-// its result arrives later as a CQE; under epoll the io thread issues the syscall itself and the
-// result is in hand immediately. Everything else -- what gets staged, in what order, which borrow
-// is released when, the one-send-per-socket rule -- is identical, and deliberately so: the reply
-// path's shape is not the engine's business.
-//
-// The split is a TEMPLATE PARAMETER, not a field. serve/pump/submit take <bool kEp> and the io loop
-// passes the value its own boot-resolved instantiation carries, so the uring build emits exactly the
-// instruction sequence it emitted before this lane and the epoll build never tests a mode bit. The
-// two cold entry points that cannot be templated (serve_suppressing, reached only from the CLIENT
-// REPLY object; the TLS drain inside close_client) dispatch on epoll_ instead -- both are already
-// out-of-line and neither is on a hot path.
+// io_uring submits sends whose results arrive as CQEs; epoll performs nonblocking syscalls and
+// accounts their immediate results. Both preserve staging order and borrow lifetimes. Hot paths
+// specialize kEp at compile time; cold CLIENT REPLY and TLS-close entry points dispatch on epoll_.
 //
 // WHY EPOLL DOES NOT REUSE on_send_complete. That handler ends in "resubmit -> pump", which under
 // io_uring means "queue another SQE and return". Called synchronously it would mean "syscall again,
@@ -71,30 +30,13 @@
 
 namespace tomo {
 
-// THE OWNER'S HALF of the coded reply (see ReplyCode in src/exec/op.h) has TWO shapes here, and
-// the split is a performance contract, not a style choice.
-//
-// The HOT path -- an op retiring with nothing staged ahead of it -- renders straight into the fill
-// buffer's frontier through reserve_fill/commit_fill. No temporary.
-//
-// The COLD paths -- a borrowed value, or a segment queue already open -- take op_materialise_code()
-// instead, which turns the code back into bytes inside op.reply and leaves their existing
-// append_buf_segment(op.direct, op.direct_len, op.reply.data(), op.reply.size()) lines completely
-// untouched. A code implies op.reply is empty and op.direct_len is zero, so the bytes land in the
-// right order with no reordering logic at all.
-//
-// The obvious middle road -- render into a `char scratch[kReplyCodeMax]` and pass it along -- was
-// built first and MEASURED WORSE. A local array makes GCC apply -fstack-protector-strong to the
-// enclosing function, and the enclosing function here is the per-op retire lambda: it went from
-// 139-196 instructions to 237-280 and picked up two to three canary sequences, which EVERY retired
-// op paid, GETs included, for a benefit only coded replies receive. That is the whole of the split
-// GET regression. No array on this path, ever.
-
-// The coded reply's ONLY appearance in the per-op retire lambda is a call to this. Rendering it
-// inline meant inlining reserve_fill -> SmallBuf::reserve -> grow(), i.e. malloc/memcpy/free, into
-// the hottest function the io thread runs -- paid in code size and register pressure by every op,
-// including the GETs that never carry a code. Base reached its reply through an out-of-line
-// SmallBuf::append call too, so this trades like for like.
+// Coded replies use two staging shapes. With no segment queue or borrow, render into the fill
+// frontier through reserve_fill/commit_fill. Otherwise op_materialise_code writes into op.reply
+// before append_buf_segment(op.direct, op.direct_len, op.reply.data(), op.reply.size()). A coded
+// reply has empty op.reply and zero direct_len, so materialization preserves header/payload order.
+// Avoid a local scratch array in the retire lambda: it introduces stack-protector work for every
+// retirement. Keep fill reservation/growth in this out-of-line helper so malloc/memcpy/free and
+// their register pressure are also outside the lambda, including for uncoded GET replies.
 template <bool TrackOutput>
 __attribute__((noinline)) void stage_coded_reply(Client& conn, Op& op) {
     const uint32_t n =
@@ -105,13 +47,16 @@ __attribute__((noinline)) void stage_coded_reply(Client& conn, Op& op) {
         conn.fill_buf().commit_raw(n);
 }
 
-// THE LOCK BUG note above is preserved as history: WbGuard died with the multi-sender designs
-// (exwb, then 3s). In pure 2s exactly one thread -- the connection's io thread -- ever touches the
-// send side, so there is nothing to lock and no object to re-derive. If a future flip ever puts
-// two servers on one connection, resurrect the guard from git history, not from memory.
-
-// Per-thread send engine. Every loop that sends owns one and calls the same two methods.
+// Per-IoLoop sender, called by the connection's current IO role. bind installs borrowed Ring,
+// callback contexts, limit state, clock and signals, all of which must outlive use. Client owns
+// the bytes/iovecs; this engine owns deferred push frames and acquires completed Ops via Rob::drain.
+// Staging preserves frame boundaries; a send CQE or synchronous result releases consumed borrows.
+// SQE shortage/WANT/EAGAIN leaves output for retry, fatal sends reach the caller through completion
+// results or send_failed_, and the limit callback can close the client. Container allocation can
+// throw; buffer allocation behavior belongs to Client/SmallBuf. There is no internal sender lock.
 class WbEngine {
+    // Owned frame bytes grouped behind an exclusive ROB issue frontier. The enclosing IO-owned
+    // queue releases them after flush_id reaches after; no other thread mutates this value.
     struct DeferredOob {
         uint64_t after = 0;  // exclusive ROB issue frontier preceding these frames
         std::string bytes;
@@ -145,8 +90,8 @@ public:
         tls_signals_ = tls_signals;
     }
 
-    // FLIP changes only this already-indirect callback while executor lanes are
-    // frozen. Ordinary command retirement and send completion gain no branch.
+    // FLIP rebinds the borrowed release context/callback while executor lanes are frozen.
+    // Retirement and completion use the installed indirect callback.
     void bind_release(void* context, ReleaseFn release) {
         release_ctx_ = context;
         release_fn_ = release;
@@ -171,7 +116,7 @@ public:
     // replies which have not retired yet: an SSUBSCRIBE delivery can then overtake its own ack.
     // Each parked frame therefore records the current dispatch frontier and flushes only after a
     // drain has staged replies through that frontier. Frames from different connections, and from
-    // different frontiers on one connection, cannot share the old single string.
+    // different frontiers on one connection, need separate queue entries.
     //
     // A genuinely parked blocking command is the bounded exception. It is the sole ROB entry (the
     // blocking dispatch is a whole-connection barrier), and while it remains Issued it has no reply
@@ -203,14 +148,9 @@ public:
         return bytes;
     }
 
-    // THE WHOLE REPLY SIDE, in one call: retire completed ops IN ORDER, stage their bytes, and
-    // write. All three belong together and all three belong to the sender -- if the io thread
-    // retired and merely handed bytes over, only the send syscall would move between modes, and
-    // an "ex-wb" measured that way would not be ex-wb. In pure 2s the sender is the connection's
-    // io thread and nobody else (the Wb-thread and EX-mode callers this comment once listed were
-    // deleted with those postures; see the head of this file), so no lock exists or is needed and
-    // the ROB stays SPSC by construction. Returns true if it did anything, so a caller can tell
-    // progress from an empty poll.
+    // Retire the completed in-order prefix, stage its bytes and try sending on the connection's
+    // IO owner. Both ROB frontiers belong to that owner; workers publish individual Done states.
+    // Return whether retirement, deferred-frame flushing, limit handling or sending did work.
     template <bool kEp = false, bool ClassifySend = false, bool Coded = false>
     bool serve(Client& c) {
         if (__builtin_expect(limit_armed_->load(std::memory_order_relaxed), false))
@@ -229,7 +169,7 @@ public:
     }
 
     // kTLS uses the ordinary plaintext staging and send path. This separate instantiation only
-    // enforces/counts the pre-existing TLS no-borrow contract; plaintext clients pay no mode test.
+    // enforces/counts the TLS no-borrow contract; plaintext clients pay no TLS mode test.
     template <bool kEp = false, bool ClassifySend = false, bool Coded = false>
     bool serve_ktls(Client& c) {
         if (__builtin_expect(limit_armed_->load(std::memory_order_relaxed), false))
@@ -245,8 +185,8 @@ public:
         return serve_impl<false, true, kEp, false, false, Coded>(c, &submit_allowed);
     }
 
-    // TLS is a separate write-back variant selected by the IO owner. Plain serve()/pump() above
-    // remain untouched and are the only instantiated path when tls-port is zero.
+    // The IO owner selects this userspace TLS variant for clients with an OpenSSL engine;
+    // plaintext clients use serve()/pump(), and kTLS uses the no-borrow specialization above.
     template <bool kEp = false, bool ClassifySend = false, bool Coded = false>
     bool serve_tls(Client& c, TlsConn& tls) {
         if (__builtin_expect(limit_armed_->load(std::memory_order_relaxed), false))
@@ -274,9 +214,8 @@ public:
         return failed;
     }
 
-    // CLIENT REPLY OFF/SKIP (Lane F) and CLIENT TRACKING. Cold: reached only from the climon object
-    // when the reply or tracking armed bit is set, never from serve(), so the send engine's hot
-    // template pair is untouched.
+    // CLIENT REPLY OFF/SKIP and CLIENT TRACKING use the cold climon serving path when armed.
+    // serve() uses its separate template instantiations without consulting these per-op marks.
     //
     // PER-OP, and that is the point. Suppression cannot be decided per connection: a pipelined
     // `CLIENT REPLY SKIP; PING; PING` retires all three in ONE drain, and a per-connection
@@ -309,6 +248,12 @@ public:
     }
 
 private:
+    // Drain/stage on the IO owner after bind, applying each Op's suppression mark while still
+    // surrendering command state through retire_fn_. Rob::drain's Done acquire orders reply data;
+    // newly staged borrows are either sent or returned through release. retire_plain enables the
+    // tracking hook for plain Ops. Limit closure clears submit_allowed when supplied; otherwise
+    // submit selects immediate pumping. Partial sends/SQE shortage retain output for retry, and
+    // the result reports work rather than successful delivery. Allocation failures are not caught.
     __attribute__((noinline, cold)) bool serve_suppressing_impl(Client& c, bool submit,
                                                                 bool* submit_allowed,
                                                                 bool retire_plain) {
@@ -503,8 +448,12 @@ public:
         return classify_cold_sends_ ? pump_tls<false, true>(c, tls) : pump_tls<false>(c, tls);
     }
 
-    // Engine independent except for its one ciphertext write, which submit_tls_cipher<kEp> owns.
-    // The plaintext -> OpenSSL half is identical in both engines.
+    // Advance TLS output on the connection IO owner with a bound engine and stable Client/TlsConn.
+    // Send pending ciphertext first, then offer the plaintext head to OpenSSL. Client cursors advance
+    // by accepted plaintext; BIO cursors advance by ciphertext send results. Borrow segments abort,
+    // and WANT retries require the same pinned plaintext range. An in-flight send/SQE shortage or
+    // WANT leaves work staged; TLS failure returns false for caller teardown. No cross-thread
+    // state is published here beyond the submitted IO request; return value reports progress.
     template <bool kEp = false, bool ClassifySend = false>
     bool pump_tls(Client& c, TlsConn& tls) {
         if (c.send_inflight()) return false;
@@ -545,7 +494,7 @@ public:
             const size_t sent = conn.wsent();
             if (sent >= total) {
                 // The last reply and all ciphertext have drained. A silent TLS peer
-                // can still own a uring recv/poll; wake its CQE so the existing
+                // can still own a uring recv/poll; wake its CQE so the
                 // safe_to_release fence can finish close-after-reply teardown.
                 if constexpr (!kEp)
                     if (c.closing() && c.rob().quiesced() && c.recv_armed())
@@ -600,8 +549,10 @@ public:
         return encrypted.op == TlsOp::Progress;
     }
 
-    // Completion handler. `res` is the CQE result: bytes written, or negative errno.
-    // Returns false when the connection should be torn down.
+    // Consume the IO owner's send CQE (byte count or negative errno), releasing Client's send pin.
+    // Accepted bytes advance the legacy/segment frontier; completed borrows use release_fn_.
+    // EAGAIN/EINTR retain output and optionally re-pump; fatal errors return false for teardown.
+    // The Client and bound callbacks must survive this CQE; no reply is retired by this function.
     template <bool SubmitFollowup = true, bool ClassifySend = false>
     bool on_send_complete(Client& c, int res) {
         bool resubmit = false;
@@ -613,10 +564,9 @@ public:
                     resubmit = true;
                 } else if (res == -ECONNRESET || res == -EPIPE || res == -ECONNABORTED ||
                            c.closing()) {
-                    // The peer tore the connection down mid-send (abrupt-disconnect batteries,
-                    // CLIENT KILL, kTLS conns on this plain path). No application reply is being
-                    // lost that the peer could still read; counting these as data-path send
-                    // errors made err=0 a timing lottery. Same carve-out the memory-BIO arm has.
+                    // Peer resets/broken pipes/aborts and closing clients count separately from
+                    // other send failures, including CLIENT KILL and kTLS on this plain path.
+                    // The memory-BIO completion path also separates peer aborts from send errors.
                     stats_.peer_aborts++;
                     return false;
                 } else {
@@ -658,6 +608,10 @@ public:
         return true;
     }
 
+    // Consume a ciphertext CQE on the IO owner while Client/TlsConn and callbacks are valid.
+    // Clear the send pin and consume BIO bytes, never Client plaintext cursors. Retryable errors
+    // optionally re-pump; failed BIO consumption/fatal sends return false. A closing connection
+    // discards unsendable BIO output for teardown; the caller owns the remaining lifetime fences.
     template <bool SubmitFollowup = true, bool ClassifySend = false>
     bool on_tls_send_complete(Client& c, TlsConn& tls, int res) {
         c.set_send_inflight(false);
@@ -780,9 +734,9 @@ public:
     void note_zc_suppressed_tls() { tls_signals_->tls_zc_suppressed++; }
 
 private:
-    // Empty on every serve of every connection that has no subscription, tracking or monitor:
-    // one predicted-true test per serve, as before. The drain has finished staging and published
-    // its new flush frontier, so every append below is on a frame boundary.
+    // The map can contain frames for any connection served by this engine; an empty-map check
+    // skips lookup when none are deferred. The drain has finished staging and release-published
+    // its flush frontier, so eligible appends occur at frame boundaries.
     bool flush_deferred_oob(Client& conn) {
         if (__builtin_expect(oob_defer_.empty(), true)) return false;
         auto found = oob_defer_.find(&conn);
@@ -799,26 +753,16 @@ private:
         return flushed;
     }
 
-    // `Coded` IS AN ORDINARY TEMPLATE ARGUMENT, and that is the whole point of this shape. The
-    // previous version decided it at RUNTIME from a boot-latched bool, which meant serve_impl
-    // became a forwarder in front of the real body -- a new function boundary in the io thread's
-    // hot path that moved inlining and cost the split cells ~0.9% of real work (measured against a
-    // dead-pad placement control: placement alone was -0.11%..-0.30%, the binary was -0.83%..-1.48%).
-    //
-    // Every caller already knows the mode statically, so nothing had to be threaded:
-    //   flush_ready              carries `Fused` as its 3rd template parameter already, and is the
-    //                            path BOTH modes take -> passes Fused
-    //   run_fused / run_loop     fused-only run_fused() selects run_loop with Fused=true
-    // With Coded=false every coded block below is deleted by `if constexpr`, so a 2s instantiation
-    // is the pre-reply-code function, not a variant of it.
-    // One source for retirement, staging, OOB flush, limits and accounting. Keep the existing
-    // template/lambda contexts: moving this body behind another C++ function changes GCC's
-    // inlining decisions and symbol/layout contracts. This local source expansion preserves
-    // those contexts and all existing if-constexpr specializations; it adds no runtime choice.
+    // Coded is a template choice supplied by the loop's Fused specialization: flush_ready carries
+    // that role and run_fused selects Fused=true. if constexpr removes code handling when false.
+    // This avoids a runtime forwarding boundary that changes inlining of the retirement body.
+    // The macro shares retirement, staging, OOB flushing, limits and accounting inside the original
+    // template/lambda contexts; a separate function would change those compiler contexts. It adds
+    // no runtime choice and preserves each specialization.
     // BeforeRetire, StageBorrow and the final pump are the only transport-specific statements.
     // Retire hooks materialize cross-shard state before examining the resulting borrow. Seal
     // older fill bytes before segments; direct bytes precede spills; coded replies render at
-    // the fill frontier or materialize into the current segment, just as before.
+    // the fill frontier or materialize into the current segment.
 #define TOMO_WB_SERVE_BODY(BeforeRetire, StageBorrow, ...)                                       \
     stats_.serves++;                                                                             \
     Client& conn = c;                                                                            \
@@ -886,6 +830,11 @@ private:
     if (!retired) stats_.serves_empty++;                                                         \
     return did;
 
+    // IO-owner ordinary/kTLS retirement: acquire Done Ops through drain, run special-state hooks,
+    // then stage bytes before borrows and CRLF. TrackOutput selects accounting/limit closure;
+    // Submit=false leaves pumping to the caller and clears submit_allowed on a limit close.
+    // TlsNoBorrow copies and releases values instead of lending them to the kernel. Bound callback
+    // lifetimes and Client pins are required; pumping retains unsent work, allocations may throw.
     template <bool TrackOutput, bool TlsNoBorrow, bool kEp, bool Submit, bool ClassifySend,
               bool Coded>
     bool serve_impl(Client& c, bool* submit_allowed = nullptr) {
@@ -903,6 +852,10 @@ private:
             , if (!conn.nothing_to_write()) did |= pump<kEp, ClassifySend>(c);)
     }
 
+    // IO-owner userspace-TLS retirement with the same Done-acquire, callback and output-limit
+    // contract as serve_impl. Copy borrowed values into owned segments and release the shard
+    // references after staging CRLF. Submit also considers pending ciphertext; WANT/SQE shortage
+    // leaves output for later progress. Client/TlsConn and bound callbacks must remain valid.
     template <bool TrackOutput, bool kEp, bool Submit, bool ClassifySend, bool Coded>
     bool serve_tls_impl(Client& c, TlsConn& tls, bool* submit_allowed = nullptr) {
         // Userspace TLS seals CRLF before release; kTLS above releases before CRLF.
