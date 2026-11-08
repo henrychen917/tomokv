@@ -1,14 +1,12 @@
-// shutdown_report.h -- one immutable end-of-run snapshot for both thread modes.
+// Immutable end-of-run reports shared by main.cc, genthread.cc, rl2s.cc and the
+// generated fused boot in reorder.cc. Collection borrows joined worker/loop
+// state; the resulting value owns every counter and tenure row it renders.
 //
 // Collection runs after every worker has joined. Human and machine renderers consume only the
-// captured value, so adding cleanup after collection cannot make the two views disagree. The
+// captured value, so cleanup after collection cannot make the two views disagree. The
 // final-line guard is declared before every other automatic in main(); its destructor therefore
 // emits the machine record after the server, loops, listeners, signal handlers and TLS state have
 // all been destroyed.
-//
-// ONE HOME, so the split (main.cc) and fused (genthread.cc) paths cannot drift again: the fused
-// path used to print no per-thread, wb, tls or epoll evidence at all, and the two copies of the
-// `stuck:` walk had already diverged in spelling.
 //
 // Every counter here is read after every loop thread has been joined: LoopSignals, WbEngine::Stats
 // and the per-thread client lists have no writer alive, and every Client still present in
@@ -33,6 +31,11 @@
 
 namespace tomo {
 
+// Main-thread value captured after worker join; owns copied counters and tenure
+// vectors, with no borrowed Server/Client pointers. Only the collector can
+// populate it; renderers read it unchanged. Move construction transfers the
+// captured value to the final-line guard without synchronization. Collection
+// may allocate; the value itself provides no wait or failure recovery protocol.
 class ShutdownReport final {
 public:
     enum class Mode : uint8_t { Split, Fused };
@@ -45,6 +48,8 @@ public:
     ~ShutdownReport() = default;
 
 private:
+    // Owns a copied tenure vector and scalar counters for one joined worker.
+    // The collector fills it before rendering; no live worker state is retained.
     struct ThreadRow {
         uint64_t ops = 0;
         uint64_t iterations = 0;
@@ -141,6 +146,11 @@ private:
     friend void print_shutdown_report_json(const ShutdownReport&);
 };
 
+// Main-thread collector after all workers join, before loop/client destruction.
+// Server and every supplied loop must remain alive and no producer may mutate
+// their counters/lists. Join supplies quiescence; ROB states and retire flags
+// are additionally acquire-loaded. Returns an owned immutable snapshot without
+// changing runtime state or waiting on peers. Tenure-vector allocation may throw.
 template <class IoLoops>
 ShutdownReport collect_shutdown_report(Server& server, IoLoops& io_loops) {
     ShutdownReport report;
@@ -175,9 +185,10 @@ ShutdownReport collect_shutdown_report(Server& server, IoLoops& io_loops) {
             row.role = role == Role::Ifid ? ShutdownReport::ThreadRole::Io
                        : role == Role::Ex ? ShutdownReport::ThreadRole::Ex
                                           : ShutdownReport::ThreadRole::Idle;
-            // Preserve the established 2s rollup: LoopSignals::ops is lifetime-cumulative and is
-            // charged to the thread's final role. Exact per-tenure attribution would require new
-            // increments on the operation path, which shutdown reporting must not introduce.
+            // Split rollup charges lifetime-cumulative LoopSignals::ops to the
+            // final role: IO counts as dispatched, all other roles as executed.
+            // This is not exact attribution across role tenures; collecting a
+            // shutdown report adds no increments to the operation path.
             (role == Role::Ifid ? report.work_.dispatched : report.work_.executed) += signals.ops;
         }
 
@@ -281,6 +292,9 @@ inline const char* shutdown_thread_role_json(ShutdownReport::ThreadRole role) {
     return "idle";
 }
 
+// Main-thread renderer of an already-collected report, before runtime teardown.
+// Borrows only the immutable value and writes stdout in the stable human grammar.
+// Publishes no runtime state; stdio may block and output errors are ignored.
 inline void print_shutdown_report_human(const ShutdownReport& report) {
     const auto& persistence = report.persistence_;
     std::printf(
@@ -306,16 +320,17 @@ inline void print_shutdown_report_human(const ShutdownReport& report) {
         std::printf("t%u ", row.tid);
         exec1s_print(row.exec1s, false);
         for (size_t tenure = 0; tenure < row.io_tenures.size(); ++tenure) {
-            const auto& t = row.io_tenures[tenure];
+            const auto& tenure_record = row.io_tenures[tenure];
             std::printf(
                 "io_tenure t%u/%zu busy_ns=%llu idle_ns=%llu entry_ns=%llu "
                 "begin_ns=%llu end_ns=%llu exit_ns=%llu role_exit=%u stopped=%u\n",
-                row.tid, tenure, static_cast<unsigned long long>(t.busy_ns),
-                static_cast<unsigned long long>(t.idle_ns),
-                static_cast<unsigned long long>(t.entry_ns),
-                static_cast<unsigned long long>(t.begin_ns),
-                static_cast<unsigned long long>(t.end_ns),
-                static_cast<unsigned long long>(t.exit_ns), t.role_exit, t.stopped);
+                row.tid, tenure, static_cast<unsigned long long>(tenure_record.busy_ns),
+                static_cast<unsigned long long>(tenure_record.idle_ns),
+                static_cast<unsigned long long>(tenure_record.entry_ns),
+                static_cast<unsigned long long>(tenure_record.begin_ns),
+                static_cast<unsigned long long>(tenure_record.end_ns),
+                static_cast<unsigned long long>(tenure_record.exit_ns), tenure_record.role_exit,
+                tenure_record.stopped);
         }
     }
 
@@ -399,6 +414,10 @@ inline void print_shutdown_report_human(const ShutdownReport& report) {
     }
 }
 
+// Final-line guard calls this on main after runtime teardown. Borrow only the
+// captured report, never destroyed Server/loop state; emit one schema-1 JSON
+// record with stable field names. Stdio may block and errors are not propagated;
+// the guard, rather than this renderer, flushes the stream.
 inline void print_shutdown_report_json(const ShutdownReport& report) {
     std::printf("shutdown_report {\"schema\":1,\"thread_mode\":\"%s\",\"work\":{",
                 report.mode_ == ShutdownReport::Mode::Fused ? "1s" : "2s");
@@ -428,22 +447,24 @@ inline void print_shutdown_report_json(const ShutdownReport& report) {
             static_cast<unsigned long long>(row.wakes_sent),
             static_cast<unsigned long long>(row.wakes_recv));
         for (size_t tenure = 0; tenure < row.io_tenures.size(); ++tenure) {
-            const auto& t = row.io_tenures[tenure];
+            const auto& tenure_record = row.io_tenures[tenure];
             if (tenure) std::putchar(',');
             std::printf(
                 "{\"entry_ns\":%llu,\"begin_ns\":%llu,\"end_ns\":%llu,"
                 "\"exit_ns\":%llu,\"busy_ns\":%llu,\"idle_ns\":%llu,"
                 "\"role_exit\":%s,\"stopped\":%s,\"did_submit\":%llu,"
                 "\"sweep_submit\":%llu,\"park\":%llu}",
-                static_cast<unsigned long long>(t.entry_ns),
-                static_cast<unsigned long long>(t.begin_ns),
-                static_cast<unsigned long long>(t.end_ns),
-                static_cast<unsigned long long>(t.exit_ns),
-                static_cast<unsigned long long>(t.busy_ns),
-                static_cast<unsigned long long>(t.idle_ns), t.role_exit ? "true" : "false",
-                t.stopped ? "true" : "false", static_cast<unsigned long long>(t.did_submit),
-                static_cast<unsigned long long>(t.sweep_submit),
-                static_cast<unsigned long long>(t.park));
+                static_cast<unsigned long long>(tenure_record.entry_ns),
+                static_cast<unsigned long long>(tenure_record.begin_ns),
+                static_cast<unsigned long long>(tenure_record.end_ns),
+                static_cast<unsigned long long>(tenure_record.exit_ns),
+                static_cast<unsigned long long>(tenure_record.busy_ns),
+                static_cast<unsigned long long>(tenure_record.idle_ns),
+                tenure_record.role_exit ? "true" : "false",
+                tenure_record.stopped ? "true" : "false",
+                static_cast<unsigned long long>(tenure_record.did_submit),
+                static_cast<unsigned long long>(tenure_record.sweep_submit),
+                static_cast<unsigned long long>(tenure_record.park));
         }
         std::printf("]}");
     }
@@ -535,8 +556,11 @@ inline void print_shutdown_report_json(const ShutdownReport& report) {
         static_cast<unsigned long long>(accept.notify_drop));
 }
 
-// Declare this before every other automatic in main(). Once armed, its destructor is the final
-// output-producing lifetime edge in the process's normal shutdown path.
+// Main-thread guard owning an optional moved report, with no runtime pointers.
+// Declare before every other automatic in main and arm only after worker join;
+// reverse destruction order places its JSON output after runtime teardown.
+// Unarmed destruction emits nothing. Stdio flush errors are ignored; no
+// inter-thread publication is needed because arm and destruction share main.
 class ShutdownReportFinalLine final {
 public:
     ShutdownReportFinalLine() = default;

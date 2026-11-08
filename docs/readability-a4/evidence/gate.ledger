@@ -1,0 +1,14 @@
+PARTIAL	0	GATE_ONLY_JOBS=source_identity reorder_sync reorder_identity reorder_engagement reorder_bounds wbland_units splitlocal_units lbplanner_units racefix_counters abba_selftest; NOT A RECEIPT
+ok	0.040000	release build (+footprint locks)
+ok	127.920000	production source identity + stable assertion ids
+ok	599.070000	ABBA comparison + saturation negative controls
+ok	0.080000	R7 linear scan and lazy construction bounds (both databases)
+ok	29.490000	R7 generated envelope parity
+ok	18.220000	R7 production engagement (both database runtimes)
+ok	227.200000	R7 FIFO twin off-path identity + negative controls
+ok	3.060000	INFO command/socket counters (TSan, both modes)
+ok	0.220000	LB sampler exceptional cleanup + negative control
+ok	0.350000	LB monitor plan handoff + negative controls
+ok	42.170000	writeback policy clauses witnesses + negative controls
+ok	3.790000	writeback policy paths witnesses + negative controls
+ok	11.910000	splitlocal template forwarding + old-argument controls

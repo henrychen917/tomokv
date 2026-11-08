@@ -1,5 +1,6 @@
-// Compile-time geometry for the generalized-thread schedules. The boot knob selects a fixed loop
-// shape; these remain build-time constants so no per-operation tuning state reaches a hot path.
+// Task quanta shared by ex_loop.h and reorder.h in their including translation
+// units. Boot selects a fixed schedule; these compile-time constants introduce
+// no mutable tuning state or ownership hand-off on the operation path.
 #pragma once
 #include <cstdint>
 

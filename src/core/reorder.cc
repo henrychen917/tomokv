@@ -1,5 +1,8 @@
-// R7 role bodies are isolated so the FIFO compiler input stays unchanged.
-// tests/r7shadow_sync.py checks the copied envelopes against the current mainline methods.
+// Priority runtime selection, owner-drain queues and generated role bodies.
+// This translation unit isolates their compiler budget from the FIFO loops.
+// Queue debt drains before any shard/role boundary; tasks retain admission order
+// within each connection. tests/r7shadow_sync.py owns the protected envelopes,
+// including the fused boot copied from genthread.cc; edit their source methods.
 #include "genthread.h"
 #include "fused_boot_gate.h"
 #include "boot_support.h"
@@ -21,27 +24,33 @@ __attribute__((noipa)) bool /* TOMO_TOOL_BIND shadow_available */ shadow_availab
 }
 }
 
+// INFO caller borrows nthreads live atomic counter rows, or passes nullptr for
+// an empty inventory. Relaxed loads report totals without a coherent snapshot;
+// append to the caller's string, aborting if the fixed row buffer truncates.
 void append_reorder_info(std::string& body, const ModeScheduleStats* stats, uint32_t nthreads) {
     TOMO_R7_PATH();
-    uint64_t batches = 0, multi = 0, permutations = 0;
-    uint32_t max_batch = 0;
+    uint64_t batches = 0, multi_client_runs = 0, permutations = 0;
+    uint32_t largest_batch = 0;
     if (stats)
         for (uint32_t tid = 0; tid < nthreads; tid++) {
-            const auto& s = stats[tid];
-            batches += s.reorder_batches.load(std::memory_order_relaxed);
-            multi += s.reorder_multi_client_runs.load(std::memory_order_relaxed);
-            permutations += s.reorder_permuted_runs.load(std::memory_order_relaxed);
-            max_batch = std::max(max_batch, s.reorder_max_batch.load(std::memory_order_relaxed));
+            const auto& thread_stats = stats[tid];
+            batches += thread_stats.reorder_batches.load(std::memory_order_relaxed);
+            multi_client_runs +=
+                thread_stats.reorder_multi_client_runs.load(std::memory_order_relaxed);
+            permutations += thread_stats.reorder_permuted_runs.load(std::memory_order_relaxed);
+            largest_batch = std::max(
+                largest_batch, thread_stats.reorder_max_batch.load(std::memory_order_relaxed));
         }
-    char row[512];
-    const int n = std::snprintf(
-        row, sizeof(row),
+    char row_buffer[512];
+    const int row_length = std::snprintf(
+        row_buffer, sizeof(row_buffer),
         "reorder_batches:%llu\r\nreorder_multi_client_runs:%llu\r\n"
         "reorder_permuted_runs:%llu\r\nreorder_max_batch:%u\r\nreorder_shadow:%u\r\n",
-        static_cast<unsigned long long>(batches), static_cast<unsigned long long>(multi),
-        static_cast<unsigned long long>(permutations), max_batch, r7::shadow_available());
-    if (n < 0 || static_cast<size_t>(n) >= sizeof(row)) std::abort();
-    body.append(row, static_cast<size_t>(n));
+        static_cast<unsigned long long>(batches),
+        static_cast<unsigned long long>(multi_client_runs),
+        static_cast<unsigned long long>(permutations), largest_batch, r7::shadow_available());
+    if (row_length < 0 || static_cast<size_t>(row_length) >= sizeof(row_buffer)) std::abort();
+    body.append(row_buffer, static_cast<size_t>(row_length));
 }
 
 template <bool Fused>
@@ -56,6 +65,12 @@ __attribute__((noinline)) uint32_t ExLoopT<Fused>::r7_drain_tasks(bool unmasked)
     return r7_drain_tasks_impl<false, BatchOps, IofusedPrivateQueue>(unmasked);
 }
 
+// Active owner thread only, with its inbox/role lifetime held for this drain.
+// Borrows inbox tasks and owns stack-local queue scratch; finish empties it
+// before returning. Execution may publish Done, so no emitted Op is inspected
+// again. If cross-shard retries block execution, append selected tasks to the
+// owner's deferred queue instead. Invalid queue bounds abort; allocations in
+// that deferred queue are not caught here. Returns the number drained.
 template <bool Fused>
 template <bool Shadow, uint32_t BatchOps, bool IofusedPrivateQueue>
 uint32_t ExLoopT<Fused>::r7_drain_tasks_impl(bool unmasked) {
@@ -3188,6 +3203,7 @@ static int  run_fused_server_reordered(
     const std::vector<std::unique_ptr<AofReplayPlan>>& aof_plans, const SnapshotLoadPlan* load_plan,
     TlsContext* tls_context, LateUnixListener& unix_listener,
     ShutdownReportFinalLine& final_report) {
+    // Phase 1: allocate loop lifetimes and the stop-aware boot rendezvous.
     const Config& cfg = srv.cfg();
     const uint32_t nthreads = srv.nthreads();
     print_boot_presentation(srv);
@@ -3195,14 +3211,12 @@ static int  run_fused_server_reordered(
     std::vector<std::thread> pool;
     std::vector<IoLoop> ios(nthreads);
     std::vector<FusedExLoop> executors(nthreads);
-    // ONE boot gate. The ad-hoc mutex/cv gate this replaced needed a separate `runners_stopped`
-    // counter so a thread that saw shutdown while parked still reported at the gate (without it a
-    // SIGTERM during a long snapshot recovery hung main forever). FusedBootGate keeps that property as a
-    // first-class `gave_up` arrival, and every wait/advance also takes the stop edge, so the two
-    // predicates cannot disagree.
+    // Every parked worker reports either readiness or giving up. Waits and
+    // phase advances observe stop, so shutdown during recovery cannot leave
+    // main waiting for a readiness arrival from a worker that has exited.
     FusedBootGate boot(nthreads);
-    // Identical to placement().ifid_threads().front() whenever a unixsocket is configured, but
-    // read from the server so the LB's unix_owner_tid_ and the actual attach point cannot drift.
+    // Use the server's Unix owner so listener attachment and load balancing
+    // agree on the physical thread that owns the pathname's listening fd.
     const uint32_t unix_owner = srv.unix_owner_tid();
     auto report_graceful_shutdown = [&] {
         srv.snapshot().cancel_after_join(srv);
@@ -3228,7 +3242,11 @@ static int  run_fused_server_reordered(
         acl_shutdown();
     };
 
+    // Phase 2: recover each worker's shards, wire its loops and await activation.
     for (uint32_t tid = 0; tid < nthreads; tid++)
+        // Runs only on tid; owns its ring/persistence guards and borrows the
+        // enclosing arrays until join. Arrival publishes initialization through
+        // boot's mutex. Failure reports once and unwinds on this issuer thread.
         pool.emplace_back([&, tid] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
             IoLoop::ShutdownOnIssuer shutdown_io{ios[tid]};
@@ -3299,9 +3317,9 @@ static int  run_fused_server_reordered(
                 boot.give_up(tid, "unified listener activation failed");
                 return;
             }
-            // arrive_ready() returns false on the stop edge: a worker can leave wait_until_ready(),
-            // spend time arming its listeners, and come back after main already saw a signal. That
-            // arrival is recorded as gave_up so main's wait still sees every thread report.
+            // A stop can race listener activation after wait_until_ready().
+            // arrive_ready records that worker as gave_up, so every participant
+            // is accounted for even when it never enters the running phase.
             if (!boot.arrive_ready(tid)) return;
             if (!boot.wait_until_running(tid, self.stop_flag())) return;
             self.publish_ready_role(Role::Ifid);
@@ -3310,6 +3328,7 @@ static int  run_fused_server_reordered(
             self.publish_ready_role(Role::Idle);
         });
 
+    // Phase 3: join failures or publish recovery completion before opening ports.
     auto stop_workers = [&] {
         for (uint32_t tid = 0; tid < nthreads; tid++)
             srv.thread(tid).stop_flag().store(true, std::memory_order_relaxed);
@@ -3331,6 +3350,7 @@ static int  run_fused_server_reordered(
         return 0;
     }
 
+    // Phase 4: probe TCP/TLS, transfer the Unix fd, then release the ready workers.
     const bool port_ok = probe_boot_listener(cfg, cfg.port, false, make_exclusive_boot_listener);
     const bool tls_port_ok =
         port_ok && probe_boot_listener(cfg, cfg.tls_port, true, make_exclusive_boot_listener);
@@ -3363,12 +3383,13 @@ static int  run_fused_server_reordered(
         return interrupted ? 0 : 1;
     }
 
-    // Reached only when advance_running() succeeded, i.e. no stop edge was taken; the old
-    // `if (!stopping)` guard around these lines is now the gate's own postcondition.
+    // Phase 5: announce the completed boot and monitor the running workers.
+    // advance_running succeeded without observing a stop at the boot barrier.
     print_ready_listeners(cfg, unix_listener.bound());
     cfgfix_process_ready();
     srv.monitor_controllers();
 
+    // Phase 6: join every issuer before reclaiming records and capturing the report.
     srv.databases().join_workers(srv, pool);
     // The unix socket file is unlinked by its RAII owner in main, for every return path.
     report_graceful_shutdown();
@@ -3382,13 +3403,16 @@ void IoLoop::run_split_read_local() {
     return run_split_read_local_baseline();
 }
 
+// Main-thread choice before worker launch. Borrow all arguments through the
+// chosen boot routine's join; that routine owns listener transfer and failure
+// unwind. The selector adds no publication, wait or recovery step of its own.
 int run_fused_server_selected(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                               const std::vector<std::unique_ptr<AofReplayPlan>>& aof_plans,
                               const SnapshotLoadPlan* load_plan, TlsContext* tls_context,
                               LateUnixListener& unix_listener,
                               ShutdownReportFinalLine& final_report) {
-    // One boot choice. The original fused TU sees no R7 bodies, callbacks, or selectors;
-    // even a callback-only choice there changes its unit-wide inlining budget.
+    // Keep the boot selector outside the FIFO fused translation unit so priority
+    // bodies and callbacks do not enter its unit-wide inlining budget.
     if (srv.cfg().reorder)
         return run_fused_server_reordered(srv, aof_base_plan, aof_plans, load_plan, tls_context,
                                           unix_listener, final_report);

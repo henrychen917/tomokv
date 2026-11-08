@@ -1,5 +1,6 @@
-// Cold presentation and disposable TCP/TLS probes. The caller owns every boot
-// barrier, worker, real listener, error message and failure unwind.
+// Boot presentation and disposable TCP/TLS bind probes for main.cc, genthread.cc,
+// rl2s.cc and reorder.cc. Callers own workers, boot barriers, real listeners and
+// failure unwind. Probes close before activation; they do not reserve a port.
 #pragma once
 
 #include <cstdio>
@@ -15,9 +16,11 @@
 
 namespace tomo {
 
-// Server-like input keeps this formatter usable in serverless resolved-state
-// fixtures. In production cfg() is already resolved; read-local is the actual
-// armed state, never the requested Config::read_local value.
+// Print resolved placement on the main thread before workers can change roles.
+// Borrows srv and out; publishes no runtime state and flushes the stream once.
+// Read-local reports the armed state, not Config::read_local's requested value.
+// Server-like fixtures must provide the same resolved accessors. Output errors
+// are not propagated, and stdio may block; this is a boot-only operation.
 template <typename ServerState>
 [[gnu::cold, gnu::noinline]]
 void print_boot_presentation(ServerState& srv, std::FILE* out = stdout) {
@@ -66,8 +69,9 @@ void print_boot_presentation(ServerState& srv, std::FILE* out = stdout) {
     std::fflush(out);
 }
 
-// Only the temporary probe fd belongs to this helper. In particular it cannot
-// attach/release a Unix listener or start/stop workers. Port 0 opens nothing.
+// Called by the main thread's probe_boot_listener after it filters port 0.
+// Returns a temporary listening fd to the caller, or -1 with errno on socket,
+// address, bind or listen failure; closes its fd on every such failure.
 // The real per-owner listeners use REUSEPORT. The boot probe must not join an
 // existing process's group. Closing this probe before activation leaves a
 // concurrent-start window; it is not a process-lifetime port reservation.
@@ -95,6 +99,9 @@ inline int make_exclusive_boot_listener(const char* addr, uint16_t port, uint32_
     return fd;
 }
 
+// Main-thread probe after recovery, before worker listener activation. Port 0
+// succeeds without opening anything. Owns the returned probe fd until close;
+// reports open failure to stderr and returns false. Close errors are ignored.
 template <typename OpenListener, typename CloseListener = int (*)(int)>
 [[gnu::cold, gnu::noinline]]
 bool probe_boot_listener(const Config& cfg, uint32_t port, bool tls, OpenListener open_listener,
@@ -110,8 +117,9 @@ bool probe_boot_listener(const Config& cfg, uint32_t port, bool tls, OpenListene
     return true;
 }
 
-// Call only at the caller's existing announcement point. unix_bound is a fact
-// from the pathname owner, not an inference from a configured path.
+// Main-thread announcement after the selected runtime's readiness barrier.
+// unix_bound comes from the pathname owner, not from the configured path.
+// Borrows out and cfg; flushes output without propagating stdio errors.
 [[gnu::cold, gnu::noinline]]
 inline void print_ready_listeners(const Config& cfg, bool unix_bound, std::FILE* out = stdout) {
     if (cfg.port) std::fprintf(out, "listening on %s:%u\n", cfg.bind_addr, cfg.port);
