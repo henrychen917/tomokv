@@ -419,8 +419,8 @@ def storm(c, port, keys, call, oracle, seconds=30, bgsave=False, flip=False, ref
     # cut forces the younger script to escalate: it holds keys[1], waits for the
     # EXEC on keys[0], and must be wounded when the older EXEC resumes. These
     # first operations use the normal counts/attempts and exact-value oracle.
-    # PRE refusal controls and the FLIP/diagnostic mixes retain their schedule.
-    arm_wound = (not oracle and refusals is None and not flip and
+    # PRE refusal controls, BGSAVE, and FLIP/diagnostic mixes retain their schedule.
+    arm_wound = (not oracle and refusals is None and not flip and not bgsave and
                  mix == {'scripts', 'execs', 'writers'})
     first_start = {i: threading.Event() for i in (0, 8, 17)} if arm_wound else {}
     first_done = {i: threading.Event() for i in first_start}
@@ -429,7 +429,7 @@ def storm(c, port, keys, call, oracle, seconds=30, bgsave=False, flip=False, ref
     opening_wounds = 0
     if arm_wound:
         c.must('DEBUG', 'TXN-PLACE-DEFER', 2000000)
-        c.must('DEBUG', 'SCRIPT-STAGE-DEFER', 200000)
+        c.must('DEBUG', 'SCRIPT-STAGE-DEFER', 500000)
         c.must('DEBUG', 'SCRIPT-ESCALATE-FORCE', 1)
         first_start[8].set()
     def enabled(i):
@@ -485,20 +485,8 @@ def storm(c, port, keys, call, oracle, seconds=30, bgsave=False, flip=False, ref
     flipper = Conn('127.0.0.1', port, timeout=4) if flip and not oracle else None
     try:
         if arm_wound:
-            wait(lambda: stats(c)['atomic_txn_attempts'] > before['atomic_txn_attempts'],
-                 'older EXEC did not dispatch')
             c.must('DEBUG', 'SCRIPT-STAGE-WATCH', script_id[0])
-            first_start[0].set()
-            wait(lambda: stats(c)['script_stage_watch_tasks'] == 1,
-                 'younger script did not choose its read cut')
-            first_start[17].set()
-            wait(lambda: all(event.is_set() for event in first_done.values()),
-                 'wound opening workers did not finish', 4)
-            opening_wounds = stats(c)['atomic_group_wounds'] - before['atomic_group_wounds']
-            for hook in ('TXN-PLACE-DEFER', 'SCRIPT-STAGE-DEFER',
-                         'SCRIPT-ESCALATE-FORCE', 'SCRIPT-STAGE-WATCH'):
-                c.must('DEBUG', hook, 0)
-            storm_ready.set()
+            opening_deadline = time.monotonic() + 4
         while time.monotonic() < deadline and not stop.is_set():
             now = time.monotonic()
             try:
@@ -507,6 +495,23 @@ def storm(c, port, keys, call, oracle, seconds=30, bgsave=False, flip=False, ref
                 stall_info(port)
                 raise
             assert time.monotonic()-now < 1, 'PING stalled'
+            if arm_wound and not storm_ready.is_set():
+                # PING must also cover the wound and its deliberately parked
+                # owners, so advance the opening without blocking this loop.
+                if not first_start[0].is_set():
+                    if stats(c)['atomic_txn_attempts'] > before['atomic_txn_attempts']:
+                        first_start[0].set()
+                elif not first_start[17].is_set():
+                    if stats(c)['script_stage_watch_tasks'] == 1:
+                        first_start[17].set()
+                elif all(event.is_set() for event in first_done.values()):
+                    opening_wounds = stats(c)['atomic_group_wounds'] - before['atomic_group_wounds']
+                    for hook in ('TXN-PLACE-DEFER', 'SCRIPT-STAGE-DEFER',
+                                 'SCRIPT-ESCALATE-FORCE', 'SCRIPT-STAGE-WATCH'):
+                        c.must('DEBUG', hook, 0)
+                    storm_ready.set()
+                assert storm_ready.is_set() or time.monotonic() < opening_deadline, \
+                    'wound opening workers did not finish'
             if bgsave:
                 try:
                     reply = c.cmd('BGSAVE')

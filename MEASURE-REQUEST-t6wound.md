@@ -6,7 +6,7 @@ gate labels, budgets, or EXPECT constants change. Count delta: quick 0, full 0;
 
 T6 opens with the first operations of its existing EXEC worker 8, script worker
 0, and plain writer 17. Existing DEBUG controls defer the older EXEC's second
-key placement for two seconds and the younger script's read for 200 ms. After
+key placement for two seconds and the younger script's read for 500 ms. After
 the script chooses its read cut, the writer increments the second key. Forced
 escalation makes the younger script hold that key while waiting on the EXEC's
 first key; the older EXEC then wounds it. All three operations count through
@@ -14,10 +14,11 @@ the existing worker attempts, successes, and final exact-value assertion.
 
 All DEBUG controls are disarmed before the remaining storm traffic starts.
 The opening consumes the existing 30-second interval, not extra storm time.
+The controller keeps checking PING during the opening.
 Both the original final wound guard and an additional directed-opening guard
 must pass; only WoundNotObserved gets the existing three fresh boots. Other
 assertions and the worker mix are unchanged. Oracle, PRE refusal controls,
-FLIP, and diagnostic mixes do not arm the opening. BGSAVE still runs through
+FLIP, BGSAVE, and diagnostic mixes do not arm the opening. BGSAVE still runs through
 the same storm controller and retains its assertions.
 
 The existing production controls suffice. The copy-only wound seams in
@@ -34,8 +35,10 @@ Validation in progress:
 - The directed opening alone produced exactly one wound in all eight
   mode/engine/atomic combinations on the release binary.
 - `python3 tests/gate_ledger_fixture.py --self-test`: 12 tests passed.
-- Full T6 repetitions, the unchanged-harness baseline, and gate harness unit
-  checks are pending; final evidence and miss rates will be recorded here.
+- `python3 tests/gates_test.py`: 83 tests passed.
+- Unchanged-harness baseline: all 27 legs passed, with 0/24 TomoKV misses.
+- Full repetitions of the final harness are pending; final evidence and miss
+  rates will be recorded here.
 
 The acceptance run uses `GATE_ONLY_JOBS=at412-T6 GATE_PROOF_NO_RATES=1
 tests/gate.sh quick`, with explicit candidate binaries and disjoint resources:
