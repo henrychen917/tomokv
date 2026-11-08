@@ -760,6 +760,7 @@ template <uint32_t BatchOps, bool ConsumeTasks,
 template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool SplitLocal>
     void  IoLoop::/* TOMO_TOOL_BIND r7_run_loop */r7_run_loop() {
     TOMO_R7_PATH();
+        // Phase 1: bind tenure state, read-local publication, and listener receives.
         static_assert(!SplitLocal || Fused);
         LoopSignals& sig = self_->sig();
         IoTenure tenure(sig);
@@ -797,6 +798,7 @@ template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool SplitLocal>
                 if (unix_listen_fd_ >= 0) arm_accept(UrKind::UnixAccept);
         }
         while (!self_->stop_flag().load(std::memory_order_relaxed) && self_->role() == Role::Ifid) {
+            // Phase 2: snapshot pass controls and reclaim clients past their grace steps.
             srv_->debug_sleep_poll(self_->id());
             const uint64_t pass_ns = tenure.pass();
             Server::DatabaseWorkScope database_work(*srv_, self_->id());
@@ -861,6 +863,7 @@ template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool SplitLocal>
                     refresh_age_sampling();
                     if (age_signals_armed_) sample_rob_head_age(sig.cached_now_us);
                 }
+                // Phase 3: drain transport, migrations, owner work, and reply retirement.
                 // A dropped accept re-arm means the server stops taking connections entirely, so it
                 // is retried every pass until it lands.
                 if constexpr (!kEp) {
@@ -913,6 +916,7 @@ template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool SplitLocal>
                     if (owner_bell->runnable.load(std::memory_order_relaxed))
                         did += fused_executor_->fused_owner_turn<true>();
                 }
+                // Phase 4: advance role/load control and deadline-driven maintenance.
                 did += flip_control_pass<kEp>();
                 if (__builtin_expect(
                         client_lb_signal_armed && cached_now_ms_ >= lb_client_signal_beat_ms_,
@@ -940,6 +944,7 @@ template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool SplitLocal>
                 if (!did && wb_config_.policy && !pending_serve_.empty() && wb_idle.active(pass_ns))
                     did = 1;
             }
+            // Phase 5: submit useful work, or sweep all clients before considering a park.
             // Flush prepared SQEs before looping. Recv re-arms and cross-ring wakes are
             // PREPARED during the work section but only reach the kernel on submit; taking
             // the busy path without submitting strands them in the SQ forever, and the peer
@@ -974,6 +979,7 @@ template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool SplitLocal>
                 continue;
             }
 
+            // Phase 6: publish the park, recheck every wake source, then wait and resume.
             // Preserve the established classification: publication, inbound recheck,
             // epoll callbacks, the wait and resume/clear are ALL inside this idle span.
             Span idle(sig.idle_ns);
@@ -1063,6 +1069,7 @@ template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool SplitLocal>
             }
             self_->clear_blocked();
         }
+        // Phase 7: end the tenure, park read-local state, and finish deferred reclamation.
         const auto io_tenure = tenure.finish(self_->role() != Role::Ifid,
                                              self_->stop_flag().load(std::memory_order_relaxed));
         if constexpr (Fused) {
@@ -2110,6 +2117,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
     r7::LazyShadowDispatch shadow_dispatch(c->rob().dispatch_id());
 
     TOMO_R7_PATH();
+        // Phase 1: snapshot connection limits, controller gates, and the pass read cut.
         // Split readers and fused batches need the same ROB hazards, MGET fence,
         // admission, and demotion protocol as the baseline fused reader.
         static constexpr bool Fused = SplitLocal || (BatchOps == kGenthreadIfidBatchOps);
@@ -2183,6 +2191,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
         // retirement, and no WB stage runs inside this parse pass: acquire() already stops at
         // the 64-slot ROB boundary. Local/error completions publish Done; they do not retire.
         for (;;) {
+            // Phase 2: reserve a ROB slot and parse a frame without consuming retryable input.
             if constexpr (BatchOps != 0)
                 if (sig.ops - batch_start_ops >= BatchOps) break;
             // The coordinator's own connection already holds the unfinished FLIP head. Do not
@@ -2289,6 +2298,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
             // certain to be answered — see the dispatch-refusal path below for why.
             const uint32_t consumed = pos - conn.rpos();
 
+            // Phase 3: validate command grammar, choose handlers, and stamp the database map.
             const CommandSpec* spec = command_lookup(op->cmd_name());
             if (!spec) {
                 conn.advance_parse(consumed);
@@ -2405,6 +2415,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
                 }
                 multidb_stamp(*srv_, *op, conn.session().db_index);
             }
+            // Phase 4: plan local-read admission/demotion before any stateful command hooks.
 #include "read_local_parse.inc"
             if constexpr (Fused) {
                 if (read_local_enabled && read_local_demotion.active() &&
@@ -2433,6 +2444,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
                 c->set_flip_backpressure(true);
                 break;
             }
+            // Phase 5: apply security/persistence gates and lower transactions and IO commands.
             // FLIP holds precede stateful hooks. Later backpressure exits may
             // reparse this frame; the armed gate keys its receipt by ROB number.
             if (__builtin_expect(notify_armed, false) &&
@@ -2739,6 +2751,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
                 continue;
             }
 
+            // Phase 6: stamp owner hazards and lower blocking and cross-shard operations.
             // This command only needs an owner-local same-connection pending lookup when an older
             // cross-shard atomic group was already in flight. Set the immutable bit before the
             // current group increments the count, so a group never treats itself as a predecessor.
@@ -3046,6 +3059,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
                 }
             }
 
+            // Phase 7: publish an ordinary owner task, rolling back a refused queue push.
             const uint32_t worker_id = srv_->worker_of_shard(op->shard);
             ThreadCtx& worker = srv_->thread(worker_id);
             if constexpr (Fused && !SplitLocal) {
@@ -3120,7 +3134,8 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
             mark_active(c);
         }
         {
-            // Item 2: one notify per worker per parse pass, not per op. The pushes above are already
+            // Phase 8: notify each touched owner once and finish the pass fingerprint.
+            // One notify per worker per parse pass, not per op. The pushes above are already
             // visible in the queues; this publishes the "look here" bit and pays the wake decision
             // once.
             for (uint32_t i = 0; i < ntouched_; i++) {

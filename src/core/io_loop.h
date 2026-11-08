@@ -1,6 +1,10 @@
-// io_loop.h — accepts, receives, parses, routes, publishes, retires, and sends for its clients.
+// Owns connection IO: accept, receive, parse, route, publish, retire, and send.
+// Included by the server/command translation units that need IoLoop; pubsub.inc and climon.inc
+// supply members inside this class, and read_local_parse.inc supplies parser statements.
 // In fused mode the same physical thread also executes its owned shards; split mode hands tasks
 // to executor threads. Reply retirement and sending stay with the connection's IO owner.
+// Publish ROB entries before owner tasks, retain receive buffers while argv/kernel references
+// exist, and recheck inbound work after announcing a park. R7 envelopes mirror marked methods.
 //
 //   out  task_in of the shard's owner        a parsed op to execute
 //   in   ready mask / client_in             completed ops to retire and send
@@ -59,6 +63,12 @@ namespace tomo {
 //   io    IoLoop    recv+parse+retire+send; owns the whole client
 //   ex    ExLoop    execute+notify; never sends
 
+// Each instance owns one physical thread's transport state and its current IO-role clients.
+// Boot configures it before worker entry; connection work runs on self_'s thread, including
+// fused execution. Coordinator-only teardown requires joined workers. Server/ThreadCtx and the
+// TLS context are borrowed. Task queues publish with release ordering; reply retirement observes
+// executor completion before releasing buffers. Migration must quiesce kernel and executor users.
+// Full queues leave frames/retries pending; transport failures close through deferred reclamation.
 class /* TOMO_TOOL_BIND IoLoop */ IoLoop {
     friend struct FlipListenerState;
     friend bool cfgfix_rebind(Server&, uint32_t, uint16_t, const std::string&, std::string&, int);
@@ -81,18 +91,14 @@ public:
         return scatter_pool_.reap_deferred() + multi_owner_reap_entry(*this);
     }
 
-    // BOOT: ONE LISTENING SOCKET PER IO THREAD, via SO_REUSEPORT (FLIP transfers them intact).
-    //
-    // Sharing a single listen fd across io threads does NOT distribute connections: every thread
-    // arms a multishot accept on it and the kernel satisfies them all from one ring. Measured
-    // consequence with 6 io threads and 577 connections — t5 took every single one and t0..t4 sat
-    // idle for the entire run, so the server was really running on one io thread. It looked like a
-    // latency problem (uniform ~3.5 ms at p1) and was actually a distribution problem.
-    //
-    // With SO_REUSEPORT the kernel hashes each incoming connection to one of the listening sockets,
-    // which spreads them across threads without any userspace handoff. Note this is safe WITHIN one
-    // process; two SERVER PROCESSES sharing a port is the failure mode that once faked data loss,
-    // so a boot must still verify nothing else holds the port.
+    // Boot-only initialization: borrow srv/self/TLS context, take the supplied Unix listener,
+    // and bind completion callbacks before activating this IO role. The caller must keep the
+    // borrowed objects alive through teardown; dormant initialization leaves listeners inactive.
+    // Returns false on ring, wake registration, epoll, or activation failure; partial resources
+    // remain attached for teardown. Initialization itself makes no cross-thread publication.
+    // Each IO has its own SO_REUSEPORT listener so kernel hashing distributes connections.
+    // Boot must exclude another server process on the port: reuseport also permits that process
+    // to receive connections, so successful bind alone cannot establish exclusive server ownership.
     bool init(Server* srv, ThreadCtx* self, const char* addr, uint16_t port,
               int unix_listen_fd = -1, const TlsContext* tls_context = nullptr,
               bool dormant = false) {
@@ -578,9 +584,18 @@ private:
     friend void notify_retire_batch_entry(IoLoop&, NotifyBatch*, uint64_t);
 #include "pubsub.inc"
 
+    // Run an IO tenure on self_'s physical worker until stop or a role change. HasUnix/HasTls
+    // select listener support; kEp selects socket readiness; Fused permits local owner work;
+    // SplitLocal uses the fused read-local plumbing without a fused owner turn (requires Fused).
+    // Requires initialized transport and the matching fused executor when that path is enabled.
+    // Owns client queues during the tenure. Publish read-local epochs before foreign probes and
+    // park the publication before waiting; arm_blocked plus inbound rechecks prevents lost wakes.
+    // Queue/SQE pressure is retried on later passes; idle waits are bounded. Exit parks read-local
+    // state and drains deferred closes, while the shutdown guards own final issuer/join teardown.
     /* TOMO_TOOL_FUNCTION run_loop */
     template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false, bool SplitLocal = false>
     void /* TOMO_TOOL_BIND run_loop */ run_loop() {
+        // Phase 1: bind tenure state, read-local publication, and listener receives.
         static_assert(!SplitLocal || Fused);
         LoopSignals& sig = self_->sig();
         IoTenure tenure(sig);
@@ -609,6 +624,7 @@ private:
                 if (unix_listen_fd_ >= 0) arm_accept(UrKind::UnixAccept);
         }
         while (!self_->stop_flag().load(std::memory_order_relaxed) && self_->role() == Role::Ifid) {
+            // Phase 2: snapshot pass controls and reclaim clients past their grace steps.
             srv_->debug_sleep_poll(self_->id());
             const uint64_t pass_ns = tenure.pass();
             Server::DatabaseWorkScope database_work(*srv_, self_->id());
@@ -673,6 +689,7 @@ private:
                     refresh_age_sampling();
                     if (age_signals_armed_) sample_rob_head_age(sig.cached_now_us);
                 }
+                // Phase 3: drain transport, migrations, owner work, and reply retirement.
                 // A dropped accept re-arm means the server stops taking connections entirely, so it
                 // is retried every pass until it lands.
                 if constexpr (!kEp) {
@@ -725,6 +742,7 @@ private:
                     if (owner_bell->runnable.load(std::memory_order_relaxed))
                         did += fused_executor_->fused_owner_turn();
                 }
+                // Phase 4: advance role/load control and deadline-driven maintenance.
                 did += flip_control_pass<kEp>();
                 if (__builtin_expect(
                         client_lb_signal_armed && cached_now_ms_ >= lb_client_signal_beat_ms_,
@@ -752,6 +770,7 @@ private:
                 if (!did && wb_config_.policy && !pending_serve_.empty() && wb_idle.active(pass_ns))
                     did = 1;
             }
+            // Phase 5: submit useful work, or sweep all clients before considering a park.
             // Flush prepared SQEs before looping. Recv re-arms and cross-ring wakes are
             // PREPARED during the work section but only reach the kernel on submit; taking
             // the busy path without submitting strands them in the SQ forever, and the peer
@@ -786,6 +805,7 @@ private:
                 continue;
             }
 
+            // Phase 6: publish the park, recheck every wake source, then wait and resume.
             // Preserve the established classification: publication, inbound recheck,
             // epoll callbacks, the wait and resume/clear are ALL inside this idle span.
             Span idle(sig.idle_ns);
@@ -875,6 +895,7 @@ private:
             }
             self_->clear_blocked();
         }
+        // Phase 7: end the tenure, park read-local state, and finish deferred reclamation.
         const auto io_tenure = tenure.finish(self_->role() != Role::Ifid,
                                              self_->stop_flag().load(std::memory_order_relaxed));
         if constexpr (Fused) {
@@ -3512,9 +3533,18 @@ private:
     }
 
     // ---- parse -> route -> publish -----------------------------------------------------------------
+    // Parse buffered frames on the connection's IO owner. Requires stable receive storage and
+    // a matching fused executor for local-read paths; NoBorrow selects handlers safe for TLS.
+    // BatchOps bounds a fused pass; zero uses ROB capacity as the bound. SplitLocal shares the
+    // local-read protocol. Stamp one read cut/map before routing, publish ROB entries before
+    // release-posting tasks, and advance input only once a reply or task is committed.
+    // Full queues, barriers, or admission limits leave input for retry; incomplete input returns
+    // NeedInput. Protocol/size errors close or stage a closing reply. Completion is ordered by
+    // the ROB, and touched owners receive their folded notifications before this pass returns.
     /* TOMO_TOOL_FUNCTION parse_and_dispatch */
     template <bool NoBorrow, uint32_t BatchOps = 0, bool SplitLocal = false>
     DispatchResult /* TOMO_TOOL_BIND parse_and_dispatch */ parse_and_dispatch(Client* c) {
+        // Phase 1: snapshot connection limits, controller gates, and the pass read cut.
         // Split readers and fused batches need the same ROB hazards, MGET fence,
         // admission, and demotion protocol as the baseline fused reader.
         static constexpr bool Fused = SplitLocal || (BatchOps == kGenthreadIfidBatchOps);
@@ -3588,6 +3618,7 @@ private:
         // retirement, and no WB stage runs inside this parse pass: acquire() already stops at
         // the 64-slot ROB boundary. Local/error completions publish Done; they do not retire.
         for (;;) {
+            // Phase 2: reserve a ROB slot and parse a frame without consuming retryable input.
             if constexpr (BatchOps != 0)
                 if (sig.ops - batch_start_ops >= BatchOps) break;
             // The coordinator's own connection already holds the unfinished FLIP head. Do not
@@ -3694,6 +3725,7 @@ private:
             // certain to be answered — see the dispatch-refusal path below for why.
             const uint32_t consumed = pos - conn.rpos();
 
+            // Phase 3: validate command grammar, choose handlers, and stamp the database map.
             const CommandSpec* spec = command_lookup(op->cmd_name());
             if (!spec) {
                 conn.advance_parse(consumed);
@@ -3810,6 +3842,7 @@ private:
                 }
                 multidb_stamp(*srv_, *op, conn.session().db_index);
             }
+            // Phase 4: plan local-read admission/demotion before any stateful command hooks.
 #include "read_local_parse.inc"
             if constexpr (Fused) {
                 if (read_local_enabled && read_local_demotion.active() &&
@@ -3838,6 +3871,7 @@ private:
                 c->set_flip_backpressure(true);
                 break;
             }
+            // Phase 5: apply security/persistence gates and lower transactions and IO commands.
             // FLIP holds precede stateful hooks. Later backpressure exits may
             // reparse this frame; the armed gate keys its receipt by ROB number.
             if (__builtin_expect(notify_armed, false) &&
@@ -4144,6 +4178,7 @@ private:
                 continue;
             }
 
+            // Phase 6: stamp owner hazards and lower blocking and cross-shard operations.
             // This command only needs an owner-local same-connection pending lookup when an older
             // cross-shard atomic group was already in flight. Set the immutable bit before the
             // current group increments the count, so a group never treats itself as a predecessor.
@@ -4447,6 +4482,7 @@ private:
                 }
             }
 
+            // Phase 7: publish an ordinary owner task, rolling back a refused queue push.
             const uint32_t worker_id = srv_->worker_of_shard(op->shard);
             ThreadCtx& worker = srv_->thread(worker_id);
             if constexpr (Fused && !SplitLocal) {
@@ -4520,7 +4556,8 @@ private:
             mark_active(c);
         }
         {
-            // Item 2: one notify per worker per parse pass, not per op. The pushes above are already
+            // Phase 8: notify each touched owner once and finish the pass fingerprint.
+            // One notify per worker per parse pass, not per op. The pushes above are already
             // visible in the queues; this publishes the "look here" bit and pays the wake decision
             // once.
             for (uint32_t i = 0; i < ntouched_; i++) {
