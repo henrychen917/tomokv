@@ -3,7 +3,7 @@
 #include "../core/server.h"
 
 namespace tomo {
-__attribute__((noipa)) bool storesize_published_route() { return true; }
+__attribute__((noipa)) bool /* TOMO_TOOL_BIND storesize_published_route */storesize_published_route() { return true; }
 
 // One owner-batch call. Keeping the complete body out of hot translation units
 // prevents the sampler/state graph from consuming their inlining budgets.

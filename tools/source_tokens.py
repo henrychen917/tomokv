@@ -5,9 +5,12 @@ Match preprocessing tokens, retaining source offsets and literal spelling. Comme
 are not syntax. TOMO_TOOL_BIND comments give a declaration a stable tool identity;
 renames must preserve these comments. They are never emitted into a binary.
 """
+from bisect import bisect_left, bisect_right
 from dataclasses import dataclass
 from functools import lru_cache
 import re
+import json
+from pathlib import Path
 
 
 @dataclass(frozen=True)
@@ -21,20 +24,33 @@ LEXER = re.compile(
     r'(?P<space>\s+|\\\r?\n)|(?P<comment>//[^\n]*|/\*[\s\S]*?\*/)|'
     r'(?P<raw>(?:u8|u|U|L)?R"(?P<delimiter>[^ ()\\\t\n]{0,16})\([\s\S]*?\)(?P=delimiter)")|'
     r'(?P<string>(?:u8|u|U|L)?"(?:\\[\s\S]|[^"\\])*"|(?:u8|u|U|L)?\'(?:\\[\s\S]|[^\'\\])*\')|'
-    r'(?P<number>[0-9][a-zA-Z0-9_\'.]*)|(?P<word>[a-zA-Z_$][a-zA-Z0-9_$]*)|'
-    r'(?P<punct>%:%:|%:|##|::|&&|\|\||<=|>=|==|!=|->\*|->|<<|>>|\+\+|--|\+=|-=|\*=|/=|%=|&=|\|=|\^=|\.\.\.|.)')
+    r'(?P<number>(?:[0-9]|\.[0-9])(?:[eEpP][+-]|[a-zA-Z0-9_\'.])*)|(?P<word>[a-zA-Z_$][a-zA-Z0-9_$]*)|'
+    r'(?P<punct>%:%:|%:|##|::|>>=|<<=|<=>|\.\*|&&|\|\||<=|>=|==|!=|->\*|->|<<|>>|\+\+|--|\+=|-=|\*=|/=|%=|&=|\|=|\^=|\.\.\.|.)')
 BIND = re.compile(r'/\*\s*TOMO_TOOL_BIND\s+(\w+)\s*\*/\s*([a-zA-Z_]\w*)')
 
 
 @lru_cache(maxsize=128)
 def lex(text):
-    return tuple(Token(m[0], m.start(), m.end()) for m in LEXER.finditer(text)
-                 if m.lastgroup not in ('space', 'comment'))
+    splices, widths, removed = [], [], 0
+    for match in re.finditer(r'\\\r?\n', text):
+        splices.append(match.start() - removed)
+        removed += len(match[0])
+        widths.append(removed)
+    logical = re.sub(r'\\\r?\n', '', text)
+    def original(offset, end=False):
+        count = (bisect_left if end else bisect_right)(splices, offset)
+        return offset + (widths[count-1] if count else 0)
+    return tuple(Token(m[0], original(m.start()), original(m.end(), True))
+                 for m in LEXER.finditer(logical) if m.lastgroup not in ('space', 'comment'))
 
 
 def bindings(text):
     aliases = {}
-    for old, new in BIND.findall(text):
+    real_comments = {m.start() for m in LEXER.finditer(text) if m.lastgroup == 'comment'}
+    for match in BIND.finditer(text):
+        if match.start() not in real_comments:
+            continue
+        old, new = match.groups()
         if old in aliases:
             raise ValueError(f'duplicate TOMO_TOOL_BIND {old}')
         aliases[old] = new
@@ -72,6 +88,7 @@ class Source(str):
     def __new__(cls, text, aliases=None):
         obj = super().__new__(cls, text)
         obj.aliases = {new: old for old, new in bindings(str(text)).items()}
+        obj.aliases.update(getattr(text, 'aliases', {}))
         obj.aliases.update(aliases or {})
         return obj
 
@@ -136,7 +153,7 @@ class Source(str):
         hits = self.spans(needle, start, end)
         return hits[0][0] if hits else -1
 
-    def replace(self, old, new, count=-1):
+    def replace(self, old, new, count=1):
         hits = self.spans(old)
         if not hits or (count >= 0 and len(hits) != count):
             raise ValueError(f'token anchor expected {count if count >= 0 else "at least one"}, found {len(hits)}: {old[:100]}')
@@ -147,8 +164,33 @@ class Source(str):
         return Source(result, self.aliases)
 
 
+@lru_cache(maxsize=8)
+def source_aliases(root):
+    aliases = {}
+    for path in (root / 'src').rglob('*'):
+        if path.suffix not in ('.cc', '.h', '.inc'):
+            continue
+        for old, new in bindings(path.read_text()).items():
+            if new != old:
+                if new in aliases and aliases[new] != old:
+                    raise ValueError('conflicting source rename: ' + new)
+                aliases[new] = old
+    return aliases
+
+
 def read(path):
-    return Source(path.read_text())
+    path = Path(path)
+    text = path.read_text()
+    manifest = Path(__file__).with_name('source_anchors.json')
+    if manifest.exists():
+        for suffix, markers in json.loads(manifest.read_text()).items():
+            if str(path).endswith(suffix):
+                for marker in markers:
+                    if len(re.findall(r'/\*\s*' + re.escape(marker) + r'\s*\*/', text)) != 1:
+                        raise ValueError(f'{path}: missing or duplicate stable marker {marker}')
+    root = next((parent for parent in path.resolve().parents
+                 if (parent / 'src').is_dir()), None)
+    return Source(text, source_aliases(root) if root else None)
 
 
 def function_span(source, name):
@@ -236,3 +278,42 @@ def command_names(source):
                     raise ValueError('empty command table')
                 return names
     raise ValueError('unclosed command table')
+
+
+def compact(text):
+    """Deterministic token spelling for legacy value-capturing regexes."""
+    parts, previous = [], ''
+    for value in tokens(text):
+        if previous and tuple(t.text for t in lex(previous + value)) != (previous, value):
+            parts.append(' ')
+        parts.append(value)
+        previous = value
+    return ''.join(parts)
+
+
+def search(pattern, text, flags=0):
+    return re.search(pattern.replace(' ', r'\s*'), compact(text), flags)
+
+
+def findall(pattern, text, flags=0):
+    return re.findall(pattern.replace(' ', r'\s*'), compact(text), flags)
+
+
+def canonical_symbol(name, root=None):
+    aliases = source_aliases(root or Path(__file__).resolve().parents[1])
+    # Itanium identifiers carry their length; change the complete identifier,
+    # never an arbitrary substring in a mangled name or an instruction operand.
+    if name.startswith('_Z'):
+        for current, stable in sorted(aliases.items(), key=lambda x: -len(x[0])):
+            name = re.sub(r'(?<![0-9])' + str(len(current)) + re.escape(current),
+                          str(len(stable)) + stable, name)
+        return name
+    return rename(name, aliases)
+
+
+def actual_symbol(name):
+    aliases = source_aliases(Path(__file__).resolve().parents[1])
+    for current, stable in sorted(aliases.items(), key=lambda x: -len(x[1])):
+        name = re.sub(r'(?<![0-9])' + str(len(stable)) + re.escape(stable),
+                      str(len(current)) + current, name)
+    return name

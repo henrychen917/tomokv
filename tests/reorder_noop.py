@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Offline instruction audit. Never runs a server or removes a non-address operand."""
+import source_tokens as cpp
 import argparse, bisect, difflib, hashlib, json, re, struct, subprocess
 from collections import defaultdict
 from pathlib import Path
@@ -324,7 +325,7 @@ class Binary:
             for m in REFERENCE.finditer(line):
                 names.add(m[2].split('+0x')[0])
         names=sorted(names)
-        decoded=run('c++filt',*names).splitlines()
+        decoded=[cpp.canonical_symbol(n) for n in run('c++filt',*names).splitlines()]
         # Validate defined symbols, not external references printed by objdump.
         defined = set(e[2] for e in entries)
         require_policies(name for symbol, name in zip(names, decoded) if symbol in defined)

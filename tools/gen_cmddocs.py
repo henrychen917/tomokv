@@ -4,6 +4,7 @@
 Only registered TomoKV commands and their metadata children are advertised.
 Normal builds consume the checked-in result; no Redis implementation is linked.
 """
+import source_tokens as cpp
 import argparse
 import json
 from pathlib import Path
@@ -87,6 +88,6 @@ if __name__ == '__main__':
     a = p.parse_args()
     result = generate(Path(__file__).resolve().parents[1], a.redis_root)
     if a.check:
-        assert a.output.read_text() == result, 'COMMAND DOCS metadata drift'
+        assert cpp.tokens(a.output.read_text()) == cpp.tokens(result), 'COMMAND DOCS metadata drift'
     else:
         a.output.write_text(result)

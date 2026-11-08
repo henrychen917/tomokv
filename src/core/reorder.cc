@@ -12,9 +12,9 @@
 namespace tomo {
 // A cold capability predicate also supplies the exact-layout kind-A PAD control.
 // Only boot and INFO call it. The PAD changes this body to return false.
-__attribute__((noipa)) bool reorder_available() { return true; }
-namespace r7 {
-__attribute__((noipa)) bool shadow_available() { return true; }
+__attribute__((noipa)) bool /* TOMO_TOOL_BIND reorder_available */reorder_available() { return true; }
+namespace /* TOMO_TOOL_BIND r7 */r7 {
+__attribute__((noipa)) bool /* TOMO_TOOL_BIND shadow_available */shadow_available() { return true; }
 }
 
 void append_reorder_info(std::string& body, const ModeScheduleStats* stats, uint32_t nthreads) {
@@ -486,12 +486,12 @@ private:
 };
 
 template <bool Fused>
-uint32_t ExLoopT<Fused>::r7_fused_baseline_pass() {
+uint32_t ExLoopT<Fused>::/* TOMO_TOOL_BIND r7_fused_baseline_pass */r7_fused_baseline_pass() {
     TOMO_R7_PATH();
     static_assert(Fused);
     if (srv_->thread_mode() == ThreadMode::Split) return split_read_local_pass();
     if (read_local_enabled())
-        return r7_fused_pass_impl<kGenthreadExBatchOps, true, false, true>();
+        return /* TOMO_TOOL_BIND r7_fused_pass_impl */r7_fused_pass_impl<kGenthreadExBatchOps, true, false, true>();
     return r7_fused_pass_impl<kGenthreadExBatchOps, true>();
 }
 
@@ -646,7 +646,7 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl() {
     fused_idle_spins_ = 0;
     if constexpr (InterleaveLocalReads) {
         did = fairlane_turn
-            ? r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, true>()
+            ? /* TOMO_TOOL_BIND r7_sweep */r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, true>()
             : r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
     } else {
         did = r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
@@ -656,12 +656,12 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl() {
 }
 
 template <bool Fused>
-uint32_t ExLoopT<Fused>::r7_fused_baseline_sweep() {
+uint32_t ExLoopT<Fused>::/* TOMO_TOOL_BIND r7_fused_baseline_sweep */r7_fused_baseline_sweep() {
     TOMO_R7_PATH();
     static_assert(Fused);
     if (srv_->thread_mode() == ThreadMode::Split) return split_read_local_pass();
     if (read_local_enabled())
-        return r7_fused_sweep_impl<kGenthreadExBatchOps, true, false, true>();
+        return /* TOMO_TOOL_BIND r7_fused_sweep_impl */r7_fused_sweep_impl<kGenthreadExBatchOps, true, false, true>();
     return r7_fused_sweep_impl<kGenthreadExBatchOps, true>();
 }
 
@@ -758,7 +758,7 @@ uint32_t ExLoopT<Fused>::r7_sweep() {
 }
 
 template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool SplitLocal>
-void IoLoop::r7_run_loop() {
+void IoLoop::/* TOMO_TOOL_BIND r7_run_loop */r7_run_loop() {
     TOMO_R7_PATH();
     static_assert(!SplitLocal || Fused);
     LoopSignals& sig = self_->sig();
@@ -768,7 +768,7 @@ void IoLoop::r7_run_loop() {
         fused_executor_->bind_read_local_demotion(this,
             [](void* p, Client* client, const uint64_t* probed,
                const ReadLocalFallbackReason* fallbacks, uint32_t count, uint32_t& demoted) {
-                return static_cast<IoLoop*>(p)->r7_fused_demote_local_read_batch(
+                return static_cast<IoLoop*>(p)->/* TOMO_TOOL_BIND r7_fused_demote_local_read_batch */r7_fused_demote_local_read_batch(
                     client, probed, fallbacks, count, demoted);
             });
 
@@ -874,10 +874,10 @@ void IoLoop::r7_run_loop() {
                 // stream, and therefore this switch, is identical. See uring.h.
                 did += ring_.for_each_cqe(
                     [&](io_uring_cqe* cqe) {
-                        r7_on_cqe<HasTls, kEp, Fused>(cqe);
+                        /* TOMO_TOOL_BIND r7_on_cqe */r7_on_cqe<HasTls, kEp, Fused>(cqe);
                     });
                 if constexpr (kEp)
-                    did += r7_epoll_pass<HasUnix, HasTls, Fused>(0);
+                    did += /* TOMO_TOOL_BIND r7_epoll_pass */r7_epoll_pass<HasUnix, HasTls, Fused>(0);
             }
             did += service_client_migrations<kEp>();
             did += drain_client_transfers<kEp>();
@@ -905,7 +905,7 @@ void IoLoop::r7_run_loop() {
             if constexpr (Fused) {
                 if (__builtin_expect(!routing_forward_.empty(), false))
                     client_routing_cleanup_pass();
-                did += r7_flush_ready<HasTls, kEp, true, HasUnix, false, SplitLocal>();
+                did += /* TOMO_TOOL_BIND r7_flush_ready */r7_flush_ready<HasTls, kEp, true, HasUnix, false, SplitLocal>();
             } else {
                 wb_completions = collect_retire_work<HasUnix, kEp>();
                 did += wb_completions;
@@ -1141,7 +1141,7 @@ uint32_t IoLoop::r7_flush_ready() {
                 // SSL_write and opposite-direction BIO reads are proven safe while pinned,
                 // but SSL_read/SSL_accept consume the same direction and can move that
                 // frontier. Only the recv completion may drive inbound TLS while armed.
-                if (!c->closing() && !c->recv_armed()) (void)r7_drive_tls<kEp, Fused>(c);
+                if (!c->closing() && !c->recv_armed()) (void)/* TOMO_TOOL_BIND r7_drive_tls */r7_drive_tls<kEp, Fused>(c);
                 else if (tls->userspace()) {
                     // A synchronous transport (socket-userspace SSL_write, epoll memory BIO)
                     // sends one plaintext unit per call and completes no CQE. Progress is work,
@@ -1210,7 +1210,7 @@ uint32_t IoLoop::r7_flush_ready() {
             if (c->closing()) c->set_recv_armed(false);
             if (!c->closing()) {
                 if constexpr (HasTls) {
-                    if (tls) r7_arm_tls_recv<kEp, Fused>(c);
+                    if (tls) /* TOMO_TOOL_BIND r7_arm_tls_recv */r7_arm_tls_recv<kEp, Fused>(c);
                     else arm_recv<kEp>(c);
                 } else {
                     arm_recv<kEp>(c);
@@ -1239,7 +1239,7 @@ uint32_t IoLoop::r7_flush_ready() {
                 const uint32_t rpos_before = conn.rpos();
                 if constexpr (HasTls) {
                     if (c->is_tls())
-                        dispatch_result = r7_parse_and_dispatch<
+                        dispatch_result = /* TOMO_TOOL_BIND r7_parse_and_dispatch */r7_parse_and_dispatch<
                             true, Fused ? kGenthreadIfidBatchOps : 0, SplitLocal>(c);
                     else
                         dispatch_result = r7_parse_and_dispatch<
@@ -1350,10 +1350,10 @@ uint32_t IoLoop::r7_flush_ready() {
 }
 
 template <bool kEp, bool Fused>
-void IoLoop::r7_admit_fd(int fd, UrKind kind) {
+void IoLoop::/* TOMO_TOOL_BIND r7_admit_fd */r7_admit_fd(int fd, UrKind kind) {
     TOMO_R7_PATH();
     if (accepts_paused()) { fliplisten_retain(fd, kind); return; }
-    r7_admit_retained_fd<kEp, Fused>(fd, kind);
+    /* TOMO_TOOL_BIND r7_admit_retained_fd */r7_admit_retained_fd<kEp, Fused>(fd, kind);
 }
 
 template <bool kEp, bool Fused>
@@ -1418,7 +1418,7 @@ __attribute__((always_inline)) void IoLoop::r7_admit_retained_fd(int fd, UrKind 
         const auto& ios = srv_->placement().ifid_threads();
         const uint32_t target = ios[unix_rr_++ % ios.size()];
         c->set_ifid_thread(target);
-        if (target == self_->id()) r7_adopt_client<kEp, Fused>(c, true);
+        if (target == self_->id()) /* TOMO_TOOL_BIND r7_adopt_client */r7_adopt_client<kEp, Fused>(c, true);
         else if (!srv_->thread(target).post_client(self_->id(), c, ring_, self_->sig()))
             pending_handoffs_.push_back(c);
     } else {
@@ -1517,7 +1517,7 @@ void IoLoop::r7_arm_tls_recv(Client* c) {
         const ssize_t n = ::recv(c->fd(), dst, static_cast<size_t>(avail), MSG_DONTWAIT);
         if (n > 0) {
             self_->sig().epoll_recvs++;
-            r7_on_tls_recv<kEp, Fused>(c, static_cast<int>(n));
+            /* TOMO_TOOL_BIND r7_on_tls_recv */r7_on_tls_recv<kEp, Fused>(c, static_cast<int>(n));
             return;
         }
         tls->abandon_input();
@@ -1664,7 +1664,7 @@ bool IoLoop::r7_drive_tls(Client* c) {
 }
 
 template <bool kEp, bool Fused>
-uint32_t IoLoop::r7_epoll_accept(UrKind kind) {
+uint32_t IoLoop::/* TOMO_TOOL_BIND r7_epoll_accept */r7_epoll_accept(UrKind kind) {
     TOMO_R7_PATH();
     if (accepts_paused()) return 0;
     const int listener = kind == UrKind::UnixAccept ? unix_listen_fd_ :
@@ -1772,7 +1772,7 @@ uint32_t IoLoop::r7_epoll_pass(int timeout_ms) {
 }
 
 template <bool kEp, bool Fused>
-void IoLoop::r7_on_accept(io_uring_cqe* cqe, UrKind kind) {
+void IoLoop::/* TOMO_TOOL_BIND r7_on_accept */r7_on_accept(io_uring_cqe* cqe, UrKind kind) {
     TOMO_R7_PATH();
     const uint64_t generation = reinterpret_cast<uintptr_t>(ur_ptr<void>(cqe->user_data));
     if (generation != accept_generation_ || self_->role() != Role::Ifid) {
@@ -1812,7 +1812,7 @@ void IoLoop::r7_on_cqe(io_uring_cqe* cqe) {
             case UrKind::UnixAccept:
                 r7_on_accept<kEp, Fused>(cqe, UrKind::UnixAccept); break;
             case UrKind::Recv:
-                r7_on_recv<false, kEp, Fused>(
+                /* TOMO_TOOL_BIND r7_on_recv */r7_on_recv<false, kEp, Fused>(
                     ur_ptr<Client>(cqe->user_data), cqe->res);
                 break;
             case UrKind::Send:
@@ -1867,7 +1867,7 @@ void IoLoop::r7_on_cqe(io_uring_cqe* cqe) {
                 on_tls_send_cqe<kEp, ImmediateSendProgress,
                                 false>(cqe); break;
             case UrKind::TlsReadPoll:
-                r7_on_tls_socket_poll<kEp, Fused>(
+                /* TOMO_TOOL_BIND r7_on_tls_socket_poll */r7_on_tls_socket_poll<kEp, Fused>(
                     ur_ptr<Client>(cqe->user_data), cqe->res, TlsOp::WantRead); break;
             case UrKind::TlsWritePoll:
                 r7_on_tls_socket_poll<kEp, Fused>(

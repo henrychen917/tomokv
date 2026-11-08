@@ -5,6 +5,7 @@ import argparse
 import difflib
 import pathlib
 import re
+import source_tokens as cpp
 import sys
 
 
@@ -166,11 +167,8 @@ def redis_commands(redis_root: pathlib.Path, token_bits: dict[str, int]) -> dict
 def tomo_commands(repo_root: pathlib.Path) -> list[str]:
     result = []
     for relative in COMMAND_SOURCES:
-        source = (repo_root / relative).read_text()
-        match = re.search(r"static const CommandSpec kTable\[\] = \{(.*?)\n\};", source, re.DOTALL)
-        if not match:
-            raise ValueError(f"cannot find CommandSpec table in {relative}")
-        result.extend(re.findall(r'^\s*\{"([A-Z][A-Z0-9_-]*)"\s*,', match.group(1), re.MULTILINE))
+        source = cpp.read(repo_root / relative)
+        result.extend(cpp.command_names(source))
     duplicates = sorted({name for name in result if result.count(name) > 1})
     if duplicates:
         raise ValueError(f"duplicate TomoKV commands: {', '.join(duplicates)}")
@@ -249,7 +247,7 @@ def main() -> int:
     if args.check:
         target = pathlib.Path(args.check)
         actual = target.read_text() if target.exists() else ""
-        if actual != output:
+        if cpp.tokens(actual) != cpp.tokens(output):
             sys.stderr.writelines(difflib.unified_diff(
                 actual.splitlines(True), output.splitlines(True),
                 fromfile=str(target), tofile="generated",

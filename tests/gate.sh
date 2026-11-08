@@ -2411,6 +2411,8 @@ job_reorder_sync(){
   row_begin "$label"
   py tests/r7shadow_sync.py >"$TMPDIR/sync.log" 2>&1 \
       && py tests/r7shadow_sync_test.py >>"$TMPDIR/sync.log" 2>&1 \
+      && py tests/source_tokens_test.py >>"$TMPDIR/sync.log" 2>&1 \
+      && py tests/lottery_build_test.py >>"$TMPDIR/sync.log" 2>&1 \
       && ok "$label" || bad "$label" "see $TMPDIR/sync.log"
 }
 job_reorder_engagement(){

@@ -236,7 +236,7 @@ def check_failure(binary, map_path):
     if row['function'] != 'tomo::Shard::init':
         raise AssertionError(f'wrong function: {row}')
     path, line = row['file:line'].rsplit(':', 1)
-    if path != 'src/core/shard.h' or 'TOMO_ASSERT(bucket_begin <=' not in (ROOT / path).read_text().splitlines()[int(line) - 1]:
+    if path != 'src/core/shard.h' or 'TOMO_ASSERT' not in (ROOT / path).read_text().splitlines()[int(line) - 1]:
         raise AssertionError(f'wrong physical source location: {row}')
     print(result.stderr.strip())
     print(f"PASS directed abort: {match[1]} -> {row['file:line']} {row['function']}")

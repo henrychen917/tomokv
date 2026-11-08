@@ -2,6 +2,7 @@
 """NT4.17 portable ROB: compile a throwaway missing-fence-clear control."""
 import os
 from pathlib import Path
+import source_tokens as cpp
 import shlex
 import shutil
 import subprocess
@@ -12,7 +13,7 @@ with tempfile.TemporaryDirectory(prefix="rob-portable-control-") as temporary:
     work = Path(temporary)
     shutil.copytree(root / "src", work / "src")
     header = work / "src/net/rob.h"
-    text = header.read_text()
+    text = cpp.read(header)
     old = "if (bits & read_local_slot_bit(local_mget_fence_id_)) local_mget_fence_id_ = UINT64_MAX;"
     assert text.count(old) == 1, "portable control seam changed"
     header.write_text(text.replace(old, "/* throwaway: retain stale completed MGET fence */"))

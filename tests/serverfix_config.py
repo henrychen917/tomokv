@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """SV4.6: inventory-driven CONFIG type, duplicate and transaction validation."""
 import re
+import source_tokens as cpp
 from pathlib import Path
 from _serverfix import main, Server, is_error
 from known_difference import expect
@@ -8,14 +9,16 @@ from known_difference import expect
 
 def inventory():
     root = Path(__file__).resolve().parents[1]
-    source = (root / 'src/cmd/t_server.cc').read_text().split('void init_config(')[1].split('ConfigValue* find_config')[0]
-    table = dict(re.findall(r'(?:add_config\(|g_config\.push_back\(\{)"([^"]+)", ConfigKind::(\w+)', source))
-    enc = (root / 'src/core/config.h').read_text().split('settings[Count] = {')[1].split('};')[0]
-    for name in re.findall(r'"([^"]+)"', enc):
+    source = cpp.read(root / 'src/cmd/t_server.cc').split('void init_config(')[1].split('ConfigValue* find_config')[0]
+    table = dict(cpp.findall(r'(?:add_config\(|g_config\.push_back\(\{)"([^"]+)", ConfigKind::(\w+)', source))
+    enc = cpp.read(root / 'src/core/config.h').split('settings[Count] = {')[1].split('};')[0]
+    for name in cpp.findall(r'"([^"]+)"', enc):
         table[name] = 'Encoding'
-    process = (root / 'src/core/config.h').read_text().split('process_configs[] = {')[1].split('};')[0]
-    for name, choices in re.findall(r'\{"([^"]+)", "[^"]*", (nullptr|"[^"]*")', process):
+    process = cpp.read(root / 'src/core/config.h').split('process_configs[] = {')[1].split('};')[0]
+    for name, choices in cpp.findall(r'\{"([^"]+)", "[^"]*", (nullptr|"[^"]*")', process):
         table[name] = 'String' if choices == 'nullptr' else 'Process'
+    if not table or not enc or not process:
+        raise ValueError("empty CONFIG source inventory")
     return table
 
 

@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import source_tokens as cpp
 import re
 import shutil
 import subprocess
@@ -104,11 +105,7 @@ FLIP_PLUMBING = (
 
 
 def cpp_tokens(text):
-    # Comments and literals cannot be policy references. Keep lexical boundaries
-    # ("new Thing" must not become "newThing") while ignoring whitespace.
-    lexer = r'//[^\n]*|/\*[\s\S]*?\*/|R"([^\s()\\]*)\([\s\S]*?\)\1"|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|[a-zA-Z_]\w*|\d+|::|->|&&|\|\||[^\s]'
-    return tuple(m[0] for m in re.finditer(lexer, text)
-                 if not m[0].startswith(('//', '/*')))
+    return cpp.tokens(text)
 
 
 def occurrences(code, part):
@@ -138,11 +135,11 @@ def method_span(code, name):
 def no_tokens(path, text, banned):
     code = cpp_tokens(text)
     for token in banned:
-        assert token not in text and not occurrences(code, cpp_tokens(token)), f'{path}: banned token {token.strip()}'
+        assert not occurrences(code, cpp_tokens(token)), f'{path}: banned token {token.strip()}'
 
 
 def envelope(path, expected_calls, plumbing, guarded):
-    text = (ROOT/path).read_text()
+    text = cpp.read(ROOT / path)
     code = cpp_tokens(text)
     calls = []
     for i in occurrences(code, cpp_tokens('wb_rule::Phase2::')):
@@ -202,16 +199,16 @@ def emit(name, output):
         legacy.MUTANTS[name] = ('clauses', POLICY, old, new, '', '')
         legacy.emit(name, output)
     else:
-        text = (ROOT/POLICY).read_text()
+        text = cpp.read(ROOT / POLICY)
         assert text.count(old) == 2
-        legacy.MUTANTS[name] = ('clauses', POLICY, text, text.replace(old, new), '', '')
+        legacy.MUTANTS[name] = ('clauses', POLICY, text, text.replace(old, new, 2), '', '')
         legacy.emit(name, output)
 
 
 def source():
     for path in (POLICY, 'src/core/server.h', WB, IO, R7, FLIP):
-        no_tokens(path, (ROOT/path).read_text(), DETECTOR_TOKENS)
-    no_tokens(POLICY, (ROOT/POLICY).read_text(), RULE_TOKENS)
+        no_tokens(path, cpp.read(ROOT / path), DETECTOR_TOKENS)
+    no_tokens(POLICY, cpp.read(ROOT / POLICY), RULE_TOKENS)
     envelope(WB, (), (), ())
     envelope(IO, (SERVE,), PLUMBING, (('flush_ready', SERVE_GUARD),))
     envelope(R7, (SERVE,), R7_PLUMBING, (('r7_flush_ready', SERVE_GUARD),))
@@ -288,7 +285,7 @@ SOURCE_CONTROLS = {
 def source_controls(work):
     rows = []
     inputs = (POLICY, WB, IO, R7, FLIP, 'src/core/server.h', 'src/core/ex_loop.h',
-              'src/core/genthread.cc', 'tests/r7shadow_sync.py', 'tools/reorder_sync.py')
+              'src/core/genthread.cc', 'tests/r7shadow_sync.py', 'tools/reorder_sync.py', 'tools/source_tokens.py', 'tests/source_tokens.py', 'tools/source_anchors.json')
     with tempfile.TemporaryDirectory(prefix='wbland-source-', dir=work) as temporary:
         overlay = Path(temporary)
         for path in inputs:
@@ -296,7 +293,7 @@ def source_controls(work):
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT/path, target)
         for name, (path, old, new, assertion) in SOURCE_CONTROLS.items():
-            original = (ROOT/path).read_text()
+            original = cpp.read(ROOT / path)
             if old:
                 assert original.count(old) == 1, f'{name}: source mutation site changed'
                 changed = original.replace(old, new)

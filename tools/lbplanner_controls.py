@@ -2,6 +2,7 @@
 """Emit clause-deletion controls under build/. Never run a server."""
 import argparse
 from pathlib import Path
+import source_tokens as cpp
 import shutil
 
 p = argparse.ArgumentParser(description=__doc__)
@@ -16,11 +17,11 @@ if a.control.startswith('timing-'):
     shutil.copytree('src', overlay / 'src', dirs_exist_ok=True)
     io = overlay / 'src/core/io_loop.h'
     server = overlay / 'src/core/server.h'
-    s = io.read_text()
+    s = cpp.read(io)
     if a.control == 'timing-lock':
         old = '    LbClientMove lb_client_move() const { return lb_client_move_; }'
-        assert server.read_text().count(old) == 1
-        server.write_text(server.read_text().replace(old, old + '''
+        assert cpp.read(server).count(old) == 1
+        server.write_text(cpp.read(server).replace(old, old + '''
     bool lb_client_move_contended(LbClientMove& move) {
         std::unique_lock lock(shape_transition_mu_, std::try_to_lock);
         if (!lock || lb_stage() != LbStage::ClientDrain) return false;
@@ -47,7 +48,7 @@ if a.control.startswith('timing-'):
     assert s.count(old) == 1, ('unique timing mutation', a.control)
     io.write_text(s.replace(old, new, 1))
     raise SystemExit(0)
-s = Path('src/core/lbplanner.cc').read_text()
+s = cpp.read(Path('src/core/lbplanner.cc'))
 changes = {
     # Target the monitor publication, not DEBUG CLIENT-LB's record-reuse gate.
     'no-publish': ('lb_stage_.store(LbStage::PlanReady, std::memory_order_seq_cst);\n        return true;',

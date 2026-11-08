@@ -7,6 +7,7 @@ an action, not a setting; the file-only `pin` translation is documented in prose
 This checks names and generated encoding rows/defaults; runtime behavior is separate.
 """
 
+import source_tokens as cpp
 import argparse
 from collections import Counter
 from pathlib import Path
@@ -21,11 +22,8 @@ ASSERTION = "knob set matches parser"
 
 
 def without_comments(source):
-    # Preserve quoted C++ strings/characters; help text and comments are not a
-    # substitute for a branch that actually recognizes a flag.
-    tokens = r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|//[^\n]*|/\*.*?\*/'
-    return re.sub(tokens, lambda m: " " if m[0].startswith(("//", "/*")) else m[0],
-                  source, flags=re.S)
+    # Source searches ignore comments while retaining real physical offsets.
+    return cpp.Source(source)
 
 
 def between(text, start, end):
@@ -37,13 +35,13 @@ def between(text, start, end):
 def parser_knobs(source):
     source = without_comments(source)
     parser = between(source, "inline int parse_config_args(", "inline int validate_config(")
-    flags = set(re.findall(r'std::strcmp\s*\(\s*a\s*,\s*"--([a-z0-9-]+)"\s*\)', parser))
+    flags = set(cpp.findall(r'std::strcmp\s*\(\s*a\s*,\s*"--([a-z0-9-]+)"\s*\)', parser))
     if "help" not in flags or "EncodingConfig::find" not in parser:
         raise ValueError("source shape changed: missing help branch or encoding dispatch")
     flags.remove("help")
     table = between(source, "static constexpr Setting settings[Count] = {", "int64_t values[Count]")
     spelling = r'("[a-z0-9-]+"|nullptr)'
-    rows = re.findall(r'\{\s*"([a-z0-9-]+)"\s*,\s*' + spelling +
+    rows = cpp.findall(r'\{\s*"([a-z0-9-]+)"\s*,\s*' + spelling +
                       r'\s*,\s*(?:true|false)\s*,\s*' + spelling + r'\s*\}', table)
     if not flags or not rows or len(rows) != table.count("{"):
         raise ValueError("source shape changed: empty or unrecognized knob table")
@@ -53,7 +51,7 @@ def parser_knobs(source):
     process = source.split('process_configs[] = {', 1)[1].split('};', 1)[0]
     if 'cfg_process_find' not in parser:
         raise ValueError('missing process configuration dispatch')
-    flags.update(re.findall(r'\{"([a-z0-9-]+)"', process))
+    flags.update(cpp.findall(r'\{"([a-z0-9-]+)"', process))
     return flags
 
 
@@ -68,13 +66,14 @@ def documented_knobs(document):
 
 
 def regenerate_writeback(source, document):
+    source = cpp.Source(source)
     rule = (ROOT / "src/core/wb_rule.h").read_text()
     rows = []
     for name, field, constant, maximum, zero in (
             ("wb-small-pipe", "wb_small_pipe", "kSmallPipe", "64", "half rule, no completion"),
             ("wb-complete-visits", "wb_complete_visits", "kCompleteVisits", "255", "unbounded completion")):
-        initial = re.search(r'uint32_t ' + field + r' = ([^;]+);', source)[1]
-        default = re.search(r'unsigned ' + constant + r' = (\d+);', rule)[1] if initial == 'wb_rule::' + constant else initial
+        initial = cpp.search(r'uint32_t ' + field + r' = ([^;]+);', source)[1]
+        default = cpp.search(r'unsigned ' + constant + r' = (\d+);', rule)[1] if initial == 'wb_rule::' + constant else initial
         line = source[:source.index('uint32_t ' + field)].count('\n') + 1
         rows.append(f"| `{name}` | T | Canonical decimal 0..{maximum} | `{default}` | Boot/GET | `{field}` (Writeback) | 0 = {zero}; measured default, ledger addendum 12; `src/core/config.h:{line}`. |")
         document = re.sub(r'^\| `' + name + r'` \|.*\n', '', document, flags=re.M)
@@ -83,11 +82,12 @@ def regenerate_writeback(source, document):
 
 def regenerate_encodings(source, document):
     """Regenerate the encoding rows/defaults/anchors from EncodingConfig, not prose edits."""
+    source = cpp.Source(source)
     start = source.index("static constexpr Setting settings[Count] = {")
     end = source.index("int64_t values[Count]", start)
-    settings = re.findall(r'\{"([a-z0-9-]+)", ("[a-z0-9-]+"|nullptr), (true|false), '
+    settings = cpp.findall(r'\{"([a-z0-9-]+)", ("[a-z0-9-]+"|nullptr), (true|false), '
                           r'("[a-z0-9-]+"|nullptr)\}', source[start:end])
-    defaults = re.search(r'int64_t values\[Count\] = \{([^}]+)\}', source).group(1).split(",")
+    defaults = cpp.search(r'int64_t values\[Count\] = \{([^}]+)\}', source).group(1).split(",")
     assert len(settings) == len(defaults)
     descriptions = {
         "hash-max-listpack-entries": "Compact hash entry ceiling",
@@ -134,14 +134,18 @@ def regenerate_encodings(source, document):
 
 
 def check(header, document):
-    parsed = parser_knobs(header.read_text())
+    parsed = parser_knobs(cpp.read(header))
     documented = documented_knobs(document.read_text())
     errors = []
     if parsed - documented:
         errors.append("parsed but undocumented: " + ", ".join(sorted(parsed - documented)))
     if documented - parsed:
         errors.append("documented but not parsed: " + ", ".join(sorted(documented - parsed)))
-    if not errors and regenerate_encodings(header.read_text(), document.read_text()) != document.read_text():
+    # Source links are navigation, not part of the configuration contract.
+    # Reformatting changes their physical line numbers without changing a knob.
+    def contract(text):
+        return re.sub(r'(`src/[^`:]+):[0-9]+`', r'\1`', text)
+    if not errors and contract(regenerate_encodings(cpp.read(header), document.read_text())) != contract(document.read_text()):
         errors.append("encoding rows/defaults drifted: run python3 tests/docs_drift.py --write")
     if errors:
         raise ValueError("; ".join(errors))
@@ -150,7 +154,7 @@ def check(header, document):
 
 def self_test(header, document):
     """Exercise the CLI against throwaway copies; never modify the checkout."""
-    source, markdown = header.read_text(), document.read_text()
+    source, markdown = cpp.read(header), document.read_text()
     with tempfile.TemporaryDirectory(prefix="tomokv-docs-drift-") as directory:
         copy_header = Path(directory) / "config.h"
         copy_document = Path(directory) / "CONFIGURATION.md"
@@ -205,7 +209,7 @@ def main():
     args = parser.parse_args()
     try:
         if args.write:
-            args.document.write_text(regenerate_encodings(args.config_header.read_text(), args.document.read_text()))
+            args.document.write_text(regenerate_encodings(args.config_cpp.read(header), args.document.read_text()))
         count = check(args.config_header, args.document)
         print(f"PASS {ASSERTION}: {count} spellings")
         if args.self_test:

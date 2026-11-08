@@ -2,6 +2,7 @@
 """Copy production sources and insert the SV4.10 hook only in a witness build."""
 import argparse
 from pathlib import Path
+import source_tokens as cpp
 import shutil
 
 
@@ -21,7 +22,7 @@ def main():
     shutil.copy2(root / 'tests/racefix_hook.h', output / 'tests/racefix_hook.h')
     shutil.copy2(root / 'Makefile', output / 'Makefile')
     server = output / 'src/core/server.h'
-    text = server.read_text()
+    text = cpp.read(server)
     anchors = ('        climon_armed_.store(armed, std::memory_order_release);',
                '            climon_armed_.exchange(armed, std::memory_order_acq_rel);')
     found = [anchor for anchor in anchors if text.count(anchor) == 1]
@@ -33,7 +34,7 @@ def main():
     text = text.replace('namespace tomo {', '#include "tests/racefix_hook.h"\n\nnamespace tomo {', 1)
     server.write_text(text)
     debug = output / 'src/cmd/t_server.cc'
-    text = debug.read_text()
+    text = cpp.read(debug)
     anchor = 'void cmd_debug_impl(Shard& shard, Op& op) {'
     assert text.count(anchor) == 1, 'DEBUG entry changed; review the witness'
     text = text.replace(anchor, anchor + '''

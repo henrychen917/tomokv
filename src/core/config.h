@@ -61,7 +61,7 @@ struct ProcessConfigSpec {
     bool immutable;
     bool hidden = false;
 };
-inline constexpr ProcessConfigSpec process_configs[] = {
+inline constexpr ProcessConfigSpec /* TOMO_TOOL_BIND process_configs */process_configs[] = {
     {"daemonize", "no", "yes, no", true},
     {"logfile", "", nullptr, true},
     {"syslog-enabled", "no", "yes, no", true},
@@ -387,7 +387,7 @@ struct EncodingConfig {
     enum Key : uint32_t { HashEntries, HashValue, ListSize, SetEntries, SetValue,
                           ZsetEntries, ZsetValue, SetIntsetEntries, Count };
     struct Setting { const char* name; const char* alias; bool memory; const char* tomo_alias; };
-    static constexpr Setting settings[Count] = {
+    static constexpr Setting /* TOMO_TOOL_BIND settings */settings[Count] = {
         {"hash-max-listpack-entries", "hash-max-ziplist-entries", false, "hash-max-compact-entries"},
         {"hash-max-listpack-value", "hash-max-ziplist-value", true, "hash-max-compact-value"},
         {"list-max-listpack-size", "list-max-ziplist-size", false, nullptr},
@@ -841,7 +841,7 @@ enum : int { kConfigParsed = 0, kConfigError = 1, kConfigHelp = 2 };
 
 // Parses one token stream (no argv[0]) into cfg. `source` is 1 for the conf file, 2 for the CLI.
 // Prints its own error messages; the caller adds file context on conf failures.
-inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
+inline int /* TOMO_TOOL_BIND parse_config_args */parse_config_args(const std::vector<const char*>& args, Config& cfg,
                              ConfigParseState& st, int source, const char* prog,
                              const std::vector<size_t>* lengths = nullptr,
                              std::FILE* diagnostics = stderr) {
@@ -1527,7 +1527,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
 }
 
 // Post-parse validation shared by every source combination. Call once, after all token streams.
-inline int validate_config(const Config& cfg) {
+inline int /* TOMO_TOOL_BIND validate_config */validate_config(const Config& cfg) {
     if (cfg.wb_small_pipe > kRobWindow || cfg.wb_complete_visits > UINT8_MAX) {
         std::fprintf(stderr, "--wb-small-pipe wants 0..64; --wb-complete-visits wants 0..255\n");
         return kConfigError;

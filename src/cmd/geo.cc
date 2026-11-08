@@ -1083,7 +1083,7 @@ void cmd_geodist_armed(Shard& shard, Op& op) { cmd_geodist<true>(shard, op); }
 void cmd_geosearch_clean(Shard& shard, Op& op) { cmd_geosearch<false>(shard, op); }
 void cmd_geosearch_armed(Shard& shard, Op& op) { cmd_geosearch<true>(shard, op); }
 
-static const CommandSpec kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
     {"GEOADD", 5, -1, CmdFlags::Write | CmdFlags::DenyOom,
      cmd_geoadd_clean, 1, 1, 1, notify_handler<cmd_geoadd_armed>},
     // Minimum 2 for the member-list readers: redis answers "GEOPOS key" with an empty array.

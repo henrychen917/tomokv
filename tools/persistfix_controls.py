@@ -2,6 +2,7 @@
 """Emit isolated PS1/PS2/PS14 clause deletions; never build or run a server."""
 import argparse
 from pathlib import Path
+import source_tokens as cpp
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -9,17 +10,19 @@ ROOT = Path(__file__).resolve().parents[1]
 def replace_body(source, signature, replacement):
     start = source.index(signature)
     opening = source.index('{', start)
-    # These production bodies have balanced braces in comments and strings too.
-    depth = 1
-    end = opening + 1
-    while depth:
-        depth += (source[end] == '{') - (source[end] == '}')
-        end += 1
+    depth = 0
+    for token in cpp.lex(str(source[opening:])):
+        depth += (token.text == '{') - (token.text == '}')
+        if not depth:
+            end = opening + token.end
+            break
+    else:
+        raise ValueError('unclosed control body: ' + signature)
     return source[:opening] + '{\n' + replacement + '\n}' + source[end:]
 
 
 def emit(name, output):
-    source = (ROOT / 'src/persist/aof.cc').read_text()
+    source = cpp.read(ROOT / 'src/persist/aof.cc')
     if name == 'old-ack':
         source = replace_body(source, 'bool AofManager::defer_completion(',
                               '    (void)producer; (void)op; (void)client; return false;')

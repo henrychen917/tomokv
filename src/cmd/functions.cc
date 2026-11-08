@@ -1219,7 +1219,7 @@ void cmd_function(Shard&, Op& op) {
     command_reply_subcommand_error(op, "FUNCTION");
 }
 
-static const CommandSpec kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
     // name       min max flags                                       handler      first last step
     {"FCALL",      3, -1, CmdFlags::Write | CmdFlags::CursorShard | CmdFlags::ScriptRoute |
                               CmdFlags::MultiShard,

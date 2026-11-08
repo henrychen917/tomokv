@@ -90,7 +90,7 @@ inline T* ur_ptr(uint64_t tag) { return reinterpret_cast<T*>(tag & ((1ULL << 48)
 
 class Ring {
 public:
-    static constexpr unsigned kWaitTimeoutMs = 50;
+    static constexpr unsigned /* TOMO_TOOL_BIND kWaitTimeoutMs */kWaitTimeoutMs = 50;
     static_assert(kParkNetStretched || kParkNetMs == kWaitTimeoutMs, "park_net.h production net");
     Ring() = default;
     ~Ring() { shutdown(); }

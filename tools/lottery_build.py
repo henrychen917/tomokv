@@ -9,6 +9,7 @@ import argparse
 import hashlib
 import json
 import os
+import source_tokens as cpp
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -37,10 +38,10 @@ def prepare(output):
 
     def patch(path, old, new, count=1):
         data, mode = staged[path]
-        text = data.decode()
+        text = cpp.Source(data.decode()) if path.startswith('src/') else data.decode()
         if text.count(old) != count:
             raise ValueError(f'{path}: expected {count} anchors, found {text.count(old)}: {old[:80]}')
-        staged[path] = (text.replace(old, new).encode(), mode)
+        staged[path] = (text.replace(old, new, count).encode(), mode)
         changes.append(dict(path=path, anchor=old, replacement=new, count=count))
 
     def after(path, anchor, code, count=1):
@@ -123,7 +124,7 @@ def prepare(output):
     if (!(op.spec->flags & (CmdFlags::Write|CmdFlags::SnapshotWrite)))
         lottery::event(lottery::bit(2), "read_new", lottery::ptr(state), state->nsub,
                        state->snapshot, state->origin_conn_id);''')
-    after('src/cmd/scatter_engine.inc', '    ShardGroup& group = *group_for(state, shard.id());', '''
+    after('src/cmd/scatter_engine.inc', '/* TOMO_TOOL_ANCHOR lottery-read-fragment */', '''
     const bool lottery_read = !(op.spec->flags & (CmdFlags::Write|CmdFlags::SnapshotWrite));
     lottery::Scope lottery_fragment(lottery_read ? lottery::bit(2) : 0,
         "read_begin", "read_end", lottery::ptr(&state), shard.id(), state.nsub,
@@ -168,7 +169,7 @@ def prepare(output):
     after('src/cmd/scatter_engine.inc', '                    xshard_peek_list(object, state.from_left, result->bulk);', '''
                 lottery::event(lottery::bit(6), "move_selected", lottery::ptr(&state),
                     key.hash, state.from_left, state.origin_conn_id);''')
-    after('src/cmd/scatter_engine.inc', '\n        if (state.phase == 2) {', '''
+    after('src/cmd/scatter_engine.inc', '/* TOMO_TOOL_ANCHOR lottery-move-remove */', '''
             if (is_element_mover(state.kind))
                 lottery::event(lottery::bit(6), "move_remove", lottery::ptr(&state));''')
     after('src/cmd/t_list.cc',

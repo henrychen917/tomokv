@@ -14,6 +14,7 @@ import json
 import os
 from pathlib import Path
 import re
+import source_tokens as cpp
 import resource
 import signal
 import socket
@@ -26,8 +27,8 @@ from _lib import Conn, info, lbsignals, wait_ready
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKERS = 8
-TICK = int(re.search(r'kWaitTimeoutMs = (\d+)',
-                    (ROOT / 'src/net/uring.h').read_text()).group(1)) / 1000
+TICK = int(cpp.search(r'kWaitTimeoutMs = (\d+)',
+                    cpp.read(ROOT / 'src/net/uring.h')).group(1)) / 1000
 GRACE = 2 * TICK * (WORKERS + 1)
 SHUTDOWN = 3 * GRACE
 

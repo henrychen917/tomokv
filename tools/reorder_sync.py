@@ -30,14 +30,15 @@ def rename(text, names):
 
 
 def update(path, generated, write):
-    old = path.read_text()
+    old = cpp.read(path)
     if old.count(BEGIN.strip()) != 1 or old.count(END.strip()) != 1:
         raise ValueError(f'missing or duplicate generated envelope marker in {path}')
     prefix, _, tail = old.partition(BEGIN.strip())
     current, _, suffix = tail.partition(END.strip())
-    if cpp.tokens(cpp.Source(current)) != cpp.tokens(cpp.Source(generated)):
+    if cpp.tokens(cpp.Source(current, old.aliases)) != cpp.tokens(cpp.Source(generated)):
         if not write:
             raise ValueError(f'stale R7 envelope: {path}; run tools/reorder_sync.py --write')
+        generated = cpp.rename(generated, {stable: actual for actual, stable in old.aliases.items()})
         path.write_text(prefix + BEGIN + generated + END.rstrip() + suffix)
 
 if __name__ == '__main__':

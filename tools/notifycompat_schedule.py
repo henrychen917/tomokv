@@ -10,6 +10,7 @@ import io
 import json
 import os
 from pathlib import Path
+import source_tokens as cpp
 import shlex
 import shutil
 import subprocess
@@ -62,6 +63,7 @@ HOLD = r"""
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--prepare-only', action='store_true', help='validate and emit hooks without compiling')
     parser.add_argument('--objects', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--ref')
@@ -84,7 +86,7 @@ def main():
         (source / 'tools').mkdir(exist_ok=True)
         shutil.copy2(root / 'tools/assert_map.py', source / 'tools/assert_map.py')
     path = source / 'src/cmd/tracking.cc'
-    text = path.read_text()
+    text = cpp.read(path)
     anchor = 'namespace tomo {'
     assert text.count(anchor) == 1
     text = text.replace(anchor, anchor + STATE)
@@ -92,12 +94,15 @@ def main():
     assert text.count(anchor) == 1
     path.write_text(text.replace(anchor, anchor + HOLD))
     path = source / 'src/cmd/climon.cc'
-    text = path.read_text().replace('namespace tomo {',
+    text = cpp.read(path).replace('namespace tomo {',
         'namespace tomo {\nstd::unique_ptr<PubSubEvent> notifycompat_take_redirect();', 1)
     anchor = 'bool IoLoop::climon_handle_event(PubSubEvent& event) {'
     assert text.count(anchor) == 1
     path.write_text(text.replace(anchor, anchor +
         '\n    while (auto held = notifycompat_take_redirect()) tracking_handle_event(*held);\n'))
+    if args.prepare_only:
+        print('source hooks prepared:', source)
+        return
     dry = subprocess.check_output(['make', '-n', '-B', f'BUILD_ROOT={objects}', str(objects / 'tomokv')], cwd=source, text=True)
     commands = [shlex.split(line) for line in dry.splitlines() if line.startswith(('g++ ', 'c++ ', 'clang++ '))]
     compiles = [cmd for cmd in commands if '-c' in cmd and any(p in cmd for p in ('src/cmd/tracking.cc', 'src/cmd/climon.cc'))]

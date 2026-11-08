@@ -7,7 +7,7 @@
 namespace tomo {
 namespace {
 
-static const CommandSpec kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
     {"ZUNION",      3, -1, CmdFlags::Readonly | CmdFlags::MultiShard,
                      cmd_xshard_only, 2, -1, 1},
     {"ZINTER",      3, -1, CmdFlags::Readonly | CmdFlags::MultiShard,

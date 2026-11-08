@@ -1541,7 +1541,7 @@ void cmd_xtrim(Shard& shard, Op& op) {
 
 #define TOMO_HANDLER_PAIR(fn) fn<false>, 1, 1, 1, notify_handler<fn<true>>
 
-static const CommandSpec kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
     {"XADD",       5, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_xadd)},
     {"XLEN",       2,  2, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_xlen)},
     {"XRANGE",     4,  6, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_xrange)},

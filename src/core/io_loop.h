@@ -59,7 +59,7 @@ namespace tomo {
 //   io    IoLoop    recv+parse+retire+send; owns the whole client
 //   ex    ExLoop    execute+notify; never sends
 
-class IoLoop {
+class /* TOMO_TOOL_BIND IoLoop */IoLoop {
     friend struct FlipListenerState;
     friend bool cfgfix_rebind(Server&, uint32_t, uint16_t, const std::string&, std::string&, int);
     friend bool fliplisten_reserve(Server&, std::string&);
@@ -581,7 +581,7 @@ private:
                 continue;
             }
 #endif
-            lb_pass_begin(); // one shared pause snapshot before any connection parsing
+            /* TOMO_TOOL_BIND lb_pass_begin */lb_pass_begin(); // one shared pause snapshot before any connection parsing
             flip_pass_begin(); // one acquire before any parser or cron in this IO pass
             refresh_notify_config();
             // ONE relaxed load per io batch. Per-batch checks are free; this is what buys the
@@ -699,7 +699,7 @@ private:
                     did += lb_client_signal_pass();
                     lb_client_signal_beat_ms_ = cached_now_ms_ + 1000;
                 }
-                did += lb_control_pass();
+                did += /* TOMO_TOOL_BIND lb_control_pass */lb_control_pass();
                 did += lb_wake_all_pass();
                 if (__builtin_expect(client_cron_armed &&
                                      cached_now_ms_ >= client_cron_beat_ms_, false)) {
@@ -2857,7 +2857,7 @@ private:
     // current frame crosses any stateful hook; the unconsumed frame is then safe to reparse.
     // MGET remains one ROB operation, but its cold fallback expands here through the unchanged
     // scatter planner into one owner Task per touched shard.
-    class ReadLocalDemotionPlan {
+    class /* TOMO_TOOL_BIND ReadLocalDemotionPlan */ReadLocalDemotionPlan {
     private:
         enum class ReadKind : uint8_t { Ordinary, Scatter, Error };
 

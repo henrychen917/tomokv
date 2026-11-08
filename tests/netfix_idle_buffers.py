@@ -6,6 +6,7 @@ import socket
 import subprocess
 import resource
 from pathlib import Path
+import source_tokens as cpp
 import time
 import _netfix as n
 
@@ -57,7 +58,7 @@ int main() {
     # shrink must fail this same test. No production switch or binary is changed.
     control = a.output / 'control/src/net'
     control.mkdir(parents=True, exist_ok=True)
-    header = Path('src/net/idle_buffers.h').read_text()
+    header = cpp.read(Path('src/net/idle_buffers.h'))
     old = 'std::max(kWbufInline, p.output[i] + 1)'
     assert header.count(old) == 1
     (control / 'idle_buffers.h').write_text(header.replace(old, 'kWbufInline'))

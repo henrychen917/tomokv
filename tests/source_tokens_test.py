@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Fail-closed lexical controls for production-source tooling."""
 import unittest
+import json
+import re
 from pathlib import Path
 import source_tokens as cpp
 
@@ -43,6 +45,31 @@ class TokensTest(unittest.TestCase):
             cpp.function(source + source, 'entry')
         with self.assertRaises(ValueError):
             cpp.function(cpp.Source('void x(); void x(){} void x(){}'), 'x')
+
+    def test_splices_and_punctuation(self):
+        self.assertEqual(cpp.tokens('fo' + '\\\n' + 'o();'), cpp.tokens('foo();'))
+        self.assertEqual(cpp.tokens('// hidden ' + '\\\n' + 'site();\nreal();'), cpp.tokens('real();'))
+        self.assertNotEqual(cpp.tokens('1e+3'), cpp.tokens('1e +3'))
+        self.assertNotEqual(cpp.tokens('x >>= 1'), cpp.tokens('x >> = 1'))
+        self.assertNotEqual(cpp.compact('x + + y'), cpp.compact('x ++ y'))
+        self.assertEqual(cpp.bindings('R"(/* TOMO_TOOL_BIND x */ y)"'), {})
+
+    def test_marker_manifest(self):
+        root = Path(__file__).resolve().parents[1]
+        manifest = json.loads((root / 'tools/source_anchors.json').read_text())
+        self.assertTrue(manifest)
+        for filename in manifest:
+            cpp.read(root / filename)
+
+    def test_per_object_rules_name_real_sources(self):
+        root = Path(__file__).resolve().parents[1]
+        makefile = (root / 'Makefile').read_text()
+        rules = re.findall(r'^([^#\n]+): (?:override )?CXXFLAGS \+=', makefile, re.M)
+        sources = {match for rule in rules for match in re.findall(r'(src/[\w/]+)\.o', rule)}
+        self.assertGreater(len(sources), 20)
+        for source in sources:
+            self.assertTrue((root / (source + '.cc')).is_file(),
+                            'per-object budget lost its source: ' + source)
 
     def test_table_is_nonempty_and_unique(self):
         text = 'static const CommandSpec kTable [] = { {"GET", get}, {"SET", set} };'

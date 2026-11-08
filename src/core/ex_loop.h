@@ -164,7 +164,7 @@ struct ReadLocalCaptureBuffer {
 };
 
 template <bool Fused>
-class ExLoopT {
+class /* TOMO_TOOL_BIND ExLoopT */ExLoopT {
 public:
     using FusedCompletionFn = void (*)(void*, Client*);
 
@@ -451,7 +451,7 @@ public:
                     did += service_ordered_deferred<BatchOps, IofusedPrivateQueue>();
                 if constexpr (ConsumeTasks)
                     if (xshard_retries_.empty() && ordered_deferred_.empty()) {
-                        did += drain_tasks<BatchOps, IofusedPrivateQueue>(true);
+                        did += /* TOMO_TOOL_BIND drain_tasks */drain_tasks<BatchOps, IofusedPrivateQueue>(true);
                     }
                 flush_xshard_commits();
                 did += aof_flush_pass();
