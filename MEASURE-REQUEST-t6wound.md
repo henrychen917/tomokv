@@ -40,6 +40,37 @@ Validation in progress:
 - Full repetitions of the final harness are pending; final evidence and miss
   rates will be recorded here.
 
+The before counts below exclude the three Redis oracle legs. The supplied
+logs contain 33 and 32 TomoKV attempts, confirmed independently by their
+geometry records. A final failed attempt is already in `unarmed_attempts`;
+adding another attempt for that failed leg would double count it.
+
+| Before evidence | Wound misses / attempts | Failed legs | Failed rows |
+| --- | ---: | ---: | ---: |
+| Supplied p2 log | 12/33 (36.36%) | 3/24 | 1/1 |
+| Supplied aofblock log | 10/32 (31.25%) | 2/24 | 1/1 |
+| Fresh release baseline, original harness | 0/24 (0%) | 0/24 | 0/1 |
+
+[Raw logs, results, boot commands, and counter checks](docs/t6wound/evidence/)
+are retained with binary and harness SHA-256s in `summary.json`.
+
+Failure controls on the final harness:
+
+- Both thread modes reject a masked zero `atomic_group_wounds` counter after
+  running the ordinary counts, exact-value, and worker checks. PRE refusal
+  controls still pass with that zero counter and reject any attempted DEBUG
+  command through a client wrapper, confirming that no hook is armed there.
+- Suppressing `TXN-PLACE-DEFER` makes the directed opening fail all three
+  fresh boots. The T6 result is a failure and all four boots (including Redis)
+  exit cleanly. This tests that natural later wounds cannot rescue an unopened
+  directed schedule.
+- Injected assertion failures and timeouts are not retried; an injected
+  WoundNotObserved is retried only on three distinct fresh directories and
+  still fails. See `final-controls.log` and `retry-controls.log`.
+- An AST comparison preserves all 16 original storm assert statements and
+  every function other than `storm()`. Three scheduling assertions are added.
+  `src/`, `tests/gate.sh`, and its row inventory are unchanged.
+
 The acceptance run uses `GATE_ONLY_JOBS=at412-T6 GATE_PROOF_NO_RATES=1
 tests/gate.sh quick`, with explicit candidate binaries and disjoint resources:
 release on server CPUs 40-47 / load 48-51 / ports 26700-26709, local build on

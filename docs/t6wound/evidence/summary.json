@@ -1,0 +1,34 @@
+{
+  "harness_commit": "b5ca96b58a",
+  "harness_sha256": "ff5a01c3c619ef64d4886599dddeae0e738882ce331884edf4482487e82d1e42",
+  "binaries": {
+    "/home/user/Projects/bins/readability-pre-5c363128/tomokv": "0de6bbdea50caf4f90f797c4e52a4e86be30e2c554fb544f257f5148bf4016cd",
+    "build/tomokv": "17fcbf85bcdc792ba0c7f9211d9add4a289b0bf1d9dba6cb540a524620b2a246"
+  },
+  "runs": [
+    {
+      "arm": "before-p2",
+      "attempts": 33,
+      "misses": 12,
+      "failed_legs": 3,
+      "input_sha256": "8ebd8cdffda9d687f15e61898fe061ef03e14eae5eeb98befc5718bfe96d5ca2"
+    },
+    {
+      "arm": "before-aofblock",
+      "attempts": 32,
+      "misses": 10,
+      "failed_legs": 2,
+      "input_sha256": "5f53d4dcb6c16adb7adbba812f595c79aac57f2c9d50753c1c5d9815c5e87a9e"
+    },
+    {
+      "arm": "before-release",
+      "run_directory": "/home/user/Projects/cx-t6wound/build/gate-run.WhD121",
+      "status": "ok",
+      "seconds": 813.36,
+      "attempts": 24,
+      "misses": 0,
+      "failed_legs": 0,
+      "opening_wounds": null
+    }
+  ]
+}
