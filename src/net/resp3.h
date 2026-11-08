@@ -9,50 +9,74 @@ namespace tomo {
 // The RESP3 forms are fixed too, so they take codes on the same terms as their RESP2 siblings.
 // The protocol choice stays exactly where it was -- at the call site, on op.resp3() -- so a coded
 // reply carries the version's own bytes and nothing has to re-decide at retire.
-template <typename Buf> __attribute__((always_inline)) inline void reply_null(Buf&& b, bool resp3) {
-    if (!resp3) { reply_nil(b); return; }
+template <typename Buf>
+__attribute__((always_inline)) inline void reply_null(Buf&& b, bool resp3) {
+    if (!resp3) {
+        reply_nil(b);
+        return;
+    }
     TOMO_CODED_REPLY(b, ReplyCode::NullResp3)
     b.append("_\r\n", 3);
 }
 
-template <typename Buf> __attribute__((always_inline)) inline void reply_null_array(Buf&& b, bool resp3) {
-    if (!resp3) { reply_null_array(b); return; }
+template <typename Buf>
+__attribute__((always_inline)) inline void reply_null_array(Buf&& b, bool resp3) {
+    if (!resp3) {
+        reply_null_array(b);
+        return;
+    }
     TOMO_CODED_REPLY(b, ReplyCode::NullResp3)
     b.append("_\r\n", 3);
 }
 
-template <typename Buf> __attribute__((always_inline)) inline void reply_bool(Buf&& b, bool value, bool resp3) {
-    if (!resp3) { reply_int(b, value ? 1 : 0); return; }
+template <typename Buf>
+__attribute__((always_inline)) inline void reply_bool(Buf&& b, bool value, bool resp3) {
+    if (!resp3) {
+        reply_int(b, value ? 1 : 0);
+        return;
+    }
     TOMO_CODED_REPLY(b, value ? ReplyCode::True : ReplyCode::False)
     b.append(value ? "#t\r\n" : "#f\r\n", 4);
 }
 
-template <typename Buf> inline void reply_map_header(Buf&& b, uint64_t n, bool resp3) {
-    if (!resp3) { reply_array_header(b, n * 2); return; }
+template <typename Buf>
+inline void reply_map_header(Buf&& b, uint64_t n, bool resp3) {
+    if (!resp3) {
+        reply_array_header(b, n * 2);
+        return;
+    }
     char* p = b.reserve(24);
     char* q = p;
     *q++ = '%';
     q += u64_to_dec(q, n);
-    *q++ = '\r'; *q++ = '\n';
+    *q++ = '\r';
+    *q++ = '\n';
     b.advance(static_cast<size_t>(q - p));
 }
 
-template <typename Buf> inline void reply_set_header(Buf&& b, uint64_t n, bool resp3) {
-    if (!resp3) { reply_array_header(b, n); return; }
+template <typename Buf>
+inline void reply_set_header(Buf&& b, uint64_t n, bool resp3) {
+    if (!resp3) {
+        reply_array_header(b, n);
+        return;
+    }
     char* p = b.reserve(24);
     char* q = p;
     *q++ = '~';
     q += u64_to_dec(q, n);
-    *q++ = '\r'; *q++ = '\n';
+    *q++ = '\r';
+    *q++ = '\n';
     b.advance(static_cast<size_t>(q - p));
 }
 
-template <typename Buf> inline void reply_push_header(Buf&& b, uint64_t n) {
+template <typename Buf>
+inline void reply_push_header(Buf&& b, uint64_t n) {
     char* p = b.reserve(24);
     char* q = p;
     *q++ = '>';
     q += u64_to_dec(q, n);
-    *q++ = '\r'; *q++ = '\n';
+    *q++ = '\r';
+    *q++ = '\n';
     b.advance(static_cast<size_t>(q - p));
 }
 
@@ -62,37 +86,53 @@ inline uint32_t resp_double_text(char* text, size_t cap, double value) {
     return redis_double_text(text, cap, value);
 }
 
-template <typename Buf> inline void reply_double(Buf&& b, double value, bool resp3) {
-    if (!resp3) { reply_double(b, value); return; }
+template <typename Buf>
+inline void reply_double(Buf&& b, double value, bool resp3) {
+    if (!resp3) {
+        reply_double(b, value);
+        return;
+    }
     char text[kDoubleTextMax];
     const uint32_t length = resp_double_text(text, sizeof(text), value);
     char* p = b.reserve(static_cast<size_t>(length) + 3);
     *p = ',';
     std::memcpy(p + 1, text, length);
-    p[length + 1] = '\r'; p[length + 2] = '\n';
+    p[length + 1] = '\r';
+    p[length + 2] = '\n';
     b.advance(static_cast<size_t>(length) + 3);
 }
 
-template <typename Buf> inline void reply_bignum(Buf&& b, Slice value, bool resp3) {
-    if (!resp3) { reply_bulk(b, value); return; }
+template <typename Buf>
+inline void reply_bignum(Buf&& b, Slice value, bool resp3) {
+    if (!resp3) {
+        reply_bulk(b, value);
+        return;
+    }
     b.push_back('(');
     b.append(value.p, value.n);
     b.append("\r\n", 2);
 }
 
-template <typename Buf> inline void reply_verbatim(Buf&& b, Slice value, const char ext[3],
-                                                   bool resp3) {
-    if (!resp3) { reply_bulk(b, value); return; }
+template <typename Buf>
+inline void reply_verbatim(Buf&& b, Slice value, const char ext[3], bool resp3) {
+    if (!resp3) {
+        reply_bulk(b, value);
+        return;
+    }
     const uint64_t framed = static_cast<uint64_t>(value.n) + 4;
     char* p = b.reserve(24 + static_cast<size_t>(framed) + 2);
     char* q = p;
     *q++ = '=';
     q += u64_to_dec(q, framed);
-    *q++ = '\r'; *q++ = '\n';
-    std::memcpy(q, ext, 3); q += 3;
+    *q++ = '\r';
+    *q++ = '\n';
+    std::memcpy(q, ext, 3);
+    q += 3;
     *q++ = ':';
-    std::memcpy(q, value.p, value.n); q += value.n;
-    *q++ = '\r'; *q++ = '\n';
+    std::memcpy(q, value.p, value.n);
+    q += value.n;
+    *q++ = '\r';
+    *q++ = '\n';
     b.advance(static_cast<size_t>(q - p));
 }
 

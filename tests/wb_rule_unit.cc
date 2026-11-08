@@ -22,51 +22,65 @@ static void fill(Client& c, unsigned n, unsigned prefix) {
         Op* op = c.rob().acquire<false>();
         require(op, "ROB capacity");
         c.rob().publish();
-        op->state.store(i < prefix ? OpState::Done : OpState::Issued,
-                        std::memory_order_release);
+        op->state.store(i < prefix ? OpState::Done : OpState::Issued, std::memory_order_release);
     }
 }
 static void fraction() {
     // Every boundary/prefix/count, including odd ceil rounding and real 63 -> 0 wrap.
-    for (unsigned n = 1; n <= 64; ++n) for (unsigned prefix = 0; prefix <= n; ++prefix)
-        for (unsigned waits = 0; waits <= wb_rule::kCompleteVisits; ++waits) {
-        Client c(-1);
-        fill(c, 61, 61); c.rob().drain([](Op&) {});
-        fill(c, n, prefix);
-        c.wb_deferrals() = waits;
-        const unsigned need = n <= wb_rule::kSmallPipe && waits < wb_rule::kCompleteVisits
-                            ? n : n / 2 + n % 2;
-        const bool expected = n > 1 && prefix < need;
-        require(wb_rule::defer(c) == expected, "bounded hybrid for every n=1..64, prefix and count");
-    }
+    for (unsigned n = 1; n <= 64; ++n)
+        for (unsigned prefix = 0; prefix <= n; ++prefix)
+            for (unsigned waits = 0; waits <= wb_rule::kCompleteVisits; ++waits) {
+                Client c(-1);
+                fill(c, 61, 61);
+                c.rob().drain([](Op&) {});
+                fill(c, n, prefix);
+                c.wb_deferrals() = waits;
+                const unsigned need = n <= wb_rule::kSmallPipe && waits < wb_rule::kCompleteVisits
+                                          ? n
+                                          : n / 2 + n % 2;
+                const bool expected = n > 1 && prefix < need;
+                require(wb_rule::defer(c) == expected,
+                        "bounded hybrid for every n=1..64, prefix and count");
+            }
 }
 static void staged() {
     for (unsigned source = 0; source < 3; ++source)
-        for (size_t bytes : {kWbufInline - 1, kWbufInline, kWbufInline + 1, 2*kWbufInline + 9}) {
-            Client c(-1); fill(c, 32, 0);
+        for (size_t bytes : {kWbufInline - 1, kWbufInline, kWbufInline + 1, 2 * kWbufInline + 9}) {
+            Client c(-1);
+            fill(c, 32, 0);
             std::string payload(bytes, 's');
             if (source == 0) c.fill_buf().append(payload.data(), bytes);
             if (source == 1) {
-                c.fill_buf().append(payload.data(), bytes); c.swap_buffers();
+                c.fill_buf().append(payload.data(), bytes);
+                c.swap_buffers();
                 // Also pin the remaining-byte subtraction, not just the full send size.
-                c.send_buf().append("gone", 4); c.commit_write(4);
+                c.send_buf().append("gone", 4);
+                c.commit_write(4);
             }
             if (source == 2) c.append_buf_segment(payload.data(), bytes);
             require(wb_rule::staged_bytes(c) == bytes, "staged fill/send remainder/segments");
             require(wb_rule::defer(c) == (bytes < kWbufInline), "staged byte threshold");
         }
-    Client c(-1); fill(c, 32, 0);
-    std::string half(kWbufInline/2, 'x');
-    c.fill_buf().append(half.data(), half.size()); c.swap_buffers();
-    c.append_buf_segment(half.data(), half.size()-1); c.fill_buf().append("x", 1);
+    Client c(-1);
+    fill(c, 32, 0);
+    std::string half(kWbufInline / 2, 'x');
+    c.fill_buf().append(half.data(), half.size());
+    c.swap_buffers();
+    c.append_buf_segment(half.data(), half.size() - 1);
+    c.fill_buf().append("x", 1);
     require(!wb_rule::defer(c), "staging sources sum at threshold");
 }
 static void submitted() {
     for (bool segments : {false, true}) {
-        Client c(-1); fill(c, 32, 1);
+        Client c(-1);
+        fill(c, 32, 1);
         std::string payload(kWbufInline, 'x');
-        if (segments) c.append_buf_segment(payload.data(), payload.size());
-        else { c.fill_buf().append(payload.data(), payload.size()); c.swap_buffers(); }
+        if (segments)
+            c.append_buf_segment(payload.data(), payload.size());
+        else {
+            c.fill_buf().append(payload.data(), payload.size());
+            c.swap_buffers();
+        }
         c.set_send_inflight(true);
         require(wb_rule::staged_bytes(c) == 0 && wb_rule::defer(c), "submitted bytes excluded");
         c.fill_buf().append(payload.data(), payload.size());
@@ -75,42 +89,55 @@ static void submitted() {
 }
 static void reply_bytes() {
     for (unsigned source = 0; source < 3; ++source)
-        for (size_t bytes : {kWbufInline - 1, kWbufInline, kWbufInline + 1, 2*kWbufInline + 9}) {
-            Client c(-1); fill(c, 32, 1);
+        for (size_t bytes : {kWbufInline - 1, kWbufInline, kWbufInline + 1, 2 * kWbufInline + 9}) {
+            Client c(-1);
+            fill(c, 32, 1);
             Op& op = c.rob().at(c.rob().flush_id());
             std::string payload(bytes, 'x');
             if (source == 0) op.reply.append(payload.data(), bytes);
-            if (source == 1) { op.direct = c.reserve_fill(bytes); op.direct_len = bytes; }
-            if (source == 2) { op.zc_ptr = payload.data(); op.zc_len = bytes-2; op.zc_shard = 0; }
+            if (source == 1) {
+                op.direct = c.reserve_fill(bytes);
+                op.direct_len = bytes;
+            }
+            if (source == 2) {
+                op.zc_ptr = payload.data();
+                op.zc_len = bytes - 2;
+                op.zc_shard = 0;
+            }
             require(wb_rule::reply_bytes(op) == bytes, "spill/direct/borrow including CRLF");
             require(wb_rule::defer(c) == (bytes < kWbufInline), "Done prefix byte threshold");
         }
-    Client c(-1); fill(c, 32, 2);
-    std::string half(kWbufInline/2, 'x');
+    Client c(-1);
+    fill(c, 32, 2);
+    std::string half(kWbufInline / 2, 'x');
     c.rob().at(0).reply.append(half.data(), half.size());
     c.rob().at(1).reply.append(half.data(), half.size());
     require(!wb_rule::defer(c), "Done prefix bytes accumulate across slots");
 }
 static void holes() {
     for (unsigned hole : {0u, 1u, 15u}) {
-        Client c(-1); fill(c, 32, 32);
+        Client c(-1);
+        fill(c, 32, 32);
         c.rob().at(hole).state.store(OpState::Issued, std::memory_order_release);
-        std::string payload(2*kWbufInline, 'x');
-        c.rob().at(hole+1).reply.append(payload.data(), payload.size());
+        std::string payload(2 * kWbufInline, 'x');
+        c.rob().at(hole + 1).reply.append(payload.data(), payload.size());
         require(wb_rule::defer(c), "first hole stops fraction and bytes");
     }
 }
 static void markers() {
-    for (int marker : {Op::kScatterStateMarker, Op::kMultiStateMarker,
-                       Op::kBlockingStateMarker, -1}) {
-        Client c(-1); fill(c, 8, 1);
+    for (int marker :
+         {Op::kScatterStateMarker, Op::kMultiStateMarker, Op::kBlockingStateMarker, -1}) {
+        Client c(-1);
+        fill(c, 8, 1);
         Op& op = c.rob().at(0);
         op.zc_ptr = reinterpret_cast<const char*>(1);
-        op.zc_shard = marker; op.zc_len = UINT32_MAX;
+        op.zc_shard = marker;
+        op.zc_len = UINT32_MAX;
         require(wb_rule::reply_bytes(op) == 0, "retire-state poison is not payload");
         if (marker == Op::kScatterStateMarker)
             require(!wb_rule::defer(c), "Done scatter enters ordinary serve");
-        else require(wb_rule::defer(c), "other retire hooks keep the measured rule");
+        else
+            require(wb_rule::defer(c), "other retire hooks keep the measured rule");
         for (unsigned i = 1; i < 4; ++i) c.rob().at(i).state.store(OpState::Done);
         c.wb_deferrals() = 0;
         require(wb_rule::defer(c) == (marker != Op::kScatterStateMarker),
@@ -122,7 +149,9 @@ static void markers() {
 static void codes() {
     for (unsigned code = 1; code <= 9; ++code)
         for (int32_t value : {0, 9, 10, -1, INT32_MIN, INT32_MAX}) {
-            Op op; op.reply_code_ = code; op.reply_ival_ = value;
+            Op op;
+            op.reply_code_ = code;
+            op.reply_ival_ = value;
             char bytes[kReplyCodeMax];
             require(wb_rule::reply_bytes(op) == format_reply_code(bytes, code, value),
                     "coded lengths match production encoder");
@@ -131,11 +160,17 @@ static void codes() {
 
 // A read-observing specialization of the SAME policy, with no production hooks.
 // Even a read whose value would be discarded must be preceded by acquiring Done.
-template <class T> struct Watched {
+template <class T>
+struct Watched {
     bool* acquired;
     T value{};
-    operator T() const { require(*acquired, "reply field read before Done acquire"); return value; }
-    explicit operator ReplyCode() const requires (!std::is_same_v<T, const char*>) {
+    operator T() const {
+        require(*acquired, "reply field read before Done acquire");
+        return value;
+    }
+    explicit operator ReplyCode() const
+        requires(!std::is_same_v<T, const char*>)
+    {
         return static_cast<ReplyCode>(static_cast<T>(*this));
     }
 };
@@ -152,7 +187,10 @@ struct ObservedOp {
     } state{this};
     struct Reply {
         bool* acquired;
-        size_t size() const { require(*acquired, "reply field read before Done acquire"); return 0; }
+        size_t size() const {
+            require(*acquired, "reply field read before Done acquire");
+            return 0;
+        }
     } reply{&acquired};
     Watched<uint8_t> reply_code_{&acquired};
     Watched<int32_t> reply_ival_{&acquired};
@@ -166,39 +204,71 @@ struct ObservedClient {
         std::array<ObservedOp, 64> ops;
         unsigned in_flight() const { return n; }
         unsigned flush_id() const { return 0; }
-        ObservedOp& at(unsigned i) { ++probes; require(i < n, "walk stays in flight"); return ops[i]; }
+        ObservedOp& at(unsigned i) {
+            ++probes;
+            require(i < n, "walk stays in flight");
+            return ops[i];
+        }
     } ring;
     unsigned staged_reads = 0;
     uint8_t deferrals = 0;
     uint8_t& wb_deferrals() { return deferrals; }
     auto& rob() { return ring; }
-    bool send_inflight() { ++staged_reads; return false; }
-    struct Fill { size_t size() const { return 0; } } fill;
+    bool send_inflight() {
+        ++staged_reads;
+        return false;
+    }
+    struct Fill {
+        size_t size() const { return 0; }
+    } fill;
     Fill& fill_buf() { return fill; }
-    size_t buffered_output_bytes() { ++staged_reads; return 0; }
+    size_t buffered_output_bytes() {
+        ++staged_reads;
+        return 0;
+    }
 };
 static void acquire() {
     ObservedClient c;
     c.ring.ops[0].state.value = OpState::Done;
     require(wb_rule::defer(c) && c.ring.probes == 2, "walk ends at first Issued");
     c.ring.probes = 0;
-    for (auto& op : c.ring.ops) { op.acquired = false; op.state.value = OpState::Done; }
+    for (auto& op : c.ring.ops) {
+        op.acquired = false;
+        op.state.value = OpState::Done;
+    }
     require(!wb_rule::defer(c) && c.ring.probes == 16, "walk exits at successful fraction");
 }
 static void fastpath() {
     for (unsigned n : {0u, 1u}) {
-        ObservedClient c; c.ring.n = n;
+        ObservedClient c;
+        c.ring.n = n;
         require(!wb_rule::defer(c), "nothing-in-flight/p1 ordinary serve");
         require(c.staged_reads == 0 && c.ring.probes == 0, "fast path reads no staging or slots");
     }
 }
 int main(int argc, char** argv) {
-    require(argc == 2, "usage: wb-rule-unit CASE"); selected = argv[1];
+    require(argc == 2, "usage: wb-rule-unit CASE");
+    selected = argv[1];
     const std::string name = selected;
-    if (name == "fraction") fraction(); else if (name == "staged") staged();
-    else if (name == "submitted") submitted(); else if (name == "bytes") reply_bytes();
-    else if (name == "holes") holes(); else if (name == "markers") markers();
-    else if (name == "codes") codes(); else if (name == "acquire") acquire();
-    else if (name == "fastpath") fastpath(); else require(false, "unknown case");
+    if (name == "fraction")
+        fraction();
+    else if (name == "staged")
+        staged();
+    else if (name == "submitted")
+        submitted();
+    else if (name == "bytes")
+        reply_bytes();
+    else if (name == "holes")
+        holes();
+    else if (name == "markers")
+        markers();
+    else if (name == "codes")
+        codes();
+    else if (name == "acquire")
+        acquire();
+    else if (name == "fastpath")
+        fastpath();
+    else
+        require(false, "unknown case");
     std::printf("PASS wb-rule %s\n", selected);
 }

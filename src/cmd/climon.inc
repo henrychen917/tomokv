@@ -9,218 +9,228 @@
 // it: srv_->climon_armed() folds into notify_armed_ once per io batch, and every per-operation
 // hook below sits behind that same already-taken branch, out of line in a cold translation unit.
 
-    enum class ClimonStartResult : uint8_t { NotHandled, Sync, Async };
-    enum class ClimonPendingKind : uint8_t { ClientList, ClientKill, ClientUnblock };
-    // Private cache invalidation bit: the existing per-batch comparison keeps
-    // servicing pending monitor records until their ROB entries retire. It is
-    // never published in Server's feature mask or read by an unarmed operation.
-    static constexpr uint32_t kClimonRefreshPending = 1u << 31;
+enum class ClimonStartResult : uint8_t { NotHandled, Sync, Async };
+enum class ClimonPendingKind : uint8_t { ClientList, ClientKill, ClientUnblock };
+// Private cache invalidation bit: the existing per-batch comparison keeps
+// servicing pending monitor records until their ROB entries retire. It is
+// never published in Server's feature mask or read by an unarmed operation.
+static constexpr uint32_t kClimonRefreshPending = 1u << 31;
 
-    struct ClimonPending {
-        ClimonPendingKind kind = ClimonPendingKind::ClientList;
-        Client* client = nullptr;
-        uint64_t op_id = 0;
-        uint32_t remaining = 0;
-        uint64_t count = 0;
-        bool old_form = false;
-        std::string body;
+struct ClimonPending {
+    ClimonPendingKind kind = ClimonPendingKind::ClientList;
+    Client* client = nullptr;
+    uint64_t op_id = 0;
+    uint32_t remaining = 0;
+    uint64_t count = 0;
+    bool old_form = false;
+    std::string body;
+};
+
+// CLIENT REPLY modes, matching redis semantics: ON restores replies, OFF suppresses until ON,
+// SKIP suppresses exactly the NEXT command's reply (and not its own).
+enum : uint8_t {
+    kClimonReplyOn = 0,
+    kClimonReplyOff = 1,
+    kClimonReplySkipNext = 2,
+    kClimonReplySkipNow = 3
+};
+
+// Per-connection lane state. Deliberately NOT in Client: Client is footprint-locked at 1984
+// bytes and its io-hot head is layout-tuned, and an entry is created only for a connection
+// that actually uses one of these features. An idle server holds an empty map.
+// Per-read storage is reached through an armed spec copy, never Op padding.
+struct TrackingRead : CommandSpec {
+    const CommandSpec* original;
+    uint64_t dispatch_stamp;
+    uint64_t dispatch_epoch;
+    std::vector<std::string> keys;
+    std::vector<uint32_t> shards;
+    std::vector<uint64_t> observed;
+    // Stream reads only: per shard, the wake probe that captured a parked XREAD's reply.
+    std::vector<uint64_t> woken;
+    // Script commands only: per declared key, set when a read-only command the script ran
+    // read it. Only those keys enroll (Redis tracks the script's reads, not its arguments).
+    std::vector<uint8_t> script_reads;
+    bool canceled = false;
+    TrackingRead(const CommandSpec* spec, uint64_t stamp, uint64_t epoch, size_t shards)
+        : CommandSpec(*spec),
+          original(spec),
+          dispatch_stamp(stamp),
+          dispatch_epoch(epoch),
+          observed(shards, UINT64_MAX) {}
+};
+struct TrackingPending {
+    std::vector<Op*> reads;
+    uint64_t invalidated = 0;
+    uint64_t delivered = 0;
+};
+struct ClimonConn {
+    struct MonitorPending {
+        uint64_t id;
+        uint64_t excluded;
+        bool script;
+        uint32_t multi_order;
+        std::string line;
     };
+    Client* client = nullptr;
+    uint8_t reply_mode = kClimonReplyOn;
+    bool monitor = false;
+    bool pause_blocked = false;
+    bool tracking_on = false;
+    bool tracking_dispatch = false;  // ON, and not collecting a MULTI queue
+    bool tracking_draining = false;
+    bool bcast = false;
+    bool optin = false;
+    bool optout = false;
+    bool noloop = false;
+    bool caching_armed = false;  // CLIENT CACHING yes|no consumed by the next command
+    bool broken_redirect = false;
+    uint64_t redirect = 0;
+    std::vector<std::string> prefixes;
+    // The ROB dispatch number survives reparse; Op::reset does not. Only
+    // armed connections carry this retry receipt, outside the locked Client.
+    uint64_t gate_op_id = UINT64_MAX;
+    bool gate_reply_skip = false;
+    std::unordered_map<Op*, std::unique_ptr<TrackingRead>> tracking_reads;
+    // All three tables move in the existing connection ownership commit section.
+    std::unordered_map<std::string, TrackingPending> tracking_pending;
+    std::unordered_map<std::string, uint64_t> tracking_enrolled;
+    // Invalidations in flight belong to one TRACKING configuration. This
+    // side state migrates with the rest of ClimonConn at ownership commit.
+    uint64_t tracking_generation = 0;
+    // prefix -> key -> (publication stamp, last writer). Owner-only and moved
+    // with this node at connection migration; empty when BCAST is unused.
+    using BroadcastKeys = std::unordered_map<std::string, std::pair<uint64_t, uint64_t>>;
+    std::unordered_map<std::string, BroadcastKeys> tracking_bcast_pending;
+    // Only MONITOR arms this queue. Hold log records, never commands, while
+    // an older script's nested records travel back to this IO owner.
+    uint64_t monitor_script_id = UINT64_MAX;
+    std::vector<MonitorPending> monitor_pending;
 
-    // CLIENT REPLY modes, matching redis semantics: ON restores replies, OFF suppresses until ON,
-    // SKIP suppresses exactly the NEXT command's reply (and not its own).
-    enum : uint8_t { kClimonReplyOn = 0, kClimonReplyOff = 1, kClimonReplySkipNext = 2,
-                     kClimonReplySkipNow = 3 };
+    bool idle() const {
+        return !pause_blocked && reply_mode == kClimonReplyOn && !monitor && !tracking_on &&
+               !tracking_draining && !broken_redirect && tracking_reads.empty() &&
+               monitor_script_id == UINT64_MAX && monitor_pending.empty();
+    }
+};
 
-    // Per-connection lane state. Deliberately NOT in Client: Client is footprint-locked at 1984
-    // bytes and its io-hot head is layout-tuned, and an entry is created only for a connection
-    // that actually uses one of these features. An idle server holds an empty map.
-    // Per-read storage is reached through an armed spec copy, never Op padding.
-    struct TrackingRead : CommandSpec {
-        const CommandSpec* original;
-        uint64_t dispatch_stamp;
-        uint64_t dispatch_epoch;
-        std::vector<std::string> keys;
-        std::vector<uint32_t> shards;
-        std::vector<uint64_t> observed;
-        // Stream reads only: per shard, the wake probe that captured a parked XREAD's reply.
-        std::vector<uint64_t> woken;
-        // Script commands only: per declared key, set when a read-only command the script ran
-        // read it. Only those keys enroll (Redis tracks the script's reads, not its arguments).
-        std::vector<uint8_t> script_reads;
-        bool canceled = false;
-        TrackingRead(const CommandSpec* spec, uint64_t stamp, uint64_t epoch, size_t shards)
-            : CommandSpec(*spec), original(spec), dispatch_stamp(stamp), dispatch_epoch(epoch),
-              observed(shards, UINT64_MAX) {}
-    };
-    struct TrackingPending {
-        std::vector<Op*> reads;
-        uint64_t invalidated = 0;
-        uint64_t delivered = 0;
-    };
-    struct ClimonConn {
-        struct MonitorPending {
-            uint64_t id;
-            uint64_t excluded;
-            bool script;
-            uint32_t multi_order;
-            std::string line;
-        };
-        Client* client = nullptr;
-        uint8_t reply_mode = kClimonReplyOn;
-        bool monitor = false;
-        bool pause_blocked = false;
-        bool tracking_on = false;
-        bool tracking_dispatch = false; // ON, and not collecting a MULTI queue
-        bool tracking_draining = false;
-        bool bcast = false;
-        bool optin = false;
-        bool optout = false;
-        bool noloop = false;
-        bool caching_armed = false;   // CLIENT CACHING yes|no consumed by the next command
-        bool broken_redirect = false;
-        uint64_t redirect = 0;
-        std::vector<std::string> prefixes;
-        // The ROB dispatch number survives reparse; Op::reset does not. Only
-        // armed connections carry this retry receipt, outside the locked Client.
-        uint64_t gate_op_id = UINT64_MAX;
-        bool gate_reply_skip = false;
-        std::unordered_map<Op*, std::unique_ptr<TrackingRead>> tracking_reads;
-        // All three tables move in the existing connection ownership commit section.
-        std::unordered_map<std::string, TrackingPending> tracking_pending;
-        std::unordered_map<std::string, uint64_t> tracking_enrolled;
-        // Invalidations in flight belong to one TRACKING configuration. This
-        // side state migrates with the rest of ClimonConn at ownership commit.
-        uint64_t tracking_generation = 0;
-        // prefix -> key -> (publication stamp, last writer). Owner-only and moved
-        // with this node at connection migration; empty when BCAST is unused.
-        using BroadcastKeys = std::unordered_map<std::string, std::pair<uint64_t, uint64_t>>;
-        std::unordered_map<std::string, BroadcastKeys> tracking_bcast_pending;
-        // Only MONITOR arms this queue. Hold log records, never commands, while
-        // an older script's nested records travel back to this IO owner.
-        uint64_t monitor_script_id = UINT64_MAX;
-        std::vector<MonitorPending> monitor_pending;
+static bool climon_parse_i64(Slice value, int64_t& out);
+static std::string climon_string(Slice value);
+static bool climon_parse_client_type(Slice value, ClientTypeFilter& type);
+static void climon_copy_client_filter(PubSubEvent& target, const PubSubEvent& source);
 
-        bool idle() const {
-            return !pause_blocked && reply_mode == kClimonReplyOn && !monitor && !tracking_on && !tracking_draining && !broken_redirect && tracking_reads.empty() && monitor_script_id == UINT64_MAX && monitor_pending.empty();
-        }
-    };
+ClimonStartResult climon_begin_client_scatter(Client* client, const PubSubEvent& filter,
+                                              ClimonPendingKind kind);
+ClimonStartResult climon_start_client_list(Client* client, Op& op);
+ClimonStartResult climon_start_client_kill(Client* client, Op& op);
+ClimonStartResult climon_start_client_unblock(Client* client, Op& op);
+ClimonStartResult climon_start_client_command(Client* client, Op& op);
+void climon_handle_client_request(PubSubEvent& event);
+void climon_finish_client_pending(uint64_t conn_id);
+void climon_handle_client_result(PubSubEvent& event);
+bool climon_handle_event(PubSubEvent& event);
 
-    static bool climon_parse_i64(Slice value, int64_t& out);
-    static std::string climon_string(Slice value);
-    static bool climon_parse_client_type(Slice value, ClientTypeFilter& type);
-    static void climon_copy_client_filter(PubSubEvent& target, const PubSubEvent& source);
+// ---- the single armed hook -----------------------------------------------------------------
+// Called from parse_and_dispatch ONLY from inside the pre-existing notify-armed branch.
+// Returns true to HOLD the connection (CLIENT PAUSE): the frame stays unparsed and is retried.
+bool climon_armed_gate(Client* client, Op& op);
+// Per-io-batch refresh of the cached armed word + pause deadline. Per batch is free.
+void climon_refresh_armed();
 
-    ClimonStartResult climon_begin_client_scatter(
-        Client* client, const PubSubEvent& filter, ClimonPendingKind kind);
-    ClimonStartResult climon_start_client_list(Client* client, Op& op);
-    ClimonStartResult climon_start_client_kill(Client* client, Op& op);
-    ClimonStartResult climon_start_client_unblock(Client* client, Op& op);
-    ClimonStartResult climon_start_client_command(Client* client, Op& op);
-    void climon_handle_client_request(PubSubEvent& event);
-    void climon_finish_client_pending(uint64_t conn_id);
-    void climon_handle_client_result(PubSubEvent& event);
-    bool climon_handle_event(PubSubEvent& event);
+ClimonConn* climon_conn_find(uint64_t id);
+ClimonConn& climon_conn_get(Client* client);
+void climon_conn_release(uint64_t id);
+void climon_track_client(Client* client);
+void climon_untrack_client(Client* client);
+void climon_reset_client(Client* client, Op& op);
+bool climon_migration_ready(const Client* client) const;
+bool client_routing_prepare(ClientMigration& migration, std::string& error);
+void client_routing_commit_extract(ClientMigration& migration,
+                                   std::vector<PubSubEvent*>& rebind_events);
+bool client_routing_install(void* opaque, Client* client, uint32_t source);
+void client_routing_discard(void* opaque);
+void client_routing_installed(uint64_t client_id);
+void client_routing_cleanup_pass();
+void client_routing_refresh_masks();
+void client_routing_forward_monitor(const PubSubEvent& event);
 
-    // ---- the single armed hook -----------------------------------------------------------------
-    // Called from parse_and_dispatch ONLY from inside the pre-existing notify-armed branch.
-    // Returns true to HOLD the connection (CLIENT PAUSE): the frame stays unparsed and is retried.
-    bool climon_armed_gate(Client* client, Op& op);
-    // Per-io-batch refresh of the cached armed word + pause deadline. Per batch is free.
-    void climon_refresh_armed();
+// ---- CLIENT REPLY ---------------------------------------------------------------------------
+void climon_flush_completed(Op& op);
+void climon_mark_reply(Client* client, Op& op);
+bool climon_reply_suppressed(Client* client);
+uint32_t climon_serve_suppressed(Client* client);
+uint32_t climon_prepare_suppressed(Client* client, bool& submit_allowed);
 
-    ClimonConn* climon_conn_find(uint64_t id);
-    ClimonConn& climon_conn_get(Client* client);
-    void climon_conn_release(uint64_t id);
-    void climon_track_client(Client* client);
-    void climon_untrack_client(Client* client);
-    void climon_reset_client(Client* client, Op& op);
-    bool climon_migration_ready(const Client* client) const;
-    bool client_routing_prepare(ClientMigration& migration, std::string& error);
-    void client_routing_commit_extract(ClientMigration& migration,
-                                       std::vector<PubSubEvent*>& rebind_events);
-    bool client_routing_install(void* opaque, Client* client, uint32_t source);
-    void client_routing_discard(void* opaque);
-    void client_routing_installed(uint64_t client_id);
-    void client_routing_cleanup_pass();
-    void client_routing_refresh_masks();
-    void client_routing_forward_monitor(const PubSubEvent& event);
+// Append an out-of-band frame to a connection this owner owns, using the same ROB-tail rule
+// pub/sub delivery uses so a push can never overtake a command already parsed ahead of it.
+void climon_push_wire(Client* client, const std::string& frame);
 
-    // ---- CLIENT REPLY ---------------------------------------------------------------------------
-    void climon_flush_completed(Op& op);
-    void climon_mark_reply(Client* client, Op& op);
-    bool climon_reply_suppressed(Client* client);
-    uint32_t climon_serve_suppressed(Client* client);
-    uint32_t climon_prepare_suppressed(Client* client, bool& submit_allowed);
+// ---- CLIENT UNBLOCK -------------------------------------------------------------------------
+bool climon_unblock_local(uint64_t id, bool error_flavor);
 
-    // Append an out-of-band frame to a connection this owner owns, using the same ROB-tail rule
-    // pub/sub delivery uses so a push can never overtake a command already parsed ahead of it.
-    void climon_push_wire(Client* client, const std::string& frame);
+// ---- CLIENT PAUSE ---------------------------------------------------------------------------
+bool climon_pause_holds(const Client& client, Op& op);
+bool climon_pause_armed() const { return (climon_armed_cached_ & Server::kClimonPause) != 0; }
+void climon_release_pause();
 
-    // ---- CLIENT UNBLOCK -------------------------------------------------------------------------
-    bool climon_unblock_local(uint64_t id, bool error_flavor);
+// ---- MONITOR --------------------------------------------------------------------------------
+void climon_monitor_feed(Client* client, Op& op);
+void climon_unpark_paused(Client* client);
+void climon_monitor_broadcast(std::string line, uint64_t excluded = 0);
+void climon_monitor_flush(ClimonConn& state, uint64_t completed, bool before_script = false);
+void climon_monitor_script_deliver(uint64_t writer_id, std::vector<MonitorScriptLine>& lines);
+void climon_monitor_format(Client* client, Op& op, std::string& out);
+void climon_monitor_deliver(const std::string& line, uint64_t excluded = 0);
+ClimonStartResult climon_start_monitor(Client* client, Op& op);
+void climon_monitor_stop(Client* client, uint64_t id);
 
-    // ---- CLIENT PAUSE ---------------------------------------------------------------------------
-    bool climon_pause_holds(const Client& client, Op& op);
-    bool climon_pause_armed() const { return (climon_armed_cached_ & Server::kClimonPause) != 0; }
-    void climon_release_pause();
-
-    // ---- MONITOR --------------------------------------------------------------------------------
-    void climon_monitor_feed(Client* client, Op& op);
-    void climon_unpark_paused(Client* client);
-    void climon_monitor_broadcast(std::string line, uint64_t excluded = 0);
-    void climon_monitor_flush(ClimonConn& state, uint64_t completed, bool before_script = false);
-    void climon_monitor_script_deliver(uint64_t writer_id, std::vector<MonitorScriptLine>& lines);
-    void climon_monitor_format(Client* client, Op& op, std::string& out);
-    void climon_monitor_deliver(const std::string& line, uint64_t excluded = 0);
-    ClimonStartResult climon_start_monitor(Client* client, Op& op);
-    void climon_monitor_stop(Client* client, uint64_t id);
-
-    // ---- CLIENT TRACKING (tracking.cc) ----------------------------------------------------------
-    friend void tracking_observe_read(Shard&, Op&);
-    friend void tracking_execute_read(Shard&, Op&);
-    friend void tracking_observe_local(Server&, Op&);
-    friend void tracking_observe_wake(Shard&, Op&);
-    friend void tracking_note_script_read(Op&, Slice);
-    void tracking_reply_trackinginfo(Client* client, Op& op);
-    ClimonStartResult tracking_client_subcommand(Client* client, Op& op);
-    void tracking_register_read(Client* client, ClimonConn& state, Op& op);
-    void tracking_retire_read(Client& client, Op& op);
-    ClimonStartResult tracking_ack_enable(Client* client, Op& op);
-    friend void notify_tracking_multi_writes(IoLoop&, NotifyBatch*, uint64_t, uint32_t);
-    void tracking_prepare_multi(Client& client, MultiExecState& state);
-    void tracking_finish_multi(Client& client, MultiExecState& state, NotifyBatch* batch);
-    void tracking_retire_exec_read(Client& client, Op& op, NotifyBatch* batch,
-                                   uint32_t order, bool committed);
-    bool tracking_retire_plain(Client* client);
-    void tracking_register_key(uint64_t id, const std::string& key, uint64_t stamp);
-    void tracking_forget_client(uint64_t id, ClimonConn& state);
-    void tracking_invalidate_local(Slice key, uint64_t writer_id, uint64_t stamp);
-    void tracking_handle_event(PubSubEvent& event);
-    void tracking_broadcast_keys(const std::vector<std::string>& keys, uint64_t writer_id, uint64_t stamp);
-    void tracking_broadcast_flush();
-    uint32_t tracking_bcast_flush();
-    void tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice key, bool flush,
+// ---- CLIENT TRACKING (tracking.cc) ----------------------------------------------------------
+friend void tracking_observe_read(Shard&, Op&);
+friend void tracking_execute_read(Shard&, Op&);
+friend void tracking_observe_local(Server&, Op&);
+friend void tracking_observe_wake(Shard&, Op&);
+friend void tracking_note_script_read(Op&, Slice);
+void tracking_reply_trackinginfo(Client* client, Op& op);
+ClimonStartResult tracking_client_subcommand(Client* client, Op& op);
+void tracking_register_read(Client* client, ClimonConn& state, Op& op);
+void tracking_retire_read(Client& client, Op& op);
+ClimonStartResult tracking_ack_enable(Client* client, Op& op);
+friend void notify_tracking_multi_writes(IoLoop&, NotifyBatch*, uint64_t, uint32_t);
+void tracking_prepare_multi(Client& client, MultiExecState& state);
+void tracking_finish_multi(Client& client, MultiExecState& state, NotifyBatch* batch);
+void tracking_retire_exec_read(Client& client, Op& op, NotifyBatch* batch, uint32_t order,
+                               bool committed);
+bool tracking_retire_plain(Client* client);
+void tracking_register_key(uint64_t id, const std::string& key, uint64_t stamp);
+void tracking_forget_client(uint64_t id, ClimonConn& state);
+void tracking_invalidate_local(Slice key, uint64_t writer_id, uint64_t stamp);
+void tracking_handle_event(PubSubEvent& event);
+void tracking_broadcast_keys(const std::vector<std::string>& keys, uint64_t writer_id,
+                             uint64_t stamp);
+void tracking_broadcast_flush();
+uint32_t tracking_bcast_flush();
+void tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice key, bool flush,
+                            bool batched = false);
+void tracking_redirect_broken(ClimonConn& state);
+void tracking_emit_invalidation(Client* target, bool redirected, Slice key, bool flush,
+                                uint64_t source_id = 0, uint64_t generation = 0,
                                 bool batched = false);
-    void tracking_redirect_broken(ClimonConn& state);
-    void tracking_emit_invalidation(Client* target, bool redirected, Slice key, bool flush,
-                                    uint64_t source_id = 0, uint64_t generation = 0,
-                                    bool batched = false);
-    void tracking_note_prefix_registered(const std::string& prefix, bool added);
-    void tracking_migration_snapshot(uint64_t id, std::vector<std::string>& keys) const;
-    void tracking_migration_extract(uint64_t id, std::vector<std::string>& keys);
-    bool tracking_migration_install(uint64_t id, const std::vector<std::string>& keys);
-    void tracking_forward_stale(const PubSubEvent& event);
+void tracking_note_prefix_registered(const std::string& prefix, bool added);
+void tracking_migration_snapshot(uint64_t id, std::vector<std::string>& keys) const;
+void tracking_migration_extract(uint64_t id, std::vector<std::string>& keys);
+bool tracking_migration_install(uint64_t id, const std::vector<std::string>& keys);
+void tracking_forward_stale(const PubSubEvent& event);
 
-    // ---- lane state (true cold tail of IoLoop) --------------------------------------------------
-    std::unordered_map<uint64_t, ClimonPending> climon_pending_;
-    std::unordered_map<uint64_t, ClimonConn> climon_conn_;
-    // key -> ids of THIS owner's tracking clients. Single-owner: only this io thread reads or
-    // writes it, so no lock sits on any armed path.
-    std::unordered_map<std::string, std::vector<uint64_t>> climon_track_keys_;
-    uint32_t climon_armed_cached_ = 0;
-    bool climon_armed_dirty_ = false;   // a cold command changed the armed word mid-pass
-    uint64_t climon_pause_deadline_ms_ = 0;
-    uint32_t climon_local_monitors_ = 0;
-    uint32_t climon_local_trackers_ = 0;
-    uint32_t climon_local_reply_ = 0;
-    uint64_t climon_monitor_clock_ms_ = 0;
+// ---- lane state (true cold tail of IoLoop) --------------------------------------------------
+std::unordered_map<uint64_t, ClimonPending> climon_pending_;
+std::unordered_map<uint64_t, ClimonConn> climon_conn_;
+// key -> ids of THIS owner's tracking clients. Single-owner: only this io thread reads or
+// writes it, so no lock sits on any armed path.
+std::unordered_map<std::string, std::vector<uint64_t>> climon_track_keys_;
+uint32_t climon_armed_cached_ = 0;
+bool climon_armed_dirty_ = false;  // a cold command changed the armed word mid-pass
+uint64_t climon_pause_deadline_ms_ = 0;
+uint32_t climon_local_monitors_ = 0;
+uint32_t climon_local_trackers_ = 0;
+uint32_t climon_local_reply_ = 0;
+uint64_t climon_monitor_clock_ms_ = 0;

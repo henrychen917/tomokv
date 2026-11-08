@@ -59,7 +59,10 @@ public:
 
     bool init() {
         fd_ = ::epoll_create1(EPOLL_CLOEXEC);
-        if (fd_ < 0) { std::perror("epoll_create1"); return false; }
+        if (fd_ < 0) {
+            std::perror("epoll_create1");
+            return false;
+        }
         return true;
     }
     void shutdown() {
@@ -77,9 +80,7 @@ public:
     }
     // Migration only. Normal teardown continues to rely on close(fd), which removes the
     // registration atomically with the resource it names.
-    bool del(int target) {
-        return ::epoll_ctl(fd_, EPOLL_CTL_DEL, target, nullptr) == 0;
-    }
+    bool del(int target) { return ::epoll_ctl(fd_, EPOLL_CTL_DEL, target, nullptr) == 0; }
     // Blocking (or, with timeout_ms == 0, polling) wait. EINTR is reported as zero events rather
     // than as an error: the loop's next pass re-reads its stop flag, which is how shutdown lands.
     int wait(int timeout_ms) {

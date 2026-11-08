@@ -32,7 +32,10 @@ struct ClientHz {
         if (dynamic.load(std::memory_order_relaxed)) {
             while (clients / hz > kClientsPerTick) {
                 hz *= 2;
-                if (hz > kMax) { hz = kMax; break; }
+                if (hz > kMax) {
+                    hz = kMax;
+                    break;
+                }
             }
         }
         return hz;
@@ -40,4 +43,4 @@ struct ClientHz {
     std::atomic<uint32_t> configured{kDefault};
     std::atomic<bool> dynamic{true};
 };
-} // namespace tomo
+}  // namespace tomo

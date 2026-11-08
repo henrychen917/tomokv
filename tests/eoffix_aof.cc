@@ -9,11 +9,15 @@
 
 using namespace tomo;
 static void need(bool ok, const char* why) {
-    if (!ok) { std::fprintf(stderr, "FAIL eoffix AOF: %s\n", why); std::_Exit(1); }
+    if (!ok) {
+        std::fprintf(stderr, "FAIL eoffix AOF: %s\n", why);
+        std::_Exit(1);
+    }
 }
 static void deadline(int) {
-    constexpr char message[] = "FAIL eoffix AOF: full AOF channel and pinned QSBR ring did not make progress\n";
-    const ssize_t written = ::write(STDERR_FILENO, message, sizeof(message)-1);
+    constexpr char message[] =
+        "FAIL eoffix AOF: full AOF channel and pinned QSBR ring did not make progress\n";
+    const ssize_t written = ::write(STDERR_FILENO, message, sizeof(message) - 1);
     (void)written;
     std::_Exit(1);
 }
@@ -67,11 +71,15 @@ struct PersistFixTest {
              "writer's own channel is full before GCMT");
         auto group = aof_create_group(aof, {0});
         AofOwnerContext context{0, &ring, &signals};
-        need(group && aof_commit_group(aof, group, 1, context), "writer drains its channel while posting GCMT");
+        need(group && aof_commit_group(aof, group, 1, context),
+             "writer drains its channel while posting GCMT");
         need(signals.full_events > 0 && aof.next_sequence_[0] == 64 && !aof.failed(),
              "actual backpressure drained every queued frame without reentering execution");
         AofChunk* chunk = nullptr;
-        while (aof.chunk_in_[0].recv(chunk)) { delete chunk; aof.chunk_in_[0].retire(); }
+        while (aof.chunk_in_[0].recv(chunk)) {
+            delete chunk;
+            aof.chunk_in_[0].retire();
+        }
         aof.pending_chunks_.store(0);
         aof.recording_.store(false);
         aof.writer_ring_.store(nullptr);
@@ -94,7 +102,7 @@ struct PersistFixTest {
         LoopSignals signals;
         ReadLocalDeferredQueue retired;
         need(retired.init(&server, &server.thread(0)), "allocate real retire ring");
-        std::array<unsigned char, ReadLocalDeferredQueue::kCapacity+1> payload{};
+        std::array<unsigned char, ReadLocalDeferredQueue::kCapacity + 1> payload{};
         uint32_t reclaimed = 0;
         auto reclaim = [](void* owner, void*, size_t) { ++*static_cast<uint32_t*>(owner); };
         const uint64_t stamp = server.read_local_epoch();
@@ -115,16 +123,17 @@ struct PersistFixTest {
                  "every AOF channel slot is occupied before commit");
         }
         std::thread writer;
-        if (pressure) writer = std::thread([&] {
-            // This is the captured writer's order: the owner replacement must
-            // finish a real capacity grace before it can drain the AOF channel.
-            retired.defer(&reclaimed, &payload.back(), 0, reclaim);
-            need(reclaimed == 4096, "capacity grace reclaimed the pinned batch");
-            AofChunk* chunk = nullptr;
-            need(aof.chunk_in_[1].recv(chunk), "writer can now release one AOF slot");
-            delete chunk;
-            aof.chunk_in_[1].retire();
-        });
+        if (pressure)
+            writer = std::thread([&] {
+                // This is the captured writer's order: the owner replacement must
+                // finish a real capacity grace before it can drain the AOF channel.
+                retired.defer(&reclaimed, &payload.back(), 0, reclaim);
+                need(reclaimed == 4096, "capacity grace reclaimed the pinned batch");
+                AofChunk* chunk = nullptr;
+                need(aof.chunk_in_[1].recv(chunk), "writer can now release one AOF slot");
+                delete chunk;
+                aof.chunk_in_[1].retire();
+            });
         auto group = aof_create_group(aof, {0, 1}, 0);
         AofOwnerContext context{1, &ring, &signals};
         need(group && aof_commit_group(aof, group, 1, context), "GCMT post completed");
@@ -138,7 +147,10 @@ struct PersistFixTest {
                  "uncontended commit does not add a QSBR publication");
         }
         AofChunk* chunk = nullptr;
-        while (aof.chunk_in_[1].recv(chunk)) { delete chunk; aof.chunk_in_[1].retire(); }
+        while (aof.chunk_in_[1].recv(chunk)) {
+            delete chunk;
+            aof.chunk_in_[1].retire();
+        }
         aof.pending_chunks_.store(0);
         aof.recording_.store(false);
         for (unsigned i = 0; i != 2; ++i)
@@ -154,7 +166,9 @@ int main(int argc, char** argv) {
     g_ring_epoll_mode = std::string(argv[1]) == "epoll";
     std::signal(SIGALRM, deadline);
     ::alarm(5);
-    if (std::string(argv[2]) == "writer") PersistFixTest::self_writer();
-    else PersistFixTest::run(std::string(argv[2]) == "pressure");
+    if (std::string(argv[2]) == "writer")
+        PersistFixTest::self_writer();
+    else
+        PersistFixTest::run(std::string(argv[2]) == "pressure");
     ::alarm(0);
 }

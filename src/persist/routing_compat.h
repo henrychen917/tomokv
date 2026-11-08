@@ -22,7 +22,8 @@ struct RecoverySections {
     uint32_t first, end;
     bool legacy;
     RecoverySections(uint32_t version, uint32_t count, const Shard& shard)
-        : first(static_cast<uint32_t>(shard.id())), end(first + 1),
+        : first(static_cast<uint32_t>(shard.id())),
+          end(first + 1),
           legacy(legacy_routing(version, count)) {
         if (legacy) {
             first = legacy_shard(shard.bucket_begin(), count);
@@ -34,8 +35,7 @@ struct RecoverySections {
 // One new shard can merge parts of several old streams. A v1 FLUSH applies only
 // to the old stream being replayed, otherwise a later source could erase keys
 // already recovered from an earlier source after that source's own FLUSH.
-inline void legacy_recovery_flush(Shard& shard, uint32_t source, uint32_t count,
-                                  int physical_db) {
+inline void legacy_recovery_flush(Shard& shard, uint32_t source, uint32_t count, int physical_db) {
     std::array<Slice, 256> keys;
     uint64_t cursor = 0;
     do {
@@ -44,9 +44,12 @@ inline void legacy_recovery_flush(Shard& shard, uint32_t source, uint32_t count,
         const uint64_t next = shard.store().scan(cursor, keys.size(), [&](KvObj* object) {
             const Slice key = object->key();
             if ((physical_db >= 0 && key.ns != physical_db) ||
-                legacy_shard(FlatStore::hash_key(key), count) != source) return;
-            if (used == keys.size()) overflow = true;
-            else keys[used++] = key;
+                legacy_shard(FlatStore::hash_key(key), count) != source)
+                return;
+            if (used == keys.size())
+                overflow = true;
+            else
+                keys[used++] = key;
         });
         // No other owner can mutate this store during recovery; borrowed keys
         // stay alive until their own erase, including across table migration.

@@ -56,20 +56,22 @@ inline constexpr uint32_t kBucketMask = kNumBuckets - 1;
 // independent of these — see the clustering trap in flatstore.h.
 inline uint32_t bucket_of(uint64_t hash) { return static_cast<uint32_t>(hash) & kBucketMask; }
 
-class /* TOMO_TOOL_BIND Shard */Shard {
+class /* TOMO_TOOL_BIND Shard */ Shard {
 public:
     Shard() = default;
     ~Shard();
     Shard(const Shard&) = delete;
     Shard& operator=(const Shard&) = delete;
 
-    void /* TOMO_TOOL_BIND init */init(Server* server, int32_t id, uint32_t bucket_begin, uint32_t bucket_end, uint32_t zc_min,
-              const TypeLimits& type_limits, const StreamLimits& stream_limits) {
+    void /* TOMO_TOOL_BIND init */ init(Server* server, int32_t id, uint32_t bucket_begin,
+                                        uint32_t bucket_end, uint32_t zc_min,
+                                        const TypeLimits& type_limits,
+                                        const StreamLimits& stream_limits) {
         TOMO_ASSERT(bucket_begin <= bucket_end && bucket_end <= kNumBuckets);
         server_ = server;
         id_ = id;
         bucket_begin_ = bucket_begin;
-        bucket_end_   = bucket_end;
+        bucket_end_ = bucket_end;
         set_zc_min(zc_min);
         type_limits_ = type_limits;
         stream_limits_ = stream_limits;
@@ -102,13 +104,13 @@ public:
         flat_notify_sink_.emit = notify_flat_emit;
     }
 
-    int32_t  id() const { return id_; }
-    bool     owns(uint32_t bucket) const { return bucket >= bucket_begin_ && bucket < bucket_end_; }
+    int32_t id() const { return id_; }
+    bool owns(uint32_t bucket) const { return bucket >= bucket_begin_ && bucket < bucket_end_; }
     uint32_t bucket_begin() const { return bucket_begin_; }
-    uint32_t bucket_end()   const { return bucket_end_; }
-    uint32_t zc_min()       const { return zc_min_; }
+    uint32_t bucket_end() const { return bucket_end_; }
+    uint32_t zc_min() const { return zc_min_; }
     void set_zc_min(uint32_t value) { zc_min_ = value ? value : UINT32_MAX; }
-    int64_t  now_ms()       const { return now_ms_; }
+    int64_t now_ms() const { return now_ms_; }
     const TypeLimits& type_limits() const { return type_limits_; }
     void set_type_limits(const TypeLimits& value) { type_limits_ = value; }
     const StreamLimits& stream_limits() const { return stream_limits_; }
@@ -133,15 +135,11 @@ public:
         return store_.configure_maxmemory(enabled, shard_limit, policy, samples);
     }
     void bind_atomic_state(FlatStore::AtomicTicketFn ticket_fn, void* ticket_ctx,
-                           std::atomic<uint64_t>* activity,
-                           std::atomic<uint64_t>* script_intents) {
+                           std::atomic<uint64_t>* activity, std::atomic<uint64_t>* script_intents) {
         store_.bind_atomic_state(ticket_fn, ticket_ctx, activity, script_intents,
-                                 &stats_.atomic_predecessor_reads,
-                                 &stats_.atomic_chain_max,
-                                 &stats_.atomic_promotions,
-                                 &stats_.atomic_records_freed,
-                                 &stats_.atomic_entries,
-                                 &stats_.atomic_gauge_underflows);
+                                 &stats_.atomic_predecessor_reads, &stats_.atomic_chain_max,
+                                 &stats_.atomic_promotions, &stats_.atomic_records_freed,
+                                 &stats_.atomic_entries, &stats_.atomic_gauge_underflows);
     }
     uint32_t active_expire(uint32_t budget) {
         const uint32_t work = store_.active_expire(budget);
@@ -151,9 +149,7 @@ public:
 
     // Refreshed once per executor pass through the existing live-config seqlock.  A null store
     // sink is the complete off state: no notification allocation or callback is reachable.
-    void set_notify_mask(uint32_t mask) {
-        notify_mask_ = mask;
-    }
+    void set_notify_mask(uint32_t mask) { notify_mask_ = mask; }
     uint32_t notify_mask() const { return notify_mask_; }
     void note_save_change(uint64_t count = 1) {
         save_changes_.fetch_add(count, std::memory_order_relaxed);
@@ -173,7 +169,8 @@ public:
         if (notify_pending_) *notify_pending_ = true;
     }
     bool notify_output_pending() const {
-        return notify_state_ && (!notify_state_->keyless.empty() || notify_state_->tracking_flush_pending);
+        return notify_state_ &&
+               (!notify_state_->keyless.empty() || notify_state_->tracking_flush_pending);
     }
     Server* server() const { return server_; }
 
@@ -186,9 +183,7 @@ public:
     bool has_blocking_waiters() const {
         return blocking_waiters_.load(std::memory_order_seq_cst) != 0;
     }
-    uint64_t blocking_waiters() const {
-        return blocking_waiters_.load(std::memory_order_seq_cst);
-    }
+    uint64_t blocking_waiters() const { return blocking_waiters_.load(std::memory_order_seq_cst); }
     // The fence a cross-owner producer runs between publishing its data (commit ticket / push) and
     // reading has_blocking_waiters(). The owner-local push path needs no fence: the owner that
     // mutated the key is the thread that services its own waiters.
@@ -200,11 +195,11 @@ public:
     // the owner's dirty read, leaving the wake to the timer. set_blocking_dirty runs only when a
     // shard already has blocked clients, never on a GET/SET/INCR/MGET/MSET path.
     void set_blocking_dirty() { blocking_dirty_.store(true, std::memory_order_seq_cst); }
-    bool take_blocking_dirty() { return blocking_dirty_.exchange(false, std::memory_order_acquire); }
-    // Non-consuming peek for the owner's pre-park re-check (seq_cst: pairs with arm_blocked).
-    bool blocking_dirty_pending() const {
-        return blocking_dirty_.load(std::memory_order_seq_cst);
+    bool take_blocking_dirty() {
+        return blocking_dirty_.exchange(false, std::memory_order_acquire);
     }
+    // Non-consuming peek for the owner's pre-park re-check (seq_cst: pairs with arm_blocked).
+    bool blocking_dirty_pending() const { return blocking_dirty_.load(std::memory_order_seq_cst); }
     // Owner-local H3 notes move with the physical shard. Existing padding;
     // neither registry offsets nor the Shard stride changes.
     enum : uint8_t { TxnServeNote = 1, TxnWatchNote = 2, TxnBlindNote = 4 };
@@ -217,7 +212,7 @@ public:
     void blocking_waiter_added() { blocking_waiters_.fetch_add(1, std::memory_order_seq_cst); }
     void blocking_waiter_removed() { blocking_waiters_.fetch_sub(1, std::memory_order_relaxed); }
 
-    FlatStore&       store()       { return store_; }
+    FlatStore& store() { return store_; }
     const FlatStore& store() const { return store_; }
 
     template <bool kNotify>
@@ -229,8 +224,10 @@ public:
     // distinction at TomoKV's equivalent lookup boundary makes multi-key reads count per key while
     // write lookups remain invisible even when the command returns the old value.
     void note_keyspace_read(const KvObj* object) {
-        if (object) stats_.hits++;
-        else stats_.misses++;
+        if (object)
+            stats_.hits++;
+        else
+            stats_.misses++;
     }
     template <bool kNotify>
     KvObj* store_find_read(uint64_t hash, Slice key) {
@@ -297,9 +294,9 @@ public:
     void watch_remove(Slice key, Client* client, uint64_t generation);
     bool watch_validate_and_reserve(Slice key, Client* client, uint64_t generation,
                                     const void* token, std::atomic<uint64_t>* epoch,
-                                    std::atomic<bool>* aborted,
-                                    std::atomic<uint32_t>* refs, bool mutates,
-                                    MultiExecState* unit = nullptr, bool reserve = true);
+                                    std::atomic<bool>* aborted, std::atomic<uint32_t>* refs,
+                                    bool mutates, MultiExecState* unit = nullptr,
+                                    bool reserve = true);
     bool watch_write_ready(Slice key, const void* token = nullptr);
     bool watch_group_write_ready(Slice key, const void* token = nullptr);
     bool watch_key_ready(const std::string& key, const void* token, bool all_units);
@@ -308,8 +305,8 @@ public:
                               uint64_t stamp = UINT64_MAX);
     bool watch_fifo_write_ready(Slice key, const void* token);
     bool watch_fifo_all_write_ready(const void* token);
-    bool watch_place_unit(const std::vector<struct TxnClaim>& keys,
-                          WatchReservation unit, const struct MultiRetryPromoter* promoter = nullptr);
+    bool watch_place_unit(const std::vector<struct TxnClaim>& keys, WatchReservation unit,
+                          const struct MultiRetryPromoter* promoter = nullptr);
     void watch_finish_unit(const std::vector<struct TxnClaim>& keys, const void* token,
                            const struct MultiRetryPromoter* promoter = nullptr);
     void watch_promote_unit_waiter(const std::string& key,
@@ -323,18 +320,16 @@ public:
     void watch_reserve_write(Slice key, Client* writer, uint64_t writer_generation,
                              const void* token, std::atomic<uint64_t>* epoch,
                              std::atomic<bool>* aborted, std::atomic<uint32_t>* refs);
-    void watch_write_committed(Slice key, Client* writer = nullptr,
-                               uint64_t writer_generation = 0);
+    void watch_write_committed(Slice key, Client* writer = nullptr, uint64_t writer_generation = 0);
     void watch_physical_delete(Slice key, bool expired);
     bool watch_all_write_ready(const void* token = nullptr);
     bool watch_flush(int physical_db = -1);
-    bool watch_reserve_flush(int physical_db, const void* token,
-                             std::atomic<uint64_t>* epoch, std::atomic<bool>* aborted,
-                             std::atomic<uint32_t>* refs);
+    bool watch_reserve_flush(int physical_db, const void* token, std::atomic<uint64_t>* epoch,
+                             std::atomic<bool>* aborted, std::atomic<uint32_t>* refs);
     bool watch_finalize_reservation(const std::string& key);
     bool watch_finalize_queue(const std::string& key, TxnKeyQueue& queue);
-    bool /* TOMO_TOOL_BIND watch_append_reservation */watch_append_reservation(const std::string& key, const WatchReservation& reservation,
-                                   TxnWaiter* handle = nullptr);
+    bool /* TOMO_TOOL_BIND watch_append_reservation */ watch_append_reservation(
+        const std::string& key, const WatchReservation& reservation, TxnWaiter* handle = nullptr);
     void watch_prune_stale(const std::string& key);
 
     // ---- locality --------------------------------------------------------------------------------
@@ -403,11 +398,15 @@ public:
         // inside any logical operation. Expiring here deletes keys OUTSIDE every in-flight
         // operation's pinned cut and tears cross-shard reads (the expwide S1 failure). Counting a
         // dead-but-unreaped key's bytes is a rounding error; deleting it here is a torn read.
-        lb_bytes_cursor_ = store_.scan(lb_bytes_cursor_, homes, [&](KvObj* object) {
-            const uint64_t hash = FlatStore::hash_key(object->key());
-            const uint32_t bucket = bucket_of(hash);
-            if (owns(bucket)) lb_bucket_bytes_staging_[bucket - bucket_begin_] += kvobj_size(object);
-        }, /*expire_on_visit=*/false);
+        lb_bytes_cursor_ = store_.scan(
+            lb_bytes_cursor_, homes,
+            [&](KvObj* object) {
+                const uint64_t hash = FlatStore::hash_key(object->key());
+                const uint32_t bucket = bucket_of(hash);
+                if (owns(bucket))
+                    lb_bucket_bytes_staging_[bucket - bucket_begin_] += kvobj_size(object);
+            },
+            /*expire_on_visit=*/false);
         if (lb_bytes_cursor_ != 0) return false;
         const uint32_t n = bucket_end_ - bucket_begin_;
         for (uint32_t i = 0; i < n; i++) {
@@ -421,7 +420,10 @@ public:
     // Cheap by construction: one compare and one increment, no atomics — the shard is single-owner.
     void note_execution(uint32_t worker_domain) {
         stats_.ops++;
-        if (home_domain_ == kNoDomain) { home_domain_ = worker_domain; return; }
+        if (home_domain_ == kNoDomain) {
+            home_domain_ = worker_domain;
+            return;
+        }
         if (worker_domain != home_domain_) stats_.foreign_ops++;
     }
 
@@ -437,16 +439,16 @@ public:
     // Per-shard counters, single-writer so no two threads share a line. INFO sums them; a global
     // counter incremented per command would be a shared-line write on the hot path.
     struct Stats {
-        uint64_t ops           = 0;
-        uint64_t hits          = 0;
-        uint64_t misses        = 0;
-        uint64_t expired       = 0;
-        uint64_t evicted       = 0;
+        uint64_t ops = 0;
+        uint64_t hits = 0;
+        uint64_t misses = 0;
+        uint64_t expired = 0;
+        uint64_t evicted = 0;
         // THE actionable locality signal: ops executed by a worker in a different L3 domain than the
         // one holding this shard's working set. A high ratio means placement is wrong, and it is the
         // number a flip/LB controller should act on — not a guess from thread ids or core counts.
-        uint64_t foreign_ops   = 0;
-        uint64_t migrations    = 0;
+        uint64_t foreign_ops = 0;
+        uint64_t migrations = 0;
         uint64_t migrated_bytes = 0;
         uint64_t atomic_predecessor_reads = 0;
         uint64_t atomic_chain_max = 0;
@@ -495,13 +497,15 @@ public:
         // INFO keyspace_rehashes so a scan-under-resize test can assert the hazard it guards
         // actually fired. Written once per resize and read only by INFO, so it must not push any
         // field the per-op path touches onto a different cache line.
-        uint64_t rehashes      = 0;
+        uint64_t rehashes = 0;
     };
     Stats& stats() { return stats_; }
     const Stats& stats() const { return stats_; }
 
     double foreign_ratio() const {
-        return stats_.ops ? static_cast<double>(stats_.foreign_ops) / static_cast<double>(stats_.ops) : 0.0;
+        return stats_.ops
+                   ? static_cast<double>(stats_.foreign_ops) / static_cast<double>(stats_.ops)
+                   : 0.0;
     }
 
 private:
@@ -525,19 +529,19 @@ private:
     }
 
     friend struct ShardLayoutLock;
-    friend struct TxnLinearOracle; // test-only frozen registry, TOMO_TXN_ORACLE
+    friend struct TxnLinearOracle;  // test-only frozen registry, TOMO_TXN_ORACLE
     friend struct TxnIndexTest;
-    int32_t   id_ = -1;
+    int32_t id_ = -1;
     // Both endpoints include at most kNumBuckets (16384). Packing the route
     // endpoints leaves the WATCH gate in the hot header without moving zc_min,
     // the published gauges, FlatStore, Stats, or the cold registry maps.
-    uint16_t  bucket_begin_ = 0;
-    uint16_t  bucket_end_   = 0;
-    bool      has_watches_ = false;
-    uint8_t   reserved_route_[3]{};
-    uint32_t  zc_min_       = 0;
-    int64_t   now_ms_       = 0;
-    uint32_t  home_domain_  = kNoDomain;
+    uint16_t bucket_begin_ = 0;
+    uint16_t bucket_end_ = 0;
+    bool has_watches_ = false;
+    uint8_t reserved_route_[3]{};
+    uint32_t zc_min_ = 0;
+    int64_t now_ms_ = 0;
+    uint32_t home_domain_ = kNoDomain;
     std::atomic<uint32_t> published_size_{0};
     std::atomic<uint64_t> published_obj_bytes_{0};
     std::atomic<uint32_t> published_expires_{0};
@@ -545,7 +549,7 @@ private:
     std::atomic<uint32_t> published_active_expire_reap_lag_ms_max_{0};
     std::atomic<uint64_t> published_evicted_{0};
     FlatStore store_;
-    Stats     stats_;
+    Stats stats_;
     TypeLimits type_limits_;
     // The intset threshold consumes four cold bytes. Place the dirty flag in the
     // remaining gap and the stream budgets in its former slot, preserving all
@@ -606,7 +610,9 @@ public:
         : shard_(shard), saved_(shard.now_ms()), armed_(cut_ms != 0) {
         if (__builtin_expect(armed_, true)) shard_.pin_now_ms(cut_ms);
     }
-    ~PinnedNowMs() { if (__builtin_expect(armed_, true)) shard_.pin_now_ms(saved_); }
+    ~PinnedNowMs() {
+        if (__builtin_expect(armed_, true)) shard_.pin_now_ms(saved_);
+    }
     PinnedNowMs(const PinnedNowMs&) = delete;
     PinnedNowMs& operator=(const PinnedNowMs&) = delete;
 
@@ -653,8 +659,8 @@ public:
         return unpack_shard(owner_[bucket_of(hash)].load(std::memory_order_relaxed));
     }
     int32_t shard_of_bucket(uint32_t bucket) const {
-        return bucket < kNumBuckets
-            ? unpack_shard(owner_[bucket].load(std::memory_order_acquire)) : -1;
+        return bucket < kNumBuckets ? unpack_shard(owner_[bucket].load(std::memory_order_acquire))
+                                    : -1;
     }
 
     uint32_t owner_of(uint64_t hash) const { return owner_of_bucket(bucket_of(hash)); }
@@ -671,17 +677,16 @@ public:
         if (phase_.load(std::memory_order_relaxed) != TransferPhase::Idle) std::abort();
         for (uint32_t bucket = begin; bucket < end; bucket++) {
             const uint32_t entry = owner_[bucket].load(std::memory_order_relaxed);
-            owner_[bucket].store(pack(unpack_shard(entry), thread_id),
-                                 std::memory_order_relaxed);
+            owner_[bucket].store(pack(unpack_shard(entry), thread_id), std::memory_order_relaxed);
         }
     }
 
     // Both EX loops must be at migration safe points before this call.  The source remains the
     // owner after a successful begin; commit_transfer() performs the one ownership handoff.
-    bool begin_transfer(uint32_t begin, uint32_t end, uint32_t source,
-                        uint32_t destination) {
-        if (begin >= end || end > kNumBuckets || source == destination ||
-            source >= kNoOwner || destination >= kNoOwner) return false;
+    bool begin_transfer(uint32_t begin, uint32_t end, uint32_t source, uint32_t destination) {
+        if (begin >= end || end > kNumBuckets || source == destination || source >= kNoOwner ||
+            destination >= kNoOwner)
+            return false;
         if (transfer_writer_.test_and_set(std::memory_order_acquire)) return false;
         if (phase_.load(std::memory_order_acquire) != TransferPhase::Idle) {
             transfer_writer_.clear(std::memory_order_release);
@@ -715,8 +720,7 @@ public:
         phase_.store(TransferPhase::Committed, std::memory_order_release);
         for (uint32_t bucket = begin; bucket < end; bucket++) {
             const uint32_t entry = owner_[bucket].load(std::memory_order_relaxed);
-            owner_[bucket].store(pack(unpack_shard(entry), destination),
-                                 std::memory_order_release);
+            owner_[bucket].store(pack(unpack_shard(entry), destination), std::memory_order_release);
         }
     }
 
@@ -733,9 +737,7 @@ private:
     static uint32_t pack(int32_t shard, uint32_t owner) {
         return (owner << 16) | static_cast<uint32_t>(shard);
     }
-    static int32_t unpack_shard(uint32_t entry) {
-        return static_cast<int32_t>(entry & UINT16_MAX);
-    }
+    static int32_t unpack_shard(uint32_t entry) { return static_cast<int32_t>(entry & UINT16_MAX); }
     static uint32_t unpack_owner(uint32_t entry) { return entry >> 16; }
 
     int32_t nshards_ = 0;

@@ -11,15 +11,16 @@ LbStallReason lb_stall_reason(const std::string& error) {
     if (error == "connection has a deferred out-of-band frame")
         return LbStallReason::DeferredOutput;
     if (error == "connection has transient CLIENT/MONITOR/TRACKING state" ||
-        error == "TLS connection has owner-local engine state") return LbStallReason::ClientState;
+        error == "TLS connection has owner-local engine state")
+        return LbStallReason::ClientState;
     if (error == "connection has an unfinished executor completion") return LbStallReason::Executor;
     return LbStallReason::InvalidClient;
 }
 namespace {
 void note_max(std::atomic<uint64_t>& counter, uint64_t value) {
     uint64_t old = counter.load(std::memory_order_relaxed);
-    while (old < value && !counter.compare_exchange_weak(
-               old, value, std::memory_order_relaxed)) {}
+    while (old < value && !counter.compare_exchange_weak(old, value, std::memory_order_relaxed)) {
+    }
 }
 }
 
@@ -31,12 +32,13 @@ bool Server::lb_drain_pass_expired(uint32_t tid, LbStage stage) {
     if (stage != LbStage::ClientDrain || lb_client_move_.source != tid) return false;
     auto& state = lb_policy_->stall;
     static_assert(std::tuple_size_v<decltype(state.owners)> == kMaxThreads);
-    auto& watch = state.owners[tid]; // only this physical IO writes its own watch
+    auto& watch = state.owners[tid];  // only this physical IO writes its own watch
     const uint64_t epoch = lb_epoch();
     if (watch.epoch != epoch) watch = {epoch, 0, 0};
     if (++watch.passes < LbStallState::kPassLimit) return false;
     const auto reason = stage == LbStage::ClientDrain && !lb_acked(lb_client_move_.destination)
-        ? LbStallReason::Destination : LbStallReason::PassLimit;
+                            ? LbStallReason::Destination
+                            : LbStallReason::PassLimit;
     return lb_refuse_stalled(epoch, reason);
 }
 
@@ -45,8 +47,9 @@ bool Server::lb_drain_pass_expired(uint32_t tid, LbStage stage) {
 __attribute__((noinline)) bool Server::lb_refuse_stalled(uint64_t epoch, LbStallReason reason) {
     std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
     const LbStage stage = lb_stage();
-    if (lb_epoch() != epoch || (stage != LbStage::ClientDrain &&
-        stage != LbStage::IoDrain && stage != LbStage::ExDrain)) return false;
+    if (lb_epoch() != epoch ||
+        (stage != LbStage::ClientDrain && stage != LbStage::IoDrain && stage != LbStage::ExDrain))
+        return false;
     const uint64_t now = now_ns();
 #ifdef TOMO_LB_STALL_OBSERVE_ONLY
     // Diagnostic negative control, never a runtime knob: keep the old timeout policy while
@@ -98,10 +101,9 @@ void Server::lb_debug_park(uint32_t tid, uint64_t bytes) {
 }
 
 void Server::lb_stall_info(std::string& out) const {
-    static constexpr const char* reasons[] = {
-        "pass_limit", "pipeline", "protocol", "deferred_output", "client_state", "executor",
-        "invalid_client", "destination"
-    };
+    static constexpr const char* reasons[] = {"pass_limit",      "pipeline",     "protocol",
+                                              "deferred_output", "client_state", "executor",
+                                              "invalid_client",  "destination"};
     static_assert(std::size(reasons) == static_cast<size_t>(LbStallReason::Count));
     const auto* state = lb_policy_ ? &lb_policy_->stall : nullptr;
     auto append = [&](const char* name, uint64_t value) {
@@ -123,4 +125,4 @@ void Server::lb_stall_info(std::string& out) const {
     append("debug", 0);
 #endif
 }
-} // namespace tomo
+}  // namespace tomo

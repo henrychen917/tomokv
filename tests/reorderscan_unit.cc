@@ -10,15 +10,23 @@ static uint64_t visits = 0, constructions = 0;
 #define TOMO_R7_SCAN_CONSTRUCT() (++constructions)
 #include "src/core/reorder.h"
 
-namespace tomo { void multi_session_destroy(MultiSession* p) { if (p) std::abort(); } }
+namespace tomo {
+void multi_session_destroy(MultiSession* p) {
+    if (p) std::abort();
+}
+}
 namespace {
 using namespace tomo;
 using namespace tomo::r7;
 void require(bool okay, const char* message) {
-    if (!okay) { std::fprintf(stderr, "FAIL reorderscan: %s\n", message); std::exit(1); }
+    if (!okay) {
+        std::fprintf(stderr, "FAIL reorderscan: %s\n", message);
+        std::exit(1);
+    }
 }
 void unused(Shard&, Op&) { std::abort(); }
-constexpr CommandSpec spec(const char* name, CommandLengthClass kind, uint32_t flags = CmdFlags::Readonly) {
+constexpr CommandSpec spec(const char* name, CommandLengthClass kind,
+                           uint32_t flags = CmdFlags::Readonly) {
     CommandSpec result(name, 2, 2, flags, unused, 1, 1, 1, unused);
     result.length_class = static_cast<uint8_t>(kind);
     return result;
@@ -76,12 +84,19 @@ void mixed(uint64_t seed, uint32_t offset) {
         rob.at(id).state.store(OpState::Done, std::memory_order_release);
         require(rob.drain([](Op&) {}) == 1, "advance to a real recycled ROB generation");
     }
-    auto random = [&] { seed ^= seed << 13; seed ^= seed >> 7; seed ^= seed << 17; return seed; };
+    auto random = [&] {
+        seed ^= seed << 13;
+        seed ^= seed >> 7;
+        seed ^= seed << 17;
+        return seed;
+    };
     std::vector<uint64_t> selected;
     for (uint32_t i = 0; i < 64; ++i) {
         const auto kind = random() % 5;
-        const auto id = append(client, kind == 0 ? slow : kind == 1 ? barrier :
-                                      kind == 2 ? small : point);
+        const auto id = append(client, kind == 0   ? slow
+                                       : kind == 1 ? barrier
+                                       : kind == 2 ? small
+                                                   : point);
         if (kind >= 2 && (random() & 1)) selected.push_back(id);
         if (kind < 2 && (random() & 1)) rob.at(id).state.store(OpState::Done);
     }
@@ -145,7 +160,8 @@ void lazy_passes() {
     LazyShadowDispatch completed(client.rob().dispatch_id());
     Task next(&client, append(client, point), -1, nullptr);
     completed.stamp(next);
-    require(constructions == 0 && !shadow_bit(next), "Done without retire constructed a dispatcher");
+    require(constructions == 0 && !shadow_bit(next),
+            "Done without retire constructed a dispatcher");
     // A refused Long must not shadow a short that reuses the unpublished id.
     const auto refused = append(client, slow);
     client.rob().unpublish();
@@ -158,7 +174,8 @@ void lazy_passes() {
     LazyShadowDispatch after_scatter(client.rob().dispatch_id());
     Task follower(&client, append(client, point), -1, nullptr);
     after_scatter.stamp(follower);
-    require(shadow_bit(follower) && shadow_id(follower) == scattered, "scatter Long was not indexed");
+    require(shadow_bit(follower) && shadow_id(follower) == scattered,
+            "scatter Long was not indexed");
     Client same_pass(-1);
     ShadowLongIndex::initialize(same_pass);
     LazyShadowDispatch immediate(0);

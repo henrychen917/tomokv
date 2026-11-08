@@ -17,7 +17,8 @@
 
 namespace tomo {
 struct LbPlannerTest {
-    template<bool Fused> static void run() {
+    template <bool Fused>
+    static void run() {
         CoreConcurrencyTest::Fixture<Fused> f;
         auto* client = new Client(-1);
         f.client(*client);
@@ -32,18 +33,21 @@ struct LbPlannerTest {
         sig.tls_accepts = sig.tls_ktls_active = 1;
         client->mark_closing();
         f.io.close_client(client);
-        CoreConcurrencyTest::require(client->dead() && f.server.live_clients() == 0 &&
-            f.io.dead_next_.size() == 1, "socket released, Client still deferred (window required)");
+        CoreConcurrencyTest::require(
+            client->dead() && f.server.live_clients() == 0 && f.io.dead_next_.size() == 1,
+            "socket released, Client still deferred (window required)");
         std::fprintf(stderr, "mode=%s live=%llu ktls=%llu tls_closed=%llu retained=%zu\n",
-            Fused ? "1s" : "2s", (unsigned long long)f.server.live_clients(),
-            (unsigned long long)sig.tls_ktls_active,
-            (unsigned long long)sig.tls_connections_freed, f.io.dead_next_.size());
-        CoreConcurrencyTest::require(sig.tls_ktls_active == 0 && sig.tls_connections_freed == 1,
+                     Fused ? "1s" : "2s", (unsigned long long)f.server.live_clients(),
+                     (unsigned long long)sig.tls_ktls_active,
+                     (unsigned long long)sig.tls_connections_freed, f.io.dead_next_.size());
+        CoreConcurrencyTest::require(
+            sig.tls_ktls_active == 0 && sig.tls_connections_freed == 1,
             "TLS gauges must reflect socket release before deferred Client reclamation");
         f.io.reap_dead();
         f.io.reap_dead();
         CoreConcurrencyTest::require(sig.tls_ktls_active == 0 && sig.tls_connections_freed == 1 &&
-            f.io.dead_next_.empty() && f.io.dead_ready_.empty(), "reaping must not double-count");
+                                         f.io.dead_next_.empty() && f.io.dead_ready_.empty(),
+                                     "reaping must not double-count");
     }
 };
 }

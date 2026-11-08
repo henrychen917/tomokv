@@ -26,8 +26,8 @@ public:
     static constexpr uint32_t kCountBits = 31;
     static constexpr uint32_t kFingerprintBits = 32;
     static constexpr uint64_t kCountMask = (uint64_t{1} << kCountBits) - 1;
-    static constexpr uint64_t kFingerprintMask =
-        ((uint64_t{1} << kFingerprintBits) - 1) << kCountBits;
+    static constexpr uint64_t kFingerprintMask = ((uint64_t{1} << kFingerprintBits) - 1)
+                                                 << kCountBits;
     static constexpr uint64_t kWildcardBit = uint64_t{1} << 63;
 
     static uint64_t mixed_hash(uint64_t hash) {
@@ -80,8 +80,8 @@ public:
     template <typename HashAt>
     void close_span(uint32_t count, HashAt&& hash_at) {
         if (!count) return;
-        if (poison_refs_.load(std::memory_order_relaxed) ==
-            std::numeric_limits<uint64_t>::max()) return;
+        if (poison_refs_.load(std::memory_order_relaxed) == std::numeric_limits<uint64_t>::max())
+            return;
         for (uint32_t i = 0; i < count; i++) close_hash(hash_at(i));
 
         const uint64_t total = unsafe_total_refs_.load(std::memory_order_relaxed);
@@ -122,32 +122,22 @@ public:
         // cannot expose an unsafe key.
         for (uint32_t i = 0; i < kCellCount; i++) close_cell(i);
         poison_refs_.store(0, std::memory_order_relaxed);
-        rebuild_saturated_if_drained(
-            unsafe_total_refs_.load(std::memory_order_relaxed));
+        rebuild_saturated_if_drained(unsafe_total_refs_.load(std::memory_order_relaxed));
     }
 
     uint64_t unsafe_total_refs() const {
         return unsafe_total_refs_.load(std::memory_order_relaxed);
     }
-    uint64_t saturated_cells() const {
-        return saturated_cells_.load(std::memory_order_relaxed);
-    }
-    uint64_t poison_refs() const {
-        return poison_refs_.load(std::memory_order_relaxed);
-    }
+    uint64_t saturated_cells() const { return saturated_cells_.load(std::memory_order_relaxed); }
+    uint64_t poison_refs() const { return poison_refs_.load(std::memory_order_relaxed); }
     bool permanently_poisoned() const {
-        return poison_refs_.load(std::memory_order_relaxed) ==
-               std::numeric_limits<uint64_t>::max();
+        return poison_refs_.load(std::memory_order_relaxed) == std::numeric_limits<uint64_t>::max();
     }
     void fail_closed_permanently() { poison_permanently(); }
 
-    uint64_t occupied_cells() const {
-        return occupied_cells_.load(std::memory_order_relaxed);
-    }
+    uint64_t occupied_cells() const { return occupied_cells_.load(std::memory_order_relaxed); }
 
-    uint64_t wildcard_cells() const {
-        return wildcard_cells_.load(std::memory_order_relaxed);
-    }
+    uint64_t wildcard_cells() const { return wildcard_cells_.load(std::memory_order_relaxed); }
 
 #ifdef TOMO_FOREIGN_READ_SAFETY_TEST
     void test_set_cell(uint64_t hash, uint64_t count, bool wildcard = false) {
@@ -155,8 +145,7 @@ public:
         const uint32_t index = cell_index(hash);
         replace_cell(index, cells_[index].load(std::memory_order_relaxed),
                      pack(count, fingerprint(hash), wildcard));
-        saturated_cells_.store(count == kCountMask ? 1 : 0,
-                               std::memory_order_relaxed);
+        saturated_cells_.store(count == kCountMask ? 1 : 0, std::memory_order_relaxed);
     }
     void test_set_unsafe_total_refs(uint64_t refs) {
         unsafe_total_refs_.store(refs, std::memory_order_relaxed);
@@ -182,9 +171,7 @@ private:
                (wildcard ? kWildcardBit : 0);
     }
 
-    void add_hash(uint64_t hash) {
-        add_cell(cell_index(hash), fingerprint(hash), false);
-    }
+    void add_hash(uint64_t hash) { add_cell(cell_index(hash), fingerprint(hash), false); }
 
     void add_cell(uint32_t index, uint32_t fingerprint, bool force_wildcard) {
         store_add_cell(index, fingerprint, force_wildcard);
@@ -199,11 +186,12 @@ private:
     void replace_cell(uint32_t index, uint64_t old, uint64_t next) {
         cells_[index].store(next, std::memory_order_release);
         if ((old != 0) != (next != 0))
-            occupied_cells_.store(occupied_cells_.load(std::memory_order_relaxed) +
-                                  (next ? 1 : uint64_t(-1)), std::memory_order_relaxed);
+            occupied_cells_.store(
+                occupied_cells_.load(std::memory_order_relaxed) + (next ? 1 : uint64_t(-1)),
+                std::memory_order_relaxed);
         if ((old & kWildcardBit) != (next & kWildcardBit))
             wildcard_cells_.store(wildcard_cells_.load(std::memory_order_relaxed) +
-                                  ((next & kWildcardBit) ? 1 : uint64_t(-1)),
+                                      ((next & kWildcardBit) ? 1 : uint64_t(-1)),
                                   std::memory_order_relaxed);
     }
 
@@ -216,13 +204,12 @@ private:
         const uint64_t count = cell_count(old);
         if (count == kCountMask) return;  // already saturated and permanently positive until drain
         const uint64_t next = count + 1;
-        const bool wildcard = force_wildcard || (old & kWildcardBit) != 0 ||
-                              cell_fingerprint(old) != fingerprint;
+        const bool wildcard =
+            force_wildcard || (old & kWildcardBit) != 0 || cell_fingerprint(old) != fingerprint;
         if (next == kCountMask) {
             replace_cell(index, old, pack(kCountMask, cell_fingerprint(old), true));
-            saturated_cells_.store(
-                saturated_cells_.load(std::memory_order_relaxed) + 1,
-                std::memory_order_relaxed);
+            saturated_cells_.store(saturated_cells_.load(std::memory_order_relaxed) + 1,
+                                   std::memory_order_relaxed);
             return;
         }
         replace_cell(index, old, pack(next, cell_fingerprint(old), wildcard));
@@ -256,14 +243,14 @@ private:
             replace_cell(index, old, 0);
             return;
         }
-        cells_[index].store(pack(count - 1, cell_fingerprint(old),
-                                 (old & kWildcardBit) != 0),
+        cells_[index].store(pack(count - 1, cell_fingerprint(old), (old & kWildcardBit) != 0),
                             std::memory_order_release);
     }
 
     void rebuild_saturated_if_drained(uint64_t unsafe_refs) {
         if (unsafe_refs != 0 || poison_refs_.load(std::memory_order_relaxed) != 0 ||
-            saturated_cells_.load(std::memory_order_relaxed) == 0) return;
+            saturated_cells_.load(std::memory_order_relaxed) == 0)
+            return;
         for (auto& cell : cells_) cell.store(0, std::memory_order_release);
         occupied_cells_.store(0, std::memory_order_relaxed);
         wildcard_cells_.store(0, std::memory_order_relaxed);
@@ -272,12 +259,9 @@ private:
     }
 
     void poison_permanently() {
-        poison_refs_.store(std::numeric_limits<uint64_t>::max(),
-                           std::memory_order_relaxed);
-        unsafe_total_refs_.store(std::numeric_limits<uint64_t>::max(),
-                                 std::memory_order_relaxed);
-        for (auto& cell : cells_)
-            cell.store(pack(kCountMask, 1, true), std::memory_order_release);
+        poison_refs_.store(std::numeric_limits<uint64_t>::max(), std::memory_order_relaxed);
+        unsafe_total_refs_.store(std::numeric_limits<uint64_t>::max(), std::memory_order_relaxed);
+        for (auto& cell : cells_) cell.store(pack(kCountMask, 1, true), std::memory_order_release);
         occupied_cells_.store(kCellCount, std::memory_order_relaxed);
         wildcard_cells_.store(kCellCount, std::memory_order_relaxed);
         touch_all_epochs();

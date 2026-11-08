@@ -14,8 +14,8 @@ namespace {
 void recycle_assert_owner_binding(FlatStore& store, const ReadLocalRetireSink& expected) {
     const auto actual = FlatStoreRegressionTest::sink(store);
     require(actual.context == expected.context && actual.block_cache == expected.block_cache &&
-            actual.defer == expected.defer && actual.available == expected.available &&
-            actual.defer_resize == expected.defer_resize,
+                actual.defer == expected.defer && actual.available == expected.available &&
+                actual.defer_resize == expected.defer_resize,
             "owner assertion: every sink binding names destination at the ownership edge");
 }
 struct RecycleSnapshot {
@@ -38,8 +38,10 @@ RecycleSnapshot recycle_snapshot(Fixture& f, unsigned owner) {
                         "class walk respects structural node bound");
                 require(kv_block_class(b->allocation) == cls, "cached block has exact class");
                 require(std::find(result.pointers.begin(), result.pointers.end(), b) ==
-                        result.pointers.end(), "cache pointer is resident exactly once");
-                result.pointers.push_back(b); walked_bytes += b->allocation;
+                            result.pointers.end(),
+                        "cache pointer is resident exactly once");
+                result.pointers.push_back(b);
+                walked_bytes += b->allocation;
             }
             require(result.nodes[cls] == cache.class_nodes[cls], "class occupancy census");
         }
@@ -47,7 +49,8 @@ RecycleSnapshot recycle_snapshot(Fixture& f, unsigned owner) {
         require(walked_bytes == cached_bytes && cached_bytes <= KvBlockCache::kMaxBytes,
                 "cache byte census and total bound");
         result.bytes = cached_bytes;
-        result.mallocs = recycle_alloc.mallocs; result.frees = recycle_alloc.frees;
+        result.mallocs = recycle_alloc.mallocs;
+        result.frees = recycle_alloc.frees;
 #ifdef TOMO_AT_RECYCLE_WITNESS_ENABLED
         result.witness = cache.witness;
         require(result.witness.takes == result.witness.hits + result.witness.misses,
@@ -61,8 +64,10 @@ void recycle_census(FlatStore& store) {
     // sallocx queries allocator metadata independently of the store's header-size arithmetic.
     size_t bytes = 0, keys = 0;
     store.for_each([&](KvObj* object) {
-        ++keys; bytes += sallocx(object, 0);
-        require(static_cast<Type>(object->type) == Type::String, "census fixture contains strings/integers");
+        ++keys;
+        bytes += sallocx(object, 0);
+        require(static_cast<Type>(object->type) == Type::String,
+                "census fixture contains strings/integers");
         if (object->encoding() == Enc::Extern) bytes += sallocx(object->external_ptr(), 0);
     });
     require(store.object_bytes() == bytes && store.size() == keys,
@@ -72,11 +77,12 @@ void recycle_census(FlatStore& store) {
 }
 KvObj* recycle_write(FlatStore& store, const std::string& key, const std::string& value,
                      bool integer = false) {
-    auto* fresh = integer ? store.make_set_int(slice(key), 1234567) :
-                           store.make_set_string(slice(key), slice(value));
+    auto* fresh = integer ? store.make_set_int(slice(key), 1234567)
+                          : store.make_set_string(slice(key), slice(value));
     require(fresh, "replacement allocation succeeds");
-    require(store.insert(FlatStore::hash_key(slice(key)), fresh) == FlatStore::InsertResult::Inserted,
-            "replacement publishes");
+    require(
+        store.insert(FlatStore::hash_key(slice(key)), fresh) == FlatStore::InsertResult::Inserted,
+        "replacement publishes");
     recycle_census(store);
     return fresh;
 }
@@ -101,8 +107,10 @@ void recycle_wave(bool fused) {
                 });
                 auto after = recycle_snapshot(f, f.source);
                 if (wave) {
-                    require(after.mallocs == before.mallocs && before.bytes - after.bytes == width * capacity,
-                            "completed W-object wave supplies all next W allocations without mallocx");
+                    require(
+                        after.mallocs == before.mallocs &&
+                            before.bytes - after.bytes == width * capacity,
+                        "completed W-object wave supplies all next W allocations without mallocx");
                 }
                 f.on(f.sid_a, [&] {
                     require(f.queues[f.source].drain_ready() == width,
@@ -111,20 +119,23 @@ void recycle_wave(bool fused) {
                 });
                 const auto ready = recycle_snapshot(f, f.source);
 #ifdef TOMO_AT_RECYCLE_WITNESS_ENABLED
-                require(after.witness.takes - before.witness.takes == width &&
+                require(
+                    after.witness.takes - before.witness.takes == width &&
                         after.witness.hits - before.witness.hits == (wave ? width : 0) &&
                         after.witness.fresh - before.witness.fresh == (wave ? 0 : width) &&
                         ready.witness.admitted - after.witness.admitted == width,
-                        "instrumented attempts/hits/fresh allocations/admissions agree with wave census");
+                    "instrumented attempts/hits/fresh allocations/admissions agree with wave census");
 #endif
-                require(ready.nodes[kv_block_class(capacity)] == width && ready.bytes == width * capacity,
+                require(ready.nodes[kv_block_class(capacity)] == width &&
+                            ready.bytes == width * capacity,
                         "completed W-object wave is fully cached despite one live object");
-                std::printf("RECYCLE wave mode=%s kind=%s W=%u warm=%u takes=%u hits=%u misses=%u "
-                            "mallocx=%llu sdallocx=%llu cache_bytes=%zu live_bytes=%zu\n",
-                            fused ? "1s" : "2s", integer ? "int" : "raw", width, wave != 0, width,
-                            wave ? width : 0, wave ? 0 : width,
-                            (unsigned long long)(after.mallocs - before.mallocs),
-                            (unsigned long long)(ready.frees - before.frees), ready.bytes, capacity);
+                std::printf(
+                    "RECYCLE wave mode=%s kind=%s W=%u warm=%u takes=%u hits=%u misses=%u "
+                    "mallocx=%llu sdallocx=%llu cache_bytes=%zu live_bytes=%zu\n",
+                    fused ? "1s" : "2s", integer ? "int" : "raw", width, wave != 0, width,
+                    wave ? width : 0, wave ? 0 : width,
+                    (unsigned long long)(after.mallocs - before.mallocs),
+                    (unsigned long long)(ready.frees - before.frees), ready.bytes, capacity);
             }
         }
     }
@@ -177,7 +188,7 @@ void recycle_pinned(bool fused) {
 void recycle_full_ring(bool fused) {
     bool engaged = false;
     for (unsigned attempt = 0; attempt < 3 && !engaged; ++attempt) {
-        Fixture f(fused, true); // A failed window is re-armed on completely fresh state.
+        Fixture f(fused, true);  // A failed window is re-armed on completely fresh state.
         auto key = f.key(f.sid_a, "full-");
         const std::string old(16, 'x'), fresh(16, 'y');
         auto* held = f.set(f.sid_a, key, old);
@@ -192,12 +203,17 @@ void recycle_full_ring(bool fused) {
         require(recycle_snapshot(f, f.source).bytes == 0, "full pinned ring has no cached blocks");
         const uint64_t epoch = f.server.read_local_epoch();
         std::atomic<bool> completed{false};
-        std::thread writer([&] { f.set(f.sid_a, key, fresh); completed.store(true); });
+        std::thread writer([&] {
+            f.set(f.sid_a, key, fresh);
+            completed.store(true);
+        });
         const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(3);
         while (f.server.read_local_epoch() == epoch && !completed.load() &&
-               std::chrono::steady_clock::now() < deadline) std::this_thread::yield();
+               std::chrono::steady_clock::now() < deadline)
+            std::this_thread::yield();
         engaged = f.server.read_local_epoch() > epoch && !completed.load();
-        if (engaged) require(held->str_value() == slice(old), "full-ring forced grace keeps reader bytes");
+        if (engaged)
+            require(held->str_value() == slice(old), "full-ring forced grace keeps reader bytes");
         f.server.thread(5).publish_read_local_parked(f.server.read_local_epoch());
         writer.join();
         require(completed.load(), "forced grace resumes after reader release");
@@ -214,16 +230,22 @@ void recycle_borrow(bool fused) {
     const char* retained = object->str_data();
     f.on(f.sid_a, [&] {
         f.server.shard(f.sid_a).store().borrow(retained);
-        recycle_alloc.watched = object; recycle_alloc.watched_freed = false;
+        recycle_alloc.watched = object;
+        recycle_alloc.watched_freed = false;
     });
-    f.set(f.sid_a, key, fresh); f.drain();
+    f.set(f.sid_a, key, fresh);
+    f.drain();
     const auto retained_cache = recycle_snapshot(f, f.source);
     require(std::find(retained_cache.pointers.begin(), retained_cache.pointers.end(), object) ==
-            retained_cache.pointers.end(), "retained borrowed pointer must not appear in cache");
-    require(std::memcmp(retained, old.data(), old.size()) == 0, "borrowed pointer bytes remain retained");
+                retained_cache.pointers.end(),
+            "retained borrowed pointer must not appear in cache");
+    require(std::memcmp(retained, old.data(), old.size()) == 0,
+            "borrowed pointer bytes remain retained");
     for (unsigned n = 0; n < kRobWindow; ++n) {
-        require(f.set(f.sid_a, key, fresh) != object, "borrowed object cannot be reused"); f.drain();
-        require(std::memcmp(retained, old.data(), old.size()) == 0, "retained bytes survive reuse churn");
+        require(f.set(f.sid_a, key, fresh) != object, "borrowed object cannot be reused");
+        f.drain();
+        require(std::memcmp(retained, old.data(), old.size()) == 0,
+                "retained bytes survive reuse churn");
     }
     f.on(f.sid_a, [&] {
         auto& store = f.server.shard(f.sid_a).store();
@@ -231,7 +253,8 @@ void recycle_borrow(bool fused) {
         store.unborrow(retained);
         require(recycle_alloc.watched_freed && store.outstanding_borrows() == 0,
                 "final unborrow returns retained allocation through baseline free");
-        recycle_alloc.watched = nullptr; recycle_census(store);
+        recycle_alloc.watched = nullptr;
+        recycle_census(store);
     });
 }
 void recycle_bounds(bool fused) {
@@ -245,8 +268,10 @@ void recycle_bounds(bool fused) {
             auto& store = f.server.shard(f.sid_a).store();
             const std::string val(n, 'z');
             for (unsigned i = 0; i < count; ++i) {
-                auto* o = kvobj_new_string(slice(block_key), slice(val)); require(o, "bound fixture allocation");
-                f.queues[f.source].defer(&store, o, kvobj_capacity(o), &FlatStoreRegressionTest::reclaim);
+                auto* o = kvobj_new_string(slice(block_key), slice(val));
+                require(o, "bound fixture allocation");
+                f.queues[f.source].defer(&store, o, kvobj_capacity(o),
+                                         &FlatStoreRegressionTest::reclaim);
             }
         });
         f.drain();
@@ -270,9 +295,11 @@ void recycle_bounds(bool fused) {
     require(c1 == 512 && c2 == 1024, "heterogeneous bound fixtures use distinct exact classes");
     const unsigned half1 = KvBlockCache::kMaxBytes / 2 / c1;
     const unsigned half2 = KvBlockCache::kMaxBytes / 2 / c2;
-    feed(medium, 1, half1); feed(large, 1, half2);
+    feed(medium, 1, half1);
+    feed(large, 1, half2);
     full = recycle_snapshot(f, f.source);
-    require(full.bytes == KvBlockCache::kMaxBytes, "total byte cap engaged with heterogeneous classes");
+    require(full.bytes == KvBlockCache::kMaxBytes,
+            "total byte cap engaged with heterogeneous classes");
     feed(medium, 1, kRobWindow);
     excess = recycle_snapshot(f, f.source);
     require(excess.bytes == full.bytes && excess.frees - full.frees == kRobWindow,
@@ -282,8 +309,10 @@ void recycle_bounds(bool fused) {
     // Impossible huge requests must be rejected before overflow; no memory is dereferenced.
     f.on(f.sid_a, [&] {
         auto& cache = *f.queues[f.source].sink()->block_cache;
-        require(!cache.put(nullptr, SIZE_MAX, SIZE_MAX), "oversize arithmetic cannot admit a block");
-        require(!cache.put(nullptr, sizeof(KvBlockCache::FreeBlock) - 1, SIZE_MAX), "undersize rejected");
+        require(!cache.put(nullptr, SIZE_MAX, SIZE_MAX),
+                "oversize arithmetic cannot admit a block");
+        require(!cache.put(nullptr, sizeof(KvBlockCache::FreeBlock) - 1, SIZE_MAX),
+                "undersize rejected");
     });
 }
 void recycle_shapes(bool fused) {
@@ -291,14 +320,16 @@ void recycle_shapes(bool fused) {
     auto a = f.key(f.sid_a, "shape-a-");
     const auto sid2 = f.server.thread(f.source).shards()[1]->id();
     auto b = f.key(sid2, "shape-b-");
-    for (size_t length : std::array<size_t, 9>{0, 1, 15, 16, 17,
-                          kEmbedThreshold - 1, kEmbedThreshold, kEmbedThreshold + 1, 4096}) {
+    for (size_t length : std::array<size_t, 9>{0, 1, 15, 16, 17, kEmbedThreshold - 1,
+                                               kEmbedThreshold, kEmbedThreshold + 1, 4096}) {
         for (const auto& sk : {std::pair{f.sid_a, a}, std::pair{sid2, b}}) {
             f.on(sk.first, [&] {
-                recycle_write(f.server.shard(sk.first).store(), sk.second, std::string(length, 'v'));
+                recycle_write(f.server.shard(sk.first).store(), sk.second,
+                              std::string(length, 'v'));
             });
         }
-        f.drain(); recycle_snapshot(f, f.source);
+        f.drain();
+        recycle_snapshot(f, f.source);
     }
     f.on(f.sid_a, [&] { f.queues[f.source].sink()->block_cache->release_all(); });
     auto before = recycle_snapshot(f, f.source);
@@ -306,20 +337,25 @@ void recycle_shapes(bool fused) {
     f.on(f.sid_a, [&] { recycle_write(f.server.shard(f.sid_a).store(), a, "inline"); });
     f.drain();
     auto after = recycle_snapshot(f, f.source);
-    require(after.bytes == 0 && after.frees - before.frees == 2, "Extern header and payload are freed");
+    require(after.bytes == 0 && after.frees - before.frees == 2,
+            "Extern header and payload are freed");
     // Collection rejection uses the same callback, including the collection destructor.
     f.on(f.sid_a, [&] {
         auto& store = f.server.shard(f.sid_a).store();
-        auto* o = kvobj_new_list(slice(a), new ListVal()); require(o, "collection fixture allocated");
-        recycle_alloc.watched = o; recycle_alloc.watched_freed = false;
+        auto* o = kvobj_new_list(slice(a), new ListVal());
+        require(o, "collection fixture allocated");
+        recycle_alloc.watched = o;
+        recycle_alloc.watched_freed = false;
         f.queues[f.source].defer(&store, o, kvobj_capacity(o), &FlatStoreRegressionTest::reclaim);
         require(f.queues[f.source].drain_ready() == 1, "collection grace engaged");
         require(recycle_alloc.watched_freed, "collection rejected to baseline destruction");
-        recycle_alloc.watched = nullptr; recycle_census(store);
+        recycle_alloc.watched = nullptr;
+        recycle_census(store);
     });
     require(recycle_snapshot(f, f.source).bytes == 0, "collection cache exclusion");
     // A block retired by one shard can supply its sibling on the SAME owner.
-    f.set(f.sid_a, a, "inline"); f.drain();
+    f.set(f.sid_a, a, "inline");
+    f.drain();
     before = recycle_snapshot(f, f.source);
     require(before.pointers.size() == 1, "one sibling-supplied cached block");
     auto* sibling = f.set(sid2, b, "inline");
@@ -332,7 +368,8 @@ void recycle_shapes(bool fused) {
         auto* huge = recycle_write(store, huge_key, "h");
         require(kv_block_class(kvobj_capacity(huge)) >= KvBlockCache::kClasses,
                 "huge-key object lies outside cache classes");
-        recycle_alloc.watched = huge; recycle_alloc.watched_freed = false;
+        recycle_alloc.watched = huge;
+        recycle_alloc.watched_freed = false;
         recycle_write(store, huge_key, "i");
         require(f.queues[f.source].drain_ready() == 1 && recycle_alloc.watched_freed,
                 "huge-key object reclaims through baseline free");
@@ -344,39 +381,49 @@ void recycle_release(bool fused) {
     for (const std::string action : {"empty", "flush", "pressure", "oom", "shutdown"}) {
         Fixture f(fused, true);
         auto key = f.key(f.sid_a, "release-");
-        f.set(f.sid_a, key, "first"); f.set(f.sid_a, key, "other"); f.drain();
+        f.set(f.sid_a, key, "first");
+        f.set(f.sid_a, key, "other");
+        f.drain();
         const auto before = recycle_snapshot(f, f.source);
         require(before.bytes != 0, "release test must start with cached blocks");
         f.on(f.sid_a, [&] {
             auto& store = f.server.shard(f.sid_a).store();
             if (action == "empty") {
-                require(store.erase(FlatStore::hash_key(slice(key)), slice(key)), "last live key deleted");
+                require(store.erase(FlatStore::hash_key(slice(key)), slice(key)),
+                        "last live key deleted");
                 require(f.queues[f.source].drain_ready() == 1, "empty-shard reclaim engaged");
-            } else if (action == "flush") { store.clear(); }
-            else if (action == "shutdown") {
+            } else if (action == "flush") {
+                store.clear();
+            } else if (action == "shutdown") {
                 auto* detached = kvobj_new_string(slice(key), slice(std::string("pending")));
                 require(detached, "shutdown pending object allocated");
                 f.queues[f.source].defer(&store, detached, kvobj_capacity(detached),
-                                        &FlatStoreRegressionTest::reclaim);
+                                         &FlatStoreRegressionTest::reclaim);
                 require(f.queues[f.source].size() == 1 && f.queues[f.source].drain_shutdown() == 1,
                         "shutdown drains pending retirements and the occupied cache");
-            }
-            else {
+            } else {
                 const std::string large(kEmbedThreshold, 'z');
                 if (action == "oom") {
-                    fail_size = good_size(kvobj_alloc_size(slice(key).identity(), large.size(), false, Enc::Raw));
-                    fail_occurrence = 1; allocation_failed = false;
+                    fail_size = good_size(
+                        kvobj_alloc_size(slice(key).identity(), large.size(), false, Enc::Raw));
+                    fail_occurrence = 1;
+                    allocation_failed = false;
                     auto* fresh = store.make_set_string(slice(key), slice(large));
-                    require(allocation_failed && fresh, "allocator refusal releases cache then retries successfully");
+                    require(allocation_failed && fresh,
+                            "allocator refusal releases cache then retries successfully");
                     store.discard_set_value(fresh);
                 } else {
                     store.configure_maxmemory(true, 1, MaxmemoryPolicy::NoEviction, 1);
-                    auto* fresh = store.make_set_string(slice(key), slice(large)); require(fresh, "pressure candidate");
-                    recycle_alloc.watched = fresh; recycle_alloc.watched_freed = false;
-                    require(store.insert(FlatStore::hash_key(slice(key)), fresh) == FlatStore::InsertResult::MaxmemoryOom,
+                    auto* fresh = store.make_set_string(slice(key), slice(large));
+                    require(fresh, "pressure candidate");
+                    recycle_alloc.watched = fresh;
+                    recycle_alloc.watched_freed = false;
+                    require(store.insert(FlatStore::hash_key(slice(key)), fresh) ==
+                                FlatStore::InsertResult::MaxmemoryOom,
                             "pressure refusal actually engaged");
                     store.discard_set_value(fresh);
-                    require(recycle_alloc.watched_freed, "failed insertion frees its unpublished replacement");
+                    require(recycle_alloc.watched_freed,
+                            "failed insertion frees its unpublished replacement");
                     recycle_alloc.watched = nullptr;
                     store.configure_maxmemory(false, 0, MaxmemoryPolicy::NoEviction, 1);
                 }
@@ -388,34 +435,51 @@ void recycle_release(bool fused) {
             require(after.bytes == before.bytes && after.frees == before.frees + 1,
                     "empty shard refuses new puts without trimming existing cache");
         } else {
-            require(after.bytes == 0 && after.frees > before.frees, "release action returns occupied cache to allocator");
+            require(after.bytes == 0 && after.frees > before.frees,
+                    "release action returns occupied cache to allocator");
         }
         f.drain();
-        if (action == "flush") require(recycle_snapshot(f, f.source).bytes == 0, "FLUSH retire drain cannot refill cache");
+        if (action == "flush")
+            require(recycle_snapshot(f, f.source).bytes == 0,
+                    "FLUSH retire drain cannot refill cache");
     }
 }
 void recycle_suite(bool fused, const std::string& selected) {
 #ifdef TOMO_AT_RECYCLE_WITNESS_ENABLED
     if (selected == "witness-boundary") {
         Fixture f(fused, true);
-        at_recycle::request.fetch_add(1, std::memory_order_release); f.drain();
+        at_recycle::request.fetch_add(1, std::memory_order_release);
+        f.drain();
         const auto key = f.key(f.sid_a, "witness-");
         for (unsigned n = 0; n < kRobWindow / 8; ++n) f.set(f.sid_a, key, "data");
         f.drain();
-        at_recycle::request.fetch_add(1, std::memory_order_release); f.drain();
+        at_recycle::request.fetch_add(1, std::memory_order_release);
+        f.drain();
         return;
     }
 #endif
-    if (selected == "pre-cap") { recycle_pre_cap(fused); return; }
+    if (selected == "pre-cap") {
+        recycle_pre_cap(fused);
+        return;
+    }
     bool ran = false;
-    for (auto [name, run] : std::array<std::pair<const char*, void (*)(bool)>, 7>{{{"wave", recycle_wave}, {"pinned", recycle_pinned},
-             {"full", recycle_full_ring}, {"borrow", recycle_borrow}, {"bounds", recycle_bounds},
-             {"shapes", recycle_shapes}, {"release", recycle_release}}}) {
+    for (auto [name, run] :
+         std::array<std::pair<const char*, void (*)(bool)>, 7>{{{"wave", recycle_wave},
+                                                                {"pinned", recycle_pinned},
+                                                                {"full", recycle_full_ring},
+                                                                {"borrow", recycle_borrow},
+                                                                {"bounds", recycle_bounds},
+                                                                {"shapes", recycle_shapes},
+                                                                {"release", recycle_release}}}) {
         if (selected != "all" && selected != name) continue;
-        run(fused); ran = true; std::printf("PASS recycle %s %s\n", name, fused ? "1s" : "2s");
+        run(fused);
+        ran = true;
+        std::printf("PASS recycle %s %s\n", name, fused ? "1s" : "2s");
     }
     if (selected == "all" || selected == "migration") {
-        Fixture f(fused, true); live_cache_handoff(f); ran = true;
+        Fixture f(fused, true);
+        live_cache_handoff(f);
+        ran = true;
         std::printf("PASS recycle migration %s\n", fused ? "1s" : "2s");
     }
     require(ran, "known recycle directed case");

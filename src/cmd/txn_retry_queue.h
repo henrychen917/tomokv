@@ -4,8 +4,8 @@
 #include <atomic>
 #include "../base/tomo_assert.h"
 namespace tomo {
-struct /* TOMO_TOOL_BIND TxnRetryQueues */TxnRetryQueues;
-struct /* TOMO_TOOL_BIND MultiOwnerRetryNode */MultiOwnerRetryNode {
+struct /* TOMO_TOOL_BIND TxnRetryQueues */ TxnRetryQueues;
+struct /* TOMO_TOOL_BIND MultiOwnerRetryNode */ MultiOwnerRetryNode {
     MultiOwnerRetryNode *prev = nullptr, *next = nullptr;
     // A shard may move while its old owner still has a forwarded retry. Only
     // the named lane may read the links; foreign-owner promotion is a no-op.
@@ -27,55 +27,86 @@ struct TxnRetryQueues {
     bool chaining = false;
     std::byte layout_pad[sizeof(std::deque<Task>) - 6 * sizeof(void*) - 3 * sizeof(uint32_t) - 1]{};
     bool empty() const { return count == 0; }
-    void /* TOMO_TOOL_BIND link */link(MultiOwnerRetryNode& node, bool fast) {
+    void /* TOMO_TOOL_BIND link */ link(MultiOwnerRetryNode& node, bool fast) {
         TOMO_ASSERT(!node.lane.load(std::memory_order_relaxed));
         auto*& head = fast ? fast_head : rotation_head;
         auto*& tail = fast ? fast_tail : rotation_tail;
-        node.prev = tail; node.next = nullptr; node.fast = fast;
-        if (tail) tail->next = &node; else head = &node;
-        tail = &node; ++count; fast_count += fast; markless_count += node.markless;
+        node.prev = tail;
+        node.next = nullptr;
+        node.fast = fast;
+        if (tail)
+            tail->next = &node;
+        else
+            head = &node;
+        tail = &node;
+        ++count;
+        fast_count += fast;
+        markless_count += node.markless;
         node.lane.store(this, std::memory_order_release);
     }
-    void /* TOMO_TOOL_BIND unlink */unlink(MultiOwnerRetryNode& node) {
+    void /* TOMO_TOOL_BIND unlink */ unlink(MultiOwnerRetryNode& node) {
         TOMO_ASSERT(node.lane.load(std::memory_order_relaxed) == this);
         auto*& head = node.fast ? fast_head : rotation_head;
         auto*& tail = node.fast ? fast_tail : rotation_tail;
-        if (node.prev) node.prev->next = node.next; else head = node.next;
-        if (node.next) node.next->prev = node.prev; else tail = node.prev;
-        --count; fast_count -= node.fast; markless_count -= node.markless;
+        if (node.prev)
+            node.prev->next = node.next;
+        else
+            head = node.next;
+        if (node.next)
+            node.next->prev = node.prev;
+        else
+            tail = node.prev;
+        --count;
+        fast_count -= node.fast;
+        markless_count -= node.markless;
         if (node.runnable) {
-            if (node.ready_prev) node.ready_prev->ready_next = node.ready_next; else ready_head = node.ready_next;
-            if (node.ready_next) node.ready_next->ready_prev = node.ready_prev; else ready_tail = node.ready_prev;
+            if (node.ready_prev)
+                node.ready_prev->ready_next = node.ready_next;
+            else
+                ready_head = node.ready_next;
+            if (node.ready_next)
+                node.ready_next->ready_prev = node.ready_prev;
+            else
+                ready_tail = node.ready_prev;
             node.ready_prev = node.ready_next = nullptr;
             node.runnable = false;
         }
         node.prev = node.next = nullptr;
-        node.lane.store(nullptr, std::memory_order_release); // last access before forwarding
+        node.lane.store(nullptr, std::memory_order_release);  // last access before forwarding
     }
     void enqueue(MultiOwnerRetryNode& node, const Task& task, bool fast) {
-        node.task = task; link(node, fast);
+        node.task = task;
+        link(node, fast);
     }
     void promote(MultiOwnerRetryNode& node) {
         if (node.lane.load(std::memory_order_acquire) != this || node.fast) return;
-        unlink(node); link(node, true);
+        unlink(node);
+        link(node, true);
     }
     void make_runnable(MultiOwnerRetryNode& node) {
         if (node.lane.load(std::memory_order_acquire) != this) return;
         promote(node);
         if (node.runnable) return;
-        node.runnable = true; node.ready_prev = ready_tail; node.ready_next = nullptr;
-        if (ready_tail) ready_tail->ready_next = &node; else ready_head = &node;
+        node.runnable = true;
+        node.ready_prev = ready_tail;
+        node.ready_next = nullptr;
+        if (ready_tail)
+            ready_tail->ready_next = &node;
+        else
+            ready_head = &node;
         ready_tail = &node;
     }
     Task pop_runnable() {
         auto& node = *ready_head;
         const Task task = node.task;
-        unlink(node); return task;
+        unlink(node);
+        return task;
     }
     Task pop(bool fast) {
         auto& node = *(fast ? fast_head : rotation_head);
         const Task task = node.task;
-        unlink(node); return task;
+        unlink(node);
+        return task;
     }
 };
 static_assert(sizeof(TxnRetryQueues) == sizeof(std::deque<Task>));
@@ -93,4 +124,4 @@ inline bool txn_promote_deferred_writer(std::deque<Task>& tasks, const void* tok
     }
     return false;
 }
-} // namespace tomo
+}  // namespace tomo

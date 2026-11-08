@@ -8,7 +8,10 @@ struct ScriptWindow {
     // FLUSH, an ACL or OOM refusal at re-parse, an arena allocation failure after the grant), the
     // dispatch id has moved and the entry is stale. A stale head would otherwise block every
     // later waiter on this IO until its connection happened to send another script or close.
-    struct Member { Client* client; uint64_t frame; };
+    struct Member {
+        Client* client;
+        uint64_t frame;
+    };
     std::list<Member> fifo;
     std::unordered_map<Client*, std::list<Member>::iterator> members;
     // The head granted a slot by script_window_wait; popped where the slot is counted.
@@ -44,7 +47,10 @@ Client* script_window_head(Server& server, MultiRetryLane& lane, ScriptWindow& w
     }
     for (auto member = window.fifo.begin(); member != window.fifo.end();) {
         Client* client = member->client;
-        if (client->closing() || client->dead() || client->id() == paused) { ++member; continue; }
+        if (client->closing() || client->dead() || client->id() == paused) {
+            ++member;
+            continue;
+        }
         if (!script_window_stale(*member)) return client;
         auto next = std::next(member);
         script_window_erase(lane, window, member);
@@ -67,12 +73,17 @@ bool script_window_wait(Server& server, uint32_t io, Client& client) {
             script_window_erase(lane, window, found->second);
         if (!window.members.contains(&client)) {
             window.fifo.push_back({&client, client.rob().dispatch_id()});
-            try { window.members.emplace(&client, std::prev(window.fifo.end())); }
-            catch (...) { window.fifo.pop_back(); throw; }
+            try {
+                window.members.emplace(&client, std::prev(window.fifo.end()));
+            } catch (...) {
+                window.fifo.pop_back();
+                throw;
+            }
             lane.script_admission |= 128u;
             server.note_script_window_wait();
         }
-        if ((lane.script_admission & 127u) >= 4 || script_window_head(server, lane, window) != &client)
+        if ((lane.script_admission & 127u) >= 4 ||
+            script_window_head(server, lane, window) != &client)
             return false;
         window.granted = &client;
         return true;
@@ -130,7 +141,9 @@ bool script_group_prepare(ScatterState& state, Server& server, uint32_t io) {
         state.group_attempt_storage = attempt.release();
         state.watch_refs.fetch_or(ScatterState::kGroupAttemptRef, std::memory_order_relaxed);
         return true;
-    } catch (const std::bad_alloc&) { return false; }
+    } catch (const std::bad_alloc&) {
+        return false;
+    }
 }
 
 void script_cancel(ScatterState& state) {
@@ -139,11 +152,12 @@ void script_cancel(ScatterState& state) {
     state.aborted.store(true, std::memory_order_release);
 }
 
-ScatterFinish script_escalate_handoff(Server& server, ThreadCtx& self, Ring& ring,
-                                       const Task& task, Op& op) {
+ScatterFinish script_escalate_handoff(Server& server, ThreadCtx& self, Ring& ring, const Task& task,
+                                      Op& op) {
     auto& state = *task.scatter;
     if (state.pending.load(std::memory_order_acquire) || state.script_ticket_live ||
-        state.script_certifier || state.script_pins_live) std::abort();
+        state.script_certifier || state.script_pins_live)
+        std::abort();
     for (uint32_t i = 0; i < state.key_count; ++i)
         if (state.script_pinned[i]) std::abort();
     script_cancel(state);
@@ -211,11 +225,12 @@ ScatterTaskResult script_group_read(ScatterState& state, Shard& shard, Op& op) {
     return ScatterTaskResult::Complete;
 }
 
-ScatterFinish script_group_final(Server& server, ThreadCtx& self, Ring& ring,
-                                  const Task& task, Op& op, WorkError error) {
+ScatterFinish script_group_final(Server& server, ThreadCtx& self, Ring& ring, const Task& task,
+                                 Op& op, WorkError error) {
     auto& state = *task.scatter;
     if (state.script_ticket_live || state.script_certifier || state.script_pins_live ||
-        state.script_slot_live || state.snapshot_registered) std::abort();
+        state.script_slot_live || state.snapshot_registered)
+        std::abort();
     if (error != WorkError::None) {
         script_cancel(state);
         aof_abort_scatter_group(state);
@@ -228,9 +243,10 @@ ScatterFinish script_group_final(Server& server, ThreadCtx& self, Ring& ring,
         // H3: no bracket spans placement, Lua, APPLY, or an owner-queue wait.
         const uint64_t ticket = server.atomic_commit_reserve();
         uint64_t zero = 0;
-        const bool won = state.epoch.compare_exchange_strong(zero, ticket, std::memory_order_acq_rel);
+        const bool won =
+            state.epoch.compare_exchange_strong(zero, ticket, std::memory_order_acq_rel);
         server.atomic_commit_publish();
-        if (!won) std::abort(); // executing kind-2 scripts are immune
+        if (!won) std::abort();  // executing kind-2 scripts are immune
         aof_commit_scatter_group(state, self, ring, ticket);
         server.note_script_activation();
         server.note_script_group_commit();
@@ -241,8 +257,8 @@ ScatterFinish script_group_final(Server& server, ThreadCtx& self, Ring& ring,
 }
 
 template <bool IofusedPrivateQueue>
-void script_escalate_redispatch(Server& server, ThreadCtx& self, Ring& ring,
-                                ScatterArenaPool& pool, ScatterState& previous) {
+void script_escalate_redispatch(Server& server, ThreadCtx& self, Ring& ring, ScatterArenaPool& pool,
+                                ScatterState& previous) {
     auto& old = *previous.group_attempt();
     Client& client = *previous.commit_client;
     Op& op = client.rob().at(previous.commit_op_id);
@@ -253,13 +269,19 @@ void script_escalate_redispatch(Server& server, ThreadCtx& self, Ring& ring,
         op.state.store(OpState::Done, std::memory_order_release);
         return;
     }
-    if (server.txn_retry_held() || now_ns() < old.retry_after_ns) { again(); return; }
+    if (server.txn_retry_held() || now_ns() < old.retry_after_ns) {
+        again();
+        return;
+    }
     op.clear_reply();
     ScatterDispatch dispatch;
-    const auto prepared = xshard_prepare(server, op, pool, self.id(), client.id(),
-                                         dispatch, true, &client);
+    const auto prepared =
+        xshard_prepare(server, op, pool, self.id(), client.id(), dispatch, true, &client);
     if (prepared != ScatterPrepare::Ready) {
-        if (prepared == ScatterPrepare::Backpressure) { again(); return; }
+        if (prepared == ScatterPrepare::Backpressure) {
+            again();
+            return;
+        }
         op.state.store(OpState::Done, std::memory_order_release);
         return;
     }
@@ -274,8 +296,8 @@ void script_escalate_redispatch(Server& server, ThreadCtx& self, Ring& ring,
     for (uint32_t i = 0; i < next->nsub; ++i)
         ++needed[server.worker_of_shard(next->groups[i].shard)];
     for (uint32_t tid = 0; tid < server.nthreads(); ++tid)
-        if (needed[tid] && scatter_task_free_slots<IofusedPrivateQueue>(
-                server.thread(tid), self.id()) < needed[tid]) {
+        if (needed[tid] && scatter_task_free_slots<IofusedPrivateQueue>(server.thread(tid),
+                                                                        self.id()) < needed[tid]) {
             xshard_abandon_unpublished(next, pool, self.id());
             again();
             return;
@@ -308,12 +330,13 @@ void script_escalate_redispatch(Server& server, ThreadCtx& self, Ring& ring,
         const int32_t sid = next->groups[i].shard;
         auto& owner = server.thread(server.worker_of_shard(sid));
         if (!scatter_post_task_quiet<IofusedPrivateQueue>(
-                owner, self.id(), Task{&client, op_id, sid, next}, self.sig())) std::abort();
+                owner, self.id(), Task{&client, op_id, sid, next}, self.sig()))
+            std::abort();
     }
     for (uint32_t tid = 0; tid < server.nthreads(); ++tid)
         if (needed[tid]) server.thread(tid).flush_task_notify(self.id(), ring, self.sig());
 }
-} // namespace
+}  // namespace
 
 void script_window_forget(Server& server, uint32_t io, Client& client) {
     auto& lane = server.multi_retry_lane(io);
@@ -349,4 +372,4 @@ void script_window_resume(Server& server, ScatterArenaPool& pool, uint32_t io, C
     }
     if (pool.can_register_snapshot()) client.set_atomic_backpressure(false);
 }
-} // namespace tomo
+}  // namespace tomo

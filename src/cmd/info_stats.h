@@ -14,8 +14,8 @@ void info_stats_init(Server* server);
 void info_stats_tick(Server& server);
 std::array<uint64_t, 3> info_stats_rates();
 uint64_t info_stats_observe_memory(uint64_t used_memory);
-void info_stats_reset(uint64_t operations, uint64_t used_memory,
-                      uint64_t input_bytes = 0, uint64_t output_bytes = 0);
+void info_stats_reset(uint64_t operations, uint64_t used_memory, uint64_t input_bytes = 0,
+                      uint64_t output_bytes = 0);
 void info_stats_memory_fields(std::string& body, uint64_t allocated, uint64_t resident);
 void info_stats_cpu_fields(std::string& body);
 void info_stats_build_fields(std::string& body);

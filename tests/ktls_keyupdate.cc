@@ -20,10 +20,12 @@ void require(bool value, const char* reason) {
     }
 }
 std::string read_exact(SSL* ssl, size_t size) {
-    std::string result(size, '\0'); size_t done = 0;
+    std::string result(size, '\0');
+    size_t done = 0;
     while (done < size) {
         const int n = SSL_read(ssl, result.data() + done, size - done);
-        require(n > 0, "TLS read failed after a legal KeyUpdate"); done += n;
+        require(n > 0, "TLS read failed after a legal KeyUpdate");
+        done += n;
     }
     return result;
 }
@@ -39,7 +41,8 @@ void send(SSL* ssl, const std::string& request) {
     size_t done = 0;
     while (done < request.size()) {
         const int n = SSL_write(ssl, request.data() + done, request.size() - done);
-        require(n > 0, "TLS write failed"); done += n;
+        require(n > 0, "TLS write failed");
+        done += n;
     }
 }
 std::string stats(SSL* ssl) {
@@ -60,24 +63,32 @@ int main(int argc, char** argv) {
     require(argc == 4, "usage: ktls-keyupdate HOST PORT tx|userspace");
     const std::string arm = argv[3];
     require(arm == "tx" || arm == "userspace", "known transport arm");
-    SSL_CTX* ctx = SSL_CTX_new(TLS_client_method()); require(ctx, "client context");
+    SSL_CTX* ctx = SSL_CTX_new(TLS_client_method());
+    require(ctx, "client context");
     require(SSL_CTX_set_min_proto_version(ctx, TLS1_3_VERSION) == 1 &&
-            SSL_CTX_set_max_proto_version(ctx, TLS1_3_VERSION) == 1, "TLS1.3 selected");
+                SSL_CTX_set_max_proto_version(ctx, TLS1_3_VERSION) == 1,
+            "TLS1.3 selected");
     require(SSL_CTX_set_ciphersuites(ctx, "TLS_AES_128_GCM_SHA256") == 1, "TLS1.3 cipher selected");
     if (arm == "userspace")
         require(SSL_CTX_set_tlsext_max_fragment_length(ctx, TLSEXT_max_fragment_length_512) == 1,
                 "request userspace-only record size");
-    const int fd = socket(AF_INET, SOCK_STREAM, 0); require(fd >= 0, "client socket");
+    const int fd = socket(AF_INET, SOCK_STREAM, 0);
+    require(fd >= 0, "client socket");
     timeval timeout{5, 0};
     require(setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) == 0 &&
-            setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) == 0, "socket deadlines");
-    sockaddr_in address{}; address.sin_family = AF_INET; address.sin_port = htons(std::atoi(argv[2]));
+                setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) == 0,
+            "socket deadlines");
+    sockaddr_in address{};
+    address.sin_family = AF_INET;
+    address.sin_port = htons(std::atoi(argv[2]));
     require(inet_pton(AF_INET, argv[1], &address.sin_addr) == 1, "numeric host address");
     require(connect(fd, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == 0, "connect");
-    SSL* ssl = SSL_new(ctx); require(ssl && SSL_set_fd(ssl, fd) == 1 && SSL_connect(ssl) == 1, "TLS handshake");
+    SSL* ssl = SSL_new(ctx);
+    require(ssl && SSL_set_fd(ssl, fd) == 1 && SSL_connect(ssl) == 1, "TLS handshake");
     require(SSL_version(ssl) == TLS1_3_VERSION, "negotiated TLS 1.3");
     if (arm == "userspace")
-        require(SSL_SESSION_get_max_fragment_length(SSL_get_session(ssl)) == TLSEXT_max_fragment_length_512,
+        require(SSL_SESSION_get_max_fragment_length(SSL_get_session(ssl)) ==
+                    TLSEXT_max_fragment_length_512,
                 "peer acknowledged userspace-only record size");
     auto info = stats(ssl);
     // Prior gate clients can still be crossing the deferred-free fence. This is bounded arming,
@@ -90,7 +101,8 @@ int main(int argc, char** argv) {
     require(counter(info, "tls_ktls_active") == 0, "TLS13_RX_DECLINED: no raw kTLS receive path");
     require(counter(info, "tls_ktls_rx_declined_13") > 0, "TLS13_RX_DECLINED counter fired");
     const auto rekeys = counter(info, "tls_ktls_tx_rekeys");
-    std::printf("armed: TLS1.3 %s; RX retained by OpenSSL\n", arm.c_str()); std::fflush(stdout);
+    std::printf("armed: TLS1.3 %s; RX retained by OpenSSL\n", arm.c_str());
+    std::fflush(stdout);
     unsigned requested = 0;
     for (int update : {SSL_KEY_UPDATE_NOT_REQUESTED, SSL_KEY_UPDATE_REQUESTED,
                        SSL_KEY_UPDATE_REQUESTED, SSL_KEY_UPDATE_NOT_REQUESTED}) {
@@ -105,6 +117,8 @@ int main(int argc, char** argv) {
         require(now == rekeys + (arm == "tx" ? requested : 0),
                 "TLS13_TX_REKEY: requested updates prove the exact TX arm, never skip");
     }
-    SSL_free(ssl); SSL_CTX_free(ctx); close(fd);
+    SSL_free(ssl);
+    SSL_CTX_free(ctx);
+    close(fd);
     std::printf("ok: NET2 live KeyUpdate %s\n", arm.c_str());
 }

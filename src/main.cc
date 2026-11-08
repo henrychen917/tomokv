@@ -116,7 +116,7 @@ public:
         g_signal_server.store(&server, std::memory_order_release);
         g_signal_thread_count.store(server.nthreads(), std::memory_order_release);
 
-        struct sigaction action{};
+        struct sigaction action {};
         action.sa_handler = on_signal;
         sigemptyset(&action.sa_mask);
         action.sa_flags = SA_RESTART;
@@ -133,8 +133,9 @@ public:
 private:
     void disarm() {
         if (!g_signal_server.load(std::memory_order_relaxed) &&
-            !g_signal_armed.load(std::memory_order_relaxed)) return;
-        struct sigaction ignore{};
+            !g_signal_armed.load(std::memory_order_relaxed))
+            return;
+        struct sigaction ignore {};
         ignore.sa_handler = SIG_IGN;
         sigemptyset(&ignore.sa_mask);
         (void)::sigaction(SIGINT, &ignore, nullptr);
@@ -142,8 +143,7 @@ private:
         g_signal_armed.store(false, std::memory_order_release);
         g_signal_thread_count.store(0, std::memory_order_release);
         g_signal_server.store(nullptr, std::memory_order_release);
-        for (auto& thread : g_signal_threads)
-            thread.store(nullptr, std::memory_order_relaxed);
+        for (auto& thread : g_signal_threads) thread.store(nullptr, std::memory_order_relaxed);
     }
 };
 
@@ -179,13 +179,15 @@ int main(int argc, char** argv) {
     {
         uint64_t buf[3] = {};
         if (getrandom(buf, sizeof(buf), 0) == sizeof(buf)) {
-            g_hash_seed = buf[0]; g_sip_k0 = buf[1]; g_sip_k1 = buf[2];
+            g_hash_seed = buf[0];
+            g_sip_k0 = buf[1];
+            g_sip_k1 = buf[2];
         }
     }
 
     Config cfg;
     ConfigParseState parse_state;
-    std::vector<std::string> token_store;      // owns conf-file tokens; Config keeps views into it
+    std::vector<std::string> token_store;  // owns conf-file tokens; Config keeps views into it
     std::vector<const char*> cli_tokens;
 
     // Redis-style optional first argument: ./tomokv tomokv.conf. Flags override that file.
@@ -197,12 +199,13 @@ int main(int argc, char** argv) {
             cli_tokens.push_back(argv[i]);
         }
     }
-    cfg.conf_path = conf_path;   // retained for CONFIG REWRITE; points into argv, which outlives us
+    cfg.conf_path = conf_path;  // retained for CONFIG REWRITE; points into argv, which outlives us
     if (conf_path) {
         std::vector<size_t> conf_line_ends;
         std::vector<ConfigFileLine> conf_lines;
         if (!load_conf_file(conf_path, token_store, &conf_line_ends, &conf_lines)) return 1;
-        const int rc = parse_config_file(token_store, conf_line_ends, cfg, parse_state, argv[0], &conf_lines);
+        const int rc =
+            parse_config_file(token_store, conf_line_ends, cfg, parse_state, argv[0], &conf_lines);
         if (rc != kConfigParsed) {
             return rc == kConfigHelp ? 0 : 1;
         }
@@ -284,14 +287,13 @@ int main(int argc, char** argv) {
                 std::fprintf(stderr, "snapshot load plan failed: %s\n", error.c_str());
                 return 1;
             }
-            if (cfg.appendonly &&
-                !AofManager::seed_snapshot(cfg, load_path, *load_plan, error)) {
+            if (cfg.appendonly && !AofManager::seed_snapshot(cfg, load_path, *load_plan, error)) {
                 std::fprintf(stderr, "AOF snapshot import failed: %s\n", error.c_str());
                 return 1;
             }
         } else if (errno != ENOENT) {
-            std::fprintf(stderr, "snapshot stat failed for '%s': %s\n",
-                         load_path.c_str(), std::strerror(errno));
+            std::fprintf(stderr, "snapshot stat failed for '%s': %s\n", load_path.c_str(),
+                         std::strerror(errno));
             return 1;
         }
     }
@@ -304,7 +306,7 @@ int main(int argc, char** argv) {
         g_sip_k1 = load_plan->sip_k1;
     }
 
-    std::signal(SIGPIPE, SIG_IGN);      // send() errors arrive as -EPIPE on the CQE instead
+    std::signal(SIGPIPE, SIG_IGN);  // send() errors arrive as -EPIPE on the CQE instead
     // SIGINT/SIGTERM handlers are armed later, once the threads they stop exist.
 
     if (!good_size_matches_allocator()) {
@@ -358,7 +360,7 @@ int main(int argc, char** argv) {
     if (cfg.thread_mode == ThreadMode::Fused) {
         srv.topo().dump(stdout);
         return run_fused_server_selected(srv, aof_base_plan.get(), aof_plans, load_plan.get(),
-                                tls_context.get(), unix_listener, final_shutdown_line);
+                                         tls_context.get(), unix_listener, final_shutdown_line);
     }
     if (srv.read_local_enabled()) {
         srv.topo().dump(stdout);
@@ -423,8 +425,8 @@ int main(int argc, char** argv) {
             AofManager::WorkerLifetime persistence_worker(srv.aof(), tid);
             pin_for(tid);
             ThreadCtx& self = srv.thread(tid);
-            self.latch_placement(srv.topo());   // after pinning: sched_getcpu is only now truthful
-            bind_thread_arena();                // per-worker jemalloc arena; no-op without it
+            self.latch_placement(srv.topo());  // after pinning: sched_getcpu is only now truthful
+            bind_thread_arena();               // per-worker jemalloc arena; no-op without it
             bool ok = self.init_task_inbox_local(srv.placement().ifid_threads(),
                                                  srv.placement().ex_threads());
             if (ok) ok = exs[tid].init(&srv, &self);
@@ -433,7 +435,10 @@ int main(int argc, char** argv) {
                 ok = snapshot_load_owned(*aof_base_plan, srv, self, local_error);
             if (ok && !aof_plans.empty()) {
                 for (const auto& plan : aof_plans) {
-                    if (!aof_load_owned(*plan, srv, self, local_error)) { ok = false; break; }
+                    if (!aof_load_owned(*plan, srv, self, local_error)) {
+                        ok = false;
+                        break;
+                    }
                 }
             } else if (ok && load_plan) {
                 ok = snapshot_load_owned(*load_plan, srv, self, local_error);
@@ -442,8 +447,8 @@ int main(int argc, char** argv) {
             // its ring/epoll/WB state but no listener and does not bind AOF, so boot loading still
             // happens before any connection can arrive and before the initial AOF writer exists.
             if (ok)
-                ok = ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, -1,
-                                   tls_context.get(), true);
+                ok = ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, -1, tls_context.get(),
+                                   true);
             if (ok) multi_bind_retry_lane(srv, tid);
             if (ok)
                 self.bind_io_role_hooks(
@@ -459,16 +464,16 @@ int main(int argc, char** argv) {
                         static_cast<IoLoop*>(p)->cancel_client_registration(client);
                     });
             if (ok)
-                self.bind_client_capacity_hook(
-                    [](void* p, uint32_t incoming) {
-                        return static_cast<IoLoop*>(p)->prepare_client_transfer_capacity(incoming);
-                    });
+                self.bind_client_capacity_hook([](void* p, uint32_t incoming) {
+                    return static_cast<IoLoop*>(p)->prepare_client_transfer_capacity(incoming);
+                });
             {
                 std::lock_guard<std::mutex> lock(load_mu);
                 if (!ok) {
                     load_ok = false;
                     if (load_error.empty())
-                        load_error = local_error.empty() ? "executor initialization failed" : local_error;
+                        load_error =
+                            local_error.empty() ? "executor initialization failed" : local_error;
                 }
                 loaders_done++;
             }
@@ -483,7 +488,10 @@ int main(int argc, char** argv) {
                     exs[tid].run();
                     self.publish_ready_role(Role::Idle);
                 } else if (role == Role::Ifid) {
-                    if (!ios[tid].activate()) { activation_failed(); break; }
+                    if (!ios[tid].activate()) {
+                        activation_failed();
+                        break;
+                    }
                     self.publish_ready_role(Role::Ifid);
                     ios[tid].run();
                     self.publish_ready_role(Role::Idle);
@@ -577,8 +585,7 @@ int main(int argc, char** argv) {
             // Dormant, exactly like the executor pool above: the SO_REUSEPORT listeners and the
             // AOF writer binding are opened by activate() in the role loop below instead of here,
             // which is what leaves the loop cold enough to accept the transferred unix fd.
-            if (!ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, -1,
-                               tls_context.get(), true)) {
+            if (!ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, -1, tls_context.get(), true)) {
                 boot_failed("io loop provisioning");
                 return;
             }
@@ -591,8 +598,7 @@ int main(int argc, char** argv) {
             }
             multi_bind_retry_lane(srv, tid);
             self.bind_io_role_hooks(
-                &ios[tid],
-                [](void* p) { return static_cast<IoLoop*>(p)->prepare_activation(); },
+                &ios[tid], [](void* p) { return static_cast<IoLoop*>(p)->prepare_activation(); },
                 [](void* p) { static_cast<IoLoop*>(p)->cancel_prepared_activation(); });
             self.bind_client_registration_hooks(
                 [](void* p, Client* client) {
@@ -601,23 +607,26 @@ int main(int argc, char** argv) {
                 [](void* p, Client* client) {
                     static_cast<IoLoop*>(p)->cancel_client_registration(client);
                 });
-            self.bind_client_capacity_hook(
-                [](void* p, uint32_t incoming) {
-                    return static_cast<IoLoop*>(p)->prepare_client_transfer_capacity(incoming);
-                });
+            self.bind_client_capacity_hook([](void* p, uint32_t incoming) {
+                return static_cast<IoLoop*>(p)->prepare_client_transfer_capacity(incoming);
+            });
             if (!io_boot.arrive_loaded(slot, true, {}) ||
-                !io_boot.wait_until_ready(slot, self.stop_flag())) return;
+                !io_boot.wait_until_ready(slot, self.stop_flag()))
+                return;
             if (!ios[tid].activate()) {
                 boot_failed("io listener activation");
                 return;
             }
-            if (!io_boot.arrive_ready(slot) ||
-                !io_boot.wait_until_running(slot, self.stop_flag())) return;
+            if (!io_boot.arrive_ready(slot) || !io_boot.wait_until_running(slot, self.stop_flag()))
+                return;
             for (;;) {
                 if (self.stop_flag().load(std::memory_order_relaxed)) break;
                 const Role role = self.role();
                 if (role == Role::Ifid) {
-                    if (!ios[tid].activate()) { activation_failed(); break; }
+                    if (!ios[tid].activate()) {
+                        activation_failed();
+                        break;
+                    }
                     self.publish_ready_role(Role::Ifid);
                     ios[tid].run();
                     self.publish_ready_role(Role::Idle);
@@ -634,10 +643,8 @@ int main(int argc, char** argv) {
             }
         });
 
-    if (!io_boot.wait_loaded(srv.shutting_down()) ||
-        !io_boot.advance_ready(srv.shutting_down()) ||
-        !io_boot.wait_ready(srv.shutting_down()) ||
-        !io_boot.advance_running(srv.shutting_down())) {
+    if (!io_boot.wait_loaded(srv.shutting_down()) || !io_boot.advance_ready(srv.shutting_down()) ||
+        !io_boot.wait_ready(srv.shutting_down()) || !io_boot.advance_running(srv.shutting_down())) {
         for (uint32_t i = 0; i < nthreads; i++)
             srv.thread(i).stop_flag().store(true, std::memory_order_relaxed);
         io_boot.stop();

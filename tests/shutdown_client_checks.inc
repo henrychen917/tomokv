@@ -10,16 +10,19 @@ static void shutdown_clients(bool epoll, bool fused, bool without_cleanup = fals
     io.initialized_ = true;
     g_ring_epoll_mode = epoll;
     const std::atomic<bool> limits{false};
-    io.wb_.bind(&io.ring_, nullptr, [](void*, int32_t, const char*) { std::abort(); },
-        nullptr, [](void*, Client&, Op&) { std::abort(); }, &limits, nullptr,
+    io.wb_.bind(
+        &io.ring_, nullptr, [](void*, int32_t, const char*) { std::abort(); }, nullptr,
+        [](void*, Client&, Op&) { std::abort(); }, &limits, nullptr,
         [](void*, Client&) { return false; }, &io.cached_now_s_, &io.self_->sig());
 
     auto* dead = new Client(-1);
-    dead->mark_closing(); dead->mark_dead();
+    dead->mark_closing();
+    dead->mark_dead();
     dead->set_serve_pending(true);
     io.dead_ready_.push_back(dead);
     io.pending_serve_.push_back(dead);
-    io.reap_dead(); io.reap_dead();
+    io.reap_dead();
+    io.reap_dead();
     require(io.dead_ready_.size() == 1 && dead->serve_pending(),
             "opened dead-client FIFO pin survives both final reaps");
 
@@ -36,7 +39,7 @@ static void shutdown_clients(bool epoll, bool fused, bool without_cleanup = fals
         Server::ClientWorkScope work(f.server, (io.self_->id() + 1) % f.server.nthreads());
         io.close_client(closing);
         require(closing->closing() && !closing->dead() && closing->safe_to_release() &&
-                io.self_->clients().empty() && io.active_.size() == 1,
+                    io.self_->clients().empty() && io.active_.size() == 1,
                 "opened unlisted close waits for executor epoch with no kernel pin");
     }
     require(io.client_executor_quiesced(closing) && !closing->dead(),
@@ -48,12 +51,12 @@ static void shutdown_clients(bool epoll, bool fused, bool without_cleanup = fals
     live->set_id(123);
     live->set_ifid_thread(io.self_->id());
     live->set_wb_slot(io.self_->assign_wb_slot(live));
-    live->fill_buf().append("+PONG\r\n", 7); // already owed output
+    live->fill_buf().append("+PONG\r\n", 7);  // already owed output
     Op* done = live->rob().acquire<false>();
     require(done != nullptr, "final reply slot");
     done->reply.append("+OK\r\n", 5);
     done->state.store(OpState::Done, std::memory_order_release);
-    live->rob().publish(); // the normal callback above aborts if used after join
+    live->rob().publish();  // the normal callback above aborts if used after join
 
     // An EXEC its owners completed and its IO never retired (EXEC's barrier makes it the newest
     // op). Retiring it runs its queued connection-local commands on the IO, so after join only a
@@ -66,20 +69,27 @@ static void shutdown_clients(bool epoll, bool fused, bool without_cleanup = fals
             require(op.push_arg(Slice(word, std::strlen(word))), "transaction argv");
         op.spec = command_lookup(op.cmd_name());
         MultiExecState* none = nullptr;
-        require(op.spec && multi_handle_io(f.server, *live, op, owner_io, none) ==
-                MultiIoAction::LocalDone && !none, "MULTI and its command answered locally");
+        require(
+            op.spec &&
+                multi_handle_io(f.server, *live, op, owner_io, none) == MultiIoAction::LocalDone &&
+                !none,
+            "MULTI and its command answered locally");
     };
-    std::string acl_error; // owners run EXEC with the boot ACL, as in production
+    std::string acl_error;  // owners run EXEC with the boot ACL, as in production
     require(acl_initialize(f.server, f.server.cfg(), acl_error), "default ACL for EXEC owners");
     queue({"MULTI"});
-    if (conn_local_exec) queue({"BGSAVE"});
-    else queue({"SET", "shutdown:exec", "v"});
+    if (conn_local_exec)
+        queue({"BGSAVE"});
+    else
+        queue({"SET", "shutdown:exec", "v"});
     Op* exec = live->rob().acquire<false>();
     require(exec && exec->push_arg(Slice("EXEC", 4)), "EXEC slot");
     exec->spec = command_lookup(exec->cmd_name());
     MultiExecState* txn = nullptr;
-    require(exec->spec && multi_handle_io(f.server, *live, *exec, owner_io, txn) ==
-            MultiIoAction::Dispatch && txn, "EXEC dispatch");
+    require(exec->spec &&
+                multi_handle_io(f.server, *live, *exec, owner_io, txn) == MultiIoAction::Dispatch &&
+                txn,
+            "EXEC dispatch");
     exec->attach_multi_state(txn);
     live->atomic_group_started();
     multi_dispatch_started(*live, txn);
@@ -91,11 +101,14 @@ static void shutdown_clients(bool epoll, bool fused, bool without_cleanup = fals
     for (unsigned pass = 0; !owners.empty() && pass < 1000; ++pass)
         for (size_t i = 0; i < owners.size();) {
             const int32_t sid = owners[i];
-            const MultiTaskResult result = multi_execute_task(f.server,
-                multi_make_task(live, exec_id, sid, txn), f.server.shard(sid),
-                f.server.worker_of_shard(sid), 0, nullptr);
-            if (multi_task_retry(result)) { ++i; continue; }
-            if (result == MultiTaskResult::Final) // the executor's completion store
+            const MultiTaskResult result =
+                multi_execute_task(f.server, multi_make_task(live, exec_id, sid, txn),
+                                   f.server.shard(sid), f.server.worker_of_shard(sid), 0, nullptr);
+            if (multi_task_retry(result)) {
+                ++i;
+                continue;
+            }
+            if (result == MultiTaskResult::Final)  // the executor's completion store
                 exec->state.store(OpState::Done, std::memory_order_release);
             owners.erase(owners.begin() + static_cast<std::ptrdiff_t>(i));
         }
@@ -123,13 +136,13 @@ static void shutdown_clients(bool epoll, bool fused, bool without_cleanup = fals
             require(io.ring_.submit_and_reap() >= 0, "pinned receive submitted");
         }
     });
-    issuer.join(); // no original recv CQE is dispatched to clear the Client pin
+    issuer.join();  // no original recv CQE is dispatched to clear the Client pin
     require(live->recv_armed(), "opened original-CQE pin persists across issuer exit");
     post_join = true;
     if (!without_cleanup) io.shutdown_clients_after_join();
     post_join = false;
     require(io.dead_ready_.empty() && io.pending_serve_.empty() && io.self_->clients().empty() &&
-            io.active_.size() == 0,
+                io.active_.size() == 0,
             "post-join cleanup releases dead FIFO and admitted receive pins");
     require(io.ring_.shutdown_complete() && f.server.live_clients() == 0,
             "ring fenced before the final Client release");
@@ -139,14 +152,16 @@ static void shutdown_clients(bool epoll, bool fused, bool without_cleanup = fals
     const ssize_t expected_len = static_cast<ssize_t>(std::strlen(expected));
     char reply[64]{};
     require(recv(sockets[1], reply, sizeof(reply), MSG_DONTWAIT) == expected_len &&
-            std::memcmp(reply, expected, static_cast<size_t>(expected_len)) == 0 &&
-            recv(sockets[1], reply, sizeof(reply), MSG_DONTWAIT) == 0,
+                std::memcmp(reply, expected, static_cast<size_t>(expected_len)) == 0 &&
+                recv(sockets[1], reply, sizeof(reply), MSG_DONTWAIT) == 0,
             "owed replies flushed as an ordered prefix without a joined-owner callback");
     errno = 0;
     require(fcntl(sockets[0], F_GETFD) == -1 && errno == EBADF, "admitted fd closed");
     close(sockets[1]);
-    io.shutdown_clients_after_join(); // no double release, including the destructor
-    std::printf("shutdown clients mode=%s engine=%s unlisted_close=1 FIFO=1 recv=1 exec=%s "
-                "flushed=%zd: PASS\n", fused ? "1s" : "2s", epoll ? "epoll" : "uring",
-                conn_local_exec ? "withheld" : "retired", expected_len);
+    io.shutdown_clients_after_join();  // no double release, including the destructor
+    std::printf(
+        "shutdown clients mode=%s engine=%s unlisted_close=1 FIFO=1 recv=1 exec=%s "
+        "flushed=%zd: PASS\n",
+        fused ? "1s" : "2s", epoll ? "epoll" : "uring", conn_local_exec ? "withheld" : "retired",
+        expected_len);
 }

@@ -37,13 +37,10 @@ void reply_bad_header(Op& op) {
     reply_err(op.sink(), "WRONGTYPE Key is not a valid HyperLogLog string value.");
 }
 
-void reply_corrupt(Op& op) {
-    reply_err(op.sink(), "INVALIDOBJ Corrupted HLL object detected");
-}
+void reply_corrupt(Op& op) { reply_err(op.sink(), "INVALIDOBJ Corrupted HLL object detected"); }
 
 template <bool kNotify>
-bool load_hll(Shard& shard, Op& op, KvObj*& object, Slice& image,
-              KvObjRawReadBuffer& raw) {
+bool load_hll(Shard& shard, Op& op, KvObj*& object, Slice& image, KvObjRawReadBuffer& raw) {
     object = shard.store_find<kNotify>(op.hash, op.arg(2));
     if (!object) {
         reply_err(op.sink(), "ERR The specified key does not exist");
@@ -67,15 +64,15 @@ bool load_hll(Shard& shard, Op& op, KvObj*& object, Slice& image,
 
 template <bool kNotify>
 bool store_dense(Shard& shard, Op& op, KvObj* object, const std::string& image) {
-    const XshardStringStoreResult result = kNotify
-        ? xshard_store_string_notify(shard, op.arg(2), op.hash,
-                                     Slice(image.data(), static_cast<uint32_t>(image.size())),
-                                     shard.store().deadline(op.hash, object), false,
-                                     object->has_ttl_slot())
-        : xshard_store_string(shard, op.arg(2), op.hash,
-                             Slice(image.data(), static_cast<uint32_t>(image.size())),
-                             shard.store().deadline(op.hash, object), false,
-                             object->has_ttl_slot());
+    const XshardStringStoreResult result =
+        kNotify ? xshard_store_string_notify(
+                      shard, op.arg(2), op.hash,
+                      Slice(image.data(), static_cast<uint32_t>(image.size())),
+                      shard.store().deadline(op.hash, object), false, object->has_ttl_slot())
+                : xshard_store_string(shard, op.arg(2), op.hash,
+                                      Slice(image.data(), static_cast<uint32_t>(image.size())),
+                                      shard.store().deadline(op.hash, object), false,
+                                      object->has_ttl_slot());
     switch (result) {
         case XshardStringStoreResult::Stored:
             return true;
@@ -181,16 +178,14 @@ void cmd_pfdebug_impl(Shard& shard, Op& op) {
 void cmd_pfdebug(Shard& shard, Op& op) { cmd_pfdebug_impl<false>(shard, op); }
 void cmd_pfdebug_notify(Shard& shard, Op& op) { cmd_pfdebug_impl<true>(shard, op); }
 
-static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */ kTable[] = {
     // name       min max flags                                      handler first last step notify
-    {"PFDEBUG",   3,  3, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::Admin,
-                                                    cmd_pfdebug, 2, 2, 1, cmd_pfdebug_notify},
+    {"PFDEBUG", 3, 3, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::Admin, cmd_pfdebug, 2, 2, 1,
+     cmd_pfdebug_notify},
 };
 
 }  // namespace
 
-CommandTable pfdebug_command_table() {
-    return {kTable, sizeof(kTable) / sizeof(kTable[0])};
-}
+CommandTable pfdebug_command_table() { return {kTable, sizeof(kTable) / sizeof(kTable[0])}; }
 
 }  // namespace tomo

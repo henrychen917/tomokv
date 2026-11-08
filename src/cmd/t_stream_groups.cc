@@ -75,7 +75,10 @@ bool parse_i64_option(Slice input, int64_t& value) {
     if (!input.n || input.n > 20) return false;
     uint32_t i = 0;
     bool negative = false;
-    if (input.p[0] == '-') { negative = true; i = 1; }
+    if (input.p[0] == '-') {
+        negative = true;
+        i = 1;
+    }
     if (i >= input.n) return false;
     if (input.p[i] == '0') {
         if (negative || i + 1 != input.n) return false;
@@ -92,18 +95,21 @@ bool parse_i64_option(Slice input, int64_t& value) {
         if (magnitude > (limit - digit) / 10) return false;
         magnitude = magnitude * 10 + digit;
     }
-    value = negative ? (magnitude == (uint64_t{1} << 63) ? INT64_MIN
-                                                         : -static_cast<int64_t>(magnitude))
-                     : static_cast<int64_t>(magnitude);
+    value = negative
+                ? (magnitude == (uint64_t{1} << 63) ? INT64_MIN : -static_cast<int64_t>(magnitude))
+                : static_cast<int64_t>(magnitude);
     return true;
 }
 
-bool parse_id(Slice input, StreamID& id, uint64_t missing_seq = 0,
-              bool sentinels = false) {
+bool parse_id(Slice input, StreamID& id, uint64_t missing_seq = 0, bool sentinels = false) {
     if (!input.n || input.n > kMaxIdText) return false;
-    if (sentinels && input.n == 1 && input.p[0] == '-') { id = {}; return true; }
+    if (sentinels && input.n == 1 && input.p[0] == '-') {
+        id = {};
+        return true;
+    }
     if (sentinels && input.n == 1 && input.p[0] == '+') {
-        id = {UINT64_MAX, UINT64_MAX}; return true;
+        id = {UINT64_MAX, UINT64_MAX};
+        return true;
     }
     const char* dash = static_cast<const char*>(std::memchr(input.p, '-', input.n));
     if (!dash) {
@@ -112,16 +118,21 @@ bool parse_id(Slice input, StreamID& id, uint64_t missing_seq = 0,
         return true;
     }
     const uint32_t first = static_cast<uint32_t>(dash - input.p);
-    if (!first || first + 1 >= input.n ||
-        std::memchr(dash + 1, '-', input.n - first - 1)) return false;
+    if (!first || first + 1 >= input.n || std::memchr(dash + 1, '-', input.n - first - 1))
+        return false;
     return parse_u64_exact(Slice(input.p, first), id.ms) &&
            parse_u64_exact(Slice(dash + 1, input.n - first - 1), id.seq);
 }
 
 bool id_increment(StreamID& id) {
-    if (id.seq != UINT64_MAX) { id.seq++; return true; }
+    if (id.seq != UINT64_MAX) {
+        id.seq++;
+        return true;
+    }
     if (id.ms == UINT64_MAX) return false;
-    id.ms++; id.seq = 0; return true;
+    id.ms++;
+    id.seq = 0;
+    return true;
 }
 
 void invalid_id(Op& op) {
@@ -169,8 +180,10 @@ struct StreamGroups {
     void note_insert(uint64_t bytes) { bytes_ += bytes; }
     void note_delete(uint64_t bytes) { bytes_ -= bytes; }
     void note_capacity_change(uint64_t before, uint64_t after) {
-        if (after >= before) bytes_ += after - before;
-        else bytes_ -= before - after;
+        if (after >= before)
+            bytes_ += after - before;
+        else
+            bytes_ -= before - after;
     }
 };
 
@@ -199,14 +212,14 @@ uint64_t group_allocation_bytes(const std::string& name, const StreamGroup& grou
 
 uint64_t recompute_groups_allocation_bytes(const StreamGroups& groups) {
     uint64_t bytes = sizeof(StreamGroups);
-    for (const auto& [name, group] : groups.groups)
-        bytes += group_allocation_bytes(name, group);
+    for (const auto& [name, group] : groups.groups) bytes += group_allocation_bytes(name, group);
     return bytes;
 }
 
 StreamVal* stream_value(KvObj* object) {
     if (!object || static_cast<Type>(object->type) != Type::Stream ||
-        static_cast<Enc>(object->enc) != Enc::Extern) return nullptr;
+        static_cast<Enc>(object->enc) != Enc::Extern)
+        return nullptr;
     return static_cast<StreamVal*>(object->external_ptr());
 }
 
@@ -273,8 +286,10 @@ void reply_entry(Op& op, const StreamOwnedEntry& entry, bool tombstone_null) {
 
 void reply_stream_entries(Op& op, Slice key, const std::vector<StreamOwnedEntry>& entries,
                           bool tombstone_null) {
-    if (op.resp3()) reply_map_header(op.sink(), 1, true);
-    else reply_array_header(op.sink(), 1);
+    if (op.resp3())
+        reply_map_header(op.sink(), 1, true);
+    else
+        reply_array_header(op.sink(), 1);
     if (!op.resp3()) reply_array_header(op.sink(), 2);
     reply_bulk(op.sink(), key);
     reply_array_header(op.sink(), entries.size());
@@ -299,8 +314,7 @@ bool create_consumer(StreamGroups& groups, StreamGroup& group, Slice name, int64
     }
 }
 
-void erase_pending(StreamGroups& groups, StreamGroup& group,
-                   PendingMap::iterator pending) {
+void erase_pending(StreamGroups& groups, StreamGroup& group, PendingMap::iterator pending) {
     groups.note_delete(pending_allocation_bytes(pending->second));
     group.pending.erase(pending);
 }
@@ -336,8 +350,8 @@ int64_t infer_entries_read(const StreamVal& value, const StreamID& delivered) {
     const uint64_t length = value.entries();
     const int last = id_compare(delivered, header.last_id);
     if (!length && last <= 0) return added;
-    if ((delivered.ms || delivered.seq) &&
-        id_compare(delivered, header.max_deleted_entry_id) < 0) return -1;
+    if ((delivered.ms || delivered.seq) && id_compare(delivered, header.max_deleted_entry_id) < 0)
+        return -1;
     if (!last) return added;
     if (last > 0) return -1;
     if ((!header.max_deleted_entry_id.ms && !header.max_deleted_entry_id.seq) ||
@@ -349,17 +363,20 @@ int64_t infer_entries_read(const StreamVal& value, const StreamID& delivered) {
     return -1;
 }
 
-bool group_lag(KvObj* object, const StreamHeader& header, const StreamGroup& group,
-               int64_t& lag) {
-    const StreamVal& value = *stream_value(object); // groups always use external streams
-    if (!header.entries_added || !value.entries()) { lag = 0; return true; }
+bool group_lag(KvObj* object, const StreamHeader& header, const StreamGroup& group, int64_t& lag) {
+    const StreamVal& value = *stream_value(object);  // groups always use external streams
+    if (!header.entries_added || !value.entries()) {
+        lag = 0;
+        return true;
+    }
     if (id_compare(group.last_delivered, value.first_id) < 0 &&
         id_compare(header.max_deleted_entry_id, value.first_id) < 0) {
         lag = static_cast<int64_t>(value.entries());
         return true;
     }
     const int64_t read = group.entries_read != -1 && !tombstones_after(value, group.last_delivered)
-        ? group.entries_read : infer_entries_read(value, group.last_delivered);
+                             ? group.entries_read
+                             : infer_entries_read(value, group.last_delivered);
     if (read == -1) return false;
     lag = std::bit_cast<int64_t>(header.entries_added - static_cast<uint64_t>(read));
     return true;
@@ -429,18 +446,24 @@ void cmd_xgroup(Shard& shard, Op& op) {
     // Redis parses the optional tail before the key/group lookup and the ID.
     for (uint32_t pos = 5; pos < op.argc();) {
         if (create && op.arg(pos).eq_icase("mkstream")) {
-            mkstream = true; pos++; continue;
+            mkstream = true;
+            pos++;
+            continue;
         }
         if ((create || setid) && op.arg(pos).eq_icase("entriesread") && pos + 1 < op.argc()) {
             if (!parse_i64_option(op.arg(pos + 1), entries_read)) {
-                reply_err(op.sink(), "ERR value is not an integer or out of range"); return;
+                reply_err(op.sink(), "ERR value is not an integer or out of range");
+                return;
             }
             if (entries_read < -1) {
-                reply_err(op.sink(), "ERR value for ENTRIESREAD must be positive or -1"); return;
+                reply_err(op.sink(), "ERR value for ENTRIESREAD must be positive or -1");
+                return;
             }
-            pos += 2; continue;
+            pos += 2;
+            continue;
         }
-        reply_stream_subcommand_syntax(op); return;
+        reply_stream_subcommand_syntax(op);
+        return;
     }
     const Slice key = op.arg(2);
     // A committed DEL may already have been materialized by owner cleanup,
@@ -453,17 +476,26 @@ void cmd_xgroup(Shard& shard, Op& op) {
     KvObj* object = shard.store_find<kNotify>(op.hash, key);
     if (object && !obj_type_check(object, Type::Stream, op.sink())) return;
     if (!object && !mkstream) {
-        reply_err(op.sink(), "ERR The XGROUP subcommand requires the key to exist. Note that for CREATE you may want to use the MKSTREAM option to create an empty stream automatically.");
+        reply_err(
+            op.sink(),
+            "ERR The XGROUP subcommand requires the key to exist. Note that for CREATE you may want to use the MKSTREAM option to create an empty stream automatically.");
         return;
     }
 
     if (create) {
-        if (op.argc() > 8) { reply_stream_subcommand_syntax(op); return; }
+        if (op.argc() > 8) {
+            reply_stream_subcommand_syntax(op);
+            return;
+        }
         StreamID id{};
         const bool latest = op.arg(4).n == 1 && op.arg(4).p[0] == '$';
-        if (!latest && !parse_id(op.arg(4), id)) { invalid_id(op); return; }
+        if (!latest && !parse_id(op.arg(4), id)) {
+            invalid_id(op);
+            return;
+        }
         if (object && find_group(object, op.arg(3))) {
-            reply_err(op.sink(), "BUSYGROUP Consumer Group name already exists"); return;
+            reply_err(op.sink(), "BUSYGROUP Consumer Group name already exists");
+            return;
         }
         if (!object) {
             if (!stream_create_empty_external(shard, op, kNotify, object)) return;
@@ -472,28 +504,32 @@ void cmd_xgroup(Shard& shard, Op& op) {
         if (!stream_force_external(shard, op, object, kNotify)) return;
         StreamHeader header;
         if (!stream_object_header(object, header)) {
-            reply_err(op.sink(), "ERR corrupt stream encoding"); return;
+            reply_err(op.sink(), "ERR corrupt stream encoding");
+            return;
         }
         if (latest) id = header.last_id;
         ObjectSizeTracker tracker(shard.store(), object);
         StreamGroups* groups = nullptr;
         StreamVal* value = stream_value(object);
         if (!value || !ensure_group_container(*value, groups)) {
-            reply_err(op.sink(), "ERR out of memory"); return;
+            reply_err(op.sink(), "ERR out of memory");
+            return;
         }
         try {
             StreamGroup group;
             group.last_delivered = id;
             group.entries_read = entries_read;
-            const auto [it, inserted] = groups->groups.emplace(
-                std::string(op.arg(3).p, op.arg(3).n), std::move(group));
+            const auto [it, inserted] =
+                groups->groups.emplace(std::string(op.arg(3).p, op.arg(3).n), std::move(group));
             if (!inserted) {
-                reply_err(op.sink(), "BUSYGROUP Consumer Group name already exists"); return;
+                reply_err(op.sink(), "BUSYGROUP Consumer Group name already exists");
+                return;
             }
             groups->note_insert(group_allocation_bytes(it->first, it->second));
         } catch (const std::bad_alloc&) {
             maybe_release_groups(*value);
-            reply_err(op.sink(), "ERR out of memory"); return;
+            reply_err(op.sink(), "ERR out of memory");
+            return;
         }
         if constexpr (kNotify)
             notify_record(shard, op, NOTIFY_STREAM, NotifyEventId::XgroupCreate, key);
@@ -501,13 +537,22 @@ void cmd_xgroup(Shard& shard, Op& op) {
         return;
     }
 
-    if (op.argc() < 4) { reply_syntax(op.sink()); return; }
+    if (op.argc() < 4) {
+        reply_syntax(op.sink());
+        return;
+    }
     StreamGroup* group = find_group(object, op.arg(3));
 
     if (sub.eq_icase("destroy")) {
-        if (op.argc() != 4) { reply_syntax(op.sink()); return; }
+        if (op.argc() != 4) {
+            reply_syntax(op.sink());
+            return;
+        }
         StreamGroups* groups = groups_of(object);
-        if (!groups || !group) { reply_int(op.sink(), 0); return; }
+        if (!groups || !group) {
+            reply_int(op.sink(), 0);
+            return;
+        }
         ObjectSizeTracker tracker(shard.store(), object);
         const auto found = groups->groups.find(std::string_view(op.arg(3).p, op.arg(3).n));
         groups->note_delete(group_allocation_bytes(found->first, found->second));
@@ -520,26 +565,41 @@ void cmd_xgroup(Shard& shard, Op& op) {
             blocking_publish_key(shard, FlatStore::hash_key(key), key.p, key.n, key.ns);
         return;
     }
-    if (!group) { reply_nogroup_subcommand(op, key, op.arg(3)); return; }
+    if (!group) {
+        reply_nogroup_subcommand(op, key, op.arg(3));
+        return;
+    }
 
     if (sub.eq_icase("createconsumer")) {
-        if (op.argc() != 5) { reply_syntax(op.sink()); return; }
+        if (op.argc() != 5) {
+            reply_syntax(op.sink());
+            return;
+        }
         ObjectSizeTracker tracker(shard.store(), object);
         StreamGroups* groups = groups_of(object);
-        StreamConsumer* consumer = nullptr; bool created = false;
+        StreamConsumer* consumer = nullptr;
+        bool created = false;
         if (!create_consumer(*groups, *group, op.arg(4), shard.now_ms(), consumer, created)) {
-            reply_err(op.sink(), "ERR out of memory"); return;
+            reply_err(op.sink(), "ERR out of memory");
+            return;
         }
-        if constexpr (kNotify) if (created)
-            notify_record(shard, op, NOTIFY_STREAM, NotifyEventId::XgroupCreateconsumer, key);
+        if constexpr (kNotify)
+            if (created)
+                notify_record(shard, op, NOTIFY_STREAM, NotifyEventId::XgroupCreateconsumer, key);
         reply_int(op.sink(), created ? 1 : 0);
         return;
     }
     if (sub.eq_icase("delconsumer")) {
-        if (op.argc() != 5) { reply_syntax(op.sink()); return; }
+        if (op.argc() != 5) {
+            reply_syntax(op.sink());
+            return;
+        }
         const std::string name(op.arg(4).p, op.arg(4).n);
         auto consumer = group->consumers.find(name);
-        if (consumer == group->consumers.end()) { reply_int(op.sink(), 0); return; }
+        if (consumer == group->consumers.end()) {
+            reply_int(op.sink(), 0);
+            return;
+        }
         ObjectSizeTracker tracker(shard.store(), object);
         StreamGroups* groups = groups_of(object);
         uint64_t removed = 0;
@@ -548,8 +608,8 @@ void cmd_xgroup(Shard& shard, Op& op) {
                 auto victim = it++;
                 erase_pending(*groups, *group, victim);
                 removed++;
-            }
-            else ++it;
+            } else
+                ++it;
         }
         groups->note_delete(consumer_allocation_bytes(consumer->first));
         group->consumers.erase(consumer);
@@ -559,14 +619,22 @@ void cmd_xgroup(Shard& shard, Op& op) {
         return;
     }
     if (setid) {
-        if (op.argc() != 5 && op.argc() != 7) { reply_stream_subcommand_syntax(op); return; }
+        if (op.argc() != 5 && op.argc() != 7) {
+            reply_stream_subcommand_syntax(op);
+            return;
+        }
         StreamHeader header;
         if (!stream_object_header(object, header)) {
-            reply_err(op.sink(), "ERR corrupt stream encoding"); return;
+            reply_err(op.sink(), "ERR corrupt stream encoding");
+            return;
         }
         StreamID id{};
-        if (op.arg(4).n == 1 && op.arg(4).p[0] == '$') id = header.last_id;
-        else if (!parse_id(op.arg(4), id, 0, true)) { invalid_id(op); return; }
+        if (op.arg(4).n == 1 && op.arg(4).p[0] == '$')
+            id = header.last_id;
+        else if (!parse_id(op.arg(4), id, 0, true)) {
+            invalid_id(op);
+            return;
+        }
         ObjectSizeTracker tracker(shard.store(), object);
         group->last_delivered = id;
         group->entries_read = entries_read;
@@ -576,7 +644,8 @@ void cmd_xgroup(Shard& shard, Op& op) {
         return;
     }
 
-    reply_err(op.sink(), "ERR unknown subcommand or wrong number of arguments for 'XGROUP'. Try XGROUP HELP.");
+    reply_err(op.sink(),
+              "ERR unknown subcommand or wrong number of arguments for 'XGROUP'. Try XGROUP HELP.");
 }
 
 template <bool kNotify>
@@ -590,16 +659,29 @@ void cmd_xreadgroup(Shard& shard, Op& op) {
 template <bool kNotify>
 void cmd_xack(Shard& shard, Op& op) {
     std::vector<StreamID> ids;
-    try { ids.resize(op.argc() - 3); }
-    catch (const std::bad_alloc&) { reply_err(op.sink(), "ERR out of memory"); return; }
+    try {
+        ids.resize(op.argc() - 3);
+    } catch (const std::bad_alloc&) {
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
     for (uint32_t i = 3; i < op.argc(); i++)
-        if (!parse_id(op.arg(i), ids[i - 3])) { invalid_id(op); return; }
+        if (!parse_id(op.arg(i), ids[i - 3])) {
+            invalid_id(op);
+            return;
+        }
     KvObj* object = shard.store_find_read<kNotify>(op.hash, op.arg(1));
-    if (!object) { reply_int(op.sink(), 0); return; }
+    if (!object) {
+        reply_int(op.sink(), 0);
+        return;
+    }
     if (!obj_type_check(object, Type::Stream, op.sink())) return;
     StreamGroups* groups = groups_of(object);
     StreamGroup* group = find_group(object, op.arg(2));
-    if (!group) { reply_int(op.sink(), 0); return; }
+    if (!group) {
+        reply_int(op.sink(), 0);
+        return;
+    }
     ObjectSizeTracker tracker(shard.store(), object);
     uint64_t removed = 0;
     for (const StreamID& id : ids) {
@@ -613,18 +695,30 @@ void cmd_xack(Shard& shard, Op& op) {
 
 bool parse_pending_bound(Op& op, Slice input, bool start, StreamID& id, bool& exclusive) {
     exclusive = input.n && input.p[0] == '(';
-    if (exclusive) { input.p++; input.n--; }
-    if (!parse_id(input, id, start ? 0 : UINT64_MAX, true)) { invalid_id(op); return false; }
+    if (exclusive) {
+        input.p++;
+        input.n--;
+    }
+    if (!parse_id(input, id, start ? 0 : UINT64_MAX, true)) {
+        invalid_id(op);
+        return false;
+    }
     return true;
 }
 
 template <bool kNotify>
 void cmd_xpending(Shard& shard, Op& op) {
     KvObj* object = shard.store_find_read<kNotify>(op.hash, op.arg(1));
-    if (!object) { reply_nogroup(op, op.arg(1), op.arg(2)); return; }
+    if (!object) {
+        reply_nogroup(op, op.arg(1), op.arg(2));
+        return;
+    }
     if (!obj_type_check(object, Type::Stream, op.sink())) return;
     StreamGroup* group = find_group(object, op.arg(2));
-    if (!group) { reply_nogroup(op, op.arg(1), op.arg(2)); return; }
+    if (!group) {
+        reply_nogroup(op, op.arg(1), op.arg(2));
+        return;
+    }
     if (op.argc() == 3) {
         reply_array_header(op.sink(), 4);
         reply_int(op.sink(), static_cast<long long>(group->pending.size()));
@@ -639,14 +733,19 @@ void cmd_xpending(Shard& shard, Op& op) {
         std::map<std::string, uint64_t, std::less<>> counts;
         try {
             for (const auto& [id, pending] : group->pending) {
-                (void)id; counts[pending.consumer]++;
+                (void)id;
+                counts[pending.consumer]++;
             }
-        } catch (const std::bad_alloc&) { reply_err(op.sink(), "ERR out of memory"); return; }
+        } catch (const std::bad_alloc&) {
+            reply_err(op.sink(), "ERR out of memory");
+            return;
+        }
         reply_array_header(op.sink(), counts.size());
         for (const auto& [name, count] : counts) {
             reply_array_header(op.sink(), 2);
             reply_bulk(op.sink(), Slice(name.data(), name.size()));
-            char number[24]; const uint32_t n = u64_to_dec(number, count);
+            char number[24];
+            const uint32_t n = u64_to_dec(number, count);
             reply_bulk(op.sink(), Slice(number, n));
         }
         return;
@@ -656,17 +755,24 @@ void cmd_xpending(Shard& shard, Op& op) {
     uint64_t min_idle = 0;
     if (pos < op.argc() && op.arg(pos).eq_icase("idle")) {
         if (pos + 1 >= op.argc() || !parse_u64_exact(op.arg(pos + 1), min_idle)) {
-            reply_err(op.sink(), "ERR value is not an integer or out of range"); return;
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
         }
         pos += 2;
     }
-    if (pos + 3 > op.argc() || op.argc() > pos + 4) { reply_syntax(op.sink()); return; }
-    StreamID start{}, end{}; bool start_exclusive = false, end_exclusive = false;
+    if (pos + 3 > op.argc() || op.argc() > pos + 4) {
+        reply_syntax(op.sink());
+        return;
+    }
+    StreamID start{}, end{};
+    bool start_exclusive = false, end_exclusive = false;
     if (!parse_pending_bound(op, op.arg(pos), true, start, start_exclusive) ||
-        !parse_pending_bound(op, op.arg(pos + 1), false, end, end_exclusive)) return;
+        !parse_pending_bound(op, op.arg(pos + 1), false, end, end_exclusive))
+        return;
     int64_t count = 0;
     if (!parse_i64_exact(op.arg(pos + 2), count)) {
-        reply_err(op.sink(), "ERR value is not an integer or out of range"); return;
+        reply_err(op.sink(), "ERR value is not an integer or out of range");
+        return;
     }
     if (start_exclusive && !id_increment(start)) {
         reply_array_header(op.sink(), 0);
@@ -677,19 +783,26 @@ void cmd_xpending(Shard& shard, Op& op) {
     const int64_t now = shard.now_ms();
     std::vector<std::pair<StreamID, const StreamPending*>> matches;
     try {
-        if (count > 0) for (auto it = group->pending.lower_bound(start);
-                            it != group->pending.end() && matches.size() < static_cast<uint64_t>(count);
-                            ++it) {
-            const int end_order = id_compare(it->first, end);
-            if (end_order > 0 || (end_exclusive && end_order == 0)) break;
-            const uint64_t idle = now > it->second.delivery_time
-                ? static_cast<uint64_t>(now - it->second.delivery_time) : 0;
-            if (idle < min_idle) continue;
-            if (filter_consumer && (it->second.consumer.size() != consumer.n ||
-                std::memcmp(it->second.consumer.data(), consumer.p, consumer.n))) continue;
-            matches.emplace_back(it->first, &it->second);
-        }
-    } catch (const std::bad_alloc&) { reply_err(op.sink(), "ERR out of memory"); return; }
+        if (count > 0)
+            for (auto it = group->pending.lower_bound(start);
+                 it != group->pending.end() && matches.size() < static_cast<uint64_t>(count);
+                 ++it) {
+                const int end_order = id_compare(it->first, end);
+                if (end_order > 0 || (end_exclusive && end_order == 0)) break;
+                const uint64_t idle = now > it->second.delivery_time
+                                          ? static_cast<uint64_t>(now - it->second.delivery_time)
+                                          : 0;
+                if (idle < min_idle) continue;
+                if (filter_consumer &&
+                    (it->second.consumer.size() != consumer.n ||
+                     std::memcmp(it->second.consumer.data(), consumer.p, consumer.n)))
+                    continue;
+                matches.emplace_back(it->first, &it->second);
+            }
+    } catch (const std::bad_alloc&) {
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
     reply_array_header(op.sink(), matches.size());
     for (const auto& [id, pending] : matches) {
         reply_array_header(op.sink(), 4);
@@ -734,7 +847,8 @@ void cmd_xclaim(Shard& shard, Op& op) {
     ClaimOptions options;
     int64_t min_idle = 0;
     if (!parse_i64_option(op.arg(4), min_idle)) {
-        reply_err(op.sink(), "ERR Invalid min-idle-time argument for XCLAIM"); return;
+        reply_err(op.sink(), "ERR Invalid min-idle-time argument for XCLAIM");
+        return;
     }
     options.min_idle = min_idle > 0 ? static_cast<uint64_t>(min_idle) : 0;
     uint32_t options_at = 5;
@@ -743,61 +857,107 @@ void cmd_xclaim(Shard& shard, Op& op) {
         while (options_at < op.argc()) {
             if (op.arg(options_at).eq_icase("idle") || op.arg(options_at).eq_icase("time") ||
                 op.arg(options_at).eq_icase("retrycount") || op.arg(options_at).eq_icase("force") ||
-                op.arg(options_at).eq_icase("justid") || op.arg(options_at).eq_icase("lastid")) break;
+                op.arg(options_at).eq_icase("justid") || op.arg(options_at).eq_icase("lastid"))
+                break;
             StreamID id;
-            if (!parse_id(op.arg(options_at), id)) { invalid_id(op); return; }
-            ids.push_back(id); options_at++;
-        }
-    } catch (const std::bad_alloc&) { reply_err(op.sink(), "ERR out of memory"); return; }
-    if (ids.empty()) { reply_syntax(op.sink()); return; }
-    for (uint32_t pos = options_at; pos < op.argc();) {
-        if (op.arg(pos).eq_icase("force") && !options.force) { options.force = true; pos++; }
-        else if (op.arg(pos).eq_icase("justid") && !options.justid) { options.justid = true; pos++; }
-        else if (op.arg(pos).eq_icase("idle") && !options.idle_set && pos + 1 < op.argc()) {
-            if (!parse_u64_exact(op.arg(pos + 1), options.idle)) {
-                reply_err(op.sink(), "ERR Invalid IDLE option argument for XCLAIM"); return;
+            if (!parse_id(op.arg(options_at), id)) {
+                invalid_id(op);
+                return;
             }
-            options.idle_set = true; pos += 2;
+            ids.push_back(id);
+            options_at++;
+        }
+    } catch (const std::bad_alloc&) {
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
+    if (ids.empty()) {
+        reply_syntax(op.sink());
+        return;
+    }
+    for (uint32_t pos = options_at; pos < op.argc();) {
+        if (op.arg(pos).eq_icase("force") && !options.force) {
+            options.force = true;
+            pos++;
+        } else if (op.arg(pos).eq_icase("justid") && !options.justid) {
+            options.justid = true;
+            pos++;
+        } else if (op.arg(pos).eq_icase("idle") && !options.idle_set && pos + 1 < op.argc()) {
+            if (!parse_u64_exact(op.arg(pos + 1), options.idle)) {
+                reply_err(op.sink(), "ERR Invalid IDLE option argument for XCLAIM");
+                return;
+            }
+            options.idle_set = true;
+            pos += 2;
         } else if (op.arg(pos).eq_icase("time") && !options.time_set && pos + 1 < op.argc()) {
             if (!parse_u64_exact(op.arg(pos + 1), options.time)) {
-                reply_err(op.sink(), "ERR Invalid TIME option argument for XCLAIM"); return;
+                reply_err(op.sink(), "ERR Invalid TIME option argument for XCLAIM");
+                return;
             }
-            options.time_set = true; pos += 2;
-        } else if (op.arg(pos).eq_icase("retrycount") && !options.retry_set && pos + 1 < op.argc()) {
+            options.time_set = true;
+            pos += 2;
+        } else if (op.arg(pos).eq_icase("retrycount") && !options.retry_set &&
+                   pos + 1 < op.argc()) {
             if (!parse_u64_exact(op.arg(pos + 1), options.retry)) {
-                reply_err(op.sink(), "ERR Invalid RETRYCOUNT option argument for XCLAIM"); return;
+                reply_err(op.sink(), "ERR Invalid RETRYCOUNT option argument for XCLAIM");
+                return;
             }
-            options.retry_set = true; pos += 2;
+            options.retry_set = true;
+            pos += 2;
         } else if (op.arg(pos).eq_icase("lastid") && !options.lastid_set && pos + 1 < op.argc()) {
-            if (!parse_id(op.arg(pos + 1), options.lastid)) { invalid_id(op); return; }
-            options.lastid_set = true; pos += 2;
-        } else { reply_syntax(op.sink()); return; }
+            if (!parse_id(op.arg(pos + 1), options.lastid)) {
+                invalid_id(op);
+                return;
+            }
+            options.lastid_set = true;
+            pos += 2;
+        } else {
+            reply_syntax(op.sink());
+            return;
+        }
     }
-    if (options.idle_set && options.time_set) { reply_syntax(op.sink()); return; }
+    if (options.idle_set && options.time_set) {
+        reply_syntax(op.sink());
+        return;
+    }
 
     KvObj* object = shard.store_find_read<kNotify>(op.hash, op.arg(1));
-    if (!object) { reply_nogroup(op, op.arg(1), op.arg(2)); return; }
+    if (!object) {
+        reply_nogroup(op, op.arg(1), op.arg(2));
+        return;
+    }
     if (!obj_type_check(object, Type::Stream, op.sink())) return;
     StreamGroups* groups = groups_of(object);
     StreamGroup* group = find_group(object, op.arg(2));
-    if (!group) { reply_nogroup(op, op.arg(1), op.arg(2)); return; }
+    if (!group) {
+        reply_nogroup(op, op.arg(1), op.arg(2));
+        return;
+    }
     ObjectSizeTracker tracker(shard.store(), object);
     const int64_t now = shard.now_ms();
-    StreamConsumer* consumer = nullptr; bool created = false;
+    StreamConsumer* consumer = nullptr;
+    bool created = false;
     if (!create_consumer(*groups, *group, op.arg(3), now, consumer, created)) {
-        reply_err(op.sink(), "ERR out of memory"); return;
+        reply_err(op.sink(), "ERR out of memory");
+        return;
     }
-    if constexpr (kNotify) if (created)
-        notify_implicit_consumer(shard, &op, op.arg(1));
+    if constexpr (kNotify)
+        if (created) notify_implicit_consumer(shard, &op, op.arg(1));
     consumer->seen_time = now;
     std::vector<StreamOwnedEntry> claimed;
-    try { claimed.reserve(ids.size()); }
-    catch (const std::bad_alloc&) { reply_err(op.sink(), "ERR out of memory"); return; }
+    try {
+        claimed.reserve(ids.size());
+    } catch (const std::bad_alloc&) {
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
     for (const StreamID& id : ids) {
         auto pending = group->pending.find(id);
-        StreamOwnedEntry entry; bool found = false;
+        StreamOwnedEntry entry;
+        bool found = false;
         if (!stream_object_find(object, id, entry, found)) {
-            reply_err(op.sink(), "ERR corrupt stream encoding"); return;
+            reply_err(op.sink(), "ERR corrupt stream encoding");
+            return;
         }
         if (!found || entry.deleted) {
             if (pending != group->pending.end()) erase_pending(*groups, *group, pending);
@@ -813,26 +973,32 @@ void cmd_xclaim(Shard& shard, Op& op) {
                 const auto [inserted_pending, inserted] =
                     group->pending.emplace(id, std::move(fresh));
                 pending = inserted_pending;
-                if (inserted)
-                    groups->note_insert(pending_allocation_bytes(pending->second));
+                if (inserted) groups->note_insert(pending_allocation_bytes(pending->second));
             } catch (const std::bad_alloc&) {
-                reply_err(op.sink(), "ERR out of memory"); return;
+                reply_err(op.sink(), "ERR out of memory");
+                return;
             }
         } else {
             const uint64_t idle = now > pending->second.delivery_time
-                ? static_cast<uint64_t>(now - pending->second.delivery_time) : 0;
+                                      ? static_cast<uint64_t>(now - pending->second.delivery_time)
+                                      : 0;
             if (idle < options.min_idle) continue;
             assign_pending_consumer(*groups, pending->second, op.arg(3));
-            if (options.retry_set) pending->second.delivery_count = options.retry;
-            else if (!options.justid) pending->second.delivery_count++;
+            if (options.retry_set)
+                pending->second.delivery_count = options.retry;
+            else if (!options.justid)
+                pending->second.delivery_count++;
         }
         if (options.time_set)
             pending->second.delivery_time = options.time > static_cast<uint64_t>(now)
-                ? now : static_cast<int64_t>(options.time);
+                                                ? now
+                                                : static_cast<int64_t>(options.time);
         else if (options.idle_set)
             pending->second.delivery_time = options.idle > static_cast<uint64_t>(now)
-                ? 0 : now - static_cast<int64_t>(options.idle);
-        else pending->second.delivery_time = now;
+                                                ? 0
+                                                : now - static_cast<int64_t>(options.idle);
+        else
+            pending->second.delivery_time = now;
         consumer->active_time = now;
         claimed.push_back(std::move(entry));
     }
@@ -840,8 +1006,10 @@ void cmd_xclaim(Shard& shard, Op& op) {
         group->last_delivered = options.lastid;
     reply_array_header(op.sink(), claimed.size());
     for (const StreamOwnedEntry& entry : claimed) {
-        if (options.justid) reply_id(op, entry.id);
-        else reply_entry(op, entry, false);
+        if (options.justid)
+            reply_id(op, entry.id);
+        else
+            reply_entry(op, entry, false);
     }
 }
 
@@ -854,52 +1022,76 @@ void cmd_xautoclaim(Shard& shard, Op& op) {
         // so "XAUTOCLAIM key g c -1 0" reaches the group lookup while "... 05 0" does not.
         int64_t parsed = 0;
         if (!parse_i64_option(op.arg(4), parsed)) {
-            reply_err(op.sink(), "ERR Invalid min-idle-time argument for XAUTOCLAIM"); return;
+            reply_err(op.sink(), "ERR Invalid min-idle-time argument for XAUTOCLAIM");
+            return;
         }
         min_idle = parsed < 0 ? 0 : static_cast<uint64_t>(parsed);
     }
-    if (!parse_id(op.arg(5), start, 0, true)) { invalid_id(op); return; }
-    uint64_t count = 100; bool justid = false;
+    if (!parse_id(op.arg(5), start, 0, true)) {
+        invalid_id(op);
+        return;
+    }
+    uint64_t count = 100;
+    bool justid = false;
     for (uint32_t pos = 6; pos < op.argc();) {
         if (op.arg(pos).eq_icase("count") && pos + 1 < op.argc()) {
             int64_t parsed = 0;
             if (!parse_i64_option(op.arg(pos + 1), parsed) || parsed < 1 ||
                 static_cast<uint64_t>(parsed) > uint64_t{INT64_MAX} / sizeof(StreamID)) {
-                reply_err(op.sink(), "ERR COUNT must be > 0"); return;
+                reply_err(op.sink(), "ERR COUNT must be > 0");
+                return;
             }
             count = static_cast<uint64_t>(parsed);
             pos += 2;
         } else if (op.arg(pos).eq_icase("justid") && !justid) {
-            justid = true; pos++;
-        } else { reply_syntax(op.sink()); return; }
+            justid = true;
+            pos++;
+        } else {
+            reply_syntax(op.sink());
+            return;
+        }
     }
     KvObj* object = shard.store_find_read<kNotify>(op.hash, op.arg(1));
-    if (!object) { reply_nogroup(op, op.arg(1), op.arg(2)); return; }
+    if (!object) {
+        reply_nogroup(op, op.arg(1), op.arg(2));
+        return;
+    }
     if (!obj_type_check(object, Type::Stream, op.sink())) return;
     StreamGroups* groups = groups_of(object);
     StreamGroup* group = find_group(object, op.arg(2));
-    if (!group) { reply_nogroup(op, op.arg(1), op.arg(2)); return; }
+    if (!group) {
+        reply_nogroup(op, op.arg(1), op.arg(2));
+        return;
+    }
     std::vector<StreamID> deleted;
     // Redis reserves COUNT IDs before creating/touching the consumer. A syntactically valid
     // but unallocatable count has its own error and must leave group metadata unchanged.
-    try { deleted.reserve(count); }
-    catch (const std::bad_alloc&) {
-        reply_err(op.sink(), "ERR Insufficient memory, failed allocating transient memory, COUNT too high.");
+    try {
+        deleted.reserve(count);
+    } catch (const std::bad_alloc&) {
+        reply_err(op.sink(),
+                  "ERR Insufficient memory, failed allocating transient memory, COUNT too high.");
         return;
     }
     ObjectSizeTracker tracker(shard.store(), object);
     const int64_t now = shard.now_ms();
-    StreamConsumer* consumer = nullptr; bool created = false;
+    StreamConsumer* consumer = nullptr;
+    bool created = false;
     if (!create_consumer(*groups, *group, op.arg(3), now, consumer, created)) {
-        reply_err(op.sink(), "ERR out of memory"); return;
+        reply_err(op.sink(), "ERR out of memory");
+        return;
     }
-    if constexpr (kNotify) if (created)
-        notify_implicit_consumer(shard, &op, op.arg(1));
+    if constexpr (kNotify)
+        if (created) notify_implicit_consumer(shard, &op, op.arg(1));
     consumer->seen_time = now;
     std::vector<StreamOwnedEntry> claimed;
     const size_t capacity = std::min<uint64_t>(count, group->pending.size());
-    try { claimed.reserve(capacity); }
-    catch (const std::bad_alloc&) { reply_err(op.sink(), "ERR out of memory"); return; }
+    try {
+        claimed.reserve(capacity);
+    } catch (const std::bad_alloc&) {
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
     const uint64_t max_scan = count > UINT64_MAX / 10 ? UINT64_MAX : count * 10;
     struct AutoClaimScan {
         StreamGroups* groups;
@@ -917,13 +1109,16 @@ void cmd_xautoclaim(Shard& shard, Op& op) {
         bool assign_failed = false;
         std::vector<StreamOwnedEntry>* claimed;
         std::vector<StreamID>* deleted;
-    } scan{groups, group, consumer, group->pending.lower_bound(start), op.arg(3), now,
-           min_idle, count, max_scan, 0, justid, false, false, &claimed, &deleted};
+    } scan{groups,    group,    consumer, group->pending.lower_bound(start),
+           op.arg(3), now,      min_idle, count,
+           max_scan,  0,        justid,   false,
+           false,     &claimed, &deleted};
     const auto next_pending = [](void* context, StreamID& target) {
         auto& scan = *static_cast<AutoClaimScan*>(context);
         if (scan.copy_failed || scan.assign_failed || scan.pending == scan.group->pending.end() ||
             scan.scanned >= scan.max_scan ||
-            scan.claimed->size() + scan.deleted->size() >= scan.count) return false;
+            scan.claimed->size() + scan.deleted->size() >= scan.count)
+            return false;
         target = scan.pending->first;
         return true;
     };
@@ -938,10 +1133,12 @@ void cmd_xautoclaim(Shard& shard, Op& op) {
             return;
         }
         const uint64_t idle = scan.now > current->second.delivery_time
-            ? static_cast<uint64_t>(scan.now - current->second.delivery_time) : 0;
+                                  ? static_cast<uint64_t>(scan.now - current->second.delivery_time)
+                                  : 0;
         if (idle < scan.min_idle) return;
         StreamOwnedEntry entry;
-        if (scan.justid) entry.id = target;
+        if (scan.justid)
+            entry.id = target;
         else if (!own_borrowed_entry(*source, entry)) {
             scan.copy_failed = true;
             return;
@@ -958,16 +1155,22 @@ void cmd_xautoclaim(Shard& shard, Op& op) {
         scan.claimed->push_back(std::move(entry));
     };
     if (!stream_object_merge_scan(object, &scan, next_pending, visit_pending) || scan.copy_failed) {
-        reply_err(op.sink(), "ERR corrupt stream encoding"); return;
+        reply_err(op.sink(), "ERR corrupt stream encoding");
+        return;
     }
-    if (scan.assign_failed) { reply_err(op.sink(), "ERR out of memory"); return; }
+    if (scan.assign_failed) {
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
     const StreamID cursor = scan.pending == group->pending.end() ? StreamID{} : scan.pending->first;
     reply_array_header(op.sink(), 3);
     reply_id(op, cursor);
     reply_array_header(op.sink(), claimed.size());
     for (const StreamOwnedEntry& entry : claimed) {
-        if (justid) reply_id(op, entry.id);
-        else reply_entry(op, entry, false);
+        if (justid)
+            reply_id(op, entry.id);
+        else
+            reply_entry(op, entry, false);
     }
     reply_array_header(op.sink(), deleted.size());
     for (const StreamID& id : deleted) reply_id(op, id);
@@ -976,7 +1179,10 @@ void cmd_xautoclaim(Shard& shard, Op& op) {
 template <bool kNotify>
 void cmd_xsetid(Shard& shard, Op& op) {
     StreamID id{};
-    if (!parse_id(op.arg(2), id)) { invalid_id(op); return; }
+    if (!parse_id(op.arg(2), id)) {
+        invalid_id(op);
+        return;
+    }
     bool entries_set = false;
     uint64_t entries_added = 0;
     StreamID max_deleted{};
@@ -984,44 +1190,68 @@ void cmd_xsetid(Shard& shard, Op& op) {
         if (op.arg(pos).eq_icase("entriesadded") && pos + 1 < op.argc()) {
             int64_t parsed = 0;
             if (!parse_i64_option(op.arg(pos + 1), parsed)) {
-                reply_err(op.sink(), "ERR value is not an integer or out of range"); return;
+                reply_err(op.sink(), "ERR value is not an integer or out of range");
+                return;
             }
             if (parsed < 0) {
-                reply_err(op.sink(), "ERR entries_added must be positive"); return;
+                reply_err(op.sink(), "ERR entries_added must be positive");
+                return;
             }
             entries_added = static_cast<uint64_t>(parsed);
-            entries_set = true; pos += 2;
+            entries_set = true;
+            pos += 2;
         } else if (op.arg(pos).eq_icase("maxdeletedid") && pos + 1 < op.argc()) {
-            if (!parse_id(op.arg(pos + 1), max_deleted)) { invalid_id(op); return; }
+            if (!parse_id(op.arg(pos + 1), max_deleted)) {
+                invalid_id(op);
+                return;
+            }
             if (id_compare(id, max_deleted) < 0) {
-                reply_err(op.sink(), "ERR The ID specified in XSETID is smaller than the provided max_deleted_entry_id"); return;
+                reply_err(
+                    op.sink(),
+                    "ERR The ID specified in XSETID is smaller than the provided max_deleted_entry_id");
+                return;
             }
             pos += 2;
-        } else { reply_syntax(op.sink()); return; }
+        } else {
+            reply_syntax(op.sink());
+            return;
+        }
     }
     KvObj* object = shard.store_find<kNotify>(op.hash, op.arg(1));
-    if (!object) { reply_err(op.sink(), "ERR no such key"); return; }
+    if (!object) {
+        reply_err(op.sink(), "ERR no such key");
+        return;
+    }
     if (!obj_type_check(object, Type::Stream, op.sink())) return;
     StreamHeader header;
     if (!stream_object_header(object, header)) {
-        reply_err(op.sink(), "ERR corrupt stream encoding"); return;
+        reply_err(op.sink(), "ERR corrupt stream encoding");
+        return;
     }
     // A supplied watermark cannot hide the current one: deleted entries can
     // still be pending in a group, so rewinding through them would reuse an ID.
     if (id_compare(id, header.max_deleted_entry_id) < 0) {
-        reply_err(op.sink(), "ERR The ID specified in XSETID is smaller than current max_deleted_entry_id"); return;
+        reply_err(op.sink(),
+                  "ERR The ID specified in XSETID is smaller than current max_deleted_entry_id");
+        return;
     }
     const uint64_t length = stream_object_live_length(object);
     if (length) {
         StreamID top{};
         if (!object_last_live(object, top)) {
-            reply_err(op.sink(), "ERR corrupt stream encoding"); return;
+            reply_err(op.sink(), "ERR corrupt stream encoding");
+            return;
         }
         if (id_compare(id, top) < 0) {
-            reply_err(op.sink(), "ERR The ID specified in XSETID is smaller than the target stream top item"); return;
+            reply_err(op.sink(),
+                      "ERR The ID specified in XSETID is smaller than the target stream top item");
+            return;
         }
         if (entries_set && entries_added < length) {
-            reply_err(op.sink(), "ERR The entries_added specified in XSETID is smaller than the target stream length"); return;
+            reply_err(
+                op.sink(),
+                "ERR The entries_added specified in XSETID is smaller than the target stream length");
+            return;
         }
     }
     ObjectSizeTracker tracker(shard.store(), object);
@@ -1029,7 +1259,8 @@ void cmd_xsetid(Shard& shard, Op& op) {
     if (entries_set) header.entries_added = entries_added;
     if (max_deleted.ms || max_deleted.seq) header.max_deleted_entry_id = max_deleted;
     if (!stream_object_update_header(object, header)) {
-        reply_err(op.sink(), "ERR corrupt stream encoding"); return;
+        reply_err(op.sink(), "ERR corrupt stream encoding");
+        return;
     }
     if constexpr (kNotify)
         notify_record(shard, op, NOTIFY_STREAM, NotifyEventId::Xsetid, op.arg(1));
@@ -1037,8 +1268,10 @@ void cmd_xsetid(Shard& shard, Op& op) {
 }
 
 void reply_info_header(Op& op, uint32_t pairs) {
-    if (op.resp3()) reply_map_header(op.sink(), pairs, true);
-    else reply_array_header(op.sink(), pairs * 2);
+    if (op.resp3())
+        reply_map_header(op.sink(), pairs, true);
+    else
+        reply_array_header(op.sink(), pairs * 2);
 }
 
 void reply_name(Op& op, const char* name) {
@@ -1046,8 +1279,10 @@ void reply_name(Op& op, const char* name) {
 }
 
 void reply_nullable_i64(Op& op, int64_t value) {
-    if (value == -1) reply_null(op.sink(), op.resp3());
-    else reply_int(op.sink(), value);
+    if (value == -1)
+        reply_null(op.sink(), op.resp3());
+    else
+        reply_int(op.sink(), value);
 }
 
 uint8_t stream_index_byte(const StreamID& id, unsigned depth) {
@@ -1060,42 +1295,52 @@ uint8_t stream_index_byte(const StreamID& id, unsigned depth) {
 // compressed run, branch and terminal counts once, including the empty root.
 // Big-endian 128-bit IDs have fixed length, so recursion is bounded by 16 and
 // needs no allocation or maintained counters on XADD's operation path.
-uint64_t stream_index_nodes(const std::vector<StreamNodeIndex>& index,
-                            size_t begin, size_t end, unsigned depth = 0) {
+uint64_t stream_index_nodes(const std::vector<StreamNodeIndex>& index, size_t begin, size_t end,
+                            unsigned depth = 0) {
     if (begin == end || depth == 16) return 1;
     if (end - begin == 1) return 2;  // remaining compressed run and terminal
     unsigned shared = depth;
     while (shared < 16 && stream_index_byte(index[begin].base_id, shared) ==
-                           stream_index_byte(index[end - 1].base_id, shared)) ++shared;
+                              stream_index_byte(index[end - 1].base_id, shared))
+        ++shared;
     if (shared != depth) return 1 + stream_index_nodes(index, begin, end, shared);
     uint64_t nodes = 1;  // branch edges consume one byte before each child
     for (size_t first = begin; first < end;) {
         size_t last = first + 1;
         while (last < end && stream_index_byte(index[first].base_id, depth) ==
-                             stream_index_byte(index[last].base_id, depth)) ++last;
+                                 stream_index_byte(index[last].base_id, depth))
+            ++last;
         nodes += stream_index_nodes(index, first, last, depth + 1);
         first = last;
     }
     return nodes;
 }
 
-void reply_group_info(Op& op, KvObj* object, const StreamHeader& header,
-                      const std::string& name, const StreamGroup& group, bool full,
-                      uint64_t count) {
+void reply_group_info(Op& op, KvObj* object, const StreamHeader& header, const std::string& name,
+                      const StreamGroup& group, bool full, uint64_t count) {
     int64_t lag = 0;
     const bool has_lag = group_lag(object, header, group, lag);
     reply_info_header(op, full ? 7 : 6);
-    reply_name(op, "name"); reply_bulk(op.sink(), Slice(name.data(), name.size()));
+    reply_name(op, "name");
+    reply_bulk(op.sink(), Slice(name.data(), name.size()));
     if (!full) {
-        reply_name(op, "consumers"); reply_int(op.sink(), group.consumers.size());
-        reply_name(op, "pending"); reply_int(op.sink(), group.pending.size());
+        reply_name(op, "consumers");
+        reply_int(op.sink(), group.consumers.size());
+        reply_name(op, "pending");
+        reply_int(op.sink(), group.pending.size());
     }
-    reply_name(op, "last-delivered-id"); reply_id(op, group.last_delivered);
-    reply_name(op, "entries-read"); reply_nullable_i64(op, group.entries_read);
+    reply_name(op, "last-delivered-id");
+    reply_id(op, group.last_delivered);
+    reply_name(op, "entries-read");
+    reply_nullable_i64(op, group.entries_read);
     reply_name(op, "lag");
-    if (has_lag) reply_int(op.sink(), lag); else reply_null(op.sink(), op.resp3());
+    if (has_lag)
+        reply_int(op.sink(), lag);
+    else
+        reply_null(op.sink(), op.resp3());
     if (!full) return;
-    reply_name(op, "pel-count"); reply_int(op.sink(), group.pending.size());
+    reply_name(op, "pel-count");
+    reply_int(op.sink(), group.pending.size());
     reply_name(op, "pending");
     reply_array_header(op.sink(), std::min<uint64_t>(count, group.pending.size()));
     uint64_t emitted = 0;
@@ -1113,10 +1358,13 @@ void reply_group_info(Op& op, KvObj* object, const StreamHeader& header,
         reply_info_header(op, 5);
         reply_name(op, "name");
         reply_bulk(op.sink(), Slice(consumer_name.data(), consumer_name.size()));
-        reply_name(op, "seen-time"); reply_int(op.sink(), consumer.seen_time);
-        reply_name(op, "active-time"); reply_int(op.sink(), consumer.active_time);
+        reply_name(op, "seen-time");
+        reply_int(op.sink(), consumer.seen_time);
+        reply_name(op, "active-time");
+        reply_int(op.sink(), consumer.active_time);
         const uint64_t pel_count = pending_for(group, consumer_name);
-        reply_name(op, "pel-count"); reply_int(op.sink(), pel_count);
+        reply_name(op, "pel-count");
+        reply_int(op.sink(), pel_count);
         reply_name(op, "pending");
         reply_array_header(op.sink(), std::min<uint64_t>(count, pel_count));
         uint64_t consumer_emitted = 0;
@@ -1141,52 +1389,81 @@ void cmd_xinfo(Shard& shard, Op& op) {
         return;
     }
     KvObj* object = shard.store_find_read<kNotify>(op.hash, op.arg(2));
-    if (!object) { reply_err(op.sink(), "ERR no such key"); return; }
+    if (!object) {
+        reply_err(op.sink(), "ERR no such key");
+        return;
+    }
     if (!obj_type_check(object, Type::Stream, op.sink())) return;
     StreamHeader header;
     if (!stream_object_header(object, header)) {
-        reply_err(op.sink(), "ERR corrupt stream encoding"); return;
+        reply_err(op.sink(), "ERR corrupt stream encoding");
+        return;
     }
     const StreamGroups* groups = groups_of(object);
     if (sub.eq_icase("groups")) {
-        if (op.argc() != 3) { reply_syntax(op.sink()); return; }
+        if (op.argc() != 3) {
+            reply_syntax(op.sink());
+            return;
+        }
         reply_array_header(op.sink(), groups ? groups->groups.size() : 0);
-        if (groups) for (const auto& [name, group] : groups->groups)
-            reply_group_info(op, object, header, name, group, false, 0);
+        if (groups)
+            for (const auto& [name, group] : groups->groups)
+                reply_group_info(op, object, header, name, group, false, 0);
         return;
     }
     if (sub.eq_icase("consumers")) {
-        if (op.argc() != 4) { reply_syntax(op.sink()); return; }
+        if (op.argc() != 4) {
+            reply_syntax(op.sink());
+            return;
+        }
         const StreamGroup* group = find_group(object, op.arg(3));
-        if (!group) { reply_nogroup_subcommand(op, op.arg(2), op.arg(3)); return; }
+        if (!group) {
+            reply_nogroup_subcommand(op, op.arg(2), op.arg(3));
+            return;
+        }
         reply_array_header(op.sink(), group->consumers.size());
         const int64_t now = shard.now_ms();
         for (const auto& [name, consumer] : group->consumers) {
             reply_info_header(op, 4);
-            reply_name(op, "name"); reply_bulk(op.sink(), Slice(name.data(), name.size()));
-            reply_name(op, "pending"); reply_int(op.sink(), pending_for(*group, name));
+            reply_name(op, "name");
+            reply_bulk(op.sink(), Slice(name.data(), name.size()));
+            reply_name(op, "pending");
+            reply_int(op.sink(), pending_for(*group, name));
             reply_name(op, "idle");
             reply_int(op.sink(), consumer.seen_time < 0 || now < consumer.seen_time
-                ? 0 : now - consumer.seen_time);
+                                     ? 0
+                                     : now - consumer.seen_time);
             reply_name(op, "inactive");
-            reply_int(op.sink(), consumer.active_time < 0 ? -1
-                : (now < consumer.active_time ? 0 : now - consumer.active_time));
+            reply_int(op.sink(),
+                      consumer.active_time < 0
+                          ? -1
+                          : (now < consumer.active_time ? 0 : now - consumer.active_time));
         }
         return;
     }
     if (!sub.eq_icase("stream")) {
-        reply_err(op.sink(), "ERR unknown subcommand or wrong number of arguments for 'XINFO'. Try XINFO HELP.");
+        reply_err(
+            op.sink(),
+            "ERR unknown subcommand or wrong number of arguments for 'XINFO'. Try XINFO HELP.");
         return;
     }
-    bool full = false; uint64_t count = 10;
+    bool full = false;
+    uint64_t count = 10;
     if (op.argc() > 3) {
-        if (!op.arg(3).eq_icase("full")) { reply_stream_subcommand_syntax(op); return; }
+        if (!op.arg(3).eq_icase("full")) {
+            reply_stream_subcommand_syntax(op);
+            return;
+        }
         full = true;
         if (op.argc() == 6) {
-            if (!op.arg(4).eq_icase("count")) { reply_stream_subcommand_syntax(op); return; }
+            if (!op.arg(4).eq_icase("count")) {
+                reply_stream_subcommand_syntax(op);
+                return;
+            }
             int64_t parsed = 0;
             if (!parse_i64_option(op.arg(5), parsed)) {
-                reply_err(op.sink(), "ERR value is not an integer or out of range"); return;
+                reply_err(op.sink(), "ERR value is not an integer or out of range");
+                return;
             }
             count = parsed < 0 ? 10 : static_cast<uint64_t>(parsed);
             if (count == 0) count = UINT64_MAX;
@@ -1198,84 +1475,110 @@ void cmd_xinfo(Shard& shard, Op& op) {
     const uint64_t length = stream_object_live_length(object);
     CollectionRef stream(object);
     const StreamVal* external = stream.encoding() == CollectionEncoding::Compact
-        ? nullptr : stream.external_as<StreamVal>();
+                                    ? nullptr
+                                    : stream.external_as<StreamVal>();
     const uint64_t tree_keys = external ? external->index.size() : (stream.compact().size() > 1);
     const uint64_t tree_nodes = external
-        ? stream_index_nodes(external->index, 0, external->index.size()) : (tree_keys ? 2 : 1);
+                                    ? stream_index_nodes(external->index, 0, external->index.size())
+                                    : (tree_keys ? 2 : 1);
     StreamID first{}, last{};
     if (!stream_object_first_live(object, first) || !stream_object_last_live(object, last)) {
-        reply_err(op.sink(), "ERR corrupt stream encoding"); return;
+        reply_err(op.sink(), "ERR corrupt stream encoding");
+        return;
     }
     std::vector<StreamOwnedEntry> first_entry, last_entry;
     if (length) {
         if (!stream_object_collect(object, first, false, 1, false, first_entry)) {
-            reply_err(op.sink(), "ERR corrupt stream encoding"); return;
+            reply_err(op.sink(), "ERR corrupt stream encoding");
+            return;
         }
-        StreamOwnedEntry found; bool present = false;
+        StreamOwnedEntry found;
+        bool present = false;
         if (!stream_object_find(object, last, found, present)) {
-            reply_err(op.sink(), "ERR corrupt stream encoding"); return;
+            reply_err(op.sink(), "ERR corrupt stream encoding");
+            return;
         }
-        if (present) { last_entry.clear(); last_entry.push_back(std::move(found)); }
+        if (present) {
+            last_entry.clear();
+            last_entry.push_back(std::move(found));
+        }
     }
     if (!full) {
         reply_info_header(op, 10);
-        reply_name(op, "length"); reply_int(op.sink(), length);
-        reply_name(op, "radix-tree-keys"); reply_int(op.sink(), tree_keys);
-        reply_name(op, "radix-tree-nodes"); reply_int(op.sink(), tree_nodes);
-        reply_name(op, "last-generated-id"); reply_id(op, header.last_id);
-        reply_name(op, "max-deleted-entry-id"); reply_id(op, header.max_deleted_entry_id);
-        reply_name(op, "entries-added"); reply_int(op.sink(), header.entries_added);
-        reply_name(op, "recorded-first-entry-id"); reply_id(op, first);
-        reply_name(op, "groups"); reply_int(op.sink(), groups ? groups->groups.size() : 0);
+        reply_name(op, "length");
+        reply_int(op.sink(), length);
+        reply_name(op, "radix-tree-keys");
+        reply_int(op.sink(), tree_keys);
+        reply_name(op, "radix-tree-nodes");
+        reply_int(op.sink(), tree_nodes);
+        reply_name(op, "last-generated-id");
+        reply_id(op, header.last_id);
+        reply_name(op, "max-deleted-entry-id");
+        reply_id(op, header.max_deleted_entry_id);
+        reply_name(op, "entries-added");
+        reply_int(op.sink(), header.entries_added);
+        reply_name(op, "recorded-first-entry-id");
+        reply_id(op, first);
+        reply_name(op, "groups");
+        reply_int(op.sink(), groups ? groups->groups.size() : 0);
         reply_name(op, "first-entry");
-        if (first_entry.empty()) reply_null(op.sink(), op.resp3());
-        else reply_entry(op, first_entry.front(), false);
+        if (first_entry.empty())
+            reply_null(op.sink(), op.resp3());
+        else
+            reply_entry(op, first_entry.front(), false);
         reply_name(op, "last-entry");
-        if (last_entry.empty()) reply_null(op.sink(), op.resp3());
-        else reply_entry(op, last_entry.front(), false);
+        if (last_entry.empty())
+            reply_null(op.sink(), op.resp3());
+        else
+            reply_entry(op, last_entry.front(), false);
         return;
     }
     reply_info_header(op, 9);
-    reply_name(op, "length"); reply_int(op.sink(), length);
-    reply_name(op, "radix-tree-keys"); reply_int(op.sink(), tree_keys);
-    reply_name(op, "radix-tree-nodes"); reply_int(op.sink(), tree_nodes);
-    reply_name(op, "last-generated-id"); reply_id(op, header.last_id);
-    reply_name(op, "max-deleted-entry-id"); reply_id(op, header.max_deleted_entry_id);
-    reply_name(op, "entries-added"); reply_int(op.sink(), header.entries_added);
-    reply_name(op, "recorded-first-entry-id"); reply_id(op, first);
+    reply_name(op, "length");
+    reply_int(op.sink(), length);
+    reply_name(op, "radix-tree-keys");
+    reply_int(op.sink(), tree_keys);
+    reply_name(op, "radix-tree-nodes");
+    reply_int(op.sink(), tree_nodes);
+    reply_name(op, "last-generated-id");
+    reply_id(op, header.last_id);
+    reply_name(op, "max-deleted-entry-id");
+    reply_id(op, header.max_deleted_entry_id);
+    reply_name(op, "entries-added");
+    reply_int(op.sink(), header.entries_added);
+    reply_name(op, "recorded-first-entry-id");
+    reply_id(op, first);
     reply_name(op, "entries");
     std::vector<StreamOwnedEntry> entries;
     if (!stream_object_collect(object, {}, false, count, false, entries)) {
-        reply_err(op.sink(), "ERR corrupt stream encoding"); return;
+        reply_err(op.sink(), "ERR corrupt stream encoding");
+        return;
     }
     reply_array_header(op.sink(), entries.size());
     for (const StreamOwnedEntry& entry : entries) reply_entry(op, entry, false);
     reply_name(op, "groups");
     reply_array_header(op.sink(), groups ? groups->groups.size() : 0);
-    if (groups) for (const auto& [name, group] : groups->groups)
-        reply_group_info(op, object, header, name, group, true, count);
+    if (groups)
+        for (const auto& [name, group] : groups->groups)
+            reply_group_info(op, object, header, name, group, true, count);
 }
 
-static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
-    {"XGROUP",      2, -1, CmdFlags::Write | CmdFlags::CursorShard | CmdFlags::SubcmdRoute,
-                              cmd_xgroup<false>, 2, 2, 1, notify_handler<cmd_xgroup<true>>},
-    {"XREADGROUP",  7, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard |
-                              CmdFlags::CursorShard | CmdFlags::StreamRoute,
-                              cmd_xreadgroup<false>, 0, 0, 0, cmd_xreadgroup<true>},
-    {"XACK",        4, -1, CmdFlags::Write,
-                              cmd_xack<false>, 1, 1, 1, cmd_xack<true>},
-    {"XPENDING",    3,  9, CmdFlags::Readonly,
-                              cmd_xpending<false>, 1, 1, 1, cmd_xpending<true>},
-    {"XCLAIM",      6, -1, CmdFlags::Write,
-                              cmd_xclaim<false>, 1, 1, 1, cmd_xclaim<true>},
-    {"XAUTOCLAIM",  6,  9, CmdFlags::Write,
-                              cmd_xautoclaim<false>, 1, 1, 1, cmd_xautoclaim<true>},
-    {"XSETID",      3,  7, CmdFlags::Write,
-                              cmd_xsetid<false>, 1, 1, 1, notify_handler<cmd_xsetid<true>>},
+static const CommandSpec /* TOMO_TOOL_BIND kTable */ kTable[] = {
+    {"XGROUP", 2, -1, CmdFlags::Write | CmdFlags::CursorShard | CmdFlags::SubcmdRoute,
+     cmd_xgroup<false>, 2, 2, 1, notify_handler<cmd_xgroup<true>>},
+    {"XREADGROUP", 7, -1,
+     CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard | CmdFlags::CursorShard |
+         CmdFlags::StreamRoute,
+     cmd_xreadgroup<false>, 0, 0, 0, cmd_xreadgroup<true>},
+    {"XACK", 4, -1, CmdFlags::Write, cmd_xack<false>, 1, 1, 1, cmd_xack<true>},
+    {"XPENDING", 3, 9, CmdFlags::Readonly, cmd_xpending<false>, 1, 1, 1, cmd_xpending<true>},
+    {"XCLAIM", 6, -1, CmdFlags::Write, cmd_xclaim<false>, 1, 1, 1, cmd_xclaim<true>},
+    {"XAUTOCLAIM", 6, 9, CmdFlags::Write, cmd_xautoclaim<false>, 1, 1, 1, cmd_xautoclaim<true>},
+    {"XSETID", 3, 7, CmdFlags::Write, cmd_xsetid<false>, 1, 1, 1, notify_handler<cmd_xsetid<true>>},
     // STREAM is variadic in Redis. Its handler looks up the key before parsing
     // the tail, so an outer maximum would incorrectly mask missing/wrong-type keys.
-    {"XINFO",       2, -1, CmdFlags::Readonly | CmdFlags::CursorShard | CmdFlags::SubcmdRoute,
-                              cmd_xinfo<false>, 2, 2, 1, cmd_xinfo<true>},
+    {"XINFO", 2, -1, CmdFlags::Readonly | CmdFlags::CursorShard | CmdFlags::SubcmdRoute,
+     cmd_xinfo<false>, 2, 2, 1, cmd_xinfo<true>},
 };
 
 }  // namespace
@@ -1292,7 +1595,10 @@ uint64_t stream_groups_allocation_bytes(const void* opaque) {
 bool stream_parse_xreadgroup(Op& op, StreamXreadGroupArgs& parsed) {
     parsed = {};
     parsed.count = UINT64_MAX;
-    if (op.argc() < 7 || !op.arg(1).eq_icase("group")) { reply_syntax(op.sink()); return false; }
+    if (op.argc() < 7 || !op.arg(1).eq_icase("group")) {
+        reply_syntax(op.sink());
+        return false;
+    }
     parsed.group_arg = 2;
     parsed.consumer_arg = 3;
     uint32_t pos = 4;
@@ -1300,62 +1606,76 @@ bool stream_parse_xreadgroup(Op& op, StreamXreadGroupArgs& parsed) {
     while (pos < op.argc() && !op.arg(pos).eq_icase("streams")) {
         if (op.arg(pos).eq_icase("count") && !count_seen && pos + 1 < op.argc()) {
             if (!parse_u64_exact(op.arg(pos + 1), parsed.count)) {
-                reply_err(op.sink(), "ERR value is not an integer or out of range"); return false;
+                reply_err(op.sink(), "ERR value is not an integer or out of range");
+                return false;
             }
-            count_seen = true; pos += 2;
+            count_seen = true;
+            pos += 2;
         } else if (op.arg(pos).eq_icase("block") && !block_seen && pos + 1 < op.argc()) {
             if (!parse_u64_exact(op.arg(pos + 1), parsed.block_ms)) {
-                reply_err(op.sink(), "ERR timeout is not an integer or out of range"); return false;
+                reply_err(op.sink(), "ERR timeout is not an integer or out of range");
+                return false;
             }
-            parsed.block = true; block_seen = true; pos += 2;
+            parsed.block = true;
+            block_seen = true;
+            pos += 2;
         } else if (op.arg(pos).eq_icase("noack") && !noack_seen) {
-            parsed.noack = true; noack_seen = true; pos++;
-        } else { reply_syntax(op.sink()); return false; }
+            parsed.noack = true;
+            noack_seen = true;
+            pos++;
+        } else {
+            reply_syntax(op.sink());
+            return false;
+        }
     }
     if (pos >= op.argc() || op.argc() - pos != 3) {
-        reply_err(op.sink(), "ERR Unbalanced 'xreadgroup' list of streams: for each stream key "
-                             "an ID or '>' must be specified.");
+        reply_err(op.sink(),
+                  "ERR Unbalanced 'xreadgroup' list of streams: for each stream key "
+                  "an ID or '>' must be specified.");
         return false;
     }
     parsed.key_arg = pos + 1;
     parsed.id_arg = pos + 2;
     parsed.new_entries = op.arg(parsed.id_arg).n == 1 && op.arg(parsed.id_arg).p[0] == '>';
     StreamID id;
-    if (!parsed.new_entries && !parse_id(op.arg(parsed.id_arg), id)) { invalid_id(op); return false; }
+    if (!parsed.new_entries && !parse_id(op.arg(parsed.id_arg), id)) {
+        invalid_id(op);
+        return false;
+    }
     return true;
 }
 
 StreamGroupProbe stream_group_probe(Shard& shard, Slice key, uint64_t hash, Slice group_name) {
-    KvObj* object = shard.notify_carrier() ? shard.store_find<true>(hash, key)
-                                           : shard.store().find(hash, key);
+    KvObj* object =
+        shard.notify_carrier() ? shard.store_find<true>(hash, key) : shard.store().find(hash, key);
     if (!object) return StreamGroupProbe::MissingGroup;
     if (static_cast<Type>(object->type) != Type::Stream) return StreamGroupProbe::WrongType;
     const StreamGroup* group = find_group(object, group_name);
     if (!group) return StreamGroupProbe::MissingGroup;
-    return stream_object_has_live_after(object, group->last_delivered)
-        ? StreamGroupProbe::Ready : StreamGroupProbe::Empty;
+    return stream_object_has_live_after(object, group->last_delivered) ? StreamGroupProbe::Ready
+                                                                       : StreamGroupProbe::Empty;
 }
 
 StreamGroupProbe stream_group_prepare_waiter(Shard& shard, Slice key, uint64_t hash,
                                              Slice group_name, Slice consumer_name) {
-    KvObj* object = shard.notify_carrier() ? shard.store_find<true>(hash, key)
-                                           : shard.store().find(hash, key);
+    KvObj* object =
+        shard.notify_carrier() ? shard.store_find<true>(hash, key) : shard.store().find(hash, key);
     if (!object) return StreamGroupProbe::MissingGroup;
     if (static_cast<Type>(object->type) != Type::Stream) return StreamGroupProbe::WrongType;
     StreamGroups* groups = groups_of(object);
     StreamGroup* group = find_group(object, group_name);
     if (!group) return StreamGroupProbe::MissingGroup;
     ObjectSizeTracker tracker(shard.store(), object);
-    StreamConsumer* consumer = nullptr; bool created = false;
+    StreamConsumer* consumer = nullptr;
+    bool created = false;
     if (!create_consumer(*groups, *group, consumer_name, shard.now_ms(), consumer, created))
         return StreamGroupProbe::Oom;
     // The blocked command may stay parked indefinitely. Creation is already visible,
     // so publish on the owner maintenance route instead of waiting for its reply.
-    if (created)
-        notify_implicit_consumer(shard, nullptr, key);
+    if (created) notify_implicit_consumer(shard, nullptr, key);
     consumer->seen_time = shard.now_ms();
-    return stream_object_has_live_after(object, group->last_delivered)
-        ? StreamGroupProbe::Ready : StreamGroupProbe::Empty;
+    return stream_object_has_live_after(object, group->last_delivered) ? StreamGroupProbe::Ready
+                                                                       : StreamGroupProbe::Empty;
 }
 
 void stream_xreadgroup_reply_nogroup(Op& op) {
@@ -1370,29 +1690,37 @@ bool stream_xreadgroup_execute(Shard& shard, Op& op, bool may_block) {
     const Slice key = op.arg(parsed.key_arg);
     const uint64_t hash = FlatStore::hash_key(key);
     KvObj* object = (op.spec->flags & CmdFlags::NotifySelected)
-        ? shard.store_find_read<true>(hash, key) : shard.store_find_read<false>(hash, key);
-    if (!object) { reply_nogroup(op, key, op.arg(parsed.group_arg), true); return true; }
+                        ? shard.store_find_read<true>(hash, key)
+                        : shard.store_find_read<false>(hash, key);
+    if (!object) {
+        reply_nogroup(op, key, op.arg(parsed.group_arg), true);
+        return true;
+    }
     if (!obj_type_check(object, Type::Stream, op.sink())) return true;
     StreamGroups* groups = groups_of(object);
     StreamGroup* group = find_group(object, op.arg(parsed.group_arg));
-    if (!group) { reply_nogroup(op, key, op.arg(parsed.group_arg), true); return true; }
+    if (!group) {
+        reply_nogroup(op, key, op.arg(parsed.group_arg), true);
+        return true;
+    }
     ObjectSizeTracker tracker(shard.store(), object);
     const int64_t now = shard.now_ms();
-    StreamConsumer* consumer = nullptr; bool created = false;
+    StreamConsumer* consumer = nullptr;
+    bool created = false;
     if (!create_consumer(*groups, *group, op.arg(parsed.consumer_arg), now, consumer, created)) {
-        reply_err(op.sink(), "ERR out of memory"); return true;
+        reply_err(op.sink(), "ERR out of memory");
+        return true;
     }
     if (created && (op.spec->flags & CmdFlags::NotifySelected))
         notify_implicit_consumer(shard, &op, key);
     consumer->seen_time = now;
-    const std::string consumer_name(op.arg(parsed.consumer_arg).p,
-                                    op.arg(parsed.consumer_arg).n);
+    const std::string consumer_name(op.arg(parsed.consumer_arg).p, op.arg(parsed.consumer_arg).n);
     std::vector<StreamOwnedEntry> entries;
     if (parsed.new_entries) {
         if (!stream_object_collect(object, group->last_delivered, true,
-                                   parsed.count == UINT64_MAX ? 0 : parsed.count,
-                                   false, entries)) {
-            reply_err(op.sink(), "ERR out of memory"); return true;
+                                   parsed.count == UINT64_MAX ? 0 : parsed.count, false, entries)) {
+            reply_err(op.sink(), "ERR out of memory");
+            return true;
         }
         if (entries.empty()) {
             if (parsed.block && may_block) return false;
@@ -1410,7 +1738,8 @@ bool stream_xreadgroup_execute(Shard& shard, Op& op, bool may_block) {
                     prepared.emplace(entry.id, std::move(pending));
                 }
             } catch (const std::bad_alloc&) {
-                reply_err(op.sink(), "ERR out of memory"); return true;
+                reply_err(op.sink(), "ERR out of memory");
+                return true;
             }
             // Publish only after every PEL node and consumer string exists. Node transfer and
             // swapping an existing PEL value cannot allocate; a failed preparation changes neither
@@ -1419,7 +1748,8 @@ bool stream_xreadgroup_execute(Shard& shard, Op& op, bool may_block) {
                 auto node = prepared.extract(prepared.begin());
                 auto old = group->pending.find(node.key());
                 groups->note_insert(pending_allocation_bytes(node.mapped()));
-                if (old == group->pending.end()) group->pending.insert(std::move(node));
+                if (old == group->pending.end())
+                    group->pending.insert(std::move(node));
                 else {
                     groups->note_delete(pending_allocation_bytes(old->second));
                     std::swap(old->second, node.mapped());
@@ -1437,8 +1767,8 @@ bool stream_xreadgroup_execute(Shard& shard, Op& op, bool may_block) {
                 !tombstones_after(value, group->last_delivered)) {
                 // Redis exposes the wrapped counter after ENTRIESREAD INT64_MAX.
                 // Use modulo arithmetic without signed overflow; only -1 is unknown.
-                group->entries_read = std::bit_cast<int64_t>(
-                    static_cast<uint64_t>(group->entries_read) + 1);
+                group->entries_read =
+                    std::bit_cast<int64_t>(static_cast<uint64_t>(group->entries_read) + 1);
             } else if (value.header.entries_added) {
                 group->entries_read = infer_entries_read(value, entry.id);
             }
@@ -1449,21 +1779,32 @@ bool stream_xreadgroup_execute(Shard& shard, Op& op, bool may_block) {
     }
 
     StreamID cursor{};
-    if (!parse_id(op.arg(parsed.id_arg), cursor)) { invalid_id(op); return true; }
+    if (!parse_id(op.arg(parsed.id_arg), cursor)) {
+        invalid_id(op);
+        return true;
+    }
     try {
         for (auto it = group->pending.upper_bound(cursor); it != group->pending.end(); ++it) {
             if (it->second.consumer != consumer_name) continue;
             if (parsed.count && entries.size() >= parsed.count) break;
-            StreamOwnedEntry entry; bool found = false;
+            StreamOwnedEntry entry;
+            bool found = false;
             if (!stream_object_find(object, it->first, entry, found)) {
-                reply_err(op.sink(), "ERR corrupt stream encoding"); return true;
+                reply_err(op.sink(), "ERR corrupt stream encoding");
+                return true;
             }
-            if (!found) { entry.id = it->first; entry.deleted = true; }
+            if (!found) {
+                entry.id = it->first;
+                entry.deleted = true;
+            }
             it->second.delivery_time = now;
             it->second.delivery_count++;
             entries.push_back(std::move(entry));
         }
-    } catch (const std::bad_alloc&) { reply_err(op.sink(), "ERR out of memory"); return true; }
+    } catch (const std::bad_alloc&) {
+        reply_err(op.sink(), "ERR out of memory");
+        return true;
+    }
     reply_stream_entries(op, key, entries, true);
     return true;
 }
@@ -1504,25 +1845,43 @@ struct ChunkWriter {
         if (take) std::memcpy(out + written, static_cast<const uint8_t*>(data) + source, take);
         written += take;
     }
-    void u32(uint32_t value) { uint8_t bytes[4]; snapshot_put_u32(bytes, value); put(bytes, 4); }
-    void u64(uint64_t value) { uint8_t bytes[8]; snapshot_put_u64(bytes, value); put(bytes, 8); }
+    void u32(uint32_t value) {
+        uint8_t bytes[4];
+        snapshot_put_u32(bytes, value);
+        put(bytes, 4);
+    }
+    void u64(uint64_t value) {
+        uint8_t bytes[8];
+        snapshot_put_u64(bytes, value);
+        put(bytes, 8);
+    }
     void string(const std::string& value) {
-        u32(static_cast<uint32_t>(value.size())); put(value.data(), value.size());
+        u32(static_cast<uint32_t>(value.size()));
+        put(value.data(), value.size());
     }
 };
 
 bool read_u32(const uint8_t*& p, size_t& left, uint32_t& value) {
     if (left < 4) return false;
-    value = snapshot_get_u32(p); p += 4; left -= 4; return true;
+    value = snapshot_get_u32(p);
+    p += 4;
+    left -= 4;
+    return true;
 }
 bool read_u64(const uint8_t*& p, size_t& left, uint64_t& value) {
     if (left < 8) return false;
-    value = snapshot_get_u64(p); p += 8; left -= 8; return true;
+    value = snapshot_get_u64(p);
+    p += 8;
+    left -= 8;
+    return true;
 }
 bool read_string(const uint8_t*& p, size_t& left, std::string& value) {
     uint32_t size = 0;
     if (!read_u32(p, left, size) || left < size) return false;
-    value.assign(reinterpret_cast<const char*>(p), size); p += size; left -= size; return true;
+    value.assign(reinterpret_cast<const char*>(p), size);
+    p += size;
+    left -= size;
+    return true;
 }
 
 }  // namespace
@@ -1536,24 +1895,27 @@ bool stream_groups_snapshot_read(const void* opaque, uint64_t offset, uint8_t* d
     const auto* groups = static_cast<const StreamGroups*>(opaque);
     ChunkWriter writer{offset, destination, capacity};
     writer.u32(groups ? static_cast<uint32_t>(groups->groups.size()) : 0);
-    if (groups) for (const auto& [name, group] : groups->groups) {
-        writer.string(name);
-        writer.u64(group.last_delivered.ms); writer.u64(group.last_delivered.seq);
-        writer.u64(static_cast<uint64_t>(group.entries_read));
-        writer.u32(static_cast<uint32_t>(group.consumers.size()));
-        for (const auto& [consumer_name, consumer] : group.consumers) {
-            writer.string(consumer_name);
-            writer.u64(static_cast<uint64_t>(consumer.seen_time));
-            writer.u64(static_cast<uint64_t>(consumer.active_time));
+    if (groups)
+        for (const auto& [name, group] : groups->groups) {
+            writer.string(name);
+            writer.u64(group.last_delivered.ms);
+            writer.u64(group.last_delivered.seq);
+            writer.u64(static_cast<uint64_t>(group.entries_read));
+            writer.u32(static_cast<uint32_t>(group.consumers.size()));
+            for (const auto& [consumer_name, consumer] : group.consumers) {
+                writer.string(consumer_name);
+                writer.u64(static_cast<uint64_t>(consumer.seen_time));
+                writer.u64(static_cast<uint64_t>(consumer.active_time));
+            }
+            writer.u32(static_cast<uint32_t>(group.pending.size()));
+            for (const auto& [id, pending] : group.pending) {
+                writer.u64(id.ms);
+                writer.u64(id.seq);
+                writer.string(pending.consumer);
+                writer.u64(static_cast<uint64_t>(pending.delivery_time));
+                writer.u64(pending.delivery_count);
+            }
         }
-        writer.u32(static_cast<uint32_t>(group.pending.size()));
-        for (const auto& [id, pending] : group.pending) {
-            writer.u64(id.ms); writer.u64(id.seq);
-            writer.string(pending.consumer);
-            writer.u64(static_cast<uint64_t>(pending.delivery_time));
-            writer.u64(pending.delivery_count);
-        }
-    }
     written = writer.written;
     return offset + written <= writer.logical;
 }
@@ -1571,50 +1933,75 @@ bool stream_groups_snapshot_load(StreamVal& stream, Slice payload) {
             std::string name;
             uint64_t ms = 0, seq = 0, entries_read = 0;
             uint32_t consumer_count = 0, pending_count = 0;
-            if (!read_string(p, left, name) || !read_u64(p, left, ms) ||
-                !read_u64(p, left, seq) || !read_u64(p, left, entries_read) ||
-                !read_u32(p, left, consumer_count)) { delete groups; return false; }
+            if (!read_string(p, left, name) || !read_u64(p, left, ms) || !read_u64(p, left, seq) ||
+                !read_u64(p, left, entries_read) || !read_u32(p, left, consumer_count)) {
+                delete groups;
+                return false;
+            }
             StreamGroup fresh_group;
             fresh_group.last_delivered = {ms, seq};
             fresh_group.entries_read = static_cast<int64_t>(entries_read);
             const auto [group_position, group_inserted] =
                 groups->groups.emplace(std::move(name), std::move(fresh_group));
-            if (!group_inserted) { delete groups; return false; }
+            if (!group_inserted) {
+                delete groups;
+                return false;
+            }
             StreamGroup& group = group_position->second;
             groups->note_insert(group_allocation_bytes(group_position->first, group));
             for (uint32_t c = 0; c < consumer_count; c++) {
-                std::string consumer_name; uint64_t seen = 0, active = 0;
+                std::string consumer_name;
+                uint64_t seen = 0, active = 0;
                 if (!read_string(p, left, consumer_name) || !read_u64(p, left, seen) ||
-                    !read_u64(p, left, active)) { delete groups; return false; }
+                    !read_u64(p, left, active)) {
+                    delete groups;
+                    return false;
+                }
                 const auto [consumer_position, consumer_inserted] = group.consumers.emplace(
                     std::move(consumer_name),
                     StreamConsumer{static_cast<int64_t>(seen), static_cast<int64_t>(active)});
-                if (!consumer_inserted) { delete groups; return false; }
+                if (!consumer_inserted) {
+                    delete groups;
+                    return false;
+                }
                 groups->note_insert(consumer_allocation_bytes(consumer_position->first));
             }
-            if (!read_u32(p, left, pending_count)) { delete groups; return false; }
+            if (!read_u32(p, left, pending_count)) {
+                delete groups;
+                return false;
+            }
             for (uint32_t n = 0; n < pending_count; n++) {
-                StreamID id; std::string consumer; uint64_t delivery = 0, deliveries = 0;
+                StreamID id;
+                std::string consumer;
+                uint64_t delivery = 0, deliveries = 0;
                 if (!read_u64(p, left, id.ms) || !read_u64(p, left, id.seq) ||
                     !read_string(p, left, consumer) || !read_u64(p, left, delivery) ||
-                    !read_u64(p, left, deliveries)) { delete groups; return false; }
+                    !read_u64(p, left, deliveries)) {
+                    delete groups;
+                    return false;
+                }
                 const auto [pending_position, pending_inserted] = group.pending.emplace(
-                    id, StreamPending{std::move(consumer),
-                                      static_cast<int64_t>(delivery), deliveries});
-                if (!pending_inserted) { delete groups; return false; }
+                    id,
+                    StreamPending{std::move(consumer), static_cast<int64_t>(delivery), deliveries});
+                if (!pending_inserted) {
+                    delete groups;
+                    return false;
+                }
                 groups->note_insert(pending_allocation_bytes(pending_position->second));
             }
         }
-    } catch (const std::bad_alloc&) { delete groups; return false; }
+    } catch (const std::bad_alloc&) {
+        delete groups;
+        return false;
+    }
     if (left || groups->bytes_ != recompute_groups_allocation_bytes(*groups)) {
-        delete groups; return false;
+        delete groups;
+        return false;
     }
     stream.groups = groups;
     return true;
 }
 
-CommandTable stream_group_command_table() {
-    return {kTable, sizeof(kTable) / sizeof(kTable[0])};
-}
+CommandTable stream_group_command_table() { return {kTable, sizeof(kTable) / sizeof(kTable[0])}; }
 
 }  // namespace tomo

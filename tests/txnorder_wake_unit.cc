@@ -8,7 +8,10 @@
 
 using namespace tomo;
 static void require(bool condition, const char* message) {
-    if (!condition) { std::fprintf(stderr, "FAIL: %s\n", message); std::exit(1); }
+    if (!condition) {
+        std::fprintf(stderr, "FAIL: %s\n", message);
+        std::exit(1);
+    }
 }
 int main(int argc, char** argv) {
     require(argc == 2, "1s|2s");

@@ -15,10 +15,12 @@ void IoLoop::shutdown_on_issuer() {
         cancel.flags = IORING_ASYNC_CANCEL_ANY | IORING_ASYNC_CANCEL_ALL;
         cancel.timeout.tv_sec = 5;
         int rc;
-        do { rc = io_uring_register_sync_cancel(ring_.raw(), &cancel); } while (rc == -EINTR);
+        do {
+            rc = io_uring_register_sync_cancel(ring_.raw(), &cancel);
+        } while (rc == -EINTR);
         if (rc < 0 && rc != -ENOENT) {
             std::fprintf(stderr, "shutdown: ring cancellation failed: %s\n", std::strerror(-rc));
-            std::abort(); // Never free a buffer without its kernel lifetime fence.
+            std::abort();  // Never free a buffer without its kernel lifetime fence.
         }
         (void)ring_.submit_and_reap();
         fliplisten_release_files();
@@ -46,17 +48,20 @@ void IoLoop::shutdown_clients_after_join() {
         auto* loop = static_cast<IoLoop*>(context);
         loop->srv_->shard(shard).store().unborrow(ptr);
     };
-    wb_.bind(&ring_, this, release_joined, this,
+    wb_.bind(
+        &ring_, this, release_joined, this,
         [](void* context, Client& client, Op& op) {
             auto* loop = static_cast<IoLoop*>(context);
             NotifyBatch* notifications = nullptr;
             if (op.has_scatter_state()) {
                 notifications = notify_take_batch(op);
-                xshard_retire(*loop->srv_, *loop->self_, loop->ring_, client, op,
-                    loop->scatter_pool_, loop->self_->id(), loop,
+                xshard_retire(
+                    *loop->srv_, *loop->self_, loop->ring_, client, op, loop->scatter_pool_,
+                    loop->self_->id(), loop,
                     [](void* ctx, int32_t shard, const char* ptr) {
                         static_cast<IoLoop*>(ctx)->srv_->shard(shard).store().unborrow(ptr);
-                    }, [](void* ctx) { static_cast<IoLoop*>(ctx)->wb_.note_zc_suppressed_tls(); });
+                    },
+                    [](void* ctx) { static_cast<IoLoop*>(ctx)->wb_.note_zc_suppressed_tls(); });
             } else if (op.has_blocking_state()) {
                 notifications = notify_take_batch(op);
                 blocking_retire(*loop->srv_, client, op, *loop->self_);
@@ -67,16 +72,16 @@ void IoLoop::shutdown_clients_after_join() {
                 notifications = notify_take_batch(op);
             }
             notify_discard_batch(notifications);
-        }, &no_limits, nullptr, [](void*, Client&) { return false; },
-        &cached_now_s_, &self_->sig());
+        },
+        &no_limits, nullptr, [](void*, Client&) { return false; }, &cached_now_s_, &self_->sig());
 
     // The issuer has cancelled network requests after draining persistence. Its
     // CQEs remain available here; successful accepts own fds without Clients.
     if (!ring_.shutdown_complete()) {
         ring_.for_each_cqe([&](io_uring_cqe* cqe) {
             const UrKind kind = ur_kind(cqe->user_data);
-            if (kind == UrKind::Accept || kind == UrKind::TlsAccept ||
-                kind == UrKind::UnixAccept || kind == static_cast<UrKind>(18)) {
+            if (kind == UrKind::Accept || kind == UrKind::TlsAccept || kind == UrKind::UnixAccept ||
+                kind == static_cast<UrKind>(18)) {
                 if (cqe->res >= 0) ::close(cqe->res);
             } else if (kind == UrKind::Send) {
                 (void)wb_.on_send_complete<false>(*ur_ptr<Client>(cqe->user_data), cqe->res);
@@ -89,7 +94,9 @@ void IoLoop::shutdown_clients_after_join() {
     }
 
     std::vector<Client*> clients;
-    auto keep = [&](Client* c) { if (c) clients.push_back(c); };
+    auto keep = [&](Client* c) {
+        if (c) clients.push_back(c);
+    };
     for (Client* c : self_->clients()) keep(c);
     for (Client* c : active_.v) keep(c);
     for (Client* c : dead_ready_) keep(c);
@@ -98,8 +105,7 @@ void IoLoop::shutdown_clients_after_join() {
     for (Client* c : pending_handoffs_) keep(c);
     // Closing clients leave clients() before their final recv/send CQE. The WB
     // slot and active set continue owning them until close_client reaches Dead.
-    for (uint32_t i = 0; i < self_->wb_slot_words() * 64; ++i)
-        keep(self_->wb_slot_client(i));
+    for (uint32_t i = 0; i < self_->wb_slot_words() * 64; ++i) keep(self_->wb_slot_client(i));
     self_->drain_clients_unmasked(keep);
     self_->drain_client_transfers_unmasked([&](const ClientTransfer& transfer) {
         keep(transfer.client);
@@ -131,7 +137,7 @@ void IoLoop::shutdown_clients_after_join() {
                 Op& op = c->rob().at(id);
                 if (op.state.load(std::memory_order_acquire) != OpState::Done) break;
                 if (op.has_multi_state() && !multi_shutdown_retirable(*srv_, wb_, *c, op)) {
-                    op.state.store(OpState::Issued, std::memory_order_relaxed); // drain stops
+                    op.state.store(OpState::Issued, std::memory_order_relaxed);  // drain stops
                     withheld.push_back(&op);
                     break;
                 }
@@ -159,7 +165,8 @@ void IoLoop::shutdown_clients_after_join() {
         if (!c->dead()) {
             for (uint64_t id = c->rob().flush_id(); id != c->rob().dispatch_id(); ++id) {
                 Op& op = c->rob().at(id);
-                if (op.has_blocking_state()) blocking_retire(*srv_, *c, op, *self_);
+                if (op.has_blocking_state())
+                    blocking_retire(*srv_, *c, op, *self_);
                 else if (op.has_multi_state()) {
                     // A withheld EXEC, or a Done one behind an unfinished older op
                     // (EXEC's barrier admits nothing after it). An unfinished
@@ -171,8 +178,10 @@ void IoLoop::shutdown_clients_after_join() {
                     auto* state = op.scatter_state();
                     op.detach_scatter_state();
                     xshard_destroy(state, scatter_pool_, self_->id());
-                } else if (op.has_notify_state()) notify_discard_batch(notify_take_batch(op));
-                else if (op.zc_ptr && op.zc_shard >= 0) release(op.zc_shard, op.zc_ptr);
+                } else if (op.has_notify_state())
+                    notify_discard_batch(notify_take_batch(op));
+                else if (op.zc_ptr && op.zc_shard >= 0)
+                    release(op.zc_shard, op.zc_ptr);
             }
             command_client_disconnected(c);
             ::close(c->fd());
@@ -192,7 +201,8 @@ void IoLoop::shutdown_clients_after_join() {
     pending_handoffs_.clear();
     client_migrations_.clear();
     while (!pending_releases_.empty()) {
-        auto r = pending_releases_.front(); pending_releases_.pop_front();
+        auto r = pending_releases_.front();
+        pending_releases_.pop_front();
         release(r.shard, r.ptr);
     }
     for (const BorrowRelease& r : flip_borrow_releases_) release(r.shard, r.ptr);
@@ -214,4 +224,4 @@ void IoLoop::shutdown_clients_after_join() {
     }
     initialized_ = false;
 }
-} // namespace tomo
+}  // namespace tomo

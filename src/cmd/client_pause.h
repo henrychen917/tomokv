@@ -21,4 +21,4 @@ inline std::atomic<const std::atomic<uint64_t>*> client_pause_expiry_clock{nullp
 bool command_client_pause(Server& server, Op& op, uint64_t time_base_ms = 0,
                           uint32_t waker = UINT32_MAX);
 bool command_pause_write(const Op& op);
-} // namespace tomo
+}  // namespace tomo

@@ -11,15 +11,25 @@
 #include <string.h>
 #include <unistd.h>
 int main(int argc, char** argv) {
-    if (argc < 3) { fprintf(stderr, "usage: nsrun clientns|serverns cmd [args...]\n"); return 2; }
+    if (argc < 3) {
+        fprintf(stderr, "usage: nsrun clientns|serverns cmd [args...]\n");
+        return 2;
+    }
     if (strcmp(argv[1], "clientns") && strcmp(argv[1], "serverns")) {
-        fprintf(stderr, "nsrun: namespace must be clientns or serverns\n"); return 2;
+        fprintf(stderr, "nsrun: namespace must be clientns or serverns\n");
+        return 2;
     }
     char path[64];
     snprintf(path, sizeof path, "/var/run/netns/%s", argv[1]);
     int fd = open(path, O_RDONLY | O_CLOEXEC);
-    if (fd < 0) { perror("nsrun: open netns (is the rig up? systemctl status tomokv-nic)"); return 1; }
-    if (setns(fd, CLONE_NEWNET) != 0) { perror("nsrun: setns"); return 1; }
+    if (fd < 0) {
+        perror("nsrun: open netns (is the rig up? systemctl status tomokv-nic)");
+        return 1;
+    }
+    if (setns(fd, CLONE_NEWNET) != 0) {
+        perror("nsrun: setns");
+        return 1;
+    }
     close(fd);
     execvp(argv[2], &argv[2]);
     perror("nsrun: exec");

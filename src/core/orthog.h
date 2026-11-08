@@ -52,16 +52,15 @@ static_assert(offsetof(ModeScheduleStats, reorder_permuted_runs) == 32);
 static_assert(offsetof(ModeScheduleStats, reorder_max_batch) == 40);
 static_assert(offsetof(ModeScheduleStats, reorder_reserved) == 48);
 
-__attribute__((noinline, cold))
-inline void append_mode_schedule_info(std::string& body, const ModeScheduleStats* stats,
-                                     uint32_t nthreads) {
+__attribute__((noinline, cold)) inline void append_mode_schedule_info(
+    std::string& body, const ModeScheduleStats* stats, uint32_t nthreads) {
     char row[512];
-    const int n = std::snprintf(row, sizeof(row), "schedule_stats_threads:%u\r\n",
-                                stats ? nthreads : 0);
+    const int n =
+        std::snprintf(row, sizeof(row), "schedule_stats_threads:%u\r\n", stats ? nthreads : 0);
     if (n < 0 || static_cast<size_t>(n) >= sizeof(row)) std::abort();
     body.append(row, static_cast<size_t>(n));
 }
 
 void append_reorder_info(std::string& body, const ModeScheduleStats* stats, uint32_t nthreads);
 
-} // namespace tomo
+}  // namespace tomo

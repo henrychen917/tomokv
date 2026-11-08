@@ -20,7 +20,10 @@ using namespace tomo;
 namespace tomo {
 struct CoreConcurrencyTest {
     static void need(bool yes, const char* why) {
-        if (!yes) { std::fprintf(stderr, "FAIL: %s\n", why); std::exit(1); }
+        if (!yes) {
+            std::fprintf(stderr, "FAIL: %s\n", why);
+            std::exit(1);
+        }
     }
     // Wakes delivered to `ring`: run its deferred task work, then count the Wake tags.
     static unsigned wakes(Ring& ring) {
@@ -34,22 +37,34 @@ struct CoreConcurrencyTest {
     static void run(bool epoll) {
         g_ring_epoll_mode = epoll;
         Server server;
-        cpu_set_t mask; CPU_ZERO(&mask);
+        cpu_set_t mask;
+        CPU_ZERO(&mask);
         need(sched_getaffinity(0, sizeof(mask), &mask) == 0, "affinity");
-        std::string domain; unsigned count = 0;
+        std::string domain;
+        unsigned count = 0;
         for (int cpu = 0; cpu < CPU_SETSIZE && count < 8; cpu++)
-            if (CPU_ISSET(cpu, &mask)) { if (count++) domain += '+'; domain += std::to_string(cpu); }
+            if (CPU_ISSET(cpu, &mask)) {
+                if (count++) domain += '+';
+                domain += std::to_string(cpu);
+            }
         need(count == 8 && server.topo_.declare(domain.c_str()), "eight CPUs in the affinity mask");
         need(server.placement_.build_even(server.topo_, 6, 2), "6:2 placement");
         need(server.placement_.reserve_runtime_roles(8), "runtime roles");
-        Config cfg; cfg.databases = TOMO_SINGLE_DATABASE ? 1 : 16; cfg.shards = 1; cfg.atomic = 1;
-        cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0; cfg.thread_mode = ThreadMode::Split;
-        cfg.read_local = 0; cfg.save.clear(); cfg.latency_monitor_threshold = 0;
+        Config cfg;
+        cfg.databases = TOMO_SINGLE_DATABASE ? 1 : 16;
+        cfg.shards = 1;
+        cfg.atomic = 1;
+        cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
+        cfg.thread_mode = ThreadMode::Split;
+        cfg.read_local = 0;
+        cfg.save.clear();
+        cfg.latency_monitor_threshold = 0;
         if (epoll) cfg.net_io = NetIoEngine::Epoll;
         need(server.init(cfg), "server init");
         for (unsigned tid = 0; tid < 8; tid++)
             need(server.thread(tid).init_task_inbox_local(server.placement().ifid_threads(),
-                                                          server.placement().ex_threads()), "inbox");
+                                                          server.placement().ex_threads()),
+                 "inbox");
         Ring rings[3];
         for (unsigned i = 0; i < 3; i++) {
             need(rings[i].init(64), "ring init");
@@ -147,13 +162,16 @@ struct CoreConcurrencyTest {
         (void)wakes(rings[0]);
         need(wakes(rings[1]) == 1 && wakes(rings[2]) == 1, "E: the barrier clear rang both");
         need(bits() == 0, "E: both consumed");
-        wake_up(1); wake_up(2);
+        wake_up(1);
+        wake_up(2);
 
         while (server.atomic_inflight()) server.atomic_retire_group(0, 1);
         rings[0].submit_and_reap();
         for (unsigned i = 0; i < 3; i++) server.thread(i).set_ring(nullptr);
-        std::printf("PASS atomwake doorbell (%s): publish/retire in both orders, one wake per "
-                    "credit in turn, awake skip, barrier clear\n", epoll ? "epoll" : "uring");
+        std::printf(
+            "PASS atomwake doorbell (%s): publish/retire in both orders, one wake per "
+            "credit in turn, awake skip, barrier clear\n",
+            epoll ? "epoll" : "uring");
     }
 };
 }  // namespace tomo

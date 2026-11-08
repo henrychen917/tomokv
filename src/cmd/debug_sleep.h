@@ -15,9 +15,11 @@ class Op;
 class Server;
 class Shard;
 
-template <unsigned Workers, unsigned WaitMs> class DebugSleepCoordinator {
+template <unsigned Workers, unsigned WaitMs>
+class DebugSleepCoordinator {
     using Clock = std::chrono::steady_clock;
     using Lock = std::unique_lock<std::mutex>;
+
 public:
     // Cold configuration rendezvous. Reuses the already-present pass-boundary
     // pending check, so ordinary commands acquire no new branch or load.
@@ -25,11 +27,13 @@ public:
     // No callback may depend on normal command execution during this interval.
     // `announce` runs on the caller right after the request is published: members reach their
     // pass-boundary check only when they run, so it must ring the parked ones.
-    bool exclusive(unsigned origin, unsigned participants, void* context, void (*action)(void*, unsigned),
-                   void (*announce)(void*, unsigned) = nullptr, void* announce_context = nullptr) {
+    bool exclusive(unsigned origin, unsigned participants, void* context,
+                   void (*action)(void*, unsigned), void (*announce)(void*, unsigned) = nullptr,
+                   void* announce_context = nullptr) {
         Lock lock(mutex_);
         if (pending() || origin >= Workers || !workers_.test(origin) ||
-            workers_.count() != participants) return false;
+            workers_.count() != participants)
+            return false;
         Control control{this, context, action, {}, {}, {}};
         Control* empty = nullptr;
         if (!control_.compare_exchange_strong(empty, &control)) return false;
@@ -58,6 +62,7 @@ public:
             pause_.arrived_.reset(tid_);
             pause_.changed_.notify_all();
         }
+
     private:
         DebugSleepCoordinator& pause_;
         unsigned tid_;
@@ -71,7 +76,8 @@ public:
         Lock lock(mutex_);
         if (pending()) return 0;
         if (Control* control = control_.load(std::memory_order_acquire);
-                control && control->owner == this) return 0;
+            control && control->owner == this)
+            return 0;
         duration_ = std::chrono::microseconds(us);
         arrived_.reset();
         ++generation_;
@@ -79,7 +85,10 @@ public:
         phase_ = Phase::Collect;
         deadline_ = Clock::now() + kCollectWindow;
         unmanaged_ = workers_.none();
-        if (unmanaged_) { phase_ = Phase::Sleep; deadline_ = sleep_deadline(Clock::now()); }
+        if (unmanaged_) {
+            phase_ = Phase::Sleep;
+            deadline_ = sleep_deadline(Clock::now());
+        }
         interrupted_.store(false, std::memory_order_relaxed);
         pending_.store(true, std::memory_order_release);
         return ticket;
@@ -98,7 +107,7 @@ public:
         Lock lock(mutex_);
         if (!pending()) return;
         if (Control* control = control_.load(std::memory_order_acquire);
-                control && control->owner == this) {
+            control && control->owner == this) {
             control_park(lock, tid, *control);
             return;
         }
@@ -112,15 +121,19 @@ public:
         arrived_.set(tid);
         changed_.notify_all();
         while (pending() && generation == generation_) {
-            if (interrupted_.load(std::memory_order_relaxed)) { finish(); break; }
+            if (interrupted_.load(std::memory_order_relaxed)) {
+                finish();
+                break;
+            }
             const auto now = Clock::now();
             if (phase_ == Phase::Collect && (arrived_ & workers_) == workers_) {
                 phase_ = Phase::Sleep;
-                deadline_ = sleep_deadline(now); // duration begins only after every worker stops
+                deadline_ = sleep_deadline(now);  // duration begins only after every worker stops
                 changed_.notify_all();
             }
             if (now >= deadline_) {
-                if (phase_ == Phase::Sleep) finish();
+                if (phase_ == Phase::Sleep)
+                    finish();
                 else {
                     // An in-progress synchronous admin operation may need another worker's
                     // maintenance. Release this attempt so those dependencies can complete;
@@ -165,7 +178,9 @@ private:
             changed_.wait_until(lock, std::min(deadline_, Clock::now() + kSignalPoll));
         }
         if (!control.started) {
-            control.departed.set(tid); changed_.notify_all(); return;
+            control.departed.set(tid);
+            changed_.notify_all();
+            return;
         }
         lock.unlock();
         control.action(control.context, tid);
@@ -185,7 +200,8 @@ private:
     static constexpr auto kRetryWindow = std::chrono::milliseconds(WaitMs);
     static constexpr auto kSignalPoll = kRetryWindow;
     Clock::time_point sleep_deadline(Clock::time_point now) const {
-        const auto room = std::chrono::duration_cast<std::chrono::microseconds>(Clock::time_point::max() - now);
+        const auto room =
+            std::chrono::duration_cast<std::chrono::microseconds>(Clock::time_point::max() - now);
         return duration_ >= room ? Clock::time_point::max() : now + duration_;
     }
     void finish() {
@@ -212,8 +228,7 @@ enum class DebugSleepResult : uint8_t { NotSleep, Handled, Deferred };
 // Returns NotSleep for every DEBUG form except exact `DEBUG SLEEP seconds`. Handled means the
 // helper wrote an immediate reply (permission/zero); Deferred returns a positive delay in us,
 // truncated to microseconds just as Redis 7.4's strtod -> long long -> nanosleep path does.
-DebugSleepResult debug_sleep_prepare(Server& server, Client& client, Op& op,
-                                     uint64_t& delay_us);
+DebugSleepResult debug_sleep_prepare(Server& server, Client& client, Op& op, uint64_t& delay_us);
 
 // Keep the EXEC-only coordination out of the ordinary scatter-gather translation unit.
 bool debug_sleep_exec(Server& server, Shard& shard, std::atomic<long long>& state,

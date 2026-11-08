@@ -22,8 +22,8 @@ inline constexpr uint32_t kReadLocalRetireRingCapacity = 4096;
 
 struct ReadLocalRetireSink {
     using ReclaimFn = void (*)(void* owner, void* payload, size_t auxiliary);
-    using DeferFn = void (*)(void* context, void* owner, void* payload,
-                            size_t auxiliary, ReclaimFn reclaim);
+    using DeferFn = void (*)(void* context, void* owner, void* payload, size_t auxiliary,
+                             ReclaimFn reclaim);
 
     void* context = nullptr;
     DeferFn defer = nullptr;

@@ -62,7 +62,7 @@ uint32_t ExLoopT<true>::split_read_local_pass() {
     if (__builtin_expect(lane.lane_pressure != 0, false)) lane.lane_pressure--;
     const uint32_t cap = srv_->debug_read_local_lane_cap();
     const uint16_t want = cap == 0 ? static_cast<uint16_t>(kInboxSlots)
-        : static_cast<uint16_t>(std::min<uint32_t>(cap, kInboxSlots));
+                                   : static_cast<uint16_t>(std::min<uint32_t>(cap, kInboxSlots));
     if (__builtin_expect(lane.lane_admit_cap != want, false)) lane.lane_admit_cap = want;
     self_->publish_read_local_tick(srv_->read_local_epoch());
     return did;
@@ -70,34 +70,42 @@ uint32_t ExLoopT<true>::split_read_local_pass() {
 
 // Preserve the split IO schedule; only the parser's reader capability and lane drain vary.
 void IoLoop::run_split_read_local_baseline() {
-    const bool has_unix = unix_listen_fd_ >= 0 ||
-                          (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
+    const bool has_unix =
+        unix_listen_fd_ >= 0 || (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
     const bool has_tls = tls_context_ != nullptr;
     auto run = [&]() {
         if (epoll_) {
             if (has_tls) {
-                if (has_unix) run_loop<true, true, true, true, true>();
-                else run_loop<false, true, true, true, true>();
+                if (has_unix)
+                    run_loop<true, true, true, true, true>();
+                else
+                    run_loop<false, true, true, true, true>();
             } else {
-                if (has_unix) run_loop<true, false, true, true, true>();
-                else run_loop<false, false, true, true, true>();
+                if (has_unix)
+                    run_loop<true, false, true, true, true>();
+                else
+                    run_loop<false, false, true, true, true>();
             }
         } else if (has_tls) {
-            if (has_unix) run_loop<true, true, false, true, true>();
-            else run_loop<false, true, false, true, true>();
+            if (has_unix)
+                run_loop<true, true, false, true, true>();
+            else
+                run_loop<false, true, false, true, true>();
         } else {
-            if (has_unix) run_loop<true, false, false, true, true>();
-            else run_loop<false, false, false, true, true>();
+            if (has_unix)
+                run_loop<true, false, false, true, true>();
+            else
+                run_loop<false, false, false, true, true>();
         }
     };
     run();
 }
 
 int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
-                     const std::vector<std::unique_ptr<AofReplayPlan>>& aof_plans,
-                     const SnapshotLoadPlan* load_plan, TlsContext* tls_context,
-                     LateUnixListener& unix_listener,
-                     ShutdownReportFinalLine& final_report) {
+                                const std::vector<std::unique_ptr<AofReplayPlan>>& aof_plans,
+                                const SnapshotLoadPlan* load_plan, TlsContext* tls_context,
+                                LateUnixListener& unix_listener,
+                                ShutdownReportFinalLine& final_report) {
     const Config& cfg = srv.cfg();
     const uint32_t nthreads = srv.nthreads();
     if (cfg.thread_mode != ThreadMode::Split || !srv.read_local_enabled()) std::abort();
@@ -164,9 +172,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
             } else if (ok && load_plan) {
                 ok = snapshot_load_owned(*load_plan, srv, self, local_error);
             }
-            if (ok)
-                ok = ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, -1,
-                                   tls_context, true);
+            if (ok) ok = ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, -1, tls_context, true);
             if (ok)
                 self.bind_io_role_hooks(
                     &ios[tid],
@@ -181,32 +187,26 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
                         static_cast<IoLoop*>(p)->cancel_client_registration(client);
                     });
             if (ok)
-                self.bind_client_capacity_hook(
-                    [](void* p, uint32_t incoming) {
-                        return static_cast<IoLoop*>(p)->prepare_client_transfer_capacity(incoming);
-                    });
+                self.bind_client_capacity_hook([](void* p, uint32_t incoming) {
+                    return static_cast<IoLoop*>(p)->prepare_client_transfer_capacity(incoming);
+                });
             if (ok) {
                 executors[tid].activate_fused();
                 ios[tid].bind_fused_executor(&executors[tid]);
-                executors[tid].bind_fused_completion(
-                    &ios[tid],
-                    [](void* p, Client* client) {
-                        static_cast<IoLoop*>(p)->fused_executor_completion(client);
-                    });
+                executors[tid].bind_fused_completion(&ios[tid], [](void* p, Client* client) {
+                    static_cast<IoLoop*>(p)->fused_executor_completion(client);
+                });
                 if (srv.read_local_enabled())
                     executors[tid].bind_read_local_demotion(
-                        &ios[tid],
-                        [](void* p, Client* client, const uint64_t* probed,
-                           const ReadLocalFallbackReason* fallbacks,
-                           uint32_t probed_count, uint32_t& demoted) {
+                        &ios[tid], [](void* p, Client* client, const uint64_t* probed,
+                                      const ReadLocalFallbackReason* fallbacks,
+                                      uint32_t probed_count, uint32_t& demoted) {
                             return static_cast<IoLoop*>(p)->fused_demote_local_read_batch(
                                 client, probed, fallbacks, probed_count, demoted);
                         });
                 self.bind_fused_executor_hooks(
                     &executors[tid],
-                    [](void* p) {
-                        return static_cast<FusedExLoop*>(p)->split_read_local_pass();
-                    },
+                    [](void* p) { return static_cast<FusedExLoop*>(p)->split_read_local_pass(); },
                     [](void*, SnapshotManager*) {
                         // Snapshot broadcasts target EX only in split placement. The writer's
                         // progress hook above still advances QSBR during blocking SAVE.
@@ -270,8 +270,8 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
     }
 
     const bool port_ok = probe_boot_listener(cfg, cfg.port, false, make_exclusive_boot_listener);
-    const bool tls_port_ok = port_ok &&
-        probe_boot_listener(cfg, cfg.tls_port, true, make_exclusive_boot_listener);
+    const bool tls_port_ok =
+        port_ok && probe_boot_listener(cfg, cfg.tls_port, true, make_exclusive_boot_listener);
     if (!port_ok || !tls_port_ok) {
         std::perror(port_ok ? "bind tls-port" : "bind");
         stop_workers();
@@ -291,12 +291,12 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
         }
         (void)unix_listener.release_fd();
     }
-    if (!boot.advance_ready(srv.shutting_down()) ||
-        !boot.wait_ready(srv.shutting_down()) ||
+    if (!boot.advance_ready(srv.shutting_down()) || !boot.wait_ready(srv.shutting_down()) ||
         !boot.advance_running(srv.shutting_down())) {
         stop_workers();
         const std::string error = boot.error();
-        if (!error.empty()) std::fprintf(stderr, "split read-local boot failed: %s\n", error.c_str());
+        if (!error.empty())
+            std::fprintf(stderr, "split read-local boot failed: %s\n", error.c_str());
         const bool interrupted = srv.shutting_down().load(std::memory_order_relaxed);
         if (interrupted) report_graceful_shutdown();
         return interrupted ? 0 : 1;
@@ -316,8 +316,8 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
 
 // Keep the scratch arrays out of cmd_info's frame, including with LTO. Only an armed INFO SERVER
 // request reaches this helper; the boot/runtime paths install no reporting callback or sidecar.
-__attribute__((noinline, cold))
-void append_read_local_thread_info(std::string& body, const Server& srv) {
+__attribute__((noinline, cold)) void append_read_local_thread_info(std::string& body,
+                                                                   const Server& srv) {
     uint32_t active_readers = 0;
     uint32_t owned[kMaxThreads] = {};
     // Read the published ownership directory, never a vector FLIP may be rewriting.
@@ -329,23 +329,24 @@ void append_read_local_thread_info(std::string& body, const Server& srv) {
         const bool active = thread.read_local_lane_active();
         active_readers += active;
         const Role role = thread.role();
-        const char* name = role == Role::Idle ? "idle"
-            : srv.thread_mode() == ThreadMode::Fused ? "unified"
-            : role == Role::Ifid ? "ifid" : "ex";
+        const char* name = role == Role::Idle                       ? "idle"
+                           : srv.thread_mode() == ThreadMode::Fused ? "unified"
+                           : role == Role::Ifid                     ? "ifid"
+                                                                    : "ex";
         const ReadLocalStats& stats = thread.read_local_stats();
         // Lifetime counters survive FLIP and RESETSTAT; INFO stats retains its existing
         // RESETSTAT-relative aggregate counters.
         const int n = std::snprintf(row, sizeof(row),
-            "read_local_thread_%u:role=%s,shards=%u,active=%u,"
-            "hits_total=%llu,mget_hits_total=%llu\r\n",
-            tid, name, owned[tid], active ? 1u : 0u,
-            static_cast<unsigned long long>(stats.hits),
-            static_cast<unsigned long long>(stats.mget_local_hits));
+                                    "read_local_thread_%u:role=%s,shards=%u,active=%u,"
+                                    "hits_total=%llu,mget_hits_total=%llu\r\n",
+                                    tid, name, owned[tid], active ? 1u : 0u,
+                                    static_cast<unsigned long long>(stats.hits),
+                                    static_cast<unsigned long long>(stats.mget_local_hits));
         if (n < 0 || static_cast<size_t>(n) >= sizeof(row)) std::abort();
         body.append(row, static_cast<size_t>(n));
     }
-    const int n = std::snprintf(row, sizeof(row), "read_local_active_threads:%u\r\n",
-                              active_readers);
+    const int n =
+        std::snprintf(row, sizeof(row), "read_local_active_threads:%u\r\n", active_readers);
     if (n < 0 || static_cast<size_t>(n) >= sizeof(row)) std::abort();
     body.append(row, static_cast<size_t>(n));
 }

@@ -36,12 +36,12 @@ struct FlipControllerTest {
         require(c.phase_ == Phase::WaitingFlip && s.flip_completed() == 0,
                 "automatic waiting window armed");
     }
-    template<class S>
+    template <class S>
     static bool stale_admission(S& s, std::string& error) {
         if constexpr (requires { s.flip_begin(4, 4, 0, error, uint64_t{0}); })
             return s.flip_begin(4, 4, 0, error, uint64_t{0});
         else
-            return s.flip_begin(4, 4, 0, error); // same stale request on frozen PRE
+            return s.flip_begin(4, 4, 0, error);  // same stale request on frozen PRE
     }
     static void completions() {
         // The audit witness: auto completes, a successful different manual target
@@ -53,7 +53,8 @@ struct FlipControllerTest {
             complete(f.server);
             manual(f.server, 6);
             require(f.server.flip_completed() == 2 && f.server.flip_refused() == 0 &&
-                    f.server.role_count(Role::Ifid) == 6, "CT4.1 two-completion witness armed");
+                        f.server.role_count(Role::Ifid) == 6,
+                    "CT4.1 two-completion witness armed");
             c.tick(f.server, 3000);
             std::printf("CT4.1 auto/manual: completed=%llu phase=%s consumed=%llu\n",
                         (unsigned long long)f.server.flip_completed(), c.phase_name(c.phase_),
@@ -62,50 +63,55 @@ struct FlipControllerTest {
             require(c.phase_ == Phase::Settling && c.pending_completed_ == 2,
                     "CT4.1 manual override leaves waiting and consumes both completions");
             require(c.seek_ == Seek::None && !c.pending_miss_ && c.cost_.moves == 0 &&
-                    c.cost_.flips == 0, "overridden hypothesis cannot learn mixed outcome/cost");
+                        c.cost_.flips == 0,
+                    "overridden hypothesis cannot learn mixed outcome/cost");
             c.tick(f.server, 4000);
             const auto samples = c.anchor_signature_samples_;
             c.tick(f.server, 4000);
             require(c.pending_completed_ == 2 && c.cost_.flips == 0 &&
-                    c.anchor_signature_samples_ == samples, "completion batch consumed only once");
+                        c.anchor_signature_samples_ == samples,
+                    "completion batch consumed only once");
         }
         for (bool observe_first : {false, true})
-        for (bool same_target : {false, true})
-        for (bool force : {false, true}) {
-            Fixture f(false);
-            FlipController c;
-            waiting(c, f.server);
-            c.last_trigger_ = FlipctlTriggerReason::FingerprintShift;
-            c.signature_learning_windows_ = 8;
-            c.shift_confirmations_ = 2;
-            c.model_margin_ = 8;
-            complete(f.server);
-            if (observe_first) {
-                c.tick(f.server, 2100);
-                require(c.phase_ == Phase::Seeking && c.cost_.flips == 1 &&
-                        c.pending_completed_ == 1, "isolated automatic completion consumed once");
-            }
-            manual(f.server, same_target ? 4 : 6);
-            if (force) c.request_forced_trigger();
-            c.tick(f.server, 3000);
-            require(c.pending_completed_ == 2 &&
-                    c.phase_ == (force ? Phase::Measuring : Phase::Settling),
-                    "manual completion invalidates even a same-target/no-op hypothesis");
-            require(c.cost_.flips == (observe_first ? 1u : 0u) && c.cost_.moves == 0,
-                    "only an isolated automatic completion contributes cost");
-            if (!force) {
-                c.anchor(f.server, 6000);
-                require(c.shift_confirmations_ == 2 && c.model_margin_ == 8 &&
-                        c.null_maneuvers_ == 0 && c.cost_.moves == 0,
-                        "manual anchor cannot credit or penalize a canceled automatic hypothesis");
-            }
-        }
+            for (bool same_target : {false, true})
+                for (bool force : {false, true}) {
+                    Fixture f(false);
+                    FlipController c;
+                    waiting(c, f.server);
+                    c.last_trigger_ = FlipctlTriggerReason::FingerprintShift;
+                    c.signature_learning_windows_ = 8;
+                    c.shift_confirmations_ = 2;
+                    c.model_margin_ = 8;
+                    complete(f.server);
+                    if (observe_first) {
+                        c.tick(f.server, 2100);
+                        require(c.phase_ == Phase::Seeking && c.cost_.flips == 1 &&
+                                    c.pending_completed_ == 1,
+                                "isolated automatic completion consumed once");
+                    }
+                    manual(f.server, same_target ? 4 : 6);
+                    if (force) c.request_forced_trigger();
+                    c.tick(f.server, 3000);
+                    require(c.pending_completed_ == 2 &&
+                                c.phase_ == (force ? Phase::Measuring : Phase::Settling),
+                            "manual completion invalidates even a same-target/no-op hypothesis");
+                    require(c.cost_.flips == (observe_first ? 1u : 0u) && c.cost_.moves == 0,
+                            "only an isolated automatic completion contributes cost");
+                    if (!force) {
+                        c.anchor(f.server, 6000);
+                        require(
+                            c.shift_confirmations_ == 2 && c.model_margin_ == 8 &&
+                                c.null_maneuvers_ == 0 && c.cost_.moves == 0,
+                            "manual anchor cannot credit or penalize a canceled automatic hypothesis");
+                    }
+                }
         {
             Fixture f(false);
             FlipController c;
             waiting(c, f.server);
             std::string error;
-            require(!f.server.flip_begin(6, 2, 0, error), "manual request while auto active refused");
+            require(!f.server.flip_begin(6, 2, 0, error),
+                    "manual request while auto active refused");
             c.tick(f.server, 2200);
             require(c.phase_ == Phase::WaitingFlip, "active ownership transaction must finish");
             complete(f.server);
@@ -122,11 +128,11 @@ struct FlipControllerTest {
             require(c.retrigger_after_flip_, "forced trigger deferred during active flip");
             complete(f.server);
             c.tick(f.server, 3000);
-            require(c.phase_ == Phase::Measuring && c.pending_completed_ == 1 &&
-                    c.cost_.flips == 1, "forced restart consumes completion before clearing state");
+            require(c.phase_ == Phase::Measuring && c.pending_completed_ == 1 && c.cost_.flips == 1,
+                    "forced restart consumes completion before clearing state");
         }
-        for (auto phase : {Phase::BootPending, Phase::Measuring, Phase::Seeking,
-                           Phase::Settling, Phase::Anchored}) {
+        for (auto phase : {Phase::BootPending, Phase::Measuring, Phase::Seeking, Phase::Settling,
+                           Phase::Anchored}) {
             Fixture f(false);
             FlipController c;
             require(c.init(true, 8), "external completion controller initialized");
@@ -146,7 +152,8 @@ struct FlipControllerTest {
             require(f.server.flip_begin(6, 2, 0, error), "manual superseding transaction admitted");
             c.tick(f.server, 2500);
             require(c.phase_ == Phase::WaitingFlip && c.pending_completed_ == 0 &&
-                    f.server.flip_completed() == 1, "in-flight manual transaction defers snapshot consumption");
+                        f.server.flip_completed() == 1,
+                    "in-flight manual transaction defers snapshot consumption");
             complete(f.server);
             c.tick(f.server, 3000);
             require(c.phase_ == Phase::Settling && c.pending_completed_ == 2 && c.cost_.flips == 0,
@@ -179,7 +186,8 @@ struct FlipControllerTest {
             manual(f.server, 6);
             std::string error;
             require(!stale_admission(f.server, error) && f.server.flip_stage() == FlipStage::Idle &&
-                    f.server.flip_completed() == 1, "admission rejects unobserved manual completion");
+                        f.server.flip_completed() == 1,
+                    "admission rejects unobserved manual completion");
         }
         std::puts("CT4.1 completion schedules PASS");
     }
@@ -209,18 +217,19 @@ struct FlipControllerTest {
                 measuring += c.phase_ == Phase::Measuring;
                 capped |= c.model_readings_cap_ != 0 && c.model_readings_ == c.model_readings_cap_;
             }
-            std::printf("CT4.2 mix=%u boot=%llu measuring_ticks=%u samples=%u cap=%u "
-                        "demand=%u phase=%s\n", mix, (unsigned long long)c.boot_triggers_, measuring,
-                        c.model_readings_, c.model_readings_cap_, c.demand_window_.samples,
-                        c.phase_name(c.phase_));
+            std::printf(
+                "CT4.2 mix=%u boot=%llu measuring_ticks=%u samples=%u cap=%u "
+                "demand=%u phase=%s\n",
+                mix, (unsigned long long)c.boot_triggers_, measuring, c.model_readings_,
+                c.model_readings_cap_, c.demand_window_.samples, c.phase_name(c.phase_));
             std::fflush(stdout);
             require(c.boot_triggers_ == 1 && measuring > 0, "boot measurement actually armed");
             require(c.phase_ == Phase::Anchored && c.signal_sample_rate() == 0 &&
-                    c.model_readings_ > 0 && c.model_readings_ <= c.model_readings_cap_,
+                        c.model_readings_ > 0 && c.model_readings_ <= c.model_readings_cap_,
                     "CT4.2 every traffic mix finishes boot measurement and disarms");
             if (mix == 0)
                 require(capped && c.demand_window_.samples == 0 && c.model_holds_ == 1 &&
-                        f.server.flip_completed() == 0,
+                            f.server.flip_completed() == 0,
                         "IO-only samples exhaust cap without inventing executor demand or moving");
         }
         std::puts("CT4.2 boot measurement samples PASS");
@@ -251,17 +260,20 @@ struct FlipControllerTest {
                 for (uint32_t tid = 0; tid != 8; ++tid) {
                     auto& signal = f.server.thread(tid).sig();
                     const auto role = f.server.thread(tid).role();
-                    if (role == Role::Ex || (role == Role::Ifid && active_io++ < 2)) signal.ops += 1000;
-                    else signal.idle_ns += 1000000000;
+                    if (role == Role::Ex || (role == Role::Ifid && active_io++ < 2))
+                        signal.ops += 1000;
+                    else
+                        signal.idle_ns += 1000000000;
                 }
                 now += 1000;
                 c.observe_rate(1000000, 1000);
                 issued = c.decide_placement(f.server, 0, now, baseline);
             }
             if (!issued || c.model_gain_mean_ != 1.0 || c.model_target_io_ != 4) {
-                std::printf("CT4.7 arm move=%u issued=%u raw=%.17g target=%u demand=%u phase=%s decision=%s\n",
-                            move + 1, issued, c.model_gain_mean_, c.model_target_io_,
-                            c.demand_window_.samples, c.phase_name(c.phase_), c.model_last_decision_);
+                std::printf(
+                    "CT4.7 arm move=%u issued=%u raw=%.17g target=%u demand=%u phase=%s decision=%s\n",
+                    move + 1, issued, c.model_gain_mean_, c.model_target_io_,
+                    c.demand_window_.samples, c.phase_name(c.phase_), c.model_last_decision_);
                 std::fflush(stdout);
             }
             require(issued && std::abs(c.model_gain_mean_ - 1.0) < 1e-12 && c.model_target_io_ == 4,
@@ -271,8 +283,8 @@ struct FlipControllerTest {
             complete(f.server);
             c.tick(f.server, ++now);
             const bool miss = move == 0 || move + 1 == count;
-            const bool returned = c.seek_after_reading(f.server, 0, ++now,
-                                                      baseline * (miss ? 1.0 : 1.0 + delivery));
+            const bool returned =
+                c.seek_after_reading(f.server, 0, ++now, baseline * (miss ? 1.0 : 1.0 + delivery));
             if (miss) {
                 require(returned && c.pending_miss_, "miss actually takes return path");
                 complete(f.server);
@@ -281,22 +293,25 @@ struct FlipControllerTest {
             } else {
                 require(!returned && c.refining_, "hit actually enters refinement");
                 delivered_sum += delivery;
-                refinement_units &= std::abs(c.refine_bar_ - std::max(0.0, forecast - delivery)) < 1e-12;
+                refinement_units &=
+                    std::abs(c.refine_bar_ - std::max(0.0, forecast - delivery)) < 1e-12;
             }
             const double expected = (delivered_sum + 1.0) / (move + 2.0);
             maximum_error = std::max(maximum_error, std::abs(c.cost_.kappa() - expected));
             if (move < 3 || move + 1 == count)
-                std::printf("CT4.7 move=%u raw=1 forecast=%.9f delivered=%.2f kappa=%.9f expected=%.9f\n",
-                            move + 1, forecast, miss ? 0.0 : delivery, c.cost_.kappa(), expected);
+                std::printf(
+                    "CT4.7 move=%u raw=1 forecast=%.9f delivered=%.2f kappa=%.9f expected=%.9f\n",
+                    move + 1, forecast, miss ? 0.0 : delivery, c.cost_.kappa(), expected);
         }
         std::printf("CT4.7 moves=%u misses=%u predicted_sum=%.9f maximum_error=%.9f\n",
                     c.cost_.moves, c.cost_.misses, c.cost_.predicted_sum, maximum_error);
         std::fflush(stdout);
         require(c.cost_.moves == count && c.cost_.misses == 2, "all synthetic outcomes recorded");
-        require(raw_predictions && std::abs(c.cost_.predicted_sum - count) < 1e-9 && maximum_error < 1e-12 &&
-                std::abs(c.cost_.kappa() - delivery) < 0.01,
+        require(raw_predictions && std::abs(c.cost_.predicted_sum - count) < 1e-9 &&
+                    maximum_error < 1e-12 && std::abs(c.cost_.kappa() - delivery) < 0.01,
                 "CT4.7 learner converges on raw predictions after biased hits and misses");
-        require(refinement_units, "refinement compares delivered gain with saved calibrated forecast");
+        require(refinement_units,
+                "refinement compares delivered gain with saved calibrated forecast");
         std::puts("CT4.7 raw-model calibration PASS");
     }
 };
@@ -305,8 +320,12 @@ struct FlipControllerTest {
 int main(int argc, char** argv) {
     tomo::CoreConcurrencyTest::require(tomo::command_registry_init(false), "command registry");
     tomo::CoreConcurrencyTest::require(argc == 2, "select a controller regression");
-    if (std::strcmp(argv[1], "completions") == 0) tomo::FlipControllerTest::completions();
-    else if (std::strcmp(argv[1], "boot") == 0) tomo::FlipControllerTest::boot_samples();
-    else if (std::strcmp(argv[1], "calibration") == 0) tomo::FlipControllerTest::calibration();
-    else tomo::CoreConcurrencyTest::require(false, "unknown controller regression");
+    if (std::strcmp(argv[1], "completions") == 0)
+        tomo::FlipControllerTest::completions();
+    else if (std::strcmp(argv[1], "boot") == 0)
+        tomo::FlipControllerTest::boot_samples();
+    else if (std::strcmp(argv[1], "calibration") == 0)
+        tomo::FlipControllerTest::calibration();
+    else
+        tomo::CoreConcurrencyTest::require(false, "unknown controller regression");
 }

@@ -24,79 +24,146 @@ std::vector<FlatStoreBinding> g_notify_flat_stores;
 
 const char* notify_event_name(NotifyEventId event) {
     switch (event) {
-        case NotifyEventId::Set: return "set";
-        case NotifyEventId::Expire: return "expire";
-        case NotifyEventId::Del: return "del";
-        case NotifyEventId::Persist: return "persist";
-        case NotifyEventId::RenameFrom: return "rename_from";
-        case NotifyEventId::RenameTo: return "rename_to";
-        case NotifyEventId::MoveFrom: return "move_from";
-        case NotifyEventId::MoveTo: return "move_to";
-        case NotifyEventId::CopyTo: return "copy_to";
-        case NotifyEventId::Restore: return "restore";
-        case NotifyEventId::Setrange: return "setrange";
-        case NotifyEventId::Append: return "append";
-        case NotifyEventId::Incrby: return "incrby";
-        case NotifyEventId::Incrbyfloat: return "incrbyfloat";
-        case NotifyEventId::Setbit: return "setbit";
-        case NotifyEventId::Pfadd: return "pfadd";
-        case NotifyEventId::Lpush: return "lpush";
-        case NotifyEventId::Rpush: return "rpush";
-        case NotifyEventId::Lpop: return "lpop";
-        case NotifyEventId::Rpop: return "rpop";
-        case NotifyEventId::Linsert: return "linsert";
-        case NotifyEventId::Lset: return "lset";
-        case NotifyEventId::Lrem: return "lrem";
-        case NotifyEventId::Ltrim: return "ltrim";
-        case NotifyEventId::Sortstore: return "sortstore";
-        case NotifyEventId::Sadd: return "sadd";
-        case NotifyEventId::Srem: return "srem";
-        case NotifyEventId::Spop: return "spop";
-        case NotifyEventId::Sinterstore: return "sinterstore";
-        case NotifyEventId::Sunionstore: return "sunionstore";
-        case NotifyEventId::Sdiffstore: return "sdiffstore";
-        case NotifyEventId::Hset: return "hset";
-        case NotifyEventId::Hincrby: return "hincrby";
-        case NotifyEventId::Hincrbyfloat: return "hincrbyfloat";
-        case NotifyEventId::Hdel: return "hdel";
-        case NotifyEventId::Hexpire: return "hexpire";
-        case NotifyEventId::Hpersist: return "hpersist";
-        case NotifyEventId::Hexpired: return "hexpired";
-        case NotifyEventId::Zadd: return "zadd";
-        case NotifyEventId::Zincr: return "zincr";
-        case NotifyEventId::Zrem: return "zrem";
-        case NotifyEventId::Zremrangebyrank: return "zremrangebyrank";
-        case NotifyEventId::Zremrangebyscore: return "zremrangebyscore";
-        case NotifyEventId::Zremrangebylex: return "zremrangebylex";
-        case NotifyEventId::Zpopmin: return "zpopmin";
-        case NotifyEventId::Zpopmax: return "zpopmax";
-        case NotifyEventId::Zrangestore: return "zrangestore";
-        case NotifyEventId::Zunionstore: return "zunionstore";
-        case NotifyEventId::Zinterstore: return "zinterstore";
-        case NotifyEventId::Zdiffstore: return "zdiffstore";
-        case NotifyEventId::Geosearchstore: return "geosearchstore";
-        case NotifyEventId::Georadiusstore: return "georadiusstore";
-        case NotifyEventId::Xadd: return "xadd";
-        case NotifyEventId::Xdel: return "xdel";
-        case NotifyEventId::Xtrim: return "xtrim";
-        case NotifyEventId::XgroupCreate: return "xgroup-create";
-        case NotifyEventId::XgroupDestroy: return "xgroup-destroy";
-        case NotifyEventId::XgroupCreateconsumer: return "xgroup-createconsumer";
-        case NotifyEventId::XgroupDelconsumer: return "xgroup-delconsumer";
-        case NotifyEventId::XgroupSetid: return "xgroup-setid";
-        case NotifyEventId::Xsetid: return "xsetid";
-        case NotifyEventId::Expired: return "expired";
-        case NotifyEventId::Evicted: return "evicted";
-        case NotifyEventId::Keymiss: return "keymiss";
-        case NotifyEventId::New: return "new";
+        case NotifyEventId::Set:
+            return "set";
+        case NotifyEventId::Expire:
+            return "expire";
+        case NotifyEventId::Del:
+            return "del";
+        case NotifyEventId::Persist:
+            return "persist";
+        case NotifyEventId::RenameFrom:
+            return "rename_from";
+        case NotifyEventId::RenameTo:
+            return "rename_to";
+        case NotifyEventId::MoveFrom:
+            return "move_from";
+        case NotifyEventId::MoveTo:
+            return "move_to";
+        case NotifyEventId::CopyTo:
+            return "copy_to";
+        case NotifyEventId::Restore:
+            return "restore";
+        case NotifyEventId::Setrange:
+            return "setrange";
+        case NotifyEventId::Append:
+            return "append";
+        case NotifyEventId::Incrby:
+            return "incrby";
+        case NotifyEventId::Incrbyfloat:
+            return "incrbyfloat";
+        case NotifyEventId::Setbit:
+            return "setbit";
+        case NotifyEventId::Pfadd:
+            return "pfadd";
+        case NotifyEventId::Lpush:
+            return "lpush";
+        case NotifyEventId::Rpush:
+            return "rpush";
+        case NotifyEventId::Lpop:
+            return "lpop";
+        case NotifyEventId::Rpop:
+            return "rpop";
+        case NotifyEventId::Linsert:
+            return "linsert";
+        case NotifyEventId::Lset:
+            return "lset";
+        case NotifyEventId::Lrem:
+            return "lrem";
+        case NotifyEventId::Ltrim:
+            return "ltrim";
+        case NotifyEventId::Sortstore:
+            return "sortstore";
+        case NotifyEventId::Sadd:
+            return "sadd";
+        case NotifyEventId::Srem:
+            return "srem";
+        case NotifyEventId::Spop:
+            return "spop";
+        case NotifyEventId::Sinterstore:
+            return "sinterstore";
+        case NotifyEventId::Sunionstore:
+            return "sunionstore";
+        case NotifyEventId::Sdiffstore:
+            return "sdiffstore";
+        case NotifyEventId::Hset:
+            return "hset";
+        case NotifyEventId::Hincrby:
+            return "hincrby";
+        case NotifyEventId::Hincrbyfloat:
+            return "hincrbyfloat";
+        case NotifyEventId::Hdel:
+            return "hdel";
+        case NotifyEventId::Hexpire:
+            return "hexpire";
+        case NotifyEventId::Hpersist:
+            return "hpersist";
+        case NotifyEventId::Hexpired:
+            return "hexpired";
+        case NotifyEventId::Zadd:
+            return "zadd";
+        case NotifyEventId::Zincr:
+            return "zincr";
+        case NotifyEventId::Zrem:
+            return "zrem";
+        case NotifyEventId::Zremrangebyrank:
+            return "zremrangebyrank";
+        case NotifyEventId::Zremrangebyscore:
+            return "zremrangebyscore";
+        case NotifyEventId::Zremrangebylex:
+            return "zremrangebylex";
+        case NotifyEventId::Zpopmin:
+            return "zpopmin";
+        case NotifyEventId::Zpopmax:
+            return "zpopmax";
+        case NotifyEventId::Zrangestore:
+            return "zrangestore";
+        case NotifyEventId::Zunionstore:
+            return "zunionstore";
+        case NotifyEventId::Zinterstore:
+            return "zinterstore";
+        case NotifyEventId::Zdiffstore:
+            return "zdiffstore";
+        case NotifyEventId::Geosearchstore:
+            return "geosearchstore";
+        case NotifyEventId::Georadiusstore:
+            return "georadiusstore";
+        case NotifyEventId::Xadd:
+            return "xadd";
+        case NotifyEventId::Xdel:
+            return "xdel";
+        case NotifyEventId::Xtrim:
+            return "xtrim";
+        case NotifyEventId::XgroupCreate:
+            return "xgroup-create";
+        case NotifyEventId::XgroupDestroy:
+            return "xgroup-destroy";
+        case NotifyEventId::XgroupCreateconsumer:
+            return "xgroup-createconsumer";
+        case NotifyEventId::XgroupDelconsumer:
+            return "xgroup-delconsumer";
+        case NotifyEventId::XgroupSetid:
+            return "xgroup-setid";
+        case NotifyEventId::Xsetid:
+            return "xsetid";
+        case NotifyEventId::Expired:
+            return "expired";
+        case NotifyEventId::Evicted:
+            return "evicted";
+        case NotifyEventId::Keymiss:
+            return "keymiss";
+        case NotifyEventId::New:
+            return "new";
     }
     return "";
 }
 
 uint32_t notify_event_priority(NotifyEventId event) {
     switch (event) {
-        case NotifyEventId::Expired: return 0;
-        case NotifyEventId::New: return 1;
+        case NotifyEventId::Expired:
+            return 0;
+        case NotifyEventId::New:
+            return 1;
         case NotifyEventId::Set:
         case NotifyEventId::Setrange:
         case NotifyEventId::Append:
@@ -151,15 +218,20 @@ uint32_t notify_event_priority(NotifyEventId event) {
         case NotifyEventId::MoveFrom:
         case NotifyEventId::MoveTo:
         case NotifyEventId::CopyTo:
-        case NotifyEventId::Restore: return 4;
-        case NotifyEventId::Hexpired: return 3;   // strictly before the del it may trigger
+        case NotifyEventId::Restore:
+            return 4;
+        case NotifyEventId::Hexpired:
+            return 3;  // strictly before the del it may trigger
         case NotifyEventId::Expire:
         case NotifyEventId::Persist:
         case NotifyEventId::Hexpire:
-        case NotifyEventId::Hpersist: return 6;
-        case NotifyEventId::Del: return 8;
+        case NotifyEventId::Hpersist:
+            return 6;
+        case NotifyEventId::Del:
+            return 8;
         case NotifyEventId::Evicted:
-        case NotifyEventId::Keymiss: return 4;
+        case NotifyEventId::Keymiss:
+            return 4;
     }
     return 4;
 }
@@ -184,12 +256,12 @@ uint32_t notify_key_arg_order(const Shard& shard, const Op& source, Slice key) {
     // This observer must not add a caller to the hot scatter classifier: GCC
     // can change its inlining in GET/MGET routing when the caller count changes.
     const Slice name = source.cmd_name();
-    return name.eq_icase("bitop") || name.eq_icase("sinterstore") ||
-        name.eq_icase("sunionstore") || name.eq_icase("sdiffstore") ||
-        name.eq_icase("zunionstore") || name.eq_icase("zinterstore") ||
-        name.eq_icase("zdiffstore") || name.eq_icase("zrangestore") ||
-        name.eq_icase("sort") || name.eq_icase("geosearchstore") ||
-        name.eq_icase("georadius") || name.eq_icase("georadiusbymember");
+    return name.eq_icase("bitop") || name.eq_icase("sinterstore") || name.eq_icase("sunionstore") ||
+           name.eq_icase("sdiffstore") || name.eq_icase("zunionstore") ||
+           name.eq_icase("zinterstore") || name.eq_icase("zdiffstore") ||
+           name.eq_icase("zrangestore") || name.eq_icase("sort") ||
+           name.eq_icase("geosearchstore") || name.eq_icase("georadius") ||
+           name.eq_icase("georadiusbymember");
 }
 
 std::string notify_keyspace_channel(Slice key, uint8_t db) {
@@ -204,11 +276,10 @@ std::string notify_keyevent_channel(NotifyEventId event, uint8_t db) {
     return channel;
 }
 
-} // namespace
+}  // namespace
 
-bool notify_make_publication(uint8_t db, uint32_t routes, uint8_t route,
-                             NotifyEventId event_id, Slice key,
-                             std::string& channel, std::string& message) {
+bool notify_make_publication(uint8_t db, uint32_t routes, uint8_t route, NotifyEventId event_id,
+                             Slice key, std::string& channel, std::string& message) {
     if (route == 0) {
         if (!(routes & NOTIFY_KEYSPACE)) return false;
         channel = notify_keyspace_channel(key, db);
@@ -222,14 +293,15 @@ bool notify_make_publication(uint8_t db, uint32_t routes, uint8_t route,
 }
 
 std::shared_ptr<PubSubNotificationChain> notify_reserve_chain(
-        Server& server, std::unique_ptr<PubSubNotificationChain> chain,
-        std::shared_ptr<NotifyExpiryCompletion> expiry_completion) {
+    Server& server, std::unique_ptr<PubSubNotificationChain> chain,
+    std::shared_ptr<NotifyExpiryCompletion> expiry_completion) {
     const uint64_t count = chain ? chain->items.size() : 0;
     if (!count || !server.pubsub_notification_reserve(count, kNotifyInflightCap)) return {};
     PubSubNotificationChain* raw = chain.release();
     // The shared_ptr constructor invokes this deleter even if its control block allocation fails.
     return std::shared_ptr<PubSubNotificationChain>(
-        raw, [&server, count, completion = std::move(expiry_completion)](PubSubNotificationChain* owned) {
+        raw, [&server, count,
+              completion = std::move(expiry_completion)](PubSubNotificationChain* owned) {
             delete owned;
             server.pubsub_notification_retire(count);
         });
@@ -261,7 +333,8 @@ NotifyBatch* notify_get_or_create_batch(Op& carrier) {
 
 void notify_monitor_script(Shard& shard, Op& parent, Op& nested, uint32_t multi_order) {
     if (!shard.server() || !shard.server()->climon_monitors() ||
-        command_metadata_skip_monitor(nested)) return;
+        command_metadata_skip_monitor(nested))
+        return;
     Op* carrier = shard.notify_carrier();
     NotifyBatch* batch = notify_get_or_create_batch(carrier ? *carrier : parent);
     if (!batch) throw std::bad_alloc();
@@ -277,50 +350,56 @@ void notify_execute_source(Shard& shard, Op& source, uint32_t order_base) {
     shard.set_notify_context(shard.notify_carrier(), &source, order_base);
 }
 
-void notify_execute_leave(Shard& shard) {
-    shard.set_notify_context(nullptr, nullptr, 0);
-}
+void notify_execute_leave(Shard& shard) { shard.set_notify_context(nullptr, nullptr, 0); }
 
-NotifyExecutionScope::NotifyExecutionScope(Shard& shard, Op* op, bool active,
-                                           uint32_t order_base) {
+NotifyExecutionScope::NotifyExecutionScope(Shard& shard, Op* op, bool active, uint32_t order_base) {
     if (!active || !op) return;
     tracking_observe_read(shard, *op);
     shard_ = &shard;
     carrier_ = shard.notify_carrier();
     source_ = shard.notify_source();
     order_base_ = shard.notify_order_base();
-    if (carrier_) notify_execute_source(shard, *op, order_base);
-    else notify_execute_enter(shard, *op, *op, order_base);
+    if (carrier_)
+        notify_execute_source(shard, *op, order_base);
+    else
+        notify_execute_enter(shard, *op, *op, order_base);
 }
 
 NotifyExecutionScope::~NotifyExecutionScope() {
     if (!shard_) return;
-    if (carrier_) shard_->set_notify_context(carrier_, source_, order_base_);
-    else notify_execute_leave(*shard_);
+    if (carrier_)
+        shard_->set_notify_context(carrier_, source_, order_base_);
+    else
+        notify_execute_leave(*shard_);
 }
 
 void notify_execute_handler(Shard& shard, Op& op, void (*handler)(Shard&, Op&)) {
     Op* carrier = shard.notify_carrier();
     Op* prior_source = shard.notify_source();
     const uint32_t order_base = shard.notify_order_base();
-    if (carrier) notify_execute_source(shard, op, order_base);
-    else notify_execute_enter(shard, op, op);
+    if (carrier)
+        notify_execute_source(shard, op, order_base);
+    else
+        notify_execute_enter(shard, op, op);
     handler(shard, op);
-    if (carrier) shard.set_notify_context(carrier, prior_source, order_base);
-    else notify_execute_leave(shard);
+    if (carrier)
+        shard.set_notify_context(carrier, prior_source, order_base);
+    else
+        notify_execute_leave(shard);
 }
 
 void notify_bind_flat_store(const FlatStore* store, FlatNotifySink* sink) {
-    try { g_notify_flat_stores.push_back(FlatStoreBinding{store, sink}); }
-    catch (const std::bad_alloc&) {}
+    try {
+        g_notify_flat_stores.push_back(FlatStoreBinding{store, sink});
+    } catch (const std::bad_alloc&) {
+    }
 }
 
 namespace {
 void notify_flat_emit_unattributed(void*, uint32_t, NotifyEventId, Slice);
 }
 
-void notify_flat_store_emit(const FlatStore* store, uint32_t cls,
-                            NotifyEventId event, Slice key) {
+void notify_flat_store_emit(const FlatStore* store, uint32_t cls, NotifyEventId event, Slice key) {
     for (const FlatStoreBinding& binding : g_notify_flat_stores) {
         if (binding.store != store) continue;
         FlatNotifySink* sink = binding.sink;
@@ -342,7 +421,7 @@ namespace {
 [[gnu::noinline]] bool notify_multi_subscriber(const Shard& shard) {
     const Op* carrier = shard.notify_carrier();
     return carrier && carrier->has_multi_state() &&
-        static_cast<const MultiExecState*>(carrier->multi_state())->has_subscription;
+           static_cast<const MultiExecState*>(carrier->multi_state())->has_subscription;
 }
 }
 
@@ -352,11 +431,15 @@ bool notify_record_slow(Shard& shard, Op& source, uint32_t routes, uint32_t cls,
     Server* server = shard.server();
     if (!server) return false;
     if (!(routes & NOTIFY_TRACKING) && !server->pubsub_any_subscribers() &&
-        !notify_multi_subscriber(shard)) return false;
+        !notify_multi_subscriber(shard))
+        return false;
     Op* carrier = shard.notify_carrier();
     if (!carrier) carrier = &source;
     NotifyBatch* batch = notify_get_or_create_batch(*carrier);
-    if (!batch) { server->notify_event_dropped(); return false; }
+    if (!batch) {
+        server->notify_event_dropped();
+        return false;
+    }
 
     std::lock_guard<std::mutex> lock(batch->mutex);
     if (batch->total >= kNotifyBatchCap) {
@@ -369,11 +452,19 @@ bool notify_record_slow(Shard& shard, Op& source, uint32_t routes, uint32_t cls,
     Slice stable = key;
     bool pinned = false;
     for (uint32_t i = 1; i < carrier->argc(); i++) {
-        if (carrier->arg(i).key_mem_eq(key)) { stable = carrier->arg(i); pinned = true; break; }
+        if (carrier->arg(i).key_mem_eq(key)) {
+            stable = carrier->arg(i);
+            pinned = true;
+            break;
+        }
     }
     if (!pinned && carrier == &source) {
         for (uint32_t i = 1; i < source.argc(); i++) {
-            if (source.arg(i).key_mem_eq(key)) { stable = source.arg(i); pinned = true; break; }
+            if (source.arg(i).key_mem_eq(key)) {
+                stable = source.arg(i);
+                pinned = true;
+                break;
+            }
         }
     }
     if (!pinned) {
@@ -390,21 +481,23 @@ bool notify_record_slow(Shard& shard, Op& source, uint32_t routes, uint32_t cls,
     NotifyRecordImpl record;
     // STORE reads its sources before deleting/replacing the destination. Keep
     // destination mutation events after source keymiss even in owner-parallel gathers.
-    const bool store_tail = event != NotifyEventId::Keymiss &&
-        notify_store_command(source);
+    const bool store_tail = event != NotifyEventId::Keymiss && notify_store_command(source);
     record.order = (store_tail ? shard.notify_order_base() + source.argc() * 16
-                              : notify_key_arg_order(shard, source, key)) + notify_event_priority(event);
+                               : notify_key_arg_order(shard, source, key)) +
+                   notify_event_priority(event);
     record.sequence = batch->next_sequence++;
     record.routes = routes;
-    if ((routes & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT)) &&
-        !server->pubsub_any_subscribers() && !notify_multi_subscriber(shard))
+    if ((routes & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT)) && !server->pubsub_any_subscribers() &&
+        !notify_multi_subscriber(shard))
         record.routes &= ~(NOTIFY_KEYSPACE | NOTIFY_KEYEVENT);
     record.event = event;
     record.db = key.ns == source.physical_db ? source.db : source.target_db;
     record.key = stable;
     try {
-        if (batch->inline_size < 8) batch->inline_records[batch->inline_size++] = record;
-        else batch->spill.push_back(record);
+        if (batch->inline_size < 8)
+            batch->inline_records[batch->inline_size++] = record;
+        else
+            batch->spill.push_back(record);
     } catch (const std::bad_alloc&) {
         server->notify_event_dropped();
         return false;
@@ -435,7 +528,7 @@ bool notify_expiry_waits_for_other_batch(Shard& shard, Op& source, Slice key) {
             if (batch->expiry_completion) {
                 const auto& waiters = batch->expiry_completion->waiters;
                 if (std::find(waiters.begin(), waiters.end(), it->after_set) != waiters.end())
-                    return false; // A nested read keeps its position inside this script.
+                    return false;  // A nested read keeps its position inside this script.
             }
         }
         return true;
@@ -445,18 +538,22 @@ bool notify_expiry_waits_for_other_batch(Shard& shard, Op& source, Slice key) {
 
 // A by-name deletion is already physical. Allocation/cap failures use the old
 // keyless route without counting a drop or observing SAVE a second time.
-NotifyPhysicalResult notify_record_physical_slow(Shard& shard, Op& source, uint32_t routes, uint32_t cls,
-                        NotifyEventId event, Slice key) {
+NotifyPhysicalResult notify_record_physical_slow(Shard& shard, Op& source, uint32_t routes,
+                                                 uint32_t cls, NotifyEventId event, Slice key) {
     (void)cls;
     Server* server = shard.server();
     if (!server) return NotifyPhysicalResult::Nothing;
     if (!(routes & NOTIFY_TRACKING) && !server->pubsub_any_subscribers() &&
-        !notify_multi_subscriber(shard)) return NotifyPhysicalResult::Nothing;
+        !notify_multi_subscriber(shard))
+        return NotifyPhysicalResult::Nothing;
     Op* carrier = shard.notify_carrier();
     if (!carrier) carrier = &source;
     NotifyBatch* batch;
-    try { batch = notify_get_or_create_batch(*carrier); }
-    catch (const std::bad_alloc&) { return NotifyPhysicalResult::Fallback; }
+    try {
+        batch = notify_get_or_create_batch(*carrier);
+    } catch (const std::bad_alloc&) {
+        return NotifyPhysicalResult::Fallback;
+    }
     if (!batch) return NotifyPhysicalResult::Fallback;
 
     std::lock_guard<std::mutex> lock(batch->mutex);
@@ -464,11 +561,19 @@ NotifyPhysicalResult notify_record_physical_slow(Shard& shard, Op& source, uint3
     Slice stable = key;
     bool pinned = false;
     for (uint32_t i = 1; i < carrier->argc(); i++) {
-        if (carrier->arg(i).key_mem_eq(key)) { stable = carrier->arg(i); pinned = true; break; }
+        if (carrier->arg(i).key_mem_eq(key)) {
+            stable = carrier->arg(i);
+            pinned = true;
+            break;
+        }
     }
     if (!pinned && carrier == &source) {
         for (uint32_t i = 1; i < source.argc(); i++) {
-            if (source.arg(i).key_mem_eq(key)) { stable = source.arg(i); pinned = true; break; }
+            if (source.arg(i).key_mem_eq(key)) {
+                stable = source.arg(i);
+                pinned = true;
+                break;
+            }
         }
     }
     if (!pinned) {
@@ -485,16 +590,18 @@ NotifyPhysicalResult notify_record_physical_slow(Shard& shard, Op& source, uint3
     record.order = notify_key_arg_order(shard, source, key) + notify_event_priority(event);
     record.sequence = batch->next_sequence++;
     record.routes = routes;
-    if ((routes & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT)) &&
-        !server->pubsub_any_subscribers() && !notify_multi_subscriber(shard))
+    if ((routes & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT)) && !server->pubsub_any_subscribers() &&
+        !notify_multi_subscriber(shard))
         record.routes &= ~(NOTIFY_KEYSPACE | NOTIFY_KEYEVENT);
     record.event = event;
     record.physical = true;
     record.db = key.ns == source.physical_db ? source.db : source.target_db;
     record.key = stable;
     try {
-        if (batch->inline_size < 8) batch->inline_records[batch->inline_size++] = record;
-        else batch->spill.push_back(record);
+        if (batch->inline_size < 8)
+            batch->inline_records[batch->inline_size++] = record;
+        else
+            batch->spill.push_back(record);
     } catch (const std::bad_alloc&) {
         return NotifyPhysicalResult::Fallback;
     }
@@ -525,15 +632,15 @@ void notify_record_physical(Shard& shard, Op& source, uint32_t cls, Slice key) {
         notify_record_keyless_slow(shard, routes, cls, NotifyEventId::Expired, key);
         return;
     }
-    if (notify_record_physical_slow(shard, source, routes, cls, NotifyEventId::Expired, key)
-            == NotifyPhysicalResult::Fallback)
+    if (notify_record_physical_slow(shard, source, routes, cls, NotifyEventId::Expired, key) ==
+        NotifyPhysicalResult::Fallback)
         notify_record_keyless_slow(shard, routes, cls, NotifyEventId::Expired, key);
 }
 
 }  // namespace
 
-bool notify_record_keyless_slow(Shard& shard, uint32_t routes, uint32_t cls,
-                                NotifyEventId event, Slice key) {
+bool notify_record_keyless_slow(Shard& shard, uint32_t routes, uint32_t cls, NotifyEventId event,
+                                Slice key) {
     (void)cls;
     Server* server = shard.server();
     if (!server) return false;
@@ -541,7 +648,10 @@ bool notify_record_keyless_slow(Shard& shard, uint32_t routes, uint32_t cls,
     auto& slot = shard.notify_state_slot();
     if (!slot) {
         slot.reset(new (std::nothrow) NotifyShardState);
-        if (!slot) { server->notify_event_dropped(); return false; }
+        if (!slot) {
+            server->notify_event_dropped();
+            return false;
+        }
     }
     auto overflow = [&] {
         // Pub/sub is bounded and may lose events; cache coherence may not.
@@ -558,8 +668,7 @@ bool notify_record_keyless_slow(Shard& shard, uint32_t routes, uint32_t cls,
     try {
         NotifyOut out;
         out.routes = routes;
-        if (!server->pubsub_any_subscribers())
-            out.routes &= ~(NOTIFY_KEYSPACE | NOTIFY_KEYEVENT);
+        if (!server->pubsub_any_subscribers()) out.routes &= ~(NOTIFY_KEYSPACE | NOTIFY_KEYEVENT);
         out.event = event;
         out.db = server->databases().logical(key.ns);
         out.key.assign(key.p, key.n);
@@ -568,8 +677,10 @@ bool notify_record_keyless_slow(Shard& shard, uint32_t routes, uint32_t cls,
             for (auto it = pending.begin(); it != pending.end();) {
                 const bool same = it->ns == key.ns && it->key == key.sv();
                 if (same) out.after_set = it->after_set;
-                if (same || it->after_set->load(std::memory_order_acquire)) it = pending.erase(it);
-                else ++it;
+                if (same || it->after_set->load(std::memory_order_acquire))
+                    it = pending.erase(it);
+                else
+                    ++it;
             }
         }
         slot->keyless.push_back(std::move(out));
@@ -599,7 +710,8 @@ void notify_elapsed_set(Shard& shard, Op& op, Slice key) {
     const uint32_t mask = shard.notify_mask();
     if (!(mask & NOTIFY_EXPIRED) || !(mask & (NOTIFY_STRING | NOTIFY_GENERIC)) ||
         !(mask & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT)) || !shard.server() ||
-        !shard.server()->pubsub_any_subscribers()) return;
+        !shard.server()->pubsub_any_subscribers())
+        return;
     Op* carrier = shard.notify_carrier();
     if (!carrier) carrier = &op;
     auto& slot = shard.notify_state_slot();
@@ -610,8 +722,10 @@ void notify_elapsed_set(Shard& shard, Op& op, Slice key) {
         auto& pending = slot->elapsed_sets;
         for (auto it = pending.begin(); it != pending.end();) {
             if (it->after_set->load(std::memory_order_acquire) ||
-                (it->ns == key.ns && it->key == key.sv())) it = pending.erase(it);
-            else ++it;
+                (it->ns == key.ns && it->key == key.sv()))
+                it = pending.erase(it);
+            else
+                ++it;
         }
         auto ready = std::make_shared<std::atomic<bool>>(false);
         std::lock_guard<std::mutex> lock(batch->mutex);
@@ -629,7 +743,8 @@ namespace {
 void notify_script_expiries(Shard& shard, Op& op, ScatterState& state, ShardGroup& group) {
     const uint32_t mask = shard.notify_mask();
     if (!(mask & NOTIFY_EXPIRED) || !(mask & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT)) ||
-        !state.server->pubsub_any_subscribers()) return;
+        !state.server->pubsub_any_subscribers())
+        return;
     std::shared_ptr<std::atomic<bool>> ready;
     try {
         for (uint32_t i = 0; i < group.count; i++) {
@@ -653,14 +768,15 @@ void notify_script_expiries(Shard& shard, Op& op, ScatterState& state, ShardGrou
                 batch->expiry_completion->waiters.push_back(ready);
             }
             const Slice key = op.arg(state.keys[pos].arg);
-            slot->elapsed_sets.push_back(NotifyPendingExpiry{std::string(key.p, key.n), key.ns, ready});
+            slot->elapsed_sets.push_back(
+                NotifyPendingExpiry{std::string(key.p, key.n), key.ns, ready});
         }
     } catch (const std::bad_alloc&) {
         state.server->notify_event_dropped();
     }
 }
 
-} // namespace
+}  // namespace
 
 // Cold STORE/RENAME image deletion. A source RENAME deletion suppresses del;
 // STORE observes whether dbDelete removed a physical resident, even if elapsed.
@@ -687,7 +803,7 @@ bool notify_flat_enabled(void* context, uint32_t cls) {
     if (!server) return false;
     // Tracking invalidation needs the expiry/eviction observers even with nobody subscribed.
     return (routes & NOTIFY_TRACKING) != 0 || server->pubsub_any_subscribers() ||
-        notify_multi_subscriber(shard);
+           notify_multi_subscriber(shard);
 }
 
 // The flat lookup receives the actual argv Slice, including its identity and namespace.
@@ -698,30 +814,32 @@ bool notify_flat_enabled(void* context, uint32_t cls) {
 // classification in the observer leaves both clean handlers and the disarmed gate untouched.
 bool notify_keymiss_read_lookup(const Op& source, Slice key) {
     if (!source.spec) return false;
-    if ((source.spec->flags & CmdFlags::Readonly) &&
-        !(source.spec->flags & CmdFlags::Write)) return true;
+    if ((source.spec->flags & CmdFlags::Readonly) && !(source.spec->flags & CmdFlags::Write))
+        return true;
     const Slice name = source.cmd_name();
     uint32_t first, end = source.argc();
     if (name.eq_icase("getset") || name.eq_icase("getdel") || name.eq_icase("getex")) {
-        first = 1; end = std::min(end, 2u);
-    }
-    else if (name.eq_icase("set")) {
+        first = 1;
+        end = std::min(end, 2u);
+    } else if (name.eq_icase("set")) {
         // Parsing already succeeded before this lookup. GET reads the old value
         // even when NX/XX will reject the write.
         bool get = false;
         for (uint32_t i = 3; i < end; ++i) get |= source.arg(i).eq_icase("get");
         if (!get) return false;
-        first = 1; end = std::min(end, 2u);
-    }
-    else if (name.eq_icase("copy")) {
+        first = 1;
+        end = std::min(end, 2u);
+    } else if (name.eq_icase("copy")) {
         // Redis rejects the same-object form before either lookup. The local gather may
         // already have probed both argv entries when it diagnoses that error.
         if (end >= 3 && source.arg(1).key_mem_eq(source.arg(2))) return false;
-        first = 1; end = std::min(end, 2u);
-    }
-    else if (name.eq_icase("sinterstore") || name.eq_icase("sunionstore") ||
-             name.eq_icase("sdiffstore")) first = 2;
-    else if (name.eq_icase("bitop")) first = 3;
+        first = 1;
+        end = std::min(end, 2u);
+    } else if (name.eq_icase("sinterstore") || name.eq_icase("sunionstore") ||
+               name.eq_icase("sdiffstore"))
+        first = 2;
+    else if (name.eq_icase("bitop"))
+        first = 3;
     else if (name.eq_icase("zunionstore") || name.eq_icase("zinterstore") ||
              name.eq_icase("zdiffstore")) {
         first = 3;
@@ -734,12 +852,11 @@ bool notify_keymiss_read_lookup(const Op& source, Slice key) {
             count = count * 10 + static_cast<unsigned>(digit - '0');
         }
         end = std::min(end, 3 + count);
-    }
-    else return false;
+    } else
+        return false;
     for (uint32_t arg = first; arg < end; ++arg) {
         const Slice candidate = source.arg(arg);
-        if (candidate.p == key.p && candidate.n == key.n && candidate.ns == key.ns)
-            return true;
+        if (candidate.p == key.p && candidate.n == key.n && candidate.ns == key.ns) return true;
     }
     return false;
 }
@@ -757,8 +874,8 @@ void notify_flat_emit_unattributed(void* context, uint32_t cls, NotifyEventId ev
         return;
     }
     Op* source = shard.notify_source();
-    if (event == NotifyEventId::Keymiss &&
-        (!source || !notify_keymiss_read_lookup(*source, key))) return;
+    if (event == NotifyEventId::Keymiss && (!source || !notify_keymiss_read_lookup(*source, key)))
+        return;
     if (source) notify_record(shard, *source, cls, event, key);
 }
 
@@ -781,8 +898,8 @@ void notify_flat_emit(void* context, uint32_t cls, NotifyEventId event, Slice ke
     notify_flat_emit_unattributed(context, cls, event, key);
 }
 
-uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
-                              ThreadCtx& thread, Ring& ring, LoopSignals& signals) {
+uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer, ThreadCtx& thread,
+                              Ring& ring, LoopSignals& signals) {
     (void)thread;
     auto& slot = shard.notify_state_slot();
     if (!slot) return 0;
@@ -797,7 +914,8 @@ uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
             event->target_io = io;
             event->route_mask = io_mask;
             server.pubsub_event_created();
-            if (!server.thread(io).post_pubsub_event_nonblocking(producer, event.get(), ring, signals)) {
+            if (!server.thread(io).post_pubsub_event_nonblocking(producer, event.get(), ring,
+                                                                 signals)) {
                 server.pubsub_event_retired();
                 return work;
             }
@@ -827,11 +945,14 @@ uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
                     invalidate->target_io = io;
                     invalidate->caller_id = 0;
                     invalidate->route_mask = io_mask;
-                    invalidate->items.push_back(PubSubEventItem{0, false, out.tracking_stamp, out.key});
-                } catch (const std::bad_alloc&) { return work; }
+                    invalidate->items.push_back(
+                        PubSubEventItem{0, false, out.tracking_stamp, out.key});
+                } catch (const std::bad_alloc&) {
+                    return work;
+                }
                 server.pubsub_event_created();
-                if (!server.thread(io).post_pubsub_event_nonblocking(
-                        producer, invalidate.get(), ring, signals)) {
+                if (!server.thread(io).post_pubsub_event_nonblocking(producer, invalidate.get(),
+                                                                     ring, signals)) {
                     server.pubsub_event_retired();
                     return work;  // keep this target and the keyless record for the next pass
                 }
@@ -847,8 +968,9 @@ uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
                 std::string channel, message;
                 if (!notify_make_publication(
                         out.db, out.routes, route, out.event,
-                        Slice(out.key.data(), static_cast<uint32_t>(out.key.size())),
-                        channel, message)) continue;
+                        Slice(out.key.data(), static_cast<uint32_t>(out.key.size())), channel,
+                        message))
+                    continue;
                 building->items.push_back(
                     PubSubNotificationItem{std::move(channel), std::move(message)});
             }
@@ -872,14 +994,17 @@ uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
             continue;
         }
         auto* event = new (std::nothrow) PubSubEvent;
-        if (!event) { server.notify_event_dropped(); return work; }
+        if (!event) {
+            server.notify_event_dropped();
+            return work;
+        }
         event->kind = PubSubEventKind::NotificationEnqueue;
         event->notification = std::move(chain);
         const auto& ios = server.placement().ifid_threads();
         const uint32_t coordinator = ios[producer % ios.size()];
         server.pubsub_event_created();
-        if (!server.thread(coordinator).post_pubsub_event_nonblocking(
-                producer, event, ring, signals)) {
+        if (!server.thread(coordinator)
+                 .post_pubsub_event_nonblocking(producer, event, ring, signals)) {
             server.pubsub_event_retired();
             delete event;
             return work;
@@ -896,13 +1021,18 @@ namespace {
 // or moving owned strings: every surviving key slice keeps its original lifetime.
 NotifyBatch* notify_keep_physical(NotifyBatch* batch) {
     if (!batch) return nullptr;
-    if (!batch->physical) { delete batch; return nullptr; }
+    if (!batch->physical) {
+        delete batch;
+        return nullptr;
+    }
     std::lock_guard<std::mutex> lock(batch->mutex);
     uint32_t kept = 0;
     auto keep = [&](const NotifyRecordImpl& record) {
         if (!record.physical) return;
-        if (kept < 8) batch->inline_records[kept] = record;
-        else batch->spill[kept - 8] = record;
+        if (kept < 8)
+            batch->inline_records[kept] = record;
+        else
+            batch->spill[kept - 8] = record;
         ++kept;
     };
     for (uint32_t i = 0; i < batch->inline_size; ++i) keep(batch->inline_records[i]);
@@ -926,16 +1056,17 @@ void notify_tracking_seal(NotifyBatch* batch) {
     bool tracking = false;
     for (uint32_t i = 0; i < batch->inline_size; ++i)
         tracking |= (batch->inline_records[i].routes & NOTIFY_TRACKING) != 0;
-    for (const auto& record : batch->spill)
-        tracking |= (record.routes & NOTIFY_TRACKING) != 0;
+    for (const auto& record : batch->spill) tracking |= (record.routes & NOTIFY_TRACKING) != 0;
     if (tracking) batch->tracking_stamp = tracking_clock_commit();
 }
 }
 
 void notify_tracking_commit(Op& op) {
     NotifyBatch* batch = nullptr;
-    if (auto* slot = notify_special_slot(op)) batch = slot->load(std::memory_order_acquire);
-    else if (op.has_notify_state()) batch = static_cast<NotifyBatch*>(op.notify_state());
+    if (auto* slot = notify_special_slot(op))
+        batch = slot->load(std::memory_order_acquire);
+    else if (op.has_notify_state())
+        batch = static_cast<NotifyBatch*>(op.notify_state());
     notify_tracking_seal(batch);
 }
 
@@ -948,7 +1079,8 @@ void notify_tracking_multi_writes(IoLoop& loop, NotifyBatch* batch, uint64_t wri
     if (!batch || !batch->tracking_stamp) return;
     const auto apply = [&](const NotifyRecordImpl& record) {
         if (!(record.routes & NOTIFY_TRACKING) || record.event == NotifyEventId::Keymiss ||
-            record.order < order || record.order - order >= 0x10000u) return;
+            record.order < order || record.order - order >= 0x10000u)
+            return;
         loop.tracking_invalidate_local(record.key, writer, batch->tracking_stamp);
     };
     for (uint32_t i = 0; i < batch->inline_size; ++i) apply(batch->inline_records[i]);
@@ -960,7 +1092,8 @@ uint64_t notify_tracking_read_stamp(NotifyBatch* batch, Slice key, uint32_t orde
     bool before = false, after = false;
     const auto inspect = [&](const NotifyRecordImpl& record) {
         if (!(record.routes & NOTIFY_TRACKING) || record.event == NotifyEventId::Keymiss ||
-            !record.key.key_mem_eq(key)) return;
+            !record.key.key_mem_eq(key))
+            return;
         // Passive expiry during this read precedes the returned observation.
         before |= record.order < order + 0x10000u;
         after |= record.order >= order + 0x10000u;
@@ -971,7 +1104,6 @@ uint64_t notify_tracking_read_stamp(NotifyBatch* batch, Slice key, uint32_t orde
     // mutation in the same EXEC must still invalidate its intermediate result.
     return before && !after ? batch->tracking_stamp : 0;
 }
-
 
 NotifyBatch* notify_take_batch(Op& op) {
     // Some asynchronous committers publish Done outside the ordinary owner epilogue.
@@ -1038,7 +1170,8 @@ void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch, uint64_t writer
             for (uint8_t route = 0; route < 2; route++) {
                 std::string channel, message;
                 if (!notify_make_publication(record.db, record.routes, route, record.event,
-                                             record.key, channel, message)) continue;
+                                             record.key, channel, message))
+                    continue;
                 building->items.push_back(
                     PubSubNotificationItem{std::move(channel), std::move(message)});
             }
@@ -1049,8 +1182,8 @@ void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch, uint64_t writer
             // An empty pub/sub chain is successful tracking-only delivery.
             // Count only actual publication records on this failure path;
             // successful publication keeps its existing work unchanged.
-            const uint32_t dropped = static_cast<uint32_t>(std::count_if(
-                records.begin(), records.end(), [](const NotifyRecordImpl& record) {
+            const uint32_t dropped = static_cast<uint32_t>(
+                std::count_if(records.begin(), records.end(), [](const NotifyRecordImpl& record) {
                     return record.routes & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT);
                 }));
             if (dropped) loop.srv_->notify_event_dropped(dropped);
@@ -1060,8 +1193,8 @@ void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch, uint64_t writer
         loop.pubsub_notification_enqueue(std::move(chain));
         loop.pubsub_drain_events();
     } catch (const std::bad_alloc&) {
-        loop.srv_->notify_event_dropped(records.size() < batch->total
-                                            ? batch->total - records.size() : 1);
+        loop.srv_->notify_event_dropped(
+            records.size() < batch->total ? batch->total - records.size() : 1);
     }
     delete batch;
 }
@@ -1080,7 +1213,8 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
     if (first_error(state, error) || state.aborted.load(std::memory_order_acquire) ||
         state.final_reply == FinalReply::Work || state.final_reply == FinalReply::Internal ||
         state.final_reply == FinalReply::QueueFull ||
-        state.final_reply == FinalReply::SortConversion) return;
+        state.final_reply == FinalReply::SortConversion)
+        return;
 
     auto emit = [&](uint32_t cls, NotifyEventId event, uint32_t arg) {
         notify_record(shard, op, cls, event, op.arg(arg), false);
@@ -1118,11 +1252,15 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
             break;
         case Kind::Renamenx:
             if (state.final_integer == 1) {
-                emit(NOTIFY_GENERIC, op.cmd_name().eq_icase("move")
-                    ? NotifyEventId::MoveFrom : NotifyEventId::RenameFrom, 1);
+                emit(NOTIFY_GENERIC,
+                     op.cmd_name().eq_icase("move") ? NotifyEventId::MoveFrom
+                                                    : NotifyEventId::RenameFrom,
+                     1);
                 emit_atomic_new(1, 2);
-                emit(NOTIFY_GENERIC, op.cmd_name().eq_icase("move")
-                    ? NotifyEventId::MoveTo : NotifyEventId::RenameTo, 2);
+                emit(NOTIFY_GENERIC,
+                     op.cmd_name().eq_icase("move") ? NotifyEventId::MoveTo
+                                                    : NotifyEventId::RenameTo,
+                     2);
             }
             break;
         case Kind::Copy:
@@ -1173,9 +1311,10 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
             if (state.final_reply == FinalReply::Integer) {
                 if (state.apply && state.apply[0].present) {
                     emit_atomic_new(0, 1);
-                    const NotifyEventId event = state.kind == Kind::Sinterstore
-                        ? NotifyEventId::Sinterstore : state.kind == Kind::Sunionstore
-                        ? NotifyEventId::Sunionstore : NotifyEventId::Sdiffstore;
+                    const NotifyEventId event =
+                        state.kind == Kind::Sinterstore   ? NotifyEventId::Sinterstore
+                        : state.kind == Kind::Sunionstore ? NotifyEventId::Sunionstore
+                                                          : NotifyEventId::Sdiffstore;
                     emit(NOTIFY_SET, event, 1);
                 } else if (state.atomic_apply && state.images && state.images[0].present) {
                     emit(NOTIFY_GENERIC, NotifyEventId::Del, 1);
@@ -1188,9 +1327,10 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
             if (state.final_reply == FinalReply::Integer) {
                 if (state.apply && state.apply[0].present) {
                     emit_atomic_new(0, 1);
-                    const NotifyEventId event = state.kind == Kind::Zunionstore
-                        ? NotifyEventId::Zunionstore : state.kind == Kind::Zinterstore
-                        ? NotifyEventId::Zinterstore : NotifyEventId::Zdiffstore;
+                    const NotifyEventId event =
+                        state.kind == Kind::Zunionstore   ? NotifyEventId::Zunionstore
+                        : state.kind == Kind::Zinterstore ? NotifyEventId::Zinterstore
+                                                          : NotifyEventId::Zdiffstore;
                     emit(NOTIFY_ZSET, event, 1);
                 } else if (state.atomic_apply && state.images && state.images[0].present) {
                     emit(NOTIFY_GENERIC, NotifyEventId::Del, 1);
@@ -1214,9 +1354,9 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
                 if (state.apply && state.apply[0].present) {
                     emit_atomic_new(0, state.geo_destination_arg);
                     const NotifyEventId event = state.kind == Kind::Geosearchstore
-                        ? NotifyEventId::Geosearchstore : NotifyEventId::Georadiusstore;
-                    emit(NOTIFY_ZSET, event,
-                         state.geo_destination_arg);
+                                                    ? NotifyEventId::Geosearchstore
+                                                    : NotifyEventId::Georadiusstore;
+                    emit(NOTIFY_ZSET, event, state.geo_destination_arg);
                 } else if (state.atomic_apply && state.images && state.images[0].present) {
                     emit(NOTIFY_GENERIC, NotifyEventId::Del, state.geo_destination_arg);
                 }
@@ -1232,7 +1372,8 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
                 }
             }
             break;
-        default: break;
+        default:
+            break;
     }
 }
 

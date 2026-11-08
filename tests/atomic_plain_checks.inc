@@ -16,7 +16,8 @@ struct PlainScatterRun {
         client.set_id(777);
         ScatterDispatch dispatch;
         require(xshard_prepare(server, request.op, pool, 0, client.id(), dispatch) ==
-                    ScatterPrepare::Ready, "plain scatter prepared");
+                    ScatterPrepare::Ready,
+                "plain scatter prepared");
         state = dispatch.state;
         state->now_cut_ms = now_realtime_ms();
         require(!state->atomic_group && state->snapshot != UINT64_MAX && state->nsub == 2,
@@ -26,7 +27,7 @@ struct PlainScatterRun {
         for (uint32_t i = 0; i < state->nsub; i++) {
             const int s = state->groups[i].shard;
             require(xshard_execute(Task{&client, 0, s, state}, server.shard(s), request.op,
-                    server.worker_of_shard(s)) == ScatterTaskResult::Complete,
+                                   server.worker_of_shard(s)) == ScatterTaskResult::Complete,
                     "plain scatter owner completed");
         }
     }
@@ -62,12 +63,12 @@ void plain_scatter_check(Server& server, const std::string& verb) {
         if (verb == "LMOVE") command.insert(command.end(), {"LEFT", "RIGHT"});
     } else if (pop) {
         const auto seeded = verb == "LMPOP" ? local(server, {"RPUSH", b, "old"})
-                                           : local(server, {"ZADD", b, "1", "old"});
+                                            : local(server, {"ZADD", b, "1", "old"});
         require(seeded == ":1\r\n", "seed pop choice");
         command = {verb, "2", a, b, verb == "LMPOP" ? "LEFT" : "MIN"};
     } else {
         command = verb == "MSET" ? std::vector<std::string>{verb, a, "new", b, "new"}
-                                  : std::vector<std::string>{verb, a, b};
+                                 : std::vector<std::string>{verb, a, b};
     }
     PlainScatterRun run(server, command);
     if (!blind) run.prepare_second_phase();
@@ -76,15 +77,17 @@ void plain_scatter_check(Server& server, const std::string& verb) {
     // A transaction's retained record or a script intent forces the same plain-write branch.
     // Pin only after PREPARE so no global script guard changes the non-atomic classification.
     require(store.atomic_script_pin(hash, slice(b)), "target intent pinned");
-    const auto late = verb == "SMOVE" ? local(server, {"SADD", b, "kept"}, 888)
-                    : verb == "ZMPOP" ? local(server, {"ZADD", b, "2", "kept"}, 888)
-                    : blind ? local(server, {"SET", b, "kept"}, 888)
-                            : local(server, {"RPUSH", b, "kept"}, 888);
-    require(late == (blind ? "+OK\r\n" : verb == "LMPOP" ? ":2\r\n" : ":1\r\n"),
+    const auto late = verb == "SMOVE"   ? local(server, {"SADD", b, "kept"}, 888)
+                      : verb == "ZMPOP" ? local(server, {"ZADD", b, "2", "kept"}, 888)
+                      : blind           ? local(server, {"SET", b, "kept"}, 888)
+                                        : local(server, {"RPUSH", b, "kept"}, 888);
+    require(late == (blind             ? "+OK\r\n"
+                     : verb == "LMPOP" ? ":2\r\n"
+                                       : ":1\r\n"),
             "late write acknowledged");
-    require(store.atomic_has_record(hash, slice(b)) &&
-                server.atomic_snapshot() > run.state->snapshot,
-            "AT1 armed: acknowledged target version is newer than PREPARE");
+    require(
+        store.atomic_has_record(hash, slice(b)) && server.atomic_snapshot() > run.state->snapshot,
+        "AT1 armed: acknowledged target version is newer than PREPARE");
     run.execute();
     if (verb == "SMOVE") {
         require(local(server, {"SISMEMBER", b, "kept"}, 999) == ":1\r\n",
@@ -94,8 +97,10 @@ void plain_scatter_check(Server& server, const std::string& verb) {
                                              : local(server, {"LRANGE", b, "0", "-1"}, 999);
         require(members.find("$4\r\nkept\r\n") != std::string::npos,
                 "AT1: phase-two RMW preserves the acknowledged write");
-        if (pop) require(run.state->result && run.state->result->members ==
-                            std::vector<std::string>{"old"}, "pop consumes the selected old element");
+        if (pop)
+            require(
+                run.state->result && run.state->result->members == std::vector<std::string>{"old"},
+                "pop consumes the selected old element");
     } else if (verb == "MSET") {
         require(local(server, {"GET", b}, 999) == "$3\r\nnew\r\n", "MSET replacement wins");
     } else {
@@ -108,7 +113,7 @@ void plain_scatter_check(Server& server, const std::string& verb) {
 
 void plain_blocking_check(Server& server) {
     for (const auto kind : {BlockingKind::Blpop, BlockingKind::Brpop, BlockingKind::Blmpop,
-                           BlockingKind::Bzpopmin, BlockingKind::Bzpopmax, BlockingKind::Bzmpop}) {
+                            BlockingKind::Bzpopmin, BlockingKind::Bzpopmax, BlockingKind::Bzmpop}) {
         const auto key = key_on(server, 0, ("wake-" + std::to_string(int(kind))).c_str());
         auto& shard = server.shard(0);
         auto& store = shard.store();
@@ -117,9 +122,11 @@ void plain_blocking_check(Server& server) {
         const auto cut = server.atomic_snapshot();
         require(server.atomic_commit_reserve() > cut, "unrelated commit bracket opened");
         const bool list = blocking_is_list(kind);
-        require(local(server, list ? std::vector<std::string>{"RPUSH", key, "wake", "kept"}
-                                  : std::vector<std::string>{"ZADD", key, "1", "wake", "2", "kept"},
-                      888) == ":2\r\n", "wake push acknowledged");
+        require(local(server,
+                      list ? std::vector<std::string>{"RPUSH", key, "wake", "kept"}
+                           : std::vector<std::string>{"ZADD", key, "1", "wake", "2", "kept"},
+                      888) == ":2\r\n",
+                "wake push acknowledged");
         require(server.atomic_snapshot() == cut && store.atomic_has_record(hash, slice(key)),
                 "AT2 armed: safe watermark excludes the acknowledged wake push");
         Client client(-1);
@@ -127,10 +134,15 @@ void plain_blocking_check(Server& server) {
         Op* op = client.rob().acquire();
         require(op, "blocking reply slot acquired");
         BlockingState state;
-        state.server = &server; state.client = &client; state.selected = 0; state.kind = kind;
+        state.server = &server;
+        state.client = &client;
+        state.selected = 0;
+        state.kind = kind;
         state.pop_left = kind != BlockingKind::Brpop && kind != BlockingKind::Bzpopmax;
         state.keys.emplace_back();
-        state.keys[0].key = key; state.keys[0].hash = hash; state.keys[0].shard = 0;
+        state.keys[0].key = key;
+        state.keys[0].hash = hash;
+        state.keys[0].shard = 0;
         state.phase.store(BlockingPhase::Claimed);
         // The real owner task holds this reference. Leave the last-task reply notification to
         // its epilogue; this fixture has no IO thread or ring to notify.
@@ -145,12 +157,14 @@ void plain_blocking_check(Server& server) {
                     reply.find("$4\r\n" + consumed + "\r\n") != std::string::npos,
                 "AT2: resumed pop replies with the newest committed element");
         store.atomic_set_read_context(cut, 1000);
-        require(!store.find(hash, slice(key)), "old reader still sees the immutable absent version");
+        require(!store.find(hash, slice(key)),
+                "old reader still sees the immutable absent version");
         store.atomic_clear_read_epoch();
         server.atomic_commit_publish();
         const auto remaining = local(server, {list ? "LRANGE" : "ZRANGE", key, "0", "-1"}, 1000);
-        require(remaining == "*1\r\n$4\r\n" + (state.pop_left ? std::string("kept") : "wake") + "\r\n",
-                "AT2: unconsumed acknowledged element survives");
+        require(
+            remaining == "*1\r\n$4\r\n" + (state.pop_left ? std::string("kept") : "wake") + "\r\n",
+            "AT2: unconsumed acknowledged element survives");
         store.atomic_script_unpin(hash, slice(key));
         release_records(server);
         require(xshard_plain_stale_cuts() == 0, "plain write stale-cut counter is zero");
@@ -167,7 +181,8 @@ void atomic_plain_checks(Server& server, const std::string& name) {
         ran = true;
     }
     if (server.cfg().atomic == 0) {
-        for (const char* verb : {"SMOVE", "LMOVE", "RPOPLPUSH", "LMPOP", "ZMPOP", "MSET", "DEL", "UNLINK"})
+        for (const char* verb :
+             {"SMOVE", "LMOVE", "RPOPLPUSH", "LMPOP", "ZMPOP", "MSET", "DEL", "UNLINK"})
             if (all || selection == verb) {
                 plain_scatter_check(server, verb);
                 ran = true;
@@ -176,4 +191,4 @@ void atomic_plain_checks(Server& server, const std::string& name) {
     require(ran, "known plain-write case and applicable atomic mode");
     require(xshard_plain_stale_cuts() == 0, "all plain write callers used the newest cut");
 }
-} // namespace
+}  // namespace

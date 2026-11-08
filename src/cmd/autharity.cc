@@ -8,12 +8,11 @@
 
 namespace tomo {
 
-bool auth_arity_reply(Op& op, const CommandSpec& spec, bool unauthenticated,
-                      bool outer_rejected) {
+bool auth_arity_reply(Op& op, const CommandSpec& spec, bool unauthenticated, bool outer_rejected) {
     // Owner-defined TomoKV extension, not an invalid Redis request. Its normal
     // authorization gate still applies; preserve the authenticated exact census.
-    if (op.cmd_name().eq_icase("dbsize") && op.argc() == 2 &&
-        op.arg(1).eq_icase("now")) return false;
+    if (op.cmd_name().eq_icase("dbsize") && op.argc() == 2 && op.arg(1).eq_icase("now"))
+        return false;
     const CommandMetadata* metadata = command_metadata_resolve(op, 0);
     if (!metadata) {
         // A recognized container with an unknown child fails command lookup,
@@ -26,9 +25,10 @@ bool auth_arity_reply(Op& op, const CommandSpec& spec, bool unauthenticated,
     }
     if (!command_metadata_arity_ok(*metadata, op.argc())) {
         const Slice name = command_metadata_name(*metadata);
-        std::string message = op.cmd_name().eq_icase("exec")
-            ? "EXECABORT Transaction discarded because of: wrong number of arguments for '"
-            : "ERR wrong number of arguments for '";
+        std::string message =
+            op.cmd_name().eq_icase("exec")
+                ? "EXECABORT Transaction discarded because of: wrong number of arguments for '"
+                : "ERR wrong number of arguments for '";
         message.append(name.p, name.n);
         message += "' command";
         reply_err(op.sink(), message.c_str());
@@ -49,8 +49,8 @@ bool auth_arity_reply(Op& op, const CommandSpec& spec, bool unauthenticated,
 
 const char* auth_noauth_error(const Op& op) {
     return op.cmd_name().eq_icase("exec")
-        ? "EXECABORT Transaction discarded because of: NOAUTH Authentication required."
-        : "NOAUTH Authentication required.";
+               ? "EXECABORT Transaction discarded because of: NOAUTH Authentication required."
+               : "NOAUTH Authentication required.";
 }
 
 }  // namespace tomo

@@ -32,8 +32,8 @@ struct ErrorStatsProbe {
 
 // msg excludes the RESP '-' marker. Redis searches the first 32 wire bytes
 // for a space; sanitization must agree with the line actually emitted.
-[[gnu::cold, gnu::noinline]] inline void error_stats_record(
-        const char* msg, size_t length, bool trim = true) {
+[[gnu::cold, gnu::noinline]] inline void error_stats_record(const char* msg, size_t length,
+                                                            bool trim = true) {
     if (error_stats_suppressed) return;
     if (trim)
         while (length && (msg[length - 1] == '\r' || msg[length - 1] == '\n')) --length;
@@ -43,10 +43,16 @@ struct ErrorStatsProbe {
     for (; count < length && count < sizeof(prefix); ++count) {
         char c = msg[count];
         if (c == '\r' || c == '\n') c = ' ';
-        if (c == ' ') { found = true; break; }
+        if (c == ' ') {
+            found = true;
+            break;
+        }
         prefix[count] = c;
     }
-    if (!found) { std::memcpy(prefix, "ERR", 3); count = 3; }
+    if (!found) {
+        std::memcpy(prefix, "ERR", 3);
+        count = 3;
+    }
     std::lock_guard<std::mutex> lock(error_stats.mutex);
     ++error_stats.total;
     if (!error_stats.enabled) return;
@@ -72,8 +78,8 @@ struct ErrorStatsProbe {
     e.count = 1;
 }
 
-[[gnu::cold, gnu::noinline]] inline void error_stats_info(
-        std::string& body, bool stats, bool errors) {
+[[gnu::cold, gnu::noinline]] inline void error_stats_info(std::string& body, bool stats,
+                                                          bool errors) {
     std::lock_guard<std::mutex> lock(error_stats.mutex);
     if (stats) body += "total_error_replies:" + std::to_string(error_stats.total) + "\r\n";
     if (!errors) return;
@@ -83,7 +89,7 @@ struct ErrorStatsProbe {
         body += "errorstat_";
         for (uint8_t j = 0; j < e.length; ++j) {
             const char c = e.prefix[j];
-            if (!c) break; // Redis INFO renders a prefix with %.*s.
+            if (!c) break;  // Redis INFO renders a prefix with %.*s.
             body += c == '#' || c == ':' || c == '\n' || c == '\r' ? '_' : c;
         }
         body += ":count=" + std::to_string(e.count) + "\r\n";
@@ -96,4 +102,4 @@ struct ErrorStatsProbe {
     error_stats.used = 0;
     error_stats.enabled = true;
 }
-} // namespace tomo
+}  // namespace tomo

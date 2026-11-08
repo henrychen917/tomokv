@@ -39,14 +39,15 @@ enum class CommandLengthClass : uint8_t {
 };
 
 struct CmdFlags {
-    static constexpr uint32_t Write     = 1u << 0;   // mutates the keyspace
-    static constexpr uint32_t Readonly  = 1u << 1;
-    static constexpr uint32_t Admin     = 1u << 2;
-    static constexpr uint32_t ConnLocal = 1u << 3;   // answered on the IO thread; never dispatched
-    static constexpr uint32_t AllShards = 1u << 4;   // one public op, one owner task per shard
-    static constexpr uint32_t RandomShard = 1u << 5; // keyless op routed by the IO thread's PRNG
-    static constexpr uint32_t CursorShard = 1u << 6; // shard id is encoded in argv[1]'s cursor
-    static constexpr uint32_t ConfigRoute = 1u << 7; // GET is IO-local; SET fans out as control work
+    static constexpr uint32_t Write = 1u << 0;  // mutates the keyspace
+    static constexpr uint32_t Readonly = 1u << 1;
+    static constexpr uint32_t Admin = 1u << 2;
+    static constexpr uint32_t ConnLocal = 1u << 3;    // answered on the IO thread; never dispatched
+    static constexpr uint32_t AllShards = 1u << 4;    // one public op, one owner task per shard
+    static constexpr uint32_t RandomShard = 1u << 5;  // keyless op routed by the IO thread's PRNG
+    static constexpr uint32_t CursorShard = 1u << 6;  // shard id is encoded in argv[1]'s cursor
+    static constexpr uint32_t ConfigRoute = 1u
+                                            << 7;  // GET is IO-local; SET fans out as control work
     // Growth commands, gated by the pre-execution maxmemory check (redis DENYOOM): if the shard is
     // over budget and eviction cannot bring it under, the command is refused with the exact OOM
     // reply BEFORE its handler runs. DEL/expiry/read commands stay ungated so an over-budget shard
@@ -60,12 +61,13 @@ struct CmdFlags {
     // EVAL/EVALSHA discover their declared KEYS range from argv[2]. Validation and routing happen
     // on IO; the resulting ordinary task executes the interpreter on exactly one shard owner.
     static constexpr uint32_t ScriptRoute = 1u << 11;
-    static constexpr uint32_t PubSub = 1u << 12;       // IO-owned async command; never touches a shard
+    static constexpr uint32_t PubSub = 1u << 12;  // IO-owned async command; never touches a shard
     // A blocking collection command is lowered before ordinary scatter routing.  Its issued ROB
     // slot is also a connection parse barrier until an owner supplies data or a timeout reply.
     static constexpr uint32_t Blocking = 1u << 13;
-    static constexpr uint32_t Transaction = 1u << 14; // MULTI/EXEC/WATCH controls, IO-owned
-    static constexpr uint32_t AclExempt = 1u << 15;   // AUTH/HELLO/RESET/QUIT bypass ACL command bits
+    static constexpr uint32_t Transaction = 1u << 14;  // MULTI/EXEC/WATCH controls, IO-owned
+    static constexpr uint32_t AclExempt = 1u
+                                          << 15;  // AUTH/HELLO/RESET/QUIT bypass ACL command bits
     // Set only on the registry's armed shadow rows. It consumes no Op storage and lets the
     // inherently-slower scatter/blocking/MULTI engines select their recording path without
     // putting a notification branch in ExLoop::execute. (Bit 15 went to AclExempt in the ACL
@@ -134,36 +136,43 @@ struct CommandSpec {
     const char* name;
     // Inclusive counts, including the command itself. max_arity == -1 means unbounded. Keeping both
     // bounds in the row avoids type handlers growing their own subtly different arity parsers.
-    int32_t     min_arity;
-    int32_t     max_arity;
-    uint32_t    flags;
+    int32_t min_arity;
+    int32_t max_arity;
+    uint32_t flags;
     // Boot-stamped scheduler metadata in the existing alignment hole before handler.
-    uint8_t     length_class = 0;
-    CmdHandler  handler;
+    uint8_t length_class = 0;
+    CmdHandler handler;
 
     // Key range within argv: [first_key, last_key] stepping by key_step.
     // last_key == -1 means "to the end of argv" (MGET, DEL, ...).
-    int16_t     first_key;
-    int16_t     last_key;
-    int16_t     key_step;
+    int16_t first_key;
+    int16_t last_key;
+    int16_t key_step;
 
     // Dense boot-assigned id. Family tables leave this zero; commands.cc copies their rows into
     // registry-owned storage and assigns the final value before any server thread starts.
-    uint16_t    id = 0;
+    uint16_t id = 0;
 
     // Cold registry tail. `handler` is always the clean specialization. The IO thread selects a
     // shadow row whose handler is `handler_notify` when its pass-local armed cache is true.
-    CmdHandler  handler_notify = nullptr;
+    CmdHandler handler_notify = nullptr;
 
     constexpr CommandSpec(const char* name_, int32_t min_arity_, int32_t max_arity_,
                           uint32_t flags_, CmdHandler handler_, int16_t first_key_,
                           int16_t last_key_, int16_t key_step_,
                           CmdHandler handler_notify_ = nullptr)
-        : name(name_), min_arity(min_arity_), max_arity(max_arity_), flags(flags_),
-          length_class(0), handler(handler_), first_key(first_key_), last_key(last_key_),
+        : name(name_),
+          min_arity(min_arity_),
+          max_arity(max_arity_),
+          flags(flags_),
+          length_class(0),
+          handler(handler_),
+          first_key(first_key_),
+          last_key(last_key_),
           key_step(key_step_),
-          handler_notify(handler_notify_ ? handler_notify_ :
-                         (handler_ == cmd_xshard_only ? cmd_xshard_only_notify : handler_)) {}
+          handler_notify(handler_notify_
+                             ? handler_notify_
+                             : (handler_ == cmd_xshard_only ? cmd_xshard_only_notify : handler_)) {}
 };
 
 // 48 = the ACL audit's measured 40 plus the notify v2 handler_notify tail pointer. Registry rows
@@ -181,7 +190,7 @@ inline bool command_is_read_local_mget(const CommandSpec& spec) {
 
 struct CommandTable {
     const CommandSpec* specs;
-    size_t             size;
+    size_t size;
 };
 
 // Redis registers container subcommands as commands in their own right. TomoKV keeps one registry
@@ -194,33 +203,30 @@ enum class SubcommandArityError : uint8_t {
 };
 
 struct SubcommandArity {
-    const char*          name;
-    int16_t              min_arity;
-    int16_t              max_arity;
+    const char* name;
+    int16_t min_arity;
+    int16_t max_arity;
     SubcommandArityError error = SubcommandArityError::WrongArgs;
 };
 
-bool command_validate_subcommand(Op& op, const char* container,
-                                 const SubcommandArity* table, size_t count);
+bool command_validate_subcommand(Op& op, const char* container, const SubcommandArity* table,
+                                 size_t count);
 // Resolve argv[0]|argv[1] in the generated Redis metadata, validate that child's advertised
 // arity, and return its first-key argument (zero for a keyless arm). Returns false after writing
 // the complete unknown-subcommand or child-arity reply.
-bool command_validate_container_subcommand(Op& op, const CommandSpec& spec,
-                                           int16_t& first_key);
+bool command_validate_container_subcommand(Op& op, const CommandSpec& spec, int16_t& first_key);
 // This cold gate records connection-local/container command identity and rejects
 // SubcmdRoute children with bad generated arity. Unknown children continue
 // to the cold AUTH/ACL hook (or the normal container handler), which emits the lookup error
 // before checking authentication, matching Redis's processCommand order.
 bool command_reply_container_subcommand_arity(Op& op, const CommandSpec& spec,
-                                             Client* client = nullptr);
+                                              Client* client = nullptr);
 // Cold Redis subcommand lookup/syntax errors, including bounded binary names.
 void command_reply_subcommand_error(Op& op, const char* container, bool unknown = true);
-void command_reply_subcommand_wrong_args(Op& op, const char* container,
-                                         const char* subcommand);
+void command_reply_subcommand_wrong_args(Op& op, const char* container, const char* subcommand);
 // The outer registry still owns each container's broad bound so malformed requests fail before
 // ACL/MULTI handling. This rare-path hook replaces only that already-taken generic error.
-bool command_reply_container_outer_arity(Op& op, const CommandSpec& spec,
-                                         bool unauthenticated);
+bool command_reply_container_outer_arity(Op& op, const CommandSpec& spec, bool unauthenticated);
 
 // Every family owns its table; the registry calls every type table plus the server/admin table.
 CommandTable string_command_table();
@@ -253,9 +259,9 @@ bool command_registry_init(bool tls_enabled, bool fused_mode = false,
 // Read on every dispatch and written only at boot, so it owns its cache line: no .bss neighbour
 // that is written at runtime can false-share the GET pointer load.
 struct alignas(64) HotCommandSpecs {
-    const CommandSpec* get  = nullptr;
-    const CommandSpec* set  = nullptr;
-    const CommandSpec* del  = nullptr;
+    const CommandSpec* get = nullptr;
+    const CommandSpec* set = nullptr;
+    const CommandSpec* del = nullptr;
     const CommandSpec* mget = nullptr;
     const CommandSpec* mset = nullptr;
     const CommandSpec* incr = nullptr;
@@ -275,7 +281,8 @@ inline constexpr uint32_t command_verb_key(char a, char b, char c, char d = ' ')
     return (static_cast<uint32_t>(static_cast<uint8_t>(a)) |
             (static_cast<uint32_t>(static_cast<uint8_t>(b)) << 8) |
             (static_cast<uint32_t>(static_cast<uint8_t>(c)) << 16) |
-            (static_cast<uint32_t>(static_cast<uint8_t>(d)) << 24)) | 0x20202020u;
+            (static_cast<uint32_t>(static_cast<uint8_t>(d)) << 24)) |
+           0x20202020u;
 }
 
 // Command lookup. GET/SET/DEL and MGET/MSET/INCR resolve here, in registers, from the length the
@@ -289,19 +296,19 @@ inline constexpr uint32_t command_verb_key(char a, char b, char c, char d = ' ')
 __attribute__((always_inline)) inline const CommandSpec* command_lookup(Slice name) {
     if (name.n == 3) {
         uint16_t lo;
-        std::memcpy(&lo, name.p, 2);    // one 16-bit load plus one byte: both inside the name
+        std::memcpy(&lo, name.p, 2);  // one 16-bit load plus one byte: both inside the name
 #if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
         lo = __builtin_bswap16(lo);
 #endif
-        const uint32_t key =
-            (static_cast<uint32_t>(lo) |
-             (static_cast<uint32_t>(static_cast<uint8_t>(name.p[2])) << 16)) | 0x20202020u;
+        const uint32_t key = (static_cast<uint32_t>(lo) |
+                              (static_cast<uint32_t>(static_cast<uint8_t>(name.p[2])) << 16)) |
+                             0x20202020u;
         if (key == command_verb_key('G', 'E', 'T')) return g_hot_command_specs.get;
         if (key == command_verb_key('S', 'E', 'T')) return g_hot_command_specs.set;
         if (key == command_verb_key('D', 'E', 'L')) return g_hot_command_specs.del;
     } else if (name.n == 4) {
         uint32_t key;
-        std::memcpy(&key, name.p, 4);   // one 32-bit load, never widened past the name
+        std::memcpy(&key, name.p, 4);  // one 32-bit load, never widened past the name
 #if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
         key = __builtin_bswap32(key);
 #endif
@@ -364,8 +371,8 @@ void command_set_local_context(Client* client, ThreadCtx* thread);
 
 // CLIENT metadata is owned by the connection's IO thread and keyed by process-unique id.  Scatter
 // messages never carry Client pointers; they ask each IO owner to inspect only its own clients.
-void command_client_connected(Client* client, const char* addr, const char* laddr,
-                              bool unix_socket, uint64_t now_ms);
+void command_client_connected(Client* client, const char* addr, const char* laddr, bool unix_socket,
+                              uint64_t now_ms);
 void command_client_disconnected(Client* client);
 void command_client_closing(Client* client);
 // Cold synchronized snapshot for a client that predates slowlog enable.
@@ -379,8 +386,7 @@ bool command_client_migration_reserve(uint32_t extra);
 void command_client_set_subscriptions(Client* client, uint32_t channels, uint32_t patterns,
                                       uint32_t shard_channels);
 std::string command_client_info_line(const Client& client, uint64_t now_ms);
-bool command_client_filter_match(const Client& client, const PubSubEvent& event,
-                                 uint64_t now_ms);
+bool command_client_filter_match(const Client& client, const PubSubEvent& event, uint64_t now_ms);
 bool command_client_set_name(Client* client, Slice name);
 std::string command_client_name(const Client* client);
 bool command_client_set_info(Client* client, Slice option, Slice value);

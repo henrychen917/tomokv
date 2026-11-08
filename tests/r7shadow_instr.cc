@@ -13,11 +13,17 @@
 #include <unistd.h>
 #include "src/core/reorder.h"
 
-namespace tomo { void multi_session_destroy(MultiSession* p) { if (p) std::abort(); } }
+namespace tomo {
+void multi_session_destroy(MultiSession* p) {
+    if (p) std::abort();
+}
+}
 namespace {
 using namespace tomo;
 using namespace tomo::r7;
-void require(bool value) { if (!value) std::abort(); }
+void require(bool value) {
+    if (!value) std::abort();
+}
 void unused(Shard&, Op&) { std::abort(); }
 constexpr CommandSpec spec(const char* name, CommandLengthClass length) {
     CommandSpec s(name, 2, 2, CmdFlags::Readonly, unused, 1, 1, 1, unused);
@@ -53,17 +59,23 @@ struct Instructions {
         attr.exclude_kernel = attr.exclude_hv = 1;
         attr.read_format = PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
         fd = syscall(SYS_perf_event_open, &attr, 0, -1, -1, 0);
-        if (fd < 0) { std::perror("instruction counter (no substitute or guessed count)"); std::exit(1); }
+        if (fd < 0) {
+            std::perror("instruction counter (no substitute or guessed count)");
+            std::exit(1);
+        }
     }
     ~Instructions() { close(fd); }
-    template<class Fn> void count(const char* name, uint64_t ops, Fn fn) {
+    template <class Fn>
+    void count(const char* name, uint64_t ops, Fn fn) {
         require(ioctl(fd, PERF_EVENT_IOC_RESET, 0) == 0);
         require(ioctl(fd, PERF_EVENT_IOC_ENABLE, 0) == 0);
         fn();
         require(ioctl(fd, PERF_EVENT_IOC_DISABLE, 0) == 0);
-        struct { uint64_t instructions, enabled, running; } value{};
+        struct {
+            uint64_t instructions, enabled, running;
+        } value{};
         require(read(fd, &value, sizeof(value)) == sizeof(value));
-        require(value.instructions && value.running == value.enabled); // no scaling/multiplexing
+        require(value.instructions && value.running == value.enabled);  // no scaling/multiplexing
         std::printf("%s,%llu,%llu,%.6f\n", name, (unsigned long long)ops,
                     (unsigned long long)value.instructions, double(value.instructions) / ops);
     }
@@ -87,16 +99,20 @@ void dispatch_cost(Instructions& counter, bool preceding_long) {
     std::array<Task, kRobWindow / 2> tasks;
     for (uint32_t i = 0; i < kRobWindow; ++i) {
         auto task = pipe.add(preceding_long && i == kRobWindow / 2 - 1, i);
-        if (i >= kRobWindow / 2) { task.shard = -1; tasks[i - kRobWindow / 2] = task; }
+        if (i >= kRobWindow / 2) {
+            task.shard = -1;
+            tasks[i - kRobWindow / 2] = task;
+        }
     }
     counter.count(preceding_long ? "dispatch_after_long" : "dispatch_uniform_short",
                   Repeats * tasks.size(), [&] {
-        uint64_t result = 0;
-        for (uint32_t r = 0; r < Repeats; ++r) result += dispatch_pass(pipe, tasks.data());
-        sink = result;
-    });
+                      uint64_t result = 0;
+                      for (uint32_t r = 0; r < Repeats; ++r)
+                          result += dispatch_pass(pipe, tasks.data());
+                      sink = result;
+                  });
 }
-template<size_t B>
+template <size_t B>
 __attribute__((noinline)) void queue_pass(const std::vector<Task>& tasks) {
     ShadowReorderQueues<B> q;
     uint64_t count = 0, checksum = 0;
@@ -109,20 +125,20 @@ __attribute__((noinline)) void queue_pass(const std::vector<Task>& tasks) {
     require(count == tasks.size() && checksum == count * (count - 1) / 2);
     sink = checksum;
 }
-template<size_t B>
+template <size_t B>
 void queue_cost(Instructions& counter, uint32_t batches, const char* name) {
     std::vector<std::unique_ptr<Pipe>> pipes;
     std::vector<Task> tasks;
     for (uint32_t i = 0; i < batches * B; ++i) {
         pipes.push_back(std::make_unique<Pipe>());
-        if (i % B == 0) pipes.back()->add(true, UINT32_MAX); // unfinished foreign Long
+        if (i % B == 0) pipes.back()->add(true, UINT32_MAX);  // unfinished foreign Long
         tasks.push_back(pipes.back()->add(i % B == 1, i));
     }
     counter.count(name, Repeats * tasks.size(), [&] {
         for (uint32_t r = 0; r < Repeats; ++r) queue_pass<B>(tasks);
     });
 }
-} // namespace
+}  // namespace
 int main() {
     Instructions counter;
     std::puts("case,ops,instructions,instr_per_op");

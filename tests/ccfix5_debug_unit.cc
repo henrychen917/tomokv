@@ -9,7 +9,10 @@
 using namespace tomo;
 namespace {
 void require(bool condition, const char* reason) {
-    if (!condition) { std::fprintf(stderr, "FAIL: %s\n", reason); std::exit(1); }
+    if (!condition) {
+        std::fprintf(stderr, "FAIL: %s\n", reason);
+        std::exit(1);
+    }
 }
 void arg(Op& op, const std::string& text) {
     require(op.push_arg(Slice(text.data(), text.size())), "push argument");
@@ -17,7 +20,9 @@ void arg(Op& op, const std::string& text) {
 std::string debug(Server& server, uint8_t db, const char* verb, const std::string& key) {
     const std::string command = "DEBUG", subcommand = verb;
     Op op;
-    arg(op, command); arg(op, subcommand); arg(op, key);
+    arg(op, command);
+    arg(op, subcommand);
+    arg(op, key);
     op.spec = command_lookup(op.cmd_name());
     require(op.spec != nullptr, "DEBUG registered");
     multidb_stamp(server, op, db);
@@ -29,10 +34,12 @@ std::string debug(Server& server, uint8_t db, const char* verb, const std::strin
 
 int main() {
     Config cfg;
-    cfg.shards = 16; cfg.databases = 16;
+    cfg.shards = 16;
+    cfg.databases = 16;
     cfg.thread_mode = ThreadMode::Fused;
     cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
-    cfg.save.clear(); cfg.enable_debug_command = DebugCommandMode::Yes;
+    cfg.save.clear();
+    cfg.enable_debug_command = DebugCommandMode::Yes;
     Server server;
     require(command_registry_init(true), "registry");
     require(server.prepare_boot(cfg) && server.init(cfg), "serverless geometry");
@@ -46,7 +53,9 @@ int main() {
                 const std::string command = "MSET", value = "value";
                 const std::string key = "ccfix5:geometry:" + std::to_string(i);
                 Op write;
-                arg(write, command); arg(write, key); arg(write, value);
+                arg(write, command);
+                arg(write, key);
+                arg(write, value);
                 write.spec = command_lookup(write.cmd_name());
                 multidb_stamp(server, write, db);
                 const auto hash = FlatStore::hash_key(write.arg(1));
@@ -57,7 +66,8 @@ int main() {
                 namespace_differences += hash != FlatStore::hash_key(Slice(key.data(), key.size()));
                 require(debug(server, db, "SHARD", key) == integer(shard),
                         "DEBUG SHARD disagrees with MSET routing namespace");
-                require(debug(server, db, "SHARDS", key) == "*1\r\n*2\r\n" + integer(shard) + integer(owner),
+                require(debug(server, db, "SHARDS", key) ==
+                            "*1\r\n*2\r\n" + integer(shard) + integer(owner),
                         "DEBUG SHARDS disagrees with MSET routing namespace");
                 require(debug(server, db, "ATOMIC-FILTER-CELL", key) == integer(cell),
                         "DEBUG ATOMIC-FILTER-CELL disagrees with MSET key hash");
@@ -66,6 +76,6 @@ int main() {
         }
     }
     require(namespace_differences > 0, "nonzero physical namespace was never reached");
-    std::printf("PASS %u DEBUG/MSET geometry comparisons, %u nonzero-namespace hashes\n",
-                checked, namespace_differences);
+    std::printf("PASS %u DEBUG/MSET geometry comparisons, %u nonzero-namespace hashes\n", checked,
+                namespace_differences);
 }

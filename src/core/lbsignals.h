@@ -32,14 +32,14 @@ class Server;
 
 struct LbThreadRow {
     uint32_t tid = 0;
-    Role     role = Role::Idle;
+    Role role = Role::Idle;
     uint32_t domain = 0;
-    uint32_t clients = 0;          // Ifid only: connections owned
+    uint32_t clients = 0;  // Ifid only: connections owned
     uint64_t iterations = 0;
     uint64_t ops = 0;
     uint64_t busy_ns = 0;
     uint64_t idle_ns = 0;
-    uint64_t cpu_ns = 0;           // CLOCK_THREAD_CPUTIME_ID — the DEFER_TASKRUN-proof reading
+    uint64_t cpu_ns = 0;  // CLOCK_THREAD_CPUTIME_ID — the DEFER_TASKRUN-proof reading
     uint64_t depth_sum = 0;
     uint64_t depth_samples = 0;
     uint64_t queue_delay_samples = 0;
@@ -59,9 +59,9 @@ struct LbThreadRow {
     uint64_t spins = 0;
     double masked_arena_occupancy_at_lane_full() const {
         return masked_arena_capacity_at_lane_full_sum
-            ? static_cast<double>(masked_arena_occupancy_at_lane_full_sum) /
-                  static_cast<double>(masked_arena_capacity_at_lane_full_sum)
-            : 0.0;
+                   ? static_cast<double>(masked_arena_occupancy_at_lane_full_sum) /
+                         static_cast<double>(masked_arena_capacity_at_lane_full_sum)
+                   : 0.0;
     }
 };
 
@@ -70,7 +70,7 @@ struct LbShardRow {
     uint32_t owner_tid = 0;
     uint32_t owner_domain = 0;
     uint64_t ops = 0;
-    uint64_t foreign_ops = 0;      // executed by a worker outside the shard's home L3 domain
+    uint64_t foreign_ops = 0;  // executed by a worker outside the shard's home L3 domain
     uint64_t migrations = 0;
     uint32_t size = 0;
     uint64_t obj_bytes = 0;
@@ -115,24 +115,22 @@ struct LbRoleRollup {
     }
     double masked_arena_occupancy_at_lane_full() const {
         return masked_arena_capacity_at_lane_full_sum
-            ? static_cast<double>(masked_arena_occupancy_at_lane_full_sum) /
-                  static_cast<double>(masked_arena_capacity_at_lane_full_sum)
-            : 0.0;
+                   ? static_cast<double>(masked_arena_occupancy_at_lane_full_sum) /
+                         static_cast<double>(masked_arena_capacity_at_lane_full_sum)
+                   : 0.0;
     }
 };
 
 struct LbSnapshot {
-    uint64_t stamp_ns = 0;                 // CLOCK_MONOTONIC at capture
+    uint64_t stamp_ns = 0;  // CLOCK_MONOTONIC at capture
     bool fused_mode = false;
-    uint32_t client_threads = 0;            // threads capable of owning connections
-    uint32_t owner_threads = 0;             // distinct tids named by shard rows
+    uint32_t client_threads = 0;  // threads capable of owning connections
+    uint32_t owner_threads = 0;   // distinct tids named by shard rows
     std::vector<LbThreadRow> threads;
-    std::vector<LbShardRow>  shards;
-    LbRoleRollup io;                       // Role::Ifid rollup
-    LbRoleRollup ex;                       // Role::Ex rollup
-    LbRoleRollup fused;                    // combined 1s loop work; never a synthetic split
-
-
+    std::vector<LbShardRow> shards;
+    LbRoleRollup io;     // Role::Ifid rollup
+    LbRoleRollup ex;     // Role::Ex rollup
+    LbRoleRollup fused;  // combined 1s loop work; never a synthetic split
 };
 
 // Capture is declared here and defined in src/cmd/lbsignals.cc (it needs the full Server type).

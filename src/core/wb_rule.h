@@ -7,18 +7,20 @@
 #include "../net/conn.h"
 
 #ifdef TOMO_EXEC1S_WB
-namespace tomo { bool multi_wb_prefix_hold(Client&); }
+namespace tomo {
+bool multi_wb_prefix_hold(Client&);
+}
 #endif
 namespace tomo::wb_rule {
 // MEASURED default S=16, not derived from a batch size or reply size. Constants ledger
 // addendum 12, S=16 KEEP (2026-10-02); PLAN-SERIAL 2026-10-01 16:54 and
 // 2026-10-02 06:54: p8 saturation, p8@512K attainment, floor-0.4 bursts.
 // See MEASURE-REQUEST-wbhybrid.md: no honest derivation from existing sizings.
-inline constexpr unsigned /* TOMO_TOOL_BIND kSmallPipe */kSmallPipe = 16;
+inline constexpr unsigned /* TOMO_TOOL_BIND kSmallPipe */ kSmallPipe = 16;
 // MEASURED default D=3. Constants ledger addendum 12, D=3 DERIVE-BY-MEASUREMENT
 // (2026-10-02); PLAN-SERIAL 06:54 D-curve row 3: p8 GET/SET/rl-SET
 // +9.4/+10.4/+6.6%, with floor-0.4 p99/p999 inside the same-binary band.
-inline constexpr unsigned /* TOMO_TOOL_BIND kCompleteVisits */kCompleteVisits = 3;
+inline constexpr unsigned /* TOMO_TOOL_BIND kCompleteVisits */ kCompleteVisits = 3;
 // Boot-latched in IoLoop padding; no allocation or per-visit configuration lookup.
 struct Settings {
     uint8_t policy = 1;
@@ -83,19 +85,34 @@ inline size_t staged_bytes(Connection& c) {
 template <class Operation>
 inline size_t code_bytes(const Operation& op) {
     switch (static_cast<ReplyCode>(op.reply_code_)) {
-    case ReplyCode::Ok: case ReplyCode::Nil: case ReplyCode::NullArray: return 5;
-    case ReplyCode::Pong: return 7;
-    case ReplyCode::EmptyStr: return 6;
-    case ReplyCode::NullResp3: return 3;
-    case ReplyCode::True: case ReplyCode::False: return 4;
-    case ReplyCode::Int: {
-        int64_t v = op.reply_ival_;
-        size_t n = 4; // colon, one digit, CRLF
-        if (v < 0) { ++n; v = -v; }
-        while (v >= 10) { v /= 10; ++n; }
-        return n;
-    }
-    default: return 0;
+        case ReplyCode::Ok:
+        case ReplyCode::Nil:
+        case ReplyCode::NullArray:
+            return 5;
+        case ReplyCode::Pong:
+            return 7;
+        case ReplyCode::EmptyStr:
+            return 6;
+        case ReplyCode::NullResp3:
+            return 3;
+        case ReplyCode::True:
+        case ReplyCode::False:
+            return 4;
+        case ReplyCode::Int: {
+            int64_t v = op.reply_ival_;
+            size_t n = 4;  // colon, one digit, CRLF
+            if (v < 0) {
+                ++n;
+                v = -v;
+            }
+            while (v >= 10) {
+                v /= 10;
+                ++n;
+            }
+            return n;
+        }
+        default:
+            return 0;
     }
 }
 
@@ -111,10 +128,10 @@ inline size_t reply_bytes(const Operation& op) {
 template <class Connection>
 inline bool defer(Connection& c, const Settings& cfg) {
     int policy = cfg.policy;
-    if (policy == 0) return false; // LATENCY: every ready head on every captured pass
+    if (policy == 0) return false;  // LATENCY: every ready head on every captured pass
     auto& rob = c.rob();
     const unsigned n = rob.in_flight();
-    if (n <= 1) return false; // staged-only, pubsub, and p1 use ordinary serve
+    if (n <= 1) return false;  // staged-only, pubsub, and p1 use ordinary serve
     size_t bytes = staged_bytes(c);
 #ifdef TOMO_EXEC1S_WB
     // Already staged bytes may belong to an earlier ordinary command.
@@ -129,8 +146,10 @@ inline bool defer(Connection& c, const Settings& cfg) {
     // D=0 completes without counting. Only the bounded predicate survives the
     // walk, so neither knob needs a live register through integer reply sizing.
     const volatile bool complete = n <= small_pipe && c.wb_deferrals() < complete_visits;
-    const unsigned threshold = (complete || (complete_visits == 0 && n <= small_pipe))
-        ? n : (n * kPolicyFraction.num + kPolicyFraction.den - 1) / kPolicyFraction.den;
+    const unsigned threshold =
+        (complete || (complete_visits == 0 && n <= small_pipe))
+            ? n
+            : (n * kPolicyFraction.num + kPolicyFraction.den - 1) / kPolicyFraction.den;
     unsigned prefix = 0;
     // Both counters belong to IO, but Done can have holes. Neither head/tail nor
     // the threshold slot alone proves a contiguous prefix. At most ROB slots,
@@ -182,7 +201,7 @@ struct Phase2 {
                 loop.pending_serve_.push_back(c);
                 continue;
             }
-            c->wb_deferrals() = 0; // served or dead: leaving the FIFO
+            c->wb_deferrals() = 0;  // served or dead: leaving the FIFO
             c->set_serve_pending(false);
             // Closing conns MUST still be served -- their ROB has to drain before quiesce can let
             // loop.close_client finish. Only corpses (freed-pending) are skippable.
@@ -192,10 +211,12 @@ struct Phase2 {
             // operation: a p32 batch amortises it over 32 replies. The suppressed drain lives in
             // the cold object and discards bytes instead of staging them.
             if (__builtin_expect((loop.climon_armed_cached_ &
-                                  (ServerType::kClimonReply | ServerType::kClimonTracking)) != 0, false) &&
+                                  (ServerType::kClimonReply | ServerType::kClimonTracking)) != 0,
+                                 false) &&
                 loop.climon_reply_suppressed(c)) {
                 work += loop.climon_serve_suppressed(c);
-                if constexpr (kEp) if (loop.wb_.take_send_failure()) loop.epoll_close_now(c);
+                if constexpr (kEp)
+                    if (loop.wb_.take_send_failure()) loop.epoll_close_now(c);
                 continue;
             }
             if constexpr (HasTls) {
@@ -203,7 +224,8 @@ struct Phase2 {
                     if (loop.wb_.template serve_tls<kEp, false, Coded>(*c, *tls)) work++;
                     if (tls->socket_userspace() && tls->has_pinned_plain())
                         loop.template arm_tls_socket_poll<kEp>(c, tls->wanted());
-                    if (tls->failed()) loop.close_client(c, tls->output_pending() || c->send_inflight());
+                    if (tls->failed())
+                        loop.close_client(c, tls->output_pending() || c->send_inflight());
                 } else if (auto* slot = loop.tls_slot_conn(c); slot && slot->ktls()) {
                     if (loop.wb_.template serve_ktls<kEp, false, Coded>(*c)) work++;
                 } else if (loop.wb_.template serve<kEp, false, Coded>(*c)) {
@@ -215,10 +237,11 @@ struct Phase2 {
             // A synchronous send has no CQE to report a fatal errno through, so the engine latches
             // it and the decision to tear the connection down is taken here instead. Consuming it
             // per served connection is deliberate: a bit left set would close the NEXT one.
-            if constexpr (kEp) if (loop.wb_.take_send_failure()) loop.epoll_close_now(c);
+            if constexpr (kEp)
+                if (loop.wb_.take_send_failure()) loop.epoll_close_now(c);
         }
         work += served;
         return work;
     }
 };
-} // namespace tomo::wb_rule
+}  // namespace tomo::wb_rule

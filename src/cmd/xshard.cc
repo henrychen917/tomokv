@@ -54,7 +54,6 @@
 #include "../persist/aof.h"
 #include "../store/kvobj.h"
 
-
 #include "scatter_engine.inc"
 #include "xshard_commands.inc"
 #include "xshard_movers.inc"

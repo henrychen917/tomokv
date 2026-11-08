@@ -40,7 +40,10 @@ struct CommandMetadata {
 
 using namespace tomo;
 static void require(bool ok, const char* reason) {
-    if (!ok) { std::fprintf(stderr, "FAIL: %s\n", reason); std::exit(1); }
+    if (!ok) {
+        std::fprintf(stderr, "FAIL: %s\n", reason);
+        std::exit(1);
+    }
 }
 
 static unsigned registry_ranges() {
@@ -53,16 +56,15 @@ static unsigned registry_ranges() {
         require(metadata, "missing generated metadata");
         const Slice name = command_metadata_name(*metadata);
         const auto* row = std::find_if(std::begin(witness::kGeneratedMetadata),
-            std::end(witness::kGeneratedMetadata), [&](const auto& row) {
-                return name.eq_icase(row.name);
-            });
+                                       std::end(witness::kGeneratedMetadata),
+                                       [&](const auto& row) { return name.eq_icase(row.name); });
         require(row != std::end(witness::kGeneratedMetadata), "missing generated row");
         if (spec.first_key != row->first_key || spec.last_key != row->last_key ||
             spec.key_step != row->key_step) {
             ++failures;
             std::printf("MISMATCH %s runtime=%d,%d,%d generated=%d,%d,%d\n", spec.name,
-                        spec.first_key, spec.last_key, spec.key_step,
-                        row->first_key, row->last_key, row->key_step);
+                        spec.first_key, spec.last_key, spec.key_step, row->first_key, row->last_key,
+                        row->key_step);
         }
     }
     std::printf("registry: %u specs checked, %u mismatches\n", count, failures);
@@ -156,8 +158,7 @@ static void permissions() {
     require(acl_find_user(Slice("aclkeys", 7), user), "ACL user exists");
     require(server.acl_active(), "retirement ACL checks must be armed");
     for (const auto* verb : {"BLPOP", "BRPOP"})
-        retired_reply(user, {verb, "block:a", "0"}, {1},
-                      "*2\r\n$7\r\nblock:a\r\n$5\r\nvalue\r\n");
+        retired_reply(user, {verb, "block:a", "0"}, {1}, "*2\r\n$7\r\nblock:a\r\n$5\r\nvalue\r\n");
     retired_reply(user, {"BLMPOP", "0", "1", "block:a", "LEFT"}, {3},
                   "*2\r\n$7\r\nblock:a\r\n*1\r\n$5\r\nvalue\r\n");
     retired_reply(user, {"BZPOPMIN", "block:a", "0"}, {1},
@@ -167,8 +168,9 @@ static void permissions() {
         "*2\r\n$5\r\nfield\r\n$5\r\nvalue\r\n";
     retired_reply(user, {"XREAD", "BLOCK", "0", "STREAMS", "block:a", "0"}, {4}, stream_reply);
     // XREADGROUP exceeds Op's eight inline arguments, covering the heap view too.
-    retired_reply(user, {"XREADGROUP", "GROUP", "group", "consumer", "BLOCK", "0",
-                        "STREAMS", "block:a", ">"}, {7}, stream_reply);
+    retired_reply(
+        user, {"XREADGROUP", "GROUP", "group", "consumer", "BLOCK", "0", "STREAMS", "block:a", ">"},
+        {7}, stream_reply);
     // Moves retire through scatter in production; this verifies their extraction
     // only. The differential suite exercises the actual resumed-move lifecycle.
     retired_reply(user, {"BLMOVE", "block:a", "block:b", "LEFT", "RIGHT", "0"}, {1, 2},
@@ -182,8 +184,10 @@ static void permissions() {
         keys(user, {"BLMOVE", "block:a", "block:b", "LEFT", "RIGHT", timeout}, {1, 2});
         keys(user, {"BRPOPLPUSH", "block:a", "block:b", timeout}, {1, 2});
         keys(user, {"XREAD", "BLOCK", timeout, "STREAMS", "block:a", "block:b", "0", "$"}, {4, 5});
-        keys(user, {"XREADGROUP", "GROUP", "group", "consumer", "BLOCK", timeout,
-                    "STREAMS", "block:a", "block:b", ">", ">"}, {7, 8});
+        keys(user,
+             {"XREADGROUP", "GROUP", "group", "consumer", "BLOCK", timeout, "STREAMS", "block:a",
+              "block:b", ">", ">"},
+             {7, 8});
         keys(user, {"WAIT", "1", timeout}, {});
         keys(user, {"WAITAOF", "0", "1", timeout}, {});
     }
@@ -198,14 +202,14 @@ static void permissions() {
     for (const auto* verb : {"ZUNIONSTORE", "ZINTERSTORE", "ZDIFFSTORE"})
         keys(user, {verb, "block:dst", "2", "block:a", "block:b"}, {1, 3, 4});
     keys(user, {"GEORADIUS", "block:a", "0", "0", "1", "km", "STORE", "block:dst"}, {1, 7});
-    keys(user, {"GEORADIUSBYMEMBER", "block:a", "member", "1", "km", "STOREDIST", "block:dst"}, {1, 6});
+    keys(user, {"GEORADIUSBYMEMBER", "block:a", "member", "1", "km", "STOREDIST", "block:dst"},
+         {1, 6});
     keys(user, {"SORT", "block:a", "STORE", "block:dst"}, {1, 3});
     keys(user, {"OBJECT", "ENCODING", "block:a"}, {2});
     keys(user, {"MEMORY", "USAGE", "block:a", "SAMPLES", "0"}, {2});
     keys(user, {"XGROUP", "CREATE", "block:a", "group", "$"}, {2});
     keys(user, {"XINFO", "STREAM", "block:a"}, {2});
-    for (const auto* verb : {"OBJECT", "MEMORY", "XGROUP", "XINFO"})
-        keys(user, {verb, "HELP"}, {});
+    for (const auto* verb : {"OBJECT", "MEMORY", "XGROUP", "XINFO"}) keys(user, {verb, "HELP"}, {});
     // Sharded pubsub metadata marks channels not_key: key patterns must not restrict them.
     keys(user, {"SSUBSCRIBE", "outside:channel"}, {});
     keys(user, {"SUNSUBSCRIBE", "outside:channel"}, {});
@@ -218,7 +222,10 @@ static void permissions() {
 
 int main(int argc, char** argv) {
     require(command_registry_init(false), "registry initialization");
-    if (argc == 2 && !std::strcmp(argv[1], "permissions")) { permissions(); return 0; }
+    if (argc == 2 && !std::strcmp(argv[1], "permissions")) {
+        permissions();
+        return 0;
+    }
     if (argc == 2 && !std::strcmp(argv[1], "registry")) return registry_ranges() ? 1 : 0;
     require(argc == 1, "usage: aclkeys-unit [registry|permissions]");
     const auto mismatches = registry_ranges();

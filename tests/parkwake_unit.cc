@@ -18,27 +18,39 @@
 namespace tomo {
 struct CoreConcurrencyTest {
     static void require(bool value, const char* why) {
-        if (!value) { std::fprintf(stderr, "FAIL parkwake unit: %s\n", why); std::exit(1); }
+        if (!value) {
+            std::fprintf(stderr, "FAIL parkwake unit: %s\n", why);
+            std::exit(1);
+        }
     }
     struct Fixture {
         Server server;
         std::array<ExLoopT<false>, 8> owners;
         std::array<IoLoop, 8> ios;
         Fixture() {
-            Config cfg; cfg.databases = 16; cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
-            cfg.thread_mode = ThreadMode::Split; cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
+            Config cfg;
+            cfg.databases = 16;
+            cfg.shards = 16;
+            cfg.even_ifid = 6;
+            cfg.even_ex = 2;
+            cfg.thread_mode = ThreadMode::Split;
+            cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
             require(server.prepare_boot(cfg) && server.init(cfg), "fixture initialization");
             require(server.nthreads() == 8, "exact eight-thread fixture");
             command_bind_server(&server);
             for (unsigned tid = 0; tid < 8; ++tid) {
                 auto& thread = server.thread(tid);
                 require(thread.init_task_inbox_local(server.placement().ifid_threads(),
-                                                     server.placement().ex_threads()), "task lanes");
-                auto& owner = owners[tid]; owner.srv_ = &server; owner.self_ = &thread;
+                                                     server.placement().ex_threads()),
+                        "task lanes");
+                auto& owner = owners[tid];
+                owner.srv_ = &server;
+                owner.self_ = &thread;
                 owner.cached_now_ms_ = 1000;
                 server.bind_owner_notify_pending(tid, &owner.notify_keyless_pending_);
                 owner.refresh_live_config();
-                ios[tid].srv_ = &server; ios[tid].self_ = &thread;
+                ios[tid].srv_ = &server;
+                ios[tid].self_ = &thread;
             }
         }
         ~Fixture() { command_bind_server(nullptr); }
@@ -54,14 +66,16 @@ struct CoreConcurrencyTest {
         const auto ex = server.placement().ex_threads();
         require(ex.size() == 2, "two executors");
         Client swapper(-1);
-        swapper.set_id(77); swapper.set_ifid_thread(0);
+        swapper.set_id(77);
+        swapper.set_ifid_thread(0);
         server.thread(0).add_client(&swapper);
         uint64_t token = 0;
         require(server.atomic_try_admit(0, token, true) && server.atomic_inflight() == 1,
                 "one admitted group whose reply has not retired");
         require(!server.database_boundary_begin(swapper, 0, swapper.rob().dispatch_id()),
                 "boundary starts with a drain");
-        for (unsigned pass = 0; pass < 4 && server.flip_stage() != FlipStage::DatabaseExDrain; ++pass)
+        for (unsigned pass = 0; pass < 4 && server.flip_stage() != FlipStage::DatabaseExDrain;
+             ++pass)
             f.io_control();
         require(server.flip_stage() == FlipStage::DatabaseExDrain, "IO drain acknowledged");
         // The window: owed, not quiesced (atomic_inflight). A zero return lets the executor's
@@ -75,7 +89,8 @@ struct CoreConcurrencyTest {
         server.atomic_retire_group(0, token);
         for (auto tid : ex) {
             require(f.owners[tid].flip_control_pass() != 0, "acknowledging pass");
-            require(server.flip_acked(tid, FlipStage::DatabaseExDrain), "acknowledged after retirement");
+            require(server.flip_acked(tid, FlipStage::DatabaseExDrain),
+                    "acknowledged after retirement");
         }
         for (unsigned pass = 0; pass < 4 && server.flip_stage() != FlipStage::DatabaseRun; ++pass)
             f.io_control();
@@ -92,7 +107,8 @@ struct CoreConcurrencyTest {
         Server& server = f.server;
         const uint32_t peer = 7, io = 0;
         Client closing(-1);
-        closing.set_id(88); closing.set_ifid_thread(io);
+        closing.set_id(88);
+        closing.set_ifid_thread(io);
         const uint64_t idle = server.client_work_epoch(peer);
         require(!(idle & 1), "idle peer epoch is even");
         {
@@ -103,7 +119,8 @@ struct CoreConcurrencyTest {
             require(!f.ios[io].client_executor_quiesced(&closing), "fence waits for the pass");
             pass.park();
             require(!(server.client_work_epoch(peer) & 1), "the park publishes an even epoch");
-            require(f.ios[io].client_executor_quiesced(&closing), "fence opens while the peer sleeps");
+            require(f.ios[io].client_executor_quiesced(&closing),
+                    "fence opens while the peer sleeps");
             pass.resume();
             const uint64_t resumed = server.client_work_epoch(peer);
             require((resumed & 1) && resumed != working, "resume opens a fresh odd scope");
@@ -120,8 +137,10 @@ struct CoreConcurrencyTest {
         const uint32_t ex = server.placement().ex_threads().front();
         ThreadCtx& sender = server.thread(io);
         Client filler(-1), late(-1);
-        filler.set_id(91); filler.set_ifid_thread(io);
-        late.set_id(92); late.set_ifid_thread(io);
+        filler.set_id(91);
+        filler.set_ifid_thread(io);
+        late.set_id(92);
+        late.set_ifid_thread(io);
         Ring ring;
         unsigned posted = 0;
         while (sender.post_client(ex, &filler, ring, server.thread(ex).sig())) ++posted;
@@ -135,27 +154,35 @@ struct CoreConcurrencyTest {
                 "the refused notice is queued for a repost");
         require(owner.flip_quiesced() == false, "a queued notice blocks quiescence");
         unsigned drained = 0;
-        sender.drain_clients([&](Client* c) { require(c == &filler, "filler first"); ++drained; });
+        sender.drain_clients([&](Client* c) {
+            require(c == &filler, "filler first");
+            ++drained;
+        });
         require(drained == kInboxSlots, "the IO drained its channel");
         require(owner.service_notify_retries() != 0, "a repost counts as work");
         require(server.notify_retries(ex).empty(), "the repost succeeded");
         Client* got = nullptr;
         sender.drain_clients([&](Client* c) { got = c; });
         require(got == &late, "the IO received the reposted notice");
-        std::puts("PASS parkwake F12 notice: a refused completion notice is reposted, never dropped");
+        std::puts(
+            "PASS parkwake F12 notice: a refused completion notice is reposted, never dropped");
     }
 
     static void f10_rendezvous_announce() {
         DebugSleepCoordinator<8, 50> coordinator;
         DebugSleepCoordinator<8, 50>::Worker member(coordinator, 3);
-        struct Seen { DebugSleepCoordinator<8, 50>* c; bool announced = false, pending = false, ran = false; } seen{&coordinator};
-        const bool started = coordinator.exclusive(3, 1, &seen,
-            [](void* p, unsigned) { static_cast<Seen*>(p)->ran = true; },
+        struct Seen {
+            DebugSleepCoordinator<8, 50>* c;
+            bool announced = false, pending = false, ran = false;
+        } seen{&coordinator};
+        const bool started = coordinator.exclusive(
+            3, 1, &seen, [](void* p, unsigned) { static_cast<Seen*>(p)->ran = true; },
             [](void* p, unsigned origin) {
                 auto& s = *static_cast<Seen*>(p);
                 s.announced = origin == 3;
                 s.pending = s.c->pending();
-            }, &seen);
+            },
+            &seen);
         require(started && seen.ran, "the rendezvous ran its action");
         require(seen.announced && seen.pending, "announce ran after the request was published");
         std::puts("PASS parkwake F10 rendezvous: parked members are rung after publication");

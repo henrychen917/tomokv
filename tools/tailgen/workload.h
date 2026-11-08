@@ -13,8 +13,10 @@
 namespace tailgen {
 
 inline std::string_view trim(std::string_view value) {
-    while (!value.empty() && std::isspace(static_cast<unsigned char>(value.front()))) value.remove_prefix(1);
-    while (!value.empty() && std::isspace(static_cast<unsigned char>(value.back()))) value.remove_suffix(1);
+    while (!value.empty() && std::isspace(static_cast<unsigned char>(value.front())))
+        value.remove_prefix(1);
+    while (!value.empty() && std::isspace(static_cast<unsigned char>(value.back())))
+        value.remove_suffix(1);
     return value;
 }
 inline uint64_t unsigned_number(std::string_view text) {
@@ -45,11 +47,13 @@ struct KeySpace {
         const uint64_t last = unsigned_number(text.substr(dots + 2, close - dots - 2));
         if (last < first || last - first == std::numeric_limits<uint64_t>::max())
             throw std::invalid_argument("invalid key range");
-        return {std::string(text.substr(0, open)), std::string(text.substr(close + 1)), first, last - first + 1};
+        return {std::string(text.substr(0, open)), std::string(text.substr(close + 1)), first,
+                last - first + 1};
     }
     void append_bulk(std::string& out, Random& rng) const {
         char digits[32];
-        const auto end = std::to_chars(digits, digits + sizeof digits, first + rng.bounded(count)).ptr;
+        const auto end =
+            std::to_chars(digits, digits + sizeof digits, first + rng.bounded(count)).ptr;
         out += '$';
         out += std::to_string(prefix.size() + static_cast<size_t>(end - digits) + suffix.size());
         out += "\r\n";
@@ -76,12 +80,14 @@ public:
             const size_t comma = mix.find(',');
             const std::string_view entry = trim(mix.substr(0, comma));
             const size_t colon = entry.rfind(':');
-            if (colon == std::string_view::npos) throw std::invalid_argument("mix needs COMMAND:weight entries");
+            if (colon == std::string_view::npos)
+                throw std::invalid_argument("mix needs COMMAND:weight entries");
             const uint64_t weight = unsigned_number(trim(entry.substr(colon + 1)));
             std::string name(trim(entry.substr(0, colon)));
             for (char& c : name) c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
             Command command;
-            if (name == "GET") command.prefix = "*2\r\n$3\r\nGET\r\n";
+            if (name == "GET")
+                command.prefix = "*2\r\n$3\r\nGET\r\n";
             else if (name == "BITCOUNT") {
                 command.prefix = "*2\r\n$8\r\nBITCOUNT\r\n";
                 command.kind = CommandClass::long_op;
@@ -90,10 +96,15 @@ public:
                 command.has_key = false;
             } else if (name.starts_with("SET ")) {
                 const uint64_t bytes = unsigned_number(trim(std::string_view(name).substr(4)));
-                if (bytes > 512 * 1024 * 1024) throw std::invalid_argument("SET payload exceeds 512 MiB");
+                if (bytes > 512 * 1024 * 1024)
+                    throw std::invalid_argument("SET payload exceeds 512 MiB");
                 command.prefix = "*3\r\n$3\r\nSET\r\n";
-                if (weight) command.suffix = "$" + std::to_string(bytes) + "\r\n" + std::string(bytes, 'x') + "\r\n";
-            } else throw std::invalid_argument("supported mix commands: GET, SET <bytes>, BITCOUNT, PING");
+                if (weight)
+                    command.suffix =
+                        "$" + std::to_string(bytes) + "\r\n" + std::string(bytes, 'x') + "\r\n";
+            } else
+                throw std::invalid_argument(
+                    "supported mix commands: GET, SET <bytes>, BITCOUNT, PING");
             if (weight > std::numeric_limits<uint64_t>::max() - weight_)
                 throw std::invalid_argument("mix weight sum overflow");
             if (weight) {
@@ -111,7 +122,11 @@ public:
     CommandClass render(Random& rng, std::string& out) const {
         const uint64_t choice = rng.bounded(weight_);
         const Command* command = &commands_.front();
-        for (const auto& c : commands_) if (choice < c.through) { command = &c; break; }
+        for (const auto& c : commands_)
+            if (choice < c.through) {
+                command = &c;
+                break;
+            }
         out.assign(command->prefix);
         if (command->has_key)
             (command->kind == CommandClass::short_op ? short_ : long_).append_bulk(out, rng);
@@ -125,4 +140,4 @@ private:
     uint64_t weight_ = 0;
 };
 
-} // namespace tailgen
+}  // namespace tailgen

@@ -122,7 +122,6 @@ private:
         uint64_t notify_drop = 0;
     };
 
-
     ShutdownReport() = default;
 
     Mode mode_ = Mode::Split;
@@ -145,8 +144,8 @@ private:
 template <class IoLoops>
 ShutdownReport collect_shutdown_report(Server& server, IoLoops& io_loops) {
     ShutdownReport report;
-    report.mode_ = server.thread_mode() == ThreadMode::Fused
-        ? ShutdownReport::Mode::Fused : ShutdownReport::Mode::Split;
+    report.mode_ = server.thread_mode() == ThreadMode::Fused ? ShutdownReport::Mode::Fused
+                                                             : ShutdownReport::Mode::Split;
     report.thread_count_ = server.nthreads();
     report.epoll_.enabled = server.cfg().net_io == NetIoEngine::Epoll;
     report.persistence_ = server.aof().persistence_report();
@@ -174,8 +173,8 @@ ShutdownReport collect_shutdown_report(Server& server, IoLoops& io_loops) {
         } else {
             const Role role = server.thread(tid).role();
             row.role = role == Role::Ifid ? ShutdownReport::ThreadRole::Io
-                     : role == Role::Ex ? ShutdownReport::ThreadRole::Ex
-                                        : ShutdownReport::ThreadRole::Idle;
+                       : role == Role::Ex ? ShutdownReport::ThreadRole::Ex
+                                          : ShutdownReport::ThreadRole::Idle;
             // Preserve the established 2s rollup: LoopSignals::ops is lifetime-cumulative and is
             // charged to the thread's final role. Exact per-tenure attribution would require new
             // increments on the operation path, which shutdown reporting must not introduce.
@@ -235,10 +234,16 @@ ShutdownReport collect_shutdown_report(Server& server, IoLoops& io_loops) {
                 for (uint64_t id = client->rob().flush_id(), end = client->rob().dispatch_id();
                      id != end; id++) {
                     switch (client->rob().at(id).state.load(std::memory_order_acquire)) {
-                        case OpState::Done: report.stuck_.slots_done++; break;
+                        case OpState::Done:
+                            report.stuck_.slots_done++;
+                            break;
                         case OpState::Issued:
-                        case OpState::AofWait: report.stuck_.slots_issued++; break;
-                        default: report.stuck_.slots_free++; break;
+                        case OpState::AofWait:
+                            report.stuck_.slots_issued++;
+                            break;
+                        default:
+                            report.stuck_.slots_free++;
+                            break;
                     }
                 }
             }
@@ -250,111 +255,118 @@ ShutdownReport collect_shutdown_report(Server& server, IoLoops& io_loops) {
 
 inline const char* shutdown_thread_role_human(ShutdownReport::ThreadRole role) {
     switch (role) {
-        case ShutdownReport::ThreadRole::Io: return "io";
-        case ShutdownReport::ThreadRole::Ex: return "ex";
-        case ShutdownReport::ThreadRole::Fused: return "uni";
-        case ShutdownReport::ThreadRole::Idle: return "idle";
+        case ShutdownReport::ThreadRole::Io:
+            return "io";
+        case ShutdownReport::ThreadRole::Ex:
+            return "ex";
+        case ShutdownReport::ThreadRole::Fused:
+            return "uni";
+        case ShutdownReport::ThreadRole::Idle:
+            return "idle";
     }
     return "idle";
 }
 
 inline const char* shutdown_thread_role_json(ShutdownReport::ThreadRole role) {
     switch (role) {
-        case ShutdownReport::ThreadRole::Io: return "io";
-        case ShutdownReport::ThreadRole::Ex: return "ex";
-        case ShutdownReport::ThreadRole::Fused: return "fused";
-        case ShutdownReport::ThreadRole::Idle: return "idle";
+        case ShutdownReport::ThreadRole::Io:
+            return "io";
+        case ShutdownReport::ThreadRole::Ex:
+            return "ex";
+        case ShutdownReport::ThreadRole::Fused:
+            return "fused";
+        case ShutdownReport::ThreadRole::Idle:
+            return "idle";
     }
     return "idle";
 }
 
 inline void print_shutdown_report_human(const ShutdownReport& report) {
     const auto& persistence = report.persistence_;
-    std::printf("persistence: enabled=%u posted=%llu flushed=%llu durable=%llu refused=%llu"
-                " pending_chunks=%llu producers_with_pending=%llu drain_gave_up=%u failed=%u\n",
-                persistence.enabled, static_cast<unsigned long long>(persistence.posted),
-                static_cast<unsigned long long>(persistence.flushed),
-                static_cast<unsigned long long>(persistence.durable),
-                static_cast<unsigned long long>(persistence.refused),
-                static_cast<unsigned long long>(persistence.pending_chunks),
-                static_cast<unsigned long long>(persistence.producers_with_pending),
-                persistence.drain_gave_up, persistence.failed);
-    std::printf("\n%-6s %-4s %12s %10s %9s %9s %9s %9s %8s\n",
-                "thread", "role", "ops", "iters", "busy_ms", "idle_ms", "cpu_ms",
-                "wake_tx", "wake_rx");
+    std::printf(
+        "persistence: enabled=%u posted=%llu flushed=%llu durable=%llu refused=%llu"
+        " pending_chunks=%llu producers_with_pending=%llu drain_gave_up=%u failed=%u\n",
+        persistence.enabled, static_cast<unsigned long long>(persistence.posted),
+        static_cast<unsigned long long>(persistence.flushed),
+        static_cast<unsigned long long>(persistence.durable),
+        static_cast<unsigned long long>(persistence.refused),
+        static_cast<unsigned long long>(persistence.pending_chunks),
+        static_cast<unsigned long long>(persistence.producers_with_pending),
+        persistence.drain_gave_up, persistence.failed);
+    std::printf("\n%-6s %-4s %12s %10s %9s %9s %9s %9s %8s\n", "thread", "role", "ops", "iters",
+                "busy_ms", "idle_ms", "cpu_ms", "wake_tx", "wake_rx");
     for (uint32_t index = 0; index < report.thread_count_; index++) {
         const ShutdownReport::ThreadRow& row = report.threads_[index];
-        std::printf("t%-5u %-4s %12llu %10llu %9.1f %9.1f %9.1f %9llu %8llu\n",
-                    row.tid, shutdown_thread_role_human(row.role),
-                    static_cast<unsigned long long>(row.ops),
-                    static_cast<unsigned long long>(row.iterations),
-                    row.busy_ns / 1e6, row.idle_ns / 1e6, row.cpu_ns / 1e6,
+        std::printf("t%-5u %-4s %12llu %10llu %9.1f %9.1f %9.1f %9llu %8llu\n", row.tid,
+                    shutdown_thread_role_human(row.role), static_cast<unsigned long long>(row.ops),
+                    static_cast<unsigned long long>(row.iterations), row.busy_ns / 1e6,
+                    row.idle_ns / 1e6, row.cpu_ns / 1e6,
                     static_cast<unsigned long long>(row.wakes_sent),
                     static_cast<unsigned long long>(row.wakes_recv));
         std::printf("t%u ", row.tid);
         exec1s_print(row.exec1s, false);
         for (size_t tenure = 0; tenure < row.io_tenures.size(); ++tenure) {
             const auto& t = row.io_tenures[tenure];
-            std::printf("io_tenure t%u/%zu busy_ns=%llu idle_ns=%llu entry_ns=%llu "
-                        "begin_ns=%llu end_ns=%llu exit_ns=%llu role_exit=%u stopped=%u\n",
-                        row.tid, tenure, static_cast<unsigned long long>(t.busy_ns),
-                        static_cast<unsigned long long>(t.idle_ns),
-                        static_cast<unsigned long long>(t.entry_ns),
-                        static_cast<unsigned long long>(t.begin_ns),
-                        static_cast<unsigned long long>(t.end_ns),
-                        static_cast<unsigned long long>(t.exit_ns), t.role_exit, t.stopped);
+            std::printf(
+                "io_tenure t%u/%zu busy_ns=%llu idle_ns=%llu entry_ns=%llu "
+                "begin_ns=%llu end_ns=%llu exit_ns=%llu role_exit=%u stopped=%u\n",
+                row.tid, tenure, static_cast<unsigned long long>(t.busy_ns),
+                static_cast<unsigned long long>(t.idle_ns),
+                static_cast<unsigned long long>(t.entry_ns),
+                static_cast<unsigned long long>(t.begin_ns),
+                static_cast<unsigned long long>(t.end_ns),
+                static_cast<unsigned long long>(t.exit_ns), t.role_exit, t.stopped);
         }
     }
 
-
     const ShutdownReport::Wb& wb = report.wb_;
-    std::printf("wb: retired=%llu direct=%llu sends=%llu/%llu short=%llu err=%llu"
-                " peer_aborts=%llu bytes=%llu"
-                " zc_sends=%llu zc_bytes=%llu zc_releases=%llu serves=%llu empty=%llu\n",
-                static_cast<unsigned long long>(wb.retired),
-                static_cast<unsigned long long>(wb.direct),
-                static_cast<unsigned long long>(wb.sends_completed),
-                static_cast<unsigned long long>(wb.sends_submitted),
-                static_cast<unsigned long long>(wb.short_writes),
-                static_cast<unsigned long long>(wb.send_errors),
-                static_cast<unsigned long long>(wb.peer_aborts),
-                static_cast<unsigned long long>(wb.bytes_sent),
-                static_cast<unsigned long long>(wb.zc_sends),
-                static_cast<unsigned long long>(wb.zc_bytes),
-                static_cast<unsigned long long>(wb.zc_releases),
-                static_cast<unsigned long long>(wb.serves),
-                static_cast<unsigned long long>(wb.serves_empty));
+    std::printf(
+        "wb: retired=%llu direct=%llu sends=%llu/%llu short=%llu err=%llu"
+        " peer_aborts=%llu bytes=%llu"
+        " zc_sends=%llu zc_bytes=%llu zc_releases=%llu serves=%llu empty=%llu\n",
+        static_cast<unsigned long long>(wb.retired), static_cast<unsigned long long>(wb.direct),
+        static_cast<unsigned long long>(wb.sends_completed),
+        static_cast<unsigned long long>(wb.sends_submitted),
+        static_cast<unsigned long long>(wb.short_writes),
+        static_cast<unsigned long long>(wb.send_errors),
+        static_cast<unsigned long long>(wb.peer_aborts),
+        static_cast<unsigned long long>(wb.bytes_sent),
+        static_cast<unsigned long long>(wb.zc_sends), static_cast<unsigned long long>(wb.zc_bytes),
+        static_cast<unsigned long long>(wb.zc_releases), static_cast<unsigned long long>(wb.serves),
+        static_cast<unsigned long long>(wb.serves_empty));
 
     const ShutdownReport::Tls& tls = report.tls_;
-    std::printf("tls: accepts=%llu handshakes=%llu/%llu failed=%llu freed=%llu"
-                " want_read=%llu want_write=%llu cipher_in=%llu plain_in=%llu"
-                " cipher_out=%llu plain_out=%llu zc_suppressed=%llu"
-                " ktls_active=%llu ktls_fallback=%llu\n",
-                static_cast<unsigned long long>(tls.accepts),
-                static_cast<unsigned long long>(tls.handshakes_completed),
-                static_cast<unsigned long long>(tls.handshakes_started),
-                static_cast<unsigned long long>(tls.handshakes_failed),
-                static_cast<unsigned long long>(tls.connections_freed),
-                static_cast<unsigned long long>(tls.want_read),
-                static_cast<unsigned long long>(tls.want_write),
-                static_cast<unsigned long long>(tls.ciphertext_input_bytes),
-                static_cast<unsigned long long>(tls.plaintext_input_bytes),
-                static_cast<unsigned long long>(tls.ciphertext_output_bytes),
-                static_cast<unsigned long long>(tls.plaintext_output_bytes),
-                static_cast<unsigned long long>(tls.zc_suppressed),
-                static_cast<unsigned long long>(tls.ktls_active),
-                static_cast<unsigned long long>(tls.ktls_fallback));
+    std::printf(
+        "tls: accepts=%llu handshakes=%llu/%llu failed=%llu freed=%llu"
+        " want_read=%llu want_write=%llu cipher_in=%llu plain_in=%llu"
+        " cipher_out=%llu plain_out=%llu zc_suppressed=%llu"
+        " ktls_active=%llu ktls_fallback=%llu\n",
+        static_cast<unsigned long long>(tls.accepts),
+        static_cast<unsigned long long>(tls.handshakes_completed),
+        static_cast<unsigned long long>(tls.handshakes_started),
+        static_cast<unsigned long long>(tls.handshakes_failed),
+        static_cast<unsigned long long>(tls.connections_freed),
+        static_cast<unsigned long long>(tls.want_read),
+        static_cast<unsigned long long>(tls.want_write),
+        static_cast<unsigned long long>(tls.ciphertext_input_bytes),
+        static_cast<unsigned long long>(tls.plaintext_input_bytes),
+        static_cast<unsigned long long>(tls.ciphertext_output_bytes),
+        static_cast<unsigned long long>(tls.plaintext_output_bytes),
+        static_cast<unsigned long long>(tls.zc_suppressed),
+        static_cast<unsigned long long>(tls.ktls_active),
+        static_cast<unsigned long long>(tls.ktls_fallback));
 
     const ShutdownReport::Stuck& stuck = report.stuck_;
-    std::printf("stuck: live_conns=%llu rob_not_quiesced=%llu unsent_bytes_pending=%llu"
-                " | slots done=%llu issued=%llu free=%llu flag_set=%llu\n",
-                static_cast<unsigned long long>(stuck.live_connections),
-                static_cast<unsigned long long>(stuck.rob_not_quiesced),
-                static_cast<unsigned long long>(stuck.unsent_bytes_pending),
-                static_cast<unsigned long long>(stuck.slots_done),
-                static_cast<unsigned long long>(stuck.slots_issued),
-                static_cast<unsigned long long>(stuck.slots_free),
-                static_cast<unsigned long long>(stuck.flag_set));
+    std::printf(
+        "stuck: live_conns=%llu rob_not_quiesced=%llu unsent_bytes_pending=%llu"
+        " | slots done=%llu issued=%llu free=%llu flag_set=%llu\n",
+        static_cast<unsigned long long>(stuck.live_connections),
+        static_cast<unsigned long long>(stuck.rob_not_quiesced),
+        static_cast<unsigned long long>(stuck.unsent_bytes_pending),
+        static_cast<unsigned long long>(stuck.slots_done),
+        static_cast<unsigned long long>(stuck.slots_issued),
+        static_cast<unsigned long long>(stuck.slots_free),
+        static_cast<unsigned long long>(stuck.flag_set));
 
     if (report.epoll_.enabled) {
         std::printf("epoll: events=%llu recvs=%llu\n",
@@ -364,24 +376,26 @@ inline void print_shutdown_report_human(const ShutdownReport& report) {
 
     const ShutdownReport::Accept& accept = report.accept_;
     if (report.mode_ == ShutdownReport::Mode::Split) {
-        std::printf("shutdown: dispatched=%llu executed=%llu accepts=%llu accept_err=%llu "
-                    "rearm=%llu sqe_starved=%llu notify_drop=%llu\n",
-                    static_cast<unsigned long long>(report.work_.dispatched),
-                    static_cast<unsigned long long>(report.work_.executed),
-                    static_cast<unsigned long long>(accept.accepts),
-                    static_cast<unsigned long long>(accept.errors),
-                    static_cast<unsigned long long>(accept.rearms),
-                    static_cast<unsigned long long>(accept.sqe_starved),
-                    static_cast<unsigned long long>(accept.notify_drop));
+        std::printf(
+            "shutdown: dispatched=%llu executed=%llu accepts=%llu accept_err=%llu "
+            "rearm=%llu sqe_starved=%llu notify_drop=%llu\n",
+            static_cast<unsigned long long>(report.work_.dispatched),
+            static_cast<unsigned long long>(report.work_.executed),
+            static_cast<unsigned long long>(accept.accepts),
+            static_cast<unsigned long long>(accept.errors),
+            static_cast<unsigned long long>(accept.rearms),
+            static_cast<unsigned long long>(accept.sqe_starved),
+            static_cast<unsigned long long>(accept.notify_drop));
     } else {
-        std::printf("shutdown: unified_work=%llu accepts=%llu accept_err=%llu rearm=%llu"
-                    " sqe_starved=%llu notify_drop=%llu\n",
-                    static_cast<unsigned long long>(report.work_.unified),
-                    static_cast<unsigned long long>(accept.accepts),
-                    static_cast<unsigned long long>(accept.errors),
-                    static_cast<unsigned long long>(accept.rearms),
-                    static_cast<unsigned long long>(accept.sqe_starved),
-                    static_cast<unsigned long long>(accept.notify_drop));
+        std::printf(
+            "shutdown: unified_work=%llu accepts=%llu accept_err=%llu rearm=%llu"
+            " sqe_starved=%llu notify_drop=%llu\n",
+            static_cast<unsigned long long>(report.work_.unified),
+            static_cast<unsigned long long>(accept.accepts),
+            static_cast<unsigned long long>(accept.errors),
+            static_cast<unsigned long long>(accept.rearms),
+            static_cast<unsigned long long>(accept.sqe_starved),
+            static_cast<unsigned long long>(accept.notify_drop));
     }
 }
 
@@ -402,121 +416,123 @@ inline void print_shutdown_report_json(const ShutdownReport& report) {
         if (index) std::putchar(',');
         std::putchar('{');
         exec1s_print(row.exec1s, true);
-        std::printf("\"tid\":%u,\"role\":\"%s\",\"ops\":%llu,\"iterations\":%llu,"
-                    "\"busy_ns\":%llu,\"idle_ns\":%llu,\"cpu_ns\":%llu,"
-                    "\"wake_tx\":%llu,\"wake_rx\":%llu,\"io_tenures\":[",
-                    row.tid, shutdown_thread_role_json(row.role),
-                    static_cast<unsigned long long>(row.ops),
-                    static_cast<unsigned long long>(row.iterations),
-                    static_cast<unsigned long long>(row.busy_ns),
-                    static_cast<unsigned long long>(row.idle_ns),
-                    static_cast<unsigned long long>(row.cpu_ns),
-                    static_cast<unsigned long long>(row.wakes_sent),
-                    static_cast<unsigned long long>(row.wakes_recv));
+        std::printf(
+            "\"tid\":%u,\"role\":\"%s\",\"ops\":%llu,\"iterations\":%llu,"
+            "\"busy_ns\":%llu,\"idle_ns\":%llu,\"cpu_ns\":%llu,"
+            "\"wake_tx\":%llu,\"wake_rx\":%llu,\"io_tenures\":[",
+            row.tid, shutdown_thread_role_json(row.role), static_cast<unsigned long long>(row.ops),
+            static_cast<unsigned long long>(row.iterations),
+            static_cast<unsigned long long>(row.busy_ns),
+            static_cast<unsigned long long>(row.idle_ns),
+            static_cast<unsigned long long>(row.cpu_ns),
+            static_cast<unsigned long long>(row.wakes_sent),
+            static_cast<unsigned long long>(row.wakes_recv));
         for (size_t tenure = 0; tenure < row.io_tenures.size(); ++tenure) {
             const auto& t = row.io_tenures[tenure];
             if (tenure) std::putchar(',');
-            std::printf("{\"entry_ns\":%llu,\"begin_ns\":%llu,\"end_ns\":%llu,"
-                        "\"exit_ns\":%llu,\"busy_ns\":%llu,\"idle_ns\":%llu,"
-                        "\"role_exit\":%s,\"stopped\":%s,\"did_submit\":%llu,"
-                        "\"sweep_submit\":%llu,\"park\":%llu}",
-                        static_cast<unsigned long long>(t.entry_ns),
-                        static_cast<unsigned long long>(t.begin_ns),
-                        static_cast<unsigned long long>(t.end_ns),
-                        static_cast<unsigned long long>(t.exit_ns),
-                        static_cast<unsigned long long>(t.busy_ns),
-                        static_cast<unsigned long long>(t.idle_ns),
-                        t.role_exit ? "true" : "false", t.stopped ? "true" : "false",
-                        static_cast<unsigned long long>(t.did_submit),
-                        static_cast<unsigned long long>(t.sweep_submit),
-                        static_cast<unsigned long long>(t.park));
+            std::printf(
+                "{\"entry_ns\":%llu,\"begin_ns\":%llu,\"end_ns\":%llu,"
+                "\"exit_ns\":%llu,\"busy_ns\":%llu,\"idle_ns\":%llu,"
+                "\"role_exit\":%s,\"stopped\":%s,\"did_submit\":%llu,"
+                "\"sweep_submit\":%llu,\"park\":%llu}",
+                static_cast<unsigned long long>(t.entry_ns),
+                static_cast<unsigned long long>(t.begin_ns),
+                static_cast<unsigned long long>(t.end_ns),
+                static_cast<unsigned long long>(t.exit_ns),
+                static_cast<unsigned long long>(t.busy_ns),
+                static_cast<unsigned long long>(t.idle_ns), t.role_exit ? "true" : "false",
+                t.stopped ? "true" : "false", static_cast<unsigned long long>(t.did_submit),
+                static_cast<unsigned long long>(t.sweep_submit),
+                static_cast<unsigned long long>(t.park));
         }
         std::printf("]}");
     }
     const ShutdownReport::Wb& wb = report.wb_;
-    std::printf("],\"wb\":{\"retired\":%llu,\"direct\":%llu,"
-                "\"sends_completed\":%llu,\"sends_submitted\":%llu,"
-                "\"short_writes\":%llu,\"send_errors\":%llu,\"peer_aborts\":%llu,"
-                "\"bytes_sent\":%llu,\"zc_sends\":%llu,\"zc_bytes\":%llu,"
-                "\"zc_releases\":%llu,\"serves\":%llu,\"serves_empty\":%llu}",
-                static_cast<unsigned long long>(wb.retired),
-                static_cast<unsigned long long>(wb.direct),
-                static_cast<unsigned long long>(wb.sends_completed),
-                static_cast<unsigned long long>(wb.sends_submitted),
-                static_cast<unsigned long long>(wb.short_writes),
-                static_cast<unsigned long long>(wb.send_errors),
-                static_cast<unsigned long long>(wb.peer_aborts),
-                static_cast<unsigned long long>(wb.bytes_sent),
-                static_cast<unsigned long long>(wb.zc_sends),
-                static_cast<unsigned long long>(wb.zc_bytes),
-                static_cast<unsigned long long>(wb.zc_releases),
-                static_cast<unsigned long long>(wb.serves),
-                static_cast<unsigned long long>(wb.serves_empty));
+    std::printf(
+        "],\"wb\":{\"retired\":%llu,\"direct\":%llu,"
+        "\"sends_completed\":%llu,\"sends_submitted\":%llu,"
+        "\"short_writes\":%llu,\"send_errors\":%llu,\"peer_aborts\":%llu,"
+        "\"bytes_sent\":%llu,\"zc_sends\":%llu,\"zc_bytes\":%llu,"
+        "\"zc_releases\":%llu,\"serves\":%llu,\"serves_empty\":%llu}",
+        static_cast<unsigned long long>(wb.retired), static_cast<unsigned long long>(wb.direct),
+        static_cast<unsigned long long>(wb.sends_completed),
+        static_cast<unsigned long long>(wb.sends_submitted),
+        static_cast<unsigned long long>(wb.short_writes),
+        static_cast<unsigned long long>(wb.send_errors),
+        static_cast<unsigned long long>(wb.peer_aborts),
+        static_cast<unsigned long long>(wb.bytes_sent),
+        static_cast<unsigned long long>(wb.zc_sends), static_cast<unsigned long long>(wb.zc_bytes),
+        static_cast<unsigned long long>(wb.zc_releases), static_cast<unsigned long long>(wb.serves),
+        static_cast<unsigned long long>(wb.serves_empty));
 
     const ShutdownReport::Tls& tls = report.tls_;
-    std::printf(",\"tls\":{\"accepts\":%llu,\"handshakes_completed\":%llu,"
-                "\"handshakes_started\":%llu,\"handshakes_failed\":%llu,"
-                "\"connections_freed\":%llu,\"want_read\":%llu,\"want_write\":%llu,"
-                "\"ciphertext_input_bytes\":%llu,\"plaintext_input_bytes\":%llu,"
-                "\"ciphertext_output_bytes\":%llu,\"plaintext_output_bytes\":%llu,"
-                "\"zc_suppressed\":%llu,\"ktls_active\":%llu,\"ktls_fallback\":%llu}",
-                static_cast<unsigned long long>(tls.accepts),
-                static_cast<unsigned long long>(tls.handshakes_completed),
-                static_cast<unsigned long long>(tls.handshakes_started),
-                static_cast<unsigned long long>(tls.handshakes_failed),
-                static_cast<unsigned long long>(tls.connections_freed),
-                static_cast<unsigned long long>(tls.want_read),
-                static_cast<unsigned long long>(tls.want_write),
-                static_cast<unsigned long long>(tls.ciphertext_input_bytes),
-                static_cast<unsigned long long>(tls.plaintext_input_bytes),
-                static_cast<unsigned long long>(tls.ciphertext_output_bytes),
-                static_cast<unsigned long long>(tls.plaintext_output_bytes),
-                static_cast<unsigned long long>(tls.zc_suppressed),
-                static_cast<unsigned long long>(tls.ktls_active),
-                static_cast<unsigned long long>(tls.ktls_fallback));
+    std::printf(
+        ",\"tls\":{\"accepts\":%llu,\"handshakes_completed\":%llu,"
+        "\"handshakes_started\":%llu,\"handshakes_failed\":%llu,"
+        "\"connections_freed\":%llu,\"want_read\":%llu,\"want_write\":%llu,"
+        "\"ciphertext_input_bytes\":%llu,\"plaintext_input_bytes\":%llu,"
+        "\"ciphertext_output_bytes\":%llu,\"plaintext_output_bytes\":%llu,"
+        "\"zc_suppressed\":%llu,\"ktls_active\":%llu,\"ktls_fallback\":%llu}",
+        static_cast<unsigned long long>(tls.accepts),
+        static_cast<unsigned long long>(tls.handshakes_completed),
+        static_cast<unsigned long long>(tls.handshakes_started),
+        static_cast<unsigned long long>(tls.handshakes_failed),
+        static_cast<unsigned long long>(tls.connections_freed),
+        static_cast<unsigned long long>(tls.want_read),
+        static_cast<unsigned long long>(tls.want_write),
+        static_cast<unsigned long long>(tls.ciphertext_input_bytes),
+        static_cast<unsigned long long>(tls.plaintext_input_bytes),
+        static_cast<unsigned long long>(tls.ciphertext_output_bytes),
+        static_cast<unsigned long long>(tls.plaintext_output_bytes),
+        static_cast<unsigned long long>(tls.zc_suppressed),
+        static_cast<unsigned long long>(tls.ktls_active),
+        static_cast<unsigned long long>(tls.ktls_fallback));
 
     const ShutdownReport::Stuck& stuck = report.stuck_;
-    std::printf(",\"stuck\":{\"live_conns\":%llu,\"rob_not_quiesced\":%llu,"
-                "\"unsent_bytes_pending\":%llu,\"slots_done\":%llu,"
-                "\"slots_issued\":%llu,\"slots_free\":%llu,\"flag_set\":%llu}",
-                static_cast<unsigned long long>(stuck.live_connections),
-                static_cast<unsigned long long>(stuck.rob_not_quiesced),
-                static_cast<unsigned long long>(stuck.unsent_bytes_pending),
-                static_cast<unsigned long long>(stuck.slots_done),
-                static_cast<unsigned long long>(stuck.slots_issued),
-                static_cast<unsigned long long>(stuck.slots_free),
-                static_cast<unsigned long long>(stuck.flag_set));
+    std::printf(
+        ",\"stuck\":{\"live_conns\":%llu,\"rob_not_quiesced\":%llu,"
+        "\"unsent_bytes_pending\":%llu,\"slots_done\":%llu,"
+        "\"slots_issued\":%llu,\"slots_free\":%llu,\"flag_set\":%llu}",
+        static_cast<unsigned long long>(stuck.live_connections),
+        static_cast<unsigned long long>(stuck.rob_not_quiesced),
+        static_cast<unsigned long long>(stuck.unsent_bytes_pending),
+        static_cast<unsigned long long>(stuck.slots_done),
+        static_cast<unsigned long long>(stuck.slots_issued),
+        static_cast<unsigned long long>(stuck.slots_free),
+        static_cast<unsigned long long>(stuck.flag_set));
 
     std::printf(",\"epoll\":{\"enabled\":%s,\"events\":%llu,\"recvs\":%llu}",
                 report.epoll_.enabled ? "true" : "false",
                 static_cast<unsigned long long>(report.epoll_.events),
                 static_cast<unsigned long long>(report.epoll_.recvs));
     const auto& persistence = report.persistence_;
-    std::printf(",\"persistence\":{\"enabled\":%s,\"recording\":%s,\"failed\":%s,"
-                "\"drain_gave_up\":%s,\"posted\":%llu,\"flushed\":%llu,\"durable\":%llu,"
-                "\"refused\":%llu,\"pending_chunks\":%llu,\"records_written\":%llu,"
-                "\"producers_with_pending\":%llu,\"producers_stopped\":%llu,"
-                "\"producers_expected\":%llu,\"completions_pending\":%llu}",
-                persistence.enabled ? "true" : "false", persistence.recording ? "true" : "false",
-                persistence.failed ? "true" : "false", persistence.drain_gave_up ? "true" : "false",
-                static_cast<unsigned long long>(persistence.posted),
-                static_cast<unsigned long long>(persistence.flushed),
-                static_cast<unsigned long long>(persistence.durable),
-                static_cast<unsigned long long>(persistence.refused),
-                static_cast<unsigned long long>(persistence.pending_chunks),
-                static_cast<unsigned long long>(persistence.records_written),
-                static_cast<unsigned long long>(persistence.producers_with_pending),
-                static_cast<unsigned long long>(persistence.producers_stopped),
-                static_cast<unsigned long long>(persistence.producers_expected),
-                static_cast<unsigned long long>(persistence.completions_pending));
+    std::printf(
+        ",\"persistence\":{\"enabled\":%s,\"recording\":%s,\"failed\":%s,"
+        "\"drain_gave_up\":%s,\"posted\":%llu,\"flushed\":%llu,\"durable\":%llu,"
+        "\"refused\":%llu,\"pending_chunks\":%llu,\"records_written\":%llu,"
+        "\"producers_with_pending\":%llu,\"producers_stopped\":%llu,"
+        "\"producers_expected\":%llu,\"completions_pending\":%llu}",
+        persistence.enabled ? "true" : "false", persistence.recording ? "true" : "false",
+        persistence.failed ? "true" : "false", persistence.drain_gave_up ? "true" : "false",
+        static_cast<unsigned long long>(persistence.posted),
+        static_cast<unsigned long long>(persistence.flushed),
+        static_cast<unsigned long long>(persistence.durable),
+        static_cast<unsigned long long>(persistence.refused),
+        static_cast<unsigned long long>(persistence.pending_chunks),
+        static_cast<unsigned long long>(persistence.records_written),
+        static_cast<unsigned long long>(persistence.producers_with_pending),
+        static_cast<unsigned long long>(persistence.producers_stopped),
+        static_cast<unsigned long long>(persistence.producers_expected),
+        static_cast<unsigned long long>(persistence.completions_pending));
     const ShutdownReport::Accept& accept = report.accept_;
-    std::printf(",\"accept\":{\"accepts\":%llu,\"accept_err\":%llu,\"rearm\":%llu,"
-                "\"sqe_starved\":%llu,\"notify_drop\":%llu}}\n",
-                static_cast<unsigned long long>(accept.accepts),
-                static_cast<unsigned long long>(accept.errors),
-                static_cast<unsigned long long>(accept.rearms),
-                static_cast<unsigned long long>(accept.sqe_starved),
-                static_cast<unsigned long long>(accept.notify_drop));
+    std::printf(
+        ",\"accept\":{\"accepts\":%llu,\"accept_err\":%llu,\"rearm\":%llu,"
+        "\"sqe_starved\":%llu,\"notify_drop\":%llu}}\n",
+        static_cast<unsigned long long>(accept.accepts),
+        static_cast<unsigned long long>(accept.errors),
+        static_cast<unsigned long long>(accept.rearms),
+        static_cast<unsigned long long>(accept.sqe_starved),
+        static_cast<unsigned long long>(accept.notify_drop));
 }
 
 // Declare this before every other automatic in main(). Once armed, its destructor is the final

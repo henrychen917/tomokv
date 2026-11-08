@@ -11,7 +11,10 @@
 using namespace tomo;
 
 static void require(bool ok, const char* message) {
-    if (!ok) { std::fprintf(stderr, "waits unit: %s\n", message); std::abort(); }
+    if (!ok) {
+        std::fprintf(stderr, "waits unit: %s\n", message);
+        std::abort();
+    }
 }
 
 static LiveConfigValues values(uint64_t version) {
@@ -31,23 +34,24 @@ static void coherent(const LiveConfigValues& got) {
     const auto want = values(got.live.version);
     require(!(got.live.version & 1) && got.live.version >= 2, "committed version");
     require(got.clients.version == want.clients.version &&
-            got.live.maxmemory == want.live.maxmemory &&
-            got.live.samples == want.live.samples &&
-            got.live.proto_max_bulk_len == want.live.proto_max_bulk_len &&
-            got.clients.normal.hard_bytes == want.clients.normal.hard_bytes &&
-            got.clients.normal.soft_bytes == want.clients.normal.soft_bytes &&
-            got.clients.normal.soft_seconds == want.clients.normal.soft_seconds &&
-            got.clients.pubsub.hard_bytes == want.clients.pubsub.hard_bytes,
+                got.live.maxmemory == want.live.maxmemory &&
+                got.live.samples == want.live.samples &&
+                got.live.proto_max_bulk_len == want.live.proto_max_bulk_len &&
+                got.clients.normal.hard_bytes == want.clients.normal.hard_bytes &&
+                got.clients.normal.soft_bytes == want.clients.normal.soft_bytes &&
+                got.clients.normal.soft_seconds == want.clients.normal.soft_seconds &&
+                got.clients.pubsub.hard_bytes == want.clients.pubsub.hard_bytes,
             "configuration fields came from different updates");
 }
 
 static void stopped_writer_and_reader() {
     std::atomic<uint64_t> version{2};
     LiveConfigMailbox a, b;
-    a.init(values(2)); b.init(values(2));
-    version.store(3);                         // writer stopped before staging anything
+    a.init(values(2));
+    b.init(values(2));
+    version.store(3);  // writer stopped before staging anything
     require(a.read(version).live.version == 2, "odd version must not obstruct reader");
-    a.publish(values(2), values(4));           // stopped halfway through the fan-out
+    a.publish(values(2), values(4));  // stopped halfway through the fan-out
     require(a.read(version).live.version == 2, "uncommitted staged value became visible");
     require(b.read(version).live.version == 2, "unstaged reader lost committed config");
     b.publish(values(2), values(4));
@@ -80,15 +84,16 @@ static void concurrent_config() {
     LiveConfigMailbox boxes[2];
     for (auto& box : boxes) box.init(values(2));
     std::thread readers[2];
-    for (unsigned tid = 0; tid < 2; tid++) readers[tid] = std::thread([&, tid] {
-        uint64_t seen = 2;
-        for (unsigned i = 0; i < 20000; i++) {
-            const auto copy = boxes[tid].read(version);
-            coherent(copy);
-            require(copy.live.version >= seen, "reader went backward across updates");
-            seen = copy.live.version;
-        }
-    });
+    for (unsigned tid = 0; tid < 2; tid++)
+        readers[tid] = std::thread([&, tid] {
+            uint64_t seen = 2;
+            for (unsigned i = 0; i < 20000; i++) {
+                const auto copy = boxes[tid].read(version);
+                coherent(copy);
+                require(copy.live.version >= seen, "reader went backward across updates");
+                seen = copy.live.version;
+            }
+        });
     for (uint64_t next = 4; next <= 20000; next += 2) {
         version.store(next - 1, std::memory_order_release);
         for (auto& box : boxes) box.publish(values(next - 2), values(next));
@@ -113,7 +118,9 @@ static void admission_accounting() {
             "retirement did not restore one credit");
     require(credits.try_admit() == Attempt::Admitted && credits.debt() == 0,
             "returned credit cannot be reused");
-    credits.retire(); credits.retire(); credits.retire();
+    credits.retire();
+    credits.retire();
+    credits.retire();
     require(credits.pool() == 3 && credits.active() == 0, "retirement stranded a credit");
     credits.init(0);
     require(credits.try_admit() == Attempt::Admitted && credits.debt() == 0,
@@ -126,17 +133,17 @@ static void concurrent_admission() {
     credits.init(3);
     std::atomic<unsigned> inside{0};
     std::thread workers[4];
-    for (auto& worker : workers) worker = std::thread([&] {
-        for (unsigned i = 0; i < 10000; i++) {
-            if (credits.try_admit() != AtomicAdmissionCredits::Attempt::Admitted) continue;
-            require(inside.fetch_add(1) < 3, "concurrent admission exceeded the limit");
-            inside.fetch_sub(1);
-            credits.retire();
-        }
-    });
+    for (auto& worker : workers)
+        worker = std::thread([&] {
+            for (unsigned i = 0; i < 10000; i++) {
+                if (credits.try_admit() != AtomicAdmissionCredits::Attempt::Admitted) continue;
+                require(inside.fetch_add(1) < 3, "concurrent admission exceeded the limit");
+                inside.fetch_sub(1);
+                credits.retire();
+            }
+        });
     for (auto& worker : workers) worker.join();
     require(credits.active() == 0 && credits.pool() == 3, "concurrent retirement leaked credits");
-
 }
 
 int main() {

@@ -34,6 +34,7 @@ public:
         rows_[tid].push_back(record);
     }
     const std::vector<IoTenureRecord>& rows(uint32_t tid) const { return rows_[tid]; }
+
 private:
     std::array<std::vector<IoTenureRecord>, Threads> rows_;
 };
@@ -74,9 +75,9 @@ public:
     __attribute__((noinline)) IoTenureRecord finish(bool role_exit, bool stopped) {
         if (finished_) invalid();
         const uint64_t end = Clock::now();
-        account(end);                     // exactly one final partial interval, even zero passes
+        account(end);  // exactly one final partial interval, even zero passes
         record_.end_ns = end;
-        record_.exit_ns = Clock::now();   // independent endpoint, never a counter-derived wall
+        record_.exit_ns = Clock::now();  // independent endpoint, never a counter-derived wall
         if (record_.exit_ns < end) invalid();
         record_.busy_ns = sig_.busy_ns - busy_begin_;
         record_.idle_ns = sig_.idle_ns - idle_begin_;
@@ -110,8 +111,8 @@ private:
         const uint64_t asleep = idle - idle_cut_;
         if (__builtin_expect(asleep > elapsed, false)) invalid();
         const uint64_t busy = elapsed - asleep;
-        if (__builtin_expect(sig_.busy_ns > std::numeric_limits<uint64_t>::max() - busy,
-                             false)) invalid();
+        if (__builtin_expect(sig_.busy_ns > std::numeric_limits<uint64_t>::max() - busy, false))
+            invalid();
         sig_.busy_ns += busy;
         idle_cut_ = idle;
         cut_ = next;
@@ -119,9 +120,9 @@ private:
 
     LoopSignals& sig_;
     uint64_t cut_, idle_cut_, busy_begin_, idle_begin_;
-    uint64_t publish_at_ = 0; // publish the entry/prologue at the first pass
+    uint64_t publish_at_ = 0;  // publish the entry/prologue at the first pass
     IoTenureRecord record_;
     bool finished_ = false;
 };
 
-} // namespace tomo
+}  // namespace tomo

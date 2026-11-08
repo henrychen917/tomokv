@@ -161,18 +161,23 @@ public:
 
     // Live == published and not yet retired: exactly the set RYOW must fence.
     bool live_write(uint64_t hash) const {
-        for (const Write& w : live_) if (w.hash == hash) return true;
+        for (const Write& w : live_)
+            if (w.hash == hash) return true;
         return false;
     }
     uint32_t in_flight() const { return rob_.in_flight(); }
     bool all_precise() const {
-        for (bool p : precise_) if (!p) return false;
+        for (bool p : precise_)
+            if (!p) return false;
         return true;
     }
     void clear_precise() { precise_.clear(); }
 
 private:
-    struct Write { uint64_t id; uint64_t hash; };
+    struct Write {
+        uint64_t id;
+        uint64_t hash;
+    };
     ReadLocalArmStats stats_{};
     Rob<kRobWindow> rob_;
     std::deque<Write> live_;
@@ -180,10 +185,10 @@ private:
 };
 
 // Two hashes that differ but share the low 16 bits the filter compares.
-constexpr uint64_t kKeyA      = 0x0000'0001'ABCD'1234ull;
-constexpr uint64_t kTagTwinA  = 0x0000'0002'5678'1234ull;   // same tag as kKeyA, different key
-constexpr uint64_t kKeyB      = 0x0000'0003'0F0F'9999ull;
-constexpr uint64_t kKeyC      = 0x0000'0004'1357'2468ull;   // a third disjoint key
+constexpr uint64_t kKeyA = 0x0000'0001'ABCD'1234ull;
+constexpr uint64_t kTagTwinA = 0x0000'0002'5678'1234ull;  // same tag as kKeyA, different key
+constexpr uint64_t kKeyB = 0x0000'0003'0F0F'9999ull;
+constexpr uint64_t kKeyC = 0x0000'0004'1357'2468ull;  // a third disjoint key
 
 // ---- 1. RYOW: a read of a key with a live write to it must be fenced, at every ring position ---
 void test_ryow_same_key() {
@@ -195,7 +200,10 @@ void test_ryow_same_key() {
         // sits at every distance from the ring head across the sweep.
         for (uint32_t i = 0; i < ahead; i++) f.write(0x5000'0000'0000'0000ull + i);
         if (!f.live_write(kKeyA)) std::abort();
-        if (!f.read(kKeyA)) { ok = false; break; }
+        if (!f.read(kKeyA)) {
+            ok = false;
+            break;
+        }
     }
     note("RYOW: live same-key write fences the read at every ring depth (to the ROB window)", ok);
 }
@@ -204,10 +212,9 @@ void test_ryow_same_key() {
 void test_hoist_different_key() {
     Frames f;
     bool ok = true;
-    for (uint32_t i = 0; i + 1 < kRobWindow; i++)
-        f.write(0x7000'0000'0000'0000ull + i);
-    if (!f.all_precise()) ok = false;                 // the ring recorded exact hashes, not a wall
-    if (f.read(kKeyB)) ok = false;                    // disjoint key: free to execute out of order
+    for (uint32_t i = 0; i + 1 < kRobWindow; i++) f.write(0x7000'0000'0000'0000ull + i);
+    if (!f.all_precise()) ok = false;  // the ring recorded exact hashes, not a wall
+    if (f.read(kKeyB)) ok = false;     // disjoint key: free to execute out of order
     note("HOIST: disjoint read is not fenced by a full ring of precise writes", ok);
 }
 
@@ -222,13 +229,13 @@ void test_tag_collision_rejects() {
 // ---- 4. tag collision must not mask the real thing --------------------------------------------
 void test_tag_collision_with_real_write() {
     bool ok = true;
-    {   // decoy first, then the real write
+    {  // decoy first, then the real write
         Frames f;
         f.write(kTagTwinA);
         f.write(kKeyA);
         if (!f.read(kKeyA)) ok = false;
     }
-    {   // real write first, then the decoy
+    {  // real write first, then the decoy
         Frames f;
         f.write(kKeyA);
         f.write(kTagTwinA);
@@ -241,9 +248,9 @@ void test_tag_collision_with_real_write() {
 void test_retire_clears() {
     Frames f;
     f.write(kKeyA);
-    bool ok = f.read(kKeyA);            // still in flight: fenced
-    f.retire_all();                     // the write executed and its reply went out
-    ok = ok && !f.read(kKeyA);          // now the store holds it; no fence, no demotion
+    bool ok = f.read(kKeyA);    // still in flight: fenced
+    f.retire_all();             // the write executed and its reply went out
+    ok = ok && !f.read(kKeyA);  // now the store holds it; no fence, no demotion
     note("a retired write stops fencing (and the filter slot is released)", ok);
 }
 
@@ -262,9 +269,9 @@ void test_abandoned_write() {
 void test_overflow_conservative() {
     Frames f;
     f.write_conservative(0x9000'0000'0000'0000ull);
-    bool ok = f.read(kKeyB);            // conservative generation: every read is fenced, by design
+    bool ok = f.read(kKeyB);  // conservative generation: every read is fenced, by design
     f.retire_all();
-    ok = ok && !f.read(kKeyB);          // generation drained: precision comes back
+    ok = ok && !f.read(kKeyB);  // generation drained: precision comes back
     note("a conservative generation fences every read and recovers on retirement", ok);
 }
 
@@ -274,9 +281,9 @@ void test_overflow_conservative() {
 // published -- silently telling every later read that the overflow generation was gone.
 void test_overflow_survives_abandoned_write() {
     Frames f;
-    f.write_conservative(0xA000'0000'0000'0000ull); // a hazard no tag can describe
-    f.write_abandoned(kKeyA);                       // staged, then never published
-    bool ok = f.read(kKeyB);                        // the generation is still live: still fenced
+    f.write_conservative(0xA000'0000'0000'0000ull);  // a hazard no tag can describe
+    f.write_abandoned(kKeyA);                        // staged, then never published
+    bool ok = f.read(kKeyB);                         // the generation is still live: still fenced
     note("an abandoned write does not cancel a live conservative generation", ok);
 }
 
@@ -289,11 +296,11 @@ void test_overflow_survives_abandoned_write() {
 void test_ring_covers_the_rob_window() {
     Frames f;
     bool ok = true;
-    const uint32_t writes = kRobWindow - 1;             // the read below needs the last position
+    const uint32_t writes = kRobWindow - 1;  // the read below needs the last position
     for (uint32_t i = 0; i < writes; i++)
         f.write(0xF000'0000'0000'0000ull | (uint64_t{i} << 24) | i);
-    if (!f.all_precise()) ok = false;                   // no write was ever refused for capacity
-    if (f.read(kKeyB)) ok = false;                      // and so no read is fenced by a wall
+    if (!f.all_precise()) ok = false;  // no write was ever refused for capacity
+    if (f.read(kKeyB)) ok = false;     // and so no read is fenced by a wall
     // RYOW still holds for every one of them, at every distance from the ring head. These probes
     // take no window position of their own, which is why they can all run against a full ROB.
     for (uint32_t i = 0; i < writes && ok; i++)
@@ -316,11 +323,11 @@ void test_conservative_run_past_capacity() {
     for (uint32_t i = 0; i < 4 * ReadLocalRobState::kWriteRingCapacity && ok; i++) {
         f.write_conservative(0xB000'0000'0000'0000ull | (uint64_t{i} << 24) | i);
         if (i % 3 == 0) f.write(0xC000'0000'0000'0000ull | (uint64_t{i} << 24) | i);
-        if (!f.read(kKeyB)) ok = false;                 // a generation is live: fenced
+        if (!f.read(kKeyB)) ok = false;  // a generation is live: fenced
         if (f.in_flight() > kRobWindow - 8) f.retire(f.in_flight() / 2);
     }
     f.retire_all();
-    ok = ok && !f.read(kKeyB);                          // fully drained: precision comes back
+    ok = ok && !f.read(kKeyB);  // fully drained: precision comes back
     note("a conservative run four times the ring capacity fences throughout and recovers", ok);
 }
 
@@ -328,8 +335,8 @@ void test_conservative_run_past_capacity() {
 void test_tag_collision_deep_in_the_ring() {
     Frames f;
     for (uint32_t i = 0; i < 40; i++) f.write(0xD000'0000'0000'0000ull | (uint64_t{i} << 20));
-    f.write(kTagTwinA);                                 // decoy past the old capacity
-    f.write(kKeyA);                                     // and the real write past it too
+    f.write(kTagTwinA);  // decoy past the old capacity
+    f.write(kKeyA);      // and the real write past it too
     for (uint32_t i = 0; i < 8; i++) f.write(0xE000'0000'0000'0000ull | (uint64_t{i} << 20));
     const bool ok = f.read(kKeyA) && !f.read(kKeyB);
     note("a same-key write past the old sixteen-slot ring is still found, its tag twin still not",
@@ -353,13 +360,12 @@ void test_unarmed_records_nothing() {
     bool ok = true;
     for (uint32_t i = 0; i < kRobWindow - 1; i++)
         f.write(0x2000'0000'0000'0000ull | (uint64_t{i} << 24) | i);
-    if (f.arm_state() != 1) ok = false;                  // still unarmed
+    if (f.arm_state() != 1) ok = false;  // still unarmed
     if (f.stats().arms != 0) ok = false;
-    if (f.stats().sidecars != 0) ok = false;             // no sidecar: nothing to write into
-    if (f.stats().write_ring_records != 0) ok = false;   // and nothing written
+    if (f.stats().sidecars != 0) ok = false;            // no sidecar: nothing to write into
+    if (f.stats().write_ring_records != 0) ok = false;  // and nothing written
     char extra[96];
-    std::snprintf(extra, sizeof extra, "(%u writes, %llu records, %llu sidecars)",
-                  kRobWindow - 1,
+    std::snprintf(extra, sizeof extra, "(%u writes, %llu records, %llu sidecars)", kRobWindow - 1,
                   static_cast<unsigned long long>(f.stats().write_ring_records),
                   static_cast<unsigned long long>(f.stats().sidecars));
     note("a connection no read has armed does zero ring bookkeeping", ok, extra);
@@ -370,18 +376,18 @@ void test_unarmed_records_nothing() {
 // on its own key (RYOW, which may never bend) or on any other (the transient is conservative).
 void test_unarmed_write_demotes_the_arming_read() {
     bool ok = true;
-    {   // same key: the RYOW case
+    {  // same key: the RYOW case
         Frames f(false);
         f.write(kKeyA);
         if (!f.read(kKeyA)) ok = false;
-        if (f.arm_state() != 2) ok = false;              // armed, transient live
+        if (f.arm_state() != 2) ok = false;  // armed, transient live
     }
-    {   // a disjoint key is demoted too: no descriptor exists to clear it against
+    {  // a disjoint key is demoted too: no descriptor exists to clear it against
         Frames f(false);
         f.write(kKeyA);
         if (!f.read(kKeyB)) ok = false;
     }
-    {   // and a write buried under a full window of unarmed writes is still fenced
+    {  // and a write buried under a full window of unarmed writes is still fenced
         Frames f(false);
         f.write(kKeyA);
         for (uint32_t i = 0; i + 3 < kRobWindow; i++)
@@ -396,18 +402,21 @@ void test_arm_transient_is_bounded() {
     Frames f(false);
     bool ok = true;
     const uint32_t pre = 8;
-    for (uint32_t i = 0; i < pre; i++)
-        f.write(0x4000'0000'0000'0000ull | (uint64_t{i} << 24) | i);
+    for (uint32_t i = 0; i < pre; i++) f.write(0x4000'0000'0000'0000ull | (uint64_t{i} << 24) | i);
     // Every read published while any pre-arming write is still in flight is demoted. The bound is
     // structural: those reads share the ROB window with the writes that fence them.
     uint32_t demoted = 0;
     while (f.in_flight() < kRobWindow) {
-        if (f.read(kKeyB)) demoted++;
-        else { ok = false; break; }                      // must not be served while they are live
+        if (f.read(kKeyB))
+            demoted++;
+        else {
+            ok = false;
+            break;
+        }  // must not be served while they are live
     }
     if (demoted > kRobWindow - pre) ok = false;
-    f.retire_all();                                      // the pre-arming generation drains
-    if (f.read(kKeyB)) ok = false;                       // and precision comes back
+    f.retire_all();                 // the pre-arming generation drains
+    if (f.read(kKeyB)) ok = false;  // and precision comes back
     if (f.arm_state() != 0) ok = false;
     char extra[80];
     std::snprintf(extra, sizeof extra, "(%u demoted, bound %u)", demoted, kRobWindow - pre);
@@ -423,22 +432,22 @@ void test_arm_transient_is_bounded() {
 void test_arm_fence_is_not_extended_by_later_writes() {
     Frames f(false);
     bool ok = true;
-    f.write(kKeyA);                                      // unarmed: recorded nowhere
-    if (!f.read(kKeyB)) ok = false;                      // arms, and is fenced by the transient
-    f.write(kKeyC);                                      // armed: this one DOES take a ring slot
-    if (!f.read(kKeyB)) ok = false;                      // pre-arming write still live: fenced
-    f.retire_all();                                      // ... and now it is not
+    f.write(kKeyA);                  // unarmed: recorded nowhere
+    if (!f.read(kKeyB)) ok = false;  // arms, and is fenced by the transient
+    f.write(kKeyC);                  // armed: this one DOES take a ring slot
+    if (!f.read(kKeyB)) ok = false;  // pre-arming write still live: fenced
+    f.retire_all();                  // ... and now it is not
     // Steady state, with writes in flight throughout: disjoint reads are served, same-key reads
     // are fenced, and neither answer depends on the transient any more.
     for (uint32_t round = 0; round < 32 && ok; round++) {
         f.write(kKeyC);
-        if (f.read(kKeyB)) ok = false;                   // disjoint: 100% local service
-        if (!f.read(kKeyC)) ok = false;                  // same key: exactly fenced
+        if (f.read(kKeyB)) ok = false;   // disjoint: 100% local service
+        if (!f.read(kKeyC)) ok = false;  // same key: exactly fenced
         f.retire(f.in_flight());
     }
     if (f.arm_state() != 0) ok = false;
-    if (f.stats().write_ring_records == 0) ok = false;    // the armed writes really were recorded
-    if (f.stats().sidecars != 1) ok = false;              // allocated once, at the first armed write
+    if (f.stats().write_ring_records == 0) ok = false;  // the armed writes really were recorded
+    if (f.stats().sidecars != 1) ok = false;            // allocated once, at the first armed write
     char extra[96];
     std::snprintf(extra, sizeof extra, "(%llu records, %llu arms)",
                   static_cast<unsigned long long>(f.stats().write_ring_records),
@@ -450,25 +459,28 @@ void test_arm_fence_is_not_extended_by_later_writes() {
 // ---- 17. arming costs one sidecar per connection, and only for connections that need one -------
 void test_sidecar_is_paid_only_by_read_write_connections() {
     bool ok = true;
-    {   Frames f(false);                                  // pure writes
+    {
+        Frames f(false);  // pure writes
         for (uint32_t i = 0; i < 16; i++) f.write(0x5100'0000'0000'0000ull | i);
         if (f.stats().sidecars != 0 || f.stats().arms != 0) ok = false;
     }
-    {   Frames f(false);                                  // pure reads
+    {
+        Frames f(false);  // pure reads
         for (uint32_t i = 0; i < 16; i++)
             if (f.read(0x5200'0000'0000'0000ull | i)) ok = false;
-        if (f.stats().sidecars != 0) ok = false;          // armed, but nothing to record
+        if (f.stats().sidecars != 0) ok = false;  // armed, but nothing to record
         if (f.stats().arms != 1) ok = false;
     }
-    {   Frames f(false);                                  // reads and writes
+    {
+        Frames f(false);  // reads and writes
         (void)f.read(kKeyB);
         f.write(kKeyA);
-        if (f.stats().sidecars != 1) ok = false;          // born at the first ARMED write
+        if (f.stats().sidecars != 1) ok = false;  // born at the first ARMED write
         // The staged candidate commits at the NEXT armed acquire -- that is the ring's commit
         // point, not the write frame itself -- so drive one more frame before counting records.
         (void)f.read(kKeyC);
         if (f.stats().write_ring_records != 1) ok = false;
-        if (!f.probe_without_acquire(kKeyA)) ok = false;   // and the descriptor is the real one
+        if (!f.probe_without_acquire(kKeyA)) ok = false;  // and the descriptor is the real one
     }
     note("only a connection that both reads and writes ever allocates a RYOW sidecar", ok);
 }
@@ -479,8 +491,8 @@ void test_sidecar_is_paid_only_by_read_write_connections() {
 // precise entry and both verdicts must occur -- at any depth now, which is the point of running one
 // arm at the full window. With most of them the connection lives inside a conservative generation,
 // where the invariant still holds but nothing is expected to be hoisted.
-void test_soak(uint32_t depth_cap, uint32_t conservative_pct, bool expect_hoists,
-               const char* label, bool armed = true) {
+void test_soak(uint32_t depth_cap, uint32_t conservative_pct, bool expect_hoists, const char* label,
+               bool armed = true) {
     std::mt19937_64 rng(20260905);
     // A small key space with many low-16-bit collisions: every key is 0x1000...0000 + (i<<48) + i,
     // so keys i and j collide in the tag whenever (i & 0xFFFF) == (j & 0xFFFF) -- and half the
@@ -499,8 +511,10 @@ void test_soak(uint32_t depth_cap, uint32_t conservative_pct, bool expect_hoists
         }
         if (roll < 40) {
             const uint64_t h = key(static_cast<uint32_t>(rng() % 48));
-            if (rng() % 100 < conservative_pct) f.write_conservative(h);
-            else f.write(h);
+            if (rng() % 100 < conservative_pct)
+                f.write_conservative(h);
+            else
+                f.write(h);
         } else if (roll < 90) {
             const uint64_t h = key(static_cast<uint32_t>(rng() % 48));
             const bool conflict = f.read(h);
@@ -521,8 +535,7 @@ void test_soak(uint32_t depth_cap, uint32_t conservative_pct, bool expect_hoists
     }
     char extra[128];
     std::snprintf(extra, sizeof extra, "(%llu reads, %llu fenced, %llu hoisted)",
-                  static_cast<unsigned long long>(reads),
-                  static_cast<unsigned long long>(fenced),
+                  static_cast<unsigned long long>(reads), static_cast<unsigned long long>(fenced),
                   static_cast<unsigned long long>(hoisted));
     // A soak that never fenced proves nothing about RYOW; in the precise regime one that never
     // hoisted proves nothing about the optimisation either.

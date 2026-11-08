@@ -22,14 +22,22 @@ enum class MaxmemoryPolicy : uint8_t {
 
 inline constexpr const char* maxmemory_policy_name(MaxmemoryPolicy policy) {
     switch (policy) {
-        case MaxmemoryPolicy::NoEviction:     return "noeviction";
-        case MaxmemoryPolicy::AllKeysRandom:  return "allkeys-random";
-        case MaxmemoryPolicy::AllKeysLru:     return "allkeys-lru";
-        case MaxmemoryPolicy::AllKeysLfu:     return "allkeys-lfu";
-        case MaxmemoryPolicy::VolatileRandom: return "volatile-random";
-        case MaxmemoryPolicy::VolatileLru:    return "volatile-lru";
-        case MaxmemoryPolicy::VolatileLfu:    return "volatile-lfu";
-        case MaxmemoryPolicy::VolatileTtl:    return "volatile-ttl";
+        case MaxmemoryPolicy::NoEviction:
+            return "noeviction";
+        case MaxmemoryPolicy::AllKeysRandom:
+            return "allkeys-random";
+        case MaxmemoryPolicy::AllKeysLru:
+            return "allkeys-lru";
+        case MaxmemoryPolicy::AllKeysLfu:
+            return "allkeys-lfu";
+        case MaxmemoryPolicy::VolatileRandom:
+            return "volatile-random";
+        case MaxmemoryPolicy::VolatileLru:
+            return "volatile-lru";
+        case MaxmemoryPolicy::VolatileLfu:
+            return "volatile-lfu";
+        case MaxmemoryPolicy::VolatileTtl:
+            return "volatile-ttl";
     }
     return "noeviction";
 }
@@ -43,15 +51,24 @@ inline bool parse_maxmemory_policy(std::string_view input, MaxmemoryPolicy& out)
         normalized[i] = ch;
     }
     const std::string_view value(normalized, input.size());
-    if      (value == "noeviction")      out = MaxmemoryPolicy::NoEviction;
-    else if (value == "allkeys-random")  out = MaxmemoryPolicy::AllKeysRandom;
-    else if (value == "allkeys-lru")     out = MaxmemoryPolicy::AllKeysLru;
-    else if (value == "allkeys-lfu")     out = MaxmemoryPolicy::AllKeysLfu;
-    else if (value == "volatile-random") out = MaxmemoryPolicy::VolatileRandom;
-    else if (value == "volatile-lru")    out = MaxmemoryPolicy::VolatileLru;
-    else if (value == "volatile-lfu")    out = MaxmemoryPolicy::VolatileLfu;
-    else if (value == "volatile-ttl")    out = MaxmemoryPolicy::VolatileTtl;
-    else return false;
+    if (value == "noeviction")
+        out = MaxmemoryPolicy::NoEviction;
+    else if (value == "allkeys-random")
+        out = MaxmemoryPolicy::AllKeysRandom;
+    else if (value == "allkeys-lru")
+        out = MaxmemoryPolicy::AllKeysLru;
+    else if (value == "allkeys-lfu")
+        out = MaxmemoryPolicy::AllKeysLfu;
+    else if (value == "volatile-random")
+        out = MaxmemoryPolicy::VolatileRandom;
+    else if (value == "volatile-lru")
+        out = MaxmemoryPolicy::VolatileLru;
+    else if (value == "volatile-lfu")
+        out = MaxmemoryPolicy::VolatileLfu;
+    else if (value == "volatile-ttl")
+        out = MaxmemoryPolicy::VolatileTtl;
+    else
+        return false;
     return true;
 }
 

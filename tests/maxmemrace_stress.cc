@@ -37,7 +37,7 @@
 namespace {
 
 struct Reply {
-    char type = 0;            // + - : $ * (and '_' for null)
+    char type = 0;  // + - : $ * (and '_' for null)
     std::string str;
     long long integer = 0;
     std::vector<Reply> elems;
@@ -61,7 +61,9 @@ public:
         int one = 1;
         ::setsockopt(fd_, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
     }
-    ~Conn() { if (fd_ >= 0) ::close(fd_); }
+    ~Conn() {
+        if (fd_ >= 0) ::close(fd_);
+    }
     Conn(const Conn&) = delete;
     Conn& operator=(const Conn&) = delete;
 
@@ -83,7 +85,10 @@ public:
             Reply r;
             if (parse(r, p)) {
                 pos_ = p;
-                if (pos_ > (1u << 20) || pos_ == buf_.size()) { buf_.erase(0, pos_); pos_ = 0; }
+                if (pos_ > (1u << 20) || pos_ == buf_.size()) {
+                    buf_.erase(0, pos_);
+                    pos_ = 0;
+                }
                 return r;
             }
             fill();
@@ -125,12 +130,21 @@ private:
         if (!line(p, l)) return false;
         r.type = t;
         switch (t) {
-            case '+': case '-': r.str = l; return true;
-            case ':': r.integer = std::atoll(l.c_str()); return true;
-            case '_': return true;
+            case '+':
+            case '-':
+                r.str = l;
+                return true;
+            case ':':
+                r.integer = std::atoll(l.c_str());
+                return true;
+            case '_':
+                return true;
             case '$': {
                 const long long n = std::atoll(l.c_str());
-                if (n < 0) { r.type = '_'; return true; }
+                if (n < 0) {
+                    r.type = '_';
+                    return true;
+                }
                 if (buf_.size() < p + static_cast<size_t>(n) + 2) return false;
                 r.str.assign(buf_, p, static_cast<size_t>(n));
                 p += static_cast<size_t>(n) + 2;
@@ -138,13 +152,17 @@ private:
             }
             case '*': {
                 const long long n = std::atoll(l.c_str());
-                if (n < 0) { r.type = '_'; return true; }
+                if (n < 0) {
+                    r.type = '_';
+                    return true;
+                }
                 r.elems.resize(static_cast<size_t>(n));
                 for (auto& e : r.elems)
                     if (!parse(e, p)) return false;
                 return true;
             }
-            default: die(std::string("unexpected RESP type byte ") + t);
+            default:
+                die(std::string("unexpected RESP type byte ") + t);
         }
     }
 
@@ -175,20 +193,20 @@ struct Options {
     uint16_t port = 0;
     uint64_t toggles = 1000;
     std::string policy = "noeviction";
-    std::string submit = "single";   // single | pipe
+    std::string submit = "single";  // single | pipe
     uint32_t conns = 8;
-    uint32_t per_conn = 4;           // SETs per connection per wave
+    uint32_t per_conn = 4;  // SETs per connection per wave
     uint32_t bg_threads = 0;
-    uint32_t bg_conns = 4;           // per background thread
+    uint32_t bg_conns = 4;  // per background thread
     uint32_t bg_pipe = 64;
-    std::string bg_mode = "light";   // light: STRLEN/EXISTS point reads; heavy: EXISTS of
-                                     // bg_keys keys that all route to one shard
+    std::string bg_mode = "light";  // light: STRLEN/EXISTS point reads; heavy: EXISTS of
+                                    // bg_keys keys that all route to one shard
     uint32_t bg_keys = 256;
-    int bg_shard = -1;               // heavy groups from this shard only (-1: every shard)
-    std::string tight = "alt";       // one | near | alt
+    int bg_shard = -1;          // heavy groups from this shard only (-1: every shard)
+    std::string tight = "alt";  // one | near | alt
     uint32_t fill = 4096;
     uint32_t value_size = 64;
-    uint32_t rotate = 32;            // key namespace rotation (bounds memory growth)
+    uint32_t rotate = 32;  // key namespace rotation (bounds memory growth)
     int timeout_ms = 20000;
     uint32_t examples = 8;
     std::string label;
@@ -211,10 +229,15 @@ void note(std::vector<std::string>& list, uint32_t cap, std::string text) {
 std::string json_escape(const std::string& s) {
     std::string out;
     for (char c : s) {
-        if (c == '"' || c == '\\') { out += '\\'; out += c; }
-        else if (static_cast<unsigned char>(c) < 0x20) {
-            char buf[8]; std::snprintf(buf, sizeof(buf), "\\u%04x", c); out += buf;
-        } else out += c;
+        if (c == '"' || c == '\\') {
+            out += '\\';
+            out += c;
+        } else if (static_cast<unsigned char>(c) < 0x20) {
+            char buf[8];
+            std::snprintf(buf, sizeof(buf), "\\u%04x", c);
+            out += buf;
+        } else
+            out += c;
     }
     return out;
 }
@@ -248,7 +271,10 @@ void background(const Options& o, const std::vector<std::vector<std::string>>& g
             for (auto& c : conns) {
                 std::string batch;
                 for (uint32_t i = 0; i < o.bg_pipe; i++) {
-                    if (!heavy.empty()) { batch += heavy[rng() % heavy.size()]; continue; }
+                    if (!heavy.empty()) {
+                        batch += heavy[rng() % heavy.size()];
+                        continue;
+                    }
                     const std::string key = "fill:" + std::to_string(rng() % o.fill);
                     // STRLEN/EXISTS are owner-executed in every geometry, unlike GET which the
                     // read-local lane can serve on the connection's own thread.
@@ -310,7 +336,8 @@ int run(const Options& o) {
     for (uint32_t base = 0; base < o.fill; base += 256) {
         std::string batch;
         const uint32_t end = std::min(o.fill, base + 256);
-        for (uint32_t i = base; i < end; i++) batch += cmd({"SET", "fill:" + std::to_string(i), value});
+        for (uint32_t i = base; i < end; i++)
+            batch += cmd({"SET", "fill:" + std::to_string(i), value});
         ctl.send(batch);
         for (uint32_t i = base; i < end; i++)
             if (!ctl.read().is_ok()) die("fill SET failed");
@@ -323,7 +350,8 @@ int run(const Options& o) {
     const unsigned long long near = std::max<unsigned long long>(1, dataset / 2);
 
     std::vector<std::unique_ptr<Conn>> sets;
-    for (uint32_t j = 0; j < o.conns; j++) sets.push_back(std::make_unique<Conn>(o.port, o.timeout_ms));
+    for (uint32_t j = 0; j < o.conns; j++)
+        sets.push_back(std::make_unique<Conn>(o.port, o.timeout_ms));
 
     // Heavy background groups: TomoKV names each key's shard (DEBUG SHARDS); a server
     // without that oracle (Redis) gets arbitrary groups, which is all a single thread needs.
@@ -340,7 +368,10 @@ int run(const Options& o) {
                 c += "$" + std::to_string(keys[i].size()) + "\r\n" + keys[i] + "\r\n";
             ctl.send(c);
             const Reply r = ctl.read();
-            if (r.type != '*') { oracle = false; break; }
+            if (r.type != '*') {
+                oracle = false;
+                break;
+            }
             for (size_t i = 0; i < r.elems.size(); i++) {
                 const auto sid = static_cast<size_t>(r.elems[i].elems.at(0).integer);
                 if (by_shard.size() <= sid) by_shard.resize(sid + 1);
@@ -350,7 +381,8 @@ int run(const Options& o) {
         if (!oracle) {
             by_shard.assign(16, {});
             for (size_t i = 0; i < keys.size(); i++) by_shard[i % 16].push_back(keys[i]);
-        } else geometry_shards = static_cast<uint32_t>(by_shard.size());
+        } else
+            geometry_shards = static_cast<uint32_t>(by_shard.size());
         // --bg-shard 0 loads only the publishing owner (the owner of shard 0), whose own pass
         // always straddles the commit; with every shard loaded, a fused owner's share drains fast.
         for (size_t sid = 0; sid < by_shard.size(); sid++) {
@@ -395,21 +427,23 @@ int run(const Options& o) {
                             k.tight_strict_admitted++;
                             note(k.tight_examples, o.examples,
                                  "cycle " + std::to_string(i) + " conn " + std::to_string(j) +
-                                 " set " + std::to_string(m) + " maxmemory " + tight +
-                                 ": +OK after the tight +OK");
+                                     " set " + std::to_string(m) + " maxmemory " + tight +
+                                     ": +OK after the tight +OK");
                         }
-                    } else if (x.is_oom()) k.tight_oom++;
+                    } else if (x.is_oom())
+                        k.tight_oom++;
                     else {
                         k.tight_other++;
-                        note(k.other_examples, o.examples, "tight cycle " + std::to_string(i) +
-                             ": " + std::string(1, x.type) + x.str);
+                        note(k.other_examples, o.examples,
+                             "tight cycle " + std::to_string(i) + ": " + std::string(1, x.type) +
+                                 x.str);
                     }
                 }
             // ---- lift edge: every later SET is admitted; nothing is evicted afterwards.
             ctl.send(cmd({"CONFIG", "SET", "maxmemory", "0"}));
             r = ctl.read();
             if (!r.is_ok()) die("CONFIG SET maxmemory 0 replied " + r.str);
-            if (lru) ctl.send(cmd({"INFO", "stats"}));       // concurrent with the wave
+            if (lru) ctl.send(cmd({"INFO", "stats"}));  // concurrent with the wave
             wave(o, sets, "l", i, value, replies);
             unsigned long long e0 = 0;
             if (lru) e0 = info_field(ctl.read().str, "evicted_keys");
@@ -417,17 +451,19 @@ int run(const Options& o) {
                 for (size_t m = 0; m < replies[j].size(); m++) {
                     const Reply& x = replies[j][m];
                     k.lift_sets++;
-                    if (x.is_ok()) k.lift_ok++;
+                    if (x.is_ok())
+                        k.lift_ok++;
                     else if (x.is_oom()) {
                         k.lift_oom++;
                         note(k.lift_examples, o.examples,
-                             "cycle " + std::to_string(i) + " conn " + std::to_string(j) +
-                             " set " + std::to_string(m) + " after maxmemory " + tight +
-                             "->0 +OK: " + x.str);
+                             "cycle " + std::to_string(i) + " conn " + std::to_string(j) + " set " +
+                                 std::to_string(m) + " after maxmemory " + tight +
+                                 "->0 +OK: " + x.str);
                     } else {
                         k.lift_other++;
-                        note(k.other_examples, o.examples, "lift cycle " + std::to_string(i) +
-                             ": " + std::string(1, x.type) + x.str);
+                        note(k.other_examples, o.examples,
+                             "lift cycle " + std::to_string(i) + ": " + std::string(1, x.type) +
+                                 x.str);
                     }
                 }
             if (lru) {
@@ -437,8 +473,9 @@ int run(const Options& o) {
                 if (e1 > e0) {
                     k.evicted_after_lift += e1 - e0;
                     note(k.evict_examples, o.examples,
-                         "cycle " + std::to_string(i) + " maxmemory " + tight + "->0: evicted_keys " +
-                         std::to_string(e0) + " -> " + std::to_string(e1) + " after the lift +OK");
+                         "cycle " + std::to_string(i) + " maxmemory " + tight +
+                             "->0: evicted_keys " + std::to_string(e0) + " -> " +
+                             std::to_string(e1) + " after the lift +OK");
                 }
             }
             k.cycles++;
@@ -453,40 +490,46 @@ int run(const Options& o) {
     for (auto& t : bg) t.join();
     k.bg_replies = bg_replies.load();
     k.bg_errors = bg_errors.load();
-    try { expect_ok(cmd({"CONFIG", "SET", "maxmemory", "0"}), "final CONFIG SET maxmemory 0"); }
-    catch (const std::exception& e) { if (!rc) rc = 3; note(k.other_examples, o.examples, e.what()); }
-    const double elapsed = std::chrono::duration<double>(std::chrono::steady_clock::now() - started).count();
+    try {
+        expect_ok(cmd({"CONFIG", "SET", "maxmemory", "0"}), "final CONFIG SET maxmemory 0");
+    } catch (const std::exception& e) {
+        if (!rc) rc = 3;
+        note(k.other_examples, o.examples, e.what());
+    }
+    const double elapsed =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - started).count();
     const uint64_t violations = k.lift_oom + k.tight_strict_admitted + k.evicted_after_lift;
-    std::printf("{\"label\": \"%s\", \"port\": %u, \"toggles_requested\": %llu, \"cycles\": %llu, "
-                "\"policy\": \"%s\", \"submit\": \"%s\", \"conns\": %u, \"per_conn\": %u, "
-                "\"bg_threads\": %u, \"bg_conns\": %u, \"bg_pipe\": %u, \"bg_mode\": \"%s\", "
-                "\"bg_keys\": %u, \"bg_shard\": %d, \"bg_groups\": %zu, \"geometry_shards\": %u, \"tight\": \"%s\", "
-                "\"fill\": %u, \"used_memory_after_fill\": %llu, \"dataset_after_fill\": %llu, "
-                "\"near_value\": %llu, "
-                "\"lift_sets\": %llu, \"lift_ok\": %llu, \"lift_oom\": %llu, \"lift_other\": %llu, "
-                "\"tight_sets\": %llu, \"tight_strict_sets\": %llu, \"tight_ok\": %llu, "
-                "\"tight_oom\": %llu, \"tight_other\": %llu, \"tight_strict_admitted\": %llu, "
-                "\"eviction_checks\": %llu, \"evicted_after_lift\": %llu, "
-                "\"bg_replies\": %llu, \"bg_errors\": %llu, \"violations\": %llu, "
-                "\"elapsed_s\": %.3f, \"lift_examples\": %s, \"tight_examples\": %s, "
-                "\"evict_examples\": %s, \"other_examples\": %s, \"rc\": %d}\n",
-                json_escape(o.label).c_str(), o.port,
-                static_cast<unsigned long long>(o.toggles), static_cast<unsigned long long>(k.cycles),
-                o.policy.c_str(), o.submit.c_str(), o.conns, o.per_conn, o.bg_threads, o.bg_conns,
-                o.bg_pipe, o.bg_mode.c_str(), o.bg_keys, o.bg_shard, groups.size(), geometry_shards, o.tight.c_str(), o.fill, used, dataset, near,
-                static_cast<unsigned long long>(k.lift_sets), static_cast<unsigned long long>(k.lift_ok),
-                static_cast<unsigned long long>(k.lift_oom), static_cast<unsigned long long>(k.lift_other),
-                static_cast<unsigned long long>(k.tight_sets),
-                static_cast<unsigned long long>(k.tight_strict_sets),
-                static_cast<unsigned long long>(k.tight_ok), static_cast<unsigned long long>(k.tight_oom),
-                static_cast<unsigned long long>(k.tight_other),
-                static_cast<unsigned long long>(k.tight_strict_admitted),
-                static_cast<unsigned long long>(k.eviction_checks),
-                static_cast<unsigned long long>(k.evicted_after_lift),
-                static_cast<unsigned long long>(k.bg_replies), static_cast<unsigned long long>(k.bg_errors),
-                static_cast<unsigned long long>(violations), elapsed,
-                json_list(k.lift_examples).c_str(), json_list(k.tight_examples).c_str(),
-                json_list(k.evict_examples).c_str(), json_list(k.other_examples).c_str(), rc);
+    std::printf(
+        "{\"label\": \"%s\", \"port\": %u, \"toggles_requested\": %llu, \"cycles\": %llu, "
+        "\"policy\": \"%s\", \"submit\": \"%s\", \"conns\": %u, \"per_conn\": %u, "
+        "\"bg_threads\": %u, \"bg_conns\": %u, \"bg_pipe\": %u, \"bg_mode\": \"%s\", "
+        "\"bg_keys\": %u, \"bg_shard\": %d, \"bg_groups\": %zu, \"geometry_shards\": %u, \"tight\": \"%s\", "
+        "\"fill\": %u, \"used_memory_after_fill\": %llu, \"dataset_after_fill\": %llu, "
+        "\"near_value\": %llu, "
+        "\"lift_sets\": %llu, \"lift_ok\": %llu, \"lift_oom\": %llu, \"lift_other\": %llu, "
+        "\"tight_sets\": %llu, \"tight_strict_sets\": %llu, \"tight_ok\": %llu, "
+        "\"tight_oom\": %llu, \"tight_other\": %llu, \"tight_strict_admitted\": %llu, "
+        "\"eviction_checks\": %llu, \"evicted_after_lift\": %llu, "
+        "\"bg_replies\": %llu, \"bg_errors\": %llu, \"violations\": %llu, "
+        "\"elapsed_s\": %.3f, \"lift_examples\": %s, \"tight_examples\": %s, "
+        "\"evict_examples\": %s, \"other_examples\": %s, \"rc\": %d}\n",
+        json_escape(o.label).c_str(), o.port, static_cast<unsigned long long>(o.toggles),
+        static_cast<unsigned long long>(k.cycles), o.policy.c_str(), o.submit.c_str(), o.conns,
+        o.per_conn, o.bg_threads, o.bg_conns, o.bg_pipe, o.bg_mode.c_str(), o.bg_keys, o.bg_shard,
+        groups.size(), geometry_shards, o.tight.c_str(), o.fill, used, dataset, near,
+        static_cast<unsigned long long>(k.lift_sets), static_cast<unsigned long long>(k.lift_ok),
+        static_cast<unsigned long long>(k.lift_oom), static_cast<unsigned long long>(k.lift_other),
+        static_cast<unsigned long long>(k.tight_sets),
+        static_cast<unsigned long long>(k.tight_strict_sets),
+        static_cast<unsigned long long>(k.tight_ok), static_cast<unsigned long long>(k.tight_oom),
+        static_cast<unsigned long long>(k.tight_other),
+        static_cast<unsigned long long>(k.tight_strict_admitted),
+        static_cast<unsigned long long>(k.eviction_checks),
+        static_cast<unsigned long long>(k.evicted_after_lift),
+        static_cast<unsigned long long>(k.bg_replies), static_cast<unsigned long long>(k.bg_errors),
+        static_cast<unsigned long long>(violations), elapsed, json_list(k.lift_examples).c_str(),
+        json_list(k.tight_examples).c_str(), json_list(k.evict_examples).c_str(),
+        json_list(k.other_examples).c_str(), rc);
     if (rc) return rc;
     if (k.lift_other || k.tight_other || k.bg_errors) return 4;
     return violations ? 1 : 0;
@@ -499,36 +542,65 @@ int main(int argc, char** argv) {
     for (int i = 1; i < argc; i++) {
         const std::string a = argv[i];
         auto next = [&]() -> std::string {
-            if (i + 1 >= argc) { std::fprintf(stderr, "%s needs a value\n", a.c_str()); std::exit(2); }
+            if (i + 1 >= argc) {
+                std::fprintf(stderr, "%s needs a value\n", a.c_str());
+                std::exit(2);
+            }
             return argv[++i];
         };
-        if (a == "--port") o.port = static_cast<uint16_t>(std::stoul(next()));
-        else if (a == "--toggles") o.toggles = std::stoull(next());
-        else if (a == "--policy") o.policy = next();
-        else if (a == "--submit") o.submit = next();
-        else if (a == "--conns") o.conns = static_cast<uint32_t>(std::stoul(next()));
-        else if (a == "--per-conn") o.per_conn = static_cast<uint32_t>(std::stoul(next()));
-        else if (a == "--bg-threads") o.bg_threads = static_cast<uint32_t>(std::stoul(next()));
-        else if (a == "--bg-conns") o.bg_conns = static_cast<uint32_t>(std::stoul(next()));
-        else if (a == "--bg-pipe") o.bg_pipe = static_cast<uint32_t>(std::stoul(next()));
-        else if (a == "--bg-mode") o.bg_mode = next();
-        else if (a == "--bg-keys") o.bg_keys = static_cast<uint32_t>(std::stoul(next()));
-        else if (a == "--bg-shard") o.bg_shard = std::stoi(next());
-        else if (a == "--tight") o.tight = next();
-        else if (a == "--fill") o.fill = static_cast<uint32_t>(std::stoul(next()));
-        else if (a == "--value-size") o.value_size = static_cast<uint32_t>(std::stoul(next()));
-        else if (a == "--rotate") o.rotate = static_cast<uint32_t>(std::stoul(next()));
-        else if (a == "--timeout-ms") o.timeout_ms = std::stoi(next());
-        else if (a == "--label") o.label = next();
-        else { std::fprintf(stderr, "unknown argument %s\n", a.c_str()); return 2; }
+        if (a == "--port")
+            o.port = static_cast<uint16_t>(std::stoul(next()));
+        else if (a == "--toggles")
+            o.toggles = std::stoull(next());
+        else if (a == "--policy")
+            o.policy = next();
+        else if (a == "--submit")
+            o.submit = next();
+        else if (a == "--conns")
+            o.conns = static_cast<uint32_t>(std::stoul(next()));
+        else if (a == "--per-conn")
+            o.per_conn = static_cast<uint32_t>(std::stoul(next()));
+        else if (a == "--bg-threads")
+            o.bg_threads = static_cast<uint32_t>(std::stoul(next()));
+        else if (a == "--bg-conns")
+            o.bg_conns = static_cast<uint32_t>(std::stoul(next()));
+        else if (a == "--bg-pipe")
+            o.bg_pipe = static_cast<uint32_t>(std::stoul(next()));
+        else if (a == "--bg-mode")
+            o.bg_mode = next();
+        else if (a == "--bg-keys")
+            o.bg_keys = static_cast<uint32_t>(std::stoul(next()));
+        else if (a == "--bg-shard")
+            o.bg_shard = std::stoi(next());
+        else if (a == "--tight")
+            o.tight = next();
+        else if (a == "--fill")
+            o.fill = static_cast<uint32_t>(std::stoul(next()));
+        else if (a == "--value-size")
+            o.value_size = static_cast<uint32_t>(std::stoul(next()));
+        else if (a == "--rotate")
+            o.rotate = static_cast<uint32_t>(std::stoul(next()));
+        else if (a == "--timeout-ms")
+            o.timeout_ms = std::stoi(next());
+        else if (a == "--label")
+            o.label = next();
+        else {
+            std::fprintf(stderr, "unknown argument %s\n", a.c_str());
+            return 2;
+        }
     }
     if (!o.port || (o.submit != "single" && o.submit != "pipe") ||
         (o.tight != "one" && o.tight != "near" && o.tight != "alt") || !o.conns || !o.per_conn ||
         !o.rotate || !o.fill || (o.bg_mode != "light" && o.bg_mode != "heavy") || !o.bg_keys) {
-        std::fprintf(stderr, "usage: --port P [--toggles N] [--policy noeviction|allkeys-lru] "
-                             "[--submit single|pipe] [--tight one|near|alt] ...\n");
+        std::fprintf(stderr,
+                     "usage: --port P [--toggles N] [--policy noeviction|allkeys-lru] "
+                     "[--submit single|pipe] [--tight one|near|alt] ...\n");
         return 2;
     }
-    try { return run(o); }
-    catch (const std::exception& e) { std::fprintf(stderr, "setup failed: %s\n", e.what()); return 3; }
+    try {
+        return run(o);
+    } catch (const std::exception& e) {
+        std::fprintf(stderr, "setup failed: %s\n", e.what());
+        return 3;
+    }
 }

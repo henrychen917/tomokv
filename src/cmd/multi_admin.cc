@@ -4,8 +4,8 @@
 #include "../core/shard.h"
 
 namespace tomo {
-void multi_database_stats(Shard& shard, DatabaseStatsTable& stats,
-                          uint64_t cut, uint64_t origin_conn_id) {
+void multi_database_stats(Shard& shard, DatabaseStatsTable& stats, uint64_t cut,
+                          uint64_t origin_conn_id) {
     auto& store = shard.store();
     store.atomic_set_read_context(cut, origin_conn_id);
     const auto account = [&](KvObj* object) {
@@ -31,9 +31,8 @@ void multi_database_stats(Shard& shard, DatabaseStatsTable& stats,
         KvObj* visible = store.atomic_resolve(hash, key, cut);
         account(visible ? visible : object);
     });
-    store.atomic_for_each_side_key(cut, [&](Slice key) {
-        account(store.atomic_resolve(FlatStore::hash_key(key), key, cut));
-    });
+    store.atomic_for_each_side_key(
+        cut, [&](Slice key) { account(store.atomic_resolve(FlatStore::hash_key(key), key, cut)); });
     store.atomic_clear_read_epoch();
 }
-} // namespace tomo
+}  // namespace tomo

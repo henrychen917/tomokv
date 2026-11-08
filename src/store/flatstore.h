@@ -112,8 +112,9 @@ inline void flatstore_debug_fail_table_allocations(uint32_t count) {
 inline bool flatstore_debug_consume_table_alloc_failure() {
     uint32_t remaining = g_flatstore_table_alloc_failures.load(std::memory_order_relaxed);
     while (remaining) {
-        if (g_flatstore_table_alloc_failures.compare_exchange_weak(
-                remaining, remaining - 1, std::memory_order_relaxed)) return true;
+        if (g_flatstore_table_alloc_failures.compare_exchange_weak(remaining, remaining - 1,
+                                                                   std::memory_order_relaxed))
+            return true;
     }
     return false;
 }
@@ -151,8 +152,12 @@ inline uint64_t mix64(uint64_t h);
 class ExpireIndex {
 public:
     ExpireIndex() = default;
-    ~ExpireIndex() { std::free(hashes_[0]); std::free(sidecars_[0]);
-                     std::free(hashes_[1]); std::free(sidecars_[1]); }
+    ~ExpireIndex() {
+        std::free(hashes_[0]);
+        std::free(sidecars_[0]);
+        std::free(hashes_[1]);
+        std::free(sidecars_[1]);
+    }
     ExpireIndex(const ExpireIndex&) = delete;
     ExpireIndex& operator=(const ExpireIndex&) = delete;
 
@@ -180,15 +185,13 @@ public:
             // Backstop only. At the shipped step rate the new table is at most ~41% loaded when the
             // move ends, so this cannot fire; finishing the move is still cheaper than letting an
             // insert run out of slots.
-            if (rehashing() &&
-                (static_cast<uint64_t>(live_[1]) + tombs_[1] + 1) * 100 >=
-                    static_cast<uint64_t>(cap_[1]) * 70)
+            if (rehashing() && (static_cast<uint64_t>(live_[1]) + tombs_[1] + 1) * 100 >=
+                                   static_cast<uint64_t>(cap_[1]) * 70)
                 finish_migration();
         }
         if (!cap_[0] && !allocate(0, kMinCap)) return false;
-        if (!rehashing() &&
-            (static_cast<uint64_t>(live_[0]) + tombs_[0] + 1) * 100 >=
-                static_cast<uint64_t>(cap_[0]) * 70) {
+        if (!rehashing() && (static_cast<uint64_t>(live_[0]) + tombs_[0] + 1) * 100 >=
+                                static_cast<uint64_t>(cap_[0]) * 70) {
             uint64_t wanted = cap_[0];
             if (static_cast<uint64_t>(live_[0]) * 2 >= cap_[0]) {
                 if (wanted > std::numeric_limits<size_t>::max() / uint64_t{2}) return false;
@@ -255,7 +258,10 @@ public:
             for (int t = 0; t < 2; t++) {
                 if (!cap_[t] || !live_[t]) continue;
                 const size_t pos = static_cast<size_t>(mix64(random + i * 2 + t)) & (cap_[t] - 1);
-                if (states(t)[pos] == kLive) { out = hashes_[t][pos]; return true; }
+                if (states(t)[pos] == kLive) {
+                    out = hashes_[t][pos];
+                    return true;
+                }
             }
         for (uint32_t i = 0; i < attempts; i++) {
             const size_t old_left = cap_[0] - migrate_;
@@ -265,7 +271,10 @@ public:
             const size_t pos = cursor_++;
             if (pos < old_left) {
                 const size_t slot = migrate_ + pos;
-                if (states(0)[slot] == kLive) { out = hashes_[0][slot]; return true; }
+                if (states(0)[slot] == kLive) {
+                    out = hashes_[0][slot];
+                    return true;
+                }
             } else if (states(1)[pos - old_left] == kLive) {
                 out = hashes_[1][pos - old_left];
                 return true;
@@ -275,10 +284,10 @@ public:
     }
 
 private:
-    static constexpr uint8_t  kEmpty = 0;
-    static constexpr uint8_t  kLive  = 1;
-    static constexpr uint8_t  kTomb  = 2;
-    static constexpr size_t   kMinCap = 16;
+    static constexpr uint8_t kEmpty = 0;
+    static constexpr uint8_t kLive = 1;
+    static constexpr uint8_t kTomb = 2;
+    static constexpr size_t kMinCap = 16;
     // Old slots moved per operation. Same reasoning (and same number) as
     // FlatStore::kRehashSlotsPerOp: large enough that the move finishes long before the new table
     // needs one of its own, small enough that no single operation visibly stalls.
@@ -307,7 +316,11 @@ private:
     bool allocate(int t, size_t cap) {
         auto* hashes = static_cast<uint64_t*>(flatstore_table_calloc(cap, sizeof(uint64_t)));
         auto* sidecar = static_cast<uint8_t*>(flatstore_table_calloc(cap, sizeof(uint8_t)));
-        if (!hashes || !sidecar) { std::free(hashes); std::free(sidecar); return false; }
+        if (!hashes || !sidecar) {
+            std::free(hashes);
+            std::free(sidecar);
+            return false;
+        }
         std::free(hashes_[t]);
         std::free(sidecars_[t]);
         hashes_[t] = hashes;
@@ -317,8 +330,7 @@ private:
         return true;
     }
 
-    __attribute__((noinline, cold))
-    void collapse_empty() {
+    __attribute__((noinline, cold)) void collapse_empty() {
         if (!rehashing() && cap_[0] <= kMinCap) {
             std::memset(states(0), kEmpty, cap_[0]);
             tombs_[0] = 0;
@@ -390,7 +402,10 @@ private:
         size_t first_tomb = cap;
         for (size_t probes = 0; probes < cap; probes++) {
             if (states(t)[pos] == kEmpty) {
-                if (first_tomb != cap) { pos = first_tomb; tombs_[t]--; }
+                if (first_tomb != cap) {
+                    pos = first_tomb;
+                    tombs_[t]--;
+                }
                 hashes_[t][pos] = hash;
                 states(t)[pos] = kLive;
                 live_[t]++;
@@ -424,12 +439,12 @@ private:
     }
 
     uint64_t* hashes_[2] = {nullptr, nullptr};
-    uint8_t*  sidecars_[2] = {nullptr, nullptr};
-    size_t    cap_[2]    = {0, 0};
-    uint32_t  live_[2]   = {0, 0};
-    uint32_t  tombs_[2]  = {0, 0};
-    size_t    cursor_ = 0;    // sampling cursor over the concatenation of both tables
-    size_t    migrate_ = 0;   // next old-table slot to move while a migration is in flight
+    uint8_t* sidecars_[2] = {nullptr, nullptr};
+    size_t cap_[2] = {0, 0};
+    uint32_t live_[2] = {0, 0};
+    uint32_t tombs_[2] = {0, 0};
+    size_t cursor_ = 0;   // sampling cursor over the concatenation of both tables
+    size_t migrate_ = 0;  // next old-table slot to move while a migration is in flight
 };
 static_assert(sizeof(ExpireIndex) == 80, "ExpireIndex layout drift");
 // 64-bit finalizer (murmur3 fmix64). Cheap, and it decorrelates the index bits from the router's.
@@ -444,9 +459,9 @@ static_assert(sizeof(ExpireIndex) == 80, "ExpireIndex layout drift");
 // The kind is a boot-time enum read through one perfectly-predicted branch -- not a function
 // pointer, which would tax every hash with an indirect call.
 enum class HashKind : uint8_t { Mix64Seeded = 0, SipHash12 = 1 };
-inline HashKind  g_hash_kind = HashKind::Mix64Seeded;
-inline uint64_t  g_hash_seed = 0;          // set once at boot, before any thread runs
-inline uint64_t  g_sip_k0 = 0, g_sip_k1 = 0;
+inline HashKind g_hash_kind = HashKind::Mix64Seeded;
+inline uint64_t g_hash_seed = 0;  // set once at boot, before any thread runs
+inline uint64_t g_sip_k0 = 0, g_sip_k1 = 0;
 
 inline uint64_t rotl64(uint64_t x, int b) { return (x << b) | (x >> (64 - b)); }
 
@@ -457,20 +472,38 @@ inline uint64_t siphash12(const char* p, size_t n) {
     uint64_t v2 = 0x6c7967656e657261ULL ^ g_sip_k0;
     uint64_t v3 = 0x7465646279746573ULL ^ g_sip_k1;
     auto round = [&] {
-        v0 += v1; v1 = rotl64(v1, 13); v1 ^= v0; v0 = rotl64(v0, 32);
-        v2 += v3; v3 = rotl64(v3, 16); v3 ^= v2;
-        v0 += v3; v3 = rotl64(v3, 21); v3 ^= v0;
-        v2 += v1; v1 = rotl64(v1, 17); v1 ^= v2; v2 = rotl64(v2, 32);
+        v0 += v1;
+        v1 = rotl64(v1, 13);
+        v1 ^= v0;
+        v0 = rotl64(v0, 32);
+        v2 += v3;
+        v3 = rotl64(v3, 16);
+        v3 ^= v2;
+        v0 += v3;
+        v3 = rotl64(v3, 21);
+        v3 ^= v0;
+        v2 += v1;
+        v1 = rotl64(v1, 17);
+        v1 ^= v2;
+        v2 = rotl64(v2, 32);
     };
     const size_t end = n & ~size_t(7);
     for (size_t i = 0; i < end; i += 8) {
-        uint64_t m; std::memcpy(&m, p + i, 8);
-        v3 ^= m; round(); v0 ^= m;
+        uint64_t m;
+        std::memcpy(&m, p + i, 8);
+        v3 ^= m;
+        round();
+        v0 ^= m;
     }
     uint64_t b = static_cast<uint64_t>(n) << 56;
-    for (size_t i = end; i < n; i++) b |= static_cast<uint64_t>(static_cast<unsigned char>(p[i])) << (8 * (i - end));
-    v3 ^= b; round(); v0 ^= b;
-    v2 ^= 0xff; round(); round();
+    for (size_t i = end; i < n; i++)
+        b |= static_cast<uint64_t>(static_cast<unsigned char>(p[i])) << (8 * (i - end));
+    v3 ^= b;
+    round();
+    v0 ^= b;
+    v2 ^= 0xff;
+    round();
+    round();
     return v0 ^ v1 ^ v2 ^ v3;
 }
 
@@ -500,10 +533,10 @@ inline uint64_t mix64(uint64_t h) {
 // downward through the high bits and the result is again inside the mask, so any cursor a client
 // hands back is self-correcting, and the walk ends at exactly 0 after one full cycle.
 inline uint64_t scan_cursor_reverse_bits(uint64_t v) {
-    v = ((v & 0x5555555555555555ULL) << 1)  | ((v >> 1)  & 0x5555555555555555ULL);
-    v = ((v & 0x3333333333333333ULL) << 2)  | ((v >> 2)  & 0x3333333333333333ULL);
-    v = ((v & 0x0f0f0f0f0f0f0f0fULL) << 4)  | ((v >> 4)  & 0x0f0f0f0f0f0f0f0fULL);
-    v = ((v & 0x00ff00ff00ff00ffULL) << 8)  | ((v >> 8)  & 0x00ff00ff00ff00ffULL);
+    v = ((v & 0x5555555555555555ULL) << 1) | ((v >> 1) & 0x5555555555555555ULL);
+    v = ((v & 0x3333333333333333ULL) << 2) | ((v >> 2) & 0x3333333333333333ULL);
+    v = ((v & 0x0f0f0f0f0f0f0f0fULL) << 4) | ((v >> 4) & 0x0f0f0f0f0f0f0f0fULL);
+    v = ((v & 0x00ff00ff00ff00ffULL) << 8) | ((v >> 8) & 0x00ff00ff00ff00ffULL);
     v = ((v & 0x0000ffff0000ffffULL) << 16) | ((v >> 16) & 0x0000ffff0000ffffULL);
     return (v << 32) | (v >> 32);
 }
@@ -522,7 +555,7 @@ inline uint64_t scan_cursor_next(uint64_t cursor, uint64_t mask) {
 template <typename Fn>
 inline constexpr bool kScanExpiresVisited = requires { requires Fn::kExpiresVisited; };
 
-class /* TOMO_TOOL_BIND FlatStore */FlatStore;
+class /* TOMO_TOOL_BIND FlatStore */ FlatStore;
 struct FlatStoreLayoutLock;
 
 // Armed stores extend the already-cold atomic pending allocation. Keeping AtomicPendingState first
@@ -552,12 +585,11 @@ static_assert(offsetof(ReadLocalStoreState, atomic) == 0);
 bool hash_ttl_active_reap(FlatStore& store, KvObj* object, int64_t now_ms, uint32_t& reaped);
 
 class FlatStore {
-
 public:
     static constexpr uint64_t kPtrMask = (1ULL << 48) - 1;
     static constexpr uint64_t kTombBit = 1ULL << 48;
-    static constexpr int      kLoadPct = 70;
-    static constexpr uint32_t kMinCap  = 64;
+    static constexpr int kLoadPct = 70;
+    static constexpr uint32_t kMinCap = 64;
 
     // OLD slots examined per operation. Large enough that a rehash finishes well before the table
     // needs another, small enough that no single operation visibly stalls. Bounded per op is the
@@ -569,7 +601,7 @@ public:
     // are deliberately outside the maxmemory model: charging those costs would make enforcement
     // depend on resize history rather than maintained object/key counters. This is a stable
     // logical cache budget, not an RSS ceiling.
-    static constexpr size_t   kSlotOverheadPerKey = 12;
+    static constexpr size_t kSlotOverheadPerKey = 12;
     static constexpr uint32_t kEvictionsPerOp = 16;
     static constexpr uint32_t kSampleProbeAttempts = 16;
 
@@ -600,7 +632,9 @@ public:
         uint32_t cap = 0;
         uint32_t mask = 0;
     };
-    struct ReadLocalTopology { ReadLocalTable tables[2]; };
+    struct ReadLocalTopology {
+        ReadLocalTable tables[2];
+    };
 
     // Layout of the read-local table word. Bit 0 is open while a table mutation is being
     // published; bit 1 is the whole-shard pending marker (any prepared atomic entry, also the
@@ -665,8 +699,7 @@ public:
         }
         ForeignReadPoisonGuard(const ForeignReadPoisonGuard&) = delete;
         ForeignReadPoisonGuard& operator=(const ForeignReadPoisonGuard&) = delete;
-        ForeignReadPoisonGuard(ForeignReadPoisonGuard&& other) noexcept
-            : store_(other.store_) {
+        ForeignReadPoisonGuard(ForeignReadPoisonGuard&& other) noexcept : store_(other.store_) {
             other.store_ = nullptr;
         }
         ForeignReadPoisonGuard& operator=(ForeignReadPoisonGuard&&) = delete;
@@ -688,8 +721,8 @@ public:
     }
 
     explicit FlatStore(uint32_t initial_cap = 1024) {
-        std::construct_at(reinterpret_cast<std::atomic<ObjectIdleClock*>*>(
-            reader_owner_gap_ + 12), nullptr);
+        std::construct_at(reinterpret_cast<std::atomic<ObjectIdleClock*>*>(reader_owner_gap_ + 12),
+                          nullptr);
         const uint32_t cap = round_pow2(initial_cap);
         if (!cap || !alloc_table(0, cap)) throw std::bad_alloc();
         if (!init_storesize()) {
@@ -700,7 +733,8 @@ public:
     ~FlatStore() {
         // At process teardown no reader survives. Collapse pending entries first so the ordinary
         // table destructor below remains the unique owner of each promoted winner.
-        read_local_enabled_ = false;  // shutdown promotion/free is direct; no callback may outlive us
+        read_local_enabled_ =
+            false;  // shutdown promotion/free is direct; no callback may outlive us
         atomic_promote_all_for_shutdown();
         expires_.clear();
         if (snapshot_new_tab_) std::free(snapshot_new_tab_);
@@ -927,8 +961,8 @@ public:
         ReadLocalTopology topology;
         if (!read_local_snapshot_topology(state, topology)) {
             const uint64_t changed = read_local_state_acquire();
-            return {foreign_read_key_unsafe(changed, hash)
-                        ? ReadLocalProbeResult::AtomicPending : ReadLocalProbeResult::Churn,
+            return {foreign_read_key_unsafe(changed, hash) ? ReadLocalProbeResult::AtomicPending
+                                                           : ReadLocalProbeResult::Churn,
                     nullptr, nullptr, changed};
         }
 
@@ -946,13 +980,13 @@ public:
 #endif
         const uint64_t final_state = read_local_state_acquire();
         if (!read_local_probe_sequence_equal(final_state, state)) {
-            return {foreign_read_key_unsafe(final_state, hash)
-                        ? ReadLocalProbeResult::AtomicPending : ReadLocalProbeResult::Churn,
+            return {foreign_read_key_unsafe(final_state, hash) ? ReadLocalProbeResult::AtomicPending
+                                                               : ReadLocalProbeResult::Churn,
                     nullptr, nullptr, final_state};
         }
         if (object) read_local_prefetch_object(object);
-        return {object ? ReadLocalProbeResult::Hit : ReadLocalProbeResult::Missing,
-                slot, object, state};
+        return {object ? ReadLocalProbeResult::Hit : ReadLocalProbeResult::Missing, slot, object,
+                state};
     }
 
 #if defined(TOMO_CORE_CONCURRENCY_TEST) || defined(TOMO_PROBEADAPTER_TEST)
@@ -960,18 +994,16 @@ public:
     inline static void (*test_read_local_captured)(const FlatStore&) = nullptr;
 #endif
 
-    bool     rehashing() const { return tab_[1] != nullptr; }
+    bool rehashing() const { return tab_[1] != nullptr; }
     // Owner-only observation: DEBUG REHASH-STATE runs on shard 0's owner, so these real
     // migration counters need neither cross-thread sampling nor new per-step instrumentation.
     struct RehashProgress {
         uint32_t current_capacity, old_capacity, cursor, old_live;
     };
-    RehashProgress rehash_progress() const {
-        return {cap_[0], cap_[1], rehash_pos_, live_[1]};
-    }
+    RehashProgress rehash_progress() const { return {cap_[0], cap_[1], rehash_pos_, live_[1]}; }
     uint32_t size() const { return live_[0] + live_[1]; }
     uint64_t capacity() const { return static_cast<uint64_t>(cap_[0]) + cap_[1]; }
-    size_t   object_bytes() const { return obj_bytes_ + atomic_version_bytes_; }
+    size_t object_bytes() const { return obj_bytes_ + atomic_version_bytes_; }
     uint32_t expire_count() const { return expires_.size(); }
     // Cold batch-boundary publication. No key/TTL mutation publishes counters.
     [[gnu::noinline, gnu::cold]] bool init_storesize();
@@ -1003,8 +1035,7 @@ public:
         // without going through their native push handlers. Signal here, at
         // installation, so wake coverage follows the type rather than a list
         // of commands. Native pushes already signal behind their waiter gate.
-        if (static_cast<Type>(o->type) == Type::List ||
-            static_cast<Type>(o->type) == Type::Zset ||
+        if (static_cast<Type>(o->type) == Type::List || static_cast<Type>(o->type) == Type::Zset ||
             static_cast<Type>(o->type) == Type::Stream) {
             if (blocking_key_created) blocking_key_created(this, o->key());
             return;
@@ -1025,7 +1056,7 @@ public:
         if (KvObj* object = find_in(0, hash, key)) return object;
         return rehashing() ? find_in(1, hash, key) : nullptr;
     }
-    size_t   accounted_bytes() const {
+    size_t accounted_bytes() const {
         const size_t keys = size();
         const size_t objects = obj_bytes_ + atomic_version_bytes_;
         if (keys > (std::numeric_limits<size_t>::max() - objects) / kSlotOverheadPerKey)
@@ -1033,8 +1064,8 @@ public:
         return objects + static_cast<uint64_t>(keys) * kSlotOverheadPerKey;
     }
 
-    // ==== epoch-MVCC atomics (see src/store/flatstore_atomic.inc) ====
-    #include "flatstore_atomic.inc"
+// ==== epoch-MVCC atomics (see src/store/flatstore_atomic.inc) ====
+#include "flatstore_atomic.inc"
 
     enum class SnapshotWriteResult : uint8_t { Ready, Pending, Error };
     enum class EraseEvent : uint8_t { Del, Evicted, None };
@@ -1050,8 +1081,7 @@ public:
             return SnapshotWriteResult::Pending;
         }
         if (snapshot_prepared_) return SnapshotWriteResult::Ready;
-        if (read_local_enabled_ && !prepare_resize_retirement())
-            return SnapshotWriteResult::Error;
+        if (read_local_enabled_ && !prepare_resize_retirement()) return SnapshotWriteResult::Error;
         // A completed snapshot leaves its fresh table installed. Doubling cap_[0] on every
         // cut therefore grows an idle store forever. Reserve twice the ordinary live-set
         // capacity instead, bounded above by the old rule. Do not shrink here: until Mark,
@@ -1080,11 +1110,18 @@ public:
         if (__builtin_expect(read_local_enabled_, false))
             return snapshot_mark_read_local(shard_id, cut_ms);
         if (!snapshot_prepared_ || snapshot_active_ || rehashing()) return false;
-        tab_[1] = tab_[0]; cap_[1] = cap_[0]; mask_[1] = mask_[0];
-        live_[1] = live_[0]; tombs_[1] = tombs_[0];
-        tab_[0] = snapshot_new_tab_; cap_[0] = snapshot_new_cap_; mask_[0] = cap_[0] - 1;
+        tab_[1] = tab_[0];
+        cap_[1] = cap_[0];
+        mask_[1] = mask_[0];
+        live_[1] = live_[0];
+        tombs_[1] = tombs_[0];
+        tab_[0] = snapshot_new_tab_;
+        cap_[0] = snapshot_new_cap_;
+        mask_[0] = cap_[0] - 1;
         live_[0] = tombs_[0] = 0;
-        snapshot_new_tab_ = nullptr; snapshot_new_cap_ = 0; snapshot_prepared_ = false;
+        snapshot_new_tab_ = nullptr;
+        snapshot_new_cap_ = 0;
+        snapshot_prepared_ = false;
         rehash_pos_ = 0;
         snapshot_active_ = true;
         snapshot_shard_id_ = shard_id;
@@ -1118,12 +1155,12 @@ public:
         if (!object || slot < snapshot_pos_ || (tab_[1][slot] & kTombBit))
             return SnapshotWriteResult::Ready;
         if (deadline_elapsed(h, object, snapshot_cut_ms_)) {
-            tab_[1][slot] |= kTombBit;             // absent at the cut; traversal must skip it
+            tab_[1][slot] |= kTombBit;  // absent at the cut; traversal must skip it
             return SnapshotWriteResult::Ready;
         }
         if (snapshot_record_.active) return SnapshotWriteResult::Pending;
         if (!snapshot_start_record(object, slot, true)) return SnapshotWriteResult::Error;
-        snapshot_preimages_++;   // FIRED-proof: >0 in any real mutate-during-capture run
+        snapshot_preimages_++;  // FIRED-proof: >0 in any real mutate-during-capture run
         return SnapshotWriteResult::Pending;
     }
 
@@ -1149,8 +1186,12 @@ public:
             const uint32_t slot = snapshot_pos_;
             const uint64_t word = tab_[1][slot];
             KvObj* object = ptr_of(word);
-            slot_budget--; work++;
-            if (!object) { snapshot_pos_++; continue; }
+            slot_budget--;
+            work++;
+            if (!object) {
+                snapshot_pos_++;
+                continue;
+            }
             if (word & kTombBit) {
                 tab_[1][slot] = word & ~kTombBit;
                 snapshot_pos_++;
@@ -1165,9 +1206,7 @@ public:
         return work;
     }
 
-    std::unique_ptr<SnapshotChunk> snapshot_take_chunk() {
-        return std::move(snapshot_ready_);
-    }
+    std::unique_ptr<SnapshotChunk> snapshot_take_chunk() { return std::move(snapshot_ready_); }
 
     void snapshot_handoff_complete() {
         if (!snapshot_finished_) return;
@@ -1183,9 +1222,15 @@ public:
 
     void snapshot_cancel() {
         if (snapshot_new_tab_) std::free(snapshot_new_tab_);
-        snapshot_new_tab_ = nullptr; snapshot_new_cap_ = 0; snapshot_prepared_ = false;
-        snapshot_active_ = false; snapshot_failed_ = false; snapshot_finished_ = false;
-        snapshot_build_.reset(); snapshot_ready_.reset(); snapshot_record_ = {};
+        snapshot_new_tab_ = nullptr;
+        snapshot_new_cap_ = 0;
+        snapshot_prepared_ = false;
+        snapshot_active_ = false;
+        snapshot_failed_ = false;
+        snapshot_finished_ = false;
+        snapshot_build_.reset();
+        snapshot_ready_.reset();
+        snapshot_record_ = {};
         snapshot_shard_id_ = -1;
         // Any pre-image marks still live in tab_[1] are harmless to normal lookup and are cleared
         // as the ordinary rehash moves those slot words back through make_word().
@@ -1195,18 +1240,19 @@ public:
     // copy cost — nothing is copied — but an L3 domain is filled by access, so a shard that moves
     // has to be read back in on the other side.
     size_t resident_estimate() const {
-        return static_cast<size_t>((static_cast<uint64_t>(cap_[0]) + cap_[1]) *
-                                   sizeof(uint64_t)) + obj_bytes_ +
-               atomic_version_bytes_ + pending_bytes_ +
-               expires_.memory_bytes() + field_expires_.memory_bytes();
+        return static_cast<size_t>((static_cast<uint64_t>(cap_[0]) + cap_[1]) * sizeof(uint64_t)) +
+               obj_bytes_ + atomic_version_bytes_ + pending_bytes_ + expires_.memory_bytes() +
+               field_expires_.memory_bytes();
     }
 
     // Collection values grow and shrink behind a stable KvObj header. The shard owner brackets
     // such a mutation with kvobj_size() samples and reports the delta here so later erase/rehash
     // subtracts the same footprint that is currently charged. Single-owner: no atomic or lock.
     void note_object_size_change(size_t before, size_t after) {
-        if (after >= before) obj_bytes_ += after - before;
-        else obj_bytes_ -= before - after;
+        if (after >= before)
+            obj_bytes_ += after - before;
+        else
+            obj_bytes_ -= before - after;
     }
 
     KvObj* find(uint64_t h, Slice key) {
@@ -1235,7 +1281,8 @@ public:
         if (!candidate && rehashing()) candidate = find_in(1, h, key);
         const bool expired = candidate && deadline_elapsed(h, candidate, cached_now_ms_) &&
                              !(snapshot_active_ && candidate == find_in(1, h, key));
-        if (expired && !client_pause_expiry_held() && !notify_read_resolves_versions() && read_retirement_available())
+        if (expired && !client_pause_expiry_held() && !notify_read_resolves_versions() &&
+            read_retirement_available())
             notify_emit(sink, NOTIFY_EXPIRED, NotifyEventId::Expired, candidate->key());
         KvObj* found = find(h, key);
         if (!found) notify_emit(sink, NOTIFY_KEY_MISS, NotifyEventId::Keymiss, key);
@@ -1261,14 +1308,13 @@ public:
         if (!o) return OverwriteResult::NotPossible;
         if (o->encoding() != Enc::Raw) return OverwriteResult::NotPossible;
         if (o->flags & KvObjFlags::HasTtl) return OverwriteResult::NotPossible;  // SET clears TTL
-        if (val.n > kEmbedThreshold) return OverwriteResult::NotPossible;       // becomes Extern
+        if (val.n > kEmbedThreshold) return OverwriteResult::NotPossible;        // becomes Extern
         const size_t want = kvobj_alloc_size(o->key().identity(), val.n, false, Enc::Raw);
         if (good_size(want) != kvobj_capacity(o)) return OverwriteResult::NotPossible;
 
         // In-place overwrite is the one mutation that would change bytes without retiring their
         // allocation. With no outstanding borrows this is one predicted branch and no lookup.
-        if (outstanding_borrows_ && is_borrowed(o->str_data()))
-            return OverwriteResult::NotPossible;
+        if (outstanding_borrows_ && is_borrowed(o->str_data())) return OverwriteResult::NotPossible;
 
         // The entire disabled-feature write tax is this branch. When enabled, the target key is
         // protected while make_room_for() evicts other candidates.
@@ -1290,8 +1336,7 @@ public:
         return OverwriteResult::Updated;
     }
 
-    OverwriteResult try_overwrite_notify(uint64_t h, Slice key, Slice val,
-                                         FlatNotifySink*) {
+    OverwriteResult try_overwrite_notify(uint64_t h, Slice key, Slice val, FlatNotifySink*) {
         return try_overwrite(h, key, val);
     }
 
@@ -1306,8 +1351,8 @@ public:
                            bool reserve_ttl_slot = false) {
         if (__builtin_expect(read_local_enabled_, false) && value.n <= kEmbedThreshold) {
             const bool has_ttl_slot = reserve_ttl_slot || expire_at_ms >= 0;
-            const size_t allocation = good_size(
-                kvobj_alloc_size(key.identity(), value.n, has_ttl_slot, Enc::Raw));
+            const size_t allocation =
+                good_size(kvobj_alloc_size(key.identity(), value.n, has_ttl_slot, Enc::Raw));
             void* memory = read_local_cache_take(allocation);
             if (!memory) {
                 memory = alloc_raw(allocation);
@@ -1318,8 +1363,9 @@ public:
                 read_local_cache_release_all();
                 memory = alloc_raw(allocation);
             }
-            return memory ? kvobj_init_raw_string(memory, key, value, expire_at_ms,
-                                                  reserve_ttl_slot) : nullptr;
+            return memory
+                       ? kvobj_init_raw_string(memory, key, value, expire_at_ms, reserve_ttl_slot)
+                       : nullptr;
         }
         return kvobj_new_string(key, value, expire_at_ms, reserve_ttl_slot);
     }
@@ -1328,8 +1374,8 @@ public:
                         bool reserve_ttl_slot = false) {
         if (__builtin_expect(read_local_enabled_, false)) {
             const bool has_ttl_slot = reserve_ttl_slot || expire_at_ms >= 0;
-            const size_t allocation = good_size(
-                kvobj_alloc_size(key.identity(), 0, has_ttl_slot, Enc::Int));
+            const size_t allocation =
+                good_size(kvobj_alloc_size(key.identity(), 0, has_ttl_slot, Enc::Int));
             void* memory = read_local_cache_take(allocation);
             if (!memory) {
                 memory = alloc_raw(allocation);
@@ -1338,8 +1384,8 @@ public:
                 read_local_cache_release_all();
                 memory = alloc_raw(allocation);
             }
-            return memory ? kvobj_init_int(memory, key, value, expire_at_ms,
-                                           reserve_ttl_slot) : nullptr;
+            return memory ? kvobj_init_int(memory, key, value, expire_at_ms, reserve_ttl_slot)
+                          : nullptr;
         }
         return kvobj_new_int(key, value, expire_at_ms, reserve_ttl_slot);
     }
@@ -1357,7 +1403,11 @@ public:
     // an allocation cannot be reused while it is either table-owned or retained as `retired`.
     void borrow(const char* ptr) {
         const uint32_t at = borrow_find(ptr);
-        if (at != kNoBorrow) { borrows_[at].refs++; outstanding_borrows_++; return; }
+        if (at != kNoBorrow) {
+            borrows_[at].refs++;
+            outstanding_borrows_++;
+            return;
+        }
         borrows_.push_back(Borrow{ptr, 1, nullptr});
         // Publish the count only after push_back succeeds. A failed registry growth must not leave
         // an unreturnable phantom borrow behind (cross-shard MGET can recover as an OOM reply).
@@ -1404,13 +1454,11 @@ public:
         if (deadline_ms < 0 || cached_now_ms_ <= deadline_ms) return;
         const uint64_t lag = static_cast<uint64_t>(cached_now_ms_ - deadline_ms);
         const uint32_t bounded = lag > std::numeric_limits<uint32_t>::max()
-            ? std::numeric_limits<uint32_t>::max() : static_cast<uint32_t>(lag);
-        if (bounded > active_expire_reap_lag_ms_max_)
-            active_expire_reap_lag_ms_max_ = bounded;
+                                     ? std::numeric_limits<uint32_t>::max()
+                                     : static_cast<uint32_t>(lag);
+        if (bounded > active_expire_reap_lag_ms_max_) active_expire_reap_lag_ms_max_ = bounded;
     }
-    uint32_t active_expire_reap_lag_ms_max() const {
-        return active_expire_reap_lag_ms_max_;
-    }
+    uint32_t active_expire_reap_lag_ms_max() const { return active_expire_reap_lag_ms_max_; }
     // Owner-thread scratch: the current task's CLIENT NO-TOUCH answer. Written only when
     // maxmemory is enabled, so it costs nothing in the default configuration.
     bool no_touch() const { return no_touch_; }
@@ -1497,7 +1545,8 @@ public:
     // False only when enabling cannot allocate the clock (SO5.1). Nothing escapes: the partial
     // clock is freed here and the slot stays empty, so OBJECT IDLETIME reads 0 for this store.
     // Eviction is unaffected: the victim chooser reads the five-bit LRU meta, not this clock.
-    [[gnu::noinline, gnu::cold]] bool /* TOMO_TOOL_BIND configure_object_idle */configure_object_idle(bool enabled) {
+    [[gnu::noinline, gnu::cold]] bool /* TOMO_TOOL_BIND configure_object_idle */
+    configure_object_idle(bool enabled) {
         auto* current = object_idle_slot()->load(std::memory_order_relaxed);
         if (enabled == (current != nullptr)) return true;
         if (enabled) {
@@ -1516,9 +1565,10 @@ public:
             auto* retired = object_idle_slot()->exchange(nullptr, std::memory_order_acq_rel);
             const size_t bytes = retired->allocated_bytes();
             if (read_local_enabled_)
-                read_local_store_state_required().retire_sink.retire(
-                    this, retired, bytes, reclaim_object_idle);
-            else reclaim_object_idle(this, retired, bytes);
+                read_local_store_state_required().retire_sink.retire(this, retired, bytes,
+                                                                     reclaim_object_idle);
+            else
+                reclaim_object_idle(this, retired, bytes);
         }
         return true;
     }
@@ -1568,8 +1618,7 @@ public:
         return rewrite_expire(h, old, expire_at_ms);
     }
 
-    TtlResult set_expire_notify(uint64_t h, Slice key, int64_t expire_at_ms,
-                                FlatNotifySink* sink) {
+    TtlResult set_expire_notify(uint64_t h, Slice key, int64_t expire_at_ms, FlatNotifySink* sink) {
         if (__builtin_expect(read_local_enabled_, false))
             return set_expire_notify_read_local(h, key, expire_at_ms, sink);
         KvObj* old = find_notify(h, key, sink);
@@ -1628,14 +1677,20 @@ public:
             KvObj* o = find_hash_in(0, h);
             if (!o && rehashing()) o = find_hash_in(1, h);
             if (!o || !o->has_ttl_slot()) {
-                untrack_expire(h);       // stale tracker after a replacement or collision
+                untrack_expire(h);  // stale tracker after a replacement or collision
                 return;
             }
             if (atomic_has_record(h, o->key())) return;  // promotion resolves the winning TTL
             const int64_t at = deadline(h, o);
-            if (at < 0) { untrack_expire(h); return; }
+            if (at < 0) {
+                untrack_expire(h);
+                return;
+            }
             if (at >= cached_now_ms_) return;  // Redis active expiry reaps only once now > at
-            if (!read_retirement_available()) { removed++; return; }
+            if (!read_retirement_available()) {
+                removed++;
+                return;
+            }
             const Slice key = o->key();
             notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, key);
             (void)aof_.record_delete(key);
@@ -1671,7 +1726,10 @@ public:
                 return;
             }
             if (atomic_has_record(h, o->key())) return;
-            if (!read_retirement_available()) { removed++; return; }
+            if (!read_retirement_available()) {
+                removed++;
+                return;
+            }
             uint32_t reaped = 0;
             const size_t before = kvobj_size(o);
             const bool empty = hash_ttl_active_reap(*this, o, cached_now_ms_, reaped);
@@ -1730,7 +1788,6 @@ public:
         return refuse_over_budget();
     }
 
-
     // Cold owner maintenance; ordinary admission keeps its existing instruction path.
     uint32_t evict_over_limit();
 
@@ -1745,9 +1802,9 @@ public:
         }
         // Preparation normally has the same cost as the original insert path.  Only an actually
         // full prepared table consults this state and refuses a new key rather than resizing it.
-        if (static_cast<uint64_t>(live_[0]) + tombs_[0] + 1 >= cap_[0] &&
-            snapshot_prepared_ &&
-            !find_in(0, h, o->key())) return InsertResult::Failed;
+        if (static_cast<uint64_t>(live_[0]) + tombs_[0] + 1 >= cap_[0] && snapshot_prepared_ &&
+            !find_in(0, h, o->key()))
+            return InsertResult::Failed;
         if (capturing) {
             const bool exists = find_in(0, h, o->key()) || find_in(1, h, o->key());
             // The fresh table is deliberately overprovisioned at the cut.  Refuse only genuinely
@@ -1756,8 +1813,7 @@ public:
             // Count current-table tombstones as promised destination slots too.  Otherwise a
             // churn-heavy capture could leave enough logical capacity but no EMPTY terminating
             // slot, and the post-capture merge would be unable to place a frozen pointer.
-            if (!exists && static_cast<uint64_t>(live_[0]) + tombs_[0] + live_[1] + 1 >=
-                               cap_[0])
+            if (!exists && static_cast<uint64_t>(live_[0]) + tombs_[0] + live_[1] + 1 >= cap_[0])
                 return InsertResult::Failed;
         }
         // Disabled maxmemory pays one predicted branch and does no metadata write or accounting
@@ -1766,8 +1822,8 @@ public:
         // snapshot write-gate pre-images only the incoming command's key — an evicted, unvisited
         // frozen victim would vanish from the dump.  The capture window is short and bounded.
         if (__builtin_expect(maxmemory_enabled_, false)) {
-            if (!snapshot_active_ && !make_room_for(o->key(),
-                    kvobj_size(o) + object_idle_allocation_bytes(o)))
+            if (!snapshot_active_ &&
+                !make_room_for(o->key(), kvobj_size(o) + object_idle_allocation_bytes(o)))
                 return InsertResult::MaxmemoryOom;
             if (!object_idle_install(h, o)) return InsertResult::Failed;
             if (!snapshot_active_) {
@@ -1789,8 +1845,7 @@ public:
         if (!candidate && rehashing()) candidate = find_in(1, h, o->key());
         const bool expired = candidate && deadline_elapsed(h, candidate, cached_now_ms_);
         const bool report_new = !candidate || expired;
-        if (expired)
-            notify_emit(sink, NOTIFY_EXPIRED, NotifyEventId::Expired, candidate->key());
+        if (expired) notify_emit(sink, NOTIFY_EXPIRED, NotifyEventId::Expired, candidate->key());
         const InsertResult result = insert(h, o);
         if (result == InsertResult::Inserted && report_new)
             notify_emit(sink, NOTIFY_NEW, NotifyEventId::New, o->key());
@@ -1858,7 +1913,8 @@ public:
             std::memcpy(&state, reader_owner_gap_ + 4, sizeof(state));
             state->sample_cursor = 0;
             state->avg_deadline.store(0, std::memory_order_relaxed);
-        } else storesize_clear();
+        } else
+            storesize_clear();
         if (__builtin_expect(read_local_enabled_, false)) {
             clear_read_local();
             return;
@@ -1873,8 +1929,8 @@ public:
             for (uint32_t i = 0; i < cap_[t]; i++)
                 if (KvObj* o = ptr_of(tab_[t][i])) retire_obj(o);
             if (t == 0 && !fresh) {
-                std::memset(tab_[0], 0, static_cast<size_t>(
-                    static_cast<uint64_t>(cap_[0]) * sizeof(uint64_t)));
+                std::memset(tab_[0], 0,
+                            static_cast<size_t>(static_cast<uint64_t>(cap_[0]) * sizeof(uint64_t)));
                 live_[0] = tombs_[0] = 0;
                 continue;
             }
@@ -1899,7 +1955,8 @@ public:
             std::memcpy(&state, reader_owner_gap_ + 4, sizeof(state));
             state->sample_cursor = 0;
             state->avg_deadline.store(0, std::memory_order_relaxed);
-        } else storesize_clear();
+        } else
+            storesize_clear();
         if (__builtin_expect(read_local_enabled_, false)) {
             clear_during_snapshot_read_local();
             return;
@@ -1921,7 +1978,7 @@ public:
         field_ttl_index_incomplete_ = false;
     }
 
-    #include "flatstore_random.inc"
+#include "flatstore_random.inc"
 
     // The cursor is a bit-reversed HOME index (see scan_cursor_next above), not a physical slot and
     // not a table selector -- there is nothing left in it that a resize can invalidate. One step
@@ -1948,8 +2005,8 @@ public:
         uint64_t slots = 0;
         do {
             if (!rehashing()) {
-                slots += scan_home(0, static_cast<uint32_t>(cursor) & mask_[0], fn,
-                                   expire_on_visit);
+                slots +=
+                    scan_home(0, static_cast<uint32_t>(cursor) & mask_[0], fn, expire_on_visit);
                 homes++;
                 cursor = scan_cursor_next(cursor, mask_[0]);
             } else if (mask_[0] == mask_[1]) {
@@ -1960,8 +2017,8 @@ public:
                 homes += 2;
                 cursor = scan_cursor_next(cursor, mask_[0]);
             } else {
-                const int small = cap_[0] < cap_[1] ? 0 : 1;   // grow puts the old table in 1,
-                const int large = small ^ 1;                   // shrink puts it in 0
+                const int small = cap_[0] < cap_[1] ? 0 : 1;  // grow puts the old table in 1,
+                const int large = small ^ 1;                  // shrink puts it in 0
                 const uint64_t small_mask = mask_[small];
                 const uint64_t large_mask = mask_[large];
                 slots += scan_home(small, static_cast<uint32_t>(cursor & small_mask), fn,
@@ -1989,7 +2046,8 @@ public:
     // mixes for its index, so both must agree and it lives here. Word-at-a-time, because FNV-1a
     // costs one DEPENDENT multiply per byte and a 20-character key is then a 20-long chain.
     static uint64_t hash_key(Slice k) {
-        if (g_hash_kind == HashKind::SipHash12) return siphash12(k.p, k.n) ^ (uint64_t{k.ns} * 0x9e3779b97f4a7c15ULL);
+        if (g_hash_kind == HashKind::SipHash12)
+            return siphash12(k.p, k.n) ^ (uint64_t{k.ns} * 0x9e3779b97f4a7c15ULL);
         return hash_key_mix(k);
     }
 
@@ -1997,13 +2055,28 @@ public:
         const uint8_t* p = reinterpret_cast<const uint8_t*>(k.p);
         uint32_t n = k.n;
         uint64_t h = (0x9e3779b97f4a7c15ULL ^ (k.identity() * 0xff51afd7ed558ccdULL)) ^ g_hash_seed;
-        auto rd8 = [](const uint8_t* q) { uint64_t v; std::memcpy(&v, q, 8); return v; };
-        auto rd4 = [](const uint8_t* q) { uint32_t v; std::memcpy(&v, q, 4); return v; };
-        while (n >= 8) { h = mix64(h ^ rd8(p)); p += 8; n -= 8; }
-        if (n >= 4)    { h = mix64(h ^ ((static_cast<uint64_t>(rd4(p)) << 32) | rd4(p + n - 4))); }
-        else if (n)    { uint64_t t = p[0];
-                         t = (t << 16) | (static_cast<uint64_t>(p[n >> 1]) << 8) | p[n - 1];
-                         h = mix64(h ^ t); }
+        auto rd8 = [](const uint8_t* q) {
+            uint64_t v;
+            std::memcpy(&v, q, 8);
+            return v;
+        };
+        auto rd4 = [](const uint8_t* q) {
+            uint32_t v;
+            std::memcpy(&v, q, 4);
+            return v;
+        };
+        while (n >= 8) {
+            h = mix64(h ^ rd8(p));
+            p += 8;
+            n -= 8;
+        }
+        if (n >= 4) {
+            h = mix64(h ^ ((static_cast<uint64_t>(rd4(p)) << 32) | rd4(p + n - 4)));
+        } else if (n) {
+            uint64_t t = p[0];
+            t = (t << 16) | (static_cast<uint64_t>(p[n >> 1]) << 8) | p[n - 1];
+            h = mix64(h ^ t);
+        }
         return mix64(h);
     }
 
@@ -2084,8 +2157,8 @@ private:
         while (length && budget && !snapshot_ready_ && !snapshot_failed_) {
             if (!snapshot_build_) snapshot_build_ = make_snapshot_chunk(0);
             if (!snapshot_build_) break;
-            const uint32_t room = kSnapshotChunkBytes -
-                                  static_cast<uint32_t>(snapshot_build_->bytes.size());
+            const uint32_t room =
+                kSnapshotChunkBytes - static_cast<uint32_t>(snapshot_build_->bytes.size());
             const uint32_t take = std::min({length, budget, room});
             try {
                 snapshot_build_->bytes.insert(snapshot_build_->bytes.end(), source, source + take);
@@ -2093,7 +2166,10 @@ private:
                 snapshot_failed_ = true;
                 break;
             }
-            source += take; length -= take; budget -= take; emitted += take;
+            source += take;
+            length -= take;
+            budget -= take;
+            emitted += take;
             if (snapshot_build_->bytes.size() == kSnapshotChunkBytes) snapshot_seal(0);
         }
         return emitted;
@@ -2131,7 +2207,10 @@ private:
         }
         SnapshotRecordState& state = snapshot_record_;
         const KvObj* object = state.value.object;
-        if (!state.active || !object) { snapshot_failed_ = true; return; }
+        if (!state.active || !object) {
+            snapshot_failed_ = true;
+            return;
+        }
 
         if (state.header_offset < kSnapshotRecordHeader) {
             const uint32_t n = snapshot_emit(state.header + state.header_offset,
@@ -2176,8 +2255,10 @@ private:
         const bool preimage = state.preimage;
         const uint32_t slot = state.slot;
         snapshot_record_ = {};
-        if (preimage) tab_[1][slot] |= kTombBit;
-        else          snapshot_pos_++;
+        if (preimage)
+            tab_[1][slot] |= kTombBit;
+        else
+            snapshot_pos_++;
     }
 
     void snapshot_finish_stream() {
@@ -2190,8 +2271,8 @@ private:
 
     struct Borrow {
         const char* ptr;
-        uint32_t    refs;
-        KvObj*      retired;
+        uint32_t refs;
+        KvObj* retired;
     };
 
     // BORROW REGISTRY LOOKUP.
@@ -2206,7 +2287,7 @@ private:
     // never the source of truth: correctness only ever depends on borrows_, and every failure path
     // simply releases the index and falls back to the scan. Below kBorrowIndexMin entries the scan
     // is faster than hashing, so an ordinary connection with a handful of borrows never builds one.
-    static constexpr uint32_t kNoBorrow  = 0xffffffffu;   // also the empty-slot sentinel
+    static constexpr uint32_t kNoBorrow = 0xffffffffu;  // also the empty-slot sentinel
     static constexpr uint32_t kBorrowTomb = 0xfffffffeu;
     static constexpr uint32_t kBorrowIndexMin = 32;
 
@@ -2245,7 +2326,10 @@ private:
         for (size_t probes = 0; probes < cap; probes++) {
             const uint32_t v = borrow_idx_[pos];
             if (v == kNoBorrow) {
-                if (first_tomb != cap) { pos = first_tomb; borrow_tombs_--; }
+                if (first_tomb != cap) {
+                    pos = first_tomb;
+                    borrow_tombs_--;
+                }
                 borrow_idx_[pos] = at;
                 return;
             }
@@ -2257,7 +2341,7 @@ private:
             }
             pos = (pos + 1) & mask;
         }
-        borrow_index_release();   // full: cannot happen at the 70% rebuild trigger
+        borrow_index_release();  // full: cannot happen at the 70% rebuild trigger
     }
 
     void borrow_index_dropped(const char* ptr) {
@@ -2281,7 +2365,7 @@ private:
         const uint64_t occupancy = static_cast<uint64_t>(borrows_.size());
         if (occupancy > UINT64_MAX / uint64_t{200}) return false;
         const uint64_t wanted = occupancy * uint64_t{200};
-        for (;;) {                                             // land near 35% loaded
+        for (;;) {  // land near 35% loaded
             if (cap > UINT64_MAX / uint64_t{70}) return false;
             if (cap * uint64_t{70} >= wanted) break;
             if (cap > static_cast<uint64_t>(borrow_idx_.max_size()) / 2) {
@@ -2308,8 +2392,8 @@ private:
 
     void borrow_index_added(const char* ptr, uint32_t at) {
         if (borrow_idx_.empty()) {
-            if (borrows_.size() < kBorrowIndexMin) return;    // short scan beats a hash
-            (void)borrow_index_rebuild();                     // allocation failure stays scan mode
+            if (borrows_.size() < kBorrowIndexMin) return;  // short scan beats a hash
+            (void)borrow_index_rebuild();                   // allocation failure stays scan mode
             return;
         }
         if ((static_cast<uint64_t>(borrows_.size()) + borrow_tombs_) * 100 >=
@@ -2331,15 +2415,18 @@ private:
         }
         return p;
     }
-    static uint16_t tag_of(uint64_t h)      { return static_cast<uint16_t>((h >> 49) & 0x7fff); }
+    static uint16_t tag_of(uint64_t h) { return static_cast<uint16_t>((h >> 49) & 0x7fff); }
     static uint16_t tag_of_word(uint64_t w) { return static_cast<uint16_t>((w >> 49) & 0x7fff); }
-    static KvObj*   ptr_of(uint64_t w)      { return reinterpret_cast<KvObj*>(w & kPtrMask); }
-    static uint64_t /* TOMO_TOOL_BIND make_word */make_word(uint16_t tag, KvObj* o) {
+    static KvObj* ptr_of(uint64_t w) { return reinterpret_cast<KvObj*>(w & kPtrMask); }
+    static uint64_t /* TOMO_TOOL_BIND make_word */ make_word(uint16_t tag, KvObj* o) {
         const uint64_t pointer = reinterpret_cast<uint64_t>(o);
-        TOMO_ASSERT((pointer & ~kPtrMask) == 0 && "KvObj pointer exceeds FlatStore's 48-bit encoding");
+        TOMO_ASSERT((pointer & ~kPtrMask) == 0 &&
+                    "KvObj pointer exceeds FlatStore's 48-bit encoding");
         return (static_cast<uint64_t>(tag) << 49) | pointer;
     }
-    uint32_t slot_start(int t, uint64_t h) const { return static_cast<uint32_t>(mix64(h)) & mask_[t]; }
+    uint32_t slot_start(int t, uint64_t h) const {
+        return static_cast<uint32_t>(mix64(h)) & mask_[t];
+    }
 
     KvObj* find_without_touch(uint64_t h, Slice key) {
         // Like find(), this lookup never moves slots or retires a rehash table. This also preserves
@@ -2353,7 +2440,9 @@ private:
     uint64_t next_random() {
         // xorshift64*: shard-owner-only state used by cold random sampling paths.
         uint64_t x = random_state_;
-        x ^= x >> 12; x ^= x << 25; x ^= x >> 27;
+        x ^= x >> 12;
+        x ^= x << 25;
+        x ^= x >> 27;
         random_state_ = x;
         return x * 2685821657736338717ULL;
     }
@@ -2420,7 +2509,10 @@ private:
         if (!expires_.random_hash(next_random(), kSampleProbeAttempts, hash)) return nullptr;
         KvObj* o = find_hash_in(0, hash);
         if (!o && rehashing()) o = find_hash_in(1, hash);
-        if (o && deadline(hash, o) < 0) { untrack_expire(hash); return nullptr; }
+        if (o && deadline(hash, o) < 0) {
+            untrack_expire(hash);
+            return nullptr;
+        }
         return o;
     }
 
@@ -2434,13 +2526,18 @@ private:
         uint64_t best_score = 0;
         for (uint32_t i = 0; i < maxmemory_samples_; i++) {
             KvObj* candidate = maxmemory_policy_is_volatile(maxmemory_policy_)
-                ? random_volatile_candidate() : random_allkeys_candidate();
+                                   ? random_volatile_candidate()
+                                   : random_allkeys_candidate();
             if (!candidate) continue;
-            if constexpr (ProtectKey) if (candidate->key().key_eq(protected_key)) continue;
+            if constexpr (ProtectKey)
+                if (candidate->key().key_eq(protected_key)) continue;
             if (atomic_needs_version(hash_key(candidate->key()), candidate->key())) continue;
             bool duplicate = false;
             for (uint32_t j = 0; j < seen_count; j++)
-                if (seen[j] == candidate) { duplicate = true; break; }
+                if (seen[j] == candidate) {
+                    duplicate = true;
+                    break;
+                }
             if (duplicate) continue;
             seen[seen_count++] = candidate;
 
@@ -2452,9 +2549,10 @@ private:
                     break;
                 case MaxmemoryPolicy::AllKeysLru:
                 case MaxmemoryPolicy::VolatileLru: {
-                    const uint8_t age = static_cast<uint8_t>(
-                        (lru_clock() - candidate->eviction_meta()) & 0x1f);
-                    score = (static_cast<uint64_t>(age) << 56) | (next_random() & ((1ULL << 56) - 1));
+                    const uint8_t age =
+                        static_cast<uint8_t>((lru_clock() - candidate->eviction_meta()) & 0x1f);
+                    score =
+                        (static_cast<uint64_t>(age) << 56) | (next_random() & ((1ULL << 56) - 1));
                     break;
                 }
                 case MaxmemoryPolicy::AllKeysLfu:
@@ -2474,13 +2572,16 @@ private:
                 case MaxmemoryPolicy::NoEviction:
                     return nullptr;
             }
-            if (!best || score > best_score) { best = candidate; best_score = score; }
+            if (!best || score > best_score) {
+                best = candidate;
+                best_score = score;
+            }
         }
         if (best) {
             const bool expired = deadline_elapsed(hash_key(best->key()), best, cached_now_ms_);
-            notify_flat_store_emit(this,
-                expired ? NOTIFY_EXPIRED : NOTIFY_EVICTED,
-                expired ? NotifyEventId::Expired : NotifyEventId::Evicted, best->key());
+            notify_flat_store_emit(this, expired ? NOTIFY_EXPIRED : NOTIFY_EVICTED,
+                                   expired ? NotifyEventId::Expired : NotifyEventId::Evicted,
+                                   best->key());
         }
         return best;
     }
@@ -2539,8 +2640,7 @@ private:
     }
 
     static uint64_t* allocate_table(uint32_t cap) {
-        return static_cast<uint64_t*>(
-            flatstore_table_calloc(cap, sizeof(uint64_t)));  // EMPTY == 0
+        return static_cast<uint64_t*>(flatstore_table_calloc(cap, sizeof(uint64_t)));  // EMPTY == 0
     }
 
     // FLUSH's replacement table. A prepared snapshot suppresses every resize until the cut,
@@ -2556,10 +2656,10 @@ private:
             install_empty_table_read_local(t, table, cap);
             return;
         }
-        tab_[t]   = table;
-        cap_[t]   = cap;
-        mask_[t]  = cap - 1;
-        live_[t]  = 0;
+        tab_[t] = table;
+        cap_[t] = cap;
+        mask_[t] = cap - 1;
+        live_[t] = 0;
         tombs_[t] = 0;
     }
 
@@ -2583,7 +2683,7 @@ private:
         uint32_t i = home;
         for (uint32_t probes = 0; probes <= cap_[t]; probes++) {
             const uint64_t w = tab_[t][i];
-            if (w == 0) break;                              // EMPTY — the only stop
+            if (w == 0) break;  // EMPTY — the only stop
             examined++;
             KvObj* o = ptr_of(w);
             if (o) {
@@ -2600,11 +2700,17 @@ private:
     // logical side effects (see the scan() comment).
     template <typename Fn>
     void scan_visit(int t, uint64_t h, KvObj* o, Fn& fn, bool expire_on_visit) {
-        if (!expire_on_visit) { fn(o); return; }
+        if (!expire_on_visit) {
+            fn(o);
+            return;
+        }
         if (deadline_elapsed(h, o, cached_now_ms_)) {
             // An epoch record, not this physical candidate, owns logical expiry and pointer
             // lifetime. The walker callback resolves it at its registered cut.
-            if (atomic_has_record(h, o->key())) { fn(o); return; }
+            if (atomic_has_record(h, o->key())) {
+                fn(o);
+                return;
+            }
             if (client_pause_expiry_held()) return;
             // During capture the frozen table is the cut, not a normal mutable scan source.
             // Report the key logically absent but leave its slot for snapshot traversal, just
@@ -2630,7 +2736,7 @@ private:
         uint32_t i = slot_start(t, h);
         for (uint32_t probes = 0; probes <= cap_[t]; probes++) {
             const uint64_t w = tab_[t][i];
-            if (w == 0) return nullptr;                     // EMPTY — the only stop
+            if (w == 0) return nullptr;  // EMPTY — the only stop
             KvObj* o = ptr_of(w);
             if (o && tag_of_word(w) == tag && o->key().key_eq(key)) return o;
             i = (i + 1) & mask_[t];
@@ -2646,7 +2752,10 @@ private:
             const uint64_t w = tab_[t][i];
             if (w == 0) return nullptr;
             KvObj* o = ptr_of(w);
-            if (o && tag_of_word(w) == tag && o->key().key_eq(key)) { slot = i; return o; }
+            if (o && tag_of_word(w) == tag && o->key().key_eq(key)) {
+                slot = i;
+                return o;
+            }
             i = (i + 1) & mask_[t];
         }
         return nullptr;
@@ -2665,8 +2774,9 @@ private:
             // tag. The flag is PHYSICAL now -- a retained slot may hold -1 -- so logical
             // volatility is decided by the deadline, after the hash has confirmed identity (the
             // sidecar prototype's probe is keyed by that hash and must not run on a mismatch).
-            if (o && tag_of_word(w) == tag && o->has_ttl_slot() &&
-                hash_key(o->key()) == h && deadline(h, o) >= 0) return o;
+            if (o && tag_of_word(w) == tag && o->has_ttl_slot() && hash_key(o->key()) == h &&
+                deadline(h, o) >= 0)
+                return o;
             i = (i + 1) & mask_[t];
         }
         return nullptr;
@@ -2720,14 +2830,18 @@ private:
         if (__builtin_expect(read_local_enabled_, false))
             return insert_into_read_local(t, h, o, fresh);
         const uint16_t tag = tag_of(h);
-        const Slice    key = o->key();
+        const Slice key = o->key();
         uint32_t i = slot_start(t, h);
-        int32_t  first_tomb = -1;
+        int32_t first_tomb = -1;
         for (uint32_t probes = 0; probes <= cap_[t]; probes++) {
             const uint64_t w = tab_[t][i];
             if (w == 0) {
-                if (first_tomb >= 0) { tab_[t][first_tomb] = make_word(tag, o); tombs_[t]--; }
-                else                 { tab_[t][i] = make_word(tag, o); }
+                if (first_tomb >= 0) {
+                    tab_[t][first_tomb] = make_word(tag, o);
+                    tombs_[t]--;
+                } else {
+                    tab_[t][i] = make_word(tag, o);
+                }
                 live_[t]++;
                 if (fresh) {
                     if constexpr (!kSingleDatabase) storesize_replace(nullptr, o);
@@ -2737,7 +2851,9 @@ private:
                 return true;
             }
             KvObj* cur = ptr_of(w);
-            if (!cur) { if (first_tomb < 0) first_tomb = static_cast<int32_t>(i); }
+            if (!cur) {
+                if (first_tomb < 0) first_tomb = static_cast<int32_t>(i);
+            }
             // The ONE key-equality site left on memcmp, and it is measured, not an oversight.
             // This loop holds enough live state that inlining the byte compare cost 13
             // instructions of extra spill on EVERY first insert -- more than the compare saves,
@@ -2751,18 +2867,17 @@ private:
                     if constexpr (!kSingleDatabase) storesize_replace(cur, o);
                     (void)this->track_expire(h, o);
                 }
-                retire_obj(cur, o);                         // replace in place; live_ unchanged
+                retire_obj(cur, o);  // replace in place; live_ unchanged
                 tab_[t][i] = make_word(tag, o);
                 if (fresh) obj_bytes_ += kvobj_size(o);
                 return true;
             }
             i = (i + 1) & mask_[t];
         }
-        return false;   // unreachable while the load factor holds
+        return false;  // unreachable while the load factor holds
     }
 
-    static void notify_emit(FlatNotifySink* sink, uint32_t cls,
-                            NotifyEventId event, Slice key) {
+    static void notify_emit(FlatNotifySink* sink, uint32_t cls, NotifyEventId event, Slice key) {
         if (sink && sink->enabled && sink->enabled(sink->context, cls) && sink->emit)
             sink->emit(sink->context, cls, event, key);
     }
@@ -2784,10 +2899,13 @@ private:
                 }
                 if constexpr (!kSingleDatabase) storesize_replace(o, nullptr);
                 untrack_expire(h);
-                if (replacement) retire_obj(o, replacement);
-                else retire_obj(o);
-                tab_[t][i] = kTombBit;                      // DEAD: non-zero, ptr == 0
-                live_[t]--; tombs_[t]++;
+                if (replacement)
+                    retire_obj(o, replacement);
+                else
+                    retire_obj(o);
+                tab_[t][i] = kTombBit;  // DEAD: non-zero, ptr == 0
+                live_[t]--;
+                tombs_[t]++;
                 return true;
             }
             i = (i + 1) & mask_[t];
@@ -2815,8 +2933,8 @@ private:
                 replacement->flags &= static_cast<uint8_t>(~KvObjFlags::OwnsExtern);
             }
             kvobj_free(replacement);
-            return inserted == InsertResult::MaxmemoryOom
-                ? TtlResult::MaxmemoryOom : TtlResult::Oom;
+            return inserted == InsertResult::MaxmemoryOom ? TtlResult::MaxmemoryOom
+                                                          : TtlResult::Oom;
         }
         return TtlResult::Updated;
     }
@@ -2832,12 +2950,15 @@ private:
         read_local_topology_store(&tab_[1], tab_[0]);
         read_local_topology_store(&cap_[1], cap_[0]);
         read_local_topology_store(&mask_[1], mask_[0]);
-        live_[1] = live_[0]; tombs_[1] = tombs_[0];
+        live_[1] = live_[0];
+        tombs_[1] = tombs_[0];
         read_local_topology_store(&tab_[0], snapshot_new_tab_);
         read_local_topology_store(&cap_[0], snapshot_new_cap_);
         read_local_topology_store(&mask_[0], snapshot_new_cap_ - 1);
         live_[0] = tombs_[0] = 0;
-        snapshot_new_tab_ = nullptr; snapshot_new_cap_ = 0; snapshot_prepared_ = false;
+        snapshot_new_tab_ = nullptr;
+        snapshot_new_cap_ = 0;
+        snapshot_prepared_ = false;
         rehash_pos_ = 0;
         snapshot_active_ = true;
         snapshot_shard_id_ = shard_id;
@@ -2889,8 +3010,12 @@ private:
             const uint32_t slot = snapshot_pos_;
             const uint64_t word = tab_[1][slot];
             KvObj* object = ptr_of(word);
-            slot_budget--; work++;
-            if (!object) { snapshot_pos_++; continue; }
+            slot_budget--;
+            work++;
+            if (!object) {
+                snapshot_pos_++;
+                continue;
+            }
             if (word & kTombBit) {
                 read_local_slot_store(&tab_[1][slot], word & ~kTombBit);
                 snapshot_pos_++;
@@ -2908,7 +3033,10 @@ private:
     void snapshot_progress_record_read_local(uint32_t& budget) {
         SnapshotRecordState& state = snapshot_record_;
         const KvObj* object = state.value.object;
-        if (!state.active || !object) { snapshot_failed_ = true; return; }
+        if (!state.active || !object) {
+            snapshot_failed_ = true;
+            return;
+        }
 
         if (state.header_offset < kSnapshotRecordHeader) {
             const uint32_t n = snapshot_emit(state.header + state.header_offset,
@@ -2980,18 +3108,17 @@ private:
         } else {
             if (!maybe_start_grow()) return InsertResult::Failed;
         }
-        if (static_cast<uint64_t>(live_[0]) + tombs_[0] + 1 >= cap_[0] &&
-            snapshot_prepared_ &&
-            !find_in(0, h, o->key())) return InsertResult::Failed;
+        if (static_cast<uint64_t>(live_[0]) + tombs_[0] + 1 >= cap_[0] && snapshot_prepared_ &&
+            !find_in(0, h, o->key()))
+            return InsertResult::Failed;
         if (capturing) {
             const bool exists = find_in(0, h, o->key()) || find_in(1, h, o->key());
-            if (!exists && static_cast<uint64_t>(live_[0]) + tombs_[0] + live_[1] + 1 >=
-                               cap_[0])
+            if (!exists && static_cast<uint64_t>(live_[0]) + tombs_[0] + live_[1] + 1 >= cap_[0])
                 return InsertResult::Failed;
         }
         if (__builtin_expect(maxmemory_enabled_, false)) {
-            if (!snapshot_active_ && !make_room_for(o->key(),
-                    kvobj_size(o) + object_idle_allocation_bytes(o)))
+            if (!snapshot_active_ &&
+                !make_room_for(o->key(), kvobj_size(o) + object_idle_allocation_bytes(o)))
                 return InsertResult::MaxmemoryOom;
             if (!object_idle_install(h, o)) return InsertResult::Failed;
             if (!snapshot_active_) {
@@ -3005,8 +3132,8 @@ private:
             if (erase_in_read_local(1, h, o->key(), &expired, o) && expired && expired_counter_)
                 (*expired_counter_)++;
         }
-        return insert_into_read_local(0, h, o, true)
-            ? InsertResult::Inserted : InsertResult::Failed;
+        return insert_into_read_local(0, h, o, true) ? InsertResult::Inserted
+                                                     : InsertResult::Failed;
     }
 
     bool erase_read_local(uint64_t h, Slice key) {
@@ -3042,8 +3169,7 @@ private:
                 }
             }
             if (t == 0 && !fresh) {
-                for (uint32_t i = 0; i < cap_[0]; i++)
-                    read_local_slot_store(&tab_[0][i], 0);
+                for (uint32_t i = 0; i < cap_[0]; i++) read_local_slot_store(&tab_[0][i], 0);
                 live_[0] = tombs_[0] = 0;
                 continue;
             }
@@ -3121,13 +3247,18 @@ private:
         uint64_t best_score = 0;
         for (uint32_t i = 0; i < maxmemory_samples_; i++) {
             KvObj* candidate = maxmemory_policy_is_volatile(maxmemory_policy_)
-                ? random_volatile_candidate() : random_allkeys_candidate();
+                                   ? random_volatile_candidate()
+                                   : random_allkeys_candidate();
             if (!candidate) continue;
-            if constexpr (ProtectKey) if (candidate->key().key_eq(protected_key)) continue;
+            if constexpr (ProtectKey)
+                if (candidate->key().key_eq(protected_key)) continue;
             if (atomic_needs_version(hash_key(candidate->key()), candidate->key())) continue;
             bool duplicate = false;
             for (uint32_t j = 0; j < seen_count; j++)
-                if (seen[j] == candidate) { duplicate = true; break; }
+                if (seen[j] == candidate) {
+                    duplicate = true;
+                    break;
+                }
             if (duplicate) continue;
             seen[seen_count++] = candidate;
 
@@ -3139,10 +3270,10 @@ private:
                     break;
                 case MaxmemoryPolicy::AllKeysLru:
                 case MaxmemoryPolicy::VolatileLru: {
-                    const uint8_t age = static_cast<uint8_t>(
-                        (lru_clock() - candidate->eviction_meta()) & 0x1f);
-                    score = (static_cast<uint64_t>(age) << 56) |
-                            (next_random() & ((1ULL << 56) - 1));
+                    const uint8_t age =
+                        static_cast<uint8_t>((lru_clock() - candidate->eviction_meta()) & 0x1f);
+                    score =
+                        (static_cast<uint64_t>(age) << 56) | (next_random() & ((1ULL << 56) - 1));
                     break;
                 }
                 case MaxmemoryPolicy::AllKeysLfu:
@@ -3160,13 +3291,16 @@ private:
                 case MaxmemoryPolicy::NoEviction:
                     return nullptr;
             }
-            if (!best || score > best_score) { best = candidate; best_score = score; }
+            if (!best || score > best_score) {
+                best = candidate;
+                best_score = score;
+            }
         }
         if (best) {
             const bool expired = deadline_elapsed(hash_key(best->key()), best, cached_now_ms_);
-            notify_flat_store_emit(this,
-                expired ? NOTIFY_EXPIRED : NOTIFY_EVICTED,
-                expired ? NotifyEventId::Expired : NotifyEventId::Evicted, best->key());
+            notify_flat_store_emit(this, expired ? NOTIFY_EXPIRED : NOTIFY_EVICTED,
+                                   expired ? NotifyEventId::Expired : NotifyEventId::Evicted,
+                                   best->key());
         }
         return best;
     }
@@ -3176,15 +3310,15 @@ private:
         read_local_topology_store(&tab_[t], table);
         read_local_topology_store(&cap_[t], cap);
         read_local_topology_store(&mask_[t], cap - 1);
-        live_[t]  = 0;
+        live_[t] = 0;
         tombs_[t] = 0;
     }
 
     bool insert_into_read_local(int t, uint64_t h, KvObj* o, bool track_expire) {
         const uint16_t tag = tag_of(h);
-        const Slice    key = o->key();
+        const Slice key = o->key();
         uint32_t i = slot_start(t, h);
-        int32_t  first_tomb = -1;
+        int32_t first_tomb = -1;
         for (uint32_t probes = 0; probes <= cap_[t]; probes++) {
             const uint64_t w = tab_[t][i];
             if (w == 0) {
@@ -3206,7 +3340,9 @@ private:
                 return true;
             }
             KvObj* cur = ptr_of(w);
-            if (!cur) { if (first_tomb < 0) first_tomb = static_cast<int32_t>(i); }
+            if (!cur) {
+                if (first_tomb < 0) first_tomb = static_cast<int32_t>(i);
+            }
             // Same measured exception as insert_into: memcmp here, not the inline compare.
             else if (tag_of_word(w) == tag && cur->key().key_mem_eq(key)) {
                 if (track_expire && deadline_elapsed(h, cur, cached_now_ms_) && expired_counter_)
@@ -3247,7 +3383,8 @@ private:
                 untrack_expire(h);
                 read_local_slot_store(&tab_[t][i], kTombBit);
                 retire_obj_read_local(o, replacement);
-                live_[t]--; tombs_[t]++;
+                live_[t]--;
+                tombs_[t]++;
                 return true;
             }
             i = (i + 1) & mask_[t];
@@ -3263,8 +3400,9 @@ private:
         const bool moves_collection = static_cast<Type>(old->type) != Type::String &&
                                       static_cast<Enc>(old->enc) == Enc::Extern;
         if (moves_collection) {
-            write_object_flags_read_local(old, static_cast<uint8_t>(
-                old->flags & static_cast<uint8_t>(~KvObjFlags::OwnsExtern)));
+            write_object_flags_read_local(
+                old,
+                static_cast<uint8_t>(old->flags & static_cast<uint8_t>(~KvObjFlags::OwnsExtern)));
             write_object_flags_read_local(
                 replacement, static_cast<uint8_t>(replacement->flags | KvObjFlags::OwnsExtern));
         }
@@ -3273,12 +3411,14 @@ private:
             if (moves_collection) {
                 write_object_flags_read_local(
                     old, static_cast<uint8_t>(old->flags | KvObjFlags::OwnsExtern));
-                write_object_flags_read_local(replacement, static_cast<uint8_t>(
-                    replacement->flags & static_cast<uint8_t>(~KvObjFlags::OwnsExtern)));
+                write_object_flags_read_local(
+                    replacement,
+                    static_cast<uint8_t>(replacement->flags &
+                                         static_cast<uint8_t>(~KvObjFlags::OwnsExtern)));
             }
             kvobj_free(replacement);
-            return inserted == InsertResult::MaxmemoryOom
-                ? TtlResult::MaxmemoryOom : TtlResult::Oom;
+            return inserted == InsertResult::MaxmemoryOom ? TtlResult::MaxmemoryOom
+                                                          : TtlResult::Oom;
         }
         return TtlResult::Updated;
     }
@@ -3295,7 +3435,8 @@ private:
     // its ordinary encoding test and adds no waiter test or callback.
     size_t retiring_external_bytes(const KvObj* object, const KvObj* replacement = nullptr) {
         return static_cast<Enc>(object->enc) == Enc::Extern
-            ? kvobj_external_bytes<true>(object, this, replacement) : 0;
+                   ? kvobj_external_bytes<true>(object, this, replacement)
+                   : 0;
     }
 
     // Decode the header ONCE, exactly as unarmed retire_obj() does: the size class computed for
@@ -3307,8 +3448,8 @@ private:
         const size_t capacity = kvobj_capacity(object);
         const size_t bytes = capacity + retiring_external_bytes(object, replacement);
         obj_bytes_ -= bytes;
-        read_local_store_state_armed().retire_sink.retire(
-            this, object, capacity, &FlatStore::read_local_reclaim_object);
+        read_local_store_state_armed().retire_sink.retire(this, object, capacity,
+                                                          &FlatStore::read_local_reclaim_object);
     }
 
     bool start_rehash_read_local(uint32_t newcap) {
@@ -3316,13 +3457,17 @@ private:
         if (newcap < kMinCap) newcap = kMinCap;
         uint64_t* fresh = allocate_table(newcap);
         if (!fresh) return false;
-        if (!prepare_resize_retirement()) { std::free(fresh); return false; }
+        if (!prepare_resize_retirement()) {
+            std::free(fresh);
+            return false;
+        }
         ReadLocalTableGuard table_change(*this);
         if (rehash_counter_) (*rehash_counter_)++;
         read_local_topology_store(&tab_[1], tab_[0]);
         read_local_topology_store(&cap_[1], cap_[0]);
         read_local_topology_store(&mask_[1], mask_[0]);
-        live_[1] = live_[0]; tombs_[1] = tombs_[0];
+        live_[1] = live_[0];
+        tombs_[1] = tombs_[0];
         install_empty_table_read_local(0, fresh, newcap);
         rehash_pos_ = 0;
         return true;
@@ -3338,7 +3483,8 @@ private:
                 // must leave its source and accounting intact.
                 if (!insert_into_read_local(0, hash_key(o->key()), o, false)) return;
                 read_local_slot_store(&tab_[1][rehash_pos_], kTombBit);
-                live_[1]--; tombs_[1]++;
+                live_[1]--;
+                tombs_[1]++;
                 obj_bytes_ -= kvobj_size(o);
             }
             rehash_pos_++;
@@ -3349,15 +3495,16 @@ private:
             read_local_topology_store(&tab_[1], static_cast<uint64_t*>(nullptr));
             read_local_topology_store(&cap_[1], uint32_t{0});
             read_local_topology_store(&mask_[1], uint32_t{0});
-            live_[1] = 0; tombs_[1] = 0;
+            live_[1] = 0;
+            tombs_[1] = 0;
             rehash_pos_ = 0;
             auto& state = read_local_store_state_armed();
             if (state.retire_sink.defer_resize) {
                 if (!state.resize_retirement) std::abort();
                 state.retire_sink.defer_resize(state.retire_sink.context,
-                                              state.resize_retirement.release(), retired);
+                                               state.resize_retirement.release(), retired);
             } else {
-                retire_table_read_local(retired); // synchronous serverless sink
+                retire_table_read_local(retired);  // synchronous serverless sink
             }
         }
     }
@@ -3370,8 +3517,8 @@ private:
 
     template <typename T>
     void read_local_topology_store(T* location, T value) {
-        if (!read_local_enabled_ ||
-            !read_local_store_state_required().table_mutation_depth) std::abort();
+        if (!read_local_enabled_ || !read_local_store_state_required().table_mutation_depth)
+            std::abort();
         __atomic_store_n(location, value, __ATOMIC_RELEASE);
     }
 
@@ -3444,8 +3591,7 @@ private:
         if (static_cast<Type>(object->type) != Type::String) return;
 
         const uint8_t flags = object->read_local_flags();
-        const char* value = object->read_local_key_ptr(flags) +
-                            object->read_local_klen(flags);
+        const char* value = object->read_local_key_ptr(flags) + object->read_local_klen(flags);
         if (object->encoding() != Enc::Extern) {
             __builtin_prefetch(value, 0, 1);
             return;
@@ -3464,10 +3610,7 @@ private:
         object->store_flags_atomic(flags);
     }
 
-
-    static void read_local_reclaim_table(void*, void* payload, size_t) {
-        std::free(payload);
-    }
+    static void read_local_reclaim_table(void*, void* payload, size_t) { std::free(payload); }
 
     // `capacity` is kvobj_capacity(object) as decoded at retire time (the ring's auxiliary word).
     // THE GRACE FLOOR HAS PASSED: no reader can still be holding this pointer and only this shard's
@@ -3493,8 +3636,8 @@ private:
 
     void retire_table_read_local(uint64_t* table) {
         if (!table) return;
-        read_local_store_state_required().retire_sink.retire(
-            this, table, 0, &FlatStore::read_local_reclaim_table);
+        read_local_store_state_required().retire_sink.retire(this, table, 0,
+                                                             &FlatStore::read_local_reclaim_table);
     }
 
     void read_local_table_mutation_begin() {
@@ -3526,10 +3669,9 @@ private:
         const uint64_t observed = sequence.load(std::memory_order_relaxed);
         if (!(observed & kReadLocalTableMutationBit)) std::abort();
         const uint64_t generation = observed >> kReadLocalGenerationShift;
-        const uint64_t next = generation == kReadLocalGenerationMask
-            ? generation : generation + 1;
-        const uint64_t desired = (next << kReadLocalGenerationShift) |
-                                 (observed & kReadLocalPendingBit);
+        const uint64_t next = generation == kReadLocalGenerationMask ? generation : generation + 1;
+        const uint64_t desired =
+            (next << kReadLocalGenerationShift) | (observed & kReadLocalPendingBit);
         sequence.store(desired, std::memory_order_release);
     }
 
@@ -3537,9 +3679,8 @@ private:
         if (!read_local_enabled_) std::abort();
         if (entry.foreign_read_unsafe_published) std::abort();
         ReadLocalStoreState& state = read_local_store_state_required();
-        state.foreign_reads.add_span(entry.capacity, [&](uint32_t index) {
-            return atomic_entry_hash(entry, index);
-        });
+        state.foreign_reads.add_span(
+            entry.capacity, [&](uint32_t index) { return atomic_entry_hash(entry, index); });
         foreign_read_pending_witness_open(state);
         entry.foreign_read_unsafe_published = true;
     }
@@ -3547,9 +3688,8 @@ private:
     void read_local_pending_unpublish(AtomicEntry& entry) {
         if (__builtin_expect(!entry.foreign_read_unsafe_published, true)) return;
         ReadLocalStoreState& state = read_local_store_state_required();
-        state.foreign_reads.close_span(entry.capacity, [&](uint32_t index) {
-            return atomic_entry_hash(entry, index);
-        });
+        state.foreign_reads.close_span(
+            entry.capacity, [&](uint32_t index) { return atomic_entry_hash(entry, index); });
         foreign_read_pending_witness_close(state);
         entry.foreign_read_unsafe_published = false;
     }
@@ -3561,10 +3701,10 @@ private:
             return;
         }
         if (state.pending_count++ != 0) return;
-        const uint64_t previous = state.probe_sequence.fetch_or(
-            kReadLocalPendingBit, std::memory_order_acq_rel);
-        if ((previous & kReadLocalPendingBit) &&
-            !state.foreign_reads.permanently_poisoned()) std::abort();
+        const uint64_t previous =
+            state.probe_sequence.fetch_or(kReadLocalPendingBit, std::memory_order_acq_rel);
+        if ((previous & kReadLocalPendingBit) && !state.foreign_reads.permanently_poisoned())
+            std::abort();
     }
 
     void foreign_read_pending_witness_close(ReadLocalStoreState& state) {
@@ -3574,8 +3714,8 @@ private:
         }
         state.pending_count--;
         if (state.pending_count != 0 || state.foreign_reads.permanently_poisoned()) return;
-        const uint64_t previous = state.probe_sequence.fetch_and(
-            ~kReadLocalPendingBit, std::memory_order_release);
+        const uint64_t previous =
+            state.probe_sequence.fetch_and(~kReadLocalPendingBit, std::memory_order_release);
         if (!(previous & kReadLocalPendingBit)) std::abort();
     }
 
@@ -3602,9 +3742,13 @@ private:
     // Post-grace destruction. Only the rare borrowed path needs the full footprint again, and it
     // rebuilds it from the retire-time capacity plus the external block (== kvobj_size).
     void destroy_retired_obj(KvObj* object, size_t capacity) {
-        if (outstanding_borrows_ == 0) { free_retired_obj_now(object, capacity); return; }
+        if (outstanding_borrows_ == 0) {
+            free_retired_obj_now(object, capacity);
+            return;
+        }
         const char* ptr = (static_cast<Type>(object->type) == Type::String && !object->is_int())
-                              ? object->str_data() : nullptr;
+                              ? object->str_data()
+                              : nullptr;
         const uint32_t at = ptr ? borrow_find(ptr) : kNoBorrow;
         if (at != kNoBorrow) {
             borrows_[at].retired = object;
@@ -3624,9 +3768,12 @@ private:
         const size_t capacity = kvobj_capacity(o);
         const size_t bytes = capacity + retiring_external_bytes(o, replacement);
         obj_bytes_ -= bytes;
-        if (outstanding_borrows_ == 0) { kvobj_free_with_capacity(o, capacity); return; }
-        const char* ptr = (static_cast<Type>(o->type) == Type::String && !o->is_int())
-                              ? o->str_data() : nullptr;
+        if (outstanding_borrows_ == 0) {
+            kvobj_free_with_capacity(o, capacity);
+            return;
+        }
+        const char* ptr =
+            (static_cast<Type>(o->type) == Type::String && !o->is_int()) ? o->str_data() : nullptr;
         const uint32_t at = ptr ? borrow_find(ptr) : kNoBorrow;
         if (at != kNoBorrow) {
             borrows_[at].retired = o;
@@ -3639,14 +3786,15 @@ private:
     // ---- incremental resize -----------------------------------------------------------------
     bool maybe_start_grow() {
         if ((static_cast<uint64_t>(live_[0]) + tombs_[0] + 1) * 100 <
-            static_cast<uint64_t>(cap_[0]) * kLoadPct) return true;
+            static_cast<uint64_t>(cap_[0]) * kLoadPct)
+            return true;
         if (snapshot_prepared_) return true;
         // Double only when the LIVE set alone justifies it. The trigger counts tombstones, so a
         // delete-heavy workload trips it with almost no live keys and doubling there would inflate
         // the table forever. Otherwise rehash at the same size, which costs the same walk and
         // reclaims every tombstone.
-        const bool double_it = static_cast<uint64_t>(live_[0]) * 200 >=
-                               static_cast<uint64_t>(cap_[0]) * kLoadPct;
+        const bool double_it =
+            static_cast<uint64_t>(live_[0]) * 200 >= static_cast<uint64_t>(cap_[0]) * kLoadPct;
         uint64_t wanted = cap_[0];
         if (double_it) wanted *= uint64_t{2};
         if (wanted > UINT32_MAX) return false;
@@ -3658,8 +3806,8 @@ private:
         // Hysteresis: grow triggers at kLoadPct and leaves the table at kLoadPct/2, so shrinking
         // only below kLoadPct/4 keeps the two far enough apart that a workload sitting near a
         // boundary cannot rebuild on every other operation.
-        if (static_cast<uint64_t>(live_[0]) * 400 >
-            static_cast<uint64_t>(cap_[0]) * kLoadPct) return;
+        if (static_cast<uint64_t>(live_[0]) * 400 > static_cast<uint64_t>(cap_[0]) * kLoadPct)
+            return;
         if (snapshot_prepared_) return;
         (void)start_rehash(cap_[0] / 2);  // shrinking is opportunistic; OOM keeps the old table
     }
@@ -3668,13 +3816,16 @@ private:
     // that is the whole point; the slot-word migration is spread across later operations.
     bool start_rehash(uint32_t newcap) {
         if (__builtin_expect(read_local_enabled_, false)) return start_rehash_read_local(newcap);
-        if (rehashing()) return true;                       // one at a time; finish before starting
+        if (rehashing()) return true;  // one at a time; finish before starting
         if (newcap < kMinCap) newcap = kMinCap;
         uint64_t* fresh = allocate_table(newcap);
         if (!fresh) return false;
         if (rehash_counter_) (*rehash_counter_)++;
-        tab_[1]  = tab_[0];  cap_[1] = cap_[0];  mask_[1] = mask_[0];
-        live_[1] = live_[0]; tombs_[1] = tombs_[0];
+        tab_[1] = tab_[0];
+        cap_[1] = cap_[0];
+        mask_[1] = mask_[0];
+        live_[1] = live_[0];
+        tombs_[1] = tombs_[0];
         install_empty_table(0, fresh, newcap);
         rehash_pos_ = 0;
         return true;
@@ -3702,18 +3853,24 @@ private:
                 // through this slot, making every key that probed past it unreachable in the old
                 // table for the rest of the rehash — a silent, transient, load-dependent miss.
                 tab_[1][rehash_pos_] = kTombBit;
-                live_[1]--; tombs_[1]++;
+                live_[1]--;
+                tombs_[1]++;
             }
             rehash_pos_++;
         }
         if (rehash_pos_ >= cap_[1]) {
             std::free(tab_[1]);
-            tab_[1] = nullptr; cap_[1] = 0; mask_[1] = 0; live_[1] = 0; tombs_[1] = 0;
+            tab_[1] = nullptr;
+            cap_[1] = 0;
+            mask_[1] = 0;
+            live_[1] = 0;
+            tombs_[1] = 0;
             rehash_pos_ = 0;
         }
     }
 
-    friend struct FlatStoreLayoutLock; friend class AofProducer;
+    friend struct FlatStoreLayoutLock;
+    friend class AofProducer;
 #ifdef TOMO_STORE_REGRESSION_TEST
     friend struct FlatStoreRegressionTest;
 #endif
@@ -3761,41 +3918,41 @@ private:
     // the owner writes it only in atomic_ensure_pending / ensure_read_local_store_state /
     // atomic_destroy_pending — arming and teardown, never a per-operation write.
     AtomicPendingState* atomic_pending_ = nullptr;
-    uint64_t* tab_[2]   = {nullptr, nullptr};
+    uint64_t* tab_[2] = {nullptr, nullptr};
     // Capacities are power-of-two and intentionally stop at 2^31: slot/probe indices are uint32_t
     // and insert_into's tombstone sentinel is int32_t. A requested next doubling (2^32 slots,
     // already 32 GiB for one shard's slot words) returns InsertResult::Failed before any swap.
     // Tables beyond four billion slots are therefore outside this store's representation rather
     // than a legitimate reason to widen these hot fields.
-    uint32_t  cap_[2]   = {0, 0};
-    uint32_t  mask_[2]  = {0, 0};
+    uint32_t cap_[2] = {0, 0};
+    uint32_t mask_[2] = {0, 0};
     // Boot-latched, and the first byte a foreign probe tests before it touches anything else.
     // It belongs ON the topology line rather than 200 bytes past it: co-located, the whole foreign
     // read reduces to one line of FlatStore. Armed state itself stays sidecarred.
-    bool      read_local_enabled_ = false;
+    bool read_local_enabled_ = false;
     // Consumes the reserved byte without moving either cache-line boundary. Written only on
     // field-index allocation failure or FLUSH; ordinary reads/writes never consult this byte.
-    bool      field_ttl_index_incomplete_ = false;
+    bool field_ttl_index_incomplete_ = false;
 
     // ---- SEPARATOR. Read-mostly only: config, bind-once counter bindings, and the snapshot
     // scalars that are latched once when a capture is prepared. NOTHING here is written by an
     // ordinary read or write of a key, so a foreign reader sharing a line with any of it still
     // never sees an owner invalidation. The live snapshot cursor is deliberately NOT here.
-    bool      maxmemory_enabled_ = false;
+    bool maxmemory_enabled_ = false;
     MaxmemoryPolicy maxmemory_policy_ = MaxmemoryPolicy::NoEviction;
     // THE hash-field-TTL gate: read by every hash command, so it must share the first cache line
     // that find() touches rather than sit next to its own (cold) index hundreds of bytes further
     // down. Four bytes behind mask_ keeps it on that line and off the owner's.
-    uint32_t  field_ttl_gate_ = 0;
-    uint32_t  maxmemory_samples_ = 5;
-    int32_t   snapshot_shard_id_ = -1;
-    uint64_t  maxmemory_limit_ = 0;
+    uint32_t field_ttl_gate_ = 0;
+    uint32_t maxmemory_samples_ = 5;
+    int32_t snapshot_shard_id_ = -1;
+    uint64_t maxmemory_limit_ = 0;
     uint64_t* snapshot_new_tab_ = nullptr;
     uint64_t* evicted_counter_ = nullptr;
     uint64_t* rehash_counter_ = nullptr;
-    uint64_t  snapshot_epoch_ = 0;
-    int64_t   snapshot_cut_ms_ = 0;
-    uint32_t  snapshot_new_cap_ = 0;
+    uint64_t snapshot_epoch_ = 0;
+    int64_t snapshot_cut_ms_ = 0;
+    uint32_t snapshot_new_cap_ = 0;
     // Explicit tail of the separator. The read-mostly fields above fall 28 bytes short of the 64
     // that make the guarantee base-independent, and this is that balance — it is also why the
     // object still measures 944 bytes instead of 916. Repurposing it is fine only for a field that
@@ -3803,19 +3960,19 @@ private:
     // The storesize sidecar pointer occupies bytes 4..11, initialized at boot
     // and recovered with memcpy (no pointer aliasing/alignment assumptions).
     // Preserve the declared padding and every existing member offset.
-    char      reader_owner_gap_[28] = {};
+    char reader_owner_gap_[28] = {};
 
     // ---- OWNER BLOCK. Written by the single owner on the ordinary insert/DEL path. The first
     // eight fields are 48 bytes, so the whole per-operation counter set is one line for the owner
     // (it used to straddle two), and that line is now private to the owner.
-    uint32_t  live_[2]  = {0, 0};
-    uint32_t  tombs_[2] = {0, 0};
-    uint32_t  rehash_pos_ = 0;
-    uint32_t  active_expire_reap_lag_ms_max_ = 0;
-    size_t    obj_bytes_  = 0;
-    size_t    pending_bytes_ = 0;
-    uint32_t  outstanding_borrows_ = 0;
-    uint32_t  borrow_tombs_ = 0;
+    uint32_t live_[2] = {0, 0};
+    uint32_t tombs_[2] = {0, 0};
+    uint32_t rehash_pos_ = 0;
+    uint32_t active_expire_reap_lag_ms_max_ = 0;
+    size_t obj_bytes_ = 0;
+    size_t pending_bytes_ = 0;
+    uint32_t outstanding_borrows_ = 0;
+    uint32_t borrow_tombs_ = 0;
     // The live snapshot cursor is owner-written under ordinary write traffic, so it belongs on this
     // side of the split even though the rest of the capture's scalars are latched once and sit in
     // the separator above.
@@ -3825,9 +3982,9 @@ private:
     // counters above — the clock pair, the expiry counter binding, the snapshot gates — is inside
     // one 64-byte window here, which is what keeps the owner's per-insert line count at what it was
     // before the split (the counters simply moved from the reader's line to their own).
-    int64_t     cached_now_ms_ = 0;
-    uint8_t     cached_lru_clock_ = 0;
-    bool        no_touch_ = false;      // per-task, owner-written; see set_no_touch
+    int64_t cached_now_ms_ = 0;
+    uint8_t cached_lru_clock_ = 0;
+    bool no_touch_ = false;  // per-task, owner-written; see set_no_touch
     // Snapshot state is owner-only.  No atomics or locks enter FlatStore, and the ordinary lookup
     // still searches exactly t_[0] then t_[1] — during capture those already-existing tables mean
     // "post-cut" and "frozen cut" respectively.
@@ -3835,12 +3992,12 @@ private:
     bool snapshot_active_ = false;
     bool snapshot_failed_ = false;
     bool snapshot_finished_ = false;
-    uint64_t*   expired_counter_ = nullptr;
-    uint64_t    random_state_ = 0x9e3779b97f4a7c15ULL;
-    uint64_t    sample_cursor_ = 0;
-    uint64_t snapshot_preimages_ = 0;   // pre-images emitted ahead of the cursor (write-gate fired)
+    uint64_t* expired_counter_ = nullptr;
+    uint64_t random_state_ = 0x9e3779b97f4a7c15ULL;
+    uint64_t sample_cursor_ = 0;
+    uint64_t snapshot_preimages_ = 0;  // pre-images emitted ahead of the cursor (write-gate fired)
     std::vector<Borrow> borrows_;
-    std::vector<uint32_t> borrow_idx_;   // empty == scan mode; see kBorrowIndexMin
+    std::vector<uint32_t> borrow_idx_;  // empty == scan mode; see kBorrowIndexMin
     ExpireIndex expires_;
     SnapshotRecordState snapshot_record_;
     std::unique_ptr<SnapshotChunk> snapshot_build_;
@@ -3851,7 +4008,7 @@ private:
     // further out, which showed up as a measurable instr/op regression on workloads that never use
     // those features. The TTL index allocates nothing until the first HEXPIRE in the shard.
     ExpireIndex field_expires_;
-    uint64_t    field_expired_ = 0;
+    uint64_t field_expired_ = 0;
 };
 
 // THE READER/OWNER LINE SPLIT, pinned in offsets so nothing about it depends on where a Shard
@@ -3864,22 +4021,23 @@ struct FlatStoreLayoutLock {
     // atomic_pending_ is the FIRST of them: read_local_probe() cannot reach probe_sequence, the
     // read-local filter or the retire sink without loading it.
     static constexpr size_t reader_first = offsetof(FlatStore, atomic_pending_);
-    static constexpr size_t reader_last  = offsetof(FlatStore, read_local_enabled_);
+    static constexpr size_t reader_last = offsetof(FlatStore, read_local_enabled_);
     // Every byte the owner writes on the ordinary insert-a-new-key / DEL path.
-    static constexpr size_t owner_first  = offsetof(FlatStore, live_);
-    static constexpr size_t owner_last   = offsetof(FlatStore, borrow_tombs_) + 3;
+    static constexpr size_t owner_first = offsetof(FlatStore, live_);
+    static constexpr size_t owner_last = offsetof(FlatStore, borrow_tombs_) + 3;
     // Every byte the owner writes on the ATOMIC path, declared ahead of the reader block:
     // atomic_version_bytes_ is the first word of the object, the three collapse scratch vectors and
     // the seen-key vector follow, and the per-operation read context closes the range.
     static constexpr size_t atomic_owner_first = offsetof(FlatStore, atomic_version_bytes_);
-    static constexpr size_t atomic_owner_last  =
+    static constexpr size_t atomic_owner_last =
         offsetof(FlatStore, atomic_read_origin_conn_id_) + 7;
     // First word of the bind-once separator that buys the distance below it.
     static constexpr size_t atomic_separator_first = offsetof(FlatStore, atomic_ticket_fn_);
-    static constexpr size_t line         = 64;
-    static constexpr size_t gap_bytes    = sizeof(FlatStore::reader_owner_gap_);
+    static constexpr size_t line = 64;
+    static constexpr size_t gap_bytes = sizeof(FlatStore::reader_owner_gap_);
     static_assert((offsetof(FlatStore, reader_owner_gap_) + 12) %
-                  alignof(std::atomic<ObjectIdleClock*>) == 0);
+                      alignof(std::atomic<ObjectIdleClock*>) ==
+                  0);
 };
 
 // THE INVARIANT, STATED TWICE BECAUSE THE READER BLOCK HAS OWNER WRITES ON BOTH SIDES OF IT: no
@@ -3897,9 +4055,11 @@ static_assert(FlatStoreLayoutLock::reader_first - FlatStoreLayoutLock::atomic_ow
 // what the allocator does today: the reader pays one line per foreign GET, the owner one line per
 // insert. These are the budgets the split was bought with.
 static_assert(FlatStoreLayoutLock::reader_last - FlatStoreLayoutLock::reader_first <
-                  FlatStoreLayoutLock::line, "reader topology block no longer fits one line");
+                  FlatStoreLayoutLock::line,
+              "reader topology block no longer fits one line");
 static_assert(FlatStoreLayoutLock::owner_last - FlatStoreLayoutLock::owner_first <
-                  FlatStoreLayoutLock::line, "owner counter block no longer fits one line");
+                  FlatStoreLayoutLock::line,
+              "owner counter block no longer fits one line");
 // The distance above is bought entirely by the bind-once bindings, which start where the atomic
 // owner block ends. An owner-written field appended to that block would extend it PAST the assert's
 // named last word and stay invisible to it; this is what refuses that edit. Widening the separator
@@ -3912,7 +4072,6 @@ static_assert(FlatStoreLayoutLock::gap_bytes == 28);
 
 // atomic_torn's disabled geometry is contractual: armed state must never grow this baseline object.
 static_assert(sizeof(FlatStore) == 944);
-
 
 // RAII bracket for any mutation of an EXISTING object: samples kvobj_size before, reports the
 // delta to the owning store after, so obj_bytes_ tracks external collection growth/shrink. Every
@@ -3938,8 +4097,8 @@ public:
 
 private:
     FlatStore& store_;
-    KvObj*     object_;
-    size_t     before_;
+    KvObj* object_;
+    size_t before_;
 };
 
 }  // namespace tomo

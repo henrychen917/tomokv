@@ -1,9 +1,7 @@
 // D18.1: only ClientPrepare (after IoDrain/ExDrain) uses this exception. The
 // session, queued argv/error and watched aliases belong to the stable Client,
 // not its IO. An unpublished attempt still owns admission on its source IO.
-bool Client::flip_session_pending() const {
-    return multi_session_ && multi_session_->pending;
-}
+bool Client::flip_session_pending() const { return multi_session_ && multi_session_->pending; }
 
 // Keep a distinct cold predicate for the PAD-A behaviour twin and for the
 // transfer finish recheck. No command-dispatch body calls this function.

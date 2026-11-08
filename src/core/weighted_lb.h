@@ -27,11 +27,11 @@ struct LbAutotune {
     static constexpr uint32_t kTickMs = 1000;
     static constexpr uint32_t kDecisionTicks = 3;
     static constexpr uint32_t kWindowMs = kTickMs * kDecisionTicks;
-    static constexpr uint32_t kSamplesPerDecision = 4096; // per owner; FLIP uses one global budget
+    static constexpr uint32_t kSamplesPerDecision = 4096;  // per owner; FLIP uses one global budget
     static constexpr uint64_t kMoveTimeoutNs = 5ull * 1000 * 1000 * 1000;
 
-    std::atomic<uint32_t> sample_rate{1}; // bootstrap until the first completed traffic window
-    uint64_t last_fold_ns = 0;           // protected by Server::lb_signal_mu_
+    std::atomic<uint32_t> sample_rate{1};  // bootstrap until the first completed traffic window
+    uint64_t last_fold_ns = 0;             // protected by Server::lb_signal_mu_
 
     // Cold admission uses the existing monotonic shard operation counters. Keep the last
     // decision window by physical shard, so an ownership change cannot reset its demand.
@@ -40,11 +40,11 @@ struct LbAutotune {
         std::array<double, kDecisionTicks> ticks{};
         double weight = 0;
     };
-    std::vector<ShardWindow> shards; // empty when key-lb=0
+    std::vector<ShardWindow> shards;  // empty when key-lb=0
     uint32_t window_slot = 0;
     uint32_t window_ticks = 0;
     uint64_t bucket_fold_ns = 0;
-    std::atomic<uint64_t> bucket_gathers{0}; // one increment per admitted gather, no per-op writer
+    std::atomic<uint64_t> bucket_gathers{0};  // one increment per admitted gather, no per-op writer
 
     static uint64_t sampling_budget(uint32_t owners) {
         return uint64_t{kSamplesPerDecision} * std::max<uint32_t>(owners, 1);
@@ -65,8 +65,7 @@ struct LbAutotune {
         const uint32_t count = std::max<uint32_t>(owners, 2);
         const double m = count;
         const double pairs = m * (m - 1) / 2;
-        return 200.0 * std::sqrt(2.0 * m / sampling_budget(count) *
-                                 (1.0 + 0.5 * std::log(pairs)));
+        return 200.0 * std::sqrt(2.0 * m / sampling_budget(count) * (1.0 + 0.5 * std::log(pairs)));
     }
 
     static uint32_t sample_every(double visits, double elapsed_ms, uint32_t window_ms,
@@ -78,9 +77,9 @@ struct LbAutotune {
 
     void observe_visits(uint64_t visits, uint64_t now, uint32_t owners) {
         if (last_fold_ns && now > last_fold_ns) {
-            sample_rate.store(sample_every(visits, double(now - last_fold_ns) / 1000000.0,
-                                           kWindowMs, owners),
-                              std::memory_order_relaxed);
+            sample_rate.store(
+                sample_every(visits, double(now - last_fold_ns) / 1000000.0, kWindowMs, owners),
+                std::memory_order_relaxed);
         }
         last_fold_ns = now;
     }
@@ -104,7 +103,7 @@ struct LbAutotune {
             return std::max(2 * jitter, sampling_floor(owners));
         }
     };
-    QuietJitter key_jitter, client_jitter; // controller writer only
+    QuietJitter key_jitter, client_jitter;  // controller writer only
 
     // Completion records include drain and install, not just the pointer exchange. These two
     // atomics are cold: one writer per completed movement, never an operation-path timestamp.
@@ -135,7 +134,7 @@ struct LbAutotune {
         // A move must remain pinned through a complete fresh decision window.
         return std::max<uint64_t>(kDecisionTicks, ticks) * kTickMs;
     }
-    LbStallState stall; // allocated with the existing LB-only policy, never when both knobs are 0
+    LbStallState stall;  // allocated with the existing LB-only policy, never when both knobs are 0
     // Monitor-private damping; the optional sidecar leaves all existing policy offsets intact.
     // INFO reads only the separately published atomics. No request-path reader or writer.
     struct KeyDamping {
@@ -146,7 +145,7 @@ struct LbAutotune {
         bool update(double ratio, QuietJitter& noise, uint32_t& streak, uint32_t owners,
                     int32_t level, uint64_t now_ms, uint64_t completed, uint64_t epoch);
     };
-    std::unique_ptr<KeyDamping> key_damping; // null for key-lb=0 or key-lb-damping=0
+    std::unique_ptr<KeyDamping> key_damping;  // null for key-lb=0 or key-lb-damping=0
 };
 
 struct WeightedLbItem {
@@ -182,16 +181,16 @@ struct WeightedLbMoveChoice {
 // must strictly improve demand spread. A secondary-only move must not worsen demand and must
 // strictly improve the independent secondary spread. Count spread and stable ids break exact ties.
 inline bool weighted_lb_best_incremental_move(const std::vector<WeightedLbItem>& items,
-                                              const std::vector<uint32_t>& targets,
-                                              bool demand_hot, bool secondary_hot,
-                                              WeightedLbMoveChoice& choice) {
+                                              const std::vector<uint32_t>& targets, bool demand_hot,
+                                              bool secondary_hot, WeightedLbMoveChoice& choice) {
     choice = {};
     if (targets.size() < 2 || (!demand_hot && !secondary_hot)) return false;
     std::vector<double> load(targets.size(), 0);
     std::vector<double> secondary_load(targets.size(), 0);
     std::vector<uint32_t> count(targets.size(), 0);
     auto target_index = [&](uint32_t tid) {
-        for (uint32_t i = 0; i < targets.size(); i++) if (targets[i] == tid) return i;
+        for (uint32_t i = 0; i < targets.size(); i++)
+            if (targets[i] == tid) return i;
         return UINT32_MAX;
     };
     for (const WeightedLbItem& item : items) {
@@ -234,10 +233,9 @@ inline bool weighted_lb_best_incremental_move(const std::vector<WeightedLbItem>&
             load[destination] -= std::max(0.0, item.weight);
             load[source] += std::max(0.0, item.weight);
 
-            const bool improves = demand_hot
-                ? next_weight + 1e-9 < old_weight
-                : next_weight <= old_weight + 1e-9 &&
-                  next_secondary + 1e-9 < old_secondary;
+            const bool improves = demand_hot ? next_weight + 1e-9 < old_weight
+                                             : next_weight <= old_weight + 1e-9 &&
+                                                   next_secondary + 1e-9 < old_secondary;
             if (!improves) continue;
             if (choice.item_index == UINT32_MAX || next_weight < best_weight ||
                 (next_weight == best_weight && next_secondary < best_secondary) ||
@@ -274,7 +272,8 @@ inline bool weighted_lb_partition(const std::vector<WeightedLbItem>& items,
     std::vector<double> secondary_load(targets.size(), 0);
     std::vector<uint32_t> destination(items.size(), UINT32_MAX);
     auto target_index = [&](uint32_t tid) {
-        for (uint32_t i = 0; i < targets.size(); i++) if (targets[i] == tid) return i;
+        for (uint32_t i = 0; i < targets.size(); i++)
+            if (targets[i] == tid) return i;
         return UINT32_MAX;
     };
 
@@ -290,7 +289,8 @@ inline bool weighted_lb_partition(const std::vector<WeightedLbItem>& items,
 
     std::vector<uint32_t> order;
     order.reserve(items.size());
-    for (uint32_t i = 0; i < items.size(); i++) if (!items[i].pinned) order.push_back(i);
+    for (uint32_t i = 0; i < items.size(); i++)
+        if (!items[i].pinned) order.push_back(i);
     std::stable_sort(order.begin(), order.end(), [&](uint32_t a, uint32_t b) {
         if (items[a].weight != items[b].weight) return items[a].weight > items[b].weight;
         if (items[a].secondary != items[b].secondary)
@@ -300,7 +300,8 @@ inline bool weighted_lb_partition(const std::vector<WeightedLbItem>& items,
 
     for (uint32_t ordinal = 0; ordinal < order.size(); ordinal++) {
         uint32_t deficit = 0;
-        for (uint32_t c : count) if (c < low) deficit += low - c;
+        for (uint32_t c : count)
+            if (c < low) deficit += low - c;
         const uint32_t remaining = static_cast<uint32_t>(order.size() - ordinal);
         const bool must_fill_low = remaining == deficit;
         const uint32_t item = order[ordinal];
@@ -312,12 +313,13 @@ inline bool weighted_lb_partition(const std::vector<WeightedLbItem>& items,
                 (load[t] == load[best] && secondary_load[t] == secondary_load[best] &&
                  count[t] < count[best]) ||
                 (load[t] == load[best] && secondary_load[t] == secondary_load[best] &&
-                 count[t] == count[best] &&
-                 targets[t] == items[item].owner && targets[best] != items[item].owner) ||
+                 count[t] == count[best] && targets[t] == items[item].owner &&
+                 targets[best] != items[item].owner) ||
                 (load[t] == load[best] && secondary_load[t] == secondary_load[best] &&
                  count[t] == count[best] &&
                  (targets[t] == items[item].owner) == (targets[best] == items[item].owner) &&
-                 targets[t] < targets[best])) best = t;
+                 targets[t] < targets[best]))
+                best = t;
         }
         if (best == UINT32_MAX) return false;
         destination[item] = best;
@@ -326,7 +328,8 @@ inline bool weighted_lb_partition(const std::vector<WeightedLbItem>& items,
         secondary_load[best] += std::max(0.0, items[item].secondary);
     }
 
-    for (uint32_t c : count) if (c < low || c > high) return false;
+    for (uint32_t c : count)
+        if (c < low || c > high) return false;
 
     // Ties keep the incumbent -- globally, not just per greedy step. The greedy fill above cannot
     // see that a zero-move assignment with the same spread exists (once an item's incumbent has
@@ -341,13 +344,20 @@ inline bool weighted_lb_partition(const std::vector<WeightedLbItem>& items,
         bool feasible = true;
         for (uint32_t i = 0; i < items.size() && feasible; i++) {
             const uint32_t at = target_index(items[i].owner);
-            if (at == UINT32_MAX) { feasible = false; break; }
+            if (at == UINT32_MAX) {
+                feasible = false;
+                break;
+            }
             inc_count[at]++;
             inc_load[at] += std::max(0.0, items[i].weight);
             inc_secondary[at] += std::max(0.0, items[i].secondary);
         }
         if (feasible)
-            for (uint32_t c : inc_count) if (c < low || c > high) { feasible = false; break; }
+            for (uint32_t c : inc_count)
+                if (c < low || c > high) {
+                    feasible = false;
+                    break;
+                }
         if (feasible) {
             auto spread = [](const std::vector<double>& v) {
                 const auto [lo, hi] = std::minmax_element(v.begin(), v.end());
@@ -363,9 +373,9 @@ inline bool weighted_lb_partition(const std::vector<WeightedLbItem>& items,
     out.reserve(items.size());
     for (uint32_t i = 0; i < items.size(); i++) {
         if (destination[i] == UINT32_MAX) return false;
-        out.push_back(WeightedLbAssignment{
-            items[i].id, items[i].owner, targets[destination[i]],
-            std::max(0.0, items[i].weight), std::max(0.0, items[i].secondary)});
+        out.push_back(WeightedLbAssignment{items[i].id, items[i].owner, targets[destination[i]],
+                                           std::max(0.0, items[i].weight),
+                                           std::max(0.0, items[i].secondary)});
     }
     return true;
 }

@@ -27,10 +27,11 @@ enum class ZsetOwnerResult : uint8_t {
 
 // Share CD13's cold adapter while retaining its local lambda identity and ordinary ZSET
 // code generation. An exported setter changes GCC's inlining of unrelated ZSET bodies.
-#define TOMO_ZSET_COPY_EVICTION_META(new_object, old_metadata) \
-    [](KvObj* replacement, uint8_t meta) __attribute__((noinline, flatten)) { \
-        replacement->set_eviction_meta(meta); \
-    }(new_object, old_metadata)
+#define TOMO_ZSET_COPY_EVICTION_META(new_object, old_metadata)                 \
+    [](KvObj * replacement, uint8_t meta) __attribute__((noinline, flatten)) { \
+        replacement->set_eviction_meta(meta);                                  \
+    }                                                                          \
+    (new_object, old_metadata)
 
 // The pinned Redis 7.4.10 oracle (f103d127b) rejects every negative LIMIT offset,
 // for both compact and expanded zsets. Older 7.4 builds accidentally counted backwards
@@ -51,9 +52,8 @@ inline bool zset_resolve_limit_offset(int64_t offset, uint64_t available, bool /
 // Replacement callers supply the destination's current eviction bits without another touch.
 // expanded is true only when updating an already-expanded GEOADD source; STORE may compact.
 ZsetOwnerResult zset_owner_read(Shard& shard, Slice key, uint64_t hash, bool notify,
-                                bool read_stats,
-                                std::vector<ZsetEntry>& entries, int64_t& expire_at_ms,
-                                bool* reserve_ttl_slot = nullptr);
+                                bool read_stats, std::vector<ZsetEntry>& entries,
+                                int64_t& expire_at_ms, bool* reserve_ttl_slot = nullptr);
 ZsetOwnerResult zset_owner_replace(Shard& shard, Slice key, uint64_t hash, bool notify,
                                    const std::vector<ZsetEntry>& entries, int64_t expire_at_ms,
                                    uint8_t eviction_meta, bool expanded,

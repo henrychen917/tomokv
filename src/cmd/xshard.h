@@ -25,8 +25,7 @@ struct ScatterDispatch;
 
 enum class XshardStringStoreResult : uint8_t { Stored, Oom, InsertFailed, Maxmemory };
 XshardStringStoreResult xshard_store_string(Shard& shard, Slice key, uint64_t hash, Slice value,
-                                            int64_t expire_at_ms = -1,
-                                            bool integer_encode = true,
+                                            int64_t expire_at_ms = -1, bool integer_encode = true,
                                             bool reserve_ttl_slot = false);
 XshardStringStoreResult xshard_store_string_notify(Shard& shard, Slice key, uint64_t hash,
                                                    Slice value, int64_t expire_at_ms = -1,
@@ -34,18 +33,16 @@ XshardStringStoreResult xshard_store_string_notify(Shard& shard, Slice key, uint
                                                    bool reserve_ttl_slot = false);
 KvObj* xshard_make_string(Slice key, Slice value, int64_t expire_at_ms = -1,
                           bool integer_encode = true, bool reserve_ttl_slot = false);
-KvObj* xshard_make_atomic_string(Shard& shard, Slice key, Slice value,
-                                 int64_t expire_at_ms = -1,
-                                 bool integer_encode = true,
-                                 bool reserve_ttl_slot = false);
+KvObj* xshard_make_atomic_string(Shard& shard, Slice key, Slice value, int64_t expire_at_ms = -1,
+                                 bool integer_encode = true, bool reserve_ttl_slot = false);
 
 // Multi-key pops choose a key after their first-hop probes, then ask that key's live owner to do
 // the mutation.  Keeping these helpers in the type lanes preserves their cursor/encoding rules and
 // the ObjectSizeTracker finish-before-erase contract instead of replaying a stale whole-object
 // image on hop two.
 enum class XshardPopResult : uint8_t { Popped, Missing, WrongType, Oom };
-XshardPopResult xshard_pop_list(Shard& shard, Slice key, uint64_t hash, bool left,
-                                uint64_t count, std::vector<std::string>& elements);
+XshardPopResult xshard_pop_list(Shard& shard, Slice key, uint64_t hash, bool left, uint64_t count,
+                                std::vector<std::string>& elements);
 XshardPopResult xshard_pop_zset(Shard& shard, Slice key, uint64_t hash, bool maximum,
                                 uint64_t count, std::vector<std::string>& members,
                                 std::vector<double>& scores);
@@ -55,19 +52,15 @@ XshardPopResult xshard_pop_zset(Shard& shard, Slice key, uint64_t hash, bool max
 // unrelated writes that landed between the hops.  The list removal's expected value makes the
 // ordinary edge case O(1); if a concurrent same-edge push displaced it, the owner removes the
 // closest matching value from that edge instead of deleting the concurrent element.
-enum class XshardElementResult : uint8_t {
-    Ok, Missing, WrongType, Oom, Maxmemory, InsertFailed
-};
+enum class XshardElementResult : uint8_t { Ok, Missing, WrongType, Oom, Maxmemory, InsertFailed };
 XshardElementResult xshard_peek_list(KvObj* object, bool left, std::string& element);
-XshardElementResult xshard_remove_list_element(Shard& shard, Slice key, uint64_t hash,
-                                               bool left, Slice expected);
-XshardElementResult xshard_push_list_element(Shard& shard, Slice key, uint64_t hash,
-                                             bool left, Slice element);
+XshardElementResult xshard_remove_list_element(Shard& shard, Slice key, uint64_t hash, bool left,
+                                               Slice expected);
+XshardElementResult xshard_push_list_element(Shard& shard, Slice key, uint64_t hash, bool left,
+                                             Slice element);
 XshardElementResult xshard_set_contains(KvObj* object, Slice member, bool& contains);
-XshardElementResult xshard_remove_set_element(Shard& shard, Slice key, uint64_t hash,
-                                              Slice member);
-XshardElementResult xshard_insert_set_element(Shard& shard, Slice key, uint64_t hash,
-                                              Slice member);
+XshardElementResult xshard_remove_set_element(Shard& shard, Slice key, uint64_t hash, Slice member);
+XshardElementResult xshard_insert_set_element(Shard& shard, Slice key, uint64_t hash, Slice member);
 
 enum class ScatterPrepare : uint8_t { NotScatter, Ready, Backpressure, Error };
 // Defer keeps the owner inbox running while an administrative rendezvous waits
@@ -101,22 +94,22 @@ public:
     ScatterArenaPool& operator=(const ScatterArenaPool&) = delete;
 
 private:
-    friend ScatterPrepare xshard_prepare_flush(Server&, Op&, ScatterArenaPool&, uint32_t,
-                                               uint64_t, ScatterDispatch&, bool);
-    friend ScatterPrepare xshard_prepare(Server&, Op&, ScatterArenaPool&, uint32_t,
-                                          uint64_t, ScatterDispatch&, bool, Client*);
-    template<bool ScriptOnly>
-    friend ScatterPrepare xshard_prepare_body(Server&, Op&, ScatterArenaPool&, uint32_t,
-                                               uint64_t, ScatterDispatch&, bool, Client*);
+    friend ScatterPrepare xshard_prepare_flush(Server&, Op&, ScatterArenaPool&, uint32_t, uint64_t,
+                                               ScatterDispatch&, bool);
+    friend ScatterPrepare xshard_prepare(Server&, Op&, ScatterArenaPool&, uint32_t, uint64_t,
+                                         ScatterDispatch&, bool, Client*);
+    template <bool ScriptOnly>
+    friend ScatterPrepare xshard_prepare_body(Server&, Op&, ScatterArenaPool&, uint32_t, uint64_t,
+                                              ScatterDispatch&, bool, Client*);
     friend void xshard_destroy(ScatterState*, ScatterArenaPool&, uint32_t);
-    friend void xshard_retire(Server&, ThreadCtx&, Ring&, Client&, Op&, ScatterArenaPool&,
-                              uint32_t, void*, void (*)(void*, int32_t, const char*),
-                              void (*)(void*));
+    friend void xshard_retire(Server&, ThreadCtx&, Ring&, Client&, Op&, ScatterArenaPool&, uint32_t,
+                              void*, void (*)(void*, int32_t, const char*), void (*)(void*));
     static constexpr uint32_t kCached = 64;
     static constexpr size_t kCommonBytes = 16384;  // holds MGET-8 layouts at the 1KB inline slot
     void* acquire(size_t bytes, bool& pooled);
     void release(void* ptr, bool pooled);
     void defer_destroy(ScatterState* state);
+
 public:
     uint32_t reap_deferred();
     uint32_t refresh_snapshot_floor(Server& server, uint32_t owner_io);
@@ -129,6 +122,7 @@ public:
     // it back rather than reusing the value you asked for.
     bool register_snapshot(Server& server, SnapshotCut* cut, uint32_t owner_io);
     void unregister_snapshot(Server& server, SnapshotCut* cut, uint32_t owner_io);
+
 private:
     void* cached_[kCached] = {};
     uint32_t count_ = 0;
@@ -152,12 +146,12 @@ struct ScatterDispatch {
 
 // Parses command-specific options and coalesces request key positions by shard.  Error means a
 // complete RESP error is already in op; Ready owns `state` until destroy or final completion.
-ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
-                              uint32_t owner_io, uint64_t origin_conn_id,
-                              ScatterDispatch& dispatch, bool force_atomic = false,
-                              Client* origin_client = nullptr);
-[[gnu::cold, gnu::noinline]] ScatterPrepare xshard_prepare_flush(Server&, Op&, ScatterArenaPool&, uint32_t, uint64_t,
-                                      ScatterDispatch&, bool);
+ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool, uint32_t owner_io,
+                              uint64_t origin_conn_id, ScatterDispatch& dispatch,
+                              bool force_atomic = false, Client* origin_client = nullptr);
+[[gnu::cold, gnu::noinline]] ScatterPrepare xshard_prepare_flush(Server&, Op&, ScatterArenaPool&,
+                                                                 uint32_t, uint64_t,
+                                                                 ScatterDispatch&, bool);
 [[gnu::cold, gnu::noinline]] bool xshard_flush_command(const Op&);
 uint32_t xshard_flush_snapshot_progress(Server&, ThreadCtx&);
 int32_t xshard_dispatch_shard(const ScatterDispatch& dispatch, uint32_t index);
@@ -170,9 +164,8 @@ void xshard_abandon_unpublished(ScatterState* state, ScatterArenaPool& pool, uin
 // final RESP bytes/segments, transfers every gathered borrow to the connection segment queue, and
 // then returns the arena to this IO thread's pool.
 void xshard_retire(Server& server, ThreadCtx& self, Ring& ring, Client& client, Op& op,
-                   ScatterArenaPool& pool, uint32_t owner_io,
-                   void* release_ctx, void (*release_fn)(void*, int32_t, const char*),
-                   void (*suppressed_fn)(void*));
+                   ScatterArenaPool& pool, uint32_t owner_io, void* release_ctx,
+                   void (*release_fn)(void*, int32_t, const char*), void (*suppressed_fn)(void*));
 
 // Same-owner commands are ordinary tasks (Task::scatter == nullptr).  The marker and gate cursor
 // reuse otherwise-idle zero-copy descriptor fields, preserving sizeof(Op).
@@ -186,20 +179,18 @@ FlatStore::SnapshotWriteResult xshard_local_snapshot_prepare(Op& op, Shard& shar
 FlatStore::SnapshotWriteResult xshard_snapshot_prepare(const Task& task, Shard& shard);
 
 // Executes one bounded owner pass.  KEYS may return Retry; all other tasks complete in one pass.
-ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
-                                 uint32_t owner_thread_id);
+ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op, uint32_t owner_thread_id);
 // Visits the hashes represented by one completed owner task. Weighted placement calls this only
 // on the sampled path, keeping ScatterState's private grouping layout out of ExLoop.
-void xshard_visit_task_hashes(const Task& task, void* context,
-                              void (*visit)(void*, uint64_t));
+void xshard_visit_task_hashes(const Task& task, void* context, void (*visit)(void*, uint64_t));
 bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op& op);
 // DEBUG-only #77 probe. Fragment entry latches per-key atomic_needs_version answers in process-
 // cold state; xshard_execute consumes them immediately before the actual lookups.
 void xshard_tripwire_fragment_begin(const Task& task, Shard& shard, Op& op);
-void xshard_tripwire_fragment_execute(const Task& task, Shard& shard, Op& op,
-                                      bool plain_path, uint64_t cut);
-bool xshard_tasks_share_key(const Task& older, Op& older_op,
-                            const Task& younger, Op& younger_op, int32_t shard_id);
+void xshard_tripwire_fragment_execute(const Task& task, Shard& shard, Op& op, bool plain_path,
+                                      uint64_t cut);
+bool xshard_tasks_share_key(const Task& older, Op& older_op, const Task& younger, Op& younger_op,
+                            int32_t shard_id);
 // True for a scatter task whose group names no keys (KEYS, exact DBSIZE, FLUSHDB/FLUSHALL): it
 // reads or clears the owner's whole keyspace, so its program-order dependency is per-owner rather
 // than per-key.  Used only to attribute the ordering hold that keeps such a walker behind an
@@ -210,22 +201,25 @@ bool xshard_task_is_whole_owner(const Task& task);
 // completed group for this executor pass's commit batch, or publishes a fully-preflighted second
 // hop. Final means the caller must publish OpState::Done and notify IO; CommitQueued means the
 // caller must append the task to the allocation-free executor-local batch and leave the Op issued.
-ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
-                              const Task& task, Op& op);
-ScatterFinish xshard_complete_iofused(Server& server, ThreadCtx& self, Ring& ring,
-                                      const Task& task, Op& op);
+ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring, const Task& task,
+                              Op& op);
+ScatterFinish xshard_complete_iofused(Server& server, ThreadCtx& self, Ring& ring, const Task& task,
+                                      Op& op);
 void xshard_queue_commit(Server& server, ThreadCtx& self, const Task& task);
 using XshardCommitNotify = void (*)(void*, Client*);
-void xshard_flush_commits(Server& server, ThreadCtx& self, Ring& ring,
-                          void* notify_context, XshardCommitNotify notify);
-void xshard_flush_commits_timed(Server& server, ThreadCtx& self, Ring& ring,
-                               void* notify_context, XshardCommitNotify notify);
+void xshard_flush_commits(Server& server, ThreadCtx& self, Ring& ring, void* notify_context,
+                          XshardCommitNotify notify);
+void xshard_flush_commits_timed(Server& server, ThreadCtx& self, Ring& ring, void* notify_context,
+                                XshardCommitNotify notify);
 
 // Ordinary one-key operations only enter this path when their key already has an MVCC record.
 // Reads bind the current committed cut; writes first install a deep-cloned, freshly-ticketed
 // version so collection handlers may continue mutating in place without touching a predecessor.
 struct PlainForeignReadScope {
-    struct Key { uint64_t hash; Slice key; };
+    struct Key {
+        uint64_t hash;
+        Slice key;
+    };
     std::vector<Key> keys;
     bool active = false;
     bool poisoned = false;

@@ -57,16 +57,17 @@ inline bool cfg_split_args(const char* line, std::vector<std::string>& out);
 struct ProcessConfigSpec {
     const char* name;
     const char* value;
-    const char* choices; // null: string; "integer": signed int; otherwise comma-separated enum
+    const char* choices;  // null: string; "integer": signed int; otherwise comma-separated enum
     bool immutable;
     bool hidden = false;
 };
-inline constexpr ProcessConfigSpec /* TOMO_TOOL_BIND process_configs */process_configs[] = {
+inline constexpr ProcessConfigSpec /* TOMO_TOOL_BIND process_configs */ process_configs[] = {
     {"daemonize", "no", "yes, no", true},
     {"logfile", "", nullptr, true},
     {"syslog-enabled", "no", "yes, no", true},
     {"syslog-ident", "redis", nullptr, true},
-    {"syslog-facility", "local0", "user, local0, local1, local2, local3, local4, local5, local6, local7", true},
+    {"syslog-facility", "local0",
+     "user, local0, local1, local2, local3, local4, local5, local6, local7", true},
     {"loglevel", "notice", "debug, verbose, notice, warning, nothing", false},
     {"pidfile", "", nullptr, true},
     {"supervised", "no", "upstart, systemd, auto, no", true},
@@ -81,7 +82,10 @@ inline int cfg_process_find(Slice name) {
 }
 inline bool cfg_process_normalize(int index, Slice input, std::string& out, std::string& error) {
     const auto& spec = process_configs[index];
-    if (!spec.choices) { out.assign(input.p, strnlen(input.p, input.n)); return true; }
+    if (!spec.choices) {
+        out.assign(input.p, strnlen(input.p, input.n));
+        return true;
+    }
     if (std::strcmp(spec.choices, "integer")) input.n = strnlen(input.p, input.n);
     if (!std::strcmp(spec.choices, "integer")) {
         // Redis string2ll accepts only canonical decimal, including a minus
@@ -90,30 +94,38 @@ inline bool cfg_process_normalize(int index, Slice input, std::string& out, std:
         auto parsed = std::from_chars(input.p, input.p + input.n, value);
         if (!input.n || parsed.ec != std::errc{} || parsed.ptr != input.p + input.n ||
             std::to_string(value) != input.sv()) {
-            error = "argument couldn't be parsed into an integer"; return false;
+            error = "argument couldn't be parsed into an integer";
+            return false;
         }
         if (value < INT_MIN || value > INT_MAX) {
-            error = "argument must be between -2147483648 and 2147483647 inclusive"; return false;
+            error = "argument must be between -2147483648 and 2147483647 inclusive";
+            return false;
         }
-        out = std::to_string(value); return true;
+        out = std::to_string(value);
+        return true;
     }
     const std::string choices(spec.choices);
     for (size_t begin = 0; begin < choices.size();) {
         const size_t end = choices.find(", ", begin);
-        const std::string choice = choices.substr(begin, end == std::string::npos ? end : end - begin);
-        if (input.eq_icase(choice.c_str())) { out = choice; return true; }
+        const std::string choice =
+            choices.substr(begin, end == std::string::npos ? end : end - begin);
+        if (input.eq_icase(choice.c_str())) {
+            out = choice;
+            return true;
+        }
         if (end == std::string::npos) break;
         begin = end + 2;
     }
-    error = !std::strcmp(spec.choices, "yes, no") ? "argument must be 'yes' or 'no'" :
-        std::string("argument(s) must be one of the following: ") + spec.choices;
+    error = !std::strcmp(spec.choices, "yes, no")
+                ? "argument must be 'yes' or 'no'"
+                : std::string("argument(s) must be one of the following: ") + spec.choices;
     return false;
 }
 
 // LAT-HIST-1: Redis 7.4 uses space-separated string2d tokens (no sorting or
 // deduplication). A null/default vector owns no memory while tracking is off.
-__attribute__((noipa)) inline bool cfg_latency_percentiles(
-        Slice input, std::vector<double>& out, const char*& error) {
+__attribute__((noipa)) inline bool cfg_latency_percentiles(Slice input, std::vector<double>& out,
+                                                           const char*& error) {
     out.clear();
     if (!input.n) return true;
     size_t start = 0;
@@ -125,8 +137,8 @@ __attribute__((noipa)) inline bool cfg_latency_percentiles(
         errno = 0;
         const double value = std::strtod(token.c_str(), &tail);
         if (token.empty() || std::isspace(static_cast<unsigned char>(token[0])) ||
-            tail != token.data() + token.size() || std::isnan(value) ||
-            errno == EINVAL || (errno == ERANGE && (value == 0 || std::isinf(value)))) {
+            tail != token.data() + token.size() || std::isnan(value) || errno == EINVAL ||
+            (errno == ERANGE && (value == 0 || std::isinf(value)))) {
             error = "Invalid latency-tracking-info-percentiles parameters";
             return false;
         }
@@ -141,7 +153,7 @@ __attribute__((noipa)) inline bool cfg_latency_percentiles(
 }
 
 __attribute__((noipa)) inline std::string cfg_latency_percentiles_string(
-        const std::vector<double>& values) {
+    const std::vector<double>& values) {
     std::string out;
     for (double value : values) {
         char text[128];
@@ -202,7 +214,7 @@ inline bool cfg_parse_memory(const char* input, size_t length, uint64_t& out) {
     if (length && *input == '-') return false;
     size_t digits = 0;
     while (digits < length && input[digits] >= '0' && input[digits] <= '9') digits++;
-    if (digits >= 128) return false; // Redis memtoull numeric buffer bound
+    if (digits >= 128) return false;  // Redis memtoull numeric buffer bound
     uint64_t value = 0;
     bool saturated = false;
     for (size_t i = 0; i < digits; i++) {
@@ -219,14 +231,22 @@ inline bool cfg_parse_memory(const char* input, size_t length, uint64_t& out) {
     const char* suffix = input + digits;
     const size_t suffix_length = length - digits;
     uint64_t mul = 1;
-    if (!suffix_length || cfg_memory_suffix(suffix, suffix_length, "b")) mul = 1;
-    else if (cfg_memory_suffix(suffix, suffix_length, "k"))  mul = 1000;
-    else if (cfg_memory_suffix(suffix, suffix_length, "kb")) mul = 1024;
-    else if (cfg_memory_suffix(suffix, suffix_length, "m"))  mul = 1000ull * 1000;
-    else if (cfg_memory_suffix(suffix, suffix_length, "mb")) mul = 1024ull * 1024;
-    else if (cfg_memory_suffix(suffix, suffix_length, "g"))  mul = 1000ull * 1000 * 1000;
-    else if (cfg_memory_suffix(suffix, suffix_length, "gb")) mul = 1024ull * 1024 * 1024;
-    else return false;
+    if (!suffix_length || cfg_memory_suffix(suffix, suffix_length, "b"))
+        mul = 1;
+    else if (cfg_memory_suffix(suffix, suffix_length, "k"))
+        mul = 1000;
+    else if (cfg_memory_suffix(suffix, suffix_length, "kb"))
+        mul = 1024;
+    else if (cfg_memory_suffix(suffix, suffix_length, "m"))
+        mul = 1000ull * 1000;
+    else if (cfg_memory_suffix(suffix, suffix_length, "mb"))
+        mul = 1024ull * 1024;
+    else if (cfg_memory_suffix(suffix, suffix_length, "g"))
+        mul = 1000ull * 1000 * 1000;
+    else if (cfg_memory_suffix(suffix, suffix_length, "gb"))
+        mul = 1024ull * 1024 * 1024;
+    else
+        return false;
     // Redis preserves strtoull's ULLONG_MAX saturation and then performs the unsigned multiply.
     // The wrap for an overflowing suffixed value is odd but observable CONFIG behavior.
     out = value * mul;
@@ -238,16 +258,18 @@ inline bool cfg_parse_memory(const char* input, uint64_t& out) {
 }
 
 inline bool cfg_parse_query_buffer_limit(const char* input, size_t length, uint64_t& out,
-                                          const char*& error) {
+                                         const char*& error) {
     // Redis memtoull consumes a C string, including its empty-number -> zero behavior.
     // Keep these details local to the new knob; other knobs retain their existing grammar.
     if (const void* nul = std::memchr(input, 0, length))
         length = static_cast<const char*>(nul) - input;
-    const bool zero = !length || cfg_memory_suffix(input, length, "b") ||
-        cfg_memory_suffix(input, length, "k") || cfg_memory_suffix(input, length, "kb") ||
-        cfg_memory_suffix(input, length, "m") || cfg_memory_suffix(input, length, "mb") ||
-        cfg_memory_suffix(input, length, "g") || cfg_memory_suffix(input, length, "gb");
-    if (zero) out = 0;
+    const bool zero =
+        !length || cfg_memory_suffix(input, length, "b") || cfg_memory_suffix(input, length, "k") ||
+        cfg_memory_suffix(input, length, "kb") || cfg_memory_suffix(input, length, "m") ||
+        cfg_memory_suffix(input, length, "mb") || cfg_memory_suffix(input, length, "g") ||
+        cfg_memory_suffix(input, length, "gb");
+    if (zero)
+        out = 0;
     else if (!cfg_parse_memory(input, length, out)) {
         error = "argument must be a memory value";
         return false;
@@ -290,7 +312,8 @@ inline bool cfg_parse_save_schedule(const char* input, size_t length,
     out.clear();
     if (!length) return true;
     if (!input || std::isspace(static_cast<unsigned char>(input[0])) ||
-        std::isspace(static_cast<unsigned char>(input[length - 1]))) return false;
+        std::isspace(static_cast<unsigned char>(input[length - 1])))
+        return false;
     std::vector<uint64_t> values;
     size_t pos = 0;
     while (pos < length) {
@@ -323,8 +346,8 @@ inline std::string cfg_save_schedule_string(const std::vector<SaveClause>& claus
 }
 
 inline bool cfg_parse_client_output_buffer_limit(const char* const* args, size_t count,
-                                                  ClientOutputBufferLimits& limits,
-                                                  const char*& error) {
+                                                 ClientOutputBufferLimits& limits,
+                                                 const char*& error) {
     if (!count || count % 4) {
         error = "Wrong number of arguments in buffer limit configuration.";
         return false;
@@ -332,10 +355,12 @@ inline bool cfg_parse_client_output_buffer_limit(const char* const* args, size_t
     ClientOutputBufferLimits scratch = limits;
     for (size_t i = 0; i < count; i += 4) {
         ClientBufferLimit* target = nullptr;
-        if (cfg_eq_icase(args[i], "normal")) target = &scratch.normal;
+        if (cfg_eq_icase(args[i], "normal"))
+            target = &scratch.normal;
         else if (cfg_eq_icase(args[i], "slave") || cfg_eq_icase(args[i], "replica"))
             target = &scratch.replica;
-        else if (cfg_eq_icase(args[i], "pubsub")) target = &scratch.pubsub;
+        else if (cfg_eq_icase(args[i], "pubsub"))
+            target = &scratch.pubsub;
         if (!target || cfg_eq_icase(args[i], "master")) {
             error = "Invalid client class specified in buffer limit configuration.";
             return false;
@@ -384,16 +409,32 @@ enum class TlsAuthClients : uint8_t { Yes = 0, No = 1, Optional = 2 };
 // limits saturate at the maximum representable collection/element size. No hot layout grows.
 // Keep names, aliases and parsing here so boot, CONFIG SET/GET and REWRITE cannot drift.
 struct EncodingConfig {
-    enum Key : uint32_t { HashEntries, HashValue, ListSize, SetEntries, SetValue,
-                          ZsetEntries, ZsetValue, SetIntsetEntries, Count };
-    struct Setting { const char* name; const char* alias; bool memory; const char* tomo_alias; };
-    static constexpr Setting /* TOMO_TOOL_BIND settings */settings[Count] = {
-        {"hash-max-listpack-entries", "hash-max-ziplist-entries", false, "hash-max-compact-entries"},
+    enum Key : uint32_t {
+        HashEntries,
+        HashValue,
+        ListSize,
+        SetEntries,
+        SetValue,
+        ZsetEntries,
+        ZsetValue,
+        SetIntsetEntries,
+        Count
+    };
+    struct Setting {
+        const char* name;
+        const char* alias;
+        bool memory;
+        const char* tomo_alias;
+    };
+    static constexpr Setting /* TOMO_TOOL_BIND settings */ settings[Count] = {
+        {"hash-max-listpack-entries", "hash-max-ziplist-entries", false,
+         "hash-max-compact-entries"},
         {"hash-max-listpack-value", "hash-max-ziplist-value", true, "hash-max-compact-value"},
         {"list-max-listpack-size", "list-max-ziplist-size", false, nullptr},
         {"set-max-listpack-entries", nullptr, false, nullptr},
         {"set-max-listpack-value", nullptr, false, nullptr},
-        {"zset-max-listpack-entries", "zset-max-ziplist-entries", false, "zset-max-compact-entries"},
+        {"zset-max-listpack-entries", "zset-max-ziplist-entries", false,
+         "zset-max-compact-entries"},
         {"zset-max-listpack-value", "zset-max-ziplist-value", true, "zset-max-compact-value"},
         {"set-max-intset-entries", nullptr, false, nullptr},
     };
@@ -402,8 +443,8 @@ struct EncodingConfig {
     static int find(Slice name) {
         for (uint32_t i = 0; i < Count; i++)
             if (name.eq_icase(settings[i].name) ||
-                (settings[i].alias && name.eq_icase(settings[i].alias)) ||
-                legacy(i, name)) return i;
+                (settings[i].alias && name.eq_icase(settings[i].alias)) || legacy(i, name))
+                return i;
         return -1;
     }
     static bool legacy(uint32_t key, Slice name) {
@@ -417,17 +458,30 @@ struct EncodingConfig {
         }
         const uint32_t bound = value > UINT32_MAX ? UINT32_MAX : static_cast<uint32_t>(value);
         switch (key) {
-            case HashEntries: limits.hash.max_entries = bound; break;
-            case HashValue: limits.hash.max_value = bound; break;
-            case SetEntries: limits.set.max_entries = bound; break;
-            case SetValue: limits.set.max_value = bound; break;
+            case HashEntries:
+                limits.hash.max_entries = bound;
+                break;
+            case HashValue:
+                limits.hash.max_value = bound;
+                break;
+            case SetEntries:
+                limits.set.max_entries = bound;
+                break;
+            case SetValue:
+                limits.set.max_value = bound;
+                break;
             // Redis intsetMaxEntries caps the public size_t setting at 1G entries.
             case SetIntsetEntries:
                 limits.set_intset_max_entries = bound < (1u << 30) ? bound : (1u << 30);
                 break;
-            case ZsetEntries: limits.zset.max_entries = bound; break;
-            case ZsetValue: limits.zset.max_value = bound; break;
-            default: break;
+            case ZsetEntries:
+                limits.zset.max_entries = bound;
+                break;
+            case ZsetValue:
+                limits.zset.max_value = bound;
+                break;
+            default:
+                break;
         }
     }
     TypeLimits type_limits() const {
@@ -440,20 +494,27 @@ struct EncodingConfig {
 // Redis's signal policy is a set of flags. Its CONFIG value is split on literal
 // spaces (empty tokens are invalid), and its canonical order is fixed.
 enum ShutdownFlags : uint8_t {
-    ShutdownSaveFlag = 1, ShutdownNoSaveFlag = 2, ShutdownNowFlag = 4, ShutdownForceFlag = 8
+    ShutdownSaveFlag = 1,
+    ShutdownNoSaveFlag = 2,
+    ShutdownNowFlag = 4,
+    ShutdownForceFlag = 8
 };
 __attribute__((noipa)) inline bool cfg_shutdown_flags(Slice input, uint8_t& flags,
-                                                     const char*& error) {
+                                                      const char*& error) {
     flags = 0;
     static constexpr const char* names[] = {"default", "save", "nosave", "now", "force"};
     static constexpr uint8_t values[] = {0, 1, 2, 4, 8};
-    for (uint32_t begin = 0; ; ) {
+    for (uint32_t begin = 0;;) {
         uint32_t end = begin;
         while (end < input.n && input.p[end] != ' ') ++end;
         const std::string word(input.p + begin, end - begin);
         bool found = false;
         for (unsigned i = 0; i < 5; ++i) {
-            if (!::strcasecmp(word.c_str(), names[i])) { flags |= values[i]; found = true; break; }
+            if (!::strcasecmp(word.c_str(), names[i])) {
+                flags |= values[i];
+                found = true;
+                break;
+            }
         }
         if (!found) {
             error = "argument(s) must be one of the following: default, save, nosave, now, force";
@@ -462,7 +523,8 @@ __attribute__((noipa)) inline bool cfg_shutdown_flags(Slice input, uint8_t& flag
         if (end == input.n) break;
         begin = end + 1;
     }
-    if ((flags & (ShutdownSaveFlag | ShutdownNoSaveFlag)) == (ShutdownSaveFlag | ShutdownNoSaveFlag)) {
+    if ((flags & (ShutdownSaveFlag | ShutdownNoSaveFlag)) ==
+        (ShutdownSaveFlag | ShutdownNoSaveFlag)) {
         error = "shutdown options SAVE and NOSAVE can't be used simultaneously";
         return false;
     }
@@ -472,24 +534,25 @@ __attribute__((noipa)) inline std::string cfg_shutdown_string(uint8_t flags) {
     if (!flags) return "default";
     std::string result;
     static constexpr const char* names[] = {"save", "nosave", "now", "force"};
-    for (unsigned i = 0; i < 4; ++i) if (flags & (1u << i)) {
-        if (!result.empty()) result += ' ';
-        result += names[i];
-    }
+    for (unsigned i = 0; i < 4; ++i)
+        if (flags & (1u << i)) {
+            if (!result.empty()) result += ' ';
+            result += names[i];
+        }
     return result;
 }
 
 struct Config {
     // ---- placement (boot-only) -------------------------------------------------------------
-    const char* place       = nullptr;   // complete role@cpu list; null = --ratio / default
+    const char* place = nullptr;  // complete role@cpu list; null = --ratio / default
     // Whole-server role counts for even placement (--ratio); zero = unset, split mode only.
-    uint32_t even_ifid      = 0;
-    uint32_t even_ex        = 0;
-    const char* shard_home  = nullptr;   // optional complete shard:executor_tid topology
+    uint32_t even_ifid = 0;
+    uint32_t even_ex = 0;
+    const char* shard_home = nullptr;  // optional complete shard:executor_tid topology
     // Resolve before persistence recovery and shard allocation: eight migration units per EX.
     static constexpr uint32_t kShardsAuto = UINT32_MAX;
-    uint32_t shards         = kShardsAuto;
-    bool     pin_threads    = true;     // relative to the process's allowed CPU set
+    uint32_t shards = kShardsAuto;
+    bool pin_threads = true;  // relative to the process's allowed CPU set
 
     // Independently swept boot latches. Each off arm allocates none of its signals/windows;
     // the shared controller exists only if either is on. Numeric policy stays derived.
@@ -504,30 +567,30 @@ struct Config {
     uint32_t flip_auto = 0;
 
     // ---- network (boot-only) ---------------------------------------------------------------
-    uint16_t port           = 6379;
-    uint16_t unixsocketperm = 0;        // boot-only octal mode; occupies port's alignment hole
-    const char* bind_addr   = "127.0.0.1";
-    const char* unixsocket  = nullptr;
-    uint32_t maxclients     = 10000;     // live; accept-path pre-count safety valve
-    uint32_t timeout        = 0;         // live; idle seconds, 0 = disabled
-    uint32_t tcp_keepalive  = 300;       // live for newly accepted TCP clients, 0 = off
-    uint32_t tcp_backlog    = 511;       // boot-only, passed directly to listen(2)
-    NetIoEngine net_io      = NetIoEngine::Uring;  // boot-only: which network event engine io runs
-    uint32_t process_config_id = 0; // cold sidecar, preserves every following member offset
+    uint16_t port = 6379;
+    uint16_t unixsocketperm = 0;  // boot-only octal mode; occupies port's alignment hole
+    const char* bind_addr = "127.0.0.1";
+    const char* unixsocket = nullptr;
+    uint32_t maxclients = 10000;              // live; accept-path pre-count safety valve
+    uint32_t timeout = 0;                     // live; idle seconds, 0 = disabled
+    uint32_t tcp_keepalive = 300;             // live for newly accepted TCP clients, 0 = off
+    uint32_t tcp_backlog = 511;               // boot-only, passed directly to listen(2)
+    NetIoEngine net_io = NetIoEngine::Uring;  // boot-only: which network event engine io runs
+    uint32_t process_config_id = 0;  // cold sidecar, preserves every following member offset
     ClientOutputBufferLimits client_output_buffer_limits;
 
     // ---- security / test commands ----------------------------------------------------------
-    const char* requirepass = nullptr;   // empty/unset = off; live via CONFIG SET
-    uint32_t protected_mode = 1;         // live 0|1; rejects unauthenticated non-loopback accepts
-    DebugCommandMode enable_debug_command = DebugCommandMode::No; // boot-only: no|yes|local
+    const char* requirepass = nullptr;  // empty/unset = off; live via CONFIG SET
+    uint32_t protected_mode = 1;        // live 0|1; rejects unauthenticated non-loopback accepts
+    DebugCommandMode enable_debug_command = DebugCommandMode::No;  // boot-only: no|yes|local
     const char* aclfile = nullptr;        // boot-only; empty/unset disables ACL LOAD/SAVE
     uint32_t acl_pubsub_allchannels = 0;  // acl-pubsub-default: 0=resetchannels, 1=allchannels
     uint64_t acllog_max_len = 128;        // live in L4; per-io-thread bound
-    std::vector<std::vector<std::string>> acl_users; // repeatable `user name rules...` lines
+    std::vector<std::vector<std::string>> acl_users;  // repeatable `user name rules...` lines
 
     // ---- persistence (dir/dbfilename are boot-only) ----------------------------------------
-    const char* dir         = ".";
-    const char* dbfilename  = "dump.tomo";
+    const char* dir = ".";
+    const char* dbfilename = "dump.tomo";
     // Redis's default periodic snapshot policy. An empty vector is `save ""` and arms no
     // mutation observers or cron work.
     std::vector<SaveClause> save{{3600, 1}, {300, 100}, {60, 10000}};
@@ -535,14 +598,14 @@ struct Config {
     AppendFsyncPolicy appendfsync = AppendFsyncPolicy::Everysec;
     ThreadMode thread_mode = ThreadMode::Split;
     // Boot-only local-read lane; its internal winners are fixed.
-    uint32_t read_local = 0;            // boot-only 0|1; GET/MGET lane in 1s or shard-less 2s IO
+    uint32_t read_local = 0;  // boot-only 0|1; GET/MGET lane in 1s or shard-less 2s IO
     const char* appendfilename = "appendonly.aof";
     const char* appenddirname = "appendonlydir";
     uint32_t auto_aof_rewrite_percentage = 100;
     uint64_t auto_aof_rewrite_min_size = 64ull * 1024 * 1024;
     bool aof_timestamp_enabled = false;
-    bool aof_load_truncated = true;     // boot recovery policy; CONFIG overrides the next live load
-    uint8_t shutdown_on_sigint = 0;     // existing alignment bytes, live through atomic_ref
+    bool aof_load_truncated = true;  // boot recovery policy; CONFIG overrides the next live load
+    uint8_t shutdown_on_sigint = 0;  // existing alignment bytes, live through atomic_ref
     uint8_t shutdown_on_sigterm = 0;
 
     // Logical databases share the sharded store; physical namespace IDs are one byte.
@@ -551,12 +614,12 @@ struct Config {
     uint64_t proto_max_bulk_len = 512ull * 1024 * 1024;
 
     // ---- data path (live via CONFIG SET) ----------------------------------------------------
-    uint32_t zc_min         = 16384;     // Owner GET borrow threshold; lane replies always copy.
-                                         // DEFAULT ON (owner: hardcode a consistent gain): -4.1%
-                                         // server cycles at d16K on the wire-walled NIC, +20-24%
-                                         // class on unwalled wires per the fork's history. 0 = off.
-                                         // Also the multi-key gather cutover: min(zc-min, kInline).
-    uint64_t maxmemory      = 0;         // bytes; zero removes all eviction-path work.
+    uint32_t zc_min = 16384;  // Owner GET borrow threshold; lane replies always copy.
+                              // DEFAULT ON (owner: hardcode a consistent gain): -4.1%
+                              // server cycles at d16K on the wire-walled NIC, +20-24%
+                              // class on unwalled wires per the fork's history. 0 = off.
+                              // Also the multi-key gather cutover: min(zc-min, kInline).
+    uint64_t maxmemory = 0;   // bytes; zero removes all eviction-path work.
     MaxmemoryPolicy maxmemory_policy = MaxmemoryPolicy::NoEviction;
     uint32_t maxmemory_samples = 5;
     // ---- optional cross-shard write groups ------------------------------------------------
@@ -567,7 +630,7 @@ struct Config {
 
     // ---- scripting / collection encodings -------------------------------------------------
     // The Lua instruction bound is fixed in scripting.cc; unused interpreters allocate nothing.
-    EncodingConfig encodings;           // Redis collection controls, live via CONFIG SET
+    EncodingConfig encodings;  // Redis collection controls, live via CONFIG SET
 
     // Empty flag string = notifications off.
     uint32_t notify_events = 0;
@@ -604,7 +667,7 @@ struct Config {
     // -1 is a real negative here rather than an unsigned sentinel because redis's grammar accepts
     // and reports -1, and the knob-compat rule says shared features adopt the reference server's
     // grammar exactly.
-    int64_t  slowlog_log_slower_than = 10000;
+    int64_t slowlog_log_slower_than = 10000;
     uint64_t slowlog_max_len = 128;
     uint32_t latency_monitor_threshold = 0;
     // Deliberate deviation from Redis 7.4 (yes): tracking defaults to no.
@@ -621,7 +684,7 @@ struct Config {
     uint64_t client_query_buffer_limit = 1024ull * 1024 * 1024;
     // The eighth encoding value consumes the former stream-limit slot. Move only these
     // cold budgets into reserved storage; every ordinary Config field keeps its offset.
-    StreamLimits stream_limits;          // macro-node roll-over budgets, live via CONFIG SET
+    StreamLimits stream_limits;  // macro-node roll-over budgets, live via CONFIG SET
     // Cold key planner only: 0 = PRE policy, -1 = derived damping, N = damping level.
     int32_t key_lb_damping = -1;
     // Boot-only writeback bounds; measured defaults, occupying the reserved tail.
@@ -632,14 +695,15 @@ struct Config {
     uint32_t requirepass_size = 0;
     uint32_t hz = ClientHz::kDefault;
     uint32_t dynamic_hz = 1;
-    const char* locale_collate = ""; // Redis: empty selects the environment LC_COLLATE.
-    std::vector<double> latency_tracking_info_percentiles; // implicit default: 50 99 99.9
+    const char* locale_collate = "";  // Redis: empty selects the environment LC_COLLATE.
+    std::vector<double> latency_tracking_info_percentiles;  // implicit default: 50 99 99.9
 };
 static_assert(sizeof(Config) == 624, "Config footprint changed; update the documented accounting");
 
 inline const char* cfg_process_value(const Config& cfg, size_t index) {
-    return cfg.process_config_id ? process_config_values.at(cfg.process_config_id - 1)[index].c_str()
-                                 : process_configs[index].value;
+    return cfg.process_config_id
+               ? process_config_values.at(cfg.process_config_id - 1)[index].c_str()
+               : process_configs[index].value;
 }
 inline void cfg_process_store(Config& cfg, size_t index, std::string value) {
     if (!cfg.process_config_id) {
@@ -721,7 +785,7 @@ inline bool cfg_parse_i64(const char* s, int64_t& out) {
     // INT64_MIN has no positive counterpart. Avoid negating it: even rejected values such as
     // INT64_MIN must not execute undefined behavior.
     out = negative ? (v == (uint64_t{1} << 63) ? std::numeric_limits<int64_t>::min()
-                                                : -static_cast<int64_t>(v))
+                                               : -static_cast<int64_t>(v))
                    : static_cast<int64_t>(v);
     return true;
 }
@@ -732,19 +796,20 @@ inline bool cfg_parse_integer(Slice s, int64_t& out) {
     if (!s.n) return false;
     const uint32_t start = s.p[0] == '-' ? 1 : 0;
     if (start == s.n || s.p[start] < '0' || s.p[start] > '9' ||
-        (s.p[start] == '0' && (start || s.n != 1))) return false;
+        (s.p[start] == '0' && (start || s.n != 1)))
+        return false;
     const auto parsed = std::from_chars(s.p, s.p + s.n, out);
     return parsed.ec == std::errc{} && parsed.ptr == s.p + s.n;
 }
 
-inline bool cfg_parse_redis_i64(Slice s, int64_t& out) {
-    return s.p && cfg_parse_integer(s, out);
-}
+inline bool cfg_parse_redis_i64(Slice s, int64_t& out) { return s.p && cfg_parse_integer(s, out); }
 
-template <class T> inline bool cfg_parse_redis_unsigned(Slice s, T& out) {
+template <class T>
+inline bool cfg_parse_redis_unsigned(Slice s, T& out) {
     int64_t value = 0;
     if (!cfg_parse_redis_i64(s, value) || value < 0 ||
-        static_cast<uint64_t>(value) > std::numeric_limits<T>::max()) return false;
+        static_cast<uint64_t>(value) > std::numeric_limits<T>::max())
+        return false;
     out = static_cast<T>(value);
     return true;
 }
@@ -801,13 +866,12 @@ inline bool EncodingConfig::parse(uint32_t key, Slice input, int64_t& out, bool 
         // Redis memtoull also accepts a bare unit (and the empty string) as zero.
         // Preserve that grammar here without broadening unrelated TomoKV controls.
         if (!input.n || cfg_memory_suffix(input.p, input.n, "b") ||
-            cfg_memory_suffix(input.p, input.n, "k") ||
-            cfg_memory_suffix(input.p, input.n, "kb") ||
-            cfg_memory_suffix(input.p, input.n, "m") ||
-            cfg_memory_suffix(input.p, input.n, "mb") ||
-            cfg_memory_suffix(input.p, input.n, "g") ||
-            cfg_memory_suffix(input.p, input.n, "gb")) bytes = 0;
-        else if (!cfg_parse_memory(input.p, input.n, bytes)) return false;
+            cfg_memory_suffix(input.p, input.n, "k") || cfg_memory_suffix(input.p, input.n, "kb") ||
+            cfg_memory_suffix(input.p, input.n, "m") || cfg_memory_suffix(input.p, input.n, "mb") ||
+            cfg_memory_suffix(input.p, input.n, "g") || cfg_memory_suffix(input.p, input.n, "gb"))
+            bytes = 0;
+        else if (!cfg_parse_memory(input.p, input.n, bytes))
+            return false;
         if (bytes > static_cast<uint64_t>(LONG_MAX)) return false;
         out = static_cast<int64_t>(bytes);
         return true;
@@ -823,7 +887,7 @@ inline bool EncodingConfig::parse(uint32_t key, Slice input, int64_t& out, bool 
 // the later one (CLI over conf) silently replaces the earlier, which is what "base conf, per-run
 // shape override" bench scripts want.
 struct ConfigParseState {
-    int ratio_source = 0;   // 0 = unset, 1 = conf, 2 = cli
+    int ratio_source = 0;  // 0 = unset, 1 = conf, 2 = cli
     int place_source = 0;
     int save_source = 0;
 };
@@ -832,7 +896,8 @@ struct ConfigParseState {
 __attribute__((noipa)) inline bool cfg_parse_key_lb_damping(const char* value, int32_t& out) {
     int64_t level;
     if (!cfg_parse_i64(value, level) || level < -1 || level > INT32_MAX ||
-        std::to_string(level) != value) return false;
+        std::to_string(level) != value)
+        return false;
     out = static_cast<int32_t>(level);
     return true;
 }
@@ -841,10 +906,10 @@ enum : int { kConfigParsed = 0, kConfigError = 1, kConfigHelp = 2 };
 
 // Parses one token stream (no argv[0]) into cfg. `source` is 1 for the conf file, 2 for the CLI.
 // Prints its own error messages; the caller adds file context on conf failures.
-inline int /* TOMO_TOOL_BIND parse_config_args */parse_config_args(const std::vector<const char*>& args, Config& cfg,
-                             ConfigParseState& st, int source, const char* prog,
-                             const std::vector<size_t>* lengths = nullptr,
-                             std::FILE* diagnostics = stderr) {
+inline int /* TOMO_TOOL_BIND parse_config_args */ parse_config_args(
+    const std::vector<const char*>& args, Config& cfg, ConfigParseState& st, int source,
+    const char* prog, const std::vector<size_t>* lengths = nullptr,
+    std::FILE* diagnostics = stderr) {
     const int argc = static_cast<int>(args.size());
     for (int i = 0; i < argc; i++) {
         auto next = [&](const char* d) { return (i + 1 < argc) ? args[++i] : d; };
@@ -853,124 +918,133 @@ inline int /* TOMO_TOOL_BIND parse_config_args */parse_config_args(const std::ve
         };
         auto next_integer = [&] { return value_slice(next(nullptr)); };
         const char* a = args[i];
-        const int process = !std::strncmp(a, "--", 2)
-            ? cfg_process_find(Slice(a + 2, std::strlen(a + 2))) : -1;
+        const int process =
+            !std::strncmp(a, "--", 2) ? cfg_process_find(Slice(a + 2, std::strlen(a + 2))) : -1;
         if (process >= 0) {
             const char* value = next(nullptr);
             std::string normalized, error;
             if (!value || !cfg_process_normalize(process, value_slice(value), normalized, error)) {
-                std::fprintf(diagnostics, "%s: %s\n", a, value ? error.c_str() : "wrong number of arguments");
+                std::fprintf(diagnostics, "%s: %s\n", a,
+                             value ? error.c_str() : "wrong number of arguments");
                 return kConfigError;
             }
             cfg_process_store(cfg, process, std::move(normalized));
             continue;
         }
-        const int encoding = !std::strncmp(a, "--", 2)
-            ? EncodingConfig::find(Slice(a + 2, std::strlen(a + 2))) : -1;
+        const int encoding =
+            !std::strncmp(a, "--", 2) ? EncodingConfig::find(Slice(a + 2, std::strlen(a + 2))) : -1;
         if (encoding >= 0) {
             const char* value = next(nullptr);
             int64_t parsed = 0;
-            if (!value || !EncodingConfig::parse(encoding, value_slice(value), parsed,
-                                                EncodingConfig::legacy(encoding, Slice(a + 2, std::strlen(a + 2))))) {
+            if (!value || !EncodingConfig::parse(
+                              encoding, value_slice(value), parsed,
+                              EncodingConfig::legacy(encoding, Slice(a + 2, std::strlen(a + 2))))) {
                 std::fprintf(diagnostics, "%s has an invalid encoding limit\n", a);
                 return kConfigError;
             }
             cfg.encodings.values[encoding] = parsed;
             continue;
         }
-        if      (!std::strcmp(a, "--port")) {
+        if (!std::strcmp(a, "--port")) {
             uint32_t value = 0;
             if (!cfg_parse_redis_unsigned(next_integer(), value) || value > UINT16_MAX) {
                 std::fprintf(diagnostics, "--port must be between 0 and %u\n", UINT16_MAX);
                 return kConfigError;
             }
             cfg.port = static_cast<uint16_t>(value);
-        }
-        else if (!std::strcmp(a, "--tls-port")) {
+        } else if (!std::strcmp(a, "--tls-port")) {
             uint32_t value = 0;
             if (!cfg_parse_redis_unsigned(next_integer(), value) || value > UINT16_MAX) {
                 std::fprintf(diagnostics, "--tls-port must be between 0 and %u\n", UINT16_MAX);
                 return kConfigError;
             }
             cfg.tls_port = static_cast<uint16_t>(value);
-        }
-        else if (!std::strcmp(a, "--tls-cert-file")) cfg.tls_cert_file = next("");
-        else if (!std::strcmp(a, "--tls-key-file")) cfg.tls_key_file = next("");
-        else if (!std::strcmp(a, "--tls-ca-cert-file")) cfg.tls_ca_cert_file = next("");
-        else if (!std::strcmp(a, "--tls-ca-cert-dir")) cfg.tls_ca_cert_dir = next("");
+        } else if (!std::strcmp(a, "--tls-cert-file"))
+            cfg.tls_cert_file = next("");
+        else if (!std::strcmp(a, "--tls-key-file"))
+            cfg.tls_key_file = next("");
+        else if (!std::strcmp(a, "--tls-ca-cert-file"))
+            cfg.tls_ca_cert_file = next("");
+        else if (!std::strcmp(a, "--tls-ca-cert-dir"))
+            cfg.tls_ca_cert_dir = next("");
         else if (!std::strcmp(a, "--tls-auth-clients")) {
             const char* value = next(nullptr);
-            if (cfg_eq_icase(value, "yes")) cfg.tls_auth_clients = TlsAuthClients::Yes;
-            else if (cfg_eq_icase(value, "no")) cfg.tls_auth_clients = TlsAuthClients::No;
+            if (cfg_eq_icase(value, "yes"))
+                cfg.tls_auth_clients = TlsAuthClients::Yes;
+            else if (cfg_eq_icase(value, "no"))
+                cfg.tls_auth_clients = TlsAuthClients::No;
             else if (cfg_eq_icase(value, "optional"))
                 cfg.tls_auth_clients = TlsAuthClients::Optional;
             else {
                 std::fprintf(diagnostics, "--tls-auth-clients wants yes, no or optional\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--tls-protocols")) cfg.tls_protocols = next("");
-        else if (!std::strcmp(a, "--tls-ciphers")) cfg.tls_ciphers = next("");
-        else if (!std::strcmp(a, "--tls-ciphersuites")) cfg.tls_ciphersuites = next("");
+        } else if (!std::strcmp(a, "--tls-protocols"))
+            cfg.tls_protocols = next("");
+        else if (!std::strcmp(a, "--tls-ciphers"))
+            cfg.tls_ciphers = next("");
+        else if (!std::strcmp(a, "--tls-ciphersuites"))
+            cfg.tls_ciphersuites = next("");
         else if (!std::strcmp(a, "--tls-prefer-server-ciphers")) {
             const char* value = next(nullptr);
-            if (cfg_eq_icase(value, "yes")) cfg.tls_prefer_server_ciphers = true;
-            else if (cfg_eq_icase(value, "no")) cfg.tls_prefer_server_ciphers = false;
+            if (cfg_eq_icase(value, "yes"))
+                cfg.tls_prefer_server_ciphers = true;
+            else if (cfg_eq_icase(value, "no"))
+                cfg.tls_prefer_server_ciphers = false;
             else {
                 std::fprintf(diagnostics, "--tls-prefer-server-ciphers wants yes or no\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--bind"))       cfg.bind_addr = next("127.0.0.1");
-        else if (!std::strcmp(a, "--unixsocket")) cfg.unixsocket = next("");
+        } else if (!std::strcmp(a, "--bind"))
+            cfg.bind_addr = next("127.0.0.1");
+        else if (!std::strcmp(a, "--unixsocket"))
+            cfg.unixsocket = next("");
         else if (!std::strcmp(a, "--unixsocketperm")) {
             if (!cfg_parse_unixsocketperm(next(nullptr), cfg.unixsocketperm)) {
-                std::fprintf(diagnostics, "--unixsocketperm wants an octal mode between 0 and 777\n");
+                std::fprintf(diagnostics,
+                             "--unixsocketperm wants an octal mode between 0 and 777\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--maxclients")) {
+        } else if (!std::strcmp(a, "--maxclients")) {
             if (!cfg_parse_redis_unsigned(next_integer(), cfg.maxclients) || cfg.maxclients == 0) {
                 std::fprintf(diagnostics, "--maxclients must be between 1 and %u\n", UINT32_MAX);
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--timeout")) {
+        } else if (!std::strcmp(a, "--timeout")) {
             if (!cfg_parse_redis_unsigned(next_integer(), cfg.timeout) || cfg.timeout > INT_MAX) {
                 std::fprintf(diagnostics, "--timeout must be between 0 and %d\n", INT_MAX);
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--hz")) {
+        } else if (!std::strcmp(a, "--hz")) {
             const char* value = next(nullptr);
             const char* error = "wrong number of arguments";
             if (!value || !ClientHz::parse(value_slice(value), cfg.hz, error)) {
                 std::fprintf(diagnostics, "--hz: %s\n", error);
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--dynamic-hz")) {
+        } else if (!std::strcmp(a, "--dynamic-hz")) {
             const char* value = next(nullptr);
-            if (cfg_eq_icase(value, "yes")) cfg.dynamic_hz = 1;
-            else if (cfg_eq_icase(value, "no")) cfg.dynamic_hz = 0;
+            if (cfg_eq_icase(value, "yes"))
+                cfg.dynamic_hz = 1;
+            else if (cfg_eq_icase(value, "no"))
+                cfg.dynamic_hz = 0;
             else {
                 std::fprintf(diagnostics, "--dynamic-hz: argument must be 'yes' or 'no'\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--tcp-keepalive")) {
-            if (!cfg_parse_redis_unsigned(next_integer(), cfg.tcp_keepalive) || cfg.tcp_keepalive > INT_MAX) {
+        } else if (!std::strcmp(a, "--tcp-keepalive")) {
+            if (!cfg_parse_redis_unsigned(next_integer(), cfg.tcp_keepalive) ||
+                cfg.tcp_keepalive > INT_MAX) {
                 std::fprintf(diagnostics, "--tcp-keepalive must be between 0 and %d\n", INT_MAX);
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--tcp-backlog")) {
-            if (!cfg_parse_redis_unsigned(next_integer(), cfg.tcp_backlog) || cfg.tcp_backlog > INT_MAX) {
+        } else if (!std::strcmp(a, "--tcp-backlog")) {
+            if (!cfg_parse_redis_unsigned(next_integer(), cfg.tcp_backlog) ||
+                cfg.tcp_backlog > INT_MAX) {
                 std::fprintf(diagnostics, "--tcp-backlog must be between 0 and %d\n", INT_MAX);
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--client-output-buffer-limit")) {
+        } else if (!std::strcmp(a, "--client-output-buffer-limit")) {
             const int begin = i + 1;
             int end = begin;
             while (end < argc && (source == 1 || std::strncmp(args[end], "--", 2) != 0)) end++;
@@ -990,13 +1064,12 @@ inline int /* TOMO_TOOL_BIND parse_config_args */parse_config_args(const std::ve
             // The parser stages internally and commits only on success; no outer copy needed.
             const char* error = nullptr;
             if (!cfg_parse_client_output_buffer_limit(values.data(), values.size(),
-                                                       cfg.client_output_buffer_limits, error)) {
+                                                      cfg.client_output_buffer_limits, error)) {
                 std::fprintf(diagnostics, "--client-output-buffer-limit: %s\n", error);
                 return kConfigError;
             }
             i = end - 1;
-        }
-        else if (!std::strcmp(a, "--requirepass")) {
+        } else if (!std::strcmp(a, "--requirepass")) {
             const char* value = next(nullptr);
             if (!value) {
                 std::fprintf(diagnostics, "wrong number of arguments\n");
@@ -1004,8 +1077,8 @@ inline int /* TOMO_TOOL_BIND parse_config_args */parse_config_args(const std::ve
             }
             cfg.requirepass = value;
             cfg.requirepass_size = lengths ? (*lengths)[i] : std::strlen(value);
-        }
-        else if (!std::strcmp(a, "--aclfile")) cfg.aclfile = next("");
+        } else if (!std::strcmp(a, "--aclfile"))
+            cfg.aclfile = next("");
         else if (!std::strcmp(a, "--user")) {
             const int begin = i + 1;
             int end = begin;
@@ -1017,64 +1090,66 @@ inline int /* TOMO_TOOL_BIND parse_config_args */parse_config_args(const std::ve
             std::vector<std::string> definition;
             try {
                 for (int arg = begin; arg < end; arg++)
-                    definition.emplace_back(args[arg], lengths ? (*lengths)[arg] : std::strlen(args[arg]));
+                    definition.emplace_back(args[arg],
+                                            lengths ? (*lengths)[arg] : std::strlen(args[arg]));
                 cfg.acl_users.push_back(std::move(definition));
             } catch (const std::bad_alloc&) {
                 std::fprintf(diagnostics, "out of memory parsing --user\n");
                 return kConfigError;
             }
             i = end - 1;
-        }
-        else if (!std::strcmp(a, "--acl-pubsub-default")) {
+        } else if (!std::strcmp(a, "--acl-pubsub-default")) {
             const char* value = next(nullptr);
-            if (value && cfg_eq_icase(value, "allchannels")) cfg.acl_pubsub_allchannels = 1;
-            else if (value && cfg_eq_icase(value, "resetchannels")) cfg.acl_pubsub_allchannels = 0;
+            if (value && cfg_eq_icase(value, "allchannels"))
+                cfg.acl_pubsub_allchannels = 1;
+            else if (value && cfg_eq_icase(value, "resetchannels"))
+                cfg.acl_pubsub_allchannels = 0;
             else {
-                std::fprintf(diagnostics, "--acl-pubsub-default wants allchannels or resetchannels\n");
+                std::fprintf(diagnostics,
+                             "--acl-pubsub-default wants allchannels or resetchannels\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--acllog-max-len")) {
+        } else if (!std::strcmp(a, "--acllog-max-len")) {
             if (!cfg_parse_redis_unsigned(next_integer(), cfg.acllog_max_len)) {
                 std::fprintf(diagnostics, "--acllog-max-len wants an unsigned integer\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--slowlog-log-slower-than")) {
+        } else if (!std::strcmp(a, "--slowlog-log-slower-than")) {
             if (!cfg_parse_redis_i64(next_integer(), cfg.slowlog_log_slower_than) ||
                 cfg.slowlog_log_slower_than < -1) {
                 std::fprintf(diagnostics,
                              "--slowlog-log-slower-than wants microseconds, -1 to disable\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--slowlog-max-len")) {
+        } else if (!std::strcmp(a, "--slowlog-max-len")) {
             if (!cfg_parse_redis_unsigned(next_integer(), cfg.slowlog_max_len)) {
                 std::fprintf(diagnostics, "--slowlog-max-len wants an unsigned integer\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--latency-tracking")) {
+        } else if (!std::strcmp(a, "--latency-tracking")) {
             const char* value = next(nullptr);
-            if (cfg_eq_icase(value, "yes")) cfg.latency_tracking = true;
-            else if (cfg_eq_icase(value, "no")) cfg.latency_tracking = false;
+            if (cfg_eq_icase(value, "yes"))
+                cfg.latency_tracking = true;
+            else if (cfg_eq_icase(value, "no"))
+                cfg.latency_tracking = false;
             else {
                 std::fprintf(diagnostics, "%s: argument must be 'yes' or 'no'\n", a);
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--latency-tracking-info-percentiles")) {
+        } else if (!std::strcmp(a, "--latency-tracking-info-percentiles")) {
             const int begin = i + 1;
             int end = begin;
             while (end < argc && (source == 1 || std::strncmp(args[end], "--", 2))) ++end;
             std::vector<std::string> tokens;
             if (end == begin + 1 && args[begin][0]) {
                 if (!cfg_split_args(args[begin], tokens)) {
-                    std::fprintf(diagnostics, "%s: Invalid latency-tracking-info-percentiles parameters\n", a);
+                    std::fprintf(diagnostics,
+                                 "%s: Invalid latency-tracking-info-percentiles parameters\n", a);
                     return kConfigError;
                 }
-            } else for (int j = begin; j < end; ++j)
-                tokens.emplace_back(args[j], lengths ? (*lengths)[j] : std::strlen(args[j]));
+            } else
+                for (int j = begin; j < end; ++j)
+                    tokens.emplace_back(args[j], lengths ? (*lengths)[j] : std::strlen(args[j]));
             if (tokens.size() == 1 && tokens[0].empty()) tokens.clear();
             cfg.latency_tracking_info_percentiles.clear();
             for (const auto& token : tokens) {
@@ -1082,25 +1157,24 @@ inline int /* TOMO_TOOL_BIND parse_config_args */parse_config_args(const std::ve
                 const char* error = nullptr;
                 if (!cfg_latency_percentiles(Slice(token.data(), token.size()), one, error) ||
                     one.size() != 1) {
-                    std::fprintf(diagnostics, "%s: %s\n", a, error ? error :
-                        "Invalid latency-tracking-info-percentiles parameters");
+                    std::fprintf(
+                        diagnostics, "%s: %s\n", a,
+                        error ? error : "Invalid latency-tracking-info-percentiles parameters");
                     return kConfigError;
                 }
                 cfg.latency_tracking_info_percentiles.push_back(one[0]);
             }
             cfg.latency_percentiles_explicit = true;
             i = end - 1;
-        }
-        else if (!std::strcmp(a, "--latency-monitor-threshold")) {
+        } else if (!std::strcmp(a, "--latency-monitor-threshold")) {
             const char* value = next("");
             const char* error = nullptr;
-            if (!cfg_parse_u32_limit(value_slice(value), false,
-                                     cfg.latency_monitor_threshold, error)) {
+            if (!cfg_parse_u32_limit(value_slice(value), false, cfg.latency_monitor_threshold,
+                                     error)) {
                 std::fprintf(diagnostics, "%s: %s\n", a, error);
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--protected-mode")) {
+        } else if (!std::strcmp(a, "--protected-mode")) {
             const char* value = next(nullptr);
             if (cfg_eq_icase(value, "yes"))
                 cfg.protected_mode = 1;
@@ -1110,18 +1184,19 @@ inline int /* TOMO_TOOL_BIND parse_config_args */parse_config_args(const std::ve
                 std::fprintf(diagnostics, "--protected-mode wants yes or no\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--enable-debug-command")) {
+        } else if (!std::strcmp(a, "--enable-debug-command")) {
             const char* value = next(nullptr);
-            if (value && !std::strcmp(value, "no")) cfg.enable_debug_command = DebugCommandMode::No;
-            else if (value && !std::strcmp(value, "yes")) cfg.enable_debug_command = DebugCommandMode::Yes;
-            else if (value && !std::strcmp(value, "local")) cfg.enable_debug_command = DebugCommandMode::Local;
+            if (value && !std::strcmp(value, "no"))
+                cfg.enable_debug_command = DebugCommandMode::No;
+            else if (value && !std::strcmp(value, "yes"))
+                cfg.enable_debug_command = DebugCommandMode::Yes;
+            else if (value && !std::strcmp(value, "local"))
+                cfg.enable_debug_command = DebugCommandMode::Local;
             else {
                 std::fprintf(diagnostics, "--enable-debug-command wants no, yes or local\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--thread-mode")) {
+        } else if (!std::strcmp(a, "--thread-mode")) {
             const char* value = next(nullptr);
             if (value && (!std::strcmp(value, "2s") || !std::strcmp(value, "split")))
                 cfg.thread_mode = ThreadMode::Split;
@@ -1132,8 +1207,7 @@ inline int /* TOMO_TOOL_BIND parse_config_args */parse_config_args(const std::ve
                              "--thread-mode wants 2s or 1s (split/fused are aliases)\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--read-local")) {
+        } else if (!std::strcmp(a, "--read-local")) {
             if (!cfg_parse_u32(next(nullptr), cfg.read_local) || cfg.read_local > 1) {
                 std::fprintf(diagnostics, "--read-local wants 0 or 1\n");
                 return kConfigError;
@@ -1147,43 +1221,46 @@ inline int /* TOMO_TOOL_BIND parse_config_args */parse_config_args(const std::ve
                 std::fprintf(diagnostics, "--ratio and --place are mutually exclusive\n");
                 return kConfigError;
             }
-            if (st.place_source) { cfg.place = nullptr; st.place_source = 0; }
+            if (st.place_source) {
+                cfg.place = nullptr;
+                st.place_source = 0;
+            }
             st.ratio_source = source;
             const char* v = next("");
             unsigned a2 = 0, b = 0, c = 0;
             const int got = std::sscanf(v, "%u:%u:%u", &a2, &b, &c);
             if (got != 2 || a2 == 0 || b == 0) {
-                std::fprintf(diagnostics, "--ratio wants global ifid:ex (e.g. 30:34); 3s was deleted 2026-08-24\n");
+                std::fprintf(
+                    diagnostics,
+                    "--ratio wants global ifid:ex (e.g. 30:34); 3s was deleted 2026-08-24\n");
                 return kConfigError;
             }
-            cfg.even_ifid = a2; cfg.even_ex = b;
-        }
-        else if (!std::strcmp(a, "--shards")) {
+            cfg.even_ifid = a2;
+            cfg.even_ex = b;
+        } else if (!std::strcmp(a, "--shards")) {
             // Same grammar as every other numeric knob (a bare atoi accepted "16x" as 16 and
             // turned "abc"/"-5" into a misleading range message from validate_config).
             const char* value = next(nullptr);
-            if (value && !std::strcmp(value, "-1")) cfg.shards = Config::kShardsAuto;
+            if (value && !std::strcmp(value, "-1"))
+                cfg.shards = Config::kShardsAuto;
             else if (!cfg_parse_u32(value, cfg.shards) || cfg.shards == 0 || cfg.shards > 256) {
                 std::fprintf(diagnostics, "--shards wants -1 (auto) or 1..256\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--reorder")) {
+        } else if (!std::strcmp(a, "--reorder")) {
             const char* value = next(nullptr);
             if (!cfg_parse_u32(value, cfg.reorder) || cfg.reorder > 1) {
                 std::fprintf(diagnostics, "--reorder wants 0 or 1\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--wb-policy")) {
+        } else if (!std::strcmp(a, "--wb-policy")) {
             const char* value = next(nullptr);
             if (!value || (std::strcmp(value, "0") && std::strcmp(value, "1"))) {
                 std::fprintf(diagnostics, "--wb-policy wants 0 or 1\n");
                 return kConfigError;
             }
             cfg.wb_policy = std::atoi(value);
-        }
-        else if (!std::strcmp(a, "--wb-small-pipe") || !std::strcmp(a, "--wb-complete-visits")) {
+        } else if (!std::strcmp(a, "--wb-small-pipe") || !std::strcmp(a, "--wb-complete-visits")) {
             const bool small = !std::strcmp(a, "--wb-small-pipe");
             const char* value = next(nullptr);
             const char* error = nullptr;
@@ -1195,52 +1272,44 @@ inline int /* TOMO_TOOL_BIND parse_config_args */parse_config_args(const std::ve
                 return kConfigError;
             }
             (small ? cfg.wb_small_pipe : cfg.wb_complete_visits) = parsed;
-        }
-        else if (!std::strcmp(a, "--key-lb")) {
+        } else if (!std::strcmp(a, "--key-lb")) {
             if (!cfg_parse_u32(next(nullptr), cfg.key_lb) || cfg.key_lb > 1) {
                 std::fprintf(diagnostics, "--key-lb wants 0 or 1\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--key-lb-damping")) {
+        } else if (!std::strcmp(a, "--key-lb-damping")) {
             if (!cfg_parse_key_lb_damping(next(nullptr), cfg.key_lb_damping)) {
                 std::fprintf(diagnostics, "--key-lb-damping wants -1, 0 or a positive integer\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--client-lb")) {
+        } else if (!std::strcmp(a, "--client-lb")) {
             if (!cfg_parse_u32(next(nullptr), cfg.client_lb) || cfg.client_lb > 1) {
                 std::fprintf(diagnostics, "--client-lb wants 0 or 1\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--flip-auto")) {
+        } else if (!std::strcmp(a, "--flip-auto")) {
             if (!cfg_parse_u32(next(nullptr), cfg.flip_auto) || cfg.flip_auto > 1) {
                 std::fprintf(diagnostics, "--flip-auto wants 0 or 1\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--maxmemory")) {
+        } else if (!std::strcmp(a, "--maxmemory")) {
             if (!cfg_parse_memory(next(nullptr), cfg.maxmemory)) {
                 std::fprintf(diagnostics, "--maxmemory wants a Redis memory value (0 disables)\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--maxmemory-policy")) {
+        } else if (!std::strcmp(a, "--maxmemory-policy")) {
             const char* value = next(nullptr);
             if (!value || !parse_maxmemory_policy(value, cfg.maxmemory_policy)) {
                 std::fprintf(diagnostics, "--maxmemory-policy wants a Redis maxmemory policy\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--maxmemory-samples")) {
+        } else if (!std::strcmp(a, "--maxmemory-samples")) {
             if (!cfg_parse_redis_unsigned(next_integer(), cfg.maxmemory_samples) ||
                 cfg.maxmemory_samples == 0 || cfg.maxmemory_samples > 64) {
                 std::fprintf(diagnostics, "--maxmemory-samples must be between 1 and 64\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--notify-keyspace-events")) {
+        } else if (!std::strcmp(a, "--notify-keyspace-events")) {
             const char* value = next(nullptr);
             const Slice input(value ? value : "", value ? std::strlen(value) : 0);
             uint32_t parsed = 0;
@@ -1249,14 +1318,13 @@ inline int /* TOMO_TOOL_BIND parse_config_args */parse_config_args(const std::ve
                 return kConfigError;
             }
             cfg.notify_events = parsed;
-        }
-        else if (!std::strcmp(a, "--tracking-table-max-keys")) {
+        } else if (!std::strcmp(a, "--tracking-table-max-keys")) {
             if (!cfg_parse_redis_unsigned(next_integer(), cfg.tracking_table_max_keys)) {
-                std::fprintf(diagnostics, "--tracking-table-max-keys wants an unsigned key count\n");
+                std::fprintf(diagnostics,
+                             "--tracking-table-max-keys wants an unsigned key count\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--save")) {
+        } else if (!std::strcmp(a, "--save")) {
             const int begin = i + 1;
             int end = begin;
             while (end < argc && (source == 1 || std::strncmp(args[end], "--", 2) != 0)) end++;
@@ -1280,19 +1348,19 @@ inline int /* TOMO_TOOL_BIND parse_config_args */parse_config_args(const std::ve
             }
             // An explicit empty value resets the accumulated schedule. Non-empty repeated clauses
             // append within one source, matching repeated redis.conf `save` directives.
-            if (flat.empty()) cfg.save.clear();
-            else cfg.save.insert(cfg.save.end(), parsed.begin(), parsed.end());
+            if (flat.empty())
+                cfg.save.clear();
+            else
+                cfg.save.insert(cfg.save.end(), parsed.begin(), parsed.end());
             i = end - 1;
-        }
-        else if (!std::strcmp(a, "--databases")) {
+        } else if (!std::strcmp(a, "--databases")) {
             uint32_t value = 0;
             if (!cfg_parse_redis_unsigned(next_integer(), value) || (value < 1 || value > 256)) {
                 std::fprintf(diagnostics, "--databases must be between 1 and 256\n");
                 return kConfigError;
             }
             cfg.databases = value;
-        }
-        else if (!std::strcmp(a, "--client-query-buffer-limit")) {
+        } else if (!std::strcmp(a, "--client-query-buffer-limit")) {
             const char* input = next(nullptr);
             const char* error = "argument must be a memory value";
             if (!input || !cfg_parse_query_buffer_limit(input, std::strlen(input),
@@ -1300,30 +1368,31 @@ inline int /* TOMO_TOOL_BIND parse_config_args */parse_config_args(const std::ve
                 std::fprintf(diagnostics, "--client-query-buffer-limit: %s\n", error);
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--locale-collate")) {
+        } else if (!std::strcmp(a, "--locale-collate")) {
             cfg.locale_collate = next(nullptr);
             if (!cfg.locale_collate) return kConfigError;
-        }
-        else if (!std::strcmp(a, "--proto-max-bulk-len")) {
+        } else if (!std::strcmp(a, "--proto-max-bulk-len")) {
             uint64_t value = 0;
             if (!cfg_parse_memory(next(nullptr), value) || value < kProtoMinBulkLen ||
                 value > kProtoMaxBulkLenSupported) {
                 std::fprintf(diagnostics,
-                    "--proto-max-bulk-len must be between %llu and %llu bytes\n",
-                    static_cast<unsigned long long>(kProtoMinBulkLen),
-                    static_cast<unsigned long long>(kProtoMaxBulkLenSupported));
+                             "--proto-max-bulk-len must be between %llu and %llu bytes\n",
+                             static_cast<unsigned long long>(kProtoMinBulkLen),
+                             static_cast<unsigned long long>(kProtoMaxBulkLenSupported));
                 return kConfigError;
             }
             cfg.proto_max_bulk_len = value;
-        }
-        else if (!std::strcmp(a, "--dir"))        cfg.dir = next(".");
-        else if (!std::strcmp(a, "--dbfilename")) cfg.dbfilename = next("dump.tomo");
-        else if (!std::strcmp(a, "--shutdown-on-sigint") || !std::strcmp(a, "--shutdown-on-sigterm")) {
+        } else if (!std::strcmp(a, "--dir"))
+            cfg.dir = next(".");
+        else if (!std::strcmp(a, "--dbfilename"))
+            cfg.dbfilename = next("dump.tomo");
+        else if (!std::strcmp(a, "--shutdown-on-sigint") ||
+                 !std::strcmp(a, "--shutdown-on-sigterm")) {
             const char* value = next(nullptr);
             std::string words = value ? value : "";
             while (i + 1 < argc && (source == 1 || std::strncmp(args[i + 1], "--", 2))) {
-                words += ' '; words += args[++i];
+                words += ' ';
+                words += args[++i];
             }
             uint8_t flags = 0;
             const char* error = nullptr;
@@ -1331,194 +1400,211 @@ inline int /* TOMO_TOOL_BIND parse_config_args */parse_config_args(const std::ve
                 std::fprintf(diagnostics, "%s: %s\n", a, error);
                 return kConfigError;
             }
-            (!std::strcmp(a, "--shutdown-on-sigint") ? cfg.shutdown_on_sigint : cfg.shutdown_on_sigterm) = flags;
-        }
-        else if (!std::strcmp(a, "--appendonly")) {
+            (!std::strcmp(a, "--shutdown-on-sigint") ? cfg.shutdown_on_sigint
+                                                     : cfg.shutdown_on_sigterm) = flags;
+        } else if (!std::strcmp(a, "--appendonly")) {
             const char* value = next(nullptr);
-            if (cfg_eq_icase(value, "yes")) cfg.appendonly = true;
-            else if (cfg_eq_icase(value, "no")) cfg.appendonly = false;
+            if (cfg_eq_icase(value, "yes"))
+                cfg.appendonly = true;
+            else if (cfg_eq_icase(value, "no"))
+                cfg.appendonly = false;
             else {
                 std::fprintf(diagnostics, "--appendonly wants yes or no\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--appendfsync")) {
+        } else if (!std::strcmp(a, "--appendfsync")) {
             const char* value = next(nullptr);
-            if (cfg_eq_icase(value, "always")) cfg.appendfsync = AppendFsyncPolicy::Always;
-            else if (cfg_eq_icase(value, "everysec")) cfg.appendfsync = AppendFsyncPolicy::Everysec;
-            else if (cfg_eq_icase(value, "no")) cfg.appendfsync = AppendFsyncPolicy::No;
+            if (cfg_eq_icase(value, "always"))
+                cfg.appendfsync = AppendFsyncPolicy::Always;
+            else if (cfg_eq_icase(value, "everysec"))
+                cfg.appendfsync = AppendFsyncPolicy::Everysec;
+            else if (cfg_eq_icase(value, "no"))
+                cfg.appendfsync = AppendFsyncPolicy::No;
             else {
                 std::fprintf(diagnostics, "--appendfsync wants always, everysec or no\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--net-io")) {
+        } else if (!std::strcmp(a, "--net-io")) {
             const char* value = next(nullptr);
-            if (cfg_eq_icase(value, "uring")) cfg.net_io = NetIoEngine::Uring;
-            else if (cfg_eq_icase(value, "epoll")) cfg.net_io = NetIoEngine::Epoll;
+            if (cfg_eq_icase(value, "uring"))
+                cfg.net_io = NetIoEngine::Uring;
+            else if (cfg_eq_icase(value, "epoll"))
+                cfg.net_io = NetIoEngine::Epoll;
             else {
                 std::fprintf(diagnostics, "--net-io wants uring or epoll\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--appendfilename")) cfg.appendfilename = next("appendonly.aof");
-        else if (!std::strcmp(a, "--appenddirname")) cfg.appenddirname = next("appendonlydir");
+        } else if (!std::strcmp(a, "--appendfilename"))
+            cfg.appendfilename = next("appendonly.aof");
+        else if (!std::strcmp(a, "--appenddirname"))
+            cfg.appenddirname = next("appendonlydir");
         else if (!std::strcmp(a, "--auto-aof-rewrite-percentage")) {
-            if (!cfg_parse_redis_unsigned(next_integer(), cfg.auto_aof_rewrite_percentage) || cfg.auto_aof_rewrite_percentage > INT_MAX) {
-                std::fprintf(diagnostics, "--auto-aof-rewrite-percentage wants an unsigned integer\n");
+            if (!cfg_parse_redis_unsigned(next_integer(), cfg.auto_aof_rewrite_percentage) ||
+                cfg.auto_aof_rewrite_percentage > INT_MAX) {
+                std::fprintf(diagnostics,
+                             "--auto-aof-rewrite-percentage wants an unsigned integer\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--auto-aof-rewrite-min-size")) {
+        } else if (!std::strcmp(a, "--auto-aof-rewrite-min-size")) {
             if (!cfg_parse_memory(next(nullptr), cfg.auto_aof_rewrite_min_size) ||
                 cfg.auto_aof_rewrite_min_size > INT64_MAX) {
                 std::fprintf(diagnostics, "--auto-aof-rewrite-min-size wants a byte count\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--aof-use-rdb-preamble")) {
+        } else if (!std::strcmp(a, "--aof-use-rdb-preamble")) {
             const char* value = next(nullptr);
             if (!cfg_eq_icase(value, "yes")) {
-                std::fprintf(diagnostics, "aof-use-rdb-preamble no is unsupported: the AOF base file is a TomoKV snapshot\n");
+                std::fprintf(
+                    diagnostics,
+                    "aof-use-rdb-preamble no is unsupported: the AOF base file is a TomoKV snapshot\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--aof-timestamp-enabled")) {
+        } else if (!std::strcmp(a, "--aof-timestamp-enabled")) {
             const char* value = next(nullptr);
-            if (cfg_eq_icase(value, "yes")) cfg.aof_timestamp_enabled = true;
-            else if (cfg_eq_icase(value, "no")) cfg.aof_timestamp_enabled = false;
+            if (cfg_eq_icase(value, "yes"))
+                cfg.aof_timestamp_enabled = true;
+            else if (cfg_eq_icase(value, "no"))
+                cfg.aof_timestamp_enabled = false;
             else {
                 std::fprintf(diagnostics, "--aof-timestamp-enabled wants yes or no\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--aof-load-truncated")) {
+        } else if (!std::strcmp(a, "--aof-load-truncated")) {
             const char* value = next(nullptr);
-            if (cfg_eq_icase(value, "yes")) cfg.aof_load_truncated = true;
-            else if (cfg_eq_icase(value, "no")) cfg.aof_load_truncated = false;
+            if (cfg_eq_icase(value, "yes"))
+                cfg.aof_load_truncated = true;
+            else if (cfg_eq_icase(value, "no"))
+                cfg.aof_load_truncated = false;
             else {
                 std::fprintf(diagnostics, "--aof-load-truncated wants yes or no\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--hll-sparse-max-bytes")) {
+        } else if (!std::strcmp(a, "--hll-sparse-max-bytes")) {
             uint64_t value = 0;
             if (!cfg_parse_memory(next(nullptr), value) || value > UINT32_MAX) {
-                std::fprintf(diagnostics, "--hll-sparse-max-bytes wants a byte count between 0 and %u\n",
+                std::fprintf(diagnostics,
+                             "--hll-sparse-max-bytes wants a byte count between 0 and %u\n",
                              UINT32_MAX);
                 return kConfigError;
             }
             cfg.hll_sparse_max_bytes = static_cast<uint32_t>(value);
-        }
-        else if (!std::strcmp(a, "--stream-node-max-bytes") ||
-                 !std::strcmp(a, "--stream-node-max-entries")) {
+        } else if (!std::strcmp(a, "--stream-node-max-bytes") ||
+                   !std::strcmp(a, "--stream-node-max-entries")) {
             const bool memory = !std::strcmp(a, "--stream-node-max-bytes");
             const char* value = next(nullptr);
             const char* error = "missing argument";
-            uint32_t& limit = memory ? cfg.stream_limits.node_max_bytes : cfg.stream_limits.node_max_entries;
+            uint32_t& limit =
+                memory ? cfg.stream_limits.node_max_bytes : cfg.stream_limits.node_max_entries;
             if (!value || !cfg_parse_u32_limit(value_slice(value), memory, limit, error)) {
                 std::fprintf(diagnostics, "%s: %s\n", a, error);
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--zc-min")) {
+        } else if (!std::strcmp(a, "--zc-min")) {
             const char* v = next(nullptr);
             if (!cfg_parse_u32(v, cfg.zc_min)) {
-                std::fprintf(diagnostics, "--zc-min wants a uint32 byte count (0 disables; 16384 suggested when enabled)\n");
+                std::fprintf(
+                    diagnostics,
+                    "--zc-min wants a uint32 byte count (0 disables; 16384 suggested when enabled)\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--atomic")) {
+        } else if (!std::strcmp(a, "--atomic")) {
             if (!cfg_parse_u32(next(nullptr), cfg.atomic) || cfg.atomic > 1) {
                 std::fprintf(diagnostics, "--atomic wants 0 or 1\n");
                 return kConfigError;
             }
-        }
-        else if (!std::strcmp(a, "--shard-home")) cfg.shard_home = next("");
-        else if (!std::strcmp(a, "--no-pin"))     cfg.pin_threads = false;
+        } else if (!std::strcmp(a, "--shard-home"))
+            cfg.shard_home = next("");
+        else if (!std::strcmp(a, "--no-pin"))
+            cfg.pin_threads = false;
         else if (!std::strcmp(a, "--hash")) {
             const char* h = next("mix64");
-            if      (!std::strcmp(h, "mix64"))   g_hash_kind = HashKind::Mix64Seeded;
-            else if (!std::strcmp(h, "siphash")) g_hash_kind = HashKind::SipHash12;
-            else { std::fprintf(diagnostics, "--hash must be mix64 | siphash\n"); return kConfigError; }
-        }
-        else if (!std::strcmp(a, "--place")) {
+            if (!std::strcmp(h, "mix64"))
+                g_hash_kind = HashKind::Mix64Seeded;
+            else if (!std::strcmp(h, "siphash"))
+                g_hash_kind = HashKind::SipHash12;
+            else {
+                std::fprintf(diagnostics, "--hash must be mix64 | siphash\n");
+                return kConfigError;
+            }
+        } else if (!std::strcmp(a, "--place")) {
             if (st.ratio_source == source) {
                 std::fprintf(diagnostics, "--ratio and --place are mutually exclusive\n");
                 return kConfigError;
             }
-            if (st.ratio_source) { cfg.even_ifid = cfg.even_ex = 0; st.ratio_source = 0; }
+            if (st.ratio_source) {
+                cfg.even_ifid = cfg.even_ex = 0;
+                st.ratio_source = 0;
+            }
             st.place_source = source;
             cfg.place = next("");
-        }
-        else if (!std::strcmp(a, "--help")) {
-            std::printf("usage: %s [conf-file] [--port N] [--bind A] [--unixsocket PATH]\n"
-                        "       [--shards N] [--zc-min N] [--no-pin]\n"
-                        "  conf file: `name value` per line, # comments; same names as the flags\n"
-                        "  without the leading --; `pin no` spells --no-pin. CLI flags override the\n"
-                        "  file. See tomokv.conf in the repo root for the annotated full set.\n"
-                        "  threading: --thread-mode 2s|1s --read-local 0|1 (defaults 2s, 0)\n"
-                        "             (split/fused are mode aliases)\n"
-                        "    --reorder 0|1 (default 0) fused off/on shadow priority; 2s stays FIFO\n"
-                        "    --wb-policy 0|1 (default 1) flush-all|composite half\n"
-                        "    --wb-small-pipe 0..64 (default 16; 0 = half rule)\n"
-                        "    --wb-complete-visits 0..255 (default 3; 0 = unbounded)\n"
-                        "  placement (default derived from allowed CPUs):\n"
-                        "    --ratio io:ex               global counts, split mode only\n"
-                        "    --place role@cpu,...        explicit CPUs; roles are ifid, ex\n"
-                        "    --shards -1|N               default auto: min(8*executors, 256)\n"
-                        "    --shard-home shard:tid,...  complete shard-to-executor map; allows empty fillers\n"
-                        "  load balancing: --key-lb 0|1 --client-lb 0|1 (both default 1)\n"
-                        "  key planner: --key-lb-damping -1|0|N (default -1, 0 = PRE policy)\n"
-                        "  flip controller: --flip-auto 0|1\n"
-                        "    --zc-min N                  owner GET borrows at >= N bytes (0=off; local reads copy)\n"
-                        "  cache: --maxmemory BYTES --maxmemory-policy POLICY\n"
-                        "         --maxmemory-samples N (1..64, default 5)\n"
-                        "  limits: --maxclients N --timeout SECONDS --tcp-keepalive SECONDS\n"
-                        "  client cron: --hz N (0..2147483647, clamped to 1..500) --dynamic-hz yes|no\n"
-                        "          --tcp-backlog N --client-output-buffer-limit CLASS HARD SOFT SECONDS ...\n"
-                        "          --unixsocket PATH --unixsocketperm OCTAL\n"
-                        "  network engine: --net-io uring|epoll (boot-only; default uring)\n"
-                        "  TLS: --tls-port N --tls-cert-file PATH --tls-key-file PATH\n"
-                        "       --tls-ca-cert-file PATH --tls-ca-cert-dir PATH\n"
-                        "       --tls-auth-clients yes|no|optional --tls-protocols LIST\n"
-                        "       --tls-ciphers LIST --tls-ciphersuites LIST\n"
-                        "       --tls-prefer-server-ciphers yes|no\n"
-                        "  notifications: --notify-keyspace-events FLAGS (default empty/off)\n"
-                        "  client-side caching: --tracking-table-max-keys N "
-                        "(default 1000000, 0=unlimited)\n"
-                        "  persistence: --dir PATH --dbfilename NAME\n"
-                        "    --save SECONDS CHANGES (repeatable; --save \"\" disables)\n"
-                        "    --appendonly yes|no --appendfsync always|everysec|no\n"
-                        "    --appendfilename NAME --appenddirname NAME\n"
-                        "    --auto-aof-rewrite-percentage N --auto-aof-rewrite-min-size BYTES\n"
-                        "    --aof-use-rdb-preamble yes --aof-timestamp-enabled yes|no\n"
-                        "    --aof-load-truncated yes|no (boot-only recovery policy)\n"
-                        "  compatibility: --databases N --proto-max-bulk-len BYTES --client-query-buffer-limit BYTES\n"
-                        "  security: --requirepass PASSWORD --protected-mode 0|1|yes|no\n"
-                        "            --enable-debug-command no|yes|local --aclfile PATH\n"
-                        "            --user NAME RULE... --acl-pubsub-default allchannels|resetchannels\n"
-                        "            --acllog-max-len N\n"
-                        "  observability: --slowlog-log-slower-than US (default 10000; -1 off)\n"
-                        "            --slowlog-max-len N (default 128)\n"
-                        "            --latency-monitor-threshold MS (default 0 = off)\n"
-                        "            --latency-tracking yes|no (default no; Redis defaults yes)\n"
-                        "            --latency-tracking-info-percentiles P... (default 50 99 99.9)\n"
-                        "  atomics: --atomic 0|1 (default 0)\n"
-                        "  encodings: --hash-max-listpack-entries N --hash-max-listpack-value BYTES\n"
-                        "    --list-max-listpack-size N (-1..-5: 4..64 KiB; >=0: entry count; default -2)\n"
-                        "    --set-max-listpack-entries N --set-max-listpack-value N\n"
-                        "    --set-max-intset-entries N (default 512; 0 disables intsets)\n"
-                        "    --zset-max-listpack-entries N --zset-max-listpack-value BYTES\n"
-                        "    (ziplist and hash/zset compact aliases accepted)\n"
-                        "  HyperLogLog: --hll-sparse-max-bytes BYTES (boot-only; default 3000)\n"
-                        "  streams: --stream-node-max-bytes N --stream-node-max-entries N\n"
-                        "  misc: --hash mix64|siphash\n"
-                        "  (--mode/--wb/--nodes died with 3s, 2026-08)\n",
-                        prog);
+        } else if (!std::strcmp(a, "--help")) {
+            std::printf(
+                "usage: %s [conf-file] [--port N] [--bind A] [--unixsocket PATH]\n"
+                "       [--shards N] [--zc-min N] [--no-pin]\n"
+                "  conf file: `name value` per line, # comments; same names as the flags\n"
+                "  without the leading --; `pin no` spells --no-pin. CLI flags override the\n"
+                "  file. See tomokv.conf in the repo root for the annotated full set.\n"
+                "  threading: --thread-mode 2s|1s --read-local 0|1 (defaults 2s, 0)\n"
+                "             (split/fused are mode aliases)\n"
+                "    --reorder 0|1 (default 0) fused off/on shadow priority; 2s stays FIFO\n"
+                "    --wb-policy 0|1 (default 1) flush-all|composite half\n"
+                "    --wb-small-pipe 0..64 (default 16; 0 = half rule)\n"
+                "    --wb-complete-visits 0..255 (default 3; 0 = unbounded)\n"
+                "  placement (default derived from allowed CPUs):\n"
+                "    --ratio io:ex               global counts, split mode only\n"
+                "    --place role@cpu,...        explicit CPUs; roles are ifid, ex\n"
+                "    --shards -1|N               default auto: min(8*executors, 256)\n"
+                "    --shard-home shard:tid,...  complete shard-to-executor map; allows empty fillers\n"
+                "  load balancing: --key-lb 0|1 --client-lb 0|1 (both default 1)\n"
+                "  key planner: --key-lb-damping -1|0|N (default -1, 0 = PRE policy)\n"
+                "  flip controller: --flip-auto 0|1\n"
+                "    --zc-min N                  owner GET borrows at >= N bytes (0=off; local reads copy)\n"
+                "  cache: --maxmemory BYTES --maxmemory-policy POLICY\n"
+                "         --maxmemory-samples N (1..64, default 5)\n"
+                "  limits: --maxclients N --timeout SECONDS --tcp-keepalive SECONDS\n"
+                "  client cron: --hz N (0..2147483647, clamped to 1..500) --dynamic-hz yes|no\n"
+                "          --tcp-backlog N --client-output-buffer-limit CLASS HARD SOFT SECONDS ...\n"
+                "          --unixsocket PATH --unixsocketperm OCTAL\n"
+                "  network engine: --net-io uring|epoll (boot-only; default uring)\n"
+                "  TLS: --tls-port N --tls-cert-file PATH --tls-key-file PATH\n"
+                "       --tls-ca-cert-file PATH --tls-ca-cert-dir PATH\n"
+                "       --tls-auth-clients yes|no|optional --tls-protocols LIST\n"
+                "       --tls-ciphers LIST --tls-ciphersuites LIST\n"
+                "       --tls-prefer-server-ciphers yes|no\n"
+                "  notifications: --notify-keyspace-events FLAGS (default empty/off)\n"
+                "  client-side caching: --tracking-table-max-keys N "
+                "(default 1000000, 0=unlimited)\n"
+                "  persistence: --dir PATH --dbfilename NAME\n"
+                "    --save SECONDS CHANGES (repeatable; --save \"\" disables)\n"
+                "    --appendonly yes|no --appendfsync always|everysec|no\n"
+                "    --appendfilename NAME --appenddirname NAME\n"
+                "    --auto-aof-rewrite-percentage N --auto-aof-rewrite-min-size BYTES\n"
+                "    --aof-use-rdb-preamble yes --aof-timestamp-enabled yes|no\n"
+                "    --aof-load-truncated yes|no (boot-only recovery policy)\n"
+                "  compatibility: --databases N --proto-max-bulk-len BYTES --client-query-buffer-limit BYTES\n"
+                "  security: --requirepass PASSWORD --protected-mode 0|1|yes|no\n"
+                "            --enable-debug-command no|yes|local --aclfile PATH\n"
+                "            --user NAME RULE... --acl-pubsub-default allchannels|resetchannels\n"
+                "            --acllog-max-len N\n"
+                "  observability: --slowlog-log-slower-than US (default 10000; -1 off)\n"
+                "            --slowlog-max-len N (default 128)\n"
+                "            --latency-monitor-threshold MS (default 0 = off)\n"
+                "            --latency-tracking yes|no (default no; Redis defaults yes)\n"
+                "            --latency-tracking-info-percentiles P... (default 50 99 99.9)\n"
+                "  atomics: --atomic 0|1 (default 0)\n"
+                "  encodings: --hash-max-listpack-entries N --hash-max-listpack-value BYTES\n"
+                "    --list-max-listpack-size N (-1..-5: 4..64 KiB; >=0: entry count; default -2)\n"
+                "    --set-max-listpack-entries N --set-max-listpack-value N\n"
+                "    --set-max-intset-entries N (default 512; 0 disables intsets)\n"
+                "    --zset-max-listpack-entries N --zset-max-listpack-value BYTES\n"
+                "    (ziplist and hash/zset compact aliases accepted)\n"
+                "  HyperLogLog: --hll-sparse-max-bytes BYTES (boot-only; default 3000)\n"
+                "  streams: --stream-node-max-bytes N --stream-node-max-entries N\n"
+                "  misc: --hash mix64|siphash\n"
+                "  (--mode/--wb/--nodes died with 3s, 2026-08)\n",
+                prog);
             return kConfigHelp;
-        }
-        else {
+        } else {
             std::fprintf(diagnostics, "unknown argument '%s' (see --help)\n", a);
             return kConfigError;
         }
@@ -1527,7 +1613,7 @@ inline int /* TOMO_TOOL_BIND parse_config_args */parse_config_args(const std::ve
 }
 
 // Post-parse validation shared by every source combination. Call once, after all token streams.
-inline int /* TOMO_TOOL_BIND validate_config */validate_config(const Config& cfg) {
+inline int /* TOMO_TOOL_BIND validate_config */ validate_config(const Config& cfg) {
     if (cfg.wb_small_pipe > kRobWindow || cfg.wb_complete_visits > UINT8_MAX) {
         std::fprintf(stderr, "--wb-small-pipe wants 0..64; --wb-complete-visits wants 0..255\n");
         return kConfigError;
@@ -1549,13 +1635,13 @@ inline int /* TOMO_TOOL_BIND validate_config */validate_config(const Config& cfg
         return kConfigError;
     }
     if (cfg.thread_mode == ThreadMode::Fused && (cfg.even_ifid || cfg.even_ex)) {
-        std::fprintf(stderr,
-                     "--ratio is unavailable with --thread-mode 1s: every thread handles networking and execution\n");
+        std::fprintf(
+            stderr,
+            "--ratio is unavailable with --thread-mode 1s: every thread handles networking and execution\n");
         return kConfigError;
     }
     if (cfg.thread_mode == ThreadMode::Fused && cfg.flip_auto) {
-        std::fprintf(stderr,
-                     "--flip-auto is unavailable with --thread-mode 1s\n");
+        std::fprintf(stderr, "--flip-auto is unavailable with --thread-mode 1s\n");
         return kConfigError;
     }
     if (cfg.databases < 1 || cfg.databases > 256) {
@@ -1589,13 +1675,16 @@ inline int /* TOMO_TOOL_BIND validate_config */validate_config(const Config& cfg
         if (cfg.tls_auth_clients != TlsAuthClients::No &&
             (!cfg.tls_ca_cert_file || !*cfg.tls_ca_cert_file) &&
             (!cfg.tls_ca_cert_dir || !*cfg.tls_ca_cert_dir)) {
-            std::fprintf(stderr,
-                         "tls-auth-clients yes or optional requires tls-ca-cert-file or tls-ca-cert-dir\n");
+            std::fprintf(
+                stderr,
+                "tls-auth-clients yes or optional requires tls-ca-cert-file or tls-ca-cert-dir\n");
             return kConfigError;
         }
     }
     if (cfg.aclfile && *cfg.aclfile && !cfg.acl_users.empty()) {
-        std::fprintf(stderr, "Configuring Redis with users defined in redis.conf and at the same setting an ACL file path is invalid. This setup is very likely to lead to configuration errors and security holes, please define either an ACL file or declare users directly in your redis.conf, but not both.\n");
+        std::fprintf(
+            stderr,
+            "Configuring Redis with users defined in redis.conf and at the same setting an ACL file path is invalid. This setup is very likely to lead to configuration errors and security holes, please define either an ACL file or declare users directly in your redis.conf, but not both.\n");
         return kConfigError;
     }
     if (cfg.shards != Config::kShardsAuto && (cfg.shards == 0 || cfg.shards > 256)) {
@@ -1616,8 +1705,7 @@ inline int /* TOMO_TOOL_BIND validate_config */validate_config(const Config& cfg
 }
 
 inline bool cfg_is_hex_digit(char c) {
-    return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') ||
-           (c >= 'A' && c <= 'F');
+    return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
 }
 
 inline uint8_t cfg_hex_digit(char c) {
@@ -1642,19 +1730,23 @@ inline bool cfg_split_args(const char* line, std::vector<std::string>& out) {
         bool done = false;
         while (!done) {
             if (in_double) {
-                if (*p == '\\' && p[1] == 'x' && cfg_is_hex_digit(p[2]) &&
-                    cfg_is_hex_digit(p[3])) {
-                    current.push_back(static_cast<char>((cfg_hex_digit(p[2]) << 4) |
-                                                        cfg_hex_digit(p[3])));
+                if (*p == '\\' && p[1] == 'x' && cfg_is_hex_digit(p[2]) && cfg_is_hex_digit(p[3])) {
+                    current.push_back(
+                        static_cast<char>((cfg_hex_digit(p[2]) << 4) | cfg_hex_digit(p[3])));
                     p += 3;
                 } else if (*p == '\\' && p[1]) {
                     p++;
                     char c = *p;
-                    if (*p == 'n') c = '\n';
-                    else if (*p == 'r') c = '\r';
-                    else if (*p == 't') c = '\t';
-                    else if (*p == 'b') c = '\b';
-                    else if (*p == 'a') c = '\a';
+                    if (*p == 'n')
+                        c = '\n';
+                    else if (*p == 'r')
+                        c = '\r';
+                    else if (*p == 't')
+                        c = '\t';
+                    else if (*p == 'b')
+                        c = '\b';
+                    else if (*p == 'a')
+                        c = '\a';
                     current.push_back(c);
                 } else if (*p == '"') {
                     if (p[1] && !std::isspace(static_cast<unsigned char>(p[1]))) return false;
@@ -1678,22 +1770,22 @@ inline bool cfg_split_args(const char* line, std::vector<std::string>& out) {
                 }
             } else {
                 switch (*p) {
-                case ' ':
-                case '\n':
-                case '\r':
-                case '\t':
-                case '\0':
-                    done = true;
-                    break;
-                case '"':
-                    in_double = true;
-                    break;
-                case '\'':
-                    in_single = true;
-                    break;
-                default:
-                    current.push_back(*p);
-                    break;
+                    case ' ':
+                    case '\n':
+                    case '\r':
+                    case '\t':
+                    case '\0':
+                        done = true;
+                        break;
+                    case '"':
+                        in_double = true;
+                        break;
+                    case '\'':
+                        in_single = true;
+                        break;
+                    default:
+                        current.push_back(*p);
+                        break;
                 }
             }
             if (*p) p++;
@@ -1708,8 +1800,9 @@ struct ConfigFileLine {
 };
 
 inline void config_file_error(int number, const char* line, const char* error) {
-    std::fprintf(stderr, "\n*** FATAL CONFIG FILE ERROR (Redis %s) ***\n"
-                         "Reading the configuration file, at line %d\n>>> '%s'\n%s\n",
+    std::fprintf(stderr,
+                 "\n*** FATAL CONFIG FILE ERROR (Redis %s) ***\n"
+                 "Reading the configuration file, at line %d\n>>> '%s'\n%s\n",
                  kRedisCompatVersion, number, line, error);
 }
 
@@ -1742,7 +1835,8 @@ inline bool load_conf_file(const char* path, std::vector<std::string>& store,
     size_t offset = 0;
     while (ok && offset < contents.size()) {
         const size_t end = contents.find('\n', offset);
-        std::string physical = contents.substr(offset, end == std::string::npos ? end : end - offset);
+        std::string physical =
+            contents.substr(offset, end == std::string::npos ? end : end - offset);
         offset = end == std::string::npos ? contents.size() : end + 1;
         char* line = physical.data();
         lineno++;
@@ -1780,14 +1874,12 @@ inline bool load_conf_file(const char* path, std::vector<std::string>& store,
         // Preserve each directive's arity before flattening storage. An omitted value is
         // different from an explicit empty string, and cannot consume the next line.
         const bool valueless = words[0] == "no-pin" || words[0] == "help";
-        const bool variadic = words[0] == "user" || words[0] == "save" ||
-                              words[0] == "client-output-buffer-limit" ||
-                              words[0] == "shutdown-on-sigint" ||
-                              words[0] == "shutdown-on-sigterm" ||
-                              words[0] == "latency-tracking-info-percentiles";
+        const bool variadic =
+            words[0] == "user" || words[0] == "save" || words[0] == "client-output-buffer-limit" ||
+            words[0] == "shutdown-on-sigint" || words[0] == "shutdown-on-sigterm" ||
+            words[0] == "latency-tracking-info-percentiles";
         if ((valueless && words.size() != 1) ||
-            (!valueless && ((words.size() < 2 &&
-                             words[0] != "latency-tracking-info-percentiles") ||
+            (!valueless && ((words.size() < 2 && words[0] != "latency-tracking-info-percentiles") ||
                             (!variadic && words.size() != 2)))) {
             config_file_error(lineno, first, "wrong number of arguments");
             ok = false;
@@ -1804,9 +1896,9 @@ inline bool load_conf_file(const char* path, std::vector<std::string>& store,
 // Parse one physical directive at a time while retaining the decoded byte lengths.
 // ConfigParseState spans lines so repeated save/user directives and CLI precedence retain
 // their existing semantics. The string store outlives Config's borrowed pointers.
-__attribute__((noipa)) inline int parse_config_file(const std::vector<std::string>& store,
-        const std::vector<size_t>& line_ends, Config& cfg, ConfigParseState& st,
-        const char* prog, const std::vector<ConfigFileLine>* lines = nullptr) {
+__attribute__((noipa)) inline int parse_config_file(
+    const std::vector<std::string>& store, const std::vector<size_t>& line_ends, Config& cfg,
+    ConfigParseState& st, const char* prog, const std::vector<ConfigFileLine>* lines = nullptr) {
     size_t begin = 0;
     size_t line_index = 0;
     for (size_t end : line_ends) {
@@ -1829,9 +1921,11 @@ __attribute__((noipa)) inline int parse_config_file(const std::vector<std::strin
             const std::string prefix = std::string(args.empty() ? "" : args[0]) + ": ";
             if (text.compare(0, prefix.size(), prefix) == 0) text.erase(0, prefix.size());
             while (!text.empty() && text.back() == '\n') text.pop_back();
-            if (lines) config_file_error((*lines)[line_index].number,
-                (*lines)[line_index].text.c_str(), text.c_str());
-            else if (reason) std::fputs(reason, stderr);
+            if (lines)
+                config_file_error((*lines)[line_index].number, (*lines)[line_index].text.c_str(),
+                                  text.c_str());
+            else if (reason)
+                std::fputs(reason, stderr);
         }
         std::free(reason);
         if (rc != kConfigParsed) return rc;

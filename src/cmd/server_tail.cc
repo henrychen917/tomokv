@@ -79,7 +79,10 @@ bool parse_i64(Slice s, int64_t& out) {
     if (!s.n || s.n > 20) return false;
     uint32_t i = 0;
     bool negative = false;
-    if (s.p[0] == '-') { negative = true; i = 1; }
+    if (s.p[0] == '-') {
+        negative = true;
+        i = 1;
+    }
     if (i >= s.n) return false;
     // Canonical decimal, as redis's string2ll: no leading '+', no leading zeroes, no negative
     // zero. "WAIT +5 1" and "WAIT 0 05" were accepted before this.
@@ -185,7 +188,10 @@ void cmd_failover(Shard&, Op& op) {
         reply_err(op.sink(), "ERR No failover in progress.");
         return;
     }
-    if (op.argc() != 1) { reply_syntax(op.sink()); return; }
+    if (op.argc() != 1) {
+        reply_syntax(op.sink());
+        return;
+    }
     reply_err(op.sink(), "ERR FAILOVER requires connected replicas.");
 }
 
@@ -198,14 +204,16 @@ void cmd_replicaof(Shard&, Op& op) {
 
 void cmd_pfselftest(Shard&, Op& op) {
     const std::string error = hll::selftest();
-    if (error.empty()) reply_ok(op.sink());
-    else reply_err(op.sink(), error.c_str());
+    if (error.empty())
+        reply_ok(op.sink());
+    else
+        reply_err(op.sink(), error.c_str());
 }
 
 // SHUTDOWN. On success redis sends NO reply -- the connection simply closes as the process goes
 // away -- so the only replies here are the refusals.
 //
-} // namespace
+}  // namespace
 
 // Both command and signal requests land here on an IO owner. A required save must succeed
 // before publishing any stop flags; Busy is a refusal, never permission to discard writes.
@@ -219,8 +227,8 @@ SnapshotManager::StartResult Server::shutdown(ShutdownSave save, ThreadCtx* writ
     // ABORT and the signal request's admission use the same mutex. A request
     // cancelled before admission must not proceed with a previously read policy.
     if (from_signal && !signal_shutdown_pending()) return SnapshotManager::StartResult::Started;
-    const bool must_save = save == ShutdownSave::Save ||
-        (save == ShutdownSave::Configured && save_schedule_armed());
+    const bool must_save =
+        save == ShutdownSave::Save || (save == ShutdownSave::Configured && save_schedule_armed());
     if (must_save) {
         if (!writer || !ring) {
             error = "shutdown save has no IO owner";
@@ -232,12 +240,13 @@ SnapshotManager::StartResult Server::shutdown(ShutdownSave save, ThreadCtx* writ
             finish_shutdown();
             return SnapshotManager::StartResult::Started;
         }
-        const auto result = snapshot_.start(*this, *writer, *ring, true, error,
-                                             nullptr, nullptr, nullptr, true);
+        const auto result =
+            snapshot_.start(*this, *writer, *ring, true, error, nullptr, nullptr, nullptr, true);
         if (result != SnapshotManager::StartResult::Started) {
             set_shutdown_snapshot_active(false);
             if (force && result == SnapshotManager::StartResult::Failed) {
-                std::fprintf(stderr, "Shutdown save failed: %s; FORCE permits exit\n", error.c_str());
+                std::fprintf(stderr, "Shutdown save failed: %s; FORCE permits exit\n",
+                             error.c_str());
                 finish_shutdown();
                 return SnapshotManager::StartResult::Started;
             }
@@ -260,26 +269,27 @@ void Server::set_shutdown_policy(bool interrupt, uint8_t flags) {
 bool Server::request_signal_shutdown(bool interrupt) {
     if (loading()) return false;
     static_assert(std::atomic_ref<uint8_t>::is_always_lock_free);
-    const uint8_t flags = std::atomic_ref<uint8_t>(
-        interrupt ? cfg_.shutdown_on_sigint : cfg_.shutdown_on_sigterm).load(std::memory_order_relaxed);
+    const uint8_t flags =
+        std::atomic_ref<uint8_t>(interrupt ? cfg_.shutdown_on_sigint : cfg_.shutdown_on_sigterm)
+            .load(std::memory_order_relaxed);
     if ((flags & ShutdownNoSaveFlag) || (!(flags & ShutdownSaveFlag) && !save_schedule_armed()))
         return false;
     uint64_t unset = 0;
-    signal_shutdown_deadline_ns_.compare_exchange_strong(
-        unset, now_ns() + kShutdownSaveWaitNs, std::memory_order_relaxed);
+    signal_shutdown_deadline_ns_.compare_exchange_strong(unset, now_ns() + kShutdownSaveWaitNs,
+                                                         std::memory_order_relaxed);
     uint8_t current = live_save_armed_.load(std::memory_order_relaxed);
     do {
         if (current & kSignalShutdown) return true;
-    } while (!live_save_armed_.compare_exchange_weak(current,
-        uint8_t(current | kSignalShutdown | (flags << 2)), std::memory_order_release));
+    } while (!live_save_armed_.compare_exchange_weak(
+        current, uint8_t(current | kSignalShutdown | (flags << 2)), std::memory_order_release));
     return true;
 }
 
 bool Server::abort_signal_shutdown() {
     std::unique_lock lock(shutdown_mu_, std::try_to_lock);
     if (!lock.owns_lock() || shutdown_snapshot_active() || shutting_down()) return false;
-    const uint8_t old = live_save_armed_.fetch_and(uint8_t(~(kSignalShutdown | 0x3c)),
-                                                 std::memory_order_acq_rel);
+    const uint8_t old =
+        live_save_armed_.fetch_and(uint8_t(~(kSignalShutdown | 0x3c)), std::memory_order_acq_rel);
     if (!(old & kSignalShutdown)) return false;
     signal_shutdown_deadline_ns_.store(0, std::memory_order_relaxed);
     signal_doorbell_consume_request();
@@ -303,14 +313,15 @@ uint32_t Server::shutdown_from_cron(ThreadCtx& writer, Ring& ring) {
                            &writer, &ring, error, flags & ShutdownForceFlag, true);
     if (result == SnapshotManager::StartResult::Busy) {
         if (now_ns() < signal_shutdown_deadline_ns_.load(std::memory_order_relaxed))
-            return 0; // yield to the old snapshot/FLIP, retry at the next ordinary IO pass
+            return 0;  // yield to the old snapshot/FLIP, retry at the next ordinary IO pass
         error = "shutdown timed out waiting for snapshot/placement; retry SHUTDOWN";
         result = SnapshotManager::StartResult::Failed;
     }
     live_save_armed_.fetch_and(uint8_t(~(kSignalShutdown | 0x3c)), std::memory_order_relaxed);
     signal_shutdown_deadline_ns_.store(0, std::memory_order_relaxed);
     if (result == SnapshotManager::StartResult::Failed)
-        std::fprintf(stderr, "Errors trying to SHUTDOWN: %s; server remains running\n", error.c_str());
+        std::fprintf(stderr, "Errors trying to SHUTDOWN: %s; server remains running\n",
+                     error.c_str());
     return 1;
 }
 
@@ -319,37 +330,60 @@ namespace {
 void cmd_shutdown(Shard&, Op& op) {
     bool nosave = false, save = false, force = false, abort = false, now = false;
     for (uint32_t i = 1; i < op.argc(); i++) {
-        if (eq_icase(op.arg(i), "NOSAVE")) nosave = true;
-        else if (eq_icase(op.arg(i), "SAVE")) save = true;
-        else if (eq_icase(op.arg(i), "NOW")) now = true;
-        else if (eq_icase(op.arg(i), "FORCE")) force = true;
-        else if (eq_icase(op.arg(i), "ABORT")) abort = true;
-        else { reply_syntax(op.sink()); return; }
+        if (eq_icase(op.arg(i), "NOSAVE"))
+            nosave = true;
+        else if (eq_icase(op.arg(i), "SAVE"))
+            save = true;
+        else if (eq_icase(op.arg(i), "NOW"))
+            now = true;
+        else if (eq_icase(op.arg(i), "FORCE"))
+            force = true;
+        else if (eq_icase(op.arg(i), "ABORT"))
+            abort = true;
+        else {
+            reply_syntax(op.sink());
+            return;
+        }
     }
-    if (nosave && save) { reply_syntax(op.sink()); return; }
-    if (abort) for (uint32_t i = 1; i < op.argc(); ++i)
-        if (!eq_icase(op.arg(i), "ABORT")) { reply_syntax(op.sink()); return; }
-
-    Server* server = command_server();
-    if (!server) { reply_err(op.sink(), "ERR server is not bound"); return; }
-    if (abort) {
-        if (server->abort_signal_shutdown()) reply_ok(op.sink());
-        else reply_err(op.sink(), "ERR No shutdown in progress.");
+    if (nosave && save) {
+        reply_syntax(op.sink());
         return;
     }
-    if (Client* client = command_local_client(); !now && client &&
-        client->barrier_held_by(BarrierOwner::Exec)) {
-        reply_err(op.sink(), "ERR SHUTDOWN without NOW or ABORT isn't allowed for DENY BLOCKING client");
+    if (abort)
+        for (uint32_t i = 1; i < op.argc(); ++i)
+            if (!eq_icase(op.arg(i), "ABORT")) {
+                reply_syntax(op.sink());
+                return;
+            }
+
+    Server* server = command_server();
+    if (!server) {
+        reply_err(op.sink(), "ERR server is not bound");
+        return;
+    }
+    if (abort) {
+        if (server->abort_signal_shutdown())
+            reply_ok(op.sink());
+        else
+            reply_err(op.sink(), "ERR No shutdown in progress.");
+        return;
+    }
+    if (Client* client = command_local_client();
+        !now && client && client->barrier_held_by(BarrierOwner::Exec)) {
+        reply_err(op.sink(),
+                  "ERR SHUTDOWN without NOW or ABORT isn't allowed for DENY BLOCKING client");
         return;
     }
 
     const SnapshotIoContext context = snapshot_io_context();
-    const auto choice = nosave ? Server::ShutdownSave::NoSave :
-                        save ? Server::ShutdownSave::Save : Server::ShutdownSave::Configured;
+    const auto choice = nosave ? Server::ShutdownSave::NoSave
+                        : save ? Server::ShutdownSave::Save
+                               : Server::ShutdownSave::Configured;
     std::string error;
     if (server->shutdown(choice, context.thread, context.ring, error, force) !=
         SnapshotManager::StartResult::Started) {
-        std::fprintf(stderr, "Errors trying to SHUTDOWN: %s; server remains running\n", error.c_str());
+        std::fprintf(stderr, "Errors trying to SHUTDOWN: %s; server remains running\n",
+                     error.c_str());
         reply_err(op.sink(), "ERR Errors trying to SHUTDOWN. Check logs.");
         return;
     }
@@ -388,16 +422,20 @@ const char* encoding_name(const KvObj* object) {
         if (encoding != CollectionEncoding::Compact) return "hashtable";
         // SetVal::small_encoding, packed into aux0 bits 40..47 for the embedded form. Mirrors
         // t_set.cc's set_small_encoding, which is file-local there.
-        const SetSmallEncoding small = ref.is_embedded()
-            ? static_cast<SetSmallEncoding>((ref.aux0() >> 40) & 0xff)
-            : ref.external_as<SetVal>()->small_encoding;
+        const SetSmallEncoding small =
+            ref.is_embedded() ? static_cast<SetSmallEncoding>((ref.aux0() >> 40) & 0xff)
+                              : ref.external_as<SetVal>()->small_encoding;
         return small == SetSmallEncoding::Integer ? "intset" : "listpack";
     }
     switch (encoding) {
-        case CollectionEncoding::Compact:   return "listpack";
-        case CollectionEncoding::Hashtable: return "hashtable";
-        case CollectionEncoding::Deque:     return type == Type::List ? "quicklist" : "stream";
-        case CollectionEncoding::Btree:     return "skiplist";
+        case CollectionEncoding::Compact:
+            return "listpack";
+        case CollectionEncoding::Hashtable:
+            return "hashtable";
+        case CollectionEncoding::Deque:
+            return type == Type::List ? "quicklist" : "stream";
+        case CollectionEncoding::Btree:
+            return "skiplist";
     }
     return "unknown";
 }
@@ -432,26 +470,31 @@ void cmd_object_impl(Shard& shard, Op& op) {
     const bool encoding = eq_icase(sub, "ENCODING");
     const bool refcount = eq_icase(sub, "REFCOUNT");
     const bool idletime = eq_icase(sub, "IDLETIME");
-    const bool freq     = eq_icase(sub, "FREQ");
+    const bool freq = eq_icase(sub, "FREQ");
 
     // Redis uses LOOKUP_NOTOUCH|LOOKUP_NONOTIFY for every OBJECT lookup.
     // Lazy expiry still has its physical event; a missing key has no keymiss.
     const uint64_t expired_before = shard.stats().expired;
     KvObj* object = object_read_no_touch(shard, op.hash, op.arg(2));
     if constexpr (kNotify) notify_overwrite_expiry(shard, expired_before, op.arg(2));
-    if (!object) { reply_null(op.sink(), op.resp3()); return; }
+    if (!object) {
+        reply_null(op.sink(), op.resp3());
+        return;
+    }
 
     const MaxmemoryPolicy policy = shard.store().maxmemory_policy();
     const bool lfu = maxmemory_policy_is_lfu(policy);
     // Policy errors follow the key lookup, including its lazy-expiry effects.
     if (freq && !lfu) {
-        reply_err(op.sink(),
-                  "ERR An LFU maxmemory policy is not selected, access frequency not tracked. Please note that when switching between policies at runtime LRU and LFU data will take some time to adjust.");
+        reply_err(
+            op.sink(),
+            "ERR An LFU maxmemory policy is not selected, access frequency not tracked. Please note that when switching between policies at runtime LRU and LFU data will take some time to adjust.");
         return;
     }
     if (idletime && lfu) {
-        reply_err(op.sink(),
-                  "ERR An LFU maxmemory policy is selected, idle time not tracked. Please note that when switching between policies at runtime LRU and LFU data will take some time to adjust.");
+        reply_err(
+            op.sink(),
+            "ERR An LFU maxmemory policy is selected, idle time not tracked. Please note that when switching between policies at runtime LRU and LFU data will take some time to adjust.");
         return;
     }
 
@@ -467,7 +510,10 @@ void cmd_object_impl(Shard& shard, Op& op) {
         reply_int(op.sink(), 1);
         return;
     }
-    if (freq) { reply_int(op.sink(), object->eviction_meta()); return; }
+    if (freq) {
+        reply_int(op.sink(), object->eviction_meta());
+        return;
+    }
     reply_int(op.sink(), shard.store().object_idle_seconds(object));
 }
 
@@ -496,7 +542,7 @@ const char* const kMemoryHelp[] = {
 };
 
 struct JeStats {
-    bool     available = false;
+    bool available = false;
     uint64_t allocated = 0;
     uint64_t active = 0;
     uint64_t resident = 0;
@@ -511,10 +557,14 @@ JeStats read_je_stats() {
     if (mallctl("epoch", &epoch, &epoch_size, &epoch, sizeof(epoch)) != 0) return stats;
     size_t value = 0, size = sizeof(value);
     stats.available = true;
-    size = sizeof(value); if (!mallctl("stats.allocated", &value, &size, nullptr, 0)) stats.allocated = value;
-    size = sizeof(value); if (!mallctl("stats.active", &value, &size, nullptr, 0)) stats.active = value;
-    size = sizeof(value); if (!mallctl("stats.resident", &value, &size, nullptr, 0)) stats.resident = value;
-    size = sizeof(value); if (!mallctl("stats.mapped", &value, &size, nullptr, 0)) stats.mapped = value;
+    size = sizeof(value);
+    if (!mallctl("stats.allocated", &value, &size, nullptr, 0)) stats.allocated = value;
+    size = sizeof(value);
+    if (!mallctl("stats.active", &value, &size, nullptr, 0)) stats.active = value;
+    size = sizeof(value);
+    if (!mallctl("stats.resident", &value, &size, nullptr, 0)) stats.resident = value;
+    size = sizeof(value);
+    if (!mallctl("stats.mapped", &value, &size, nullptr, 0)) stats.mapped = value;
 #endif
     return stats;
 }
@@ -566,11 +616,13 @@ void reply_memory_stats(Op& op) {
         reply_map_pair_int(sink, "allocator.mapped", je.mapped);
         // Redis publishes these as doubles; the ratio is the number operators actually read.
         reply_bulk(sink, Slice("allocator-fragmentation.ratio", 29));
-        reply_double(sink, je.allocated ? static_cast<double>(je.active) /
-                                          static_cast<double>(je.allocated) : 0.0, op.resp3());
+        reply_double(
+            sink,
+            je.allocated ? static_cast<double>(je.active) / static_cast<double>(je.allocated) : 0.0,
+            op.resp3());
         reply_bulk(sink, Slice("allocator-fragmentation.bytes", 29));
-        reply_int(sink, static_cast<long long>(je.active > je.allocated
-                                               ? je.active - je.allocated : 0));
+        reply_int(sink,
+                  static_cast<long long>(je.active > je.allocated ? je.active - je.allocated : 0));
     }
 }
 
@@ -585,11 +637,14 @@ void reply_memory_doctor(Op& op) {
         }
     std::string text;
     if (keys < 128) {
-        text = "This instance is holding very little data, so there is nothing for the memory "
-               "report to work with. Fill it and ask again.";
+        text =
+            "This instance is holding very little data, so there is nothing for the memory "
+            "report to work with. Fill it and ask again.";
     } else {
-        const double fragmentation = (je.available && je.allocated)
-            ? static_cast<double>(je.active) / static_cast<double>(je.allocated) : 1.0;
+        const double fragmentation =
+            (je.available && je.allocated)
+                ? static_cast<double>(je.active) / static_cast<double>(je.allocated)
+                : 1.0;
         char line[256];
         std::snprintf(line, sizeof(line),
                       "%llu keys hold %llu accounted bytes across the shard owners; allocator "
@@ -631,8 +686,7 @@ void reply_memory_purge(Op& op) {
     // Every executor binds its own arena (alloc.h bind_thread_arena), so there is no single index
     // to purge. MALLCTL_ARENAS_ALL is jemalloc's documented all-arenas selector.
     char name[64];
-    std::snprintf(name, sizeof(name), "arena.%u.purge",
-                  static_cast<unsigned>(MALLCTL_ARENAS_ALL));
+    std::snprintf(name, sizeof(name), "arena.%u.purge", static_cast<unsigned>(MALLCTL_ARENAS_ALL));
     if (mallctl(name, nullptr, nullptr, nullptr, 0) != 0) {
         reply_err(op.sink(), "ERR allocator purge failed");
         return;
@@ -664,15 +718,30 @@ void cmd_memory(Shard& shard, Op& op) {
         // check, so a key that is past its deadline but not yet reaped still reports the bytes it
         // is still holding. Every other introspection form (OBJECT, TYPE, TTL) hides it.
         KvObj* object = shard.store().find_resident(op.hash, op.arg(2));
-        if (!object) { reply_null(op.sink(), op.resp3()); return; }
-        reply_int(op.sink(), static_cast<long long>(kvobj_size(object) +
-                                                   FlatStore::kSlotOverheadPerKey));
+        if (!object) {
+            reply_null(op.sink(), op.resp3());
+            return;
+        }
+        reply_int(op.sink(),
+                  static_cast<long long>(kvobj_size(object) + FlatStore::kSlotOverheadPerKey));
         return;
     }
-    if (eq_icase(sub, "STATS") && op.argc() == 2) { reply_memory_stats(op); return; }
-    if (eq_icase(sub, "DOCTOR") && op.argc() == 2) { reply_memory_doctor(op); return; }
-    if (eq_icase(sub, "PURGE") && op.argc() == 2) { reply_memory_purge(op); return; }
-    if (eq_icase(sub, "MALLOC-STATS") && op.argc() == 2) { reply_memory_malloc_stats(op); return; }
+    if (eq_icase(sub, "STATS") && op.argc() == 2) {
+        reply_memory_stats(op);
+        return;
+    }
+    if (eq_icase(sub, "DOCTOR") && op.argc() == 2) {
+        reply_memory_doctor(op);
+        return;
+    }
+    if (eq_icase(sub, "PURGE") && op.argc() == 2) {
+        reply_memory_purge(op);
+        return;
+    }
+    if (eq_icase(sub, "MALLOC-STATS") && op.argc() == 2) {
+        reply_memory_malloc_stats(op);
+        return;
+    }
     if (eq_icase(sub, "HELP") && op.argc() == 2) {
         reply_help(op, kMemoryHelp, sizeof(kMemoryHelp) / sizeof(kMemoryHelp[0]));
         return;
@@ -713,15 +782,20 @@ std::string config_quote(std::string_view value) {
     // Keep the existing spelling of simple scalars; quote only tokens whose bytes need escaping.
     if (!value.empty() && std::all_of(value.begin(), value.end(), [](unsigned char ch) {
             return ch > 32 && ch < 127 && ch != '\\' && ch != '"' && ch != '\'';
-        })) return std::string(value);
+        }))
+        return std::string(value);
     std::string out = "\"";
     constexpr char hex[] = "0123456789abcdef";
     for (unsigned char ch : value) {
-        if (ch == '\\' || ch == '"') { out.push_back('\\'); out.push_back(ch); }
-        else if (ch < 32 || ch >= 127) {
+        if (ch == '\\' || ch == '"') {
+            out.push_back('\\');
+            out.push_back(ch);
+        } else if (ch < 32 || ch >= 127) {
             out += "\\x";
-            out.push_back(hex[ch >> 4]); out.push_back(hex[ch & 15]);
-        } else out.push_back(ch);
+            out.push_back(hex[ch >> 4]);
+            out.push_back(hex[ch & 15]);
+        } else
+            out.push_back(ch);
     }
     out.push_back('"');
     return out;
@@ -729,9 +803,12 @@ std::string config_quote(std::string_view value) {
 
 bool config_rewrite(std::string& error) {
     Server* server = command_server();
-    if (!server) { error = "server is not bound"; return false; }
+    if (!server) {
+        error = "server is not bound";
+        return false;
+    }
     const char* path = server->cfg().conf_path;
-    if (!path || !*path) return false;   // caller emits redis's "running without a config file"
+    if (!path || !*path) return false;  // caller emits redis's "running without a config file"
 
     std::vector<std::pair<std::string, std::string>> items;
     command_config_snapshot(items);
@@ -740,28 +817,35 @@ bool config_rewrite(std::string& error) {
     // The runtime table and live ACL registry own their directives. Preserve
     // other boot-only recovery/placement settings.
     std::ifstream original(path);
-    if (!original) { error = "cannot read original config"; return false; }
+    if (!original) {
+        error = "cannot read original config";
+        return false;
+    }
     std::string line;
     while (std::getline(original, line)) {
         const size_t first = line.find_first_not_of(" \t\r");
         if (first == std::string::npos || line[first] == '#') continue;
         std::vector<std::string> words;
         if (!cfg_split_args(line.c_str(), words)) {
-            error = "invalid original config line"; return false;
+            error = "invalid original config line";
+            return false;
         }
         if (words.empty()) continue;
         if (Slice(words.front().data(), words.front().size()).eq_icase("user")) continue;
         // Encoding aliases belong to the same runtime directive as their canonical name.
         // Keeping an old alias would preserve a stale value beside the rewritten live value.
-        const int encoding = EncodingConfig::find(Slice(words.front().data(), words.front().size()));
-        const std::string_view name = encoding >= 0
-            ? EncodingConfig::settings[encoding].name : std::string_view(words.front());
-        const bool replaced = std::any_of(items.begin(), items.end(), [&](const auto& item) {
-            return item.first == name;
-        });
+        const int encoding =
+            EncodingConfig::find(Slice(words.front().data(), words.front().size()));
+        const std::string_view name = encoding >= 0 ? EncodingConfig::settings[encoding].name
+                                                    : std::string_view(words.front());
+        const bool replaced = std::any_of(items.begin(), items.end(),
+                                          [&](const auto& item) { return item.first == name; });
         if (!replaced) body += line + "\n";
     }
-    if (original.bad()) { error = "cannot read original config"; return false; }
+    if (original.bad()) {
+        error = "cannot read original config";
+        return false;
+    }
     for (const auto& item : items) {
         if (!config_name_is_rewritable(item.first)) continue;
         if (item.first == "save") {
@@ -770,10 +854,12 @@ bool config_rewrite(std::string& error) {
                 error = "invalid save schedule in runtime table";
                 return false;
             }
-            if (clauses.empty()) body += "save \"\"\n";
-            else for (const SaveClause& clause : clauses)
-                body += "save " + std::to_string(clause.seconds) + " " +
-                        std::to_string(clause.changes) + "\n";
+            if (clauses.empty())
+                body += "save \"\"\n";
+            else
+                for (const SaveClause& clause : clauses)
+                    body += "save " + std::to_string(clause.seconds) + " " +
+                            std::to_string(clause.changes) + "\n";
             continue;
         }
         body += item.first;
@@ -782,7 +868,8 @@ bool config_rewrite(std::string& error) {
         if (item.first == "client-output-buffer-limit" ||
             (item.first == "latency-tracking-info-percentiles" && !item.second.empty()))
             body += item.second;
-        else body += config_quote(item.second);
+        else
+            body += config_quote(item.second);
         body.push_back('\n');
     }
 
@@ -793,11 +880,16 @@ bool config_rewrite(std::string& error) {
     // Write-then-rename so a failure part way through cannot leave a truncated config behind.
     std::string temporary = std::string(path) + ".rewrite.XXXXXX";
     const int fd = ::mkstemp(temporary.data());
-    if (fd < 0) { error = std::strerror(errno); return false; }
+    if (fd < 0) {
+        error = std::strerror(errno);
+        return false;
+    }
     FILE* file = ::fdopen(fd, "w");
     if (!file) {
         error = std::strerror(errno);
-        ::close(fd); std::remove(temporary.c_str()); return false;
+        ::close(fd);
+        std::remove(temporary.c_str());
+        return false;
     }
     const size_t written = std::fwrite(body.data(), 1, body.size(), file);
     const bool flushed = std::fflush(file) == 0;
@@ -841,18 +933,22 @@ const char* const kCommandHelp[] = {
 
 bool command_getkeys(Op& op, bool with_flags) {
     if (op.argc() < 3) {
-        reply_err(op.sink(), "ERR Unknown subcommand or wrong number of arguments for 'GETKEYS'. Try COMMAND HELP.");
+        reply_err(
+            op.sink(),
+            "ERR Unknown subcommand or wrong number of arguments for 'GETKEYS'. Try COMMAND HELP.");
         return true;
     }
     const CommandMetadata* metadata = command_metadata_resolve(op, 2);
-    if (!metadata) { reply_err(op.sink(), "ERR Invalid command specified"); return true; }
+    if (!metadata) {
+        reply_err(op.sink(), "ERR Invalid command specified");
+        return true;
+    }
     if (!command_metadata_arity_ok(*metadata, op.argc() - 2)) {
         reply_err(op.sink(), "ERR Invalid number of arguments specified for command");
         return true;
     }
     std::vector<CommandKeyMetadata> keys;
-    const CommandMetadataKeysResult result =
-        command_metadata_collect_keys(op, 2, *metadata, keys);
+    const CommandMetadataKeysResult result = command_metadata_collect_keys(op, 2, *metadata, keys);
     if (result == CommandMetadataKeysResult::InvalidArguments) {
         reply_err(op.sink(), "ERR Invalid arguments specified for command");
         return true;
@@ -864,7 +960,10 @@ bool command_getkeys(Op& op, bool with_flags) {
     auto sink = op.sink();
     reply_array_header(sink, keys.size());
     for (const CommandKeyMetadata& key : keys) {
-        if (!with_flags) { reply_bulk(sink, op.arg(key.argument)); continue; }
+        if (!with_flags) {
+            reply_bulk(sink, op.arg(key.argument));
+            continue;
+        }
         reply_array_header(sink, 2);
         reply_bulk(sink, op.arg(key.argument));
         reply_set_header(sink, static_cast<uint64_t>(__builtin_popcount(key.flags)), op.resp3());
@@ -906,7 +1005,7 @@ bool command_list(Op& op) {
     std::vector<std::string> names;
     for (uint32_t i = 0; i < command_metadata_size(); i++) {
         const CommandMetadata* spec = command_metadata_at(i);
-        if (filter_module) continue;                  // no module system: the answer is always none
+        if (filter_module) continue;  // no module system: the answer is always none
         const Slice metadata_name = command_metadata_name(*spec);
         // DB0 needs this append call to retain PRE's SHUTDOWN inlining after removing the
         // error path. The multi-database build retains its original constructor spelling.
@@ -917,8 +1016,9 @@ bool command_list(Op& op) {
         std::string name(metadata_name.p, metadata_name.n);
 #endif
         if (filter_pattern &&
-            !command_glob_match(argument, Slice(name.data(),
-                                                static_cast<uint32_t>(name.size())), true)) continue;
+            !command_glob_match(argument, Slice(name.data(), static_cast<uint32_t>(name.size())),
+                                true))
+            continue;
         if (filter_aclcat && !(command_metadata_categories(*spec) & category_bit)) continue;
         names.push_back(std::move(name));
     }
@@ -935,14 +1035,16 @@ WaitCommandResult server_tail_prepare_wait(Op& op, uint64_t& timeout_ms, Client*
     if (op.argc() == 4) {
         int64_t local = 0, replicas = 0, timeout = 0;
         if (!cfg_parse_integer(op.arg(1), local)) {
-            reply_invalid_integer(op); return WaitCommandResult::Error;
+            reply_invalid_integer(op);
+            return WaitCommandResult::Error;
         }
         if (local < 0 || local > 1) {
             reply_err(op.sink(), "ERR value is out of range, value must between 0 and 1");
             return WaitCommandResult::Error;
         }
         if (!cfg_parse_integer(op.arg(2), replicas)) {
-            reply_invalid_integer(op); return WaitCommandResult::Error;
+            reply_invalid_integer(op);
+            return WaitCommandResult::Error;
         }
         if (replicas < 0) {
             reply_err(op.sink(), "ERR value is out of range, must be positive");
@@ -953,25 +1055,28 @@ WaitCommandResult server_tail_prepare_wait(Op& op, uint64_t& timeout_ms, Client*
             return WaitCommandResult::Error;
         }
         if (timeout < 0) {
-            reply_err(op.sink(), "ERR timeout is negative"); return WaitCommandResult::Error;
+            reply_err(op.sink(), "ERR timeout is negative");
+            return WaitCommandResult::Error;
         }
         timespec now{};
         ::clock_gettime(CLOCK_REALTIME, &now);
         const int64_t now_ms = static_cast<int64_t>(now.tv_sec) * 1000 + now.tv_nsec / 1000000;
         if (timeout > INT64_MAX - now_ms) {
-            reply_err(op.sink(), "ERR timeout is out of range"); return WaitCommandResult::Error;
+            reply_err(op.sink(), "ERR timeout is out of range");
+            return WaitCommandResult::Error;
         }
         Server* server = command_server();
         if (local && (!server || !server->aof().configured())) {
-            reply_err(op.sink(),
+            reply_err(
+                op.sink(),
                 "ERR WAITAOF cannot be used when numlocal is set but appendonly is disabled.");
             return WaitCommandResult::Error;
         }
         timeout_ms = static_cast<uint64_t>(timeout);
         if (!client) client = command_local_client();
         const bool ack = server && client && server->aof().local_ack(client->id());
-        return replicas || (local && !ack)
-            ? WaitCommandResult::Unsatisfied : WaitCommandResult::Immediate;
+        return replicas || (local && !ack) ? WaitCommandResult::Unsatisfied
+                                           : WaitCommandResult::Immediate;
     }
     int64_t replicas = 0, timeout = 0;
     if (!parse_i64(op.arg(1), replicas)) {
@@ -1000,13 +1105,12 @@ WaitCommandResult server_tail_prepare_wait(Op& op, uint64_t& timeout_ms, Client*
 }
 
 bool server_tail_wait_ready(const Op& op, Client* client) {
-    if (op.argc() != 4) return false; // WAIT still has no replica to acknowledge.
+    if (op.argc() != 4) return false;  // WAIT still has no replica to acknowledge.
     int64_t local = 0, replicas = 0;
     if (!cfg_parse_integer(op.arg(1), local) || !cfg_parse_integer(op.arg(2), replicas))
-        return false; // already validated at admission
+        return false;  // already validated at admission
     Server* server = command_server();
-    return replicas == 0 && (!local ||
-        (server && client && server->aof().local_ack(client->id())));
+    return replicas == 0 && (!local || (server && client && server->aof().local_ack(client->id())));
 }
 
 void server_tail_reply_wait(Op& op, Client* client) {
@@ -1081,30 +1185,30 @@ bool command_prepare_subcmd_route(Server& server, Op& op) {
     return true;
 }
 
-static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */ kTable[] = {
     // name       min max flags                                                  handler       first last step
-    {"TIME",        1,  1, CmdFlags::ConnLocal,                                  cmd_time,       0,  0, 0},
-    {"LOLWUT",      1, -1, CmdFlags::ConnLocal,                                  cmd_lolwut,     0,  0, 0},
-    {"ROLE",        1,  1, CmdFlags::ConnLocal,                                  cmd_role,       0,  0, 0},
-    {"WAIT",        3,  3, CmdFlags::ConnLocal | CmdFlags::OrderedLocal |
-                                CmdFlags::DeferredLocal,                           cmd_wait,       0,  0, 0},
-    {"WAITAOF",     4,  4, CmdFlags::ConnLocal | CmdFlags::OrderedLocal | CmdFlags::DeferredLocal,                                  cmd_waitaof,    0,  0, 0},
-    {"FAILOVER",    1,  2, CmdFlags::ConnLocal | CmdFlags::Admin,                cmd_failover,   0,  0, 0},
-    {"REPLICAOF",   3,  3, CmdFlags::ConnLocal | CmdFlags::Admin,                cmd_replicaof,  0,  0, 0},
-    {"SLAVEOF",     3,  3, CmdFlags::ConnLocal | CmdFlags::Admin,                cmd_replicaof,  0,  0, 0},
-    {"PFSELFTEST",  1,  1, CmdFlags::ConnLocal | CmdFlags::Admin,                cmd_pfselftest, 0,  0, 0},
-    {"SHUTDOWN",    1, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                cmd_shutdown,   0,  0, 0},
+    {"TIME", 1, 1, CmdFlags::ConnLocal, cmd_time, 0, 0, 0},
+    {"LOLWUT", 1, -1, CmdFlags::ConnLocal, cmd_lolwut, 0, 0, 0},
+    {"ROLE", 1, 1, CmdFlags::ConnLocal, cmd_role, 0, 0, 0},
+    {"WAIT", 3, 3, CmdFlags::ConnLocal | CmdFlags::OrderedLocal | CmdFlags::DeferredLocal, cmd_wait,
+     0, 0, 0},
+    {"WAITAOF", 4, 4, CmdFlags::ConnLocal | CmdFlags::OrderedLocal | CmdFlags::DeferredLocal,
+     cmd_waitaof, 0, 0, 0},
+    {"FAILOVER", 1, 2, CmdFlags::ConnLocal | CmdFlags::Admin, cmd_failover, 0, 0, 0},
+    {"REPLICAOF", 3, 3, CmdFlags::ConnLocal | CmdFlags::Admin, cmd_replicaof, 0, 0, 0},
+    {"SLAVEOF", 3, 3, CmdFlags::ConnLocal | CmdFlags::Admin, cmd_replicaof, 0, 0, 0},
+    {"PFSELFTEST", 1, 1, CmdFlags::ConnLocal | CmdFlags::Admin, cmd_pfselftest, 0, 0, 0},
+    {"SHUTDOWN", 1, -1, CmdFlags::ConnLocal | CmdFlags::Admin, cmd_shutdown, 0, 0, 0},
     // Read-only SORT: same scatter lowering, same option grammar minus STORE.
-    {"SORT_RO",     2, -1, CmdFlags::Readonly | CmdFlags::MultiShard,            cmd_xshard_only,1,  1, 1},
-    {"OBJECT",      2,  3, CmdFlags::Readonly | CmdFlags::Admin |
-                           CmdFlags::CursorShard | CmdFlags::SubcmdRoute,        cmd_object,     2,  2, 1,
-                                                                                 cmd_object_notify},
-    {"MEMORY",      2,  5, CmdFlags::Readonly | CmdFlags::Admin |
-                           CmdFlags::CursorShard | CmdFlags::SubcmdRoute,        cmd_memory,     2,  2, 1},
+    {"SORT_RO", 2, -1, CmdFlags::Readonly | CmdFlags::MultiShard, cmd_xshard_only, 1, 1, 1},
+    {"OBJECT", 2, 3,
+     CmdFlags::Readonly | CmdFlags::Admin | CmdFlags::CursorShard | CmdFlags::SubcmdRoute,
+     cmd_object, 2, 2, 1, cmd_object_notify},
+    {"MEMORY", 2, 5,
+     CmdFlags::Readonly | CmdFlags::Admin | CmdFlags::CursorShard | CmdFlags::SubcmdRoute,
+     cmd_memory, 2, 2, 1},
 };
 
-CommandTable server_tail_command_table() {
-    return {kTable, sizeof(kTable) / sizeof(kTable[0])};
-}
+CommandTable server_tail_command_table() { return {kTable, sizeof(kTable) / sizeof(kTable[0])}; }
 
 }  // namespace tomo

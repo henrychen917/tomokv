@@ -12,51 +12,119 @@ namespace tomo {
 
 void multi_database_stats(Shard&, DatabaseStatsTable&, uint64_t cut, uint64_t origin_conn_id);
 
-enum class MultiVerb : uint8_t { Other, V_acl, V_blmpop, V_blpop, V_brpop, V_bzmpop, V_bzpopmax, V_bzpopmin, V_debug, V_del, V_discard, V_echo, V_exec, V_exists, V_flushall, V_flushdb, V_mget, V_move, V_mset, V_msetnx, V_multi, V_ping, V_psubscribe, V_publish, V_punsubscribe, V_scan, V_select, V_sort, V_sort_ro, V_spublish, V_ssubscribe, V_subscribe, V_sunsubscribe, V_swapdb, V_touch, V_unlink, V_unsubscribe, V_unwatch, V_watch, V_xreadgroup, V_pfcount, V_pfmerge };
+enum class MultiVerb : uint8_t {
+    Other,
+    V_acl,
+    V_blmpop,
+    V_blpop,
+    V_brpop,
+    V_bzmpop,
+    V_bzpopmax,
+    V_bzpopmin,
+    V_debug,
+    V_del,
+    V_discard,
+    V_echo,
+    V_exec,
+    V_exists,
+    V_flushall,
+    V_flushdb,
+    V_mget,
+    V_move,
+    V_mset,
+    V_msetnx,
+    V_multi,
+    V_ping,
+    V_psubscribe,
+    V_publish,
+    V_punsubscribe,
+    V_scan,
+    V_select,
+    V_sort,
+    V_sort_ro,
+    V_spublish,
+    V_ssubscribe,
+    V_subscribe,
+    V_sunsubscribe,
+    V_swapdb,
+    V_touch,
+    V_unlink,
+    V_unsubscribe,
+    V_unwatch,
+    V_watch,
+    V_xreadgroup,
+    V_pfcount,
+    V_pfmerge
+};
 MultiVerb multi_verb(const CommandSpec* spec) {
     static const auto by_id = [] {
         std::array<MultiVerb, kAclCommandCategoryCount> result{};
         if (const auto* row = command_lookup(Slice("acl"))) result[row->id] = MultiVerb::V_acl;
-        if (const auto* row = command_lookup(Slice("blmpop"))) result[row->id] = MultiVerb::V_blmpop;
+        if (const auto* row = command_lookup(Slice("blmpop")))
+            result[row->id] = MultiVerb::V_blmpop;
         if (const auto* row = command_lookup(Slice("blpop"))) result[row->id] = MultiVerb::V_blpop;
         if (const auto* row = command_lookup(Slice("brpop"))) result[row->id] = MultiVerb::V_brpop;
-        if (const auto* row = command_lookup(Slice("bzmpop"))) result[row->id] = MultiVerb::V_bzmpop;
-        if (const auto* row = command_lookup(Slice("bzpopmax"))) result[row->id] = MultiVerb::V_bzpopmax;
-        if (const auto* row = command_lookup(Slice("bzpopmin"))) result[row->id] = MultiVerb::V_bzpopmin;
+        if (const auto* row = command_lookup(Slice("bzmpop")))
+            result[row->id] = MultiVerb::V_bzmpop;
+        if (const auto* row = command_lookup(Slice("bzpopmax")))
+            result[row->id] = MultiVerb::V_bzpopmax;
+        if (const auto* row = command_lookup(Slice("bzpopmin")))
+            result[row->id] = MultiVerb::V_bzpopmin;
         if (const auto* row = command_lookup(Slice("debug"))) result[row->id] = MultiVerb::V_debug;
         if (const auto* row = command_lookup(Slice("del"))) result[row->id] = MultiVerb::V_del;
-        if (const auto* row = command_lookup(Slice("discard"))) result[row->id] = MultiVerb::V_discard;
+        if (const auto* row = command_lookup(Slice("discard")))
+            result[row->id] = MultiVerb::V_discard;
         if (const auto* row = command_lookup(Slice("echo"))) result[row->id] = MultiVerb::V_echo;
         if (const auto* row = command_lookup(Slice("exec"))) result[row->id] = MultiVerb::V_exec;
-        if (const auto* row = command_lookup(Slice("exists"))) result[row->id] = MultiVerb::V_exists;
-        if (const auto* row = command_lookup(Slice("flushall"))) result[row->id] = MultiVerb::V_flushall;
-        if (const auto* row = command_lookup(Slice("flushdb"))) result[row->id] = MultiVerb::V_flushdb;
+        if (const auto* row = command_lookup(Slice("exists")))
+            result[row->id] = MultiVerb::V_exists;
+        if (const auto* row = command_lookup(Slice("flushall")))
+            result[row->id] = MultiVerb::V_flushall;
+        if (const auto* row = command_lookup(Slice("flushdb")))
+            result[row->id] = MultiVerb::V_flushdb;
         if (const auto* row = command_lookup(Slice("mget"))) result[row->id] = MultiVerb::V_mget;
         if (const auto* row = command_lookup(Slice("move"))) result[row->id] = MultiVerb::V_move;
         if (const auto* row = command_lookup(Slice("mset"))) result[row->id] = MultiVerb::V_mset;
-        if (const auto* row = command_lookup(Slice("msetnx"))) result[row->id] = MultiVerb::V_msetnx;
+        if (const auto* row = command_lookup(Slice("msetnx")))
+            result[row->id] = MultiVerb::V_msetnx;
         if (const auto* row = command_lookup(Slice("multi"))) result[row->id] = MultiVerb::V_multi;
         if (const auto* row = command_lookup(Slice("ping"))) result[row->id] = MultiVerb::V_ping;
-        if (const auto* row = command_lookup(Slice("psubscribe"))) result[row->id] = MultiVerb::V_psubscribe;
-        if (const auto* row = command_lookup(Slice("publish"))) result[row->id] = MultiVerb::V_publish;
-        if (const auto* row = command_lookup(Slice("punsubscribe"))) result[row->id] = MultiVerb::V_punsubscribe;
+        if (const auto* row = command_lookup(Slice("psubscribe")))
+            result[row->id] = MultiVerb::V_psubscribe;
+        if (const auto* row = command_lookup(Slice("publish")))
+            result[row->id] = MultiVerb::V_publish;
+        if (const auto* row = command_lookup(Slice("punsubscribe")))
+            result[row->id] = MultiVerb::V_punsubscribe;
         if (const auto* row = command_lookup(Slice("scan"))) result[row->id] = MultiVerb::V_scan;
-        if (const auto* row = command_lookup(Slice("select"))) result[row->id] = MultiVerb::V_select;
+        if (const auto* row = command_lookup(Slice("select")))
+            result[row->id] = MultiVerb::V_select;
         if (const auto* row = command_lookup(Slice("sort"))) result[row->id] = MultiVerb::V_sort;
-        if (const auto* row = command_lookup(Slice("sort_ro"))) result[row->id] = MultiVerb::V_sort_ro;
-        if (const auto* row = command_lookup(Slice("spublish"))) result[row->id] = MultiVerb::V_spublish;
-        if (const auto* row = command_lookup(Slice("ssubscribe"))) result[row->id] = MultiVerb::V_ssubscribe;
-        if (const auto* row = command_lookup(Slice("subscribe"))) result[row->id] = MultiVerb::V_subscribe;
-        if (const auto* row = command_lookup(Slice("sunsubscribe"))) result[row->id] = MultiVerb::V_sunsubscribe;
-        if (const auto* row = command_lookup(Slice("swapdb"))) result[row->id] = MultiVerb::V_swapdb;
+        if (const auto* row = command_lookup(Slice("sort_ro")))
+            result[row->id] = MultiVerb::V_sort_ro;
+        if (const auto* row = command_lookup(Slice("spublish")))
+            result[row->id] = MultiVerb::V_spublish;
+        if (const auto* row = command_lookup(Slice("ssubscribe")))
+            result[row->id] = MultiVerb::V_ssubscribe;
+        if (const auto* row = command_lookup(Slice("subscribe")))
+            result[row->id] = MultiVerb::V_subscribe;
+        if (const auto* row = command_lookup(Slice("sunsubscribe")))
+            result[row->id] = MultiVerb::V_sunsubscribe;
+        if (const auto* row = command_lookup(Slice("swapdb")))
+            result[row->id] = MultiVerb::V_swapdb;
         if (const auto* row = command_lookup(Slice("touch"))) result[row->id] = MultiVerb::V_touch;
-        if (const auto* row = command_lookup(Slice("unlink"))) result[row->id] = MultiVerb::V_unlink;
-        if (const auto* row = command_lookup(Slice("unsubscribe"))) result[row->id] = MultiVerb::V_unsubscribe;
-        if (const auto* row = command_lookup(Slice("unwatch"))) result[row->id] = MultiVerb::V_unwatch;
+        if (const auto* row = command_lookup(Slice("unlink")))
+            result[row->id] = MultiVerb::V_unlink;
+        if (const auto* row = command_lookup(Slice("unsubscribe")))
+            result[row->id] = MultiVerb::V_unsubscribe;
+        if (const auto* row = command_lookup(Slice("unwatch")))
+            result[row->id] = MultiVerb::V_unwatch;
         if (const auto* row = command_lookup(Slice("watch"))) result[row->id] = MultiVerb::V_watch;
-        if (const auto* row = command_lookup(Slice("xreadgroup"))) result[row->id] = MultiVerb::V_xreadgroup;
-        if (const auto* row = command_lookup(Slice("pfcount"))) result[row->id] = MultiVerb::V_pfcount;
-        if (const auto* row = command_lookup(Slice("pfmerge"))) result[row->id] = MultiVerb::V_pfmerge;
+        if (const auto* row = command_lookup(Slice("xreadgroup")))
+            result[row->id] = MultiVerb::V_xreadgroup;
+        if (const auto* row = command_lookup(Slice("pfcount")))
+            result[row->id] = MultiVerb::V_pfcount;
+        if (const auto* row = command_lookup(Slice("pfmerge")))
+            result[row->id] = MultiVerb::V_pfmerge;
         return result;
     }();
     return spec && spec->id < by_id.size() ? by_id[spec->id] : MultiVerb::Other;
@@ -97,9 +165,7 @@ enum class MultiCommandKind : uint8_t {
     DebugSleep,
 };
 
-enum class MultiBlockingPop : uint8_t {
-    None, Blpop, Brpop, Blmpop, Bzpopmin, Bzpopmax, Bzmpop
-};
+enum class MultiBlockingPop : uint8_t { None, Blpop, Brpop, Blmpop, Bzpopmin, Bzpopmax, Bzmpop };
 
 struct MultiValue {
     bool present = false;
@@ -131,8 +197,8 @@ struct MultiCommand {
     std::atomic<bool> finished{false};
     std::atomic<uint64_t> slow_ns{0};
     std::atomic<uint64_t> slow_sleep_started{0};
-    int64_t slow_threshold = -1; // published by command/attempt completion
-    bool io_effect_done = false; // pause effects publish inside the commit bracket
+    int64_t slow_threshold = -1;  // published by command/attempt completion
+    bool io_effect_done = false;  // pause effects publish inside the commit bracket
     ScatterState* scatter = nullptr;
     // ScatterState::groups is rebuilt between an xshard child's waves.  A barrier-only shard must
     // decide whether it belongs to the PUBLISHED wave without consulting that mutable table: the
@@ -154,15 +220,15 @@ struct MultiWriteKey {
     uint64_t hash = 0;
     int32_t shard = -1;
     uint8_t ns = 0;
-    mutable bool signals_watch = true; // Not part of the hash/equality identity.
+    mutable bool signals_watch = true;  // Not part of the hash/equality identity.
     bool claim_finalizes = false;
 };
 
 struct MultiWriteKeyHash {
     size_t operator()(const MultiWriteKey& key) const {
-        return static_cast<size_t>(key.hash ^
-            (static_cast<uint64_t>(static_cast<uint32_t>(key.shard)) *
-             0x9e3779b97f4a7c15ULL));
+        return static_cast<size_t>(
+            key.hash ^
+            (static_cast<uint64_t>(static_cast<uint32_t>(key.shard)) * 0x9e3779b97f4a7c15ULL));
     }
 };
 
@@ -181,10 +247,13 @@ struct MultiSession {
 #endif
     uint32_t last_attempts = 0;
     std::vector<MultiQueuedCommand> queue;
-    uint64_t query_bytes = 0; // Redis query accounting: argv payload plus one pointer per arg
-    void clear_queue() { queue.clear(); query_bytes = 0; }
+    uint64_t query_bytes = 0;  // Redis query accounting: argv payload plus one pointer per arg
+    void clear_queue() {
+        queue.clear();
+        query_bytes = 0;
+    }
     std::vector<MultiWatchedKey> watched;
-    MultiExecState* pending = nullptr;       // prepared, but not yet published to owner queues
+    MultiExecState* pending = nullptr;  // prepared, but not yet published to owner queues
 };
 
 #include "flip_session.inc"
@@ -252,7 +321,9 @@ struct alignas(8) MultiExecState : SnapshotCut {
     std::vector<MultiWriteKey> write_keys;
     std::unique_ptr<DatabaseMap::Map> database_map;
     std::unique_ptr<DatabaseMap::Map> database_publish;
-    struct Swap { uint8_t first, second, physical_first, physical_second; };
+    struct Swap {
+        uint8_t first, second, physical_first, physical_second;
+    };
     std::vector<Swap> database_swaps;
     std::vector<std::vector<std::pair<Client*, uint64_t>>> database_watch;
     std::unordered_set<MultiWriteKey, MultiWriteKeyHash, MultiWriteKeyEqual> write_key_set;
@@ -276,12 +347,12 @@ struct alignas(8) MultiExecState : SnapshotCut {
     // belong to the lowered-child path, not every two-INCR transaction.
     std::unique_ptr<ScatterArenaPool> scatter_pool;
     MultiDecision decision;
-    bool doomed = false;               // published by finalized
+    bool doomed = false;  // published by finalized
     MultiRetryNode retry;
     uint64_t exec_op_id = UINT64_MAX;
     uint32_t attempt = 0;
     bool has_publication = false;
-    bool publication_started = false; // IO-owned after all participant tasks finish
+    bool publication_started = false;  // IO-owned after all participant tasks finish
     bool has_subscription = false;
     size_t io_cursor = 0;
     std::atomic<bool> backoff{false};
@@ -314,7 +385,6 @@ void multi_notify_source(Shard& shard, Op& source, uint32_t order) {
     notify_execute_source(shard, source, order);
 }
 
-
 void multi_ring_participants(MultiExecState& state) {
     if (state.server->thread_mode() != ThreadMode::Fused) return;
     for (int32_t sid : state.shards)
@@ -325,9 +395,10 @@ void multi_ring_participants(MultiExecState& state) {
 void multi_enqueue_node(Server& server, uint32_t io, MultiRetryNode& node) {
     auto& lane = server.multi_retry_lane(io);
     auto* prior = lane.head.load(std::memory_order_relaxed);
-    do { node.next = prior; }
-    while (!lane.head.compare_exchange_weak(prior, &node,
-                std::memory_order_seq_cst, std::memory_order_relaxed));
+    do {
+        node.next = prior;
+    } while (!lane.head.compare_exchange_weak(prior, &node, std::memory_order_seq_cst,
+                                              std::memory_order_relaxed));
     // Pair with the one-time binder's SC store/load. If a startup fence reaches
     // a worker before it binds, the binder observes the queued head instead.
     if (auto* signal = lane.signal.load(std::memory_order_seq_cst))
@@ -343,28 +414,31 @@ MultiDecision* multi_record_decision(const AtomicEntry& entry) {
         return entry.group_epoch ? reinterpret_cast<MultiDecision*>(entry.group_epoch) : nullptr;
     if (!entry.group->multi_child || !entry.group->multi_parent) return nullptr;
     return &const_cast<MultiExecState*>(
-        static_cast<const MultiExecState*>(entry.group->multi_parent))->decision;
+                static_cast<const MultiExecState*>(entry.group->multi_parent))
+                ->decision;
 }
 
 // An owner that sees the parent's won CAS may run before the finalizer reaches
 // this child's epoch store. Help before find() can skip that committed image.
 void multi_help_child(AtomicEntry& entry, uint64_t ticket) {
-    if (!entry.group || !entry.group->multi_child || !ticket ||
-        ticket == kAtomicCancelledEpoch) return;
+    if (!entry.group || !entry.group->multi_child || !ticket || ticket == kAtomicCancelledEpoch)
+        return;
     uint64_t zero = 0;
     entry.group->epoch.compare_exchange_strong(zero, ticket, std::memory_order_acq_rel);
 }
 
-uint64_t /* TOMO_TOOL_BIND multi_cancel_decision */multi_cancel_decision(MultiDecision& decision, uint32_t shard,
-                               TxnCounter cause = TxnCounter::Dooms) {
+uint64_t /* TOMO_TOOL_BIND multi_cancel_decision */ multi_cancel_decision(
+    MultiDecision& decision, uint32_t shard, TxnCounter cause = TxnCounter::Dooms) {
     uint64_t epoch = decision.epoch.load(std::memory_order_acquire);
     if (decision.phase.load(std::memory_order_acquire) == TxnPhase::Executing) {
-        if (!epoch) decision.owner->server->note_txn(
-            decision.owner->server->worker_of_shard(shard), TxnCounter::OrderViolations);
+        if (!epoch)
+            decision.owner->server->note_txn(decision.owner->server->worker_of_shard(shard),
+                                             TxnCounter::OrderViolations);
         return epoch;
     }
-    if (!epoch) decision.epoch.compare_exchange_strong(
-        epoch, kAtomicCancelledEpoch, std::memory_order_acq_rel);
+    if (!epoch)
+        decision.epoch.compare_exchange_strong(epoch, kAtomicCancelledEpoch,
+                                               std::memory_order_acq_rel);
     if (!epoch || epoch == kAtomicCancelledEpoch) {
         // The caller owns the successful blind-restart phase CAS. Count it
         // even when the last placer completed cancellation in the phase gap.
@@ -377,21 +451,23 @@ uint64_t /* TOMO_TOOL_BIND multi_cancel_decision */multi_cancel_decision(MultiDe
 }
 }
 
-namespace { void flush_cancel_group_record(AtomicEntry& entry); }
+namespace {
+void flush_cancel_group_record(AtomicEntry& entry);
+}
 
 void multi_cancel_record(AtomicEntry& entry, const ScatterState* self) {
     if (MultiDecision* decision = multi_record_decision(entry)) {
         if (self && self->multi_parent == decision->owner) return;
         const uint32_t shard = entry.plain()
-            ? decision->owner->server->router().shard_of(entry.plain_hash)
-            : entry.group->keys[entry.group->key_order[entry.begin]].shard;
+                                   ? decision->owner->server->router().shard_of(entry.plain_hash)
+                                   : entry.group->keys[entry.group->key_order[entry.begin]].shard;
         const auto epoch = decision->epoch.load(std::memory_order_acquire);
         multi_help_child(entry, epoch);
         // Scatter's visitor precedes its claim gate. Merely inspecting a
         // blocked candidate there is expected; a plain install reaching one is not.
         if (!self && !epoch && !decision->aborted.load(std::memory_order_acquire))
-            decision->owner->server->note_txn(
-                decision->owner->server->worker_of_shard(shard), TxnCounter::OrderViolations);
+            decision->owner->server->note_txn(decision->owner->server->worker_of_shard(shard),
+                                              TxnCounter::OrderViolations);
         return;
     }
     if (!entry.group || entry.group == self) return;
@@ -413,7 +489,7 @@ void multi_cancel_record(AtomicEntry& entry, const ScatterState* self) {
         return;
     }
     if (script.epoch.compare_exchange_strong(undecided, kAtomicCancelledEpoch,
-                                            std::memory_order_acq_rel)) {
+                                             std::memory_order_acq_rel)) {
         script.script_conflict.store(true, std::memory_order_release);
         script.aborted.store(true, std::memory_order_release);
     }
@@ -424,15 +500,14 @@ void multi_cancel_intent(AtomicScriptIntent& intent, const ScatterState* self) {
     // Group wildcard intents are lifetime anchors, not dependencies. Claims
     // gate writes on the actual keys; unrelated keys must ignore this anchor.
     if (unit.unit_kind == UnitRef::Kind::Group) return;
-    if (unit.unit_kind != UnitRef::Kind::Txn ||
-        (self && self->multi_parent == unit.unit)) return;
+    if (unit.unit_kind != UnitRef::Kind::Txn || (self && self->multi_parent == unit.unit)) return;
     auto& decision = *reinterpret_cast<MultiDecision*>(unit.epoch);
-    const uint32_t shard = intent.kind == 2 ? intent.hash
-        : decision.owner->server->router().shard_of(intent.hash);
+    const uint32_t shard =
+        intent.kind == 2 ? intent.hash : decision.owner->server->router().shard_of(intent.hash);
     if (!self && !decision.epoch.load(std::memory_order_acquire) &&
         !decision.aborted.load(std::memory_order_acquire))
         decision.owner->server->note_txn(decision.owner->server->worker_of_shard(shard),
-                                        TxnCounter::OrderViolations);
+                                         TxnCounter::OrderViolations);
 }
 
 void atomic_cancel_unit_record(AtomicEntry& entry) { multi_cancel_record(entry); }
@@ -446,10 +521,10 @@ void atomic_shutdown_unit_intent(AtomicScriptIntent& intent) {
             state.aborted.store(true, std::memory_order_relaxed);
             aof_abort_scatter_group(state);
         }
-        const uint32_t shard = intent.kind == 2 ? intent.hash
-            : state.server->router().shard_of(intent.hash);
-        state.server->note_txn(state.server->worker_of_shard(shard),
-                               TxnCounter::IntentsLive, uint64_t{0} - 1);
+        const uint32_t shard =
+            intent.kind == 2 ? intent.hash : state.server->router().shard_of(intent.hash);
+        state.server->note_txn(state.server->worker_of_shard(shard), TxnCounter::IntentsLive,
+                               uint64_t{0} - 1);
         return;
     }
     if (unit.unit_kind != UnitRef::Kind::Txn) std::abort();
@@ -462,10 +537,10 @@ void atomic_shutdown_unit_intent(AtomicScriptIntent& intent) {
         decision.aborted.store(true, std::memory_order_relaxed);
         aof_abort_group(state.aof_group);
     }
-    const uint32_t shard = intent.kind == 2 ? intent.hash
-        : state.server->router().shard_of(intent.hash);
-    state.server->note_txn(state.server->worker_of_shard(shard),
-                           TxnCounter::IntentsLive, uint64_t{0} - 1);
+    const uint32_t shard =
+        intent.kind == 2 ? intent.hash : state.server->router().shard_of(intent.hash);
+    state.server->note_txn(state.server->worker_of_shard(shard), TxnCounter::IntentsLive,
+                           uint64_t{0} - 1);
 }
 
 namespace {
@@ -475,9 +550,14 @@ struct MultiWatchMapScope {
     const DatabaseMap::Map* selected;
     const DatabaseMap::Map* previous = nullptr;
     explicit MultiWatchMapScope(const DatabaseMap::Map* map) : selected(map) {
-        if (selected) { previous = multi_watch_map; multi_watch_map = selected; }
+        if (selected) {
+            previous = multi_watch_map;
+            multi_watch_map = selected;
+        }
     }
-    ~MultiWatchMapScope() { if (selected) multi_watch_map = previous; }
+    ~MultiWatchMapScope() {
+        if (selected) multi_watch_map = previous;
+    }
 };
 uint8_t watch_write_database(Server* server, uint8_t physical) {
     if (multi_watch_map) {
@@ -494,7 +574,6 @@ void watch_note_database(Shard::WatchReservation& reservation, Server* server, u
 
 constexpr uintptr_t kMultiTaskTag = 1;
 
-
 MultiSession* ensure_multi_session(Client& client) {
     if (client.multi_session()) return client.multi_session();
     auto* session = new (std::nothrow) MultiSession;
@@ -503,8 +582,7 @@ MultiSession* ensure_multi_session(Client& client) {
 }
 
 void release_admission(MultiExecState& state) {
-    if (state.server)
-        state.server->atomic_apply_close(state.owner_io, state.apply_open);
+    if (state.server) state.server->atomic_apply_close(state.owner_io, state.apply_open);
     if (!state.admitted) return;
     state.server->atomic_retire_group(state.owner_io, state.admission_generation);
     state.admitted = false;
@@ -531,7 +609,8 @@ bool multi_state_owns_epoch(const MultiExecState& state, const void* group_epoch
 
 bool multi_records_done(const MultiExecState& state) {
     if (state.record_refs.load(std::memory_order_acquire) != 0 ||
-        state.watch_refs.load(std::memory_order_acquire) != 0) return false;
+        state.watch_refs.load(std::memory_order_acquire) != 0)
+        return false;
     for (const auto& command : state.commands)
         if (command->scatter && !xshard_multi_child_records_done(*command->scatter)) return false;
     return true;
@@ -551,8 +630,7 @@ void destroy_multi_children(MultiExecState& state) {
 
 void destroy_multi_state(MultiExecState* state) {
     if (!state) return;
-    if (__builtin_expect(atomic_tripwire_enabled(), false))
-        atomic_tripwire_forget_scope(state);
+    if (__builtin_expect(atomic_tripwire_enabled(), false)) atomic_tripwire_forget_scope(state);
     if (!multi_records_done(*state)) std::abort();
     // The cut bracket is register-at-dispatch / unregister-at-retire, both on the connection's own
     // IO thread. Reaching destruction still holding it would mean this thread's published cleanup
@@ -570,20 +648,23 @@ bool multi_engine_policy_refusal(const Op& op) {
     if ((control.eq_icase("acl") || control.eq_icase("subscribe") ||
          control.eq_icase("psubscribe") || control.eq_icase("ssubscribe") ||
          control.eq_icase("unsubscribe") || control.eq_icase("punsubscribe") ||
-         control.eq_icase("sunsubscribe")) && !clientcompat_post()) return true;
+         control.eq_icase("sunsubscribe")) &&
+        !clientcompat_post())
+        return true;
     // Owner decision group 5: these are engine limitations, NOT Redis no_multi flags.
     // FLUSH's range unit still owns a separate placement/decision/collapse
     // lifecycle; composing it under EXEC needs child-aware lowering. DEBUG
     // loaders need the separately approved database-boundary design.
-    return (multi_verb(op.spec) == MultiVerb::V_flushall) || (multi_verb(op.spec) == MultiVerb::V_flushdb) ||
+    return (multi_verb(op.spec) == MultiVerb::V_flushall) ||
+           (multi_verb(op.spec) == MultiVerb::V_flushdb) ||
            ((multi_verb(op.spec) == MultiVerb::V_debug) && op.argc() == 2 &&
             (op.arg(1).eq_icase("reload") || op.arg(1).eq_icase("loadaof")));
 }
 
 bool multi_subscription(MultiVerb verb) {
     return verb == MultiVerb::V_subscribe || verb == MultiVerb::V_unsubscribe ||
-        verb == MultiVerb::V_psubscribe || verb == MultiVerb::V_punsubscribe ||
-        verb == MultiVerb::V_ssubscribe || verb == MultiVerb::V_sunsubscribe;
+           verb == MultiVerb::V_psubscribe || verb == MultiVerb::V_punsubscribe ||
+           verb == MultiVerb::V_ssubscribe || verb == MultiVerb::V_sunsubscribe;
 }
 
 bool queued_copy(const Op& op, MultiQueuedCommand& out) {
@@ -591,14 +672,12 @@ bool queued_copy(const Op& op, MultiQueuedCommand& out) {
     out.verb = multi_verb(op.spec);
     try {
         out.argv.reserve(op.argc());
-        for (uint32_t i = 0; i < op.argc(); i++)
-            out.argv.emplace_back(op.arg(i).p, op.arg(i).n);
+        for (uint32_t i = 0; i < op.argc(); i++) out.argv.emplace_back(op.arg(i).p, op.arg(i).n);
     } catch (const std::bad_alloc&) {
         return false;
     }
     return true;
 }
-
 
 MultiBlockingPop multi_blocking_pop(const MultiQueuedCommand& queued) {
     if ((queued.verb == MultiVerb::V_blpop)) return MultiBlockingPop::Blpop;
@@ -616,8 +695,9 @@ void command_key_args(const MultiQueuedCommand& queued, std::vector<uint32_t>& a
     if (spec.flags & CmdFlags::ScriptRoute) {
         int64_t count = 0;
         if (queued.argv.size() < 3 ||
-            !parse_i64(Slice(queued.argv[2].data(), queued.argv[2].size()), count) ||
-            count < 0 || static_cast<uint64_t>(count) > queued.argv.size() - 3) return;
+            !parse_i64(Slice(queued.argv[2].data(), queued.argv[2].size()), count) || count < 0 ||
+            static_cast<uint64_t>(count) > queued.argv.size() - 3)
+            return;
         for (uint32_t i = 0; i < static_cast<uint32_t>(count); i++) args.push_back(3 + i);
         return;
     }
@@ -640,18 +720,17 @@ void command_key_args(const MultiQueuedCommand& queued, std::vector<uint32_t>& a
     if (blocking == MultiBlockingPop::Blmpop || blocking == MultiBlockingPop::Bzmpop) {
         int64_t parsed = 0;
         const Slice count(queued.argv[2].data(), static_cast<uint32_t>(queued.argv[2].size()));
-        if (!parse_i64(count, parsed) || parsed < 1 ||
-            static_cast<uint64_t>(parsed) > UINT32_MAX ||
-            3 + static_cast<uint64_t>(parsed) >= queued.argv.size()) return;
-        for (uint32_t arg = 3; arg < 3 + static_cast<uint32_t>(parsed); arg++)
-            args.push_back(arg);
+        if (!parse_i64(count, parsed) || parsed < 1 || static_cast<uint64_t>(parsed) > UINT32_MAX ||
+            3 + static_cast<uint64_t>(parsed) >= queued.argv.size())
+            return;
+        for (uint32_t arg = 3; arg < 3 + static_cast<uint32_t>(parsed); arg++) args.push_back(arg);
         return;
     }
     if (spec.first_key <= 0 || spec.key_step <= 0) return;
     const uint32_t last = spec.last_key < 0
-        ? static_cast<uint32_t>(queued.argv.size() - 1)
-        : std::min<uint32_t>(static_cast<uint32_t>(spec.last_key),
-                             static_cast<uint32_t>(queued.argv.size() - 1));
+                              ? static_cast<uint32_t>(queued.argv.size() - 1)
+                              : std::min<uint32_t>(static_cast<uint32_t>(spec.last_key),
+                                                   static_cast<uint32_t>(queued.argv.size() - 1));
     for (uint32_t arg = static_cast<uint32_t>(spec.first_key); arg <= last;
          arg += static_cast<uint32_t>(spec.key_step))
         args.push_back(arg);
@@ -668,15 +747,17 @@ void command_key_args(const MultiQueuedCommand& queued, std::vector<uint32_t>& a
     if ((queued.verb == MultiVerb::V_sort)) {
         uint32_t store_arg = 0;
         for (uint32_t i = 2; i < queued.argv.size(); i++) {
-            const Slice word(queued.argv[i].data(),
-                             static_cast<uint32_t>(queued.argv[i].size()));
+            const Slice word(queued.argv[i].data(), static_cast<uint32_t>(queued.argv[i].size()));
             // Mirror parse_sort_options' grammar exactly, because a BY or GET pattern may itself
             // be the word STORE and must not be mistaken for the option.
-            if (word.eq_icase("limit") && i + 2 < queued.argv.size()) i += 2;
-            else if ((word.eq_icase("by") || word.eq_icase("get")) && i + 1 < queued.argv.size()) i++;
-            else if (word.eq_icase("store") && i + 1 < queued.argv.size()) store_arg = ++i;
+            if (word.eq_icase("limit") && i + 2 < queued.argv.size())
+                i += 2;
+            else if ((word.eq_icase("by") || word.eq_icase("get")) && i + 1 < queued.argv.size())
+                i++;
+            else if (word.eq_icase("store") && i + 1 < queued.argv.size())
+                store_arg = ++i;
         }
-        if (store_arg) args.push_back(store_arg);   // last STORE wins, as the parser records it
+        if (store_arg) args.push_back(store_arg);  // last STORE wins, as the parser records it
     }
 }
 
@@ -690,7 +771,10 @@ bool multi_sort_dereferences(const MultiQueuedCommand& queued) {
         const Slice word(queued.argv[i].data(), static_cast<uint32_t>(queued.argv[i].size()));
         // Mirror parse_sort_options' grammar so an option word appearing INSIDE a pattern is not
         // mistaken for the option itself.
-        if (word.eq_icase("limit") && i + 2 < argc) { i += 2; continue; }
+        if (word.eq_icase("limit") && i + 2 < argc) {
+            i += 2;
+            continue;
+        }
         if (!(word.eq_icase("by") || word.eq_icase("get")) || i + 1 >= argc) continue;
         const std::string& pattern = queued.argv[++i];
         // `#` is the element and a pattern with no '*' is a constant nil: neither reads a key.
@@ -725,9 +809,8 @@ bool make_child_op(MultiCommand& command) {
 }
 
 bool validate_multi_blocking_timeout(Op& op, MultiBlockingPop kind) {
-    const uint32_t timeout_arg = (kind == MultiBlockingPop::Blmpop ||
-                                  kind == MultiBlockingPop::Bzmpop)
-        ? 1 : op.argc() - 1;
+    const uint32_t timeout_arg =
+        (kind == MultiBlockingPop::Blmpop || kind == MultiBlockingPop::Bzmpop) ? 1 : op.argc() - 1;
     int64_t timeout_ms = 0;
     if (blocking_reply_timeout_error(op, parse_timeout_ms(op.arg(timeout_arg), timeout_ms)))
         return false;
@@ -752,8 +835,7 @@ bool normalize_multi_blocking_pop(MultiCommand& command) {
     const char* alias = list ? "LMPOP" : "ZMPOP";
     const CommandSpec* spec = command_lookup(Slice(alias, 5));
     if (!spec) return false;
-    if (command.queued.spec->flags & CmdFlags::NotifySelected)
-        spec = command_notify_variant(spec);
+    if (command.queued.spec->flags & CmdFlags::NotifySelected) spec = command_notify_variant(spec);
 
     command.exec_argv.clear();
     if (single) {
@@ -762,14 +844,14 @@ bool normalize_multi_blocking_pop(MultiCommand& command) {
         command.exec_argv.push_back(std::to_string(command.queued.argv.size() - 2));
         for (uint32_t i = 1; i + 1 < command.queued.argv.size(); i++)
             command.exec_argv.push_back(command.queued.argv[i]);
-        const bool right_or_max = kind == MultiBlockingPop::Brpop ||
-                                  kind == MultiBlockingPop::Bzpopmax;
+        const bool right_or_max =
+            kind == MultiBlockingPop::Brpop || kind == MultiBlockingPop::Bzpopmax;
         command.exec_argv.emplace_back(list ? (right_or_max ? "RIGHT" : "LEFT")
                                             : (right_or_max ? "MAX" : "MIN"));
         command.exec_argv.emplace_back("COUNT");
         command.exec_argv.emplace_back("1");
-        command.pop_reply_shape = static_cast<uint8_t>(
-            list ? PopReplyShape::ListPair : PopReplyShape::ZsetTriple);
+        command.pop_reply_shape =
+            static_cast<uint8_t>(list ? PopReplyShape::ListPair : PopReplyShape::ZsetTriple);
     } else {
         command.exec_argv.reserve(command.queued.argv.size() - 1);
         command.exec_argv.emplace_back(alias);
@@ -786,8 +868,7 @@ bool normalize_multi_blocking_pop(MultiCommand& command) {
     // Shards still describe the same keys, but their argv positions changed.
     // Claims, tracking and AOF postimages must read the normalized key slices,
     // not the old timeout/count/direction positions.
-    for (uint32_t i = 0; i < command.key_args.size(); ++i)
-        command.key_args[i] = 2 + i;
+    for (uint32_t i = 0; i < command.key_args.size(); ++i) command.key_args[i] = 2 + i;
     return true;
 }
 
@@ -799,19 +880,21 @@ MultiCommandKind classify_multi_command(MultiCommand& command) {
     if ((command.queued.verb == MultiVerb::V_unwatch)) return MultiCommandKind::UnwatchReply;
     if (command.queued.spec->flags & CmdFlags::ConnLocal) return MultiCommandKind::IoLocal;
     if (command.queued.spec->flags & CmdFlags::ConfigRoute)
-        return command_config_routes_all_shards(*command.op, true)
-            ? MultiCommandKind::Unsupported : MultiCommandKind::Admin;
+        return command_config_routes_all_shards(*command.op, true) ? MultiCommandKind::Unsupported
+                                                                   : MultiCommandKind::Admin;
     // SubcmdRoute containers ride CursorShard only to reach the IO special-route hook; they are
     // not cursor commands. Their keyed forms have a truthful key range and fall through to Local;
     // their keyless subcommands answer on the IO thread.
     if (command.queued.spec->flags & CmdFlags::SubcmdRoute)
         return command.key_args.empty() ? MultiCommandKind::IoLocal : MultiCommandKind::Local;
     if ((command.queued.spec->flags & CmdFlags::CursorShard) &&
-        !(command.queued.spec->flags & CmdFlags::StreamRoute)) return MultiCommandKind::Scan;
+        !(command.queued.spec->flags & CmdFlags::StreamRoute))
+        return MultiCommandKind::Scan;
     // These six execute through a normalized nonblocking xshard child even when all keys happen
     // to share one owner. Calling their ordinary Blocking handler from EXEC would park the whole
     // transaction, which Redis never does.
-    if (command.blocking_pop != MultiBlockingPop::None || (command.queued.verb == MultiVerb::V_move))
+    if (command.blocking_pop != MultiBlockingPop::None ||
+        (command.queued.verb == MultiVerb::V_move))
         return MultiCommandKind::Unsupported;
     if (command.key_args.empty()) return MultiCommandKind::Unsupported;
     // A DEREFERENCING SORT IS NEVER LOCAL, however few keys it names. Its BY/GET patterns read keys
@@ -845,7 +928,8 @@ MultiCommandKind classify_multi_command(MultiCommand& command) {
 bool state_writes_key(const MultiExecState& state, const MultiWatchedKey& watched) {
     for (const MultiWriteKey& key : state.write_keys)
         if (key.signals_watch && key.shard == watched.shard && key.ns == watched.ns &&
-            key.key == watched.key) return true;
+            key.key == watched.key)
+            return true;
     return false;
 }
 
@@ -855,15 +939,18 @@ void add_write_key(MultiExecState& state, const MultiCommand& command, uint32_t 
     const uint32_t arg = command.key_args[index];
     const Slice key = command.op->arg(arg);
     const int32_t shard = command.key_shards[index];
-    MultiWriteKey candidate{
-        std::string(key.p, key.n), FlatStore::hash_key(key), shard,
-        static_cast<uint8_t>(key.ns), !(command.queued.verb == MultiVerb::V_xreadgroup)};
+    MultiWriteKey candidate{std::string(key.p, key.n), FlatStore::hash_key(key), shard,
+                            static_cast<uint8_t>(key.ns),
+                            !(command.queued.verb == MultiVerb::V_xreadgroup)};
     const auto [position, inserted] = state.write_key_set.emplace(candidate);
     if (!inserted) {
         if (candidate.signals_watch && !position->signals_watch) {
             position->signals_watch = true;
             for (auto& prior : state.write_keys)
-                if (MultiWriteKeyEqual{}(prior, candidate)) { prior.signals_watch = true; break; }
+                if (MultiWriteKeyEqual{}(prior, candidate)) {
+                    prior.signals_watch = true;
+                    break;
+                }
         }
         return;
     }
@@ -873,8 +960,10 @@ void add_write_key(MultiExecState& state, const MultiCommand& command, uint32_t 
 bool command_has_owner_work(const MultiCommand& command);
 
 Slice txn_claim_slice(const TxnClaim& claim) {
-    return claim.key.empty() ? Slice{} : Slice(claim.key.data() + 1,
-        static_cast<uint32_t>(claim.key.size() - 1), static_cast<uint8_t>(claim.key[0]));
+    return claim.key.empty()
+               ? Slice{}
+               : Slice(claim.key.data() + 1, static_cast<uint32_t>(claim.key.size() - 1),
+                       static_cast<uint8_t>(claim.key[0]));
 }
 
 void txn_add_claim(std::vector<TxnClaim>& claims, Slice key, TxnClaimMode mode,
@@ -902,8 +991,7 @@ void txn_cap_claims(std::vector<TxnClaim>& claims) {
 // 255 is the unused marker until all 256 participants have been discovered.
 uint32_t ensure_state_slot(MultiExecState& state, int32_t sid) {
     if (state.shard_slots.empty()) return static_cast<uint32_t>(sid);
-    if (state.shard_slots[sid] != 255 || state.claims.size() == 256)
-        return state.shard_slots[sid];
+    if (state.shard_slots[sid] != 255 || state.claims.size() == 256) return state.shard_slots[sid];
     const auto slot = state.claims.size();
     state.claims.emplace_back();
     state.shard_commands.emplace_back();
@@ -937,34 +1025,41 @@ void prepare_claims(MultiExecState& state) {
     for (const auto& command : state.commands) {
         if (!command_has_owner_work(*command)) continue;
         const auto* child = command->scatter;
-        const bool loader = child && (child->kind == Kind::DebugReload || child->kind == Kind::DebugLoadAof);
-        const bool writes = (command->queued.spec->flags &
-            (CmdFlags::Write | CmdFlags::SnapshotWrite)) || (child && child->atomic_group) || loader;
+        const bool loader =
+            child && (child->kind == Kind::DebugReload || child->kind == Kind::DebugLoadAof);
+        const bool writes =
+            (command->queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) ||
+            (child && child->atomic_group) || loader;
         state.read_only &= !writes;
         const auto mode = writes ? TxnClaimMode::Write : TxnClaimMode::Read;
         for (size_t i = 0; i < command->key_args.size(); ++i)
             txn_add_claim(state.claims[ensure_state_slot(state, command->key_shards[i])],
                           command->op->arg(command->key_args[i]), mode);
-        if (child) for (uint32_t i = 0; i < child->key_count; ++i)
-            txn_add_claim(state.claims[ensure_state_slot(state, child->keys[i].shard)],
-                          command->op->arg(child->keys[i].arg), mode);
-        const bool whole = loader || (command->queued.verb == MultiVerb::V_scan) ||
+        if (child)
+            for (uint32_t i = 0; i < child->key_count; ++i)
+                txn_add_claim(state.claims[ensure_state_slot(state, child->keys[i].shard)],
+                              command->op->arg(child->keys[i].arg), mode);
+        const bool whole =
+            loader || (command->queued.verb == MultiVerb::V_scan) ||
             (child && ((child->kind == Kind::Sort && child->sort_options.deref) ||
                        child->kind == Kind::AllShards || child->kind == Kind::DatabaseInfo ||
                        child->kind == Kind::DbsizeExact || child->kind == Kind::RandomKey ||
                        child->kind == Kind::Keys));
-        if (whole) for (int32_t sid : command->participants)
-            txn_add_claim(state.claims[state.slot(sid)], {},
-                loader || (writes && child && child->kind == Kind::AllShards)
-                    ? TxnClaimMode::Write : TxnClaimMode::Read, true);
+        if (whole)
+            for (int32_t sid : command->participants)
+                txn_add_claim(state.claims[state.slot(sid)], {},
+                              loader || (writes && child && child->kind == Kind::AllShards)
+                                  ? TxnClaimMode::Write
+                                  : TxnClaimMode::Read,
+                              true);
     }
     // WATCH keys are part of placement's conflict set even when no queued
     // command accesses them. Inactive namespace aliases are validation-only.
     for (const auto& watched : state.watched) {
         if ((*state.database_map)[watched.db] != watched.ns) continue;
         txn_add_claim(state.claims[state.slot(watched.shard)],
-            Slice(watched.key.data(), watched.key.size(), watched.ns),
-            state_writes_key(state, watched) ? TxnClaimMode::Write : TxnClaimMode::Read);
+                      Slice(watched.key.data(), watched.key.size(), watched.ns),
+                      state_writes_key(state, watched) ? TxnClaimMode::Write : TxnClaimMode::Read);
     }
     for (auto& claims : state.claims) txn_cap_claims(claims);
     // Exact claims already retire all decided reservations for that physical
@@ -975,7 +1070,8 @@ void prepare_claims(MultiExecState& state) {
             for (const auto& claim : state.claims[state.slot(key.shard)])
                 if (claim.key.size() == key.key.size() + 1 &&
                     static_cast<uint8_t>(claim.key[0]) == key.ns &&
-                    claim.key.compare(1, std::string::npos, key.key) == 0) return true;
+                    claim.key.compare(1, std::string::npos, key.key) == 0)
+                    return true;
             return false;
         };
         for (auto& key : state.write_keys) key.claim_finalizes = covered(key);
@@ -989,8 +1085,10 @@ bool prepare_commands(Server& server, MultiExecState& state,
         state.commands.reserve(queue.size());
         state.write_key_set.reserve(queue.size());
         auto routing_map = server.databases().capture();
-        const bool swaps = !kSingleDatabase && std::any_of(queue.begin(), queue.end(),
-            [](const auto& queued) { return (queued.verb == MultiVerb::V_swapdb); });
+        const bool swaps =
+            !kSingleDatabase && std::any_of(queue.begin(), queue.end(), [](const auto& queued) {
+                return (queued.verb == MultiVerb::V_swapdb);
+            });
         if (swaps || !state.watched.empty())
             state.database_map = std::make_unique<DatabaseMap::Map>(routing_map);
         uint8_t logical_db = state.client->session().db_index;
@@ -998,8 +1096,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
         for (MultiQueuedCommand& queued : queue) {
             auto command = std::make_unique<MultiCommand>();
             if (swaps) command->watch_map = std::make_unique<DatabaseMap::Map>(routing_map);
-            command->notify_order_base =
-                static_cast<uint32_t>(state.commands.size()) * 0x10000u;
+            command->notify_order_base = static_cast<uint32_t>(state.commands.size()) * 0x10000u;
             command->queued = std::move(queued);
             command->blocking_pop = multi_blocking_pop(command->queued);
             command_key_args(command->queued, command->key_args);
@@ -1013,7 +1110,8 @@ bool prepare_commands(Server& server, MultiExecState& state,
                 // handler, including owner-side type/member validation.
                 if (!route.store) command->key_args.assign(1, route.source_arg);
             }
-            if constexpr (!kSingleDatabase) multidb_stamp(server, *command->op, logical_db, routing_map);
+            if constexpr (!kSingleDatabase)
+                multidb_stamp(server, *command->op, logical_db, routing_map);
             command->key_shards.reserve(command->key_args.size());
             for (uint32_t arg : command->key_args) {
                 const uint64_t hash = FlatStore::hash_key(command->op->arg(arg));
@@ -1021,38 +1119,41 @@ bool prepare_commands(Server& server, MultiExecState& state,
             }
             command->kind = classify_multi_command(*command);
             uint32_t acl_denied_arg = UINT32_MAX;
-            const AclDeniedReason acl_denied = acl_check_multi(
-                state.client->acl_user_idx(), *command->queued.spec,
-                command->queued.argv, acl_permissions, &acl_denied_arg);
+            const AclDeniedReason acl_denied =
+                acl_check_multi(state.client->acl_user_idx(), *command->queued.spec,
+                                command->queued.argv, acl_permissions, &acl_denied_arg);
             if (acl_denied != AclDeniedReason::None) {
                 command->kind = MultiCommandKind::Prebuilt;
                 command->key_args.clear();
                 command->key_shards.clear();
                 if (!acl_reply_sort_option_denied(*command->op, acl_denied, acl_denied_arg)) {
-                const char* reason = acl_denied == AclDeniedReason::Command
-                    ? "no permission to execute the command or subcommand"
-                    : acl_denied == AclDeniedReason::Key
-                        ? "no permission to touch the specified keys"
+                    const char* reason =
+                        acl_denied == AclDeniedReason::Command
+                            ? "no permission to execute the command or subcommand"
+                        : acl_denied == AclDeniedReason::Key
+                            ? "no permission to touch the specified keys"
                         : acl_denied == AclDeniedReason::Channel
                             ? "no permission to access one of the channels used as arguments"
                             : "no permission";
-                std::string message =
-                    "NOPERM ACLs rules changed between the moment the transaction was accumulated and the EXEC call. This command is no longer allowed for the following reason: ";
-                message += reason;
-                reply_err(command->op->sink(), message.c_str());
-                LoopSignals& signals = server.thread(state.owner_io).sig();
-                if (acl_denied == AclDeniedReason::Command) signals.acl_access_denied_cmd++;
-                else if (acl_denied == AclDeniedReason::Key) signals.acl_access_denied_key++;
-                else if (acl_denied == AclDeniedReason::Channel)
-                    signals.acl_access_denied_channel++;
-                const uint32_t object_arg = acl_denied_arg < command->queued.argv.size()
-                    ? acl_denied_arg : 0;
-                const std::string& object = command->queued.argv[object_arg];
-                const char* username = acl_username(state.client->acl_user_idx());
-                acl_log_denial(server.thread(state.owner_io), *state.client, acl_denied,
-                    AclLogContext::Multi,
-                    Slice(object.data(), static_cast<uint32_t>(object.size())),
-                    Slice(username, static_cast<uint32_t>(std::strlen(username))));
+                    std::string message =
+                        "NOPERM ACLs rules changed between the moment the transaction was accumulated and the EXEC call. This command is no longer allowed for the following reason: ";
+                    message += reason;
+                    reply_err(command->op->sink(), message.c_str());
+                    LoopSignals& signals = server.thread(state.owner_io).sig();
+                    if (acl_denied == AclDeniedReason::Command)
+                        signals.acl_access_denied_cmd++;
+                    else if (acl_denied == AclDeniedReason::Key)
+                        signals.acl_access_denied_key++;
+                    else if (acl_denied == AclDeniedReason::Channel)
+                        signals.acl_access_denied_channel++;
+                    const uint32_t object_arg =
+                        acl_denied_arg < command->queued.argv.size() ? acl_denied_arg : 0;
+                    const std::string& object = command->queued.argv[object_arg];
+                    const char* username = acl_username(state.client->acl_user_idx());
+                    acl_log_denial(server.thread(state.owner_io), *state.client, acl_denied,
+                                   AclLogContext::Multi,
+                                   Slice(object.data(), static_cast<uint32_t>(object.size())),
+                                   Slice(username, static_cast<uint32_t>(std::strlen(username))));
                 }
             }
             if (command->kind != MultiCommandKind::Prebuilt &&
@@ -1072,16 +1173,19 @@ bool prepare_commands(Server& server, MultiExecState& state,
                     logical_db = selected;
             }
             if (command->kind != MultiCommandKind::Prebuilt &&
-                ((command->queued.verb == MultiVerb::V_mset) || (command->queued.verb == MultiVerb::V_msetnx)) &&
+                ((command->queued.verb == MultiVerb::V_mset) ||
+                 (command->queued.verb == MultiVerb::V_msetnx)) &&
                 (command->queued.argv.size() & 1u) == 0) {
-                reply_err(command->op->sink(), (command->queued.verb == MultiVerb::V_mset)
-                    ? "ERR wrong number of arguments for 'mset' command"
-                    : "ERR wrong number of arguments for 'msetnx' command");
+                reply_err(command->op->sink(),
+                          (command->queued.verb == MultiVerb::V_mset)
+                              ? "ERR wrong number of arguments for 'mset' command"
+                              : "ERR wrong number of arguments for 'msetnx' command");
                 command->kind = MultiCommandKind::Prebuilt;
                 command->key_args.clear();
                 command->key_shards.clear();
             }
-            if constexpr (!kSingleDatabase) multidb_stamp(server, *command->op, command->op->db, routing_map);
+            if constexpr (!kSingleDatabase)
+                multidb_stamp(server, *command->op, command->op->db, routing_map);
             if (command->kind == MultiCommandKind::Swapdb) {
                 if (!multidb_validate_swap(server, *command->op)) {
                     command->kind = MultiCommandKind::Prebuilt;
@@ -1091,7 +1195,8 @@ bool prepare_commands(Server& server, MultiExecState& state,
                     multidb_parse_index(command->op->arg(2), server.cfg().databases, second);
                     if (first != second) {
                         command->swap_physical = {routing_map[first], routing_map[second]};
-                        state.database_swaps.push_back({first, second, routing_map[first], routing_map[second]});
+                        state.database_swaps.push_back(
+                            {first, second, routing_map[first], routing_map[second]});
                         std::swap(routing_map[first], routing_map[second]);
                         ++routing_map.epoch;
                     }
@@ -1103,9 +1208,10 @@ bool prepare_commands(Server& server, MultiExecState& state,
             if (command->kind == MultiCommandKind::Admin &&
                 (command->queued.verb == MultiVerb::V_debug)) {
                 uint64_t sleep_us = 0;
-                const auto sleep = debug_sleep_prepare(
-                    server, *state.client, *command->op, sleep_us);
-                if (sleep == DebugSleepResult::Handled) command->kind = MultiCommandKind::Prebuilt;
+                const auto sleep =
+                    debug_sleep_prepare(server, *state.client, *command->op, sleep_us);
+                if (sleep == DebugSleepResult::Handled)
+                    command->kind = MultiCommandKind::Prebuilt;
                 else if (sleep == DebugSleepResult::Deferred) {
                     command->kind = MultiCommandKind::DebugSleep;
                     command->integer.store(sleep_us, std::memory_order_relaxed);
@@ -1120,23 +1226,22 @@ bool prepare_commands(Server& server, MultiExecState& state,
                 ScatterDispatch child_dispatch;
                 if (!state.scatter_pool) state.scatter_pool = std::make_unique<ScatterArenaPool>();
                 command->xshard_stage_groups = std::make_unique<MultiCommand::StageGroups>();
-                const ScatterPrepare prepared = xshard_prepare(
-                    server, *command->op, *state.scatter_pool, state.owner_io,
-                    state.origin_conn_id, child_dispatch, true, state.client);
+                const ScatterPrepare prepared =
+                    xshard_prepare(server, *command->op, *state.scatter_pool, state.owner_io,
+                                   state.origin_conn_id, child_dispatch, true, state.client);
                 if (prepared == ScatterPrepare::Ready) {
                     command->kind = MultiCommandKind::Xshard;
                     command->scatter = child_dispatch.state;
                     if ((command->queued.verb == MultiVerb::V_move)) {
                         command->key_args.push_back(2);
-                        command->key_shards.push_back(server.router().shard_of(
-                            FlatStore::hash_key(command->op->arg(2))));
+                        command->key_shards.push_back(
+                            server.router().shard_of(FlatStore::hash_key(command->op->arg(2))));
                     }
                     xshard_multi_child_bind(*command->scatter, &state);
-                    xshard_multi_child_capture_groups(
-                        *command->scatter, (*command->xshard_stage_groups)[0]);
+                    xshard_multi_child_capture_groups(*command->scatter,
+                                                      (*command->xshard_stage_groups)[0]);
                     for (uint32_t i = 0; i < child_dispatch.nshards; i++)
-                        add_shard(command->participants,
-                                  xshard_dispatch_shard(child_dispatch, i));
+                        add_shard(command->participants, xshard_dispatch_shard(child_dispatch, i));
                     // Phase two can route to a STORE/destination owner not present in the initial
                     // dispatch.  Use the lowering's exact key set: registry metadata for LMPOP,
                     // ZMPOP and option-bearing commands intentionally spans non-key arguments.
@@ -1184,19 +1289,21 @@ bool prepare_commands(Server& server, MultiExecState& state,
                        command->kind == MultiCommandKind::Prebuilt) {
                 add_shard(command->participants, 0);
             } else {
-                for (int32_t shard : command->key_shards)
-                    add_shard(command->participants, shard);
+                for (int32_t shard : command->key_shards) add_shard(command->participants, shard);
                 if (command->participants.empty()) add_shard(command->participants, 0);
             }
             // Local/SCAN children never grow a second stage or participant.
             // Scatter children retain physical indexing for dynamic waves.
             command->shard_done.assign(
                 command->kind == MultiCommandKind::Local || command->kind == MultiCommandKind::Scan
-                    ? 1 : server.nshards(), 0);
+                    ? 1
+                    : server.nshards(),
+                0);
             state.has_publication |= command->kind == MultiCommandKind::IoLocal &&
-                ((command->queued.verb == MultiVerb::V_publish) || (command->queued.verb == MultiVerb::V_spublish));
+                                     ((command->queued.verb == MultiVerb::V_publish) ||
+                                      (command->queued.verb == MultiVerb::V_spublish));
             state.has_subscription |= command->kind == MultiCommandKind::IoLocal &&
-                multi_subscription(command->queued.verb);
+                                      multi_subscription(command->queued.verb);
             state.has_publication |= state.has_subscription;
             // SCOPE: multi-owner READ fragments, nothing else.  Mget/Exists are reached only when
             // classify_multi_command already found the key set spanning more than one shard, and an
@@ -1205,8 +1312,8 @@ bool prepare_commands(Server& server, MultiExecState& state,
             // and a write must keep cloning from the newest committed value, so widening this test
             // would buy no isolation and cost the transaction a floor registration.
             const bool sort_deref_read = command->kind == MultiCommandKind::Xshard &&
-                command->scatter && command->scatter->kind == Kind::Sort &&
-                command->scatter->sort_options.deref;
+                                         command->scatter && command->scatter->kind == Kind::Sort &&
+                                         command->scatter->sort_options.deref;
             if (sort_deref_read) {
                 // STORE makes SORT a write command, but its dynamic BY/GET wave is still a
                 // multi-owner read and must borrow the transaction's one registered cut.
@@ -1229,7 +1336,8 @@ bool prepare_commands(Server& server, MultiExecState& state,
             const uint32_t command_index = static_cast<uint32_t>(state.commands.size());
             if (command_has_owner_work(*command)) {
                 for (int32_t shard : command->participants)
-                    state.shard_commands[state.slot(static_cast<uint32_t>(shard))].push_back(command_index);
+                    state.shard_commands[state.slot(static_cast<uint32_t>(shard))].push_back(
+                        command_index);
             }
             state.commands.push_back(std::move(command));
         }
@@ -1238,7 +1346,8 @@ bool prepare_commands(Server& server, MultiExecState& state,
         for (const auto& watched : state.watched) add_state_shard(state, watched.shard);
         if (!state.database_swaps.empty()) {
             state.database_watch.resize(state.claims.size());
-            if (!server.databases().prepare_publish(routing_map, state.database_publish)) return false;
+            if (!server.databases().prepare_publish(routing_map, state.database_publish))
+                return false;
         }
         prepare_claims(state);
         allocate_participant_state(state, state.claims.size());
@@ -1294,16 +1403,15 @@ MultiExecState* allocate_state(Server& server, Client& client, uint32_t owner_io
 bool multi_state_may_install(const MultiExecState& state) {
     for (const auto& command : state.commands) {
         if (!command_has_owner_work(*command)) continue;
-        if (command->queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))
-            return true;
+        if (command->queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) return true;
     }
     return false;
 }
 
 void initialize_multi_owner_record_refs(MultiExecState& state) {
     if (state.kind != MultiStateKind::Execute || !multi_state_may_install(state)) return;
-    if (state.record_refs.load(std::memory_order_relaxed) != 0 ||
-        state.record_refs_precounted) std::abort();
+    if (state.record_refs.load(std::memory_order_relaxed) != 0 || state.record_refs_precounted)
+        std::abort();
 
     // Every outer shard task reaches the post-decision completion boundary even when WATCH or
     // EXECABORT skips its commands. Count all such tasks per executor so only its last one releases
@@ -1327,7 +1435,8 @@ void initialize_multi_owner_record_refs(MultiExecState& state) {
 
 // These helpers were single-caller in execindex. The tracked twin must not
 // make GCC outline them in the ordinary body solely because it adds a caller.
-__attribute__((always_inline)) inline void complete_multi_owner_record_refs(MultiExecState& state, uint32_t owner_thread_id) {
+__attribute__((always_inline)) inline void complete_multi_owner_record_refs(
+    MultiExecState& state, uint32_t owner_thread_id) {
     if (!state.record_refs_precounted) return;
     const uint32_t slot = state.server->executor_slot(owner_thread_id);
     if (slot >= state.owner_record_refs.size()) std::abort();
@@ -1337,8 +1446,8 @@ __attribute__((always_inline)) inline void complete_multi_owner_record_refs(Mult
 
     progress.completion_sentinel = false;
     if (!progress.nodes) std::abort();
-    if (--progress.nodes == 0 &&
-        state.record_refs.fetch_sub(1, std::memory_order_release) == 0) std::abort();
+    if (--progress.nodes == 0 && state.record_refs.fetch_sub(1, std::memory_order_release) == 0)
+        std::abort();
 }
 
 void clear_unpublished_multi_record_refs(MultiExecState& state) {
@@ -1385,8 +1494,7 @@ void set_state_reply(MultiExecState& state, Op& public_op) {
         return;
     }
     if (state.final_reply == MultiFinalReply::ExecAbort) {
-        reply_err(public_op.sink(),
-                  "EXECABORT Transaction discarded because of previous errors.");
+        reply_err(public_op.sink(), "EXECABORT Transaction discarded because of previous errors.");
         return;
     }
     if (state.watch_failed.load(std::memory_order_acquire)) {
@@ -1394,7 +1502,8 @@ void set_state_reply(MultiExecState& state, Op& public_op) {
         return;
     }
     if (state.decision.aborted.load(std::memory_order_acquire)) {
-        reply_err(public_op.sink(), "EXECABORT Transaction discarded because of an execution error.");
+        reply_err(public_op.sink(),
+                  "EXECABORT Transaction discarded because of an execution error.");
         return;
     }
     reply_array_header(public_op.sink(), state.commands.size());
@@ -1417,8 +1526,8 @@ bool load_clone(Shard& shard, Slice key, KvObj* visible, KvObj*& clone) {
     if (!visible) return true;
     ObjectImage image;
     if (!serialize_object(visible, image)) return false;
-    return load_object_image(key, image, shard.type_limits(), clone) ==
-               SnapshotHookStatus::Ok && clone;
+    return load_object_image(key, image, shard.type_limits(), clone) == SnapshotHookStatus::Ok &&
+           clone;
 }
 
 // Violations of the install-time ordering invariant asserted in prepare_write_key() below. It is a
@@ -1432,23 +1541,24 @@ bool load_clone(Shard& shard, Slice key, KvObj* visible, KvObj*& clone) {
 // this anonymous namespace, next to multi_task_owns_epoch().
 std::atomic<uint64_t> g_exec_order_late{0};
 
-bool multi_touch_key(MultiExecState& state, Shard& shard, uint64_t hash, Slice key,
-                     bool, bool wildcard = false) {
+bool multi_touch_key(MultiExecState& state, Shard& shard, uint64_t hash, Slice key, bool,
+                     bool wildcard = false) {
     if (state.read_only) return true;
     if (state.decision.aborted.load(std::memory_order_acquire)) return false;
     Server& server = *state.server;
     bool ready = true;
     shard.store().atomic_visit_unit_records(hash, key, wildcard, [&](AtomicEntry& entry) {
         if (multi_state_owns_epoch(state, entry.group_epoch)) return;
-        uint64_t epoch = entry.group_epoch
-            ? entry.group_epoch->load(std::memory_order_acquire) : entry.epoch;
+        uint64_t epoch =
+            entry.group_epoch ? entry.group_epoch->load(std::memory_order_acquire) : entry.epoch;
         if (auto* decision = multi_record_decision(entry)) {
             epoch = decision->epoch.load(std::memory_order_acquire);
             multi_help_child(entry, epoch);
             if (decision->aborted.load(std::memory_order_acquire)) return;
         }
         if (epoch == kAtomicCancelledEpoch ||
-            (entry.group_aborted && entry.group_aborted->load(std::memory_order_acquire))) return;
+            (entry.group_aborted && entry.group_aborted->load(std::memory_order_acquire)))
+            return;
         if (!epoch && entry.group && entry.group->kind == Kind::Script) {
             multi_cancel_record(entry);
             epoch = entry.group_epoch->load(std::memory_order_acquire);
@@ -1479,25 +1589,28 @@ TxnBlind txn_blind_scan(Shard& shard, const std::vector<TxnClaim>& claims,
     }
     TxnBlind result = TxnBlind::Clear;
     for (const auto& claim : claims)
-        shard.store().atomic_visit_unit_records(claim.hash, txn_claim_slice(claim),
-            claim.key.empty(), [&](AtomicEntry& entry) {
+        shard.store().atomic_visit_unit_records(
+            claim.hash, txn_claim_slice(claim), claim.key.empty(), [&](AtomicEntry& entry) {
                 if (!entry.group || entry.group == own || entry.group->multi_parent == own ||
-                    entry.group->multi_child || entry.group->kind == Kind::Script) return;
+                    entry.group->multi_child || entry.group->kind == Kind::Script)
+                    return;
                 const auto* attempt = entry.group->group_attempt();
-                if (attempt && attempt->age_ns) return; // TO-B unit: arbitrated by claims
+                if (attempt && attempt->age_ns) return;  // TO-B unit: arbitrated by claims
                 if (entry.group->epoch.load(std::memory_order_acquire) ||
-                    entry.group->aborted.load(std::memory_order_acquire)) return;
+                    entry.group->aborted.load(std::memory_order_acquire))
+                    return;
                 if (entry.group->pending.load(std::memory_order_acquire))
                     result = TxnBlind::Crossing;
-                else if (result == TxnBlind::Clear) result = TxnBlind::Completing;
+                else if (result == TxnBlind::Clear)
+                    result = TxnBlind::Completing;
             });
     return result;
 }
 
 enum class MultiPrepareWrite : uint8_t { Ready, Retry, Error };
 
-MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard& shard,
-                                    Slice key, uint64_t hash, uint32_t owner_thread_id,
+MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard& shard, Slice key,
+                                    uint64_t hash, uint32_t owner_thread_id,
                                     const void* watch_token = nullptr,
                                     std::atomic<uint32_t>* watch_refs = nullptr,
                                     bool signal_watch = true) {
@@ -1531,8 +1644,7 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
     // RENAME/LMPOP child.
     if (__builtin_expect(shard.store().atomic_has_records(), false) &&
         shard.store().atomic_has_foreign_unit_undecided(
-            state.origin_conn_id,
-            [&state](const void* group_epoch) {
+            state.origin_conn_id, [&state](const void* group_epoch) {
                 return multi_state_owns_epoch(state, group_epoch);
             }))
         g_exec_order_late.fetch_add(1, std::memory_order_relaxed);
@@ -1593,8 +1705,7 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
 }
 
 bool command_has_owner_work(const MultiCommand& command) {
-    return command.kind != MultiCommandKind::Ping &&
-           command.kind != MultiCommandKind::Echo &&
+    return command.kind != MultiCommandKind::Ping && command.kind != MultiCommandKind::Echo &&
            command.kind != MultiCommandKind::UnwatchReply &&
            command.kind != MultiCommandKind::IoLocal &&
            command.kind != MultiCommandKind::Prebuilt &&
@@ -1607,9 +1718,9 @@ bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiComman
     auto prepare = [&](uint32_t arg) {
         const Slice key = command.op->arg(arg);
         const MultiPrepareWrite result = prepare_write_key(
-            server, state, shard, key, command.key_args.size() == 1
-                ? command.op->hash : FlatStore::hash_key(key), owner_thread_id,
-            nullptr, nullptr, !(command.queued.verb == MultiVerb::V_xreadgroup));
+            server, state, shard, key,
+            command.key_args.size() == 1 ? command.op->hash : FlatStore::hash_key(key),
+            owner_thread_id, nullptr, nullptr, !(command.queued.verb == MultiVerb::V_xreadgroup));
         if (result == MultiPrepareWrite::Error)
             state.decision.aborted.store(true, std::memory_order_release);
         return result == MultiPrepareWrite::Ready;
@@ -1619,8 +1730,12 @@ bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiComman
     if (command.key_args.size() == 1)
         return command.key_shards.front() != shard.id() || prepare(command.key_args.front());
     std::vector<uint32_t> storage;
-    try { storage.reserve(command.key_args.size()); }
-    catch (const std::bad_alloc&) { state.decision.aborted.store(true, std::memory_order_release); return false; }
+    try {
+        storage.reserve(command.key_args.size());
+    } catch (const std::bad_alloc&) {
+        state.decision.aborted.store(true, std::memory_order_release);
+        return false;
+    }
     for (size_t i = 0; i < command.key_args.size(); i++) {
         if (command.key_shards[i] != shard.id()) continue;
         const uint32_t arg = command.key_args[i];
@@ -1639,7 +1754,8 @@ bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiComman
         const Slice key = command.op->arg(arg);
         const uint64_t hash = FlatStore::hash_key(key);
         if (!multi_touch_key(state, shard, hash, key, true) ||
-            !shard.watch_txn_write_ready(key, state)) return false;
+            !shard.watch_txn_write_ready(key, state))
+            return false;
         const auto snapshot = shard.store().snapshot_prepare_write(hash, key);
         if (snapshot == FlatStore::SnapshotWriteResult::Pending) return false;
         if (snapshot == FlatStore::SnapshotWriteResult::Error) {
@@ -1669,38 +1785,34 @@ void multi_tripwire_fragment_begin(MultiExecState& state, Shard& shard) {
     const uint64_t cut = multi_read_cut(state);
     for (uint32_t command_index : state.shard_commands[state.slot(shard_id)]) {
         MultiCommand& command = *state.commands[command_index];
-        if (command.kind != MultiCommandKind::Mget &&
-            command.kind != MultiCommandKind::Exists)
+        if (command.kind != MultiCommandKind::Mget && command.kind != MultiCommandKind::Exists)
             continue;
         for (size_t i = 0; i < command.key_args.size(); i++) {
             if (command.key_shards[i] != shard.id()) continue;
             const Slice key = command.op->arg(command.key_args[i]);
             const uint64_t hash = FlatStore::hash_key(key);
-            atomic_tripwire_plain_begin(
-                &state, &command, multi_tripwire_slot(shard, i), hash, cut,
-                shard.store().atomic_tripwire_ticket(hash, key),
-                shard.store().atomic_needs_version(hash, key));
+            atomic_tripwire_plain_begin(&state, &command, multi_tripwire_slot(shard, i), hash, cut,
+                                        shard.store().atomic_tripwire_ticket(hash, key),
+                                        shard.store().atomic_needs_version(hash, key));
         }
     }
 }
 
-void multi_tripwire_read_execution(MultiExecState& state, MultiCommand& command,
-                                   Shard& shard, size_t key_index, Slice key) {
+void multi_tripwire_read_execution(MultiExecState& state, MultiCommand& command, Shard& shard,
+                                   size_t key_index, Slice key) {
     if (!atomic_tripwire_enabled()) return;
     const uint64_t hash = FlatStore::hash_key(key);
     atomic_tripwire_plain_execution(
         &state, &command, multi_tripwire_slot(shard, key_index), hash, multi_read_cut(state),
         shard.store().atomic_tripwire_ticket(hash, key),
-        shard.store().atomic_needs_version(hash, key),
-        shard.store().atomic_tripwire_plain_path());
+        shard.store().atomic_needs_version(hash, key), shard.store().atomic_tripwire_plain_path());
 }
 
 // Only EXEC's cold path enters these hooks. Accumulate execution slices;
 // retries spend their parked interval outside the timer. DEBUG SLEEP is the
 // explicit exception: its requested sleep is part of the command's duration.
 uint64_t multi_slowlog_start(MultiExecState& state, uint32_t owner) {
-    return state.server->live_config_snapshot(owner).slowlog_log_slower_than >= 0
-        ? now_ns() : 0;
+    return state.server->live_config_snapshot(owner).slowlog_log_slower_than >= 0 ? now_ns() : 0;
 }
 void multi_slowlog_part(MultiCommand& command, uint64_t started) {
     if (started && command.kind != MultiCommandKind::DebugSleep)
@@ -1720,23 +1832,31 @@ void multi_slowlog_record(MultiExecState& state, MultiCommand& command, uint32_t
                    command.slow_ns.load(std::memory_order_relaxed), state.now_cut_ms, arm, true, 0);
 }
 
-__attribute__((always_inline)) inline bool execute_local_command(Server& server, MultiExecState& state, MultiCommand& command,
-                           Shard& shard, uint32_t owner_thread_id) {
+__attribute__((always_inline)) inline bool execute_local_command(Server& server,
+                                                                 MultiExecState& state,
+                                                                 MultiCommand& command,
+                                                                 Shard& shard,
+                                                                 uint32_t owner_thread_id) {
     if (!(command.queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
         if ((command.queued.verb == MultiVerb::V_scan)) {
             if (!multi_touch_key(state, shard, 0, {}, false, true)) return false;
-        } else for (size_t i = 0; i < command.key_args.size(); ++i) {
-            if (command.key_shards[i] != shard.id()) continue;
-            const Slice key = command.op->arg(command.key_args[i]);
-            if (!multi_touch_key(state, shard, FlatStore::hash_key(key), key, false)) return false;
-        }
+        } else
+            for (size_t i = 0; i < command.key_args.size(); ++i) {
+                if (command.key_shards[i] != shard.id()) continue;
+                const Slice key = command.op->arg(command.key_args[i]);
+                if (!multi_touch_key(state, shard, FlatStore::hash_key(key), key, false))
+                    return false;
+            }
     }
     if (command.op->spec->flags & CmdFlags::ScriptRoute) {
         WatchMutationScope watch_scope(shard, &state, &state.decision.epoch,
-            &state.decision.aborted, &state.watch_refs, state.client);
+                                       &state.decision.aborted, &state.watch_refs, state.client);
         struct Context {
-            Server& server; MultiExecState& state; MultiCommand& command;
-            Shard& shard; uint32_t owner;
+            Server& server;
+            MultiExecState& state;
+            MultiCommand& command;
+            Shard& shard;
+            uint32_t owner;
         } context{server, state, command, shard, owner_thread_id};
         const bool completed = script_execute_exec(shard, *command.op, &context, [](void* raw) {
             auto& c = *static_cast<Context*>(raw);
@@ -1744,7 +1864,8 @@ __attribute__((always_inline)) inline bool execute_local_command(Server& server,
                 return false;
             if (c.command.op->spec->flags & CmdFlags::NotifySelected)
                 multi_notify_source(c.shard, *c.command.op, c.command.notify_order_base);
-            c.shard.store().atomic_set_read_context(multi_read_cut(c.state), c.state.origin_conn_id);
+            c.shard.store().atomic_set_read_context(multi_read_cut(c.state),
+                                                    c.state.origin_conn_id);
             return true;
         });
         if (completed) complete_child_zc(shard, *command.op);
@@ -1757,9 +1878,11 @@ __attribute__((always_inline)) inline bool execute_local_command(Server& server,
     shard.store().atomic_set_read_context(multi_read_cut(state), state.origin_conn_id);
     {
         WatchMutationScope watch_scope(shard, &state, &state.decision.epoch,
-            &state.decision.aborted, &state.watch_refs, state.client);
-        if (shard.has_watches()) watch_execute_handler(shard, *command.op);
-        else command.op->spec->handler(shard, *command.op);
+                                       &state.decision.aborted, &state.watch_refs, state.client);
+        if (shard.has_watches())
+            watch_execute_handler(shard, *command.op);
+        else
+            command.op->spec->handler(shard, *command.op);
     }
     complete_child_zc(shard, *command.op);
     shard.store().atomic_clear_read_epoch();
@@ -1774,7 +1897,8 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
     if (command.kind == MultiCommandKind::Admin || command.kind == MultiCommandKind::DebugSleep) {
         if (stage == 0) return true;
         if (command.kind == MultiCommandKind::DebugSleep) {
-            const bool starting = shard.id() == 0 && command.integer.load(std::memory_order_acquire) >= 0;
+            const bool starting =
+                shard.id() == 0 && command.integer.load(std::memory_order_acquire) >= 0;
             const uint64_t started = starting ? multi_slowlog_start(state, owner_thread_id) : 0;
             const bool done = debug_sleep_exec(server, shard, command.integer, owner_thread_id);
             if (started && command.integer.load(std::memory_order_acquire) < 0)
@@ -1786,11 +1910,14 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
             ThreadCtx* previous_thread = command_local_thread();
             command_set_local_context(state.client, &server.thread(owner_thread_id));
             {
-        WatchMutationScope watch_scope(shard, &state, &state.decision.epoch,
-            &state.decision.aborted, &state.watch_refs, state.client);
-        if (shard.has_watches()) watch_execute_handler(shard, *command.op);
-        else command.op->spec->handler(shard, *command.op);
-    }
+                WatchMutationScope watch_scope(shard, &state, &state.decision.epoch,
+                                               &state.decision.aborted, &state.watch_refs,
+                                               state.client);
+                if (shard.has_watches())
+                    watch_execute_handler(shard, *command.op);
+                else
+                    command.op->spec->handler(shard, *command.op);
+            }
             command_set_local_context(previous_client, previous_thread);
         }
         return true;
@@ -1806,18 +1933,18 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
         // writes. Later commands may delete it or swap it away again. Publish
         // these invalidations only when the whole transaction commits.
         shard.store().atomic_set_read_context(multi_read_cut(state), state.origin_conn_id);
-        const bool ok = shard.watch_database_swap(first, second,
-            command.swap_physical[0], command.swap_physical[1], &state.database_watch[state.slot(shard.id())]);
+        const bool ok = shard.watch_database_swap(first, second, command.swap_physical[0],
+                                                  command.swap_physical[1],
+                                                  &state.database_watch[state.slot(shard.id())]);
         shard.store().atomic_clear_read_epoch();
         if (!ok) state.decision.aborted.store(true, std::memory_order_release);
         return true;
     }
     Op& op = *command.op;
     const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0 || shard.has_watches();
-    WatchMutationScope watch_scope(shard, &state, &state.decision.epoch,
-        &state.decision.aborted, &state.watch_refs, state.client);
-    if (notify)
-        multi_notify_source(shard, op, command.notify_order_base);
+    WatchMutationScope watch_scope(shard, &state, &state.decision.epoch, &state.decision.aborted,
+                                   &state.watch_refs, state.client);
+    if (notify) multi_notify_source(shard, op, command.notify_order_base);
     const bool read_kind = command.kind == MultiCommandKind::Mget ||
                            command.kind == MultiCommandKind::Exists ||
                            (command.kind == MultiCommandKind::Msetnx && stage == 0);
@@ -1826,7 +1953,8 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
         if (command.key_shards[i] != shard.id()) continue;
         const Slice key = op.arg(command.key_args[i]);
         if (!multi_touch_key(state, shard, FlatStore::hash_key(key), key, !read_kind) ||
-            (!read_kind && !shard.watch_txn_write_ready(key, state))) return false;
+            (!read_kind && !shard.watch_txn_write_ready(key, state)))
+            return false;
     }
     shard.store().atomic_set_read_context(multi_read_cut(state), state.origin_conn_id);
     if (command.kind == MultiCommandKind::Mget) {
@@ -1836,9 +1964,8 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
             const Slice key = op.arg(arg);
             if (__builtin_expect(atomic_tripwire_enabled(), false))
                 multi_tripwire_read_execution(state, command, shard, i, key);
-            KvObj* object = notify
-                ? shard.store_find_read<true>(FlatStore::hash_key(key), key)
-                : shard.store_find_read<false>(FlatStore::hash_key(key), key);
+            KvObj* object = notify ? shard.store_find_read<true>(FlatStore::hash_key(key), key)
+                                   : shard.store_find_read<false>(FlatStore::hash_key(key), key);
             if (!object || static_cast<Type>(object->type) != Type::String) continue;
             MultiValue& value = command.values[i];
             if (object->is_int()) {
@@ -1914,8 +2041,9 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
             const Slice key = op.arg(arg);
             if (__builtin_expect(atomic_tripwire_enabled(), false))
                 multi_tripwire_read_execution(state, command, shard, i, key);
-            found += (notify ? shard.store_find_read<true>(FlatStore::hash_key(key), key)
-                             : shard.store_find_read<false>(FlatStore::hash_key(key), key)) != nullptr;
+            found +=
+                (notify ? shard.store_find_read<true>(FlatStore::hash_key(key), key)
+                        : shard.store_find_read<false>(FlatStore::hash_key(key), key)) != nullptr;
         }
         command.integer.fetch_add(found, std::memory_order_relaxed);
     }
@@ -1928,20 +2056,23 @@ void assemble_cross_reply(MultiCommand& command) {
     if (command.kind == MultiCommandKind::Mget) {
         reply_array_header(op.sink(), command.values.size());
         for (const MultiValue& value : command.values) {
-            if (!value.present) reply_null(op.sink(), op.resp3());
-            else reply_bulk(op.sink(), Slice(value.value.data(),
-                                              static_cast<uint32_t>(value.value.size())));
+            if (!value.present)
+                reply_null(op.sink(), op.resp3());
+            else
+                reply_bulk(op.sink(),
+                           Slice(value.value.data(), static_cast<uint32_t>(value.value.size())));
         }
     } else if (command.kind == MultiCommandKind::Mset) {
         reply_ok(op.sink());
     } else if (command.kind == MultiCommandKind::Msetnx) {
         reply_int(op.sink(), command.condition_failed.load(std::memory_order_acquire) ? 0 : 1);
-    } else if (command.kind == MultiCommandKind::Del ||
-               command.kind == MultiCommandKind::Exists) {
+    } else if (command.kind == MultiCommandKind::Del || command.kind == MultiCommandKind::Exists) {
         reply_int(op.sink(), command.integer.load(std::memory_order_relaxed));
     } else if (command.kind == MultiCommandKind::Ping) {
-        if (op.argc() == 1) reply_pong(op.sink());
-        else reply_bulk(op.sink(), op.arg(1));
+        if (op.argc() == 1)
+            reply_pong(op.sink());
+        else
+            reply_bulk(op.sink(), op.arg(1));
     } else if (command.kind == MultiCommandKind::Echo) {
         reply_bulk(op.sink(), op.arg(1));
     } else if (command.kind == MultiCommandKind::UnwatchReply ||
@@ -1957,11 +2088,13 @@ void multi_local_runnable(MultiExecState& state, int32_t current,
                           const MultiRetryPromoter* promoter) {
     if (!promoter) return;
     for (int32_t sid : state.shards)
-        if (sid != current) promoter->promote(promoter->context, state.owner_retries[state.slot(sid)]);
+        if (sid != current)
+            promoter->promote(promoter->context, state.owner_retries[state.slot(sid)]);
 }
 
-__attribute__((always_inline)) inline bool /* TOMO_TOOL_BIND execute_watch_phase */execute_watch_phase(MultiExecState& state, Shard& shard,
-                         const MultiRetryPromoter* promoter = nullptr) {
+__attribute__((always_inline)) inline bool /* TOMO_TOOL_BIND execute_watch_phase */
+execute_watch_phase(MultiExecState& state, Shard& shard,
+                    const MultiRetryPromoter* promoter = nullptr) {
     if (state.watch_shard_done[state.slot(static_cast<uint32_t>(shard.id()))]) return true;
     if (state.kind == MultiStateKind::Execute && !state.read_only &&
         state.final_reply != MultiFinalReply::ExecAbort &&
@@ -1970,17 +2103,21 @@ __attribute__((always_inline)) inline bool /* TOMO_TOOL_BIND execute_watch_phase
         if (state.shards.size() != 1 && !(noted & 4u)) {
             // No shard holds anything until every participant has passed
             // program order and its blind-candidate arrival scan.
-            if (txn_blind_scan(shard, state.claims[state.slot(shard.id())], &state) != TxnBlind::Clear)
+            if (txn_blind_scan(shard, state.claims[state.slot(shard.id())], &state) !=
+                TxnBlind::Clear)
                 return false;
             noted |= 4u;
-            if (state.watch_arrived.fetch_add(1, std::memory_order_acq_rel) + 1 == state.shards.size())
+            if (state.watch_arrived.fetch_add(1, std::memory_order_acq_rel) + 1 ==
+                state.shards.size())
                 multi_local_runnable(state, shard.id(), promoter);
             multi_ring_participants(state);
         }
         if (state.shards.size() != 1 &&
-            state.watch_arrived.load(std::memory_order_acquire) != state.shards.size()) return false;
+            state.watch_arrived.load(std::memory_order_acquire) != state.shards.size())
+            return false;
         if (state.debug_place_deadline && shard.id() != state.shards.front() &&
-            now_ns() < state.debug_place_deadline) return false;
+            now_ns() < state.debug_place_deadline)
+            return false;
         const auto blind = txn_blind_scan(shard, state.claims[state.slot(shard.id())], &state);
         if (blind == TxnBlind::Completing) return false;
         if (blind == TxnBlind::Crossing) {
@@ -1991,17 +2128,25 @@ __attribute__((always_inline)) inline bool /* TOMO_TOOL_BIND execute_watch_phase
                 multi_cancel_decision(state.decision, shard.id(), TxnCounter::BlindRestarts);
             }
         } else {
-            Shard::WatchReservation claim{&state, &state.decision.epoch, &state.decision.aborted,
-                &state.watch_refs, state.client, state.watch_generation, false, true};
+            Shard::WatchReservation claim{&state,
+                                          &state.decision.epoch,
+                                          &state.decision.aborted,
+                                          &state.watch_refs,
+                                          state.client,
+                                          state.watch_generation,
+                                          false,
+                                          true};
             claim.unit_kind = 1;
-            if (!shard.watch_place_unit(state.claims[state.slot(shard.id())], claim, promoter)) return false;
-            noted |= 16u; // placed, including a subsequent WATCH validation wait
+            if (!shard.watch_place_unit(state.claims[state.slot(shard.id())], claim, promoter))
+                return false;
+            noted |= 16u;  // placed, including a subsequent WATCH validation wait
         }
     }
     if (state.kind == MultiStateKind::WatchAdd) {
         for (const MultiWatchedKey& watched : state.watched) {
             if (watched.shard != shard.id()) continue;
-            const Slice key(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns);
+            const Slice key(watched.key.data(), static_cast<uint32_t>(watched.key.size()),
+                            watched.ns);
             if (!shard.watch_add(key, state.client, state.watch_generation, watched.db)) {
                 shard.note_txn_boundary(Shard::TxnWatchNote);
                 return false;
@@ -2014,11 +2159,13 @@ __attribute__((always_inline)) inline bool /* TOMO_TOOL_BIND execute_watch_phase
             // Inactive namespace aliases detect a later SWAPDB, but do not reserve
             // another logical database or observe its deadline during EXEC.
             if ((*state.database_map)[watched.db] != watched.ns) continue;
-            const Slice key(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns);
+            const Slice key(watched.key.data(), static_cast<uint32_t>(watched.key.size()),
+                            watched.ns);
             if (!shard.watch_validate_and_reserve(
                     key, state.client, state.watch_generation, &state, &state.decision.epoch,
-                    &state.decision.aborted, &state.watch_refs,
-                    state_writes_key(state, watched), &state, !state.read_only)) return false;
+                    &state.decision.aborted, &state.watch_refs, state_writes_key(state, watched),
+                    &state, !state.read_only))
+                return false;
         }
         if (state.client->watch_dirty()) {
             state.watch_failed.store(true, std::memory_order_release);
@@ -2030,13 +2177,14 @@ __attribute__((always_inline)) inline bool /* TOMO_TOOL_BIND execute_watch_phase
             // A prior atomic writer may have completed its owner pass while its global decision is
             // still unpublished.  Keep UNWATCH/DISCARD/close behind that decision so removing the
             // last watcher also releases the reservation's state-lifetime pin.
-            if (!shard.watch_write_ready(
-                    Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns))) {
+            if (!shard.watch_write_ready(Slice(
+                    watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns))) {
                 shard.note_txn_boundary(Shard::TxnWatchNote);
                 return false;
             }
-            shard.watch_remove(Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns),
-                               state.client, state.watch_generation);
+            shard.watch_remove(
+                Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns),
+                state.client, state.watch_generation);
         }
     }
     if (state.kind != MultiStateKind::Execute) shard.clear_txn_boundary_notes(Shard::TxnWatchNote);
@@ -2050,8 +2198,9 @@ __attribute__((always_inline)) inline bool /* TOMO_TOOL_BIND execute_watch_phase
             if (state.decision.phase.compare_exchange_strong(placing, TxnPhase::Executing,
                                                              std::memory_order_acq_rel)) {
                 if (!state.decision.aborted.load(std::memory_order_acquire))
-                    state.server->note_txn(state.server->worker_of_shard(shard.id()),
-                                           state.read_only ? TxnCounter::Readonly : TxnCounter::Executed);
+                    state.server->note_txn(
+                        state.server->worker_of_shard(shard.id()),
+                        state.read_only ? TxnCounter::Readonly : TxnCounter::Executed);
             } else {
                 // Finish an observed wound before the finalizer can mistake
                 // it for a terminal execution error at undecided epoch zero.
@@ -2068,8 +2217,8 @@ __attribute__((always_inline)) inline bool /* TOMO_TOOL_BIND execute_watch_phase
     return true;
 }
 
-__attribute__((always_inline)) inline void finalize_reservations(MultiExecState& state, Shard& shard,
-                           const MultiRetryPromoter* promoter = nullptr) {
+__attribute__((always_inline)) inline void finalize_reservations(
+    MultiExecState& state, Shard& shard, const MultiRetryPromoter* promoter = nullptr) {
     if (state.final_shard_done[state.slot(static_cast<uint32_t>(shard.id()))]) return;
     if (state.place_blockers) state.place_blockers[state.slot(shard.id())].clear();
     // A claim-skipped serve needs another owner sweep after either decision.
@@ -2078,8 +2227,8 @@ __attribute__((always_inline)) inline void finalize_reservations(MultiExecState&
     state.shard_aborted[state.slot(shard.id())].store(
         state.decision.aborted.load(std::memory_order_acquire), std::memory_order_release);
     const uint32_t intents = shard.store().atomic_unit_unpin(&state);
-    state.server->note_txn(state.server->worker_of_shard(shard.id()),
-                           TxnCounter::IntentsLive, uint64_t{0} - intents);
+    state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::IntentsLive,
+                           uint64_t{0} - intents);
     shard.watch_finish_unit(state.claims[state.slot(shard.id())], &state, promoter);
     if (!state.database_watch.empty()) {
         auto& targets = state.database_watch[state.slot(shard.id())];
@@ -2107,10 +2256,12 @@ __attribute__((always_inline)) inline void finalize_reservations(MultiExecState&
     state.final_shard_done[state.slot(static_cast<uint32_t>(shard.id()))] = 1;
 }
 
-__attribute__((always_inline)) inline bool finish_command(MultiExecState& state, MultiCommand& command, uint32_t stage, uint32_t owner_thread_id) {
+__attribute__((always_inline)) inline bool finish_command(MultiExecState& state,
+                                                          MultiCommand& command, uint32_t stage,
+                                                          uint32_t owner_thread_id) {
     if (command.pending.fetch_sub(1, std::memory_order_acq_rel) != 1) return false;
-    if (stage == 0 && (command.kind == MultiCommandKind::Admin ||
-                       command.kind == MultiCommandKind::DebugSleep)) {
+    if (stage == 0 &&
+        (command.kind == MultiCommandKind::Admin || command.kind == MultiCommandKind::DebugSleep)) {
         command.pending.store(static_cast<uint32_t>(command.participants.size()),
                               std::memory_order_relaxed);
         command.stage.store(1, std::memory_order_release);
@@ -2123,12 +2274,10 @@ __attribute__((always_inline)) inline bool finish_command(MultiExecState& state,
         command.stage.store(1, std::memory_order_release);
         return true;
     }
-    if (command.kind != MultiCommandKind::Local &&
-        command.kind != MultiCommandKind::Scan &&
-        command.kind != MultiCommandKind::IoLocal &&
-        command.kind != MultiCommandKind::Admin &&
-        command.kind != MultiCommandKind::Swapdb &&
-        command.kind != MultiCommandKind::Prebuilt) assemble_cross_reply(command);
+    if (command.kind != MultiCommandKind::Local && command.kind != MultiCommandKind::Scan &&
+        command.kind != MultiCommandKind::IoLocal && command.kind != MultiCommandKind::Admin &&
+        command.kind != MultiCommandKind::Swapdb && command.kind != MultiCommandKind::Prebuilt)
+        assemble_cross_reply(command);
     if (command.kind != MultiCommandKind::IoLocal)
         multi_slowlog_finish(state, command, owner_thread_id);
     command.finished.store(true, std::memory_order_release);
@@ -2141,14 +2290,13 @@ struct MultiLatencyOff {
     MultiLatencyOff(uint32_t, const Op*) {}
     void finish() {}
 };
-template<bool Tracked>
+template <bool Tracked>
 using MultiLatencyPart = std::conditional_t<Tracked, LatencyTrackingPart, MultiLatencyOff>;
 
-template<bool Tracked>
+template <bool Tracked>
 void assemble_ownerless_replies(MultiExecState& state, uint32_t owner_thread_id) {
     for (const auto& command : state.commands) {
-        if (command_has_owner_work(*command) ||
-            command->kind == MultiCommandKind::IoLocal ||
+        if (command_has_owner_work(*command) || command->kind == MultiCommandKind::IoLocal ||
             command->kind == MultiCommandKind::Prebuilt)
             continue;
         MultiLatencyPart<Tracked> latency(owner_thread_id, command->op.get());
@@ -2162,8 +2310,8 @@ void assemble_ownerless_replies(MultiExecState& state, uint32_t owner_thread_id)
 // INFO's bare physical census cannot see transaction-private inserts/deletes or TTL changes.
 // Use the same physical/side-key split as DBSIZE, resolving pending images at EXEC's read cut.
 // Stable expired physical keys remain counted, as Redis INFO does; this walk never reaps them.
-__attribute__((noinline)) void multi_collect_database_stats(
-        MultiExecState& state, MultiCommand& command, Shard& shard) {
+__attribute__((noinline)) void multi_collect_database_stats(MultiExecState& state,
+                                                            MultiCommand& command, Shard& shard) {
     auto& group = *group_for(*command.scatter, shard.id());
     try {
         if (!group.aux) group.aux = new GroupAux;
@@ -2173,8 +2321,8 @@ __attribute__((noinline)) void multi_collect_database_stats(
         group.error = WorkError::Oom;
         return;
     }
-    multi_database_stats(shard, *group.aux->database_stats,
-                         command.scatter->snapshot, state.origin_conn_id);
+    multi_database_stats(shard, *group.aux->database_stats, command.scatter->snapshot,
+                         state.origin_conn_id);
 }
 
 // A transaction is one commit ticket but not one runtime-error bit. Each xshard child keeps its
@@ -2184,8 +2332,7 @@ __attribute__((noinline)) void multi_collect_database_stats(
 // subset of these epoch stores.
 void publish_multi_child_epochs(MultiExecState& state, uint64_t ticket) {
     for (const auto& command : state.commands)
-        if (command->scatter)
-            command->scatter->epoch.store(ticket, std::memory_order_release);
+        if (command->scatter) command->scatter->epoch.store(ticket, std::memory_order_release);
 }
 
 void abort_multi_children(MultiExecState& state) {
@@ -2193,8 +2340,7 @@ void abort_multi_children(MultiExecState& state) {
     // publication a queue-time error leaves epoch=0/aborted=false forever.
     state.decision.aborted.store(true, std::memory_order_release);
     for (const auto& command : state.commands)
-        if (command->scatter)
-            command->scatter->aborted.store(true, std::memory_order_release);
+        if (command->scatter) command->scatter->aborted.store(true, std::memory_order_release);
 }
 
 }  // namespace
@@ -2274,7 +2420,10 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
 
     if ((multi_verb(op.spec) == MultiVerb::V_watch)) {
         session = ensure_multi_session(client);
-        if (!session) { reply_err(op.sink(), "ERR out of memory"); return MultiIoAction::LocalDone; }
+        if (!session) {
+            reply_err(op.sink(), "ERR out of memory");
+            return MultiIoAction::LocalDone;
+        }
         if (session->active) {
             reply_err(op.sink(), "ERR WATCH inside MULTI is not allowed");
             return MultiIoAction::LocalDone;
@@ -2284,7 +2433,10 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
             client.clear_watch_dirty();
         }
         MultiExecState* state = allocate_state(server, client, owner_io, MultiStateKind::WatchAdd);
-        if (!state) { reply_err(op.sink(), "ERR out of memory"); return MultiIoAction::LocalDone; }
+        if (!state) {
+            reply_err(op.sink(), "ERR out of memory");
+            return MultiIoAction::LocalDone;
+        }
         state->final_reply = MultiFinalReply::Ok;
         const size_t watched_before = session->watched.size();
         try {
@@ -2300,7 +2452,7 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
                 for (uint32_t ns = 0; ns < server.cfg().databases; ++ns) {
                     const uint64_t hash = FlatStore::hash_key(Slice(key.data(), key.size(), ns));
                     MultiWatchedKey watched{key, hash, server.router().shard_of(hash),
-                        static_cast<uint8_t>(ns), op.db};
+                                            static_cast<uint8_t>(ns), op.db};
                     session->watched.push_back(watched);
                     state->watched.push_back(std::move(watched));
                 }
@@ -2335,9 +2487,12 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
             reply_ok(op.sink());
             return MultiIoAction::LocalDone;
         }
-        MultiExecState* state = prepare_unwatch_state(
-            server, client, owner_io, *session, MultiStateKind::Unwatch, MultiFinalReply::Ok);
-        if (!state) { reply_err(op.sink(), "ERR out of memory"); return MultiIoAction::LocalDone; }
+        MultiExecState* state = prepare_unwatch_state(server, client, owner_io, *session,
+                                                      MultiStateKind::Unwatch, MultiFinalReply::Ok);
+        if (!state) {
+            reply_err(op.sink(), "ERR out of memory");
+            return MultiIoAction::LocalDone;
+        }
         session->pending = state;
         dispatch = state;
         return MultiIoAction::Dispatch;
@@ -2357,9 +2512,12 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
             reply_ok(op.sink());
             return MultiIoAction::LocalDone;
         }
-        MultiExecState* state = prepare_unwatch_state(
-            server, client, owner_io, *session, MultiStateKind::Unwatch, MultiFinalReply::Ok);
-        if (!state) { reply_err(op.sink(), "ERR out of memory"); return MultiIoAction::LocalDone; }
+        MultiExecState* state = prepare_unwatch_state(server, client, owner_io, *session,
+                                                      MultiStateKind::Unwatch, MultiFinalReply::Ok);
+        if (!state) {
+            reply_err(op.sink(), "ERR out of memory");
+            return MultiIoAction::LocalDone;
+        }
         session->pending = state;
         dispatch = state;
         return MultiIoAction::Dispatch;
@@ -2387,8 +2545,12 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
                 MultiExecState* cleanup = nullptr;
                 if (!session->watched.empty()) {
                     cleanup = prepare_unwatch_state(server, client, owner_io, *session,
-                        MultiStateKind::Unwatch, MultiFinalReply::ExecDiskError);
-                    if (!cleanup) { reply_err(op.sink(), "ERR out of memory"); return MultiIoAction::LocalDone; }
+                                                    MultiStateKind::Unwatch,
+                                                    MultiFinalReply::ExecDiskError);
+                    if (!cleanup) {
+                        reply_err(op.sink(), "ERR out of memory");
+                        return MultiIoAction::LocalDone;
+                    }
                 }
                 session->active = session->queue_error = false;
                 session->clear_queue();
@@ -2424,17 +2586,23 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
         state->admission_generation = generation;
         state->reset_watch = true;
         state->watched = std::move(session->watched);
-        state->final_reply = session->queue_error ? MultiFinalReply::ExecAbort : MultiFinalReply::Exec;
+        state->final_reply =
+            session->queue_error ? MultiFinalReply::ExecAbort : MultiFinalReply::Exec;
         bool prepared = true;
-        if (!session->queue_error) prepared = prepare_commands(server, *state, session->queue);
-        else try {
-            // Queue-time errors skip prepare_commands, but watched EXECABORT
-            // still runs the owner WATCH phase before releasing reservations.
-            if (!state->watched.empty())
-                state->database_map = std::make_unique<DatabaseMap::Map>(server.databases().capture());
-            for (const auto& watched : state->watched) add_state_shard(*state, watched.shard);
-            allocate_participant_state(*state, state->shards.size());
-        } catch (const std::bad_alloc&) { prepared = false; }
+        if (!session->queue_error)
+            prepared = prepare_commands(server, *state, session->queue);
+        else
+            try {
+                // Queue-time errors skip prepare_commands, but watched EXECABORT
+                // still runs the owner WATCH phase before releasing reservations.
+                if (!state->watched.empty())
+                    state->database_map =
+                        std::make_unique<DatabaseMap::Map>(server.databases().capture());
+                for (const auto& watched : state->watched) add_state_shard(*state, watched.shard);
+                allocate_participant_state(*state, state->shards.size());
+            } catch (const std::bad_alloc&) {
+                prepared = false;
+            }
         if (!prepared) {
             destroy_multi_state(state);
             reply_err(op.sink(), "ERR out of memory");
@@ -2460,7 +2628,8 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
                 return MultiIoAction::LocalDone;
             }
             if (!participants.empty())
-                state->aof_group = aof_create_group(server.aof(), participants, state->origin_conn_id);
+                state->aof_group =
+                    aof_create_group(server.aof(), participants, state->origin_conn_id);
             if (!participants.empty() && !state->aof_group) {
                 destroy_multi_state(state);
                 reply_err(op.sink(), "ERR out of memory");
@@ -2476,7 +2645,8 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
         if (state->shards.empty()) {
             if (state->final_reply == MultiFinalReply::ExecAbort)
                 reply_err(op.sink(), "EXECABORT Transaction discarded because of previous errors.");
-            else reply_array_header(op.sink(), 0);
+            else
+                reply_array_header(op.sink(), 0);
             release_admission(*state);
             client.next_watch_generation();
             client.clear_watch_dirty();
@@ -2506,8 +2676,9 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
         reply_err(op.sink(), "ERR out of memory");
         return MultiIoAction::LocalDone;
     }
-    try { session->queue.push_back(std::move(queued)); }
-    catch (const std::bad_alloc&) {
+    try {
+        session->queue.push_back(std::move(queued));
+    } catch (const std::bad_alloc&) {
         session->queue_error = true;
         reply_err(op.sink(), "ERR out of memory");
         return MultiIoAction::LocalDone;
@@ -2521,10 +2692,9 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
 // Shared first-dispatch/retry tail. Only begin_dispatch publishes the initial
 // ROB slot; a retry supplies an empty callback and preserves that slot/barrier.
 template <bool IofusedPrivateQueue, typename Begin>
-bool multi_dispatch_attempt(Server& server, ThreadCtx& self, ScatterArenaPool& pool,
-                            Client& client, Op& op, MultiExecState* dispatch, uint64_t op_id,
-                            bool* touched, uint32_t* touched_list, uint32_t& ntouched,
-                            Begin&& begin_dispatch) {
+bool multi_dispatch_attempt(Server& server, ThreadCtx& self, ScatterArenaPool& pool, Client& client,
+                            Op& op, MultiExecState* dispatch, uint64_t op_id, bool* touched,
+                            uint32_t* touched_list, uint32_t& ntouched, Begin&& begin_dispatch) {
     uint32_t needed[kMaxThreads] = {};
     const uint32_t count = multi_dispatch_count(dispatch);
     for (uint32_t i = 0; i < count; i++) {
@@ -2556,8 +2726,10 @@ bool multi_dispatch_attempt(Server& server, ThreadCtx& self, ScatterArenaPool& p
     // keeps a plain read and a transaction prepared back to back on one connection from disagreeing
     // about which of them is older. Untaken -- and therefore free -- for any transaction that
     // carries no multi-owner read.
-    if (__builtin_expect(dispatch->exec_read_fanout ||
-            (dispatch->kind == MultiStateKind::Execute && dispatch->read_only && dispatch->shards.size() > 1), false)) {
+    if (__builtin_expect(
+            dispatch->exec_read_fanout || (dispatch->kind == MultiStateKind::Execute &&
+                                           dispatch->read_only && dispatch->shards.size() > 1),
+            false)) {
         if (!pool.can_register_snapshot()) {
             // The unresolved-cut window is full on this IO thread. Falling through without a cut
             // would silently restore the defect, so this is backpressure: the state stays in
@@ -2565,8 +2737,8 @@ bool multi_dispatch_attempt(Server& server, ThreadCtx& self, ScatterArenaPool& p
             client.set_atomic_backpressure(true);
             return false;
         }
-        dispatch->snapshot = op.has_read_cut() ? op.read_cut(server.atomic_snapshot())
-                                               : server.atomic_snapshot();
+        dispatch->snapshot =
+            op.has_read_cut() ? op.read_cut(server.atomic_snapshot()) : server.atomic_snapshot();
         if (!pool.register_snapshot(server, dispatch, self.id())) {
             dispatch->snapshot = UINT64_MAX;
             client.set_atomic_backpressure(true);
@@ -2614,8 +2786,7 @@ bool multi_dispatch_attempt(Server& server, ThreadCtx& self, ScatterArenaPool& p
     op.attach_multi_state(dispatch);
     begin_dispatch();
     multi_dispatch_started(client, dispatch);
-    if (dispatch->kind == MultiStateKind::Execute)
-        server.note_txn(self.id(), TxnCounter::Attempts);
+    if (dispatch->kind == MultiStateKind::Execute) server.note_txn(self.id(), TxnCounter::Attempts);
     LoopSignals& sig = self.sig();
     for (uint32_t i = 0; i < count; i++) {
         const int32_t sid = multi_dispatch_shard(dispatch, i);
@@ -2639,17 +2810,16 @@ bool multi_dispatch_attempt(Server& server, ThreadCtx& self, ScatterArenaPool& p
 
 MultiTrackingView multi_tracking_view(const MultiExecState& state) {
     return {state.snapshot, state.kind == MultiStateKind::Execute,
-        state.kind == MultiStateKind::Execute && state.final_reply == MultiFinalReply::Exec &&
-        !state.watch_failed.load(std::memory_order_acquire) &&
-        !state.decision.aborted.load(std::memory_order_acquire)};
+            state.kind == MultiStateKind::Execute && state.final_reply == MultiFinalReply::Exec &&
+                !state.watch_failed.load(std::memory_order_acquire) &&
+                !state.decision.aborted.load(std::memory_order_acquire)};
 }
 
 void multi_tracking_children(MultiExecState& state, void* context,
-        void (*visit)(void*, Op&, bool, bool, bool, bool&, uint32_t)) {
+                             void (*visit)(void*, Op&, bool, bool, bool, bool&, uint32_t)) {
     for (const auto& command : state.commands)
         visit(context, *command->op, command->kind == MultiCommandKind::Prebuilt,
-              command->kind == MultiCommandKind::IoLocal,
-              command->queued.verb == MultiVerb::V_acl,
+              command->kind == MultiCommandKind::IoLocal, command->queued.verb == MultiVerb::V_acl,
               command->io_effect_done, command->notify_order_base);
 }
 
@@ -2666,11 +2836,10 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
     MultiSession* queue_session = client.multi_session();
     const bool was_queueing = queue_session && queue_session->active;
     const uint64_t op_id = client.rob().dispatch_id();
-    if (was_queueing && op_id != queue_session->next_queue_op_id)
-        queue_session->queue_error = true;
+    if (was_queueing && op_id != queue_session->next_queue_op_id) queue_session->queue_error = true;
     MultiExecState* dispatch = nullptr;
-    const uint64_t latency_started = __builtin_expect(loop.srv_->latency_tracking(), false)
-        ? latency_tracking_start() : 0;
+    const uint64_t latency_started =
+        __builtin_expect(loop.srv_->latency_tracking(), false) ? latency_tracking_start() : 0;
     const MultiIoAction action =
         multi_handle_io(*loop.srv_, client, op, loop.self_->id(), dispatch);
     if (action == MultiIoAction::NotHandled) return false;
@@ -2679,10 +2848,10 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
         return true;
     }
     if (auto* tracking = loop.climon_conn_find(client.id())) {
-        tracking->tracking_dispatch = tracking->tracking_on &&
-            (!clientcompat_post() || !multi_session_active(client));
-        if (action == MultiIoAction::LocalDone && was_queueing &&
-            !multi_session_active(client)) tracking->caching_armed = false;
+        tracking->tracking_dispatch =
+            tracking->tracking_on && (!clientcompat_post() || !multi_session_active(client));
+        if (action == MultiIoAction::LocalDone && was_queueing && !multi_session_active(client))
+            tracking->caching_armed = false;
     }
     if (was_queueing) queue_session->next_queue_op_id = op_id + 1;
     if (action == MultiIoAction::LocalDone) {
@@ -2696,12 +2865,13 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
     }
 
     if (!multi_dispatch_attempt<IofusedPrivateQueue>(
-            *loop.srv_, *loop.self_, loop.scatter_pool_, client, op, dispatch, op_id,
-            loop.touched_, loop.touched_list_, loop.ntouched_, [&] {
+            *loop.srv_, *loop.self_, loop.scatter_pool_, client, op, dispatch, op_id, loop.touched_,
+            loop.touched_list_, loop.ntouched_, [&] {
                 if (loop.climon_local_trackers_) loop.tracking_prepare_multi(client, *dispatch);
                 client.atomic_group_started();
                 client.rob().publish();
-            })) return true;
+            }))
+        return true;
     LoopSignals& sig = loop.self_->sig();
     loop.self_->note_command(op.spec->id);
     loop.flip_fingerprint_note(*op.spec, op);
@@ -2752,15 +2922,13 @@ void multi_retire_entry(IoLoop& loop, Client& client, Op& op) {
     command_set_local_context(nullptr, nullptr);
 }
 
-uint32_t multi_owner_reap_entry(IoLoop& loop) {
-    return multi_reap_deferred(loop.multi_deferred_);
-}
+uint32_t multi_owner_reap_entry(IoLoop& loop) { return multi_reap_deferred(loop.multi_deferred_); }
 
 namespace {
 MultiExecState* multi_rebuild_attempt(MultiExecState& previous) {
     Server& server = *previous.server;
-    auto* next = allocate_state(server, *previous.client, previous.owner_io, MultiStateKind::Execute,
-                                previous.decision.age_ns);
+    auto* next = allocate_state(server, *previous.client, previous.owner_io,
+                                MultiStateKind::Execute, previous.decision.age_ns);
     if (!next) return nullptr;
     try {
         std::vector<MultiQueuedCommand> queue;
@@ -2776,7 +2944,8 @@ MultiExecState* multi_rebuild_attempt(MultiExecState& previous) {
                 if (contains_shard(next->shards, write.shard)) participants.push_back(write.shard);
             if (next->database_publish) participants.push_back(0);
             if (!participants.empty()) {
-                next->aof_group = aof_create_group(server.aof(), participants, next->origin_conn_id);
+                next->aof_group =
+                    aof_create_group(server.aof(), participants, next->origin_conn_id);
                 if (!next->aof_group) throw std::bad_alloc();
             }
         }
@@ -2826,8 +2995,9 @@ bool multi_exec_io_commands(IoLoop& loop, MultiExecState& state) {
         // Data children have committed, but their buffered keyspace events
         // must see the subscription set at their own child position. Join
         // that delivery before applying the next subscription change.
-        if (auto chain = notify_multi_before(*state.server,
-                state.notify.load(std::memory_order_acquire), command.notify_order_base)) {
+        if (auto chain =
+                notify_multi_before(*state.server, state.notify.load(std::memory_order_acquire),
+                                    command.notify_order_base)) {
             chain->completed = multi_io_child_completed;
             chain->completion = &state;
             loop.pubsub_notification_enqueue(std::move(chain));
@@ -2852,29 +3022,35 @@ bool multi_exec_io_commands(IoLoop& loop, MultiExecState& state) {
                 reply_err(child.sink(), "ERR SSUBSCRIBE isn't allowed for a DENY BLOCKING client");
                 continue;
             }
-            const bool pattern = verb == MultiVerb::V_psubscribe || verb == MultiVerb::V_punsubscribe;
-            const bool subscribe = verb == MultiVerb::V_subscribe || verb == MultiVerb::V_psubscribe;
+            const bool pattern =
+                verb == MultiVerb::V_psubscribe || verb == MultiVerb::V_punsubscribe;
+            const bool subscribe =
+                verb == MultiVerb::V_subscribe || verb == MultiVerb::V_psubscribe;
             if (subscribe && state.server->acl_active() &&
-                !acl_pubsub_channel_entry(client, child, pattern, *loop.self_)) continue;
+                !acl_pubsub_channel_entry(client, child, pattern, *loop.self_))
+                continue;
             if (loop.pubsub_start_modify(&client, child, pattern, subscribe,
-                    verb == MultiVerb::V_sunsubscribe, &state, state.exec_op_id) ==
-                    IoLoop::PubSubStartResult::Async) return false;
+                                         verb == MultiVerb::V_sunsubscribe, &state,
+                                         state.exec_op_id) == IoLoop::PubSubStartResult::Async)
+                return false;
         } else if (verb == MultiVerb::V_publish || verb == MultiVerb::V_spublish) {
             auto chain = std::make_shared<PubSubNotificationChain>();
-            chain->items.push_back(PubSubNotificationItem{
-                command.queued.argv[1], command.queued.argv[2], &child, verb == MultiVerb::V_spublish});
+            chain->items.push_back(PubSubNotificationItem{command.queued.argv[1],
+                                                          command.queued.argv[2], &child,
+                                                          verb == MultiVerb::V_spublish});
             chain->completed = multi_io_child_completed;
             chain->completion = &state;
             loop.pubsub_notification_enqueue(chain);
             return false;
         } else {
             command_set_local_context(&client, loop.self_);
-            if (verb == MultiVerb::V_acl) acl_command_entry(loop, client, child);
+            if (verb == MultiVerb::V_acl)
+                acl_command_entry(loop, client, child);
             else if (child.cmd_name().eq_icase("client") &&
                      loop.tracking_client_subcommand(&client, child) !=
-                         IoLoop::ClimonStartResult::NotHandled) {}
-            else if (!command_client_pause(*state.server, child, state.now_cut_mono_ms,
-                                           loop.self_->id()))
+                         IoLoop::ClimonStartResult::NotHandled) {
+            } else if (!command_client_pause(*state.server, child, state.now_cut_mono_ms,
+                                             loop.self_->id()))
                 child.spec->handler(state.server->shard(0), child);
             command_set_local_context(nullptr, nullptr);
         }
@@ -2908,8 +3084,8 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                     script_escalate_redispatch<IofusedPrivateQueue>(
                         *loop.srv_, *loop.self_, loop.ring_, loop.scatter_pool_, previous);
                 else
-                    txn_group_redispatch<IofusedPrivateQueue>(
-                        *loop.srv_, *loop.self_, loop.ring_, loop.scatter_pool_, previous);
+                    txn_group_redispatch<IofusedPrivateQueue>(*loop.srv_, *loop.self_, loop.ring_,
+                                                              loop.scatter_pool_, previous);
                 // A redispatch may finish the command here (an error reply): serve it now, not
                 // at the every-64th-pass backstop. An empty serve costs one visit.
                 if (!client->dead()) loop.enqueue_serve(client);
@@ -2928,7 +3104,7 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                 if (previous->has_subscription) {
                     if (multi_exec_io_commands(loop, *previous)) {
                         op.state.store(OpState::Done, std::memory_order_release);
-                        loop.enqueue_serve(&client); // mark_active alone waits for the backstop
+                        loop.enqueue_serve(&client);  // mark_active alone waits for the backstop
                         loop.mark_active(&client);
                     }
                     continue;
@@ -2940,7 +3116,8 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                         for (const auto& command : previous->commands) {
                             if (command->kind != MultiCommandKind::IoLocal ||
                                 !((command->queued.verb == MultiVerb::V_publish) ||
-                                  (command->queued.verb == MultiVerb::V_spublish))) continue;
+                                  (command->queued.verb == MultiVerb::V_spublish)))
+                                continue;
                             chain->items.push_back(PubSubNotificationItem{
                                 command->queued.argv[1], command->queued.argv[2], command->op.get(),
                                 (command->queued.verb == MultiVerb::V_spublish)});
@@ -2962,7 +3139,7 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                     loop.pubsub_notification_enqueue(chain);
                 } else {
                     op.state.store(OpState::Done, std::memory_order_release);
-                    loop.enqueue_serve(&client); // mark_active alone waits for the backstop
+                    loop.enqueue_serve(&client);  // mark_active alone waits for the backstop
                     loop.mark_active(&client);
                 }
                 ++work;
@@ -2978,7 +3155,8 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                 ++work;
                 continue;
             }
-            if (loop.srv_->txn_retry_held(&previous->retry) || now_ns() < previous->retry_after_ns) {
+            if (loop.srv_->txn_retry_held(&previous->retry) ||
+                now_ns() < previous->retry_after_ns) {
                 multi_enqueue_retry(*previous);
                 continue;
             }
@@ -2992,8 +3170,9 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                 multi_enqueue_retry(*previous);
                 continue;
             }
-            try { loop.multi_deferred_.reserve(loop.multi_deferred_.size() + 1); }
-            catch (const std::bad_alloc&) {
+            try {
+                loop.multi_deferred_.reserve(loop.multi_deferred_.size() + 1);
+            } catch (const std::bad_alloc&) {
                 destroy_multi_state(next);
                 multi_enqueue_retry(*previous);
                 continue;
@@ -3059,14 +3238,12 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
             const Task task = multi_make_task(nullptr, UINT64_MAX, sid, state);
             const bool posted = [&] {
                 if constexpr (IofusedPrivateQueue)
-                    return owner.post_iofused_task(
-                        loop.self_->id(), task, loop.ring_, loop.self_->sig());
+                    return owner.post_iofused_task(loop.self_->id(), task, loop.ring_,
+                                                   loop.self_->sig());
                 else
-                    return owner.post_task(
-                        loop.self_->id(), task, loop.ring_, loop.self_->sig());
+                    return owner.post_task(loop.self_->id(), task, loop.ring_, loop.self_->sig());
             }();
-            if (!posted)
-                std::abort();
+            if (!posted) std::abort();
         }
         multi_internal_dispatch_started(state);
         loop.pending_multi_cleanups_.pop_front();
@@ -3103,16 +3280,17 @@ void multi_close_entry(IoLoop& loop, Client& client) {
 static void multi_shutdown_attempt(MultiExecState* state, ScatterArenaPool& pool,
                                    std::vector<MultiExecState*>& deferred) {
     uint64_t undecided = 0;
-    if (state->decision.epoch.compare_exchange_strong(
-            undecided, kAtomicCancelledEpoch, std::memory_order_relaxed)) {
+    if (state->decision.epoch.compare_exchange_strong(undecided, kAtomicCancelledEpoch,
+                                                      std::memory_order_relaxed)) {
         state->decision.aborted.store(true, std::memory_order_relaxed);
         abort_multi_children(*state);
         aof_abort_group(state->aof_group);
     }
     for (const MultiWatchedKey& watched : state->watched)
-        state->server->shard(watched.shard).watch_remove(
-            Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns),
-            state->client, state->watch_generation);
+        state->server->shard(watched.shard)
+            .watch_remove(
+                Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns),
+                state->client, state->watch_generation);
     for (int32_t sid : state->shards)
         state->server->shard(sid).watch_finish_unit(state->claims[state->slot(sid)], state);
     if (state->snapshot_registered)
@@ -3125,16 +3303,18 @@ static void multi_shutdown_attempt(MultiExecState* state, ScatterArenaPool& pool
     state->client->atomic_group_finished();
     release_admission(*state);
     state->retired = true;
-    if (multi_records_done(*state)) destroy_multi_state(state);
-    else deferred.push_back(state);
+    if (multi_records_done(*state))
+        destroy_multi_state(state);
+    else
+        deferred.push_back(state);
 }
 
 void multi_shutdown_entry(IoLoop& loop) {
     if (loop.srv_ && loop.self_) {
         // Every producer is joined and the store records have drained. Only
         // completed attempts remain in this IO-owned retry inbox.
-        auto* pending = loop.srv_->multi_retry_lane(loop.self_->id()).head.exchange(
-            nullptr, std::memory_order_relaxed);
+        auto* pending = loop.srv_->multi_retry_lane(loop.self_->id())
+                            .head.exchange(nullptr, std::memory_order_relaxed);
         while (pending) {
             auto* node = pending;
             pending = node->next;
@@ -3142,13 +3322,12 @@ void multi_shutdown_entry(IoLoop& loop) {
                 txn_group_shutdown(*static_cast<ScatterState*>(node->unit), loop.scatter_pool_);
                 continue;
             }
-            multi_shutdown_attempt(static_cast<MultiExecState*>(node->unit),
-                                   loop.scatter_pool_, loop.multi_deferred_);
+            multi_shutdown_attempt(static_cast<MultiExecState*>(node->unit), loop.scatter_pool_,
+                                   loop.multi_deferred_);
         }
         multi_owner_reap_entry(loop);
     }
-    for (MultiExecState* state : loop.pending_multi_cleanups_)
-        multi_abandon_unpublished(state);
+    for (MultiExecState* state : loop.pending_multi_cleanups_) multi_abandon_unpublished(state);
     loop.pending_multi_cleanups_.clear();
 }
 
@@ -3209,7 +3388,10 @@ bool multi_aof_emit_fragment(MultiExecState& state, Shard& shard) {
     uint32_t count = 0;
     for (const MultiWriteKey& write : state.write_keys) count += write.shard == shard.id();
     if (shard.id() == 0 && state.database_publish) ++count;
-    if (!count) { done = 1; return true; }
+    if (!count) {
+        done = 1;
+        return true;
+    }
     AofProducer& producer = shard.store().aof();
     if (!producer.begin_group(state.aof_group)) return false;
     // Runtime-error children keep any already-installed candidates private under their own abort
@@ -3233,12 +3415,14 @@ bool multi_aof_emit_fragment(MultiExecState& state, Shard& shard) {
 
 bool multi_task_markless(const Task& task) {
     const auto tagged = reinterpret_cast<uintptr_t>(task.scatter);
-    return reinterpret_cast<MultiExecState*>(tagged & ~kMultiTaskTag)->kind != MultiStateKind::Execute;
+    return reinterpret_cast<MultiExecState*>(tagged & ~kMultiTaskTag)->kind !=
+           MultiStateKind::Execute;
 }
 bool multi_task_continuation(const Task& task) {
     const auto tagged = reinterpret_cast<uintptr_t>(task.scatter);
     const auto& state = *reinterpret_cast<MultiExecState*>(tagged & ~kMultiTaskTag);
-    return state.kind != MultiStateKind::Execute || state.watch_shard_done[state.slot(task.shard)] ||
+    return state.kind != MultiStateKind::Execute ||
+           state.watch_shard_done[state.slot(task.shard)] ||
            state.decision.aborted.load(std::memory_order_acquire);
 }
 bool txn_task_markless(const Task& task) {
@@ -3246,8 +3430,8 @@ bool txn_task_markless(const Task& task) {
     if (!task.scatter) return false;
     const auto& state = *task.scatter;
     return !state.multi_child &&
-        ((state.atomic_group && !state.group_attempt()) ||
-         state.kind == Kind::DebugReload || state.kind == Kind::DebugLoadAof);
+           ((state.atomic_group && !state.group_attempt()) || state.kind == Kind::DebugReload ||
+            state.kind == Kind::DebugLoadAof);
 }
 
 MultiOwnerRetryNode& multi_owner_retry_node(const Task& task) {
@@ -3256,20 +3440,20 @@ MultiOwnerRetryNode& multi_owner_retry_node(const Task& task) {
     return state.owner_retries[state.slot(task.shard)];
 }
 
-__attribute__((noinline, cold)) static
-MultiTaskResult multi_execute_task_tracked(Server& server, const Task& task, Shard& shard,
-        uint32_t owner_thread_id, uint32_t owner_domain, AofOwnerContext* aof_context,
-        const MultiRetryPromoter* promoter) {
+__attribute__((noinline, cold)) static MultiTaskResult multi_execute_task_tracked(
+    Server& server, const Task& task, Shard& shard, uint32_t owner_thread_id, uint32_t owner_domain,
+    AofOwnerContext* aof_context, const MultiRetryPromoter* promoter) {
     constexpr bool Tracked = true;
 #include "multi_execute.inc"
 }
 
 MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shard,
-        uint32_t owner_thread_id, uint32_t owner_domain, AofOwnerContext* aof_context,
-        const MultiRetryPromoter* promoter) {
+                                   uint32_t owner_thread_id, uint32_t owner_domain,
+                                   AofOwnerContext* aof_context,
+                                   const MultiRetryPromoter* promoter) {
     if (__builtin_expect(server.latency_tracking(), false))
-        return multi_execute_task_tracked(server, task, shard, owner_thread_id,
-                                         owner_domain, aof_context, promoter);
+        return multi_execute_task_tracked(server, task, shard, owner_thread_id, owner_domain,
+                                          aof_context, promoter);
     constexpr bool Tracked = false;
 #include "multi_execute.inc"
 }
@@ -3278,9 +3462,9 @@ void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred
     auto* state = static_cast<MultiExecState*>(op.multi_state());
     if (!state) return;
     if (state->kind == MultiStateKind::Execute)
-        if (auto* session = ensure_multi_session(client)) session->last_attempts = state->attempt + 1;
-    if (state->kind == MultiStateKind::Execute &&
-        state->final_reply == MultiFinalReply::Exec &&
+        if (auto* session = ensure_multi_session(client))
+            session->last_attempts = state->attempt + 1;
+    if (state->kind == MultiStateKind::Execute && state->final_reply == MultiFinalReply::Exec &&
         !state->watch_failed.load(std::memory_order_acquire) &&
         !state->decision.aborted.load(std::memory_order_acquire)) {
         // Connection-local handlers deliberately return to their owning IO thread.  This preserves
@@ -3288,16 +3472,16 @@ void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred
         for (const auto& command : state->commands) {
             if (command->kind == MultiCommandKind::IoLocal && !command->io_effect_done &&
                 !(state->publication_started &&
-                  ((command->queued.verb == MultiVerb::V_publish) || (command->queued.verb == MultiVerb::V_spublish))))
-            {
+                  ((command->queued.verb == MultiVerb::V_publish) ||
+                   (command->queued.verb == MultiVerb::V_spublish)))) {
                 const uint64_t started = multi_slowlog_start(*state, state->owner_io);
                 if (__builtin_expect(state->server->latency_tracking(), false)) {
                     LatencyTrackingScope latency(state->owner_io, *command->op);
                     if (!command_client_pause(*state->server, *command->op, state->now_cut_mono_ms,
                                               state->owner_io))
                         command->op->spec->handler(state->server->shard(0), *command->op);
-                } else if (!command_client_pause(*state->server, *command->op, state->now_cut_mono_ms,
-                                                 state->owner_io))
+                } else if (!command_client_pause(*state->server, *command->op,
+                                                 state->now_cut_mono_ms, state->owner_io))
                     command->op->spec->handler(state->server->shard(0), *command->op);
                 multi_slowlog_part(*command, started);
                 multi_slowlog_finish(*state, *command, state->owner_io);
@@ -3326,8 +3510,9 @@ void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred
         destroy_multi_state(state);
         return;
     }
-    try { deferred.push_back(state); }
-    catch (const std::bad_alloc&) {
+    try {
+        deferred.push_back(state);
+    } catch (const std::bad_alloc&) {
         // The record refs keep the state valid.  An allocation failure leaks one transaction state
         // rather than freeing epoch/abort words still named by shard-local MVCC entries.
     }
@@ -3337,7 +3522,10 @@ uint32_t multi_reap_deferred(std::vector<MultiExecState*>& deferred) {
     uint32_t reaped = 0;
     for (size_t i = 0; i < deferred.size();) {
         MultiExecState* state = deferred[i];
-        if (!multi_records_done(*state)) { i++; continue; }
+        if (!multi_records_done(*state)) {
+            i++;
+            continue;
+        }
         destroy_multi_state(state);
         deferred[i] = deferred.back();
         deferred.pop_back();
@@ -3358,8 +3546,8 @@ MultiExecState* multi_prepare_close(Server& server, Client& client, uint32_t own
     session->queue_error = false;
     session->clear_queue();
     if (session->watched.empty()) return nullptr;
-    MultiExecState* state = prepare_unwatch_state(
-        server, client, owner_io, *session, MultiStateKind::Close, MultiFinalReply::Ok);
+    MultiExecState* state = prepare_unwatch_state(server, client, owner_io, *session,
+                                                  MultiStateKind::Close, MultiFinalReply::Ok);
     return state;
 }
 
@@ -3386,8 +3574,9 @@ uint32_t multi_session_watch_size(const Client& client) {
     if constexpr (kSingleDatabase) return static_cast<uint32_t>(session->watched.size());
     // WATCH installs one alias per physical namespace for each (logical DB, key).
     // Exactly one alias has ns=0, even after SWAPDB; count that representative.
-    return static_cast<uint32_t>(std::count_if(session->watched.begin(), session->watched.end(),
-        [](const MultiWatchedKey& watched) { return watched.ns == 0; }));
+    return static_cast<uint32_t>(
+        std::count_if(session->watched.begin(), session->watched.end(),
+                      [](const MultiWatchedKey& watched) { return watched.ns == 0; }));
 }
 
 uint64_t multi_session_memory(const Client& client) {
@@ -3426,9 +3615,10 @@ void for_each_spec_key(Op& op, Fn&& fn) {
         return;
     }
     if (!op.spec || op.spec->first_key <= 0 || op.spec->key_step <= 0) return;
-    const uint32_t last = op.spec->last_key < 0
-        ? op.argc() - 1
-        : std::min<uint32_t>(static_cast<uint32_t>(op.spec->last_key), op.argc() - 1);
+    const uint32_t last =
+        op.spec->last_key < 0
+            ? op.argc() - 1
+            : std::min<uint32_t>(static_cast<uint32_t>(op.spec->last_key), op.argc() - 1);
     for (uint32_t arg = static_cast<uint32_t>(op.spec->first_key); arg <= last;
          arg += static_cast<uint32_t>(op.spec->key_step))
         fn(op.arg(arg));
@@ -3458,22 +3648,21 @@ bool txn_version_before(const TxnUnitView& a, const TxnUnitView& b) {
     return a.age_seq < b.age_seq;
 }
 bool txn_reservation_live(const Shard::WatchReservation& r) {
-    return r.entry_kind == 2 || (r.epoch &&
-        r.epoch->load(std::memory_order_acquire) == 0 &&
-        !(r.aborted && r.aborted->load(std::memory_order_acquire)));
+    return r.entry_kind == 2 || (r.epoch && r.epoch->load(std::memory_order_acquire) == 0 &&
+                                 !(r.aborted && r.aborted->load(std::memory_order_acquire)));
 }
-bool /* TOMO_TOOL_BIND txn_wound */txn_wound(const Shard::WatchReservation& holder, Shard& shard, Server& server) {
+bool /* TOMO_TOOL_BIND txn_wound */ txn_wound(const Shard::WatchReservation& holder, Shard& shard,
+                                              Server& server) {
     auto view = txn_unit_view(holder);
     TxnPhase placing = TxnPhase::Placing;
-    if (!view.phase->compare_exchange_strong(placing, TxnPhase::Wounded,
-                                             std::memory_order_acq_rel)) return false;
+    if (!view.phase->compare_exchange_strong(placing, TxnPhase::Wounded, std::memory_order_acq_rel))
+        return false;
     uint64_t zero = 0;
     // The successful phase CAS is the wound. A victim can complete the epoch
     // CAS first; that must neither lose the count nor suppress the abort store.
-    server.note_txn(server.worker_of_shard(shard.id()), holder.unit_kind == 1
-        ? TxnCounter::Wounds : TxnCounter::GroupWounds);
-    holder.epoch->compare_exchange_strong(zero, kAtomicCancelledEpoch,
-                                         std::memory_order_acq_rel);
+    server.note_txn(server.worker_of_shard(shard.id()),
+                    holder.unit_kind == 1 ? TxnCounter::Wounds : TxnCounter::GroupWounds);
+    holder.epoch->compare_exchange_strong(zero, kAtomicCancelledEpoch, std::memory_order_acq_rel);
     holder.aborted->store(true, std::memory_order_release);
     return true;
 }
@@ -3485,7 +3674,8 @@ uint64_t Shard::watch_writer_stamp(Slice key, const void* token, bool whole) con
     const auto found = watch_reservations_.find(whole ? std::string{} : watch_key_string(key));
     if (found == watch_reservations_.end()) return 0;
     for (const auto& r : found->second.marks)
-        if ((TOMO_TXN_REGISTRY_VISIT(), r.entry_kind == 2) && r.token == token) return r.writer_generation;
+        if ((TOMO_TXN_REGISTRY_VISIT(), r.entry_kind == 2) && r.token == token)
+            return r.writer_generation;
     return 0;
 }
 
@@ -3493,7 +3683,8 @@ bool Shard::watch_writer_mark(Slice key, const void* token, bool whole, uint64_t
     const auto owned = whole ? std::string{} : watch_key_string(key);
     if (auto found = watch_reservations_.find(owned); found != watch_reservations_.end())
         for (const auto& r : found->second.marks)
-            if ((TOMO_TXN_REGISTRY_VISIT(), r.entry_kind == 2) && r.token == token) return r.writer_generation == stamp;
+            if ((TOMO_TXN_REGISTRY_VISIT(), r.entry_kind == 2) && r.token == token)
+                return r.writer_generation == stamp;
     WatchReservation mark;
     mark.token = token;
     mark.entry_kind = 2;
@@ -3519,7 +3710,10 @@ bool Shard::watch_writer_unmark(Slice key, const void* token, bool whole) {
 #else
     (void)removed;
 #endif
-    if (found->second.empty()) { watch_reservations_.erase(found); refresh_has_watches(); }
+    if (found->second.empty()) {
+        watch_reservations_.erase(found);
+        refresh_has_watches();
+    }
     return removed != 0;
 }
 
@@ -3536,8 +3730,10 @@ void Shard::watch_writer_forget(const void* token) {
 #else
         (void)removed;
 #endif
-        if (it->second.empty()) it = watch_reservations_.erase(it);
-        else ++it;
+        if (it->second.empty())
+            it = watch_reservations_.erase(it);
+        else
+            ++it;
     }
     refresh_has_watches();
 }
@@ -3551,18 +3747,23 @@ void Shard::watch_writer_check(Slice key, bool whole, uint64_t stamp) {
             if (!r.unit_kind || !r.blocking || !txn_reservation_live(r)) continue;
             const auto unit = txn_unit_view(r);
             if (unit.age_ns <= stamp) continue;
-            if (r.entry_kind == 1 || (unit.phase->load(std::memory_order_acquire) == TxnPhase::Placing &&
-                (r.entry_kind == 0 || (r.unit_kind == 2 &&
-                (static_cast<const ScatterState*>(r.token)->group_attempt()->arrived[id()] & 4u)))))
+            if (r.entry_kind == 1 ||
+                (unit.phase->load(std::memory_order_acquire) == TxnPhase::Placing &&
+                 (r.entry_kind == 0 ||
+                  (r.unit_kind == 2 &&
+                   (static_cast<const ScatterState*>(r.token)->group_attempt()->arrived[id()] &
+                    4u)))))
                 server_->note_txn(server_->worker_of_shard(id()), TxnCounter::OrderViolations);
         }
     };
     if (whole) {
         for (const auto& [name, entries] : watch_reservations_) check(entries.held);
     } else {
-        if (auto it = watch_reservations_.find(""); it != watch_reservations_.end()) check(it->second.held);
+        if (auto it = watch_reservations_.find(""); it != watch_reservations_.end())
+            check(it->second.held);
         if (auto it = watch_reservations_.find(watch_key_string(key));
-            it != watch_reservations_.end()) check(it->second.held);
+            it != watch_reservations_.end())
+            check(it->second.held);
     }
 }
 
@@ -3581,10 +3782,11 @@ bool Shard::watch_finalize_queue(const std::string& key, TxnKeyQueue& queue) {
     for (size_t i = 0; i < list.size(); i++) {
         auto& reservation = list[i];
         TOMO_TXN_REGISTRY_VISIT();
-        const uint64_t epoch = reservation.epoch
-            ? reservation.epoch->load(std::memory_order_acquire) : 1;
-        const bool aborted = epoch == kAtomicCancelledEpoch || (reservation.aborted &&
-            reservation.aborted->load(std::memory_order_acquire));
+        const uint64_t epoch =
+            reservation.epoch ? reservation.epoch->load(std::memory_order_acquire) : 1;
+        const bool aborted =
+            epoch == kAtomicCancelledEpoch ||
+            (reservation.aborted && reservation.aborted->load(std::memory_order_acquire));
         if (!aborted && epoch == 0) {
             if (reservation.blocking) {
                 stats_.watch_reservation_waits++;
@@ -3605,8 +3807,8 @@ bool Shard::watch_finalize_queue(const std::string& key, TxnKeyQueue& queue) {
         auto watchers = watchers_.find(key);
         if (watchers != watchers_.end()) {
             for (const WatchEntry& entry : watchers->second)
-                if ((dirty[entry.db / 64] & (uint64_t{1} << (entry.db % 64))) &&
-                    entry.client && entry.client->watch_generation() == entry.generation)
+                if ((dirty[entry.db / 64] & (uint64_t{1} << (entry.db % 64))) && entry.client &&
+                    entry.client->watch_generation() == entry.generation)
                     entry.client->set_watch_dirty();
         }
     }
@@ -3651,19 +3853,21 @@ bool Shard::watch_add(Slice key, Client* client, uint64_t generation, uint16_t d
     bool pending = false;
     store_.atomic_visit_unit_records(FlatStore::hash_key(key), key, false, [&](AtomicEntry& e) {
         if (e.group && e.group_epoch && !e.group_epoch->load(std::memory_order_acquire) &&
-            !(e.group_aborted && e.group_aborted->load(std::memory_order_acquire))) pending = true;
+            !(e.group_aborted && e.group_aborted->load(std::memory_order_acquire)))
+            pending = true;
     });
-    if (pending) return false; // F8: WATCH cannot miss an installed group's eventual write
+    if (pending) return false;  // F8: WATCH cannot miss an installed group's eventual write
     watch_prune_stale(owned);
     const uint8_t logical = server_ ? server_->databases().logical(key.ns) : key.ns;
     if (db == 256) db = logical;
     auto& entries = watchers_[owned];
     for (const WatchEntry& entry : entries)
         if (entry.client == client && entry.generation == generation && entry.db == db) return true;
-    const int64_t deadline = db == logical
-        ? store_.watch_deadline(FlatStore::hash_key(key), key) : -1;
-    try { entries.push_back(WatchEntry{client, generation, static_cast<uint8_t>(db), deadline}); }
-    catch (const std::bad_alloc&) {
+    const int64_t deadline =
+        db == logical ? store_.watch_deadline(FlatStore::hash_key(key), key) : -1;
+    try {
+        entries.push_back(WatchEntry{client, generation, static_cast<uint8_t>(db), deadline});
+    } catch (const std::bad_alloc&) {
         if (entries.empty()) watchers_.erase(owned);
         return false;
     }
@@ -3679,8 +3883,10 @@ void Shard::watch_remove(Slice key, Client* client, uint64_t generation) {
     auto& entries = found->second;
     size_t keep = 0;
     for (const WatchEntry& entry : entries) {
-        if (entry.client == client && entry.generation == generation) client->watch_unref();
-        else entries[keep++] = entry;
+        if (entry.client == client && entry.generation == generation)
+            client->watch_unref();
+        else
+            entries[keep++] = entry;
     }
     entries.resize(keep);
     if (entries.empty()) {
@@ -3691,9 +3897,8 @@ void Shard::watch_remove(Slice key, Client* client, uint64_t generation) {
 
 bool Shard::watch_validate_and_reserve(Slice key, Client* client, uint64_t generation,
                                        const void* token, std::atomic<uint64_t>* epoch,
-                                       std::atomic<bool>* aborted,
-                                       std::atomic<uint32_t>* refs, bool mutates,
-                                       MultiExecState* unit, bool reserve) {
+                                       std::atomic<bool>* aborted, std::atomic<uint32_t>* refs,
+                                       bool mutates, MultiExecState* unit, bool reserve) {
     const std::string owned = watch_key_string(key);
     watch_finalize_reservation(owned);
     // A key that was alive when this client armed the WATCH and whose deadline has since elapsed is
@@ -3713,14 +3918,14 @@ bool Shard::watch_validate_and_reserve(Slice key, Client* client, uint64_t gener
     if (client->watch_generation() != generation || client->watch_dirty()) return true;
     if (!reserve) return true;
     if (auto existing = watch_reservations_.find(owned); existing != watch_reservations_.end())
-        for (auto& r : existing->second.held) if ((TOMO_TXN_REGISTRY_VISIT(), r.token == token)) {
-            r.entry_kind = 0; // WATCH blocks from validation, before the started bit
-            r.blocking = true;
-            if (r.mutates) watch_note_database(r, server_, key.ns);
-            return true;
-        }
-    WatchReservation claim{token, epoch, aborted, refs, client, generation,
-                            false, true};
+        for (auto& r : existing->second.held)
+            if ((TOMO_TXN_REGISTRY_VISIT(), r.token == token)) {
+                r.entry_kind = 0;  // WATCH blocks from validation, before the started bit
+                r.blocking = true;
+                if (r.mutates) watch_note_database(r, server_, key.ns);
+                return true;
+            }
+    WatchReservation claim{token, epoch, aborted, refs, client, generation, false, true};
     claim.unit_kind = unit ? 1 : 0;
     claim.unit_mode = static_cast<uint8_t>(mutates ? TxnClaimMode::Write : TxnClaimMode::Read);
     if (!watch_append_reservation(owned, claim)) aborted->store(true, std::memory_order_release);
@@ -3729,7 +3934,7 @@ bool Shard::watch_validate_and_reserve(Slice key, Client* client, uint64_t gener
 
 template <bool Fifo>
 bool Shard::watch_key_ready_impl(const std::string& owned, const void* token, bool all_units,
-                                uint64_t stamp) {
+                                 uint64_t stamp) {
     const auto found = watch_reservations_.find(owned);
     if (found == watch_reservations_.end()) return true;
     auto& queue = found->second;
@@ -3745,7 +3950,10 @@ bool Shard::watch_key_ready_impl(const std::string& owned, const void* token, bo
             txn_unlink_waiter(*queue.ehead);
         if (queue.ehead) {
             for (const auto& mark : queue.marks)
-                if (mark.token == token) { stamp = mark.writer_generation; break; }
+                if (mark.token == token) {
+                    stamp = mark.writer_generation;
+                    break;
+                }
             if (txn_unit_view(queue.ehead->entry).age_ns <= stamp) {
                 server_->note_txn(server_->worker_of_shard(id()), TxnCounter::FifoWaits);
                 return false;
@@ -3790,8 +3998,7 @@ bool Shard::watch_txn_write_ready(Slice key, MultiExecState& state) {
 
 void Shard::watch_reserve_write(Slice key, Client* writer, uint64_t writer_generation,
                                 const void* token, std::atomic<uint64_t>* epoch,
-                                std::atomic<bool>* aborted,
-                                std::atomic<uint32_t>* refs) {
+                                std::atomic<bool>* aborted, std::atomic<uint32_t>* refs) {
     if (watchers_.empty()) return;
     // A later WATCH cannot enter while this key has an undecided record. Only
     // existing registrations need a dirty reservation for this decision.
@@ -3809,30 +4016,33 @@ void Shard::watch_reserve_write(Slice key, Client* writer, uint64_t writer_gener
     if (auto found = watch_reservations_.find(owned);
         found != watch_reservations_.end() && !found->second.empty())
         stats_.watch_reservation_coexist++;
-    if (!watch_append_reservation(owned, WatchReservation{
-            token, epoch, aborted, refs, writer, writer_generation, true, /*blocking=*/false}))
+    if (!watch_append_reservation(
+            owned, WatchReservation{token, epoch, aborted, refs, writer, writer_generation, true,
+                                    /*blocking=*/false}))
         aborted->store(true, std::memory_order_release);
 }
 
 // Appends one reservation, leaving the map unchanged on allocation failure. Returns false when the
 // caller must abort its unit rather than proceed with an unrecorded reservation.
 bool Shard::watch_append_reservation(const std::string& key, const WatchReservation& reservation,
-                                      TxnWaiter* handle) {
+                                     TxnWaiter* handle) {
     try {
         auto& queue = watch_reservations_[key];
         if (reservation.entry_kind == 3) {
             TOMO_ASSERT(handle && !reservation.mutates);
             txn_link_waiter(queue, *handle, reservation);
         } else if (reservation.entry_kind == 2) {
-            const auto at = std::upper_bound(queue.marks.begin(), queue.marks.end(),
-                reservation.writer_generation, [](uint64_t stamp, const auto& r) {
-                    TOMO_TXN_REGISTRY_VISIT();
-                    return stamp < r.writer_generation;
-                });
+            const auto at =
+                std::upper_bound(queue.marks.begin(), queue.marks.end(),
+                                 reservation.writer_generation, [](uint64_t stamp, const auto& r) {
+                                     TOMO_TXN_REGISTRY_VISIT();
+                                     return stamp < r.writer_generation;
+                                 });
             queue.marks.insert(at, reservation);
         } else {
             queue.held.emplace_back(reservation, handle);
-            if (reservation.mutates) watch_note_database(queue.held.back(), server_, static_cast<uint8_t>(key[0]));
+            if (reservation.mutates)
+                watch_note_database(queue.held.back(), server_, static_cast<uint8_t>(key[0]));
             if (handle) handle->queue = &queue;
             if (reservation.refs) reservation.refs->fetch_add(1, std::memory_order_release);
         }
@@ -3855,7 +4065,8 @@ void Shard::watch_write_committed(Slice key, Client*, uint64_t) {
     if (found == watchers_.end()) return;
     const uint8_t logical = server_ ? server_->databases().logical(key.ns) : key.ns;
     for (const WatchEntry& entry : found->second)
-        if (entry.db == logical && entry.client && entry.client->watch_generation() == entry.generation)
+        if (entry.db == logical && entry.client &&
+            entry.client->watch_generation() == entry.generation)
             entry.client->set_watch_dirty();
 }
 
@@ -3904,7 +4115,9 @@ bool Shard::watch_flush(int physical_db) {
                     (present || (entry.expire_at_ms >= 0 && entry.expire_at_ms < now_ms_)))
                     dirty.push_back(entry.client);
         }
-    } catch (const std::bad_alloc&) { return false; }
+    } catch (const std::bad_alloc&) {
+        return false;
+    }
     if (!store_.atomic_tombstone_all(physical_db)) return false;
     for (Client* client : dirty) client->set_watch_dirty();
     return true;
@@ -3917,8 +4130,8 @@ void Shard::watch_database_swap(uint8_t first, uint8_t second) {
 }
 
 bool Shard::watch_database_swap(uint8_t first, uint8_t second, uint8_t physical_first,
-                               uint8_t physical_second,
-                               std::vector<std::pair<Client*, uint64_t>>* deferred) {
+                                uint8_t physical_second,
+                                std::vector<std::pair<Client*, uint64_t>>* deferred) {
     if (!has_watches() || first == second) return true;
     for (auto& [owned, entries] : watchers_) {
         const uint8_t ns = static_cast<uint8_t>(owned[0]);
@@ -3933,23 +4146,28 @@ bool Shard::watch_database_swap(uint8_t first, uint8_t second, uint8_t physical_
                 entry.client->watch_generation() == entry.generation &&
                 (present || (entry.expire_at_ms >= 0 && entry.expire_at_ms < now_ms_))) {
                 if (deferred) {
-                    try { deferred->emplace_back(entry.client, entry.generation); }
-                    catch (const std::bad_alloc&) { return false; }
+                    try {
+                        deferred->emplace_back(entry.client, entry.generation);
+                    } catch (const std::bad_alloc&) {
+                        return false;
+                    }
                     entry.client->watch_ref();
-                } else entry.client->set_watch_dirty();
+                } else
+                    entry.client->set_watch_dirty();
             }
     }
     return true;
 }
 
-
 namespace {
 template <typename Fn>
 void for_each_plain_write_key(Op& op, Fn&& fn) {
-    if (op.local_xshard()) for_each_touched_key(op, fn);
+    if (op.local_xshard())
+        for_each_touched_key(op, fn);
     else if (op.spec->flags & CmdFlags::ScriptRoute)
         for_each_spec_key(op, [&](Slice key) { fn(0, key); });
-    else fn(op.hash, op_routed_key(op));
+    else
+        fn(op.hash, op_routed_key(op));
 }
 
 // Each enumerator visits the complete mark set on this owner, including "" for
@@ -3965,10 +4183,14 @@ void txn_writer_episode(Shard& shard, Op& op, Each&& each) {
         const bool single_existing = stamp && key_count == 1;
         if (!stamp) stamp = now_ns();
         bool complete = true;
-        if (!single_existing) each([&](Slice key, bool whole) {
-            complete &= shard.watch_writer_mark(key, &op, whole, stamp);
-        });
-        if (!complete) { shard.watch_writer_forget(&op); return; }
+        if (!single_existing)
+            each([&](Slice key, bool whole) {
+                complete &= shard.watch_writer_mark(key, &op, whole, stamp);
+            });
+        if (!complete) {
+            shard.watch_writer_forget(&op);
+            return;
+        }
         each([&](Slice key, bool whole) { shard.watch_writer_check(key, whole, stamp); });
     } catch (const std::bad_alloc&) {
         shard.watch_writer_forget(&op);
@@ -3978,13 +4200,13 @@ void txn_writer_episode(Shard& shard, Op& op, Each&& each) {
 
 #include "txn_fifo.inc"
 
-
 namespace {
 bool txn_scatter_write_ready(const Task& task, Shard& shard, Op& op) {
     auto& state = *task.scatter;
     auto& group = *group_for(state, shard.id());
-    const void* token = state.multi_parent ? state.multi_parent
-        : state.atomic_group ? static_cast<const void*>(&state) : nullptr;
+    const void* token = state.multi_parent   ? state.multi_parent
+                        : state.atomic_group ? static_cast<const void*>(&state)
+                                             : nullptr;
     const bool fifo = !state.atomic_group && !state.multi_child && state.kind != Kind::Script;
     bool ready = true;
     if (state.group_attempt()) {
@@ -3999,24 +4221,28 @@ bool txn_scatter_write_ready(const Task& task, Shard& shard, Op& op) {
     for (uint32_t i = 0; i < group.count; ++i) {
         const Slice key = op.arg(state.keys[state.key_order[group.begin + i]].arg);
         const bool key_ready = fifo ? shard.watch_fifo_write_ready(key, &op)
-            : state.atomic_group && !state.multi_child
-                ? shard.watch_group_write_ready(key, token) : shard.watch_write_ready(key, token);
+                               : state.atomic_group && !state.multi_child
+                                   ? shard.watch_group_write_ready(key, token)
+                                   : shard.watch_write_ready(key, token);
         if (!key_ready) ready = false;
     }
     if (!ready) {
         if (state.atomic_group && !state.multi_child && !state.group_attempt())
             shard.note_txn_boundary(Shard::TxnBlindNote);
-        if (!state.atomic_group) txn_writer_episode(shard, op, [&](auto&& fn) {
-            if (!group.count) fn(Slice{}, true);
-            for (uint32_t i = 0; i < group.count; ++i)
-                fn(op.arg(state.keys[state.key_order[group.begin + i]].arg), false);
-        });
+        if (!state.atomic_group)
+            txn_writer_episode(shard, op, [&](auto&& fn) {
+                if (!group.count) fn(Slice{}, true);
+                for (uint32_t i = 0; i < group.count; ++i)
+                    fn(op.arg(state.keys[state.key_order[group.begin + i]].arg), false);
+            });
         if (state.kind != Kind::Script) {
-            state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::WriterWaits);
+            state.server->note_txn(state.server->worker_of_shard(shard.id()),
+                                   TxnCounter::WriterWaits);
             return false;
         }
         if (state.group_attempt())
-            state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::OrderViolations);
+            state.server->note_txn(state.server->worker_of_shard(shard.id()),
+                                   TxnCounter::OrderViolations);
         // F2: optimistic APPLY owns a reserved ticket, so waiting here would freeze rule P
         // behind the unit that owns this claim. Cancel and finish the APPLY wave;
         // the script finalizer closes the bracket and hands off to claims.
@@ -4034,8 +4260,8 @@ bool txn_scatter_write_ready(const Task& task, Shard& shard, Op& op) {
         const Slice key = op.arg(state.keys[state.key_order[group.begin + i]].arg);
         if (!state.atomic_group) stamped |= shard.watch_writer_unmark(key, &op);
     }
-    if (fifo && stamped) state.server->note_txn(state.server->worker_of_shard(shard.id()),
-                                               TxnCounter::FifoPasses);
+    if (fifo && stamped)
+        state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::FifoPasses);
     return true;
 }
 }
@@ -4063,14 +4289,13 @@ bool multi_shutdown_retirable(Server& server, WbEngine& wb, Client& client, Op& 
     auto* state = static_cast<MultiExecState*>(op.multi_state());
     if (!state) return true;
     // Exactly multi_retire's condition for running connection-local handlers.
-    if (state->kind == MultiStateKind::Execute &&
-        state->final_reply == MultiFinalReply::Exec &&
+    if (state->kind == MultiStateKind::Execute && state->final_reply == MultiFinalReply::Exec &&
         !state->watch_failed.load(std::memory_order_acquire) &&
         !state->decision.aborted.load(std::memory_order_acquire))
         for (const auto& command : state->commands)
             if (command->kind == MultiCommandKind::IoLocal && !command->io_effect_done &&
-                !(state->publication_started &&
-                  ((command->queued.verb == MultiVerb::V_publish) || (command->queued.verb == MultiVerb::V_spublish))))
+                !(state->publication_started && ((command->queued.verb == MultiVerb::V_publish) ||
+                                                 (command->queued.verb == MultiVerb::V_spublish))))
                 return false;
     multi_shutdown_return_tls_borrows(server, wb, client, *state);
     return true;
@@ -4094,8 +4319,9 @@ void multi_shutdown_discard(Server& server, WbEngine& wb, Client& client, Op& op
         destroy_multi_state(state);
         return;
     }
-    try { deferred.push_back(state); }
-    catch (const std::bad_alloc&) {
+    try {
+        deferred.push_back(state);
+    } catch (const std::bad_alloc&) {
         // As in multi_retire: leak one state rather than free words a record still names.
     }
 }

@@ -14,7 +14,10 @@
 using namespace tomo;
 static bool fail_next_new = false;
 void* operator new(size_t bytes) {
-    if (fail_next_new) { fail_next_new = false; throw std::bad_alloc(); }
+    if (fail_next_new) {
+        fail_next_new = false;
+        throw std::bad_alloc();
+    }
     if (void* p = std::malloc(bytes ? bytes : 1)) return p;
     throw std::bad_alloc();
 }
@@ -58,7 +61,8 @@ static void work_case(uint32_t later) {
         const int n = std::snprintf(key, sizeof(key), "before:%08u", i);
         Slice k(key, n);
         need(s.insert(FlatStore::hash_key(k), kvobj_new_int(k, i)) ==
-             FlatStore::InsertResult::Inserted, "seed resident");
+                 FlatStore::InsertResult::Inserted,
+             "seed resident");
     }
     auto* range = s.atomic_install_flush(nullptr, -1, &epoch, &aborted, &refs, 42, 0);
     need(range != nullptr, "install work range");
@@ -78,14 +82,13 @@ static void work_case(uint32_t later) {
     try {
         need(s.atomic_flush_erase(*range), "collapse allocation succeeded");
     } catch (...) {
-        std::printf("WORK slots=%u residents=%u P=%u visits=%llu completed=0\n",
-                    slots, residents, later,
-                    (unsigned long long)(atomic_flush_counters.slow_work.load() - before));
+        std::printf("WORK slots=%u residents=%u P=%u visits=%llu completed=0\n", slots, residents,
+                    later, (unsigned long long)(atomic_flush_counters.slow_work.load() - before));
         throw;
     }
     const uint64_t visits = atomic_flush_counters.slow_work.load() - before;
-    std::printf("WORK slots=%u residents=%u P=%u visits=%llu completed=1\n",
-                slots, residents, later, (unsigned long long)visits);
+    std::printf("WORK slots=%u residents=%u P=%u visits=%llu completed=1\n", slots, residents,
+                later, (unsigned long long)visits);
     need(visits >= slots + later && visits <= 96ull * (slots + later),
          "linear work envelope for the fixed-key disjoint family");
     need(atomic_flush_counters.slow_collapses.load() == collapsed + 1, "one slow collapse");
@@ -106,12 +109,15 @@ static void collisions() {
     uint64_t random = 17;
     for (unsigned i = 0; i < count; ++i) {
         std::string key(i % 65, '\0');
-        for (auto& c : key) { random = mix64(random); c = char(random); }
+        for (auto& c : key) {
+            random = mix64(random);
+            c = char(random);
+        }
         if (i && i % 7 == 0) key = keys[i / 7];
         keys.push_back(std::move(key));
         Slice k(keys.back().data(), keys.back().size(), i % 16);
         first.try_emplace(std::pair(unsigned(k.ns), keys.back()), i);
-        index.insert(0, k, &values[i]); // force full-hash collisions and overflow
+        index.insert(0, k, &values[i]);  // force full-hash collisions and overflow
     }
     for (unsigned i = 0; i < count; ++i) {
         Slice k(keys[i].data(), keys[i].size(), i % 16);
@@ -134,7 +140,8 @@ static void allocation_failure() {
     FlatStore s;
     Slice key("old", 3);
     need(s.insert(FlatStore::hash_key(key), kvobj_new_int(key, 5)) ==
-         FlatStore::InsertResult::Inserted, "OOM seed");
+             FlatStore::InsertResult::Inserted,
+         "OOM seed");
     auto* range = s.atomic_install_flush(nullptr, -1, &epoch, &aborted, &refs, 42, 0);
     need(range != nullptr, "OOM range");
     post_delete(s, Slice("later", 5));
@@ -207,7 +214,8 @@ static void saturated_ranges() {
     }
     for (size_t i = ranges.size(); i-- > 1;) {
         s.atomic_flush_release(ranges[i]);
-        need(s.atomic_resolve(hash, key, 10) == nullptr, "saturated release cannot hide older range");
+        need(s.atomic_resolve(hash, key, 10) == nullptr,
+             "saturated release cannot hide older range");
     }
     s.clear();
     s.atomic_flush_release(ranges[0]);
@@ -218,7 +226,8 @@ static void saturated_ranges() {
 int main(int argc, char** argv) {
     static_assert(sizeof(AtomicEntry) == 144 && sizeof(AtomicPendingState) == 1352);
     try {
-        if (argc == 2) work_case(std::stoul(argv[1]));
+        if (argc == 2)
+            work_case(std::stoul(argv[1]));
         else {
             collisions();
             allocation_failure();

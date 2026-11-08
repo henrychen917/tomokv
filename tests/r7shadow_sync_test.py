@@ -9,6 +9,9 @@ import source_tokens as cpp
 
 
 def main():
+    rendered = sync.base.rename('void f() { // f()\n const char* s = "f()"; }', {'f': 'r7_f'})
+    assert '// r7_f()' in rendered, 'generated function reference lost its shadow name'
+    assert '"f()"' in rendered, 'renaming a comment must not edit a literal'
     root = sync.ROOT
     with tempfile.TemporaryDirectory() as temp:
         target = Path(temp)
@@ -34,6 +37,14 @@ def main():
                 raise AssertionError('stale tracking/LB freeze negative control passed')
             sync.base.update(copied, bodies, True)
             assert cpp.tokens(cpp.read(copied)) == cpp.tokens(original_copy)
+            # An explicit write must refresh layout even when tokens already match.
+            refreshed = '\n\n' + bodies
+            sync.base.update(copied, refreshed, True)
+            region = copied.read_text().split(sync.base.BEGIN, 1)[1].split(sync.base.END, 1)[0]
+            assert region == refreshed, 'token-equal regeneration left stale layout'
+            stamp = copied.stat().st_mtime_ns
+            sync.base.update(copied, refreshed, True)
+            assert copied.stat().st_mtime_ns == stamp, 'unchanged regeneration rewrote the file'
         finally:
             sync.ROOT = root
         io = target / 'src/core/io_loop.h'

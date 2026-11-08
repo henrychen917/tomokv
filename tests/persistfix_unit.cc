@@ -8,7 +8,10 @@
 
 using namespace tomo;
 static void require(bool ok, const char* why) {
-    if (!ok) { std::fprintf(stderr, "FAIL persistfix: %s\n", why); std::exit(1); }
+    if (!ok) {
+        std::fprintf(stderr, "FAIL persistfix: %s\n", why);
+        std::exit(1);
+    }
 }
 static std::atomic<bool> waited{false};
 
@@ -98,7 +101,8 @@ struct PersistFixTest {
         std::thread closer([&] { aof.writer_shutdown(writer, ring); });
         const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
         while (!waited.load(std::memory_order_acquire) && aof.recording() &&
-               std::chrono::steady_clock::now() < deadline) std::this_thread::yield();
+               std::chrono::steady_clock::now() < deadline)
+            std::this_thread::yield();
         const bool held = waited.load() && aof.recording();
         aof.chunk_in_[1].stopped.store(true, std::memory_order_release);
         closer.join();
@@ -106,9 +110,10 @@ struct PersistFixTest {
         require(held, "writer cannot close before producers stop posting");
         const auto report = aof.persistence_report();
         require(!report.recording && !report.failed && !report.drain_gave_up &&
-                report.producers_stopped == 2 && report.pending_chunks == 0,
+                    report.producers_stopped == 2 && report.pending_chunks == 0,
                 "shutdown persistence witness is clean after barrier");
-        std::puts("PASS persistfix shutdown-window: writer waited, all producers stopped, file closed");
+        std::puts(
+            "PASS persistfix shutdown-window: writer waited, all producers stopped, file closed");
     }
     void refusal() {
         aof.recording_.store(false);
@@ -165,13 +170,15 @@ struct PersistFixTest {
         aof.debug_rewrite_pause_.store(AofRewriteDebugStage::None);
         paused.join();
         aof.pending_chunks_.store(0);
-        require(::access(path.c_str(), F_OK) != 0 &&
+        require(
+            ::access(path.c_str(), F_OK) != 0 &&
                 ::access((std::string(directory) + "/debug-aof-rewrite-stage").c_str(), F_OK) != 0,
-                "DEBUG release removes both observations");
+            "DEBUG release removes both observations");
         ::rmdir(directory);
         require(!aof_debug_frame_state(directory, 5, 4, 104),
                 "publication failure is not reported as a witness");
-        std::puts("PASS frame-state: unarmed/armed/released pause, exact counters, atomic rename, failed publication");
+        std::puts(
+            "PASS frame-state: unarmed/armed/released pause, exact counters, atomic rename, failed publication");
     }
     void frame_order(bool drain_all, uint32_t committer, bool break_guard) {
         // Drive the actual production writer without a listener, worker, or initialized Ring.
@@ -195,8 +202,11 @@ struct PersistFixTest {
             chunk->sid = static_cast<int32_t>(producer);
             chunk->sequence = sequence;
             chunk->flags = flags;
-            chunk->bytes.assign(8, 'L'); // physical-framing unit; no logical replay claim
-            if (fragment) { chunk->group = group; chunk->group_fragment_last = true; }
+            chunk->bytes.assign(8, 'L');  // physical-framing unit; no logical replay claim
+            if (fragment) {
+                chunk->group = group;
+                chunk->group_fragment_last = true;
+            }
             require(aof.post_chunk(producer, chunk, ring, signals), "post scheduled frame");
         };
         post(0, 0, 0, true);
@@ -208,7 +218,8 @@ struct PersistFixTest {
         require(aof.pending_chunks() == 4, "LargeBegin is queued before writer release");
         aof.writer_pass(writer, ring, drain_all);
         require(aof.stream_owner_.large_token() && aof.pending_commits_.size() == 1 &&
-                aof.group_dependencies_ready(*group), "ready GCMT and OPEN large record coexist");
+                    aof.group_dependencies_ready(*group),
+                "ready GCMT and OPEN large record coexist");
         if (break_guard) {
             // Throwaway negative control: bypass writer_pass's large-token guard using an
             // unrelated open token. The exact next assertion must reject the premature GCMT.
@@ -226,14 +237,16 @@ struct PersistFixTest {
             if (sequence % 32 == 0 || sequence == 273) {
                 while (aof.chunk_in_[1].depth()) aof.writer_pass(writer, ring, drain_all);
                 if (sequence < 273)
-                    require(aof.groups_committed() == 0, "no GCMT in any large-record continuation");
+                    require(aof.groups_committed() == 0,
+                            "no GCMT in any large-record continuation");
             }
         }
         aof.writer_pass(writer, ring, drain_all);
         require(!aof.failed() && aof.pending_chunks() == 0 && aof.groups_committed() == 1 &&
-                aof.stream_owner_.open_token(), "GCMT commits only after LargeEnd");
-        std::printf("PASS frame-order: drain_all=%u committer=%u deferrals=%llu\n",
-                    drain_all, committer, static_cast<unsigned long long>(aof.control_defers()));
+                    aof.stream_owner_.open_token(),
+                "GCMT commits only after LargeEnd");
+        std::printf("PASS frame-order: drain_all=%u committer=%u deferrals=%llu\n", drain_all,
+                    committer, static_cast<unsigned long long>(aof.control_defers()));
     }
 };
 }
@@ -243,10 +256,14 @@ static_assert(sizeof(Shard) == 1440 && sizeof(FlatStore) == 944 && sizeof(Rob<64
 static_assert(sizeof(AtomicEntry) == 144 && sizeof(Config) == 624);
 
 int main(int argc, char** argv) {
-    require(argc == 2, "usage: persistfix-unit ack|remote|shutdown|refusal|frameorder|frameorder-no-guard");
+    require(argc == 2,
+            "usage: persistfix-unit ack|remote|shutdown|refusal|frameorder|frameorder-no-guard");
     const std::string mode(argv[1]);
     if (mode == "frameorder" || mode == "frameorder-no-guard") {
-        { PersistFixTest test; test.frame_state(); }
+        {
+            PersistFixTest test;
+            test.frame_state();
+        }
         for (bool drain_all : {false, true})
             for (uint32_t committer : {0u, 1u}) {
                 PersistFixTest test;
@@ -255,9 +272,14 @@ int main(int argc, char** argv) {
         return 0;
     }
     PersistFixTest test;
-    if (mode == "ack") test.ack_window();
-    else if (mode == "remote") test.remote_window();
-    else if (mode == "shutdown") test.shutdown_window();
-    else if (mode == "refusal") test.refusal();
-    else require(false, "unknown schedule");
+    if (mode == "ack")
+        test.ack_window();
+    else if (mode == "remote")
+        test.remote_window();
+    else if (mode == "shutdown")
+        test.shutdown_window();
+    else if (mode == "refusal")
+        test.refusal();
+    else
+        require(false, "unknown schedule");
 }

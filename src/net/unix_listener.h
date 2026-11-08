@@ -53,18 +53,23 @@ public:
         // Redis 7.4 unlinks even live sockets; the single-instance release rule is
         // deliberately stricter here. Probe and unlink remain a concurrent-boot
         // TOCTOU window, just like the disposable TCP boot probe.
-        struct stat existing{};
+        struct stat existing {};
         if (::stat(path_, &existing) == 0 && S_ISSOCK(existing.st_mode)) {
             const int probe = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0);
-            if (probe < 0) { error = std::strerror(errno); return false; }
-            const int connected = ::connect(probe, reinterpret_cast<sockaddr*>(&address), sizeof(address));
+            if (probe < 0) {
+                error = std::strerror(errno);
+                return false;
+            }
+            const int connected =
+                ::connect(probe, reinterpret_cast<sockaddr*>(&address), sizeof(address));
             const int result = connected == 0 ? EADDRINUSE : errno;
             ::close(probe);
             if (connected == 0 || result != ECONNREFUSED) {
                 const int reason = connected == 0 || result == EAGAIN || result == EINPROGRESS
-                    ? EADDRINUSE : result;
-                error = std::string("Could not create server listening socket ") + path_ +
-                        ": " + std::strerror(reason);
+                                       ? EADDRINUSE
+                                       : result;
+                error = std::string("Could not create server listening socket ") + path_ + ": " +
+                        std::strerror(reason);
                 return false;
             }
         }

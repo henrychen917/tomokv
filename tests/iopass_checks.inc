@@ -1,5 +1,6 @@
 // Included in the existing, unmodified CoreConcurrencyTest fixture by tools/archive/tools/iopass_receipts.py.
-template<class IO> static void iopass_begin(IO& io) {
+template <class IO>
+static void iopass_begin(IO& io) {
     if constexpr (requires { io.flip_pass_begin(); }) io.flip_pass_begin();
 }
 
@@ -14,7 +15,8 @@ static void input(Client& client, const std::string& request) {
     std::memcpy(client.rbuf() + client.rlen(), request.data(), request.size());
     client.commit_read(request.size());
 }
-template<class IO> static void save_election(IO& io, Server& server) {
+template <class IO>
+static void save_election(IO& io, Server& server) {
     if constexpr (requires { io.refresh_save_cron_writer(); }) {
         io.refresh_save_cron_writer();
         require(io.save_cron_writer_, "boot elects first IO even when save is disabled");
@@ -92,7 +94,8 @@ static void run_iopass(const std::string& which) {
     (void)call_iopass_boundary(f, clients.data(), count);
     require(f.io.self_->sig().ops == count, "every input frame was published");
     if (which == "atomic")
-        require(clients.front()->has_atomic_group_io() && clients.front()->rob().at(0).has_scatter_state(),
+        require(clients.front()->has_atomic_group_io() &&
+                    clients.front()->rob().at(0).has_scatter_state(),
                 "instruction witness reached the atomic bundle arm");
     for (auto* client : clients)
         require(client->rpos() == client->rlen() && client->rob().in_flight() == 1,
@@ -100,28 +103,32 @@ static void run_iopass(const std::string& which) {
     for (unsigned pass = 0; pass < 32; ++pass)
         for (auto tid : f.server.placement().ex_threads()) f.loops[tid].drain_tasks(true);
     for (auto* client : clients)
-        require(client->rob().at(0).state.load() == OpState::Done, "owners complete the real command");
+        require(client->rob().at(0).state.load() == OpState::Done,
+                "owners complete the real command");
     // Scatter state retirement uses the normal callback before fixture destruction.
     for (auto* client : clients)
         client->rob().drain([&](Op& op) {
             if (op.has_scatter_state())
-                xshard_retire(f.server, *f.io.self_, f.io.ring_, *client, op,
-                    f.io.scatter_pool_, f.io_id, &f.io,
+                xshard_retire(
+                    f.server, *f.io.self_, f.io.ring_, *client, op, f.io.scatter_pool_, f.io_id,
+                    &f.io,
                     [](void* p, int32_t shard, const char* value) {
                         static_cast<IoLoop*>(p)->queue_borrow_release(shard, value);
-                    }, [](void*) {});
+                    },
+                    [](void*) {});
         });
 }
 
-template<class F> static void flip_fences(F& f) {
+template <class F>
+static void flip_fences(F& f) {
     if constexpr (requires { f.io.flip_pass_begin(); }) {
         auto& io = f.io;
         auto& server = f.server;
-        server.flip_coordinator_ = 1; // test IO is a non-coordinator
+        server.flip_coordinator_ = 1;  // test IO is a non-coordinator
         Client first(-1), blocked(-1), coordinator(-1), database(-1);
         for (Client* client : {&first, &blocked, &coordinator, &database}) f.client(*client);
         const auto request = wire({"GET", f.key(f.sid())});
-        io.flip_pass_begin(); // Idle, then a peer opens the drain
+        io.flip_pass_begin();  // Idle, then a peer opens the drain
         server.flip_epoch_.store(1);
         server.flip_set_stage(FlipStage::IoDrain);
         io.template flip_control_pass<false>();
@@ -130,7 +137,8 @@ template<class F> static void flip_fences(F& f) {
         input(first, request);
         io.template parse_and_dispatch<false, 0>(&first);
         require(first.rob().in_flight() == 1, "pre-ACK work can still publish with Idle snapshot");
-        require(f.loops[f.source].drain_tasks(true) == 1, "old-route GET drains before acknowledgement");
+        require(f.loops[f.source].drain_tasks(true) == 1,
+                "old-route GET drains before acknowledgement");
         require(first.rob().drain([](Op&) {}) == 1, "GET completes before drain ACK");
         // The witness retired the reply directly; consume its completion notification too.
         require(io.self_->ready().take(first.wb_slot() / 64) != 0,
@@ -153,7 +161,7 @@ template<class F> static void flip_fences(F& f) {
         server.flip_stage_.store(FlipStage::Idle);
         io.flip_pass_begin();
         server.flip_set_stage(FlipStage::IoDrain);
-        io.flip_client_ = &coordinator; // manual FLIP started after pass-start sample
+        io.flip_client_ = &coordinator;  // manual FLIP started after pass-start sample
         input(coordinator, request);
         io.template parse_and_dispatch<false, 0>(&coordinator);
         require(coordinator.rpos() == 0 && coordinator.rob().in_flight() == 0,
@@ -169,19 +177,22 @@ template<class F> static void flip_fences(F& f) {
             require(database.rpos() == 0 && database.rob().in_flight() == 0,
                     "paused snapshot cannot stamp old map then dispatch through new Idle");
             io.flip_pass_begin();
-            require(!io.flip_dispatch_paused(), "new pass observes completion before clearing backpressure");
-            database.set_flip_backpressure(false); // flush_ready's resume gate
+            require(!io.flip_dispatch_paused(),
+                    "new pass observes completion before clearing backpressure");
+            database.set_flip_backpressure(false);  // flush_ready's resume gate
             io.template parse_and_dispatch<false, 0>(&database);
             require(database.rob().in_flight() == 1, "fresh Idle resumes map stamping/dispatch");
             require(f.loops[f.source].drain_tasks(true) == 1, "resumed GET completes");
             database.rob().drain([](Op&) {});
         }
         server.flip_stage_.store(FlipStage::Idle);
-        std::puts("PASS IO3 delayed ACK, post-ACK dispatch, epoch rollover, coordinator, database fences");
+        std::puts(
+            "PASS IO3 delayed ACK, post-ACK dispatch, epoch rollover, coordinator, database fences");
     }
 }
 
-template<class F> static void writer_fences(F& f) {
+template <class F>
+static void writer_fences(F& f) {
     if constexpr (requires { f.io.snapshot_writer_bound(); }) {
         auto& io = f.io;
         auto& server = f.server;
@@ -205,10 +216,10 @@ template<class F> static void writer_fences(F& f) {
         // Real common start, with a deterministic pre-broadcast open failure: Makefile is a
         // regular file, never a directory. No listener, ring, executor loop or snapshot file.
         std::string error;
-        auto result = snapshot.start(server, *io.self_, io.ring_, false, error,
-                                     nullptr, "Makefile", "iopass");
+        auto result = snapshot.start(server, *io.self_, io.ring_, false, error, nullptr, "Makefile",
+                                     "iopass");
         require(result == SnapshotManager::StartResult::Failed &&
-                error == "could not create snapshot temporary file",
+                    error == "could not create snapshot temporary file",
                 "snapshot start reaches the actual writer-binding edge");
         require(io.self_->snapshot_writer_bound(),
                 "common snapshot start arms the writer with AOF and save disabled");
@@ -228,16 +239,18 @@ template<class F> static void writer_fences(F& f) {
         require(!snapshot.in_progress() && !io.snapshot_writer_bound() &&
                     !io.self_->snapshot_writer_bound(),
                 "completed cancellation retires the writer binding");
-        result = snapshot.start(server, *io.self_, io.ring_, false, error,
-                                nullptr, "Makefile", "iopass");
-        require(result == SnapshotManager::StartResult::Failed &&
-                    io.self_->snapshot_writer_bound(), "a later epoch rearms the writer");
+        result = snapshot.start(server, *io.self_, io.ring_, false, error, nullptr, "Makefile",
+                                "iopass");
+        require(result == SnapshotManager::StartResult::Failed && io.self_->snapshot_writer_bound(),
+                "a later epoch rearms the writer");
         require(!io.snapshot_writer_bound(), "failed-before-broadcast epoch can disarm at Idle");
-        std::puts("PASS IO4 disabled/AOF election/sticky role binding/standalone snapshot/cancellation/rearm");
+        std::puts(
+            "PASS IO4 disabled/AOF election/sticky role binding/standalone snapshot/cancellation/rearm");
     }
 }
 
-template<class F> static void slot_bounds(F& f) {
+template <class F>
+static void slot_bounds(F& f) {
     if constexpr (requires { f.io.self_->wb_slot_words(); }) {
         auto& io = f.io;
         auto& thread = *io.self_;
@@ -251,8 +264,9 @@ template<class F> static void slot_bounds(F& f) {
                     "word high water is exact at every assignment including 63/64");
             if (slot == 0 || (slot & 63) == 63 || (slot & 63) == 0) {
                 thread.ready().set(slot);
-                require(io.template collect_retire_work<false, false>() == 1 && !thread.ready().any(),
-                        "new high-word completion is drained on the next pass");
+                require(
+                    io.template collect_retire_work<false, false>() == 1 && !thread.ready().any(),
+                    "new high-word completion is drained on the next pass");
             }
         }
         require(thread.assign_wb_slot(&marker) == ThreadCtx::kNoWbSlot,
@@ -265,20 +279,24 @@ template<class F> static void slot_bounds(F& f) {
                     !overflow.retire_queued().load(),
                 "unmasked channel fallback still drains at maximum slot high water");
         for (uint32_t slot = 0; slot < ReadyMask::kSlots; ++slot) thread.release_wb_slot(slot);
-        require(thread.wb_slot_words() == ReadyMask::kWords, "release never shrinks notification high water");
+        require(thread.wb_slot_words() == ReadyMask::kWords,
+                "release never shrinks notification high water");
         thread.ready().set(ReadyMask::kSlots - 1);
         require(io.template collect_retire_work<false, false>() == 0 && !thread.ready().any(),
                 "late bit for a released high slot is consumed without naming a client");
         require(thread.assign_wb_slot(&marker) == ReadyMask::kSlots - 1 &&
-                    thread.wb_slot_words() == ReadyMask::kWords, "reuse preserves exact high water");
+                    thread.wb_slot_words() == ReadyMask::kWords,
+                "reuse preserves exact high water");
         thread.ready().set(ReadyMask::kSlots - 1);
         require(io.template collect_retire_work<false, false>(true) == 1 && !thread.ready().any(),
                 "mask-independent park sweep also visits reused high slots");
-        std::puts("PASS IO6 zero/reserve/1024 assignments/word boundaries/full fallback/release/reuse/unmasked sweep");
+        std::puts(
+            "PASS IO6 zero/reserve/1024 assignments/word boundaries/full fallback/release/reuse/unmasked sweep");
     }
 }
 
-template<bool Fused> static void atomic_scatter_cases(uint32_t shards = 16) {
+template <bool Fused>
+static void atomic_scatter_cases(uint32_t shards = 16) {
     Fixture<Fused> f(false, 8, shards);
     if constexpr (Fused) {
         f.io.bind_fused_executor(&f.loops[f.io_id]);
@@ -304,7 +322,8 @@ template<bool Fused> static void atomic_scatter_cases(uint32_t shards = 16) {
     };
     auto clean = [&] {
         for (auto demand : f.io.dispatch_needed_)
-            require(demand == 0, "every atomic/plain dispatch exit restores all demand/cursor entries");
+            require(demand == 0,
+                    "every atomic/plain dispatch exit restores all demand/cursor entries");
     };
     auto parse = [&] {
         iopass_begin(f.io);
@@ -317,15 +336,19 @@ template<bool Fused> static void atomic_scatter_cases(uint32_t shards = 16) {
         const uint32_t capacity = owner.task_free_slots(f.io_id);
         require(capacity != 0, "capacity witness arms on an empty producer lane");
         for (uint32_t i = 0; i < capacity; ++i)
-            require(owner.post_task_quiet(f.io_id, Task{}, f.io.self_->sig()), "fill actual owner lane");
+            require(owner.post_task_quiet(f.io_id, Task{}, f.io.self_->sig()),
+                    "fill actual owner lane");
         require(owner.task_free_slots(f.io_id) == 0, "capacity refusal window is open");
         parse();
-        require(client.rpos() == 0 && client.rob().in_flight() == 0 && !client.has_atomic_group_io() &&
-                    !f.server.atomic_work_active(), "refusal leaves no consumed frame/ROB/group/admission");
+        require(client.rpos() == 0 && client.rob().in_flight() == 0 &&
+                    !client.has_atomic_group_io() && !f.server.atomic_work_active(),
+                "refusal leaves no consumed frame/ROB/group/admission");
         clean();
         require(owner.drain_tasks_unmasked([](Task task) {
-            require(task.client == nullptr, "only deliberately filled tasks were queued on refusal");
-        }) == capacity, "restore capacity before retry");
+            require(task.client == nullptr,
+                    "only deliberately filled tasks were queued on refusal");
+        }) == capacity,
+                "restore capacity before retry");
     }
     auto finish = [&](bool atomic, const std::string& expected) {
         parse();
@@ -338,21 +361,28 @@ template<bool Fused> static void atomic_scatter_cases(uint32_t shards = 16) {
         std::string reply;
         require(client.rob().drain([&](Op& op) {
             if (op.has_scatter_state())
-                xshard_retire(f.server, *f.io.self_, f.io.ring_, client, op, f.io.scatter_pool_, f.io_id,
-                    &f.io, [](void* p, int32_t sid, const char* value) {
+                xshard_retire(
+                    f.server, *f.io.self_, f.io.ring_, client, op, f.io.scatter_pool_, f.io_id,
+                    &f.io,
+                    [](void* p, int32_t sid, const char* value) {
                         static_cast<IoLoop*>(p)->queue_borrow_release(sid, value);
-                    }, [](void*) {});
+                    },
+                    [](void*) {});
             op_materialise_code(op);
             reply.assign(op.reply.data(), op.reply.size());
-        }) == 1, "group completes and retires once");
+        }) == 1,
+                "group completes and retires once");
         if (reply != expected || client.has_atomic_group_io() || f.server.atomic_inflight())
-            std::fprintf(stderr, "IO7 detail mode=%s keys=%u reply=[%s] expected=[%s] group=%u active=%llu\n",
+            std::fprintf(
+                stderr,
+                "IO7 detail mode=%s keys=%u reply=[%s] expected=[%s] group=%u active=%llu\n",
                 Fused ? "1s" : "2s", keys, reply.c_str(), expected.c_str(),
-                client.has_atomic_group_io(), static_cast<unsigned long long>(f.server.atomic_mode_state()));
+                client.has_atomic_group_io(),
+                static_cast<unsigned long long>(f.server.atomic_mode_state()));
         // atomic_activity also counts committed records awaiting owner reclamation. Admission
         // credits and the connection's group lifetime, unlike those records, end at retirement.
-        require(reply == expected && !client.has_atomic_group_io() && f.server.atomic_inflight() == 0 &&
-                    f.server.atomic_apply_inflight() == 0,
+        require(reply == expected && !client.has_atomic_group_io() &&
+                    f.server.atomic_inflight() == 0 && f.server.atomic_apply_inflight() == 0,
                 "group result and admission/lifetime bookkeeping are exact");
         client.reset_rbuf_at_quiescence();
         clean();

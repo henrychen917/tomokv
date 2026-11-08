@@ -16,11 +16,15 @@
 using namespace tomo;
 namespace {
 void require(bool yes, const char* why) {
-    if (!yes) { std::fprintf(stderr, "FAIL at15: %s\n", why); std::exit(1); }
+    if (!yes) {
+        std::fprintf(stderr, "FAIL at15: %s\n", why);
+        std::exit(1);
+    }
 }
 void require_reply(const std::string& got, const std::string& wanted, const char* why) {
     if (got != wanted) {
-        std::fprintf(stderr, "FAIL at15: %s\nGOT:\n%s\nWANTED:\n%s\n", why, got.c_str(), wanted.c_str());
+        std::fprintf(stderr, "FAIL at15: %s\nGOT:\n%s\nWANTED:\n%s\n", why, got.c_str(),
+                     wanted.c_str());
         std::exit(1);
     }
 }
@@ -45,9 +49,12 @@ struct Fixture {
     uint32_t io = 0;
     explicit Fixture(bool fused, int atomic) {
         Config cfg;
-        cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
+        cfg.shards = 16;
+        cfg.even_ifid = 6;
+        cfg.even_ex = 2;
         cfg.thread_mode = fused ? ThreadMode::Fused : ThreadMode::Split;
-        cfg.atomic = atomic; cfg.databases = kSingleDatabase ? 1 : 2;
+        cfg.atomic = atomic;
+        cfg.databases = kSingleDatabase ? 1 : 2;
         cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
         cfg.save.clear();
         cfg.enable_debug_command = DebugCommandMode::Yes;
@@ -92,11 +99,14 @@ struct Fixture {
         while (!remaining.empty() && std::chrono::steady_clock::now() < deadline) {
             for (size_t i = 0; i < remaining.size();) {
                 const int32_t sid = remaining[i];
-                const auto result = multi_execute_task(server,
-                    multi_make_task(&client, 0, sid, state), server.shard(sid),
-                    server.worker_of_shard(sid), 0, nullptr);
-                if (multi_task_retry(result)) { ++i; ++retries; }
-                else remaining.erase(remaining.begin() + i);
+                const auto result =
+                    multi_execute_task(server, multi_make_task(&client, 0, sid, state),
+                                       server.shard(sid), server.worker_of_shard(sid), 0, nullptr);
+                if (multi_task_retry(result)) {
+                    ++i;
+                    ++retries;
+                } else
+                    remaining.erase(remaining.begin() + i);
             }
         }
         require(remaining.empty(), "EXEC must reply within the owner-phase bound");
@@ -155,7 +165,8 @@ void check_subexpiry(Fixture& f, bool resp3) {
         if (resp3) info.op.mark_resp3();
         command_info_with_databases(f.server, info.op, stats);
         require(info.reply() == bulk(expected, resp3), "ordinary INFO exact subexpiry census");
-        begin(f); queue(f, {"INFO", "keyspace"});
+        begin(f);
+        queue(f, {"INFO", "keyspace"});
         require(exec_bulk(f.multi({"EXEC"}), resp3) == expected, "EXEC exact subexpiry census");
     };
     begin(f);
@@ -171,11 +182,12 @@ void check_subexpiry(Fixture& f, bool resp3) {
     queue(f, {"INFO", "keyspace"});
     queue(f, {"HDEL", "at15:j", "x"});
     queue(f, {"INFO", "keyspace"});
-    require_reply(f.multi({"EXEC"}), "*12\r\n:2\r\n*2\r\n:1\r\n:1\r\n" + bulk(body(1, 1), resp3) +
-            ":1\r\n*1\r\n:1\r\n" + bulk(body(2, 2), resp3) +
-            "*1\r\n:1\r\n" + bulk(body(2, 2), resp3) +
-            "*1\r\n:1\r\n" + bulk(body(2, 1), resp3) + ":1\r\n" + bulk(body(1, 0), resp3),
-            "subexpiry counts hashes once and observes private field TTL transitions");
+    require_reply(f.multi({"EXEC"}),
+                  "*12\r\n:2\r\n*2\r\n:1\r\n:1\r\n" + bulk(body(1, 1), resp3) +
+                      ":1\r\n*1\r\n:1\r\n" + bulk(body(2, 2), resp3) + "*1\r\n:1\r\n" +
+                      bulk(body(2, 2), resp3) + "*1\r\n:1\r\n" + bulk(body(2, 1), resp3) +
+                      ":1\r\n" + bulk(body(1, 0), resp3),
+                  "subexpiry counts hashes once and observes private field TTL transitions");
     census(body(1, 0));
     begin(f);
     queue(f, {"HEXPIREAT", "at15:h", deadline, "FIELDS", "1", "a"});
@@ -195,12 +207,15 @@ void check_subexpiry(Fixture& f, bool resp3) {
         // This serverless driver has no outstanding IO/owner tasks to drain.
         Request exec({"EXEC"});
         MultiExecState* pending = nullptr;
-        require(multi_handle_io(f.server, f.client, exec.op, f.io, pending) == MultiIoAction::Backpressure &&
-                f.server.database_boundary_active(), "SWAPDB boundary actually armed");
+        require(multi_handle_io(f.server, f.client, exec.op, f.io, pending) ==
+                        MultiIoAction::Backpressure &&
+                    f.server.database_boundary_active(),
+                "SWAPDB boundary actually armed");
         f.server.flip_set_stage(FlipStage::DatabaseRun);
         require(f.multi({"EXEC"}) == "*4\r\n:1\r\n" +
-                bulk("# Keyspace\r\n" + keyspace_row(1, 1, 1), resp3) +
-                "+OK\r\n" + bulk(body(1, 1), resp3), "subexpiry follows MOVE and private SWAPDB map");
+                                         bulk("# Keyspace\r\n" + keyspace_row(1, 1, 1), resp3) +
+                                         "+OK\r\n" + bulk(body(1, 1), resp3),
+                "subexpiry follows MOVE and private SWAPDB map");
         f.server.database_boundary_end(f.client, f.client.rob().dispatch_id());
         census(body(1, 1));
     }
@@ -208,14 +223,16 @@ void check_subexpiry(Fixture& f, bool resp3) {
     queue(f, {"SET", "at15:renamed", "string"});
     require(f.multi({"EXEC"}) == "*1\r\n+OK\r\n", "replace TTL-bearing hash");
     census(body(1, 0));
-    begin(f); queue(f, {"DEL", "at15:renamed"});
+    begin(f);
+    queue(f, {"DEL", "at15:renamed"});
     require(f.multi({"EXEC"}) == "*1\r\n:1\r\n", "subexpiry test cleanup");
     census("# Keyspace\r\n");
 }
 void check(Fixture& f, bool resp3, const std::string& only) {
     if (only.empty() || only == "info") {
-        for (const char* section : {"", "server", "all", "default", "keyspace", "clients", "memory",
-                "persistence", "stats", "commandstats", "flipctl", "writeback", "lb", "no-such-section"}) {
+        for (const char* section :
+             {"", "server", "all", "default", "keyspace", "clients", "memory", "persistence",
+              "stats", "commandstats", "flipctl", "writeback", "lb", "no-such-section"}) {
             begin(f);
             std::vector<std::string> args{"INFO"};
             if (*section) args.emplace_back(section);
@@ -223,18 +240,24 @@ void check(Fixture& f, bool resp3, const std::string& only) {
             const auto body = exec_bulk(f.multi({"EXEC"}), resp3);
             if (!*section || std::string(section) == "all" || std::string(section) == "default")
                 require(body.find("# Server\r\n") != std::string::npos &&
-                        body.find("# Keyspace\r\n") != std::string::npos, "default/all INFO sections");
+                            body.find("# Keyspace\r\n") != std::string::npos,
+                        "default/all INFO sections");
             if (std::string(section) == "server")
-                require(body.starts_with("# Server\r\n") && body.find("# Keyspace") == std::string::npos,
+                require(body.starts_with("# Server\r\n") &&
+                            body.find("# Keyspace") == std::string::npos,
                         "INFO server section selection");
-            if (std::string(section) == "keyspace") require(body == "# Keyspace\r\n", "empty keyspace");
-            if (std::string(section) == "no-such-section") require(body.empty(), "unknown INFO section");
+            if (std::string(section) == "keyspace")
+                require(body == "# Keyspace\r\n", "empty keyspace");
+            if (std::string(section) == "no-such-section")
+                require(body.empty(), "unknown INFO section");
             if (*section && std::string(section) != "no-such-section")
                 require(body.starts_with("# "), "requested INFO section is present");
         }
-        begin(f); queue(f, {"INFO", "server", "keyspace"});
+        begin(f);
+        queue(f, {"INFO", "server", "keyspace"});
         const auto body = exec_bulk(f.multi({"EXEC"}), resp3);
-        require(body.find("# Server\r\n") != std::string::npos && body.find("# Keyspace\r\n") != std::string::npos,
+        require(body.find("# Server\r\n") != std::string::npos &&
+                    body.find("# Keyspace\r\n") != std::string::npos,
                 "multiple INFO sections");
     }
     if (only.empty() || only == "keyspace") {
@@ -243,31 +266,40 @@ void check(Fixture& f, bool resp3, const std::string& only) {
         queue(f, {"INFO", "keyspace"});
         queue(f, {"DEL", "at15:private"});
         queue(f, {"INFO", "keyspace"});
-        require(f.multi({"EXEC"}) == "*4\r\n+OK\r\n" +
-                bulk("# Keyspace\r\ndb0:keys=1,expires=0,avg_ttl=0,subexpiry=0\r\n", resp3) +
-                ":1\r\n" + bulk("# Keyspace\r\n", resp3), "INFO observes own inserts and deletes");
+        require(
+            f.multi({"EXEC"}) ==
+                "*4\r\n+OK\r\n" +
+                    bulk("# Keyspace\r\ndb0:keys=1,expires=0,avg_ttl=0,subexpiry=0\r\n", resp3) +
+                    ":1\r\n" + bulk("# Keyspace\r\n", resp3),
+            "INFO observes own inserts and deletes");
     }
     if (only.empty() || only == "subexpiry") check_subexpiry(f, resp3);
     if (only.empty() || only == "sleep") {
-        begin(f); queue(f, {"DEBUG", "SLEEP", "0"});
+        begin(f);
+        queue(f, {"DEBUG", "SLEEP", "0"});
         require(f.multi({"EXEC"}) == "*1\r\n+OK\r\n", "DEBUG SLEEP 0 EXEC element");
-        begin(f); queue(f, {"DEBUG", "SLEEP", "0.01"});
+        begin(f);
+        queue(f, {"DEBUG", "SLEEP", "0.01"});
         const auto start = std::chrono::steady_clock::now();
         require(f.multi({"EXEC"}) == "*1\r\n+OK\r\n", "DEBUG SLEEP positive EXEC element");
-        require(f.retries && std::chrono::steady_clock::now() - start >= std::chrono::milliseconds(10),
-                "positive SLEEP actually parked until its deadline");
+        require(
+            f.retries && std::chrono::steady_clock::now() - start >= std::chrono::milliseconds(10),
+            "positive SLEEP actually parked until its deadline");
     }
     if (only.empty() || only == "controls") {
         begin(f);
-        require(f.multi({"MULTI"}) == "-ERR MULTI calls can not be nested\r\n", "nested MULTI exact error");
-        require(f.multi({"WATCH", "at15:key"}) == "-ERR WATCH inside MULTI is not allowed\r\n", "WATCH exact error");
+        require(f.multi({"MULTI"}) == "-ERR MULTI calls can not be nested\r\n",
+                "nested MULTI exact error");
+        require(f.multi({"WATCH", "at15:key"}) == "-ERR WATCH inside MULTI is not allowed\r\n",
+                "WATCH exact error");
         queue(f, {"PING"});
         require(f.multi({"EXEC"}) == "*1\r\n+PONG\r\n", "control errors do not dirty EXEC");
         begin(f);
         require(f.multi({"SAVE"}) == "-ERR Command not allowed inside a transaction\r\n",
                 "metadata SAVE exact refusal");
-        require(f.multi({"EXEC"}) == "-EXECABORT Transaction discarded because of previous errors.\r\n",
-                "refusal dirties EXEC");
+        require(
+            f.multi({"EXEC"}) == "-EXECABORT Transaction discarded because of previous errors.\r\n",
+            "refusal dirties EXEC");
         // This owner-only fixture checks admission. The gate's clientcompat
         // and pubsub jobs exercise the IO acknowledgements and EXEC replies.
         for (const char* name : {"SUBSCRIBE", "UNSUBSCRIBE", "PSUBSCRIBE", "PUNSUBSCRIBE",
@@ -279,18 +311,22 @@ void check(Fixture& f, bool resp3, const std::string& only) {
     }
     if (only.empty() || only == "metadata") {
         Request shutdown({"SHUTDOWN", "NOSAVE"});
-        require(!(shutdown.op.spec->flags & CmdFlags::NoMulti), "SHUTDOWN has no dispatch NoMulti bit");
+        require(!(shutdown.op.spec->flags & CmdFlags::NoMulti),
+                "SHUTDOWN has no dispatch NoMulti bit");
         begin(f);
         require(f.multi(shutdown.args) == "-ERR Command not allowed inside a transaction\r\n",
                 "SHUTDOWN refused by generated metadata");
-        require(f.multi({"EXEC"}) == "-EXECABORT Transaction discarded because of previous errors.\r\n",
-                "metadata refusal dirties EXEC");
+        require(
+            f.multi({"EXEC"}) == "-EXECABORT Transaction discarded because of previous errors.\r\n",
+            "metadata refusal dirties EXEC");
         Request info({"INFO", "server"});
         CommandSpec route = *info.op.spec;
         route.flags |= CmdFlags::NoMulti;
         begin(f);
-        require(f.multi(info.args, &route) == "+QUEUED\r\n", "route NoMulti bit does not override Redis metadata");
-        require(exec_bulk(f.multi({"EXEC"}), resp3).starts_with("# Server\r\n"), "metadata-admitted INFO executes");
+        require(f.multi(info.args, &route) == "+QUEUED\r\n",
+                "route NoMulti bit does not override Redis metadata");
+        require(exec_bulk(f.multi({"EXEC"}), resp3).starts_with("# Server\r\n"),
+                "metadata-admitted INFO executes");
     }
     if (only.empty() || only == "config") {
         begin(f);
@@ -299,33 +335,38 @@ void check(Fixture& f, bool resp3, const std::string& only) {
         queue(f, {"CONFIG", "GET", "maxmemory"});
         queue(f, {"CONFIG", "SET", "maxmemory", "0"});
         const std::string pair = resp3 ? "%1\r\n" : "*2\r\n";
-        require(f.multi({"EXEC"}) == "*4\r\n" + pair + bulk("maxmemory") + bulk("0") +
-                "+OK\r\n" + pair + bulk("maxmemory") + bulk("123456") + "+OK\r\n",
+        require(f.multi({"EXEC"}) == "*4\r\n" + pair + bulk("maxmemory") + bulk("0") + "+OK\r\n" +
+                                         pair + bulk("maxmemory") + bulk("123456") + "+OK\r\n",
                 "CONFIG GET/SET executes in transaction order");
-        begin(f); queue(f, {"CONFIG", "RESETSTAT"}); queue(f, {"DEBUG", "BORROWCOUNT"});
+        begin(f);
+        queue(f, {"CONFIG", "RESETSTAT"});
+        queue(f, {"DEBUG", "BORROWCOUNT"});
         require(f.multi({"EXEC"}) == "*2\r\n+OK\r\n:0\r\n", "admin/scatter reply shape");
     }
 }
 }
 int main(int argc, char** argv) {
-    require(argc >= 2 && argc <= 3, "usage: at15-unit 1s|2s [info|sleep|controls|config|keyspace|metadata|subexpiry]");
+    require(argc >= 2 && argc <= 3,
+            "usage: at15-unit 1s|2s [info|sleep|controls|config|keyspace|metadata|subexpiry]");
     const std::string mode = argv[1], only = argc == 3 ? argv[2] : "";
     require(mode == "1s" || mode == "2s", "thread mode");
     require(command_registry_init(false), "registry");
     // Redis 7.4 generated metadata, not route flags or the audit's command-name guesses.
-    for (const char* name : {"INFO", "DEBUG", "SUBSCRIBE", "SSUBSCRIBE", "MULTI", "WATCH", "SAVE", "FLIP"}) {
+    for (const char* name :
+         {"INFO", "DEBUG", "SUBSCRIBE", "SSUBSCRIBE", "MULTI", "WATCH", "SAVE", "FLIP"}) {
         Request request({name});
         const bool expected = std::string(name) == "SAVE" || std::string(name) == "FLIP";
         command_metadata_reply_info(request.op, command_metadata_for(*request.op.spec));
         require((request.reply().find("+no_multi\r\n") != std::string::npos) == expected,
                 "generated no_multi flag");
     }
-    for (int atomic : {0, 1}) for (bool resp3 : {false, true}) {
-        Fixture f(mode == "1s", atomic);
-        if (resp3) f.client.set_resp3(true);
-        check(f, resp3, only);
-        std::printf("PASS at15 db=%s mode=%s atomic=%d resp=%d case=%s\n",
-                    kSingleDatabase ? "db0" : "namespaced", mode.c_str(), atomic,
-                    resp3 ? 3 : 2, only.empty() ? "all" : only.c_str());
-    }
+    for (int atomic : {0, 1})
+        for (bool resp3 : {false, true}) {
+            Fixture f(mode == "1s", atomic);
+            if (resp3) f.client.set_resp3(true);
+            check(f, resp3, only);
+            std::printf("PASS at15 db=%s mode=%s atomic=%d resp=%d case=%s\n",
+                        kSingleDatabase ? "db0" : "namespaced", mode.c_str(), atomic, resp3 ? 3 : 2,
+                        only.empty() ? "all" : only.c_str());
+        }
 }

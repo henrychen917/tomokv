@@ -37,9 +37,9 @@ struct MaskedQueueDiagnostics {
 
     double arena_occupancy_at_lane_full() const {
         return arena_capacity_at_lane_full_sum
-            ? static_cast<double>(arena_occupancy_at_lane_full_sum) /
-                  static_cast<double>(arena_capacity_at_lane_full_sum)
-            : 0.0;
+                   ? static_cast<double>(arena_occupancy_at_lane_full_sum) /
+                         static_cast<double>(arena_capacity_at_lane_full_sum)
+                   : 0.0;
     }
 };
 
@@ -102,11 +102,11 @@ public:
 
     // Called by the physical consumer after pinning.  Construction writes every Task and thus
     // first-touches every slot from the consumer's NUMA/L3-local CPU.
-    bool init_local(uint32_t producers, uint32_t slots_per_thread,
-                    const std::vector<uint32_t>& io,
+    bool init_local(uint32_t producers, uint32_t slots_per_thread, const std::vector<uint32_t>& io,
                     const std::vector<uint32_t>& ex) {
         if (slots_ || !producers || producers > MaxProducers ||
-            slots_per_thread < kInternalProducerSlots) return false;
+            slots_per_thread < kInternalProducerSlots)
+            return false;
         producers_ = producers;
         const uint64_t wanted = static_cast<uint64_t>(producers) * slots_per_thread;
         if (wanted > UINT32_MAX) return false;
@@ -172,10 +172,10 @@ public:
 
     // IO blocks receive all burst capacity left after the bounded direct-EX reserve.  The capacity
     // is a power of two, so the stable fast path retains the old bit-mask wrap and branch shape.
-    bool remask_quiesced(const std::vector<uint32_t>& io,
-                         const std::vector<uint32_t>& ex) {
+    bool remask_quiesced(const std::vector<uint32_t>& io, const std::vector<uint32_t>& ex) {
         if (!slots_ || io.empty() || ex.empty() || io.size() + ex.size() != producers_ ||
-            !all_quiesced()) return false;
+            !all_quiesced())
+            return false;
 
         bool assigned[MaxProducers] = {};
         bool io_producer[MaxProducers] = {};
@@ -188,7 +188,8 @@ public:
             if (p >= producers_ || assigned[p]) return false;
             assigned[p] = true;
         }
-        for (uint32_t p = 0; p < producers_; p++) if (!assigned[p]) return false;
+        for (uint32_t p = 0; p < producers_; p++)
+            if (!assigned[p]) return false;
 
         const uint64_t internal = static_cast<uint64_t>(ex.size()) * kInternalProducerSlots;
         if (internal >= total_slots_) return false;
@@ -224,8 +225,10 @@ public:
         };
         // Tid order makes the mask deterministic and keeps every producer's block contiguous.
         for (uint32_t p = 0; p < producers_; p++)
-            if (io_producer[p]) install(p, io_capacity);
-            else                install(p, kInternalProducerSlots);
+            if (io_producer[p])
+                install(p, io_capacity);
+            else
+                install(p, kInternalProducerSlots);
         return cursor <= total_slots_;
     }
 
@@ -281,8 +284,7 @@ public:
                 return false;
             }
         }
-        for (uint32_t i = 0; i < count; i++)
-            slots_[p.base + ((tail + i) & p.mask)] = values[i];
+        for (uint32_t i = 0; i < count; i++) slots_[p.base + ((tail + i) & p.mask)] = values[i];
         p.tail.store(next, std::memory_order_release);
         return true;
     }
@@ -371,15 +373,14 @@ public:
             }
         }
         for (uint32_t i = 0; i < count; i++)
-            slots_[producer * SlotsPerProducer +
-                   ((tail + i) & (SlotsPerProducer - 1))] = values[i];
+            slots_[producer * SlotsPerProducer + ((tail + i) & (SlotsPerProducer - 1))] = values[i];
         p.tail.store(next, std::memory_order_release);
         return true;
     }
 
     template <uint32_t SlotsPerProducer, typename Prepare>
-    bool push_fused_private_batch_prepared(uint32_t producer, const T* values,
-                                           uint32_t count, Prepare&& prepare) {
+    bool push_fused_private_batch_prepared(uint32_t producer, const T* values, uint32_t count,
+                                           Prepare&& prepare) {
         static_assert(std::has_single_bit(SlotsPerProducer));
         if (!count) return true;
         ProducerLine& p = lanes_[producer].producer;
@@ -396,8 +397,7 @@ public:
         for (uint32_t i = 0; i < count; i++) {
             T value = values[i];
             prepare(value);
-            slots_[producer * SlotsPerProducer +
-                   ((tail + i) & (SlotsPerProducer - 1))] = value;
+            slots_[producer * SlotsPerProducer + ((tail + i) & (SlotsPerProducer - 1))] = value;
         }
         p.tail.store(next, std::memory_order_release);
         return true;
@@ -499,8 +499,7 @@ public:
 
     void retire(uint32_t producer) {
         ConsumerLine& c = lanes_[producer].consumer;
-        c.retired.store(c.retired.load(std::memory_order_relaxed) + 1,
-                        std::memory_order_release);
+        c.retired.store(c.retired.load(std::memory_order_relaxed) + 1, std::memory_order_release);
     }
     void retire_n(uint32_t producer, uint32_t count) {
         if (!count) return;
@@ -511,18 +510,17 @@ public:
     bool quiesced(uint32_t producer) const {
         const ConsumerLine& c = lanes_[producer].consumer;
         const ProducerLine& p = lanes_[producer].producer;
-        return c.retired.load(std::memory_order_acquire) ==
-               p.tail.load(std::memory_order_acquire);
+        return c.retired.load(std::memory_order_acquire) == p.tail.load(std::memory_order_acquire);
     }
     bool all_quiesced() const {
-        for (uint32_t p = 0; p < producers_; p++) if (!quiesced(p)) return false;
+        for (uint32_t p = 0; p < producers_; p++)
+            if (!quiesced(p)) return false;
         return true;
     }
     uint32_t depth(uint32_t producer) const {
         const ConsumerLine& c = lanes_[producer].consumer;
         const ProducerLine& p = lanes_[producer].producer;
-        return p.tail.load(std::memory_order_relaxed) -
-               c.head.load(std::memory_order_relaxed);
+        return p.tail.load(std::memory_order_relaxed) - c.head.load(std::memory_order_relaxed);
     }
 
     // Consumer-only form used by the standing 100us full-lane sweep.  It turns that already-paid
@@ -531,8 +529,8 @@ public:
     uint32_t sample_depth(uint32_t producer) {
         ConsumerLine& c = lanes_[producer].consumer;
         const ProducerLine& p = lanes_[producer].producer;
-        const uint32_t depth = p.tail.load(std::memory_order_relaxed) -
-                               c.head.load(std::memory_order_relaxed);
+        const uint32_t depth =
+            p.tail.load(std::memory_order_relaxed) - c.head.load(std::memory_order_relaxed);
         if (depth > c.lane_high_water) c.lane_high_water = depth;
         return depth;
     }
@@ -560,8 +558,7 @@ public:
             const uint32_t high_water =
                 __atomic_load_n(&consumer.lane_high_water, __ATOMIC_RELAXED);
             if (high_water > out.lane_high_water) out.lane_high_water = high_water;
-            out.lane_full_events +=
-                __atomic_load_n(&line.lane_full_events, __ATOMIC_RELAXED);
+            out.lane_full_events += __atomic_load_n(&line.lane_full_events, __ATOMIC_RELAXED);
             out.arena_occupancy_at_lane_full_sum +=
                 __atomic_load_n(&line.arena_occupancy_at_lane_full_sum, __ATOMIC_RELAXED);
             out.arena_capacity_at_lane_full_sum +=
@@ -586,8 +583,7 @@ private:
 
     static T* allocate(uint32_t count) {
         const size_t bytes = static_cast<size_t>(count) * sizeof(T);
-        void* raw = ::operator new[](bytes, std::align_val_t{kMaskedQueueCacheLine},
-                                     std::nothrow);
+        void* raw = ::operator new[](bytes, std::align_val_t{kMaskedQueueCacheLine}, std::nothrow);
         if (!raw) return nullptr;
         T* slots = static_cast<T*>(raw);
         std::uninitialized_default_construct_n(slots, count);

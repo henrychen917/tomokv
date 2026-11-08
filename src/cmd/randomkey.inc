@@ -7,16 +7,21 @@
     const uint32_t shards = state.server->nshards();
     for (uint32_t sid = 0; sid < shards; ++sid) {
         const Shard& shard = state.server->shard(sid);
-        if constexpr (kSingleDatabase) weights[sid] = shard.published_size();
-        else weights[sid] = static_cast<uint32_t>(
-            shard.store().published_database_counts(op.physical_db));
+        if constexpr (kSingleDatabase)
+            weights[sid] = shard.published_size();
+        else
+            weights[sid] =
+                static_cast<uint32_t>(shard.store().published_database_counts(op.physical_db));
         total += weights[sid];
     }
     uint32_t selected = multidb_random(shards);
     if (total) {
         uint64_t draw = multidb_random(total);
         for (uint32_t sid = 0; sid < shards; ++sid) {
-            if (draw < weights[sid]) { selected = sid; break; }
+            if (draw < weights[sid]) {
+                selected = sid;
+                break;
+            }
             draw -= weights[sid];
         }
     }

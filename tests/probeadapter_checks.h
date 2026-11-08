@@ -44,7 +44,8 @@ struct Witness {
                 const std::string name = "capture-grow-" + std::to_string(n);
                 const Slice key(name.data(), name.size(), active->database);
                 auto* value = tomo::kvobj_new_string(key, Slice("grow"));
-                check(value && store.insert(Store::hash_key(key), value) == Store::InsertResult::Inserted,
+                check(value && store.insert(Store::hash_key(key), value) ==
+                                   Store::InsertResult::Inserted,
                       "transition", "bounded grow insertion succeeds");
             }
         };
@@ -68,7 +69,8 @@ static Store::ReadLocalProbe probe(const Store& store, uint64_t hash, Slice key,
     const bool walked = capture.result == Result::Hit || capture.result == Result::Missing;
     check(witness.walks == unsigned(walked), state, "exact capture walk count");
     check(result.result == capture.result && result.object == capture.object &&
-          result.state == capture.state, state, "exact result/object/state projection");
+              result.state == capture.state,
+          state, "exact result/object/state projection");
     check(bool(capture.slot) == walked, state, "capture retains deciding slot only after a walk");
     return result;
 }
@@ -83,26 +85,30 @@ struct Fixture {
     const uint64_t hash;
     KvObj* object = nullptr;
 
-    explicit Fixture(uint8_t database) : key("capture-key", 11, database), hash(Store::hash_key(key)) {
+    explicit Fixture(uint8_t database)
+        : key("capture-key", 11, database), hash(Store::hash_key(key)) {
         store.set_cached_now_ms(1000);
     }
     void arm() {
         check(store.prepare_read_local(), "fixture", "read-local preparation succeeds");
-        store.configure_read_local(true, {nullptr,
-            [](void*, void* owner, void* p, size_t n, tomo::ReadLocalRetireSink::ReclaimFn reclaim) {
-                reclaim(owner, p, n);
-            }, &cache.blocks});
+        store.configure_read_local(
+            true, {nullptr,
+                   [](void*, void* owner, void* p, size_t n,
+                      tomo::ReadLocalRetireSink::ReclaimFn reclaim) { reclaim(owner, p, n); },
+                   &cache.blocks});
         object = tomo::kvobj_new_string(key, Slice("value"));
-        check(object && store.insert(hash, object) == Store::InsertResult::Inserted,
-              "fixture", "known Hit insertion succeeds");
+        check(object && store.insert(hash, object) == Store::InsertResult::Inserted, "fixture",
+              "known Hit insertion succeeds");
         // Make state nonzero, so an adapter dropping the state cannot pass.
         { auto guard = store.read_local_table_guard(); }
     }
     void expect(const char* state, Result expected, const KvObj* object, Slice identity) {
         const auto result = probe(store, Store::hash_key(identity), identity, state);
-        const uint64_t expected_state = store.read_local_enabled() ? store.read_local_state_acquire() : 0;
-        check(result.result == expected && result.object == object && result.state == expected_state,
-              state, "exact semantic result/object/state");
+        const uint64_t expected_state =
+            store.read_local_enabled() ? store.read_local_state_acquire() : 0;
+        check(
+            result.result == expected && result.object == object && result.state == expected_state,
+            state, "exact semantic result/object/state");
     }
 };
 
@@ -120,12 +126,14 @@ static Store::ReadLocalPrefetchCapture transition(Fixture& f, bool adapter, uint
         result = f.store.read_local_prefetch_capture(f.hash, f.key);
     }
     const auto after = f.store.rehash_progress();
-    check(witness.entries == 1 && witness.walks == 1, "transition", "capture entered and walked exactly once");
+    check(witness.entries == 1 && witness.walks == 1, "transition",
+          "capture entered and walked exactly once");
     check(!before.old_capacity && before.current_capacity == 64 && f.store.rehashing() &&
-          after.old_capacity == 64 && after.current_capacity == 128 &&
-          state != f.store.read_local_state_acquire(), "transition", "real resize entered within 128 insertions");
+              after.old_capacity == 64 && after.current_capacity == 128 &&
+              state != f.store.read_local_state_acquire(),
+          "transition", "real resize entered within 128 insertions");
     check(result.result == Result::Churn && !result.object && !result.slot &&
-          result.state == f.store.read_local_state_acquire(),
+              result.state == f.store.read_local_state_acquire(),
           "transition", "invalid topology returns Churn/null/current state");
     return result;
 }
@@ -142,19 +150,23 @@ static void states(uint8_t database) {
     f.store.foreign_read_scope_close(f.hash);
     {
         auto guard = f.store.read_local_table_guard();
-        check(Store::read_local_table_mutating(f.store.read_local_state_acquire()),
-              "Churn", "odd topology window entered");
+        check(Store::read_local_table_mutating(f.store.read_local_state_acquire()), "Churn",
+              "odd topology window entered");
         f.expect("Churn", Result::Churn, nullptr, f.key);
     }
     // Independently fresh twins enter the same real grow through the adapter and
     // capture respectively. Both must report the identical changed state word.
     Fixture a(database), b(database);
-    a.arm(); b.arm();
+    a.arm();
+    b.arm();
     const auto adapter = transition(a, true, database);
     const auto capture = transition(b, false, database);
-    check(adapter.result == capture.result && adapter.object == capture.object && adapter.state == capture.state,
+    check(adapter.result == capture.result && adapter.object == capture.object &&
+              adapter.state == capture.state,
           "transition", "exact result/object/state projection across fresh twins");
-    std::printf("PASS probeadapter states db=%u: disabled Hit Missing AtomicPending Churn real-resize\n", database);
+    std::printf(
+        "PASS probeadapter states db=%u: disabled Hit Missing AtomicPending Churn real-resize\n",
+        database);
 }
-} // namespace probeadapter
-} // namespace
+}  // namespace probeadapter
+}  // namespace

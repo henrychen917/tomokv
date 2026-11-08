@@ -21,7 +21,10 @@
 using namespace tomo;
 
 static void require(bool ok, const char* message) {
-    if (!ok) { std::fprintf(stderr, "FAIL: %s\n", message); std::exit(1); }
+    if (!ok) {
+        std::fprintf(stderr, "FAIL: %s\n", message);
+        std::exit(1);
+    }
 }
 static Slice slice(const std::string& s) { return {s.data(), static_cast<uint32_t>(s.size())}; }
 static uint64_t hash(const std::string& s) { return FlatStore::hash_key(slice(s)); }
@@ -29,7 +32,9 @@ static std::vector<std::string> deletes;
 static uint32_t notifications = 0;
 
 namespace tomo {
-struct ScatterState { std::vector<std::string> keys; };
+struct ScatterState {
+    std::vector<std::string> keys;
+};
 uint64_t xshard_atomic_key_hash(const ScatterState* s, uint32_t i) { return hash(s->keys.at(i)); }
 Slice xshard_atomic_key_slice(const ScatterState* s, uint32_t i) { return slice(s->keys.at(i)); }
 // This fixture creates only blind groups; unit decisions are tested by
@@ -67,7 +72,9 @@ const SnapshotTypeHooks& snapshot_type_hooks(Type type) {
     static const SnapshotTypeHooks hooks{
         [](const KvObj& o, SnapshotSaveCursor& c, uint8_t& encoding) {
             require(!o.is_int(), "snapshot fixture uses raw/external string");
-            c.object = &o; c.total = o.str_value().n; encoding = 0;
+            c.object = &o;
+            c.total = o.str_value().n;
+            encoding = 0;
             return SnapshotHookStatus::Ok;
         },
         [](SnapshotSaveCursor& c, uint8_t* out, size_t capacity, size_t& written) {
@@ -75,7 +82,8 @@ const SnapshotTypeHooks& snapshot_type_hooks(Type type) {
             std::memcpy(out, c.object->str_data() + c.offset, written);
             c.offset += written;
             return SnapshotHookStatus::Ok;
-        }, nullptr};
+        },
+        nullptr};
     return hooks;
 }
 
@@ -83,8 +91,9 @@ struct FlatStoreRegressionTest {
     static uint32_t cap(const FlatStore& s) { return s.cap_[0]; }
     static void step(FlatStore& s) { s.rehash_step(); }
     static void raw_insert(FlatStore& s, KvObj* o) {
-        require(s.read_local_enabled_ ? s.insert_into_read_local(0, FlatStore::hash_key(o->key()), o, true)
-                                     : s.insert_into(0, FlatStore::hash_key(o->key()), o, true),
+        require(s.read_local_enabled_
+                    ? s.insert_into_read_local(0, FlatStore::hash_key(o->key()), o, true)
+                    : s.insert_into(0, FlatStore::hash_key(o->key()), o, true),
                 "fixture physical insertion");
     }
     static void raw_erase(FlatStore& s, const std::string& key) {
@@ -96,12 +105,14 @@ struct FlatStoreRegressionTest {
     static std::pair<KvObj*, KvObj*> first_lru_candidates(FlatStore& s, uint64_t seed) {
         // Observe the REAL random sampler, then rewind. The first eligible candidate consumes
         // one tie-break draw before the second sample. No victim scoring is reproduced here.
-        s.random_state_ = seed; s.sample_cursor_ = 0;
+        s.random_state_ = seed;
+        s.sample_cursor_ = 0;
         KvObj* first = s.random_allkeys_candidate();
         require(first != nullptr, "first LRU sample exists");
         s.next_random();
         KvObj* second = s.random_allkeys_candidate();
-        s.random_state_ = seed; s.sample_cursor_ = 0;
+        s.random_state_ = seed;
+        s.sample_cursor_ = 0;
         return {first, second};
     }
     static bool capturing_record(const FlatStore& s, const KvObj* o) {
@@ -118,7 +129,7 @@ struct FlatStoreRegressionTest {
     }
     static uint32_t field_index_size(const FlatStore& s) { return s.field_expires_.size(); }
 };
-} // namespace tomo
+}  // namespace tomo
 
 // The test executes no foreign reader during store mutation, so reclamation may happen immediately.
 // The dedicated flags case below overlaps only immutable-object metadata touches.
@@ -132,10 +143,12 @@ static void arm(FlatStore& s, bool armed) {
     };
     static OwnerCache cache;
     require(s.prepare_read_local(), "read-local allocation");
-    s.configure_read_local(true, {nullptr,
-        [](void*, void* owner, void* p, size_t n, ReadLocalRetireSink::ReclaimFn reclaim) {
-            reclaim(owner, p, n);
-        }, &cache.blocks});
+    s.configure_read_local(
+        true, {nullptr,
+               [](void*, void* owner, void* p, size_t n, ReadLocalRetireSink::ReclaimFn reclaim) {
+                   reclaim(owner, p, n);
+               },
+               &cache.blocks});
     require(s.read_local_enabled(), "read-local lane armed");
 }
 static KvObj* string_object(const std::string& key, const std::string& value = "value",
@@ -151,14 +164,15 @@ static KvObj* put(FlatStore& s, const std::string& key, const std::string& value
     return o;
 }
 static std::vector<std::string> keys_at_slots(uint32_t cap, uint32_t first, uint32_t count,
-                                           const std::string& prefix) {
+                                              const std::string& prefix) {
     std::vector<std::string> keys(count);
     uint32_t found = 0;
     for (uint32_t i = 0; i < 10000000 && found < count; i++) {
         const std::string key = prefix + std::to_string(i);
         const uint32_t home = mix64(hash(key)) & (cap - 1);
         if (home >= first && home - first < count && keys[home - first].empty()) {
-            keys[home - first] = key; found++;
+            keys[home - first] = key;
+            found++;
         }
     }
     require(found == count, "bounded exact-slot geometry construction");
@@ -175,24 +189,29 @@ struct Group {
     explicit Group(std::vector<std::string> keys) { state.keys = std::move(keys); }
     void prepare(FlatStore& s) {
         uint64_t bytes = 0, membership = 0;
-        for (const auto& key : state.keys) { bytes += key.size(); membership |= atomic_membership_bit(hash(key)); }
-        entry = s.atomic_prepare_group(&state, 0, state.keys.size(), &epoch, &refs, &aborted,
-                                        42, nullptr, membership, true, bytes);
+        for (const auto& key : state.keys) {
+            bytes += key.size();
+            membership |= atomic_membership_bit(hash(key));
+        }
+        entry = s.atomic_prepare_group(&state, 0, state.keys.size(), &epoch, &refs, &aborted, 42,
+                                       nullptr, membership, true, bytes);
         require(entry != nullptr, "group preparation");
     }
     void install(FlatStore& s, uint32_t i, KvObj* value) {
         const auto& key = state.keys.at(i);
-        if (KvObj* old = s.atomic_install_group(entry, hash(key), slice(key), value)) parked += kvobj_size(old);
+        if (KvObj* old = s.atomic_install_group(entry, hash(key), slice(key), value))
+            parked += kvobj_size(old);
         if (value) installed += kvobj_size(value);
     }
     void publish(FlatStore& s) {
         s.atomic_finish_group_install(parked, installed);
         s.atomic_publish_group(entry);
-        refs.fetch_add(1); // The scatter caller pins its arena after the owner installs a record.
+        refs.fetch_add(1);  // The scatter caller pins its arena after the owner installs a record.
         require(s.atomic_pending_entries() != 0, "published held group");
     }
     void finish(FlatStore& s, bool abort = false) {
-        aborted.store(abort); epoch.store(1);
+        aborted.store(abort);
+        epoch.store(1);
         for (uint32_t i = 0; i < 10000 && s.atomic_pending_entries(); i++)
             s.atomic_sweep(UINT64_MAX, UINT64_MAX, 1);
         require(s.atomic_pending_entries() == 0, "bounded group cleanup completed");
@@ -203,26 +222,36 @@ struct Group {
 
 static void unlinked() {
     for (bool armed : {false, true}) {
-        Group g({"candidate-a", "candidate-b"}); FlatStore s(64); arm(s, armed);
-        KvObj* a = string_object(g.state.keys[0]); KvObj* b = string_object(g.state.keys[1]);
+        Group g({"candidate-a", "candidate-b"});
+        FlatStore s(64);
+        arm(s, armed);
+        KvObj* a = string_object(g.state.keys[0]);
+        KvObj* b = string_object(g.state.keys[1]);
         s.configure_maxmemory(true, 1 << 20, MaxmemoryPolicy::AllKeysRandom, 64);
         require(s.object_idle_install(hash(g.state.keys[0]), a) &&
-                s.object_idle_install(hash(g.state.keys[1]), b), "precharge candidate clock paths");
+                    s.object_idle_install(hash(g.state.keys[1]), b),
+                "precharge candidate clock paths");
         s.configure_maxmemory(true, s.object_bytes() + kvobj_size(a) + 12,
                               MaxmemoryPolicy::AllKeysRandom, 64);
-        require(s.atomic_prepare_capacity(2), "candidate pass capacity"); g.prepare(s);
+        require(s.atomic_prepare_capacity(2), "candidate pass capacity");
+        g.prepare(s);
         require(s.atomic_admit(slice(g.state.keys[0]), a), "first candidate admitted");
         g.install(s, 0, a);
         require(!s.atomic_has_record(hash(g.state.keys[0]), slice(g.state.keys[0])) &&
-                s.find_resident(hash(g.state.keys[0]), slice(g.state.keys[0])) == a,
+                    s.find_resident(hash(g.state.keys[0]), slice(g.state.keys[0])) == a,
                 "installed candidate is unlinked and resident");
         // Establish the sampler can select a, independently of the admission guard.
-        require(FlatStoreRegressionTest::candidate(s, g.state.keys[1]) == a, "candidate is sampleable");
+        require(FlatStoreRegressionTest::candidate(s, g.state.keys[1]) == a,
+                "candidate is sampleable");
         const size_t before = s.object_bytes();
-        require(!s.atomic_admit(slice(g.state.keys[1]), b), "refuse eviction during an unlinked span");
-        require(s.object_bytes() == before && s.find_resident(hash(g.state.keys[0]), slice(g.state.keys[0])) == a,
+        require(!s.atomic_admit(slice(g.state.keys[1]), b),
+                "refuse eviction during an unlinked span");
+        require(s.object_bytes() == before &&
+                    s.find_resident(hash(g.state.keys[0]), slice(g.state.keys[0])) == a,
                 "unlinked candidate survives pressure");
-        kvobj_free(b); g.publish(s); g.finish(s, true);
+        kvobj_free(b);
+        g.publish(s);
+        g.finish(s, true);
         require(s.size() == 0, "aborted fresh candidate removed");
     }
 }
@@ -251,10 +280,17 @@ struct ScanCommandWalker {
 
 static void randomkey() {
     for (bool census : {false, true}) {
-        struct FullRing { bool full = true; unsigned checks = 0; } ring;
-        FlatStore s; arm(s, true); s.set_cached_now_ms(100);
-        const auto key = keys_at_slots(FlatStoreRegressionTest::cap(s),
-            FlatStoreRegressionTest::first_random_slot(s), 1, "full-ring-").front();
+        struct FullRing {
+            bool full = true;
+            unsigned checks = 0;
+        } ring;
+        FlatStore s;
+        arm(s, true);
+        s.set_cached_now_ms(100);
+        const auto key =
+            keys_at_slots(FlatStoreRegressionTest::cap(s),
+                          FlatStoreRegressionTest::first_random_slot(s), 1, "full-ring-")
+                .front();
         KvObj* old = put(s, key, "expired", 200);
         auto sink = FlatStoreRegressionTest::retire_sink(s);
         sink.context = &ring;
@@ -277,7 +313,7 @@ static void randomkey() {
         require(randomkey_result(s, census) == nullptr, "full-ring expiry is logically absent");
         require(ring.checks != 0, "full-ring availability window fired");
         require(s.size() == 1 && s.object_bytes() == before &&
-                s.find_resident(hash(key), slice(key)) == old,
+                    s.find_resident(hash(key), slice(key)) == old,
                 "full-ring read retains the physical object");
         require(notifications == notices && deletes.size() == records,
                 "deferred expiry emits no premature notification or AOF delete");
@@ -292,13 +328,20 @@ static void randomkey() {
         // key it visits; the owner's real defer first reclaims the oldest grace. Every other
         // walker (KEYS, RANDOMKEY's fallback) keeps the no-wait guard: absent, still resident.
         static_assert(kScanExpiresVisited<ScanCommandWalker>);
-        struct FullRing { unsigned checks = 0, deferred = 0; } ring;
-        FlatStore s; arm(s, true); s.set_cached_now_ms(100);
+        struct FullRing {
+            unsigned checks = 0, deferred = 0;
+        } ring;
+        FlatStore s;
+        arm(s, true);
+        s.set_cached_now_ms(100);
         const std::string key = "scan-full-ring";
         KvObj* old = put(s, key, "expired", 200);
         auto sink = FlatStoreRegressionTest::retire_sink(s);
         sink.context = &ring;
-        sink.available = [](void* context) { ++static_cast<FullRing*>(context)->checks; return false; };
+        sink.available = [](void* context) {
+            ++static_cast<FullRing*>(context)->checks;
+            return false;
+        };
         sink.defer = [](void* context, void* owner, void* payload, size_t bytes,
                         ReadLocalRetireSink::ReclaimFn reclaim) {
             ++static_cast<FullRing*>(context)->deferred;
@@ -310,30 +353,39 @@ static void randomkey() {
         const auto records = deletes.size();
         unsigned seen = 0;
         uint64_t cursor = 0;
-        do cursor = s.scan(cursor, 16, [&](KvObj*) { ++seen; }); while (cursor);
+        do cursor = s.scan(cursor, 16, [&](KvObj*) { ++seen; });
+        while (cursor);
         require(seen == 0 && ring.checks != 0 && ring.deferred == 0 && s.size() == 1 &&
-                s.find_resident(hash(key), slice(key)) == old &&
-                notifications == notices && deletes.size() == records,
+                    s.find_resident(hash(key), slice(key)) == old && notifications == notices &&
+                    deletes.size() == records,
                 "other walkers keep the full-ring no-wait guard");
-        do cursor = s.scan(cursor, 16, ScanCommandWalker{seen}); while (cursor);
-        require(seen == 0 && ring.deferred == 1 && s.size() == 0 &&
-                notifications == notices + 1 && deletes.size() == records + 1,
+        do cursor = s.scan(cursor, 16, ScanCommandWalker{seen});
+        while (cursor);
+        require(seen == 0 && ring.deferred == 1 && s.size() == 0 && notifications == notices + 1 &&
+                    deletes.size() == records + 1,
                 "SCAN deletes the elapsed key it visits under a full ring");
     }
     for (bool armed : {false, true}) {
         {
-            FlatStore s; arm(s, armed); s.set_cached_now_ms(100);
+            FlatStore s;
+            arm(s, armed);
+            s.set_cached_now_ms(100);
             const std::string value(128 * 1024, 'x');
             KvObj* o = put(s, "snapshot-ttl", value, 200);
             require(s.snapshot_prepare(1, 100) == FlatStore::SnapshotWriteResult::Ready &&
-                    s.snapshot_mark(0, 100), "snapshot frozen");
+                        s.snapshot_mark(0, 100),
+                    "snapshot frozen");
             s.snapshot_progress(1, 2048);
-            require(FlatStoreRegressionTest::capturing_record(s, o), "record held partway through serialization");
-            const size_t before = s.object_bytes(); s.set_cached_now_ms(201);
-            require(randomkey_result(s) == nullptr, "RANDOMKEY logically excludes expired snapshot key");
-            require(s.size() == 1 && s.object_bytes() == before &&
+            require(FlatStoreRegressionTest::capturing_record(s, o),
+                    "record held partway through serialization");
+            const size_t before = s.object_bytes();
+            s.set_cached_now_ms(201);
+            require(randomkey_result(s) == nullptr,
+                    "RANDOMKEY logically excludes expired snapshot key");
+            require(
+                s.size() == 1 && s.object_bytes() == before &&
                     s.find_resident(hash("snapshot-ttl"), slice(std::string("snapshot-ttl"))) == o,
-                    "RANDOMKEY retains serializer's object");
+                "RANDOMKEY retains serializer's object");
             for (unsigned i = 0; i < 1000 && s.snapshot_active(); i++) {
                 s.snapshot_progress(4096, 2048);
                 if (s.snapshot_take_chunk()) s.snapshot_handoff_complete();
@@ -341,31 +393,45 @@ static void randomkey() {
             require(!s.snapshot_active() && !s.snapshot_failed(), "snapshot resumed after expiry");
         }
         {
-            Group g({"private"}); FlatStore s; arm(s, armed); g.prepare(s);
-            KvObj* value = string_object("private"); require(s.atomic_admit(slice(g.state.keys[0]), value), "admit private key");
-            g.install(s, 0, value); g.publish(s);
+            Group g({"private"});
+            FlatStore s;
+            arm(s, armed);
+            g.prepare(s);
+            KvObj* value = string_object("private");
+            require(s.atomic_admit(slice(g.state.keys[0]), value), "admit private key");
+            g.install(s, 0, value);
+            g.publish(s);
             require(s.size() == 1 && g.epoch.load() == 0, "fresh undecided physical candidate");
-            require(randomkey_result(s) == nullptr, "RANDOMKEY hides undecided candidate"); g.finish(s);
+            require(randomkey_result(s) == nullptr, "RANDOMKEY hides undecided candidate");
+            g.finish(s);
             require(randomkey_result(s) == value, "RANDOMKEY sees committed candidate");
         }
         {
-            Group g({"deleted"}); FlatStore s; arm(s, armed); KvObj* old = put(s, "deleted");
-            g.prepare(s); g.install(s, 0, nullptr); g.publish(s);
+            Group g({"deleted"});
+            FlatStore s;
+            arm(s, armed);
+            KvObj* old = put(s, "deleted");
+            g.prepare(s);
+            g.install(s, 0, nullptr);
+            g.publish(s);
             require(s.size() == 0 && s.atomic_pending_entries() == 1, "only visible key is parked");
-            require(randomkey_result(s) == old, "RANDOMKEY samples parked predecessor"); g.finish(s, true);
+            require(randomkey_result(s) == old, "RANDOMKEY samples parked predecessor");
+            g.finish(s, true);
         }
     }
 }
 
 static void rehash_capacity() {
     for (bool armed : {false, true}) {
-        FlatStore s; arm(s, armed);
+        FlatStore s;
+        arm(s, armed);
         const auto live = keys_at_slots(1024, 424, 600, "old-");
         const auto tombs = keys_at_slots(1024, 0, 100, "tomb-");
         for (const auto& key : live) FlatStoreRegressionTest::raw_insert(s, string_object(key));
         for (const auto& key : tombs) FlatStoreRegressionTest::raw_insert(s, string_object(key));
         for (const auto& key : tombs) FlatStoreRegressionTest::raw_erase(s, key);
-        require(s.atomic_prepare_capacity(100) && s.rehashing() && FlatStoreRegressionTest::cap(s) == 1024,
+        require(s.atomic_prepare_capacity(100) && s.rehashing() &&
+                    FlatStoreRegressionTest::cap(s) == 1024,
                 "600 live + 100 tombstones starts same-size atomic rehash");
         std::vector<std::string> added;
         for (unsigned pass = 0; pass < 12; pass++) {
@@ -379,22 +445,29 @@ static void rehash_capacity() {
                     "destination reserves every unmoved old key");
         }
         for (unsigned i = 0; i < 10000 && s.rehashing(); i++) FlatStoreRegressionTest::step(s);
-        require(!s.rehashing() && s.size() == live.size() + added.size(), "rehash drains without loss");
-        for (const auto& key : live) require(s.find(hash(key), slice(key)) != nullptr, "old key survived rehash");
-        for (const auto& key : added) require(s.find(hash(key), slice(key)) != nullptr, "new key survived rehash");
+        require(!s.rehashing() && s.size() == live.size() + added.size(),
+                "rehash drains without loss");
+        for (const auto& key : live)
+            require(s.find(hash(key), slice(key)) != nullptr, "old key survived rehash");
+        for (const auto& key : added)
+            require(s.find(hash(key), slice(key)) != nullptr, "new key survived rehash");
     }
 }
 
 static void rollback() {
     for (bool armed : {false, true}) {
         auto keys = keys_at_slots(1024, 0, 700, "rollback-");
-        Group g(keys); FlatStore s; arm(s, armed);
+        Group g(keys);
+        FlatStore s;
+        arm(s, armed);
         for (const auto& key : keys) FlatStoreRegressionTest::raw_insert(s, string_object(key));
-        require(s.atomic_prepare_capacity(700) && FlatStoreRegressionTest::cap(s) == 2048, "delete preflight grows table");
+        require(s.atomic_prepare_capacity(700) && FlatStoreRegressionTest::cap(s) == 2048,
+                "delete preflight grows table");
         g.prepare(s);
         for (unsigned i = 0; i < keys.size(); i++) g.install(s, i, nullptr);
         g.publish(s);
-        require(s.size() == 0 && s.atomic_pending_entries() == 1, "700 predecessors held by undecided deletion");
+        require(s.size() == 0 && s.atomic_pending_entries() == 1,
+                "700 predecessors held by undecided deletion");
         for (unsigned i = 0; i < 1000 && s.rehashing(); i++) FlatStoreRegressionTest::step(s);
         const auto unrelated = keys_at_slots(2048, 0, 1400, "unrelated-");
         for (const auto& key : unrelated) put(s, key);
@@ -403,28 +476,37 @@ static void rollback() {
         g.aborted.store(true);
         const size_t before = s.object_bytes();
         flatstore_debug_fail_table_allocations(1);
-        require(s.atomic_sweep(UINT64_MAX, UINT64_MAX, 1) == 0, "rollback allocation failure defers cleanup");
+        require(s.atomic_sweep(UINT64_MAX, UINT64_MAX, 1) == 0,
+                "rollback allocation failure defers cleanup");
         require(g_flatstore_table_alloc_failures.load() == 0 && s.atomic_pending_entries() == 1 &&
-                s.object_bytes() == before && s.size() == 1400, "failed preflight retains all ownership/accounting");
+                    s.object_bytes() == before && s.size() == 1400,
+                "failed preflight retains all ownership/accounting");
         g.finish(s, true);
         require(s.size() == 2100, "all rollback and unrelated keys remain");
-        for (const auto& key : keys) require(s.find(hash(key), slice(key)) != nullptr, "predecessor restored");
-        for (const auto& key : unrelated) require(s.find(hash(key), slice(key)) != nullptr, "unrelated write retained");
+        for (const auto& key : keys)
+            require(s.find(hash(key), slice(key)) != nullptr, "predecessor restored");
+        for (const auto& key : unrelated)
+            require(s.find(hash(key), slice(key)) != nullptr, "unrelated write retained");
     }
 }
 
 static void snapshot_eviction() {
-    FlatStore s(64); put(s, "frozen");
-    require(s.snapshot_prepare(1, 100) == FlatStore::SnapshotWriteResult::Ready && s.snapshot_mark(0, 100),
+    FlatStore s(64);
+    put(s, "frozen");
+    require(s.snapshot_prepare(1, 100) == FlatStore::SnapshotWriteResult::Ready &&
+                s.snapshot_mark(0, 100),
             "snapshot eviction fixture frozen");
     put(s, "postcut", "abcde");
     s.configure_maxmemory(true, 1, MaxmemoryPolicy::AllKeysRandom, 64);
     require(s.accounted_bytes() > 1 && FlatStoreRegressionTest::candidate(s, "postcut") != nullptr,
             "over-budget store has a frozen eviction victim");
-    const size_t before = s.object_bytes(); deletes.clear();
-    require(s.try_overwrite(hash("postcut"), slice(std::string("postcut")), slice(std::string("vwxyz"))) ==
-                FlatStore::OverwriteResult::Updated, "same-class overwrite runs during capture");
-    require(s.size() == 2 && s.object_bytes() == before && deletes.empty(), "overwrite cannot evict frozen image");
+    const size_t before = s.object_bytes();
+    deletes.clear();
+    require(s.try_overwrite(hash("postcut"), slice(std::string("postcut")),
+                            slice(std::string("vwxyz"))) == FlatStore::OverwriteResult::Updated,
+            "same-class overwrite runs during capture");
+    require(s.size() == 2 && s.object_bytes() == before && deletes.empty(),
+            "overwrite cannot evict frozen image");
     s.snapshot_cancel();
 }
 
@@ -432,58 +514,66 @@ static void flags() {
     // Replacing the synchronized byte with a plain byte must fail even without a race detector.
     static_assert(std::is_same_v<decltype(KvObj::flags), KvObjFlagByte>);
     static_assert(!std::is_copy_assignable_v<KvObjFlagByte>);
-    const std::string key(300, 'k'); KvObj* o = string_object(key, "value", 1000);
-    const size_t bytes = kvobj_size(o); std::barrier start(2);
+    const std::string key(300, 'k');
+    KvObj* o = string_object(key, "value", 1000);
+    const size_t bytes = kvobj_size(o);
+    std::barrier start(2);
     std::atomic<uint32_t> touches{0};
     std::thread reader([&] {
         start.arrive_and_wait();
         for (uint32_t i = 0; i < 100000; i++) {
-            o->touch_eviction_meta_foreign(o->read_local_flags(), i & 31); touches++;
+            o->touch_eviction_meta_foreign(o->read_local_flags(), i & 31);
+            touches++;
         }
     });
     start.arrive_and_wait();
     for (uint32_t i = 0; i < 100000; i++) {
         require(o->has_ttl_slot() && o->klen() == key.size() && o->key() == slice(key) &&
-                o->expire_at_ms() == 1000 && kvobj_size(o) == bytes, "layout reads coexist with foreign metadata CAS");
+                    o->expire_at_ms() == 1000 && kvobj_size(o) == bytes,
+                "layout reads coexist with foreign metadata CAS");
         o->set_eviction_meta(i & 31);
     }
-    reader.join(); require(touches == 100000, "foreign touches executed"); kvobj_free(o);
+    reader.join();
+    require(touches == 100000, "foreign touches executed");
+    kvobj_free(o);
 }
 
 static void lru_sample_order() {
-    for (bool armed : {false, true}) for (uint8_t clock : {uint8_t{8}, uint8_t{0}}) {
-        FlatStore s(64); arm(s, armed);
-        s.configure_maxmemory(true, 1 << 20, MaxmemoryPolicy::AllKeysLru, 64);
-        s.set_cached_lru_clock(clock);
-        std::vector<KvObj*> objects;
-        for (uint32_t i = 0; i < 32; i++) objects.push_back(put(s, "lru-" + std::to_string(i)));
-        std::pair<KvObj*, KvObj*> pair;
-        uint64_t seed = 1;
-        for (; seed <= 64; seed++) {
-            pair = FlatStoreRegressionTest::first_lru_candidates(s, seed);
-            if (pair.first && pair.second && pair.first != pair.second) break;
+    for (bool armed : {false, true})
+        for (uint8_t clock : {uint8_t{8}, uint8_t{0}}) {
+            FlatStore s(64);
+            arm(s, armed);
+            s.configure_maxmemory(true, 1 << 20, MaxmemoryPolicy::AllKeysLru, 64);
+            s.set_cached_lru_clock(clock);
+            std::vector<KvObj*> objects;
+            for (uint32_t i = 0; i < 32; i++) objects.push_back(put(s, "lru-" + std::to_string(i)));
+            std::pair<KvObj*, KvObj*> pair;
+            uint64_t seed = 1;
+            for (; seed <= 64; seed++) {
+                pair = FlatStoreRegressionTest::first_lru_candidates(s, seed);
+                if (pair.first && pair.second && pair.first != pair.second) break;
+            }
+            require(seed <= 64, "bounded seed construction yields two distinct sampled keys");
+            const uint8_t older = (clock - 1) & 31;
+            // Both orders matter: selecting the first sample unconditionally must fail too.
+            for (KvObj* cold : {pair.first, pair.second}) {
+                for (KvObj* o : objects) o->set_eviction_meta(clock);
+                cold->set_eviction_meta(older);
+                auto replay = FlatStoreRegressionTest::first_lru_candidates(s, seed);
+                require(replay == pair, "candidate membership fixed before testing the chooser");
+                require(FlatStoreRegressionTest::candidate(s) == cold,
+                        "64-sample LRU must select the older key when it is in the sample");
+            }
+            // A newer victim is legitimate if the sample contains no older key. With N=1 the
+            // observed first draw is that exact case, even though older keys remain in the store.
+            for (KvObj* o : objects) o->set_eviction_meta(older);
+            pair.first->set_eviction_meta(clock);
+            s.configure_maxmemory(true, 1 << 20, MaxmemoryPolicy::AllKeysLru, 1);
+            require(FlatStoreRegressionTest::first_lru_candidates(s, seed) == pair,
+                    "newer-only sample constructed");
+            require(FlatStoreRegressionTest::candidate(s) == pair.first,
+                    "sampled LRU can evict a newer key while older keys exist outside its sample");
         }
-        require(seed <= 64, "bounded seed construction yields two distinct sampled keys");
-        const uint8_t older = (clock - 1) & 31;
-        // Both orders matter: selecting the first sample unconditionally must fail too.
-        for (KvObj* cold : {pair.first, pair.second}) {
-            for (KvObj* o : objects) o->set_eviction_meta(clock);
-            cold->set_eviction_meta(older);
-            auto replay = FlatStoreRegressionTest::first_lru_candidates(s, seed);
-            require(replay == pair, "candidate membership fixed before testing the chooser");
-            require(FlatStoreRegressionTest::candidate(s) == cold,
-                    "64-sample LRU must select the older key when it is in the sample");
-        }
-        // A newer victim is legitimate if the sample contains no older key. With N=1 the
-        // observed first draw is that exact case, even though older keys remain in the store.
-        for (KvObj* o : objects) o->set_eviction_meta(older);
-        pair.first->set_eviction_meta(clock);
-        s.configure_maxmemory(true, 1 << 20, MaxmemoryPolicy::AllKeysLru, 1);
-        require(FlatStoreRegressionTest::first_lru_candidates(s, seed) == pair,
-                "newer-only sample constructed");
-        require(FlatStoreRegressionTest::candidate(s) == pair.first,
-                "sampled LRU can evict a newer key while older keys exist outside its sample");
-    }
 }
 
 static void idle_clock_accounting() {
@@ -495,27 +585,35 @@ static void idle_clock_accounting() {
     require(clock.allocated_bytes() == charged, "empty clock object accounted");
     const size_t needed = clock.allocation_bytes(first);
     require(needed == 4 * 4096 + 2048 && clock.allocation_bytes(first) == needed &&
-            clock.allocated_bytes() == charged, "allocation estimate is exact and side-effect-free");
+                clock.allocated_bytes() == charged,
+            "allocation estimate is exact and side-effect-free");
     require(clock.install(first, 17, charged) && charged == sizeof(clock) + needed &&
-            clock.allocated_bytes() == charged, "every installed branch and leaf charged");
+                clock.allocated_bytes() == charged,
+            "every installed branch and leaf charged");
     require(clock.allocation_bytes(first) == 0 && clock.allocation_bytes(second) == 2048,
             "existing path costs zero; adjacent page needs only a leaf");
     const size_t before = charged;
-    require(clock.install(first, 18, charged) && charged == before &&
-            clock.timestamp(first, 0) == 18, "existing-node write does not recharge");
+    require(
+        clock.install(first, 18, charged) && charged == before && clock.timestamp(first, 0) == 18,
+        "existing-node write does not recharge");
 
     struct Retire {
-        void* owner; void* payload; size_t bytes; ReadLocalRetireSink::ReclaimFn reclaim;
+        void* owner;
+        void* payload;
+        size_t bytes;
+        ReadLocalRetireSink::ReclaimFn reclaim;
     };
     std::vector<Retire> retired;
     FlatStore store;
     KvBlockCache blocks;
     require(store.prepare_read_local(), "prepare clock reader lifetime");
     store.configure_read_local(true, {&retired,
-        [](void* context, void* owner, void* payload, size_t bytes,
-           ReadLocalRetireSink::ReclaimFn reclaim) {
-            static_cast<std::vector<Retire>*>(context)->push_back({owner, payload, bytes, reclaim});
-        }, &blocks});
+                                      [](void* context, void* owner, void* payload, size_t bytes,
+                                         ReadLocalRetireSink::ReclaimFn reclaim) {
+                                          static_cast<std::vector<Retire>*>(context)->push_back(
+                                              {owner, payload, bytes, reclaim});
+                                      },
+                                      &blocks});
     KvObj* object = put(store, "clock-owner");
     const size_t objects = store.object_bytes();
     store.configure_maxmemory(true, 1 << 20, MaxmemoryPolicy::NoEviction, 1);
@@ -524,7 +622,7 @@ static void idle_clock_accounting() {
     auto* active = store.object_idle_slot()->load();
     for (unsigned i = 0; i < 8; ++i)
         require(active->allocated_bytes() == armed - objects &&
-                active->allocation_bytes(object) == 0 && store.object_bytes() == armed,
+                    active->allocation_bytes(object) == 0 && store.object_bytes() == armed,
                 "accounting walk leaves store and clock unchanged");
     store.configure_maxmemory(false, 0, MaxmemoryPolicy::NoEviction, 1);
     require(retired.size() == 1 && store.object_bytes() == armed,
@@ -539,33 +637,47 @@ static void aof_eviction() {
     idle_clock_accounting();
     lru_sample_order();
     for (bool armed : {false, true}) {
-        FlatStore s(64); arm(s, armed); KvObj* old = put(s, "victim");
+        FlatStore s(64);
+        arm(s, armed);
+        KvObj* old = put(s, "victim");
         KvObj* incoming = string_object("new");
         s.configure_maxmemory(true, 1 << 20, MaxmemoryPolicy::AllKeysRandom, 64);
         require(s.object_idle_install(hash("new"), incoming), "precharge incoming clock path");
         s.configure_maxmemory(true, s.object_bytes() + 12, MaxmemoryPolicy::AllKeysRandom, 64);
-        uint64_t evicted = 0; s.bind_evicted_counter(&evicted); deletes.clear();
-        require(s.atomic_admit(slice(std::string("new")), incoming), "atomic admission succeeds through eviction");
+        uint64_t evicted = 0;
+        s.bind_evicted_counter(&evicted);
+        deletes.clear();
+        require(s.atomic_admit(slice(std::string("new")), incoming),
+                "atomic admission succeeds through eviction");
         require(evicted == 1 && s.size() == 0, "unrelated victim actually evicted");
-        require(deletes == std::vector<std::string>{"victim"}, "eviction emits exactly one independent AOF DEL");
-        s.atomic_unadmit(incoming); kvobj_free(incoming);
+        require(deletes == std::vector<std::string>{"victim"},
+                "eviction emits exactly one independent AOF DEL");
+        s.atomic_unadmit(incoming);
+        kvobj_free(incoming);
     }
 }
 
 static void intents() {
     for (bool armed : {false, true}) {
-        FlatStore s(64); arm(s, armed); KvObj* o = put(s, "pinned");
+        FlatStore s(64);
+        arm(s, armed);
+        KvObj* o = put(s, "pinned");
         s.configure_maxmemory(true, 1, MaxmemoryPolicy::AllKeysRandom, 64);
-        s.configure_maxmemory(true, s.object_bytes() - kvobj_size(o), MaxmemoryPolicy::AllKeysRandom, 64);
+        s.configure_maxmemory(true, s.object_bytes() - kvobj_size(o),
+                              MaxmemoryPolicy::AllKeysRandom, 64);
         require(FlatStoreRegressionTest::candidate(s) == o, "victim sampling positive control");
-        require(s.atomic_script_pin(hash("pinned"), slice(std::string("pinned"))), "script pin created");
+        require(s.atomic_script_pin(hash("pinned"), slice(std::string("pinned"))),
+                "script pin created");
         require(s.atomic_has_script_intent(hash("pinned"), slice(std::string("pinned"))) &&
-                !s.atomic_has_record(hash("pinned"), slice(std::string("pinned"))), "intent exists without version record");
-        require(FlatStoreRegressionTest::candidate(s) == nullptr && !s.budget_admit(slice(std::string("other"))),
+                    !s.atomic_has_record(hash("pinned"), slice(std::string("pinned"))),
+                "intent exists without version record");
+        require(FlatStoreRegressionTest::candidate(s) == nullptr &&
+                    !s.budget_admit(slice(std::string("other"))),
                 "ordinary eviction excludes intent-only key");
         require(s.size() == 1, "pinned predecessor retained");
         s.atomic_script_unpin(hash("pinned"), slice(std::string("pinned")));
-        require(s.budget_admit(slice(std::string("other"))) && s.size() == 0, "unpin restores ordinary eviction");
+        require(s.budget_admit(slice(std::string("other"))) && s.size() == 0,
+                "unpin restores ordinary eviction");
     }
 }
 
@@ -577,71 +689,97 @@ static KvObj* hash_object(const std::string& key) {
     value->ttls = new HashFieldTtl;
     require(value->ttls->set(slice(std::string("f")), 200), "hash field deadline installed");
     KvObj* object = kvobj_new_hash(slice(key), value);
-    require(object != nullptr, "external hash allocation"); hash_ttl_note_bytes(object);
+    require(object != nullptr, "external hash allocation");
+    hash_ttl_note_bytes(object);
     require(hash_ttl_field_count(object) == 1, "one field in real hash representation");
     return object;
 }
 
 static void imported_hash() {
     for (bool armed : {false, true}) {
-        Group g({"imported"}); FlatStore s; arm(s, armed); s.set_cached_now_ms(100);
+        Group g({"imported"});
+        FlatStore s;
+        arm(s, armed);
+        s.set_cached_now_ms(100);
         KvObj* o = hash_object("imported");
         require(s.field_expire_count() == 0, "destination has never registered a field deadline");
         require(s.atomic_admit(slice(g.state.keys[0]), o), "import admitted");
-        g.prepare(s); g.install(s, 0, o); g.publish(s); g.finish(s);
+        g.prepare(s);
+        g.install(s, 0, o);
+        g.publish(s);
+        g.finish(s);
         require(s.field_expire_count() != 0 && FlatStoreRegressionTest::field_index_size(s) == 1,
                 "atomic APPLY registered imported field deadlines");
         s.set_cached_now_ms(201);
-        require(s.active_expire_fields(1024) == 1 && s.size() == 0, "imported field expires on destination");
+        require(s.active_expire_fields(1024) == 1 && s.size() == 0,
+                "imported field expires on destination");
     }
 }
 
 static void field_index_failure() {
-    FlatStore s; s.set_cached_now_ms(100); KvObj* o = hash_object("missed");
-    require(s.insert(hash("missed"), o) == FlatStore::InsertResult::Inserted, "TTL-bearing hash seeded");
-    flatstore_debug_fail_table_allocations(1); s.note_field_ttl(hash("missed"));
-    require(g_flatstore_table_alloc_failures.load() == 0 && FlatStoreRegressionTest::field_index_size(s) == 0,
+    FlatStore s;
+    s.set_cached_now_ms(100);
+    KvObj* o = hash_object("missed");
+    require(s.insert(hash("missed"), o) == FlatStore::InsertResult::Inserted,
+            "TTL-bearing hash seeded");
+    flatstore_debug_fail_table_allocations(1);
+    s.note_field_ttl(hash("missed"));
+    require(g_flatstore_table_alloc_failures.load() == 0 &&
+                FlatStoreRegressionTest::field_index_size(s) == 0,
             "first field-index allocation really failed");
     require(s.field_expire_count() != 0, "missed index must keep the lazy gate armed");
     // A later successful registration/removal must not erase knowledge of the unindexed key.
-    s.note_field_ttl(hash("stale")); s.active_expire_fields(1024);
+    s.note_field_ttl(hash("stale"));
+    s.active_expire_fields(1024);
     require(FlatStoreRegressionTest::field_index_size(s) == 0 && s.field_expire_count() != 0,
             "stale-entry cleanup cannot disarm missed registration");
-    s.set_cached_now_ms(201); uint32_t reaped = 0;
+    s.set_cached_now_ms(201);
+    uint32_t reaped = 0;
     const size_t before = kvobj_size(o);
-    require(hash_ttl_active_reap(s, o, 201, reaped) && reaped == 1, "real lazy-reap dependency can collect missed field");
+    require(hash_ttl_active_reap(s, o, 201, reaped) && reaped == 1,
+            "real lazy-reap dependency can collect missed field");
     s.note_object_size_change(before, kvobj_size(o));
     // This case verifies the gate, not the separate command-side shrink-accounting finding.
-    s.clear(); require(s.field_expire_count() == 0, "FLUSH resets sticky attention");
+    s.clear();
+    require(s.field_expire_count() == 0, "FLUSH resets sticky attention");
 }
 
 static void hash_bytes() {
     for (bool armed : {false, true}) {
-        FlatStore s; arm(s, armed);
+        FlatStore s;
+        arm(s, armed);
         for (unsigned i = 0; i < 12; i++) {
-            s.set_cached_now_ms(100); KvObj* o = hash_object("one-field");
-            require(s.insert(hash("one-field"), o) == FlatStore::InsertResult::Inserted, "accounted hash seeded");
+            s.set_cached_now_ms(100);
+            KvObj* o = hash_object("one-field");
+            require(s.insert(hash("one-field"), o) == FlatStore::InsertResult::Inserted,
+                    "accounted hash seeded");
             s.note_field_ttl(hash("one-field"));
             require(s.object_bytes() == kvobj_size(o), "TTL bytes charged before reap");
             s.set_cached_now_ms(201);
-            require(s.active_expire_fields(1024) == 1 && s.size() == 0, "last hash field actively reaped");
+            require(s.active_expire_fields(1024) == 1 && s.size() == 0,
+                    "last hash field actively reaped");
             require(s.object_bytes() == 0, "last-field reaping leaves no phantom bytes");
         }
     }
 }
 
 static void deadline_allocation_failure() {
-    FlatStore s; s.set_cached_now_ms(100);
+    FlatStore s;
+    s.set_cached_now_ms(100);
     for (unsigned i = 0; i < 11; i++) put(s, "ttl-" + std::to_string(i), "value", 200);
     require(s.expire_count() == 11, "index at allocation-triggering occupancy");
     flatstore_debug_fail_table_allocations(1);
-    require(s.set_expire(hash("ttl-0"), slice(std::string("ttl-0")), 400) == FlatStore::TtlResult::Updated,
+    require(s.set_expire(hash("ttl-0"), slice(std::string("ttl-0")), 400) ==
+                FlatStore::TtlResult::Updated,
             "deadline extension completes despite attention allocation failure");
     require(g_flatstore_table_alloc_failures.load() == 0, "expiry-index growth allocation failed");
-    s.set_cached_now_ms(201); KvObj* o = s.find(hash("ttl-0"), slice(std::string("ttl-0")));
-    require(o && s.deadline(hash("ttl-0"), o) == 400, "inline deadline survives index allocation failure");
+    s.set_cached_now_ms(201);
+    KvObj* o = s.find(hash("ttl-0"), slice(std::string("ttl-0")));
+    require(o && s.deadline(hash("ttl-0"), o) == 400,
+            "inline deadline survives index allocation failure");
     s.set_cached_now_ms(401);
-    require(s.find(hash("ttl-0"), slice(std::string("ttl-0"))) == nullptr, "extended deadline still expires");
+    require(s.find(hash("ttl-0"), slice(std::string("ttl-0"))) == nullptr,
+            "extended deadline still expires");
 }
 
 // snapfix2: writes continue between prepare and mark. A live-set-sized destination below the
@@ -649,13 +787,18 @@ static void deadline_allocation_failure() {
 // admission with read-local both armed and disarmed, then finish the real capture and merge.
 static void snapshot_prepared_growth() {
     for (bool armed : {false, true}) {
-        FlatStore s(1024); arm(s, armed); put(s, "seed");
-        require(s.snapshot_prepare(1, 100) == FlatStore::SnapshotWriteResult::Ready, "sparse prepare");
-        require(s.atomic_prepare_capacity(512), "prepared atomic admission still uses current capacity");
+        FlatStore s(1024);
+        arm(s, armed);
+        put(s, "seed");
+        require(s.snapshot_prepare(1, 100) == FlatStore::SnapshotWriteResult::Ready,
+                "sparse prepare");
+        require(s.atomic_prepare_capacity(512),
+                "prepared atomic admission still uses current capacity");
         for (unsigned i = 0; i < 512; ++i) put(s, "prepared-" + std::to_string(i));
         require(s.size() == 513 && s.snapshot_mark(0, 100), "prepared growth fired before mark");
         // Fail before entering a merge that cannot terminate (the proposed unfloored patch).
-        require(s.rehash_progress().current_capacity > s.size(), "prepared destination holds accepted keys");
+        require(s.rehash_progress().current_capacity > s.size(),
+                "prepared destination holds accepted keys");
         for (unsigned i = 0; i < 1000 && s.snapshot_active(); ++i) {
             s.snapshot_progress(4096, 2048);
             if (s.snapshot_take_chunk()) s.snapshot_handoff_complete();
@@ -677,15 +820,20 @@ static void snapshot_prepared_growth() {
 static void flush_prepared_capacity() {
     snapshot_prepared_growth();
     for (bool armed : {false, true}) {
-        FlatStore s(64); arm(s, armed); put(s, "before-flush");
+        FlatStore s(64);
+        arm(s, armed);
+        put(s, "before-flush");
         require(s.snapshot_prepare(1, 100) == FlatStore::SnapshotWriteResult::Ready,
                 "prepared a post-cut table twice the current capacity");
         s.clear();
         std::vector<std::string> keys;
-        for (unsigned i = 0; i < 256; i++) {   // a prepared store refuses keys only when full
+        for (unsigned i = 0; i < 256; i++) {  // a prepared store refuses keys only when full
             const std::string key = "after-flush-" + std::to_string(i);
             KvObj* o = string_object(key);
-            if (s.insert(hash(key), o) != FlatStore::InsertResult::Inserted) { kvobj_free(o); break; }
+            if (s.insert(hash(key), o) != FlatStore::InsertResult::Inserted) {
+                kvobj_free(o);
+                break;
+            }
             keys.push_back(key);
         }
         require(!keys.empty() && s.snapshot_mark(0, 100), "prepared table published at the cut");
@@ -693,35 +841,54 @@ static void flush_prepared_capacity() {
             s.snapshot_progress(4096, 2048);
             if (s.snapshot_take_chunk()) s.snapshot_handoff_complete();
         }
-        require(!s.snapshot_active() && !s.snapshot_failed(), "capture of the post-flush table finished");
+        require(!s.snapshot_active() && !s.snapshot_failed(),
+                "capture of the post-flush table finished");
         for (unsigned i = 0; i < 100000 && s.rehashing(); i++) FlatStoreRegressionTest::step(s);
         if (s.rehashing()) {
             const auto stalled = s.rehash_progress();
-            std::fprintf(stderr, "armed=%d merge stalled: %zu post-flush keys, %u-slot destination, "
-                         "old cursor %u/%u, %u keys unmoved\n", armed, keys.size(),
-                         stalled.current_capacity, stalled.cursor, stalled.old_capacity,
-                         stalled.old_live);
+            std::fprintf(stderr,
+                         "armed=%d merge stalled: %zu post-flush keys, %u-slot destination, "
+                         "old cursor %u/%u, %u keys unmoved\n",
+                         armed, keys.size(), stalled.current_capacity, stalled.cursor,
+                         stalled.old_capacity, stalled.old_live);
         }
-        require(!s.rehashing(), "post-capture merge completes: the prepared table holds the flushed shard");
+        require(!s.rehashing(),
+                "post-capture merge completes: the prepared table holds the flushed shard");
         require(s.size() == keys.size(), "every accepted post-flush key survives the merge");
-        for (const auto& key : keys) require(s.find(hash(key), slice(key)) != nullptr, "post-flush key readable");
-        require(s.find(hash("before-flush"), slice(std::string("before-flush"))) == nullptr, "flushed key stays deleted");
-        require(s.insert(hash("after-merge"), string_object("after-merge")) == FlatStore::InsertResult::Inserted,
+        for (const auto& key : keys)
+            require(s.find(hash(key), slice(key)) != nullptr, "post-flush key readable");
+        require(s.find(hash("before-flush"), slice(std::string("before-flush"))) == nullptr,
+                "flushed key stays deleted");
+        require(s.insert(hash("after-merge"), string_object("after-merge")) ==
+                    FlatStore::InsertResult::Inserted,
                 "the shard accepts new keys after the merge");
     }
 }
 
 int main(int argc, char** argv) {
     require(argc == 2, "select one named regression");
-    struct Case { const char* name; void (*run)(); };
-    const Case cases[] = {{"unlinked", unlinked}, {"randomkey", randomkey}, {"rehash", rehash_capacity},
-        {"rollback", rollback}, {"snapshot-eviction", snapshot_eviction}, {"flags", flags},
-        {"aof-eviction", aof_eviction}, {"intents", intents}, {"imported-hash", imported_hash},
-        {"field-index-failure", field_index_failure}, {"hash-bytes", hash_bytes},
-        {"deadline-allocation-failure", deadline_allocation_failure},
-        {"flush-prepared-capacity", flush_prepared_capacity}};
-    for (const auto& c : cases) if (std::strcmp(argv[1], c.name) == 0) {
-        c.run(); std::printf("PASS storage %s\n", c.name); return 0;
-    }
+    struct Case {
+        const char* name;
+        void (*run)();
+    };
+    const Case cases[] = {{"unlinked", unlinked},
+                          {"randomkey", randomkey},
+                          {"rehash", rehash_capacity},
+                          {"rollback", rollback},
+                          {"snapshot-eviction", snapshot_eviction},
+                          {"flags", flags},
+                          {"aof-eviction", aof_eviction},
+                          {"intents", intents},
+                          {"imported-hash", imported_hash},
+                          {"field-index-failure", field_index_failure},
+                          {"hash-bytes", hash_bytes},
+                          {"deadline-allocation-failure", deadline_allocation_failure},
+                          {"flush-prepared-capacity", flush_prepared_capacity}};
+    for (const auto& c : cases)
+        if (std::strcmp(argv[1], c.name) == 0) {
+            c.run();
+            std::printf("PASS storage %s\n", c.name);
+            return 0;
+        }
     require(false, "unknown regression");
 }

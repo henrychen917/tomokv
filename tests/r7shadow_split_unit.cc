@@ -17,7 +17,8 @@ void split(int32_t requested, const std::string& leak) {
     T::require(server.cfg().reorder == 0, "split init retained the raw request");
     // The ordinary existing signal beat must not enter any R7 path.
     for (uint32_t i = 0; i < kGenthreadExBatchOps; ++i)
-        T::require(server.thread(f.owner).sample_depth(1000 + 100 * i), "split signal beat missing");
+        T::require(server.thread(f.owner).sample_depth(1000 + 100 * i),
+                   "split signal beat missing");
     // Directed counterfactuals: execute the real forbidden mechanism, not the hook.
     if (leak == "parse") {
         Client client(-1);
@@ -40,13 +41,15 @@ void split(int32_t requested, const std::string& leak) {
     const std::string info(op.reply.data(), op.reply.size());
     T::require(info.find("reorder:0\r\nreorder_retired:1\r\n") != std::string::npos,
                "split INFO does not report retired FIFO");
-    for (const char* field : {"reorder_batches:", "reorder_multi_client_runs:", "reorder_permuted_runs:",
-                             "reorder_max_batch:", "reorder_shadow:", "reorder_auto_"})
+    for (const char* field :
+         {"reorder_batches:", "reorder_multi_client_runs:", "reorder_permuted_runs:",
+          "reorder_max_batch:", "reorder_shadow:", "reorder_auto_"})
         T::require(info.find(field) == std::string::npos, "split INFO exposes reorder state");
     T::require(r7_witness::paths == 0, "split INFO traversed reorder state");
     command_bind_server(nullptr);
     // Only deterministic witness fields enter the cross-process comparison.
-    std::printf("WITNESS paths=%llu reorder_allocations=%llu heap_calls=%llu heap_bytes=%llu heap_trace=%llu\n",
+    std::printf(
+        "WITNESS paths=%llu reorder_allocations=%llu heap_calls=%llu heap_bytes=%llu heap_trace=%llu\n",
         (unsigned long long)r7_witness::paths, (unsigned long long)r7_witness::allocations,
         (unsigned long long)r7_witness::heap_calls, (unsigned long long)r7_witness::heap_bytes,
         (unsigned long long)r7_witness::heap_trace);
@@ -67,6 +70,8 @@ int main(int argc, char** argv) {
     T::require(tomo::command_registry_init(false), "command registry");
     const int32_t requested = std::stoi(argv[1]);
     const std::string leak = argc == 4 ? argv[3] : "";
-    if (std::stoi(argv[2])) split<true>(requested, leak);
-    else split<false>(requested, leak);
+    if (std::stoi(argv[2]))
+        split<true>(requested, leak);
+    else
+        split<false>(requested, leak);
 }

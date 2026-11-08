@@ -52,13 +52,13 @@ bool tracking_flush_before_reply(const WbEngine& wb, Client& client) {
         // Redis 7.4 puts SYNC's push before +OK and ASYNC's afterward.
         return !op.reply_skip() && (op.argc() < 2 || !op.arg(1).eq_icase("async"));
     }
-    std::abort(); // a live retirement must still name its current ROB slot
+    std::abort();  // a live retirement must still name its current ROB slot
 }
 
 // Monotonic membership filter over every key any owner has registered. Set-only; cleared when a
 // tracking table is flushed. A false positive costs one broadcast that every owner then filters
 // out, so it can only ever cost work, never correctness.
-constexpr uint32_t kTrackFilterWords = 1024;   // 64 Kbit
+constexpr uint32_t kTrackFilterWords = 1024;  // 64 Kbit
 std::atomic<uint64_t> g_track_filter[kTrackFilterWords];
 // Number of registered BCAST prefixes across the process. Non-zero forces every changed key to
 // broadcast, because prefix membership cannot be tested by the key filter.
@@ -67,7 +67,6 @@ std::atomic<uint64_t> g_track_bcast_prefixes{0};
 // A separate line avoids false sharing with the membership filter and prefix counter.
 alignas(64) std::atomic<uint64_t> g_tracking_clock{1};
 void tracking_read_marker(Shard& shard, Op& op) { tracking_execute_read(shard, op); }
-
 
 inline void track_filter_add(uint64_t hash) {
     const uint32_t word = static_cast<uint32_t>((hash >> 6) % kTrackFilterWords);
@@ -105,9 +104,7 @@ bool tracking_script_keys(const Op& op, uint32_t& count) {
 
 }  // namespace
 
-uint64_t tracking_clock_observe() {
-    return g_tracking_clock.load(std::memory_order_acquire);
-}
+uint64_t tracking_clock_observe() { return g_tracking_clock.load(std::memory_order_acquire); }
 
 uint64_t tracking_clock_commit() {
     const uint64_t stamp = g_tracking_clock.fetch_add(1, std::memory_order_acq_rel) + 1;
@@ -125,7 +122,7 @@ void tracking_observe_read(Shard& shard, Op& op) {
         stamp = op.read_cut(epoch) >= read.dispatch_epoch ? read.dispatch_stamp : 0;
     }
     uint64_t& observed = read.observed[shard.id()];
-    observed = std::min(observed, stamp); // each shard slot has exactly one writer
+    observed = std::min(observed, stamp);  // each shard slot has exactly one writer
 }
 
 // Redis enrolls a blocking read when it parks and again when the woken command re-runs; the
@@ -170,8 +167,7 @@ void tracking_observe_local(Server& server, Op& op) {
     if (!op.spec || op.spec->handler_notify != tracking_read_marker) return;
     auto& read = *static_cast<IoLoop::TrackingRead*>(const_cast<CommandSpec*>(op.spec));
     const uint64_t stamp = tracking_clock_observe();
-    for (uint32_t shard : read.shards)
-        read.observed[shard] = std::min(read.observed[shard], stamp);
+    for (uint32_t shard : read.shards) read.observed[shard] = std::min(read.observed[shard], stamp);
 }
 
 // ---- registration --------------------------------------------------------------------------
@@ -196,7 +192,7 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
     // invalidation (or wrongly subscribes an exempted OPTOUT read). CLIENT has no keys to enroll.
     if (op.spec && (op.spec->flags & CmdFlags::PreserveCaching)) return;
     const bool caching = state.caching_armed;
-    state.caching_armed = false;   // CLIENT subcommands above do not consume the choice
+    state.caching_armed = false;  // CLIENT subcommands above do not consume the choice
     const CommandSpec* spec = op.spec;
     if (!spec) return;
     // Redis enrolls the keys of each read-only command a script runs, for its caller, in both the
@@ -214,8 +210,9 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
     if (state.optout && caching) return;
 
     uint32_t first = spec->first_key > 0 ? static_cast<uint32_t>(spec->first_key) : 0;
-    uint32_t end = spec->last_key < 0 ? op.argc()
-        : std::min<uint32_t>(op.argc(), static_cast<uint32_t>(spec->last_key) + 1);
+    uint32_t end = spec->last_key < 0
+                       ? op.argc()
+                       : std::min<uint32_t>(op.argc(), static_cast<uint32_t>(spec->last_key) + 1);
     const bool stream = (spec->flags & CmdFlags::StreamRoute) != 0;
     if (stream) {
         // Registration must not append a parser error to the real reply; dispatch owns that error.
@@ -240,7 +237,8 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
     (void)client;
     const int32_t step = spec->key_step > 0 ? spec->key_step : 1;
     const uint64_t stamp = tracking_clock_observe();
-    auto read = std::make_unique<TrackingRead>(op.spec, stamp, srv_->atomic_snapshot(), srv_->nshards());
+    auto read =
+        std::make_unique<TrackingRead>(op.spec, stamp, srv_->atomic_snapshot(), srv_->nshards());
     if (stream) read->woken.assign(srv_->nshards(), UINT64_MAX);
     auto& keys = read->keys;
     for (uint32_t i = first; i < end; i += static_cast<uint32_t>(step)) {
@@ -262,7 +260,6 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
     state.tracking_reads[&op] = std::move(read);
 }
 
-
 void IoLoop::tracking_register_key(uint64_t id, const std::string& name, uint64_t stamp) {
     const Slice key(name.data(), static_cast<uint32_t>(name.size()));
     if (srv_->cfg().tracking_table_max_keys &&
@@ -271,8 +268,9 @@ void IoLoop::tracking_register_key(uint64_t id, const std::string& name, uint64_
         // Keep the existing bounded-table policy: evicting a completed
         // registration sends an invalidation, never a silent removal.
         size_t bucket;
-        do { bucket = next_random() % climon_track_keys_.bucket_count(); }
-        while (climon_track_keys_.bucket_size(bucket) == 0);
+        do {
+            bucket = next_random() % climon_track_keys_.bucket_count();
+        } while (climon_track_keys_.bucket_size(bucket) == 0);
         auto sampled = climon_track_keys_.begin(bucket);
         std::advance(sampled, next_random() % climon_track_keys_.bucket_size(bucket));
         auto victim = climon_track_keys_.find(sampled->first);
@@ -310,7 +308,7 @@ void IoLoop::tracking_retire_read(Client& client, Op& op) {
         const std::string& key = receipt.keys[i];
         if (receipt.canceled) continue;
         uint64_t stamp = receipt.observed[receipt.shards[i]];
-        if (stamp == UINT64_MAX) stamp = 0; // no successful observation certificate
+        if (stamp == UINT64_MAX) stamp = 0;  // no successful observation certificate
         // A woken XREAD enrolls with its wake probe's certificate (tracking_observe_wake).
         uint64_t enrol = stamp;
         if (!receipt.woken.empty() && receipt.woken[receipt.shards[i]] != UINT64_MAX)
@@ -323,7 +321,7 @@ void IoLoop::tracking_retire_read(Client& client, Op& op) {
         } else if (stamp < obligation.invalidated) {
             if (obligation.delivered < obligation.invalidated) {
                 tracking_deliver_frame(*state, client.id(),
-                    Slice(key.data(), static_cast<uint32_t>(key.size())), false);
+                                       Slice(key.data(), static_cast<uint32_t>(key.size())), false);
                 obligation.delivered = obligation.invalidated;
             }
             if (enrol >= obligation.invalidated && state->tracking_on)
@@ -433,8 +431,8 @@ bool IoLoop::tracking_migration_install(uint64_t id, const std::vector<std::stri
                 owners.push_back(id);
                 srv_->climon_note_tracking_item_delta(1);
             }
-            track_filter_add(FlatStore::hash_key(Slice(
-                key.data(), static_cast<uint32_t>(key.size()))));
+            track_filter_add(
+                FlatStore::hash_key(Slice(key.data(), static_cast<uint32_t>(key.size()))));
         }
     } catch (const std::bad_alloc&) {
         return false;
@@ -445,7 +443,7 @@ bool IoLoop::tracking_migration_install(uint64_t id, const std::vector<std::stri
 // ---- delivery ------------------------------------------------------------------------------
 
 void IoLoop::tracking_emit_invalidation(Client* target, bool redirected, Slice key, bool flush,
-                                       uint64_t source_id, uint64_t generation, bool batched) {
+                                        uint64_t source_id, uint64_t generation, bool batched) {
     const uint32_t live_io = target->ifid_thread();
     if (live_io != self_->id()) {
         PubSubEvent* event = pubsub_new_event(PubSubEventKind::TrackingDeliver);
@@ -480,10 +478,12 @@ void IoLoop::tracking_emit_invalidation(Client* target, bool redirected, Slice k
     }
     if (flush) {
         // Oracle-confirmed: RESP3 null (`_`), RESP2 redirect path null BULK (`$-1`).
-        if (resp3_push) frame.append("_\r\n", 3);
-        else frame.append("$-1\r\n", 5);
+        if (resp3_push)
+            frame.append("_\r\n", 3);
+        else
+            frame.append("$-1\r\n", 5);
     } else if (batched) {
-        frame.append(key.p, key.n); // an already framed, sorted array of keys
+        frame.append(key.p, key.n);  // an already framed, sorted array of keys
     } else {
         reply_array_header(frame, 1);
         reply_bulk(frame, key);
@@ -515,7 +515,8 @@ void IoLoop::tracking_redirect_broken(ClimonConn& state) {
 }
 
 // owner_id names the TRACKING connection. The frame goes to it, or to its REDIRECT target.
-void IoLoop::tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice key, bool flush, bool batched) {
+void IoLoop::tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice key, bool flush,
+                                    bool batched) {
     if (!state.redirect) {
         Client* target = state.client;
         if (!target || target->dead() || target->closing()) return;
@@ -537,13 +538,17 @@ void IoLoop::tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice 
         Client* target = target_state ? target_state->client : nullptr;
         if (!target) {
             for (Client* c : self_->clients())
-                if (c && c->id() == state.redirect) { target = c; break; }
+                if (c && c->id() == state.redirect) {
+                    target = c;
+                    break;
+                }
         }
         if (!target || target->dead() || target->closing()) {
             tracking_redirect_broken(state);
             return;
         }
-        tracking_emit_invalidation(target, true, key, flush, owner_id, state.tracking_generation, batched);
+        tracking_emit_invalidation(target, true, key, flush, owner_id, state.tracking_generation,
+                                   batched);
         return;
     }
     PubSubEvent* event = pubsub_new_event(PubSubEventKind::TrackingDeliver);
@@ -561,7 +566,7 @@ void IoLoop::tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice 
 
 // One owner's local pass over a changed key.
 void IoLoop::tracking_invalidate_local(Slice key, uint64_t writer_id, uint64_t stamp) {
-    if (!stamp) std::abort(); // every transport must carry its publication certificate
+    if (!stamp) std::abort();  // every transport must carry its publication certificate
     const std::string name(key.p, key.n);
     for (auto& entry : climon_conn_) {
         ClimonConn& state = entry.second;
@@ -624,15 +629,16 @@ uint32_t IoLoop::tracking_bcast_flush() {
             reply_array_header(array, keys.size());
             for (const auto& key : keys)
                 reply_bulk(array, Slice(key.data(), static_cast<uint32_t>(key.size())));
-            tracking_deliver_frame(state, id,
-                Slice(array.data(), static_cast<uint32_t>(array.size())), false, true);
+            tracking_deliver_frame(
+                state, id, Slice(array.data(), static_cast<uint32_t>(array.size())), false, true);
             ++work;
         }
     }
     return work;
 }
 
-void IoLoop::tracking_broadcast_keys(const std::vector<std::string>& keys, uint64_t writer_id, uint64_t stamp) {
+void IoLoop::tracking_broadcast_keys(const std::vector<std::string>& keys, uint64_t writer_id,
+                                     uint64_t stamp) {
     if (keys.empty()) return;
     const ClimonIoMask mask = srv_->climon_tracking_io_mask();
     if (!mask) return;
@@ -656,7 +662,8 @@ void IoLoop::tracking_broadcast_keys(const std::vector<std::string>& keys, uint6
     local.items.reserve(interesting.size());
     for (const std::string& key : interesting)
         local.items.push_back(PubSubEventItem{0, false, stamp, key});
-    if (mask.contains(self_->id())) /* TOMO_TOOL_BIND tracking_handle_event */tracking_handle_event(local);
+    if (mask.contains(self_->id())) /* TOMO_TOOL_BIND tracking_handle_event */
+        tracking_handle_event(local);
     for (uint32_t io : srv_->placement().ifid_threads()) {
         if (io == self_->id()) continue;
         if (!mask.contains(io)) continue;
@@ -697,7 +704,7 @@ void IoLoop::tracking_handle_event(PubSubEvent& event) {
                 tracking_invalidate_local(
                     Slice(item.value.data(), static_cast<uint32_t>(item.value.size())),
                     event.caller_id, item.count);
-            /* TOMO_TOOL_BIND tracking_forward_stale */tracking_forward_stale(event);
+            /* TOMO_TOOL_BIND tracking_forward_stale */ tracking_forward_stale(event);
             break;
         case PubSubEventKind::TrackingFlush: {
             for (auto& entry : climon_conn_) {
@@ -711,8 +718,7 @@ void IoLoop::tracking_handle_event(PubSubEvent& event) {
                 state.tracking_pending.clear();
             }
             for (auto& entry : climon_track_keys_) {
-                srv_->climon_note_tracking_item_delta(
-                    -static_cast<int64_t>(entry.second.size()));
+                srv_->climon_note_tracking_item_delta(-static_cast<int64_t>(entry.second.size()));
                 srv_->climon_note_tracking_key_delta(-1);
             }
             climon_track_keys_.clear();
@@ -739,8 +745,7 @@ void IoLoop::tracking_handle_event(PubSubEvent& event) {
                 break;
             }
             uint32_t live_io = 0;
-            if (command_client_directory_find(event.client_id, live_io) &&
-                live_io != self_->id()) {
+            if (command_client_directory_find(event.client_id, live_io) && live_io != self_->id()) {
                 PubSubEvent* forward = pubsub_new_event(PubSubEventKind::TrackingDeliver);
                 forward->target_io = live_io;
                 forward->origin_io = self_->id();
@@ -757,7 +762,10 @@ void IoLoop::tracking_handle_event(PubSubEvent& event) {
             }
             Client* target = nullptr;
             for (Client* c : self_->clients())
-                if (c && c->id() == event.client_id) { target = c; break; }
+                if (c && c->id() == event.client_id) {
+                    target = c;
+                    break;
+                }
             if (!target || target->dead() || target->closing()) {
                 uint32_t source_io = 0;
                 if (event.subscribe && event.caller_id &&
@@ -835,8 +843,10 @@ void IoLoop::tracking_reply_trackinginfo(Client* client, Op& op) {
     reply_bulk(sink, Slice("redirect", 8));
     // Tracking off reports -1; on reports the redirect id (0 when none was requested), and a
     // broken redirect keeps reporting the id of the connection that went away.
-    if (!state || !state->tracking_on) reply_int(sink, -1);
-    else reply_int(sink, static_cast<long long>(state->redirect));
+    if (!state || !state->tracking_on)
+        reply_int(sink, -1);
+    else
+        reply_int(sink, static_cast<long long>(state->redirect));
 
     reply_bulk(sink, Slice("prefixes", 8));
     // Oracle-confirmed: `flags` is a SET in RESP3 but `prefixes` stays a plain array.
@@ -856,8 +866,8 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
             return ClimonStartResult::Sync;
         }
         ClimonConn* state = climon_conn_find(client->id());
-        reply_int(op.sink(), state && state->tracking_on
-                                 ? static_cast<long long>(state->redirect) : -1);
+        reply_int(op.sink(),
+                  state && state->tracking_on ? static_cast<long long>(state->redirect) : -1);
         return ClimonStartResult::Sync;
     }
 
@@ -879,7 +889,8 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
         // Oracle order: the tracking-state check comes FIRST, so `CLIENT CACHING maybe` on a
         // non-tracking connection reports the mode error, not a syntax error.
         if (!state || !state->tracking_on) {
-            reply_err(op.sink(),
+            reply_err(
+                op.sink(),
                 "ERR CLIENT CACHING can be called only when the client is in tracking mode with "
                 "OPTIN or OPTOUT mode enabled");
             return ClimonStartResult::Sync;
@@ -890,12 +901,14 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
             return ClimonStartResult::Sync;
         }
         if (yes && !state->optin) {
-            reply_err(op.sink(),
+            reply_err(
+                op.sink(),
                 "ERR CLIENT CACHING YES is only valid when tracking is enabled in OPTIN mode.");
             return ClimonStartResult::Sync;
         }
         if (!yes && !state->optout) {
-            reply_err(op.sink(),
+            reply_err(
+                op.sink(),
                 "ERR CLIENT CACHING NO is only valid when tracking is enabled in OPTOUT mode.");
             return ClimonStartResult::Sync;
         }
@@ -911,9 +924,14 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
     }
 
     bool enable = false;
-    if (op.arg(2).eq_icase("on")) enable = true;
-    else if (op.arg(2).eq_icase("off")) enable = false;
-    else { reply_syntax(op.sink()); return ClimonStartResult::Sync; }
+    if (op.arg(2).eq_icase("on"))
+        enable = true;
+    else if (op.arg(2).eq_icase("off"))
+        enable = false;
+    else {
+        reply_syntax(op.sink());
+        return ClimonStartResult::Sync;
+    }
 
     bool bcast = false, optin = false, optout = false, noloop = false;
     uint64_t redirect = 0;
@@ -921,7 +939,10 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
     for (uint32_t i = 3; i < op.argc(); i++) {
         const Slice token = op.arg(i);
         if (token.eq_icase("redirect")) {
-            if (++i >= op.argc()) { reply_syntax(op.sink()); return ClimonStartResult::Sync; }
+            if (++i >= op.argc()) {
+                reply_syntax(op.sink());
+                return ClimonStartResult::Sync;
+            }
             int64_t id = 0;
             if (!climon_parse_i64(op.arg(i), id)) {
                 reply_err(op.sink(), "ERR value is not an integer or out of range");
@@ -929,17 +950,18 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
             }
             // A negative or zero id parses fine and then simply names no connection.
             uint32_t owner_io = 0;
-            if (id <= 0 ||
-                !command_client_directory_find(static_cast<uint64_t>(id), owner_io)) {
-                reply_err(op.sink(),
-                    "ERR The client ID you want redirect to does not exist");
+            if (id <= 0 || !command_client_directory_find(static_cast<uint64_t>(id), owner_io)) {
+                reply_err(op.sink(), "ERR The client ID you want redirect to does not exist");
                 return ClimonStartResult::Sync;
             }
             redirect = static_cast<uint64_t>(id);
         } else if (token.eq_icase("bcast")) {
             bcast = true;
         } else if (token.eq_icase("prefix")) {
-            if (++i >= op.argc()) { reply_syntax(op.sink()); return ClimonStartResult::Sync; }
+            if (++i >= op.argc()) {
+                reply_syntax(op.sink());
+                return ClimonStartResult::Sync;
+            }
             prefixes.emplace_back(op.arg(i).p, op.arg(i).n);
         } else if (token.eq_icase("optin")) {
             optin = true;
@@ -963,31 +985,28 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
     const bool live = existing != nullptr && existing->tracking_on && enable;
 
     if (enable && optin && optout) {
-        reply_err(op.sink(),
-            "ERR You can't specify both OPTIN mode and OPTOUT mode");
+        reply_err(op.sink(), "ERR You can't specify both OPTIN mode and OPTOUT mode");
         return ClimonStartResult::Sync;
     }
     if (enable && !prefixes.empty() && !bcast) {
-        reply_err(op.sink(),
-            "ERR PREFIX option requires BCAST mode to be enabled");
+        reply_err(op.sink(), "ERR PREFIX option requires BCAST mode to be enabled");
         return ClimonStartResult::Sync;
     }
     if (live && existing->bcast != bcast) {
         reply_err(op.sink(),
-            "ERR You can't switch BCAST mode on/off before disabling tracking for this "
-            "client, and then re-enabling it with a different mode.");
+                  "ERR You can't switch BCAST mode on/off before disabling tracking for this "
+                  "client, and then re-enabling it with a different mode.");
         return ClimonStartResult::Sync;
     }
     // Adding a mode the connection did not have is legal; CONTRADICTING the held one is not.
     if (live && ((existing->optin && optout) || (existing->optout && optin))) {
         reply_err(op.sink(),
-            "ERR You can't switch OPTIN/OPTOUT mode before disabling tracking for this "
-            "client, and then re-enabling it with a different mode.");
+                  "ERR You can't switch OPTIN/OPTOUT mode before disabling tracking for this "
+                  "client, and then re-enabling it with a different mode.");
         return ClimonStartResult::Sync;
     }
     if (enable && bcast && (optin || optout)) {
-        reply_err(op.sink(),
-            "ERR OPTIN and OPTOUT are not compatible with BCAST");
+        reply_err(op.sink(), "ERR OPTIN and OPTOUT are not compatible with BCAST");
         return ClimonStartResult::Sync;
     }
     // Validation is ordered by the supplied prefix, not by collision category: with held "a"
@@ -1048,7 +1067,8 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
     // and sorts first for TRACKINGINFO and later overlap errors. Repeated ON BCAST must not
     // duplicate either the subscription or its allocation/accounting.
     if (bcast && prefixes.empty() &&
-        std::find(state.prefixes.begin(), state.prefixes.end(), std::string{}) == state.prefixes.end())
+        std::find(state.prefixes.begin(), state.prefixes.end(), std::string{}) ==
+            state.prefixes.end())
         prefixes.emplace_back();
     state.optin = optin;
     state.optout = optout;
@@ -1060,7 +1080,7 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
         tracking_note_prefix_registered(prefix, true);
         state.prefixes.push_back(std::move(prefix));
     }
-    std::sort(state.prefixes.begin(), state.prefixes.end());   // redis reports them sorted
+    std::sort(state.prefixes.begin(), state.prefixes.end());  // redis reports them sorted
     command_client_set_tracking_view(client, true, static_cast<int64_t>(redirect));
     climon_refresh_armed();
     return tracking_ack_enable(client, op);

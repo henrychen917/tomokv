@@ -15,8 +15,10 @@ namespace {
 void snapshot(int) { at_recycle::request.fetch_add(1, std::memory_order_release); }
 struct Install {
     Install() {
-        struct sigaction action{};
-        action.sa_handler = snapshot; sigemptyset(&action.sa_mask); action.sa_flags = SA_RESTART;
+        struct sigaction action {};
+        action.sa_handler = snapshot;
+        sigemptyset(&action.sa_mask);
+        action.sa_flags = SA_RESTART;
         if (sigaction(SIGUSR2, &action, nullptr) != 0) std::abort();
     }
 } install;

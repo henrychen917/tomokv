@@ -8,9 +8,9 @@
 namespace tomo {
 namespace {
 
-bool glob_match_impl(const char* pattern, uint32_t pattern_len,
-                     const char* string, uint32_t string_len, bool nocase,
-                     bool& skip_longer_matches, uint32_t nesting) {
+bool glob_match_impl(const char* pattern, uint32_t pattern_len, const char* string,
+                     uint32_t string_len, bool nocase, bool& skip_longer_matches,
+                     uint32_t nesting) {
     // Match Redis's protection against abusive patterns that recurse through '*'.
     if (nesting > 1000) return false;
 
@@ -23,8 +23,7 @@ bool glob_match_impl(const char* pattern, uint32_t pattern_len,
                 }
                 if (pattern_len == 1) return true;
                 while (string_len) {
-                    if (glob_match_impl(pattern + 1, pattern_len - 1,
-                                        string, string_len, nocase,
+                    if (glob_match_impl(pattern + 1, pattern_len - 1, string, string_len, nocase,
                                         skip_longer_matches, nesting + 1))
                         return true;
                     if (skip_longer_matches) return false;
@@ -122,8 +121,7 @@ bool glob_match_impl(const char* pattern, uint32_t pattern_len,
 
 bool command_glob_match(Slice pattern, Slice text, bool nocase) {
     bool skip_longer_matches = false;
-    return glob_match_impl(pattern.p, pattern.n, text.p, text.n, nocase,
-                           skip_longer_matches, 0);
+    return glob_match_impl(pattern.p, pattern.n, text.p, text.n, nocase, skip_longer_matches, 0);
 }
 
 }  // namespace tomo

@@ -10,7 +10,10 @@
 using namespace tomo;
 namespace {
 void require(bool yes, const char* why) {
-    if (!yes) { std::fprintf(stderr, "FAIL execfix: %s\n", why); std::exit(1); }
+    if (!yes) {
+        std::fprintf(stderr, "FAIL execfix: %s\n", why);
+        std::exit(1);
+    }
 }
 Slice slice(const std::string& s) { return {s.data(), static_cast<uint32_t>(s.size())}; }
 struct Request {
@@ -30,7 +33,7 @@ struct Fixture {
     Server server;
     Client client{-1};
     ScatterArenaPool pool;
-    Ring ring; // Unopened. Queue publication has no sleeping recipient to wake.
+    Ring ring;  // Unopened. Queue publication has no sleeping recipient to wake.
     std::vector<MultiExecState*> deferred;
     std::mt19937 rng{20260928};
     uint32_t io = 0;
@@ -38,9 +41,13 @@ struct Fixture {
     uint64_t lagging_flushes = 0;
 
     explicit Fixture(int atomic, bool fused) {
-        Config cfg; cfg.databases = 1;
-        cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
-        cfg.thread_mode = fused ? ThreadMode::Fused : ThreadMode::Split; cfg.atomic = atomic;
+        Config cfg;
+        cfg.databases = 1;
+        cfg.shards = 16;
+        cfg.even_ifid = 6;
+        cfg.even_ex = 2;
+        cfg.thread_mode = fused ? ThreadMode::Fused : ThreadMode::Split;
+        cfg.atomic = atomic;
         cpu_set_t allowed;
         require(sched_getaffinity(0, sizeof(allowed), &allowed) == 0, "read permitted cores");
         unsigned selected = 0;
@@ -73,7 +80,8 @@ struct Fixture {
             std::string k = prefix + std::to_string(i);
             if (server.router().shard_of(FlatStore::hash_key(slice(k))) == sid) return k;
         }
-        require(false, "find routed key"); return {};
+        require(false, "find routed key");
+        return {};
     }
     void cleanup() {
         for (unsigned s = 0; s < server.nshards(); ++s)
@@ -104,11 +112,13 @@ struct Fixture {
             std::shuffle(remaining.begin(), remaining.end(), rng);
             for (size_t i = 0; i < remaining.size();) {
                 const int s = remaining[i];
-                const auto result = multi_execute_task(server,
-                    multi_make_task(&client, 0, s, state), server.shard(s),
-                    server.worker_of_shard(s), 0, nullptr);
-                if (multi_task_retry(result)) ++i;
-                else remaining.erase(remaining.begin() + i);
+                const auto result =
+                    multi_execute_task(server, multi_make_task(&client, 0, s, state),
+                                       server.shard(s), server.worker_of_shard(s), 0, nullptr);
+                if (multi_task_retry(result))
+                    ++i;
+                else
+                    remaining.erase(remaining.begin() + i);
             }
         }
         require(remaining.empty(), "transaction completed within phase bound");
@@ -126,7 +136,8 @@ struct Fixture {
         const auto prepared = xshard_prepare(server, r.op, pool, io, client.id(), dispatch);
         if (prepared == ScatterPrepare::NotScatter) {
             const auto hash = FlatStore::hash_key(r.op.arg(1));
-            r.op.shard = server.router().shard_of(hash); r.op.hash = hash;
+            r.op.shard = server.router().shard_of(hash);
+            r.op.hash = hash;
             auto& shard = server.shard(r.op.shard);
             shard.set_cached_now_ms(now_realtime_ms(), 0);
             PlainForeignReadScope scope;
@@ -152,15 +163,18 @@ struct Fixture {
                 const auto result = xshard_execute(t, shard, r.op, tid);
                 if (result != ScatterTaskResult::Complete) {
                     std::lock_guard lock(retry_mutex);
-                    retry.push_back(t); return;
+                    retry.push_back(t);
+                    return;
                 }
                 const auto finished = xshard_complete(server, self, ring, t, r.op);
-                if (finished == ScatterFinish::Final) final = true;
+                if (finished == ScatterFinish::Final)
+                    final = true;
                 else if (finished == ScatterFinish::CommitQueued) {
                     server.atomic_commit_group(state->epoch);
                     server.atomic_apply_close(tid, state->apply_open);
                     final = true;
-                } else require(finished == ScatterFinish::Waiting, "scatter completion");
+                } else
+                    require(finished == ScatterFinish::Waiting, "scatter completion");
             };
             if (parallel_flush && r.args[0] == "FLUSHALL") {
                 std::barrier start(static_cast<ptrdiff_t>(server.placement().ex_threads().size()));
@@ -172,7 +186,8 @@ struct Fixture {
                             if (server.worker_of_shard(t.shard) == tid) execute(t);
                     });
                 for (auto& worker : workers) worker.join();
-            } else for (const Task& t : tasks) execute(t);
+            } else
+                for (const Task& t : tasks) execute(t);
             tasks = std::move(retry);
             for (unsigned tid : server.placement().ex_threads())
                 server.thread(tid).drain_tasks_unmasked([&](const Task& t) { tasks.push_back(t); });
@@ -193,7 +208,8 @@ struct Fixture {
         std::optional<std::string> result;
         if (object) {
             require(object->is_type(Type::String), "string value");
-            if (object->is_int()) result = std::to_string(object->int_value());
+            if (object->is_int())
+                result = std::to_string(object->int_value());
             else {
                 KvObjRawReadBuffer raw;
                 const Slice bytes = kvobj_string_value(object, raw);
@@ -210,32 +226,37 @@ void controls(Fixture& f, unsigned rounds) {
     const auto same = f.key_on(0, "execfix:same:");
     unsigned cases = 0;
     for (unsigned round = 0; round < rounds; ++round) {
-        for (const auto& second : {b, same}) for (bool wrapped : {false, true}) {
-            auto run = [&](const std::vector<std::string>& command, const std::string& reply) {
-                require((wrapped ? f.wrapped(command) : f.bare(command)) ==
-                            (wrapped ? "*1\r\n" + reply : reply), "control reply");
-                ++cases;
-            };
-            require(f.bare({"FLUSHALL"}) == "+OK\r\n", "control flush");
-            run({"MSETNX", a, "first", second, "second", a, "last"}, ":1\r\n");
-            require(f.value(a) == "last" && f.value(second) == "second", "duplicate key last wins");
-            run({"MSETNX", a, "bad-a", second, "bad-b"}, ":0\r\n");
-            require(f.value(a) == "last" && f.value(second) == "second", "NX rejection preserves keys");
-            for (const auto& blocker : {a, second}) {
-                require(f.bare({"FLUSHALL"}) == "+OK\r\n", "blocker flush");
-                require(f.bare({"SET", blocker, "blocker"}) == "+OK\r\n", "seed blocker");
+        for (const auto& second : {b, same})
+            for (bool wrapped : {false, true}) {
+                auto run = [&](const std::vector<std::string>& command, const std::string& reply) {
+                    require((wrapped ? f.wrapped(command) : f.bare(command)) ==
+                                (wrapped ? "*1\r\n" + reply : reply),
+                            "control reply");
+                    ++cases;
+                };
+                require(f.bare({"FLUSHALL"}) == "+OK\r\n", "control flush");
+                run({"MSETNX", a, "first", second, "second", a, "last"}, ":1\r\n");
+                require(f.value(a) == "last" && f.value(second) == "second",
+                        "duplicate key last wins");
                 run({"MSETNX", a, "bad-a", second, "bad-b"}, ":0\r\n");
-                require(f.value(blocker) == "blocker" &&
-                            !f.value(blocker == a ? second : a), "one blocker prevents every write");
+                require(f.value(a) == "last" && f.value(second) == "second",
+                        "NX rejection preserves keys");
+                for (const auto& blocker : {a, second}) {
+                    require(f.bare({"FLUSHALL"}) == "+OK\r\n", "blocker flush");
+                    require(f.bare({"SET", blocker, "blocker"}) == "+OK\r\n", "seed blocker");
+                    run({"MSETNX", a, "bad-a", second, "bad-b"}, ":0\r\n");
+                    require(f.value(blocker) == "blocker" && !f.value(blocker == a ? second : a),
+                            "one blocker prevents every write");
+                }
+                run({"MSET", a, "mset-a", second, "mset-b"}, "+OK\r\n");
+                require(f.value(a) == "mset-a" && f.value(second) == "mset-b",
+                        "MSET control writes both");
+                f.cleanup();
             }
-            run({"MSET", a, "mset-a", second, "mset-b"}, "+OK\r\n");
-            require(f.value(a) == "mset-a" && f.value(second) == "mset-b", "MSET control writes both");
-            f.cleanup();
-        }
     }
     std::printf("controls=%u PASS\n", cases);
 }
-} // namespace
+}  // namespace
 
 int main(int argc, char** argv) {
     require(argc == 4 || argc == 5,
@@ -254,7 +275,10 @@ int main(int argc, char** argv) {
     f.parallel_flush = parallel;
     std::printf("mode=%s databases=%s placement=%s\n", fused ? "1s" : "2s",
                 kSingleDatabase ? "db0" : "multi", f.placement.c_str());
-    if (control) { controls(f, rounds); return 0; }
+    if (control) {
+        controls(f, rounds);
+        return 0;
+    }
     const auto a = f.key_on(0), b = f.key_on(1);
     require(f.server.worker_of_shard(0) != f.server.worker_of_shard(1), "two real owners");
     const std::vector<std::string> mset{"MSET", a, "1", b, "2"};
@@ -274,9 +298,10 @@ int main(int argc, char** argv) {
         const auto bare = f.bare(nx);
         require(!window || f.server.atomic_snapshot() < f.server.atomic_commit_drawn(),
                 "directed window actually held the read watermark behind FLUSHALL");
-        require(f.value(a) == (bare == ":1\r\n" ? std::optional<std::string>("1") : std::nullopt) &&
-                    f.value(b) == (bare == ":1\r\n" ? std::optional<std::string>("2") : std::nullopt),
-                "bare MSETNX reply agrees with installed values");
+        require(
+            f.value(a) == (bare == ":1\r\n" ? std::optional<std::string>("1") : std::nullopt) &&
+                f.value(b) == (bare == ":1\r\n" ? std::optional<std::string>("2") : std::nullopt),
+            "bare MSETNX reply agrees with installed values");
         require(f.bare({"FLUSHALL"}) == "+OK\r\n", "flush before wrapped MSETNX");
         const auto wrapped = f.wrapped(nx);
         require(f.value(a) == "1" && f.value(b) == "2", "wrapped MSETNX installed both values");

@@ -1,0 +1,1155 @@
+{
+  "run": "/home/user/Projects/cx-readability-a2/build/gate-run.maUZH3",
+  "jobs": {
+    "acl_metadata": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "generated Redis 7.4 ACL categories"
+        }
+      ]
+    },
+    "aoforder": {
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "AOF commit order single"
+        },
+        {
+          "status": "ok",
+          "label": "AOF commit order crossing"
+        },
+        {
+          "status": "ok",
+          "label": "AOF commit order rewrite"
+        }
+      ]
+    },
+    "atomic_units": {
+      "exit": 0,
+      "passed": 27,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "atomic commit publication catches up at quiescence"
+        },
+        {
+          "status": "ok",
+          "label": "flushfix flush witnesses"
+        },
+        {
+          "status": "ok",
+          "label": "flushfix headers witnesses"
+        },
+        {
+          "status": "ok",
+          "label": "multidb serverless owners"
+        },
+        {
+          "status": "ok",
+          "label": "multidb global namespace boundary"
+        },
+        {
+          "status": "ok",
+          "label": "storesize published monitoring"
+        },
+        {
+          "status": "ok",
+          "label": "MULTI admin command replies"
+        },
+        {
+          "status": "ok",
+          "label": "EXECABORT releases WATCH reservation"
+        },
+        {
+          "status": "ok",
+          "label": "atomic survivors unit build"
+        },
+        {
+          "status": "ok",
+          "label": "atomic survivor: admission"
+        },
+        {
+          "status": "ok",
+          "label": "atomic survivor: closure"
+        },
+        {
+          "status": "ok",
+          "label": "atomic survivor: script_keys"
+        },
+        {
+          "status": "ok",
+          "label": "atomic survivor: rename_overlay"
+        },
+        {
+          "status": "ok",
+          "label": "atomic survivor: write_latest"
+        },
+        {
+          "status": "ok",
+          "label": "atomic survivor: script_apply"
+        },
+        {
+          "status": "ok",
+          "label": "atomic survivor: post_apply_probe"
+        },
+        {
+          "status": "ok",
+          "label": "atomic survivor: lua_conversion"
+        },
+        {
+          "status": "ok",
+          "label": "atomic survivor: watch_parent"
+        },
+        {
+          "status": "ok",
+          "label": "atomic survivor: watch_cycle"
+        },
+        {
+          "status": "ok",
+          "label": "atomic survivor: mset_arity"
+        },
+        {
+          "status": "ok",
+          "label": "atomic survivor: watch_oom"
+        },
+        {
+          "status": "ok",
+          "label": "atomic survivor: lua_lines"
+        },
+        {
+          "status": "ok",
+          "label": "atomic survivor: library_limit"
+        },
+        {
+          "status": "ok",
+          "label": "atomic survivor: stage_flag"
+        },
+        {
+          "status": "ok",
+          "label": "atomic survivor: instruction_limit"
+        },
+        {
+          "status": "ok",
+          "label": "armed resize retirement: atomic-growth"
+        },
+        {
+          "status": "ok",
+          "label": "armed resize retirement: flush-prepared"
+        }
+      ]
+    },
+    "authfix": {
+      "exit": 0,
+      "passed": 5,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "authfix CG4.1 binary config requirepass"
+        },
+        {
+          "status": "ok",
+          "label": "authfix CG4.2 missing config value refuses boot"
+        },
+        {
+          "status": "ok",
+          "label": "authfix SV4.2 binary requirepass rewrite restart"
+        },
+        {
+          "status": "ok",
+          "label": "authfix SV4.1 slowlog credential redaction (1s)"
+        },
+        {
+          "status": "ok",
+          "label": "authfix SV4.1 slowlog credential redaction (2s)"
+        }
+      ]
+    },
+    "bugs5": {
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "bugs5 scancompact (both modes, both engines, atomic 0/1)"
+        },
+        {
+          "status": "ok",
+          "label": "bugs5 slowlog_identity (both modes, both engines, atomic 0/1)"
+        },
+        {
+          "status": "ok",
+          "label": "bugs5 read_local_lfu (both modes, both engines, atomic 0/1)"
+        }
+      ]
+    },
+    "cfgfix2-maxmemory": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "cfgfix2 maxmemory (oracle, both modes and engines)"
+        }
+      ]
+    },
+    "cmd_metadata": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "cmdmeta covers every registered command"
+        }
+      ]
+    },
+    "config_unit": {
+      "exit": 0,
+      "passed": 2,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "configuration docs match parser"
+        },
+        {
+          "status": "ok",
+          "label": "Redis config quoting + mid-value #"
+        }
+      ]
+    },
+    "debug-0": {
+      "exit": 0,
+      "passed": 16,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "plain-write lost updates (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "label": "lbsignals battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "label": "slowlog battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "label": "atomfix battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "label": "scriptatomic battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "label": "execatomic battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "label": "execiso battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "label": "execfix battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "label": "multires battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "label": "multirace battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "label": "session_monotonic battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "label": "xacct battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "label": "xmove battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "label": "xscript battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "label": "txn_nx battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "label": "txniso battery (atomic 0)"
+        }
+      ]
+    },
+    "debug-1": {
+      "exit": 0,
+      "passed": 16,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "plain-write lost updates (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "label": "lbsignals battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "label": "slowlog battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "label": "atomfix battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "label": "scriptatomic battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "label": "execatomic battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "label": "execiso battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "label": "execfix battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "label": "multires battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "label": "multirace battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "label": "session_monotonic battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "label": "xacct battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "label": "xmove battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "label": "xscript battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "label": "txn_nx battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "label": "txniso battery (atomic 1)"
+        }
+      ]
+    },
+    "exbatch_units": {
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "exbatch publication unit + negative controls"
+        },
+        {
+          "status": "ok",
+          "label": "exbatch watch unit + negative controls"
+        },
+        {
+          "status": "ok",
+          "label": "exbatch metadata unit + negative controls"
+        }
+      ]
+    },
+    "flip": {
+      "exit": 0,
+      "passed": 9,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "FLIP state battery"
+        },
+        {
+          "status": "ok",
+          "label": "FLIP under verified load"
+        },
+        {
+          "status": "ok",
+          "label": "FLIP TTL + expiry events"
+        },
+        {
+          "status": "ok",
+          "label": "partial-frame conn parks (no io spin)"
+        },
+        {
+          "status": "ok",
+          "label": "FLIP close during FLIP (uring)"
+        },
+        {
+          "status": "ok",
+          "label": "FLIP close during FLIP (epoll)"
+        },
+        {
+          "status": "ok",
+          "label": "FLIP signal stop during FLIP + second SIGINT"
+        },
+        {
+          "status": "ok",
+          "label": "perfio stale epoll registration (epoll-flip)"
+        },
+        {
+          "status": "ok",
+          "label": "perfio stale epoll registration (epoll-lb)"
+        }
+      ]
+    },
+    "flushfix3_units": {
+      "exit": 0,
+      "passed": 2,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "flushfix3-unit linear collapse, collisions, OOM and saturated ranges"
+        },
+        {
+          "status": "ok",
+          "label": "flushfix3-db0-unit linear collapse, collisions, OOM and saturated ranges"
+        }
+      ]
+    },
+    "lbplanner_units": {
+      "exit": 0,
+      "passed": 2,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "LB sampler exceptional cleanup + negative control"
+        },
+        {
+          "status": "ok",
+          "label": "LB monitor plan handoff + negative controls"
+        }
+      ]
+    },
+    "multidb-1s-0-0": {
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "multidb (1s, read-local 0, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "label": "multidb (1s, read-local 0, atomic 0) SWAPDB serial order"
+        },
+        {
+          "status": "ok",
+          "label": "multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB"
+        }
+      ]
+    },
+    "multidb-1s-0-1": {
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "multidb (1s, read-local 0, atomic 1)"
+        },
+        {
+          "status": "ok",
+          "label": "multidb (1s, read-local 0, atomic 1) SWAPDB serial order"
+        },
+        {
+          "status": "ok",
+          "label": "multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB"
+        }
+      ]
+    },
+    "multidb-1s-1-0": {
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "multidb (1s, read-local 1, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "label": "multidb (1s, read-local 1, atomic 0) SWAPDB serial order"
+        },
+        {
+          "status": "ok",
+          "label": "multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB"
+        }
+      ]
+    },
+    "multidb-1s-1-1": {
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "multidb (1s, read-local 1, atomic 1)"
+        },
+        {
+          "status": "ok",
+          "label": "multidb (1s, read-local 1, atomic 1) SWAPDB serial order"
+        },
+        {
+          "status": "ok",
+          "label": "multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB"
+        }
+      ]
+    },
+    "multidb-2s-0-0": {
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "multidb (2s, read-local 0, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "label": "multidb (2s, read-local 0, atomic 0) SWAPDB serial order"
+        },
+        {
+          "status": "ok",
+          "label": "multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB"
+        }
+      ]
+    },
+    "multidb-2s-0-1": {
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "multidb (2s, read-local 0, atomic 1)"
+        },
+        {
+          "status": "ok",
+          "label": "multidb (2s, read-local 0, atomic 1) SWAPDB serial order"
+        },
+        {
+          "status": "ok",
+          "label": "multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB"
+        }
+      ]
+    },
+    "multidb-2s-1-0": {
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "multidb (2s, read-local 1, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "label": "multidb (2s, read-local 1, atomic 0) SWAPDB serial order"
+        },
+        {
+          "status": "ok",
+          "label": "multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB"
+        }
+      ]
+    },
+    "multidb-2s-1-1": {
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "multidb (2s, read-local 1, atomic 1)"
+        },
+        {
+          "status": "ok",
+          "label": "multidb (2s, read-local 1, atomic 1) SWAPDB serial order"
+        },
+        {
+          "status": "ok",
+          "label": "multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB"
+        }
+      ]
+    },
+    "netfix_idle_buffers": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "netfix NT4.19 idle buffer reclamation"
+        }
+      ]
+    },
+    "perfex_units": {
+      "exit": 0,
+      "passed": 2,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "perfex clock binary regression"
+        },
+        {
+          "status": "ok",
+          "label": "perfex batch binary regression"
+        }
+      ]
+    },
+    "persistfix_units": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "AOF publication/shutdown witnesses + negative controls"
+        }
+      ]
+    },
+    "persistfmt": {
+      "exit": 0,
+      "passed": 40,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "persistfmt stream-roundtrip (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt stream-interchange (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt stream-options (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt wire-values (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt save (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt bgsave (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt shutdown (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt reload (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt aof-yes (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt aof-failure (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt stream-roundtrip (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt stream-interchange (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt stream-options (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt wire-values (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt save (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt bgsave (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt shutdown (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt reload (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt aof-yes (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt aof-failure (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt stream-roundtrip (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt stream-interchange (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt stream-options (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt wire-values (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt save (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt bgsave (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt shutdown (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt reload (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt aof-yes (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt aof-failure (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt stream-roundtrip (2s, uring)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt stream-interchange (2s, uring)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt stream-options (2s, uring)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt wire-values (2s, uring)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt save (2s, uring)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt bgsave (2s, uring)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt shutdown (2s, uring)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt reload (2s, uring)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt aof-yes (2s, uring)"
+        },
+        {
+          "status": "ok",
+          "label": "persistfmt aof-failure (2s, uring)"
+        }
+      ]
+    },
+    "production_units": {
+      "exit": 0,
+      "passed": 0,
+      "failed": 0,
+      "rows": []
+    },
+    "racefix_climon": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "Climon armed refresh + stale-store suppression control"
+        }
+      ]
+    },
+    "racefix_counters": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "INFO command/socket counters (TSan, both modes)"
+        }
+      ]
+    },
+    "racefix_tsan_build": {
+      "exit": 0,
+      "passed": 0,
+      "failed": 0,
+      "rows": []
+    },
+    "release": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    },
+    "release_batteries": {
+      "exit": 0,
+      "passed": 8,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "torture battery"
+        },
+        {
+          "status": "ok",
+          "label": "RYOW battery"
+        },
+        {
+          "status": "ok",
+          "label": "ACL category runtime table"
+        },
+        {
+          "status": "ok",
+          "label": "ACL LOAD/SAVE no-file errors"
+        },
+        {
+          "status": "ok",
+          "label": "idle loop ceiling (LBSIGNALS, 1s)"
+        },
+        {
+          "status": "ok",
+          "label": "shutdown invariants (nothing stuck)"
+        },
+        {
+          "status": "ok",
+          "label": "direct-reply fired (direct=N)"
+        },
+        {
+          "status": "ok",
+          "label": "dispatched==executed (N)"
+        }
+      ]
+    },
+    "reorder_bounds": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "R7 linear scan and lazy construction bounds (both databases)"
+        }
+      ]
+    },
+    "reorder_engagement": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "R7 production engagement (both database runtimes)"
+        }
+      ]
+    },
+    "reorder_identity": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "R7 FIFO twin off-path identity + negative controls"
+        }
+      ]
+    },
+    "reorder_sync": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "R7 generated envelope parity"
+        }
+      ]
+    },
+    "ring_unit": {
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "read-local write ring + arming transient unit"
+        },
+        {
+          "status": "ok",
+          "label": "climon 128-owner delivery mask"
+        },
+        {
+          "status": "ok",
+          "label": "read-local MGET fence symmetry unit"
+        }
+      ]
+    },
+    "rob_portable": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "ROB portable completion without BMI"
+        }
+      ]
+    },
+    "rootcore-inbox": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "rootcore inbox"
+        }
+      ]
+    },
+    "serverfix_config": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "serverfix SV4.6 CONFIG validation matrix"
+        }
+      ]
+    },
+    "serverfix_hll": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "serverfix SV4.8 HyperLogLog self-test controls"
+        }
+      ]
+    },
+    "source_identity": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "production source identity + stable assertion ids"
+        }
+      ]
+    },
+    "splitlocal_units": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "splitlocal template forwarding + old-argument controls"
+        }
+      ]
+    },
+    "trackfix_order": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "tracking delayed-write order vs Redis 7.4"
+        }
+      ]
+    },
+    "tracking_redirect": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "tracking REDIRECT close vs Redis 7.4"
+        }
+      ]
+    },
+    "txnorder_wound": {
+      "exit": 0,
+      "passed": 4,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "txnorder wound group"
+        },
+        {
+          "status": "ok",
+          "label": "txnorder wound exec"
+        },
+        {
+          "status": "ok",
+          "label": "txnorder wound oom"
+        },
+        {
+          "status": "ok",
+          "label": "txnorder wound d2"
+        }
+      ]
+    },
+    "wave14_functions": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "wave14 function snapshot and journal history"
+        }
+      ]
+    },
+    "wb_policy": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "writeback policies 0/1: 22 standard fixtures"
+        }
+      ]
+    },
+    "wb_rule_units": {
+      "exit": 0,
+      "passed": 4,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "writeback c12 policy witnesses + negative controls"
+        },
+        {
+          "status": "ok",
+          "label": "writeback c12 phase witnesses + negative controls"
+        },
+        {
+          "status": "ok",
+          "label": "writeback c12 stages witnesses + negative controls"
+        },
+        {
+          "status": "ok",
+          "label": "writeback c12 split-phase witnesses + negative controls"
+        }
+      ]
+    },
+    "wbland_units": {
+      "exit": 0,
+      "passed": 2,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "writeback policy clauses witnesses + negative controls"
+        },
+        {
+          "status": "ok",
+          "label": "writeback policy paths witnesses + negative controls"
+        }
+      ]
+    },
+    "witness_contracts": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "label": "witness falsification contracts (testmap + placement)"
+        }
+      ]
+    }
+  },
+  "passed": 198,
+  "failed": 0,
+  "counted_jobs": 49
+}

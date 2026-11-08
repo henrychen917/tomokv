@@ -15,12 +15,8 @@ namespace tomo {
 // stores (single-writer law). NOT race-free in C++: an atomic load of a plainly written field is
 // still a data race (TSan reports it; flipfix CT4.3 leaves the hot writers to an owner decision).
 // x86 MOVs keep each read a value the owner wrote; diagnostic only, never a publication contract.
-static inline uint64_t rd(const uint64_t& f) {
-    return __atomic_load_n(&f, __ATOMIC_RELAXED);
-}
-static inline uint64_t clamp_age(uint64_t value) {
-    return std::min(value, kLbAgeSaneMaxUs);
-}
+static inline uint64_t rd(const uint64_t& f) { return __atomic_load_n(&f, __ATOMIC_RELAXED); }
+static inline uint64_t clamp_age(uint64_t value) { return std::min(value, kLbAgeSaneMaxUs); }
 static inline double clamp_age(double value) {
     return std::min(value, static_cast<double>(kLbAgeSaneMaxUs));
 }
@@ -53,29 +49,26 @@ LbSnapshot lbsignals_capture(Server& srv) {
         r.depth_sum = rd(s.depth_sum);
         r.depth_samples = rd(s.depth_samples);
         r.queue_delay_samples = rd(s.queue_delay_samples);
-        r.queue_delay_ewma_us = clamp_age(
-            static_cast<double>(rd(s.queue_delay_ewma_x256)) / 256.0);
+        r.queue_delay_ewma_us = clamp_age(static_cast<double>(rd(s.queue_delay_ewma_x256)) / 256.0);
         r.oldest_age_us = clamp_age(rd(s.oldest_age_us));
         r.oldest_age_samples = rd(s.oldest_age_samples);
-        r.oldest_age_ewma_us = clamp_age(
-            static_cast<double>(rd(s.oldest_age_ewma_x256)) / 256.0);
+        r.oldest_age_ewma_us = clamp_age(static_cast<double>(rd(s.oldest_age_ewma_x256)) / 256.0);
         r.oldest_age_min_us = clamp_age(rd(s.oldest_age_min_us));
         r.oldest_age_max_us = clamp_age(rd(s.oldest_age_max_us));
         r.full_events = rd(s.full_events);
         const MaskedQueueDiagnostics masked = t.task_inbox_diagnostics();
         r.masked_lane_high_water = masked.lane_high_water;
         r.masked_lane_full_events = masked.lane_full_events;
-        r.masked_arena_occupancy_at_lane_full_sum =
-            masked.arena_occupancy_at_lane_full_sum;
-        r.masked_arena_capacity_at_lane_full_sum =
-            masked.arena_capacity_at_lane_full_sum;
+        r.masked_arena_occupancy_at_lane_full_sum = masked.arena_occupancy_at_lane_full_sum;
+        r.masked_arena_capacity_at_lane_full_sum = masked.arena_capacity_at_lane_full_sum;
         r.wakes_sent = rd(s.wakes_sent);
         r.wakes_recv = rd(s.wakes_recv);
         r.spins = rd(s.spins);
         // In fused mode both capabilities are true and the one physical loop owns both bodies of
         // work. Never manufacture separate io/ex service costs from that combined counter set.
-        LbRoleRollup& roll = serves_clients && owns_shards
-            ? snap.fused : role == Role::Ifid ? snap.io : snap.ex;
+        LbRoleRollup& roll = serves_clients && owns_shards ? snap.fused
+                             : role == Role::Ifid          ? snap.io
+                                                           : snap.ex;
         roll.threads++;
         roll.ops += r.ops;
         roll.busy_ns += r.busy_ns;
@@ -103,10 +96,8 @@ LbSnapshot lbsignals_capture(Server& srv) {
         roll.masked_lane_high_water =
             std::max(roll.masked_lane_high_water, r.masked_lane_high_water);
         roll.masked_lane_full_events += r.masked_lane_full_events;
-        roll.masked_arena_occupancy_at_lane_full_sum +=
-            r.masked_arena_occupancy_at_lane_full_sum;
-        roll.masked_arena_capacity_at_lane_full_sum +=
-            r.masked_arena_capacity_at_lane_full_sum;
+        roll.masked_arena_occupancy_at_lane_full_sum += r.masked_arena_occupancy_at_lane_full_sum;
+        roll.masked_arena_capacity_at_lane_full_sum += r.masked_arena_capacity_at_lane_full_sum;
         snap.threads.push_back(r);
     }
     const uint32_t ns = srv.nshards();
@@ -141,14 +132,16 @@ static void appendf_lb(std::string& out, const char* fmt, ...) {
     va_start(ap, fmt);
     const int n = vsnprintf(buf, sizeof(buf), fmt, ap);
     va_end(ap);
-    if (n > 0) out.append(buf, static_cast<size_t>(n) < sizeof(buf) ? static_cast<size_t>(n)
-                                                                    : sizeof(buf) - 1);
+    if (n > 0)
+        out.append(buf,
+                   static_cast<size_t>(n) < sizeof(buf) ? static_cast<size_t>(n) : sizeof(buf) - 1);
 }
 
 static void format_rollup(std::string& out, const char* name, const LbRoleRollup& r) {
     appendf_lb(out,
-               "rollup %s %u %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %.6f %.1f %.3f %" PRIu64
-               " %" PRIu64 " %.3f %" PRIu64 " %" PRIu64 " %.3f"
+               "rollup %s %u %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64
+               " %.6f %.1f %.3f %" PRIu64 " %" PRIu64 " %.3f %" PRIu64 " %" PRIu64
+               " %.3f"
                " masked_lane_high_water %u masked_lane_full_events %" PRIu64
                " masked_arena_occupancy_at_lane_full %.6f\n",
                name, r.threads, r.ops, r.busy_ns, r.idle_ns, r.cpu_ns, r.busy_frac(), r.ns_per_op(),
@@ -168,17 +161,15 @@ void lbsignals_format(const LbSnapshot& snap, std::string& out) {
                    " %" PRIu64 " %.3f %" PRIu64 " %" PRIu64 " %.3f %" PRIu64 " %" PRIu64
                    " masked_lane_high_water %u masked_lane_full_events %" PRIu64
                    " masked_arena_occupancy_at_lane_full %.6f\n",
-                   r.tid, role, r.domain, r.clients, r.iterations,
-                   r.ops, r.busy_ns, r.idle_ns, r.cpu_ns, r.depth_sum, r.depth_samples,
-                   r.full_events, r.wakes_sent, r.wakes_recv, r.spins, r.queue_delay_samples,
-                   r.queue_delay_ewma_us, r.oldest_age_us, r.oldest_age_samples,
-                   r.oldest_age_ewma_us, r.oldest_age_min_us, r.oldest_age_max_us,
-                   r.masked_lane_high_water, r.masked_lane_full_events,
+                   r.tid, role, r.domain, r.clients, r.iterations, r.ops, r.busy_ns, r.idle_ns,
+                   r.cpu_ns, r.depth_sum, r.depth_samples, r.full_events, r.wakes_sent,
+                   r.wakes_recv, r.spins, r.queue_delay_samples, r.queue_delay_ewma_us,
+                   r.oldest_age_us, r.oldest_age_samples, r.oldest_age_ewma_us, r.oldest_age_min_us,
+                   r.oldest_age_max_us, r.masked_lane_high_water, r.masked_lane_full_events,
                    r.masked_arena_occupancy_at_lane_full());
     }
     for (const auto& r : snap.shards)
-        appendf_lb(out,
-                   "shard %u %u %u %" PRIu64 " %" PRIu64 " %" PRIu64 " %u %" PRIu64 "\n",
+        appendf_lb(out, "shard %u %u %u %" PRIu64 " %" PRIu64 " %" PRIu64 " %u %" PRIu64 "\n",
                    r.sid, r.owner_tid, r.owner_domain, r.ops, r.foreign_ops, r.migrations, r.size,
                    r.obj_bytes);
     if (snap.fused_mode) {
@@ -188,9 +179,12 @@ void lbsignals_format(const LbSnapshot& snap, std::string& out) {
         format_rollup(out, "ex", snap.ex);
     }
     uint64_t sh_ops = 0, sh_foreign = 0;
-    for (const auto& r : snap.shards) { sh_ops += r.ops; sh_foreign += r.foreign_ops; }
-    const double foreign_frac = sh_ops
-        ? static_cast<double>(sh_foreign) / static_cast<double>(sh_ops) : 0.0;
+    for (const auto& r : snap.shards) {
+        sh_ops += r.ops;
+        sh_foreign += r.foreign_ops;
+    }
+    const double foreign_frac =
+        sh_ops ? static_cast<double>(sh_foreign) / static_cast<double>(sh_ops) : 0.0;
     if (snap.fused_mode) {
         appendf_lb(out,
                    "derived thread_mode 1s fused_threads %u client_threads %u "
@@ -205,15 +199,19 @@ void lbsignals_format(const LbSnapshot& snap, std::string& out) {
 void lbsignals_info_section(Server& srv, std::string& out) {
     const LbSnapshot snap = lbsignals_capture(srv);
     uint64_t sh_ops = 0, sh_foreign = 0;
-    for (const auto& r : snap.shards) { sh_ops += r.ops; sh_foreign += r.foreign_ops; }
-    const double foreign_frac = sh_ops
-        ? static_cast<double>(sh_foreign) / static_cast<double>(sh_ops) : 0.0;
+    for (const auto& r : snap.shards) {
+        sh_ops += r.ops;
+        sh_foreign += r.foreign_ops;
+    }
+    const double foreign_frac =
+        sh_ops ? static_cast<double>(sh_foreign) / static_cast<double>(sh_ops) : 0.0;
     if (snap.fused_mode) {
         double occupancy_min = 0, occupancy_max = 0;
         bool occupancy_first = true;
         for (const LbThreadRow& row : snap.threads) {
             const double occupancy = srv.lb_thread_occupancy(row.tid);
-            if (occupancy_first) occupancy_min = occupancy_max = occupancy;
+            if (occupancy_first)
+                occupancy_min = occupancy_max = occupancy;
             else {
                 occupancy_min = std::min(occupancy_min, occupancy);
                 occupancy_max = std::max(occupancy_max, occupancy);
@@ -225,29 +223,34 @@ void lbsignals_info_section(Server& srv, std::string& out) {
                    "lb_thread_mode:1s\r\n"
                    "lb_fused_threads:%u\r\nlb_client_threads:%u\r\nlb_owner_threads:%u\r\n"
                    "lb_fused_busy_frac:%.4f\r\nlb_fused_ns_per_op:%.1f\r\n"
-                   "lb_fused_avg_depth:%.3f\r\nlb_fused_full_events:%" PRIu64 "\r\n"
+                   "lb_fused_avg_depth:%.3f\r\nlb_fused_full_events:%" PRIu64
+                   "\r\n"
                    "lb_total_threads:%u\r\nlb_foreign_op_frac:%.4f\r\n",
                    snap.fused.threads, snap.client_threads, snap.owner_threads,
                    snap.fused.busy_frac(), snap.fused.ns_per_op(), snap.fused.avg_depth(),
                    snap.fused.full_events, snap.fused.threads, foreign_frac);
         appendf_lb(out,
                    "lb_fused_masked_lane_high_water:%u\r\n"
-                   "lb_fused_masked_lane_full_events:%" PRIu64 "\r\n"
+                   "lb_fused_masked_lane_full_events:%" PRIu64
+                   "\r\n"
                    "lb_fused_masked_arena_occupancy_at_lane_full:%.6f\r\n",
                    snap.fused.masked_lane_high_water, snap.fused.masked_lane_full_events,
                    snap.fused.masked_arena_occupancy_at_lane_full());
         appendf_lb(out,
-                   "lb_fused_queue_delay_samples:%" PRIu64 "\r\n"
+                   "lb_fused_queue_delay_samples:%" PRIu64
+                   "\r\n"
                    "lb_fused_queue_delay_ewma_us:%.3f\r\n"
-                   "lb_fused_oldest_age_samples:%" PRIu64 "\r\n"
-                   "lb_fused_oldest_age_min_us:%" PRIu64 "\r\n"
-                   "lb_fused_oldest_age_max_us:%" PRIu64 "\r\n"
+                   "lb_fused_oldest_age_samples:%" PRIu64
+                   "\r\n"
+                   "lb_fused_oldest_age_min_us:%" PRIu64
+                   "\r\n"
+                   "lb_fused_oldest_age_max_us:%" PRIu64
+                   "\r\n"
                    "lb_fused_oldest_age_ewma_us:%.3f\r\n",
                    snap.fused.queue_delay_samples, snap.fused.queue_delay_ewma_us(),
                    snap.fused.oldest_age_samples, snap.fused.oldest_age_min_us,
                    snap.fused.oldest_age_max_us, snap.fused.oldest_age_ewma_us());
-        appendf_lb(out,
-                   "lb_fused_occupancy_min:%.4f\r\nlb_fused_occupancy_max:%.4f\r\n",
+        appendf_lb(out, "lb_fused_occupancy_min:%.4f\r\nlb_fused_occupancy_max:%.4f\r\n",
                    occupancy_min, occupancy_max);
     } else {
         const uint32_t total = snap.io.threads + snap.ex.threads;
@@ -258,8 +261,12 @@ void lbsignals_info_section(Server& srv, std::string& out) {
             double& lo = row.role == Role::Ifid ? io_occ_min : ex_occ_min;
             double& hi = row.role == Role::Ifid ? io_occ_max : ex_occ_max;
             bool& first = row.role == Role::Ifid ? io_occ_first : ex_occ_first;
-            if (first) lo = hi = occupancy;
-            else { lo = std::min(lo, occupancy); hi = std::max(hi, occupancy); }
+            if (first)
+                lo = hi = occupancy;
+            else {
+                lo = std::min(lo, occupancy);
+                hi = std::max(hi, occupancy);
+            }
             first = false;
         }
         appendf_lb(out,
@@ -268,42 +275,52 @@ void lbsignals_info_section(Server& srv, std::string& out) {
                    "lb_io_busy_frac:%.4f\r\nlb_ex_busy_frac:%.4f\r\n"
                    "lb_io_ns_per_op:%.1f\r\nlb_ex_ns_per_op:%.1f\r\n"
                    "lb_io_avg_depth:%.3f\r\nlb_ex_avg_depth:%.3f\r\n"
-                   "lb_io_full_events:%" PRIu64 "\r\nlb_ex_full_events:%" PRIu64 "\r\n"
+                   "lb_io_full_events:%" PRIu64 "\r\nlb_ex_full_events:%" PRIu64
+                   "\r\n"
                    "lb_total_threads:%u\r\n"
                    "lb_foreign_op_frac:%.4f\r\n",
                    snap.io.threads, snap.ex.threads, snap.io.busy_frac(), snap.ex.busy_frac(),
-                   snap.io.ns_per_op(), snap.ex.ns_per_op(), snap.io.avg_depth(), snap.ex.avg_depth(),
-                   snap.io.full_events, snap.ex.full_events, total,
+                   snap.io.ns_per_op(), snap.ex.ns_per_op(), snap.io.avg_depth(),
+                   snap.ex.avg_depth(), snap.io.full_events, snap.ex.full_events, total,
                    foreign_frac);
         appendf_lb(out,
                    "lb_io_masked_lane_high_water:%u\r\n"
                    "lb_ex_masked_lane_high_water:%u\r\n"
-                   "lb_io_masked_lane_full_events:%" PRIu64 "\r\n"
-                   "lb_ex_masked_lane_full_events:%" PRIu64 "\r\n"
+                   "lb_io_masked_lane_full_events:%" PRIu64
+                   "\r\n"
+                   "lb_ex_masked_lane_full_events:%" PRIu64
+                   "\r\n"
                    "lb_io_masked_arena_occupancy_at_lane_full:%.6f\r\n"
                    "lb_ex_masked_arena_occupancy_at_lane_full:%.6f\r\n",
                    snap.io.masked_lane_high_water, snap.ex.masked_lane_high_water,
                    snap.io.masked_lane_full_events, snap.ex.masked_lane_full_events,
                    snap.io.masked_arena_occupancy_at_lane_full(),
                    snap.ex.masked_arena_occupancy_at_lane_full());
-        appendf_lb(out,
-                   "lb_io_queue_delay_samples:%" PRIu64 "\r\n"
-                   "lb_ex_queue_delay_samples:%" PRIu64 "\r\n"
-                   "lb_io_queue_delay_ewma_us:%.3f\r\nlb_ex_queue_delay_ewma_us:%.3f\r\n"
-                   "lb_io_oldest_age_samples:%" PRIu64 "\r\n"
-                   "lb_ex_oldest_age_samples:%" PRIu64 "\r\n"
-                   "lb_io_oldest_age_min_us:%" PRIu64 "\r\n"
-                   "lb_io_oldest_age_max_us:%" PRIu64 "\r\n"
-                   "lb_io_oldest_age_ewma_us:%.3f\r\n"
-                   "lb_ex_oldest_age_min_us:%" PRIu64 "\r\n"
-                   "lb_ex_oldest_age_max_us:%" PRIu64 "\r\n"
-                   "lb_ex_oldest_age_ewma_us:%.3f\r\n",
-                   snap.io.queue_delay_samples, snap.ex.queue_delay_samples,
-                   snap.io.queue_delay_ewma_us(), snap.ex.queue_delay_ewma_us(),
-                   snap.io.oldest_age_samples, snap.ex.oldest_age_samples,
-                   snap.io.oldest_age_min_us, snap.io.oldest_age_max_us,
-                   snap.io.oldest_age_ewma_us(), snap.ex.oldest_age_min_us,
-                   snap.ex.oldest_age_max_us, snap.ex.oldest_age_ewma_us());
+        appendf_lb(
+            out,
+            "lb_io_queue_delay_samples:%" PRIu64
+            "\r\n"
+            "lb_ex_queue_delay_samples:%" PRIu64
+            "\r\n"
+            "lb_io_queue_delay_ewma_us:%.3f\r\nlb_ex_queue_delay_ewma_us:%.3f\r\n"
+            "lb_io_oldest_age_samples:%" PRIu64
+            "\r\n"
+            "lb_ex_oldest_age_samples:%" PRIu64
+            "\r\n"
+            "lb_io_oldest_age_min_us:%" PRIu64
+            "\r\n"
+            "lb_io_oldest_age_max_us:%" PRIu64
+            "\r\n"
+            "lb_io_oldest_age_ewma_us:%.3f\r\n"
+            "lb_ex_oldest_age_min_us:%" PRIu64
+            "\r\n"
+            "lb_ex_oldest_age_max_us:%" PRIu64
+            "\r\n"
+            "lb_ex_oldest_age_ewma_us:%.3f\r\n",
+            snap.io.queue_delay_samples, snap.ex.queue_delay_samples, snap.io.queue_delay_ewma_us(),
+            snap.ex.queue_delay_ewma_us(), snap.io.oldest_age_samples, snap.ex.oldest_age_samples,
+            snap.io.oldest_age_min_us, snap.io.oldest_age_max_us, snap.io.oldest_age_ewma_us(),
+            snap.ex.oldest_age_min_us, snap.ex.oldest_age_max_us, snap.ex.oldest_age_ewma_us());
         appendf_lb(out,
                    "lb_io_occupancy_min:%.4f\r\nlb_io_occupancy_max:%.4f\r\n"
                    "lb_ex_occupancy_min:%.4f\r\nlb_ex_occupancy_max:%.4f\r\n",
@@ -314,7 +331,8 @@ void lbsignals_info_section(Server& srv, std::string& out) {
                "lb_flip_bucket_weight_spread_after:%.3f\r\n"
                "lb_flip_client_weight_spread_before:%.3f\r\n"
                "lb_flip_client_weight_spread_after:%.3f\r\n"
-               "lb_flip_bucket_bytes_spread_before:%" PRIu64 "\r\n"
+               "lb_flip_bucket_bytes_spread_before:%" PRIu64
+               "\r\n"
                "lb_flip_bucket_bytes_spread_after:%" PRIu64 "\r\n",
                srv.flip_bucket_weight_spread_before(), srv.flip_bucket_weight_spread_after(),
                srv.flip_client_weight_spread_before(), srv.flip_client_weight_spread_after(),
@@ -323,28 +341,35 @@ void lbsignals_info_section(Server& srv, std::string& out) {
                "tomokv_keylb_enabled:%u\r\n"
                "tomokv_clientlb_enabled:%u\r\n"
                "tomokv_keylb_stage:%u\r\n"
-               "tomokv_keylb_ticks:%" PRIu64 "\r\n"
-               "tomokv_keylb_bucket_moves:%" PRIu64 "\r\n"
-               "tomokv_clientlb_moves:%" PRIu64 "\r\n"
-               "tomokv_keylb_bucket_cross_domain_moves:%" PRIu64 "\r\n"
-               "tomokv_clientlb_cross_domain_moves:%" PRIu64 "\r\n"
+               "tomokv_keylb_ticks:%" PRIu64
+               "\r\n"
+               "tomokv_keylb_bucket_moves:%" PRIu64
+               "\r\n"
+               "tomokv_clientlb_moves:%" PRIu64
+               "\r\n"
+               "tomokv_keylb_bucket_cross_domain_moves:%" PRIu64
+               "\r\n"
+               "tomokv_clientlb_cross_domain_moves:%" PRIu64
+               "\r\n"
                "tomokv_keylb_no_candidate:%" PRIu64 "\r\n",
-               srv.key_lb_signals_enabled() ? 1u : 0u,
-               srv.client_lb_signals_enabled() ? 1u : 0u,
-               static_cast<unsigned>(srv.lb_stage()),
-               srv.lb_ticks(), srv.lb_bucket_moves(), srv.lb_client_moves(),
-               srv.lb_bucket_cross_domain_moves(), srv.lb_client_cross_domain_moves(),
-               srv.lb_no_candidate());
+               srv.key_lb_signals_enabled() ? 1u : 0u, srv.client_lb_signals_enabled() ? 1u : 0u,
+               static_cast<unsigned>(srv.lb_stage()), srv.lb_ticks(), srv.lb_bucket_moves(),
+               srv.lb_client_moves(), srv.lb_bucket_cross_domain_moves(),
+               srv.lb_client_cross_domain_moves(), srv.lb_no_candidate());
     appendf_lb(out,
-               "tomokv_keylb_hysteresis_refused:%" PRIu64 "\r\n"
-               "tomokv_keylb_cooldown_refused:%" PRIu64 "\r\n"
-               "tomokv_keylb_transition_refused:%" PRIu64 "\r\n"
-               "tomokv_keylb_capacity_refused:%" PRIu64 "\r\n"
-               "tomokv_clientlb_refused:%" PRIu64 "\r\n"
+               "tomokv_keylb_hysteresis_refused:%" PRIu64
+               "\r\n"
+               "tomokv_keylb_cooldown_refused:%" PRIu64
+               "\r\n"
+               "tomokv_keylb_transition_refused:%" PRIu64
+               "\r\n"
+               "tomokv_keylb_capacity_refused:%" PRIu64
+               "\r\n"
+               "tomokv_clientlb_refused:%" PRIu64
+               "\r\n"
                "tomokv_keylb_hot_bucket_refused:%" PRIu64 "\r\n",
-               srv.lb_hysteresis_refused(), srv.lb_cooldown_refused(),
-               srv.lb_transition_refused(), srv.lb_capacity_refused(), srv.lb_client_refused(),
-               srv.lb_hot_bucket_refused());
+               srv.lb_hysteresis_refused(), srv.lb_cooldown_refused(), srv.lb_transition_refused(),
+               srv.lb_capacity_refused(), srv.lb_client_refused(), srv.lb_hot_bucket_refused());
     srv.lb_stall_info(out);
     srv.lb_key_damping_info(out);
     appendf_lb(out, "tomokv_keylb_bucket_gathers:%" PRIu64 "\r\n", srv.lb_bucket_gathers());
@@ -355,16 +380,17 @@ void lbsignals_info_section(Server& srv, std::string& out) {
                "tomokv_clientlb_weight_spread_current:%.3f\r\n"
                "tomokv_clientlb_weight_spread_before:%.3f\r\n"
                "tomokv_clientlb_weight_spread_after:%.3f\r\n",
-               srv.lb_bucket_weight_spread_current(),
-               srv.lb_bucket_weight_spread_before(), srv.lb_bucket_weight_spread_after(),
-               srv.lb_client_weight_spread_current(), srv.lb_client_weight_spread_before(),
-               srv.lb_client_weight_spread_after());
+               srv.lb_bucket_weight_spread_current(), srv.lb_bucket_weight_spread_before(),
+               srv.lb_bucket_weight_spread_after(), srv.lb_client_weight_spread_current(),
+               srv.lb_client_weight_spread_before(), srv.lb_client_weight_spread_after());
     appendf_lb(out,
-               "tomokv_keylb_bucket_bytes_spread_current:%" PRIu64 "\r\n"
-               "tomokv_keylb_bucket_bytes_spread_before:%" PRIu64 "\r\n"
+               "tomokv_keylb_bucket_bytes_spread_current:%" PRIu64
+               "\r\n"
+               "tomokv_keylb_bucket_bytes_spread_before:%" PRIu64
+               "\r\n"
                "tomokv_keylb_bucket_bytes_spread_after:%" PRIu64 "\r\n\r\n",
-               srv.lb_bucket_bytes_spread_current(),
-               srv.lb_bucket_bytes_spread_before(), srv.lb_bucket_bytes_spread_after());
+               srv.lb_bucket_bytes_spread_current(), srv.lb_bucket_bytes_spread_before(),
+               srv.lb_bucket_bytes_spread_after());
 }
 
 }  // namespace tomo

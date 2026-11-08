@@ -98,7 +98,7 @@ struct AofChunk {
     std::vector<uint8_t> bytes;
     std::shared_ptr<AofGroupDecision> group;
     std::vector<uint32_t> group_ticket_offsets;
-    std::vector<uint64_t> receipt_clients; // last frame of each connection's record
+    std::vector<uint64_t> receipt_clients;  // last frame of each connection's record
     bool group_fragment_last = false;
     bool group_commit = false;
 };
@@ -113,7 +113,7 @@ public:
     uint64_t sip_k1 = 0;
     uint64_t replayed_records = 0;
     uint64_t groups_skipped = 0;
-    uint64_t ticket_floor = 0; // Includes undecided fragments, not just GCMTs.
+    uint64_t ticket_floor = 0;  // Includes undecided fragments, not just GCMTs.
     std::vector<uint32_t> next_sequence;
     std::vector<std::vector<uint8_t>> sections;
     std::vector<uint8_t> control_section;
@@ -128,7 +128,7 @@ struct AofOwnerContext {
     uint64_t client_id = 0;
 };
 
-class /* TOMO_TOOL_BIND AofManager */AofManager;
+class /* TOMO_TOOL_BIND AofManager */ AofManager;
 
 class AofProducer {
 public:
@@ -136,10 +136,9 @@ public:
     bool enabled() const;
     int32_t sid() const { return sid_; }
 
-    bool record_post_image(FlatStore& store, uint64_t hash, Slice key,
-                           AofOwnerContext& context, uint64_t group = 0);
-    bool record_post_image_buffered(FlatStore& store, uint64_t hash, Slice key,
-                                    uint64_t group = 0);
+    bool record_post_image(FlatStore& store, uint64_t hash, Slice key, AofOwnerContext& context,
+                           uint64_t group = 0);
+    bool record_post_image_buffered(FlatStore& store, uint64_t hash, Slice key, uint64_t group = 0);
     bool record_delete(Slice key, uint64_t group = 0);
     bool record_flush(int physical_db = -1, uint64_t client_id = 0);
     bool record_group_flush(int physical_db = -1);
@@ -178,13 +177,11 @@ private:
     std::unique_ptr<AofChunk> make_group_chunk(uint32_t flags = 0);
     bool group_emit(PendingGroup& group, const uint8_t* bytes, uint64_t length, bool large);
     bool group_seal(PendingGroup& group, uint32_t flags);
-    bool record_group_bytes(PendingGroup& group, AofRecordKind kind, uint8_t type,
-                            uint8_t encoding, Slice key, int64_t expire_at_ms,
-                            const SnapshotTypeHooks* hooks,
+    bool record_group_bytes(PendingGroup& group, AofRecordKind kind, uint8_t type, uint8_t encoding,
+                            Slice key, int64_t expire_at_ms, const SnapshotTypeHooks* hooks,
                             SnapshotSaveCursor* cursor, const uint8_t* raw = nullptr,
                             uint64_t raw_size = 0);
-    bool record_group_post_image_impl(FlatStore& store, uint64_t hash, Slice key,
-                                      bool physical);
+    bool record_group_post_image_impl(FlatStore& store, uint64_t hash, Slice key, bool physical);
     bool make_ready(std::unique_ptr<AofChunk> chunk);
     bool resolve_groups();
     uint64_t staging_ticket(AofRecordKind kind, uint8_t type, Slice key) const;
@@ -220,13 +217,13 @@ public:
     void writer_shutdown(ThreadCtx& writer, Ring& ring);
     uint32_t writer_pass(ThreadCtx& writer, Ring& ring, bool drain_all = false);
     void on_io_complete(ThreadCtx& writer, Ring& ring, void* request, int result);
-    bool post_chunk(uint32_t producer, std::unique_ptr<AofChunk>& chunk,
-                    Ring& producer_ring, LoopSignals& signals);
-    void /* TOMO_TOOL_BIND append_function_journal */append_function_journal(Slice payload);
+    bool post_chunk(uint32_t producer, std::unique_ptr<AofChunk>& chunk, Ring& producer_ring,
+                    LoopSignals& signals);
+    void /* TOMO_TOOL_BIND append_function_journal */ append_function_journal(Slice payload);
     bool request_rewrite();
     bool start_offline_rewrite(ThreadCtx& writer, Ring& ring, std::string& error);
-    bool rewrite_mark(ThreadCtx& writer, Ring& ring, uint64_t snapshot_epoch,
-                      int64_t cut_ms, std::string& error);
+    bool rewrite_mark(ThreadCtx& writer, Ring& ring, uint64_t snapshot_epoch, int64_t cut_ms,
+                      std::string& error);
     bool rewrite_complete(const std::string& base_path, uint64_t snapshot_epoch);
     void rewrite_abort();
 
@@ -234,9 +231,7 @@ public:
     bool recording() const { return recording_.load(std::memory_order_acquire); }
     bool writer_is(uint32_t tid) const { return configured_ && tid == writer_tid_; }
     uint32_t writer_tid() const { return configured_ ? writer_tid_ : UINT32_MAX; }
-    AppendFsyncPolicy fsync_policy() const {
-        return fsync_policy_.load(std::memory_order_acquire);
-    }
+    AppendFsyncPolicy fsync_policy() const { return fsync_policy_.load(std::memory_order_acquire); }
     void set_fsync_policy(AppendFsyncPolicy policy) {
         fsync_policy_.store(policy, std::memory_order_release);
     }
@@ -261,49 +256,35 @@ public:
     uint64_t groups_skipped() const { return groups_skipped_.load(std::memory_order_relaxed); }
     uint64_t current_size() const { return current_size_.load(std::memory_order_relaxed); }
     uint64_t pending_chunks() const { return pending_chunks_.load(std::memory_order_acquire); }
-    uint64_t posted_sequence() const {
-        return posted_sequence_.load(std::memory_order_acquire);
-    }
+    uint64_t posted_sequence() const { return posted_sequence_.load(std::memory_order_acquire); }
     bool reply_gate_ready(uint64_t target) const;
     bool local_ack(uint64_t client_id) const;
     bool attach_receipt(AofChunk& chunk, uint64_t client_id);
     void forget_client(uint64_t client_id);
     void register_send_gate_wait(uint32_t tid);
     uint64_t fsyncs() const { return fsyncs_.load(std::memory_order_relaxed); }
-    uint64_t send_gate_waits() const {
-        return send_gate_waits_.load(std::memory_order_relaxed);
-    }
+    uint64_t send_gate_waits() const { return send_gate_waits_.load(std::memory_order_relaxed); }
     // Writer passes that had a ready GCMT in hand and held it back because a large record was open
     // on the physical stream. Non-zero proves the interleave window was entered and closed.
-    uint64_t control_defers() const {
-        return control_defers_.load(std::memory_order_relaxed);
-    }
+    uint64_t control_defers() const { return control_defers_.load(std::memory_order_relaxed); }
     bool rewrite_in_progress() const {
         return rewrite_in_progress_.load(std::memory_order_acquire);
     }
-    bool rewrite_scheduled() const {
-        return rewrite_requested_.load(std::memory_order_acquire);
-    }
+    bool rewrite_scheduled() const { return rewrite_requested_.load(std::memory_order_acquire); }
     bool last_rewrite_ok() const { return last_rewrite_ok_.load(std::memory_order_relaxed); }
     uint64_t base_size() const { return base_size_.load(std::memory_order_relaxed); }
     uint64_t rewrite_base_size() const {
         return rewrite_base_size_.load(std::memory_order_relaxed);
     }
-    uint64_t rewrite_requests() const {
-        return rewrite_requests_.load(std::memory_order_relaxed);
-    }
+    uint64_t rewrite_requests() const { return rewrite_requests_.load(std::memory_order_relaxed); }
     uint64_t rewrite_completions() const {
         return rewrite_completions_.load(std::memory_order_relaxed);
     }
-    uint64_t history_unlinks() const {
-        return history_unlinks_.load(std::memory_order_relaxed);
-    }
+    uint64_t history_unlinks() const { return history_unlinks_.load(std::memory_order_relaxed); }
     uint64_t auto_rewrite_triggers() const {
         return auto_rewrite_triggers_.load(std::memory_order_relaxed);
     }
-    uint64_t rewrite_failures() const {
-        return rewrite_failures_.load(std::memory_order_relaxed);
-    }
+    uint64_t rewrite_failures() const { return rewrite_failures_.load(std::memory_order_relaxed); }
     uint32_t consecutive_rewrite_failures() const {
         return consecutive_rewrite_failures_.load(std::memory_order_relaxed);
     }
@@ -326,13 +307,14 @@ public:
     // durability is unsafe even if a notification is delayed (IO may already be serving).
     bool defer_completion(uint32_t producer, Op& op, Client* client);
     bool completions_pending(uint32_t producer) const;
-    uint32_t finish_completions(uint32_t producer, bool all_posted,
-                                void* context, void (*notify)(void*, Client*));
+    uint32_t finish_completions(uint32_t producer, bool all_posted, void* context,
+                                void (*notify)(void*, Client*));
     void worker_shutdown(uint32_t tid);
     class WorkerLifetime {
     public:
         WorkerLifetime(AofManager& manager, uint32_t tid) : manager_(manager), tid_(tid) {}
         ~WorkerLifetime() { manager_.worker_shutdown(tid_); }
+
     private:
         AofManager& manager_;
         uint32_t tid_;
@@ -343,18 +325,22 @@ public:
         uint64_t pending_chunks = 0, records_written = 0, producers_with_pending = 0;
         uint64_t producers_stopped = 0, producers_expected = 0, completions_pending = 0;
     };
-    PersistenceReport persistence_report() const; // after joins only
+    PersistenceReport persistence_report() const;  // after joins only
     void debug_ack_window(uint32_t producer, Ring& ring);
     void debug_arm_ack_window(uint32_t producer, Slice key);
     void note_buffered(int32_t sid);
 
 private:
-    friend struct PersistFixTest; friend class AofProducer;
-    struct Completion { Op* op; Client* client; };
+    friend struct PersistFixTest;
+    friend class AofProducer;
+    struct Completion {
+        Op* op;
+        Client* client;
+    };
     struct CompletionBatch {
         std::vector<Completion> entries;
         uint64_t target = UINT64_MAX;
-        std::unique_ptr<uint64_t[]> dependencies; // only batches with cross-owner completions
+        std::unique_ptr<uint64_t[]> dependencies;  // only batches with cross-owner completions
     };
     struct ChunkChan : Channel<AofChunk*, 64> {
         // Owner-private until stopped. Lives with the already optional channel allocation;
@@ -377,7 +363,10 @@ private:
         std::mutex function_journal_mu;
         std::vector<std::unique_ptr<AofChunk>> function_journal;
         std::mutex receipt_mu;
-        struct Receipt { uint64_t sequence = 0, buffered = 0; bool closed = false; };
+        struct Receipt {
+            uint64_t sequence = 0, buffered = 0;
+            bool closed = false;
+        };
         std::unordered_map<uint64_t, Receipt> client_sequences;
     };
     void note_client_sequence(uint64_t client_id, uint64_t sequence, bool was_buffered = false);
@@ -388,16 +377,13 @@ private:
     bool write_header_uring(ThreadCtx& writer, Ring& ring, int fd, uint64_t& offset);
     bool write_frame_normal(const AofChunk& chunk);
     bool write_group_commit_normal(const OpenStreamToken& stream, AofChunk& chunk);
-    bool prepare_group_commit(const OpenStreamToken& stream, AofChunk& chunk,
-                              uint8_t* header);
-    bool submit_prepared_frame_uring(std::unique_ptr<AofChunk> chunk,
-                                    const uint8_t* header, Ring& ring,
-                                    io_uring_sqe*& last_write);
+    bool prepare_group_commit(const OpenStreamToken& stream, AofChunk& chunk, uint8_t* header);
+    bool submit_prepared_frame_uring(std::unique_ptr<AofChunk> chunk, const uint8_t* header,
+                                     Ring& ring, io_uring_sqe*& last_write);
     bool submit_data_frame_uring(std::unique_ptr<AofChunk> chunk, Ring& ring,
                                  io_uring_sqe*& last_write);
-    bool submit_group_commit_uring(const OpenStreamToken& stream,
-                                   std::unique_ptr<AofChunk> chunk, Ring& ring,
-                                   io_uring_sqe*& last_write);
+    bool submit_group_commit_uring(const OpenStreamToken& stream, std::unique_ptr<AofChunk> chunk,
+                                   Ring& ring, io_uring_sqe*& last_write);
     bool mark_post_written(uint64_t sequence);
     bool mark_post_submitted(uint64_t sequence);
     bool mark_post_durable(uint64_t sequence);
@@ -406,18 +392,18 @@ private:
     bool group_dependencies_ready(const AofGroupDecision& group) const;
     void note_group_fragment(const AofChunk& chunk);
     void note_control_deferral(const LargeStreamToken& stream);
-    uint32_t drain_pending_commits(const OpenStreamToken& stream, uint32_t& budget,
-                                   Ring& ring, io_uring_sqe*& last_write);
-    bool drain_producer(uint32_t producer, uint32_t& budget, uint32_t& consumed,
-                        Ring& ring, io_uring_sqe*& last_write);
+    uint32_t drain_pending_commits(const OpenStreamToken& stream, uint32_t& budget, Ring& ring,
+                                   io_uring_sqe*& last_write);
+    bool drain_producer(uint32_t producer, uint32_t& budget, uint32_t& consumed, Ring& ring,
+                        io_uring_sqe*& last_write);
     uint32_t pump_io_completions(ThreadCtx& writer, Ring& ring);
     bool wait_control_write(ThreadCtx& writer, Ring& ring, int fd, const uint8_t* bytes,
                             size_t length, uint64_t& offset);
     bool wait_control_sync(ThreadCtx& writer, Ring& ring, int fd);
     void discard_chunks();
-    bool persist_manifest(const std::string& base_name, uint64_t base_sequence,
-                          uint64_t base_epoch, uint64_t base_commit,
-                          uint64_t persisted_base_size, uint64_t persisted_rewrite_base_size,
+    bool persist_manifest(const std::string& base_name, uint64_t base_sequence, uint64_t base_epoch,
+                          uint64_t base_commit, uint64_t persisted_base_size,
+                          uint64_t persisted_rewrite_base_size,
                           const std::vector<std::pair<uint64_t, std::string>>& increments,
                           const std::vector<std::vector<uint32_t>>& increment_starts,
                           std::string& error);
@@ -430,7 +416,7 @@ private:
 
     bool configured_ = false;
     bool routing_upgrade_ = false;
-    bool runtime_enabling_ = false; // existing alignment space before server_
+    bool runtime_enabling_ = false;  // existing alignment space before server_
     PersistIoEngine engine_;
     Server* server_ = nullptr;
     uint32_t nthreads_ = 0;
@@ -442,7 +428,7 @@ private:
     std::atomic<bool> recording_{false};
     std::atomic<bool> failed_{false};
     std::atomic<bool> writer_ready_{false};
-    std::atomic<int> last_write_errno_{0}; // existing alignment bytes; published before failed_
+    std::atomic<int> last_write_errno_{0};  // existing alignment bytes; published before failed_
     std::atomic<uint64_t> pending_chunks_{0};
     std::atomic<uint64_t> posted_sequence_{0};
     std::atomic<uint64_t> written_sequence_{0};
@@ -516,14 +502,13 @@ private:
 
 std::string aof_directory_path(const Config& config);
 std::string aof_file_path(const Config& config);
-std::unique_ptr<AofReplayPlan> aof_read_plan(const char* path, uint32_t expected_shards,
-                                             bool truncate_tail, bool& exists,
-                                             std::string& warning, std::string& error,
-                                             const std::vector<uint32_t>* initial_sequences = nullptr);
+std::unique_ptr<AofReplayPlan> aof_read_plan(
+    const char* path, uint32_t expected_shards, bool truncate_tail, bool& exists,
+    std::string& warning, std::string& error,
+    const std::vector<uint32_t>* initial_sequences = nullptr);
 bool aof_load_owned(const AofReplayPlan& plan, Server& server, ThreadCtx& owner,
                     std::string& error);
-bool aof_load_shard(const AofReplayPlan& plan, Server& server, Shard& shard,
-                    std::string& error);
+bool aof_load_shard(const AofReplayPlan& plan, Server& server, Shard& shard, std::string& error);
 bool aof_read_recovery(const Config& config, uint32_t expected_shards,
                        std::unique_ptr<SnapshotLoadPlan>& base,
                        std::vector<std::unique_ptr<AofReplayPlan>>& increments,

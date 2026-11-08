@@ -16,20 +16,18 @@ void cmd_cluster_disabled(Shard&, Op& op) {
     reply_err(op.sink(), "ERR This instance has cluster support disabled");
 }
 
-static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */ kTable[] = {
     // name             min max flags                                      handler
     //                                                               first last step notify
-    {"ASKING",           1,  1, CmdFlags::ConnLocal,                       cmd_cluster_disabled, 0, 0, 0},
-    {"READONLY",         1,  1, CmdFlags::ConnLocal,                       cmd_cluster_disabled, 0, 0, 0},
-    {"READWRITE",        1,  1, CmdFlags::ConnLocal,                       cmd_cluster_disabled, 0, 0, 0},
-    {"RESTORE-ASKING",   4, -1, CmdFlags::Write | CmdFlags::DenyOom,
-                                                        cmd_restore, 1, 1, 1, cmd_restore_notify},
+    {"ASKING", 1, 1, CmdFlags::ConnLocal, cmd_cluster_disabled, 0, 0, 0},
+    {"READONLY", 1, 1, CmdFlags::ConnLocal, cmd_cluster_disabled, 0, 0, 0},
+    {"READWRITE", 1, 1, CmdFlags::ConnLocal, cmd_cluster_disabled, 0, 0, 0},
+    {"RESTORE-ASKING", 4, -1, CmdFlags::Write | CmdFlags::DenyOom, cmd_restore, 1, 1, 1,
+     cmd_restore_notify},
 };
 
 }  // namespace
 
-CommandTable cmdgap_command_table() {
-    return {kTable, sizeof(kTable) / sizeof(kTable[0])};
-}
+CommandTable cmdgap_command_table() { return {kTable, sizeof(kTable) / sizeof(kTable[0])}; }
 
 }  // namespace tomo

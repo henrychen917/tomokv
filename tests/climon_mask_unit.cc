@@ -41,7 +41,8 @@ int main() {
                 posted.add(low);
                 require(!posted.contains(high), "migration forwards to owner i+64");
                 posted.add(high);
-                require(posted.contains(low) && posted.contains(high), "forwarding deduplicates both owners");
+                require(posted.contains(low) && posted.contains(high),
+                        "forwarding deduplicates both owners");
             }
         }
         std::printf("climon mask %s: PASS (64 owner pairs, both disarm directions)\n", lane);

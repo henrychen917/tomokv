@@ -59,9 +59,9 @@ void command_metadata_reply_docs(Op& op, const CommandMetadata& metadata);
 
 // Extract keys and their Redis key-spec intent. `command_argument` identifies the full command's
 // name within op.argv (2 for COMMAND GETKEYS*). The returned argument indexes address op.argv.
-CommandMetadataKeysResult command_metadata_collect_keys(
-    Op& op, uint32_t command_argument, const CommandMetadata& metadata,
-    std::vector<CommandKeyMetadata>& keys);
+CommandMetadataKeysResult command_metadata_collect_keys(Op& op, uint32_t command_argument,
+                                                        const CommandMetadata& metadata,
+                                                        std::vector<CommandKeyMetadata>& keys);
 
 uint32_t command_metadata_key_flag_count();
 const char* command_metadata_key_flag_name(uint32_t index);

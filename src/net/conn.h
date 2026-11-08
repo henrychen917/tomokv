@@ -47,24 +47,25 @@
 #include "resp.h"
 #include "../base/slice.h"
 
-
 namespace tomo {
 
-namespace r7 { class ShadowLongIndex; }
+namespace r7 {
+class ShadowLongIndex;
+}
 class Client;
 struct MultiSession;
 void multi_session_destroy(MultiSession* session);
 
 // kRobWindow is defined by net/rob.h (included above), beside the ring that is sized from it.
-inline constexpr size_t   kRbufInitial  = 16 * 1024;
-inline constexpr size_t   kRbufSoftCap  = 1 * 1024 * 1024;  // stop BUFFERING BACKLOG past this
+inline constexpr size_t kRbufInitial = 16 * 1024;
+inline constexpr size_t kRbufSoftCap = 1 * 1024 * 1024;  // stop BUFFERING BACKLOG past this
 // The soft cap bounds buffered backlog. The live query-buffer limit and the inline
 // protocol bound additionally constrain incomplete requests. Growth requires ROB quiescence.
-inline constexpr size_t   kRbufHardCap = UINT32_MAX;
+inline constexpr size_t kRbufHardCap = UINT32_MAX;
 // Item 4: 512B inline, heap beyond. Two 16KB inline buffers made every connection carry 32KB of
 // worst-case staging whether it ever pipelined or not; SmallBuf grows on demand and clear() keeps
 // the allocation, so a busy connection pays ONE grow to its working size and idles at 1KB + that.
-inline constexpr size_t   kWbufInline   = 512;
+inline constexpr size_t kWbufInline = 512;
 // Largest single send the kernel accepts (Linux MAX_RW_COUNT); a CQE res is an int. Caps every
 // legacy send request and the segment iovec window alike.
 inline constexpr uint32_t kMaxSendBytes = 0x7ffff000u;
@@ -88,29 +89,29 @@ struct Session {
 // Adding an owner? Add a bit here and acquire it at the site that parks the connection. Do NOT
 // reuse another owner's bit to save one; that is the shared flag this enum exists to retire.
 enum class BarrierOwner : uint8_t {
-    Scatter  = 1u << 0,  // two-hop store / all-shards fan-out; io_loop.h nonblocking_dispatch
+    Scatter = 1u << 0,   // two-hop store / all-shards fan-out; io_loop.h nonblocking_dispatch
     Blocking = 1u << 1,  // BLPOP-family, and the move scatter blocking_resume_move converts it into
-    Wait     = 1u << 2,  // deferred WAIT parked on its own deadline
-    Exec     = 1u << 3,  // EXEC fan-out; multi.inc
-    PubSub   = 1u << 4,  // (P|S)(UN)SUBSCRIBE transition awaiting its channel homes
-    Climon   = 1u << 5,  // CLIENT UNBLOCK (remote owner), CLIENT LIST / CLIENT KILL fan-out
-    Sleep    = 1u << 6,  // deferred DEBUG SLEEP connection timer
+    Wait = 1u << 2,      // deferred WAIT parked on its own deadline
+    Exec = 1u << 3,      // EXEC fan-out; multi.inc
+    PubSub = 1u << 4,    // (P|S)(UN)SUBSCRIBE transition awaiting its channel homes
+    Climon = 1u << 5,    // CLIENT UNBLOCK (remote owner), CLIENT LIST / CLIENT KILL fan-out
+    Sleep = 1u << 6,     // deferred DEBUG SLEEP connection timer
     // Client is footprint-locked. All seven production bits are now assigned; an eighth owner
     // needs a real layout decision, not a wider field.
     //
     // Test-only, and deliberately NOT released by the quiescence backstop -- it exists to hold the
     // barrier PAST ROB quiescence, which is the state no production sequence can currently produce
     // and the one the owner-scoped release must survive. Armed only by DEBUG BARRIER-HOLD.
-    Debug    = 1u << 7,
+    Debug = 1u << 7,
 };
 
 enum class SegmentKind : uint8_t { Buf = 0, Borrow = 1, Static = 2 };
 
 struct ReplySegment {
-    SegmentKind kind  = SegmentKind::Static;
-    const char* ptr   = nullptr;
-    uint32_t    len   = 0;
-    int32_t     shard = -1;
+    SegmentKind kind = SegmentKind::Static;
+    const char* ptr = nullptr;
+    uint32_t len = 0;
+    int32_t shard = -1;
 };
 
 // Metadata stays inline for the common [header, value, CRLF] case. BUF payloads own independent
@@ -119,9 +120,13 @@ struct ReplySegment {
 template <uint32_t Inline, size_t MaxSegmentBytes = UINT32_MAX>
 class SegmentQueue {
     static_assert(MaxSegmentBytes > 0 && MaxSegmentBytes <= UINT32_MAX);
+
 public:
     SegmentQueue() = default;
-    ~SegmentQueue() { clear_without_releases(); if (segs_ != inline_) std::free(segs_); }
+    ~SegmentQueue() {
+        clear_without_releases();
+        if (segs_ != inline_) std::free(segs_);
+    }
     SegmentQueue(const SegmentQueue&) = delete;
     SegmentQueue& operator=(const SegmentQueue&) = delete;
 
@@ -176,8 +181,8 @@ public:
         push(ReplySegment{SegmentKind::Static, ptr, len, -1});
     }
 
-    uint32_t build_iov(iovec* out, uint32_t cap, uint32_t byte_cap,
-                       bool& has_borrow, uint32_t& bytes) const {
+    uint32_t build_iov(iovec* out, uint32_t cap, uint32_t byte_cap, bool& has_borrow,
+                       uint32_t& bytes) const {
         uint32_t n = 0;
         bytes = 0;
         has_borrow = false;
@@ -216,8 +221,10 @@ public:
     void release_all(ReleaseFn&& release) {
         for (uint32_t i = 0; i < size_; i++) {
             ReplySegment& s = segs_[head_ + i];
-            if (s.kind == SegmentKind::Borrow) release(s.shard, s.ptr);
-            else if (s.kind == SegmentKind::Buf) std::free(const_cast<char*>(s.ptr));
+            if (s.kind == SegmentKind::Borrow)
+                release(s.shard, s.ptr);
+            else if (s.kind == SegmentKind::Buf)
+                std::free(const_cast<char*>(s.ptr));
         }
         head_ = size_ = offset_ = 0;
     }
@@ -234,8 +241,10 @@ public:
             ReplySegment& s = segs_[head_ + size_ - 1];
             if (size_ == 1 && offset_) std::abort();
             bytes += s.len;
-            if (s.kind == SegmentKind::Borrow) release(s.shard, s.ptr);
-            else if (s.kind == SegmentKind::Buf) std::free(const_cast<char*>(s.ptr));
+            if (s.kind == SegmentKind::Borrow)
+                release(s.shard, s.ptr);
+            else if (s.kind == SegmentKind::Buf)
+                std::free(const_cast<char*>(s.ptr));
             size_--;
         }
         if (!size_) head_ = offset_ = 0;
@@ -280,12 +289,12 @@ private:
     }
 
 private:
-    ReplySegment  inline_[Inline];
+    ReplySegment inline_[Inline];
     ReplySegment* segs_ = inline_;
-    uint32_t      head_ = 0;       // segment index at the wire frontier
-    uint32_t      size_ = 0;
-    uint32_t      cap_ = Inline;
-    uint32_t      offset_ = 0;     // byte offset within head_; only the head may be partial
+    uint32_t head_ = 0;  // segment index at the wire frontier
+    uint32_t size_ = 0;
+    uint32_t cap_ = Inline;
+    uint32_t offset_ = 0;  // byte offset within head_; only the head may be partial
 };
 
 class Client {
@@ -294,11 +303,14 @@ public:
         rbuf_ = static_cast<char*>(std::malloc(kRbufInitial));
         rcap_ = kRbufInitial;
     }
-    ~Client() { multi_session_destroy(multi_session_); std::free(rbuf_); }
+    ~Client() {
+        multi_session_destroy(multi_session_);
+        std::free(rbuf_);
+    }
     Client(const Client&) = delete;
     Client& operator=(const Client&) = delete;
 
-    int  fd() const { return fd_; }
+    int fd() const { return fd_; }
     int replace_fd(int replacement) {
         const int previous = fd_;
         fd_ = replacement;
@@ -306,19 +318,24 @@ public:
     }
 
     // ---- read side -----------------------------------------------------------------------------
-    char*    rbuf()      { return rbuf_; }
+    char* rbuf() { return rbuf_; }
     uint32_t rlen() const { return rlen_; }
     uint32_t rpos() const { return rpos_; }
     size_t rcap() const { return rcap_; }
-    void     advance_parse(uint32_t n) { rpos_ += n; inline_scanned_ = 0; }
+    void advance_parse(uint32_t n) {
+        rpos_ += n;
+        inline_scanned_ = 0;
+    }
     uint32_t& inline_scanned() { return inline_scanned_; }
     bool multibulk_pending() const { return inline_scanned_ & kRespMultibulkPending; }
     RespFrontier& multibulk_frontier() { return multibulk_; }
     void suspend_multibulk() { inline_scanned_ = kRespMultibulkPending; }
-    [[gnu::noinline, gnu::cold]] ParseResult resume_multibulk(
-            uint32_t& pos, Op& op, const char** err, uint64_t max_multibulk, uint64_t max_bulk) {
-        const auto result = resp_resume(rbuf_, rlen_, pos, op, err,
-                                        max_multibulk, max_bulk, multibulk_);
+    [[gnu::noinline, gnu::cold]] ParseResult resume_multibulk(uint32_t& pos, Op& op,
+                                                              const char** err,
+                                                              uint64_t max_multibulk,
+                                                              uint64_t max_bulk) {
+        const auto result =
+            resp_resume(rbuf_, rlen_, pos, op, err, max_multibulk, max_bulk, multibulk_);
         if (result != ParseResult::Incomplete) {
             inline_scanned_ = 0;
             multibulk_.finish();
@@ -334,9 +351,8 @@ public:
     bool query_buffer_exceeded(uint64_t limit, uint64_t queued = 0) const {
         // The retained frame is a conservative bound. Consult the saved parser
         // frontier only when that bound would close the connection.
-        return queued > limit ||
-            (__builtin_expect(rlen_ - rpos_ > limit - queued, false) &&
-             rlen_ - query_buffer_pos() > limit - queued);
+        return queued > limit || (__builtin_expect(rlen_ - rpos_ > limit - queued, false) &&
+                                  rlen_ - query_buffer_pos() > limit - queued);
     }
 
     // Space to recv() into. Returns nullptr to mean "do not read right now".
@@ -353,9 +369,8 @@ public:
     static constexpr size_t kMinRecv = 2048;
 
     template <bool kFrontier>
-    [[gnu::always_inline]] char* read_space_impl(
-            size_t want, size_t& out_avail, bool may_grow,
-            uint64_t query_limit, uint64_t queued) {
+    [[gnu::always_inline]] char* read_space_impl(size_t want, size_t& out_avail, bool may_grow,
+                                                 uint64_t query_limit, uint64_t queued) {
         size_t avail = rcap_ - rlen_;
         // Past the soft cap, growth continues ONLY while the entire buffer is one incomplete
         // command (rpos_ == 0 after the quiescence reset: nothing parsed, nothing in flight --
@@ -363,8 +378,8 @@ public:
         // Offer one byte beyond the limit to distinguish equality (legal) from overflow.
         // Parsed bytes still pinned by workers are not pending input. Queued MULTI argv is.
         const uint64_t remaining = queued < query_limit ? query_limit - queued : 0;
-        size_t hard_cap = std::min<uint64_t>(kRbufHardCap,
-            (kFrontier ? query_buffer_pos() : rpos_) + remaining + 1);
+        size_t hard_cap = std::min<uint64_t>(
+            kRbufHardCap, (kFrontier ? query_buffer_pos() : rpos_) + remaining + 1);
         // epoll/TLS drain reads before parsing. Stop them at the inline frontier so a
         // continuously readable peer cannot postpone the protocol error until the qbuf cap.
         if (rpos_ < rlen_ && rbuf_[rpos_] != '*')
@@ -382,7 +397,11 @@ public:
                     return read_space_refined(want, out_avail, may_grow, query_limit, queued);
             }
             char* n = static_cast<char*>(std::realloc(rbuf_, ncap));
-            if (n) { rbuf_ = n; rcap_ = ncap; avail = rcap_ - rlen_; }
+            if (n) {
+                rbuf_ = n;
+                rcap_ = ncap;
+                avail = rcap_ - rlen_;
+            }
         }
         if constexpr (kFrontier) {
             avail = std::min(avail, hard_cap > rlen_ ? hard_cap - rlen_ : 0);
@@ -400,14 +419,14 @@ public:
         out_avail = avail;
         return rbuf_ + rlen_;
     }
-    [[gnu::noinline, gnu::cold]] char* read_space_refined(
-            size_t want, size_t& out_avail, bool may_grow,
-            uint64_t query_limit, uint64_t queued) {
+    [[gnu::noinline, gnu::cold]] char* read_space_refined(size_t want, size_t& out_avail,
+                                                          bool may_grow, uint64_t query_limit,
+                                                          uint64_t queued) {
         return read_space_impl<true>(want, out_avail, may_grow, query_limit, queued);
     }
     char* read_space(size_t want, size_t& out_avail, bool may_grow,
-                    [[maybe_unused]] uint64_t proto_max_bulk_len = 512ull * 1024 * 1024,
-                    uint64_t query_limit = 1024ull * 1024 * 1024, uint64_t queued = 0) {
+                     [[maybe_unused]] uint64_t proto_max_bulk_len = 512ull * 1024 * 1024,
+                     uint64_t query_limit = 1024ull * 1024 * 1024, uint64_t queued = 0) {
         return read_space_impl<false>(want, out_avail, may_grow, query_limit, queued);
     }
     void commit_read(size_t n) { rlen_ += static_cast<uint32_t>(n); }
@@ -431,7 +450,6 @@ public:
         if (rest && rpos_) std::memmove(rbuf_, rbuf_ + rpos_, rest);
         rlen_ = rest;
         rpos_ = 0;
-
     }
 
     // ---- the ROB -------------------------------------------------------------------------------
@@ -465,21 +483,21 @@ public:
     // belong to the op at the head of this very drain (see the direct-reply note in io_loop).
     char* reserve_fill(size_t len) { return fill_buf().reserve(len); }
 
-    bool     has_pending_fill() const { return buf_[fill_].size() > 0; }
+    bool has_pending_fill() const { return buf_[fill_].size() > 0; }
     uint64_t wsent() const { return wsent_; }
-    void     commit_write(size_t n) {
+    void commit_write(size_t n) {
         wsent_ += n;
         if (obuf_tracking_) {
             if (n > obuf_bytes_) std::abort();
             obuf_bytes_ -= n;
         }
     }
-    bool     write_drained() const { return wsent_ >= buf_[fill_ ^ 1].size(); }
+    bool write_drained() const { return wsent_ >= buf_[fill_ ^ 1].size(); }
 
     // Promote the fill buffer to be the send buffer. Only legal when no send is outstanding, which
     // is the caller's invariant (send_inflight()).
     void swap_buffers() {
-        buf_[fill_ ^ 1].clear();      // old send buffer is fully written; recycle it as the next fill
+        buf_[fill_ ^ 1].clear();  // old send buffer is fully written; recycle it as the next fill
         fill_ ^= 1;
         wsent_ = 0;
     }
@@ -498,7 +516,10 @@ public:
     // ahead of every new segment.
     void seal_fill_segment() {
         SmallBuf<kWbufInline>& b = fill_buf();
-        if (!b.empty()) { segments_.append_buf(b.data(), b.size()); b.clear(); }
+        if (!b.empty()) {
+            segments_.append_buf(b.data(), b.size());
+            b.clear();
+        }
     }
     void append_buf_segment(const char* ptr, size_t len) {
         segments_.append_buf(ptr, len);
@@ -561,8 +582,8 @@ public:
         return true;
     }
     uint32_t build_segment_iov(bool& has_borrow, uint32_t& bytes) {
-        const uint32_t n = segments_.build_iov(send_iov_, kMaxSendIov, kMaxSendBytes,
-                                               has_borrow, bytes);
+        const uint32_t n =
+            segments_.build_iov(send_iov_, kMaxSendIov, kMaxSendBytes, has_borrow, bytes);
         std::memset(&send_msg_, 0, sizeof(send_msg_));
         send_msg_.msg_iov = send_iov_;
         send_msg_.msg_iovlen = n;
@@ -597,8 +618,7 @@ public:
     uint64_t obuf_bytes() const { return obuf_bytes_; }
     void start_obuf_tracking() {
         if (obuf_tracking_) return;
-        obuf_bytes_ = fill_buf().size() + (send_buf().size() - wsent_) +
-                      segments_.byte_size();
+        obuf_bytes_ = fill_buf().size() + (send_buf().size() - wsent_) + segments_.byte_size();
         obuf_tracking_ = true;
     }
     void stop_obuf_tracking() {
@@ -637,9 +657,17 @@ public:
     // Torn down but not yet freed: still legal to READ while outstanding CQEs retire (it sits on
     // the io thread's deferred-free list), but no longer part of any working set.
     bool dead() const { return dead_; }
-    void mark_dead() { dead_ = true; inline_scanned_ = 0; multibulk_.finish(); }
+    void mark_dead() {
+        dead_ = true;
+        inline_scanned_ = 0;
+        multibulk_.finish();
+    }
     bool closing() const { return closing_; }
-    void mark_closing() { closing_ = true; inline_scanned_ = 0; multibulk_.finish(); }
+    void mark_closing() {
+        closing_ = true;
+        inline_scanned_ = 0;
+        multibulk_.finish();
+    }
 
     // Membership in its io thread's active set, as a FLAG rather than a search; and whether this
     // conn's ready bit fired since io last served it. Plain bools — one thread.
@@ -685,33 +713,43 @@ public:
     bool parse_backpressure() const { return parse_backpressure_ != 0; }
     bool atomic_backpressure() const { return parse_backpressure_ & kAtomicBackpressure; }
     void set_atomic_backpressure(bool v) {
-        if (v) parse_backpressure_ |= kAtomicBackpressure;
-        else parse_backpressure_ &= static_cast<uint8_t>(~kAtomicBackpressure);
+        if (v)
+            parse_backpressure_ |= kAtomicBackpressure;
+        else
+            parse_backpressure_ &= static_cast<uint8_t>(~kAtomicBackpressure);
     }
     bool flip_backpressure() const { return parse_backpressure_ & kFlipBackpressure; }
     void set_flip_backpressure(bool v) {
-        if (v) parse_backpressure_ |= kFlipBackpressure;
-        else parse_backpressure_ &= static_cast<uint8_t>(~kFlipBackpressure);
+        if (v)
+            parse_backpressure_ |= kFlipBackpressure;
+        else
+            parse_backpressure_ &= static_cast<uint8_t>(~kFlipBackpressure);
     }
     bool subscriber_mode() const { return subscriber_mode_; }
     void set_subscriber_mode(bool v) { subscriber_mode_ = v; }
     bool blocked() const { return connection_flags_ & kBlocked; }
     void set_blocked(bool value) {
-        if (value) connection_flags_ |= kBlocked;
-        else connection_flags_ &= static_cast<uint8_t>(~kBlocked);
+        if (value)
+            connection_flags_ |= kBlocked;
+        else
+            connection_flags_ &= static_cast<uint8_t>(~kBlocked);
     }
     bool resp3() const { return connection_flags_ & kResp3; }
     void set_resp3(bool value) {
-        if (value) connection_flags_ |= kResp3;
-        else connection_flags_ &= static_cast<uint8_t>(~kResp3);
+        if (value)
+            connection_flags_ |= kResp3;
+        else
+            connection_flags_ &= static_cast<uint8_t>(~kResp3);
     }
     // CLIENT NO-TOUCH. Bit 4 was free in this byte AND is ignored by Op::route_flags_, so the
     // connection's answer reaches every operation through the store op_route_flags() already
     // makes -- no new field, no new load, no growth of the footprint-locked Client.
     bool no_touch() const { return connection_flags_ & kNoTouch; }
     void set_no_touch(bool value) {
-        if (value) connection_flags_ |= kNoTouch;
-        else connection_flags_ &= static_cast<uint8_t>(~kNoTouch);
+        if (value)
+            connection_flags_ |= kNoTouch;
+        else
+            connection_flags_ &= static_cast<uint8_t>(~kNoTouch);
     }
     // Bit 2 deliberately matches Op::route_flags_'s Resp3 assignment. Passing the byte through
     // Op::reset folds protocol capture into the ROB's existing flags store: RESP2 pays one load,
@@ -734,9 +772,7 @@ public:
     // the executor-facing tail; the signed 1984-byte Client footprint remains unchanged.
     MultiSession* multi_session() const { return multi_session_; }
     void set_multi_session(MultiSession* state) { multi_session_ = state; }
-    uint64_t watch_generation() const {
-        return watch_generation_.load(std::memory_order_acquire);
-    }
+    uint64_t watch_generation() const { return watch_generation_.load(std::memory_order_acquire); }
     uint64_t next_watch_generation() {
         return watch_generation_.fetch_add(1, std::memory_order_acq_rel) + 1;
     }
@@ -762,19 +798,18 @@ public:
     // no new claim can ever be made (no op will complete again), so requiring it false here is
     // race-free.
     bool safe_to_release() {
-        return rob_.quiesced() &&
-               !recv_armed_ && !send_inflight_ &&        // the KERNEL holds no pointer into us
+        return rob_.quiesced() && !recv_armed_ &&
+               !send_inflight_ &&  // the KERNEL holds no pointer into us
                !retire_queued_.load(std::memory_order_acquire) &&
                watched_refs_.load(std::memory_order_acquire) == 0;
     }
     bool migration_protocol_idle() const {
         // Ordinary unread input and admission/FLIP backpressure move with the Client.
-        return rob_.quiesced() &&
-               !send_inflight_ && !serve_pending_ &&
+        return rob_.quiesced() && !send_inflight_ && !serve_pending_ &&
                !retire_queued_.load(std::memory_order_acquire) &&
-               watched_refs_.load(std::memory_order_acquire) == 0 &&
-               barrier_owners_ == 0 && atomic_groups_io_ == 0 && !blocked() &&
-               multi_session_ == nullptr && nothing_to_write();
+               watched_refs_.load(std::memory_order_acquire) == 0 && barrier_owners_ == 0 &&
+               atomic_groups_io_ == 0 && !blocked() && multi_session_ == nullptr &&
+               nothing_to_write();
     }
     // FLIP alone may carry durable session/WATCH state after the global drains.
     // Definitions live beside MultiSession; LB and lifetime predicates stay unchanged.
@@ -788,11 +823,9 @@ public:
         // Global dispatch is paused, but connections which remain on this IO may retain durable
         // owner-local modes (subscriptions, WATCH/MULTI session metadata, tracking). Only work
         // which can still touch an executor, ROB pointer, output borrow, or barrier must drain.
-        return rob_.quiesced() &&
-               !send_inflight_ && !serve_pending_ &&
-               !retire_queued_.load(std::memory_order_acquire) &&
-               barrier_owners_ == 0 && atomic_groups_io_ == 0 && !blocked() &&
-               nothing_to_write();
+        return rob_.quiesced() && !send_inflight_ && !serve_pending_ &&
+               !retire_queued_.load(std::memory_order_acquire) && barrier_owners_ == 0 &&
+               atomic_groups_io_ == 0 && !blocked() && nothing_to_write();
     }
 
     // Set by a worker before it tells the owning IO thread this client has ops to retire; cleared by
@@ -826,68 +859,67 @@ public:
     static constexpr size_t atomic_groups_io_offset();
     static constexpr size_t inline_scanned_offset();
 
-
 private:
     friend class IdleBuffers;
     // --- io-hot scalars, packed: touched together on every pass ---------------------------------
     friend class r7::ShadowLongIndex;
-    int       fd_   = -1;
-    uint32_t  rlen_ = 0;          // bytes received
-    uint32_t  rpos_ = 0;          // bytes parsed
-    uint32_t  last_interaction_s_ = 0; // monotonic whole seconds; occupies the rbuf_ alignment hole
-    char*     rbuf_ = nullptr;
-    size_t    rcap_ = 0;
+    int fd_ = -1;
+    uint32_t rlen_ = 0;                // bytes received
+    uint32_t rpos_ = 0;                // bytes parsed
+    uint32_t last_interaction_s_ = 0;  // monotonic whole seconds; occupies the rbuf_ alignment hole
+    char* rbuf_ = nullptr;
+    size_t rcap_ = 0;
     // wsent_ accumulates across resubmits of ONE send buffer, and that buffer is bounded only by
     // client-output-buffer-limit (0 = unlimited by default, as in redis): a client that pipelines
     // large GETs and never reads grows it past 4GB. A 32-bit cursor then wrapped, write_drained()
     // never held, and submit_legacy resent from the wrapped offset -- garbage on the wire instead
     // of memory growth. 64-bit, paid for by fill_ shrinking to the 0/1 index it always was, so the
     // io-hot line keeps its layout (offsets 32..47 are the same eight-plus-eight bytes).
-    uint64_t  wsent_ = 0;         // bytes of the SEND buffer already written
-    uint8_t   fill_  = 0;         // index of the buffer replies append to
-    bool      recv_armed_    = false;
-    bool      send_inflight_ = false;
-    bool      segmented_send_ = false;
-    uint32_t  send_requested_ = 0;
-    bool      serve_pending_ = false;
-    bool      in_active_     = false;
-    bool      closing_       = false;
-    bool      dead_          = false;
+    uint64_t wsent_ = 0;  // bytes of the SEND buffer already written
+    uint8_t fill_ = 0;    // index of the buffer replies append to
+    bool recv_armed_ = false;
+    bool send_inflight_ = false;
+    bool segmented_send_ = false;
+    uint32_t send_requested_ = 0;
+    bool serve_pending_ = false;
+    bool in_active_ = false;
+    bool closing_ = false;
+    bool dead_ = false;
     // BarrierOwner mask, not a bool. Same byte, same offset, same alignment: it occupies the slot
     // the bool held inside the FULL 48..55 bool run (connection_flags_ is static_asserted at 55
     // below), so the io-hot head does not move and sizeof(Client) is unchanged. Widening it past
     // uint8_t would displace connection_flags_ and grow the 64-byte-aligned Client -- a seventh
     // owner takes the one spare bit (1u << 6), it does not grow the field.
-    uint8_t   barrier_owners_ = 0;
+    uint8_t barrier_owners_ = 0;
     static constexpr uint8_t kAtomicBackpressure = 1u << 0;
     static constexpr uint8_t kFlipBackpressure = 1u << 1;
-    uint8_t   parse_backpressure_ = 0;
-    bool      subscriber_mode_ = false;  // IO-owned; consumes existing alignment padding
+    uint8_t parse_backpressure_ = 0;
+    bool subscriber_mode_ = false;  // IO-owned; consumes existing alignment padding
     // The former blocked_ bool is a one-byte flag cell. RESP3 shares it instead of extending the
     // already-full 48..55 bool run and moving id_ (which would grow the 64-byte-aligned Client).
     static constexpr uint8_t kBlocked = 1u << 7;
     static constexpr uint8_t kResp3 = 1u << 2;
     static constexpr uint8_t kNoTouch = 1u << 4;
-    uint8_t   connection_flags_ = 0;
+    uint8_t connection_flags_ = 0;
     // Output accounting is rewritten on every reply append while a client output limit is armed.
     // It sits here, on the io-private hot line, so that write never invalidates the executor-
     // facing tail line it used to share with wb_slot_.
-    uint64_t  obuf_bytes_ = 0;          // 56..63: fill + unsent send + segment bytes
+    uint64_t obuf_bytes_ = 0;  // 56..63: fill + unsent send + segment bytes
 
     // --- io-only bookkeeping (line 1: the parser reads session_, nothing else touches it) ------
     // The per-connection atomic-group count moves at dispatch and retire of every atomic
     // multi-key command, io-side only. Same rule as obuf_bytes_: io's per-op writes stay off the
     // line executors read on every completion.
-    uint32_t  atomic_groups_io_ = 0;    // 64..67
-    Session   session_;                 // 68..71
-    uint8_t   wb_deferrals_ = 0;         // 72: existing IO-only padding before ROB
-    uint32_t  inline_scanned_ = 0;       // 76..79: cursor relative to rpos_; existing padding
+    uint32_t atomic_groups_io_ = 0;  // 64..67
+    Session session_;                // 68..71
+    uint8_t wb_deferrals_ = 0;       // 72: existing IO-only padding before ROB
+    uint32_t inline_scanned_ = 0;    // 76..79: cursor relative to rpos_; existing padding
     // R7-only IO state, inside the existing 80..127 alignment hole. Deliberately
     // uninitialized here: the armed parser initializes at dispatch_id == 0.
     // Ordinary Client construction and every reorder=0 path keep their bytes.
-    uint64_t  r7_long_slots_;
-    uint64_t  r7_long_newest_;
-    RespFrontier multibulk_;            // 96..127: IO-only alignment hole
+    uint64_t r7_long_slots_;
+    uint64_t r7_long_newest_;
+    RespFrontier multibulk_;  // 96..127: IO-only alignment hole
 
     // --- the ROB (manages its own cross-thread layout) ------------------------------------------
     Rob<kRobWindow> rob_;
@@ -898,8 +930,8 @@ private:
     // sendmsg reads both the iovec array and msghdr asynchronously, so both live with the Client.
     static constexpr uint32_t kMaxSendIov = 16;
     SegmentQueue<8> segments_;
-    iovec           send_iov_[kMaxSendIov] = {};
-    msghdr          send_msg_ = {};
+    iovec send_iov_[kMaxSendIov] = {};
+    msghdr send_msg_ = {};
 
     // --- the executor-facing line: READ by executors on every completion, written per op by
     // nobody. notify_sender loads ifid_thread_ and wb_slot_ for every completed op, and id_ for
@@ -909,19 +941,19 @@ private:
     // per-op io writes that used to share this line -- obuf_bytes_ (per append under an armed
     // output limit) and atomic_groups_io_ (per atomic multi-key op) -- moved to io-private
     // lines above; the static_asserts after the class pin both facts.
-    alignas(64) std::atomic<bool>     retire_queued_{false};   // 1920
-    std::atomic<uint32_t> wb_slot_{kNoWbSlot};                 // 1924
-    std::atomic<uint32_t> ifid_thread_{0};                     // 1928
-    MultiSession* multi_session_ = nullptr;                    // 1936
-    std::atomic<uint64_t> watch_generation_{0};                // 1944
-    std::atomic<uint32_t> watched_refs_{0};                    // 1952
-    std::atomic<bool> watch_dirty_{false};                     // 1956
-    uint64_t id_ = 0;                                          // 1960
-    uint32_t obuf_soft_since_s_ = 0;   // 1968: cron-written only; 0 = not continuously over soft
-    bool obuf_tracking_ = false;        // 1972: flips once per arm/disarm, never per append
-    bool authenticated_ = false;        // 1973: requirepass state
-    uint32_t acl_user_idx_ = 0;          // 1976: ACL user handle
-    uint32_t tls_slot_ = kNoTlsSlot;     // 1980: out-of-line TlsConn handle
+    alignas(64) std::atomic<bool> retire_queued_{false};  // 1920
+    std::atomic<uint32_t> wb_slot_{kNoWbSlot};            // 1924
+    std::atomic<uint32_t> ifid_thread_{0};                // 1928
+    MultiSession* multi_session_ = nullptr;               // 1936
+    std::atomic<uint64_t> watch_generation_{0};           // 1944
+    std::atomic<uint32_t> watched_refs_{0};               // 1952
+    std::atomic<bool> watch_dirty_{false};                // 1956
+    uint64_t id_ = 0;                                     // 1960
+    uint32_t obuf_soft_since_s_ = 0;  // 1968: cron-written only; 0 = not continuously over soft
+    bool obuf_tracking_ = false;      // 1972: flips once per arm/disarm, never per append
+    bool authenticated_ = false;      // 1973: requirepass state
+    uint32_t acl_user_idx_ = 0;       // 1976: ACL user handle
+    uint32_t tls_slot_ = kNoTlsSlot;  // 1980: out-of-line TlsConn handle
 };
 
 constexpr size_t Client::wb_deferrals_offset() { return offsetof(Client, wb_deferrals_); }

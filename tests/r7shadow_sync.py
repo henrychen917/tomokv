@@ -163,7 +163,7 @@ def envelopes():
         declarations[owner] = '\n'.join(decls)
     bodies.append(base.rename(function(boot, 'IoLoop::run_fused', False),
                              {'run_fused': 'run_fused_reordered', 'run_loop': 'r7_run_loop'}))
-    bodies.append('namespace {\n' + function(boot, 'pin_fused_thread', False) + '\n}')
+    bodies.append('namespace {\n' + base.rename(function(boot, 'pin_fused_thread', False), {}) + '\n}')
     bodies.append('static ' + base.rename(function(boot, 'run_fused_server', False),
                     {'run_fused_server': 'run_fused_server_reordered', 'run_fused': 'run_fused_reordered'}))
     generated = '\n\n'.join(bodies) + '\n'

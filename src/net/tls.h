@@ -110,8 +110,10 @@ public:
         return wanted == TlsOp::WantWrite ? write_poll_armed_ : read_poll_armed_;
     }
     void set_poll_armed(TlsOp wanted, bool armed) {
-        if (wanted == TlsOp::WantWrite) write_poll_armed_ = armed;
-        else read_poll_armed_ = armed;
+        if (wanted == TlsOp::WantWrite)
+            write_poll_armed_ = armed;
+        else
+            read_poll_armed_ = armed;
     }
     bool any_poll_armed() const { return read_poll_armed_ || write_poll_armed_; }
 

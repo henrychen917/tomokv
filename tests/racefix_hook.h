@@ -19,7 +19,8 @@ inline std::atomic<uint64_t> serial{0}, parked_at{0}, other_arm_at{0}, final_at{
 
 inline bool before_store(uint32_t armed) {
     if (armed || syscall(SYS_gettid) != chosen_tid.load(std::memory_order_acquire) ||
-        stage.load(std::memory_order_acquire) != 1) return false;
+        stage.load(std::memory_order_acquire) != 1)
+        return false;
     captured.store(armed, std::memory_order_relaxed);
     parked_at.store(serial.fetch_add(1) + 1, std::memory_order_relaxed);
     stage.store(2, std::memory_order_release);
@@ -47,7 +48,7 @@ inline void after_store(uint32_t armed) {
     }
 }
 
-template<class Server>
+template <class Server>
 inline void command(Server& server, uint32_t worker, Op& op) {
     auto sink = op.sink();
     if (op.argc() == 4 && op.arg(2).eq_icase("arm") &&

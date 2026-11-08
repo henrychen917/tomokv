@@ -13,4 +13,4 @@ void latency_tracking_histogram(Op& op);
 void latency_tracking_info(std::string& out, const std::vector<double>& percentiles, bool enabled);
 void latency_tracking_reset();
 uint64_t latency_tracking_allocated_histograms();
-} // namespace tomo
+}  // namespace tomo

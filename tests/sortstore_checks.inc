@@ -61,8 +61,10 @@ void sortstore_keys(const SortstoreCase& row) {
                       "execution accepts valid / rejects malformed argv");
     std::vector<unsigned> parsed{1};
     if (options.store) parsed.push_back(options.store_arg);
-    if (invalid) parsed = row.keys;  // Redis GETKEYS is deliberately not a syntax validator.
-    else sortstore_require(parsed == row.keys, row, "execution key indexes");
+    if (invalid)
+        parsed = row.keys;  // Redis GETKEYS is deliberately not a syntax validator.
+    else
+        sortstore_require(parsed == row.keys, row, "execution key indexes");
 
     for (const char* wrapper : {"", "GETKEYS", "GETKEYSANDFLAGS"}) {
         const unsigned offset = *wrapper ? 2 : 0;
@@ -75,7 +77,8 @@ void sortstore_keys(const SortstoreCase& row) {
         sortstore_require(spec != nullptr, row, "metadata resolves");
         std::vector<CommandKeyMetadata> keys;
         sortstore_require(command_metadata_collect_keys(metadata, offset, *spec, keys) ==
-                          CommandMetadataKeysResult::Success, row, "metadata extracts keys");
+                              CommandMetadataKeysResult::Success,
+                          row, "metadata extracts keys");
         std::vector<unsigned> extracted;
         for (const auto& key : keys) extracted.push_back(key.argument - offset);
         if (extracted != parsed) {
@@ -87,9 +90,8 @@ void sortstore_keys(const SortstoreCase& row) {
         }
         sortstore_require(extracted == parsed, row, "metadata/execution key indexes");
         for (size_t i = 0; i < keys.size(); ++i) {
-            const uint16_t expected = i == 0
-                ? sortstore_flag("RO") | sortstore_flag("access")
-                : sortstore_flag("OW") | sortstore_flag("update");
+            const uint16_t expected = i == 0 ? sortstore_flag("RO") | sortstore_flag("access")
+                                             : sortstore_flag("OW") | sortstore_flag("update");
             sortstore_require(keys[i].flags == expected, row, "key intent flags");
         }
     }
@@ -99,22 +101,23 @@ void sortstore_stamp(Server& server, const DatabaseMap::Map& map, const Sortstor
     for (bool supplied : {false, true}) {
         Op op;
         sortstore_setup(op, row.args);
-        if (supplied) multidb_stamp(server, op, 1, map);
-        else multidb_stamp(server, op, 1);
+        if (supplied)
+            multidb_stamp(server, op, 1, map);
+        else
+            multidb_stamp(server, op, 1);
         sortstore_require(op.db == 1 && op.physical_db == 9 && !op.replied(), row,
                           "selected logical 1 maps to physical 9");
         bool namespaces = true;
         for (unsigned i = 0; i < row.args.size(); ++i) {
-            const uint8_t expected = std::find(row.keys.begin(), row.keys.end(), i) != row.keys.end()
-                ? 9 : 0;
+            const uint8_t expected =
+                std::find(row.keys.begin(), row.keys.end(), i) != row.keys.end() ? 9 : 0;
             if (op.arg(i).ns != expected) {
-                std::fprintf(stderr, "%s argv[%u]: ns=%u expected=%u (%s map)\n",
-                             row.name.c_str(), i, op.arg(i).ns, expected,
-                             supplied ? "supplied" : "published");
+                std::fprintf(stderr, "%s argv[%u]: ns=%u expected=%u (%s map)\n", row.name.c_str(),
+                             i, op.arg(i).ns, expected, supplied ? "supplied" : "published");
                 namespaces = false;
             }
-            sortstore_require(op.arg(i).p == row.args[i].data() &&
-                              op.arg(i).sv() == row.args[i], row, "argv bytes/pointers unchanged");
+            sortstore_require(op.arg(i).p == row.args[i].data() && op.arg(i).sv() == row.args[i],
+                              row, "argv bytes/pointers unchanged");
         }
         sortstore_require(namespaces, row, "only actual keys stamped; LIMIT untouched");
     }

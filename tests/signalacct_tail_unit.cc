@@ -10,19 +10,27 @@
 
 struct Clock {
     inline static uint64_t time = 1000, calls = 0;
-    __attribute__((noipa)) static uint64_t now() { ++calls; return time; }
+    __attribute__((noipa)) static uint64_t now() {
+        ++calls;
+        return time;
+    }
 };
 using Tenure = tomo::IoTenure<Clock>;
-struct Cut { uint64_t time, idle; };
+struct Cut {
+    uint64_t time, idle;
+};
 constexpr unsigned count = 20000;
 using Trace = std::array<Cut, count>;
 
 static void require(bool ok, const char* why) {
-    if (!ok) { std::fprintf(stderr, "FAIL signalacct tail: %s\n", why); std::exit(1); }
+    if (!ok) {
+        std::fprintf(stderr, "FAIL signalacct tail: %s\n", why);
+        std::exit(1);
+    }
 }
 
 __attribute__((noipa)) uint64_t signalacct_tail_steps(Tenure& tenure, tomo::LoopSignals& sig,
-                                                    const Trace& trace) {
+                                                      const Trace& trace) {
     uint64_t sum = 0;
     for (const Cut& cut : trace) {
         Clock::time = cut.time;
@@ -62,7 +70,8 @@ int main(int argc, char** argv) {
             idle += parked;
             expected_sum += time;
         }
-        Clock::time = 1000; Clock::calls = 0;
+        Clock::time = 1000;
+        Clock::calls = 0;
         tomo::LoopSignals sig;
         Tenure tenure(sig);
         unsigned publications = 0;
@@ -89,7 +98,8 @@ int main(int argc, char** argv) {
         }
         // Count only the common driver and production pass helper. Construction,
         // conservation assertions, counter syscalls and finish are outside it.
-        Clock::time = 1000; Clock::calls = 0;
+        Clock::time = 1000;
+        Clock::calls = 0;
         tomo::LoopSignals measured_sig;
         Tenure measured(measured_sig);
         const int fd = instruction_counter();
@@ -97,7 +107,9 @@ int main(int argc, char** argv) {
         require(ioctl(fd, PERF_EVENT_IOC_ENABLE, 0) == 0, "enable instruction counter");
         const uint64_t sum = signalacct_tail_steps(measured, measured_sig, trace);
         require(ioctl(fd, PERF_EVENT_IOC_DISABLE, 0) == 0, "disable instruction counter");
-        struct { uint64_t instructions, enabled, running; } result{};
+        struct {
+            uint64_t instructions, enabled, running;
+        } result{};
         require(read(fd, &result, sizeof(result)) == sizeof(result), "read instruction counter");
         close(fd);
         require(result.enabled && result.enabled == result.running,
@@ -107,10 +119,10 @@ int main(int argc, char** argv) {
         const auto end = measured.finish(false, true);
         require(end.busy_ns == record.busy_ns && end.idle_ns == record.idle_ns,
                 "counted trace changed accounting");
-        std::printf("{\"trace\":\"%s\",\"passes\":%u,\"clocks\":%llu,\"publications\":%u,"
-                    "\"instructions\":%llu,\"instructions_per_pass\":%.6f}\n",
-                    uneven ? "uneven" : "uniform", count,
-                    (unsigned long long)Clock::calls, publications,
-                    (unsigned long long)result.instructions, double(result.instructions) / count);
+        std::printf(
+            "{\"trace\":\"%s\",\"passes\":%u,\"clocks\":%llu,\"publications\":%u,"
+            "\"instructions\":%llu,\"instructions_per_pass\":%.6f}\n",
+            uneven ? "uneven" : "uniform", count, (unsigned long long)Clock::calls, publications,
+            (unsigned long long)result.instructions, double(result.instructions) / count);
     }
 }

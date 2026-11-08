@@ -29,11 +29,19 @@ namespace {
 }
 
 struct Reference {
-    struct Item { uint32_t slot; uint64_t stamp; bool sealed; };
+    struct Item {
+        uint32_t slot;
+        uint64_t stamp;
+        bool sealed;
+    };
     std::deque<Item> items;
     void push(uint32_t slot) { items.push_back({slot, 0, false}); }
     void seal(uint64_t stamp) {
-        for (Item& item : items) if (!item.sealed) { item.sealed = true; item.stamp = stamp; }
+        for (Item& item : items)
+            if (!item.sealed) {
+                item.sealed = true;
+                item.stamp = stamp;
+            }
     }
     // Slots the per-entry rule would release, oldest first.
     std::vector<uint32_t> releasable(uint64_t floor) const {
@@ -60,7 +68,8 @@ void test_basic() {
     if (!ring.empty() || ring.full() || ring.has_sealed()) fail("fresh ring state");
     for (uint32_t i = 0; i < 10; i++)
         if (ring.push() != i) fail("push returns sequential slots", i);
-    if (ring.count != 10 || ring.unsealed != 10) fail("count after push", ring.count, ring.unsealed);
+    if (ring.count != 10 || ring.unsealed != 10)
+        fail("count after push", ring.count, ring.unsealed);
 
     std::vector<uint32_t> got;
     auto collect = [&](uint32_t slot) { got.push_back(slot); };
@@ -71,7 +80,8 @@ void test_basic() {
     if (ring.seal(101) != 0) fail("empty seal is a no-op");
     if (ring.drain_below(100, collect) != 0 || !got.empty()) fail("floor == stamp keeps batch");
     if (ring.drain_below(101, collect) != 10) fail("floor > stamp releases batch");
-    for (uint32_t i = 0; i < 10; i++) if (got[i] != i) fail("FIFO order", got[i], i);
+    for (uint32_t i = 0; i < 10; i++)
+        if (got[i] != i) fail("FIFO order", got[i], i);
     if (!ring.empty() || ring.has_sealed()) fail("empty after drain");
 
     for (uint32_t i = 0; i < 5; i++) ring.push();
@@ -79,7 +89,8 @@ void test_basic() {
     for (uint32_t i = 0; i < 3; i++) ring.push();
     got.clear();
     if (ring.drain_all(collect) != 8 || got.size() != 8) fail("drain_all releases sealed+unsealed");
-    for (uint32_t i = 0; i < 8; i++) if (got[i] != 10 + i) fail("drain_all order", got[i], 10 + i);
+    for (uint32_t i = 0; i < 8; i++)
+        if (got[i] != 10 + i) fail("drain_all order", got[i], 10 + i);
     if (!ring.empty() || ring.unsealed || ring.has_sealed()) fail("state after drain_all");
 }
 
@@ -115,7 +126,11 @@ void test_wraparound_and_full() {
             next_slot = (next_slot + 1) & (ReadLocalRetireRing::kCapacity - 1);
             ref.push(slot);
         }
-        if (rng() % 3 == 0) { ring.seal(epoch); ref.seal(epoch); epoch++; }
+        if (rng() % 3 == 0) {
+            ring.seal(epoch);
+            ref.seal(epoch);
+            epoch++;
+        }
         if (rng() % 2 == 0) {
             // Random floor in the recent past; sometimes exactly a stamp value.
             const uint64_t floor = epoch > 5 ? epoch - (rng() % 5) : 0;
@@ -126,12 +141,17 @@ void test_wraparound_and_full() {
             expect_slots(got, want, "random drain matches per-entry reference");
             ref.pop(static_cast<uint32_t>(want.size()));
         }
-        if (ring.count != ref.items.size()) fail("count tracks reference", ring.count, ref.items.size());
+        if (ring.count != ref.items.size())
+            fail("count tracks reference", ring.count, ref.items.size());
     }
     // Fill to capacity, then release everything through sealed batches.
-    while (!ring.full()) { ref.push(ring.push()); }
+    while (!ring.full()) {
+        ref.push(ring.push());
+    }
     if (ring.count != ReadLocalRetireRing::kCapacity) fail("full count");
-    ring.seal(epoch); ref.seal(epoch); epoch++;
+    ring.seal(epoch);
+    ref.seal(epoch);
+    epoch++;
     got.clear();
     const std::vector<uint32_t> want = ref.releasable(epoch);
     if (ring.drain_below(epoch, [&](uint32_t s) { got.push_back(s); }) != want.size())
@@ -149,26 +169,32 @@ void test_batch_fold() {
     // kBatchCapacity single-entry batches fill the batch ring.
     for (uint32_t i = 0; i < ReadLocalRetireRing::kBatchCapacity; i++) {
         ref.push(ring.push());
-        ring.seal(epoch); ref.seal(epoch); epoch++;
+        ring.seal(epoch);
+        ref.seal(epoch);
+        epoch++;
     }
     if (ring.batch_count != ReadLocalRetireRing::kBatchCapacity) fail("batch ring full");
     // Three more seals fold into the newest batch.
     for (uint32_t i = 0; i < 3; i++) {
-        ref.push(ring.push()); ref.push(ring.push());
-        ring.seal(epoch); ref.seal(epoch); epoch++;
+        ref.push(ring.push());
+        ref.push(ring.push());
+        ring.seal(epoch);
+        ref.seal(epoch);
+        epoch++;
     }
     if (ring.batch_count != ReadLocalRetireRing::kBatchCapacity) fail("fold keeps batch count");
     const uint64_t newest_stamp = epoch - 1;
     // Floor above the pre-fold stamp of the newest original batch but below the folded stamp: the
     // reference would release that batch's single entry; the folded ring must NOT (delay only).
     std::vector<uint32_t> got;
-    const uint64_t mid_floor = 1000 + ReadLocalRetireRing::kBatchCapacity;   // > last original stamp
+    const uint64_t mid_floor = 1000 + ReadLocalRetireRing::kBatchCapacity;  // > last original stamp
     const std::vector<uint32_t> want = ref.releasable(mid_floor);
     ring.drain_below(mid_floor, [&](uint32_t s) { got.push_back(s); });
     if (got.size() > want.size()) fail("fold released early", got.size(), want.size());
     if (got.size() != ReadLocalRetireRing::kBatchCapacity - 1)
         fail("all unfolded batches released", got.size());
-    for (size_t i = 0; i < got.size(); i++) if (got[i] != want[i]) fail("fold order", got[i], want[i]);
+    for (size_t i = 0; i < got.size(); i++)
+        if (got[i] != want[i]) fail("fold order", got[i], want[i]);
     ref.pop(static_cast<uint32_t>(got.size()));
     got.clear();
     if (ring.drain_below(newest_stamp, [&](uint32_t s) { got.push_back(s); }) != 0)

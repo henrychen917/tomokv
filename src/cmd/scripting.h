@@ -27,21 +27,21 @@ class FlatStore;
 class Op;
 
 enum class ScriptArgStyle : uint8_t {
-    Globals,   // EVAL: KEYS/ARGV are installed as globals; the chunk is called with no arguments.
-    Params,    // FCALL: the callback is invoked as callback(keys, args).
+    Globals,  // EVAL: KEYS/ARGV are installed as globals; the chunk is called with no arguments.
+    Params,   // FCALL: the callback is invoked as callback(keys, args).
 };
 
 // One script/function activation. `tag` is the identity Redis prints in its error tail
 // ("... script: <tag>, on @<chunk>:<line>."): the sha1 for EVAL, the function name for FCALL.
 struct ScriptInvocation {
-    uint32_t       key_first = 0;
-    uint32_t       key_count = 0;
-    ScriptArgStyle style     = ScriptArgStyle::Globals;
-    bool           readonly  = false;   // reject Write commands from redis.call/pcall
-    bool           memory_admitted = false; // shebang EVAL uses FUNCTION-style OOM admission
-    bool           notify    = false;   // armed keyspace-notification variant entered
-    const char*    chunk     = "user_script";
-    Slice          tag;
+    uint32_t key_first = 0;
+    uint32_t key_count = 0;
+    ScriptArgStyle style = ScriptArgStyle::Globals;
+    bool readonly = false;         // reject Write commands from redis.call/pcall
+    bool memory_admitted = false;  // shebang EVAL uses FUNCTION-style OOM admission
+    bool notify = false;           // armed keyspace-notification variant entered
+    const char* chunk = "user_script";
+    Slice tag;
 };
 
 // The calling thread's lazy interpreter for this API. SCRIPT FLUSH invalidates only EVAL
@@ -72,6 +72,7 @@ public:
     ~FunctionMemoryScope();
     FunctionMemoryScope(const FunctionMemoryScope&) = delete;
     FunctionMemoryScope& operator=(const FunctionMemoryScope&) = delete;
+
 private:
     FlatStore* store_;
     uint64_t previous_ = 0;
@@ -79,7 +80,7 @@ private:
 
 // Per-key cross-script access byte: read=1, completed write=2, admitted FUNCTION=4.
 constexpr uint8_t kScriptFunctionAdmitted = 4;
-constexpr uint8_t kScriptModified = 8; // Redis signalModifiedKey effect, including equal-value SET
+constexpr uint8_t kScriptModified = 8;  // Redis signalModifiedKey effect, including equal-value SET
 
 // Flattens a Lua error string into one RESP-safe line (CR/LF/NUL to spaces, 2 KiB cap).
 std::string script_clean_error(const char* text, size_t length);
@@ -90,28 +91,28 @@ std::string script_clean_error(const char* text, size_t length);
 void script_sync_function_helpers(lua_State* state, uint64_t flush_generation);
 
 struct ScriptStats {
-    uint64_t cached_scripts    = 0;
-    uint64_t compile_hits      = 0;   // per-thread compiled-chunk cache hits
-    uint64_t compile_misses    = 0;   // sha compiled into a thread state for the first time
-    uint64_t flush_generation  = 0;   // SCRIPT FLUSH count; compiled chunks invalidate on change
-    uint64_t state_rebuilds    = 0;   // interpreter states constructed lazily on touched threads
-    uint64_t ro_rejections     = 0;   // write commands refused inside a read-only activation
+    uint64_t cached_scripts = 0;
+    uint64_t compile_hits = 0;      // per-thread compiled-chunk cache hits
+    uint64_t compile_misses = 0;    // sha compiled into a thread state for the first time
+    uint64_t flush_generation = 0;  // SCRIPT FLUSH count; compiled chunks invalidate on change
+    uint64_t state_rebuilds = 0;    // interpreter states constructed lazily on touched threads
+    uint64_t ro_rejections = 0;     // write commands refused inside a read-only activation
     // Keyspace effects applied from inside activations (nested Write rows that answered without an
     // error), and activations that FAILED with at least one such effect standing. The second is the
     // interleave the removed atomic undo log used to reverse; a test that leaves it at zero has not
     // touched the guarded path.
-    uint64_t effect_writes        = 0;
+    uint64_t effect_writes = 0;
     uint64_t failed_after_effects = 0;
 };
 ScriptStats script_stats();
 
 struct FunctionStats {
-    uint64_t libraries       = 0;
-    uint64_t functions       = 0;
-    uint64_t generation      = 0;   // LOAD/DELETE/FLUSH/RESTORE count
-    uint64_t calls           = 0;   // FCALL/FCALL_RO activations that reached a callback
-    uint64_t thread_rebuilds = 0;   // per-thread revision-index synchronizations
-    uint64_t ro_rejections   = 0;   // FCALL_RO refused for a function without no-writes
+    uint64_t libraries = 0;
+    uint64_t functions = 0;
+    uint64_t generation = 0;       // LOAD/DELETE/FLUSH/RESTORE count
+    uint64_t calls = 0;            // FCALL/FCALL_RO activations that reached a callback
+    uint64_t thread_rebuilds = 0;  // per-thread revision-index synchronizations
+    uint64_t ro_rejections = 0;    // FCALL_RO refused for a function without no-writes
 };
 FunctionStats function_stats();
 // Cold snapshot library image. Load compiles the whole image before publishing
@@ -133,8 +134,7 @@ bool script_metadata_write(const Op& op);
 // Execute one admitted callback after EXEC prepares its owner-private versions.
 // False means preparation parked; command errors complete normally with a reply.
 bool script_execute_exec(Shard& shard, Op& op, void* context, bool (*prepare)(void*));
-bool function_execute_exec(Shard& shard, Op& op, void* context,
-                           bool (*prepare)(void*));
+bool function_execute_exec(Shard& shard, Op& op, void* context, bool (*prepare)(void*));
 
 // Cold bridge used by the cross-owner scatter coordinator. Each declared-key byte receives bit 0
 // when a nested command reads it and bit 1 when a nested write completes without an error;

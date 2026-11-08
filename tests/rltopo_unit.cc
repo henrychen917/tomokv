@@ -18,19 +18,33 @@ static unsigned refused_sidecars = 0;
 // allocation entry; successful allocations retain the normal ASAN-aware allocator.
 void* operator new(size_t size, std::align_val_t alignment, const std::nothrow_t&) noexcept {
     if (refuse_sidecar && size == sizeof(tomo::ReadLocalRobState) &&
-            static_cast<size_t>(alignment) == alignof(tomo::ReadLocalRobState)) {
+        static_cast<size_t>(alignment) == alignof(tomo::ReadLocalRobState)) {
         ++refused_sidecars;
         return nullptr;
     }
-    try { return ::operator new(size, alignment); }
-    catch (...) { return nullptr; }
+    try {
+        return ::operator new(size, alignment);
+    } catch (...) {
+        return nullptr;
+    }
 }
 
 namespace tomo {
 struct CoreConcurrencyTest {
     enum class Fault {
-        None, NoFlip, Retry, NoCount, DirtyReply, DropOwner, CorruptReply, NoRetire,
-        KeepChanging, NoOom, WrongArmReason, NoArmFence, NoArmRecovery
+        None,
+        NoFlip,
+        Retry,
+        NoCount,
+        DirtyReply,
+        DropOwner,
+        CorruptReply,
+        NoRetire,
+        KeepChanging,
+        NoOom,
+        WrongArmReason,
+        NoArmFence,
+        NoArmRecovery
     };
     enum class Window { Capture, Copy, Open };
     inline static Fault fault = Fault::None;
@@ -45,9 +59,7 @@ struct CoreConcurrencyTest {
             std::_Exit(1);
         }
     }
-    static Slice slice(const std::string& s) {
-        return {s.data(), static_cast<uint32_t>(s.size())};
-    }
+    static Slice slice(const std::string& s) { return {s.data(), static_cast<uint32_t>(s.size())}; }
     static void flip() {
         if (flips || fault == Fault::NoFlip) return;
         const uint64_t before = changing->read_local_state_acquire();
@@ -56,12 +68,16 @@ struct CoreConcurrencyTest {
                 "writer bracket opened");
         if (!leave_open) {
             guard.reset();
-            require(!FlatStore::read_local_generation_equal(
-                        before, changing->read_local_state_acquire()), "generation advanced");
+            require(!FlatStore::read_local_generation_equal(before,
+                                                            changing->read_local_state_acquire()),
+                    "generation advanced");
         }
         ++flips;
     }
-    static void captured(const FlatStore&) { ++captures; flip(); }
+    static void captured(const FlatStore&) {
+        ++captures;
+        flip();
+    }
 
     struct Fixture {
         Server server;
@@ -70,8 +86,9 @@ struct CoreConcurrencyTest {
         uint32_t owner_id, reader_id;
         int32_t sid;
         std::string key;
-        Fixture(ThreadMode mode, uint32_t databases = 1) : owner_id(mode == ThreadMode::Fused ? 0 : 6),
-                                   reader_id(mode == ThreadMode::Fused ? 7 : 0) {
+        Fixture(ThreadMode mode, uint32_t databases = 1)
+            : owner_id(mode == ThreadMode::Fused ? 0 : 6),
+              reader_id(mode == ThreadMode::Fused ? 7 : 0) {
             cpu_set_t allowed;
             CPU_ZERO(&allowed);
             require(sched_getaffinity(0, sizeof(allowed), &allowed) == 0, "fixture affinity");
@@ -84,9 +101,9 @@ struct CoreConcurrencyTest {
             }
             require(count == 8, "eight allowed CPUs required, no skip");
             require(server.topo_.declare(domain.c_str()), "fixture topology");
-            require(mode == ThreadMode::Fused
-                        ? server.placement_.build_fused(server.topo_, nullptr)
-                        : server.placement_.build_even(server.topo_, 6, 2), "fixture placement");
+            require(mode == ThreadMode::Fused ? server.placement_.build_fused(server.topo_, nullptr)
+                                              : server.placement_.build_even(server.topo_, 6, 2),
+                    "fixture placement");
             require(server.placement_.reserve_runtime_roles(8), "fixture roles");
             Config cfg;
             cfg.thread_mode = mode;
@@ -98,9 +115,10 @@ struct CoreConcurrencyTest {
             require(server.init(cfg), "fixture initialization");
             for (uint32_t tid = 0; tid < server.nthreads(); ++tid) {
                 auto& thread = server.thread(tid);
-                require(mode == ThreadMode::Fused ? thread.init_task_inbox_local_fused()
+                require(mode == ThreadMode::Fused
+                            ? thread.init_task_inbox_local_fused()
                             : thread.init_task_inbox_local(server.placement().ifid_threads(),
-                                                          server.placement().ex_threads()),
+                                                           server.placement().ex_threads()),
                         "fixture task lanes");
             }
             for (auto* loop : {&reader, &owner}) {
@@ -120,16 +138,17 @@ struct CoreConcurrencyTest {
             io.srv_ = &server;
             io.self_ = &server.thread(reader_id);
             io.fused_executor_ = &reader;
-            reader.bind_read_local_demotion(&io,
-                [](void* context, Client* client, const uint64_t* ids,
-                   const ReadLocalFallbackReason* reasons, uint32_t count, uint32_t& demoted) {
+            reader.bind_read_local_demotion(
+                &io, [](void* context, Client* client, const uint64_t* ids,
+                        const ReadLocalFallbackReason* reasons, uint32_t count, uint32_t& demoted) {
                     auto& loop = *static_cast<IoLoop*>(context);
                     if (fault == Fault::DirtyReply) client->rob().at(ids[0]).reply.append("bad", 3);
                     require(client->rob().at(ids[0]).reply.size() == 0,
                             "private reply cleared before demotion");
-                    const bool result = loop.fused_demote_local_read_batch(
-                        client, ids, reasons, count, demoted);
-                    if (fault == Fault::NoCount) loop.self_->read_local_stats().fallback_seq_churn--;
+                    const bool result =
+                        loop.fused_demote_local_read_batch(client, ids, reasons, count, demoted);
+                    if (fault == Fault::NoCount)
+                        loop.self_->read_local_stats().fallback_seq_churn--;
                     return result;
                 });
             sid = server.thread(owner_id).shards().front()->id();
@@ -140,15 +159,18 @@ struct CoreConcurrencyTest {
             require(server.router().shard_of(FlatStore::hash_key(slice(key))) == sid,
                     "bounded fixture key search");
             KvObj* object = kvobj_new_string(slice(key), Slice("value"));
-            require(object && server.shard(sid).store().insert(FlatStore::hash_key(slice(key)), object)
-                        == FlatStore::InsertResult::Inserted, "fixture value");
+            require(object &&
+                        server.shard(sid).store().insert(FlatStore::hash_key(slice(key)), object) ==
+                            FlatStore::InsertResult::Inserted,
+                    "fixture value");
         }
         ~Fixture() {
             guard.reset();
             FlatStore::test_read_local_captured = nullptr;
             ExLoopT<true>::test_local_read_copied_ = nullptr;
             owner.read_local_impl().deferred.drain_shutdown();
-            for (Shard* sh : server.thread(owner_id).shards()) sh->store().configure_read_local(false, {});
+            for (Shard* sh : server.thread(owner_id).shards())
+                sh->store().configure_read_local(false, {});
         }
         Op& enqueue(Client& client, unsigned keys) {
             client.set_id(1);
@@ -208,14 +230,16 @@ struct CoreConcurrencyTest {
         if (state == "integer") value = "-9223372036854775808";
         // Fixture now is 1000; a key is expired only once now > deadline (Redis keyIsExpired).
         const int64_t deadline = state == "expired" ? 999 : state == "ttl-live" ? 1001 : -1;
-        KvObj* object = state == "integer"
-            ? kvobj_new_int(slice(f.key), INT64_MIN)
-            : kvobj_new_string(slice(f.key), slice(value), deadline, state == "persisted");
+        KvObj* object = state == "integer" ? kvobj_new_int(slice(f.key), INT64_MIN)
+                                           : kvobj_new_string(slice(f.key), slice(value), deadline,
+                                                              state == "persisted");
         require(object && store.insert(hash, object) == FlatStore::InsertResult::Inserted,
                 "readreply fixture replacement");
         object->set_eviction_meta(3);
         const Enc encoding = object->encoding();
-        check(encoding == (state == "integer" ? Enc::Int : state == "external" ? Enc::Extern : Enc::Raw),
+        check(encoding == (state == "integer"    ? Enc::Int
+                           : state == "external" ? Enc::Extern
+                                                 : Enc::Raw),
               "requested encoding entered");
         // No concurrent user of this fixture. Restore deliberately invalid header tags below
         // before destruction; the capture and reply implementation still see the real tags.
@@ -224,7 +248,8 @@ struct CoreConcurrencyTest {
         if (state == "missing") require(store.erase(hash, slice(f.key)), "readreply fixture erase");
         Op op;
         require(op.push_arg(Slice(mget ? "MGET" : "GET")) && op.push_arg(slice(f.key)) &&
-                    (!mget || op.push_arg(slice(f.key))), "readreply fixture argv");
+                    (!mget || op.push_arg(slice(f.key))),
+                "readreply fixture argv");
         op.spec = command_lookup(op.arg(0));
         op.hash = hash;
         op.shard = f.sid;
@@ -258,8 +283,7 @@ struct CoreConcurrencyTest {
                                                         mget ? nullptr : &capture);
         // This counts entries into the real GET emission path, including integer replies.
         // The restored-continue mutant must fail here even when its final bytes are correct.
-        check(ExLoopT<true>::test_local_get_reply_attempts_ <= 1,
-              "at most one GET reply attempt");
+        check(ExLoopT<true>::test_local_get_reply_attempts_ <= 1, "at most one GET reply attempt");
         if (state == "invalid" || state == "tail-pending")
             check(flips == 1, "copy window entered exactly once");
         ReadLocalFallbackReason reason = ReadLocalFallbackReason::None;
@@ -269,17 +293,19 @@ struct CoreConcurrencyTest {
         if (state == "pending" || state == "tail-pending" || state == "churn-pending")
             reason = ReadLocalFallbackReason::AtomicPending;
         if (state == "churn") reason = ReadLocalFallbackReason::SeqChurn;
-        if (state == "invalid") reason = mget ? ReadLocalFallbackReason::Generation
-                                              : ReadLocalFallbackReason::SeqChurn;
+        if (state == "invalid")
+            reason = mget ? ReadLocalFallbackReason::Generation : ReadLocalFallbackReason::SeqChurn;
         check(result.fallback == reason, "exact final fallback reason");
         std::string expected;
         if (reason == ReadLocalFallbackReason::None) {
             if (mget) expected = "*2\r\n";
             for (unsigned i = 0; i < (mget ? 2u : 1u); ++i)
-                expected += state == "missing" ? "$-1\r\n"
-                    : "$" + std::to_string(value.size()) + "\r\n" + value + "\r\n";
+                expected += state == "missing"
+                                ? "$-1\r\n"
+                                : "$" + std::to_string(value.size()) + "\r\n" + value + "\r\n";
         }
-        check(std::string(op.reply.data(), op.reply.size()) == expected, "exact private reply bytes");
+        check(std::string(op.reply.data(), op.reply.size()) == expected,
+              "exact private reply bytes");
         check(op.reply_code_ == 0 && op.zc_ptr == nullptr && op.zc_len == 0 && op.zc_shard == -1,
               "reply code and borrowed state cleared");
         const bool success = reason == ReadLocalFallbackReason::None;
@@ -289,7 +315,8 @@ struct CoreConcurrencyTest {
         if (state != "missing" && state != "encoding") {
             // MGET records each accepted value before its outer window closes. GET records
             // access only after final validation; retain this intentional ordering difference.
-            const bool touched = success || (mget && (state == "invalid" || state == "tail-pending"));
+            const bool touched =
+                success || (mget && (state == "invalid" || state == "tail-pending"));
             check(object->eviction_meta() == (touched ? 9 : 3), "access metadata ordering");
         }
         ExLoopT<true>::test_local_read_copied_ = nullptr;
@@ -304,9 +331,10 @@ struct CoreConcurrencyTest {
     static void readreply_all(ThreadMode mode) {
         for (uint32_t databases : {1u, 4u})
             for (bool mget : {false, true})
-                for (const char* state : {"raw", "integer", "external", "empty", "typed", "encoding",
-                        "ttl-live", "expired", "persisted", "missing", "pending", "churn", "invalid",
-                        "tail-pending", "churn-pending"})
+                for (const char* state :
+                     {"raw", "integer", "external", "empty", "typed", "encoding", "ttl-live",
+                      "expired", "persisted", "missing", "pending", "churn", "invalid",
+                      "tail-pending", "churn-pending"})
                     readreply_case(mode, databases, mget, state);
     }
 
@@ -317,23 +345,28 @@ struct CoreConcurrencyTest {
         changing = &f.server.shard(f.sid).store();
         captures = flips = 0;
         leave_open = open;
-        if (window == Window::Capture) FlatStore::test_read_local_captured = captured;
-        else if (window == Window::Copy) ExLoopT<true>::test_local_read_copied_ = flip;
-        else flip();
+        if (window == Window::Capture)
+            FlatStore::test_read_local_captured = captured;
+        else if (window == Window::Copy)
+            ExLoopT<true>::test_local_read_copied_ = flip;
+        else
+            flip();
         // Restore a reader retry in the fixture, outside production code. The capture
         // hook counts actual probes, so this must fail even though INFO has no retry row.
         if (fault == Fault::Retry) (void)f.reader.prepare_captured_local_mget(op);
         require(f.reader.drain_local_reads() == 1, "one lane operation consumed");
         require(flips == 1, "forced topology window fired exactly once");
         const auto& stats = f.server.thread(f.reader_id).read_local_stats();
-        std::printf("rltopo keys=%u window=%u open=%u captures=%u demotions=%llu\n",
-                    keys, static_cast<unsigned>(window), open, captures,
-                    static_cast<unsigned long long>(stats.fallback_seq_churn + stats.fallback_generation));
+        std::printf(
+            "rltopo keys=%u window=%u open=%u captures=%u demotions=%llu\n", keys,
+            static_cast<unsigned>(window), open, captures,
+            static_cast<unsigned long long>(stats.fallback_seq_churn + stats.fallback_generation));
         std::fflush(stdout);
         require(window != Window::Capture || captures == (keys ? keys : 1),
                 "zero Churn/SeqChurn retries");
-        require(stats.fallback_seq_churn + stats.fallback_generation == 1 && stats.fallbacks() == 1 &&
-                    stats.hits == 0 && (!keys || stats.mget_fallbacks() == 1),
+        require(stats.fallback_seq_churn + stats.fallback_generation == 1 &&
+                    stats.fallbacks() == 1 && stats.hits == 0 &&
+                    (!keys || stats.mget_fallbacks() == 1),
                 "exactly one topology demotion");
         require(!client.rob().has_pending_read_local() && op.state.load() == OpState::Issued,
                 "demoted read pending on owner");
@@ -346,7 +379,8 @@ struct CoreConcurrencyTest {
             if (fault == Fault::DropOwner) return;
             require(f.owner.execute(task), "owner completes demoted read");
         });
-        require(tasks == 1 && op.state.load() == OpState::Done, "exactly one owner hop and completion");
+        require(tasks == 1 && op.state.load() == OpState::Done,
+                "exactly one owner hop and completion");
         std::string expected;
         if (keys) expected = "*" + std::to_string(keys) + "\r\n";
         for (unsigned i = 0; i < (keys ? keys : 1); ++i) expected += "$5\r\nvalue\r\n";
@@ -368,8 +402,9 @@ struct CoreConcurrencyTest {
         auto& rob = client.rob();
         ReadLocalStats stats;
         rob.set_read_local_arm_stats(&stats.arm);
-        if (oom) require(!rob.read_local_write_conflicts(2, read_local_command_touches_hash),
-                         "fresh read arms without a fence");
+        if (oom)
+            require(!rob.read_local_write_conflicts(2, read_local_command_touches_hash),
+                    "fresh read arms without a fence");
         Op* write = rob.acquire_read_local();
         require(write != nullptr, "write ROB slot");
         write->hash = 1;
@@ -379,8 +414,9 @@ struct CoreConcurrencyTest {
         rob.mark_current_write();
         refuse_sidecar = false;
         rob.publish();
-        if (oom) require(refused_sidecars == 1 && stats.arm.sidecars == 0,
-                         "sidecar allocation refusal fired");
+        if (oom)
+            require(refused_sidecars == 1 && stats.arm.sidecars == 0,
+                    "sidecar allocation refusal fired");
         if (fault == Fault::NoArmFence) {
             write->state.store(OpState::Done);
             rob.drain([](Op&) {});
@@ -446,17 +482,19 @@ struct CoreConcurrencyTest {
         topology(mode, 0, Window::Open, true);
         topology(mode, 1, Window::Open, true);
         for (Fault broken : {Fault::NoFlip, Fault::Retry, Fault::NoCount, Fault::DirtyReply}) {
-            const char* message = broken == Fault::NoFlip ? "forced topology window fired exactly once"
-                : broken == Fault::Retry ? "zero Churn/SeqChurn retries"
+            const char* message =
+                broken == Fault::NoFlip    ? "forced topology window fired exactly once"
+                : broken == Fault::Retry   ? "zero Churn/SeqChurn retries"
                 : broken == Fault::NoCount ? "exactly one topology demotion"
-                : "private reply cleared before demotion";
+                                           : "private reply cleared before demotion";
             negative(broken, message, [&] { topology(mode, 1, Window::Capture, false); });
         }
-        for (auto [broken, message] : {
-                std::pair{Fault::DropOwner, "exactly one owner hop and completion"},
-                std::pair{Fault::CorruptReply, "owner reply intact"},
-                std::pair{Fault::NoRetire, "single ROB retirement"},
-                std::pair{Fault::KeepChanging, "next stable read stays local without another demotion"}})
+        for (auto [broken, message] :
+             {std::pair{Fault::DropOwner, "exactly one owner hop and completion"},
+              std::pair{Fault::CorruptReply, "owner reply intact"},
+              std::pair{Fault::NoRetire, "single ROB retirement"},
+              std::pair{Fault::KeepChanging,
+                        "next stable read stays local without another demotion"}})
             negative(broken, message, [&] { topology(mode, 1, Window::Capture, false); });
         arm(false);
         arm(true);
@@ -471,7 +509,7 @@ struct CoreConcurrencyTest {
         }
     }
 };
-} // namespace tomo
+}  // namespace tomo
 
 int main(int argc, char** argv) {
     using T = tomo::CoreConcurrencyTest;
@@ -479,8 +517,12 @@ int main(int argc, char** argv) {
                    (std::string(argv[1]) == "1s" || std::string(argv[1]) == "2s"),
                "usage: rltopo-unit 1s|2s [readreply GET|MGET STATE]");
     T::require(tomo::command_registry_init(false), "command registry");
-    const auto mode = std::string(argv[1]) == "1s" ? tomo::ThreadMode::Fused : tomo::ThreadMode::Split;
-    if (argc == 5) T::readreply_case(mode, 1, std::string(argv[3]) == "MGET", argv[4]);
-    else T::run(mode);
-    std::printf("PASS rltopo %s (demotions, zero retries, negative controls, arm transients)\n", argv[1]);
+    const auto mode =
+        std::string(argv[1]) == "1s" ? tomo::ThreadMode::Fused : tomo::ThreadMode::Split;
+    if (argc == 5)
+        T::readreply_case(mode, 1, std::string(argv[3]) == "MGET", argv[4]);
+    else
+        T::run(mode);
+    std::printf("PASS rltopo %s (demotions, zero retries, negative controls, arm transients)\n",
+                argv[1]);
 }

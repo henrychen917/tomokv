@@ -26,14 +26,14 @@
 namespace tomo {
 
 struct CommandSpec;
-class  Client;
+class Client;
 struct ScatterState;
 struct BlockingState;
 
 enum class OpState : uint8_t {
-    Free   = 0,   // slot is reusable
+    Free = 0,     // slot is reusable
     Issued = 1,   // IO published it; the owning worker may take it
-    Done   = 2,   // worker finished; reply is complete and safe to read
+    Done = 2,     // worker finished; reply is complete and safe to read
     AofWait = 3,  // owner finished; persistence still owns the completion
 };
 
@@ -61,16 +61,16 @@ inline constexpr size_t kInlineReply = 96;
 // Codes are materialised by format_reply_code() in ../net/resp.h, at retire, by the thread that
 // owns the connection. The bytes on the wire are the same bytes, in the same order.
 enum class ReplyCode : uint8_t {
-    None      = 0,
-    Ok        = 1,   // "+OK\r\n"
-    Nil       = 2,   // "$-1\r\n"      RESP2 null bulk
-    Pong      = 3,   // "+PONG\r\n"
-    NullArray = 4,   // "*-1\r\n"      RESP2 null array
-    EmptyStr  = 5,   // "$0\r\n\r\n"
-    NullResp3 = 6,   // "_\r\n"        RESP3 null
-    True      = 7,   // "#t\r\n"
-    False     = 8,   // "#f\r\n"
-    Int       = 9,   // ":<reply_ival_>\r\n"
+    None = 0,
+    Ok = 1,         // "+OK\r\n"
+    Nil = 2,        // "$-1\r\n"      RESP2 null bulk
+    Pong = 3,       // "+PONG\r\n"
+    NullArray = 4,  // "*-1\r\n"      RESP2 null array
+    EmptyStr = 5,   // "$0\r\n\r\n"
+    NullResp3 = 6,  // "_\r\n"        RESP3 null
+    True = 7,       // "#t\r\n"
+    False = 8,      // "#f\r\n"
+    Int = 9,        // ":<reply_ival_>\r\n"
 };
 
 // Longest coded reply: ":-2147483648\r\n" is 14. Reserving one constant keeps the owner's
@@ -80,9 +80,9 @@ inline constexpr uint32_t kReplyCodeMax = 16;
 class Op {
 public:
     static constexpr int32_t kScatterStateMarker = -2;
-    static constexpr int32_t kLocalXshardMarker  = -3;
+    static constexpr int32_t kLocalXshardMarker = -3;
     static constexpr int32_t kBlockingStateMarker = -4;
-    static constexpr int32_t kMultiStateMarker   = -5;
+    static constexpr int32_t kMultiStateMarker = -5;
     // A scatter whose final RESP/code is already in this Op. Its state still needs the
     // ordinary IO retire hook, but WB can count the reply without walking the arena.
     static constexpr int32_t kScatterReplyMarker = -6;
@@ -101,11 +101,14 @@ public:
     template <bool Codes = true>
     void reset(uint8_t route_flags = 0) {
         argc_ = 0;
-        spec  = nullptr;
+        spec = nullptr;
         shard = -1;
         read_cut_lo = 0;
         route_flags_ = route_flags;
-        if constexpr (Codes) { reply_code_ = 0; reply_ival_ = 0; }
+        if constexpr (Codes) {
+            reply_code_ = 0;
+            reply_ival_ = 0;
+        }
         reply.clear();
         direct = nullptr;
         direct_cap = direct_len = 0;
@@ -124,7 +127,10 @@ public:
     }
 
     bool push_arg(Slice s) {
-        if (!argv_heap_ && argc_ < kInlineArgv) { argv_inline_[argc_++] = s; return true; }
+        if (!argv_heap_ && argc_ < kInlineArgv) {
+            argv_inline_[argc_++] = s;
+            return true;
+        }
         const uint32_t need = argc_ + 1;
         if (need > argv_cap_) {
             uint32_t ncap = argv_cap_ ? argv_cap_ * 2 : kInlineArgv * 2;
@@ -133,7 +139,7 @@ public:
             if (!n) return false;
             if (!argv_heap_) std::memcpy(n, argv_inline_, kInlineArgv * sizeof(Slice));
             argv_heap_ = n;
-            argv_cap_  = ncap;
+            argv_cap_ = ncap;
         }
         argv_heap_[argc_++] = s;
         return true;
@@ -142,21 +148,26 @@ public:
     uint32_t argc() const { return argc_; }
     Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
     Slice cmd_name() const { return argc_ ? arg(0) : Slice{}; }
-    Slice key() const { return argc_ > 1 ? arg(1) : Slice{}; }   // v1: key is always argv[1]
+    Slice key() const { return argc_ > 1 ? arg(1) : Slice{}; }  // v1: key is always argv[1]
 
     // Recycles heap growth so one MSET-1000 or one 64MB reply does not permanently inflate every
     // ring slot. Called from Rob::drain at retire, gated so the common case (inline argv, inline
     // reply) pays one predictable branch and frees nothing.
-    static constexpr size_t kShrinkKeep = 4096;   // reply heap above this is a burst, not a working size
+    static constexpr size_t kShrinkKeep =
+        4096;  // reply heap above this is a burst, not a working size
     void shrink() {
-        if (argv_heap_) { std::free(argv_heap_); argv_heap_ = nullptr; argv_cap_ = 0; }
+        if (argv_heap_) {
+            std::free(argv_heap_);
+            argv_heap_ = nullptr;
+            argv_cap_ = 0;
+        }
         reply.shrink_to_inline();
     }
     bool oversized() const { return argv_heap_ != nullptr || reply.cap() > kShrinkKeep; }
 
     // ---- fields --------------------------------------------------------------------------------
-    const CommandSpec* spec  = nullptr;
-    int32_t            shard = -1;          // resolved by the router before publishing
+    const CommandSpec* spec = nullptr;
+    int32_t shard = -1;  // resolved by the router before publishing
 
     // THE READ CUT, PINNED IN PROGRAM ORDER. A multi-key read pins its epoch on IO at prepare and
     // resolves against it later; a plain read used to sample the sequence at EXECUTION and answer
@@ -172,8 +183,8 @@ public:
     // while fewer than 2^31 commits separate dispatch from execution; the highest commit rate this
     // engine has produced would need ~40 seconds of queueing to reach that, and the widening
     // saturates to a stale-but-safe (older) cut rather than a newer one if it ever did.
-    uint32_t           read_cut_lo = 0;
-    uint64_t           hash  = 0;           // computed once by IO, reused by the worker
+    uint32_t read_cut_lo = 0;
+    uint64_t hash = 0;  // computed once by IO, reused by the worker
 
     // Offset into the connection's read buffer where this op's arguments begin. Because the ROB
     // retires strictly in order, the oldest live op's rbuf_off is the low-water mark below which
@@ -243,9 +254,9 @@ public:
     // before -- the split is structural rather than a list of sites to remember. reset() must NOT
     // touch this: a ROB slot is armed once and is a ROB slot forever.
     uint8_t reply_code_ok_ = 0;
-    uint8_t db = 0;                 // logical database at parse time (former padding)
+    uint8_t db = 0;  // logical database at parse time (former padding)
 
-    SmallBuf<kInlineReply> reply;           // worker writes RESP here (the spill/general sink)
+    SmallBuf<kInlineReply> reply;  // worker writes RESP here (the spill/general sink)
 
     // DIRECT REPLY (owner's c->buf trick, both postures). When io dispatches an op that is the ROB
     // HEAD of a connection with an EMPTY fill buffer, it points `direct` at that buffer's storage.
@@ -257,22 +268,22 @@ public:
     // (empty), so no append and no fill/send swap can occur before our own retire.
     // Replies that do not fit fall back to `reply` mid-op; retire emits direct bytes first, then the
     // spill, preserving RESP order. This is NOT exwb: the send syscall stays with the sender.
-    char*    direct     = nullptr;
+    char* direct = nullptr;
     uint32_t direct_cap = 0;
     uint32_t direct_len = 0;
 
     // A borrowed GET value is published with Done exactly like reply bytes. The pointer names
     // FlatStore-owned memory; the shard id is the return address for the eventual io->ex release.
     // No Client or socket state crosses to the executor through this descriptor.
-    const char* zc_ptr   = nullptr;
-    uint32_t    zc_len   = 0;
-    int32_t     zc_shard = -1;
+    const char* zc_ptr = nullptr;
+    uint32_t zc_len = 0;
+    int32_t zc_shard = -1;
 
     // The only cross-thread field. Acquire/release on this orders everything else.
     std::atomic<OpState> state{OpState::Free};
-    uint8_t physical_db = 0;        // immutable routing namespace for this operation
-    uint8_t secondary_db = 0;       // COPY/MOVE destination, captured with physical_db
-    uint8_t target_db = 0;          // destination's logical name
+    uint8_t physical_db = 0;   // immutable routing namespace for this operation
+    uint8_t secondary_db = 0;  // COPY/MOVE destination, captured with physical_db
+    uint8_t target_db = 0;     // destination's logical name
 
     void set_arg_namespace(uint32_t i, uint8_t ns) {
         (argv_heap_ ? argv_heap_[i] : argv_inline_[i]).set_namespace(ns);
@@ -294,8 +305,7 @@ public:
     public:
         explicit Sink(Op& o) : op_(o) {}
         char* reserve(size_t n) {
-            if (op_.direct && op_.reply.empty() &&
-                op_.direct_len + n <= op_.direct_cap) {
+            if (op_.direct && op_.reply.empty() && op_.direct_len + n <= op_.direct_cap) {
                 last_direct_ = true;
                 return op_.direct + op_.direct_len;
             }
@@ -303,8 +313,10 @@ public:
             return op_.reply.reserve(n);
         }
         void advance(size_t n) {
-            if (last_direct_) op_.direct_len += static_cast<uint32_t>(n);
-            else              op_.reply.advance(n);
+            if (last_direct_)
+                op_.direct_len += static_cast<uint32_t>(n);
+            else
+                op_.reply.advance(n);
         }
         // Runtime-length append: values, members, error texts -- every reply a handler builds from
         // bytes whose length it did not know at compile time. reserve() returns either the
@@ -315,8 +327,10 @@ public:
         // instructions to -4 -- so the inline copy earns its place here too.
         void append(const char* s, size_t n) {
             char* p = reserve(n);
-            if (__builtin_expect(n > kInlineByteCopyMax, false)) std::memcpy(p, s, n);
-            else bytes_copy(p, s, n);
+            if (__builtin_expect(n > kInlineByteCopyMax, false))
+                std::memcpy(p, s, n);
+            else
+                bytes_copy(p, s, n);
             advance(n);
         }
         void append(std::string_view s) { append(s.data(), s.size()); }
@@ -338,7 +352,11 @@ public:
                 append(static_cast<const char*>(lit), N - 1);
             }
         }
-        void push_back(char ch) { char* p = reserve(1); *p = ch; advance(1); }
+        void push_back(char ch) {
+            char* p = reserve(1);
+            *p = ch;
+            advance(1);
+        }
 
         // CODED REPLY. Records "the reply is this" instead of writing its bytes. Returns false
         // when this sink is not empty, and then the caller formats bytes exactly as before -- that
@@ -351,8 +369,7 @@ public:
         // append that follows spills to op.reply, which retire emits AFTER the coded bytes. So
         // "code, then more bytes" and "bytes only" both keep RESP order, and the direct region
         // loses nothing -- the owner is writing into that very buffer either way.
-        __attribute__((always_inline))
-        bool code(ReplyCode c, int32_t v = 0) {
+        __attribute__((always_inline)) bool code(ReplyCode c, int32_t v = 0) {
             // THE ARMING TEST CARRIES NO STATIC HINT, deliberately. Folded into the chain below
             // under __builtin_expect(..., false) it told the compiler "expect code() to succeed",
             // which is right in fused and wrong on EVERY call in split -- a mispredict per reply
@@ -360,16 +377,17 @@ public:
             // the hardware predictor gets right for free in both modes once it is its own branch.
             // Costs no instructions either way; it is the branch that was being paid for.
             if (!op_.reply_code_ok_) return false;
-            if (__builtin_expect(op_.reply_code_ != 0 || op_.direct_len != 0 ||
-                                 !op_.reply.empty(), false))
+            if (__builtin_expect(op_.reply_code_ != 0 || op_.direct_len != 0 || !op_.reply.empty(),
+                                 false))
                 return false;
             op_.reply_code_ = static_cast<uint8_t>(c);
             op_.reply_ival_ = v;
             op_.direct = nullptr;
             return true;
         }
+
     private:
-        Op&  op_;
+        Op& op_;
         bool last_direct_ = false;
     };
     Sink sink() { return Sink(*this); }
@@ -396,8 +414,8 @@ public:
                (zc_shard == kScatterStateMarker || zc_shard == kScatterReplyMarker);
     }
     ScatterState* scatter_state() const {
-        return has_scatter_state()
-            ? reinterpret_cast<ScatterState*>(const_cast<char*>(zc_ptr)) : nullptr;
+        return has_scatter_state() ? reinterpret_cast<ScatterState*>(const_cast<char*>(zc_ptr))
+                                   : nullptr;
     }
     void attach_scatter_state(ScatterState* state_) {
         zc_ptr = reinterpret_cast<const char*>(state_);
@@ -411,7 +429,7 @@ public:
     }
     void mark_local_xshard() {
         zc_ptr = nullptr;
-        zc_len = 0;                 // snapshot write-gate cursor
+        zc_len = 0;  // snapshot write-gate cursor
         zc_shard = kLocalXshardMarker;
     }
     bool local_xshard() const { return zc_shard == kLocalXshardMarker; }
@@ -421,16 +439,14 @@ public:
         zc_shard = kMultiStateMarker;
     }
     bool has_multi_state() const { return zc_ptr != nullptr && zc_shard == kMultiStateMarker; }
-    void* multi_state() const {
-        return has_multi_state() ? const_cast<char*>(zc_ptr) : nullptr;
-    }
+    void* multi_state() const { return has_multi_state() ? const_cast<char*>(zc_ptr) : nullptr; }
 
     bool has_blocking_state() const {
         return zc_ptr != nullptr && zc_shard == kBlockingStateMarker;
     }
     BlockingState* blocking_state() const {
-        return has_blocking_state()
-            ? reinterpret_cast<BlockingState*>(const_cast<char*>(zc_ptr)) : nullptr;
+        return has_blocking_state() ? reinterpret_cast<BlockingState*>(const_cast<char*>(zc_ptr))
+                                    : nullptr;
     }
     void attach_blocking_state(BlockingState* state_) {
         zc_ptr = reinterpret_cast<const char*>(state_);
@@ -460,9 +476,7 @@ public:
         zc_len = 0;
         if (!local_xshard()) zc_shard = -1;
     }
-    void* notify_state() const {
-        return has_notify_state() ? const_cast<char*>(zc_ptr) : nullptr;
-    }
+    void* notify_state() const { return has_notify_state() ? const_cast<char*>(zc_ptr) : nullptr; }
 
 private:
     // The cold inline decoder packs immutable argv bytes after this Op's heap
@@ -488,10 +502,10 @@ private:
     // alignment gap before the Slice array; leaving it after the array would grow Op to 344.
     // Only this 16-byte header and argv_inline_ trade places. Reply/direct/borrow/state offsets,
     // the 336-byte stride, and deep/heap-argv storage, growth and retirement paths stay fixed.
-    Slice*   argv_heap_ = nullptr;
-    uint32_t argv_cap_  = 0;
-    uint32_t argc_      = 0;
-    Slice    argv_inline_[kInlineArgv];
+    Slice* argv_heap_ = nullptr;
+    uint32_t argv_cap_ = 0;
+    uint32_t argc_ = 0;
+    Slice argv_inline_[kInlineArgv];
 };
 
 // THE FOOTPRINT LOCK (owner law, 2026-08-24): +16 bytes on Op measured -3.7% at 64c p32 -- at

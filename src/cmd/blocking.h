@@ -42,8 +42,8 @@ void blocking_start(BlockingState* state, uint32_t tasks);
 
 // Blocking tasks use Task::scatter as an opaque carrier without growing the queue entry.  Op's
 // marker distinguishes them from real ScatterState tasks before either pointer is dereferenced.
-bool blocking_execute(Server& server, ThreadCtx& self, Ring& ring, const Task& task,
-                      Shard& shard, Op& op);
+bool blocking_execute(Server& server, ThreadCtx& self, Ring& ring, const Task& task, Shard& shard,
+                      Op& op);
 bool blocking_execute_iofused(Server& server, ThreadCtx& self, Ring& ring, const Task& task,
                               Shard& shard, Op& op);
 BlockingSnapshotPrepare blocking_snapshot_prepare(const Task& task, Shard& shard, Op& op);
@@ -52,7 +52,8 @@ BlockingSnapshotPrepare blocking_snapshot_prepare(const Task& task, Shard& shard
 // collection non-empty.
 // The hash and namespace must name the same physical key, including after SWAPDB.
 // Require the namespace explicitly so a publisher cannot silently search DB 0.
-void blocking_publish_key(Shard& shard, uint64_t hash, const char* key, uint32_t key_len, uint8_t ns);
+void blocking_publish_key(Shard& shard, uint64_t hash, const char* key, uint32_t key_len,
+                          uint8_t ns);
 void blocking_publish_list_op(Shard& shard, Op& op);
 void blocking_publish_zset_op(Shard& shard, Op& op);
 void blocking_publish_deleted(Shard& shard, Op& op);
@@ -60,8 +61,7 @@ bool blocking_defer_plain_publication(bool defer);
 void blocking_script_publication_finished(bool previous);
 void blocking_plain_mutation_published(Shard& shard, Op& op);
 void blocking_cleanup_published(Shard& shard);
-bool blocking_scatter_repark(Server& server, ThreadCtx& self, Ring& ring,
-                             ScatterState& state);
+bool blocking_scatter_repark(Server& server, ThreadCtx& self, Ring& ring, ScatterState& state);
 
 // Executor heartbeat and atomic publish integration.
 uint32_t blocking_owner_cycle(Server& server, ThreadCtx& self, Ring& ring, int64_t now_ms,
@@ -69,8 +69,7 @@ uint32_t blocking_owner_cycle(Server& server, ThreadCtx& self, Ring& ring, int64
 // Pre-park re-check (F7): true iff an owned shard has blocked waiters and a dirty flag a producer
 // set since this owner's last blocking cycle. The caller gates this on blocking_waiters() != 0.
 bool blocking_owner_dirty_pending(ThreadCtx& self);
-void blocking_atomic_published(Server& server, ThreadCtx& self, Ring& ring,
-                               ScatterState& state);
+void blocking_atomic_published(Server& server, ThreadCtx& self, Ring& ring, ScatterState& state);
 void blocking_scatter_mutation_published(const Task& task, Shard& shard, Op& op);
 
 // IO-side connection barrier, move resume, cancellation and ordered retirement.
@@ -86,8 +85,8 @@ void blocking_scatter_retire(Server& server, Client& client, ScatterState& state
 void blocking_key_counts(const Server& server, uint64_t& keys, uint64_t& on_nokey);
 bool blocking_stream_bounds(const BlockingState* state, uint32_t key_index, StreamID& cursor,
                             StreamID& upper, bool& bounded);
-const std::vector<uint8_t>* blocking_stream_captured_payload(
-    const BlockingState* state, uint32_t key_index);
+const std::vector<uint8_t>* blocking_stream_captured_payload(const BlockingState* state,
+                                                             uint32_t key_index);
 bool blocking_wants_dispatch(const Op& op);
 bool blocking_namespace_quiesced(const Op& op);
 

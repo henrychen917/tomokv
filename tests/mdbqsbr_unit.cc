@@ -15,7 +15,10 @@ namespace {
 thread_local int allocation_budget = -1;
 thread_local size_t allocation_attempts = 0;
 void require(bool ok, const char* why) {
-    if (!ok) { std::fprintf(stderr, "FAIL mdbqsbr: %s\n", why); std::exit(1); }
+    if (!ok) {
+        std::fprintf(stderr, "FAIL mdbqsbr: %s\n", why);
+        std::exit(1);
+    }
 }
 void allocation() {
     if (allocation_budget < 0) return;
@@ -26,7 +29,11 @@ struct Event {
     std::mutex mutex;
     std::condition_variable cv;
     bool ready = false;
-    void signal() { std::lock_guard lock(mutex); ready = true; cv.notify_all(); }
+    void signal() {
+        std::lock_guard lock(mutex);
+        ready = true;
+        cv.notify_all();
+    }
     void wait() {
         std::unique_lock lock(mutex);
         require(cv.wait_for(lock, std::chrono::seconds(5), [&] { return ready; }),
@@ -50,15 +57,25 @@ struct Fixture {
 Fixture* current = nullptr;
 const void* held = nullptr;
 size_t held_deletions = 0, load_windows = 0;
-void deletion(const void* p) { if (p == held) ++held_deletions; }
-void remember(const void* p) { held = p; ++load_windows; }
+void deletion(const void* p) {
+    if (p == held) ++held_deletions;
+}
+void remember(const void* p) {
+    held = p;
+    ++load_windows;
+}
 void hold_setup(Fixture& f) {
-    current = &f; held = nullptr; held_deletions = load_windows = 0;
-    Hooks::deleting = deletion; Hooks::loaded = remember;
+    current = &f;
+    held = nullptr;
+    held_deletions = load_windows = 0;
+    Hooks::deleting = deletion;
+    Hooks::loaded = remember;
 }
 void hooks_clear() {
-    Hooks::loaded = nullptr; Hooks::deleting = nullptr;
-    Hooks::before_publish = nullptr; Hooks::loop_pass = nullptr;
+    Hooks::loaded = nullptr;
+    Hooks::deleting = nullptr;
+    Hooks::before_publish = nullptr;
+    Hooks::loop_pass = nullptr;
 }
 void after_grace(Fixture& f) {
     f.ack();
@@ -67,11 +84,13 @@ void after_grace(Fixture& f) {
             "last-swap queue drains to empty");
     const auto scans = Hooks::scans.load();
     f.ack();
-    require(held_deletions == 1 && Hooks::scans == scans, "empty map performs no scan or double free");
+    require(held_deletions == 1 && Hooks::scans == scans,
+            "empty map performs no scan or double free");
 }
 
 void lifetime(bool publisher, bool nested) {
-    Fixture f; hold_setup(f);
+    Fixture f;
+    hold_setup(f);
     const unsigned tid = publisher ? 0 : 1;
     {
         Scope outer(f.server, tid);
@@ -91,20 +110,25 @@ void lifetime(bool publisher, bool nested) {
         require(f.server.client_work_epoch(tid) & 1, "nested exit preserves outer epoch");
     }
     Hooks::loaded = nullptr;
-    after_grace(f); hooks_clear();
+    after_grace(f);
+    hooks_clear();
 }
 
 void publish_during_copy(const void* p) {
-    remember(p); Hooks::loaded = nullptr;
+    remember(p);
+    Hooks::loaded = nullptr;
     require(current->map.swap(0, 1), "copy/scan window publishes after load");
     current->ack();
     require(held_deletions == 0, "capture/logical retains map through last dereference");
 }
 void copy_or_logical(bool logical) {
-    Fixture f; hold_setup(f); Hooks::loaded = publish_during_copy;
+    Fixture f;
+    hold_setup(f);
+    Hooks::loaded = publish_during_copy;
     {
         Scope scope(f.server, 1);
-        if (logical) require(f.map.logical(1) == 0, "logical scan uses loaded version");
+        if (logical)
+            require(f.map.logical(1) == 0, "logical scan uses loaded version");
         else {
             auto copy = f.map.capture();
             require(copy[0] == 1 && copy[1] == 0 && copy.epoch == 1,
@@ -112,19 +136,29 @@ void copy_or_logical(bool logical) {
         }
     }
     require(load_windows == 1, "copy/scan load window opened exactly once");
-    after_grace(f); hooks_clear();
+    after_grace(f);
+    hooks_clear();
 }
 
 Event *enter_event, *loaded_event, *release_event;
 void entry_loaded(const void* p) {
-    remember(p); loaded_event->signal(); release_event->wait();
+    remember(p);
+    loaded_event->signal();
+    release_event->wait();
 }
-void before_publication() { enter_event->signal(); loaded_event->wait(); }
+void before_publication() {
+    enter_event->signal();
+    loaded_event->wait();
+}
 void entry() {
-    Fixture f; hold_setup(f);
+    Fixture f;
+    hold_setup(f);
     Event enter, loaded, release;
-    enter_event = &enter; loaded_event = &loaded; release_event = &release;
-    Hooks::loaded = entry_loaded; Hooks::before_publish = before_publication;
+    enter_event = &enter;
+    loaded_event = &loaded;
+    release_event = &release;
+    Hooks::loaded = entry_loaded;
+    Hooks::before_publish = before_publication;
     require(f.server.client_work_epoch(1) == 0, "participant even before publication window");
     std::thread reader([&] {
         enter.wait();
@@ -138,13 +172,17 @@ void entry() {
     f.ack(1);
     require(held_deletions == 0 && DatabaseMapTest::acknowledged(f.map, 1) == 0,
             "sampled-even participant still owes publication acknowledgement");
-    release.signal(); reader.join();
-    Hooks::loaded = nullptr; Hooks::before_publish = nullptr;
-    after_grace(f); hooks_clear();
+    release.signal();
+    reader.join();
+    Hooks::loaded = nullptr;
+    Hooks::before_publish = nullptr;
+    after_grace(f);
+    hooks_clear();
 }
 
 void park_or_role(bool role) {
-    Fixture f; hold_setup(f);
+    Fixture f;
+    hold_setup(f);
     {
         Scope scope(f.server, 1);
         DatabaseMap::Read read(f.map);
@@ -158,7 +196,9 @@ void park_or_role(bool role) {
     Hooks::loaded = nullptr;
     {
         Scope resumed(f.server, 1);
-        if (role) { Server::ClientWorkScope owner(f.server, 1); }
+        if (role) {
+            Server::ClientWorkScope owner(f.server, 1);
+        }
         require(DatabaseMapTest::acknowledged(f.map, 1) != 0,
                 "resume/role entry acquires request before acknowledging");
         f.ack(1);
@@ -166,11 +206,13 @@ void park_or_role(bool role) {
         DatabaseMap::Read read(f.map);
         require(read[0] == 0 && read.epoch() == 2, "post-ack reader sees published map");
     }
-    after_grace(f); hooks_clear();
+    after_grace(f);
+    hooks_clear();
 }
 
 void backlog() {
-    Fixture f; hold_setup(f);
+    Fixture f;
+    hold_setup(f);
     {
         Scope held_scope(f.server, 1);
         DatabaseMap::Read read(f.map);
@@ -180,7 +222,8 @@ void backlog() {
                 DatabaseMap::Map restore;
                 if (i & 2) std::swap(restore[0], restore[1]);
                 require(f.map.restore(restore.data()), "repeated restore publication");
-            } else require(f.map.swap(0, 1), "repeated swap publication");
+            } else
+                require(f.map.swap(0, 1), "repeated swap publication");
             f.ack(1);
         }
         require(DatabaseMapTest::backlog(f.map) == 160 && held_deletions == 0,
@@ -226,9 +269,9 @@ void shutdown_or_deadline(bool stop) {
         if (tid != 1) map.quiescent(server, tid);
     require(DatabaseMapTest::acknowledged(map, 1) == 0 && DatabaseMapTest::backlog(map) == 1,
             "t1 has not acknowledged; queue cannot be freed");
-    DatabaseMapTest::expire_deadline(map); // no wall-clock sleep in this unit
+    DatabaseMapTest::expire_deadline(map);  // no wall-clock sleep in this unit
     if (stop) server.shutting_down().store(true);
-    map.monitor(server); // missing live t1 must abort; stopped t1 must NOT wait
+    map.monitor(server);  // missing live t1 must abort; stopped t1 must NOT wait
     require(stop && DatabaseMapTest::backlog(map) == 1 && !map.reclamation_pending(),
             "shutdown retains map for destruction without demanding stopped t1 ack");
 }
@@ -237,7 +280,7 @@ void failures() {
     Fixture f;
     const auto before = f.map.capture();
     std::unique_ptr<DatabaseMap::Map> prepared;
-    for (int budget : {0, 1}) { // map allocation, then retirement queue allocation
+    for (int budget : {0, 1}) {  // map allocation, then retirement queue allocation
         const auto live = Hooks::allocated.load() - Hooks::freed.load();
         allocation_budget = budget;
         const bool ok = f.map.prepare_publish(before, prepared);
@@ -250,29 +293,42 @@ void failures() {
     allocation_budget = 0;
     const bool swap_ok = f.map.swap(0, 1);
     allocation_budget = -1;
-    require(!swap_ok && f.map.capture().epoch == before.epoch, "map allocation failure leaves live map intact");
-    auto next = before; std::swap(next[0], next[1]); ++next.epoch;
+    require(!swap_ok && f.map.capture().epoch == before.epoch,
+            "map allocation failure leaves live map intact");
+    auto next = before;
+    std::swap(next[0], next[1]);
+    ++next.epoch;
     require(f.map.prepare_publish(next, prepared), "successful prepare owns reserved capacity");
     // Refused transaction drops its prepared object; no commit/publication occurs.
     prepared.reset();
     require(f.map.capture().epoch == before.epoch && Hooks::allocated - Hooks::freed == 1,
             "refused prepared publication has no leak or partial commit");
     require(f.map.swap(0, 1), "create retirement before prepared commit");
-    next = f.map.capture(); std::swap(next[0], next[1]); ++next.epoch;
+    next = f.map.capture();
+    std::swap(next[0], next[1]);
+    ++next.epoch;
     require(f.map.prepare_publish(next, prepared), "reprepare after refusal");
-    f.ack(); // Maintenance must preserve capacity reserved for the pending commit.
-    require(DatabaseMapTest::backlog(f.map) == 0, "older retirement drained between prepare and commit");
-    allocation_attempts = 0; allocation_budget = 0;
+    f.ack();  // Maintenance must preserve capacity reserved for the pending commit.
+    require(DatabaseMapTest::backlog(f.map) == 0,
+            "older retirement drained between prepare and commit");
+    allocation_attempts = 0;
+    allocation_budget = 0;
     bool threw = false;
-    try { f.map.publish_prepared(std::move(prepared)); }
-    catch (const std::bad_alloc&) { threw = true; }
+    try {
+        f.map.publish_prepared(std::move(prepared));
+    } catch (const std::bad_alloc&) {
+        threw = true;
+    }
     allocation_budget = -1;
-    require(!threw && allocation_attempts == 0, "prepared commit performs zero allocations under denial");
+    require(!threw && allocation_attempts == 0,
+            "prepared commit performs zero allocations under denial");
     require(f.map.capture()[0] == 1 && f.map.capture().epoch == next.epoch,
             "prepared commit publishes complete immutable map");
     f.ack();
-    require(DatabaseMapTest::backlog(f.map) == 0, "prepared retirement reclaims without another writer");
-    DatabaseMap::Map bad; bad[1] = bad[0];
+    require(DatabaseMapTest::backlog(f.map) == 0,
+            "prepared retirement reclaims without another writer");
+    DatabaseMap::Map bad;
+    bad[1] = bad[0];
     require(!f.map.restore(bad.data()) && f.map.capture().epoch == next.epoch,
             "invalid restore preserves committed map");
 }
@@ -281,24 +337,28 @@ void failures() {
 // record_database_map call. No unrelated persistence implementation is replaced.
 bool refuse_journal = false;
 void journal() {
-    Fixture f; AofProducer producer;
+    Fixture f;
+    AofProducer producer;
     auto before = f.map.capture();
     const auto live = Hooks::allocated - Hooks::freed;
     refuse_journal = true;
     require(!f.map.swap(0, 1, &producer), "forced AOF refusal reached journal call");
     refuse_journal = false;
     require(f.map.capture() == before && f.map.capture().epoch == before.epoch &&
-            DatabaseMapTest::backlog(f.map) == 0 && Hooks::allocated - Hooks::freed == live,
+                DatabaseMapTest::backlog(f.map) == 0 && Hooks::allocated - Hooks::freed == live,
             "AOF refusal leaves old mapping live with no leak or partial publication");
 }
-} // namespace
+}  // namespace
 
 void* operator new(size_t n) {
-    allocation(); if (void* p = std::malloc(n ? n : 1)) return p; throw std::bad_alloc();
+    allocation();
+    if (void* p = std::malloc(n ? n : 1)) return p;
+    throw std::bad_alloc();
 }
 void* operator new[](size_t n) { return ::operator new(n); }
 void* operator new(size_t n, std::align_val_t a) {
-    allocation(); void* p = nullptr;
+    allocation();
+    void* p = nullptr;
     if (!posix_memalign(&p, size_t(a), n ? n : 1)) return p;
     throw std::bad_alloc();
 }
@@ -312,10 +372,10 @@ void operator delete[](void* p, std::align_val_t) noexcept { std::free(p); }
 void operator delete(void* p, size_t, std::align_val_t) noexcept { std::free(p); }
 void operator delete[](void* p, size_t, std::align_val_t) noexcept { std::free(p); }
 
-bool real_record(AofProducer*, const uint8_t*, uint64_t)
-    asm("__real__ZN4tomo11AofProducer19record_database_mapEPKhm");
-bool wrap_record(AofProducer* p, const uint8_t* bytes, uint64_t client_id)
-    asm("__wrap__ZN4tomo11AofProducer19record_database_mapEPKhm");
+bool real_record(AofProducer*, const uint8_t*,
+                 uint64_t) asm("__real__ZN4tomo11AofProducer19record_database_mapEPKhm");
+bool wrap_record(AofProducer* p, const uint8_t* bytes,
+                 uint64_t client_id) asm("__wrap__ZN4tomo11AofProducer19record_database_mapEPKhm");
 bool wrap_record(AofProducer* p, const uint8_t* bytes, uint64_t client_id) {
     return refuse_journal ? false : real_record(p, bytes, client_id);
 }
@@ -324,28 +384,33 @@ namespace tomo {
 struct CoreConcurrencyTest {
     inline static uint8_t expected_physical = 1;
     static void endpoints() {
-        Fixture f; f.server.cfg_.databases = 16;
+        Fixture f;
+        f.server.cfg_.databases = 16;
         for (const char* cmd : {"COPY", "MOVE"}) {
             // Use an owning argument frame and the production parser + stamper.
             const bool copy = std::strcmp(cmd, "COPY") == 0;
-            const std::string frame = copy
-                ? "*5\r\n$4\r\nCOPY\r\n$1\r\na\r\n$1\r\nb\r\n$2\r\nDB\r\n$1\r\n1\r\n"
-                : "*3\r\n$4\r\nMOVE\r\n$1\r\na\r\n$1\r\n1\r\n";
-            Op op; uint32_t at = 0; const char* error = nullptr;
+            const std::string frame =
+                copy ? "*5\r\n$4\r\nCOPY\r\n$1\r\na\r\n$1\r\nb\r\n$2\r\nDB\r\n$1\r\n1\r\n"
+                     : "*3\r\n$4\r\nMOVE\r\n$1\r\na\r\n$1\r\n1\r\n";
+            Op op;
+            uint32_t at = 0;
+            const char* error = nullptr;
             require(resp_parse(frame.data(), frame.size(), at, op, &error) == ParseResult::Ok,
                     "COPY/MOVE parser creates both endpoints");
             op.spec = command_lookup(op.cmd_name());
             auto before = f.map.capture();
-            hold_setup(f); Hooks::loaded = publish_during_copy;
+            hold_setup(f);
+            Hooks::loaded = publish_during_copy;
             {
                 Scope scope(f.server, 1);
                 multidb_stamp(f.server, op, 0);
                 require(op.physical_db == before[0] && op.secondary_db == before[1] &&
-                        op.physical_db != op.secondary_db,
+                            op.physical_db != op.secondary_db,
                         "COPY/MOVE endpoints use one immutable version across forced swap");
             }
             require(load_windows == 1, "endpoint swap window opened once");
-            after_grace(f); hooks_clear();
+            after_grace(f);
+            hooks_clear();
         }
     }
     static void loop_callback(Server& server, ThreadCtx& self, unsigned path) {
@@ -358,7 +423,9 @@ struct CoreConcurrencyTest {
                     "resumed role acknowledges before stamping and drains without another swap");
         }
         const char frame[] = "*2\r\n$3\r\nGET\r\n$1\r\nk\r\n";
-        Op op; uint32_t at = 0; const char* error = nullptr;
+        Op op;
+        uint32_t at = 0;
+        const char* error = nullptr;
         require(resp_parse(frame, sizeof(frame) - 1, at, op, &error) == ParseResult::Ok,
                 "loop parser loads actual command frame");
         op.spec = command_lookup(op.cmd_name());
@@ -370,46 +437,60 @@ struct CoreConcurrencyTest {
         self.stop_flag().store(true);
     }
     static void coverage() {
-        for (bool fused : {false, true}) for (bool reorder : {false, true}) {
-            Fixture f; f.server.cfg_.databases = 16; f.server.cfg_.read_local = 0;
-            ThreadCtx self; self.init(1, Role::Ifid, 8, 0, 0);
-            IoLoop io; io.srv_ = &f.server; io.self_ = &self;
-            Hooks::loop_pass = loop_callback; load_windows = 0;
-            expected_physical = 1;
-            // The test hook returns before transport/control work; no ring/listener.
-            const auto run_io = [&] {
-                if (reorder && fused) io.r7_run_loop<false, false, true, true>();
-                else if (fused) io.run_loop<false, false, true, true>();
-                else io.run_loop<false, false, true, false>();
-            };
-            run_io();
-            require(load_windows == 1 && !(f.server.client_work_epoch(1) & 1),
-                    "IO loop exits its complete scope once");
-            // Same physical participant changes role; no epoch/ack reset.
-            self.set_role(Role::Ex); self.stop_flag().store(false);
-            require(f.map.swap(0, 1), "publish during IO-to-EX role gap");
-            f.ack(1);
-            require(DatabaseMapTest::backlog(f.map) == 1,
-                    "role change cannot skip even physical participant");
-            expected_physical = 0;
-            ExLoop owner; owner.srv_ = &f.server; owner.self_ = &self;
-            owner.run();
-            require(load_windows == 2 && !(f.server.client_work_epoch(1) & 1),
-                    "IO-to-EX role tenure uses same participant and unwinds scope");
-            self.set_role(Role::Ifid); self.stop_flag().store(false);
-            require(f.map.swap(0, 1), "publish during EX-to-IO role gap");
-            f.ack(1);
-            require(DatabaseMapTest::backlog(f.map) == 1,
-                    "reverse role change still owes a fresh acknowledgement");
-            expected_physical = 1;
-            run_io();
-            require(load_windows == 3 && !(f.server.client_work_epoch(1) & 1),
-                    "EX-to-IO role tenure uses same participant and unwinds scope");
-            hooks_clear();
-        }
+        for (bool fused : {false, true})
+            for (bool reorder : {false, true}) {
+                Fixture f;
+                f.server.cfg_.databases = 16;
+                f.server.cfg_.read_local = 0;
+                ThreadCtx self;
+                self.init(1, Role::Ifid, 8, 0, 0);
+                IoLoop io;
+                io.srv_ = &f.server;
+                io.self_ = &self;
+                Hooks::loop_pass = loop_callback;
+                load_windows = 0;
+                expected_physical = 1;
+                // The test hook returns before transport/control work; no ring/listener.
+                const auto run_io = [&] {
+                    if (reorder && fused)
+                        io.r7_run_loop<false, false, true, true>();
+                    else if (fused)
+                        io.run_loop<false, false, true, true>();
+                    else
+                        io.run_loop<false, false, true, false>();
+                };
+                run_io();
+                require(load_windows == 1 && !(f.server.client_work_epoch(1) & 1),
+                        "IO loop exits its complete scope once");
+                // Same physical participant changes role; no epoch/ack reset.
+                self.set_role(Role::Ex);
+                self.stop_flag().store(false);
+                require(f.map.swap(0, 1), "publish during IO-to-EX role gap");
+                f.ack(1);
+                require(DatabaseMapTest::backlog(f.map) == 1,
+                        "role change cannot skip even physical participant");
+                expected_physical = 0;
+                ExLoop owner;
+                owner.srv_ = &f.server;
+                owner.self_ = &self;
+                owner.run();
+                require(load_windows == 2 && !(f.server.client_work_epoch(1) & 1),
+                        "IO-to-EX role tenure uses same participant and unwinds scope");
+                self.set_role(Role::Ifid);
+                self.stop_flag().store(false);
+                require(f.map.swap(0, 1), "publish during EX-to-IO role gap");
+                f.ack(1);
+                require(DatabaseMapTest::backlog(f.map) == 1,
+                        "reverse role change still owes a fresh acknowledgement");
+                expected_physical = 1;
+                run_io();
+                require(load_windows == 3 && !(f.server.client_work_epoch(1) & 1),
+                        "EX-to-IO role tenure uses same participant and unwinds scope");
+                hooks_clear();
+            }
     }
 };
-} // namespace tomo
+}  // namespace tomo
 
 int main(int argc, char** argv) {
     require(command_registry_init(false), "command registry");
@@ -419,7 +500,8 @@ int main(int argc, char** argv) {
         if (selection != "all" && selection != name) return;
         const auto before = Hooks::allocated - Hooks::freed;
         fn();
-        require(Hooks::allocated - Hooks::freed == before, "fixture destruction releases all map versions");
+        require(Hooks::allocated - Hooks::freed == before,
+                "fixture destruction releases all map versions");
         std::printf("PASS mdbqsbr %s\n", name);
     };
     run("lifetime", [] { lifetime(false, false); });

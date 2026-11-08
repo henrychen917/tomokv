@@ -37,7 +37,9 @@ struct PrebuiltSetValue {
         if (!object || op.zc_shard != kPrebuiltSetMarker) std::abort();
         op.detach_scatter_state();
     }
-    ~PrebuiltSetValue() { if (object) kvobj_free(object); }
+    ~PrebuiltSetValue() {
+        if (object) kvobj_free(object);
+    }
 
     // KEEPTTL needs the owner's current object. Transfer the external payload to a new HEADER
     // only when its physical TTL reservation differs; never copy the value on the owner.
@@ -45,10 +47,12 @@ struct PrebuiltSetValue {
         const bool ttl = reserve || expire >= 0;
         if (object->has_ttl_slot() != ttl) {
             const Slice key = object->key();
-            const size_t capacity = good_size(kvobj_alloc_size(key.identity(), object->vlen, ttl, Enc::Extern));
+            const size_t capacity =
+                good_size(kvobj_alloc_size(key.identity(), object->vlen, ttl, Enc::Extern));
             auto* replacement = static_cast<KvObj*>(alloc_raw(capacity));
             if (!replacement) return false;
-            kvobj_init_header(replacement, key, object->type, object->enc, object->vlen, ttl, 0, object);
+            kvobj_init_header(replacement, key, object->type, object->enc, object->vlen, ttl, 0,
+                              object);
             if (ttl) replacement->set_expire_at_ms(expire);
             if (key.n) bytes_copy(replacement->key_ptr(), key.p, key.n);
             replacement->set_external_ptr(object->external_ptr());
@@ -75,7 +79,10 @@ void cmd_set_prebuilt(Shard& sh, Op& op) {
     NotifyExecutionScope notifications(sh, op, notify);
     if (op.argc() == 3) {
         const StoreResult result = value.install<notify>(sh, op.hash);
-        if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
+        if (result != StoreResult::Stored) {
+            reply_store_error(op, result);
+            return;
+        }
         if constexpr (notify) notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Set, op.key());
         reply_ok(op.sink());
         return;
@@ -95,14 +102,18 @@ void cmd_set_prebuilt(Shard& sh, Op& op) {
     int64_t expire = options.expire_at_ms;
     const bool reserve = options.keep_ttl && old && old->has_ttl_slot();
     if (options.keep_ttl && old) expire = sh.store().deadline(op.hash, old);
-    if constexpr (!notify) if (expire >= 0 && expire < sh.now_ms()) {
-        if (old) sh.store_erase<false>(op.hash, op.key());
-        if (!options.get) reply_ok(op.sink());
+    if constexpr (!notify)
+        if (expire >= 0 && expire < sh.now_ms()) {
+            if (old) sh.store_erase<false>(op.hash, op.key());
+            if (!options.get) reply_ok(op.sink());
+            return;
+        }
+    const StoreResult result =
+        value.deadline(expire, reserve) ? value.install<notify>(sh, op.hash) : StoreResult::Oom;
+    if (result != StoreResult::Stored) {
+        reply_store_error(op, result, options.get);
         return;
     }
-    const StoreResult result = value.deadline(expire, reserve)
-        ? value.install<notify>(sh, op.hash) : StoreResult::Oom;
-    if (result != StoreResult::Stored) { reply_store_error(op, result, options.get); return; }
     if constexpr (notify) {
         notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Set, op.key());
         if (options.expire_kind != ExpireKind::None)
@@ -111,7 +122,7 @@ void cmd_set_prebuilt(Shard& sh, Op& op) {
     }
     if (!options.get) reply_ok(op.sink());
 }
-} // namespace
+}  // namespace
 
 const CommandSpec* l4prebuild_notify_spec() {
     static const CommandSpec spec = [] {
@@ -154,4 +165,4 @@ void l4prebuild_discard_set(Op& op) {
     PrebuiltSetValue unused(op);
 }
 
-} // namespace tomo
+}  // namespace tomo

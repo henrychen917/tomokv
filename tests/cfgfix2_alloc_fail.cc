@@ -20,7 +20,9 @@
 #include <unistd.h>
 
 namespace {
-struct Range { uintptr_t first, last; };
+struct Range {
+    uintptr_t first, last;
+};
 Range ranges[16];
 unsigned range_count;
 uintptr_t base;
@@ -51,7 +53,8 @@ bool selected(uintptr_t pc) {
 
 void untrack(void* p) {
     if (!ready || !p || !live.load(std::memory_order_acquire)) return;
-    while (table_lock.test_and_set(std::memory_order_acquire)) {}
+    while (table_lock.test_and_set(std::memory_order_acquire)) {
+    }
     for (unsigned i = 0; i < used; ++i)
         if (tracked[i] == p) {
             tracked[i] = tracked[--used];
@@ -79,10 +82,15 @@ __attribute__((constructor)) void initialize() {
         ranges[range_count++].last = std::strtoull(end + 1, &end, 16);
         spec = *end == ',' ? end + 1 : end;
     }
-    dl_iterate_phdr([](dl_phdr_info* info, size_t, void*) {
-        if (!info->dlpi_name[0]) { base = info->dlpi_addr; return 1; }
-        return 0;
-    }, nullptr);
+    dl_iterate_phdr(
+        [](dl_phdr_info* info, size_t, void*) {
+            if (!info->dlpi_name[0]) {
+                base = info->dlpi_addr;
+                return 1;
+            }
+            return 0;
+        },
+        nullptr);
     receipt = ::open(path, O_CREAT | O_APPEND | O_WRONLY | O_CLOEXEC, 0600);
     if (receipt < 0 || target < 0 || owners < 1) ::_exit(93);
     ready = true;
@@ -103,13 +111,17 @@ void* operator new(std::size_t size, const std::nothrow_t&) noexcept {
             const timespec delay{0, 1000000};
             ::nanosleep(&delay, nullptr);
         }
-        if (seen < static_cast<unsigned>(owners)) { event('!', nullptr, cpu, seen); ::_exit(92); }
+        if (seen < static_cast<unsigned>(owners)) {
+            event('!', nullptr, cpu, seen);
+            ::_exit(92);
+        }
         event('F', reinterpret_cast<void*>(pc - base), cpu, seen);
         return nullptr;
     }
     void* p = std::malloc(size);
     if (!p) return nullptr;
-    while (table_lock.test_and_set(std::memory_order_acquire)) {}
+    while (table_lock.test_and_set(std::memory_order_acquire)) {
+    }
     if (used == kTracked) ::_exit(91);
     tracked[used++] = p;
     live.store(used, std::memory_order_release);
@@ -118,5 +130,11 @@ void* operator new(std::size_t size, const std::nothrow_t&) noexcept {
     return p;
 }
 
-void operator delete(void* p) noexcept { untrack(p); std::free(p); }
-void operator delete(void* p, std::size_t) noexcept { untrack(p); std::free(p); }
+void operator delete(void* p) noexcept {
+    untrack(p);
+    std::free(p);
+}
+void operator delete(void* p, std::size_t) noexcept {
+    untrack(p);
+    std::free(p);
+}

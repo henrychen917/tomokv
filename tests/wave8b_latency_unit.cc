@@ -15,7 +15,8 @@ static void transitions() {
         latency_tracking_bind(value);
     };
     Op parent, child;
-    parent.reset(); child.reset();
+    parent.reset();
+    child.reset();
     for (auto* op : {&parent, &child}) {
         CoreConcurrencyTest::need(op->push_arg(Slice("INCR")) && op->push_arg(Slice("wave8b")));
         op->spec = command_lookup(op->arg(0));
@@ -46,13 +47,15 @@ static void transitions() {
     CoreConcurrencyTest::need(!store(0).script_children.empty());
     record_tracked(0, 0, parent, 1, 0, SlowlogArm{-1, 0, true}, true, old);
     const bool consumed = store(0).script_children.empty() && collect().empty();
-    if (!consumed) std::fprintf(stderr, "wave8b: rejected parent retained %zu script-child maps\n",
-                                store(0).script_children.size());
+    if (!consumed)
+        std::fprintf(stderr, "wave8b: rejected parent retained %zu script-child maps\n",
+                     store(0).script_children.size());
     CoreConcurrencyTest::need(consumed);
     const auto fresh = latency_tracking_start();
     latency_tracking_part(0, parent, fresh);
     latency_tracking_retry(parent, child);
-    CoreConcurrencyTest::need(!store(0).pending.contains(&parent) && store(0).pending.contains(&child));
+    CoreConcurrencyTest::need(!store(0).pending.contains(&parent) &&
+                              store(0).pending.contains(&child));
     latency_tracking_retire(0, child);
     uint64_t samples = 0;
     for (const auto& row : collect()) samples += row.second.calls;
@@ -74,19 +77,21 @@ static void transitions() {
     latency_tracking_record(0, child, 1000);
     CoreConcurrencyTest::need(latency_scan_slots == 0);
     command_bind_server(nullptr);
-    std::puts("PASS stale slices, script children, retry transfer and disabled hooks with populated stores");
+    std::puts(
+        "PASS stale slices, script children, retry transfer and disabled hooks with populated stores");
 }
 
 int main() {
     CoreConcurrencyTest::need(command_registry_init(false));
     for (bool tracking : {false, true, false, true}) {
         wave8b_tracking = tracking;
-        for (bool atomic : {false, true}) for (const char* shape : {"EXEC-single", "EXEC-cross"}) {
-            latency_tracking_reset();
-            CoreConcurrencyTest::run<false>(shape, 4, atomic, -1);
-            latency_tracking_reset();
-            CoreConcurrencyTest::run<true>(shape, 4, atomic, -1);
-        }
+        for (bool atomic : {false, true})
+            for (const char* shape : {"EXEC-single", "EXEC-cross"}) {
+                latency_tracking_reset();
+                CoreConcurrencyTest::run<false>(shape, 4, atomic, -1);
+                latency_tracking_reset();
+                CoreConcurrencyTest::run<true>(shape, 4, atomic, -1);
+            }
     }
     transitions();
 }

@@ -7,6 +7,7 @@ namespace tomo {
 class LookupNoTouch {
     FlatStore& store_;
     bool previous_;
+
 public:
     explicit LookupNoTouch(FlatStore& store, bool enabled = true)
         : store_(store), previous_(store.no_touch()) {
@@ -14,4 +15,4 @@ public:
     }
     ~LookupNoTouch() { store_.set_no_touch(previous_); }
 };
-} // namespace tomo
+}  // namespace tomo

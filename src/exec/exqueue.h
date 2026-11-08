@@ -33,12 +33,12 @@ public:
     bool push(T v) {
         const uint32_t t = tail_.load(std::memory_order_relaxed);
         const uint32_t next = t + 1;
-        if (next - head_cached_ > Capacity) {                  // cached says full: re-read
+        if (next - head_cached_ > Capacity) {  // cached says full: re-read
             head_cached_ = head_.load(std::memory_order_acquire);
-            if (next - head_cached_ > Capacity) return false;   // genuinely full
+            if (next - head_cached_ > Capacity) return false;  // genuinely full
         }
         slots_[t & kMask] = v;
-        tail_.store(next, std::memory_order_release);           // publishes the slot write
+        tail_.store(next, std::memory_order_release);  // publishes the slot write
         return true;
     }
 
@@ -105,7 +105,7 @@ public:
     // Consumer side.
     bool pop(T& out) {
         const uint32_t h = head_.load(std::memory_order_relaxed);
-        if (h == tail_cached_) {                                // cached says empty: re-read
+        if (h == tail_cached_) {  // cached says empty: re-read
             tail_cached_ = tail_.load(std::memory_order_acquire);
             if (h == tail_cached_) return false;
         }
@@ -119,8 +119,9 @@ public:
     // "nothing in flight" — the worker may still be executing what it just popped. Any teardown,
     // reshard, or role conversion that tests head == tail will race against an op that is mid-
     // execution. The fork learned this the hard way and carries the same separate frontier.
-    void retire() { retired_.store(retired_.load(std::memory_order_relaxed) + 1,
-                                   std::memory_order_release); }
+    void retire() {
+        retired_.store(retired_.load(std::memory_order_relaxed) + 1, std::memory_order_release);
+    }
 
     // THE quiescence predicate. Use this one, never depth() == 0.
     bool quiesced() const {
@@ -153,10 +154,10 @@ private:
     // Written by the consumer only, and deliberately on the consumer's line beside head_: the
     // producer never reads it on the hot path, only a teardown/reshard path testing quiesced().
     std::atomic<uint32_t> retired_{0};
-    uint32_t tail_cached_ = 0;          // consumer-private, shares the consumer's line
+    uint32_t tail_cached_ = 0;  // consumer-private, shares the consumer's line
 
     alignas(kCacheLine) std::atomic<uint32_t> tail_{0};
-    uint32_t head_cached_ = 0;          // producer-private, shares the producer's line
+    uint32_t head_cached_ = 0;  // producer-private, shares the producer's line
 
     alignas(kCacheLine) T slots_[Capacity];
 };

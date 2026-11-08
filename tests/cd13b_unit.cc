@@ -14,7 +14,10 @@ static_assert(offsetof(ObjectImage, expire_at_ms) == 16);
 static_assert(offsetof(ObjectImage, payload) == 24);
 namespace {
 void require(bool ok, const char* why) {
-    if (!ok) { std::fprintf(stderr, "FAIL cd13b: %s\n", why); std::exit(1); }
+    if (!ok) {
+        std::fprintf(stderr, "FAIL cd13b: %s\n", why);
+        std::exit(1);
+    }
 }
 struct Fixture {
     Server server;
@@ -25,12 +28,17 @@ struct Fixture {
     Fixture(bool fused, int atomic, bool protocol, bool notifications, bool late_copy)
         : resp3(protocol), notify(notifications), late(late_copy) {
         Config cfg;
-        cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
+        cfg.shards = 16;
+        cfg.even_ifid = 6;
+        cfg.even_ex = 2;
         cfg.thread_mode = fused ? ThreadMode::Fused : ThreadMode::Split;
-        cfg.atomic = atomic; cfg.databases = kSingleDatabase ? 1 : 16;
+        cfg.atomic = atomic;
+        cfg.databases = kSingleDatabase ? 1 : 16;
         cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
-        cfg.maxmemory = 1ull << 30; cfg.maxmemory_policy = MaxmemoryPolicy::AllKeysLfu;
-        cfg.save.clear(); cfg.enable_debug_command = DebugCommandMode::Yes;
+        cfg.maxmemory = 1ull << 30;
+        cfg.maxmemory_policy = MaxmemoryPolicy::AllKeysLfu;
+        cfg.save.clear();
+        cfg.enable_debug_command = DebugCommandMode::Yes;
         cfg.notify_events = notifications ? (NOTIFY_KEYSPACE | NOTIFY_ZSET | NOTIFY_GENERIC) : 0;
         cpu_set_t allowed;
         require(sched_getaffinity(0, sizeof(allowed), &allowed) == 0, "read CPU affinity");
@@ -39,7 +47,8 @@ struct Fixture {
             if (!CPU_ISSET(cpu, &allowed)) continue;
             if (count) placement += ',';
             placement += fused || count < 6 ? "ifid@" : "ex@";
-            placement += std::to_string(cpu); ++count;
+            placement += std::to_string(cpu);
+            ++count;
         }
         require(count == 8, "eight CPUs required");
         cfg.place = placement.c_str();
@@ -64,14 +73,15 @@ struct Fixture {
             configure(server.shard(sid));
             server.shard(sid).set_cached_now_ms(now_realtime_ms(), 0);
             require(xshard_execute(Task{&client, 0, sid, &state}, server.shard(sid), op, tid) ==
-                    ScatterTaskResult::Complete, "owner phase completed without retries");
+                        ScatterTaskResult::Complete,
+                    "owner phase completed without retries");
             if (state.phase == 2 && state.atomic_apply) complete_owner_record_wave(state, tid);
         }
     }
     void geo_store(Op& op) {
         ScatterDispatch dispatch;
-        require(xshard_prepare(server, op, pool, 0, client.id(), dispatch) ==
-                ScatterPrepare::Ready, "GEO scatter prepared");
+        require(xshard_prepare(server, op, pool, 0, client.id(), dispatch) == ScatterPrepare::Ready,
+                "GEO scatter prepared");
         auto& state = *dispatch.state;
         state.now_cut_ms = now_realtime_ms();
         require(state.two_hop && state.nsub > 0 && state.key_count == 2, "two GEO key records");
@@ -97,7 +107,8 @@ struct Fixture {
         owner_phase(state, op);
         finish_phase2(state);
         require(!state.aborted.load(), "GEO apply not aborted");
-        if (state.atomic_apply) state.epoch.store(server.atomic_commit(), std::memory_order_release);
+        if (state.atomic_apply)
+            state.epoch.store(server.atomic_commit(), std::memory_order_release);
         assemble_final(client, op, state, nullptr, nullptr, nullptr);
         release_records();
         if (late) {
@@ -114,7 +125,8 @@ struct Fixture {
         uint32_t pos = 0;
         const char* error = nullptr;
         require(resp_parse(frame.data(), frame.size(), pos, op, &error) == ParseResult::Ok &&
-                pos == frame.size(), "complete production RESP parse");
+                    pos == frame.size(),
+                "complete production RESP parse");
         op.spec = command_lookup(op.arg(0));
         require(op.spec, "known fixture command");
         if (notify) op.spec = command_notify_variant(op.spec);
@@ -123,13 +135,15 @@ struct Fixture {
             geo_store(op);
         } else if (op.cmd_name().eq_icase("config") && op.arg(1).eq_icase("set")) {
             ScatterDispatch dispatch;
-            require(xshard_prepare(server, op, pool, 0, client.id(), dispatch) ==
-                    ScatterPrepare::Ready, "CONFIG scatter prepared");
+            require(
+                xshard_prepare(server, op, pool, 0, client.id(), dispatch) == ScatterPrepare::Ready,
+                "CONFIG scatter prepared");
             auto& state = *dispatch.state;
             state.now_cut_ms = now_realtime_ms();
             owner_phase(state, op);
             assemble_final(client, op, state, nullptr, nullptr, nullptr);
-            xshard_destroy(&state, pool, 0); pool.reap_deferred();
+            xshard_destroy(&state, pool, 0);
+            pool.reap_deferred();
         } else {
             int16_t first = op.spec->first_key;
             if (op.cmd_name().eq_icase("object")) first = 2;
@@ -151,11 +165,13 @@ bool read_frame(std::string& frame) {
     frame = line + '\n';
     const auto count = std::stoul(line.substr(1));
     for (size_t i = 0; i < count; ++i) {
-        require(bool(std::getline(std::cin, line)) && line.front() == '$' && line.back() == '\r', "RESP bulk");
+        require(bool(std::getline(std::cin, line)) && line.front() == '$' && line.back() == '\r',
+                "RESP bulk");
         frame += line + '\n';
         const auto size = std::stoul(line.substr(1));
         std::string body(size + 2, '\0');
-        require(bool(std::cin.read(body.data(), body.size())) && body.substr(size) == "\r\n", "RESP bulk body");
+        require(bool(std::cin.read(body.data(), body.size())) && body.substr(size) == "\r\n",
+                "RESP bulk body");
         frame += body;
     }
     return true;
@@ -163,11 +179,12 @@ bool read_frame(std::string& frame) {
 }
 int main(int argc, char** argv) {
     require(argc == 6, "fused atomic resp3 notify late-copy arguments required");
-    Fixture fixture(std::atoi(argv[1]), std::atoi(argv[2]), std::atoi(argv[3]),
-                    std::atoi(argv[4]), std::atoi(argv[5]));
+    Fixture fixture(std::atoi(argv[1]), std::atoi(argv[2]), std::atoi(argv[3]), std::atoi(argv[4]),
+                    std::atoi(argv[5]));
     std::string frame;
     while (read_frame(frame)) {
         const auto reply = fixture.run(frame);
-        std::cout.write(reply.data(), reply.size()); std::cout.flush();
+        std::cout.write(reply.data(), reply.size());
+        std::cout.flush();
     }
 }

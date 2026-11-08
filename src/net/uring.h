@@ -61,21 +61,21 @@ inline bool g_ring_epoll_mode = false;
 
 enum class UrKind : uint8_t {
     Accept = 1,
-    Recv   = 2,
-    Send   = 3,
-    Close  = 4,
-    Wake   = 5,   // cross-ring notification via msg_ring
+    Recv = 2,
+    Send = 3,
+    Close = 4,
+    Wake = 5,  // cross-ring notification via msg_ring
     UnixAccept = 6,
     SnapshotStart = 7,  // epoch barrier request; pointer is SnapshotManager
     Shutdown = 8,       // process signal doorbell; no pointer payload
     TlsAccept = 9,
     TlsRecv = 10,
     TlsSend = 11,
-    AofIo = 12,         // persistence-engine request; pointer is writer-private request state
-    SnapshotIo = 13,    // persistence-engine request; pointer is writer-private request state
+    AofIo = 12,       // persistence-engine request; pointer is writer-private request state
+    SnapshotIo = 13,  // persistence-engine request; pointer is writer-private request state
     TlsReadPoll = 14,
     TlsWritePoll = 15,
-    MigrateCancel = 16, // source-ring cancellation request; original Recv CQE is the fence
+    MigrateCancel = 16,  // source-ring cancellation request; original Recv CQE is the fence
     // 18/19 are fliplisten's accept/cancel tags.
     WakeSent = 20,      // issuer-side completion, distinct from a peer notification
     DatabaseWake = 17,  // physical-worker database grace/boundary eventfd
@@ -86,11 +86,13 @@ inline uint64_t ur_tag(UrKind k, void* p) {
 }
 inline UrKind ur_kind(uint64_t tag) { return static_cast<UrKind>(tag >> 56); }
 template <typename T>
-inline T* ur_ptr(uint64_t tag) { return reinterpret_cast<T*>(tag & ((1ULL << 48) - 1)); }
+inline T* ur_ptr(uint64_t tag) {
+    return reinterpret_cast<T*>(tag & ((1ULL << 48) - 1));
+}
 
 class Ring {
 public:
-    static constexpr unsigned /* TOMO_TOOL_BIND kWaitTimeoutMs */kWaitTimeoutMs = 50;
+    static constexpr unsigned /* TOMO_TOOL_BIND kWaitTimeoutMs */ kWaitTimeoutMs = 50;
     static_assert(kParkNetStretched || kParkNetMs == kWaitTimeoutMs, "park_net.h production net");
     Ring() = default;
     ~Ring() { shutdown(); }
@@ -102,7 +104,10 @@ public:
         if (g_ring_epoll_mode) {
             // EFD_NONBLOCK so a spurious drain of an already-empty counter cannot park the loop.
             wake_fd_ = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
-            if (wake_fd_ < 0) { std::perror("eventfd"); return false; }
+            if (wake_fd_ < 0) {
+                std::perror("eventfd");
+                return false;
+            }
             return true;
         }
         io_uring_params p{};
@@ -124,7 +129,10 @@ public:
             // connection instead of degrading, which is far worse than being slow.
             std::memset(&p, 0, sizeof(p));
             rc = io_uring_queue_init_params(entries, &r_, &p);
-            if (rc < 0) { std::fprintf(stderr, "io_uring init failed: %d\n", rc); return false; }
+            if (rc < 0) {
+                std::fprintf(stderr, "io_uring init failed: %d\n", rc);
+                return false;
+            }
             deferred_ = false;
         }
         inited_ = true;
@@ -167,10 +175,10 @@ public:
     // post-join teardown can call liburing from the coordinator thread.
     class RegisteredFd {
         Ring* ring_ = nullptr;
+
     public:
         explicit RegisteredFd(Ring* ring) {
-            if (ring && ring->inited_ && io_uring_register_ring_fd(&ring->r_) == 1)
-                ring_ = ring;
+            if (ring && ring->inited_ && io_uring_register_ring_fd(&ring->r_) == 1) ring_ = ring;
         }
         ~RegisteredFd() {
             if (ring_ && io_uring_unregister_ring_fd(&ring_->r_) != 1) std::abort();
@@ -182,12 +190,14 @@ public:
     // Only fused executor rings opt in. Permanent shutdown/database polls do
     // not represent outstanding data work; IO continues entering every rotation.
     void track_owned_completions() { track_owned_ = true; }
-    void note_owned_completion() { if (track_owned_) ++owned_completions_; }
+    void note_owned_completion() {
+        if (track_owned_) ++owned_completions_;
+    }
     unsigned owned_completions() const { return owned_completions_; }
     bool completion_service_needed() const {
-        return inited_ && (sq_ready() || owned_completions_ ||
-            (IO_URING_READ_ONCE(*r_.sq.kflags) &
-             (IORING_SQ_TASKRUN | IORING_SQ_CQ_OVERFLOW)));
+        return inited_ &&
+               (sq_ready() || owned_completions_ ||
+                (IO_URING_READ_ONCE(*r_.sq.kflags) & (IORING_SQ_TASKRUN | IORING_SQ_CQ_OVERFLOW)));
     }
 
     bool shutdown_complete() const { return !inited_ && wake_fd_ < 0; }
@@ -223,8 +233,8 @@ public:
     // getting it wrong is a permanently parked io thread.
     void drain_wake_fd() {
         uint64_t counter = 0;
-        while (::read(wake_fd_, &counter, sizeof(counter)) == static_cast<ssize_t>(sizeof(counter)))
-            ;
+        while (::read(wake_fd_, &counter, sizeof(counter)) ==
+               static_cast<ssize_t>(sizeof(counter)));
     }
 
     // Never returns nullptr in uring mode: a full SQ ring is flushed rather than reported, because
@@ -286,14 +296,13 @@ public:
     // missed wake — the loop recovers on the next tick instead of sleeping forever.
     // The default is the missed-wake safety net (park_net.h); the diagnostic build stretches it.
     template <bool ClearSendClassification = false>
-    int submit_and_wait(unsigned want = 1, unsigned timeout_ms = kParkNetMs,
-                        int database_fd = -1) {
+    int submit_and_wait(unsigned want = 1, unsigned timeout_ms = kParkNetMs, int database_fd = -1) {
         if constexpr (ClearSendClassification) send_pending_ = false;
         if (__builtin_expect(wake_fd_ >= 0, false)) {
             // The ex loop's park. Same contract as the uring path: block until a peer rings the
             // doorbell OR the timeout expires, so the stop flag is re-read on every tick.
-            pollfd waits[3] = {{wake_fd_, POLLIN, 0}, {shutdown_fd_, POLLIN, 0},
-                              {database_fd, POLLIN, 0}};
+            pollfd waits[3] = {
+                {wake_fd_, POLLIN, 0}, {shutdown_fd_, POLLIN, 0}, {database_fd, POLLIN, 0}};
             const nfds_t count = database_fd >= 0 ? 3 : (shutdown_fd_ >= 0 ? 2 : 1);
             const int n = ::poll(waits, count, static_cast<int>(timeout_ms));
             if (n > 0 && (waits[0].revents & POLLIN)) drain_wake_fd();
@@ -301,7 +310,7 @@ public:
         }
         if (counter_slot_ < 256) ++exec1s_ring_counters[counter_slot_].waits;
         __kernel_timespec ts{};
-        ts.tv_sec  = timeout_ms / 1000;
+        ts.tv_sec = timeout_ms / 1000;
         ts.tv_nsec = static_cast<long long>(timeout_ms % 1000) * 1000000LL;
         // cqe_ptr is written through UNCONDITIONALLY by liburing — passing nullptr segfaults inside
         // the library rather than returning an error. The value is then ignored here on purpose:
@@ -319,7 +328,10 @@ public:
         if (!deferred_cqes_.empty()) {
             std::vector<io_uring_cqe> deferred;
             deferred.swap(deferred_cqes_);
-            for (io_uring_cqe& cqe : deferred) { fn(&cqe); n++; }
+            for (io_uring_cqe& cqe : deferred) {
+                fn(&cqe);
+                n++;
+            }
         }
         io_uring_cqe* cqe;
         unsigned head, raw = 0;
@@ -361,8 +373,10 @@ public:
         std::vector<io_uring_cqe> keep;
         keep.reserve(deferred_cqes_.size());
         for (io_uring_cqe& cqe : deferred_cqes_) {
-            if (fn(&cqe)) consumed++;
-            else keep.push_back(cqe);
+            if (fn(&cqe))
+                consumed++;
+            else
+                keep.push_back(cqe);
         }
         deferred_cqes_.swap(keep);
 
@@ -370,8 +384,10 @@ public:
         unsigned head, raw = 0;
         io_uring_for_each_cqe(&r_, head, cqe) {
             account_owned_completion(cqe);
-            if (fn(cqe)) consumed++;
-            else deferred_cqes_.push_back(*cqe);
+            if (fn(cqe))
+                consumed++;
+            else
+                deferred_cqes_.push_back(*cqe);
             raw++;
         }
         if (raw) io_uring_cq_advance(&r_, raw);
@@ -410,8 +426,8 @@ public:
 private:
     void account_owned_completion(io_uring_cqe* cqe) {
         const auto kind = ur_kind(cqe->user_data);
-        if (track_owned_ && (kind == UrKind::WakeSent || kind == UrKind::AofIo ||
-                             kind == UrKind::SnapshotIo)) {
+        if (track_owned_ &&
+            (kind == UrKind::WakeSent || kind == UrKind::AofIo || kind == UrKind::SnapshotIo)) {
             if (!owned_completions_) std::abort();
             --owned_completions_;
             if (kind == UrKind::WakeSent) cqe->user_data = ur_tag(UrKind::Wake, nullptr);
@@ -449,15 +465,15 @@ private:
     }
 
     io_uring r_{};
-    bool     inited_   = false;
-    bool     deferred_ = true;
-    bool     send_pending_ = false;
-    bool     track_owned_ = false; // existing five-byte hole
+    bool inited_ = false;
+    bool deferred_ = true;
+    bool send_pending_ = false;
+    bool track_owned_ = false;  // existing five-byte hole
     uint32_t owned_completions_ = 0;
     std::vector<io_uring_cqe> deferred_cqes_;
     bool raw_callback_active_ = false;
     bool raw_callback_taken_ = false;
-    uint16_t counter_slot_ = 256; // pre-existing two-byte alignment hole
+    uint16_t counter_slot_ = 256;  // pre-existing two-byte alignment hole
     unsigned raw_callback_index_ = 0;
     // Epoll-mode doorbell state. -1 in uring mode, which is the single test every method above
     // branches on; the vector and mutex are never constructed into use there.

@@ -3,30 +3,33 @@
 #include "../core/server.h"
 
 namespace tomo {
-__attribute__((noipa)) bool /* TOMO_TOOL_BIND storesize_published_route */storesize_published_route() { return true; }
+__attribute__((noipa)) bool /* TOMO_TOOL_BIND storesize_published_route */
+storesize_published_route() {
+    return true;
+}
 
 // One owner-batch call. Keeping the complete body out of hot translation units
 // prevents the sampler/state graph from consuming their inlining budgets.
 void Shard::publish_size() noexcept {
     TOMO_EXBATCH_TWIN(legacy, 1);
     {
-    // Single owner: an unchanged statistic needs no producer store into the
-    // header sampled by INFO/DBSIZE. Keep the all-owned-shards batch walk:
-    // expiry, retries and transaction cleanup can change more than its last shard.
-    const auto size = store_.size();
-    if (published_size_.load(std::memory_order_relaxed) != size)
-        published_size_.store(size, std::memory_order_relaxed);
-    const auto bytes = store_.object_bytes();
-    if (published_obj_bytes_.load(std::memory_order_relaxed) != bytes)
-        published_obj_bytes_.store(bytes, std::memory_order_relaxed);
-    const auto expires = store_.expire_count();
-    if (published_expires_.load(std::memory_order_relaxed) != expires)
-        published_expires_.store(expires, std::memory_order_relaxed);
-    // Single-DB: publish field-TTL attention only.
-    store_.publish_database_counts();
-    const auto evicted = stats_.evicted;
-    if (published_evicted_.load(std::memory_order_relaxed) != evicted)
-        published_evicted_.store(evicted, std::memory_order_relaxed);
+        // Single owner: an unchanged statistic needs no producer store into the
+        // header sampled by INFO/DBSIZE. Keep the all-owned-shards batch walk:
+        // expiry, retries and transaction cleanup can change more than its last shard.
+        const auto size = store_.size();
+        if (published_size_.load(std::memory_order_relaxed) != size)
+            published_size_.store(size, std::memory_order_relaxed);
+        const auto bytes = store_.object_bytes();
+        if (published_obj_bytes_.load(std::memory_order_relaxed) != bytes)
+            published_obj_bytes_.store(bytes, std::memory_order_relaxed);
+        const auto expires = store_.expire_count();
+        if (published_expires_.load(std::memory_order_relaxed) != expires)
+            published_expires_.store(expires, std::memory_order_relaxed);
+        // Single-DB: publish field-TTL attention only.
+        store_.publish_database_counts();
+        const auto evicted = stats_.evicted;
+        if (published_evicted_.load(std::memory_order_relaxed) != evicted)
+            published_evicted_.store(evicted, std::memory_order_relaxed);
     }
     return;
 legacy:
@@ -42,7 +45,6 @@ legacy:
 // need no new call edge in command or AOF translation units. Keep the state
 // layout unchanged.
 static_assert(sizeof(StoreSizeState) == 24);
-
 
 StoreSizeState* FlatStore::storesize_state() const {
     StoreSizeState* state;
@@ -73,16 +75,15 @@ void FlatStore::publish_keyspace_sample() const noexcept {
     uint32_t count = 0;
     // Two migration steps cover the index's initial 16 slots. Work remains
     // bounded even at millions of volatile keys; this is an estimate, as in Redis.
-    expires_.sample_readonly(storesize_->sample_cursor, 2 * kRehashSlotsPerOp,
-        [&](uint64_t hash) {
-            const KvObj* object = find_hash_in(0, hash);
-            if (!object && rehashing()) object = find_hash_in(1, hash);
-            if (!object) return;
-            const int64_t at = deadline(hash, object);
-            if (at <= cached_now_ms_) return;
-            sum += static_cast<uint64_t>(at);
-            ++count;
-        });
+    expires_.sample_readonly(storesize_->sample_cursor, 2 * kRehashSlotsPerOp, [&](uint64_t hash) {
+        const KvObj* object = find_hash_in(0, hash);
+        if (!object && rehashing()) object = find_hash_in(1, hash);
+        if (!object) return;
+        const int64_t at = deadline(hash, object);
+        if (at <= cached_now_ms_) return;
+        sum += static_cast<uint64_t>(at);
+        ++count;
+    });
     if (count) storesize_->avg_deadline.store(sum / count, std::memory_order_relaxed);
 }
 
@@ -106,14 +107,18 @@ struct MultiStoreSizeState : StoreSizeState {
 };
 
 void FlatStore::destroy_storesize() {
-    if constexpr (kSingleDatabase) delete storesize_state();
-    else delete static_cast<MultiStoreSizeState*>(storesize_state());
+    if constexpr (kSingleDatabase)
+        delete storesize_state();
+    else
+        delete static_cast<MultiStoreSizeState*>(storesize_state());
 }
 
 bool FlatStore::init_storesize() {
     StoreSizeState* state;
-    if constexpr (kSingleDatabase) state = new (std::nothrow) StoreSizeState;
-    else state = new (std::nothrow) MultiStoreSizeState;
+    if constexpr (kSingleDatabase)
+        state = new (std::nothrow) StoreSizeState;
+    else
+        state = new (std::nothrow) MultiStoreSizeState;
     std::memcpy(reader_owner_gap_ + 4, &state, sizeof(state));
     return state != nullptr;
 }
@@ -140,30 +145,46 @@ bool storesize_field_census(const Server& server) {
 
 uint64_t FlatStore::published_avg_deadline(uint8_t physical) const {
     const auto* storesize_ = storesize_state();
-    if constexpr (kSingleDatabase) return storesize_->avg_deadline.load(std::memory_order_relaxed);
-    else return static_cast<const MultiStoreSizeState*>(storesize_)->published[physical].avg_deadline.load(std::memory_order_relaxed);
+    if constexpr (kSingleDatabase)
+        return storesize_->avg_deadline.load(std::memory_order_relaxed);
+    else
+        return static_cast<const MultiStoreSizeState*>(storesize_)
+            ->published[physical]
+            .avg_deadline.load(std::memory_order_relaxed);
 }
 
 uint64_t FlatStore::published_database_counts(uint8_t physical) const {
-    if constexpr (kSingleDatabase) return 0;
-    else return static_cast<const MultiStoreSizeState*>(storesize_state())->published[physical].counts.load(std::memory_order_relaxed);
+    if constexpr (kSingleDatabase)
+        return 0;
+    else
+        return static_cast<const MultiStoreSizeState*>(storesize_state())
+            ->published[physical]
+            .counts.load(std::memory_order_relaxed);
 }
 
-void FlatStore::/* TOMO_TOOL_BIND storesize_replace */storesize_replace(const KvObj* before, const KvObj* after) {
+void FlatStore::/* TOMO_TOOL_BIND storesize_replace */ storesize_replace(const KvObj* before,
+                                                                         const KvObj* after) {
     if constexpr (!kSingleDatabase) {
         auto& state = *static_cast<MultiStoreSizeState*>(storesize_state());
         const auto account = [&](const KvObj* object, bool add) {
             if (!object) return;
             const auto db = object->key_namespace();
             auto& row = state.owner[db];
-            if (add) ++row.keys;
-            else { TOMO_ASSERT(row.keys); --row.keys; }
+            if (add)
+                ++row.keys;
+            else {
+                TOMO_ASSERT(row.keys);
+                --row.keys;
+            }
             const int64_t at = object->expire_at_ms();
             if (at >= 0) {
-                if (add) { ++row.expires; row.deadlines += static_cast<uint64_t>(at); }
-                else {
+                if (add) {
+                    ++row.expires;
+                    row.deadlines += static_cast<uint64_t>(at);
+                } else {
                     TOMO_ASSERT(row.expires && row.deadlines >= static_cast<uint64_t>(at));
-                    --row.expires; row.deadlines -= static_cast<uint64_t>(at);
+                    --row.expires;
+                    row.deadlines -= static_cast<uint64_t>(at);
                 }
             }
             state.dirty[db / 64] |= uint64_t{1} << (db % 64);
@@ -173,7 +194,8 @@ void FlatStore::/* TOMO_TOOL_BIND storesize_replace */storesize_replace(const Kv
     }
 }
 
-void FlatStore::/* TOMO_TOOL_BIND storesize_deadline */storesize_deadline(const KvObj* object, int64_t deadline) {
+void FlatStore::/* TOMO_TOOL_BIND storesize_deadline */ storesize_deadline(const KvObj* object,
+                                                                           int64_t deadline) {
     if constexpr (!kSingleDatabase) {
         auto& state = *static_cast<MultiStoreSizeState*>(storesize_state());
         const auto db = object->key_namespace();
@@ -181,10 +203,12 @@ void FlatStore::/* TOMO_TOOL_BIND storesize_deadline */storesize_deadline(const 
         const int64_t old = object->expire_at_ms();
         if (old >= 0) {
             TOMO_ASSERT(row.expires && row.deadlines >= static_cast<uint64_t>(old));
-            --row.expires; row.deadlines -= static_cast<uint64_t>(old);
+            --row.expires;
+            row.deadlines -= static_cast<uint64_t>(old);
         }
         if (deadline >= 0) {
-            ++row.expires; row.deadlines += static_cast<uint64_t>(deadline);
+            ++row.expires;
+            row.deadlines += static_cast<uint64_t>(deadline);
         }
         state.dirty[db / 64] |= uint64_t{1} << (db % 64);
     }
@@ -225,4 +249,4 @@ void FlatStore::publish_database_counts() const noexcept {
     }
 }
 
-} // namespace tomo
+}  // namespace tomo

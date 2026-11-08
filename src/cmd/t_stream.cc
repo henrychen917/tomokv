@@ -43,15 +43,25 @@ bool id_equal(const StreamID& a, const StreamID& b) { return id_compare(a, b) ==
 bool id_zero(const StreamID& id) { return id.ms == 0 && id.seq == 0; }
 
 bool id_increment(StreamID& id) {
-    if (id.seq != UINT64_MAX) { id.seq++; return true; }
+    if (id.seq != UINT64_MAX) {
+        id.seq++;
+        return true;
+    }
     if (id.ms == UINT64_MAX) return false;
-    id.ms++; id.seq = 0; return true;
+    id.ms++;
+    id.seq = 0;
+    return true;
 }
 
 bool id_decrement(StreamID& id) {
-    if (id.seq) { id.seq--; return true; }
+    if (id.seq) {
+        id.seq--;
+        return true;
+    }
     if (!id.ms) return false;
-    id.ms--; id.seq = UINT64_MAX; return true;
+    id.ms--;
+    id.seq = UINT64_MAX;
+    return true;
 }
 
 bool parse_u64_exact(Slice input, uint64_t& value) {
@@ -68,7 +78,10 @@ bool parse_i64_option(Slice input, int64_t& value) {
     if (!input.n || input.n > 20) return false;
     uint32_t i = 0;
     bool negative = false;
-    if (input.p[0] == '-') { negative = true; i = 1; }
+    if (input.p[0] == '-') {
+        negative = true;
+        i = 1;
+    }
     if (i >= input.n) return false;
     if (input.p[i] == '0') {
         if (negative || i + 1 != input.n) return false;
@@ -85,20 +98,21 @@ bool parse_i64_option(Slice input, int64_t& value) {
         if (magnitude > (limit - digit) / 10) return false;
         magnitude = magnitude * 10 + digit;
     }
-    value = negative ? (magnitude == (uint64_t{1} << 63) ? INT64_MIN
-                                                         : -static_cast<int64_t>(magnitude))
-                     : static_cast<int64_t>(magnitude);
+    value = negative
+                ? (magnitude == (uint64_t{1} << 63) ? INT64_MIN : -static_cast<int64_t>(magnitude))
+                : static_cast<int64_t>(magnitude);
     return true;
 }
 
-bool parse_id_numeric(Slice input, StreamID& id, uint64_t missing_seq,
-                      bool allow_sentinels) {
+bool parse_id_numeric(Slice input, StreamID& id, uint64_t missing_seq, bool allow_sentinels) {
     if (!input.n || input.n > kMaxIdText) return false;
     if (allow_sentinels && input.n == 1 && input.p[0] == '-') {
-        id = {}; return true;
+        id = {};
+        return true;
     }
     if (allow_sentinels && input.n == 1 && input.p[0] == '+') {
-        id = {UINT64_MAX, UINT64_MAX}; return true;
+        id = {UINT64_MAX, UINT64_MAX};
+        return true;
     }
     const char* dash = static_cast<const char*>(std::memchr(input.p, '-', input.n));
     if (!dash) {
@@ -107,8 +121,8 @@ bool parse_id_numeric(Slice input, StreamID& id, uint64_t missing_seq,
         return true;
     }
     const uint32_t first = static_cast<uint32_t>(dash - input.p);
-    if (!first || first + 1 >= input.n ||
-        std::memchr(dash + 1, '-', input.n - first - 1)) return false;
+    if (!first || first + 1 >= input.n || std::memchr(dash + 1, '-', input.n - first - 1))
+        return false;
     return parse_u64_exact(Slice(input.p, first), id.ms) &&
            parse_u64_exact(Slice(dash + 1, input.n - first - 1), id.seq);
 }
@@ -133,7 +147,8 @@ void reply_id(Op& op, const StreamID& id) {
 
 void encode_uleb(std::string& out, uint64_t value) {
     while (value >= 0x80) {
-        out.push_back(static_cast<char>((value & 0x7f) | 0x80)); value >>= 7;
+        out.push_back(static_cast<char>((value & 0x7f) | 0x80));
+        value >>= 7;
     }
     out.push_back(static_cast<char>(value));
 }
@@ -169,7 +184,8 @@ bool decode_record(Slice payload, const StreamID& previous_id,
     uint32_t pos = 0;
     uint64_t ms_delta = 0, seq_delta = 0, nfields = 0;
     if (!decode_uleb(payload, pos, ms_delta) || !decode_uleb(payload, pos, seq_delta) ||
-        pos >= payload.n) return false;
+        pos >= payload.n)
+        return false;
     if (ms_delta > UINT64_MAX - previous_id.ms) return false;
     out.id.ms = previous_id.ms + ms_delta;
     if (ms_delta == 0) {
@@ -182,7 +198,8 @@ bool decode_record(Slice payload, const StreamID& previous_id,
     out.flags = static_cast<uint8_t>(payload.p[pos++]);
     if (out.flags & ~(kDeleted | kSameFields)) return false;
     if (!decode_uleb(payload, pos, nfields) || nfields > UINT32_MAX) return false;
-    out.fields.clear(); out.values.clear();
+    out.fields.clear();
+    out.values.clear();
     try {
         out.fields.reserve(static_cast<size_t>(nfields));
         out.values.reserve(static_cast<size_t>(nfields));
@@ -214,29 +231,33 @@ bool fields_equal(const std::vector<std::string>& prior, Op& op, uint32_t first_
     if (prior.size() != count) return false;
     for (uint32_t i = 0; i < count; i++)
         if (!(Slice(prior[i].data(), static_cast<uint32_t>(prior[i].size())) ==
-              op.arg(first_field + i * 2))) return false;
+              op.arg(first_field + i * 2)))
+            return false;
     return true;
 }
 
-bool encode_record_from_op(const StreamID& id, const StreamID& previous_id,
-                           Op& op, uint32_t first_field,
-                           const std::vector<std::string>& previous_fields,
+bool encode_record_from_op(const StreamID& id, const StreamID& previous_id, Op& op,
+                           uint32_t first_field, const std::vector<std::string>& previous_fields,
                            bool first_in_node, std::string& out) {
     out.clear();
     const uint64_t ms_delta = id.ms - previous_id.ms;
     const uint64_t seq_delta = ms_delta ? id.seq : id.seq - previous_id.seq;
-    encode_uleb(out, ms_delta); encode_uleb(out, seq_delta);
+    encode_uleb(out, ms_delta);
+    encode_uleb(out, seq_delta);
     const bool same = !first_in_node && fields_equal(previous_fields, op, first_field);
     out.push_back(static_cast<char>(same ? kSameFields : 0));
     const uint32_t nfields = (op.argc() - first_field) / 2;
     encode_uleb(out, nfields);
-    if (!same) for (uint32_t i = 0; i < nfields; i++) {
-        const Slice field = op.arg(first_field + i * 2);
-        encode_uleb(out, field.n); out.append(field.p, field.n);
-    }
+    if (!same)
+        for (uint32_t i = 0; i < nfields; i++) {
+            const Slice field = op.arg(first_field + i * 2);
+            encode_uleb(out, field.n);
+            out.append(field.p, field.n);
+        }
     for (uint32_t i = 0; i < nfields; i++) {
         const Slice value = op.arg(first_field + i * 2 + 1);
-        encode_uleb(out, value.n); out.append(value.p, value.n);
+        encode_uleb(out, value.n);
+        out.append(value.p, value.n);
     }
     return out.size() <= UINT32_MAX;
 }
@@ -247,16 +268,19 @@ bool encode_owned_record(const OwnedRecord& record, const StreamID& previous_id,
     out.clear();
     const uint64_t ms_delta = record.id.ms - previous_id.ms;
     const uint64_t seq_delta = ms_delta ? record.id.seq : record.id.seq - previous_id.seq;
-    encode_uleb(out, ms_delta); encode_uleb(out, seq_delta);
+    encode_uleb(out, ms_delta);
+    encode_uleb(out, seq_delta);
     const bool same = !first_in_node && record.fields == previous_fields;
-    out.push_back(static_cast<char>((record.deleted ? kDeleted : 0) |
-                                    (same ? kSameFields : 0)));
+    out.push_back(static_cast<char>((record.deleted ? kDeleted : 0) | (same ? kSameFields : 0)));
     encode_uleb(out, record.fields.size());
-    if (!same) for (const std::string& field : record.fields) {
-        encode_uleb(out, field.size()); out.append(field);
-    }
+    if (!same)
+        for (const std::string& field : record.fields) {
+            encode_uleb(out, field.size());
+            out.append(field);
+        }
     for (const std::string& value : record.values) {
-        encode_uleb(out, value.size()); out.append(value);
+        encode_uleb(out, value.size());
+        out.append(value);
     }
     return out.size() <= UINT32_MAX;
 }
@@ -312,7 +336,8 @@ bool update_object_header(KvObj* object, const StreamHeader& header) {
     Compact::Entry entry;
     if (!stream.compact().at(0, entry)) return false;
     const std::string bytes = header_bytes(header);
-    if (!stream.replace(entry, Slice(bytes.data(), static_cast<uint32_t>(bytes.size())))) return false;
+    if (!stream.replace(entry, Slice(bytes.data(), static_cast<uint32_t>(bytes.size()))))
+        return false;
     stream.set_aux0(header.last_id.ms);
     stream.set_aux1(header.last_id.seq);
     return true;
@@ -327,7 +352,9 @@ bool scan_compact(CompactView compact, const StreamID& base, Fn&& fn,
             previous_fields.reserve(base_fields->size());
             for (const std::string& field : *base_fields)
                 previous_fields.emplace_back(field.data(), static_cast<uint32_t>(field.size()));
-        } catch (const std::bad_alloc&) { return false; }
+        } catch (const std::bad_alloc&) {
+            return false;
+        }
     }
     RecordView record;
     StreamID previous = base;
@@ -358,22 +385,24 @@ uint64_t stream_lp_string_bytes(Slice value) {
     int64_t integer = 0;
     if (parse_i64_option(value, integer)) return stream_lp_integer_bytes(integer);
     const uint64_t encoded = value.n + (value.n < 64 ? 1ull : value.n < 4096 ? 2ull : 5ull);
-    return encoded + (encoded <= 127 ? 1 : encoded < 16383 ? 2 :
-                      encoded < 2097151 ? 3 : encoded < 268435455 ? 4 : 5);
+    return encoded + (encoded <= 127        ? 1
+                      : encoded < 16383     ? 2
+                      : encoded < 2097151   ? 3
+                      : encoded < 268435455 ? 4
+                                            : 5);
 }
 
 template <typename Field, typename Value>
 uint64_t stream_lp_entry_bytes(const StreamID& id, const StreamID& master,
-                               const std::vector<Slice>& master_fields, size_t count,
-                               Field field, Value value) {
+                               const std::vector<Slice>& master_fields, size_t count, Field field,
+                               Value value) {
     bool same = master_fields.size() == count;
     for (size_t i = 0; same && i < count; i++) {
         const Slice item = field(i);
-        same = master_fields[i].n == item.n &&
-               std::memcmp(master_fields[i].p, item.p, item.n) == 0;
+        same = master_fields[i].n == item.n && std::memcmp(master_fields[i].p, item.p, item.n) == 0;
     }
     uint64_t bytes = 2 + stream_lp_integer_bytes(static_cast<int64_t>(id.ms - master.ms)) +
-                         stream_lp_integer_bytes(static_cast<int64_t>(id.seq - master.seq));
+                     stream_lp_integer_bytes(static_cast<int64_t>(id.seq - master.seq));
     if (!same) {
         bytes += stream_lp_integer_bytes(count);
         for (size_t i = 0; i < count; i++) bytes += stream_lp_string_bytes(field(i));
@@ -382,10 +411,9 @@ uint64_t stream_lp_entry_bytes(const StreamID& id, const StreamID& master,
     return bytes + stream_lp_integer_bytes(count * (same ? 1 : 2) + (same ? 3 : 4));
 }
 
-bool stream_node_full(const StreamNode& node, uint64_t incoming_bytes,
-                      const StreamLimits& limits) {
-    const uint64_t maximum = limits.node_max_bytes
-        ? std::min<uint64_t>(limits.node_max_bytes, 1ull << 30) : 1ull << 30;
+bool stream_node_full(const StreamNode& node, uint64_t incoming_bytes, const StreamLimits& limits) {
+    const uint64_t maximum =
+        limits.node_max_bytes ? std::min<uint64_t>(limits.node_max_bytes, 1ull << 30) : 1ull << 30;
     return node.wire_bytes + incoming_bytes >= maximum ||
            (limits.node_max_entries && node.physical_entries >= limits.node_max_entries);
 }
@@ -393,14 +421,15 @@ bool stream_node_full(const StreamNode& node, uint64_t incoming_bytes,
 void stream_node_delete_count(StreamNode& node, uint64_t removed) {
     const uint64_t live = node.physical_entries - node.deleted_entries;
     node.wire_bytes = node.wire_bytes - stream_lp_integer_bytes(live) -
-        stream_lp_integer_bytes(node.deleted_entries) + stream_lp_integer_bytes(live - removed) +
-        stream_lp_integer_bytes(node.deleted_entries + removed);
+                      stream_lp_integer_bytes(node.deleted_entries) +
+                      stream_lp_integer_bytes(live - removed) +
+                      stream_lp_integer_bytes(node.deleted_entries + removed);
     node.deleted_entries += static_cast<uint32_t>(removed);
 }
 
 bool stream_node_rollover(CompactView compact, const StreamID& base,
-                          const std::vector<std::string>* base_fields,
-                          uint64_t incoming_bytes, const StreamLimits& limits, bool& roll) {
+                          const std::vector<std::string>* base_fields, uint64_t incoming_bytes,
+                          const StreamLimits& limits, bool& roll) {
     roll = false;
     if (compact.size() <= 1) return true;
     if (limits.node_max_entries && compact.size() - 1 >= limits.node_max_entries) {
@@ -410,21 +439,31 @@ bool stream_node_rollover(CompactView compact, const StreamID& base,
     std::vector<Slice> master_fields;
     StreamID master{};
     uint64_t bytes = 7, live = 0, deleted = 0;
-    if (!scan_compact(compact, base, [&](const Compact::Entry&, const RecordView& record) {
-        if (master_fields.empty()) {
-            master = record.id;
-            master_fields = record.fields;
-            bytes += stream_lp_integer_bytes(master_fields.size()) + 2; // fields, terminator
-            for (Slice field : master_fields) bytes += stream_lp_string_bytes(field);
-        }
-        bytes += stream_lp_entry_bytes(record.id, master, master_fields, record.fields.size(),
-            [&](size_t i) { return record.fields[i]; }, [&](size_t i) { return record.values[i]; });
-        if (record.flags & kDeleted) deleted++; else live++;
-        return true;
-    }, base_fields)) return false;
+    if (!scan_compact(
+            compact, base,
+            [&](const Compact::Entry&, const RecordView& record) {
+                if (master_fields.empty()) {
+                    master = record.id;
+                    master_fields = record.fields;
+                    bytes +=
+                        stream_lp_integer_bytes(master_fields.size()) + 2;  // fields, terminator
+                    for (Slice field : master_fields) bytes += stream_lp_string_bytes(field);
+                }
+                bytes += stream_lp_entry_bytes(
+                    record.id, master, master_fields, record.fields.size(),
+                    [&](size_t i) { return record.fields[i]; },
+                    [&](size_t i) { return record.values[i]; });
+                if (record.flags & kDeleted)
+                    deleted++;
+                else
+                    live++;
+                return true;
+            },
+            base_fields))
+        return false;
     bytes += stream_lp_integer_bytes(live) + stream_lp_integer_bytes(deleted);
-    const uint64_t maximum = limits.node_max_bytes
-        ? std::min<uint64_t>(limits.node_max_bytes, 1ull << 30) : 1ull << 30;
+    const uint64_t maximum =
+        limits.node_max_bytes ? std::min<uint64_t>(limits.node_max_bytes, 1ull << 30) : 1ull << 30;
     roll = bytes + incoming_bytes >= maximum;
     return true;
 }
@@ -441,21 +480,22 @@ bool scan_object(KvObj* object, Fn&& fn) {
     if (stream.encoding() == CollectionEncoding::Compact) {
         StreamHeader header;
         if (!compact_header(stream.compact(), header)) return false;
-        return scan_compact(stream.compact(), header.base_id,
-                            [&](const Compact::Entry&, const RecordView& record) {
-                                return fn(record);
-                            });
+        return scan_compact(
+            stream.compact(), header.base_id,
+            [&](const Compact::Entry&, const RecordView& record) { return fn(record); });
     }
     StreamVal* value = stream.external_as<StreamVal>();
     bool keep_scanning = true;
     for (uint32_t i = 0; i < value->nodes.size(); i++) {
         StreamNode& node = value->nodes[i];
-        if (!scan_compact(CompactView(&node.log), node.base_id,
-                          [&](const Compact::Entry&, const RecordView& record) {
-                              keep_scanning = fn(record);
-                              return keep_scanning;
-                          }, i == 0 && !value->head_fields.empty()
-                                 ? &value->head_fields : nullptr)) return false;
+        if (!scan_compact(
+                CompactView(&node.log), node.base_id,
+                [&](const Compact::Entry&, const RecordView& record) {
+                    keep_scanning = fn(record);
+                    return keep_scanning;
+                },
+                i == 0 && !value->head_fields.empty() ? &value->head_fields : nullptr))
+            return false;
         if (!keep_scanning) break;
     }
     return true;
@@ -469,28 +509,29 @@ bool scan_object_from(KvObj* object, const StreamID& start, Fn&& fn) {
     if (stream.encoding() == CollectionEncoding::Compact) {
         StreamHeader header;
         if (!compact_header(stream.compact(), header)) return false;
-        return scan_compact(stream.compact(), header.base_id,
-                            [&](const Compact::Entry&, const RecordView& record) {
-                                return fn(record);
-                            });
+        return scan_compact(
+            stream.compact(), header.base_id,
+            [&](const Compact::Entry&, const RecordView& record) { return fn(record); });
     }
     StreamVal* value = stream.external_as<StreamVal>();
     if (value->index.empty()) return value->nodes.empty();
     auto it = std::upper_bound(value->index.begin(), value->index.end(), start,
-        [](const StreamID& id, const StreamNodeIndex& index) {
-            return id_compare(id, index.base_id) < 0;
-        });
+                               [](const StreamID& id, const StreamNodeIndex& index) {
+                                   return id_compare(id, index.base_id) < 0;
+                               });
     uint32_t first_node = 0;
     if (it != value->index.begin()) first_node = (--it)->node;
     bool keep_scanning = true;
     for (uint32_t i = first_node; i < value->nodes.size(); i++) {
         StreamNode& node = value->nodes[i];
-        if (!scan_compact(CompactView(&node.log), node.base_id,
-                          [&](const Compact::Entry&, const RecordView& record) {
-                              keep_scanning = fn(record);
-                              return keep_scanning;
-                          }, i == 0 && !value->head_fields.empty()
-                                 ? &value->head_fields : nullptr)) return false;
+        if (!scan_compact(
+                CompactView(&node.log), node.base_id,
+                [&](const Compact::Entry&, const RecordView& record) {
+                    keep_scanning = fn(record);
+                    return keep_scanning;
+                },
+                i == 0 && !value->head_fields.empty() ? &value->head_fields : nullptr))
+            return false;
         if (!keep_scanning) break;
     }
     return true;
@@ -498,25 +539,40 @@ bool scan_object_from(KvObj* object, const StreamID& start, Fn&& fn) {
 
 bool own_record(const RecordView& view, OwnedRecord& out) {
     try {
-        out = OwnedRecord{}; out.id = view.id; out.deleted = (view.flags & kDeleted) != 0;
-        out.fields.reserve(view.fields.size()); out.values.reserve(view.values.size());
+        out = OwnedRecord{};
+        out.id = view.id;
+        out.deleted = (view.flags & kDeleted) != 0;
+        out.fields.reserve(view.fields.size());
+        out.values.reserve(view.values.size());
         for (Slice field : view.fields) out.fields.emplace_back(field.p, field.n);
         for (Slice value : view.values) out.values.emplace_back(value.p, value.n);
-    } catch (const std::bad_alloc&) { return false; }
+    } catch (const std::bad_alloc&) {
+        return false;
+    }
     return true;
 }
 
-bool collect_compact(CompactView compact, const StreamID& base,
-                     std::vector<OwnedRecord>& records,
+bool collect_compact(CompactView compact, const StreamID& base, std::vector<OwnedRecord>& records,
                      const std::vector<std::string>* base_fields = nullptr) {
     records.clear();
     bool oom = false;
-    const bool ok = scan_compact(compact, base, [&](const Compact::Entry&, const RecordView& view) {
-        try { records.emplace_back(); }
-        catch (const std::bad_alloc&) { oom = true; return false; }
-        if (!own_record(view, records.back())) { records.pop_back(); oom = true; return false; }
-        return true;
-    }, base_fields);
+    const bool ok = scan_compact(
+        compact, base,
+        [&](const Compact::Entry&, const RecordView& view) {
+            try {
+                records.emplace_back();
+            } catch (const std::bad_alloc&) {
+                oom = true;
+                return false;
+            }
+            if (!own_record(view, records.back())) {
+                records.pop_back();
+                oom = true;
+                return false;
+            }
+            return true;
+        },
+        base_fields);
     return ok && !oom;
 }
 
@@ -527,7 +583,8 @@ bool scan_object_reverse(KvObj* object, const StreamID& end, Fn&& fn) {
     if (stream.encoding() == CollectionEncoding::Compact) {
         StreamHeader header;
         if (!compact_header(stream.compact(), header) ||
-            !collect_compact(stream.compact(), header.base_id, records)) return false;
+            !collect_compact(stream.compact(), header.base_id, records))
+            return false;
         for (auto it = records.rbegin(); it != records.rend(); ++it)
             if (!fn(*it)) break;
         return true;
@@ -535,17 +592,18 @@ bool scan_object_reverse(KvObj* object, const StreamID& end, Fn&& fn) {
     StreamVal* value = stream.external_as<StreamVal>();
     if (value->index.empty()) return value->nodes.empty();
     auto at = std::upper_bound(value->index.begin(), value->index.end(), end,
-        [](const StreamID& id, const StreamNodeIndex& index) {
-            return id_compare(id, index.base_id) < 0;
-        });
+                               [](const StreamID& id, const StreamNodeIndex& index) {
+                                   return id_compare(id, index.base_id) < 0;
+                               });
     if (at == value->index.begin()) return true;
     uint32_t node_index = (--at)->node;
     bool keep_scanning = true;
     for (;;) {
         StreamNode& node = value->nodes[node_index];
-        if (!collect_compact(CompactView(&node.log), node.base_id, records,
-                             node_index == 0 && !value->head_fields.empty()
-                                 ? &value->head_fields : nullptr)) return false;
+        if (!collect_compact(
+                CompactView(&node.log), node.base_id, records,
+                node_index == 0 && !value->head_fields.empty() ? &value->head_fields : nullptr))
+            return false;
         for (auto it = records.rbegin(); it != records.rend(); ++it) {
             keep_scanning = fn(*it);
             if (!keep_scanning) break;
@@ -562,17 +620,24 @@ uint64_t stream_live_length(KvObj* object) {
         return stream.external_as<StreamVal>()->entries();
     uint64_t live = 0;
     if (!scan_object(object, [&](const RecordView& record) {
-            live += (record.flags & kDeleted) == 0; return true;
-        })) return 0;
+            live += (record.flags & kDeleted) == 0;
+            return true;
+        }))
+        return 0;
     return live;
 }
 
 bool first_live_id(KvObj* object, StreamID& id) {
     bool found = false;
     if (!scan_object(object, [&](const RecordView& record) {
-            if (!(record.flags & kDeleted)) { id = record.id; found = true; return false; }
+            if (!(record.flags & kDeleted)) {
+                id = record.id;
+                found = true;
+                return false;
+            }
             return true;
-        })) return false;
+        }))
+        return false;
     if (!found) id = {};
     return true;
 }
@@ -580,16 +645,21 @@ bool first_live_id(KvObj* object, StreamID& id) {
 bool last_live_id(KvObj* object, StreamID& id) {
     bool found = false;
     if (!scan_object(object, [&](const RecordView& record) {
-            if (!(record.flags & kDeleted)) { id = record.id; found = true; }
+            if (!(record.flags & kDeleted)) {
+                id = record.id;
+                found = true;
+            }
             return true;
-        })) return false;
+        }))
+        return false;
     if (!found) id = {};
     return true;
 }
 
 uint64_t tail_field_bytes(const StreamVal& value) {
-    uint64_t bytes = static_cast<uint64_t>(value.head_fields.capacity() +
-                                           value.tail_fields.capacity()) * sizeof(std::string);
+    uint64_t bytes =
+        static_cast<uint64_t>(value.head_fields.capacity() + value.tail_fields.capacity()) *
+        sizeof(std::string);
     for (const std::string& field : value.head_fields) bytes += field.capacity();
     for (const std::string& field : value.tail_fields) bytes += field.capacity();
     return bytes;
@@ -624,8 +694,8 @@ bool start_node(StreamVal& value, const OwnedRecord& record) {
     node.base_id = node.last_id = record.id;
     node.physical_entries = 1;
     node.deleted_entries = record.deleted;
-    node.wire_bytes = 7 + 2 + 2 + stream_lp_integer_bytes(record.fields.size()) + 2 +
-                      2 + 2 + 2 + stream_lp_integer_bytes(record.fields.size() + 3);
+    node.wire_bytes = 7 + 2 + 2 + stream_lp_integer_bytes(record.fields.size()) + 2 + 2 + 2 + 2 +
+                      stream_lp_integer_bytes(record.fields.size() + 3);
     for (const std::string& field : record.fields)
         node.wire_bytes += stream_lp_string_bytes(Slice(field.data(), field.size()));
     for (const std::string& item : record.values)
@@ -637,15 +707,17 @@ bool start_node(StreamVal& value, const OwnedRecord& record) {
     std::string encoded;
     if (!node.log.append(Slice(hdr.data(), hdr.size())) ||
         !encode_owned_record(record, record.id, {}, true, encoded) ||
-        !node.log.append(Slice(encoded.data(), encoded.size()))) return false;
+        !node.log.append(Slice(encoded.data(), encoded.size())))
+        return false;
     try {
         value.nodes.push_back(std::move(node));
-        value.index.push_back(StreamNodeIndex{record.id,
-                                              static_cast<uint32_t>(value.nodes.size() - 1)});
+        value.index.push_back(
+            StreamNodeIndex{record.id, static_cast<uint32_t>(value.nodes.size() - 1)});
         value.tail_fields = record.fields;
     } catch (const std::bad_alloc&) {
         if (!value.nodes.empty() && value.nodes.back().base_id.ms == record.id.ms &&
-            value.nodes.back().base_id.seq == record.id.seq) value.nodes.pop_back();
+            value.nodes.back().base_id.seq == record.id.seq)
+            value.nodes.pop_back();
         return false;
     }
     return true;
@@ -661,14 +733,19 @@ bool append_owned_external(StreamVal& value, const OwnedRecord& record,
     for (const std::string& field : record.fields) incoming += field.size();
     for (const std::string& item : record.values) incoming += item.size();
     if (stream_node_full(tail, incoming, limits)) return start_node(value, record);
-    Compact::Entry first; RecordView master;
-    if (!tail.log.at(1, first) || !decode_record(first.value, tail.base_id, {}, master)) return false;
-    const uint64_t extra = stream_lp_entry_bytes(record.id, master.id, master.fields,
-        record.fields.size(), [&](size_t i) { return Slice(record.fields[i].data(), record.fields[i].size()); },
+    Compact::Entry first;
+    RecordView master;
+    if (!tail.log.at(1, first) || !decode_record(first.value, tail.base_id, {}, master))
+        return false;
+    const uint64_t extra = stream_lp_entry_bytes(
+        record.id, master.id, master.fields, record.fields.size(),
+        [&](size_t i) { return Slice(record.fields[i].data(), record.fields[i].size()); },
         [&](size_t i) { return Slice(record.values[i].data(), record.values[i].size()); });
     if (!tail.log.append(Slice(encoded.data(), encoded.size()))) return false;
-    const uint64_t before = record.deleted ? tail.deleted_entries : tail.physical_entries - tail.deleted_entries;
-    tail.wire_bytes += extra + stream_lp_integer_bytes(before + 1) - stream_lp_integer_bytes(before);
+    const uint64_t before =
+        record.deleted ? tail.deleted_entries : tail.physical_entries - tail.deleted_entries;
+    tail.wire_bytes +=
+        extra + stream_lp_integer_bytes(before + 1) - stream_lp_integer_bytes(before);
     tail.last_id = record.id;
     tail.physical_entries++;
     tail.deleted_entries += record.deleted;
@@ -689,10 +766,13 @@ bool build_external(StreamVal& destination, const StreamHeader& header,
     }
     destination.first_id = {};
     for (const OwnedRecord& record : records)
-        if (!record.deleted) { destination.first_id = record.id; break; }
+        if (!record.deleted) {
+            destination.first_id = record.id;
+            break;
+        }
     destination.node_allocation_bytes = measure_node_allocation(destination);
-    destination.promote(CollectionEncoding::Deque, destination.node_allocation_bytes,
-                        live, payload);
+    destination.promote(CollectionEncoding::Deque, destination.node_allocation_bytes, live,
+                        payload);
     return true;
 }
 
@@ -704,24 +784,32 @@ bool externalize_stream(Shard& shard, Op& op, KvObj*& object) {
     std::vector<OwnedRecord> records;
     if (!compact_header(source.compact(), header) ||
         !collect_compact(source.compact(), header.base_id, records)) {
-        reply_err(op.sink(), "ERR out of memory"); return false;
+        reply_err(op.sink(), "ERR out of memory");
+        return false;
     }
     auto* value = new (std::nothrow) StreamVal;
     // Embedded storage is one existing macro node. A CONFIG change affects the
     // next append, not the boundaries of records that are already present.
     if (!value || !build_external(*value, header, records, StreamLimits{0, 0})) {
-        delete value; reply_err(op.sink(), "ERR out of memory"); return false;
+        delete value;
+        reply_err(op.sink(), "ERR out of memory");
+        return false;
     }
-    KvObj* replacement = kvobj_new_stream(object->key(), value,
-                                          shard.store().deadline(op.hash, object),
-                                          object->has_ttl_slot());
-    if (!replacement) { delete value; reply_err(op.sink(), "ERR out of memory"); return false; }
+    KvObj* replacement = kvobj_new_stream(
+        object->key(), value, shard.store().deadline(op.hash, object), object->has_ttl_slot());
+    if (!replacement) {
+        delete value;
+        reply_err(op.sink(), "ERR out of memory");
+        return false;
+    }
     replacement->set_eviction_meta(object->eviction_meta());
     const FlatStore::InsertResult inserted = shard.store_insert<kNotify>(op.hash, replacement);
     if (inserted != FlatStore::InsertResult::Inserted) {
         kvobj_free(replacement);
-        if (inserted == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
-        else reply_err(op.sink(), "ERR keyspace insert failed");
+        if (inserted == FlatStore::InsertResult::MaxmemoryOom)
+            reply_maxmemory_oom(op);
+        else
+            reply_err(op.sink(), "ERR keyspace insert failed");
         return false;
     }
     object = replacement;
@@ -741,51 +829,70 @@ void update_tail_fields_from_op(StreamVal& value, Op& op, uint32_t first_field) 
 bool append_op_external(StreamVal& value, const StreamID& id, Op& op, uint32_t first_field,
                         const StreamLimits& limits) {
     if (value.nodes.empty()) {
-        OwnedRecord owned; owned.id = id;
+        OwnedRecord owned;
+        owned.id = id;
         const uint32_t nfields = (op.argc() - first_field) / 2;
         try {
             for (uint32_t i = 0; i < nfields; i++) {
                 const Slice f = op.arg(first_field + i * 2);
                 const Slice v = op.arg(first_field + i * 2 + 1);
-                owned.fields.emplace_back(f.p, f.n); owned.values.emplace_back(v.p, v.n);
+                owned.fields.emplace_back(f.p, f.n);
+                owned.values.emplace_back(v.p, v.n);
             }
-        } catch (const std::bad_alloc&) { return false; }
+        } catch (const std::bad_alloc&) {
+            return false;
+        }
         return start_node(value, owned);
     }
     StreamNode& tail = value.nodes.back();
     std::string encoded;
     if (!encode_record_from_op(id, tail.last_id, op, first_field, value.tail_fields, false,
-                               encoded)) return false;
+                               encoded))
+        return false;
     if (stream_node_full(tail, stream_append_raw_bytes(op, first_field), limits)) {
-        OwnedRecord owned; owned.id = id;
+        OwnedRecord owned;
+        owned.id = id;
         const uint32_t nfields = (op.argc() - first_field) / 2;
         try {
             for (uint32_t i = 0; i < nfields; i++) {
                 const Slice f = op.arg(first_field + i * 2);
                 const Slice v = op.arg(first_field + i * 2 + 1);
-                owned.fields.emplace_back(f.p, f.n); owned.values.emplace_back(v.p, v.n);
+                owned.fields.emplace_back(f.p, f.n);
+                owned.values.emplace_back(v.p, v.n);
             }
-        } catch (const std::bad_alloc&) { return false; }
+        } catch (const std::bad_alloc&) {
+            return false;
+        }
         return start_node(value, owned);
     }
-    Compact::Entry first; RecordView master;
-    if (!tail.log.at(1, first) || !decode_record(first.value, tail.base_id, {}, master)) return false;
-    const uint64_t extra = stream_lp_entry_bytes(id, master.id, master.fields,
-        (op.argc() - first_field) / 2, [&](size_t i) { return op.arg(first_field + i * 2); },
+    Compact::Entry first;
+    RecordView master;
+    if (!tail.log.at(1, first) || !decode_record(first.value, tail.base_id, {}, master))
+        return false;
+    const uint64_t extra = stream_lp_entry_bytes(
+        id, master.id, master.fields, (op.argc() - first_field) / 2,
+        [&](size_t i) { return op.arg(first_field + i * 2); },
         [&](size_t i) { return op.arg(first_field + i * 2 + 1); });
     if (!tail.log.append(Slice(encoded.data(), encoded.size()))) return false;
     const uint64_t live = tail.physical_entries - tail.deleted_entries;
     tail.wire_bytes += extra + stream_lp_integer_bytes(live + 1) - stream_lp_integer_bytes(live);
-    tail.last_id = id; tail.physical_entries++;
+    tail.last_id = id;
+    tail.physical_entries++;
     update_tail_fields_from_op(value, op, first_field);
     return write_node_header(tail, value.header);
 }
 
 enum class AddIdKind : uint8_t { Auto, MillisAuto, Explicit };
-struct AddId { AddIdKind kind = AddIdKind::Explicit; StreamID id{}; };
+struct AddId {
+    AddIdKind kind = AddIdKind::Explicit;
+    StreamID id{};
+};
 
 bool parse_add_id(Slice input, AddId& parsed) {
-    if (input.n == 1 && input.p[0] == '*') { parsed.kind = AddIdKind::Auto; return true; }
+    if (input.n == 1 && input.p[0] == '*') {
+        parsed.kind = AddIdKind::Auto;
+        return true;
+    }
     if (input.n >= 3 && input.p[input.n - 2] == '-' && input.p[input.n - 1] == '*') {
         parsed.kind = AddIdKind::MillisAuto;
         return parse_u64_exact(Slice(input.p, input.n - 2), parsed.id.ms);
@@ -797,29 +904,39 @@ bool parse_add_id(Slice input, AddId& parsed) {
 bool resolve_add_id(Shard& shard, const StreamHeader& header, const AddId& requested,
                     StreamID& result, Op& op) {
     if (header.last_id.ms == UINT64_MAX && header.last_id.seq == UINT64_MAX) {
-        reply_err(op.sink(), "ERR The stream has exhausted the last possible ID, unable to add more items");
+        reply_err(op.sink(),
+                  "ERR The stream has exhausted the last possible ID, unable to add more items");
         return false;
     }
     if (requested.kind == AddIdKind::Auto) {
         const uint64_t now = shard.now_ms() < 0 ? 0 : static_cast<uint64_t>(shard.now_ms());
-        if (now > header.last_id.ms) result = {now, 0};
-        else { result = header.last_id; if (!id_increment(result)) return false; }
+        if (now > header.last_id.ms)
+            result = {now, 0};
+        else {
+            result = header.last_id;
+            if (!id_increment(result)) return false;
+        }
         if (id_zero(result)) result.seq = 1;
         return true;
     }
     if (requested.kind == AddIdKind::MillisAuto) {
         result.ms = requested.id.ms;
         if (result.ms < header.last_id.ms) {
-            reply_err(op.sink(), "ERR The ID specified in XADD is equal or smaller than the target stream top item");
+            reply_err(
+                op.sink(),
+                "ERR The ID specified in XADD is equal or smaller than the target stream top item");
             return false;
         }
         if (result.ms == header.last_id.ms) {
             if (header.last_id.seq == UINT64_MAX) {
-                reply_err(op.sink(), "ERR The ID specified in XADD is equal or smaller than the target stream top item");
+                reply_err(
+                    op.sink(),
+                    "ERR The ID specified in XADD is equal or smaller than the target stream top item");
                 return false;
             }
             result.seq = header.last_id.seq + 1;
-        } else result.seq = result.ms == 0 ? 1 : 0;
+        } else
+            result.seq = result.ms == 0 ? 1 : 0;
         return true;
     }
     result = requested.id;
@@ -828,7 +945,9 @@ bool resolve_add_id(Shard& shard, const StreamHeader& header, const AddId& reque
         return false;
     }
     if (id_compare(result, header.last_id) <= 0) {
-        reply_err(op.sink(), "ERR The ID specified in XADD is equal or smaller than the target stream top item");
+        reply_err(
+            op.sink(),
+            "ERR The ID specified in XADD is equal or smaller than the target stream top item");
         return false;
     }
     return true;
@@ -845,40 +964,58 @@ struct TrimSpec {
 };
 
 bool parse_trim_threshold(Op& op, uint32_t& pos, TrimSpec& trim) {
-    if (pos >= op.argc()) { reply_syntax(op.sink()); return false; }
-    if (op.arg(pos).eq_icase("maxlen")) trim.kind = TrimKind::MaxLen;
-    else if (op.arg(pos).eq_icase("minid")) trim.kind = TrimKind::MinId;
-    else { reply_syntax(op.sink()); return false; }
+    if (pos >= op.argc()) {
+        reply_syntax(op.sink());
+        return false;
+    }
+    if (op.arg(pos).eq_icase("maxlen"))
+        trim.kind = TrimKind::MaxLen;
+    else if (op.arg(pos).eq_icase("minid"))
+        trim.kind = TrimKind::MinId;
+    else {
+        reply_syntax(op.sink());
+        return false;
+    }
     pos++;
     if (pos < op.argc() && (op.arg(pos).eq_icase("~") || op.arg(pos).eq_icase("="))) {
-        trim.approximate = op.arg(pos).eq_icase("~"); pos++;
+        trim.approximate = op.arg(pos).eq_icase("~");
+        pos++;
     }
-    if (pos >= op.argc()) { reply_syntax(op.sink()); return false; }
+    if (pos >= op.argc()) {
+        reply_syntax(op.sink());
+        return false;
+    }
     if (trim.kind == TrimKind::MaxLen) {
         // Redis parses the threshold as a signed canonical integer and reports the two failures
         // apart: an unparseable one is an integer error, a well-formed negative one names MAXLEN.
         int64_t parsed = 0;
         if (!parse_i64_option(op.arg(pos++), parsed)) {
-            reply_err(op.sink(), "ERR value is not an integer or out of range"); return false;
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return false;
         }
         if (parsed < 0) {
-            reply_err(op.sink(), "ERR The MAXLEN argument must be >= 0."); return false;
+            reply_err(op.sink(), "ERR The MAXLEN argument must be >= 0.");
+            return false;
         }
         trim.maxlen = static_cast<uint64_t>(parsed);
     } else if (!parse_id_numeric(op.arg(pos++), trim.minid, 0, false)) {
-        reply_invalid_stream_id(op); return false;
+        reply_invalid_stream_id(op);
+        return false;
     }
     if (pos < op.argc() && op.arg(pos).eq_icase("limit")) {
         if (!trim.approximate) {
-            reply_err(op.sink(), "ERR syntax error, LIMIT cannot be used without the special ~ option");
+            reply_err(op.sink(),
+                      "ERR syntax error, LIMIT cannot be used without the special ~ option");
             return false;
         }
         int64_t parsed = 0;
         if (pos + 1 >= op.argc() || !parse_i64_option(op.arg(pos + 1), parsed)) {
-            reply_syntax(op.sink()); return false;
+            reply_syntax(op.sink());
+            return false;
         }
         if (parsed < 0) {
-            reply_err(op.sink(), "ERR The LIMIT argument must be >= 0."); return false;
+            reply_err(op.sink(), "ERR The LIMIT argument must be >= 0.");
+            return false;
         }
         trim.limit = static_cast<uint64_t>(parsed);
         trim.limit_given = true;
@@ -890,8 +1027,10 @@ bool parse_trim_threshold(Op& op, uint32_t& pos, TrimSpec& trim) {
 bool rebuild_compact(Compact& compact, StreamHeader header,
                      const std::vector<OwnedRecord>& records) {
     Compact replacement;
-    if (!records.empty()) header.base_id = records.front().id;
-    else header.base_id = {};
+    if (!records.empty())
+        header.base_id = records.front().id;
+    else
+        header.base_id = {};
     const std::string hdr = header_bytes(header);
     if (!replacement.append(Slice(hdr.data(), hdr.size()))) return false;
     StreamID previous = header.base_id;
@@ -899,26 +1038,29 @@ bool rebuild_compact(Compact& compact, StreamHeader header,
     for (size_t i = 0; i < records.size(); i++) {
         std::string encoded;
         if (!encode_owned_record(records[i], previous, fields, i == 0, encoded) ||
-            !replacement.append(Slice(encoded.data(), encoded.size()))) return false;
-        previous = records[i].id; fields = records[i].fields;
+            !replacement.append(Slice(encoded.data(), encoded.size())))
+            return false;
+        previous = records[i].id;
+        fields = records[i].fields;
     }
     compact = std::move(replacement);
     return true;
 }
 
-struct TrimCut { size_t physical = 0; uint64_t live = 0; };
+struct TrimCut {
+    size_t physical = 0;
+    uint64_t live = 0;
+};
 
-TrimCut trim_cut(const std::vector<OwnedRecord>& records, const TrimSpec& trim,
-                 uint64_t live) {
-    if (records.empty() || (trim.kind == TrimKind::MaxLen && live <= trim.maxlen))
-        return {};
+TrimCut trim_cut(const std::vector<OwnedRecord>& records, const TrimSpec& trim, uint64_t live) {
+    if (records.empty() || (trim.kind == TrimKind::MaxLen && live <= trim.maxlen)) return {};
     uint64_t node_live = 0;
     for (const OwnedRecord& record : records) node_live += !record.deleted;
     // LIMIT counts surviving entries, not tombstones, and never splits a macro node.
     if (trim.limit && node_live > trim.limit) return {};
     const bool whole = trim.kind == TrimKind::MaxLen
-        ? live - node_live >= trim.maxlen
-        : id_compare(records.back().id, trim.minid) < 0;
+                           ? live - node_live >= trim.maxlen
+                           : id_compare(records.back().id, trim.minid) < 0;
     if (whole) return {records.size(), node_live};
     if (trim.approximate) return {};
 
@@ -926,7 +1068,8 @@ TrimCut trim_cut(const std::vector<OwnedRecord>& records, const TrimSpec& trim,
     while (cut.physical < records.size()) {
         const OwnedRecord& record = records[cut.physical];
         if (trim.kind == TrimKind::MaxLen ? live - cut.live <= trim.maxlen
-                                          : id_compare(record.id, trim.minid) >= 0) break;
+                                          : id_compare(record.id, trim.minid) >= 0)
+            break;
         cut.live += !record.deleted;
         cut.physical++;
     }
@@ -934,25 +1077,28 @@ TrimCut trim_cut(const std::vector<OwnedRecord>& records, const TrimSpec& trim,
 }
 
 void apply_trim_cut(std::vector<OwnedRecord>& records, const TrimCut& cut) {
-    if (cut.physical == records.size()) records.clear();
-    else for (size_t i = 0; i < cut.physical; i++) records[i].deleted = true;
+    if (cut.physical == records.size())
+        records.clear();
+    else
+        for (size_t i = 0; i < cut.physical; i++) records[i].deleted = true;
     // A partial exact trim leaves tombstones in its macro node. Physically dropping the
     // prefix would change the next append's rollover and a later approximate trim's result.
 }
 
-bool trim_stream(KvObj* object, TrimSpec trim, const StreamLimits& limits,
-                 uint64_t& removed) {
+bool trim_stream(KvObj* object, TrimSpec trim, const StreamLimits& limits, uint64_t& removed) {
     removed = 0;
     if (trim.kind == TrimKind::None) return true;
     if (trim.approximate && !trim.limit_given)
         trim.limit = limits.node_max_entries
-            ? std::min<uint64_t>(1000000, uint64_t{100} * limits.node_max_entries) : 10000;
+                         ? std::min<uint64_t>(1000000, uint64_t{100} * limits.node_max_entries)
+                         : 10000;
     CollectionRef stream(object);
     StreamHeader header;
     if (!object_header(object, header)) return false;
     const uint64_t live = stream_live_length(object);
     if ((trim.kind == TrimKind::MaxLen && live <= trim.maxlen) ||
-        (trim.kind == TrimKind::MinId && live == 0)) return true;
+        (trim.kind == TrimKind::MinId && live == 0))
+        return true;
 
     if (stream.encoding() == CollectionEncoding::Compact) {
         std::vector<OwnedRecord> records;
@@ -963,8 +1109,12 @@ bool trim_stream(KvObj* object, TrimSpec trim, const StreamLimits& limits,
         apply_trim_cut(records, cut);
         Compact replacement;
         if (!rebuild_compact(replacement, header, records) ||
-            !stream.replace_compact(std::move(replacement))) return false;
-        if (!records.empty()) header.base_id = records.front().id; else header.base_id = {};
+            !stream.replace_compact(std::move(replacement)))
+            return false;
+        if (!records.empty())
+            header.base_id = records.front().id;
+        else
+            header.base_id = {};
         return update_object_header(object, header);
     }
 
@@ -985,7 +1135,8 @@ bool trim_stream(KvObj* object, TrimSpec trim, const StreamLimits& limits,
         }
         const TrimCut cut = trim_cut(records, remaining, remaining_live);
         if (!cut.physical) break;
-        removed += cut.live; remaining_live -= cut.live;
+        removed += cut.live;
+        remaining_live -= cut.live;
         if (cut.physical == records.size()) {
             value->nodes.pop_front();
             value->index.erase(value->index.begin());
@@ -1004,8 +1155,10 @@ bool trim_stream(KvObj* object, TrimSpec trim, const StreamLimits& limits,
     }
     value->note_expanded_delete_many(static_cast<uint32_t>(removed), 0,
                                      value->node_allocation_bytes);
-    if (!value->nodes.empty()) header.base_id = value->nodes.front().base_id;
-    else header.base_id = {};
+    if (!value->nodes.empty())
+        header.base_id = value->nodes.front().base_id;
+    else
+        header.base_id = {};
     value->header = header;
     first_live_id(object, value->first_id);
     if (!value->nodes.empty()) {
@@ -1013,9 +1166,14 @@ bool trim_stream(KvObj* object, TrimSpec trim, const StreamLimits& limits,
         StreamNode& node = value->nodes.back();
         if (!collect_compact(CompactView(&node.log), node.base_id, tail,
                              value->nodes.size() == 1 && !value->head_fields.empty()
-                                 ? &value->head_fields : nullptr)) return false;
+                                 ? &value->head_fields
+                                 : nullptr))
+            return false;
         value->tail_fields = tail.empty() ? std::vector<std::string>{} : tail.back().fields;
-    } else { value->head_fields.clear(); value->tail_fields.clear(); }
+    } else {
+        value->head_fields.clear();
+        value->tail_fields.clear();
+    }
     refresh_allocation(*value);
     return true;
 }
@@ -1046,13 +1204,14 @@ public:
         advance(n);
     }
     void push_back(char value) { append(&value, 1); }
+
 private:
     std::vector<uint8_t>& bytes_;
     size_t base_ = 0;
 };
 
-bool emit_range_payload(KvObj* object, StreamID start, StreamID end, uint64_t count,
-                        bool reverse, std::vector<uint8_t>& payload) {
+bool emit_range_payload(KvObj* object, StreamID start, StreamID end, uint64_t count, bool reverse,
+                        std::vector<uint8_t>& payload) {
     payload.clear();
     if (count) {
         const uint64_t hint = std::min<uint64_t>(count, 4096) * 64 + 4;
@@ -1067,28 +1226,38 @@ bool emit_range_payload(KvObj* object, StreamID start, StreamID end, uint64_t co
                     if (record.flags & kDeleted) return true;
                     if (id_compare(record.id, start) < 0) return true;
                     if (id_compare(record.id, end) > 0 || (count && emitted >= count)) return false;
-                    reply_record_to(body, record); emitted++; return true;
-                })) return false;
+                    reply_record_to(body, record);
+                    emitted++;
+                    return true;
+                }))
+                return false;
         } else {
             if (!scan_object_reverse(object, end, [&](const OwnedRecord& record) {
-                if (record.deleted || id_compare(record.id, end) > 0) return true;
-                if (id_compare(record.id, start) < 0 || (count && emitted >= count)) return false;
-                RecordView view; view.id = record.id;
-                for (const std::string& field : record.fields)
-                    view.fields.emplace_back(field.data(), static_cast<uint32_t>(field.size()));
-                for (const std::string& value : record.values)
-                    view.values.emplace_back(value.data(), static_cast<uint32_t>(value.size()));
-                reply_record_to(body, view); emitted++;
-                return true;
-            })) return false;
+                    if (record.deleted || id_compare(record.id, end) > 0) return true;
+                    if (id_compare(record.id, start) < 0 || (count && emitted >= count))
+                        return false;
+                    RecordView view;
+                    view.id = record.id;
+                    for (const std::string& field : record.fields)
+                        view.fields.emplace_back(field.data(), static_cast<uint32_t>(field.size()));
+                    for (const std::string& value : record.values)
+                        view.values.emplace_back(value.data(), static_cast<uint32_t>(value.size()));
+                    reply_record_to(body, view);
+                    emitted++;
+                    return true;
+                }))
+                return false;
         }
-    } catch (const std::bad_alloc&) { payload.clear(); return false; }
+    } catch (const std::bad_alloc&) {
+        payload.clear();
+        return false;
+    }
     snapshot_put_u32(payload.data(), emitted);
     return true;
 }
 
-bool emit_range_reply(Op& op, KvObj* object, StreamID start, StreamID end,
-                      uint64_t count, bool reverse) {
+bool emit_range_reply(Op& op, KvObj* object, StreamID start, StreamID end, uint64_t count,
+                      bool reverse) {
     SmallBuf<256> body;
     uint32_t emitted = 0;
     try {
@@ -1096,28 +1265,30 @@ bool emit_range_reply(Op& op, KvObj* object, StreamID start, StreamID end,
             if (!scan_object_from(object, start, [&](const RecordView& record) {
                     if (record.flags & kDeleted) return true;
                     if (id_compare(record.id, start) < 0) return true;
-                    if (id_compare(record.id, end) > 0 || (count && emitted >= count))
-                        return false;
+                    if (id_compare(record.id, end) > 0 || (count && emitted >= count)) return false;
                     reply_record_to(body, record);
                     emitted++;
                     return true;
-                })) return false;
+                }))
+                return false;
         } else {
             if (!scan_object_reverse(object, end, [&](const OwnedRecord& record) {
-                if (record.deleted || id_compare(record.id, end) > 0) return true;
-                if (id_compare(record.id, start) < 0 || (count && emitted >= count)) return false;
-                RecordView view;
-                view.id = record.id;
-                view.fields.reserve(record.fields.size());
-                view.values.reserve(record.values.size());
-                for (const std::string& field : record.fields)
-                    view.fields.emplace_back(field.data(), static_cast<uint32_t>(field.size()));
-                for (const std::string& value : record.values)
-                    view.values.emplace_back(value.data(), static_cast<uint32_t>(value.size()));
-                reply_record_to(body, view);
-                emitted++;
-                return true;
-            })) return false;
+                    if (record.deleted || id_compare(record.id, end) > 0) return true;
+                    if (id_compare(record.id, start) < 0 || (count && emitted >= count))
+                        return false;
+                    RecordView view;
+                    view.id = record.id;
+                    view.fields.reserve(record.fields.size());
+                    view.values.reserve(record.values.size());
+                    for (const std::string& field : record.fields)
+                        view.fields.emplace_back(field.data(), static_cast<uint32_t>(field.size()));
+                    for (const std::string& value : record.values)
+                        view.values.emplace_back(value.data(), static_cast<uint32_t>(value.size()));
+                    reply_record_to(body, view);
+                    emitted++;
+                    return true;
+                }))
+                return false;
         }
     } catch (const std::bad_alloc&) {
         return false;
@@ -1138,9 +1309,13 @@ bool reply_range_payload(Op& op, const std::vector<uint8_t>& payload) {
 
 bool parse_range_bound(Op& op, Slice input, bool start, StreamID& id) {
     bool exclusive = input.n && input.p[0] == '(';
-    if (exclusive) { input.p++; input.n--; }
+    if (exclusive) {
+        input.p++;
+        input.n--;
+    }
     if (!parse_id_numeric(input, id, start ? 0 : UINT64_MAX, !exclusive)) {
-        reply_invalid_stream_id(op); return false;
+        reply_invalid_stream_id(op);
+        return false;
     }
     if (exclusive && !(start ? id_increment(id) : id_decrement(id))) {
         reply_err(op.sink(), start ? "ERR invalid start ID for the interval"
@@ -1153,30 +1328,42 @@ bool parse_range_bound(Op& op, Slice input, bool start, StreamID& id) {
 template <bool kNotify>
 void range_generic(Shard& shard, Op& op, bool reverse) {
     uint64_t count = 0;
-    if (op.argc() != 4 && op.argc() != 6) { reply_syntax(op.sink()); return; }
+    if (op.argc() != 4 && op.argc() != 6) {
+        reply_syntax(op.sink());
+        return;
+    }
     if (op.argc() == 6) {
         int64_t parsed = 0;
         if (!op.arg(4).eq_icase("count") || !parse_i64_option(op.arg(5), parsed)) {
             if (op.arg(4).eq_icase("count"))
                 reply_err(op.sink(), "ERR value is not an integer or out of range");
-            else reply_syntax(op.sink());
+            else
+                reply_syntax(op.sink());
             return;
         }
         // A COUNT that asks for nothing -- zero or negative -- is a null array on redis, not an
         // error and not an empty array.
-        if (parsed <= 0) { reply_null_array(op.sink(), op.resp3()); return; }
+        if (parsed <= 0) {
+            reply_null_array(op.sink(), op.resp3());
+            return;
+        }
         count = static_cast<uint64_t>(parsed);
     }
     StreamID start, end;
     if (!reverse) {
         if (!parse_range_bound(op, op.arg(2), true, start) ||
-            !parse_range_bound(op, op.arg(3), false, end)) return;
+            !parse_range_bound(op, op.arg(3), false, end))
+            return;
     } else {
         if (!parse_range_bound(op, op.arg(3), true, start) ||
-            !parse_range_bound(op, op.arg(2), false, end)) return;
+            !parse_range_bound(op, op.arg(2), false, end))
+            return;
     }
     KvObj* object = shard.store_find_read<kNotify>(op.hash, op.key());
-    if (!object) { reply_array_header(op.sink(), 0); return; }
+    if (!object) {
+        reply_array_header(op.sink(), 0);
+        return;
+    }
     if (!obj_type_check(object, Type::Stream, op.sink())) return;
     if (!emit_range_reply(op, object, start, end, count, reverse))
         reply_err(op.sink(), "ERR corrupt stream encoding");
@@ -1194,11 +1381,19 @@ bool parse_add_options(Op& op, AddOptions& options) {
     bool trim_seen = false;
     while (pos < op.argc()) {
         if (op.arg(pos).eq_icase("nomkstream")) {
-            if (options.nomkstream) { reply_syntax(op.sink()); return false; }
-            options.nomkstream = true; pos++; continue;
+            if (options.nomkstream) {
+                reply_syntax(op.sink());
+                return false;
+            }
+            options.nomkstream = true;
+            pos++;
+            continue;
         }
         if (op.arg(pos).eq_icase("maxlen") || op.arg(pos).eq_icase("minid")) {
-            if (trim_seen) { reply_syntax(op.sink()); return false; }
+            if (trim_seen) {
+                reply_syntax(op.sink());
+                return false;
+            }
             trim_seen = true;
             if (!parse_trim_threshold(op, pos, options.trim)) return false;
             continue;
@@ -1207,11 +1402,13 @@ bool parse_add_options(Op& op, AddOptions& options) {
     }
     options.id_arg = pos;
     if (pos >= op.argc() || !parse_add_id(op.arg(pos), options.id)) {
-        reply_invalid_stream_id(op); return false;
+        reply_invalid_stream_id(op);
+        return false;
     }
     pos++;
     if (op.argc() - pos < 2 || ((op.argc() - pos) & 1u)) {
-        reply_err(op.sink(), "ERR wrong number of arguments for 'xadd' command"); return false;
+        reply_err(op.sink(), "ERR wrong number of arguments for 'xadd' command");
+        return false;
     }
     return true;
 }
@@ -1221,15 +1418,20 @@ void cmd_xadd(Shard& shard, Op& op) {
     AddOptions options;
     if (!parse_add_options(op, options)) return;
     if (options.id.kind == AddIdKind::Explicit && id_zero(options.id.id)) {
-        reply_err(op.sink(), "ERR The ID specified in XADD must be greater than 0-0"); return;
+        reply_err(op.sink(), "ERR The ID specified in XADD must be greater than 0-0");
+        return;
     }
     KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Stream, op.sink())) return;
-    if (!object && options.nomkstream) { reply_null(op.sink(), op.resp3()); return; }
+    if (!object && options.nomkstream) {
+        reply_null(op.sink(), op.resp3());
+        return;
+    }
 
     StreamHeader header;
     if (object && !object_header(object, header)) {
-        reply_err(op.sink(), "ERR corrupt stream encoding"); return;
+        reply_err(op.sink(), "ERR corrupt stream encoding");
+        return;
     }
     StreamID id;
     if (!resolve_add_id(shard, header, options.id, id, op)) return;
@@ -1237,7 +1439,10 @@ void cmd_xadd(Shard& shard, Op& op) {
 
     if (!object) {
         auto* value = new (std::nothrow) StreamVal;
-        if (!value) { reply_err(op.sink(), "ERR out of memory"); return; }
+        if (!value) {
+            reply_err(op.sink(), "ERR out of memory");
+            return;
+        }
         value->header.base_id = value->header.last_id = id;
         value->header.entries_added = 1;
         value->first_id = id;
@@ -1246,25 +1451,35 @@ void cmd_xadd(Shard& shard, Op& op) {
         if (!value->append(Slice(hdr.data(), hdr.size())) ||
             !encode_record_from_op(id, id, op, first_field, {}, true, encoded) ||
             !value->append(Slice(encoded.data(), encoded.size()))) {
-            delete value; reply_err(op.sink(), "ERR out of memory"); return;
+            delete value;
+            reply_err(op.sink(), "ERR out of memory");
+            return;
         }
         // A first entry can itself exceed the embedded ceiling. Do not leave an external KvObj
         // wrapping an ever-growing Compact log: tier 1 is the macro-node representation.
         if (value->compact().encoded_bytes() > kCollectionEmbedMax) {
             std::vector<OwnedRecord> records;
-            if (!collect_compact(CompactView(&value->mutable_compact()),
-                                 value->header.base_id, records) ||
+            if (!collect_compact(CompactView(&value->mutable_compact()), value->header.base_id,
+                                 records) ||
                 !build_external(*value, value->header, records, shard.stream_limits())) {
-                delete value; reply_err(op.sink(), "ERR out of memory"); return;
+                delete value;
+                reply_err(op.sink(), "ERR out of memory");
+                return;
             }
         }
         KvObj* fresh = kvobj_adopt_stream(op.key(), value);
-        if (!fresh) { delete value; reply_err(op.sink(), "ERR out of memory"); return; }
+        if (!fresh) {
+            delete value;
+            reply_err(op.sink(), "ERR out of memory");
+            return;
+        }
         const FlatStore::InsertResult inserted = shard.store_insert<kNotify>(op.hash, fresh);
         if (inserted != FlatStore::InsertResult::Inserted) {
             kvobj_free(fresh);
-            if (inserted == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
-            else reply_err(op.sink(), "ERR keyspace insert failed");
+            if (inserted == FlatStore::InsertResult::MaxmemoryOom)
+                reply_maxmemory_oom(op);
+            else
+                reply_err(op.sink(), "ERR keyspace insert failed");
             return;
         }
         object = fresh;
@@ -1280,7 +1495,10 @@ void cmd_xadd(Shard& shard, Op& op) {
                                   for (Slice field : record.fields)
                                       previous_fields.emplace_back(field.p, field.n);
                                   return true;
-                              })) { reply_err(op.sink(), "ERR corrupt stream encoding"); return; }
+                              })) {
+                reply_err(op.sink(), "ERR corrupt stream encoding");
+                return;
+            }
             if (before.compact().size() == 1) {
                 previous = id;
                 header.base_id = id;
@@ -1288,15 +1506,17 @@ void cmd_xadd(Shard& shard, Op& op) {
             std::string encoded;
             if (!encode_record_from_op(id, previous, op, first_field, previous_fields,
                                        before.compact().size() == 1, encoded)) {
-                reply_err(op.sink(), "ERR out of memory"); return;
+                reply_err(op.sink(), "ERR out of memory");
+                return;
             }
-            const uint64_t next = before.compact().encoded_bytes() +
-                                  Compact::entry_encoded_size(encoded.size());
+            const uint64_t next =
+                before.compact().encoded_bytes() + Compact::entry_encoded_size(encoded.size());
             const StreamLimits& limits = shard.stream_limits();
             bool rollover = false;
             if (!stream_node_rollover(before.compact(), header.base_id, nullptr,
                                       stream_append_raw_bytes(op, first_field), limits, rollover)) {
-                reply_err(op.sink(), "ERR corrupt stream encoding"); return;
+                reply_err(op.sink(), "ERR corrupt stream encoding");
+                return;
             }
             if (before.is_embedded() && (rollover || !before.embedded_bytes_fit(next))) {
                 if (!externalize_stream<kNotify>(shard, op, object)) return;
@@ -1308,7 +1528,8 @@ void cmd_xadd(Shard& shard, Op& op) {
                 StreamVal replacement;
                 if (!collect_compact(before.compact(), header.base_id, records) ||
                     !build_external(replacement, header, records, limits)) {
-                    reply_err(op.sink(), "ERR out of memory"); return;
+                    reply_err(op.sink(), "ERR out of memory");
+                    return;
                 }
                 ObjectSizeTracker tracker(shard.store(), object);
                 StreamVal* value = before.external_as<StreamVal>();
@@ -1325,29 +1546,32 @@ void cmd_xadd(Shard& shard, Op& op) {
 
         CollectionRef stream(object);
         ObjectSizeTracker tracker(shard.store(), object);
-        header.last_id = id; header.entries_added++;
+        header.last_id = id;
+        header.entries_added++;
         if (stream.encoding() == CollectionEncoding::Compact) {
             std::string encoded;
             if (!encode_record_from_op(id, previous, op, first_field, previous_fields,
                                        stream.compact().size() == 1, encoded) ||
                 !stream.append(Slice(encoded.data(), encoded.size())) ||
                 !update_object_header(object, header)) {
-                reply_err(op.sink(), "ERR out of memory"); return;
+                reply_err(op.sink(), "ERR out of memory");
+                return;
             }
         } else {
             StreamVal* value = stream.external_as<StreamVal>();
             if (value->nodes.empty()) header.base_id = id;
             value->header = header;
             const size_t old_nodes = value->nodes.size();
-            const uint64_t old_tail_capacity = value->nodes.empty()
-                ? 0 : value->nodes.back().log.capacity_bytes();
+            const uint64_t old_tail_capacity =
+                value->nodes.empty() ? 0 : value->nodes.back().log.capacity_bytes();
             const uint64_t old_field_bytes = tail_field_bytes(*value);
             if (!append_op_external(*value, id, op, first_field, shard.stream_limits())) {
-                reply_err(op.sink(), "ERR out of memory"); return;
+                reply_err(op.sink(), "ERR out of memory");
+                return;
             }
             if (value->nodes.size() == old_nodes) {
-                value->node_allocation_bytes = value->node_allocation_bytes -
-                    old_tail_capacity - old_field_bytes +
+                value->node_allocation_bytes =
+                    value->node_allocation_bytes - old_tail_capacity - old_field_bytes +
                     value->nodes.back().log.capacity_bytes() + tail_field_bytes(*value);
             } else {
                 value->node_allocation_bytes = measure_node_allocation(*value);
@@ -1362,8 +1586,10 @@ void cmd_xadd(Shard& shard, Op& op) {
         // The append bracket above accounts the transient tail/node growth. Inline trimming can
         // immediately release a head node, so bracket that second mutation as well.
         ObjectSizeTracker trim_tracker(shard.store(), object);
-        if (options.trim.kind != TrimKind::None && !trim_stream(object, options.trim, shard.stream_limits(), trimmed)) {
-            reply_err(op.sink(), "ERR out of memory"); return;
+        if (options.trim.kind != TrimKind::None &&
+            !trim_stream(object, options.trim, shard.stream_limits(), trimmed)) {
+            reply_err(op.sink(), "ERR out of memory");
+            return;
         }
     }
     if constexpr (kNotify) {
@@ -1385,9 +1611,13 @@ void cmd_xlen(Shard& shard, Op& op) {
 }
 
 template <bool kNotify>
-void cmd_xrange(Shard& shard, Op& op) { range_generic<kNotify>(shard, op, false); }
+void cmd_xrange(Shard& shard, Op& op) {
+    range_generic<kNotify>(shard, op, false);
+}
 template <bool kNotify>
-void cmd_xrevrange(Shard& shard, Op& op) { range_generic<kNotify>(shard, op, true); }
+void cmd_xrevrange(Shard& shard, Op& op) {
+    range_generic<kNotify>(shard, op, true);
+}
 
 bool delete_one(KvObj* object, const StreamID& wanted) {
     CollectionRef stream(object);
@@ -1395,16 +1625,20 @@ bool delete_one(KvObj* object, const StreamID& wanted) {
         StreamHeader header;
         if (!compact_header(stream.compact(), header)) return false;
         bool deleted = false;
-        std::vector<Slice> previous_fields; StreamID previous = header.base_id;
+        std::vector<Slice> previous_fields;
+        StreamID previous = header.base_id;
         for (uint32_t i = 1; i < stream.compact().size(); i++) {
-            Compact::Entry raw; RecordView record;
+            Compact::Entry raw;
+            RecordView record;
             if (!stream.compact().at(i, raw) ||
-                !decode_record(raw.value, previous, previous_fields, record)) return false;
+                !decode_record(raw.value, previous, previous_fields, record))
+                return false;
             if (id_equal(record.id, wanted)) {
                 if (record.flags & kDeleted) return false;
                 if (stream_live_length(object) == 1) {
                     Compact empty;
-                    return rebuild_compact(empty, header, {}) && stream.replace_compact(std::move(empty));
+                    return rebuild_compact(empty, header, {}) &&
+                           stream.replace_compact(std::move(empty));
                 }
                 std::string replacement(raw.value.p, raw.value.n);
                 replacement[record.flags_offset] = static_cast<char>(record.flags | kDeleted);
@@ -1412,16 +1646,17 @@ bool delete_one(KvObj* object, const StreamID& wanted) {
                 return deleted;
             }
             if (id_compare(record.id, wanted) > 0) return false;
-            previous = record.id; previous_fields = record.fields;
+            previous = record.id;
+            previous_fields = record.fields;
         }
         return false;
     }
     StreamVal* value = stream.external_as<StreamVal>();
     if (value->index.empty()) return false;
     auto it = std::upper_bound(value->index.begin(), value->index.end(), wanted,
-        [](const StreamID& id, const StreamNodeIndex& index) {
-            return id_compare(id, index.base_id) < 0;
-        });
+                               [](const StreamID& id, const StreamNodeIndex& index) {
+                                   return id_compare(id, index.base_id) < 0;
+                               });
     if (it == value->index.begin()) return false;
     const uint32_t node_index = (--it)->node;
     StreamNode& node = value->nodes[node_index];
@@ -1431,11 +1666,14 @@ bool delete_one(KvObj* object, const StreamID& wanted) {
             previous_fields.reserve(value->head_fields.size());
             for (const std::string& field : value->head_fields)
                 previous_fields.emplace_back(field.data(), static_cast<uint32_t>(field.size()));
-        } catch (const std::bad_alloc&) { return false; }
+        } catch (const std::bad_alloc&) {
+            return false;
+        }
     }
     StreamID previous = node.base_id;
     for (uint32_t i = 1; i < node.log.size(); i++) {
-        Compact::Entry raw; RecordView record;
+        Compact::Entry raw;
+        RecordView record;
         if (!node.log.at(i, raw) || !decode_record(raw.value, previous, previous_fields, record))
             return false;
         if (id_equal(record.id, wanted)) {
@@ -1448,15 +1686,20 @@ bool delete_one(KvObj* object, const StreamID& wanted) {
             if (tail_removed && node_index) {
                 StreamNode& tail = value->nodes[node_index - 1];
                 try {
-                    if (!scan_compact(CompactView(&tail.log), tail.base_id,
-                        [&](const Compact::Entry&, const RecordView& entry) {
-                            new_tail_fields.clear();
-                            for (Slice field : entry.fields)
-                                new_tail_fields.emplace_back(field.p, field.n);
-                            return true;
-                        }, node_index == 1 && !value->head_fields.empty() ? &value->head_fields : nullptr))
+                    if (!scan_compact(
+                            CompactView(&tail.log), tail.base_id,
+                            [&](const Compact::Entry&, const RecordView& entry) {
+                                new_tail_fields.clear();
+                                for (Slice field : entry.fields)
+                                    new_tail_fields.emplace_back(field.p, field.n);
+                                return true;
+                            },
+                            node_index == 1 && !value->head_fields.empty() ? &value->head_fields
+                                                                           : nullptr))
                         return false;
-                } catch (const std::bad_alloc&) { return false; }
+                } catch (const std::bad_alloc&) {
+                    return false;
+                }
             }
             std::string replacement(raw.value.p, raw.value.n);
             replacement[record.flags_offset] = static_cast<char>(record.flags | kDeleted);
@@ -1466,7 +1709,8 @@ bool delete_one(KvObj* object, const StreamID& wanted) {
             if (remove_node) {
                 value->nodes.erase(value->nodes.begin() + node_index);
                 value->index.erase(value->index.begin() + node_index);
-                for (uint32_t n = node_index; n < value->index.size(); n++) value->index[n].node = n;
+                for (uint32_t n = node_index; n < value->index.size(); n++)
+                    value->index[n].node = n;
                 if (!node_index) value->head_fields.clear();
                 if (tail_removed) value->tail_fields.swap(new_tail_fields);
                 refresh_allocation(*value);
@@ -1474,7 +1718,8 @@ bool delete_one(KvObj* object, const StreamID& wanted) {
             return true;
         }
         if (id_compare(record.id, wanted) > 0) return false;
-        previous = record.id; previous_fields = record.fields;
+        previous = record.id;
+        previous_fields = record.fields;
     }
     return false;
 }
@@ -1482,23 +1727,35 @@ bool delete_one(KvObj* object, const StreamID& wanted) {
 template <bool kNotify>
 void cmd_xdel(Shard& shard, Op& op) {
     std::vector<StreamID> ids;
-    try { ids.resize(op.argc() - 2); }
-    catch (const std::bad_alloc&) { reply_err(op.sink(), "ERR out of memory"); return; }
+    try {
+        ids.resize(op.argc() - 2);
+    } catch (const std::bad_alloc&) {
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
     for (uint32_t i = 2; i < op.argc(); i++)
         if (!parse_id_numeric(op.arg(i), ids[i - 2], 0, false)) {
-            reply_invalid_stream_id(op); return;
+            reply_invalid_stream_id(op);
+            return;
         }
     KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
-    if (!object) { reply_int(op.sink(), 0); return; }
+    if (!object) {
+        reply_int(op.sink(), 0);
+        return;
+    }
     if (!obj_type_check(object, Type::Stream, op.sink())) return;
     ObjectSizeTracker tracker(shard.store(), object);
     StreamHeader header;
-    if (!object_header(object, header)) { reply_err(op.sink(), "ERR corrupt stream encoding"); return; }
-    uint64_t removed = 0;
-    for (const StreamID& id : ids) if (delete_one(object, id)) {
-        removed++;
-        if (id_compare(id, header.max_deleted_entry_id) > 0) header.max_deleted_entry_id = id;
+    if (!object_header(object, header)) {
+        reply_err(op.sink(), "ERR corrupt stream encoding");
+        return;
     }
+    uint64_t removed = 0;
+    for (const StreamID& id : ids)
+        if (delete_one(object, id)) {
+            removed++;
+            if (id_compare(id, header.max_deleted_entry_id) > 0) header.max_deleted_entry_id = id;
+        }
     if (removed) {
         CollectionRef current(object);
         if (current.encoding() == CollectionEncoding::Compact) {
@@ -1508,7 +1765,8 @@ void cmd_xdel(Shard& shard, Op& op) {
             header.base_id = nodes.empty() ? StreamID{} : nodes.front().base_id;
         }
         if (!update_object_header(object, header)) {
-            reply_err(op.sink(), "ERR corrupt stream encoding"); return;
+            reply_err(op.sink(), "ERR corrupt stream encoding");
+            return;
         }
         CollectionRef stream(object);
         if (stream.encoding() != CollectionEncoding::Compact)
@@ -1521,36 +1779,42 @@ void cmd_xdel(Shard& shard, Op& op) {
 
 template <bool kNotify>
 void cmd_xtrim(Shard& shard, Op& op) {
-    TrimSpec trim; uint32_t pos = 2;
+    TrimSpec trim;
+    uint32_t pos = 2;
     if (!parse_trim_threshold(op, pos, trim) || pos != op.argc()) {
         if (!op.replied()) reply_syntax(op.sink());
         return;
     }
     KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
-    if (!object) { reply_int(op.sink(), 0); return; }
+    if (!object) {
+        reply_int(op.sink(), 0);
+        return;
+    }
     if (!obj_type_check(object, Type::Stream, op.sink())) return;
     ObjectSizeTracker tracker(shard.store(), object);
     uint64_t removed = 0;
     if (!trim_stream(object, trim, shard.stream_limits(), removed)) {
-        reply_err(op.sink(), "ERR out of memory"); return;
+        reply_err(op.sink(), "ERR out of memory");
+        return;
     }
-    if constexpr (kNotify) if (removed)
-        notify_record(shard, op, NOTIFY_STREAM, NotifyEventId::Xtrim, op.key());
+    if constexpr (kNotify)
+        if (removed) notify_record(shard, op, NOTIFY_STREAM, NotifyEventId::Xtrim, op.key());
     reply_int(op.sink(), static_cast<long long>(removed));
 }
 
 #define TOMO_HANDLER_PAIR(fn) fn<false>, 1, 1, 1, notify_handler<fn<true>>
 
-static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
-    {"XADD",       5, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_xadd)},
-    {"XLEN",       2,  2, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_xlen)},
-    {"XRANGE",     4,  6, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_xrange)},
-    {"XREVRANGE",  4,  6, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_xrevrange)},
-    {"XDEL",       3, -1, CmdFlags::Write, TOMO_HANDLER_PAIR(cmd_xdel)},
-    {"XTRIM",      4, -1, CmdFlags::Write, TOMO_HANDLER_PAIR(cmd_xtrim)},
-    {"XREAD",      4, -1, CmdFlags::Readonly | CmdFlags::CursorShard | CmdFlags::Blocking |
-                         CmdFlags::MultiShard | CmdFlags::StreamRoute,
-                         cmd_xshard_only, 0, 0, 0},
+static const CommandSpec /* TOMO_TOOL_BIND kTable */ kTable[] = {
+    {"XADD", 5, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_xadd)},
+    {"XLEN", 2, 2, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_xlen)},
+    {"XRANGE", 4, 6, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_xrange)},
+    {"XREVRANGE", 4, 6, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_xrevrange)},
+    {"XDEL", 3, -1, CmdFlags::Write, TOMO_HANDLER_PAIR(cmd_xdel)},
+    {"XTRIM", 4, -1, CmdFlags::Write, TOMO_HANDLER_PAIR(cmd_xtrim)},
+    {"XREAD", 4, -1,
+     CmdFlags::Readonly | CmdFlags::CursorShard | CmdFlags::Blocking | CmdFlags::MultiShard |
+         CmdFlags::StreamRoute,
+     cmd_xshard_only, 0, 0, 0},
 };
 
 #undef TOMO_HANDLER_PAIR
@@ -1569,22 +1833,20 @@ uint64_t stream_object_live_length(KvObj* object) { return stream_live_length(ob
 
 uint64_t stream_object_physical_length(KvObj* object) {
     uint64_t count = 0;
-    if (!object || !scan_object(object, [&](const RecordView&) { count++; return true; }))
+    if (!object || !scan_object(object, [&](const RecordView&) {
+            count++;
+            return true;
+        }))
         return 0;
     return count;
 }
 
-bool stream_object_first_live(KvObj* object, StreamID& id) {
-    return first_live_id(object, id);
-}
+bool stream_object_first_live(KvObj* object, StreamID& id) { return first_live_id(object, id); }
 
-bool stream_object_last_live(KvObj* object, StreamID& id) {
-    return last_live_id(object, id);
-}
+bool stream_object_last_live(KvObj* object, StreamID& id) { return last_live_id(object, id); }
 
-bool stream_object_collect(KvObj* object, const StreamID& start, bool exclusive,
-                           uint64_t count, bool include_deleted,
-                           std::vector<StreamOwnedEntry>& entries) {
+bool stream_object_collect(KvObj* object, const StreamID& start, bool exclusive, uint64_t count,
+                           bool include_deleted, std::vector<StreamOwnedEntry>& entries) {
     entries.clear();
     bool oom = false;
     const bool ok = scan_object_from(object, start, [&](const RecordView& record) {
@@ -1610,8 +1872,7 @@ bool stream_object_collect(KvObj* object, const StreamID& start, bool exclusive,
     return ok && !oom;
 }
 
-bool stream_object_find(KvObj* object, const StreamID& id, StreamOwnedEntry& entry,
-                        bool& found) {
+bool stream_object_find(KvObj* object, const StreamID& id, StreamOwnedEntry& entry, bool& found) {
     found = false;
     std::vector<StreamOwnedEntry> records;
     if (!stream_object_collect(object, id, false, 1, true, records)) return false;
@@ -1656,35 +1917,39 @@ bool stream_object_merge_scan(KvObj* object, void* context, StreamMergeNext next
             !scan_compact(stream.compact(), header.base_id,
                           [&](const Compact::Entry&, const RecordView& record) {
                               return merge_record(record);
-                          })) return false;
+                          }))
+            return false;
     } else {
         StreamVal* value = stream.external_as<StreamVal>();
         if (value->index.empty()) {
             if (!value->nodes.empty()) return false;
         } else {
             auto position = std::upper_bound(value->index.begin(), value->index.end(), target,
-                [](const StreamID& id, const StreamNodeIndex& index) {
-                    return id_compare(id, index.base_id) < 0;
-                });
+                                             [](const StreamID& id, const StreamNodeIndex& index) {
+                                                 return id_compare(id, index.base_id) < 0;
+                                             });
             uint32_t node_index = 0;
             if (position != value->index.begin()) node_index = (--position)->node;
             while (have_target && node_index < value->nodes.size()) {
                 StreamNode& node = value->nodes[node_index];
                 if (id_compare(target, node.last_id) > 0) {
                     const auto begin = value->index.begin() + node_index + 1;
-                    position = std::upper_bound(begin, value->index.end(), target,
-                        [](const StreamID& id, const StreamNodeIndex& index) {
-                            return id_compare(id, index.base_id) < 0;
-                        });
+                    position =
+                        std::upper_bound(begin, value->index.end(), target,
+                                         [](const StreamID& id, const StreamNodeIndex& index) {
+                                             return id_compare(id, index.base_id) < 0;
+                                         });
                     node_index = position == begin ? node_index + 1 : (--position)->node;
                     continue;
                 }
-                if (!scan_compact(CompactView(&node.log), node.base_id,
-                                  [&](const Compact::Entry&, const RecordView& record) {
-                                      return merge_record(record) &&
-                                             id_compare(target, node.last_id) <= 0;
-                                  }, node_index == 0 && !value->head_fields.empty()
-                                         ? &value->head_fields : nullptr)) return false;
+                if (!scan_compact(
+                        CompactView(&node.log), node.base_id,
+                        [&](const Compact::Entry&, const RecordView& record) {
+                            return merge_record(record) && id_compare(target, node.last_id) <= 0;
+                        },
+                        node_index == 0 && !value->head_fields.empty() ? &value->head_fields
+                                                                       : nullptr))
+                    return false;
                 node_index++;
             }
         }
@@ -1701,7 +1966,10 @@ bool stream_force_external(Shard& shard, Op& op, KvObj*& object, bool notify) {
 bool stream_create_empty_external(Shard& shard, Op& op, bool notify, KvObj*& object) {
     object = nullptr;
     auto* value = new (std::nothrow) StreamVal;
-    if (!value) { reply_err(op.sink(), "ERR out of memory"); return false; }
+    if (!value) {
+        reply_err(op.sink(), "ERR out of memory");
+        return false;
+    }
     // An empty macro-node stream has no nodes, but already uses the same append
     // path as an XADD-created stream after promotion. Groups remain cold state.
     if (!build_external(*value, value->header, {}, shard.stream_limits())) {
@@ -1710,14 +1978,19 @@ bool stream_create_empty_external(Shard& shard, Op& op, bool notify, KvObj*& obj
         return false;
     }
     KvObj* fresh = kvobj_new_stream(op.arg(2), value);
-    if (!fresh) { delete value; reply_err(op.sink(), "ERR out of memory"); return false; }
-    const FlatStore::InsertResult inserted = notify
-        ? shard.store_insert<true>(op.hash, fresh)
-        : shard.store_insert<false>(op.hash, fresh);
+    if (!fresh) {
+        delete value;
+        reply_err(op.sink(), "ERR out of memory");
+        return false;
+    }
+    const FlatStore::InsertResult inserted = notify ? shard.store_insert<true>(op.hash, fresh)
+                                                    : shard.store_insert<false>(op.hash, fresh);
     if (inserted != FlatStore::InsertResult::Inserted) {
         kvobj_free(fresh);
-        if (inserted == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
-        else reply_err(op.sink(), "ERR keyspace insert failed");
+        if (inserted == FlatStore::InsertResult::MaxmemoryOom)
+            reply_maxmemory_oom(op);
+        else
+            reply_err(op.sink(), "ERR keyspace insert failed");
         return false;
     }
     object = fresh;
@@ -1741,31 +2014,45 @@ bool stream_parse_xread(Op& op, StreamXreadArgs& parsed) {
     while (pos < op.argc() && !op.arg(pos).eq_icase("streams")) {
         if (op.arg(pos).eq_icase("count") && !count_seen && pos + 1 < op.argc()) {
             if (!parse_u64_exact(op.arg(pos + 1), parsed.count)) {
-                reply_err(op.sink(), "ERR value is not an integer or out of range"); return false;
+                reply_err(op.sink(), "ERR value is not an integer or out of range");
+                return false;
             }
-            count_seen = true; pos += 2;
+            count_seen = true;
+            pos += 2;
         } else if (op.arg(pos).eq_icase("block") && !block_seen && pos + 1 < op.argc()) {
             if (!parse_u64_exact(op.arg(pos + 1), parsed.block_ms)) {
-                reply_err(op.sink(), "ERR timeout is not an integer or out of range"); return false;
+                reply_err(op.sink(), "ERR timeout is not an integer or out of range");
+                return false;
             }
-            parsed.block = true; block_seen = true; pos += 2;
-        } else { reply_syntax(op.sink()); return false; }
+            parsed.block = true;
+            block_seen = true;
+            pos += 2;
+        } else {
+            reply_syntax(op.sink());
+            return false;
+        }
     }
-    if (pos >= op.argc()) { reply_syntax(op.sink()); return false; }
+    if (pos >= op.argc()) {
+        reply_syntax(op.sink());
+        return false;
+    }
     parsed.first_key = ++pos;
     const uint32_t remaining = op.argc() - pos;
     if (!remaining || (remaining & 1u)) {
         // Redis quotes the command name in lower case and ends the sentence with a period.
-        reply_err(op.sink(), "ERR Unbalanced 'xread' list of streams: for each stream key an ID "
-                             "or '$' must be specified.");
+        reply_err(op.sink(),
+                  "ERR Unbalanced 'xread' list of streams: for each stream key an ID "
+                  "or '$' must be specified.");
         return false;
     }
     parsed.key_count = remaining / 2;
     parsed.first_id = parsed.first_key + parsed.key_count;
     for (uint32_t i = 0; i < parsed.key_count; i++) {
-        StreamID id; bool latest;
+        StreamID id;
+        bool latest;
         if (!stream_parse_xread_id(op.arg(parsed.first_id + i), id, latest)) {
-            reply_invalid_stream_id(op); return false;
+            reply_invalid_stream_id(op);
+            return false;
         }
     }
     return true;
@@ -1814,24 +2101,29 @@ bool stream_object_has_live_after(const KvObj* object, const StreamID& cursor) {
     return id_compare(last, cursor) > 0;
 }
 
-StreamReadResult stream_xread_gather(Shard& shard, Slice key, uint64_t hash,
-                                     const StreamID& cursor, bool latest, uint64_t count,
-                                     std::vector<uint8_t>& payload,
+StreamReadResult stream_xread_gather(Shard& shard, Slice key, uint64_t hash, const StreamID& cursor,
+                                     bool latest, uint64_t count, std::vector<uint8_t>& payload,
                                      const StreamID* upper_bound) {
     KvObj* object = shard.notify_carrier() ? shard.store_find_read<true>(hash, key)
                                            : shard.store_find_read<false>(hash, key);
-    if (!object) { payload.clear(); return StreamReadResult::Missing; }
+    if (!object) {
+        payload.clear();
+        return StreamReadResult::Missing;
+    }
     if (static_cast<Type>(object->type) != Type::Stream) return StreamReadResult::WrongType;
     StreamID start = cursor;
     if (latest) {
         if (!stream_resolve_xread_id(object, start)) return StreamReadResult::Corrupt;
     }
-    if (!id_increment(start)) { payload.clear(); return StreamReadResult::Empty; }
+    if (!id_increment(start)) {
+        payload.clear();
+        return StreamReadResult::Empty;
+    }
     const StreamID end = upper_bound ? *upper_bound : StreamID{UINT64_MAX, UINT64_MAX};
     if (!emit_range_payload(object, start, end, count, false, payload))
         return StreamReadResult::Oom;
-    return payload.size() >= 4 && snapshot_get_u32(payload.data())
-        ? StreamReadResult::Ready : StreamReadResult::Empty;
+    return payload.size() >= 4 && snapshot_get_u32(payload.data()) ? StreamReadResult::Ready
+                                                                   : StreamReadResult::Empty;
 }
 
 bool stream_reply_xread_payload(Op& op, Slice key, const std::vector<uint8_t>& payload) {
@@ -1848,30 +2140,35 @@ namespace {
 // accepting v1. Group serialization lives in t_stream_groups.cc so ordinary streams do not pull
 // map machinery into this translation unit.
 uint64_t stream_snapshot_size(KvObj* object, uint32_t& physical) {
-    uint64_t total = 4 + sizeof(StreamHeader) + 4; physical = 0;
+    uint64_t total = 4 + sizeof(StreamHeader) + 4;
+    physical = 0;
     if (!scan_object(object, [&](const RecordView& record) {
             total += 16 + 1 + 4;
             for (size_t i = 0; i < record.fields.size(); i++)
                 total += 8ull + record.fields[i].n + record.values[i].n;
-            physical++; return true;
-        })) return UINT64_MAX;
+            physical++;
+            return true;
+        }))
+        return UINT64_MAX;
     return total;
 }
 
 SnapshotHookStatus stream_snapshot_begin(const KvObj& object, SnapshotSaveCursor& cursor,
                                          uint8_t& encoding) {
     if (static_cast<Type>(object.type) != Type::Stream) return SnapshotHookStatus::Corrupt;
-    cursor = {}; cursor.object = &object;
-    encoding = CollectionRef(const_cast<KvObj*>(&object)).encoding() ==
-                       CollectionEncoding::Compact ? 1 : 2;
+    cursor = {};
+    cursor.object = &object;
+    encoding = CollectionRef(const_cast<KvObj*>(&object)).encoding() == CollectionEncoding::Compact
+                   ? 1
+                   : 2;
     uint32_t physical = 0;
     const uint64_t records = stream_snapshot_size(const_cast<KvObj*>(&object), physical);
     const CollectionRef stream(const_cast<KvObj*>(&object));
-    const void* groups = stream.is_embedded() ? nullptr
-        : stream.external_as<StreamVal>()->groups;
+    const void* groups = stream.is_embedded() ? nullptr : stream.external_as<StreamVal>()->groups;
     const uint64_t group_bytes = stream_groups_snapshot_size(groups);
     cursor.total = records == UINT64_MAX || group_bytes > UINT64_MAX - records
-        ? UINT64_MAX : records + group_bytes;
+                       ? UINT64_MAX
+                       : records + group_bytes;
     cursor.lane[2] = physical;
     cursor.lane[3] = records;
     return cursor.total == UINT64_MAX ? SnapshotHookStatus::Corrupt : SnapshotHookStatus::Ok;
@@ -1895,45 +2192,56 @@ SnapshotHookStatus stream_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* des
         emitter.resume = cursor.lane[1];
         if (!emitter.put(meta, sizeof(meta))) {
             cursor.lane[1] = emitter.pos;
-            cursor.offset += emitter.out; written = emitter.out;
+            cursor.offset += emitter.out;
+            written = emitter.out;
             return SnapshotHookStatus::Ok;
         }
-        index = 1; cursor.lane[1] = 0;
+        index = 1;
+        cursor.lane[1] = 0;
     }
     uint64_t physical = 0;
     bool stopped = false, corrupt = false;
     if (!scan_object(object, [&](const RecordView& record) {
             physical++;
             if (physical + 0 < index) return true;
-            emitter.pos = 0; emitter.resume = physical + 0 == index ? cursor.lane[1] : 0;
+            emitter.pos = 0;
+            emitter.resume = physical + 0 == index ? cursor.lane[1] : 0;
             uint8_t fixed[21];
-            snapshot_put_u64(fixed, record.id.ms); snapshot_put_u64(fixed + 8, record.id.seq);
+            snapshot_put_u64(fixed, record.id.ms);
+            snapshot_put_u64(fixed + 8, record.id.seq);
             fixed[16] = (record.flags & kDeleted) != 0;
             snapshot_put_u32(fixed + 17, static_cast<uint32_t>(record.fields.size()));
-            if (!emitter.put(fixed, sizeof(fixed))) { stopped = true; return false; }
+            if (!emitter.put(fixed, sizeof(fixed))) {
+                stopped = true;
+                return false;
+            }
             for (size_t i = 0; i < record.fields.size(); i++) {
                 if (!emitter.put_u32(record.fields[i].n) ||
                     !emitter.put(record.fields[i].p, record.fields[i].n) ||
                     !emitter.put_u32(record.values[i].n) ||
                     !emitter.put(record.values[i].p, record.values[i].n)) {
-                    stopped = true; return false;
+                    stopped = true;
+                    return false;
                 }
             }
-            index = physical + 1; cursor.lane[1] = 0; return true;
-        })) corrupt = true;
+            index = physical + 1;
+            cursor.lane[1] = 0;
+            return true;
+        }))
+        corrupt = true;
     if (corrupt) return SnapshotHookStatus::Corrupt;
     cursor.lane[0] = stopped ? physical : static_cast<uint64_t>(cursor.lane[2]) + 1;
     cursor.lane[1] = stopped ? emitter.pos : 0;
-    cursor.offset += emitter.out; written = emitter.out;
+    cursor.offset += emitter.out;
+    written = emitter.out;
     if (!stopped && written < capacity && cursor.offset >= cursor.lane[3] &&
         cursor.offset < cursor.total) {
         CollectionRef stream(object);
-        const void* groups = stream.is_embedded() ? nullptr
-            : stream.external_as<StreamVal>()->groups;
+        const void* groups =
+            stream.is_embedded() ? nullptr : stream.external_as<StreamVal>()->groups;
         size_t group_written = 0;
         if (!stream_groups_snapshot_read(groups, cursor.offset - cursor.lane[3],
-                                         destination + written, capacity - written,
-                                         group_written))
+                                         destination + written, capacity - written, group_written))
             return SnapshotHookStatus::Corrupt;
         cursor.offset += group_written;
         written += group_written;
@@ -1944,8 +2252,7 @@ SnapshotHookStatus stream_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* des
 SnapshotHookStatus stream_snapshot_load(Slice key, uint8_t encoding, int64_t expire_at_ms,
                                         Slice payload, const TypeLimits&, KvObj*& result) {
     result = nullptr;
-    if ((encoding != 1 && encoding != 2) || payload.n < 64)
-        return SnapshotHookStatus::Corrupt;
+    if ((encoding != 1 && encoding != 2) || payload.n < 64) return SnapshotHookStatus::Corrupt;
     const uint8_t* p = reinterpret_cast<const uint8_t*>(payload.p);
     size_t left = payload.n;
     const uint32_t version = snapshot_get_u32(p);
@@ -1955,52 +2262,75 @@ SnapshotHookStatus stream_snapshot_load(Slice key, uint8_t encoding, int64_t exp
     header.last_id = {snapshot_get_u64(p + 20), snapshot_get_u64(p + 28)};
     header.max_deleted_entry_id = {snapshot_get_u64(p + 36), snapshot_get_u64(p + 44)};
     header.entries_added = snapshot_get_u64(p + 52);
-    const uint32_t count = snapshot_get_u32(p + 60); p += 64; left -= 64;
+    const uint32_t count = snapshot_get_u32(p + 60);
+    p += 64;
+    left -= 64;
     std::vector<OwnedRecord> records;
-    try { records.reserve(count); }
-    catch (const std::bad_alloc&) { return SnapshotHookStatus::Oom; }
+    try {
+        records.reserve(count);
+    } catch (const std::bad_alloc&) {
+        return SnapshotHookStatus::Oom;
+    }
     for (uint32_t n = 0; n < count; n++) {
         if (left < 21) return SnapshotHookStatus::Corrupt;
         OwnedRecord record;
         record.id = {snapshot_get_u64(p), snapshot_get_u64(p + 8)};
         record.deleted = p[16] != 0;
-        const uint32_t fields = snapshot_get_u32(p + 17); p += 21; left -= 21;
+        const uint32_t fields = snapshot_get_u32(p + 17);
+        p += 21;
+        left -= 21;
         try {
-            record.fields.reserve(fields); record.values.reserve(fields);
+            record.fields.reserve(fields);
+            record.values.reserve(fields);
             for (uint32_t i = 0; i < fields; i++) {
                 if (left < 4) return SnapshotHookStatus::Corrupt;
-                uint32_t len = snapshot_get_u32(p); p += 4; left -= 4;
+                uint32_t len = snapshot_get_u32(p);
+                p += 4;
+                left -= 4;
                 if (left < len) return SnapshotHookStatus::Corrupt;
                 record.fields.emplace_back(reinterpret_cast<const char*>(p), len);
-                p += len; left -= len;
+                p += len;
+                left -= len;
                 if (left < 4) return SnapshotHookStatus::Corrupt;
-                len = snapshot_get_u32(p); p += 4; left -= 4;
+                len = snapshot_get_u32(p);
+                p += 4;
+                left -= 4;
                 if (left < len) return SnapshotHookStatus::Corrupt;
                 record.values.emplace_back(reinterpret_cast<const char*>(p), len);
-                p += len; left -= len;
+                p += len;
+                left -= len;
             }
             records.push_back(std::move(record));
-        } catch (const std::bad_alloc&) { return SnapshotHookStatus::Oom; }
+        } catch (const std::bad_alloc&) {
+            return SnapshotHookStatus::Oom;
+        }
     }
     if (version == 1 && left) return SnapshotHookStatus::Corrupt;
     auto* value = new (std::nothrow) StreamVal;
     if (!value) return SnapshotHookStatus::Oom;
     value->header = header;
     Compact compact;
-    if (!rebuild_compact(compact, header, records)) { delete value; return SnapshotHookStatus::Oom; }
+    if (!rebuild_compact(compact, header, records)) {
+        delete value;
+        return SnapshotHookStatus::Oom;
+    }
     if (encoding == 1 && compact.encoded_bytes() <= kCollectionEmbedMax) {
         value->replace_compact(std::move(compact));
     } else if (!build_external(*value, header, records, StreamLimits{})) {
-        delete value; return SnapshotHookStatus::Oom;
+        delete value;
+        return SnapshotHookStatus::Oom;
     }
-    if (version == 2 && !stream_groups_snapshot_load(
-            *value, Slice(reinterpret_cast<const char*>(p), static_cast<uint32_t>(left)))) {
+    if (version == 2 && !stream_groups_snapshot_load(*value, Slice(reinterpret_cast<const char*>(p),
+                                                                   static_cast<uint32_t>(left)))) {
         delete value;
         return SnapshotHookStatus::Corrupt;
     }
     result = value->groups ? kvobj_new_stream(key, value, expire_at_ms)
                            : kvobj_adopt_stream(key, value, expire_at_ms);
-    if (!result) { delete value; return SnapshotHookStatus::Oom; }
+    if (!result) {
+        delete value;
+        return SnapshotHookStatus::Oom;
+    }
     return SnapshotHookStatus::Ok;
 }
 
@@ -2010,8 +2340,6 @@ SnapshotTypeHooks stream_snapshot_hooks() {
     return {stream_snapshot_begin, stream_snapshot_read, stream_snapshot_load};
 }
 
-CommandTable stream_command_table() {
-    return {kTable, sizeof(kTable) / sizeof(kTable[0])};
-}
+CommandTable stream_command_table() { return {kTable, sizeof(kTable) / sizeof(kTable[0])}; }
 
 }  // namespace tomo

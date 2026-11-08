@@ -64,7 +64,7 @@
 #include <unordered_map>
 #include "conn.h"
 #include "epoll.h"
-#include "resp.h"       // format_reply_code: the owner's half of the coded reply
+#include "resp.h"  // format_reply_code: the owner's half of the coded reply
 #include "tls.h"
 #include "uring.h"
 #include "../core/signal.h"
@@ -97,10 +97,12 @@ namespace tomo {
 // SmallBuf::append call too, so this trades like for like.
 template <bool TrackOutput>
 __attribute__((noinline)) void stage_coded_reply(Client& conn, Op& op) {
-    const uint32_t n = format_reply_code(conn.reserve_fill(kReplyCodeMax),
-                                         op.reply_code_, op.reply_ival_);
-    if constexpr (TrackOutput) conn.commit_fill(n);
-    else                       conn.fill_buf().commit_raw(n);
+    const uint32_t n =
+        format_reply_code(conn.reserve_fill(kReplyCodeMax), op.reply_code_, op.reply_ival_);
+    if constexpr (TrackOutput)
+        conn.commit_fill(n);
+    else
+        conn.fill_buf().commit_raw(n);
 }
 
 // THE LOCK BUG note above is preserved as history: WbGuard died with the multi-sender designs
@@ -111,7 +113,7 @@ __attribute__((noinline)) void stage_coded_reply(Client& conn, Op& op) {
 // Per-thread send engine. Every loop that sends owns one and calls the same two methods.
 class WbEngine {
     struct DeferredOob {
-        uint64_t after = 0;             // exclusive ROB issue frontier preceding these frames
+        uint64_t after = 0;  // exclusive ROB issue frontier preceding these frames
         std::string bytes;
     };
     using DeferredOobQueue = std::deque<DeferredOob>;
@@ -124,13 +126,12 @@ public:
     // Cold tracking FLUSH delivery can use the boundary before reply assembly.
     bool retiring(const Client& c) const { return draining_ == &c; }
 
-    void bind(Ring* ring, void* release_ctx, ReleaseFn release_fn,
-              void* retire_ctx, RetireFn retire_fn,
-              const std::atomic<bool>* limit_armed,
-              void* limit_ctx, LimitFn limit_fn,
-              const uint32_t* cached_now_s, LoopSignals* tls_signals) {
-        if (!ring || !release_fn || !retire_fn || !limit_armed || !limit_fn ||
-            !cached_now_s || !tls_signals) std::abort();
+    void bind(Ring* ring, void* release_ctx, ReleaseFn release_fn, void* retire_ctx,
+              RetireFn retire_fn, const std::atomic<bool>* limit_armed, void* limit_ctx,
+              LimitFn limit_fn, const uint32_t* cached_now_s, LoopSignals* tls_signals) {
+        if (!ring || !release_fn || !retire_fn || !limit_armed || !limit_fn || !cached_now_s ||
+            !tls_signals)
+            std::abort();
         epoll_ = g_ring_epoll_mode;
         ring_ = ring;
         release_ctx_ = release_ctx;
@@ -151,11 +152,10 @@ public:
         release_fn_ = release;
     }
 
-    Ring&  ring()       { return *ring_; }
+    Ring& ring() { return *ring_; }
     // Only cold, non-templated send sites consult this boot-latched fallback. Hot paths carry the
     // pipeline-1 classifier as a template argument.
     void set_cold_send_classification(bool enabled) { classify_cold_sends_ = enabled; }
-
 
     // ---- OUT-OF-BAND FRAMES WAITING FOR EARLIER-ISSUED REPLIES ----------------------------------
     //
@@ -178,8 +178,7 @@ public:
     // bytes to preserve, so a push may take the segment route immediately instead of waiting behind
     // a 30-second BLPOP. Once it is Done, its reply is in flight and ordinary deferral applies.
     // Inside this connection's drain deferral is unconditional because reply staging may be partial.
-    bool defer_oob(Client& c, const char* a, size_t an,
-                   const char* b = nullptr, size_t bn = 0) {
+    bool defer_oob(Client& c, const char* a, size_t an, const char* b = nullptr, size_t bn = 0) {
         if (draining_ != &c) {
             Rob<kRobWindow>& rob = c.rob();
             if (rob.quiesced()) return false;
@@ -299,21 +298,20 @@ public:
     // (IoLoop::tracking_retire_read). The caller decides per connection: `retire_plain` is true for
     // a tracking connection only, so a reply-suppressed connection without tracking never pays a
     // hook call for a plain op.
-    __attribute__((noinline, cold))
-    bool serve_suppressing(Client& c, bool retire_plain) {
+    __attribute__((noinline, cold)) bool serve_suppressing(Client& c, bool retire_plain) {
         return serve_suppressing_impl(c, true, nullptr, retire_plain);
     }
 
-    __attribute__((noinline, cold))
-    bool prepare_suppressing(Client& c, bool& submit_allowed, bool retire_plain) {
+    __attribute__((noinline, cold)) bool prepare_suppressing(Client& c, bool& submit_allowed,
+                                                             bool retire_plain) {
         submit_allowed = true;
         return serve_suppressing_impl(c, false, &submit_allowed, retire_plain);
     }
 
 private:
-    __attribute__((noinline, cold))
-    bool serve_suppressing_impl(Client& c, bool submit, bool* submit_allowed,
-                                bool retire_plain) {
+    __attribute__((noinline, cold)) bool serve_suppressing_impl(Client& c, bool submit,
+                                                                bool* submit_allowed,
+                                                                bool retire_plain) {
         stats_.serves++;
         Client& conn = c;
         conn.start_obuf_tracking();
@@ -334,17 +332,16 @@ private:
                 // Everything past the frontier is this op's reply -- except the seal, which moved
                 // OLDER fill bytes into the queue and must stay. It exists iff the fill buffer
                 // went from staged to empty across the hook; nothing else empties it mid-drain.
-                const uint32_t keep = segments_before +
-                    ((fill_was_staged && !conn.has_pending_fill()) ? 1u : 0u);
-                conn.truncate_segments(keep,
-                    [&](int32_t shard, const char* ptr) { release(shard, ptr); });
+                const uint32_t keep =
+                    segments_before + ((fill_was_staged && !conn.has_pending_fill()) ? 1u : 0u);
+                conn.truncate_segments(
+                    keep, [&](int32_t shard, const char* ptr) { release(shard, ptr); });
                 return;
             }
             if (op.zc_ptr) {
                 conn.seal_fill_segment();
                 if (op.reply_code_) op_materialise_code(op);
-                conn.append_buf_segment(op.direct, op.direct_len,
-                                        op.reply.data(), op.reply.size());
+                conn.append_buf_segment(op.direct, op.direct_len, op.reply.data(), op.reply.size());
                 if (conn.is_tls()) {
                     conn.append_buf_segment(op.zc_ptr, op.zc_len);
                     release(op.zc_shard, op.zc_ptr);
@@ -360,13 +357,14 @@ private:
             // nothing was staged, so committing here stays correct.
             if (conn.has_pending_segments()) {
                 if (op.reply_code_) op_materialise_code(op);
-                conn.append_buf_segment(op.direct, op.direct_len,
-                                        op.reply.data(), op.reply.size());
+                conn.append_buf_segment(op.direct, op.direct_len, op.reply.data(), op.reply.size());
             } else {
                 // A coded reply is rendered straight into the fill frontier: no temporary, and a
                 // compile-time length instead of the runtime-length memcpy op.reply needed.
-                if (op.reply_code_) stage_coded_reply<true>(conn, op);
-                else if (op.direct_len) conn.commit_fill(op.direct_len);
+                if (op.reply_code_)
+                    stage_coded_reply<true>(conn, op);
+                else if (op.direct_len)
+                    conn.commit_fill(op.direct_len);
                 if (!op.reply.empty()) conn.append_fill(op.reply.data(), op.reply.size());
             }
         });
@@ -391,52 +389,52 @@ private:
     }
 
 public:
-
     // Try to push whatever this client has buffered. Safe to call spuriously: if nothing is pending
     // or a send is already outstanding it does nothing. Returns true if a send was submitted.
     template <bool kEp = false, bool ClassifySend = false>
     bool pump(Client& c) {
-      if constexpr (kEp) { return pump_epoll(c); }
-      else {
-        if (c.send_inflight()) return false;               // preserve one-send-per-socket ordering
+        if constexpr (kEp) {
+            return pump_epoll(c);
+        } else {
+            if (c.send_inflight()) return false;  // preserve one-send-per-socket ordering
 
-        Client& conn = c;
-        // A legacy contiguous send may predate the first borrowed reply. It remains the wire head
-        // until drained; the segment queue starts strictly after it.
-        const size_t legacy_total = conn.send_buf().size();
-        const size_t legacy_sent  = conn.wsent();
-        if (legacy_sent < legacy_total)
-            return submit_legacy<kEp, ClassifySend>(c, legacy_total, legacy_sent);
+            Client& conn = c;
+            // A legacy contiguous send may predate the first borrowed reply. It remains the wire head
+            // until drained; the segment queue starts strictly after it.
+            const size_t legacy_total = conn.send_buf().size();
+            const size_t legacy_sent = conn.wsent();
+            if (legacy_sent < legacy_total)
+                return submit_legacy<kEp, ClassifySend>(c, legacy_total, legacy_sent);
 
-        if (conn.has_pending_segments()) {
-            bool has_borrow = false;
-            uint32_t total = 0;
-            const uint32_t niov = conn.build_segment_iov(has_borrow, total);
-            if (!niov) return false;
+            if (conn.has_pending_segments()) {
+                bool has_borrow = false;
+                uint32_t total = 0;
+                const uint32_t niov = conn.build_segment_iov(has_borrow, total);
+                if (!niov) return false;
 
-            io_uring_sqe* s = ring_->sqe();
-            if (!s) return false;
-            io_uring_prep_sendmsg(s, conn.fd(), conn.send_msg(), MSG_NOSIGNAL);
-            s->user_data = ur_tag(UrKind::Send, &c);
-            ring_->note_send_pending<ClassifySend>();
+                io_uring_sqe* s = ring_->sqe();
+                if (!s) return false;
+                io_uring_prep_sendmsg(s, conn.fd(), conn.send_msg(), MSG_NOSIGNAL);
+                s->user_data = ur_tag(UrKind::Send, &c);
+                ring_->note_send_pending<ClassifySend>();
 
-            conn.set_segmented_send(true);
-            conn.set_send_requested(total);
-            conn.set_send_inflight(true);
-            stats_.sends_submitted++;
-            if (has_borrow) stats_.zc_sends++;
-            return true;
+                conn.set_segmented_send(true);
+                conn.set_send_requested(total);
+                conn.set_send_inflight(true);
+                stats_.sends_submitted++;
+                if (has_borrow) stats_.zc_sends++;
+                return true;
+            }
+
+            // Nothing outstanding, so if the send buffer is fully written we may promote the fill
+            // buffer. This is the ONLY point at which the two swap, and it is safe precisely because
+            // send_inflight is false here.
+            if (conn.write_drained() && conn.has_pending_fill()) conn.swap_buffers();
+
+            const size_t total = conn.send_buf().size();
+            const size_t sent = conn.wsent();
+            return sent < total ? submit_legacy<kEp, ClassifySend>(c, total, sent) : false;
         }
-
-        // Nothing outstanding, so if the send buffer is fully written we may promote the fill
-        // buffer. This is the ONLY point at which the two swap, and it is safe precisely because
-        // send_inflight is false here.
-        if (conn.write_drained() && conn.has_pending_fill()) conn.swap_buffers();
-
-        const size_t total = conn.send_buf().size();
-        const size_t sent  = conn.wsent();
-        return sent < total ? submit_legacy<kEp, ClassifySend>(c, total, sent) : false;
-      }
     }
 
     // The epoll send loop. Same three sources in the same order as the uring pump -- legacy
@@ -454,7 +452,7 @@ public:
         bool did = false;
         for (;;) {
             const size_t legacy_total = conn.send_buf().size();
-            const size_t legacy_sent  = conn.wsent();
+            const size_t legacy_sent = conn.wsent();
             if (legacy_sent < legacy_total) {
                 if (!write_legacy_epoll(c, legacy_total, legacy_sent, did)) return did;
                 continue;
@@ -468,15 +466,24 @@ public:
                 conn.set_send_requested(total);
                 stats_.sends_submitted++;
                 if (has_borrow) stats_.zc_sends++;
-                const ssize_t n = ::sendmsg(conn.fd(), conn.send_msg(),
-                                            MSG_NOSIGNAL | MSG_DONTWAIT);
-                if (n <= 0) { note_send_stop(c, n); return did; }
-                stats_.zc_bytes += conn.consume_segments(static_cast<uint32_t>(n),
+                const ssize_t n =
+                    ::sendmsg(conn.fd(), conn.send_msg(), MSG_NOSIGNAL | MSG_DONTWAIT);
+                if (n <= 0) {
+                    note_send_stop(c, n);
+                    return did;
+                }
+                stats_.zc_bytes += conn.consume_segments(
+                    static_cast<uint32_t>(n),
                     [&](int32_t shard, const char* ptr) { release(shard, ptr); });
                 stats_.bytes_sent += static_cast<uint64_t>(n);
-                tls_signals_->net_output_bytes.store(tls_signals_->net_output_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(n), std::memory_order_relaxed);
-                if (static_cast<uint32_t>(n) < total) stats_.short_writes++;
-                else stats_.sends_completed++;
+                tls_signals_->net_output_bytes.store(
+                    tls_signals_->net_output_bytes.load(std::memory_order_relaxed) +
+                        static_cast<uint64_t>(n),
+                    std::memory_order_relaxed);
+                if (static_cast<uint32_t>(n) < total)
+                    stats_.short_writes++;
+                else
+                    stats_.sends_completed++;
                 c.set_last_interaction_s(*cached_now_s_);
                 did = true;
                 continue;
@@ -493,8 +500,7 @@ public:
     // close_client's TLS alert/close_notify drain, and the CLIENT REPLY suppressed serve.
     bool pump_tls_any(Client& c, TlsConn& tls) {
         if (epoll_) return pump_tls<true>(c, tls);
-        return classify_cold_sends_ ? pump_tls<false, true>(c, tls)
-                                    : pump_tls<false>(c, tls);
+        return classify_cold_sends_ ? pump_tls<false, true>(c, tls) : pump_tls<false>(c, tls);
     }
 
     // Engine independent except for its one ciphertext write, which submit_tls_cipher<kEp> owns.
@@ -508,8 +514,8 @@ public:
         const char* cipher = nullptr;
         const int cipher_bytes = tls.peek_output(cipher);
         if (cipher_bytes > 0)
-            return submit_tls_cipher<kEp, ClassifySend>(
-                c, tls, cipher, static_cast<uint32_t>(cipher_bytes));
+            return submit_tls_cipher<kEp, ClassifySend>(c, tls, cipher,
+                                                        static_cast<uint32_t>(cipher_bytes));
         if (!tls.connected()) return false;
 
         Client& conn = c;
@@ -564,8 +570,8 @@ public:
         if (encrypted.op == TlsOp::Progress) {
             const uint32_t plain_accepted = encrypted.bytes;
             if (segmented) {
-                (void)conn.consume_segments(plain_accepted,
-                    [&](int32_t shard, const char* ptr) { release(shard, ptr); });
+                (void)conn.consume_segments(
+                    plain_accepted, [&](int32_t shard, const char* ptr) { release(shard, ptr); });
             } else {
                 conn.commit_write(plain_accepted);
             }
@@ -582,16 +588,15 @@ public:
         if (tls.failed()) {
             if (!tls.last_error().empty())
                 std::fprintf(stderr, "TLS client %llu: %s\n",
-                             static_cast<unsigned long long>(c.id()),
-                             tls.last_error().c_str());
+                             static_cast<unsigned long long>(c.id()), tls.last_error().c_str());
             return false;
         }
 
         cipher = nullptr;
         const int ready = tls.peek_output(cipher);
         if (ready > 0)
-            return submit_tls_cipher<kEp, ClassifySend>(
-                c, tls, cipher, static_cast<uint32_t>(ready));
+            return submit_tls_cipher<kEp, ClassifySend>(c, tls, cipher,
+                                                        static_cast<uint32_t>(ready));
         return encrypted.op == TlsOp::Progress;
     }
 
@@ -604,32 +609,38 @@ public:
             c.set_send_inflight(false);
 
             if (res < 0) {
-                if (res == -EAGAIN || res == -EINTR) { resubmit = true; }
-                else if (res == -ECONNRESET || res == -EPIPE || res == -ECONNABORTED ||
-                         c.closing()) {
+                if (res == -EAGAIN || res == -EINTR) {
+                    resubmit = true;
+                } else if (res == -ECONNRESET || res == -EPIPE || res == -ECONNABORTED ||
+                           c.closing()) {
                     // The peer tore the connection down mid-send (abrupt-disconnect batteries,
                     // CLIENT KILL, kTLS conns on this plain path). No application reply is being
                     // lost that the peer could still read; counting these as data-path send
                     // errors made err=0 a timing lottery. Same carve-out the memory-BIO arm has.
                     stats_.peer_aborts++;
                     return false;
+                } else {
+                    stats_.send_errors++;
+                    return false;
                 }
-                else { stats_.send_errors++; return false; }
             } else {
                 Client& conn = c;
                 if (conn.segmented_send()) {
-                    stats_.zc_bytes += conn.consume_segments(static_cast<uint32_t>(res),
+                    stats_.zc_bytes += conn.consume_segments(
+                        static_cast<uint32_t>(res),
                         [&](int32_t shard, const char* ptr) { release(shard, ptr); });
                 } else {
                     conn.commit_write(static_cast<uint32_t>(res));
                 }
                 stats_.bytes_sent += static_cast<uint64_t>(res);
-                tls_signals_->net_output_bytes.store(tls_signals_->net_output_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(res), std::memory_order_relaxed);
+                tls_signals_->net_output_bytes.store(
+                    tls_signals_->net_output_bytes.load(std::memory_order_relaxed) +
+                        static_cast<uint64_t>(res),
+                    std::memory_order_relaxed);
                 c.set_last_interaction_s(*cached_now_s_);
                 if (static_cast<uint32_t>(res) < conn.send_requested()) stats_.short_writes++;
-                const bool drained = conn.segmented_send()
-                    ? !conn.has_pending_segments()
-                    : conn.write_drained();
+                const bool drained =
+                    conn.segmented_send() ? !conn.has_pending_segments() : conn.write_drained();
                 if (drained) {
                     stats_.sends_completed++;
                     // More replies may have accumulated in the fill buffer while this send was in
@@ -652,7 +663,8 @@ public:
         c.set_send_inflight(false);
         bool resubmit = false;
         if (res < 0) {
-            if (res == -EAGAIN || res == -EINTR) resubmit = true;
+            if (res == -EAGAIN || res == -EINTR)
+                resubmit = true;
             else if (c.closing()) {
                 // A rejected handshake or an abrupt peer can make the alert/close_notify flight
                 // lose its race with socket teardown.  The connection is already doomed and no
@@ -666,7 +678,10 @@ public:
             } else if (res == -ECONNRESET || res == -EPIPE || res == -ECONNABORTED) {
                 stats_.peer_aborts++;
                 return false;
-            } else { stats_.send_errors++; return false; }
+            } else {
+                stats_.send_errors++;
+                return false;
+            }
         } else if (res == 0) {
             if (c.closing()) {
                 const char* pending = nullptr;
@@ -686,8 +701,10 @@ public:
             stats_.bytes_sent += cipher_sent;
             tls_signals_->tls_ciphertext_output_bytes += cipher_sent;
             c.set_last_interaction_s(*cached_now_s_);
-            if (cipher_sent < c.send_requested()) stats_.short_writes++;
-            else stats_.sends_completed++;
+            if (cipher_sent < c.send_requested())
+                stats_.short_writes++;
+            else
+                stats_.sends_completed++;
             resubmit = true;
         }
         if constexpr (SubmitFollowup)
@@ -716,13 +733,17 @@ public:
         c.set_send_inflight(false);
         if (res > 0) {
             if (c.segmented_send()) {
-                stats_.zc_bytes += c.consume_segments(static_cast<uint32_t>(res),
+                stats_.zc_bytes += c.consume_segments(
+                    static_cast<uint32_t>(res),
                     [&](int32_t shard, const char* ptr) { release(shard, ptr); });
             } else {
                 c.commit_write(static_cast<uint32_t>(res));
             }
             stats_.bytes_sent += static_cast<uint64_t>(res);
-            tls_signals_->net_output_bytes.store(tls_signals_->net_output_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(res), std::memory_order_relaxed);
+            tls_signals_->net_output_bytes.store(
+                tls_signals_->net_output_bytes.load(std::memory_order_relaxed) +
+                    static_cast<uint64_t>(res),
+                std::memory_order_relaxed);
         }
         teardown(c);
     }
@@ -742,23 +763,21 @@ public:
     struct Stats {
         uint64_t sends_submitted = 0;
         uint64_t sends_completed = 0;
-        uint64_t short_writes    = 0;
-        uint64_t send_errors     = 0;
-        uint64_t peer_aborts     = 0;   // peer closed mid-send; expected under kill/disconnect
-        uint64_t serves          = 0;
-        uint64_t serves_empty    = 0;   // serve() retired nothing: a wake with no head-ready
-        uint64_t bytes_sent      = 0;
-        uint64_t retired         = 0;   // ops retired from ROBs by this sender
-        uint64_t direct          = 0;   // replies formatted in place by the worker (c->buf trick)
-        uint64_t zc_sends        = 0;   // sendmsg submissions whose iovecs include a BORROW
-        uint64_t zc_bytes        = 0;   // borrowed value bytes reported complete by the kernel
-        uint64_t zc_releases     = 0;   // BORROW segments returned on completion or teardown
+        uint64_t short_writes = 0;
+        uint64_t send_errors = 0;
+        uint64_t peer_aborts = 0;  // peer closed mid-send; expected under kill/disconnect
+        uint64_t serves = 0;
+        uint64_t serves_empty = 0;  // serve() retired nothing: a wake with no head-ready
+        uint64_t bytes_sent = 0;
+        uint64_t retired = 0;      // ops retired from ROBs by this sender
+        uint64_t direct = 0;       // replies formatted in place by the worker (c->buf trick)
+        uint64_t zc_sends = 0;     // sendmsg submissions whose iovecs include a BORROW
+        uint64_t zc_bytes = 0;     // borrowed value bytes reported complete by the kernel
+        uint64_t zc_releases = 0;  // BORROW segments returned on completion or teardown
     };
     Stats& stats() { return stats_; }
     const Stats& stats() const { return stats_; }
-    void note_zc_suppressed_tls() {
-        tls_signals_->tls_zc_suppressed++;
-    }
+    void note_zc_suppressed_tls() { tls_signals_->tls_zc_suppressed++; }
 
 private:
     // Empty on every serve of every connection that has no subscription, tracking or monitor:
@@ -800,68 +819,72 @@ private:
     // Retire hooks materialize cross-shard state before examining the resulting borrow. Seal
     // older fill bytes before segments; direct bytes precede spills; coded replies render at
     // the fill frontier or materialize into the current segment, just as before.
-#define TOMO_WB_SERVE_BODY(BeforeRetire, StageBorrow, ...) \
-        stats_.serves++; \
-        Client& conn = c; \
-        if constexpr (TrackOutput) conn.start_obuf_tracking(); \
-        else conn.stop_obuf_tracking(); \
-        draining_ = &c; \
-        const uint32_t retired = c.rob().drain([&](Op& op) { \
-            BeforeRetire \
-            if (op.zc_ptr) retire_fn_(retire_ctx_, conn, op); \
-            if (op.zc_ptr) { \
-                conn.seal_fill_segment(); \
-                if constexpr (Coded) if (op.reply_code_) op_materialise_code(op); \
-                conn.append_buf_segment(op.direct, op.direct_len, \
-                                        op.reply.data(), op.reply.size()); \
-                StageBorrow \
-                if (op.direct_len) stats_.direct++; \
-                return; \
-            } \
-            if (conn.has_pending_segments()) { \
-                if constexpr (Coded) if (op.reply_code_) op_materialise_code(op); \
-                conn.append_buf_segment(op.direct, op.direct_len, \
-                                        op.reply.data(), op.reply.size()); \
-                if (op.direct_len) stats_.direct++; \
-            } else { \
-                if constexpr (Coded) { \
-                    if (op.reply_code_) { \
-                        stage_coded_reply<TrackOutput>(conn, op); \
-                        if (!op.reply.empty()) { \
-                            if constexpr (TrackOutput) \
-                                conn.append_fill(op.reply.data(), op.reply.size()); \
-                            else conn.fill_buf().append(op.reply.data(), op.reply.size()); \
-                        } \
-                        return; \
-                    } \
-                } \
-                if (op.direct_len) { \
-                    if constexpr (TrackOutput) conn.commit_fill(op.direct_len); \
-                    else conn.fill_buf().commit_raw(op.direct_len); \
-                    stats_.direct++; \
-                } \
-                if (!op.reply.empty()) { \
-                    if constexpr (TrackOutput) conn.append_fill(op.reply.data(), op.reply.size()); \
-                    else conn.fill_buf().append(op.reply.data(), op.reply.size()); \
-                } \
-            } \
-        }); \
-        draining_ = nullptr; \
-        bool did = retired != 0; \
-        did |= flush_deferred_oob(conn); \
-        if constexpr (TrackOutput) { \
-            if (limit_fn_(limit_ctx_, c)) { \
-                if (submit_allowed) *submit_allowed = false; \
-                stats_.retired += retired; \
-                if (!retired) stats_.serves_empty++; \
-                return true; \
-            } \
-        } \
-        if constexpr (Submit) \
-            __VA_ARGS__ \
-        stats_.retired += retired; \
-        if (!retired) stats_.serves_empty++; \
-        return did;
+#define TOMO_WB_SERVE_BODY(BeforeRetire, StageBorrow, ...)                                       \
+    stats_.serves++;                                                                             \
+    Client& conn = c;                                                                            \
+    if constexpr (TrackOutput)                                                                   \
+        conn.start_obuf_tracking();                                                              \
+    else                                                                                         \
+        conn.stop_obuf_tracking();                                                               \
+    draining_ = &c;                                                                              \
+    const uint32_t retired = c.rob().drain([&](Op& op) {                                         \
+        BeforeRetire if (op.zc_ptr) retire_fn_(retire_ctx_, conn, op);                           \
+        if (op.zc_ptr) {                                                                         \
+            conn.seal_fill_segment();                                                            \
+            if constexpr (Coded)                                                                 \
+                if (op.reply_code_) op_materialise_code(op);                                     \
+            conn.append_buf_segment(op.direct, op.direct_len, op.reply.data(), op.reply.size()); \
+            StageBorrow if (op.direct_len) stats_.direct++;                                      \
+            return;                                                                              \
+        }                                                                                        \
+        if (conn.has_pending_segments()) {                                                       \
+            if constexpr (Coded)                                                                 \
+                if (op.reply_code_) op_materialise_code(op);                                     \
+            conn.append_buf_segment(op.direct, op.direct_len, op.reply.data(), op.reply.size()); \
+            if (op.direct_len) stats_.direct++;                                                  \
+        } else {                                                                                 \
+            if constexpr (Coded) {                                                               \
+                if (op.reply_code_) {                                                            \
+                    stage_coded_reply<TrackOutput>(conn, op);                                    \
+                    if (!op.reply.empty()) {                                                     \
+                        if constexpr (TrackOutput)                                               \
+                            conn.append_fill(op.reply.data(), op.reply.size());                  \
+                        else                                                                     \
+                            conn.fill_buf().append(op.reply.data(), op.reply.size());            \
+                    }                                                                            \
+                    return;                                                                      \
+                }                                                                                \
+            }                                                                                    \
+            if (op.direct_len) {                                                                 \
+                if constexpr (TrackOutput)                                                       \
+                    conn.commit_fill(op.direct_len);                                             \
+                else                                                                             \
+                    conn.fill_buf().commit_raw(op.direct_len);                                   \
+                stats_.direct++;                                                                 \
+            }                                                                                    \
+            if (!op.reply.empty()) {                                                             \
+                if constexpr (TrackOutput)                                                       \
+                    conn.append_fill(op.reply.data(), op.reply.size());                          \
+                else                                                                             \
+                    conn.fill_buf().append(op.reply.data(), op.reply.size());                    \
+            }                                                                                    \
+        }                                                                                        \
+    });                                                                                          \
+    draining_ = nullptr;                                                                         \
+    bool did = retired != 0;                                                                     \
+    did |= flush_deferred_oob(conn);                                                             \
+    if constexpr (TrackOutput) {                                                                 \
+        if (limit_fn_(limit_ctx_, c)) {                                                          \
+            if (submit_allowed) *submit_allowed = false;                                         \
+            stats_.retired += retired;                                                           \
+            if (!retired) stats_.serves_empty++;                                                 \
+            return true;                                                                         \
+        }                                                                                        \
+    }                                                                                            \
+    if constexpr (Submit) __VA_ARGS__                                                            \
+    stats_.retired += retired;                                                                   \
+    if (!retired) stats_.serves_empty++;                                                         \
+    return did;
 
     template <bool TrackOutput, bool TlsNoBorrow, bool kEp, bool Submit, bool ClassifySend,
               bool Coded>
@@ -870,48 +893,48 @@ private:
             if constexpr (TlsNoBorrow) {
                 if (op.no_borrow()) note_zc_suppressed_tls();
             },
-                if constexpr (TlsNoBorrow) {
-                    conn.append_buf_segment(op.zc_ptr, op.zc_len);
-                    release(op.zc_shard, op.zc_ptr);
-                    note_zc_suppressed_tls();
-                } else {
-                    conn.append_borrow_segment(op.zc_ptr, op.zc_len, op.zc_shard);
-                }
-                conn.append_static_segment(kCrlf, sizeof(kCrlf));,
-            if (!conn.nothing_to_write()) did |= pump<kEp, ClassifySend>(c);)
+            if constexpr (TlsNoBorrow) {
+                conn.append_buf_segment(op.zc_ptr, op.zc_len);
+                release(op.zc_shard, op.zc_ptr);
+                note_zc_suppressed_tls();
+            } else {
+                conn.append_borrow_segment(op.zc_ptr, op.zc_len, op.zc_shard);
+            } conn.append_static_segment(kCrlf, sizeof(kCrlf));
+            , if (!conn.nothing_to_write()) did |= pump<kEp, ClassifySend>(c);)
     }
 
     template <bool TrackOutput, bool kEp, bool Submit, bool ClassifySend, bool Coded>
     bool serve_tls_impl(Client& c, TlsConn& tls, bool* submit_allowed = nullptr) {
         // Userspace TLS seals CRLF before release; kTLS above releases before CRLF.
         // Ciphertext can remain after all plaintext has drained. Submit=false skips this pump.
-        TOMO_WB_SERVE_BODY(
-            if (op.no_borrow()) note_zc_suppressed_tls();,
-                conn.append_buf_segment(op.zc_ptr, op.zc_len);
-                conn.append_static_segment(kCrlf, sizeof(kCrlf));
-                release(op.zc_shard, op.zc_ptr);
-                note_zc_suppressed_tls();,
-            if (!conn.nothing_to_write() || tls.output_pending())
-                did |= pump_tls<kEp, ClassifySend>(c, tls);)
+        TOMO_WB_SERVE_BODY(if (op.no_borrow()) note_zc_suppressed_tls();
+                           , conn.append_buf_segment(op.zc_ptr, op.zc_len);
+                           conn.append_static_segment(kCrlf, sizeof(kCrlf));
+                           release(op.zc_shard, op.zc_ptr); note_zc_suppressed_tls();
+                           , if (!conn.nothing_to_write() || tls.output_pending()) did |=
+                             pump_tls<kEp, ClassifySend>(c, tls);)
     }
 #undef TOMO_WB_SERVE_BODY
     template <bool kEp, bool ClassifySend = false>
     bool submit_legacy(Client& c, size_t total, size_t sent) {
-      if constexpr (kEp) { bool did = false; (void)write_legacy_epoll(c, total, sent, did); return did; }
-      else {
-        const size_t request = std::min<size_t>(total - sent, kMaxSendBytes);
-        io_uring_sqe* s = ring_->sqe();
-        if (!s) return false;
-        io_uring_prep_send(s, c.fd(), c.send_buf().data() + sent, request, MSG_NOSIGNAL);
-        s->user_data = ur_tag(UrKind::Send, &c);
-        ring_->note_send_pending<ClassifySend>();
+        if constexpr (kEp) {
+            bool did = false;
+            (void)write_legacy_epoll(c, total, sent, did);
+            return did;
+        } else {
+            const size_t request = std::min<size_t>(total - sent, kMaxSendBytes);
+            io_uring_sqe* s = ring_->sqe();
+            if (!s) return false;
+            io_uring_prep_send(s, c.fd(), c.send_buf().data() + sent, request, MSG_NOSIGNAL);
+            s->user_data = ur_tag(UrKind::Send, &c);
+            ring_->note_send_pending<ClassifySend>();
 
-        c.set_segmented_send(false);
-        c.set_send_requested(static_cast<uint32_t>(request));
-        c.set_send_inflight(true);
-        stats_.sends_submitted++;
-        return true;
-      }
+            c.set_segmented_send(false);
+            c.set_send_requested(static_cast<uint32_t>(request));
+            c.set_send_inflight(true);
+            stats_.sends_submitted++;
+            return true;
+        }
     }
 
     // One legacy-buffer write. `did` is only raised when bytes actually moved; the bool return says
@@ -921,14 +944,22 @@ private:
         c.set_segmented_send(false);
         c.set_send_requested(static_cast<uint32_t>(request));
         stats_.sends_submitted++;
-        const ssize_t n = ::send(c.fd(), c.send_buf().data() + sent, request,
-                                 MSG_NOSIGNAL | MSG_DONTWAIT);
-        if (n <= 0) { note_send_stop(c, n); return false; }
+        const ssize_t n =
+            ::send(c.fd(), c.send_buf().data() + sent, request, MSG_NOSIGNAL | MSG_DONTWAIT);
+        if (n <= 0) {
+            note_send_stop(c, n);
+            return false;
+        }
         c.commit_write(static_cast<uint32_t>(n));
         stats_.bytes_sent += static_cast<uint64_t>(n);
-        tls_signals_->net_output_bytes.store(tls_signals_->net_output_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(n), std::memory_order_relaxed);
-        if (static_cast<size_t>(n) < request) stats_.short_writes++;
-        else if (c.write_drained()) stats_.sends_completed++;
+        tls_signals_->net_output_bytes.store(
+            tls_signals_->net_output_bytes.load(std::memory_order_relaxed) +
+                static_cast<uint64_t>(n),
+            std::memory_order_relaxed);
+        if (static_cast<size_t>(n) < request)
+            stats_.short_writes++;
+        else if (c.write_drained())
+            stats_.sends_completed++;
         c.set_last_interaction_s(*cached_now_s_);
         did = true;
         return true;
@@ -939,7 +970,7 @@ private:
     // makes, so err=0 does not become a timing lottery under connection churn. Anything else is
     // fatal for this connection and latches send_failed_.
     void note_send_stop(Client& c, ssize_t n) {
-        if (n == 0) return;                              // wrote nothing; treat as would-block
+        if (n == 0) return;  // wrote nothing; treat as would-block
         const int err = errno;
         if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) return;
         if (err == ECONNRESET || err == EPIPE || err == ECONNABORTED || c.closing())
@@ -951,43 +982,51 @@ private:
 
     template <bool kEp, bool ClassifySend = false>
     bool submit_tls_cipher(Client& c, TlsConn& tls, const char* cipher, uint32_t bytes) {
-      if constexpr (kEp) {
-        // Drain every record OpenSSL has already produced in one call. Recursing back through
-        // pump_tls would re-enter the plaintext half and could hand SSL_write a moved frontier.
-        bool did = false;
-        const char* pending = cipher;
-        uint32_t remaining = bytes;
-        while (remaining) {
-            c.set_send_requested(remaining);
+        if constexpr (kEp) {
+            // Drain every record OpenSSL has already produced in one call. Recursing back through
+            // pump_tls would re-enter the plaintext half and could hand SSL_write a moved frontier.
+            bool did = false;
+            const char* pending = cipher;
+            uint32_t remaining = bytes;
+            while (remaining) {
+                c.set_send_requested(remaining);
+                stats_.sends_submitted++;
+                const ssize_t n = ::send(c.fd(), pending, remaining, MSG_NOSIGNAL | MSG_DONTWAIT);
+                if (n <= 0) {
+                    note_send_stop(c, n);
+                    return did;
+                }
+                const uint32_t sent = static_cast<uint32_t>(n);
+                if (!tls.consume_output(sent)) {
+                    send_failed_ = true;
+                    return did;
+                }
+                stats_.bytes_sent += sent;
+                tls_signals_->tls_ciphertext_output_bytes += sent;
+                c.set_last_interaction_s(*cached_now_s_);
+                did = true;
+                if (sent < remaining)
+                    stats_.short_writes++;
+                else
+                    stats_.sends_completed++;
+                // consume_output moved the BIO frontier, so re-peek rather than advancing `pending`
+                // ourselves: the next record may live in a different block of the memory BIO.
+                pending = nullptr;
+                const int ready = tls.peek_output(pending);
+                remaining = ready > 0 ? static_cast<uint32_t>(ready) : 0;
+            }
+            return did;
+        } else {
+            io_uring_sqe* s = ring_->sqe();
+            if (!s) return false;
+            io_uring_prep_send(s, c.fd(), cipher, bytes, MSG_NOSIGNAL);
+            s->user_data = ur_tag(UrKind::TlsSend, &c);
+            ring_->note_send_pending<ClassifySend>();
+            c.set_send_requested(bytes);
+            c.set_send_inflight(true);
             stats_.sends_submitted++;
-            const ssize_t n = ::send(c.fd(), pending, remaining, MSG_NOSIGNAL | MSG_DONTWAIT);
-            if (n <= 0) { note_send_stop(c, n); return did; }
-            const uint32_t sent = static_cast<uint32_t>(n);
-            if (!tls.consume_output(sent)) { send_failed_ = true; return did; }
-            stats_.bytes_sent += sent;
-            tls_signals_->tls_ciphertext_output_bytes += sent;
-            c.set_last_interaction_s(*cached_now_s_);
-            did = true;
-            if (sent < remaining) stats_.short_writes++;
-            else stats_.sends_completed++;
-            // consume_output moved the BIO frontier, so re-peek rather than advancing `pending`
-            // ourselves: the next record may live in a different block of the memory BIO.
-            pending = nullptr;
-            const int ready = tls.peek_output(pending);
-            remaining = ready > 0 ? static_cast<uint32_t>(ready) : 0;
+            return true;
         }
-        return did;
-      } else {
-        io_uring_sqe* s = ring_->sqe();
-        if (!s) return false;
-        io_uring_prep_send(s, c.fd(), cipher, bytes, MSG_NOSIGNAL);
-        s->user_data = ur_tag(UrKind::TlsSend, &c);
-        ring_->note_send_pending<ClassifySend>();
-        c.set_send_requested(bytes);
-        c.set_send_inflight(true);
-        stats_.sends_submitted++;
-        return true;
-      }
     }
 
     void release(int32_t shard, const char* ptr) {
@@ -996,25 +1035,25 @@ private:
     }
 
     inline static constexpr char kCrlf[2] = {'\r', '\n'};
-    Ring*  ring_ = nullptr;
-    void*  release_ctx_ = nullptr;
+    Ring* ring_ = nullptr;
+    void* release_ctx_ = nullptr;
     ReleaseFn release_fn_ = nullptr;
-    void*  retire_ctx_ = nullptr;
+    void* retire_ctx_ = nullptr;
     RetireFn retire_fn_ = nullptr;
     const std::atomic<bool>* limit_armed_ = nullptr;
-    void*  limit_ctx_ = nullptr;
+    void* limit_ctx_ = nullptr;
     LimitFn limit_fn_ = nullptr;
     const uint32_t* cached_now_s_ = nullptr;
     LoopSignals* tls_signals_ = nullptr;
     // Engine, for the cold non-templated entry points only. The hot send path never reads it.
-    bool   epoll_ = false;
-    bool   send_failed_ = false;
-    bool   classify_cold_sends_ = false;
+    bool epoll_ = false;
+    bool send_failed_ = false;
+    bool classify_cold_sends_ = false;
     // The connection whose retire drain is running right now, or null. defer_oob() uses it to make
     // parking unconditional across the partial-reply staging window.
     const Client* draining_ = nullptr;
     std::unordered_map<Client*, DeferredOobQueue> oob_defer_;
-    Stats  stats_;
+    Stats stats_;
 };
 
 }  // namespace tomo

@@ -21,10 +21,11 @@ struct Fixture {
         if (expanded) limits.hash.max_entries = 1;
         shard.init_private(nullptr, 0, limits, StreamLimits{});
         shard.set_cached_now_ms(now);
-        check(execute(shard, {"HSET", key.p, first.c_str(), "v1", second.c_str(), "v2"})
-                  == ":2\r\n", "CD1: seed both hash fields");
-        check(CollectionRef(object()).encoding() == (expanded ? CollectionEncoding::Hashtable
-                                                              : CollectionEncoding::Compact),
+        check(
+            execute(shard, {"HSET", key.p, first.c_str(), "v1", second.c_str(), "v2"}) == ":2\r\n",
+            "CD1: seed both hash fields");
+        check(CollectionRef(object()).encoding() ==
+                  (expanded ? CollectionEncoding::Hashtable : CollectionEncoding::Compact),
               "CD1: requested hash representation is present");
         check(expanded || CollectionRef(object()).is_embedded(),
               "CD1: compact case must exercise first-TTL externalization");
@@ -36,11 +37,12 @@ struct Fixture {
         // install), then inject the precise in-command failure independently.
         FlatStore& store = shard.store();
         check(store.configure_maxmemory(true, std::numeric_limits<uint64_t>::max(),
-                                        MaxmemoryPolicy::NoEviction, 1) && idle_bytes() != 0,
+                                        MaxmemoryPolicy::NoEviction, 1) &&
+                  idle_bytes() != 0,
               "CD1: enabled maxmemory builds and charges its idle clock");
-        store.configure_maxmemory(true, store.accounted_bytes() + 4096 +
-                                            ObjectIdleClock().allocation_bytes(nullptr),
-                                  MaxmemoryPolicy::NoEviction, 1);
+        store.configure_maxmemory(
+            true, store.accounted_bytes() + 4096 + ObjectIdleClock().allocation_bytes(nullptr),
+            MaxmemoryPolicy::NoEviction, 1);
     }
     // ST5.3: every idle-clock node is charged to the store's object bytes.
     size_t idle_bytes() {
@@ -51,7 +53,8 @@ struct Fixture {
     KvObj* object() { return shard.store().find(hash, key); }
     int64_t ttl(const std::string& field) {
         HashFieldTtl** slot = hash_ttl_slot(object());
-        return slot && *slot ? (*slot)->get(Slice(field.data(), field.size())) : HashFieldTtl::kNone;
+        return slot && *slot ? (*slot)->get(Slice(field.data(), field.size()))
+                             : HashFieldTtl::kNone;
     }
     std::string get(const std::string& field) {
         return execute(shard, {"HGET", key.p, field.c_str()});
@@ -65,10 +68,18 @@ void expire(const char* verb, const char* when, bool expanded, bool notify, bool
     args(op, {verb, Fixture::key.p, when, "FIELDS", "2", f.first.c_str(), f.second.c_str()});
     check(f.shard.store().budget_admit(op.key()), "CD1: maxmemory admits the tested command");
     switch (failure) {
-        case Failure::SecondField: fault(1, f.first.size() + 1); break;
-        case Failure::FirstField:  fault(0, f.first.size() + 1); break;
-        case Failure::Results:     fault(0, 2 * sizeof(int8_t)); break;
-        case Failure::None:        fault(-1); break;
+        case Failure::SecondField:
+            fault(1, f.first.size() + 1);
+            break;
+        case Failure::FirstField:
+            fault(0, f.first.size() + 1);
+            break;
+        case Failure::Results:
+            fault(0, 2 * sizeof(int8_t));
+            break;
+        case Failure::None:
+            fault(-1);
+            break;
     }
     (notify ? op.spec->handler_notify : op.spec->handler)(f.shard, op);
     const unsigned failures = netcmd_failures, allocations = netcmd_allocations;
@@ -83,9 +94,10 @@ void expire(const char* verb, const char* when, bool expanded, bool notify, bool
     check(std::string(op.reply.data(), op.reply.size()) ==
               (success ? "*2\r\n:1\r\n:1\r\n" : "-ERR out of memory\r\n"),
           "CD1: preserve success results and the allocation-error reply");
-    check(hash_ttl_slot(f.object()) != nullptr, "CD1: failure reached an external TTL-capable hash");
+    check(hash_ttl_slot(f.object()) != nullptr,
+          "CD1: failure reached an external TTL-capable hash");
     check(f.ttl(f.first) == (partial || success ? deadline : HashFieldTtl::kNone) &&
-          f.ttl(f.second) == (success ? deadline : HashFieldTtl::kNone),
+              f.ttl(f.second) == (success ? deadline : HashFieldTtl::kNone),
           "CD1: injected failure must leave exactly the expected deadline prefix");
 
     // Save these facts before expiry, but check the user-visible defect first. The old handler
@@ -93,8 +105,9 @@ void expire(const char* verb, const char* when, bool expanded, bool notify, bool
     const bool registered = f.shard.store().field_expire_count() != 0;
     HashFieldTtl** slot = hash_ttl_slot(f.object());
     const auto* value = slot ? static_cast<const HashVal*>(f.object()->external_ptr()) : nullptr;
-    const bool accounted = (!value || value->ttl_bytes == (value->ttls ? value->ttls->allocation_bytes() : 0)) &&
-                           f.shard.store().object_bytes() == kvobj_size(f.object()) + f.idle_bytes();
+    const bool accounted =
+        (!value || value->ttl_bytes == (value->ttls ? value->ttls->allocation_bytes() : 0)) &&
+        f.shard.store().object_bytes() == kvobj_size(f.object()) + f.idle_bytes();
     check(f.get(f.first) == "$2\r\nv1\r\n" && f.get(f.second) == "$2\r\nv2\r\n",
           "CD1: both values remain readable before the deadline");
     f.shard.set_cached_now_ms(deadline + 1);
@@ -107,26 +120,28 @@ void expire(const char* verb, const char* when, bool expanded, bool notify, bool
                          expected, f.shard.store().field_expire_count());
         check(reaped == expected, "CD1: active expiry must collect the installed prefix after OOM");
     }
-    const std::string ttl = execute(f.shard, {"HTTL", Fixture::key.p, "FIELDS", "1", f.first.c_str()});
+    const std::string ttl =
+        execute(f.shard, {"HTTL", Fixture::key.p, "FIELDS", "1", f.first.c_str()});
     check(ttl == (expected ? "*1\r\n:-2\r\n" : "*1\r\n:-1\r\n"),
           "CD1: HTTL reports the installed prefix expired");
     const std::string first = f.get(f.first);
     if (expected && first != "$-1\r\n")
-        std::fprintf(stderr, "%s: HTTL=-2 but HGET still serves first field; gate=%u\n",
-                     verb, f.shard.store().field_expire_count());
+        std::fprintf(stderr, "%s: HTTL=-2 but HGET still serves first field; gate=%u\n", verb,
+                     f.shard.store().field_expire_count());
     check(first == (expected ? "$-1\r\n" : "$2\r\nv1\r\n"),
           "CD1: HGET must hide the expired prefix after OOM (HTTL == -2)");
     check(f.get(f.second) == (success ? "$-1\r\n" : "$2\r\nv2\r\n"),
           "CD1: an unset field must remain persistent");
-    check(f.shard.store().field_expired() == expected, "CD1: exactly the installed prefix was reaped");
+    check(f.shard.store().field_expired() == expected,
+          "CD1: exactly the installed prefix was reaped");
     check(registered == (expected != 0), "CD1: only stored deadlines arm expiry");
     check(accounted, "CD1: partial TTL allocations are charged before the error reply");
 }
 
 void persist(bool expanded, bool notify, bool fail) {
     Fixture f(expanded);
-    check(execute(f.shard, {"HPEXPIRE", Fixture::key.p, "2000", "FIELDS", "2",
-                          f.first.c_str(), f.second.c_str()}) == "*2\r\n:1\r\n:1\r\n",
+    check(execute(f.shard, {"HPEXPIRE", Fixture::key.p, "2000", "FIELDS", "2", f.first.c_str(),
+                            f.second.c_str()}) == "*2\r\n:1\r\n:1\r\n",
           "CD1: HPERSIST fixture has two deadlines");
     Op op;
     args(op, {"HPERSIST", Fixture::key.p, "FIELDS", "2", f.first.c_str(), f.second.c_str()});
@@ -139,38 +154,48 @@ void persist(bool expanded, bool notify, bool fail) {
               (fail ? "-ERR out of memory\r\n" : "*2\r\n:1\r\n:1\r\n"),
           "CD1: HPERSIST preserves its reply on allocation failure");
     check(f.ttl(f.first) == (fail ? deadline : HashFieldTtl::kNone) &&
-          f.ttl(f.second) == (fail ? deadline : HashFieldTtl::kNone),
+              f.ttl(f.second) == (fail ? deadline : HashFieldTtl::kNone),
           "CD1: HPERSIST fails before changing either deadline");
     f.shard.set_cached_now_ms(deadline + 1);
     check(f.get(f.first) == (fail ? "$-1\r\n" : "$2\r\nv1\r\n") &&
-          f.get(f.second) == (fail ? "$-1\r\n" : "$2\r\nv2\r\n"),
+              f.get(f.second) == (fail ? "$-1\r\n" : "$2\r\nv2\r\n"),
           "CD1: HPERSIST leaves expiry enforcement consistent");
 }
-} // namespace hexpire_oom
+}  // namespace hexpire_oom
 
 static void test_hexpire_oom(const char* only = nullptr) {
     using namespace hexpire_oom;
-    struct Command { const char* verb; const char* when; };
+    struct Command {
+        const char* verb;
+        const char* when;
+    };
     unsigned cases = 0;
     for (const auto& cmd : {Command{"HEXPIRE", "2"}, Command{"HPEXPIRE", "2000"},
-                           Command{"HEXPIREAT", "1002"}, Command{"HPEXPIREAT", "1002000"}}) {
+                            Command{"HEXPIREAT", "1002"}, Command{"HPEXPIREAT", "1002000"}}) {
         for (bool active : {false, true}) {
             const std::string selector = std::string(cmd.verb) + (active ? ":active" : ":lazy");
             if (only && selector != only) continue;
-            for (bool expanded : {false, true}) for (bool notify : {false, true}) {
-                for (Failure failure : {Failure::SecondField, Failure::FirstField,
-                                        Failure::Results, Failure::None}) {
-                    if (active && failure != Failure::SecondField && failure != Failure::None) continue;
-                    expire(cmd.verb, cmd.when, expanded, notify, active, failure);
-                    ++cases;
+            for (bool expanded : {false, true})
+                for (bool notify : {false, true}) {
+                    for (Failure failure : {Failure::SecondField, Failure::FirstField,
+                                            Failure::Results, Failure::None}) {
+                        if (active && failure != Failure::SecondField && failure != Failure::None)
+                            continue;
+                        expire(cmd.verb, cmd.when, expanded, notify, active, failure);
+                        ++cases;
+                    }
                 }
-            }
             std::printf("ok: CD1 %s compact/expanded clean/notify\n", selector.c_str());
         }
     }
-    if (!only) for (bool expanded : {false, true}) for (bool notify : {false, true}) {
-        for (bool fail : {false, true}) { persist(expanded, notify, fail); ++cases; }
-    }
+    if (!only)
+        for (bool expanded : {false, true})
+            for (bool notify : {false, true}) {
+                for (bool fail : {false, true}) {
+                    persist(expanded, notify, fail);
+                    ++cases;
+                }
+            }
     check(cases != 0, "CD1: unknown case selector must fail");
     std::printf("ok: CD1 %u deterministic hash-field TTL cases\n", cases);
 }

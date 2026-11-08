@@ -13,15 +13,15 @@ std::atomic<uint32_t> debug_xread_stage{0};
 // Argument: 0 releases, 1 arms registration, 2 advances to the last-Task hold.
 void debug_xread_registration_command(Op& op) {
     if (!op.arg(1).eq_icase("xread-registration-hold")) {
-        reply_err(op.sink(), "ERR unknown subcommand or wrong number of arguments for 'debug' command");
+        reply_err(op.sink(),
+                  "ERR unknown subcommand or wrong number of arguments for 'debug' command");
         return;
     }
     if (op.argc() == 2) {
         reply_int(op.sink(), debug_xread_stage.load(std::memory_order_acquire));
         return;
     }
-    if (op.argc() != 3 || op.arg(2).n != 1 ||
-        op.arg(2).p[0] < '0' || op.arg(2).p[0] > '2') {
+    if (op.argc() != 3 || op.arg(2).n != 1 || op.arg(2).p[0] < '0' || op.arg(2).p[0] > '2') {
         reply_err(op.sink(), "ERR value is not an integer or out of range");
         return;
     }

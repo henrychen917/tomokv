@@ -19,7 +19,8 @@ static void parkwake_sleep(const char* name, long fallback) {
     long us = text ? atol(text) : fallback;
     if (us <= 0) return;
     struct timespec ts = {us / 1000000, (us % 1000000) * 1000};
-    while (nanosleep(&ts, &ts) != 0) {}
+    while (nanosleep(&ts, &ts) != 0) {
+    }
 }
 
 static int parkwake_regular(int fd) {
@@ -28,7 +29,8 @@ static int parkwake_regular(int fd) {
 }
 
 #define PARKWAKE_REAL(type, name, args) \
-    static type(*real) args; if (!real) real = (type(*) args)dlsym(RTLD_NEXT, name)
+    static type(*real) args;            \
+    if (!real) real = (type(*) args)dlsym(RTLD_NEXT, name)
 
 ssize_t write(int fd, const void* buf, size_t n) {
     PARKWAKE_REAL(ssize_t, "write", (int, const void*, size_t));

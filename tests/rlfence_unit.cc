@@ -46,9 +46,15 @@ uint64_t enqueue(Ring& rob, uint64_t hash, bool mget) {
 
 void complete(Ring& rob, Site site, uint64_t id) {
     switch (site) {
-        case Site::Op: rob.complete_pending_read_local(id); break;
-        case Site::Owner: rob.publish_pending_read_local_to_owner(id); break;
-        case Site::Mask: rob.complete_pending_read_local_mask(Ring::read_local_slot_bit(id)); break;
+        case Site::Op:
+            rob.complete_pending_read_local(id);
+            break;
+        case Site::Owner:
+            rob.publish_pending_read_local_to_owner(id);
+            break;
+        case Site::Mask:
+            rob.complete_pending_read_local_mask(Ring::read_local_slot_bit(id));
+            break;
     }
 }
 

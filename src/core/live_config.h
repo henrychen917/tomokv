@@ -21,7 +21,8 @@ struct LiveConfigSnapshot {
     uint64_t proto_max_bulk_len;
     uint64_t client_query_buffer_limit;
 };
-static_assert(sizeof(LiveConfigSnapshot) == 64, "Live config must fit its existing mailbox footprint");
+static_assert(sizeof(LiveConfigSnapshot) == 64,
+              "Live config must fit its existing mailbox footprint");
 
 struct ClientLimitsConfigSnapshot {
     uint64_t version = 0;
@@ -77,11 +78,11 @@ private:
         LiveConfigValues next;
     };
     Publication slots_[3]{};
-    alignas(64) uint32_t front_ = 0;                  // consumer only
+    alignas(64) uint32_t front_ = 0;  // consumer only
     std::atomic<uint64_t> applied_{0};
-    alignas(64) uint32_t back_ = 1;                   // serialized producer only
+    alignas(64) uint32_t back_ = 1;  // serialized producer only
     alignas(64) std::atomic<uint32_t> middle_{2};
 };
 static_assert(sizeof(LiveConfigMailbox) == 960, "Keep the existing mailbox allocation/layout");
 
-} // namespace tomo
+}  // namespace tomo

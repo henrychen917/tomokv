@@ -25,11 +25,11 @@ void sort_locale_install(void* prepared);
 
 struct SortPattern {
     Slice raw;
-    Slice prefix;            // bytes before the first '*'
-    Slice suffix;            // bytes after it, up to "->field" when that is present
-    Slice field;             // hash field, empty when the pattern names a plain string key
-    bool  has_star = false;  // false => this pattern never reads a key
-    bool  self = false;      // the literal "#": the element itself
+    Slice prefix;           // bytes before the first '*'
+    Slice suffix;           // bytes after it, up to "->field" when that is present
+    Slice field;            // hash field, empty when the pattern names a plain string key
+    bool has_star = false;  // false => this pattern never reads a key
+    bool self = false;      // the literal "#": the element itself
 };
 
 void sort_pattern_parse(Slice pattern, SortPattern& out);
@@ -72,8 +72,7 @@ struct SortResolved {
 // key's owner under the command's one snapshot/time cut. It may be null only when no lookup is
 // needed.
 SortStatus sort_run(const SortSpec& spec, const SortResolved* resolved,
-                    std::vector<std::string>& elements,
-                    std::vector<std::string>& values,
+                    std::vector<std::string>& elements, std::vector<std::string>& values,
                     std::vector<uint8_t>& present);
 
 // Exported by t_hash.cc / t_hash_ttl.cc for the hash-field form of a pattern.  Both are read-only:

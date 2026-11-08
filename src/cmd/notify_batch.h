@@ -40,11 +40,10 @@ struct NotifyBatch {
     std::vector<MonitorScriptLine> monitor_lines;
 };
 
-bool notify_make_publication(uint8_t db, uint32_t routes, uint8_t route,
-                             NotifyEventId event, Slice key,
-                             std::string& channel, std::string& message);
+bool notify_make_publication(uint8_t db, uint32_t routes, uint8_t route, NotifyEventId event,
+                             Slice key, std::string& channel, std::string& message);
 std::shared_ptr<PubSubNotificationChain> notify_reserve_chain(
     Server& server, std::unique_ptr<PubSubNotificationChain> chain,
     std::shared_ptr<NotifyExpiryCompletion> expiry_completion = {});
 
-} // namespace tomo
+}  // namespace tomo

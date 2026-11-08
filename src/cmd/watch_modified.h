@@ -13,6 +13,7 @@ class WatchEffectScope {
     Shard* shard_;
     bool* modified_;
     WatchEffectScope* previous_;
+
 public:
     WatchEffectScope(Shard&, bool&);
     ~WatchEffectScope();
@@ -28,10 +29,12 @@ class WatchMutationScope {
     std::atomic<bool>* aborted_ = nullptr;
     std::atomic<uint32_t>* refs_ = nullptr;
     Client* writer_ = nullptr;
+
 public:
     explicit WatchMutationScope(Shard& shard, const void* token = nullptr,
-        std::atomic<uint64_t>* epoch = nullptr, std::atomic<bool>* aborted = nullptr,
-        std::atomic<uint32_t>* refs = nullptr, Client* writer = nullptr);
+                                std::atomic<uint64_t>* epoch = nullptr,
+                                std::atomic<bool>* aborted = nullptr,
+                                std::atomic<uint32_t>* refs = nullptr, Client* writer = nullptr);
     ~WatchMutationScope();
 };
 void watch_record_modified(Shard& shard, Slice key);
@@ -39,4 +42,4 @@ void watch_execute_handler(Shard& shard, Op& op);
 struct Task;
 enum class ScatterTaskResult : uint8_t;
 ScatterTaskResult watch_execute_scatter(const Task&, Shard&, Op&, uint32_t);
-} // namespace tomo
+}  // namespace tomo

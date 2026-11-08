@@ -16,7 +16,8 @@
 // PID and CPU usage remain real: INFO CPU reads the main thread's /proc entry.
 // These link wrappers exist only in this witness, never in the server.
 extern "C" int __wrap_clock_gettime(clockid_t clock, timespec* value) {
-    *value = {clock == CLOCK_REALTIME ? 1700000000 : 1000, 0}; return 0;
+    *value = {clock == CLOCK_REALTIME ? 1700000000 : 1000, 0};
+    return 0;
 }
 extern "C" time_t __wrap_time(time_t* value) {
     if (value) *value = 1700000000;
@@ -25,12 +26,14 @@ extern "C" time_t __wrap_time(time_t* value) {
 extern "C" pid_t __real_getpid();
 extern "C" pid_t __wrap_getpid() { return __real_getpid(); }
 extern "C" ssize_t __wrap_getrandom(void* bytes, size_t length, unsigned) {
-    std::memset(bytes, 0x42, length); return length;
+    std::memset(bytes, 0x42, length);
+    return length;
 }
 extern "C" char* __real_realpath(const char*, char*);
 extern "C" char* __wrap_realpath(const char* path, char* result) {
     if (!std::strcmp(path, "/proc/self/exe")) {
-        assert(!result); return ::strdup("/rlfix3/snapshot");
+        assert(!result);
+        return ::strdup("/rlfix3/snapshot");
     }
     return __real_realpath(path, result);
 }
@@ -67,7 +70,8 @@ struct ProtectedState {
         size = (sizeof(ReadLocalStoreState) + page - 1) & ~(page - 1);
         memory = mmap(nullptr, size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
         assert(memory != MAP_FAILED);
-        original = FlatStoreRegressionTest::replace(store, static_cast<AtomicPendingState*>(memory));
+        original =
+            FlatStoreRegressionTest::replace(store, static_cast<AtomicPendingState*>(memory));
     }
     ~ProtectedState() {
         FlatStoreRegressionTest::replace(store, original);
@@ -82,7 +86,8 @@ struct ProtectedCells {
         const size_t page = sysconf(_SC_PAGESIZE);
         const uintptr_t begin = reinterpret_cast<uintptr_t>(&filter);
         const uintptr_t first = (begin + page - 1) & ~(page - 1);
-        const uintptr_t end = (begin + ForeignReadSafety::kCellCount * sizeof(uint64_t)) & ~(page - 1);
+        const uintptr_t end =
+            (begin + ForeignReadSafety::kCellCount * sizeof(uint64_t)) & ~(page - 1);
         address = reinterpret_cast<void*>(first);
         length = end - first;
         assert(length >= page && mprotect(address, length, PROT_NONE) == 0);
@@ -108,41 +113,65 @@ void check_counts() {
     };
     uint64_t a = 1, b = 2;
     while (ForeignReadSafety::cell_index(a) != ForeignReadSafety::cell_index(b) ||
-           ForeignReadSafety::fingerprint(a) == ForeignReadSafety::fingerprint(b)) ++b;
-    f.add_span(1, [&](auto) { return a; }); verify();
-    f.add_span(1, [&](auto) { return b; }); verify();
+           ForeignReadSafety::fingerprint(a) == ForeignReadSafety::fingerprint(b))
+        ++b;
+    f.add_span(1, [&](auto) { return a; });
+    verify();
+    f.add_span(1, [&](auto) { return b; });
+    verify();
     assert(f.occupied_cells() == 1 && f.wildcard_cells() == 1);
-    f.close_span(1, [&](auto) { return b; }); verify();
-    assert(f.wildcard_cells() == 1); // wildcard stays until the bucket drains
-    f.poison_open(); verify(); f.poison_open(); verify();
-    f.poison_close(); verify(); f.poison_close(); verify();
-    f.close_span(1, [&](auto) { return a; }); verify();
+    f.close_span(1, [&](auto) { return b; });
+    verify();
+    assert(f.wildcard_cells() == 1);  // wildcard stays until the bucket drains
+    f.poison_open();
+    verify();
+    f.poison_open();
+    verify();
+    f.poison_close();
+    verify();
+    f.poison_close();
+    verify();
+    f.close_span(1, [&](auto) { return a; });
+    verify();
     f.test_set_cell(a, ForeignReadSafety::kCountMask - 1);
-    f.test_set_unsafe_total_refs(1); verify();
-    f.add_span(1, [&](auto) { return a; }); verify();
-    f.close_span(2, [&](auto) { return a; }); verify();
+    f.test_set_unsafe_total_refs(1);
+    verify();
+    f.add_span(1, [&](auto) { return a; });
+    verify();
+    f.close_span(2, [&](auto) { return a; });
+    verify();
     assert(f.occupied_cells() == 0);
-    f.fail_closed_permanently(); verify();
+    f.fail_closed_permanently();
+    verify();
     assert(f.occupied_cells() == ForeignReadSafety::kCellCount);
     // Heap allocation ensures that protecting interior pages never hits stack.
     auto heap = std::make_unique<ForeignReadSafety>();
     heap->poison_open();
-    { ProtectedCells guard(*heap);
-      assert(heap->occupied_cells() == ForeignReadSafety::kCellCount);
-      assert(heap->wildcard_cells() == ForeignReadSafety::kCellCount); }
+    {
+        ProtectedCells guard(*heap);
+        assert(heap->occupied_cells() == ForeignReadSafety::kCellCount);
+        assert(heap->wildcard_cells() == ForeignReadSafety::kCellCount);
+    }
     std::puts("RL4.15 counts: exact transitions and no cell reads");
 }
 
 int main(int argc, char** argv) {
-    if (argc == 2 && std::string(argv[1]) == "counts") { check_counts(); return 0; }
+    if (argc == 2 && std::string(argv[1]) == "counts") {
+        check_counts();
+        return 0;
+    }
     assert(argc >= 4);
     assert(command_registry_init(false));
     const bool guarded = std::string(argv[1]) == "guard";
     Config cfg;
     cfg.thread_mode = std::string(argv[2]) == "1s" ? ThreadMode::Fused : ThreadMode::Split;
-    cfg.shards = std::stoi(argv[3]); cfg.databases = kSingleDatabase ? 1 : 4; cfg.read_local = 1;
-    cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0; cfg.save.clear();
-    cfg.even_ifid = 6; cfg.even_ex = 2;
+    cfg.shards = std::stoi(argv[3]);
+    cfg.databases = kSingleDatabase ? 1 : 4;
+    cfg.read_local = 1;
+    cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
+    cfg.save.clear();
+    cfg.even_ifid = 6;
+    cfg.even_ex = 2;
     cpu_set_t allowed;
     assert(sched_getaffinity(0, sizeof(allowed), &allowed) == 0);
     std::string placement;
@@ -151,9 +180,11 @@ int main(int argc, char** argv) {
         if (!CPU_ISSET(cpu, &allowed)) continue;
         if (selected) placement += ',';
         placement += cfg.thread_mode == ThreadMode::Fused || selected < 6 ? "ifid@" : "ex@";
-        placement += std::to_string(cpu); ++selected;
+        placement += std::to_string(cpu);
+        ++selected;
     }
-    assert(selected == 8); cfg.place = placement.c_str();
+    assert(selected == 8);
+    cfg.place = placement.c_str();
     std::string config_file;
     const bool rewrite = std::string(argv[1]) == "rewrite";
     if (rewrite) {
@@ -161,7 +192,8 @@ int main(int argc, char** argv) {
                       "/rlfix3-rewrite.XXXXXX";
         const int fd = mkstemp(config_file.data());
         assert(fd >= 0 && write(fd, "# original\n", 11) == 11);
-        close(fd); cfg.conf_path = config_file.c_str();
+        close(fd);
+        cfg.conf_path = config_file.c_str();
     }
     Server server;
     assert(server.prepare_boot(cfg) && server.init(cfg));
@@ -170,13 +202,15 @@ int main(int argc, char** argv) {
         Op op;
         assert(op.push_arg(Slice("CONFIG")) && op.push_arg(Slice("REWRITE")));
         op.spec = command_lookup(Slice("CONFIG"));
-        assert(op.spec); op.spec->handler(server.shard(0), op);
+        assert(op.spec);
+        op.spec->handler(server.shard(0), op);
         assert(std::string(op.reply.data(), op.reply.size()) == "+OK\r\n");
         std::ifstream file(config_file);
         const std::string body((std::istreambuf_iterator<char>(file)), {});
         assert(body.find("zc-min 16384\n") != std::string::npos);
         assert(body.find("zc-min-read-local") == std::string::npos);
-        file.close(); assert(unlink(config_file.c_str()) == 0);
+        file.close();
+        assert(unlink(config_file.c_str()) == 0);
         command_bind_server(nullptr);
         std::puts("RL4.11 CONFIG REWRITE retains boot knobs and omits GET-only capability");
         return 0;
@@ -192,8 +226,10 @@ int main(int argc, char** argv) {
         for (uint32_t i = 0; i < server.nshards(); ++i)
             states.emplace_back(std::make_unique<ProtectedState>(server.shard(i).store()));
     std::vector<std::unique_ptr<ProtectedCells>> guards;
-    if (guarded) for (uint32_t i = 0; i < server.nshards(); ++i)
-        guards.emplace_back(std::make_unique<ProtectedCells>(FlatStoreRegressionTest::filter(server.shard(i).store())));
+    if (guarded)
+        for (uint32_t i = 0; i < server.nshards(); ++i)
+            guards.emplace_back(std::make_unique<ProtectedCells>(
+                FlatStoreRegressionTest::filter(server.shard(i).store())));
     // Keep one process per request so snapshots start at identical counter state.
     Op op;
     assert(op.push_arg(Slice("INFO")));

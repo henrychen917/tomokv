@@ -10,8 +10,8 @@ static void flipsettle_check(const char* site, const char* field, bool ok) {
 static bool flipsettle_signature_equal(const FlipSignature& a, const FlipSignature& b) {
     return a.pass_depth == b.pass_depth && a.command_class == b.command_class &&
            a.keys_per_multikey == b.keys_per_multikey &&
-           a.value_bytes_per_command == b.value_bytes_per_command &&
-           a.commands == b.commands && a.valid == b.valid;
+           a.value_bytes_per_command == b.value_bytes_per_command && a.commands == b.commands &&
+           a.valid == b.valid;
 }
 
 static bool flipsettle_detector_equal(FlipShiftDetector a, FlipShiftDetector b) {
@@ -33,7 +33,10 @@ static bool flipsettle_detector_equal(FlipShiftDetector a, FlipShiftDetector b) 
         w.multikey_keys = 71 + step;
         w.value_bytes = 65536 + step * 1024;
         if (a.observe(w) != b.observe(w)) return false;
-        if (step == 2) { a.anchor(); b.anchor(); }
+        if (step == 2) {
+            a.anchor();
+            b.anchor();
+        }
     }
     return true;
 }
@@ -45,7 +48,7 @@ static void flipsettle(const char* site, uint32_t databases = 1) {
     const bool other = std::strcmp(site, "nonsettling") == 0;
     const bool disarm = std::strcmp(site, "disarm") == 0;
     require(enter || waiting || other || disarm, "known flipsettle transition selector");
-    Fixture<false> f(false, 8, 16, databases); // existing 6 IO + 2 EX fixture, no boot
+    Fixture<false> f(false, 8, 16, databases);  // existing 6 IO + 2 EX fixture, no boot
     auto& c = f.server.flipctl_;
     require(c.init(true, 8), "initialize flipsettle controller");
     c.phase_ = enter ? Phase::Seeking : disarm ? Phase::Settling : Phase::WaitingFlip;
@@ -77,8 +80,10 @@ static void flipsettle(const char* site, uint32_t databases = 1) {
     w.command_class[1] = 800;
     c.shift_detector_.observe(w);
     // An unentered learning window is a failure, including in the fixture itself.
-    flipsettle_check(site, "detector-seed", c.shift_detector_.anchored() && c.shift_detector_.jitter() > 0 &&
-            c.shift_detector_.noise_samples() > 0 && c.shift_detector_.last_distance() > 0);
+    flipsettle_check(site, "detector-seed",
+                     c.shift_detector_.anchored() && c.shift_detector_.jitter() > 0 &&
+                         c.shift_detector_.noise_samples() > 0 &&
+                         c.shift_detector_.last_distance() > 0);
     c.signal_sample_rate_.store(23, std::memory_order_release);
     c.anchor_sampling_disabled_ = false;
     c.rate_window_ms_ = 29;
@@ -127,48 +132,65 @@ static void flipsettle(const char* site, uint32_t databases = 1) {
     }
     allow(c.rate_window_ms_);
     allow(c.previous_subwindow_valid_);
-    if (disarm) { allow(c.signal_sample_rate_); allow(c.anchor_sampling_disabled_); }
-    if (enter) { allow(c.readings_); allow(c.seek_); }
+    if (disarm) {
+        allow(c.signal_sample_rate_);
+        allow(c.anchor_sampling_disabled_);
+    }
+    if (enter) {
+        allow(c.readings_);
+        allow(c.seek_);
+    }
 
     // Seek->settle follows the real reading/argmax path. The other sites use the entire tick,
     // including fingerprint collection, completion detection and the original mutex scope.
-    const bool issued = enter ? c.seek_after_reading(f.server, 0, 1000, 16384)
-                              : c.tick(f.server, 1000);
-    flipsettle_check(site, "phase", !issued && c.phase_ == (other ? Phase::Seeking : Phase::Settling));
-    flipsettle_check(site, "shift_detector_", flipsettle_detector_equal(c.shift_detector_, expected_detector));
-    flipsettle_check(site, "anchor_signature_samples_", c.anchor_signature_samples_ == (other ? 11u : 0u));
-    flipsettle_check(site, "maneuver_signature_samples_", c.maneuver_signature_samples_ == (other ? 13u : 0u));
-    flipsettle_check(site, "anchor_learning_rate_jitter_", c.anchor_learning_rate_jitter_ == (other ? 0.125 : 0));
-    flipsettle_check(site, "anchor_learning_rate_sum_", c.anchor_learning_rate_sum_ == (other ? 17001 : 0));
-    flipsettle_check(site, "anchor_learning_rate_min_", c.anchor_learning_rate_min_ == (other ? 17002 : 0));
-    flipsettle_check(site, "anchor_learning_rate_max_", c.anchor_learning_rate_max_ == (other ? 17003 : 0));
-    flipsettle_check(site, "anchor_learning_rate_samples_", c.anchor_learning_rate_samples_ == (other ? 19u : 0u));
+    const bool issued =
+        enter ? c.seek_after_reading(f.server, 0, 1000, 16384) : c.tick(f.server, 1000);
+    flipsettle_check(site, "phase",
+                     !issued && c.phase_ == (other ? Phase::Seeking : Phase::Settling));
+    flipsettle_check(site, "shift_detector_",
+                     flipsettle_detector_equal(c.shift_detector_, expected_detector));
+    flipsettle_check(site, "anchor_signature_samples_",
+                     c.anchor_signature_samples_ == (other ? 11u : 0u));
+    flipsettle_check(site, "maneuver_signature_samples_",
+                     c.maneuver_signature_samples_ == (other ? 13u : 0u));
+    flipsettle_check(site, "anchor_learning_rate_jitter_",
+                     c.anchor_learning_rate_jitter_ == (other ? 0.125 : 0));
+    flipsettle_check(site, "anchor_learning_rate_sum_",
+                     c.anchor_learning_rate_sum_ == (other ? 17001 : 0));
+    flipsettle_check(site, "anchor_learning_rate_min_",
+                     c.anchor_learning_rate_min_ == (other ? 17002 : 0));
+    flipsettle_check(site, "anchor_learning_rate_max_",
+                     c.anchor_learning_rate_max_ == (other ? 17003 : 0));
+    flipsettle_check(site, "anchor_learning_rate_samples_",
+                     c.anchor_learning_rate_samples_ == (other ? 19u : 0u));
     flipsettle_check(site, "rate_window_ms_", c.rate_window_ms_ == 0);
     flipsettle_check(site, "previous_subwindow_valid_", !c.previous_subwindow_valid_);
     flipsettle_check(site, "sampling-disarmed", c.signal_sample_rate() == (disarm ? 0u : 23u));
     flipsettle_check(site, "anchor_sampling_disabled_", c.anchor_sampling_disabled_ == disarm);
     if (enter) {
-        flipsettle_check(site, "seek-record", c.seek_ == FlipController::Seek::None &&
-            c.readings_.size() == 2 && c.readings_[0].split == 6 && c.readings_[0].rate == 1024 &&
-            c.readings_[1].split == 6 && c.readings_[1].rate == 16384);
+        flipsettle_check(site, "seek-record",
+                         c.seek_ == FlipController::Seek::None && c.readings_.size() == 2 &&
+                             c.readings_[0].split == 6 && c.readings_[0].rate == 1024 &&
+                             c.readings_[1].split == 6 && c.readings_[1].rate == 16384);
     }
     const auto* after = reinterpret_cast<const unsigned char*>(&c);
     bool preserved = true;
-    for (size_t i = 0; i != before.size(); ++i)
-        preserved &= allowed[i] || before[i] == after[i];
+    for (size_t i = 0; i != before.size(); ++i) preserved &= allowed[i] || before[i] == after[i];
     flipsettle_check(site, "unrelated-state", preserved);
-    std::printf("TRACE flipsettle %s databases=%u phase=%s samples=%u/%u learning=%.3f/%.0f/%.0f/%.0f/%u "
-                "signal=%u disabled=%u window=%llu paired=%u preserved=1\n",
-                site, databases, c.phase_name(c.phase_), c.anchor_signature_samples_, c.maneuver_signature_samples_,
-                c.anchor_learning_rate_jitter_, c.anchor_learning_rate_sum_, c.anchor_learning_rate_min_,
-                c.anchor_learning_rate_max_, c.anchor_learning_rate_samples_, c.signal_sample_rate(),
-                c.anchor_sampling_disabled_, static_cast<unsigned long long>(c.rate_window_ms_),
-                c.previous_subwindow_valid_);
+    std::printf(
+        "TRACE flipsettle %s databases=%u phase=%s samples=%u/%u learning=%.3f/%.0f/%.0f/%.0f/%u "
+        "signal=%u disabled=%u window=%llu paired=%u preserved=1\n",
+        site, databases, c.phase_name(c.phase_), c.anchor_signature_samples_,
+        c.maneuver_signature_samples_, c.anchor_learning_rate_jitter_, c.anchor_learning_rate_sum_,
+        c.anchor_learning_rate_min_, c.anchor_learning_rate_max_, c.anchor_learning_rate_samples_,
+        c.signal_sample_rate(), c.anchor_sampling_disabled_,
+        static_cast<unsigned long long>(c.rate_window_ms_), c.previous_subwindow_valid_);
 }
 
 static void flipsettle_all() {
     for (uint32_t databases : {1u, 4u}) {
         if (kSingleDatabase && databases != 1) continue;
-        for (const char* site : {"seek", "waiting", "nonsettling", "disarm"}) flipsettle(site, databases);
+        for (const char* site : {"seek", "waiting", "nonsettling", "disarm"})
+            flipsettle(site, databases);
     }
 }

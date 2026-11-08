@@ -12,7 +12,8 @@ namespace tailgen {
 
 inline uint64_t now_ns() {
     timespec ts{};
-    if (clock_gettime(CLOCK_MONOTONIC, &ts)) throw std::system_error(errno, std::generic_category(), "clock_gettime");
+    if (clock_gettime(CLOCK_MONOTONIC, &ts))
+        throw std::system_error(errno, std::generic_category(), "clock_gettime");
     return static_cast<uint64_t>(ts.tv_sec) * 1'000'000'000 + ts.tv_nsec;
 }
 
@@ -20,8 +21,9 @@ inline void sleep_until(uint64_t deadline) {
     const timespec ts{static_cast<time_t>(deadline / 1'000'000'000),
                       static_cast<long>(deadline % 1'000'000'000)};
     int error;
-    do { error = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &ts, nullptr); }
-    while (error == EINTR);
+    do {
+        error = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &ts, nullptr);
+    } while (error == EINTR);
     if (error) throw std::system_error(error, std::generic_category(), "clock_nanosleep");
 }
 
@@ -47,9 +49,13 @@ public:
     uint64_t bounded(uint64_t n) {
         if (!n) throw std::invalid_argument("empty random range");
         const uint64_t threshold = -n % n;
-        for (;;) { const uint64_t x = next(); if (x >= threshold) return x % n; }
+        for (;;) {
+            const uint64_t x = next();
+            if (x >= threshold) return x % n;
+        }
     }
     double open_unit() { return (static_cast<double>(next() >> 12) + 0.5) * 0x1p-52; }
+
 private:
     uint64_t state_;
 };
@@ -59,19 +65,23 @@ enum class Spacing { poisson, fixed };
 class Arrivals {
 public:
     Arrivals(double total_rate, size_t threads, size_t thread, Spacing spacing, uint64_t seed)
-        : random_(seed + 0x9e3779b97f4a7c15ULL * (thread + 1)), spacing_(spacing),
+        : random_(seed + 0x9e3779b97f4a7c15ULL * (thread + 1)),
+          spacing_(spacing),
           interval_(1e9L * threads / total_rate),
           elapsed_(spacing == Spacing::fixed ? -interval_ + 1e9L * (thread + 1) / total_rate : 0) {
         if (!std::isfinite(total_rate) || total_rate <= 0 || !threads || thread >= threads)
             throw std::invalid_argument("invalid arrival process");
     }
     uint64_t next_offset_ns() {
-        elapsed_ += spacing_ == Spacing::fixed ? interval_ :
-            -std::log(static_cast<long double>(random_.open_unit())) * interval_;
+        elapsed_ += spacing_ == Spacing::fixed
+                        ? interval_
+                        : -std::log(static_cast<long double>(random_.open_unit())) * interval_;
         // Very low rates may put the next arrival centuries away; a distant
         // sentinel avoids an out-of-range float conversion or origin overflow.
-        return elapsed_ >= 9e18L ? 9'000'000'000'000'000'000ULL : static_cast<uint64_t>(elapsed_ + 0.5L);
+        return elapsed_ >= 9e18L ? 9'000'000'000'000'000'000ULL
+                                 : static_cast<uint64_t>(elapsed_ + 0.5L);
     }
+
 private:
     Random random_;
     Spacing spacing_;
@@ -97,4 +107,4 @@ uint64_t pace_until(uint64_t deadline, Service&& service) {
     }
 }
 
-} // namespace tailgen
+}  // namespace tailgen

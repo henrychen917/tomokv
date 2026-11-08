@@ -31,7 +31,8 @@ void loader_delay_policy() {
     tomo::cfgfix_key_load_delay(1700001);
     tomo::cfgfix_delay_loaded_key();
     check(load_delay_sleeps.size() == 1 && load_delay_sleeps[0].tv_sec == 1 &&
-          load_delay_sleeps[0].tv_nsec == 700001000, "positive load delay uses microseconds");
+              load_delay_sleeps[0].tv_nsec == 700001000,
+          "positive load delay uses microseconds");
     load_delay_sleeps.clear();
     tomo::cfgfix_key_load_delay(-1);
     for (int i = 0; i != 4; ++i) tomo::cfgfix_delay_loaded_key();
@@ -63,11 +64,12 @@ void listener_completion_filter() {
     auto probe = [&](uint64_t tag, bool replaced) {
         for (int result : {-EMFILE, 20197}) {
             io_uring_cqe cqe{};
-            cqe.user_data = tag; cqe.res = result;
+            cqe.user_data = tag;
+            cqe.res = result;
             FlipListenerState::fence_rebound_accept(cqe);
             check(cqe.res == result, "CONFIG preserves accept result/fd");
-            check(cqe.user_data == (replaced && result < 0
-                      ? ur_tag(static_cast<UrKind>(255), nullptr) : tag),
+            check(cqe.user_data ==
+                      (replaced && result < 0 ? ur_tag(static_cast<UrKind>(255), nullptr) : tag),
                   "CONFIG fences only replaced TCP/TLS completion tags");
             check(cqe.flags == (replaced && result >= 0 ? IORING_CQE_F_MORE : 0),
                   "unreplaced UNIX/client/persistence completions keep their rearm obligation");
@@ -93,9 +95,10 @@ void observe_open(int fd) {
     if (!rewrite_arm.load()) return;
     const auto index = rewrite_opens.fetch_add(1);
     check(index < 2, "exactly two rewrite opens");
-    struct stat info{}; check(::fstat(fd, &info) == 0, "rewrite inode identified");
+    struct stat info {};
+    check(::fstat(fd, &info) == 0, "rewrite inode identified");
     rewrite_inodes[index] = info.st_ino;
-    rewrite_opened.arrive_and_wait(); // both files are open before either writer may write/rename
+    rewrite_opened.arrive_and_wait();  // both files are open before either writer may write/rename
 }
 
 void knob_matrix() {
@@ -103,17 +106,22 @@ void knob_matrix() {
     tomo::Shard& shard = server->shard(0);
     for (const char* name : {"overlap", "x-overlap", "thread-pipeline"}) {
         check(execute(shard, {"CONFIG", "GET", name}) == "*0\r\n", "removed knob GET is empty");
-        const std::string expected = std::string("-ERR Unknown option or number of arguments for CONFIG SET - '") + name + "'\r\n";
-        check(execute(shard, {"CONFIG", "SET", name, "0"}) == expected, "removed knob SET is unknown");
+        const std::string expected =
+            std::string("-ERR Unknown option or number of arguments for CONFIG SET - '") + name +
+            "'\r\n";
+        check(execute(shard, {"CONFIG", "SET", name, "0"}) == expected,
+              "removed knob SET is unknown");
     }
 
     auto get = [&](const char* name, const char* value) {
-        const std::string expected = "*2\r\n$" + std::to_string(std::strlen(name)) + "\r\n" +
-            name + "\r\n$" + std::to_string(std::strlen(value)) + "\r\n" + value + "\r\n";
+        const std::string expected = "*2\r\n$" + std::to_string(std::strlen(name)) + "\r\n" + name +
+                                     "\r\n$" + std::to_string(std::strlen(value)) + "\r\n" + value +
+                                     "\r\n";
         check(execute(shard, {"CONFIG", "GET", name}) == expected, "knob matrix GET round trip");
     };
     auto set = [&](std::initializer_list<const char*> values, bool accepted) {
-        tomo::Op op; args(op, values);
+        tomo::Op op;
+        args(op, values);
         check(tomo::command_validate_config_set(op) == accepted, "knob matrix SET validation");
         if (accepted) {
             op.spec->handler(shard, op);
@@ -125,15 +133,19 @@ void knob_matrix() {
     };
     // These bindings are boot-latched in the lane. Their startup SET/GET round trip must
     // expose actual non-default values; live SET must fail and leave the value intact.
-    for (const auto& [name, value] : {
-             std::pair{"hll-sparse-max-bytes", "1024"},
-             {"unixsocketperm", "600"},
-             {"unixsocket", "build/unused-knob-matrix.sock"}, {"wb-policy", "1"},
-             {"wb-small-pipe", "16"}, {"wb-complete-visits", "3"},
-             {"daemonize", "yes"}, {"logfile", "build/unused-knob-matrix.log"},
-             {"syslog-enabled", "yes"}, {"syslog-ident", "cfgfix-unit"},
-             {"syslog-facility", "local7"}, {"pidfile", "build/unused-knob-matrix.pid"},
-             {"supervised", "auto"}}) {
+    for (const auto& [name, value] : {std::pair{"hll-sparse-max-bytes", "1024"},
+                                      {"unixsocketperm", "600"},
+                                      {"unixsocket", "build/unused-knob-matrix.sock"},
+                                      {"wb-policy", "1"},
+                                      {"wb-small-pipe", "16"},
+                                      {"wb-complete-visits", "3"},
+                                      {"daemonize", "yes"},
+                                      {"logfile", "build/unused-knob-matrix.log"},
+                                      {"syslog-enabled", "yes"},
+                                      {"syslog-ident", "cfgfix-unit"},
+                                      {"syslog-facility", "local7"},
+                                      {"pidfile", "build/unused-knob-matrix.pid"},
+                                      {"supervised", "auto"}}) {
         get(name, value);
         set({"CONFIG", "SET", name, value}, false);
         get(name, value);
@@ -141,8 +153,8 @@ void knob_matrix() {
     // This fixture has no live workers or sockets. A same-value SET still
     // validates mutability and takes the production apply path; cfgfix's live
     // oracle row exercises actual listener/AOF replacement and rollback.
-    for (const auto& [name, value] : {std::pair{"port", "20197"},
-                                    {"bind", "127.0.0.2"}, {"appendonly", "no"}}) {
+    for (const auto& [name, value] :
+         {std::pair{"port", "20197"}, {"bind", "127.0.0.2"}, {"appendonly", "no"}}) {
         get(name, value);
         set({"CONFIG", "SET", name, value}, true);
         get(name, value);
@@ -151,25 +163,30 @@ void knob_matrix() {
     get("key-load-delay", "17");
     get("tls-auth-clients", "optional");
     for (const auto& [name, value] : {std::pair{"loglevel", "debug"},
-                                    {"loglevel", "verbose"}, {"loglevel", "notice"},
-                                    {"loglevel", "warning"}, {"loglevel", "nothing"},
-                                    {"loglevel", "notice"},
-                                    {"key-load-delay", "-2147483648"},
-                                    {"key-load-delay", "2147483647"}, {"key-load-delay", "0"},
-                                    {"tls-auth-clients", "yes"}, {"tls-auth-clients", "no"},
-                                    {"tls-auth-clients", "optional"},
-                                    {"shutdown-on-sigterm", "nosave now"},
-                                    {"shutdown-on-sigint", "nosave now"}}) {
+                                      {"loglevel", "verbose"},
+                                      {"loglevel", "notice"},
+                                      {"loglevel", "warning"},
+                                      {"loglevel", "nothing"},
+                                      {"loglevel", "notice"},
+                                      {"key-load-delay", "-2147483648"},
+                                      {"key-load-delay", "2147483647"},
+                                      {"key-load-delay", "0"},
+                                      {"tls-auth-clients", "yes"},
+                                      {"tls-auth-clients", "no"},
+                                      {"tls-auth-clients", "optional"},
+                                      {"shutdown-on-sigterm", "nosave now"},
+                                      {"shutdown-on-sigint", "nosave now"}}) {
         set({"CONFIG", "SET", name, value}, true);
         get(name, value);
     }
     for (const auto& [name, invalid] : {std::pair{"loglevel", "trace"},
-                                      {"key-load-delay", "2147483648"},
-                                      {"key-load-delay", "-2147483649"},
-                                      {"key-load-delay", "01"}, {"key-load-delay", "+1"},
-                                      {"tls-auth-clients", "maybe"},
-                                      {"shutdown-on-sigterm", "save nosave"},
-                                      {"shutdown-on-sigint", "now unknown"}}) {
+                                        {"key-load-delay", "2147483648"},
+                                        {"key-load-delay", "-2147483649"},
+                                        {"key-load-delay", "01"},
+                                        {"key-load-delay", "+1"},
+                                        {"tls-auth-clients", "maybe"},
+                                        {"shutdown-on-sigterm", "save nosave"},
+                                        {"shutdown-on-sigint", "now unknown"}}) {
         const auto before = execute(shard, {"CONFIG", "GET", name});
         set({"CONFIG", "SET", name, invalid}, false);
         check(execute(shard, {"CONFIG", "GET", name}) == before,
@@ -195,24 +212,31 @@ void knob_matrix() {
         for (const char* duplicate : {"aof-load-truncated", "AOF-LOAD-TRUNCATED"})
             reject({"CONFIG", "SET", "aof-load-truncated", changed, duplicate, changed},
                    std::string("-ERR CONFIG SET failed (possibly related to argument '") +
-                   duplicate + "') - duplicate parameter\r\n");
+                       duplicate + "') - duplicate parameter\r\n");
     }
     for (const char* policy : {"0", "1", "-1", "2"}) {
         set({"CONFIG", "SET", "wb-policy", policy}, false);
         get("wb-policy", "1");
     }
     const struct {
-        const char* name; const char* alias; const char* tomo_alias;
-        const char* input; const char* output;
+        const char* name;
+        const char* alias;
+        const char* tomo_alias;
+        const char* input;
+        const char* output;
     } rows[] = {
-        {"hash-max-listpack-entries", "hash-max-ziplist-entries", "hash-max-compact-entries", "5", "5"},
-        {"hash-max-listpack-value", "hash-max-ziplist-value", "hash-max-compact-value", "1kb", "1024"},
+        {"hash-max-listpack-entries", "hash-max-ziplist-entries", "hash-max-compact-entries", "5",
+         "5"},
+        {"hash-max-listpack-value", "hash-max-ziplist-value", "hash-max-compact-value", "1kb",
+         "1024"},
         {"list-max-listpack-size", "list-max-ziplist-size", nullptr, "-3", "-3"},
         {"set-max-listpack-entries", nullptr, nullptr, "6", "6"},
         {"set-max-listpack-value", nullptr, nullptr, "20", "20"},
         {"set-max-intset-entries", nullptr, nullptr, "9", "9"},
-        {"zset-max-listpack-entries", "zset-max-ziplist-entries", "zset-max-compact-entries", "8", "8"},
-        {"zset-max-listpack-value", "zset-max-ziplist-value", "zset-max-compact-value", "2k", "2000"},
+        {"zset-max-listpack-entries", "zset-max-ziplist-entries", "zset-max-compact-entries", "8",
+         "8"},
+        {"zset-max-listpack-value", "zset-max-ziplist-value", "zset-max-compact-value", "2k",
+         "2000"},
     };
     for (const auto& row : rows) {
         for (const char* spelling : {row.name, row.alias, row.tomo_alias}) {
@@ -225,34 +249,39 @@ void knob_matrix() {
     }
     const auto& limits = shard.type_limits();
     check(limits.hash.max_entries == 7 && limits.hash.max_value == 7 &&
-          limits.zset.max_entries == 7 && limits.zset.max_value == 7 &&
-          limits.list.max_entries == UINT32_MAX && limits.list.max_value == 16384 &&
-          limits.set.max_entries == 6 && limits.set.max_value == 20 &&
-          limits.set_intset_max_entries == 9,
+              limits.zset.max_entries == 7 && limits.zset.max_value == 7 &&
+              limits.list.max_entries == UINT32_MAX && limits.list.max_value == 16384 &&
+              limits.set.max_entries == 6 && limits.set.max_value == 20 &&
+              limits.set_intset_max_entries == 9,
           "knob matrix SET changes the owner's actual limits, not just GET");
     for (const auto& row : rows) {
         if (row.alias) {
             set({"CONFIG", "SET", row.name, "8", row.alias, "9"}, true);
-            get(row.name, "9"); get(row.alias, "9");
+            get(row.name, "9");
+            get(row.alias, "9");
             set({"CONFIG", "SET", row.name, "10", row.alias, "bad"}, false);
-            get(row.name, "9"); get(row.alias, "9");
+            get(row.name, "9");
+            get(row.alias, "9");
         }
         const std::string before = execute(shard, {"CONFIG", "GET", row.name});
         const auto owner_before = shard.type_limits();
         set({"CONFIG", "SET", row.name, "11", row.name, "12"}, false);
         check(execute(shard, {"CONFIG", "GET", row.name}) == before &&
-              !std::memcmp(&owner_before, &shard.type_limits(), sizeof(owner_before)),
+                  !std::memcmp(&owner_before, &shard.type_limits(), sizeof(owner_before)),
               "duplicate SET leaves both published and owner values unchanged");
     }
     set({"CONFIG", "SET", "hash-max-listpack-entries", "9223372036854775807",
-         "zset-max-listpack-value", "4294967296"}, true);
+         "zset-max-listpack-value", "4294967296"},
+        true);
     get("hash-max-ziplist-entries", "9223372036854775807");
     get("zset-max-compact-value", "4294967296");
     check(shard.type_limits().hash.max_entries == UINT32_MAX &&
-          shard.type_limits().zset.max_value == UINT32_MAX, "full Redis range saturates owner limits");
+              shard.type_limits().zset.max_value == UINT32_MAX,
+          "full Redis range saturates owner limits");
     for (const char* name : {"hash-max-listpack-entries", "hash-max-listpack-value"}) {
         const std::string before = execute(shard, {"CONFIG", "GET", name});
-        tomo::Op op; args(op, {"CONFIG", "SET", name});
+        tomo::Op op;
+        args(op, {"CONFIG", "SET", name});
         check(op.push_arg(tomo::Slice("1\0x", 3)), "embedded NUL fixture argument");
         // Redis memtoull consumes a C string; string2ll consumes the full SDS.
         // Exact oracle witnesses are retained by serverfix_scalar's live/file cases.
@@ -260,10 +289,13 @@ void knob_matrix() {
         check(tomo::command_validate_config_set(op) == memory,
               "embedded NUL follows the Redis parser for this config type");
         const std::string reply(op.reply.data(), op.reply.size());
-        check(reply == (memory ? "" :
-              "-ERR CONFIG SET failed (possibly related to argument 'hash-max-listpack-entries')"
-              " - argument couldn't be parsed into an integer\r\n"),
-              "integer NUL rejection has the exact oracle reply");
+        check(
+            reply ==
+                (memory
+                     ? ""
+                     : "-ERR CONFIG SET failed (possibly related to argument 'hash-max-listpack-entries')"
+                       " - argument couldn't be parsed into an integer\r\n"),
+            "integer NUL rejection has the exact oracle reply");
         check(execute(shard, {"CONFIG", "GET", name}) == before,
               "CONFIG validation alone leaves GET intact");
     }
@@ -289,32 +321,34 @@ void test_config_bounds(const char* only) {
     tomo::command_bind_server(nullptr);
     tomo::Shard shard;
     shard.init_private(nullptr, 0, tomo::TypeLimits{}, tomo::StreamLimits{});
-    for (const char* name : {"latency-monitor-threshold", "stream-node-max-entries",
-                             "stream-node-max-bytes"}) {
+    for (const char* name :
+         {"latency-monitor-threshold", "stream-node-max-entries", "stream-node-max-bytes"}) {
         if (only && std::strcmp(only, name)) continue;
         // CONFIG owner fragments leave successful OK assembly to the scatter coordinator.
-        check(execute(shard, {"CONFIG", "SET", name, "17"}) .empty(),
+        check(execute(shard, {"CONFIG", "SET", name, "17"}).empty(),
               "valid uint32 config accepted");
         const auto before = execute(shard, {"CONFIG", "GET", name});
         for (const char* value : {"4294967296", "4294967297", "9223372036854775807", "-1"}) {
-            const std::string expected = std::string("-ERR CONFIG SET failed (possibly related to argument '") +
-                name + "') - argument must be between 0 and 4294967295 inclusive\r\n";
+            const std::string expected =
+                std::string("-ERR CONFIG SET failed (possibly related to argument '") + name +
+                "') - argument must be between 0 and 4294967295 inclusive\r\n";
             check(execute(shard, {"CONFIG", "SET", "zc-min", "23", name, value}) == expected,
                   "out-of-range config rejected with exact bounds and Redis error grammar");
             check(execute(shard, {"CONFIG", "GET", name}) == before,
                   "rejected uint32 config leaves reported value intact");
             check(shard.zc_min() == UINT32_MAX, "failed CONFIG SET publishes no preceding pair");
             check(shard.stream_limits().node_max_entries != 0 &&
-                  shard.stream_limits().node_max_bytes != 0,
+                      shard.stream_limits().node_max_bytes != 0,
                   "rejected stream limits did not silently disable a rollover axis");
         }
         for (const char* value : {"0", "4294967295"})
-            check(execute(shard, {"CONFIG", "SET", name, value}) .empty(),
+            check(execute(shard, {"CONFIG", "SET", name, value}).empty(),
                   "both supported config endpoints accepted");
-        check(execute(shard, {"CONFIG", "SET", name, "17"}) .empty(), "restore config");
+        check(execute(shard, {"CONFIG", "SET", name, "17"}).empty(), "restore config");
     }
-    check(execute(shard, {"CONFIG", "SET", "stream-node-max-bytes", "4kb"}) .empty() &&
-          shard.stream_limits().node_max_bytes == 4096, "stream byte limit accepts Redis memory grammar");
+    check(execute(shard, {"CONFIG", "SET", "stream-node-max-bytes", "4kb"}).empty() &&
+              shard.stream_limits().node_max_bytes == 4096,
+          "stream byte limit accepts Redis memory grammar");
 }
 
 void test_config_rewrite() {
@@ -328,54 +362,73 @@ void test_config_rewrite() {
     check(words.size() == 1 && words[0] == value, "config string round trip");
     // The harness binds a server whose config path is initialized below by its friend fixture.
     const char* path = tomo::command_server()->cfg().conf_path;
-    std::FILE* original = std::fopen(path, "w"); check(original, "create original config");
-    std::fputs("user reader on nopass ~* +get\nload \"/tmp/recovery source.tomo\"\nrequirepass old\n"
-               "hash-max-ziplist-entries 3\nhash-max-ziplist-value 9\nlist-max-ziplist-size -1\n"
-               "zset-max-ziplist-entries 3\nzset-max-ziplist-value 9\n"
-               "hash-max-compact-entries 4\nhash-max-compact-value 10\n"
-               "zset-max-compact-entries 4\nzset-max-compact-value 10\n", original);
+    std::FILE* original = std::fopen(path, "w");
+    check(original, "create original config");
+    std::fputs(
+        "user reader on nopass ~* +get\nload \"/tmp/recovery source.tomo\"\nrequirepass old\n"
+        "hash-max-ziplist-entries 3\nhash-max-ziplist-value 9\nlist-max-ziplist-size -1\n"
+        "zset-max-ziplist-entries 3\nzset-max-ziplist-value 9\n"
+        "hash-max-compact-entries 4\nhash-max-compact-value 10\n"
+        "zset-max-compact-entries 4\nzset-max-compact-value 10\n",
+        original);
     std::fclose(original);
     std::string error;
     check(tomo::config_rewrite(error), "first rewrite");
-    std::ifstream in(path); std::string body((std::istreambuf_iterator<char>(in)), {});
+    std::ifstream in(path);
+    std::string body((std::istreambuf_iterator<char>(in)), {});
     // SV5.2: REWRITE no longer copies stale inline `user` lines from the original file; it writes
     // the live ACL registry instead (none here, as this fixture does not initialize ACL). The
     // full live-registry round trip is covered by the cfgfix2-acl gate witness.
-    check(body.find("user reader on nopass ~* +get\n") == std::string::npos, "stale inline ACL dropped by rewrite");
+    check(body.find("user reader on nopass ~* +get\n") == std::string::npos,
+          "stale inline ACL dropped by rewrite");
     check(body.find("\nuser ") == std::string::npos && body.compare(0, 5, "user ") != 0,
           "rewrite emits no user line without a live ACL registry");
-    check(body.find("load \"/tmp/recovery source.tomo\"\n") != std::string::npos, "recovery source survived rewrite");
-    check(body.find("overlap ") == std::string::npos, "rewrite does not emit retired overlap knobs");
+    check(body.find("load \"/tmp/recovery source.tomo\"\n") != std::string::npos,
+          "recovery source survived rewrite");
+    check(body.find("overlap ") == std::string::npos,
+          "rewrite does not emit retired overlap knobs");
     check(body.find("max-ziplist-") == std::string::npos, "stale encoding aliases were replaced");
     check(body.find("max-compact-") == std::string::npos, "stale TomoKV aliases were replaced");
-    for (const char* name : {"hash-max-listpack-entries", "hash-max-listpack-value", "list-max-listpack-size",
-                             "zset-max-listpack-entries", "zset-max-listpack-value",
-                             "set-max-intset-entries"})
-        check(body.find(std::string(name) + " ") != std::string::npos, "canonical encoding directive emitted");
-    for (const char* directive : {"hll-sparse-max-bytes 1024\n", "aof-load-truncated no\n",
-                                  "unixsocketperm 600\n", "port 20197\n", "bind 127.0.0.2\n",
-                                  "unixsocket build/unused-knob-matrix.sock\n",
-                                  "daemonize yes\n", "logfile build/unused-knob-matrix.log\n",
-                                  "syslog-enabled yes\n", "syslog-ident cfgfix-unit\n",
-                                  "syslog-facility local7\n", "pidfile build/unused-knob-matrix.pid\n",
-                                  "supervised auto\n", "loglevel notice\n", "key-load-delay 0\n",
-                                  "tls-auth-clients optional\n"})
-        check(body.find(directive) != std::string::npos, "boot binding survived rewrite with actual value");
+    for (const char* name :
+         {"hash-max-listpack-entries", "hash-max-listpack-value", "list-max-listpack-size",
+          "zset-max-listpack-entries", "zset-max-listpack-value", "set-max-intset-entries"})
+        check(body.find(std::string(name) + " ") != std::string::npos,
+              "canonical encoding directive emitted");
+    for (const char* directive :
+         {"hll-sparse-max-bytes 1024\n", "aof-load-truncated no\n", "unixsocketperm 600\n",
+          "port 20197\n", "bind 127.0.0.2\n", "unixsocket build/unused-knob-matrix.sock\n",
+          "daemonize yes\n", "logfile build/unused-knob-matrix.log\n", "syslog-enabled yes\n",
+          "syslog-ident cfgfix-unit\n", "syslog-facility local7\n",
+          "pidfile build/unused-knob-matrix.pid\n", "supervised auto\n", "loglevel notice\n",
+          "key-load-delay 0\n", "tls-auth-clients optional\n"})
+        check(body.find(directive) != std::string::npos,
+              "boot binding survived rewrite with actual value");
     for (const char* line : {"wb-policy 1\n", "wb-small-pipe 16\n", "wb-complete-visits 3\n"})
         check(body.find(line) != std::string::npos, "writeback boot knobs survive rewrite");
     std::vector<std::string> loaded;
     check(tomo::load_conf_file(path, loaded), "rewritten config loads");
     auto password = std::find(loaded.begin(), loaded.end(), "--requirepass");
-    check(password != loaded.end() && ++password != loaded.end() && *password == value, "password preserved as one token");
+    check(password != loaded.end() && ++password != loaded.end() && *password == value,
+          "password preserved as one token");
     rewrite_arm.store(true);
     bool success[2]{};
-    std::thread a([&] { std::string err; success[0] = tomo::config_rewrite(err); });
-    std::thread b([&] { std::string err; success[1] = tomo::config_rewrite(err); });
-    a.join(); b.join(); rewrite_arm.store(false);
+    std::thread a([&] {
+        std::string err;
+        success[0] = tomo::config_rewrite(err);
+    });
+    std::thread b([&] {
+        std::string err;
+        success[1] = tomo::config_rewrite(err);
+    });
+    a.join();
+    b.join();
+    rewrite_arm.store(false);
     check(rewrite_opens.load() == 2, "two rewrite opens overlapped before either rename");
-    check(rewrite_inodes[0] != rewrite_inodes[1], "concurrent writers own distinct temporary inodes");
+    check(rewrite_inodes[0] != rewrite_inodes[1],
+          "concurrent writers own distinct temporary inodes");
     check(success[0] && success[1], "both concurrent rewrites completed");
-    std::ifstream after(path); std::string final((std::istreambuf_iterator<char>(after)), {});
+    std::ifstream after(path);
+    std::string final((std::istreambuf_iterator<char>(after)), {});
     check(final == body, "concurrent rewrites preserve exact complete bytes");
 }
 
@@ -385,59 +438,84 @@ void test_writeback_knob(const char* name, tomo::Config& cfg) {
     const std::string info_name = small ? "wb_small_pipe" : "wb_complete_visits";
     const unsigned maximum = small ? tomo::kRobWindow : UINT8_MAX;
     const unsigned measured = small ? 16 : 3;
-    auto value = [&](const tomo::Config& c) { return small ? c.wb_small_pipe : c.wb_complete_visits; };
+    auto value = [&](const tomo::Config& c) {
+        return small ? c.wb_small_pipe : c.wb_complete_visits;
+    };
     check(value(cfg) == measured, "writeback measured default");
     tomo::Shard shard;
     auto observe = [&](unsigned expected) {
         const std::string number = std::to_string(expected);
         const std::string wire = "*2\r\n$" + std::to_string(std::strlen(name)) + "\r\n" + name +
-            "\r\n$" + std::to_string(number.size()) + "\r\n" + number + "\r\n";
-        check(execute(shard, {"CONFIG", "GET", name}) == wire, "writeback knob CONFIG GET actual boot value");
+                                 "\r\n$" + std::to_string(number.size()) + "\r\n" + number + "\r\n";
+        check(execute(shard, {"CONFIG", "GET", name}) == wire,
+              "writeback knob CONFIG GET actual boot value");
         check(execute(shard, {"INFO", "WRITEBACK"}).find(info_name + ":" + number + "\r\n") !=
-              std::string::npos, "writeback INFO actual boot value");
+                  std::string::npos,
+              "writeback INFO actual boot value");
     };
     observe(measured);
     for (unsigned boot : {0u, 1u, measured, maximum}) {
         tomo::ConfigParseState state;
         const std::string number = std::to_string(boot);
         check(tomo::parse_config_args({flag.c_str(), number.c_str()}, cfg, state, 1, "conf") ==
-              tomo::kConfigParsed && value(cfg) == boot, "writeback canonical file grammar");
+                      tomo::kConfigParsed &&
+                  value(cfg) == boot,
+              "writeback canonical file grammar");
         check(tomo::parse_config_args({flag.c_str(), "0"}, cfg, state, 2, "CLI") ==
-              tomo::kConfigParsed && value(cfg) == 0, "writeback CLI overrides file");
+                      tomo::kConfigParsed &&
+                  value(cfg) == 0,
+              "writeback CLI overrides file");
         check(tomo::parse_config_args({flag.c_str(), number.c_str()}, cfg, state, 2, "CLI") ==
-              tomo::kConfigParsed && value(cfg) == boot, "writeback canonical CLI grammar");
+                      tomo::kConfigParsed &&
+                  value(cfg) == boot,
+              "writeback canonical CLI grammar");
         tomo::command_bind_server(tomo::command_server());
         observe(boot);
         for (const char* input : {"0", "1", "16", "255", "-1", "256", "junk"}) {
-            tomo::Op op; args(op, {"CONFIG", "SET", name, input});
+            tomo::Op op;
+            args(op, {"CONFIG", "SET", name, input});
             check(!tomo::command_validate_config_set(op), "writeback boot-only SET rejects");
-            check(std::string(op.reply.data(), op.reply.size()) == "-ERR parameter is immutable at runtime\r\n",
+            check(std::string(op.reply.data(), op.reply.size()) ==
+                      "-ERR parameter is immutable at runtime\r\n",
                   "writeback SET uses exact wb-policy rejection");
             check(execute(shard, {"CONFIG", "SET", name, input}) ==
-                  "-ERR parameter is immutable at runtime\r\n", "writeback handler rejects SET");
+                      "-ERR parameter is immutable at runtime\r\n",
+                  "writeback handler rejects SET");
             observe(boot);
         }
-        std::FILE* file = std::fopen(cfg.conf_path, "w"); check(file, "writeback rewrite source");
-        std::fprintf(file, "%s 1\n", name); std::fclose(file);
+        std::FILE* file = std::fopen(cfg.conf_path, "w");
+        check(file, "writeback rewrite source");
+        std::fprintf(file, "%s 1\n", name);
+        std::fclose(file);
         std::string error;
         check(tomo::config_rewrite(error), "writeback knob rewrite succeeds");
         std::vector<std::string> loaded;
         std::vector<size_t> line_ends;
-        check(tomo::load_conf_file(cfg.conf_path, loaded, &line_ends), "writeback rewritten file loads");
-        tomo::Config reparsed; tomo::ConfigParseState reparse_state;
-        check(tomo::parse_config_file(loaded, line_ends, reparsed, reparse_state, "rewrite") == tomo::kConfigParsed &&
-              value(reparsed) == boot, "writeback REWRITE reboots actual value");
+        check(tomo::load_conf_file(cfg.conf_path, loaded, &line_ends),
+              "writeback rewritten file loads");
+        tomo::Config reparsed;
+        tomo::ConfigParseState reparse_state;
+        check(tomo::parse_config_file(loaded, line_ends, reparsed, reparse_state, "rewrite") ==
+                      tomo::kConfigParsed &&
+                  value(reparsed) == boot,
+              "writeback REWRITE reboots actual value");
     }
-    for (const std::string& input : std::vector<std::string>{"-1", "-0", "+1", "01", "00", "1x", "1.0",
-                                    "1kb", "", " 1", "1 ", "4294967296", "18446744073709551616",
-                                    std::to_string(maximum + 1)}) {
-        tomo::Config candidate; tomo::ConfigParseState state;
-        check(tomo::parse_config_args({flag.c_str(), input.c_str()}, candidate, state, 2, "invalid") ==
-              tomo::kConfigError && value(candidate) == measured, "writeback invalid grammar cannot change config");
+    for (const std::string& input : std::vector<std::string>{
+             "-1", "-0", "+1", "01", "00", "1x", "1.0", "1kb", "", " 1", "1 ", "4294967296",
+             "18446744073709551616", std::to_string(maximum + 1)}) {
+        tomo::Config candidate;
+        tomo::ConfigParseState state;
+        check(tomo::parse_config_args({flag.c_str(), input.c_str()}, candidate, state, 2,
+                                      "invalid") == tomo::kConfigError &&
+                  value(candidate) == measured,
+              "writeback invalid grammar cannot change config");
     }
-    tomo::Config invalid; tomo::ConfigParseState state;
-    check(tomo::parse_config_args({flag.c_str()}, invalid, state, 2, "missing") == tomo::kConfigError,
-          "writeback missing argument rejected");
+    tomo::Config invalid;
+    tomo::ConfigParseState state;
+    check(
+        tomo::parse_config_args({flag.c_str()}, invalid, state, 2, "missing") == tomo::kConfigError,
+        "writeback missing argument rejected");
     (small ? invalid.wb_small_pipe : invalid.wb_complete_visits) = maximum + 1;
-    check(tomo::validate_config(invalid) == tomo::kConfigError, "writeback direct Config range validated");
+    check(tomo::validate_config(invalid) == tomo::kConfigError,
+          "writeback direct Config range validated");
 }

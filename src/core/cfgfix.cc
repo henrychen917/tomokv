@@ -18,7 +18,11 @@ namespace {
 std::atomic<int32_t> load_delay{0};
 std::atomic<const Server*> control_server{nullptr};
 std::atomic<int> verbosity{2};
-struct ExecutorControl { Server* server = nullptr; void* loop = nullptr; bool (*action)(void*, int) = nullptr; };
+struct ExecutorControl {
+    Server* server = nullptr;
+    void* loop = nullptr;
+    bool (*action)(void*, int) = nullptr;
+};
 ExecutorControl executors[kMaxThreads];
 struct LogState {
     int fd = -1;
@@ -31,8 +35,16 @@ struct LogState {
     FILE* out = nullptr;
     FILE* err = nullptr;
     ~LogState() {
-        if (out) { std::fflush(out); stdout = saved_out; std::fclose(out); }
-        if (err) { std::fflush(err); stderr = saved_err; std::fclose(err); }
+        if (out) {
+            std::fflush(out);
+            stdout = saved_out;
+            std::fclose(out);
+        }
+        if (err) {
+            std::fflush(err);
+            stderr = saved_err;
+            std::fclose(err);
+        }
         if (fd >= 0) ::close(fd);
         if (use_syslog) ::closelog();
         if (!pidfile.empty()) ::unlink(pidfile.c_str());
@@ -52,7 +64,8 @@ bool notify_supervisor(const char* message) {
     const int fd = ::socket(AF_UNIX, SOCK_DGRAM | SOCK_CLOEXEC, 0);
     if (fd < 0) return false;
     const bool okay = ::sendto(fd, message, std::strlen(message), MSG_NOSIGNAL,
-        reinterpret_cast<sockaddr*>(&address), offsetof(sockaddr_un, sun_path) + size + !abstract) >= 0;
+                               reinterpret_cast<sockaddr*>(&address),
+                               offsetof(sockaddr_un, sun_path) + size + !abstract) >= 0;
     ::close(fd);
     return okay;
 }
@@ -78,7 +91,8 @@ ssize_t write_log(void* cookie, const char* bytes, size_t size) {
 }
 }
 
-void cfgfix_register_executor(Server* server, uint32_t tid, void* loop, bool (*action)(void*, int)) {
+void cfgfix_register_executor(Server* server, uint32_t tid, void* loop,
+                              bool (*action)(void*, int)) {
     executors[tid] = {server, loop, action};
 }
 bool cfgfix_executor_control(Server& server, uint32_t tid, int action) {
@@ -92,8 +106,9 @@ bool cfgfix_control_busy(const Server& server) {
 bool cfgfix_control_begin(Server& server) {
     std::lock_guard lock(server.shape_transition_mutex());
     if (server.flip_stage() != FlipStage::Idle || server.lb_stage() != LbStage::Idle ||
-        server.snapshot().in_progress() ||
-        server.signal_shutdown_pending() || server.shutting_down().load(std::memory_order_relaxed)) return false;
+        server.snapshot().in_progress() || server.signal_shutdown_pending() ||
+        server.shutting_down().load(std::memory_order_relaxed))
+        return false;
     const Server* empty = nullptr;
     return control_server.compare_exchange_strong(empty, &server, std::memory_order_acq_rel);
 }
@@ -105,7 +120,10 @@ void cfgfix_control_end(Server& server) {
 void cfgfix_loglevel(const char* value) {
     static constexpr const char* names[] = {"debug", "verbose", "notice", "warning", "nothing"};
     for (unsigned i = 0; i < std::size(names); ++i)
-        if (!std::strcmp(value, names[i])) { verbosity.store(i, std::memory_order_relaxed); return; }
+        if (!std::strcmp(value, names[i])) {
+            verbosity.store(i, std::memory_order_relaxed);
+            return;
+        }
     std::abort();
 }
 
@@ -116,10 +134,13 @@ void cfgfix_delay_loaded_key() {
     // Widen before negation so the accepted INT32_MIN endpoint is defined.
     if (delay < 0)
         delay = (static_cast<uint32_t>(std::rand()) %
-                 static_cast<uint32_t>(-static_cast<int64_t>(delay))) == 0 ? 1 : 0;
+                 static_cast<uint32_t>(-static_cast<int64_t>(delay))) == 0
+                    ? 1
+                    : 0;
     if (delay > 0) {
         timespec left{delay / 1000000, (delay % 1000000) * 1000L};
-        while (::nanosleep(&left, &left) && errno == EINTR) {}
+        while (::nanosleep(&left, &left) && errno == EINTR) {
+        }
     }
 }
 
@@ -128,8 +149,10 @@ bool cfgfix_process_boot(const Config& cfg) {
         return cfg_process_value(cfg, cfg_process_find(Slice(name, std::strlen(name))));
     };
     std::string supervised = value("supervised");
-    if (supervised == "auto") supervised = std::getenv("UPSTART_JOB") ? "upstart" :
-        std::getenv("NOTIFY_SOCKET") ? "systemd" : "no";
+    if (supervised == "auto")
+        supervised = std::getenv("UPSTART_JOB")     ? "upstart"
+                     : std::getenv("NOTIFY_SOCKET") ? "systemd"
+                                                    : "no";
     bool supervision_active = false;
     if (supervised == "upstart" && std::getenv("UPSTART_JOB")) {
         ::raise(SIGSTOP);
@@ -143,18 +166,27 @@ bool cfgfix_process_boot(const Config& cfg) {
     const char* logfile = value("logfile");
     if (*logfile) {
         log_state.fd = ::open(logfile, O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC, 0644);
-        if (log_state.fd < 0) { std::perror("Can't open the log file"); return false; }
+        if (log_state.fd < 0) {
+            std::perror("Can't open the log file");
+            return false;
+        }
     }
     if (daemon) {
         std::fflush(nullptr);
         const pid_t child = ::fork();
-        if (child < 0) { std::perror("fork"); return false; }
+        if (child < 0) {
+            std::perror("fork");
+            return false;
+        }
         if (child > 0) ::_exit(0);
         if (::setsid() < 0) return false;
         const int null = ::open("/dev/null", O_RDWR);
         if (null < 0) return false;
         for (int fd = 0; fd < 3; ++fd)
-            if (::dup2(null, fd) < 0) { ::close(null); return false; }
+            if (::dup2(null, fd) < 0) {
+                ::close(null);
+                return false;
+            }
         if (null > 2) ::close(null);
     }
     log_state.pidfile = value("pidfile");
@@ -162,29 +194,34 @@ bool cfgfix_process_boot(const Config& cfg) {
     if (!log_state.pidfile.empty()) {
         // Redis treats failure to create the pidfile as non-fatal.
         if (FILE* f = std::fopen(log_state.pidfile.c_str(), "w")) {
-            std::fprintf(f, "%ld\n", static_cast<long>(::getpid())); std::fclose(f);
-        } else log_state.pidfile.clear();
+            std::fprintf(f, "%ld\n", static_cast<long>(::getpid()));
+            std::fclose(f);
+        } else
+            log_state.pidfile.clear();
     }
     log_state.use_syslog = !std::strcmp(value("syslog-enabled"), "yes");
     if (log_state.use_syslog) {
         log_state.ident = value("syslog-ident");
         const char* facility = value("syslog-facility");
-        const int selected = !std::strcmp(facility, "user") ? LOG_USER :
-            LOG_LOCAL0 + (facility[5] - '0') * 8;
+        const int selected =
+            !std::strcmp(facility, "user") ? LOG_USER : LOG_LOCAL0 + (facility[5] - '0') * 8;
         ::openlog(log_state.ident.c_str(), LOG_PID | LOG_NDELAY, selected);
     }
     cfgfix_loglevel(value("loglevel"));
     cfgfix_key_load_delay(std::strtol(value("key-load-delay"), nullptr, 10));
     cookie_io_functions_t hooks{};
     hooks.write = write_log;
-    log_state.saved_out = stdout; log_state.saved_err = stderr;
+    log_state.saved_out = stdout;
+    log_state.saved_err = stderr;
     log_state.out = ::fopencookie(nullptr, "w", hooks);
     log_state.err = ::fopencookie(&log_state, "w", hooks);
     if (!log_state.out || !log_state.err) return false;
     std::setvbuf(log_state.out, nullptr, _IOLBF, 0);
     std::setvbuf(log_state.err, nullptr, _IONBF, 0);
-    std::fflush(stdout); std::fflush(stderr);
-    stdout = log_state.out; stderr = log_state.err;
+    std::fflush(stdout);
+    std::fflush(stderr);
+    stdout = log_state.out;
+    stderr = log_state.err;
     return true;
 }
 void cfgfix_process_ready() {

@@ -9,7 +9,9 @@
 namespace tomo {
 // One offline PAD-A patch point: returning zero restores PRE policy on this exact
 // layout. Production returns the configured level; no ordinary operation calls it.
-__attribute__((noipa)) int32_t /* TOMO_TOOL_BIND lbosc3_level */lbosc3_level(int32_t configured) { return configured; }
+__attribute__((noipa)) int32_t /* TOMO_TOOL_BIND lbosc3_level */ lbosc3_level(int32_t configured) {
+    return configured;
+}
 
 void Server::lb_key_damping_init() {
     if (lbosc3_level(cfg_.key_lb_damping) && !lb_policy_->key_damping)
@@ -18,14 +20,18 @@ void Server::lb_key_damping_init() {
 
 void Server::lb_key_damping_info(std::string& out) const {
     const auto* state = lb_policy_ ? lb_policy_->key_damping.get() : nullptr;
-    out += "tomokv_keylb_damping_band_pct:" + std::to_string(state ? state->base_band.load() : 0) + "\r\n";
-    out += "tomokv_keylb_damping_fire_pct:" + std::to_string(state ? state->fire_band.load() : 0) + "\r\n";
-    out += "tomokv_keylb_damping_ticks:" + std::to_string(state ? state->required_ticks.load() : 0) + "\r\n";
+    out += "tomokv_keylb_damping_band_pct:" + std::to_string(state ? state->base_band.load() : 0) +
+           "\r\n";
+    out += "tomokv_keylb_damping_fire_pct:" + std::to_string(state ? state->fire_band.load() : 0) +
+           "\r\n";
+    out +=
+        "tomokv_keylb_damping_ticks:" + std::to_string(state ? state->required_ticks.load() : 0) +
+        "\r\n";
 }
 
 bool LbAutotune::KeyDamping::update(double ratio, QuietJitter& noise, uint32_t& streak,
-                                   uint32_t owners, int32_t level, uint64_t now_ms,
-                                   uint64_t completed, uint64_t epoch) {
+                                    uint32_t owners, int32_t level, uint64_t now_ms,
+                                    uint64_t completed, uint64_t epoch) {
     const bool learned = noise.observe(ratio);
     const double band = noise.band(owners);
     // A full owner's load contains ceil(100/band) independently resolvable steps.
@@ -43,7 +49,7 @@ bool LbAutotune::KeyDamping::update(double ratio, QuietJitter& noise, uint32_t& 
     }
     if (completed != moves) {
         recent += completed - moves;
-        streak = 0; // a completed plan always needs a fresh run of crossed ticks
+        streak = 0;  // a completed plan always needs a fresh run of crossed ticks
     }
     if (recent < 1.0 / kSamplesPerDecision) recent = 0;
     moves = completed;
@@ -59,24 +65,26 @@ bool LbAutotune::KeyDamping::update(double ratio, QuietJitter& noise, uint32_t& 
     fire_band.store(fire, std::memory_order_relaxed);
     required_ticks.store(ticks, std::memory_order_relaxed);
     if (!learned) return false;
-    if (ratio > fire) streak = std::min(streak + 1, ticks);
-    else if (recent > 0 || ratio < 0.8 * fire) streak = 0;
+    if (ratio > fire)
+        streak = std::min(streak + 1, ticks);
+    else if (recent > 0 || ratio < 0.8 * fire)
+        streak = 0;
     return streak >= ticks;
 }
 
 // The key objective lives in the cold planner TU. The shared PRE search remains
 // unchanged for clients, FLIP, and the behaviour twin.
 bool lbosc3_best_incremental_move(const std::vector<WeightedLbItem>& items,
-                                              const std::vector<uint32_t>& targets,
-                                              bool demand_hot, bool secondary_hot,
-                                              WeightedLbMoveChoice& choice, double band) {
+                                  const std::vector<uint32_t>& targets, bool demand_hot,
+                                  bool secondary_hot, WeightedLbMoveChoice& choice, double band) {
     choice = {};
     if (targets.size() < 2 || (!demand_hot && !secondary_hot)) return false;
     std::vector<double> load(targets.size(), 0);
     std::vector<double> secondary_load(targets.size(), 0);
     std::vector<uint32_t> count(targets.size(), 0);
     auto target_index = [&](uint32_t tid) {
-        for (uint32_t i = 0; i < targets.size(); i++) if (targets[i] == tid) return i;
+        for (uint32_t i = 0; i < targets.size(); i++)
+            if (targets[i] == tid) return i;
         return UINT32_MAX;
     };
     for (const WeightedLbItem& item : items) {
@@ -127,17 +135,17 @@ bool lbosc3_best_incremental_move(const std::vector<WeightedLbItem>& items,
             load[destination] -= std::max(0.0, item.weight);
             load[source] += std::max(0.0, item.weight);
 
-            const bool improves = demand_hot
-                ? next_weight + 1e-9 < old_weight
-                : next_weight <= old_weight + 1e-9 &&
-                  next_secondary + 1e-9 < old_secondary;
+            const bool improves = demand_hot ? next_weight + 1e-9 < old_weight
+                                             : next_weight <= old_weight + 1e-9 &&
+                                                   next_secondary + 1e-9 < old_secondary;
             if (!improves) continue;
-            const Score score{
-                std::max(0.0, next_weight - weight_band),
-                std::max(0.0, next_secondary - secondary_band),
-                demand_hot ? item.weight : item.secondary,
-                demand_hot ? item.secondary : item.weight,
-                next_count, item.id, targets[destination]};
+            const Score score{std::max(0.0, next_weight - weight_band),
+                              std::max(0.0, next_secondary - secondary_band),
+                              demand_hot ? item.weight : item.secondary,
+                              demand_hot ? item.secondary : item.weight,
+                              next_count,
+                              item.id,
+                              targets[destination]};
             if (choice.item_index == UINT32_MAX || score < best) {
                 choice.item_index = item_index;
                 choice.source = item.owner;
@@ -151,7 +159,8 @@ bool lbosc3_best_incremental_move(const std::vector<WeightedLbItem>& items,
     return choice.item_index != UINT32_MAX;
 }
 
-bool Server::/* TOMO_TOOL_BIND lb_controller_tick */lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {
+bool Server::/* TOMO_TOOL_BIND lb_controller_tick */ lb_controller_tick(uint32_t coordinator,
+                                                                        uint64_t now_ms) {
     if (!lb_controller_enabled() || coordinator >= nthreads()) return false;
     const int32_t damping = lbosc3_level(cfg_.key_lb_damping);
     const bool key_enabled = key_lb_signals_enabled();
@@ -164,7 +173,8 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick */lb_controller_tick(uint32_t 
         {
             std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
             if (lb_stage() != LbStage::Idle || flip_dispatch_paused() ||
-                !serves_clients(coordinator) || cfgfix_control_busy(*this) || snapshot_.in_progress() || loading()) {
+                !serves_clients(coordinator) || cfgfix_control_busy(*this) ||
+                snapshot_.in_progress() || loading()) {
                 lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
                 return false;
             }
@@ -179,12 +189,14 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick */lb_controller_tick(uint32_t 
             } else {
                 for (uint32_t tid = 0; tid < nthreads(); tid++) {
                     const Role role = thread(tid).role();
-                    if (key_enabled && role == Role::Ex) executors.push_back(tid);
-                    else if (client_enabled && role == Role::Ifid) ios.push_back(tid);
+                    if (key_enabled && role == Role::Ex)
+                        executors.push_back(tid);
+                    else if (client_enabled && role == Role::Ifid)
+                        ios.push_back(tid);
                 }
             }
 
-        } // release topology snapshot before admission/search
+        }  // release topology snapshot before admission/search
 
         auto spread = [](const double* loads, const std::vector<uint32_t>& owners) {
             if (owners.empty()) return 0.0;
@@ -199,20 +211,21 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick */lb_controller_tick(uint32_t 
                              const std::vector<uint32_t>& owners) {
             double total = 0;
             for (uint32_t tid : owners) total += loads[tid];
-            return total > 0 && !owners.empty()
-                ? span * 100.0 * owners.size() / total : 0.0;
+            return total > 0 && !owners.empty() ? span * 100.0 * owners.size() / total : 0.0;
         };
         const uint64_t cooldown_ms = lb_policy_->cooldown_ms();
-        auto update_streak = [&](double ratio, LbAutotune::QuietJitter& noise,
-                                 uint32_t& streak, uint32_t owners) {
+        auto update_streak = [&](double ratio, LbAutotune::QuietJitter& noise, uint32_t& streak,
+                                 uint32_t owners) {
             if (!noise.observe(ratio)) {
                 lb_hysteresis_refused_.fetch_add(1, std::memory_order_relaxed);
                 return false;
             }
             const double fire = noise.band(owners);
-            const double release = fire * 0.8; // Schmitt release band
-            if (ratio > fire) streak = std::min<uint32_t>(streak + 1, LbAutotune::kDecisionTicks);
-            else if (ratio < release) streak = 0;
+            const double release = fire * 0.8;  // Schmitt release band
+            if (ratio > fire)
+                streak = std::min<uint32_t>(streak + 1, LbAutotune::kDecisionTicks);
+            else if (ratio < release)
+                streak = 0;
             if (streak < LbAutotune::kDecisionTicks) {
                 lb_hysteresis_refused_.fetch_add(1, std::memory_order_relaxed);
                 return false;
@@ -245,23 +258,22 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick */lb_controller_tick(uint32_t 
             const double weight_ratio = ratio_pct(shard_before, loads, executors);
             const double byte_ratio = ratio_pct(bytes_before, byte_loads, executors);
             lb_bucket_weight_spread_current_.store(
-                static_cast<uint64_t>(shard_before * 1024.0 + 0.5),
-                std::memory_order_relaxed);
-            lb_bucket_bytes_spread_current_.store(
-                static_cast<uint64_t>(bytes_before + 0.5), std::memory_order_relaxed);
+                static_cast<uint64_t>(shard_before * 1024.0 + 0.5), std::memory_order_relaxed);
+            lb_bucket_bytes_spread_current_.store(static_cast<uint64_t>(bytes_before + 0.5),
+                                                  std::memory_order_relaxed);
             /* TOMO_TOOL_ANCHOR lbosc3-admission */
             // LBOSC3 BEGIN admission: only the key planner sees damping.
             bool key_admitted;
             if (damping && lb_policy_->key_damping) {
                 key_admitted = lb_policy_->key_damping->update(
                     std::max(weight_ratio, byte_ratio), lb_policy_->key_jitter,
-                    lb_bucket_hot_streak_, executors.size(), damping, now_ms,
-                    lb_bucket_moves(), plan_flip_epoch);
-                if (!key_admitted)
-                    lb_hysteresis_refused_.fetch_add(1, std::memory_order_relaxed);
+                    lb_bucket_hot_streak_, executors.size(), damping, now_ms, lb_bucket_moves(),
+                    plan_flip_epoch);
+                if (!key_admitted) lb_hysteresis_refused_.fetch_add(1, std::memory_order_relaxed);
             } else {
-                key_admitted = update_streak(std::max(weight_ratio, byte_ratio),
-                    lb_policy_->key_jitter, lb_bucket_hot_streak_, executors.size());
+                key_admitted =
+                    update_streak(std::max(weight_ratio, byte_ratio), lb_policy_->key_jitter,
+                                  lb_bucket_hot_streak_, executors.size());
             }
             // LBOSC3 END admission
             if (key_admitted) {
@@ -292,9 +304,10 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick */lb_controller_tick(uint32_t 
                 }
                 shard_before = spread(loads, executors);
                 bytes_before = spread(byte_loads, executors);
-                const double band = damping && lb_policy_->key_damping
-                    ? lb_policy_->key_damping->fire_band.load(std::memory_order_relaxed)
-                    : lb_policy_->key_jitter.band(executors.size());
+                const double band =
+                    damping && lb_policy_->key_damping
+                        ? lb_policy_->key_damping->fire_band.load(std::memory_order_relaxed)
+                        : lb_policy_->key_jitter.band(executors.size());
                 if (dominant_bucket && ratio_pct(shard_before, loads, executors) > band) {
                     // The single-owner actuator cannot decompose a dominant bucket.
                     lb_hot_bucket_refused_.fetch_add(1, std::memory_order_relaxed);
@@ -304,17 +317,17 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick */lb_controller_tick(uint32_t 
                     for (uint32_t step = 0; step < move_cap; step++) {
                         const double old_weight_span = spread(loads, executors);
                         const double old_byte_span = spread(byte_loads, executors);
-                        const bool demand_hot = ratio_pct(old_weight_span, loads, executors) >
-                                                band;
-                        const bool memory_hot = ratio_pct(old_byte_span, byte_loads, executors) >
-                                                band;
+                        const bool demand_hot = ratio_pct(old_weight_span, loads, executors) > band;
+                        const bool memory_hot =
+                            ratio_pct(old_byte_span, byte_loads, executors) > band;
                         if (!demand_hot && !memory_hot) break;
                         WeightedLbMoveChoice choice;
-                        const bool found = damping
-                            ? lbosc3_best_incremental_move(shard_items, executors,
-                                  demand_hot, memory_hot, choice, band)
-                            : weighted_lb_best_incremental_move(shard_items, executors,
-                                  demand_hot, memory_hot, choice);
+                        const bool found =
+                            damping
+                                ? lbosc3_best_incremental_move(shard_items, executors, demand_hot,
+                                                               memory_hot, choice, band)
+                                : weighted_lb_best_incremental_move(shard_items, executors,
+                                                                    demand_hot, memory_hot, choice);
                         if (!found) {
                             if (cooldown_seen)
                                 lb_cooldown_refused_.fetch_add(1, std::memory_order_relaxed);
@@ -324,8 +337,8 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick */lb_controller_tick(uint32_t 
                         }
                         WeightedLbItem& item = shard_items[choice.item_index];
                         shard_plan.push_back({static_cast<uint32_t>(item.id), choice.source,
-                                             choice.destination, item.weight,
-                                             static_cast<uint64_t>(item.secondary)});
+                                              choice.destination, item.weight,
+                                              static_cast<uint64_t>(item.secondary)});
                         loads[choice.source] -= item.weight;
                         loads[choice.destination] += item.weight;
                         byte_loads[choice.source] -= item.secondary;
@@ -347,12 +360,11 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick */lb_controller_tick(uint32_t 
         if (client_enabled && ios.size() >= 2) {
             double loads[kMaxThreads] = {};
             for (uint32_t tid : ios)
-                loads[tid] = double(lb_client_owner_weight_[tid].load(std::memory_order_acquire)) /
-                             1024.0;
+                loads[tid] =
+                    double(lb_client_owner_weight_[tid].load(std::memory_order_acquire)) / 1024.0;
             client_before = spread(loads, ios);
             lb_client_weight_spread_current_.store(
-                static_cast<uint64_t>(client_before * 1024.0 + 0.5),
-                std::memory_order_relaxed);
+                static_cast<uint64_t>(client_before * 1024.0 + 0.5), std::memory_order_relaxed);
             const double client_ratio = ratio_pct(client_before, loads, ios);
             if (update_streak(client_ratio, lb_policy_->client_jitter, lb_client_hot_streak_,
                               ios.size())) {
@@ -365,20 +377,18 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick */lb_controller_tick(uint32_t 
                     clients.reserve(lb_clients_.size());
                     for (const auto& entry : lb_clients_) {
                         const LbClientSignal& signal = entry.second;
-                        if (signal.owner >= nthreads() ||
-                            thread(signal.owner).role() != Role::Ifid) continue;
-                        const bool cooling = signal.last_move_ms &&
-                            now_ms - signal.last_move_ms < cooldown_ms;
+                        if (signal.owner >= nthreads() || thread(signal.owner).role() != Role::Ifid)
+                            continue;
+                        const bool cooling =
+                            signal.last_move_ms && now_ms - signal.last_move_ms < cooldown_ms;
                         if (cooling) cooldown_seen++;
-                        clients.push_back(
-                            {entry.first, signal.owner, signal.weight, cooling, 0.0});
+                        clients.push_back({entry.first, signal.owner, signal.weight, cooling, 0.0});
                         loads[signal.owner] += signal.weight;
                     }
                 }
                 client_before = spread(loads, ios);
                 WeightedLbMoveChoice choice;
-                if (!weighted_lb_best_incremental_move(
-                        clients, ios, true, false, choice)) {
+                if (!weighted_lb_best_incremental_move(clients, ios, true, false, choice)) {
                     if (cooldown_seen)
                         lb_cooldown_refused_.fetch_add(1, std::memory_order_relaxed);
                     else
@@ -403,8 +413,8 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick */lb_controller_tick(uint32_t 
         const bool choose_client = have_client && (!have_bucket || lb_prefer_client_);
 
         std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
-        if (lb_stage() != LbStage::Idle || flip_dispatch_paused() ||
-            cfgfix_control_busy(*this) || snapshot_.in_progress() || loading()) {
+        if (lb_stage() != LbStage::Idle || flip_dispatch_paused() || cfgfix_control_busy(*this) ||
+            snapshot_.in_progress() || loading()) {
             lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
             return false;
         }
@@ -417,7 +427,7 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick */lb_controller_tick(uint32_t 
         plan.lb_epoch = plan_lb_epoch;
         plan.choose_client = choose_client;
         plan.client = client_plan;
-        plan.shards.swap(shard_plan); // old storage is reclaimed here, on the monitor
+        plan.shards.swap(shard_plan);  // old storage is reclaimed here, on the monitor
         plan.shard_before = shard_before;
         plan.shard_after = shard_after;
         plan.bytes_before = bytes_before;
@@ -434,22 +444,20 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick */lb_controller_tick(uint32_t 
     }
 }
 
-
-
 // A directed transport check needs a real client-LB transfer without racing the
 // policy's sampled load or the destination's three-source-pass ACK budget. The
 // DEBUG caller runs ON the destination: reserve its capacity before publishing
 // the ordinary ClientDrain. The source still owns all readiness/transfer work.
-__attribute__((cold, noinline))
-bool Server::lb_debug_move_client(uint64_t id, uint32_t destination, std::string& error) {
+__attribute__((cold, noinline)) bool Server::lb_debug_move_client(uint64_t id, uint32_t destination,
+                                                                  std::string& error) {
     if (cfg_.thread_mode != ThreadMode::Split || !client_lb_signals_enabled()) {
         error = "ERR DEBUG CLIENT-LB requires split mode and client-lb 1";
         return false;
     }
     std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
     if (destination >= nthreads() || thread(destination).role() != Role::Ifid ||
-        lb_stage() != LbStage::Idle || flip_dispatch_paused() ||
-        cfgfix_control_busy(*this) || snapshot_.in_progress() || loading()) {
+        lb_stage() != LbStage::Idle || flip_dispatch_paused() || cfgfix_control_busy(*this) ||
+        snapshot_.in_progress() || loading()) {
         error = "ERR DEBUG CLIENT-LB requires idle topology and an IO destination";
         return false;
     }
@@ -498,14 +506,14 @@ bool Server::lb_debug_move_client(uint64_t id, uint32_t destination, std::string
     return true;
 }
 
-
-bool Server::/* TOMO_TOOL_BIND lb_consume_plan */lb_consume_plan(uint32_t coordinator) {
+bool Server::/* TOMO_TOOL_BIND lb_consume_plan */ lb_consume_plan(uint32_t coordinator) {
     // Only an observed PlanReady reaches this cold path. Never wait behind a monitor gather.
     std::unique_lock lock(shape_transition_mu_, std::try_to_lock);
     if (!lock || lb_stage() != LbStage::PlanReady || coordinator != lb_coordinator_) return false;
     auto& plan = *lb_plan_;
     if (flip_dispatch_paused() || flip_epoch() != plan.flip_epoch || lb_epoch() != plan.lb_epoch ||
-        cfgfix_control_busy(*this) || snapshot_.in_progress() || loading() || !serves_clients(coordinator)) {
+        cfgfix_control_busy(*this) || snapshot_.in_progress() || loading() ||
+        !serves_clients(coordinator)) {
         lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
         lb_stage_.store(LbStage::Idle, std::memory_order_release);
         return false;
@@ -517,36 +525,31 @@ bool Server::/* TOMO_TOOL_BIND lb_consume_plan */lb_consume_plan(uint32_t coordi
     for (uint32_t tid = 0; tid < nthreads(); tid++)
         lb_ack_[tid].store(0, std::memory_order_relaxed);
     lb_epoch_.fetch_add(1, std::memory_order_acq_rel);
-    lb_deadline_ns_.store(now_ns() + LbAutotune::kMoveTimeoutNs,
-                          std::memory_order_release);
+    lb_deadline_ns_.store(now_ns() + LbAutotune::kMoveTimeoutNs, std::memory_order_release);
     if (plan.choose_client) {
         lb_client_move_ = plan.client;
         lb_client_weight_spread_before_.store(
-            static_cast<uint64_t>(plan.client_before * 1024.0 + 0.5),
-            std::memory_order_relaxed);
+            static_cast<uint64_t>(plan.client_before * 1024.0 + 0.5), std::memory_order_relaxed);
         lb_client_weight_spread_after_.store(
-            static_cast<uint64_t>(plan.client_after * 1024.0 + 0.5),
-            std::memory_order_relaxed);
+            static_cast<uint64_t>(plan.client_after * 1024.0 + 0.5), std::memory_order_relaxed);
         lb_stage_.store(LbStage::ClientDrain, std::memory_order_release);
     } else {
-        lb_shard_moves_.swap(plan.shards); // no allocation or reclamation on IO
+        lb_shard_moves_.swap(plan.shards);  // no allocation or reclamation on IO
         lb_bucket_weight_spread_before_.store(
-            static_cast<uint64_t>(plan.shard_before * 1024.0 + 0.5),
-            std::memory_order_relaxed);
-        lb_bucket_weight_spread_after_.store(
-            static_cast<uint64_t>(plan.shard_after * 1024.0 + 0.5),
-            std::memory_order_relaxed);
-        lb_bucket_bytes_spread_before_.store(
-            static_cast<uint64_t>(plan.bytes_before + 0.5), std::memory_order_relaxed);
-        lb_bucket_bytes_spread_after_.store(
-            static_cast<uint64_t>(plan.bytes_after + 0.5), std::memory_order_relaxed);
+            static_cast<uint64_t>(plan.shard_before * 1024.0 + 0.5), std::memory_order_relaxed);
+        lb_bucket_weight_spread_after_.store(static_cast<uint64_t>(plan.shard_after * 1024.0 + 0.5),
+                                             std::memory_order_relaxed);
+        lb_bucket_bytes_spread_before_.store(static_cast<uint64_t>(plan.bytes_before + 0.5),
+                                             std::memory_order_relaxed);
+        lb_bucket_bytes_spread_after_.store(static_cast<uint64_t>(plan.bytes_after + 0.5),
+                                            std::memory_order_relaxed);
         lb_start_shard_drain();
     }
     lb_prefer_client_ = !plan.choose_client;
     return true;
 }
 
-void Server::/* TOMO_TOOL_BIND monitor_controllers */monitor_controllers() {
+void Server::/* TOMO_TOOL_BIND monitor_controllers */ monitor_controllers() {
     // INFO sampling also needs this existing cold thread when both controllers are off.
     uint64_t next_lb_ms = 0, next_flip_ms = 0, next_info_ms = 0;
     // This thread publishes automatic FLIPs and LB plans to a coordinator IO that may be parked,
@@ -554,7 +557,7 @@ void Server::/* TOMO_TOOL_BIND monitor_controllers */monitor_controllers() {
     // mailbox under epoll) is created at the first such publication; a failed init leaves the
     // coordinator's park timeout as before.
     Ring wake_ring;
-    int wake_ring_state = 0; // 0 untried, 1 ready, -1 unavailable
+    int wake_ring_state = 0;  // 0 untried, 1 ready, -1 unavailable
     auto wake = [&](uint32_t tid) {
         Ring* target = tid < nthreads() ? thread(tid).ring() : nullptr;
         if (!target) return;
@@ -580,7 +583,7 @@ void Server::/* TOMO_TOOL_BIND monitor_controllers */monitor_controllers() {
             next_lb_ms = now_ms + lb_tick_ms();
             for (uint32_t tid = 0; tid < nthreads(); ++tid) {
                 if (thread(tid).role() != Role::Ifid) continue;
-                if (lb_controller_tick(tid, now_ms)) wake(lb_coordinator()); // PlanReady
+                if (lb_controller_tick(tid, now_ms)) wake(lb_coordinator());  // PlanReady
                 break;
             }
         }
@@ -595,10 +598,13 @@ void Server::/* TOMO_TOOL_BIND monitor_controllers */monitor_controllers() {
         if (shutting_down().load(std::memory_order_relaxed)) break;
         const uint64_t finished_ms = now_ns() / 1000000;
         uint32_t wait_ms = flipctl_enabled()
-            ? (next_flip_ms > finished_ms ? next_flip_ms - finished_ms : 0) : lb_tick_ms();
+                               ? (next_flip_ms > finished_ms ? next_flip_ms - finished_ms : 0)
+                               : lb_tick_ms();
         if (lb_controller_enabled())
-            wait_ms = std::min<uint64_t>(wait_ms, next_lb_ms > finished_ms ? next_lb_ms - finished_ms : 0);
-        wait_ms = std::min<uint64_t>(wait_ms, next_info_ms > finished_ms ? next_info_ms - finished_ms : 0);
+            wait_ms = std::min<uint64_t>(wait_ms,
+                                         next_lb_ms > finished_ms ? next_lb_ms - finished_ms : 0);
+        wait_ms = std::min<uint64_t>(wait_ms,
+                                     next_info_ms > finished_ms ? next_info_ms - finished_ms : 0);
         // Preserve multi-DB reclamation supervision at the existing worker-wait cadence.
         if constexpr (!kSingleDatabase) wait_ms = std::min(wait_ms, Ring::kWaitTimeoutMs);
         (void)signal_doorbell_wait(wait_ms);
@@ -609,7 +615,8 @@ void Server::/* TOMO_TOOL_BIND monitor_controllers */monitor_controllers() {
 // the existing tail/monitor calls and each private gate load in a COPY of POST.
 // Keep the admission body and actuator body mechanically equal to cd02ecbab;
 // the artifact verifier compares them before allowing a twin to be built.
-bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */lb_controller_tick_pad(uint32_t coordinator, uint64_t now_ms) {
+bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */ lb_controller_tick_pad(
+    uint32_t coordinator, uint64_t now_ms) {
     if (!lb_controller_enabled() || coordinator >= nthreads()) return false;
     const bool key_enabled = key_lb_signals_enabled();
     const bool client_enabled = client_lb_signals_enabled();
@@ -617,8 +624,8 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */lb_controller_tick_pad(u
     try {
         {
             std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
-            if (lb_stage() != LbStage::Idle || flip_dispatch_paused() ||
-                snapshot_.in_progress() || loading()) {
+            if (lb_stage() != LbStage::Idle || flip_dispatch_paused() || snapshot_.in_progress() ||
+                loading()) {
                 lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
                 return false;
             }
@@ -634,8 +641,10 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */lb_controller_tick_pad(u
         } else {
             for (uint32_t tid = 0; tid < nthreads(); tid++) {
                 const Role role = thread(tid).role();
-                if (key_enabled && role == Role::Ex) executors.push_back(tid);
-                else if (client_enabled && role == Role::Ifid) ios.push_back(tid);
+                if (key_enabled && role == Role::Ex)
+                    executors.push_back(tid);
+                else if (client_enabled && role == Role::Ifid)
+                    ios.push_back(tid);
             }
         }
 
@@ -652,20 +661,21 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */lb_controller_tick_pad(u
                              const std::vector<uint32_t>& owners) {
             double total = 0;
             for (uint32_t tid : owners) total += loads[tid];
-            return total > 0 && !owners.empty()
-                ? span * 100.0 * owners.size() / total : 0.0;
+            return total > 0 && !owners.empty() ? span * 100.0 * owners.size() / total : 0.0;
         };
         const uint64_t cooldown_ms = lb_policy_->cooldown_ms();
-        auto update_streak = [&](double ratio, LbAutotune::QuietJitter& noise,
-                                 uint32_t& streak, uint32_t owners) {
+        auto update_streak = [&](double ratio, LbAutotune::QuietJitter& noise, uint32_t& streak,
+                                 uint32_t owners) {
             if (!noise.observe(ratio)) {
                 lb_hysteresis_refused_.fetch_add(1, std::memory_order_relaxed);
                 return false;
             }
             const double fire = noise.band(owners);
-            const double release = fire * 0.8; // Schmitt release band
-            if (ratio > fire) streak = std::min<uint32_t>(streak + 1, LbAutotune::kDecisionTicks);
-            else if (ratio < release) streak = 0;
+            const double release = fire * 0.8;  // Schmitt release band
+            if (ratio > fire)
+                streak = std::min<uint32_t>(streak + 1, LbAutotune::kDecisionTicks);
+            else if (ratio < release)
+                streak = 0;
             if (streak < LbAutotune::kDecisionTicks) {
                 lb_hysteresis_refused_.fetch_add(1, std::memory_order_relaxed);
                 return false;
@@ -692,10 +702,9 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */lb_controller_tick_pad(u
             const double weight_ratio = ratio_pct(shard_before, loads, executors);
             const double byte_ratio = ratio_pct(bytes_before, byte_loads, executors);
             lb_bucket_weight_spread_current_.store(
-                static_cast<uint64_t>(shard_before * 1024.0 + 0.5),
-                std::memory_order_relaxed);
-            lb_bucket_bytes_spread_current_.store(
-                static_cast<uint64_t>(bytes_before + 0.5), std::memory_order_relaxed);
+                static_cast<uint64_t>(shard_before * 1024.0 + 0.5), std::memory_order_relaxed);
+            lb_bucket_bytes_spread_current_.store(static_cast<uint64_t>(bytes_before + 0.5),
+                                                  std::memory_order_relaxed);
             if (update_streak(std::max(weight_ratio, byte_ratio), lb_policy_->key_jitter,
                               lb_bucket_hot_streak_, executors.size())) {
                 // Consume admission even when cooldown, indivisibility, or a sampled
@@ -733,14 +742,13 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */lb_controller_tick_pad(u
                     for (uint32_t step = 0; step < lb_policy_->move_cap(nshards()); step++) {
                         const double old_weight_span = spread(loads, executors);
                         const double old_byte_span = spread(byte_loads, executors);
-                        const bool demand_hot = ratio_pct(old_weight_span, loads, executors) >
-                                                band;
-                        const bool memory_hot = ratio_pct(old_byte_span, byte_loads, executors) >
-                                                band;
+                        const bool demand_hot = ratio_pct(old_weight_span, loads, executors) > band;
+                        const bool memory_hot =
+                            ratio_pct(old_byte_span, byte_loads, executors) > band;
                         if (!demand_hot && !memory_hot) break;
                         WeightedLbMoveChoice choice;
-                        if (!weighted_lb_best_incremental_move(
-                                shard_items, executors, demand_hot, memory_hot, choice)) {
+                        if (!weighted_lb_best_incremental_move(shard_items, executors, demand_hot,
+                                                               memory_hot, choice)) {
                             if (cooldown_seen)
                                 lb_cooldown_refused_.fetch_add(1, std::memory_order_relaxed);
                             else
@@ -749,8 +757,8 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */lb_controller_tick_pad(u
                         }
                         WeightedLbItem& item = shard_items[choice.item_index];
                         shard_plan.push_back({static_cast<uint32_t>(item.id), choice.source,
-                                             choice.destination, item.weight,
-                                             static_cast<uint64_t>(item.secondary)});
+                                              choice.destination, item.weight,
+                                              static_cast<uint64_t>(item.secondary)});
                         loads[choice.source] -= item.weight;
                         loads[choice.destination] += item.weight;
                         byte_loads[choice.source] -= item.secondary;
@@ -772,12 +780,11 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */lb_controller_tick_pad(u
         if (client_enabled && ios.size() >= 2) {
             double loads[kMaxThreads] = {};
             for (uint32_t tid : ios)
-                loads[tid] = double(lb_client_owner_weight_[tid].load(std::memory_order_acquire)) /
-                             1024.0;
+                loads[tid] =
+                    double(lb_client_owner_weight_[tid].load(std::memory_order_acquire)) / 1024.0;
             client_before = spread(loads, ios);
             lb_client_weight_spread_current_.store(
-                static_cast<uint64_t>(client_before * 1024.0 + 0.5),
-                std::memory_order_relaxed);
+                static_cast<uint64_t>(client_before * 1024.0 + 0.5), std::memory_order_relaxed);
             const double client_ratio = ratio_pct(client_before, loads, ios);
             if (update_streak(client_ratio, lb_policy_->client_jitter, lb_client_hot_streak_,
                               ios.size())) {
@@ -790,20 +797,18 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */lb_controller_tick_pad(u
                     clients.reserve(lb_clients_.size());
                     for (const auto& entry : lb_clients_) {
                         const LbClientSignal& signal = entry.second;
-                        if (signal.owner >= nthreads() ||
-                            thread(signal.owner).role() != Role::Ifid) continue;
-                        const bool cooling = signal.last_move_ms &&
-                            now_ms - signal.last_move_ms < cooldown_ms;
+                        if (signal.owner >= nthreads() || thread(signal.owner).role() != Role::Ifid)
+                            continue;
+                        const bool cooling =
+                            signal.last_move_ms && now_ms - signal.last_move_ms < cooldown_ms;
                         if (cooling) cooldown_seen++;
-                        clients.push_back(
-                            {entry.first, signal.owner, signal.weight, cooling, 0.0});
+                        clients.push_back({entry.first, signal.owner, signal.weight, cooling, 0.0});
                         loads[signal.owner] += signal.weight;
                     }
                 }
                 client_before = spread(loads, ios);
                 WeightedLbMoveChoice choice;
-                if (!weighted_lb_best_incremental_move(
-                        clients, ios, true, false, choice)) {
+                if (!weighted_lb_best_incremental_move(clients, ios, true, false, choice)) {
                     if (cooldown_seen)
                         lb_cooldown_refused_.fetch_add(1, std::memory_order_relaxed);
                     else
@@ -828,8 +833,8 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */lb_controller_tick_pad(u
         const bool choose_client = have_client && (!have_bucket || lb_prefer_client_);
 
         std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
-        if (lb_stage() != LbStage::Idle || flip_dispatch_paused() ||
-            snapshot_.in_progress() || loading()) {
+        if (lb_stage() != LbStage::Idle || flip_dispatch_paused() || snapshot_.in_progress() ||
+            loading()) {
             lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
             return false;
         }
@@ -837,30 +842,25 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */lb_controller_tick_pad(u
             lb_ack_[tid].store(0, std::memory_order_relaxed);
         lb_coordinator_ = coordinator;
         lb_epoch_.fetch_add(1, std::memory_order_acq_rel);
-        lb_deadline_ns_.store(now_ns() + LbAutotune::kMoveTimeoutNs,
-                              std::memory_order_release);
+        lb_deadline_ns_.store(now_ns() + LbAutotune::kMoveTimeoutNs, std::memory_order_release);
         if (choose_client) {
             lb_client_move_ = client_plan;
             lb_client_weight_spread_before_.store(
-                static_cast<uint64_t>(client_before * 1024.0 + 0.5),
-                std::memory_order_relaxed);
-            lb_client_weight_spread_after_.store(
-                static_cast<uint64_t>(client_after * 1024.0 + 0.5),
-                std::memory_order_relaxed);
-            lb_client_hot_streak_ = 0; // consume sustain before touching a candidate
+                static_cast<uint64_t>(client_before * 1024.0 + 0.5), std::memory_order_relaxed);
+            lb_client_weight_spread_after_.store(static_cast<uint64_t>(client_after * 1024.0 + 0.5),
+                                                 std::memory_order_relaxed);
+            lb_client_hot_streak_ = 0;  // consume sustain before touching a candidate
             lb_stage_.store(LbStage::ClientDrain, std::memory_order_release);
         } else {
             lb_shard_moves_ = std::move(shard_plan);
             lb_bucket_weight_spread_before_.store(
-                static_cast<uint64_t>(shard_before * 1024.0 + 0.5),
-                std::memory_order_relaxed);
-            lb_bucket_weight_spread_after_.store(
-                static_cast<uint64_t>(shard_after * 1024.0 + 0.5),
-                std::memory_order_relaxed);
-            lb_bucket_bytes_spread_before_.store(
-                static_cast<uint64_t>(bytes_before + 0.5), std::memory_order_relaxed);
-            lb_bucket_bytes_spread_after_.store(
-                static_cast<uint64_t>(bytes_after + 0.5), std::memory_order_relaxed);
+                static_cast<uint64_t>(shard_before * 1024.0 + 0.5), std::memory_order_relaxed);
+            lb_bucket_weight_spread_after_.store(static_cast<uint64_t>(shard_after * 1024.0 + 0.5),
+                                                 std::memory_order_relaxed);
+            lb_bucket_bytes_spread_before_.store(static_cast<uint64_t>(bytes_before + 0.5),
+                                                 std::memory_order_relaxed);
+            lb_bucket_bytes_spread_after_.store(static_cast<uint64_t>(bytes_after + 0.5),
+                                                std::memory_order_relaxed);
             lb_bucket_hot_streak_ = 0;
             lb_start_shard_drain();
         }
@@ -872,7 +872,8 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */lb_controller_tick_pad(u
     }
 }
 
-__attribute__((always_inline)) inline uint32_t IoLoop::/* TOMO_TOOL_BIND lb_control_actuate_pad */lb_control_actuate_pad() {
+__attribute__((always_inline)) inline uint32_t
+    IoLoop::/* TOMO_TOOL_BIND lb_control_actuate_pad */ lb_control_actuate_pad() {
     if (!lb_controller_armed_) return 0;
     const LbStage stage = srv_->lb_stage();
     if (stage != LbStage::ClientDrain) lb_client_wake_pending_ = false;
@@ -899,7 +900,7 @@ __attribute__((always_inline)) inline uint32_t IoLoop::/* TOMO_TOOL_BIND lb_cont
                 return 1;
             }
         }
-        return 1; // keep servicing the bounded drain; do not park waiting for the guard
+        return 1;  // keep servicing the bounded drain; do not park waiting for the guard
     }
     if (stage == LbStage::ExDrain) {
         if (self_->id() == srv_->lb_coordinator()) {
@@ -942,7 +943,10 @@ __attribute__((always_inline)) inline uint32_t IoLoop::/* TOMO_TOOL_BIND lb_cont
     if (move.source == self_->id() && srv_->lb_stage() == LbStage::ClientDrain) {
         Client* selected = nullptr;
         for (Client* client : self_->clients())
-            if (client->id() == move.id) { selected = client; break; }
+            if (client->id() == move.id) {
+                selected = client;
+                break;
+            }
         if (!selected || selected->ifid_thread() != self_->id()) {
             srv_->lb_refuse_client_request();
             lb_schedule_wake_all();
@@ -963,8 +967,7 @@ __attribute__((always_inline)) inline uint32_t IoLoop::/* TOMO_TOOL_BIND lb_cont
             lb_schedule_wake_all();
             return 1;
         }
-        if (selected->is_tls() || selected->multi_session() != nullptr ||
-            selected->blocked()) {
+        if (selected->is_tls() || selected->multi_session() != nullptr || selected->blocked()) {
             srv_->lb_refuse_client_request();
             lb_schedule_wake_all();
             return 1;
@@ -980,9 +983,9 @@ __attribute__((always_inline)) inline uint32_t IoLoop::/* TOMO_TOOL_BIND lb_cont
 
 // PRE had no per-pass pause snapshot; its live per-connection gate is restored in PAD.
 // In particular, do not overwrite the same eight bytes that PAD uses as its cron deadline.
-void IoLoop::/* TOMO_TOOL_BIND lb_pass_begin_pad */lb_pass_begin_pad() {}
+void IoLoop::/* TOMO_TOOL_BIND lb_pass_begin_pad */ lb_pass_begin_pad() {}
 
-uint32_t IoLoop::/* TOMO_TOOL_BIND lb_control_pass_pad */lb_control_pass_pad() {
+uint32_t IoLoop::/* TOMO_TOOL_BIND lb_control_pass_pad */ lb_control_pass_pad() {
     uint32_t did = lb_control_actuate_pad();
     // The same eight bytes were the PRE per-IO cron deadline. PAD never writes
     // a cached pause ID; its parser reads the live stage, as PRE did.
@@ -996,8 +999,8 @@ uint32_t IoLoop::/* TOMO_TOOL_BIND lb_control_pass_pad */lb_control_pass_pad() {
     return did;
 }
 
-void Server::/* TOMO_TOOL_BIND monitor_controllers_pad */monitor_controllers_pad() {
-    if (cfg_.thread_mode == ThreadMode::Fused) return; // PRE fused boots joined workers directly.
+void Server::/* TOMO_TOOL_BIND monitor_controllers_pad */ monitor_controllers_pad() {
+    if (cfg_.thread_mode == ThreadMode::Fused) return;  // PRE fused boots joined workers directly.
     if (flipctl_enabled()) {
         while (!shutting_down().load(std::memory_order_relaxed)) {
             databases().monitor(*this);
@@ -1008,4 +1011,4 @@ void Server::/* TOMO_TOOL_BIND monitor_controllers_pad */monitor_controllers_pad
     }
 }
 
-} // namespace tomo
+}  // namespace tomo

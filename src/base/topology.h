@@ -58,14 +58,20 @@ public:
                 long a = std::strtol(p, &end, 10);
                 if (end == p) return false;
                 long b = a;
-                if (*end == '-') { p = end + 1; b = std::strtol(p, &end, 10); if (end == p) return false; }
-                if (a < 0 || b < a || b >= CPU_SETSIZE ||
-                    (*end && *end != '+' && *end != ',')) return false;
+                if (*end == '-') {
+                    p = end + 1;
+                    b = std::strtol(p, &end, 10);
+                    if (end == p) return false;
+                }
+                if (a < 0 || b < a || b >= CPU_SETSIZE || (*end && *end != '+' && *end != ','))
+                    return false;
                 for (long c = a; c <= b; c++) {
                     if (domain_of_[c] != kNoDomain ||
-                        std::find(cpus.begin(), cpus.end(), c) != cpus.end()) return false;
+                        std::find(cpus.begin(), cpus.end(), c) != cpus.end())
+                        return false;
                     if (!CPU_ISSET(c, &allowed)) {
-                        std::fprintf(stderr, "topology: declared cpu %ld is outside the affinity mask\n", c);
+                        std::fprintf(
+                            stderr, "topology: declared cpu %ld is outside the affinity mask\n", c);
                         return false;
                     }
                     cpus.push_back(static_cast<int>(c));
@@ -103,10 +109,11 @@ public:
             if (domain_of_[cpu] != kNoDomain) continue;
 
             std::vector<int> peers;
-            if (!read_l3_peers(cpu, allowed, peers)) peers.push_back(cpu);   // no sysfs: own domain
+            if (!read_l3_peers(cpu, allowed, peers)) peers.push_back(cpu);  // no sysfs: own domain
 
             const uint32_t d = static_cast<uint32_t>(domains_.size());
-            for (int p : peers) if (domain_of_[p] == kNoDomain) domain_of_[p] = d;
+            for (int p : peers)
+                if (domain_of_[p] == kNoDomain) domain_of_[p] = d;
             domains_.push_back(std::move(peers));
         }
         return !domains_.empty();
@@ -122,7 +129,8 @@ public:
             for (int cpu : domain) {
                 if (!read_thread_siblings(cpu, thread_siblings_[cpu])) return false;
                 if (std::find(thread_siblings_[cpu].begin(), thread_siblings_[cpu].end(), cpu) ==
-                    thread_siblings_[cpu].end()) return false;
+                    thread_siblings_[cpu].end())
+                    return false;
             }
         }
         return true;
@@ -143,13 +151,14 @@ public:
 
     uint32_t ndomains() const { return static_cast<uint32_t>(domains_.size()); }
     uint32_t domain_of(int cpu) const {
-        return (cpu >= 0 && cpu < static_cast<int>(domain_of_.size())) ? domain_of_[cpu] : kNoDomain;
+        return (cpu >= 0 && cpu < static_cast<int>(domain_of_.size())) ? domain_of_[cpu]
+                                                                       : kNoDomain;
     }
     const std::vector<int>& cpus_in(uint32_t d) const { return domains_[d]; }
     const std::vector<int>& thread_siblings(int cpu) const {
         static const std::vector<int> empty;
-        return cpu >= 0 && cpu < static_cast<int>(thread_siblings_.size())
-            ? thread_siblings_[cpu] : empty;
+        return cpu >= 0 && cpu < static_cast<int>(thread_siblings_.size()) ? thread_siblings_[cpu]
+                                                                           : empty;
     }
 
     void dump(FILE* f) const {
@@ -181,12 +190,15 @@ private:
     static bool read_l3_peers(int cpu, const cpu_set_t& allowed, std::vector<int>& out) {
         for (int idx = 0; idx < 8; idx++) {
             char path[128];
-            std::snprintf(path, sizeof(path),
-                          "/sys/devices/system/cpu/cpu%d/cache/index%d/level", cpu, idx);
+            std::snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpu%d/cache/index%d/level",
+                          cpu, idx);
             FILE* f = std::fopen(path, "r");
             if (!f) continue;
             int level = 0;
-            if (std::fscanf(f, "%d", &level) != 1) { std::fclose(f); continue; }
+            if (std::fscanf(f, "%d", &level) != 1) {
+                std::fclose(f);
+                continue;
+            }
             std::fclose(f);
             if (level != 3) continue;
 
@@ -195,7 +207,10 @@ private:
             f = std::fopen(path, "r");
             if (!f) continue;
             char buf[512] = {0};
-            if (!std::fgets(buf, sizeof(buf), f)) { std::fclose(f); continue; }
+            if (!std::fgets(buf, sizeof(buf), f)) {
+                std::fclose(f);
+                continue;
+            }
             std::fclose(f);
             parse_cpu_list(buf, allowed, out);
             return !out.empty();
@@ -240,9 +255,9 @@ private:
         }
     }
 
-    std::vector<uint32_t>          domain_of_;
-    std::vector<std::vector<int>>  domains_;
-    std::vector<std::vector<int>>  thread_siblings_;
+    std::vector<uint32_t> domain_of_;
+    std::vector<std::vector<int>> domains_;
+    std::vector<std::vector<int>> thread_siblings_;
 };
 
 }  // namespace tomo

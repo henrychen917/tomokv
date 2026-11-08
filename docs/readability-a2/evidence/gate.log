@@ -1,0 +1,406 @@
+GATE(iteration): 48 physical cores; 4 correctness slots = min(32/8 server, 16/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 32 server + 16 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-readability-a2/build/gate-run.maUZH3
+PARTIAL jobs (including prerequisites): release racefix_tsan_build cfgfix2-maxmemory config_unit ring_unit production_units source_identity acl_metadata cmd_metadata bugs5 rootcore-inbox wave14_functions flushfix3_units witness_contracts reorder_bounds rob_portable multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 debug-0 debug-1 wb_policy reorder_sync reorder_engagement reorder_identity racefix_counters racefix_climon persistfix_units perfex_units lbplanner_units exbatch_units wb_rule_units wbland_units splitlocal_units atomic_units netfix_idle_buffers release_batteries persistfmt authfix serverfix_config serverfix_hll tracking_redirect trackfix_order flip aoforder txnorder_wound
+PARTIAL jobs (including prerequisites): release racefix_tsan_build cfgfix2-maxmemory config_unit ring_unit production_units source_identity acl_metadata cmd_metadata bugs5 rootcore-inbox wave14_functions flushfix3_units witness_contracts reorder_bounds rob_portable multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 debug-0 debug-1 wb_policy reorder_sync reorder_engagement reorder_identity racefix_counters racefix_climon persistfix_units perfex_units lbplanner_units exbatch_units wb_rule_units wbland_units splitlocal_units atomic_units netfix_idle_buffers release_batteries persistfmt authfix serverfix_config serverfix_hll tracking_redirect trackfix_order flip aoforder txnorder_wound
+  row budget: 900s; median=39.21s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=7.3s; correctness-plan-fallback; cfgfix2 maxmemory (oracle, both modes and engines)
+  cfgfix2 maxmemory (oracle, both modes and engines)   ok
+  row budget: 900s; median=7.86s; correctness-plan-fallback; configuration docs match parser
+  configuration docs match parser                      ok
+  row budget: 900s; median=6.25s; correctness-plan-fallback; Redis config quoting + mid-value #
+Could not create server TCP listening socket 127.0.0.2:16379: Address already in use
+Could not create server TCP listening socket 127.0.0.2:16379: Address already in use
+PASS documented config example: parser, defaults, 6:2 placement, 16 shards
+boot presentation: 256 resolved cells, eight placement witnesses each
+  Redis config quoting + mid-value #                   ok
+  row budget: 900s; median=1.14s; correctness-plan-fallback; read-local write ring + arming transient unit
+  read-local write ring + arming transient unit        ok
+  row budget: 900s; median=0.7s; correctness-plan-fallback; climon 128-owner delivery mask
+  climon 128-owner delivery mask                       ok
+  row budget: 900s; median=0.94s; correctness-plan-fallback; read-local MGET fence symmetry unit
+  read-local MGET fence symmetry unit                  ok
+  row budget: 900s; median=127.92s; correctness-plan-fallback; production source identity + stable assertion ids
+  production source identity + stable assertion ids    ok
+  row budget: 900s; median=1.41s; correctness-plan-fallback; generated Redis 7.4 ACL categories
+  generated Redis 7.4 ACL categories                   ok
+  row budget: 900s; median=5.06s; correctness-plan-fallback; cmdmeta covers every registered command
+  cmdmeta covers every registered command              ok
+  row budget: 900s; median=44.46s; correctness-plan-fallback; bugs5 scancompact (both modes, both engines, atomic 0/1)
+  bugs5 scancompact (both modes, both engines, atomic 0/1) ok
+  row budget: 900s; median=33.81s; correctness-plan-fallback; bugs5 slowlog_identity (both modes, both engines, atomic 0/1)
+  bugs5 slowlog_identity (both modes, both engines, atomic 0/1) ok
+  row budget: 900s; median=27.23s; correctness-plan-fallback; bugs5 read_local_lfu (both modes, both engines, atomic 0/1)
+  bugs5 read_local_lfu (both modes, both engines, atomic 0/1) ok
+  row budget: 900s; median=4.86s; correctness-plan-fallback; rootcore inbox
+  rootcore inbox                                       ok
+  row budget: 900s; median=31.17s; correctness-plan-fallback; wave14 function snapshot and journal history
+  wave14 function snapshot and journal history         ok
+  row budget: 900s; median=12.56s; correctness-plan-fallback; flushfix3-unit linear collapse, collisions, OOM and saturated ranges
+  flushfix3-unit linear collapse, collisions, OOM and saturated ranges ok
+  row budget: 900s; median=13.97s; correctness-plan-fallback; flushfix3-db0-unit linear collapse, collisions, OOM and saturated ranges
+  flushfix3-db0-unit linear collapse, collisions, OOM and saturated ranges ok
+  row budget: 900s; median=0.66s; correctness-plan-fallback; witness falsification contracts (testmap + placement)
+  witness falsification contracts (testmap + placement) ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; R7 linear scan and lazy construction bounds (both databases)
+  R7 linear scan and lazy construction bounds (both databases) ok
+  row budget: 900s; median=1.3s; correctness-plan-fallback; ROB portable completion without BMI
+  ROB portable completion without BMI                  ok
+  row budget: 900s; median=4.95s; correctness-plan-fallback; multidb (1s, read-local 0, atomic 0)
+  multidb (1s, read-local 0, atomic 0)                 ok
+  row budget: 900s; median=0.1s; correctness-plan-fallback; multidb (1s, read-local 0, atomic 0) SWAPDB serial order
+  multidb (1s, read-local 0, atomic 0) SWAPDB serial order ok
+  row budget: 900s; median=0.28s; correctness-plan-fallback; multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB
+  multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB ok
+  row budget: 900s; median=4.94s; correctness-plan-fallback; multidb (1s, read-local 0, atomic 1)
+  multidb (1s, read-local 0, atomic 1)                 ok
+  row budget: 900s; median=0.1s; correctness-plan-fallback; multidb (1s, read-local 0, atomic 1) SWAPDB serial order
+  multidb (1s, read-local 0, atomic 1) SWAPDB serial order ok
+  row budget: 900s; median=0.28s; correctness-plan-fallback; multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB
+  multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB ok
+  row budget: 900s; median=4.95s; correctness-plan-fallback; multidb (1s, read-local 1, atomic 0)
+  multidb (1s, read-local 1, atomic 0)                 ok
+  row budget: 900s; median=0.09s; correctness-plan-fallback; multidb (1s, read-local 1, atomic 0) SWAPDB serial order
+  multidb (1s, read-local 1, atomic 0) SWAPDB serial order ok
+  row budget: 900s; median=0.28s; correctness-plan-fallback; multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB
+  multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB ok
+  row budget: 900s; median=4.95s; correctness-plan-fallback; multidb (1s, read-local 1, atomic 1)
+  multidb (1s, read-local 1, atomic 1)                 ok
+  row budget: 900s; median=0.11s; correctness-plan-fallback; multidb (1s, read-local 1, atomic 1) SWAPDB serial order
+  multidb (1s, read-local 1, atomic 1) SWAPDB serial order ok
+  row budget: 900s; median=0.28s; correctness-plan-fallback; multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB
+  multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB ok
+  row budget: 900s; median=4.85s; correctness-plan-fallback; multidb (2s, read-local 0, atomic 0)
+  multidb (2s, read-local 0, atomic 0)                 ok
+  row budget: 900s; median=0.11s; correctness-plan-fallback; multidb (2s, read-local 0, atomic 0) SWAPDB serial order
+  multidb (2s, read-local 0, atomic 0) SWAPDB serial order ok
+  row budget: 900s; median=0.27s; correctness-plan-fallback; multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB
+  multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB ok
+  row budget: 900s; median=4.83s; correctness-plan-fallback; multidb (2s, read-local 0, atomic 1)
+  multidb (2s, read-local 0, atomic 1)                 ok
+  row budget: 900s; median=0.1s; correctness-plan-fallback; multidb (2s, read-local 0, atomic 1) SWAPDB serial order
+  multidb (2s, read-local 0, atomic 1) SWAPDB serial order ok
+  row budget: 900s; median=0.28s; correctness-plan-fallback; multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB
+  multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB ok
+  row budget: 900s; median=4.89s; correctness-plan-fallback; multidb (2s, read-local 1, atomic 0)
+  multidb (2s, read-local 1, atomic 0)                 ok
+  row budget: 900s; median=0.12s; correctness-plan-fallback; multidb (2s, read-local 1, atomic 0) SWAPDB serial order
+  multidb (2s, read-local 1, atomic 0) SWAPDB serial order ok
+  row budget: 900s; median=0.28s; correctness-plan-fallback; multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB
+  multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB ok
+  row budget: 900s; median=4.84s; correctness-plan-fallback; multidb (2s, read-local 1, atomic 1)
+  multidb (2s, read-local 1, atomic 1)                 ok
+  row budget: 900s; median=0.1s; correctness-plan-fallback; multidb (2s, read-local 1, atomic 1) SWAPDB serial order
+  multidb (2s, read-local 1, atomic 1) SWAPDB serial order ok
+  row budget: 900s; median=0.27s; correctness-plan-fallback; multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB
+  multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB ok
+  row budget: 900s; median=9.17s; correctness-plan-fallback; plain-write lost updates (atomic 0)
+  plain-write lost updates (atomic 0)                  ok
+  row budget: 900s; median=0.19s; correctness-plan-fallback; lbsignals battery (atomic 0)
+  lbsignals battery (atomic 0)                         ok
+  row budget: 900s; median=1.51s; correctness-plan-fallback; slowlog battery (atomic 0)
+  slowlog battery (atomic 0)                           ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; atomfix battery (atomic 0)
+  atomfix battery (atomic 0)                           ok
+  row budget: 900s; median=0.22s; correctness-plan-fallback; scriptatomic battery (atomic 0)
+  scriptatomic battery (atomic 0)                      ok
+  row budget: 900s; median=14.49s; correctness-plan-fallback; execatomic battery (atomic 0)
+  execatomic battery (atomic 0)                        ok
+  row budget: 900s; median=11.89s; correctness-plan-fallback; execiso battery (atomic 0)
+  execiso battery (atomic 0)                           ok
+  row budget: 900s; median=0.58s; correctness-plan-fallback; execfix battery (atomic 0)
+  execfix battery (atomic 0)                           ok
+  row budget: 900s; median=0.12s; correctness-plan-fallback; multires battery (atomic 0)
+  multires battery (atomic 0)                          ok
+  row budget: 900s; median=0.81s; correctness-plan-fallback; multirace battery (atomic 0)
+  multirace battery (atomic 0)                         ok
+  row budget: 900s; median=30.61s; correctness-plan-fallback; session_monotonic battery (atomic 0)
+  session_monotonic battery (atomic 0)                 ok
+  row budget: 900s; median=0.39s; correctness-plan-fallback; xacct battery (atomic 0)
+  xacct battery (atomic 0)                             ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; xmove battery (atomic 0)
+  xmove battery (atomic 0)                             ok
+  row budget: 900s; median=3.29s; correctness-plan-fallback; xscript battery (atomic 0)
+  xscript battery (atomic 0)                           ok
+  row budget: 900s; median=1.07s; correctness-plan-fallback; txn_nx battery (atomic 0)
+  txn_nx battery (atomic 0)                            ok
+  row budget: 900s; median=8.63s; correctness-plan-fallback; txniso battery (atomic 0)
+  txniso battery (atomic 0)                            ok
+  row budget: 900s; median=6.16s; correctness-plan-fallback; plain-write lost updates (atomic 1)
+  plain-write lost updates (atomic 1)                  ok
+  row budget: 900s; median=0.18s; correctness-plan-fallback; lbsignals battery (atomic 1)
+  lbsignals battery (atomic 1)                         ok
+  row budget: 900s; median=1.5s; correctness-plan-fallback; slowlog battery (atomic 1)
+  slowlog battery (atomic 1)                           ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; atomfix battery (atomic 1)
+  atomfix battery (atomic 1)                           ok
+  row budget: 900s; median=0.22s; correctness-plan-fallback; scriptatomic battery (atomic 1)
+  scriptatomic battery (atomic 1)                      ok
+  row budget: 900s; median=14.49s; correctness-plan-fallback; execatomic battery (atomic 1)
+  execatomic battery (atomic 1)                        ok
+  row budget: 900s; median=11.9s; correctness-plan-fallback; execiso battery (atomic 1)
+  execiso battery (atomic 1)                           ok
+  row budget: 900s; median=0.58s; correctness-plan-fallback; execfix battery (atomic 1)
+  execfix battery (atomic 1)                           ok
+  row budget: 900s; median=0.14s; correctness-plan-fallback; multires battery (atomic 1)
+  multires battery (atomic 1)                          ok
+  row budget: 900s; median=0.81s; correctness-plan-fallback; multirace battery (atomic 1)
+  multirace battery (atomic 1)                         ok
+  row budget: 900s; median=30.61s; correctness-plan-fallback; session_monotonic battery (atomic 1)
+  session_monotonic battery (atomic 1)                 ok
+  row budget: 900s; median=0.39s; correctness-plan-fallback; xacct battery (atomic 1)
+  xacct battery (atomic 1)                             ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; xmove battery (atomic 1)
+  xmove battery (atomic 1)                             ok
+  row budget: 900s; median=3.29s; correctness-plan-fallback; xscript battery (atomic 1)
+  xscript battery (atomic 1)                           ok
+  row budget: 900s; median=2s; correctness-plan-fallback; txn_nx battery (atomic 1)
+  txn_nx battery (atomic 1)                            ok
+  row budget: 900s; median=8.54s; correctness-plan-fallback; txniso battery (atomic 1)
+  txniso battery (atomic 1)                            ok
+  row budget: 900s; median=6.47s; correctness-plan-fallback; writeback policies 0/1: 22 standard fixtures
+  writeback policies 0/1: 22 standard fixtures         ok
+  row budget: 900s; median=25.78s; correctness-plan-fallback; R7 generated envelope parity
+  R7 generated envelope parity                         ok
+  row budget: 900s; median=18.81s; correctness-plan-fallback; R7 production engagement (both database runtimes)
+  R7 production engagement (both database runtimes)    ok
+  row budget: 900s; median=193.82s; correctness-plan-fallback; R7 FIFO twin off-path identity + negative controls
+  R7 FIFO twin off-path identity + negative controls   ok
+  row budget: 900s; median=2.94s; correctness-plan-fallback; INFO command/socket counters (TSan, both modes)
+  INFO command/socket counters (TSan, both modes)      ok
+  row budget: 900s; median=1.7s; correctness-plan-fallback; Climon armed refresh + stale-store suppression control
+  Climon armed refresh + stale-store suppression control ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; AOF publication/shutdown witnesses + negative controls
+  AOF publication/shutdown witnesses + negative controls ok
+  row budget: 900s; median=1.25s; correctness-plan-fallback; perfex clock binary regression
+  perfex clock binary regression                       ok
+  row budget: 900s; median=1.07s; correctness-plan-fallback; perfex batch binary regression
+  perfex batch binary regression                       ok
+  row budget: 900s; median=0.21s; correctness-plan-fallback; LB sampler exceptional cleanup + negative control
+  LB sampler exceptional cleanup + negative control    ok
+  row budget: 900s; median=0.2s; correctness-plan-fallback; LB monitor plan handoff + negative controls
+  LB monitor plan handoff + negative controls          ok
+  row budget: 900s; median=19.71s; correctness-plan-fallback; exbatch publication unit + negative controls
+  exbatch publication unit + negative controls         ok
+  row budget: 900s; median=59.21s; correctness-plan-fallback; exbatch watch unit + negative controls
+  exbatch watch unit + negative controls               ok
+  row budget: 900s; median=23.22s; correctness-plan-fallback; exbatch metadata unit + negative controls
+  exbatch metadata unit + negative controls            ok
+  row budget: 900s; median=0.12s; correctness-plan-fallback; writeback c12 policy witnesses + negative controls
+  writeback c12 policy witnesses + negative controls   ok
+  row budget: 900s; median=5.75s; correctness-plan-fallback; writeback c12 phase witnesses + negative controls
+  writeback c12 phase witnesses + negative controls    ok
+  row budget: 900s; median=2.27s; correctness-plan-fallback; writeback c12 stages witnesses + negative controls
+  writeback c12 stages witnesses + negative controls   ok
+  row budget: 900s; median=6.19s; correctness-plan-fallback; writeback c12 split-phase witnesses + negative controls
+  writeback c12 split-phase witnesses + negative controls ok
+  row budget: 900s; median=34.08s; correctness-plan-fallback; writeback policy clauses witnesses + negative controls
+  writeback policy clauses witnesses + negative controls ok
+  row budget: 900s; median=2.24s; correctness-plan-fallback; writeback policy paths witnesses + negative controls
+  writeback policy paths witnesses + negative controls ok
+  row budget: 900s; median=10.55s; correctness-plan-fallback; splitlocal template forwarding + old-argument controls
+  splitlocal template forwarding + old-argument controls ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic commit publication catches up at quiescence
+  atomic commit publication catches up at quiescence   ok
+  row budget: 900s; median=2.28s; correctness-plan-fallback; flushfix flush witnesses
+  flushfix flush witnesses                             ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; flushfix headers witnesses
+  flushfix headers witnesses                           ok
+  row budget: 900s; median=3.57s; correctness-plan-fallback; multidb serverless owners
+  multidb serverless owners                            ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; multidb global namespace boundary
+  multidb global namespace boundary                    ok
+  row budget: 900s; median=14.89s; correctness-plan-fallback; storesize published monitoring
+  storesize published monitoring                       ok
+  row budget: 900s; median=0.21s; correctness-plan-fallback; MULTI admin command replies
+  MULTI admin command replies                          ok
+  row budget: 900s; median=0.07s; correctness-plan-fallback; EXECABORT releases WATCH reservation
+  EXECABORT releases WATCH reservation                 ok
+  row budget: 900s; median=0s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); atomic survivors unit build
+  atomic survivors unit build                          ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: admission
+  atomic survivor: admission                           ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: closure
+  atomic survivor: closure                             ok
+  row budget: 900s; median=0s; correctness-plan-fallback; atomic survivor: script_keys
+  atomic survivor: script_keys                         ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: rename_overlay
+  atomic survivor: rename_overlay                      ok
+  row budget: 900s; median=0s; correctness-plan-fallback; atomic survivor: write_latest
+  atomic survivor: write_latest                        ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: script_apply
+  atomic survivor: script_apply                        ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: post_apply_probe
+  atomic survivor: post_apply_probe                    ok
+  row budget: 900s; median=0s; correctness-plan-fallback; atomic survivor: lua_conversion
+  atomic survivor: lua_conversion                      ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: watch_parent
+  atomic survivor: watch_parent                        ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: watch_cycle
+  atomic survivor: watch_cycle                         ok
+  row budget: 900s; median=0s; correctness-plan-fallback; atomic survivor: mset_arity
+  atomic survivor: mset_arity                          ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: watch_oom
+  atomic survivor: watch_oom                           ok
+  row budget: 900s; median=0s; correctness-plan-fallback; atomic survivor: lua_lines
+  atomic survivor: lua_lines                           ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: library_limit
+  atomic survivor: library_limit                       ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: stage_flag
+  atomic survivor: stage_flag                          ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: instruction_limit
+  atomic survivor: instruction_limit                   ok
+  row budget: 900s; median=0s; correctness-plan-fallback; armed resize retirement: atomic-growth
+  armed resize retirement: atomic-growth               ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; armed resize retirement: flush-prepared
+  armed resize retirement: flush-prepared              ok
+  row budget: 900s; median=302.56s; correctness-plan-fallback; netfix NT4.19 idle buffer reclamation
+  netfix NT4.19 idle buffer reclamation                ok
+  row budget: 900s; median=6.66s; correctness-plan-fallback; torture battery
+  torture battery                                      ok
+  row budget: 900s; median=0.96s; correctness-plan-fallback; RYOW battery
+  RYOW battery                                         ok
+  row budget: 900s; median=0.65s; correctness-plan-fallback; ACL category runtime table
+  ACL category runtime table                           ok
+  row budget: 900s; median=0.57s; correctness-plan-fallback; ACL LOAD/SAVE no-file errors
+  ACL LOAD/SAVE no-file errors                         ok
+  row budget: 900s; median=1.03s; correctness-plan-fallback; idle loop ceiling (LBSIGNALS, 1s)
+  idle loop ceiling (LBSIGNALS, 1s)                    ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; shutdown invariants (nothing stuck)
+LBSIGNALS IO tenure conservation: {'tenures': 6, 'fired': {'did_submit': 0, 'sweep_submit': 0, 'park': 0, 'role_exit': 0}, 'mixed': False}
+  shutdown invariants (nothing stuck)                  ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; direct-reply fired (direct=N)
+  direct-reply fired (direct=11246)                    ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; dispatched==executed (N)
+  dispatched==executed (54866)                         ok
+  row budget: 900s; median=0.41s; correctness-plan-fallback; persistfmt stream-roundtrip (1s, epoll)
+  persistfmt stream-roundtrip (1s, epoll)              ok
+  row budget: 900s; median=1.08s; correctness-plan-fallback; persistfmt stream-interchange (1s, epoll)
+  persistfmt stream-interchange (1s, epoll)            ok
+  row budget: 900s; median=0.59s; correctness-plan-fallback; persistfmt stream-options (1s, epoll)
+  persistfmt stream-options (1s, epoll)                ok
+  row budget: 900s; median=0.4s; correctness-plan-fallback; persistfmt wire-values (1s, epoll)
+  persistfmt wire-values (1s, epoll)                   ok
+  row budget: 900s; median=1.35s; correctness-plan-fallback; persistfmt save (1s, epoll)
+  persistfmt save (1s, epoll)                          ok
+  row budget: 900s; median=0.75s; correctness-plan-fallback; persistfmt bgsave (1s, epoll)
+  persistfmt bgsave (1s, epoll)                        ok
+  row budget: 900s; median=0.7s; correctness-plan-fallback; persistfmt shutdown (1s, epoll)
+  persistfmt shutdown (1s, epoll)                      ok
+  row budget: 900s; median=0.71s; correctness-plan-fallback; persistfmt reload (1s, epoll)
+  persistfmt reload (1s, epoll)                        ok
+  row budget: 900s; median=0.8s; correctness-plan-fallback; persistfmt aof-yes (1s, epoll)
+  persistfmt aof-yes (1s, epoll)                       ok
+  row budget: 900s; median=6.31s; correctness-plan-fallback; persistfmt aof-failure (1s, epoll)
+  persistfmt aof-failure (1s, epoll)                   ok
+  row budget: 900s; median=0.43s; correctness-plan-fallback; persistfmt stream-roundtrip (1s, uring)
+  persistfmt stream-roundtrip (1s, uring)              ok
+  row budget: 900s; median=1.14s; correctness-plan-fallback; persistfmt stream-interchange (1s, uring)
+  persistfmt stream-interchange (1s, uring)            ok
+  row budget: 900s; median=0.63s; correctness-plan-fallback; persistfmt stream-options (1s, uring)
+  persistfmt stream-options (1s, uring)                ok
+  row budget: 900s; median=0.39s; correctness-plan-fallback; persistfmt wire-values (1s, uring)
+  persistfmt wire-values (1s, uring)                   ok
+  row budget: 900s; median=1.46s; correctness-plan-fallback; persistfmt save (1s, uring)
+  persistfmt save (1s, uring)                          ok
+  row budget: 900s; median=0.81s; correctness-plan-fallback; persistfmt bgsave (1s, uring)
+  persistfmt bgsave (1s, uring)                        ok
+  row budget: 900s; median=0.71s; correctness-plan-fallback; persistfmt shutdown (1s, uring)
+  persistfmt shutdown (1s, uring)                      ok
+  row budget: 900s; median=0.76s; correctness-plan-fallback; persistfmt reload (1s, uring)
+  persistfmt reload (1s, uring)                        ok
+  row budget: 900s; median=0.82s; correctness-plan-fallback; persistfmt aof-yes (1s, uring)
+  persistfmt aof-yes (1s, uring)                       ok
+  row budget: 900s; median=2.19s; correctness-plan-fallback; persistfmt aof-failure (1s, uring)
+  persistfmt aof-failure (1s, uring)                   ok
+  row budget: 900s; median=0.43s; correctness-plan-fallback; persistfmt stream-roundtrip (2s, epoll)
+  persistfmt stream-roundtrip (2s, epoll)              ok
+  row budget: 900s; median=1.13s; correctness-plan-fallback; persistfmt stream-interchange (2s, epoll)
+  persistfmt stream-interchange (2s, epoll)            ok
+  row budget: 900s; median=0.62s; correctness-plan-fallback; persistfmt stream-options (2s, epoll)
+  persistfmt stream-options (2s, epoll)                ok
+  row budget: 900s; median=0.4s; correctness-plan-fallback; persistfmt wire-values (2s, epoll)
+  persistfmt wire-values (2s, epoll)                   ok
+  row budget: 900s; median=1.41s; correctness-plan-fallback; persistfmt save (2s, epoll)
+  persistfmt save (2s, epoll)                          ok
+  row budget: 900s; median=0.76s; correctness-plan-fallback; persistfmt bgsave (2s, epoll)
+  persistfmt bgsave (2s, epoll)                        ok
+  row budget: 900s; median=0.7s; correctness-plan-fallback; persistfmt shutdown (2s, epoll)
+  persistfmt shutdown (2s, epoll)                      ok
+  row budget: 900s; median=0.71s; correctness-plan-fallback; persistfmt reload (2s, epoll)
+  persistfmt reload (2s, epoll)                        ok
+  row budget: 900s; median=0.81s; correctness-plan-fallback; persistfmt aof-yes (2s, epoll)
+  persistfmt aof-yes (2s, epoll)                       ok
+  row budget: 900s; median=2.13s; correctness-plan-fallback; persistfmt aof-failure (2s, epoll)
+  persistfmt aof-failure (2s, epoll)                   ok
+  row budget: 900s; median=0.42s; correctness-plan-fallback; persistfmt stream-roundtrip (2s, uring)
+  persistfmt stream-roundtrip (2s, uring)              ok
+  row budget: 900s; median=1.11s; correctness-plan-fallback; persistfmt stream-interchange (2s, uring)
+  persistfmt stream-interchange (2s, uring)            ok
+  row budget: 900s; median=0.61s; correctness-plan-fallback; persistfmt stream-options (2s, uring)
+  persistfmt stream-options (2s, uring)                ok
+  row budget: 900s; median=0.4s; correctness-plan-fallback; persistfmt wire-values (2s, uring)
+  persistfmt wire-values (2s, uring)                   ok
+  row budget: 900s; median=1.41s; correctness-plan-fallback; persistfmt save (2s, uring)
+  persistfmt save (2s, uring)                          ok
+  row budget: 900s; median=0.79s; correctness-plan-fallback; persistfmt bgsave (2s, uring)
+  persistfmt bgsave (2s, uring)                        ok
+  row budget: 900s; median=0.69s; correctness-plan-fallback; persistfmt shutdown (2s, uring)
+  persistfmt shutdown (2s, uring)                      ok
+  row budget: 900s; median=0.77s; correctness-plan-fallback; persistfmt reload (2s, uring)
+  persistfmt reload (2s, uring)                        ok
+  row budget: 900s; median=0.83s; correctness-plan-fallback; persistfmt aof-yes (2s, uring)
+  persistfmt aof-yes (2s, uring)                       ok
+  row budget: 900s; median=2.16s; correctness-plan-fallback; persistfmt aof-failure (2s, uring)
+  persistfmt aof-failure (2s, uring)                   ok
+  row budget: 900s; median=1.86s; correctness-plan-fallback; authfix CG4.1 binary config requirepass
+  authfix CG4.1 binary config requirepass              ok
+  row budget: 900s; median=7.22s; correctness-plan-fallback; authfix CG4.2 missing config value refuses boot
+  authfix CG4.2 missing config value refuses boot      ok
+  row budget: 900s; median=1.92s; correctness-plan-fallback; authfix SV4.2 binary requirepass rewrite restart
+  authfix SV4.2 binary requirepass rewrite restart     ok
+  row budget: 900s; median=0.62s; correctness-plan-fallback; authfix SV4.1 slowlog credential redaction (1s)
+  authfix SV4.1 slowlog credential redaction (1s)      ok
+  row budget: 900s; median=0.61s; correctness-plan-fallback; authfix SV4.1 slowlog credential redaction (2s)
+  authfix SV4.1 slowlog credential redaction (2s)      ok
+  row budget: 900s; median=3.28s; correctness-plan-fallback; serverfix SV4.6 CONFIG validation matrix
+  serverfix SV4.6 CONFIG validation matrix             ok
+  row budget: 900s; median=8.58s; correctness-plan-fallback; serverfix SV4.8 HyperLogLog self-test controls
+  serverfix SV4.8 HyperLogLog self-test controls       ok
+  row budget: 900s; median=40.29s; correctness-plan-fallback; tracking REDIRECT close vs Redis 7.4
+  tracking REDIRECT close vs Redis 7.4                 ok
+  row budget: 900s; median=225.48s; correctness-plan-fallback; tracking delayed-write order vs Redis 7.4
+  tracking delayed-write order vs Redis 7.4            ok
+  row budget: 900s; median=0.14s; correctness-plan-fallback; FLIP state battery
+  FLIP state battery                                   ok
+  row budget: 900s; median=1.04s; correctness-plan-fallback; FLIP under verified load
+  FLIP under verified load                             ok
+  row budget: 900s; median=1.44s; correctness-plan-fallback; FLIP TTL + expiry events
+  FLIP TTL + expiry events                             ok
+  row budget: 900s; median=2.24s; correctness-plan-fallback; partial-frame conn parks (no io spin)
+  partial-frame conn parks (no io spin)                ok
+  row budget: 900s; median=2.12s; correctness-plan-fallback; FLIP close during FLIP (uring)
+  FLIP close during FLIP (uring)                       ok
+  row budget: 900s; median=2.12s; correctness-plan-fallback; FLIP close during FLIP (epoll)
+  FLIP close during FLIP (epoll)                       ok
+  row budget: 900s; median=4.7s; correctness-plan-fallback; FLIP signal stop during FLIP + second SIGINT
+  FLIP signal stop during FLIP + second SIGINT         ok
+  row budget: 900s; median=0.55s; correctness-plan-fallback; perfio stale epoll registration (epoll-flip)
+  perfio stale epoll registration (epoll-flip)         ok
+  row budget: 900s; median=1.1s; correctness-plan-fallback; perfio stale epoll registration (epoll-lb)
+  perfio stale epoll registration (epoll-lb)           ok
+  row budget: 900s; median=9.98s; correctness-plan-fallback; AOF commit order single
+  AOF commit order single                              ok
+  row budget: 900s; median=4.56s; correctness-plan-fallback; AOF commit order crossing
+  AOF commit order crossing                            ok
+  row budget: 900s; median=4.94s; correctness-plan-fallback; AOF commit order rewrite
+  AOF commit order rewrite                             ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; txnorder wound group
+  txnorder wound group                                 ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; txnorder wound exec
+  txnorder wound exec                                  ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; txnorder wound oom
+  txnorder wound oom                                   ok
+  row budget: 900s; median=0.09s; correctness-plan-fallback; txnorder wound d2
+  txnorder wound d2                                    ok
+GATE(PARTIAL): 198 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-readability-a2/build/gate-run.maUZH3/ledger.partial

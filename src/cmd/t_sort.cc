@@ -16,7 +16,9 @@ namespace {
 struct LocaleState {
     std::mutex mutex;
     locale_t locale = nullptr;
-    ~LocaleState() { if (locale) freelocale(locale); }
+    ~LocaleState() {
+        if (locale) freelocale(locale);
+    }
 };
 LocaleState g_collate;
 
@@ -26,10 +28,12 @@ struct SortLocale {
         if (!needed) return;
         std::lock_guard<std::mutex> lock(g_collate.mutex);
         value = g_collate.locale ? duplocale(g_collate.locale)
-                                : newlocale(LC_COLLATE_MASK, "", nullptr);
+                                 : newlocale(LC_COLLATE_MASK, "", nullptr);
         if (!value) throw std::bad_alloc();
     }
-    ~SortLocale() { if (value) freelocale(value); }
+    ~SortLocale() {
+        if (value) freelocale(value);
+    }
 };
 
 // Local copies of two three-line helpers that live in other translation units' anonymous
@@ -52,7 +56,7 @@ bool sort_number(const std::string& text, double& number) {
 // One weighted row.  `weight_present` is the reference's NULL: a BY pattern whose key is missing,
 // holds a non-string, or lacks the named hash field.
 struct SortItem {
-    uint32_t index = 0;          // position in the caller's `elements`, for stable ties
+    uint32_t index = 0;  // position in the caller's `elements`, for stable ties
     double score = 0;
     std::string weight;
     bool weight_present = false;
@@ -84,9 +88,8 @@ void sort_pattern_parse(Slice pattern, SortPattern& out) {
     out = SortPattern{};
     out.raw = pattern;
     out.self = pattern.n == 1 && pattern.p[0] == '#';
-    const char* star = pattern.n ? static_cast<const char*>(
-                                       std::memchr(pattern.p, '*', pattern.n))
-                                 : nullptr;
+    const char* star =
+        pattern.n ? static_cast<const char*>(std::memchr(pattern.p, '*', pattern.n)) : nullptr;
     if (!star) return;
     out.has_star = true;
     out.prefix = Slice(pattern.p, static_cast<uint32_t>(star - pattern.p));
@@ -96,7 +99,10 @@ void sort_pattern_parse(Slice pattern, SortPattern& out) {
     // otherwise it is ordinary key bytes.  Verified against the reference in both directions.
     const char* arrow = nullptr;
     for (uint32_t i = 0; tail_len >= 2 && i + 2 < tail_len; i++)
-        if (tail[i] == '-' && tail[i + 1] == '>') { arrow = tail + i; break; }
+        if (tail[i] == '-' && tail[i + 1] == '>') {
+            arrow = tail + i;
+            break;
+        }
     if (arrow) {
         out.suffix = Slice(tail, static_cast<uint32_t>(arrow - tail));
         out.field = Slice(arrow + 2, static_cast<uint32_t>(pattern.p + pattern.n - (arrow + 2)));
@@ -114,8 +120,7 @@ bool sort_pattern_key(const SortPattern& pattern, Slice element, std::string& ke
 }
 
 SortStatus sort_run(const SortSpec& spec, const SortResolved* resolved,
-                    std::vector<std::string>& elements,
-                    std::vector<std::string>& values,
+                    std::vector<std::string>& elements, std::vector<std::string>& values,
                     std::vector<uint8_t>& present) {
     values.clear();
     present.clear();
@@ -141,8 +146,7 @@ SortStatus sort_run(const SortSpec& spec, const SortResolved* resolved,
             item.index = i;
             if (!dontsort) {
                 if (by_lookup) {
-                    item.weight_present = resolved && resolved->by_values &&
-                                          resolved->by_present &&
+                    item.weight_present = resolved && resolved->by_values && resolved->by_present &&
                                           i < resolved->by_values->size() &&
                                           i < resolved->by_present->size() &&
                                           (*resolved->by_present)[i];
@@ -168,13 +172,16 @@ SortStatus sort_run(const SortSpec& spec, const SortResolved* resolved,
             auto compare = [&](const SortItem& a, const SortItem& b) {
                 int cmp = 0;
                 if (!alpha) {
-                    if (a.score < b.score) cmp = -1;
-                    else if (a.score > b.score) cmp = 1;
-                    else cmp = sort_binary_compare(
-                        Slice(elements[a.index].data(),
-                              static_cast<uint32_t>(elements[a.index].size())),
-                        Slice(elements[b.index].data(),
-                              static_cast<uint32_t>(elements[b.index].size())));
+                    if (a.score < b.score)
+                        cmp = -1;
+                    else if (a.score > b.score)
+                        cmp = 1;
+                    else
+                        cmp = sort_binary_compare(
+                            Slice(elements[a.index].data(),
+                                  static_cast<uint32_t>(elements[a.index].size())),
+                            Slice(elements[b.index].data(),
+                                  static_cast<uint32_t>(elements[b.index].size())));
                 } else if (!a.weight_present || !b.weight_present) {
                     // NULL sorts before every present weight; two NULLs compare equal.
                     cmp = a.weight_present ? 1 : (b.weight_present ? -1 : 0);

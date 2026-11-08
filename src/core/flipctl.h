@@ -39,8 +39,7 @@ enum class FlipFingerprintClass : uint8_t {
     Count,
 };
 
-inline constexpr size_t kFlipFingerprintClasses =
-    static_cast<size_t>(FlipFingerprintClass::Count);
+inline constexpr size_t kFlipFingerprintClasses = static_cast<size_t>(FlipFingerprintClass::Count);
 
 // Monotonic cumulative publication.  A controller subtraction therefore consumes every closed
 // work window even when an IO thread closes many of them between monitor beats.
@@ -116,8 +115,7 @@ public:
 
     // Called only inside a sampled pass, after the parsed frame has crossed its last
     // refusal/backpressure point.
-    void note_command(FlipFingerprintClass command_class, uint32_t keys,
-                      uint64_t value_bytes) {
+    void note_command(FlipFingerprintClass command_class, uint32_t keys, uint64_t value_bytes) {
         partial_.command_class[static_cast<size_t>(command_class)]++;
         partial_.commands++;
         if (keys > 1) {
@@ -228,8 +226,7 @@ double flip_signature_pass_distance(const FlipSignature& left, const FlipSignatu
 // forms remain for byte stability; no production constructor selects either form.
 class FlipShiftDetector {
 public:
-    explicit FlipShiftDetector(int32_t configured_band = -1,
-                               uint32_t noise_windows = 1)
+    explicit FlipShiftDetector(int32_t configured_band = -1, uint32_t noise_windows = 1)
         : configured_band_(configured_band) {
         signature_noise_.configure(noise_windows);
     }
@@ -310,12 +307,12 @@ struct FlipctlReport {
     uint32_t model_misses = 0;
     uint64_t invalidated_maneuvers = 0;
     uint64_t cost_holds = 0;
-    double client_cost = 0;       // commands lost per transferred client (measured or injected)
-    double last_flip_lost = 0;    // commands the last flip cost
-    uint64_t last_flip_moved = 0; // connections the last flip moved
-    double flip_ticks = 0;        // mean controller ticks a flip stays in flight
+    double client_cost = 0;        // commands lost per transferred client (measured or injected)
+    double last_flip_lost = 0;     // commands the last flip cost
+    uint64_t last_flip_moved = 0;  // connections the last flip moved
+    double flip_ticks = 0;         // mean controller ticks a flip stays in flight
     std::string refine_decision = "none";  // the local verdict at the last landing (see refine)
-    uint32_t refine_steps = 0;    // extra steps taken after a delivered move, this maneuver
+    uint32_t refine_steps = 0;  // extra steps taken after a delivered move, this maneuver
 };
 
 class FlipController {
@@ -329,9 +326,7 @@ public:
     uint32_t signal_sample_rate() const {
         return signal_sample_rate_.load(std::memory_order_relaxed);
     }
-    void request_forced_trigger() {
-        force_requested_.store(true, std::memory_order_release);
-    }
+    void request_forced_trigger() { force_requested_.store(true, std::memory_order_release); }
 
     // Called only by the main monitor thread. Returns true when a new internal FLIP was issued.
     bool tick(Server& server, uint64_t now_ms);
@@ -405,13 +400,13 @@ private:
     uint64_t total_commands(const Server& server) const;
     void reset_settling_learning();
     void enter_settling();
-    bool sample_role_demand(Server& server, uint64_t now_ms, double& io_frac,
-                            double& io_headroom, double& ex_headroom);
+    bool sample_role_demand(Server& server, uint64_t now_ms, double& io_frac, double& io_headroom,
+                            double& ex_headroom);
     double verification_band(double rate) const;
     double baseline_band() const;
     bool decide_placement(Server& server, uint32_t coordinator, uint64_t now_ms, double rate);
-    bool issue_flip(Server& server, uint32_t coordinator, uint32_t target_io,
-                    Phase after_flip, uint64_t now_ms, double rate_before);
+    bool issue_flip(Server& server, uint32_t coordinator, uint32_t target_io, Phase after_flip,
+                    uint64_t now_ms, double rate_before);
     void measure_flip(Server& server, uint64_t now_ms);
     uint32_t io_clients(const Server& server) const;
     bool seek_after_reading(Server& server, uint32_t coordinator, uint64_t now_ms, double rate);
@@ -519,7 +514,7 @@ private:
     // maneuver started from (the null-maneuver rule).
     uint32_t seek_origin_io_ = 0;
     bool refining_ = false;
-    double refine_bar_ = 0;   // flip_refine_bar of the step that landed here
+    double refine_bar_ = 0;  // flip_refine_bar of the step that landed here
     const char* refine_decision_ = "none";
     uint32_t refine_steps_ = 0;
     double origin_rate_ = 0;
@@ -537,7 +532,7 @@ private:
     // What every flip cost and what every move delivered (flip_policy.h).
     FlipCostModel cost_{};
     FlipCostVerdict model_cost_{};
-    uint32_t model_verify_readings_ = 0;   // planned target readings of the current hypothesis
+    uint32_t model_verify_readings_ = 0;  // planned target readings of the current hypothesis
     double model_kappa_ = 1.0;
     // The hypothesis under test: raw predicted gain (before kappa), the origin's noise and sample
     // count it is judged against, planned readings, and what the target delivered so far.
@@ -552,7 +547,7 @@ private:
     // How long the workload has held still: the boot's first non-idle tick, or the trigger that
     // detected a change. A forced trigger does not reset it (the workload did not change).
     uint64_t stationary_since_ms_ = 0;
-    uint64_t maneuver_mark_ms_ = 0;       // the tick clock at the last demand mark (wall per thread)
+    uint64_t maneuver_mark_ms_ = 0;  // the tick clock at the last demand mark (wall per thread)
     // The flip in flight, for its cost: issue time, commands and transfers at issue, the rate the
     // server ran at before it, and the naive transfer count the role change requires.
     uint64_t flip_issue_ms_ = 0;

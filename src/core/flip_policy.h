@@ -76,7 +76,12 @@ struct FlipDemandWindow {
     double m2 = 0;
     double last = 0;
 
-    void reset() { samples = 0; mean = 0; m2 = 0; last = 0; }
+    void reset() {
+        samples = 0;
+        mean = 0;
+        m2 = 0;
+        last = 0;
+    }
     void add(double io_frac) {
         last = io_frac;
         samples++;
@@ -84,9 +89,7 @@ struct FlipDemandWindow {
         mean += delta / samples;
         m2 += delta * (io_frac - mean);
     }
-    double stdev() const {
-        return samples > 1 ? std::sqrt(std::max(0.0, m2 / (samples - 1))) : 0;
-    }
+    double stdev() const { return samples > 1 ? std::sqrt(std::max(0.0, m2 / (samples - 1))) : 0; }
     // Two standard errors of the mean: the interval the projections are evaluated across.
     double half_width() const {
         return samples > 1 ? 2.0 * stdev() / std::sqrt(static_cast<double>(samples)) : 0;
@@ -125,12 +128,12 @@ inline double flip_projected_gain(uint32_t candidate, uint32_t now, uint32_t tot
 }
 
 struct FlipPlacementChoice {
-    bool decided = false;      // false: keep sampling
-    bool move = false;         // decided && the target clears the bar at the pessimistic end
-    uint32_t target_units = 0; // argmax of the mean projection (== now when nothing beats it)
-    double gain_mean = 0;      // projected gain of target at the window mean
-    double gain_low = 0;       // ... of target at the pessimistic end of the interval
-    double gain_high = 0;      // best gain ANY split reaches anywhere in the interval
+    bool decided = false;       // false: keep sampling
+    bool move = false;          // decided && the target clears the bar at the pessimistic end
+    uint32_t target_units = 0;  // argmax of the mean projection (== now when nothing beats it)
+    double gain_mean = 0;       // projected gain of target at the window mean
+    double gain_low = 0;        // ... of target at the pessimistic end of the interval
+    double gain_high = 0;       // best gain ANY split reaches anywhere in the interval
     double io_frac_low = 0;
     double io_frac_high = 0;
 };
@@ -152,8 +155,8 @@ struct FlipPlacementChoice {
 // many draws. Same test, opposite waits, and the outcome loop (not a long pre-move window) is what
 // catches a two-draw move that turns out wrong.
 inline FlipPlacementChoice flip_choose_split(uint32_t now_units, uint32_t total_units,
-                                             const FlipDemandWindow& window,
-                                             double required_gain, uint32_t min_samples) {
+                                             const FlipDemandWindow& window, double required_gain,
+                                             uint32_t min_samples) {
     FlipPlacementChoice choice;
     choice.target_units = now_units;
     if (total_units < 2 || !now_units || now_units >= total_units) {
@@ -171,7 +174,10 @@ inline FlipPlacementChoice flip_choose_split(uint32_t now_units, uint32_t total_
     for (uint32_t s = 1; s < total_units; s++) {
         if (s == now_units) continue;
         const double gain = flip_projected_gain(s, now_units, total_units, window.mean);
-        if (gain > best_mean) { best_mean = gain; choice.target_units = s; }
+        if (gain > best_mean) {
+            best_mean = gain;
+            choice.target_units = s;
+        }
         for (double f : points)
             optimistic = std::max(optimistic, flip_projected_gain(s, now_units, total_units, f));
     }
@@ -180,8 +186,9 @@ inline FlipPlacementChoice flip_choose_split(uint32_t now_units, uint32_t total_
         choice.gain_mean = best_mean;
         choice.gain_low = best_mean;
         for (double f : points)
-            choice.gain_low = std::min(
-                choice.gain_low, flip_projected_gain(choice.target_units, now_units, total_units, f));
+            choice.gain_low =
+                std::min(choice.gain_low,
+                         flip_projected_gain(choice.target_units, now_units, total_units, f));
         if (choice.gain_low > required_gain) {
             choice.decided = true;
             choice.move = true;
@@ -210,18 +217,26 @@ struct FlipRateWindow {
     double lo = 0;
     double hi = 0;
 
-    void reset() { samples = 0; mean = 0; m2 = 0; lo = 0; hi = 0; }
+    void reset() {
+        samples = 0;
+        mean = 0;
+        m2 = 0;
+        lo = 0;
+        hi = 0;
+    }
     void add(double rate) {
-        if (!samples) lo = hi = rate;
-        else { lo = std::min(lo, rate); hi = std::max(hi, rate); }
+        if (!samples)
+            lo = hi = rate;
+        else {
+            lo = std::min(lo, rate);
+            hi = std::max(hi, rate);
+        }
         samples++;
         const double delta = rate - mean;
         mean += delta / samples;
         m2 += delta * (rate - mean);
     }
-    double stdev() const {
-        return samples > 1 ? std::sqrt(std::max(0.0, m2 / (samples - 1))) : 0;
-    }
+    double stdev() const { return samples > 1 ? std::sqrt(std::max(0.0, m2 / (samples - 1))) : 0; }
     // Relative noise of ONE reading.
     double sigma() const { return mean > 0 ? stdev() / mean : 0; }
     // Twice the observed spread: the trend guard (flip_baseline_band).
@@ -247,24 +262,32 @@ struct FlipRateWindow {
 // plain running average over the warm-up so one early blip is diluted, not remembered. The
 // controller also resets it when a flip it issued completes: the level moved by design.
 struct FlipEwVariance {
-    uint32_t samples = 0;   // second differences folded in
+    uint32_t samples = 0;  // second differences folded in
     double alpha = 0;
-    double var = 0;         // of rel2
-    double prev1 = 0;       // r_{t-1}, 0 = none
-    double prev2 = 0;       // r_{t-2}, 0 = none
+    double var = 0;    // of rel2
+    double prev1 = 0;  // r_{t-1}, 0 = none
+    double prev2 = 0;  // r_{t-2}, 0 = none
 
     void configure(uint32_t time_constant_ticks) {
         alpha = 1.0 / static_cast<double>(std::max<uint32_t>(1, time_constant_ticks));
     }
-    void reset() { samples = 0; var = 0; prev1 = prev2 = 0; }
+    void reset() {
+        samples = 0;
+        var = 0;
+        prev1 = prev2 = 0;
+    }
     // `floor` is the rate below which a tick is idle, not load (the caller's idle rate).
     void add(double rate, double floor = 0) {
-        if (!(rate > floor)) { prev1 = prev2 = 0; return; }   // not evidence; the chain restarts
+        if (!(rate > floor)) {
+            prev1 = prev2 = 0;
+            return;
+        }  // not evidence; the chain restarts
         if (prev1 > 0 && prev2 > 0) {
             const double rel2 = (rate - 2.0 * prev1 + prev2) / prev1;
             if (std::abs(rel2) > 1.0) {
                 // A level change of more than the level itself: a new regime, not noise.
-                samples = 0; var = 0;
+                samples = 0;
+                var = 0;
             } else {
                 const double a = alpha > 0 ? alpha : 1.0;
                 const double w = std::max(a, 1.0 / static_cast<double>(samples + 1));
@@ -295,7 +318,12 @@ struct FlipEwBound {
     void configure(uint32_t time_constant_windows) {
         alpha = 1.0 / static_cast<double>(std::max<uint32_t>(1, time_constant_windows));
     }
-    void reset() { samples = 0; mean = 0; var = 0; peak = 0; }
+    void reset() {
+        samples = 0;
+        mean = 0;
+        var = 0;
+        peak = 0;
+    }
     void add(double value) {
         if (!(value >= 0)) return;
         const double a = alpha > 0 ? alpha : 1.0;
@@ -330,7 +358,8 @@ struct FlipEwBound {
 inline double flip_naive_transfers(uint32_t clients, uint32_t io_before, uint32_t io_after) {
     if (!clients || !io_before || !io_after || io_before == io_after) return 0;
     const uint32_t delta = io_before > io_after ? io_before - io_after : io_after - io_before;
-    return static_cast<double>(clients) * delta / static_cast<double>(std::max(io_before, io_after));
+    return static_cast<double>(clients) * delta /
+           static_cast<double>(std::max(io_before, io_after));
 }
 
 // Readings the target needs so that a predicted gain is resolvable at two standard errors against
@@ -354,8 +383,7 @@ inline uint32_t flip_verify_window(double sigma, uint32_t n_origin, double gain,
 // own bracket, the learned band, a typed band).
 inline double flip_verify_threshold(double sigma, uint32_t n_origin, uint32_t k, double floor) {
     double two_se = 0;
-    if (n_origin && k && sigma > 0)
-        two_se = 2.0 * sigma * std::sqrt(1.0 / n_origin + 1.0 / k);
+    if (n_origin && k && sigma > 0) two_se = 2.0 * sigma * std::sqrt(1.0 / n_origin + 1.0 / k);
     return std::max(two_se, std::max(0.0, floor));
 }
 
@@ -387,7 +415,7 @@ enum class FlipOutcome : uint8_t { Pending = 0, Hit, Miss };
 // Sequential verdict on a hypothesis after `k` of `planned` target readings.
 inline FlipOutcome flip_judge(double delivered, double threshold, uint32_t k, uint32_t planned) {
     if (delivered > threshold) return FlipOutcome::Hit;
-    if (delivered < -threshold) return FlipOutcome::Miss;   // clearly worse: do not sit here
+    if (delivered < -threshold) return FlipOutcome::Miss;  // clearly worse: do not sit here
     return k >= std::max<uint32_t>(1, planned) ? FlipOutcome::Miss : FlipOutcome::Pending;
 }
 
@@ -476,9 +504,10 @@ struct FlipCostVerdict {
 // the gain rises: a +2400% move off a wrong-split boot pays at ~1.0 T_black, a +5% move needs the
 // workload to hold for tens of blackouts. The wait derives from the distance, no constant added.
 inline FlipCostVerdict flip_cost_gate(double gain_low, double gain_mean, double rate,
-                                      double stationary_s, double blackout_s,
-                                      double transfer_cost, double p_miss, uint32_t margin) {
-    (void)gain_mean;  // retained in the signature for the trail; the blackout risks R0, not the gain
+                                      double stationary_s, double blackout_s, double transfer_cost,
+                                      double p_miss, uint32_t margin) {
+    (void)
+        gain_mean;  // retained in the signature for the trail; the blackout risks R0, not the gain
     FlipCostVerdict v;
     v.blackout_s = std::max(0.0, blackout_s);
     v.horizon_s = std::max(0.0, stationary_s);
@@ -488,8 +517,7 @@ inline FlipCostVerdict flip_cost_gate(double gain_low, double gain_mean, double 
     const double credited = std::max(0.0, v.horizon_s - v.blackout_s);
     v.benefit = std::max(0.0, gain_low) * r * credited;
     v.cost = m * (v.transfer_cost * (1.0 + p_miss) + p_miss * r * v.blackout_s);
-    v.payback_s = (gain_low > 0 && r > 0)
-        ? v.blackout_s + v.cost / (gain_low * r) : INFINITY;
+    v.payback_s = (gain_low > 0 && r > 0) ? v.blackout_s + v.cost / (gain_low * r) : INFINITY;
     v.pays = gain_low > 0 && v.benefit > v.cost;
     return v;
 }

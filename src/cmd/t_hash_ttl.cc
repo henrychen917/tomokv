@@ -33,14 +33,17 @@ namespace {
 
 // Redis 7.4 caps a hash-field deadline at the 46-bit expiry range of its field-expiry index; probed
 // against the 7.4.2 oracle rather than read out of its source.
-constexpr int64_t kFieldExpireMax = 70368744177663LL;   // 2^46 - 1
+constexpr int64_t kFieldExpireMax = 70368744177663LL;  // 2^46 - 1
 
 enum class Cond : uint8_t { None, Nx, Xx, Gt, Lt };
 enum class Read : uint8_t { Ttl, Pttl, ExpireTime, PexpireTime, Persist };
 
 bool parse_i64(Slice text, int64_t& value) {
     if (text.n == 0 || text.n >= 21) return false;
-    if (text.n == 1 && text.p[0] == '0') { value = 0; return true; }
+    if (text.n == 1 && text.p[0] == '0') {
+        value = 0;
+        return true;
+    }
     uint32_t pos = 0;
     bool negative = false;
     if (text.p[0] == '-') {
@@ -56,8 +59,8 @@ bool parse_i64(Slice text, int64_t& value) {
         if (magnitude > (std::numeric_limits<uint64_t>::max() - digit) / 10) return false;
         magnitude = magnitude * 10 + digit;
     }
-    const uint64_t limit = negative ? (uint64_t{1} << 63)
-                                    : static_cast<uint64_t>(std::numeric_limits<int64_t>::max());
+    const uint64_t limit =
+        negative ? (uint64_t{1} << 63) : static_cast<uint64_t>(std::numeric_limits<int64_t>::max());
     if (magnitude > limit) return false;
     if (negative)
         value = magnitude == (uint64_t{1} << 63) ? std::numeric_limits<int64_t>::min()
@@ -102,9 +105,8 @@ bool parse_fields_tail(Op& op, uint32_t index, bool write_family, FieldsSpec& ou
     }
     int64_t numfields = 0;
     if (!parse_i64(op.arg(index + 1), numfields) || numfields <= 0) {
-        reply_err(op.sink(), write_family
-                      ? "ERR Parameter `numFields` should be greater than 0"
-                      : "ERR Number of fields must be a positive integer");
+        reply_err(op.sink(), write_family ? "ERR Parameter `numFields` should be greater than 0"
+                                          : "ERR Number of fields must be a positive integer");
         return false;
     }
     const uint32_t supplied = op.argc() - (index + 2);
@@ -120,8 +122,8 @@ bool parse_fields_tail(Op& op, uint32_t index, bool write_family, FieldsSpec& ou
 template <bool kNotify>
 bool hash_ttl_lookup(Shard& shard, Op& op, KvObj*& object) {
     object = (op.spec->flags & CmdFlags::Readonly)
-        ? shard.store_find_read<kNotify>(op.hash, op.key())
-        : shard.store_find<kNotify>(op.hash, op.key());
+                 ? shard.store_find_read<kNotify>(op.hash, op.key())
+                 : shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return false;
     if (__builtin_expect(shard.store().field_expire_count() != 0, false) && object)
         return hash_ttl_on_access(shard, op, object, kNotify);
@@ -136,11 +138,16 @@ void reply_all(Op& op, uint32_t count, int64_t value) {
 bool condition_allows(Cond cond, int64_t current, int64_t proposed) {
     // "No deadline" is infinity for GT/LT, exactly as key-level EXPIRE GT/LT treat a persistent key.
     switch (cond) {
-        case Cond::None: return true;
-        case Cond::Nx:   return current < 0;
-        case Cond::Xx:   return current >= 0;
-        case Cond::Gt:   return current >= 0 && proposed > current;
-        case Cond::Lt:   return current < 0 || proposed < current;
+        case Cond::None:
+            return true;
+        case Cond::Nx:
+            return current < 0;
+        case Cond::Xx:
+            return current >= 0;
+        case Cond::Gt:
+            return current >= 0 && proposed > current;
+        case Cond::Lt:
+            return current < 0 || proposed < current;
     }
     return true;
 }
@@ -150,7 +157,7 @@ bool condition_allows(Cond cond, int64_t current, int64_t proposed) {
 template <bool kNotify>
 void hexpire_generic(Shard& shard, Op& op, int64_t unit_ms, bool absolute, const char* cmd_name) {
     KvObj* object = nullptr;
-    if (!hash_ttl_lookup<kNotify>(shard, op, object)) return;   // WRONGTYPE outranks every arg error
+    if (!hash_ttl_lookup<kNotify>(shard, op, object)) return;  // WRONGTYPE outranks every arg error
 
     int64_t raw = 0;
     if (!parse_i64(op.arg(2), raw)) {
@@ -173,25 +180,42 @@ void hexpire_generic(Shard& shard, Op& op, int64_t unit_ms, bool absolute, const
         message[pos] = '\0';
         reply_err(op.sink(), message);
     };
-    if (raw > kFieldExpireMax / unit_ms) { invalid(); return; }
+    if (raw > kFieldExpireMax / unit_ms) {
+        invalid();
+        return;
+    }
     int64_t deadline = raw * unit_ms;
-    if (deadline > kFieldExpireMax - basetime) { invalid(); return; }
+    if (deadline > kFieldExpireMax - basetime) {
+        invalid();
+        return;
+    }
     deadline += basetime;
 
     uint32_t index = 3;
     Cond cond = Cond::None;
     if (index < op.argc()) {
         const Slice token = op.arg(index);
-        if      (token.eq_icase("nx")) { cond = Cond::Nx; index++; }
-        else if (token.eq_icase("xx")) { cond = Cond::Xx; index++; }
-        else if (token.eq_icase("gt")) { cond = Cond::Gt; index++; }
-        else if (token.eq_icase("lt")) { cond = Cond::Lt; index++; }
+        if (token.eq_icase("nx")) {
+            cond = Cond::Nx;
+            index++;
+        } else if (token.eq_icase("xx")) {
+            cond = Cond::Xx;
+            index++;
+        } else if (token.eq_icase("gt")) {
+            cond = Cond::Gt;
+            index++;
+        } else if (token.eq_icase("lt")) {
+            cond = Cond::Lt;
+            index++;
+        }
     }
     FieldsSpec fields;
     if (!parse_fields_tail(op, index, true, fields)) return;
 
-
-    if (!object) { reply_all(op, fields.count, -2); return; }
+    if (!object) {
+        reply_all(op, fields.count, -2);
+        return;
+    }
 
     // Only a hash that will actually carry a deadline has to leave the embedded representation, so
     // HEXPIRE against absent fields (or a condition nobody meets) keeps the one-allocation form.
@@ -201,8 +225,8 @@ void hexpire_generic(Shard& shard, Op& op, int64_t unit_ms, bool absolute, const
         bool any = false;
         for (uint32_t i = 0; !any && i < fields.count; i++)
             any = hash_ttl_field_exists(object, op.arg(fields.first + i));
-        if (any && !hash_ttl_slot(object) &&
-            !hash_ttl_externalize(shard, op, object, kNotify)) return;
+        if (any && !hash_ttl_slot(object) && !hash_ttl_externalize(shard, op, object, kNotify))
+            return;
     }
 
     std::vector<int8_t> results;
@@ -223,7 +247,10 @@ void hexpire_generic(Shard& shard, Op& op, int64_t unit_ms, bool absolute, const
         const Slice field = op.arg(fields.first + i);
         int64_t current = HashFieldTtl::kNone;
         if (!field_live(object, slot ? *slot : nullptr, field, now_ms, current)) continue;
-        if (!condition_allows(cond, current, deadline)) { results[i] = 0; continue; }
+        if (!condition_allows(cond, current, deadline)) {
+            results[i] = 0;
+            continue;
+        }
         if (deadline <= now_ms) {
             // The deadline is already behind us: Redis deletes the field outright and answers 2.
             if (slot && *slot) (*slot)->erase(field);
@@ -232,13 +259,22 @@ void hexpire_generic(Shard& shard, Op& op, int64_t unit_ms, bool absolute, const
             shard.store().note_field_expired(1);
             results[i] = 2;
             deleted_any = true;
-            if (hash_ttl_field_count(object) == 0) { key_gone = true; break; }
+            if (hash_ttl_field_count(object) == 0) {
+                key_gone = true;
+                break;
+            }
             continue;
         }
-        if (!slot) { results[i] = 0; continue; }   // embedded and unexternalizable: cannot store
+        if (!slot) {
+            results[i] = 0;
+            continue;
+        }  // embedded and unexternalizable: cannot store
         if (!*slot) {
             *slot = new (std::nothrow) HashFieldTtl;
-            if (!*slot) { out_of_memory = true; break; }
+            if (!*slot) {
+                out_of_memory = true;
+                break;
+            }
         }
         if (!(*slot)->set(field, deadline)) {
             out_of_memory = true;
@@ -249,33 +285,45 @@ void hexpire_generic(Shard& shard, Op& op, int64_t unit_ms, bool absolute, const
     }
     // A later field's allocation failure does not undo earlier deadlines. Finalize their
     // accounting and expiry registration before returning the error, just as on success.
-    if (slot && *slot && (*slot)->empty()) { delete *slot; *slot = nullptr; }
+    if (slot && *slot && (*slot)->empty()) {
+        delete *slot;
+        *slot = nullptr;
+    }
     if (!key_gone) hash_ttl_note_bytes(object);
     if (set_any) shard.store().note_field_ttl(op.hash);
 
     if constexpr (kNotify) {
-        if (deleted_any) notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hdel, op.key());
-        else if (set_any) notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hexpire, op.key());
+        if (deleted_any)
+            notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hdel, op.key());
+        else if (set_any)
+            notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hexpire, op.key());
     }
     if (key_gone) {
         size_tracker.finish();
         shard.store_erase<kNotify>(op.hash, op.key());
     }
-    if (out_of_memory) { reply_err(op.sink(), "ERR out of memory"); return; }
+    if (out_of_memory) {
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
     reply_array_header(op.sink(), fields.count);
     for (uint32_t i = 0; i < fields.count; i++) reply_int(op.sink(), results[i]);
 }
 
-template <bool kNotify> void cmd_hexpire(Shard& shard, Op& op) {
+template <bool kNotify>
+void cmd_hexpire(Shard& shard, Op& op) {
     hexpire_generic<kNotify>(shard, op, 1000, false, "hexpire");
 }
-template <bool kNotify> void cmd_hpexpire(Shard& shard, Op& op) {
+template <bool kNotify>
+void cmd_hpexpire(Shard& shard, Op& op) {
     hexpire_generic<kNotify>(shard, op, 1, false, "hpexpire");
 }
-template <bool kNotify> void cmd_hexpireat(Shard& shard, Op& op) {
+template <bool kNotify>
+void cmd_hexpireat(Shard& shard, Op& op) {
     hexpire_generic<kNotify>(shard, op, 1000, true, "hexpireat");
 }
-template <bool kNotify> void cmd_hpexpireat(Shard& shard, Op& op) {
+template <bool kNotify>
+void cmd_hpexpireat(Shard& shard, Op& op) {
     hexpire_generic<kNotify>(shard, op, 1, true, "hpexpireat");
 }
 
@@ -287,7 +335,10 @@ void hread_generic(Shard& shard, Op& op, Read kind) {
     if (!hash_ttl_lookup<kNotify>(shard, op, object)) return;
     FieldsSpec fields;
     if (!parse_fields_tail(op, 2, false, fields)) return;
-    if (!object) { reply_all(op, fields.count, -2); return; }
+    if (!object) {
+        reply_all(op, fields.count, -2);
+        return;
+    }
 
     const int64_t now_ms = shard.now_ms();
     HashFieldTtl** slot = hash_ttl_slot(object);
@@ -301,14 +352,26 @@ void hread_generic(Shard& shard, Op& op, Read kind) {
                 reply_int(op.sink(), -2);
                 continue;
             }
-            if (at < 0) { reply_int(op.sink(), -1); continue; }
+            if (at < 0) {
+                reply_int(op.sink(), -1);
+                continue;
+            }
             switch (kind) {
                 // Redis rounds every second-granularity answer UP (probed, not assumed).
-                case Read::Ttl:          reply_int(op.sink(), (at - now_ms + 999) / 1000); break;
-                case Read::Pttl:         reply_int(op.sink(), at - now_ms); break;
-                case Read::ExpireTime:   reply_int(op.sink(), (at + 999) / 1000); break;
-                case Read::PexpireTime:  reply_int(op.sink(), at); break;
-                case Read::Persist:      break;
+                case Read::Ttl:
+                    reply_int(op.sink(), (at - now_ms + 999) / 1000);
+                    break;
+                case Read::Pttl:
+                    reply_int(op.sink(), at - now_ms);
+                    break;
+                case Read::ExpireTime:
+                    reply_int(op.sink(), (at + 999) / 1000);
+                    break;
+                case Read::PexpireTime:
+                    reply_int(op.sink(), at);
+                    break;
+                case Read::Persist:
+                    break;
             }
         }
         return;
@@ -326,12 +389,18 @@ void hread_generic(Shard& shard, Op& op, Read kind) {
     for (uint32_t i = 0; i < fields.count; i++) {
         int64_t at = HashFieldTtl::kNone;
         if (!field_live(object, ttls, op.arg(fields.first + i), now_ms, at)) continue;
-        if (at < 0) { results[i] = -1; continue; }
+        if (at < 0) {
+            results[i] = -1;
+            continue;
+        }
         ttls->erase(op.arg(fields.first + i));
         results[i] = 1;
         removed_any = true;
     }
-    if (ttls && ttls->empty()) { delete ttls; *slot = nullptr; }
+    if (ttls && ttls->empty()) {
+        delete ttls;
+        *slot = nullptr;
+    }
     hash_ttl_note_bytes(object);
     if constexpr (kNotify)
         if (removed_any) notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hpersist, op.key());
@@ -339,35 +408,40 @@ void hread_generic(Shard& shard, Op& op, Read kind) {
     for (uint32_t i = 0; i < fields.count; i++) reply_int(op.sink(), results[i]);
 }
 
-template <bool kNotify> void cmd_httl(Shard& shard, Op& op) {
+template <bool kNotify>
+void cmd_httl(Shard& shard, Op& op) {
     hread_generic<kNotify>(shard, op, Read::Ttl);
 }
-template <bool kNotify> void cmd_hpttl(Shard& shard, Op& op) {
+template <bool kNotify>
+void cmd_hpttl(Shard& shard, Op& op) {
     hread_generic<kNotify>(shard, op, Read::Pttl);
 }
-template <bool kNotify> void cmd_hexpiretime(Shard& shard, Op& op) {
+template <bool kNotify>
+void cmd_hexpiretime(Shard& shard, Op& op) {
     hread_generic<kNotify>(shard, op, Read::ExpireTime);
 }
-template <bool kNotify> void cmd_hpexpiretime(Shard& shard, Op& op) {
+template <bool kNotify>
+void cmd_hpexpiretime(Shard& shard, Op& op) {
     hread_generic<kNotify>(shard, op, Read::PexpireTime);
 }
-template <bool kNotify> void cmd_hpersist(Shard& shard, Op& op) {
+template <bool kNotify>
+void cmd_hpersist(Shard& shard, Op& op) {
     hread_generic<kNotify>(shard, op, Read::Persist);
 }
 
 #define TOMO_HANDLER_PAIR(fn) fn<false>, 1, 1, 1, notify_handler<fn<true>>
 
-static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */ kTable[] = {
     // name          min max flags                                handler
-    {"HEXPIRE",       6, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hexpire)},
-    {"HPEXPIRE",      6, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hpexpire)},
-    {"HEXPIREAT",     6, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hexpireat)},
-    {"HPEXPIREAT",    6, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hpexpireat)},
-    {"HTTL",          5, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_httl)},
-    {"HPTTL",         5, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hpttl)},
-    {"HEXPIRETIME",   5, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hexpiretime)},
-    {"HPEXPIRETIME",  5, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hpexpiretime)},
-    {"HPERSIST",      5, -1, CmdFlags::Write,    TOMO_HANDLER_PAIR(cmd_hpersist)},
+    {"HEXPIRE", 6, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hexpire)},
+    {"HPEXPIRE", 6, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hpexpire)},
+    {"HEXPIREAT", 6, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hexpireat)},
+    {"HPEXPIREAT", 6, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hpexpireat)},
+    {"HTTL", 5, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_httl)},
+    {"HPTTL", 5, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hpttl)},
+    {"HEXPIRETIME", 5, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hexpiretime)},
+    {"HPEXPIRETIME", 5, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hpexpiretime)},
+    {"HPERSIST", 5, -1, CmdFlags::Write, TOMO_HANDLER_PAIR(cmd_hpersist)},
 };
 
 #undef TOMO_HANDLER_PAIR
@@ -397,7 +471,10 @@ static uint32_t reap_due(KvObj* object, int64_t now_ms) {
         ttls->erase(slice);
         if (hash_ttl_field_erase(object, slice)) reaped++;
     }
-    if (ttls->empty()) { delete ttls; *slot = nullptr; }
+    if (ttls->empty()) {
+        delete ttls;
+        *slot = nullptr;
+    }
     hash_ttl_note_bytes(object);
     return reaped;
 }
@@ -453,8 +530,10 @@ bool hash_ttl_on_access(Shard& shard, Op& op, KvObj*& object, bool notify) {
     if (notify) notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hexpired, op.key());
     // erase() subtracts the object's whole footprint, so the growth bracket must not also report.
     (void)shard.store().aof().record_delete(op.key());
-    if (notify) shard.store_erase<true>(op.hash, op.key());
-    else        shard.store_erase<false>(op.hash, op.key());
+    if (notify)
+        shard.store_erase<true>(op.hash, op.key());
+    else
+        shard.store_erase<false>(op.hash, op.key());
     object = nullptr;
     return true;
 }
@@ -463,14 +542,15 @@ void hash_ttl_clear_field(Shard& shard, KvObj* object, Slice field) {
     HashFieldTtl** slot = hash_ttl_slot(object);
     if (!slot || !*slot) return;
     if (!(*slot)->erase(field)) return;
-    if ((*slot)->empty()) { delete *slot; *slot = nullptr; }
+    if ((*slot)->empty()) {
+        delete *slot;
+        *slot = nullptr;
+    }
     hash_ttl_note_bytes(object);
     (void)shard;
 }
 
-CommandTable hash_ttl_command_table() {
-    return {kTable, sizeof(kTable) / sizeof(kTable[0])};
-}
+CommandTable hash_ttl_command_table() { return {kTable, sizeof(kTable) / sizeof(kTable[0])}; }
 
 // The read-only half of hash_ttl_on_access(), for SORT's BY/GET dereference: report whether ONE
 // field has already lapsed, without reaping it, without touching the object's size accounting, and

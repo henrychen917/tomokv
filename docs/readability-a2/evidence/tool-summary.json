@@ -1,0 +1,46 @@
+{
+  "source": {
+    "pre": {
+      "positive": 52,
+      "broken_anchor_rejections": 52,
+      "emitted_files": 313
+    },
+    "post": {
+      "positive": 52,
+      "broken_anchor_rejections": 52,
+      "emitted_files": 313
+    }
+  },
+  "symbols": {
+    "pre": {
+      "positive": 9,
+      "missing_symbol_rejections": 9,
+      "inventories": {
+        "hll": 2,
+        "perfex_clock": 4,
+        "perfex_batch": 26,
+        "cfgfix_clock": 2,
+        "r7_fifo": 4,
+        "r7_shadow": 2,
+        "lbplanner": 2,
+        "lbosc3": 4,
+        "storesize": 4
+      }
+    },
+    "post": {
+      "positive": 9,
+      "missing_symbol_rejections": 9,
+      "inventories": {
+        "hll": 2,
+        "perfex_clock": 4,
+        "perfex_batch": 26,
+        "cfgfix_clock": 2,
+        "r7_fifo": 4,
+        "r7_shadow": 2,
+        "lbplanner": 2,
+        "lbosc3": 4,
+        "storesize": 4
+      }
+    }
+  }
+}

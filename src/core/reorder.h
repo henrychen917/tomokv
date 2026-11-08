@@ -20,13 +20,12 @@
 
 namespace tomo::r7 {
 
-inline constexpr uint32_t kExSchedClasses =
-    static_cast<uint32_t>(CommandLengthClass::Count);
+inline constexpr uint32_t kExSchedClasses = static_cast<uint32_t>(CommandLengthClass::Count);
 inline constexpr uint32_t kExReorderSpecial =
     CmdFlags::Admin | CmdFlags::ConnLocal | CmdFlags::AllShards | CmdFlags::RandomShard |
-    CmdFlags::CursorShard | CmdFlags::ConfigRoute | CmdFlags::ScriptRoute |
-    CmdFlags::PubSub | CmdFlags::Blocking | CmdFlags::Transaction |
-    CmdFlags::StreamRoute | CmdFlags::SubcmdRoute | CmdFlags::FlipAsync;
+    CmdFlags::CursorShard | CmdFlags::ConfigRoute | CmdFlags::ScriptRoute | CmdFlags::PubSub |
+    CmdFlags::Blocking | CmdFlags::Transaction | CmdFlags::StreamRoute | CmdFlags::SubcmdRoute |
+    CmdFlags::FlipAsync;
 
 // Only the ordinary one-owner path participates. Every existing special mechanism is a hard
 // barrier in the incoming sequence: queued ordinary work drains before it executes.
@@ -96,10 +95,9 @@ class ShadowDispatch {
         result = static_cast<uint8_t>(command_length_class(*op.spec));
         return result < kExSchedClasses;
     }
+
 public:
-    explicit ShadowDispatch(uint64_t newest) : newest_(newest) {
-        TOMO_R7_SCAN_CONSTRUCT();
-    }
+    explicit ShadowDispatch(uint64_t newest) : newest_(newest) { TOMO_R7_SCAN_CONSTRUCT(); }
     explicit ShadowDispatch(Client& client, uint64_t before = UINT64_MAX) {
         TOMO_R7_PATH();
         TOMO_R7_SCAN_CONSTRUCT();
@@ -120,7 +118,8 @@ public:
     void stamp(Task& task) {
         TOMO_R7_PATH();
         uint8_t kind;
-        if (!task.client || task.scatter || !length(task.client->rob().at(task.op_id), kind)) return;
+        if (!task.client || task.scatter || !length(task.client->rob().at(task.op_id), kind))
+            return;
         if (kind == static_cast<uint8_t>(CommandLengthClass::Long)) {
             newest_ = task.op_id;
         } else if (newest_ < task.op_id) {
@@ -148,7 +147,8 @@ public:
     static void record(Client& client, const Op& op) {
         uint8_t kind;
         if (!ShadowDispatch::length(op, kind) ||
-            kind != static_cast<uint8_t>(CommandLengthClass::Long)) return;
+            kind != static_cast<uint8_t>(CommandLengthClass::Long))
+            return;
         const uint64_t id = client.rob().dispatch_id();
         const uint64_t distance = id - client.r7_long_newest_;
         client.r7_long_slots_ = (distance < kRobWindow ? client.r7_long_slots_ << distance : 0) | 1;
@@ -197,13 +197,15 @@ class LazyShadowDispatch {
     std::optional<ShadowDispatch> dispatch_;
     uint64_t before_;
     uint64_t newest_ = UINT64_MAX;
+
 public:
     explicit LazyShadowDispatch(uint64_t before) : before_(before) {}
     void stamp(Task& task) {
         if (!dispatch_) {
             uint8_t kind;
             if (!task.client || task.scatter ||
-                !ShadowDispatch::length(task.client->rob().at(task.op_id), kind)) return;
+                !ShadowDispatch::length(task.client->rob().at(task.op_id), kind))
+                return;
             if (kind == static_cast<uint8_t>(CommandLengthClass::Long)) {
                 newest_ = task.op_id;
                 return;
@@ -213,11 +215,13 @@ public:
             // do not construct a dispatcher for that already-completed hint.
             if (newest_ != UINT64_MAX) {
                 TOMO_R7_SCAN_VISIT();
-                if (task.client->rob().at(newest_).state.load(std::memory_order_acquire) == OpState::Done)
+                if (task.client->rob().at(newest_).state.load(std::memory_order_acquire) ==
+                    OpState::Done)
                     return;
             }
-            const uint64_t newest = newest_ != UINT64_MAX ? newest_ :
-                ShadowLongIndex::pending_before(*task.client, before_);
+            const uint64_t newest = newest_ != UINT64_MAX
+                                        ? newest_
+                                        : ShadowLongIndex::pending_before(*task.client, before_);
             if (newest == UINT64_MAX) return;
             dispatch_.emplace(newest);
         }
@@ -234,6 +238,7 @@ public:
 class ShadowDemotionDispatch {
     uint64_t first_;
     uint64_t longs_ = 0;
+
 public:
     explicit ShadowDemotionDispatch(Client& client, uint64_t before)
         : first_(client.rob().flush_id()) {
@@ -254,7 +259,8 @@ public:
             const uint32_t bit = 63 - __builtin_clzll(older);
             const uint64_t predecessor = first_ + bit;
             TOMO_R7_SCAN_VISIT();
-            if (client->rob().at(predecessor).state.load(std::memory_order_acquire) != OpState::Done) {
+            if (client->rob().at(predecessor).state.load(std::memory_order_acquire) !=
+                OpState::Done) {
                 result.shard = ~static_cast<int32_t>(((id - predecessor) << 1) | kShadow);
                 break;
             }
@@ -335,12 +341,10 @@ class ExReorderQueues {
             if (have_short && have_long && !result.multi_client_runs)
                 result.multi_client_runs =
                     short_tasks_[slot(short_head_)].task.client != long_tasks_[at].task.client;
-            if (have_short && (!have_long || short_quota_ ||
-                               short_head_ < long_frontier_[at])) {
+            if (have_short && (!have_long || short_quota_ || short_head_ < long_frontier_[at])) {
                 // This exact queue pick passes a still-pending earlier long entry. A coarse
                 // class mix alone is not a permutation witness (quota/dependency can keep FIFO).
-                if (have_long && short_head_ >= long_frontier_[at])
-                    result.permuted_runs = 1;
+                if (have_long && short_head_ >= long_frontier_[at]) result.permuted_runs = 1;
                 output[i] = short_tasks_[slot(short_head_++)].task;
                 if (short_quota_) short_quota_--;
             } else {
@@ -365,7 +369,9 @@ public:
     ExReorderQueues() { TOMO_R7_PATH(); }
     ExReorderQueues(const ExReorderQueues&) = delete;
     ExReorderQueues& operator=(const ExReorderQueues&) = delete;
-    ~ExReorderQueues() { if (size()) std::abort(); }
+    ~ExReorderQueues() {
+        if (size()) std::abort();
+    }
 
     uint32_t size() const {
         return static_cast<uint32_t>((short_tail_ - short_head_) + (long_tail_ - long_head_));
@@ -386,8 +392,7 @@ public:
         if (!n) return;
         if (!size()) {
             uint32_t same_client = 1;
-            while (same_client < n && tasks[same_client].client == tasks[0].client)
-                same_client++;
+            while (same_client < n && tasks[same_client].client == tasks[0].client) same_client++;
             if (same_client == n) {
                 emit(tasks, n, ReorderResult{});
                 return;
@@ -404,12 +409,12 @@ public:
             }
             uint32_t end = begin + 1;
             bool one_client = true, one_class = true;
-            const bool first_long = lengths[begin] ==
-                static_cast<uint8_t>(CommandLengthClass::Long);
+            const bool first_long =
+                lengths[begin] == static_cast<uint8_t>(CommandLengthClass::Long);
             while (end < n && r7::candidate(tasks[end], lengths[end])) {
                 one_client &= tasks[end].client == tasks[begin].client;
-                one_class &= (lengths[end] == static_cast<uint8_t>(CommandLengthClass::Long)) ==
-                             first_long;
+                one_class &=
+                    (lengths[end] == static_cast<uint8_t>(CommandLengthClass::Long)) == first_long;
                 end++;
             }
             if (!size() && (one_client || one_class)) {
@@ -458,7 +463,12 @@ class ShadowReorderQueues {
         Index prev_ready = None, next_ready = None;
         uint8_t length, rank;
     };
-    union Slot { Node node; Index next_free; Slot() {} ~Slot() {} } slots_[Capacity];
+    union Slot {
+        Node node;
+        Index next_free;
+        Slot() {}
+        ~Slot() {}
+    } slots_[Capacity];
     // Buckets name LIVE connection tails. Erasing a final head unlinks its tail;
     // drain duration/client churn cannot fill this table with tombstones.
     Index connections_[TableSize];
@@ -475,8 +485,7 @@ class ShadowReorderQueues {
     }
     Index* connection(Client* client) {
         Index* link = &connections_[hash(client)];
-        while (*link != None && node(*link).task.client != client)
-            link = &node(*link).hash_next;
+        while (*link != None && node(*link).task.client != client) link = &node(*link).hash_next;
         return link;
     }
     void ready_append(uint32_t i, uint8_t rank) {
@@ -484,38 +493,54 @@ class ShadowReorderQueues {
         n.rank = rank;
         n.prev_ready = ready_tail_[rank];
         n.next_ready = None;
-        if (n.prev_ready == None) ready_head_[rank] = i;
-        else node(n.prev_ready).next_ready = i;
+        if (n.prev_ready == None)
+            ready_head_[rank] = i;
+        else
+            node(n.prev_ready).next_ready = i;
         ready_tail_[rank] = i;
     }
     void ready_remove(uint32_t i) {
         Node& n = node(i);
-        if (n.prev_ready == None) ready_head_[n.rank] = n.next_ready;
-        else node(n.prev_ready).next_ready = n.next_ready;
-        if (n.next_ready == None) ready_tail_[n.rank] = n.prev_ready;
-        else node(n.next_ready).prev_ready = n.prev_ready;
+        if (n.prev_ready == None)
+            ready_head_[n.rank] = n.next_ready;
+        else
+            node(n.prev_ready).next_ready = n.next_ready;
+        if (n.next_ready == None)
+            ready_tail_[n.rank] = n.prev_ready;
+        else
+            node(n.next_ready).prev_ready = n.prev_ready;
     }
     uint8_t rank(const Node& n) const {
-        return n.length == static_cast<uint8_t>(CommandLengthClass::Long) ? 1 :
-               shadow_bit(n.task) ? 2 : 0;
+        return n.length == static_cast<uint8_t>(CommandLengthClass::Long) ? 1
+               : shadow_bit(n.task)                                       ? 2
+                                                                          : 0;
     }
     void append(const Task& task, uint8_t length) {
         if (count_ == Capacity) std::abort();
         Index* link = connection(task.client);
         const Index previous = *link;
         Index i;
-        if (free_ != None) { i = free_; free_ = slots_[i].next_free; }
-        else { i = used_++; if (i >= Capacity) std::abort(); }
-        Node& n = *new (&slots_[i].node) Node{task, newest_, None, None,
-            previous == None ? None : node(previous).hash_next, None, None, length, 0};
-        if (newest_ != None) node(newest_).newer = i;
-        else oldest_ = i;
+        if (free_ != None) {
+            i = free_;
+            free_ = slots_[i].next_free;
+        } else {
+            i = used_++;
+            if (i >= Capacity) std::abort();
+        }
+        Node& n = *new (&slots_[i].node) Node{
+            task, newest_, None,   None, previous == None ? None : node(previous).hash_next,
+            None, None,    length, 0};
+        if (newest_ != None)
+            node(newest_).newer = i;
+        else
+            oldest_ = i;
         newest_ = i;
         if (previous == None) ready_append(i, rank(n));
         // Preserve the admitted owner order. A read-local demotion may legally
         // lower an older read after a later independent op; its existing hazard
         // protocol decides that order, not a new ROB-id sort/assertion here.
-        else node(previous).next_conn = i;
+        else
+            node(previous).next_conn = i;
         *link = i;
         ++count_;
     }
@@ -550,8 +575,9 @@ class ShadowReorderQueues {
                 i = oldest_;
                 priority_left_ = kExReorderShortQuota;
             } else {
-                i = ready_head_[0] != None ? ready_head_[0] :
-                    ready_head_[1] != None ? ready_head_[1] : ready_head_[2];
+                i = ready_head_[0] != None   ? ready_head_[0]
+                    : ready_head_[1] != None ? ready_head_[1]
+                                             : ready_head_[2];
                 --priority_left_;
             }
             if (i == None) std::abort();
@@ -561,23 +587,31 @@ class ShadowReorderQueues {
             ready_remove(i);
             if (selected.next_conn != None)
                 activate(selected.next_conn);
-            else *connection(selected.task.client) = selected.hash_next;
-            if (selected.older == None) oldest_ = selected.newer;
-            else node(selected.older).newer = selected.newer;
-            if (selected.newer == None) newest_ = selected.older;
-            else node(selected.newer).older = selected.older;
+            else
+                *connection(selected.task.client) = selected.hash_next;
+            if (selected.older == None)
+                oldest_ = selected.newer;
+            else
+                node(selected.older).newer = selected.newer;
+            if (selected.newer == None)
+                newest_ = selected.older;
+            else
+                node(selected.newer).older = selected.older;
             slots_[i].next_free = free_;
             free_ = i;
             --count_;
         }
         emit(output, n, witness);
     }
+
 public:
     static constexpr uint32_t kMaxWaitPicks = BatchOps + Capacity * (kExReorderShortQuota + 1);
     ShadowReorderQueues() { TOMO_R7_PATH(); }
     ShadowReorderQueues(const ShadowReorderQueues&) = delete;
     ShadowReorderQueues& operator=(const ShadowReorderQueues&) = delete;
-    ~ShadowReorderQueues() { if (size()) std::abort(); }
+    ~ShadowReorderQueues() {
+        if (size()) std::abort();
+    }
     uint32_t size() const { return count_; }
     template <typename Emit>
     void finish(Emit& emit) {
@@ -597,10 +631,12 @@ public:
             }
             uint32_t end = begin + 1;
             bool one_client = true, homogeneous = !shadow_bit(tasks[begin]);
-            const bool first_long = lengths[begin] == static_cast<uint8_t>(CommandLengthClass::Long);
+            const bool first_long =
+                lengths[begin] == static_cast<uint8_t>(CommandLengthClass::Long);
             while (end < n && candidate(tasks[end], lengths[end])) {
                 one_client &= tasks[end].client == tasks[begin].client;
-                homogeneous &= !shadow_bit(tasks[end]) &&
+                homogeneous &=
+                    !shadow_bit(tasks[end]) &&
                     (lengths[end] == static_cast<uint8_t>(CommandLengthClass::Long)) == first_long;
                 ++end;
             }
@@ -624,6 +660,5 @@ public:
         }
     }
 };
-
 
 }  // namespace tomo::r7

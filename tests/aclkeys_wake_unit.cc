@@ -12,7 +12,10 @@
 
 using namespace tomo;
 static void require(bool ok, const char* why) {
-    if (!ok) { std::fprintf(stderr, "FAIL aclkeys-wake: %s\n", why); std::exit(1); }
+    if (!ok) {
+        std::fprintf(stderr, "FAIL aclkeys-wake: %s\n", why);
+        std::exit(1);
+    }
 }
 static void fill(Op& op, const std::vector<std::string>& args) {
     for (const auto& value : args)
@@ -32,14 +35,19 @@ int main(int argc, char** argv) {
     const bool unblock = kind == "window-unblock";
     const bool window = kind == "window" || unblock;
     require(window || kind == "XREAD" || kind == "BLMOVE" || kind == "BRPOPLPUSH" ||
-            kind == "XREADGROUP", "known witness scenario");
+                kind == "XREADGROUP",
+            "known witness scenario");
     Config cfg;
-    cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
+    cfg.shards = 16;
+    cfg.even_ifid = 6;
+    cfg.even_ex = 2;
     cfg.thread_mode = fused ? ThreadMode::Fused : ThreadMode::Split;
     cfg.read_local = fused ? 1 : 0;
-    cfg.atomic = atomic; cfg.databases = kSingleDatabase ? 1 : 16;
+    cfg.atomic = atomic;
+    cfg.databases = kSingleDatabase ? 1 : 16;
     cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
-    cfg.save.clear(); cfg.enable_debug_command = DebugCommandMode::Yes;
+    cfg.save.clear();
+    cfg.enable_debug_command = DebugCommandMode::Yes;
     cfg.acl_users = {{"blocked", "on", "nopass", "~block:*", "+@all"}};
     cpu_set_t allowed;
     require(sched_getaffinity(0, sizeof(allowed), &allowed) == 0, "CPU affinity");
@@ -58,8 +66,8 @@ int main(int argc, char** argv) {
     require(server.prepare_boot(cfg) && server.init(cfg), "gate geometry initialization");
     for (uint32_t tid = 0; tid < server.nthreads(); ++tid)
         require(fused ? server.thread(tid).init_task_inbox_local_fused()
-                      : server.thread(tid).init_task_inbox_local(
-                            server.placement().ifid_threads(), server.placement().ex_threads()),
+                      : server.thread(tid).init_task_inbox_local(server.placement().ifid_threads(),
+                                                                 server.placement().ex_threads()),
                 "owner task inbox initialization");
     command_bind_server(&server);
     std::string error;
@@ -67,7 +75,9 @@ int main(int argc, char** argv) {
     const uint32_t io = server.placement().ifid_threads().front();
     ThreadCtx& sender = server.thread(io);
     Client client(-1);
-    client.set_id(91); client.set_ifid_thread(io); client.set_wb_slot(0);
+    client.set_id(91);
+    client.set_ifid_thread(io);
+    client.set_wb_slot(0);
     uint32_t user = 0;
     require(acl_find_user(Slice("blocked", 7), user), "blocked ACL user");
     client.set_acl_user_idx(user);
@@ -93,10 +103,11 @@ int main(int argc, char** argv) {
         return bytes(request);
     };
     require(debug({"DEBUG", "aclkeys-unknown"}) ==
-            "-ERR unknown subcommand or wrong number of arguments for 'debug' command\r\n",
+                "-ERR unknown subcommand or wrong number of arguments for 'debug' command\r\n",
             "existing DEBUG fallback text is unchanged");
     require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD", "3"}) ==
-            "-ERR value is not an integer or out of range\r\n", "reject invalid DEBUG stage");
+                "-ERR value is not an integer or out of range\r\n",
+            "reject invalid DEBUG stage");
     require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD", window ? "1" : "0"}) == "+OK\r\n",
             "set DEBUG latch");
     const std::string key = "block:aclkeys";
@@ -105,18 +116,20 @@ int main(int argc, char** argv) {
     const bool move = kind == "BLMOVE" || kind == "BRPOPLPUSH";
     if (move) {
         std::string destination;
-        const auto source_owner = server.worker_of_shard(server.router().shard_of(
-            FlatStore::hash_key(Slice(key.data(), key.size()))));
+        const auto source_owner = server.worker_of_shard(
+            server.router().shard_of(FlatStore::hash_key(Slice(key.data(), key.size()))));
         for (unsigned attempt = 0; attempt < 1000; ++attempt) {
             auto candidate = "block:destination:" + std::to_string(attempt);
             if (server.worker_of_shard(server.router().shard_of(FlatStore::hash_key(
                     Slice(candidate.data(), candidate.size())))) != source_owner) {
-                destination = std::move(candidate); break;
+                destination = std::move(candidate);
+                break;
             }
         }
         require(!destination.empty(), "move destination belongs to another owner");
-        read = kind == "BLMOVE" ? std::vector<std::string>{kind, key, destination, "LEFT", "RIGHT", "0"}
-                                : std::vector<std::string>{kind, key, destination, "0"};
+        read = kind == "BLMOVE"
+                   ? std::vector<std::string>{kind, key, destination, "LEFT", "RIGHT", "0"}
+                   : std::vector<std::string>{kind, key, destination, "0"};
         add = {"LPUSH", key, "value"};
     } else if (kind == "XREADGROUP") {
         require(command({"XGROUP", "CREATE", key, "group", "0", "MKSTREAM"}, 2) == "+OK\r\n",
@@ -143,7 +156,8 @@ int main(int argc, char** argv) {
         return fused ? blocking_resume_move_iofused(server, sender, unused_ring, client, pool)
                      : blocking_resume_move(server, sender, unused_ring, client, pool);
     };
-    client.set_blocked(true); client.barrier_acquire(BarrierOwner::Blocking);
+    client.set_blocked(true);
+    client.barrier_acquire(BarrierOwner::Blocking);
     op->attach_blocking_state(dispatch.state);
     op->state.store(OpState::Issued);
     client.rob().publish();
@@ -155,13 +169,13 @@ int main(int argc, char** argv) {
     require(registrations.size() == 1, "actual registration task was posted");
     const Task registration = registrations.front();
     if (window) {
-        require(!execute(registration),
-                "owner registration really held");
-        require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD"}) == ":1\r\n", "registration stage observed");
-        require(client.blocked() && !shard.has_blocking_waiters(), "published blocked flag precedes waiter");
+        require(!execute(registration), "owner registration really held");
+        require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD"}) == ":1\r\n",
+                "registration stage observed");
+        require(client.blocked() && !shard.has_blocking_waiters(),
+                "published blocked flag precedes waiter");
     } else {
-        require(execute(registration),
-                "registration completes");
+        require(execute(registration), "registration completes");
         require(client.blocked() && shard.has_blocking_waiters(), "real owner waiter is parked");
     }
     require(!sender.ready().any(), "no premature completion before XADD");
@@ -182,29 +196,33 @@ int main(int argc, char** argv) {
     bool early_notification = false;
     if (window) {
         require(!sender.ready().any(), "XADD found no registered waiter");
-        require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD", "2"}) == "+OK\r\n", "advance registration");
-        require(!execute(registration),
-                "registration sees data and retains its last Task");
-        require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD"}) == ":2\r\n", "last Task stage observed");
+        require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD", "2"}) == "+OK\r\n",
+                "advance registration");
+        require(!execute(registration), "registration sees data and retains its last Task");
+        require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD"}) == ":2\r\n",
+                "last Task stage observed");
         early_notification = sender.ready().take(0) == 1;
-        require(!resume(),
-                "IO cannot resume while an owner Task still refers to the op");
-        require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD"}) == ":3\r\n", "IO rejection stage observed");
+        require(!resume(), "IO cannot resume while an owner Task still refers to the op");
+        require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD"}) == ":3\r\n",
+                "IO rejection stage observed");
         require(!sender.ready().any(), "IO has drained the notification");
         if (unblock) {
-            require(blocking_request_unblock(client, true), "request unblock while the Task is held");
+            require(blocking_request_unblock(client, true),
+                    "request unblock while the Task is held");
             require(!blocking_cancel_client(server, sender, unused_ring, client),
                     "the held owner Task retains cancellation responsibility");
         }
         require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD", "0"}) == "+OK\r\n", "release last Task");
         require(execute(registration), "last Task departs");
         notified = sender.ready().take(0) == 1;
-        std::printf("aclkeys-wake mode=%s atomic=%d db=%u registration=1 last_task=2 io_rejected=3 early_notification=%d final_notification=%d\n",
-                    fused ? "fused" : "split", atomic, cfg.databases, early_notification, notified);
+        std::printf(
+            "aclkeys-wake mode=%s atomic=%d db=%u registration=1 last_task=2 io_rejected=3 early_notification=%d final_notification=%d\n",
+            fused ? "fused" : "split", atomic, cfg.databases, early_notification, notified);
     } else {
         notified = sender.ready().take(0) == 1;
-        std::printf("aclkeys-wake mode=%s atomic=%d db=%u command=%s parked=1 final_notification=%d\n",
-                    fused ? "fused" : "split", atomic, cfg.databases, kind.c_str(), notified);
+        std::printf(
+            "aclkeys-wake mode=%s atomic=%d db=%u command=%s parked=1 final_notification=%d\n",
+            fused ? "fused" : "split", atomic, cfg.databases, kind.c_str(), notified);
     }
 
     // Explicit manual IO visit permits cleanup on PRE too. This is not evidence of a wake;
@@ -239,37 +257,44 @@ int main(int argc, char** argv) {
             auto pending = std::move(deferred);
             deferred.clear();
             for (const auto& task : pending) {
-                    const auto tid = server.worker_of_shard(task.shard);
-                    auto& target = server.shard(task.shard);
-                    const auto executed = target.has_watches()
-                        ? watch_execute_scatter(task, target, *op, tid)
-                        : xshard_execute(task, target, *op, tid);
-                    if (executed != ScatterTaskResult::Complete) {
-                        deferred.push_back(task);
-                        continue;
-                    }
-                    const auto result = xshard_complete(server, server.thread(tid), unused_ring, task, *op);
-                    if (result == ScatterFinish::Final) finished = true;
-                    else if (result == ScatterFinish::CommitQueued) {
-                        xshard_queue_commit(server, server.thread(tid), task);
-                        // The commit batch is thread-local. This fixture visits
-                        // several logical owners on one OS thread: flush while
-                        // still bound to the owner that queued the commit.
-                        xshard_flush_commits(server, server.thread(tid), unused_ring, &finished,
-                            [](void* context, Client*) { *static_cast<bool*>(context) = true; });
-                    }
-                    else require(result == ScatterFinish::Waiting, "scatter phase completion");
-                    ++fragments;
+                const auto tid = server.worker_of_shard(task.shard);
+                auto& target = server.shard(task.shard);
+                const auto executed = target.has_watches()
+                                          ? watch_execute_scatter(task, target, *op, tid)
+                                          : xshard_execute(task, target, *op, tid);
+                if (executed != ScatterTaskResult::Complete) {
+                    deferred.push_back(task);
+                    continue;
+                }
+                const auto result =
+                    xshard_complete(server, server.thread(tid), unused_ring, task, *op);
+                if (result == ScatterFinish::Final)
+                    finished = true;
+                else if (result == ScatterFinish::CommitQueued) {
+                    xshard_queue_commit(server, server.thread(tid), task);
+                    // The commit batch is thread-local. This fixture visits
+                    // several logical owners on one OS thread: flush while
+                    // still bound to the owner that queued the commit.
+                    xshard_flush_commits(
+                        server, server.thread(tid), unused_ring, &finished,
+                        [](void* context, Client*) { *static_cast<bool*>(context) = true; });
+                } else
+                    require(result == ScatterFinish::Waiting, "scatter phase completion");
+                ++fragments;
             }
         }
         require(finished && deferred.empty() && (move ? fragments >= 2 : fragments == 1),
                 "complete scatter owner wave");
         op->state.store(OpState::Done);
-        xshard_retire(server, sender, unused_ring, client, *op, pool, io, nullptr, nullptr, nullptr);
+        xshard_retire(server, sender, unused_ring, client, *op, pool, io, nullptr, nullptr,
+                      nullptr);
     }
-    const char* expected = revoke ? "-NOPERM No permissions to access a key\r\n" :
-        unblock ? "-UNBLOCKED client unblocked via CLIENT UNBLOCK\r\n" : move ? "$5\r\nvalue\r\n" :
-        "*1\r\n*2\r\n$13\r\nblock:aclkeys\r\n*1\r\n*2\r\n$3\r\n1-0\r\n*2\r\n$5\r\nfield\r\n$5\r\nvalue\r\n";
+    const char* expected =
+        revoke    ? "-NOPERM No permissions to access a key\r\n"
+        : unblock ? "-UNBLOCKED client unblocked via CLIENT UNBLOCK\r\n"
+        : move
+            ? "$5\r\nvalue\r\n"
+            : "*1\r\n*2\r\n$13\r\nblock:aclkeys\r\n*1\r\n*2\r\n$3\r\n1-0\r\n*2\r\n$5\r\nfield\r\n$5\r\nvalue\r\n";
     require(bytes(*op) == expected, "exact admitted/revoked blocking reply");
     require(!client.blocked() && !client.scatter_barrier(), "blocking lifecycle retired");
     blocking_bind_executor(nullptr, nullptr, nullptr);
