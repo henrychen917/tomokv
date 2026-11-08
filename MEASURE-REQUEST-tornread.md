@@ -115,7 +115,7 @@ adds no owner-side completion channel.
 
 ### Regression rows and negative controls
 
-The final normal-parser matrix is complete; the priority-parser matrix and added release falsifiers are in progress.
+The final normal and priority parser matrices are complete. Both pass all 32 rows.
 
 `tests/tornread.py` preserves Phase B's writer-tagged serial-order oracle, owner geometry
 proof, worker errors, writes/read pairs/value-change checks, MGET-noise oracle, and
@@ -147,6 +147,10 @@ labels; neither EXPECT nor `tests/fixtures/nullrefresh-ledger-labels.json` was e
   Pipelined: **123,513,424 pairs**, **6,966,123 value changes**; round-trip:
   **14,611,024 pairs**, **8,667,647 changes**. Every row ran at least 15 s with zero
   violations, errors or vacuity flags. `build/gate-run.qJ1lUC/ledger.partial`.
+- Final PART2-r7, priority scheduling on: **32/32 rows PASS**, plus build/footprints.
+  Pipelined: **121,687,296 pairs**, **6,802,473 value changes**, zero violations.
+  Round-trip: **14,320,936 pairs**, **8,566,052 value changes**, zero violations.
+  Every row ran at least 15 s; `build/gate-run.3f63cJ/ledger.partial`.
 - PAD1(A) is a falsifier: 22,591 violations / 178,368 pairs in 0.3 s; its round-trip
   control passes. `build/gate-run.ziWzev/ledger.partial`.
 
