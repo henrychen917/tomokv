@@ -195,6 +195,7 @@ def epoll_lb(args):
         destination_ep, destination_peers = next((ep, group) for ep, group in owners.items()
                                                  if ep != source_ep)
         destination = destination_peers[0]
+        destination_inode = ports[destination.sock.getsockname()[1]]
         client_id = selected.must("CLIENT", "ID")
         source_io = selected.must("DEBUG", "IO-THREAD")
         destination_io = destination.must("DEBUG", "IO-THREAD")
@@ -205,8 +206,21 @@ def epoll_lb(args):
         attempts = 0
         while True:
             attempts += 1
-            reply = destination.cmd("DEBUG", "CLIENT-LB", client_id)
+            # The destination can itself migrate while owner observation is
+            # still arming. Pipeline its IO witness with the directed request:
+            # the same connection cannot migrate between these commands while
+            # its protocol/ROB is busy. Do not reuse its pre-retry owner.
+            destination.raw(encode("DEBUG", "CLIENT-LB", client_id) +
+                            encode("DEBUG", "IO-THREAD"))
+            reply = destination.read()
+            requested_io = destination.read()
             if reply == b"OK":
+                destination_io = requested_io
+                _, armed = epoll_snapshot(p.pid)
+                assert len(armed.get(destination_inode, [])) == 1, (
+                    "destination socket is not uniquely registered", destination_inode,
+                    armed.get(destination_inode))
+                destination_ep = armed[destination_inode][0]
                 break
             assert isinstance(reply, RespError) and str(reply) == "ERR DEBUG CLIENT-LB client has no owner observation", reply
             assert time.monotonic() < deadline, "client-LB owner observation never armed within 35 seconds"
