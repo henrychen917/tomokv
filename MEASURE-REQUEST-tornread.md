@@ -160,6 +160,14 @@ labels; neither EXPECT nor `tests/fixtures/nullrefresh-ledger-labels.json` was e
 - PAD1(A) is a falsifier: 22,591 violations / 178,368 pairs in 0.3 s; its round-trip
   control passes. `build/gate-run.ziWzev/ledger.partial`.
 
+The generated-parser falsifier is the initial PART2 image (normal parser fixed,
+generated parser still old) with fused `--reorder 1`: both atomic settings tear within
+0.3 s; both controls pass (`build/gate-run.nDa3Pq/ledger.partial`). The final PAD1-r7(A)
+fused priority arm also tears, with its control clean (`build/gate-run.OdY527/ledger.partial`).
+An earlier split-mode attempt stayed clean because `reorder_for_mode()` normalizes
+2s to FIFO; its receipt is retained as an inactive control (`build/gate-run.QPaywi/ledger.partial`),
+not represented as a falsifier. The gate now checks effective settings explicitly.
+
 `tools/tornread_pad.py` copies PART1 and replaces only the two out-of-line registration
 entries (normal and DB0 namespace) with `return true`. It leaves the Op's original
 stamp in place, takes no reference, and changes only 12 ELF bytes, preserving section
