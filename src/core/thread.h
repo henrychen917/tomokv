@@ -1,31 +1,18 @@
-// thread.h — one server thread, the role it is currently playing, and its inbound channels.
+// Physical worker state, runtime role and inbound transports, shared by server.h and
+// the IO/executor loops. There is no fixed inclusion point. A role is runtime state:
+// FLIP drains EX inboxes/shards before EX-to-IO and quiesces each client ROB before
+// IO-to-EX. The role changes directly, without an intermediate Idle publication.
 //
-// ROLE IS STATE, NOT TYPE. A thread is an IO thread or a worker because of a field, not because of
-// its class. That is deliberate: the io:ex split is a runtime decision and the optimal split differs
-// by workload (measured: ~16:1 io:ex at p1, scaling as 16:1/depth as pipelining deepens). Encoding
-// the role in the type system would make the one thing we most need to change at runtime the one
-// thing we cannot.
-//
-// EVERY THREAD HAS THE SAME FOUR INBOUND TRANSPORTS, whatever its role. What arrives on them
-// differs; their units and wake semantics do not. That uniformity is what lets a flip/LB controller
-// read all four families through one interface instead of special-casing each:
-//
-//   task_in_.lane(p) from producer p   IO -> EX   a parsed op to execute
-//   client_in_[p]   from producer p    EX -> IO   "you have completed ops to retire"
-//   release_in_[p]  from producer p    IO -> EX   a FlatStore value borrow is off the wire
-//   transfer_in_[p] from producer p    IO -> IO   a fully quiesced connection ownership handoff
-//
-// A thread's current role determines which families are active. Task slots are the exception to the
-// old uniform per-pair mesh: one fixed consumer-local allocation is block-masked into SPSC lanes at
-// boot and ExInstall. The other cold/pointer transports retain their per-producer Channel arrays.
-//
-// One private sub-ring PER PRODUCER is what keeps dispatch genuinely SPSC. The alternative is one
-// MPSC queue per consumer, costing an atomic RMW per push from every producer; the fork measured
-// this handoff as instruction volume rather than stalls, so removing the RMW is the direct lever.
-//
-// Runtime FLIP enforces the conversion preconditions here: Ex -> Io drains every inbox and hands
-// off every shard first; Io -> Ex migrates every connection only after rob.quiesced(). Each role
-// changes by one direct old-to-new store, never an Idle transit which could repeat the fork's P0.
+// Each physical worker owns four inbound transport families:
+//   task_in_.lane(p): IO-to-EX parsed tasks from producer p.
+//   client_in_[p]: EX-to-IO completion notices.
+//   release_in_[p]: IO-to-EX notifications that store borrows are off the wire.
+//   transfer_in_[p]: IO-to-IO quiesced client ownership transfers.
+// Task storage is one consumer-local allocation, remasked into SPSC lanes at boot
+// and ExInstall. The other transports use per-producer Channel arrays. Each producer
+// uses only its own lane; the consumer alone drains it. This avoids an MPSC push RMW.
+// Notification bits follow queue publication, and pre-park queue scans preserve progress
+// even if a summary bit is missing. Private state follows the physical worker across roles.
 #pragma once
 #include <algorithm>
 #include <atomic>
@@ -56,14 +43,16 @@ struct ScatterState;
 
 inline constexpr uint32_t kMaxThreads = 128;
 inline constexpr uint32_t kInboxSlots = 1024;
-// ReadLocalExState<true>::Impl::lane_admit_cap holds the effective lane capacity in a uint16 that
-// fits the struct's existing padding; keep the lane inside that range.
+// ReadLocalExState<true>::Impl::lane_admit_cap stores capacity in a uint16 field.
+// The physical inbox capacity must fit that representation.
 static_assert(kInboxSlots <= UINT16_MAX, "lane_admit_cap is a uint16");
 
 enum class Role : uint8_t { Idle = 0, Ifid = 1, Ex = 2 };
 
-// Active groups on this connection-owning thread: one writer, independent of shard ownership.
-// The first/last group arms/disarms atomic_activity_. Keep the former lease's cache-line footprint.
+// Owned by the physical connection-serving thread, independent of shard ownership.
+// Tracks active admitted groups and credit-wait state without local synchronization.
+// The first/last group updates Server::atomic_activity_; the separate credit doorbell
+// publishes waits. This fixed cache line owns no allocations or blocking operations.
 struct alignas(64) AtomicAdmissionState {
     uint32_t active = 0;
     // IO-owned, never read by another thread. Set by script_window_resume when one of this
@@ -76,16 +65,18 @@ struct alignas(64) AtomicAdmissionState {
 };
 static_assert(sizeof(AtomicAdmissionState) == 64);
 
-// What travels on task_in_. A handle rather than a raw Op*: the worker resolves it through the
-// client's ROB, so a recycled slot cannot be reached through a stale pointer. The client itself
-// cannot be torn down while any op is in flight — that is the quiescence fence.
+// Task handle published through a producer's SPSC lane. client/scatter are borrowed;
+// the ROB operation id resolves the slot without trusting a stale Op pointer. The
+// client must remain allocated until operations and executor pointer scopes quiesce.
+// Queue publication orders the fields; a full lane refuses the post without consuming
+// the caller's task. The carrier itself owns no allocation.
 struct Task {
     Client* client = nullptr;
     uint64_t op_id = 0;
     int32_t shard = -1;  // -1 means use Op::shard (the ordinary single-shard path)
-    // The original layout has a four-byte hole here before the aligned pointer. Sampled enqueue
-    // time uses the low monotonic-microsecond word; modular subtraction is valid for queue delays
-    // below 2^32 us. Zero means unsampled.
+    // The enqueue stamp occupies the four bytes before the aligned scatter pointer.
+    // It is the low monotonic-microsecond word; modular subtraction is valid for
+    // queue delays below 2^32 us. Zero means unsampled.
     uint32_t enqueue_us_low = 0;
     ScatterState* scatter = nullptr;
 
@@ -97,13 +88,19 @@ static_assert(sizeof(Task) == 32, "Task grew: task bytes multiply across the who
 static_assert(offsetof(Task, enqueue_us_low) == 20,
               "Task enqueue stamp no longer occupies the proven four-byte padding hole");
 
+// Borrows the store-value address until its release reaches the shard's current owner.
+// The IO producer publishes through release_in_; a full lane requires retaining the
+// release for retry. Stale-owner delivery must be forwarded before touching the store.
 struct BorrowRelease {
     int32_t shard = -1;
     const char* ptr = nullptr;
 };
 
-// Dedicated IO-to-IO ownership transport. `catalog` is an opaque extracted command-metadata node;
-// it is allocated and detached before the owner store and installed without copying client state.
+// Quiesced client handoff published through the source IO's transfer lane. catalog and
+// routing are detached opaque nodes; the destination adopts them without copying
+// client state. The source must prepare capacity/registration before changing owner;
+// a full lane cannot discard the handoff. The payload provides no synchronization
+// beyond the enclosing channel publication.
 struct ClientTransfer {
     Client* client = nullptr;
     void* catalog = nullptr;
@@ -134,9 +131,10 @@ enum class ReadLocalFallbackReason : uint8_t {
     Generation,
 };
 
-// Fused read-local telemetry is written only by the physical thread that owns this context.
-// INFO reads it with the same exceptional cross-thread snapshot used for LoopSignals and command
-// counts; keeping it plain avoids adding synchronization to the route and EX hot paths.
+// Read-local telemetry belongs to one physical worker in either mode. That worker alone
+// increments these plain fields; INFO uses the exceptional cross-thread snapshot shape
+// of LoopSignals. This struct supplies no atomic publication, so a general race-free
+// concurrent snapshot is not established here. No allocation or back-pressure occurs.
 struct ReadLocalStats {
     // Command-level aggregate across locally completed reads. Local keyspace accounting is
     // separate and lookup-based, just like Shard::note_keyspace_read: one MGET contributes one
@@ -146,18 +144,17 @@ struct ReadLocalStats {
     uint64_t keyspace_misses = 0;
     uint64_t fallback_multi = 0;
     uint64_t fallback_watch = 0;
-    // Compatibility aggregate followed by its exhaustive sub-reasons. Keeping the aggregate lets
-    // existing INFO consumers continue to compute the same fallback total.
+    // Context aggregate plus exhaustive sub-reasons. INFO consumers can compute the
+    // fallback total from the aggregate without summing its sub-reasons again.
     uint64_t fallback_context = 0;
     uint64_t fallback_context_owner_key = 0;
     uint64_t fallback_context_connection_state = 0;
     uint64_t fallback_context_route = 0;
     uint64_t fallback_context_keymiss_notify = 0;
     uint64_t fallback_inflight_write = 0;
-    // ARM-ON-DEMAND TRANSIENT. Reads demoted because the connection carried writes published
-    // BEFORE a local read armed it -- writes the RYOW ring deliberately never recorded. Bounded
-    // per connection by one ROB drain and reported separately from the steady-state key conflict
-    // above so that the two can never be confused in a bench.
+    // Reads demoted because the connection carries writes published before local-read
+    // arming. The RYOW ring does not record those writes. The transient lasts at most
+    // one ROB drain and is counted separately from a precise in-flight key conflict.
     uint64_t fallback_arm_transient = 0;
     uint64_t fallback_atomic_pending = 0;
     uint64_t fallback_missing = 0;
@@ -165,7 +162,7 @@ struct ReadLocalStats {
     uint64_t fallback_expired = 0;
     uint64_t fallback_seq_churn = 0;
     uint64_t fallback_generation = 0;
-    // Inert slots preserve all surviving telemetry offsets; not counters or RSS savings.
+    // Inert layout slots keep telemetry offsets fixed; they are not counters.
     std::byte reserved_lane_full[8]{};
     // Lane ADMISSION deferrals. Frames the armed parser left unconsumed at rpos, to be
     // re-parsed by a later pass of the same thread, because the local-read lane had no room
@@ -195,9 +192,9 @@ struct ReadLocalStats {
     uint64_t mget_fallback_generation = 0;
     std::byte reserved_mget_lane_full[8]{};
 
-    // Arm-on-demand volume: how many connections a local read armed, how many RYOW sidecars that
-    // cost, and how many writes were committed into a ring. A pure-write bench arm must show all
-    // three at zero -- that is the design's first proof obligation, stated as a number.
+    // Counts connections armed by a local read, allocated RYOW sidecars and writes
+    // recorded in their rings. Pure-write traffic must leave all three at zero; tests
+    // require this to demonstrate that arming is demand-driven.
     ReadLocalArmStats arm{};
 
     uint64_t fallbacks() const {
@@ -213,6 +210,10 @@ struct ReadLocalStats {
                mget_fallback_seq_churn + mget_fallback_generation;
     }
 
+    // Record one owner-local fallback in the aggregate and, for MGET, its subset.
+    // Only this physical worker may call; no publication, allocation or waiting occurs.
+    // reason must describe a real fallback: None aborts, and MGET Missing aborts because
+    // a stable missing element is a local nil result. Invalid enum values are not checked.
     void note_fallback(ReadLocalFallbackReason reason, bool mget = false) {
         switch (reason) {
             case ReadLocalFallbackReason::Multi:
@@ -324,8 +325,10 @@ static_assert(offsetof(ReadLocalStats, reserved_mget_lane_full) == 288);
 static_assert(offsetof(ReadLocalStats, arm) == 296);
 static_assert(sizeof(ReadLocalStats) == 320);
 
-// Read-local publication and telemetry are absent from baseline ThreadCtx allocations. The
-// lone owning pointer is placed in ThreadCtx's established tail padding below.
+// Optional state owned by ThreadCtx, allocated only with read-local enabled. The worker
+// owns its stats and borrowed retire-sink callbacks; peers acquire lane_active and
+// read the seq_cst tick used by QSBR. Binding precedes use; publication does not
+// extend callback lifetimes. Allocation failure is reported by init_read_local_state.
 struct ReadLocalThreadState {
     std::atomic<uint64_t> tick{0};
     ReadLocalRetireSink retire_sink{};
@@ -339,6 +342,14 @@ static_assert(offsetof(ReadLocalThreadState, lane_active) == 368,
 static_assert(sizeof(ReadLocalThreadState) == 376,
               "dead retry counter removed only from the armed sidecar, never ThreadCtx");
 
+// Owns one physical worker's inbox allocations, notification masks and private vectors;
+// Shard/Client/ring/callback pointers are borrowed. Boot initializes storage; each
+// producer posts only through its own SPSC lane, and the physical owner drains it.
+// Role and ring changes publish with release/acquire at quiesced FLIP boundaries.
+// Shard membership and retire sinks move together under the Server transfer fence.
+// Post methods return false on a full lane; callers retain work and retry. Allocation
+// helpers may return false or throw as their signatures/bodies specify. Ordinary
+// methods do not synchronize private vectors; remote access requires a drained owner.
 class /* TOMO_TOOL_BIND ThreadCtx */ ThreadCtx {
     friend struct FlipListenerState;
     friend uint32_t xshard_flush_snapshot_progress(Server&, ThreadCtx&);
@@ -397,8 +408,8 @@ public:
 
     void init_command_counts(uint32_t count) {
         command_count_size_ = count;
-        // Keep calls at their original offsets. The two cold arrays share the allocation,
-        // preserving ThreadCtx's layout and the call counters' original indexing.
+        // One allocation contains calls, rejected calls and failed calls in registry-indexed
+        // segments. The first segment is the ordinary command-count path.
         count *= 3;  // count is the bounded boot-time command registry size
         command_counts_ = count ? std::make_unique<std::atomic<uint64_t>[]>(count) : nullptr;
     }
@@ -462,10 +473,9 @@ public:
     bool snapshot_writer_bound() const { return snapshot_writer_bound_; }
     void set_snapshot_writer_bound(bool bound) { snapshot_writer_bound_ = bound; }
 
-    // Where this thread actually runs. Latched once the thread is pinned and running, because
-    // sched_getcpu() before that answers about the wrong cpu. A worker passes domain() to
-    // Shard::note_execution so the shard can tell local work from foreign work; that ratio is the
-    // signal a later flip/LB controller acts on.
+    // Latch CPU/domain after the worker is pinned: sched_getcpu before pinning describes
+    // the launching CPU. Shard::note_execution compares this domain with shard residency
+    // to distinguish local and foreign work for placement reporting.
     void latch_placement(const Topology& topo) {
         cpu_ = sched_getcpu();
         domain_ = topo.domain_of(cpu_);
@@ -522,10 +532,8 @@ public:
         if (!read_local_state_) std::abort();
         return read_local_state_->stats;
     }
-    // The nullable form. A thread with no read-local state is every thread in split mode and
-    // every thread on a fused boot with the lane disarmed; the arm-on-demand counter block is
-    // handed out per connection at adopt, which happens in those modes too, so that one caller
-    // needs an answer rather than an abort.
+    // Nullable arm statistics for connection adoption, which also runs with read-local
+    // disabled. Both split and fused boots allocate this state only when the lane is armed.
     ReadLocalArmStats* read_local_arm_stats_or_null() {
         return read_local_state_ ? &read_local_state_->stats.arm : nullptr;
     }
@@ -533,9 +541,9 @@ public:
         if (!read_local_state_) std::abort();
         return read_local_state_->stats;
     }
-    // Owner-local: counts how often a whole-owner walker (KEYS / exact DBSIZE / FLUSH) was held
-    // behind an older same-connection task parked on this shard.  It is the fired-mechanism proof
-    // for the scan-ordering fix, so it must be observable rather than merely believed.
+    // Owner-local count of whole-owner walkers (KEYS / exact DBSIZE / FLUSH) held behind
+    // an older same-connection task parked on the shard. Tests require it to advance
+    // to establish that they exercised the ordering hold.
     void note_atomic_scan_hold() { atomic_scan_holds_++; }
     uint64_t atomic_scan_holds() const { return atomic_scan_holds_; }
     AtomicAdmissionState& atomic_admission_state() { return atomic_admission_state_; }
@@ -558,12 +566,10 @@ public:
         return true;
     }
 
-    // Item 2 (dispatch batching): push without notifying, then one flush per (producer, consumer)
-    // pair per parse pass. A 32-deep pipeline used to pay 32 bit-publishes and 32 wake decisions; it
-    // now pays 32 ring pushes and ONE of each. Safe against the park race the split reintroduces:
-    // a consumer deciding to sleep between our push and our flush re-checks QUEUE DEPTHS in
-    // any_inbound(), not just masks -- the depth check exists precisely so no notification scheme
-    // has to be perfect.
+    // Batch dispatch pushes quietly, then flushes once per producer/consumer pair per
+    // parse pass. A consumer may decide to sleep between push and flush, so its pre-park
+    // inbound check examines queue depths as well as notification masks. A successful
+    // quiet push must eventually be followed by the producer's flush.
     bool post_task_quiet(uint32_t from, const Task& t, LoopSignals& sig) {
         if (!sig.age_sample_rate) return task_in_->push(from, t, sig);
         return task_in_->push_prepared(
@@ -576,9 +582,8 @@ public:
         });
     }
     uint32_t task_free_slots(uint32_t from) const { return task_in_->producer_free_slots(from); }
-    // Private source-fork transport for both boot-fixed 1s iofused-family rotations. The fused
-    // inbox has exactly kInboxSlots per producer for its full lifetime, so these calls bypass the
-    // legacy streams reservation-credit ceiling and dynamic block geometry entirely.
+    // Fused task transport has exactly kInboxSlots per producer for its lifetime. These
+    // entry points bypass reservation-credit ceilings and dynamic split-mode geometry.
     uint32_t iofused_task_free_slots(uint32_t from) const {
         return task_in_->fused_private_free_slots<kInboxSlots>(from);
     }
@@ -639,7 +644,7 @@ public:
         return transfer_in_[from].producer_free_slots();
     }
 
-    // Pub/sub payloads use one cold MPSC inbox per owning IO, but wake through the existing
+    // Pub/sub payloads use one cold MPSC inbox per owning IO, but wake through the
     // client_in mesh.  `true` means the caller owns posting the single nullptr marker for this
     // non-empty burst.  The mutex is never touched before the first pub/sub command.
     bool post_pubsub_event(PubSubEvent* event) {
@@ -704,12 +709,10 @@ public:
         return n;
     }
 
-    // SNAPSHOT-MODE VARIANTS (SNAP-STORM-1): drain_tasks() / drain_tasks_unmasked() with at most
-    // LaneCap tasks per producer per call. A capped producer's flag is put back (NotifyMask::restore)
-    // so its remainder is taken on the owner's next pass, as drain_task_producer_chunks() re-flags
-    // its capped producers. Kept as separate templates rather than a parameter of the unbounded
-    // drains, so every ordinary caller keeps its existing instantiation; only
-    // ExLoopT::drain_tasks_snapshot() instantiates these.
+    // Snapshot drains take at most LaneCap tasks per producer per call. A capped
+    // producer's flag is restored so its remainder is visible on the next owner pass,
+    // as in drain_task_producer_chunks. Separate templates keep the unbounded drain
+    // instantiations independent; ExLoopT::drain_tasks_snapshot uses the capped forms.
     template <bool IofusedPrivateQueue, uint32_t LaneCap, typename Fn>
     uint32_t drain_tasks_capped(Fn&& fn) {
         static_assert(LaneCap != 0);
@@ -777,11 +780,10 @@ public:
         return n;
     }
 
-    // Armed read-local scheduling variant. Consume at most one fixed quantum from every producer
-    // named by this pass's mask, rather than letting one deep lane extend the whole fused rotation.
-    // `batch_boundary` runs only after the Task that completed an execution batch has reached the
-    // unchanged per-item retired frontier. A capped producer is conservatively re-notified; an
-    // exactly-empty lane may cost one empty look next pass, while a non-empty lane can never wedge.
+    // Armed read-local scheduling consumes at most one quantum per producer named by
+    // this pass's mask. batch_boundary runs only after the task completing an execution
+    // batch reaches the per-item retired frontier. Capped producers are re-notified;
+    // an exactly empty lane may cause one empty check, but a nonempty lane cannot wedge.
     template <bool IofusedPrivateQueue = false, typename Fn, typename BatchBoundary>
     uint32_t drain_task_producer_chunks(uint32_t per_producer_limit, Fn&& fn,
                                         BatchBoundary&& batch_boundary, bool unmasked = false) {
@@ -934,9 +936,8 @@ public:
         return true;
     }
 
-    // The single reporting surface. Every loop fills the same fields in the same units, so a
-    // controller compares like with like — the failure mode behind every balancer defect in the
-    // fork was comparing two quantities that were not the same kind of thing.
+    // One reporting surface with common units across loop roles, so controller folds
+    // compare the same quantities rather than treating CPU time as productive work.
     LoopSignals& sig() { return sig_; }
 
     // IO-only INFO surface. Published for each IO tenure when IoLoop binds its send engine; INFO then
@@ -945,9 +946,9 @@ public:
     void set_wb_engine(WbEngine* engine) { wb_engine_.store(engine, std::memory_order_release); }
     WbEngine* wb_engine() const { return wb_engine_.load(std::memory_order_acquire); }
 
-    // Sample inbound pressure on a monotonic time gate. The old iteration gate let thousands of
-    // idle spins over-contribute zeros and paid a 4*nchan scan on every pass. At most one sample per
-    // ~100us makes depth_sum/depth_samples a time-weighted signal without another clock read.
+    // Sample inbound pressure at most once per 100 microseconds using the pass's cached
+    // clock. This bounds full-channel scans and gives depth_sum/depth_samples a time
+    // basis rather than weighting thousands of idle iterations as separate samples.
     bool /* TOMO_TOOL_BIND sample_depth */ sample_depth(uint64_t cached_now_us) {
         sig_.cached_now_us = cached_now_us;
         if (cached_now_us < depth_sample_next_us_) return false;
@@ -955,19 +956,18 @@ public:
         uint64_t d = 0;
         uint64_t inbox_age_us = 0;
         bool inbox_age_observed = false;
-        // A fused IO also consumes tasks. A parked transaction can keep it
-        // busy forever, so its idle-only unmasked drain is not a liveness
-        // fallback. Include it in the existing periodic summary repair.
+        // A fused IO also consumes tasks. Parked transactions can keep its loop busy,
+        // so an idle-only unmasked drain cannot guarantee progress; the periodic sweep
+        // repairs task notifications while it is busy too.
         const bool task_consumer = role() == Role::Ex || fused_executor_context_;
         const bool sample_inbox_age = sig_.age_sample_rate && task_consumer;
         for (uint32_t i = 0; i < nchan_; i++) {
             const uint32_t task_depth = task_in_->sample_depth(i);
             d += task_depth + client_in_[i].depth() + release_in_[i].depth() +
                  transfer_in_[i].depth();
-            // The 100us signal beat already visits every producer scan point. Make that existing
-            // periodic full sweep a correctness looker: if a summary hint were ever absent while
-            // its lane is non-empty, republish it here. No post/drain branch or extra scan is added,
-            // and drain_tasks_unmasked() before park remains the second mask-independent looker.
+            // The 100-microsecond sweep visits every producer: republish a missing summary
+            // bit whenever its lane is nonempty. drain_tasks_unmasked before park supplies
+            // a second mask-independent progress check.
             if (task_consumer && task_depth) (void)task_notify_.set(i);
             // An empty lane has no age sample. Its retired slot may still carry the previous
             // low-32-bit stamp, so consulting newest_nonzero() here would feed stale/sentinel age
@@ -1006,10 +1006,10 @@ public:
             release_in_[i].arm_blocked();
             transfer_in_[i].arm_blocked();
         }
-        // The other half of the Dekker pair. Declaring intent to block is a store; the role-specific
-        // inbound check that follows is a load of a different location. Without this fence the CPU
-        // may hoist that load above the store, and a producer that ran in between sees blocked_ ==
-        // false while we see an empty mask. Sleep path only -- it costs nothing where it runs.
+        // The other half of the Dekker pair: publishing blocked intent is a store, and
+        // the role-specific inbound recheck is a load of a different location. Without
+        // this fence, the load can precede the store, letting a producer see unblocked
+        // while the consumer sees no work. This fence runs only on the sleep path.
         std::atomic_thread_fence(std::memory_order_seq_cst);
     }
     void clear_blocked() {
@@ -1098,22 +1098,11 @@ public:
         const KvBlockCache* cache = read_local_state_->retire_sink.block_cache;
         return cache ? cache->bytes.load(std::memory_order_relaxed) : 0;
     }
-    // Two loads instead of a scan of every channel. Used to re-check after arming the blocked flag.
-    // Asked ONLY on the way to sleep, which is why it can afford to be thorough. The mask is the fast
-    // "where do I look" hint for the drain path; here we also look at the queues themselves, because
-    // the queue push is the release store the blocked_ protocol was designed to pair with. Checking
-    // both means no reasoning about mask staleness can cost us a wakeup -- and a scan of a handful of
-    // channels is free for a thread that by definition has nothing else to do.
-    // MASK-INDEPENDENT DRAIN. The fast path asks the notify mask "who has work" and visits only
-    // those channels, which is what keeps discovery O(active producers) instead of O(threads). The
-    // cost of that is a hard dependency on the mask being perfect: a bit that goes missing for any
-    // reason leaves a queued item that NOTHING will ever look at again, and the connection waiting on
-    // that reply wedges permanently. We measured exactly that -- 209 connections holding a posted,
-    // never-served claim while the sender sat idle.
-    //
-    // So the mask stays the hot path and stops being load-bearing for correctness. A thread about to
-    // park scans every channel directly; if the mask told the truth, the scan finds nothing and costs
-    // a handful of loads, and it only runs when the thread has already decided it has no work.
+    // The idle path scans every channel directly before parking. Hot drains use masks
+    // to visit only active producers, but a missing notification bit must not strand a
+    // queued item indefinitely. Queue publication supplies the release edge used by the
+    // blocked protocol; the mask-independent drain and subsequent inbound recheck keep
+    // summary hints from becoming the sole progress mechanism.
     template <bool IofusedPrivateQueue = false, typename Fn>
     uint32_t drain_tasks_unmasked(Fn&& fn) {
         uint32_t n = 0;
@@ -1276,7 +1265,7 @@ private:
     std::atomic<Role> role_{Role::Idle};
     std::atomic<Role> ready_role_{Role::Idle};
     std::atomic<bool> stop_{false};
-    bool snapshot_writer_bound_ = false;  // owner-private; occupies existing alignment padding
+    bool snapshot_writer_bound_ = false;  // Owner-private snapshot writer binding.
     std::atomic<Ring*> ring_{nullptr};
     void* io_role_context_ = nullptr;
     RolePrepareFn io_role_prepare_ = nullptr;
@@ -1293,16 +1282,16 @@ private:
     std::unique_ptr<TransferChan[]> transfer_in_;
     std::unique_ptr<std::atomic<uint64_t>[]> command_counts_;
     uint32_t command_count_size_ = 0;
-    // Peer producers read the transport pointers on this line (task_in_..transfer_in_) when posting
-    // work. Keep the exceptional scan-hold counter here instead of making every command write the
-    // line they need to post work (confirmed counter swap, 2026-09-13).
+    // Peer producers read task_in_ through transfer_in_ when posting work. This line
+    // holds the exceptional scan-hold counter, so ordinary command accounting does
+    // not write the line those producers need. Keep this cache-line separation.
     uint64_t atomic_scan_holds_ = 0;
     FlipFingerprintWriter flip_fingerprint_;
     uint64_t atomic_groups_ = 0;
     uint64_t atomic_localfast_ = 0;
-    // Swap equal-sized counters: no footprint growth, allocation, or indirection. This line already
-    // holds owner-written accounting and sampled fingerprint state. The flip controller still
-    // samples total_commands_; the swap removes sharing with transport, not all peer reads.
+    // total_commands_ shares owner-written accounting/fingerprint storage, separate
+    // from transport pointers. The flip controller still samples this count, so
+    // separation removes transport sharing rather than all peer reads.
     std::atomic<uint64_t> total_commands_{0};
     AtomicAdmissionState atomic_admission_state_;
     ReadyMask ready_;             // as a sender: which of my clients completed work
@@ -1326,15 +1315,15 @@ private:
     std::vector<Client*> clients_;
     std::atomic<uint32_t> client_count_{0};
     LoopSignals sig_;
-    // Cold publication only: keep every pre-existing ThreadCtx member at its current offset.
+    // Cold writeback-engine publication; keep it separate from the hot transport fields.
     std::atomic<WbEngine*> wb_engine_{nullptr};
-    // Fused-only callbacks live at the true tail so split-mode ThreadCtx offsets stay unchanged.
+    // Fused executor callbacks occupy the cold tail, outside split-mode transport state.
     void* fused_executor_context_ = nullptr;
     ExecutorProgressFn executor_progress_ = nullptr;
     SnapshotStartFn snapshot_start_ = nullptr;
     static constexpr uint64_t kReadLocalParkedBit = uint64_t{1} << 63;
-    // This pointer consumes the baseline class's tail padding, preserving every member offset and
-    // the 1408-byte allocation stride when read-local is disabled.
+    // Optional read-local state uses one owning tail pointer; ThreadCtx stays 1408 bytes
+    // regardless of whether read-local is enabled.
     std::unique_ptr<ReadLocalThreadState> read_local_state_;
 };
 
@@ -1345,8 +1334,8 @@ struct ThreadCtxLayoutLock {
     static constexpr size_t total_commands_offset = offsetof(ThreadCtx, total_commands_);
 };
 
-// Size alone cannot detect the two counters returning to their old lines. ThreadCtx is already
-// cache-line aligned, so these offsets also lock the transport/accounting separation.
+// Offset assertions lock transport/accounting cache-line separation as well as size.
+// ThreadCtx is cache-line aligned, so these offsets identify the shared lines.
 static_assert(alignof(ThreadCtx) == 64);
 static_assert(ThreadCtxLayoutLock::task_in_offset == 72);
 static_assert(ThreadCtxLayoutLock::transfer_in_offset == 96);

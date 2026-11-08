@@ -1,26 +1,16 @@
-// shard.h — the unit of OWNERSHIP and of MIGRATION.
+// Physical store ownership, bucket routing and migration contracts. Included by
+// server.h, thread.h and command/store consumers; there is no fixed inclusion point.
+// A shard owns a contiguous range of 16384 routing buckets and one FlatStore. One
+// executor writes it at a time. Armed read-local consumers may probe immutable
+// records under table-generation checks and rotation QSBR; they never retry or
+// permit in-place overwrite. With the lane off, deletion frees immediately unless
+// the send path holds an explicit borrow.
 //
-// A shard owns a contiguous range of the 16,384 routing buckets and every key hashing into it, plus
-// its own FlatStore. Exactly one thread touches a given shard at a time, which is the invariant the
-// whole design rests on. The boot-disabled fused read-local lane is the narrow exception: foreign
-// threads perform read-only probes under a per-store table generation and rotation QSBR, while
-// every mutation remains on this single owner. With that lane off, DEL retains the immediate-free
-// path unless the allocation is explicitly borrowed by the wire send path.
-//
-// NO NODE LAYER. The keyspace is one flat set of shards over the whole server; there is no NUMA or
-// L3 partitioning of it. That is a deliberate simplification and it gives up a measured gain — on
-// this box, partitioning at one L3 domain per node was worth +22.3% on set_p16 and +14.2% on mget8,
-// with the optimum landing exactly ON the cache boundary. The structures below stay locality-AWARE
-// so a later flip/LB controller can recover that gain by PLACEMENT rather than by partitioning.
-//
-// SHARDS ARE DECOUPLED FROM THREADS ON PURPOSE. A worker executes one or more shards, and which
-// shards it executes can change. Ownership therefore moves by reassigning a shard, never by copying
-// a key — which is also what makes resharding O(1).
-//
-// MIGRATION IS NOT FREE, and this is the part that is easy to get wrong. An L3 domain is filled by
-// access, not allocated into. Moving a shard from a worker in domain A to one in domain B does not
-// move its memory; it invalidates its residency, and the new worker must re-pull the working set
-// through the fabric. On this box a CCX-to-fabric link saturates near 51 GB/s while a single core
+// The keyspace is a flat set of shards, independent of worker count and L3 topology.
+// Ownership moves whole stores without copying keys. A domain change does not move
+// memory or preserve cache residency: the destination refills its working set.
+// home_domain() and migration_cost_bytes() expose that placement cost. Every
+// per-owner store binding must move inside the same quiesced ownership transition.
 // can already pull 50 — so a migration is a real cost, and an LB that prices it at zero will thrash.
 // home_domain() and store().resident_estimate() exist so it can be priced instead of guessed.
 #pragma once
@@ -56,6 +46,14 @@ inline constexpr uint32_t kBucketMask = kNumBuckets - 1;
 // independent of these — see the clustering trap in flatstore.h.
 inline uint32_t bucket_of(uint64_t hash) { return static_cast<uint32_t>(hash) & kBucketMask; }
 
+// Owns the store, WATCH registries, optional notification/LB state and owner-local
+// statistics. Server owns the Shard allocation; server/Client/Op/sink pointers are
+// borrowed. Initialization precedes workers; mutation is restricted to the current
+// executor, with transfer coordinators acting only while owners are quiesced.
+// Read-local consumers use FlatStore's immutable/QSBR interface. Published gauges
+// are relaxed snapshots; plain private fields require owner access or a quiescence
+// fence. Allocation failures follow the delegated store/registry APIs; no generic
+// rollback or back-pressure policy is supplied by this wrapper.
 class /* TOMO_TOOL_BIND Shard */ Shard {
 public:
     Shard() = default;
@@ -147,8 +145,8 @@ public:
         return work;
     }
 
-    // Refreshed once per executor pass through the existing live-config seqlock.  A null store
-    // sink is the complete off state: no notification allocation or callback is reachable.
+    // Refreshed from the committed live-config mailbox once per executor pass. A null
+    // store sink is the complete off state: no notification allocation or callback is reachable.
     void set_notify_mask(uint32_t mask) { notify_mask_ = mask; }
     uint32_t notify_mask() const { return notify_mask_; }
     void note_save_change(uint64_t count = 1) {
@@ -174,12 +172,11 @@ public:
     }
     Server* server() const { return server_; }
 
-    // The registry pointer and its map are owner-only.  Cross-thread INFO and atomic publication
-    // touch only these two atomics; ordinary shards retain one predicted-false waiter check.
-    // seq_cst: a cross-owner committer reads this count to decide whether to mark the shard dirty
-    // and wake its owner. Paired after blocking_publish_fence() (F6c), it forms a Dekker half with
-    // a registering waiter's post-add fence: one side always sees the other. A seq_cst load is a
-    // plain mov on x86-64, so the common no-waiter guard on list/zset/stream writes is unchanged.
+    // The blocking registry pointer/map are owner-only; cross-thread INFO/publication
+    // uses the waiter count and dirty atomics. A committer reads the seq_cst waiter count
+    // after blocking_publish_fence; the registering waiter adds itself then rechecks.
+    // These form a Dekker pair: at least one side sees the other, so a newly visible
+    // write cannot lose its wake. The no-waiter guard is one load (a mov on x86-64).
     bool has_blocking_waiters() const {
         return blocking_waiters_.load(std::memory_order_seq_cst) != 0;
     }
@@ -188,27 +185,25 @@ public:
     // reading has_blocking_waiters(). The owner-local push path needs no fence: the owner that
     // mutated the key is the thread that services its own waiters.
     static void blocking_publish_fence() { std::atomic_thread_fence(std::memory_order_seq_cst); }
-    // seq_cst store: the owner re-checks blocking_dirty_pending() after arm_blocked() (whose
-    // seq_cst fence is the other half), so a cross-owner producer that marks a shard dirty just as
-    // its owner is about to park is observed on that re-check instead of waiting out the 50 ms
-    // timeout (F7). A plain release store could be reordered past the producer's parked_ read and
-    // the owner's dirty read, leaving the wake to the timer. set_blocking_dirty runs only when a
-    // shard already has blocked clients, never on a GET/SET/INCR/MGET/MSET path.
+    // The owner checks blocking_dirty_pending after arm_blocked's seq_cst fence. This
+    // seq_cst store pairs with that check so a dirty publication during park is observed
+    // instead of waiting for the 50 ms timeout. Release alone can permit both sides
+    // to miss each other's store. Only shards with blocking clients enter this path.
     void set_blocking_dirty() { blocking_dirty_.store(true, std::memory_order_seq_cst); }
     bool take_blocking_dirty() {
         return blocking_dirty_.exchange(false, std::memory_order_acquire);
     }
     // Non-consuming peek for the owner's pre-park re-check (seq_cst: pairs with arm_blocked).
     bool blocking_dirty_pending() const { return blocking_dirty_.load(std::memory_order_seq_cst); }
-    // Owner-local H3 notes move with the physical shard. Existing padding;
-    // neither registry offsets nor the Shard stride changes.
+    // Owner-local transaction-boundary notes travel with the physical shard in reserved
+    // route bytes; registry offsets and the Shard stride remain fixed.
     enum : uint8_t { TxnServeNote = 1, TxnWatchNote = 2, TxnBlindNote = 4 };
     void note_txn_boundary(uint8_t kind) { reserved_route_[0] |= kind; }
     uint8_t txn_boundary_notes() const { return reserved_route_[0]; }
     void clear_txn_boundary_notes(uint8_t kinds = 7) { reserved_route_[0] &= ~kinds; }
     void*& blocking_registry_slot() { return blocking_registry_; }
-    // seq_cst add: the waiter-visible edge of the F6c Dekker (see has_blocking_waiters). Removal
-    // stays relaxed -- nothing races a disappearing waiter against a wake decision.
+    // seq_cst addition is the registering waiter's Dekker publication (see has_blocking_waiters).
+    // Removal is relaxed: a disappearing waiter does not need a new wake decision.
     void blocking_waiter_added() { blocking_waiters_.fetch_add(1, std::memory_order_seq_cst); }
     void blocking_waiter_removed() { blocking_waiters_.fetch_sub(1, std::memory_order_relaxed); }
 
@@ -268,8 +263,10 @@ public:
         return store_.persist(hash, key);
     }
 
-    // WATCH state is touched only by this shard's executor.  The maps remain empty until the first
-    // WATCH, so ordinary reads and writes allocate nothing and never enter registry code.
+    // WATCH entries belong to this shard's executor and borrow Client pointers protected
+    // by the connection's WATCH lifetime/generation. Registry mutations are owner-only;
+    // transfer preserves the maps as part of the whole shard. The maps allocate only
+    // after WATCH is used; entries themselves do not publish across threads.
     struct WatchEntry {
         Client* client = nullptr;
         uint64_t generation = 0;
@@ -394,10 +391,10 @@ public:
     // pass publishes the bucket vector atomically entry-by-entry, then starts a fresh census.
     bool lb_scan_bucket_bytes(uint32_t homes) {
         if (!lb_bucket_bytes_staging_ || !homes) return false;
-        // expire_on_visit=false: this census runs from the executor loop at its own cadence, not
-        // inside any logical operation. Expiring here deletes keys OUTSIDE every in-flight
-        // operation's pinned cut and tears cross-shard reads (the expwide S1 failure). Counting a
-        // dead-but-unreaped key's bytes is a rounding error; deleting it here is a torn read.
+        // expire_on_visit=false: the census runs outside logical operations, so expiry
+        // here would delete keys outside their pinned cuts and tear cross-shard reads.
+        // Counting a dead-but-unreaped key may overestimate bytes; the census must not
+        // mutate it merely to improve the estimate.
         lb_bytes_cursor_ = store_.scan(
             lb_bytes_cursor_, homes,
             [&](KvObj* object) {
@@ -436,8 +433,10 @@ public:
         }
     }
 
-    // Per-shard counters, single-writer so no two threads share a line. INFO sums them; a global
-    // counter incremented per command would be a shared-line write on the hot path.
+    // Per-shard counters have one executor writer; no allocation or back-pressure.
+    // INFO sums them using the exceptional telemetry read path. Plain members do not
+    // establish a race-free general concurrent snapshot; use the published atomic
+    // gauges for their documented cross-thread observations.
     struct Stats {
         uint64_t ops = 0;
         uint64_t hits = 0;
@@ -455,10 +454,9 @@ public:
         uint64_t atomic_promotions = 0;
         uint64_t atomic_records_freed = 0;
         uint64_t atomic_entries = 0;
-        // Version-bytes gauge decrements that would have taken the owner-local gauge below zero.
-        // It replaced a std::abort(): an over-decrement means the store returned more version bytes
-        // than it charged, which is a real accounting fault worth a test assertion but not worth
-        // killing the process for. Must read 0; tests/execfix.py asserts it in both atomic modes.
+        // Counts decrements exceeding the charged version bytes. This is an accounting
+        // fault and must stay zero; tests/execfix.py checks it in both atomic modes.
+        // The runtime records the fault without aborting the process.
         uint64_t atomic_gauge_underflows = 0;
         // Times a transaction met an OLDER, still-UNDECIDED unit of the SAME connection on this
         // owner -- the window in which those two units' commit tickets can invert AND in which
@@ -482,12 +480,10 @@ public:
         // tests/watchlive.py asserts it advanced before believing a clean run. Reached only from
         // the reservation registry, which stays empty until the first WATCH: no WATCH, no cost.
         uint64_t watch_reservation_waits = 0;
-        // Times an atomic-group write recorded its reservation on a key that ALREADY carried a
-        // foreign undecided one. That is exactly the configuration that used to answer "not ready"
-        // and re-queue the writer, and two of them crossed over two shards is the wait-for cycle
-        // tests/watchlive.py locks. It must be able to read zero (no WATCH, or no overlap), so a
-        // non-zero reading is proof the cycle's precondition really occurred and was survived --
-        // which is why the gate refuses to pass an armed row that never moved it.
+        // Counts atomic-group reservations added to keys that already carry a foreign
+        // undecided reservation. Two such overlaps across two shards can form a wait-for
+        // cycle if writers wait on each other. tests/watchlive.py requires this count
+        // to advance in armed cases; it can remain zero without WATCH or overlap.
         uint64_t watch_reservation_coexist = 0;
         // Times a transaction's WATCH validation took the serialization in which a foreign
         // atomic-group write to that watched key lands FIRST, and therefore aborted instead of
@@ -532,9 +528,8 @@ private:
     friend struct TxnLinearOracle;  // test-only frozen registry, TOMO_TXN_ORACLE
     friend struct TxnIndexTest;
     int32_t id_ = -1;
-    // Both endpoints include at most kNumBuckets (16384). Packing the route
-    // endpoints leaves the WATCH gate in the hot header without moving zc_min,
-    // the published gauges, FlatStore, Stats, or the cold registry maps.
+    // Route endpoints fit kNumBuckets (16384) in uint16 values. Their packing keeps
+    // the WATCH gate in the hot header; FlatStore and statistics offsets are fixed.
     uint16_t bucket_begin_ = 0;
     uint16_t bucket_end_ = 0;
     bool has_watches_ = false;
@@ -545,15 +540,14 @@ private:
     std::atomic<uint32_t> published_size_{0};
     std::atomic<uint64_t> published_obj_bytes_{0};
     std::atomic<uint32_t> published_expires_{0};
-    // Fills the existing four-byte alignment hole before published_evicted_.
+    // Occupies the four-byte alignment gap before published_evicted_.
     std::atomic<uint32_t> published_active_expire_reap_lag_ms_max_{0};
     std::atomic<uint64_t> published_evicted_{0};
     FlatStore store_;
     Stats stats_;
     TypeLimits type_limits_;
-    // The intset threshold consumes four cold bytes. Place the dirty flag in the
-    // remaining gap and the stream budgets in its former slot, preserving all
-    // other offsets (including the blocking registry and both watch maps).
+    // Keep type limits, the dirty flag and stream budgets in their fixed cold slots;
+    // blocking-registry and WATCH-map offsets are part of the layout contract.
     std::atomic<bool> blocking_dirty_{false};
     void* blocking_registry_ = nullptr;
     std::atomic<uint64_t> blocking_waiters_{0};
@@ -561,8 +555,8 @@ private:
     std::unordered_map<std::string, std::vector<WatchEntry>> watchers_;
     // One key can carry several undecided reservations at once -- see WatchReservation::blocking.
     std::unordered_map<std::string, TxnKeyQueue> watch_reservations_;
-    // Notification state is deliberately appended after every pre-existing field. In particular,
-    // server_ must never return to offset 8: doing so shifted the entire hot shard header in v1.
+    // Notification bindings belong to the cold tail. Moving server_ into the hot
+    // header would shift store/statistics fields and their cache-line placement.
     Server* server_ = nullptr;
     FlatNotifySink flat_notify_sink_{};
     uint32_t notify_mask_ = 0;
@@ -571,8 +565,8 @@ private:
     Op* notify_source_ = nullptr;
     bool* notify_pending_ = nullptr;
     std::unique_ptr<NotifyShardState> notify_state_;
-    // Allocated only when lb is enabled. Appended in the cold tail so the hot shard
-    // header and FlatStore offsets remain unchanged when weighted placement is compiled in.
+    // Allocated only with key-LB signals enabled; cold-tail pointers leave the hot
+    // header and FlatStore at their fixed offsets.
     std::unique_ptr<uint32_t[]> lb_bucket_samples_;
     std::unique_ptr<uint64_t[]> lb_bucket_bytes_;
     std::unique_ptr<uint64_t[]> lb_bucket_bytes_staging_;
@@ -590,7 +584,7 @@ struct ShardLayoutLock {
     static constexpr size_t stats_offset = offsetof(Shard, stats_);
 };
 
-// atomic_torn's gate geometry depends on the pre-read-local Shard stride and hot stats position.
+// The 1440-byte Shard stride and hot-statistics offset are part of the gate geometry.
 static_assert(sizeof(Shard) == 1440);
 static_assert(kNumBuckets <= UINT16_MAX);
 static_assert(ShardLayoutLock::watch_offset == 8);
@@ -599,11 +593,11 @@ static_assert(ShardLayoutLock::reservations_offset == 1272);
 static_assert(ShardLayoutLock::store_offset == 56);
 static_assert(ShardLayoutLock::stats_offset == 1000);
 
-// Installs one logical operation's expiry cut on an owner for the length of ONE fragment, and puts
-// the executor's own per-pass clock back afterwards. Every exit restores -- Complete, Retry, or an
-// exception -- so nothing that runs later on this owner inherits another operation's instant.
-// A zero cut disarms the guard rather than pinning: an unstamped state must not be read as 1970,
-// which would hide the entire keyspace.
+// Owner-thread RAII guard borrowing a Shard for one fragment. Installs its operation
+// expiry cut, then restores the per-pass clock on Complete, Retry or exception exit.
+// A zero cut disables the guard; interpreting an unstamped cut as 1970 would hide
+// the keyspace. No publication, allocation or waiting occurs; the shard must outlive
+// the guard, and no other owner may mutate its clock during the scope.
 class PinnedNowMs {
 public:
     PinnedNowMs(Shard& shard, int64_t cut_ms)
@@ -622,19 +616,15 @@ private:
     const bool armed_;
 };
 
-// The one authoritative bucket map.  Each entry carries two independent facts:
-//
-//   * the immutable physical Shard/FlatStore containing the bucket's keys;
-//   * the mutable EX thread which alone may touch that store.
-//
-// Keeping both in one atomic word preserves the historical one-indexed-load shard route while
-// making the ownership flip itself an array write.  A transfer changes only the EX bits; the shard
-// bits, keys, and table never move.
-//
-// Runtime readers never consult the transfer descriptor.  PREPARING leaves owner_[] untouched, so
-// every entry remains a valid source route.  The phase release-store makes the destination valid,
-// after which commit_transfer() publishes destination entries.  A reader may therefore observe
-// only the current or previous owner, and a stale route is forwarded by ExLoop before execution.
+// Owns the authoritative atomic bucket map and one serialized transfer descriptor.
+// Each packed word contains an immutable physical Shard id and its mutable executor
+// owner; keys and tables stay put. Boot builds the map before worker access.
+// Transfer callers must quiesce both executors and install destination bookkeeping
+// before commit_transfer release-publishes the ownership edge and then bucket routes.
+// An acquire reader may see the current or preceding owner; ExLoop forwards stale
+// routes before store access. Ordinary readers do not consult the descriptor.
+// begin_transfer returns false on invalid geometry, mismatched ownership or contention;
+// commit/finish abort on an invalid phase. No allocation, retry or wait is performed.
 class Router {
 public:
     static constexpr uint32_t kNoOwner = UINT16_MAX;

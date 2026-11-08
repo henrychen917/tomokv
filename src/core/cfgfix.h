@@ -1,3 +1,6 @@
+// Cold process-service and listener-control interfaces, shared by main.cc, server.h and
+// CONFIG handlers. Boot hooks precede workers; live controls use the Server transition
+// fence. Executor hooks borrow loop pointers and require the registered physical owner.
 #pragma once
 #include <cstdint>
 #include <string>

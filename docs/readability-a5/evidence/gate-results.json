@@ -1,0 +1,256 @@
+[
+  {
+    "selection": "source",
+    "run_dir": "/home/user/Projects/cx-readability-a5/build/gate-run.W2gT5q",
+    "jobs": [
+      {
+        "job": "abba_selftest",
+        "exit": 0,
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": 590.79,
+            "label": "ABBA comparison + saturation negative controls"
+          }
+        ]
+      },
+      {
+        "job": "acl_metadata",
+        "exit": 0,
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": 2.76,
+            "label": "generated Redis 7.4 ACL categories"
+          }
+        ]
+      },
+      {
+        "job": "cmd_metadata",
+        "exit": 0,
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": 7.76,
+            "label": "cmdmeta covers every registered command"
+          }
+        ]
+      },
+      {
+        "job": "config_unit",
+        "exit": 0,
+        "passed": 2,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": 10.12,
+            "label": "configuration docs match parser"
+          },
+          {
+            "status": "ok",
+            "seconds": 7.74,
+            "label": "Redis config quoting + mid-value #"
+          }
+        ]
+      },
+      {
+        "job": "reorder_sync",
+        "exit": 0,
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": 36.99,
+            "label": "R7 generated envelope parity"
+          }
+        ]
+      }
+    ],
+    "passed": 6,
+    "failed": 0
+  },
+  {
+    "selection": "runtime",
+    "run_dir": "/home/user/Projects/cx-readability-a5/build/gate-run.D4RPhy",
+    "jobs": [
+      {
+        "job": "cfgfix",
+        "exit": 0,
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": 5.32,
+            "label": "cfgfix CONFIG oracle parity (all modes and engines)"
+          }
+        ]
+      },
+      {
+        "job": "release",
+        "exit": 0,
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": 0.1,
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      },
+      {
+        "job": "reorder_identity",
+        "exit": 0,
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": 200.96,
+            "label": "R7 FIFO twin off-path identity + negative controls"
+          }
+        ]
+      },
+      {
+        "job": "rootcore-inbox",
+        "exit": 0,
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": 5.39,
+            "label": "rootcore inbox"
+          }
+        ]
+      },
+      {
+        "job": "serverfix_config",
+        "exit": 0,
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": 3.18,
+            "label": "serverfix SV4.6 CONFIG validation matrix"
+          }
+        ]
+      },
+      {
+        "job": "source_identity",
+        "exit": 0,
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": 158.76,
+            "label": "production source identity + stable assertion ids"
+          }
+        ]
+      }
+    ],
+    "passed": 6,
+    "failed": 0
+  },
+  {
+    "selection": "units",
+    "run_dir": "/home/user/Projects/cx-readability-a5/build/gate-run.dmPork",
+    "jobs": [
+      {
+        "job": "lbplanner_units",
+        "exit": 0,
+        "passed": 2,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": 0.21,
+            "label": "LB sampler exceptional cleanup + negative control"
+          },
+          {
+            "status": "ok",
+            "seconds": 0.27,
+            "label": "LB monitor plan handoff + negative controls"
+          }
+        ]
+      },
+      {
+        "job": "production_units",
+        "exit": 0,
+        "passed": 0,
+        "failed": 0,
+        "rows": []
+      },
+      {
+        "job": "racefix_climon",
+        "exit": 0,
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": 1.92,
+            "label": "Climon armed refresh + stale-store suppression control"
+          }
+        ]
+      },
+      {
+        "job": "release",
+        "exit": 0,
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": 0.04,
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      },
+      {
+        "job": "reorder_engagement",
+        "exit": 0,
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": 17.96,
+            "label": "R7 production engagement (both database runtimes)"
+          }
+        ]
+      },
+      {
+        "job": "wbland_units",
+        "exit": 0,
+        "passed": 2,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": 33.97,
+            "label": "writeback policy clauses witnesses + negative controls"
+          },
+          {
+            "status": "ok",
+            "seconds": 2.59,
+            "label": "writeback policy paths witnesses + negative controls"
+          }
+        ]
+      }
+    ],
+    "passed": 7,
+    "failed": 0
+  }
+]

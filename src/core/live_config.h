@@ -1,4 +1,7 @@
-// live_config.h -- coherent configuration publication without reader retries or reclamation.
+// Immutable live-configuration values and their three-slot publication mailbox.
+// Included by server.h and worker loops; no fixed inclusion point. A serialized CONFIG
+// writer publishes to one physical consumer per mailbox without reader retries,
+// allocation after initialization, or reclamation of slots.
 #pragma once
 #include <atomic>
 #include <cstdint>
@@ -6,6 +9,8 @@
 
 namespace tomo {
 
+// Value-only worker configuration, copied from a committed mailbox slot. version is an
+// even commit number; the struct owns no pointers and supplies no synchronization itself.
 struct LiveConfigSnapshot {
     uint64_t version;
     uint64_t maxmemory;
@@ -24,6 +29,8 @@ struct LiveConfigSnapshot {
 static_assert(sizeof(LiveConfigSnapshot) == 64,
               "Live config must fit its existing mailbox footprint");
 
+// Value-only IO limits for the same commit as LiveConfigSnapshot. The consuming physical
+// worker copies them before its next mailbox read; no external storage is borrowed.
 struct ClientLimitsConfigSnapshot {
     uint64_t version = 0;
     uint32_t timeout = 0;
@@ -31,15 +38,21 @@ struct ClientLimitsConfigSnapshot {
     ClientBufferLimit pubsub{};
 };
 
+// One commit's execution and client-limit values, copied as a unit by the serialized
+// writer and single consumer. Coherence comes from LiveConfigMailbox, not these fields.
 struct LiveConfigValues {
     LiveConfigSnapshot live{};
     ClientLimitsConfigSnapshot clients{};
 };
 
-// Exactly one consumer, identified by physical ThreadCtx id, and one serialized CONFIG producer.
-// They each own one slot; an atomic exchange transfers ownership of the third (middle) slot.
-// The producer never touches the consumer's slot, even if that worker stops indefinitely.
-// No slot is freed, no reader announces a grace period, and no operation retries an exchange.
+// Owns three fixed slots shared by one serialized CONFIG producer and one physical
+// consumer (a worker or the transfer coordinator). init runs before either participant.
+// Each participant owns one slot; acq_rel exchange transfers the middle slot and orders
+// its contents. The producer never touches the consumer's slot, even if it stops.
+// read returns a borrowed reference valid until that consumer's next read; copy before
+// then. Publication can supersede unread updates without waiting or allocating.
+// The global odd/even version selects the last committed value; no reader retries,
+// grace-period announcements or slot reclamation are required.
 class LiveConfigMailbox {
 public:
     void init(const LiveConfigValues& initial) {
@@ -63,9 +76,8 @@ public:
         const auto& slot = slots_[front_];
         return observed == slot.next.live.version - 1 ? slot.previous : slot.next;
     }
-
-    // Owner publication after applying a snapshot, used only by the cold
-    // TRACKING ON acknowledgement. Fits the consumer line's existing padding.
+    // The consumer release-publishes an applied version; TRACKING ON acknowledges it with
+    // an acquire load. The acknowledgement occupies the consumer's cache line.
     void applied(uint64_t version) { applied_.store(version, std::memory_order_release); }
     uint64_t applied() const { return applied_.load(std::memory_order_acquire); }
 
@@ -73,6 +85,8 @@ private:
     static constexpr uint32_t kDirty = 4;
     static constexpr uint32_t kIndex = 3;
     static_assert(std::atomic<uint32_t>::is_always_lock_free);
+    // Both values belong to the slot's current holder. Keeping the preceding commit lets
+    // a consumer use committed data even if the writer stops after staging the next value.
     struct alignas(64) Publication {
         LiveConfigValues previous;
         LiveConfigValues next;
