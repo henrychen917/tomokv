@@ -1,24 +1,15 @@
-// kvobj.h — one key-value pair in ONE allocation.
+// kvobj.h — object layout, construction and lifetime helpers shared by FlatStore and commands.
+// The header and key occupy one allocation, followed by inline string/compact bytes, an integer,
+// or an external pointer. External ownership is explicit; these helpers do not publish objects.
 //
 // Layout, contiguous, in this order:
-//
 //   [ hdr 8B ][ klen_ext u32? ][ expire_at i64? ][ key bytes ][ value: bytes | ptr | i64 | compact ]
 //
-// Three rules drive this, all of them measured on the fork rather than assumed:
-//
-//  1. ALLOCATION COUNT is the lever (a bespoke size-class pool was built and deleted; the measured
-//     win was fewer allocations, not cleverer ones). So key and value live in the same block as the
-//     header, and small values never allocate separately. Embedding was worth +27% on SET.
-//  2. NO REFCOUNT. Redis's robj refcount is a cross-thread hazard in a sharded server and its
-//     traffic is a shared-line write. A KvObj is owned outright by one shard: copy or move, never
-//     share. There is no shared-integer cache either.
-//  3. NOTHING STORED THAT THE TABLE ALREADY HAS. FlatStore's slot carries a 15-bit tag, so no hash
-//     is kept here. Optional LRU/LFU state steals proven-spare header bits; it adds no field.
-//
-// BUDGET (an aspiration with no test behind it yet; there is no bench/kvobj_footprint in the tree):
-//   16-byte key + 64-byte value, no TTL  ->  target < 85 B all-in.
-//   Today: 8 + 16 + 64 = 88 B before the allocator's size class (a 96 B class). Getting under the
-//   bar needs a narrower header (varint lengths); nothing in the tree tracks that yet.
+// A shard owns each resident object without a refcount or shared-integer cache. Read-local readers
+// can borrow eligible strings under QSBR, and sends can borrow value bytes; replacement and
+// reclamation must respect those lifetimes. Header/key embedding avoids separate small-value
+// allocations. FlatStore's slot stores the 15-bit hash tag; KvObj stores no hash. Optional LRU/LFU
+// metadata shares the flags byte, with atomic access because foreign readers can touch it.
 #pragma once
 #include <algorithm>
 #include <array>
@@ -71,7 +62,10 @@ struct KvObjFlags {
 
 // Eviction touches share this byte with layout flags. Even a layout-only owner read conflicts
 // with a foreign reader's whole-byte CAS, so make every access atomic by construction. Relaxed
-// loads suffice for immutable layout bits; publication still belongs to the table slot/QSBR.
+// loads suffice for fixed published layout bits; publication still belongs to the table slot/QSBR.
+// It owns one byte, not an object lifetime. Assignment/compound assignment use relaxed loads and
+// stores, not atomic read-modify-write; callers must serialize layout changes. Foreign eviction
+// accounting instead uses KvObj's one-shot CAS and tolerates a lost approximate touch.
 class KvObjFlagByte {
     friend struct KvObj;
     uint8_t value_;
@@ -96,7 +90,12 @@ public:
 };
 static_assert(sizeof(KvObjFlagByte) == 1 && alignof(KvObjFlagByte) == 1);
 
-// Header is exactly 8 bytes.
+// Eight-byte positional header for a separately sized allocation. FlatStore/command construction
+// owns mutations; foreign string readers use read_local accessors under the store's QSBR protocol.
+// Accessors borrow the key/value, and no accessor extends their lifetime. Layout/encoding must
+// match the allocated tail; setters do not check capacity or publish the object. Extern values
+// are destroyed by kvobj_free_with_capacity only when OwnsExtern is set; compact values live in
+// the tail. Read-local-eligible published string contents require replacement, not in-place writes.
 struct KvObj {
     uint8_t type;         // Type
     uint8_t enc;          // Enc
@@ -162,7 +161,7 @@ struct KvObj {
     char* key_ptr() { return tail() + klen_ext_bytes() + ttl_bytes(); }
     const char* key_ptr() const { return tail() + klen_ext_bytes() + ttl_bytes(); }
     // Nonzero namespaces use KeyExt even for short keys. klen8 encodes ns-1;
-    // legacy extended keys retain 255, which decodes to namespace zero.
+    // DB-0 extended keys use 255, which decodes to namespace zero.
     uint8_t key_namespace() const {
         if constexpr (kSingleDatabase) return 0;
         return (flags & KvObjFlags::KeyExt) ? static_cast<uint8_t>(klen8 + 1) : 0;
@@ -194,7 +193,7 @@ struct KvObj {
     template <bool Stable>
     __attribute__((always_inline)) Slice probe_key(uint8_t layout) const {
         // A short key is necessarily DB 0: its identity is just the zero-extended
-        // length. The branch is the existing KeyExt test, with a local ELF symbol
+        // length. The branch tests KeyExt, with a local ELF symbol
         // (no allocated bytes) for the exact-layout kind-A measurement twin.
 #if defined(__GNUC__) && defined(__x86_64__)
         asm goto(
@@ -211,7 +210,7 @@ struct KvObj {
 #endif
         return Slice(tail() + ((layout & KvObjFlags::HasTtl) ? 8u : 0u), klen8);
     extended:
-        // Keep the independent round-1 decoder here. Changing only JNZ to JMP
+        // Keep the general decoder independent of the short-key branch. Changing JNZ to JMP
         // routes every PAD probe through it without moving a single text byte.
         // The compiler must not specialize this block for KeyExt being set.
         asm("" : "+r"(layout));
@@ -296,13 +295,12 @@ static_assert(sizeof(KvObj) == 8, "KvObj header must stay 8 bytes");
 
 inline size_t kvobj_alloc_size(KeyIdentity key_identity, uint32_t vlen, bool has_ttl_slot, Enc enc);
 
-// Small collections follow this architecture's string-inline precedent while retaining Compact's
-// byte format. Redis/Valkey's one-listpack small form and Dragonfly's packed outer object establish
-// the allocation target; the tail embedding is native to KvObj's single-owner block. This fixed
-// metadata header is followed immediately by encoded entries. It deliberately contains no C++
-// owner, vector, callback, or expanded-representation shell, so hash/list/set/zset all have a
-// one-allocation resident form. aux0/aux1 are lane-owned scalar state (hash logical bytes + PRNG,
-// or set small-encoding metadata); list and zset leave them zero.
+// Metadata inside an Enc::Compact KvObj tail, immediately followed by packed entry bytes.
+// The enclosing object owns both; this overlay has no destructor, vector or external owner.
+// Callers serialize mutations and provide sufficient tail capacity; memcpy accessors tolerate
+// the key-dependent unaligned position. No bounds checks or publication operations are supplied.
+// Hash/list/set/zset share this one-allocation form. aux0/aux1 carry hash logical bytes/PRNG,
+// set small-encoding metadata, or stream last-id components; list and zset leave them zero.
 struct EmbeddedCompact {
     // val_ptr() follows a variable-length key and is not naturally aligned. Keep the metadata as
     // bytes and use memcpy loads/stores, just like KvObj's TTL and external pointer accessors.
@@ -339,7 +337,7 @@ private:
 static_assert(sizeof(EmbeddedCompact) == 32, "embedded collection metadata must stay compact");
 
 // Resident packed bytes above this size move one-way to the ordinary external wrapper. The limit
-// matches the proven string embed threshold; allocator-class slack below it is usable in place.
+// matches the string embed threshold; allocator-class slack below it is usable in place.
 inline constexpr uint32_t kCollectionEmbedMax = kEmbedThreshold;
 
 inline EmbeddedCompact* embedded_compact(KvObj* o) {
@@ -360,12 +358,18 @@ inline uint32_t embedded_compact_capacity(const KvObj* o) {
 
 // A non-owning facade over either the current external Compact or embedded bytes. Entry.offset
 // remains absolute for external gap buffers and zero-based for embedded buffers; logical() is the
-// only bridge, exactly as in Compact. Embedded small-N access intentionally rescans linearly and
-// never materializes a side index.
+// bridge between these coordinate systems, as in Compact. Embedded small-N access rescans linearly
+// without a side index. Use on a caller-serialized collection, or privately during construction;
+// neither the view nor its iterators retain storage or publish it. Mutations invalidate borrowed
+// entries. A default view must be bound before use; invalid boundaries/capacity return false.
+// External operations delegate allocation/failure handling to Compact; embedded mutations do not
+// allocate and require input bytes that are not invalidated by their memmove.
 class CompactView {
 public:
     using Entry = Compact::Entry;
 
+    // Borrows the same representation as its view. Dereference/advance require a current,
+    // non-end position; construction of a temporary view does not extend the backing lifetime.
     class Iterator {
     public:
         Iterator() = default;
@@ -634,6 +638,11 @@ private:
     uint32_t capacity_ = 0;
 };
 
+// Borrows either a collection KvObj (embedded or external) or a CompactValue wrapper. The caller
+// serializes mutations and keeps the selected representation alive; this facade does not publish,
+// free or retain it. compact() requires compact encoding; aux access requires embedded storage.
+// Guarded mutation methods return false for an expanded encoding or delegate capacity/allocation
+// failures to CompactView. Replacing compact bytes can invalidate existing entries/iterators.
 class CollectionRef {
 public:
     explicit CollectionRef(KvObj* object) : object_(object) {
@@ -732,9 +741,9 @@ private:
 };
 
 // ---- construction ----------------------------------------------------------------------------
-// Values at or below this live in the same block as the key. 192 was validated on the fork, but
-// against Redis's allocation shape rather than this one, so it is a starting point to re-measure —
-// it trades RSS against SET throughput.
+// Compute header, optional fields, key and representation bytes. A string value at or below
+// kEmbedThreshold can occupy this block; larger strings use an external allocation. The caller
+// rounds this request with good_size and checks allocation failure.
 inline size_t kvobj_alloc_size(KeyIdentity key_identity, uint32_t vlen, bool has_ttl_slot,
                                Enc enc) {
     size_t n = sizeof(KvObj);
@@ -762,7 +771,7 @@ inline size_t kvobj_alloc_size(KeyIdentity key_identity, uint32_t vlen, bool has
 // KeyExt is determined by identity, not length: a short namespaced key also needs
 // klen_ext, with namespace-1 in klen8 (255 denotes namespace zero for long keys).
 // A private replacement may reuse the known-valid DB-0 header bytes. This keeps
-// that boot variant's existing code generation while sharing the extended-length write.
+// that variant's header layout while sharing the extended-length write.
 __attribute__((always_inline)) inline void kvobj_init_header(KvObj* object, Slice key, uint8_t type,
                                                              uint8_t enc, uint32_t length,
                                                              bool has_ttl_slot,
@@ -805,6 +814,8 @@ inline void kvobj_read_local_copy_raw(const KvObj* object, uint8_t stable_flags,
     if (length) std::memcpy(destination, source, length);
 }
 
+// Compatibility scratch parameter for string-value callers; kvobj_string_value returns a
+// borrowed object Slice and does not copy bytes into this buffer or extend the object's lifetime.
 struct alignas(uint64_t) KvObjRawReadBuffer {
     std::array<char, 1> bytes;
 };
@@ -813,13 +824,10 @@ inline Slice kvobj_string_value(const KvObj* object, KvObjRawReadBuffer&) {
     return object->str_value();
 }
 
-// Builds a String KvObj. `val` is copied when it fits the embed threshold, otherwise a second block
-// holds it and this one keeps the pointer. Returns nullptr on OOM rather than throwing: the worker
-// loop reports an error reply instead of unwinding.
-// ALWAYS_INLINE, and measured rather than decorative. This body sits just under GCC's inlining
-// cost limit at its three call sites; growing it by the inline key copy below tipped it over, and
-// the resulting out-of-line call cost the first-insert path about twenty instructions -- more than
-// the copy saved. Keeping it inlined is what makes the change a win there instead of a wash.
+// Initialize an unpublished raw string in caller-owned mem, sized for the header, optional
+// TTL/extended key and copied key/value. Returns nullptr for null mem or value length above 192;
+// no allocation or publication occurs. The caller must supply non-overlapping source bytes and
+// keep mem private until insertion. Forced inlining avoids an extra call on first insertion.
 __attribute__((always_inline)) inline KvObj* /* TOMO_TOOL_BIND kvobj_init_raw_string */
 kvobj_init_raw_string(void* mem, Slice key, Slice val, int64_t expire_at_ms = -1,
                       bool reserve_ttl_slot = false) {
@@ -838,9 +846,8 @@ kvobj_init_raw_string(void* mem, Slice key, Slice val, int64_t expire_at_ms = -1
         std::memcpy(o->tail(), &k, 4);
     }
     if (has_ttl_slot) o->set_expire_at_ms(expire_at_ms);
-    // The KEY is short and bounded and the object is not published yet, so the inline copy applies.
-    // The VALUE deliberately keeps the library memcpy: it is a whole payload, unbounded up to
-    // proto-max-bulk-len, and inlining a copy of it buys nothing the fallback would not already do.
+    // Copy the key through the short-copy helper (which falls back for long keys). The value
+    // uses library memcpy for the complete payload, bounded here by kEmbedThreshold.
     if (key.n) bytes_copy(o->key_ptr(), key.p, key.n);
     if (val.n) std::memcpy(o->val_ptr(), val.p, val.n);
     return o;
@@ -876,10 +883,9 @@ inline KvObj* /* TOMO_TOOL_BIND kvobj_new_string */ kvobj_new_string(Slice key, 
                                                                      bool force_raw = false) {
     const bool has_ttl_slot = reserve_ttl_slot || expire_at_ms >= 0;
     const Enc enc = (!force_raw && val.n <= kEmbedThreshold) ? Enc::Raw : Enc::Extern;
-    // Request the CLASS-ROUNDED size explicitly. try_overwrite writes up to good_size(request),
-    // which is only within the allocation if the allocation asked for it: on jemalloc the class
-    // rounds up anyway (zero cost), on an exact allocator (ASAN, glibc) requesting the raw size
-    // made that write a heap overflow -- a 3-byte corruption the gate's RYOW-under-ASAN caught.
+    // Request the class-rounded size explicitly. try_overwrite may use good_size(request) bytes;
+    // allocators that do not round like jemalloc (including ASAN) must still reserve that space.
+    // Requesting just the raw size can let a class-slack overwrite exceed the allocation.
     const size_t n = good_size(kvobj_alloc_size(key.identity(), val.n, has_ttl_slot, enc));
 
     void* mem = alloc_raw(n);
@@ -1019,8 +1025,8 @@ inline KvObj* kvobj_new_stream(Slice key, StreamVal* value, int64_t expire_at_ms
 }
 
 // Adopt helpers select the one-allocation compact form. On success ownership is consumed and the
-// caller's pointer is nulled; on failure it remains with the caller. This mirrors the old wrapper
-// ownership contract while making the representation choice explicit at the only attach point.
+// caller's pointer is nulled; on failure it remains with the caller. Otherwise the external
+// wrapper is attached with ownership, and an embedded copy destroys the consumed wrapper.
 inline KvObj* kvobj_adopt_hash(Slice key, HashVal*& value, int64_t expire_at_ms = -1,
                                bool reserve_ttl_slot = false) {
     KvObj* object = value->encoding() == CollectionEncoding::Compact &&

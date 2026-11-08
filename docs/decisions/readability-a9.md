@@ -100,3 +100,122 @@ The five-byte NOP and non-allocated records support an offline kind A
 **behaviour twin**: reference behaviour with candidate text size/layout.
 `asm goto` preserves a compiler-visible control-flow edge and its register/stack
 contract. Readability work leaves the macro, assembler literals and sites intact.
+
+## 2026-11-08 — object embedding (`KvObj`, `kvobj_alloc_size`)
+
+The old prototype comment attributed +27% SET to embedding and reiterated that
+allocation count, not a bespoke pool, was the useful change. The 192-byte embed
+threshold was tested against the abandoned prototype's Redis-shaped allocation,
+not this native layout; the comment explicitly called it a starting point for
+measurement. An untested footprint aspiration was under 85 bytes for a 16-byte
+key and 64-byte non-TTL value. The actual request is 8+16+64=88, rounded to 96;
+no `bench/kvobj_footprint` or varint-header implementation backed the aspiration.
+Small collections use a 32-byte metadata overlay with packed bytes in the same
+object allocation. The former comments cited Redis/Valkey listpacks and
+Dragonfly packed values as motivation; those comparisons are not proof here.
+
+## 2026-11-08 — forced inlining (`kvobj_init_raw_string`)
+
+The old construction comment says inline key copying pushed a factory just
+over GCC's inlining cost limit at three call sites, adding roughly twenty
+instructions on first insertion. The attribute stays untouched. The comment
+was attached to the raw initializer, which actually takes caller-owned memory,
+rejects values over 192 bytes and allocates nothing; it must not promise an
+external-string allocation or unbounded raw payload.
+
+## 2026-11-08 — rounded allocation requests (`kvobj_new_string`)
+
+A historical ASAN RYOW check reportedly caught a three-byte heap overwrite when
+an exact allocator received the raw request but overwrite used class slack.
+Request `good_size(kvobj_alloc_size(...))` explicitly so that slack is allocated
+under jemalloc, libc and ASAN. The reasoning remains beside the allocation.
+
+## 2026-11-08 — namespace decoding control (`KvObj::probe_key`)
+
+The local ELF patch symbol marks the KeyExt branch without allocating bytes.
+The offline kind A behaviour twin changes JNZ to JMP so every probe uses the
+general decoder. The empty register constraint prevents specializing that
+block for KeyExt being set. No instruction, literal, symbol or patch site moves
+in the retained readability change.
+
+## 2026-11-08 — owner cache scope (`KvBlockCache`)
+
+The removed narrative reports a per-shard variant losing 2–4% armed SET at
+8/64 shards while winning at one shard: each shard carried a separate head
+array and byte gauge, unlike the thread-local jemalloc alternative. A physical
+owner's cache shares those structures among its shards. Shard migration
+rebinds future allocation/reclamation submissions; queued retirements retain
+their accepting physical queue. Main-thread post-join release is valid and was
+previously contradicted by an unconditional “owner-thread only” comment.
+
+## 2026-11-08 — cache capacity (`KvBlockCache::put`)
+
+At 64 shards on one fused owner, a 32-node cap reportedly left 0.5001/0.3750
+`mallocx` calls per operation at pipeline 64/256, versus zero with 4096 nodes
+and 2–4 KiB more cached memory. `kMaxNodesPerClass` follows the 4096-entry retire
+ring. The aggregate byte cap is 4096×192 = 768 KiB; it does not imply that an
+eligible object allocation itself is at most 192 bytes. Rejecting a put does
+not trim existing residents; the caller retains ownership and must free or
+otherwise retain the rejected block.
+
+## 2026-11-08 — cache diagnostics (`KvBlockCache::dbg_walk`, `put`)
+
+The former comment says walking every list on each operation slowed
+reclamation enough to hide the race under investigation. Debug walks sample
+once per 1024 calls while residency checks remain per-operation. `put` aborts
+an immediate duplicate at the class head before it creates a self-loop, rather
+than relying on a later count discrepancy. Debug owner checks permit shutdown
+release after joining workers; the implementation does not limit reports to
+one crossing, despite the former wording.
+
+## 2026-11-08 — compact coordinates (`Compact::insert`, `decode`)
+
+The former comment describes an integration crash (SIGFPE in `offset_slot`
+with an empty index) when sorted integer sets crossed the indexing threshold.
+Insertion must handle an absent or newly created circular index and recompute
+the splice after a buffer relocation. A separate history note described a
+hang from treating absolute offsets as logical offsets. Public offset APIs
+use logical coordinates; the private three-argument decode uses absolute
+offsets with an explicit index. `logical()` is the conversion boundary.
+Small collections defer the side index until entry 17; the old comparison to
+peer packed formats is motivation, not a fresh result.
+
+## 2026-11-08 — resolver ordering (`FlatStore::atomic_resolve_range`)
+
+The removed comment reports that at 16 target cores cleanup masked the
+same-connection stale-read window. At the gate's eight-core geometry,
+collapse-only repair failed `tests/multires.py` in 3/8 runs, while repairing
+read-time ordering yielded 0/8; it reports about 2% cost in the atomic-path A/B.
+Retain the same-connection epoch floor before visibility filtering. A private
+own version outranks committed versions even at epoch zero; otherwise repeated
+RPUSH/APPEND/INCRBY can modify a parked predecessor and lose an acknowledged
+write during collapse.
+
+## 2026-11-08 — resolver diagnostic scope (`atomic_resolve_range`)
+
+The old #77/seed-19 narrative describes a rare EXISTS overcount investigated
+through a finite-cut predecessor answer with a smaller decided group ticket.
+The code retains counters, a process-wide first-answer latch, an unfiltered
+same-key rewalk and at most 4096 diagnostic ticket polls. The discriminators
+separate membership masking, visible-version ranking and undecided publication
+windows. These observations are not correctness verdicts, and they are gated
+before extra walks/atomic loads. The operational distinctions remain in source.
+
+## 2026-11-08 — foreign epoch limitation (`ForeignReadSafety::cell_epoch`)
+
+The former comment called uint32_t epochs monotonic and asserted that a bounded
+owner rate prevented a complete wrap inside a reader window. `touch_epoch`
+wraps by ordinary unsigned addition; neither it nor the caller establishes a
+maximum reader suspension. Equal epoch loads therefore rely on no full wrap,
+and the store's other publication checks are still necessary. This is a
+pre-existing proof limitation, not a code change or a demonstrated corruption.
+
+## 2026-11-08 — ABI and publication separation (`AtomicPendingState`)
+
+The read-local discriminator, installing flag, modulo-256 group count and
+saturating range count share the four-byte gap before `cleanup_fast`. The
+combined finish-install write covers only the two owner-local bytes; it must
+not overwrite the discriminator read by foreign probes. The discriminator is
+initialized before arming. `live` and script-intent count share a cache line
+for `atomic_has_records`. Cold FLUSH clock/reference-release helpers remain
+outside the scatter/unpin callers to preserve their compilation boundaries.

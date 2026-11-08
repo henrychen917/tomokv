@@ -26,14 +26,15 @@ for name in files:
         row[label] = {
             'tokens_identical': original == current,
             'literals_identical': literals(before) == literals(after),
-            'tool_markers_identical': anchors(before) == anchors(after),
             'tokens': len(current),
             'token_sha256': hashlib.sha256(json.dumps(current).encode()).hexdigest(),
         }
-        assert all(row[label][key] for key in
-                   ('tokens_identical', 'literals_identical', 'tool_markers_identical')), row
+        if label == 'base':
+            row[label]['tool_markers_identical'] = anchors(before) == anchors(after)
+            assert row[label]['tool_markers_identical'], row
+        assert row[label]['tokens_identical'] and row[label]['literals_identical'], row
     result['files'].append(row)
 output = ROOT / 'docs/readability-a9/evidence/source-identity.json'
 output.write_text(json.dumps(result, indent=2) + '\n')
-print(f'{len(files)} files: exact preprocessing tokens, literal bytes and tool-marker boundaries '
-      'match lane base and frozen PRE; no renames')
+print(f'{len(files)} files: exact preprocessing tokens and literal bytes match lane base and '
+      'frozen PRE; tool-marker boundaries match lane base (A1 postdates PRE); no renames')

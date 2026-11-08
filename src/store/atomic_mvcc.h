@@ -1,9 +1,8 @@
 // atomic_mvcc.h — free-standing epoch-MVCC records and helpers used by FlatStore.
 //
-// These declarations do not depend on FlatStore internals and are normally includable. The
-// store remains header-only: its member implementation is textually concatenated inside the
-// FlatStore class by flatstore_atomic.inc, so this split creates no translation unit or ODR
-// boundary.
+// Included normally by flatstore.h. Records and pools are manipulated under store ownership;
+// shared group decisions use atomics. FlatStore's ordinary MVCC members are included inside its
+// class from flatstore_atomic.inc; range-record implementations are in flush.cc.
 #pragma once
 #include <atomic>
 #include <bit>
@@ -17,6 +16,11 @@ namespace tomo {
 
 struct ScatterState;
 
+// FlatStore owns this record allocation and its trailing parked-value slots/key storage. The
+// shard owner links, installs and collapses records; post-join teardown also releases them.
+// group and decision/ref pointers refer to separately retained unit state. atomic_epoch acquires
+// group_epoch; plain links/slots provide no cross-thread publication. Prepare can fail before
+// installation; count must not exceed capacity, and release must balance the group's references.
 struct AtomicEntry {
     AtomicEntry* next = nullptr;
     AtomicEntry* prev = nullptr;
@@ -39,15 +43,15 @@ struct AtomicEntry {
     uint32_t key_len = 0;
     bool linked = false;
     // Set after prepare publishes every key occurrence in the foreign-read safety filter (and the
-    // legacy whole-shard pending witness). It remains set through install, linking and collapse.
+    // whole-shard pending witness). It remains set through install, linking and collapse.
     bool foreign_read_unsafe_published = false;
     // DEL/UNLINK groups own packed key bytes in this allocation instead of one empty KvObj per
-    // key. The flag consumes header padding; AtomicEntry's locked size stays unchanged.
+    // key. The flag fits in the locked 144-byte header.
     bool copied_group_keys = false;
     uint8_t key_ns = 0;
     bool namespace_range = false;
     bool range_all = false;
-    uint16_t range_padding = 0;  // merge tail initialization into the existing store
+    uint16_t range_padding = 0;  // permits a combined store for tail initialization
 
     KvObj** parked() { return reinterpret_cast<KvObj**>(this + 1); }
     KvObj* const* parked() const { return reinterpret_cast<KvObj* const*>(this + 1); }
@@ -66,15 +70,16 @@ struct AtomicEntry {
     bool plain() const { return group == nullptr; }
 };
 
-// The foreign-read lifetime marker consumes existing tail padding. Atomic entries are pooled by
+// The foreign-read lifetime marker occupies tail padding. Atomic entries are pooled by
 // allocation class, so growing the header would change both the disabled allocation path and its
 // cache geometry.
 static_assert(sizeof(AtomicEntry) == 144);
 
 // Owner-local protection installed while a cross-owner script is staged.  It deliberately lives
-// beside the cold MVCC list rather than in KvObj: ordinary databases that never execute a cross
-// script allocate none, and a key's hot representation remains byte-identical.  The trailing key
-// bytes make the intent independent of the IO-owned request buffer.
+// beside the cold MVCC list rather than in KvObj. Script PIN and unit-intent paths allocate it
+// lazily; trailing key bytes do not borrow the IO request buffer. The shard owner maintains refs
+// and links, with post-join cleanup for abandoned pins. Allocation failure is returned by the
+// pin helpers; list publication is owner-local, with release updates to the activity counters.
 struct AtomicScriptIntent {
     uint32_t key_ns = 0;
     uint32_t kind = 0;  // 0: script PIN; 1: unit key; 2: unit shard
@@ -92,8 +97,10 @@ static_assert(offsetof(AtomicScriptIntent, hash) == 16);
 static_assert(offsetof(AtomicScriptIntent, refs) == 24);
 static_assert(offsetof(AtomicScriptIntent, key_len) == 28);
 
-// Only unit intents allocate this prefix. PIN nodes keep their existing allocation
-// and all key-matching offsets, so the ordinary versioning predicates stay intact.
+// Prefix allocated before kind-1/2 intents by atomic_unit_pin; kind-0 PIN nodes have no prefix.
+// Borrows a transaction/group and its atomic decisions; the command layer must retain them.
+// atomic_free_unit_intent decrements watch_refs for group units. The shard owner accesses the prefix;
+// atomic_intent_unit requires the prefixed allocation and does not validate that precondition.
 struct UnitRef {
     enum class Kind : uint8_t { Txn, Group };
     std::atomic<uint64_t>* epoch = nullptr;
@@ -114,10 +121,16 @@ inline const UnitRef& atomic_intent_unit(const AtomicScriptIntent& intent) {
 void atomic_cancel_unit_record(AtomicEntry&);
 void atomic_cancel_unit_intent(AtomicScriptIntent&);
 void atomic_shutdown_unit_intent(AtomicScriptIntent&);
-// Out-of-line destruction keeps the owner unpin walk at its original one-call cost.
+// Out-of-line destruction keeps unit-specific reference release outside the owner unpin walk.
 void atomic_free_unit_intent(UnitRef*);
 
+// FlatStore owns the pending lists, intent list and size-class pools. The shard owner mutates
+// plain bookkeeping; shutdown drains it after workers join. Foreign read-local probes inspect
+// the read_local_extended discriminator, initialized before arming and left fixed thereafter.
+// Allocation failure is handled by FlatStore's prepare helpers, not this aggregate; no queue
+// wait or publication barrier is implemented here.
 struct AtomicPendingState {
+    // Owner-local free-list overlay on a reclaimed value block; not a live KvObj at the same time.
     struct FreeValue {
         FreeValue* next;
         size_t allocation;
@@ -127,22 +140,20 @@ struct AtomicPendingState {
     AtomicEntry* tail = nullptr;
     AtomicEntry* conn_heads[64] = {};
     uint32_t live = 0;
-    // Deliberately adjacent to `live`. atomic_has_records() is the ONE branch on the plain
-    // GET/SET owner path that reads this struct at all, and it now tests both words; keeping
-    // them on one cache line means the reservation facility adds no second line touch there.
+    // Adjacent to live because atomic_has_records() tests both words on the ordinary owner path;
+    // a reservation query can read them from the same cache line.
     uint32_t script_intent_count = 0;
     AtomicScriptIntent* script_intents = nullptr;
     AtomicEntry* free_entries[kPoolClasses] = {};
     FreeValue* free_values[kPoolClasses] = {};
     uint32_t cached_entries = 0;
-    // Read-local uses an extended allocation whose first member is this exact baseline state.
-    // The discriminator consumes the pre-existing four-byte hole before cleanup_fast, so the
-    // disabled allocation size and every following offset remain locked.
+    // Read-local uses an extended allocation whose first member is this state. The discriminator
+    // shares the four-byte gap before cleanup_fast with the flags/counts below; offsets are locked.
     bool read_local_extended = false;
     // Owner-task-only: an install span has physical candidates but is not linked yet. Eviction
-    // cannot resolve their ownership until publication. Uses existing padding; offsets stay put.
+    // cannot resolve their ownership until publication. Stored in the gap before cleanup_fast.
     bool group_installing = false;
-    // Wave 10's modulo grouped-record count retains its byte and fused update.
+    // Modulo-256 grouped-record count, updated together with group_installing.
     uint8_t group_records = 0;
     // FLUSH-only count, saturated at 255. A saturated release recounts before
     // publishing a smaller value, so arbitrarily many live ranges cannot wrap.
@@ -174,28 +185,34 @@ static_assert(offsetof(AtomicPendingState, group_records) ==
 static_assert(offsetof(AtomicPendingState, read_local_extended) == 1316);
 static_assert(offsetof(AtomicPendingState, ranges) == 1319);
 
-// Only range-record paths touch these process-cold witnesses. Separate image
-// namespaces keep the ordinary store and thread layouts unchanged.
+// Process-wide range-operation counters, separate for each compiled database namespace. Owners
+// update atomics and INFO samples them; relaxed operations supply counts, not a publication fence
+// or an internally consistent snapshot of all fields. They own no per-store memory.
 struct AtomicFlushCounters {
     std::atomic<uint64_t> units{0}, range_reads{0}, post_versions{0};
     std::atomic<uint64_t> script_conflicts{0}, collapses{0}, slow_collapses{0};
     std::atomic<uint64_t> slow_work{0};
 };
 inline AtomicFlushCounters atomic_flush_counters;
-// Keep the new cold clock caller outside the scatter translation unit: it
-// must not change inlining of the existing ordinary-command expiry cut.
+// Keep the cold clock helper outside the scatter translation unit to isolate its inlining
+// budget from ordinary-command expiry work.
 int64_t atomic_flush_now_ms();
 [[gnu::cold, gnu::noinline]] bool atomic_flush_covers(const AtomicEntry&, Slice);
 inline bool atomic_range_covers(const AtomicEntry& entry, Slice key) {
     return entry.namespace_range && (entry.range_all || entry.key_ns == key.ns);
 }
 
+// Borrowed resolver result for the store owner: value is not retained or freed by this wrapper.
+// matched describes a pending-record match; physical describes the selected representation.
 struct AtomicResolved {
     KvObj* value = nullptr;
     bool matched = false;
     bool physical = true;
 };
 
+// Owner-local scratch for one key's collapse. Keys and object/record pointers borrow storage
+// retained by FlatStore until the collapse transfers or retires it. No independent publication
+// or cleanup occurs here; the caller maintains those lifetimes through the entire walk.
 struct AtomicCollapseKey {
     uint64_t hash = 0;
     Slice key;
@@ -217,17 +234,19 @@ struct AtomicCollapseKey {
     bool prev_set = false;
 };
 
+// Owner-local scratch index into the collapse-key vector; zero marks an unoccupied slot.
 struct AtomicCollapseSlot {
     uint64_t hash = 0;
     uint32_t index = 0;  // collapse_keys_ index + 1; zero is empty
 };
 
+// Owner-local duplicate-key scratch; the Slice borrows record key bytes for the traversal.
 struct AtomicSeenKey {
     uint64_t hash;
     Slice key;
 };
 
-// An applied script and a conflicting writer arbitrate on its existing decision
+// An applied script and a conflicting writer arbitrate on its shared decision
 // word. The abort sentinel is never a visible version, including in newest-write
 // contexts whose cut is UINT64_MAX. No reader retries or waits on that decision.
 inline constexpr uint64_t kAtomicCancelledEpoch = UINT64_MAX;
