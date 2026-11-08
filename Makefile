@@ -223,19 +223,19 @@ $(BUILD_ROOT)/db0/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-in
 # Armed handlers include the same implementation; incremental builds must see its edits.
 $(BUILD_ROOT)/src/cmd/t_string_notify.o $(BUILD_ROOT)/db0/src/cmd/t_string_notify.o: src/cmd/t_string.cc
 # ACLKEYS4's physical namespace argument changes only blocking list publication.
-# Keep every other list body identical; tools/aclkeys4_audit.py checks all bodies.
+# Keep every other list body identical; tools/archive/tools/aclkeys4_audit.py checks all bodies.
 $(BUILD_ROOT)/src/cmd/t_list.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=25633
 # PS5/PS7 add cold CONFIG/INFO/finalization code. Retain PRE's inlining decisions
-# for every ordinary command and storage body; tools/psfix_artifacts.py audits both variants.
+# for every ordinary command and storage body; tools/archive/tools/psfix_artifacts.py audits both variants.
 # wave1b: IPA unit +58 in both namespaces (racefix/authfix); scans 31297-31400 / 31629-31760: no
 # unattributed body and fewest changed bodies at 31330 / 31725.
 # rlresize: see the budget note above $(BUILD_ROOT)/src/main.o.
 # wave2: see the re-derivation note above $(BUILD_ROOT)/src/main.o (31379 kept, db0 31776).
 # wave3: see the re-derivation note above $(BUILD_ROOT)/src/main.o (31388 / db0 31787).
 # at412: the new INFO fields / DEBUG hooks grow this unit; 32853 keeps cmd_reset and every other
-# handler outside cmd_info/cmd_debug_impl PRE-identical (tools/at412_budget.py, docs/at412/budgets2).
+# handler outside cmd_info/cmd_debug_impl PRE-identical (tools/archive/tools/at412_budget.py, docs/at412/budgets2).
 $(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34174
-# SV7/SV9 keep new INFO formatting cold; infofields_artifacts.py checks every ordinary body.
+# SV7/SV9 keep new INFO formatting cold; tools/archive/tools/infofields_artifacts.py checks every ordinary body.
 # CC18/PS5/PS7/SV9 composition: preserve every unrelated server-command body.
 # txnorder2: compile-only trials retained in docs/txnorder2/budgets; remaining spillover is explicit.
 # perfex2: the two cold inline sample resets need 31737 to retain every ordinary
@@ -282,7 +282,7 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # xshard inlining decisions outside MULTI; docs/gt13split/audit_bodies.py checks
 # every function, including ordinary xshard_plain_prepare and cold clones.
 # CD13b adds owner-side GEO metadata calls; +51/+53 retains ordinary command/notify bodies
-# in both namespaces. tests/cd13b_audit.py checks every emitted body and linker selection.
+# in both namespaces. tools/archive/tests/cd13b_audit.py checks every emitted body and linker selection.
 # ACLKEYS3's held registration and final-task wake preserve every outside-path
 # xshard body at these budgets, including both blocked queue specializations.
 # aclfix's pre-execution wake check grows both units by 30 insns (+29/+30 here); the
@@ -363,7 +363,7 @@ $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 # Reorder cleanup removes cold parser/controller code. Keep each database variant's
 # original FIFO inlining decisions; r7shadow_noop audits all 336 surviving bodies.
 # The cold topology demotion and relaxed cache gauge perturb the fused TU's budget.
-# rltopo_artifacts.py checks the PRE point-read/parser/scheduler bodies byte for byte.
+# tools/archive/tools/rltopo_artifacts.py checks the PRE point-read/parser/scheduler bodies byte for byte.
 # Pin the single-database R7 TU's compiler budget as well: its source is unchanged,
 # and both surviving parser bodies must retain their PRE instructions.
 # Encoding setup and LBOSC3 change the boot parser and policy initialization in these two
@@ -430,7 +430,7 @@ $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 # hot bodies; composed C1/N3/N4 dispatchers remain explicit merit inputs.
 # mset8fix: the credit doorbell grows the IO units' initial IPA size by 126/129 (main, genthread,
 # rl2s, reorder), xshard by 27/29 and snapshot by 50 (src/db0). Compile-only scans over +/-40 around
-# each size-compensated value (tools/mset8fix_budgets.py, docs/mset8fix/budgets) select, per unit,
+# each size-compensated value (tools/archive/tools/mset8fix_budgets.py, docs/mset8fix/budgets) select, per unit,
 # the fewest changed hot bodies, then the fewest unintended and total changes, centred on the widest
 # plateau of identical code: genthread 134842/135506, rl2s 168119/169904, reorder 152568 (kept)/
 # 153552, xshard 168287/171751, snapshot 16744/16184, db0 main 150687. src main keeps 152477: it is
@@ -438,13 +438,13 @@ $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 # spillover is inventoried in docs/mset8fix/identity; instruction scopes in docs/mset8fix/counts.
 # iowake: F5/F4/F9 grow the initial IPA units by 8 (main), 32 (genthread, rl2s, reorder), 53 (aof)
 # and 131 (snapshot), src and db0 alike; xshard is unchanged. Compile-only scans around each
-# size-compensated value (tools/iowake_budgets.py, docs/iowake/budgets/selected.json) keep every
+# size-compensated value (tools/archive/tools/iowake_budgets.py, docs/iowake/budgets/selected.json) keep every
 # unedited hot body PRE-identical (main restores the 2s parse_and_dispatch); remaining cold
 # spillover is inventoried in docs/iowake/identity.
 # wave16 (blockwake + parkwake + iowake merged over 8be4f68323): the lanes re-derived these pins
 # independently, so all 24 grown units (main, genthread, rl2s, reorder, xshard, t_server, climon,
 # latency_tracking, multidb, fliplisten, aof, snapshot; src and db0) are re-derived for the merged
-# tree by tools/wave16_budgets.py: PRE pin + merged IPA unit growth, then the value with the fewest
+# tree by tools/archive/tools/wave16_budgets.py: PRE pin + merged IPA unit growth, then the value with the fewest
 # changed bodies in a +-24 compile-only scan (select). Eight units that still changed an unedited hot
 # body (parse_and_dispatch, flush_ready<false,..>, FlatStore) were re-ranked over a +-96 scan by
 # unintended hot bodies first (refine; docs/wave16/budgets/refined.json). The GET/SET/INCR/MGET/MSET

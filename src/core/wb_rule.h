@@ -56,7 +56,7 @@ struct IdleWindow {
 inline constexpr std::ratio<1, 2> kPolicyFraction{};
 
 // Cold artifact selector: only the default 0/1 policy, no detector/probe bits.
-// tools/wbland_artifacts.py patches this immediate for the frozen pol0 arm.
+// tools/archive/tools/wbland_artifacts.py patches this immediate for the frozen pol0 arm.
 __attribute__((noinline, noclone)) inline int default_policy() {
     int policy;
     asm volatile("mov $1, %0" : "=a"(policy));

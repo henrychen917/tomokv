@@ -9,12 +9,12 @@
         {
           "caller": "tests/at412.py",
           "line": 377,
-          "text": "The original storm remains in at412_diagnostics.py, outside the gate."
+          "text": "The original storm remains in tools/archive/tests/at412_diagnostics.py, outside the gate."
         },
         {
           "caller": "tests/at412.py",
           "line": 940,
-          "text": "# in-flight teardown defect reproduced by at412_diagnostics.py."
+          "text": "# in-flight teardown defect reproduced by tools/archive/tests/at412_diagnostics.py."
         }
       ]
     },
@@ -440,7 +440,7 @@
         {
           "caller": "tools/exec1s_scope.py",
           "line": 32,
-          "text": "# PAD scopes are constructed by exec1s_pad_scope.py from symbol-isolated PRE."
+          "text": "# PAD scopes are constructed by tools/archive/tools/exec1s_pad_scope.py from symbol-isolated PRE."
         }
       ]
     },
@@ -452,7 +452,7 @@
         {
           "caller": "Makefile",
           "line": 285,
-          "text": "# in both namespaces. tests/cd13b_audit.py checks every emitted body and linker selection."
+          "text": "# in both namespaces. tools/archive/tests/cd13b_audit.py checks every emitted body and linker selection."
         }
       ]
     },
@@ -464,7 +464,7 @@
         {
           "caller": "Makefile",
           "line": 226,
-          "text": "# Keep every other list body identical; tools/aclkeys4_audit.py checks all bodies."
+          "text": "# Keep every other list body identical; tools/archive/tools/aclkeys4_audit.py checks all bodies."
         }
       ]
     },
@@ -476,7 +476,7 @@
         {
           "caller": "Makefile",
           "line": 236,
-          "text": "# handler outside cmd_info/cmd_debug_impl PRE-identical (tools/at412_budget.py, docs/at412/budgets2)."
+          "text": "# handler outside cmd_info/cmd_debug_impl PRE-identical (tools/archive/tools/at412_budget.py, docs/at412/budgets2)."
         }
       ]
     },
@@ -488,7 +488,7 @@
         {
           "caller": "Makefile",
           "line": 238,
-          "text": "# SV7/SV9 keep new INFO formatting cold; infofields_artifacts.py checks every ordinary body."
+          "text": "# SV7/SV9 keep new INFO formatting cold; tools/archive/tools/infofields_artifacts.py checks every ordinary body."
         }
       ]
     },
@@ -500,7 +500,7 @@
         {
           "caller": "Makefile",
           "line": 229,
-          "text": "# for every ordinary command and storage body; tools/psfix_artifacts.py audits both variants."
+          "text": "# for every ordinary command and storage body; tools/archive/tools/psfix_artifacts.py audits both variants."
         }
       ]
     },
@@ -512,7 +512,7 @@
         {
           "caller": "Makefile",
           "line": 366,
-          "text": "# rltopo_artifacts.py checks the PRE point-read/parser/scheduler bodies byte for byte."
+          "text": "# tools/archive/tools/rltopo_artifacts.py checks the PRE point-read/parser/scheduler bodies byte for byte."
         }
       ]
     },
@@ -524,7 +524,7 @@
         {
           "caller": "Makefile",
           "line": 441,
-          "text": "# size-compensated value (tools/iowake_budgets.py, docs/iowake/budgets/selected.json) keep every"
+          "text": "# size-compensated value (tools/archive/tools/iowake_budgets.py, docs/iowake/budgets/selected.json) keep every"
         }
       ]
     },
@@ -536,7 +536,7 @@
         {
           "caller": "Makefile",
           "line": 433,
-          "text": "# each size-compensated value (tools/mset8fix_budgets.py, docs/mset8fix/budgets) select, per unit,"
+          "text": "# each size-compensated value (tools/archive/tools/mset8fix_budgets.py, docs/mset8fix/budgets) select, per unit,"
         }
       ]
     },
@@ -548,7 +548,7 @@
         {
           "caller": "Makefile",
           "line": 447,
-          "text": "# tree by tools/wave16_budgets.py: PRE pin + merged IPA unit growth, then the value with the fewest"
+          "text": "# tree by tools/archive/tools/wave16_budgets.py: PRE pin + merged IPA unit growth, then the value with the fewest"
         }
       ]
     }

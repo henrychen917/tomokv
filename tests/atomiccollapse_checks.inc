@@ -1,6 +1,6 @@
 // Extends the existing admission survivor row; never starts a server or worker.
 // Every fixture constructs its window deterministically. Controls are generated
-// from this same source and the production header by atomiccollapse_controls.py.
+// from this same source and the production header by tools/archive/tests/atomiccollapse_controls.py.
 namespace tomo {
 struct FlatStoreRegressionTest {
     static AtomicPendingState* pending(FlatStore& s) { return s.atomic_pending_; }

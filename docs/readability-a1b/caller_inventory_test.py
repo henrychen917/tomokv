@@ -53,6 +53,14 @@ class CallerGraph(unittest.TestCase):
         _, live = self.graph('NAME := alpha\ncheck:\n\tpython3 tools/$(NAME)_x.py\n', {'tools/alpha_x.py': ''}, 'Makefile')
         self.assertIn('tools/alpha_x.py', live)
 
+    def test_unrelated_argv_expansions_cannot_erase_script(self):
+        flags = ' '.join(f'flag{i}' for i in range(80))
+        _, live = self.graph(f'FLAGS="{flags}"\nfor suite in alpha beta gamma delta; do\n'
+                             ' python3 "tests/$suite.py" "$FLAGS" >"$OUT/$suite-$FLAGS.log"\ndone\n',
+                             {'tests/alpha.py': '', 'tests/beta.py': '',
+                              'tests/gamma.py': '', 'tests/delta.py': ''}, 'tests/gate.sh')
+        self.assertEqual(len(live), 5)
+
     def test_comments_docstrings_and_same_stem_source_are_not_calls(self):
         _, live = self.graph('"""from old import run"""\n# import old\nfixture="tests/old.cc"\n', {'tools/old.py': '', 'tests/old.cc': ''})
         self.assertNotIn('tools/old.py', live)
