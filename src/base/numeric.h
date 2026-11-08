@@ -1,17 +1,12 @@
-#pragma once
-// Numeric TEXT: the one place that turns a double into the bytes redis 7.4 puts on the wire, and
-// the one place that turns client bytes back into a double the way redis accepts them.
+// Numeric parsing and formatting shared by command, protocol and persistence code.
+// Callers provide input lifetimes and output capacity; these helpers publish no shared state.
 //
-// Both directions used to be "whatever the standard library does", and both were observably wrong
-// against the reference:
-//
-//   * FORMAT. std::to_chars gives the shortest round-trip digits. Redis renders every double
+//   * FORMAT. std::to_chars gives the shortest round-trip digits. Redis renders non-integral doubles
 //     through fpconv_dtoa, which is Grisu2 (Loitsch, "Printing Floating-Point Numbers Quickly and
 //     Accurately with Integers", PLDI 2010). Grisu2 is round-trip correct but NOT always shortest,
-//     so its digit string differs from to_chars' in the last place, or in length, for roughly one
-//     double in 700: 1e126 is "9.999999999999999e+125" there and "1e+126" with to_chars.
-//     grisu2_digits() below is that algorithm, written from the published description and from the
-//     7.4 binary's observed output; no reference source was read.
+//     so its digit string can differ from to_chars' in the last place or in length: 1e126 is
+//     "9.999999999999999e+125" here and "1e+126" with to_chars. grisu2_digits() implements the
+//     published algorithm; compatibility observations and provenance are in the decision log.
 //
 //   * PARSE. Redis does not have one float grammar, and which one applies depends on the argument:
 //       parse_double_strict()      getDoubleFromObject -- ZADD/ZINCRBY scores, WEIGHTS, GEO
@@ -22,7 +17,8 @@
 //     and a subnormal is a fine score but not a sortable element. All of them accept the
 //     hexadecimal spellings strtod accepts, because strtod is what redis calls.
 //
-// Everything here is header-only and out of the GET/SET path; the hot dispatch never calls it.
+// Definitions are header-only, with no fixed translation-unit include point.
+#pragma once
 
 #include <cctype>
 #include <cerrno>
@@ -173,8 +169,11 @@ inline void weed_last_digit(char* digits, int count, uint64_t delta, uint64_t re
     }
 }
 
-// Writes the decimal digits of `value` (finite, non-zero) into `digits` and sets `k` so that
-// value == digits * 10^k. Returns the digit count (at most 18). Sign is the caller's business.
+// Called by redis_double_text with a positive finite nonzero value and caller-owned space for
+// at least 18 digits. Writes a round-tripping decimal significand and its power-of-ten exponent k;
+// returns the digit count, without a terminator. Uses local arithmetic, no allocation or shared
+// publication. Sign handling and special values belong to redis_double_text; invalid inputs and
+// insufficient capacity are not checked here.
 inline int grisu2_digits(double value, char* digits, int& k) {
     uint64_t bits;
     std::memcpy(&bits, &value, sizeof(bits));
@@ -276,11 +275,11 @@ inline uint32_t u64_digits(char* out, uint64_t value) {
 }
 
 // THE canonical double text, for RESP2 bulk scores and the RESP3 "," form alike (redis renders
-// both from one d2string). Derived from the 7.4 binary's OBSERVED output, not from its source:
+// both from one d2string):
 //
 //   * nan / inf / -inf and a signed zero are spelled out;
 //   * an INTEGRAL value with |v| <= 4611686018427387904 (redis's (double)(LLONG_MAX/2) bound,
-//     probed inclusive at both ends) prints as a plain integer -- so 1e18 is "1000000000000000000",
+//     inclusive at both ends) prints as a plain integer -- so 1e18 is "1000000000000000000",
 //     not "1e+18", and 2^62 prints its exact 19 digits while 2^63 does not;
 //   * everything else is the Grisu2 digit string D with v = D x 10^K, rendered fixed when K is
 //     small and scientific otherwise, with an unpadded signed exponent.
@@ -289,6 +288,9 @@ inline uint32_t u64_digits(char* out, uint64_t value) {
 // reads as a bounded write, and the sizes are static_asserted where reply buffers are declared.
 inline constexpr size_t kDoubleTextMax = 40;
 
+// Format into caller-owned out from any role with exclusive access to that buffer. The caller
+// supplies at least kDoubleTextMax writable bytes: cap is not checked. Returns the byte count,
+// without a NUL terminator; all double values have a spelling. No allocation or shared publication.
 inline uint32_t redis_double_text(char* out, size_t cap, double value) {
     if (std::isnan(value)) {
         std::memcpy(out, "nan", 3);
@@ -381,10 +383,10 @@ inline uint32_t redis_double_text(char* out, size_t cap, double value) {
 // ------------------------------------------------------------------ parsing
 
 // A NUL-terminated copy of one argument. strtod needs a terminator and a command argument is a
-// Slice into the connection's read buffer, which has none. The stack arm covers every argument a
-// client actually sends; the heap arm exists because redis really does parse a 5000-character
-// number, and an argument this tree refused for being long would be a difference of its own.
-// std::string is empty here, so the common path allocates nothing.
+// Slice, which need not have one. Owns a 256-byte stack copy for lengths below 256 and a string
+// otherwise, including valid 5000-character numeric arguments. Use on the parsing caller's thread;
+// no publication or synchronization is provided. get() borrows storage until destruction; copying
+// this object does not rebase text_. Heap allocation failure propagates from std::string.
 class Terminated {
 public:
     explicit Terminated(Slice s) {
@@ -492,8 +494,7 @@ inline bool parse_long_double_strict(Slice s, long double& out) {
 // getTimeoutFromObjectOrReply for UNIT_SECONDS: three decisions, not one, and the order matters --
 // the grammar first, then the POSITIVE overflow, then the sign.
 //
-// The two details that are visible from outside, and were both measured on the 7.4 binary rather
-// than assumed:
+// Two externally visible rounding rules:
 //
 //   * the seconds are scaled to milliseconds and rounded UP, so any positive timeout however small
 //     is at least one millisecond. `BLPOP k 1e-9` answers a null after a tick; it does not wait

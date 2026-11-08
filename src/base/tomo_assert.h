@@ -1,4 +1,5 @@
-// Stable assertion ids keep source locations out of the executable. Resolve a
+// C++ assertion interface included by store, shard and command code. Stable ids keep source
+// locations out of the executable; failed enabled assertions terminate via __assert_fail. Resolve a
 // failure id with the matching build/tomokv.asserts.tsv (archive it with the ELF).
 #pragma once
 #include <cassert>
