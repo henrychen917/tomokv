@@ -3162,19 +3162,21 @@ job_moverfix(){
 }
 
 job_tornread(){
-  local prefix mode read_local engine atomic boot_fn=boot writer=mset shape label
+  local prefix mode read_local engine atomic boot_fn=boot writer=mset shape label effective_reorder=0
   IFS=- read -r prefix mode read_local engine atomic <<< "$1"
   [ "$mode" != 1s ] || boot_fn=boot_fused
+  [ "$mode" != 1s ] || effective_reorder=${GATE_TORNREAD_REORDER:-0}
   [ "$atomic" != 0 ] || writer=exec
   for shape in pipe seq; do
     label="tornread $shape ($mode read-local $read_local $engine atomic $atomic)"
-    row_begin "$label" "reorder=${GATE_TORNREAD_REORDER:-0}"
+    row_begin "$label" "requested_reorder=${GATE_TORNREAD_REORDER:-0} effective_reorder=$effective_reorder"
     if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" --atomic "$atomic" \
         --reorder "${GATE_TORNREAD_REORDER:-0}" \
         --read-local "$read_local" --key-lb 0 --client-lb 0 --flip-auto 0 \
         --enable-debug-command yes &&
       py tests/tornread.py --port "$PORT" --label "$1-$shape" --seconds 15 \
         --max-violations 1 --geometry debug --require-atomic "$atomic" \
+        --require-mode "$mode" --require-read-local "$read_local" --require-reorder "$effective_reorder" \
         --read-mode "$shape" --writer-kind "$writer" --json "$TMPDIR/$shape.json" \
         >"$TMPDIR/$shape.log" 2>&1; then
       ok "$label"

@@ -534,6 +534,9 @@ def main():
     p.add_argument("--geometry", choices=("auto", "debug", "none"), default="auto")
     p.add_argument("--require-atomic", type=int, choices=(0, 1), default=None,
                    help="fail setup unless CONFIG GET atomic returns this (TomoKV)")
+    p.add_argument("--require-mode", choices=("1s", "2s"))
+    p.add_argument("--require-read-local", type=int, choices=(0, 1))
+    p.add_argument("--require-reorder", type=int, choices=(0, 1))
     p.add_argument("--json", default=None, help="write the summary JSON here")
     p.add_argument("--progress", type=float, default=10.0)
     args = p.parse_args()
@@ -550,6 +553,17 @@ def main():
     if args.require_atomic is not None and atomic != str(args.require_atomic):
         print("SETUP FAIL: CONFIG GET atomic = %r, required %d" % (atomic, args.require_atomic))
         return 2
+    effective = {}
+    if product == "tomokv":
+        for key, required in (("thread-mode", args.require_mode),
+                              ("read-local", args.require_read_local),
+                              ("reorder", args.require_reorder)):
+            reply = admin.call("CONFIG", "GET", key)
+            value = reply[1].decode() if isinstance(reply, list) and len(reply) == 2 else None
+            effective[key] = value
+            if required is not None and value != str(required):
+                print("SETUP FAIL: CONFIG GET %s = %r, required %s" % (key, value, required))
+                return 2
     prefix = "%s:%d" % (args.label, time.time_ns())
     groups, noise, geo = choose_geometry(admin, args, prefix)
 
@@ -600,6 +614,8 @@ def main():
     print("=" * 100)
     print("ARM %s  server=%s %s atomic=%s  port=%d" % (args.label, product, version, atomic,
                                                       args.port))
+    if effective:
+        print("    effective configuration: %s" % json.dumps(effective, sort_keys=True))
     print("    read-mode=%s depth=%d order=%s readers=%d writers=%d (%s, pipeline %d) groups=%d "
           "lag-noise=%d(%s) mget-noise=%d read-delay-us=%d seconds=%.0f max-violations=%d" %
           (args.read_mode, args.depth, args.order, args.readers, args.writers, args.writer_kind,
@@ -746,6 +762,7 @@ def main():
 
     summary = {
         "label": args.label, "server": product, "version": version, "atomic": atomic,
+        "effective_configuration": effective,
         "port": args.port, "elapsed_s": round(elapsed, 1), "stop_reason": stop_reason,
         "read_mode": args.read_mode, "depth": args.depth, "order": args.order,
         "readers": args.readers, "writers": args.writers, "writer_kind": args.writer_kind,

@@ -13,7 +13,7 @@ Base: `7595a6705a` on branch `cx-tornread`. No push. No edits to the parallel la
 | PART2 | `5df760dfe5` + `4520adb478` (on PART1) | `build/tornread/tomokv-part2-r7` |
 | PAD1 | **(A) behaviour twin**: PRE cleanup behavior in PART1's exact text/data layout | `build/tornread/tomokv-pad1-r7` |
 
-The two late commits apply the same PART1 and PART2 changes to the generated priority
+The two late commits apply the same PART1 and PART2 changes to the generated fused priority
 parser in `src/core/reorder.cc`; the normal parser lives in `src/core/io_loop.h`.
 `tests/r7shadow_sync.py` and its falsifier pass, and the `reorder_sync` gate job passes
 (`build/gate-run.M3quIf/ledger.partial`). The final arm names carry `-r7` to distinguish
@@ -115,9 +115,11 @@ adds no owner-side completion channel.
 
 ### Regression rows and negative controls
 
-The final normal and priority parser matrices are complete. Both pass all 32 rows.
+The final `--reorder 0` and requested `--reorder 1` matrices are complete. Both pass all 32 rows.
+Priority scheduling is effective only in 1s; the 2s legs normalize to FIFO and are controls.
 
-`tests/tornread.py` preserves Phase B's writer-tagged serial-order oracle, owner geometry
+`tests/tornread.py` checks and records the effective thread mode, read-local setting and
+reorder setting through CONFIG GET; a mismatched requirement fails setup. It preserves Phase B's writer-tagged serial-order oracle, owner geometry
 proof, worker errors, writes/read pairs/value-change checks, MGET-noise oracle, and
 post-run placement check. Both within-pair and cross-pair regressions fail; zero
 violations are allowed. The 15-second gate rows use atomic MSET writers at atomic 1,
@@ -126,8 +128,8 @@ and EXEC writers at atomic 0, each with strict round-trip controls.
 Matrix: both `2s`/`1s` × both read-local settings × both atomic settings × both
 epoll/uring engines, matching the current atomics/read-local rows (including the split
 read-local runtime). Sixteen whole jobs, two counted rows each.
-**DQ=+32, DF=+32**, counted at the `collect_job "tornread-..."` loop at `tests/gate.sh:7274`, BEFORE the quick
-exit at `tests/gate.sh:7516`, not at the job definition. At this base EXPECT_QUICK must become **1244**
+**DQ=+32, DF=+32**, counted at the `collect_job "tornread-..."` loop at `tests/gate.sh:7276`, BEFORE the quick
+exit at `tests/gate.sh:7518`, not at the job definition. At this base EXPECT_QUICK must become **1244**
 (1212+32), EXPECT_FULL **1261** (1229+32). The maintainer must add the 32 corresponding
 labels; neither EXPECT nor `tests/fixtures/nullrefresh-ledger-labels.json` was edited.
 
@@ -150,7 +152,8 @@ labels; neither EXPECT nor `tests/fixtures/nullrefresh-ledger-labels.json` was e
   Pipelined: **123,513,424 pairs**, **6,966,123 value changes**; round-trip:
   **14,611,024 pairs**, **8,667,647 changes**. Every row ran at least 15 s with zero
   violations, errors or vacuity flags. `build/gate-run.qJ1lUC/ledger.partial`.
-- Final PART2-r7, priority scheduling on: **32/32 rows PASS**, plus build/footprints.
+- Final PART2-r7, requested `--reorder 1`: **32/32 rows PASS**, plus build/footprints.
+  This means 16 fused priority rows and 16 split FIFO control rows (`reorder_for_mode`).
   Pipelined: **121,687,296 pairs**, **6,802,473 value changes**, zero violations.
   Round-trip: **14,320,936 pairs**, **8,566,052 value changes**, zero violations.
   Every row ran at least 15 s; `build/gate-run.3f63cJ/ledger.partial`.
