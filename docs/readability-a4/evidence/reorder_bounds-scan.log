@@ -1,0 +1,42 @@
+PASS RO1 count=8 PRE=28 POST=7 slot visits/commit
+PASS RO1 count=32 PRE=496 POST=31 slot visits/commit
+PASS RO1 count=64 PRE=2016 POST=63 slot visits/commit
+PASS RO1 1000 mixed commits: exact tasks/order/shadows, Done and ROB wrap
+PASS RO2 no Long: POST 0 constructions, 0 slot visits across 52 passes
+PASS RO2 Done, older Long, refused publish/reparse, scatter and recycled ROB
+FAIL reorderscan: POST must visit the prefix only once per commit
+CONTROL FAIL build/reorderscan-quadratic: prefix only once
+PASS RO1 count=8 PRE=28 POST=7 slot visits/commit
+PASS RO1 count=32 PRE=496 POST=31 slot visits/commit
+PASS RO1 count=64 PRE=2016 POST=63 slot visits/commit
+PASS RO1 1000 mixed commits: exact tasks/order/shadows, Done and ROB wrap
+FAIL reorderscan: non-dispatch passes did shadow work
+CONTROL FAIL build/reorderscan-eager: non-dispatch passes did shadow work
+PASS iotemplates membership 1s rl=0 ro=1
+PASS iotemplates membership 1s rl=1 ro=1
+PASS RO2 production: 4 no-Long passes, 0 constructions, 0 visits
+PASS production shadow across parser passes and executor owners; shadow=1
+PASS RO2 production Long control: 1 constructions, 2 visits
+PASS production read-local demotion 1s: older blocker stamp, late owner order, shadow=1
+PASS RO1 production demotion fixture: 2 slot visits (including parser)
+PASS RO1 count=8 PRE=28 POST=7 slot visits/commit
+PASS RO1 count=32 PRE=496 POST=31 slot visits/commit
+PASS RO1 count=64 PRE=2016 POST=63 slot visits/commit
+PASS RO1 1000 mixed commits: exact tasks/order/shadows, Done and ROB wrap
+PASS RO2 no Long: POST 0 constructions, 0 slot visits across 52 passes
+PASS RO2 Done, older Long, refused publish/reparse, scatter and recycled ROB
+FAIL reorderscan: POST must visit the prefix only once per commit
+CONTROL FAIL build/reorderscan-db0-quadratic: prefix only once
+PASS RO1 count=8 PRE=28 POST=7 slot visits/commit
+PASS RO1 count=32 PRE=496 POST=31 slot visits/commit
+PASS RO1 count=64 PRE=2016 POST=63 slot visits/commit
+PASS RO1 1000 mixed commits: exact tasks/order/shadows, Done and ROB wrap
+FAIL reorderscan: non-dispatch passes did shadow work
+CONTROL FAIL build/reorderscan-db0-eager: non-dispatch passes did shadow work
+PASS iotemplates membership 1s rl=0 ro=1
+PASS iotemplates membership 1s rl=1 ro=1
+PASS RO2 production: 4 no-Long passes, 0 constructions, 0 visits
+PASS production shadow across parser passes and executor owners; shadow=1
+PASS RO2 production Long control: 1 constructions, 2 visits
+PASS production read-local demotion 1s: older blocker stamp, late owner order, shadow=1
+PASS RO1 production demotion fixture: 2 slot visits (including parser)

@@ -9,6 +9,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 BASE = '9a09e59190'
+RELEASE_SOURCE = '5c36312818'
 sys.path.insert(0, str(ROOT / 'tools'))
 import source_tokens as cpp
 from format import anchors, literals
@@ -81,11 +82,15 @@ def main():
     rows = []
     for path in OWNED:
         before = subprocess.check_output(['git', 'show', f'{BASE}:{path}'], cwd=ROOT).decode()
+        frozen = subprocess.check_output(
+            ['git', 'show', f'{RELEASE_SOURCE}:{path}'], cwd=ROOT).decode()
         after = (ROOT / path).read_bytes().decode()
         pre_tokens = tuple(token.text for token in cpp.lex(before))
         post_tokens, renamed = normalized_tokens(after, path)
         assert pre_tokens == post_tokens, ('preprocessing tokens', path)
+        assert tuple(token.text for token in cpp.lex(frozen)) == post_tokens, ('release tokens', path)
         assert literals(before) == literals(after), ('literal bytes', path)
+        assert literals(frozen) == literals(after), ('release literal bytes', path)
         assert tool_comments(before) == tool_comments(after), ('tool comment bytes', path)
         assert anchors(before) == anchors(after), ('tool comment boundaries', path)
         pre_comments = comment_groups(handwritten(before))
@@ -102,7 +107,7 @@ def main():
                          relocated_file_headers=len(relocated),
                          landmarks=handwritten(after).count('// Phase '),
                          file_header=after.startswith('//')))
-    result = dict(base=BASE, files=len(rows),
+    result = dict(base=BASE, frozen_source=RELEASE_SOURCE, files=len(rows),
                   tokens=sum(row['tokens'] for row in rows),
                   literals=sum(row['literals'] for row in rows),
                   renamed_token_occurrences=sum(row['renamed_token_occurrences'] for row in rows),
