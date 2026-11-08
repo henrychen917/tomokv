@@ -15,7 +15,7 @@ import sys
 import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tests'))
-from aofblock import Run, encode, wait_for
+from aofblock import CASES as BLOCKING, Run, encode, info, plan, wait_for
 
 
 class MaskedWindow(AssertionError):
@@ -34,7 +34,7 @@ def arguments():
     p.add_argument('--artifacts', type=Path, required=True)
     p.add_argument('--case', choices=('exec_publish', 'exec_spublish', 'exec_subscribe',
                                     'function_load', 'function_delete', 'function_flush',
-                                    'function_restore', 'shutdown'), required=True)
+                                    'function_restore', 'shutdown') + BLOCKING, required=True)
     p.add_argument('--expect', choices=('safe', 'early', 'abort'), required=True)
     p.add_argument('--channel', default='aofblock:channel')
     return p.parse_args()
@@ -72,6 +72,53 @@ def attempt(args):
                 assert recovered.cmd('GET', 'aofblock:shutdown') == b'durable'
                 run.process.terminate()
                 run.reap(0)
+        elif args.case in BLOCKING:
+            # The fixed defect: a pop completed while IO 0 still waits on an older target.
+            # Its owner is neither IO 0 nor the AOF writer, which 1s fuses with owners.
+            tids = {run.client().cmd('DEBUG', 'IO-THREAD') for _ in range(48)}
+            writer = max(tids)
+            assert 0 in tids and writer != 0, f'need independent IO and writer: {tids}'
+            keys = [f'aofblock:order:{args.case}:{i}' for i in range(64)]
+            owners = ping.cmd('DEBUG', 'SHARDS', *keys)
+            key = next(k for k, v in zip(keys, owners) if v[1] not in (0, writer))
+            command, producer, expected = plan(args.case, key)
+            wake = args.case.endswith('_wake')
+            pusher = run.on_io(0)
+            if args.case.startswith('xreadgroup'):
+                assert pusher.cmd('XGROUP', 'CREATE', key, 'g', '0', 'MKSTREAM') == b'OK'
+            if wake:
+                victim.sock.sendall(encode(*command))
+                wait_for(lambda: int(info(ping, 'clients')['blocked_clients']) == 1,
+                         'blocking operation did not park')
+            else:
+                assert pusher.cmd(*producer) in (1, b'1-1')
+            # A plain write is acknowledged after its own sync: every setup record is durable.
+            assert pusher.cmd('SET', 'aofblock:barrier', 'durable') == b'OK'
+            Path(str(control) + '.armed').touch()
+            older.sock.sendall(encode('SET', 'aofblock:older', 'value'))
+            wait_for(lambda: Path(str(control) + '.1.entered').exists(), 'older fsync not held')
+            ping.sock.sendall(encode('PING'))
+            assert not select.select([ping.sock], [], [], .15)[0], 'older gate was not held'
+            (pusher if wake else victim).sock.sendall(encode(*(producer if wake else command)))
+            assert not select.select([victim.sock], [], [], .15)[0], 'reply before older fsync'
+            Path(str(control) + '.1.release').touch()
+            wait_for(lambda: Path(str(control) + '.2.entered').exists(), 'subject sync not held')
+            assert ping.read() == b'PONG', 'old gate target must be satisfied'
+            early = bool(select.select([victim.sock], [], [], .2)[0])
+            reply = victim.read() if early else None
+            evidence.update(early=early, early_reply=repr(reply), sync2_held=True, key=key)
+            Path(str(control) + '.armed').unlink()
+            if not early:
+                reply = victim.read()
+            if args.expect == 'early' and not early:
+                raise MaskedWindow(evidence)
+            assert early == (args.expect == 'early'), evidence
+            assert reply == expected, reply
+            if wake:
+                assert pusher.read() in (1, b'1-1')
+            assert older.read() == b'OK'
+            run.process.terminate()
+            run.reap(0)
         else:
             library = b"#!lua name=aofblock\nredis.register_function('aofblock', function() return 1 end)"
             if args.case != 'function_load' and args.case.startswith('function_'):
