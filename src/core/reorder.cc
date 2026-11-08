@@ -2183,10 +2183,9 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
         // forward. The freshness floor survives the fold -- the pass starts after the bytes it
         // parses arrived, so no read is ever older than its own arrival, which is what keeps the
         // disjoint-window case (a writer's reply fully precedes the reader's send) correct.
-        // With --atomic 0 the tracking word is never written by anyone, so this is one L1 hit on a
-        // shared-clean line, the sequence load never happens, and the per-op test is never taken.
-        const bool atomic_tracking = srv_->atomic_tracking_active();
-        uint64_t pass_read_cut = atomic_tracking ? srv_->atomic_snapshot() : 0;
+        // EXEC and scripts remain atomic at --atomic 0, including groups admitted after this
+        // pass begins. Their future versions must be excluded even if tracking is idle now.
+        uint64_t pass_read_cut = srv_->atomic_snapshot();
         uint64_t batch_start_ops = 0;
         [[maybe_unused]] bool read_local_batch = false;
         // LANE ADMISSION: how many lane slots (pending local reads) this connection may
@@ -2769,16 +2768,14 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
             // order the client sent them, so a cut taken no later than here is monotone along the
             // connection for free -- which is exactly the property "a later reply may not be older
             // than an earlier one" needs and that sampling at EXECUTION cannot give. Writes are
-            // excluded on purpose (see Op::read_cut_lo). Off, this is one predicted-not-taken
-            // test; on, it is one store into a line reset() already dirtied.
+            // excluded on purpose (see Op::read_cut_lo). The stamp shares a line reset() dirtied.
             // Blocking commands are excluded as well, and not for cost: a parked one is
             // re-prepared by blocking_resume_move() long after its arrival, so a cut pinned at
             // first dispatch would make the resumed read answer from before the write that woke
             // it. They need no cut anyway -- a blocking command is a whole-connection barrier
             // (it waits to be ROB head and stops the parse pass), so nothing younger on this
             // connection is even prepared until it has finished.
-            if (__builtin_expect(atomic_tracking, false) &&
-                !(spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite | CmdFlags::Blocking)))
+            if (!(spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite | CmdFlags::Blocking)))
                 op->set_read_cut(pass_read_cut);
 
             if (spec->flags & CmdFlags::Blocking) {
