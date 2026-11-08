@@ -1,4 +1,7 @@
-// Configuration of process services. Ordinary commands never enter this file.
+// Process logging, supervision, load delays and serialized control admission.
+// This translation unit owns process-lifetime service state and borrowed executor hooks.
+// Boot initializes logging before workers; live verbosity/delay updates use relaxed atomics.
+// Listener transitions use control_server publication plus Server::shape_transition_mutex().
 #include "cfgfix.h"
 #include "config.h"
 #include "server.h"
@@ -18,12 +21,20 @@ namespace {
 std::atomic<int32_t> load_delay{0};
 std::atomic<const Server*> control_server{nullptr};
 std::atomic<int> verbosity{2};
+// Borrows one physical worker's Server/loop and callback; registration and invocation
+// run on that worker (including its dormant executor). No atomic publication or lifetime
+// extension is provided here; callers must keep the loop alive. A missing/mismatched
+// registration makes cfgfix_executor_control return false.
 struct ExecutorControl {
     Server* server = nullptr;
     void* loop = nullptr;
     bool (*action)(void*, int) = nullptr;
 };
 ExecutorControl executors[kMaxThreads];
+// Owns the log descriptor, cookie streams, syslog identity and pidfile for process lifetime.
+// The boot thread initializes it before workers log; shutdown flushes/restores stdio and
+// closes owned handles. Concurrent reinitialization is not supported. Boot failures may
+// leave partial state for this destructor; destructor cleanup errors are ignored.
 struct LogState {
     int fd = -1;
     bool use_syslog = false;
@@ -72,8 +83,8 @@ bool notify_supervisor(const char* message) {
 
 ssize_t write_log(void* cookie, const char* bytes, size_t size) {
     const bool error_stream = cookie != nullptr;
-    // Existing diagnostics have no per-call severity metadata: stderr is
-    // warning, stdout is notice. Keep their payloads unchanged.
+    // Diagnostics carry no per-call severity metadata: stderr is warning and stdout is notice.
+    // The cookie forwards payload bytes without adding a severity prefix.
     const int severity = error_stream ? 3 : 2;
     if (severity < verbosity.load(std::memory_order_relaxed)) return size;
     int fd = log_state.fd;
@@ -144,6 +155,11 @@ void cfgfix_delay_loaded_key() {
     }
 }
 
+// Configure supervision, optional daemonization and logging on the boot thread before
+// workers start. cfg must contain normalized process settings; LogState owns acquired
+// resources and restores stdio at destruction. No worker publication occurs here.
+// System-call/cookie failures return false with partial state retained for cleanup; the
+// daemon parent exits and upstart supervision may stop this process until resumed.
 bool cfgfix_process_boot(const Config& cfg) {
     auto value = [&](const char* name) {
         return cfg_process_value(cfg, cfg_process_find(Slice(name, std::strlen(name))));

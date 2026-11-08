@@ -1,21 +1,17 @@
-// config.h — every runtime knob in one place: the Config struct, the CLI grammar that fills it,
-// and the conf-file loader. One parser serves both the command line and tomokv.conf (a conf line
-// is translated to the equivalent --flag tokens), so a knob's spelling, validation, and default
-// exist exactly once. t_server.cc's CONFIG SET/GET table (init_config) is built FROM this struct,
-// which makes it the third consumer of the same source of truth.
+// Boot configuration values, shared value parsers and the configuration-file loader.
+// Included by main.cc, server.h and CONFIG handlers; there is no fixed inclusion point.
+// CLI and file directives share parse_config_args; live CONFIG uses these value helpers
+// where applicable. Config borrows string storage and owns its vectors; parsers require
+// exclusive access and do not publish to workers. LiveConfigMailbox handles publication.
 //
-// House rules for knobs (owner): numeric where possible; 0 = off and off allocates nothing;
-// -1 = auto; thresholds self-derive. A field in Config that nothing reads is a lie — delete it.
+// Defaults, units and sentinel meanings below follow each parser. Redis-named settings
+// use their own grammar, so 0 does not always disable a feature and -1 is not always auto.
+// String/path/list knobs have no numeric 0 or -1 sentinel; enum knobs accept only the
+// listed words. Internal fields are identified separately from user-facing knobs.
 //
-// COMPILE-TIME tunables live elsewhere on purpose (changing them is a rebuild + re-validation,
-// not an operational act). The complete list, so nothing hides:
-//   kRobWindow        64      net/rob.h       max in-flight ops per connection (ROB size);
-//                                             the read-local write ring is sized FROM it
-//   kEmbedThreshold   192     store/kvobj.h   value bytes embedded in the key's block
-//   ValueSlot::kInline 1024   cmd/scatter_engine.inc  gather slot capacity; pairs with zc-min as
-//                                             the unified copy-vs-borrow cutover (min of the two)
-//   kCommonBytes      16KiB   cmd/xshard.h    pooled scatter arena block size
-//   sizeof(Op)==336, sizeof(Client)==1984     footprint locks (static_assert, do not move)
+// Compile-time bounds live with their consumers: kRobWindow in net/rob.h,
+// kEmbedThreshold in store/kvobj.h, ValueSlot::kInline in cmd/scatter_engine.inc,
+// and kCommonBytes in cmd/xshard.h. Op and Client have fixed 336/1984-byte layouts.
 
 #pragma once
 
@@ -51,9 +47,10 @@ inline bool cfg_parse_u64(const char* s, uint64_t& out);
 
 inline bool cfg_split_args(const char* line, std::vector<std::string>& out);
 
-// Cold process/diagnostic configuration. The 32-bit handle replaces reserved
-// bytes in Config; defaults allocate no sidecar and move no existing field.
-// Boot and CONFIG SET both use cfg_process_normalize below.
+// Immutable process-setting metadata used by boot and CONFIG normalization. Pointers
+// refer to static strings; mutable values live in process_config_values, indexed by
+// Config::process_config_id. Defaults need no sidecar. Boot or the serialized CONFIG
+// writer must own access to that vector; this metadata provides no synchronization.
 struct ProcessConfigSpec {
     const char* name;
     const char* value;
@@ -61,6 +58,11 @@ struct ProcessConfigSpec {
     bool immutable;
     bool hidden = false;
 };
+// Process defaults and units: daemonize=no and syslog-enabled=no are yes/no switches;
+// logfile="", pidfile="", syslog-ident="redis" are strings/paths; syslog-facility=local0,
+// loglevel=notice and supervised=no are enums whose accepted words are in choices.
+// Their 0/-1 strings are not sentinels. key-load-delay defaults to 0 microseconds (off);
+// negative -N selects a one-microsecond delay with probability 1/N, so -1 always delays.
 inline constexpr ProcessConfigSpec /* TOMO_TOOL_BIND process_configs */ process_configs[] = {
     {"daemonize", "no", "yes, no", true},
     {"logfile", "", nullptr, true},
@@ -122,8 +124,8 @@ inline bool cfg_process_normalize(int index, Slice input, std::string& out, std:
     return false;
 }
 
-// LAT-HIST-1: Redis 7.4 uses space-separated string2d tokens (no sorting or
-// deduplication). A null/default vector owns no memory while tracking is off.
+// Parse space-separated percentile values without sorting or deduplication. An empty
+// default vector owns no memory; callers choose implicit defaults separately.
 __attribute__((noipa)) inline bool cfg_latency_percentiles(Slice input, std::vector<double>& out,
                                                            const char*& error) {
     out.clear();
@@ -166,12 +168,18 @@ __attribute__((noipa)) inline std::string cfg_latency_percentiles_string(
     return out;
 }
 
+// Owned scalar limits: defaults are 0 bytes hard/soft and 0 seconds. Zero bytes disables
+// that byte limit; zero seconds allows no positive soft-limit grace period. -1 is invalid.
+// The enclosing snapshot supplies synchronization; this value type publishes nothing.
 struct ClientBufferLimit {
     uint64_t hard_bytes = 0;
     uint64_t soft_bytes = 0;
     uint32_t soft_seconds = 0;
 };
 
+// Owned per-class limits (hard bytes, soft bytes, seconds): normal=(0,0,0),
+// replica=(256 MiB,64 MiB,60), pubsub=(32 MiB,8 MiB,60). Zero/-1 follow
+// ClientBufferLimit. The replica entry is configuration compatibility state.
 struct ClientOutputBufferLimits {
     ClientBufferLimit normal{};
     ClientBufferLimit replica{256ull * 1024 * 1024, 64ull * 1024 * 1024, 60};
@@ -190,9 +198,9 @@ inline bool cfg_eq_icase(const char* a, const char* b) {
     return *a == *b;
 }
 
-// Redis memtoull grammar: bare bytes (or B), decimal K/M/G, binary KB/MB/GB.  Both boot
-// parsing and CONFIG SET call this length-aware implementation, so a RESP bulk does not need a
-// temporary NUL-terminated copy and the two surfaces cannot drift again.
+// Redis memory grammar: bare bytes (or B), decimal K/M/G, binary KB/MB/GB. Boot and
+// CONFIG SET share this length-aware implementation, so RESP bulk input needs no
+// temporary NUL-terminated copy.
 inline bool cfg_memory_suffix(const char* input, size_t length, const char* expected) {
     const size_t expected_length = std::strlen(expected);
     if (length != expected_length) return false;
@@ -259,8 +267,8 @@ inline bool cfg_parse_memory(const char* input, uint64_t& out) {
 
 inline bool cfg_parse_query_buffer_limit(const char* input, size_t length, uint64_t& out,
                                          const char*& error) {
-    // Redis memtoull consumes a C string, including its empty-number -> zero behavior.
-    // Keep these details local to the new knob; other knobs retain their existing grammar.
+    // Redis memory parsing consumes a C string, including empty-number-to-zero behavior.
+    // The query-buffer range check below rejects zero even when the grammar accepts it.
     if (const void* nul = std::memchr(input, 0, length))
         length = static_cast<const char*>(nul) - input;
     const bool zero =
@@ -292,6 +300,9 @@ inline bool cfg_parse_unixsocketperm(const char* input, uint16_t& out) {
     return true;
 }
 
+// Value-only schedule clause: seconds and change count; the default schedule is in
+// Config::save. Parsed seconds must be positive; changes=0 is accepted and -1 is
+// rejected for either unsigned value. The owning vector controls lifetime.
 struct SaveClause {
     uint64_t seconds = 0;
     uint64_t changes = 0;
@@ -301,10 +312,10 @@ inline constexpr uint64_t kProtoMinBulkLen = 1024ull * 1024;
 // Redis's configuration range is signed long. The independent 32-bit receive-cursor
 // bound still rejects a frame that cannot be represented by this server's Slice ABI.
 inline constexpr uint64_t kProtoMaxBulkLenSupported = LONG_MAX;
-// String values and argv Slices are 32-bit. This is the largest bulk that, with its RESP
-// envelope, both still represent (the pre-netfix configuration ceiling). Commands that
-// grow a string (APPEND, SETRANGE, SETBIT, BITFIELD) stop here even when the configured
-// limit is larger, instead of narrowing a 64-bit length; Redis would attempt the allocation.
+// String values and argv Slices are 32-bit. This is the largest bulk whose value and
+// RESP envelope both fit that representation. String-growing commands (APPEND,
+// SETRANGE, SETBIT, BITFIELD) stop here even if the configured limit is larger,
+// rather than narrowing a 64-bit length before allocation.
 inline constexpr uint64_t kProtoMaxBulkLenRepresentable = UINT32_MAX - 64ull * 1024;
 
 inline bool cfg_parse_save_schedule(const char* input, size_t length,
@@ -396,18 +407,18 @@ enum class AppendFsyncPolicy : uint8_t { Always = 0, Everysec = 1, No = 2 };
 // One boot-latched persistence engine governs both AOF and snapshot file data/sync operations.
 // Uring is native; epoll networking derives the syscall persistence engine (there is no ring).
 enum class PersistIoEngine : uint8_t { Normal = 0, Uring = 1 };
-// One boot-latched NETWORK event engine for every io thread. Uring is the native default and the
-// only path with measured numbers behind it; epoll exists so the same binary runs where io_uring is
-// unavailable or unwanted. This boot-only choice also selects the persistence engine.
+// Boot-latched network engine for every IO thread: uring by default, or epoll where
+// io_uring is unavailable or unwanted. This choice also selects persistence IO.
 enum class NetIoEngine : uint8_t { Uring = 0, Epoll = 1 };
-// Boot-latched loop architecture. 2s retains dedicated network and executor threads; 1s gives
-// every selected physical thread both loop objects. Split/fused remain compatibility spellings.
+// Boot-latched loop architecture: 2s uses dedicated IO and executor threads; 1s gives
+// every selected physical thread both loop objects. split/fused are accepted aliases.
 enum class ThreadMode : uint8_t { Split = 0, Fused = 1 };
 enum class TlsAuthClients : uint8_t { Yes = 0, No = 1, Optional = 2 };
 
-// Public encoding settings retain Redis's full numeric range; the shard's existing uint32
-// limits saturate at the maximum representable collection/element size. No hot layout grows.
-// Keep names, aliases and parsing here so boot, CONFIG SET/GET and REWRITE cannot drift.
+// Owned scalar encoding settings with static name/alias metadata. Boot or the serialized
+// CONFIG writer updates values; apply translates them to owner-local TypeLimits without
+// publication. Public ranges saturate at the uint32 representation limit. parse returns
+// false for invalid input; it does not promise to preserve its output on failure.
 struct EncodingConfig {
     enum Key : uint32_t {
         HashEntries,
@@ -438,6 +449,11 @@ struct EncodingConfig {
         {"zset-max-listpack-value", "zset-max-ziplist-value", true, "zset-max-compact-value"},
         {"set-max-intset-entries", nullptr, false, nullptr},
     };
+    // Defaults in Key order: hash 512 entries/64 bytes; list -2 (8 KiB payload budget);
+    // set 128 entries/64 bytes; zset 128 entries/64 bytes; intset 512 entries.
+    // Zero disables the corresponding compact limit except ListSize, where 0 permits one
+    // element. ListSize -1 selects 4 KiB; other keys reject -1. Negative list values
+    // select byte budgets (below -5 clamps to 64 KiB); positives count elements.
     int64_t values[Count] = {512, 64, -2, 128, 64, 128, 64, 512};
 
     static int find(Slice name) {
@@ -542,161 +558,202 @@ __attribute__((noipa)) inline std::string cfg_shutdown_string(uint8_t flags) {
     return result;
 }
 
+// Owns boot values and vectors; const char* fields borrow argv or the completed token
+// store for their full use lifetime. process_config_id refers to process-wide cold
+// storage, not a uniquely owned allocation. Boot parsing is exclusive; live changes
+// require CONFIG serialization and explicit Server publication. No synchronization
+// is provided by this type, and copying it does not extend borrowed-string lifetimes.
 struct Config {
-    // ---- placement (boot-only) -------------------------------------------------------------
-    const char* place = nullptr;  // complete role@cpu list; null = --ratio / default
-    // Whole-server role counts for even placement (--ratio); zero = unset, split mode only.
+    // Boot placement string; default null derives placement from ratio/allowed CPUs.
+    const char* place = nullptr;
+    // IO thread count from --ratio; default 0 means unset internally. Explicit ratios
+    // require positive IO and EX counts; -1 has no auto meaning and cannot form a valid shape.
     uint32_t even_ifid = 0;
+    // EX thread count from --ratio; default 0 means unset internally; same rules as even_ifid.
     uint32_t even_ex = 0;
-    const char* shard_home = nullptr;  // optional complete shard:executor_tid topology
-    // Resolve before persistence recovery and shard allocation: eight migration units per EX.
+    // Boot shard:executor_tid map; default null assigns homes; an explicit empty map is invalid.
+    const char* shard_home = nullptr;
+    // Internal representation of the --shards -1 sentinel.
     static constexpr uint32_t kShardsAuto = UINT32_MAX;
+    // Shard count; default -1/auto resolves to min(8 * executors, 256) before recovery.
+    // 0 is invalid; explicit values are 1..256.
     uint32_t shards = kShardsAuto;
-    bool pin_threads = true;  // relative to the process's allowed CPU set
-
-    // Independently swept boot latches. Each off arm allocates none of its signals/windows;
-    // the shared controller exists only if either is on. Numeric policy stays derived.
+    // Boot affinity switch; default true. --no-pin (or file pin no) disables pinning.
+    // There is no numeric argument or 0/-1 sentinel.
+    bool pin_threads = true;
+    // Boot key-balancing switch; default 1, 0 disables its signals/windows, -1 invalid.
+    // The shared controller is allocated only if either balancer is enabled.
     uint32_t key_lb = 1;
+    // Boot client-balancing switch; default 1, 0 disables its signals/windows, -1 invalid.
     uint32_t client_lb = 1;
-
-    // ---- automatic role split (boot-latched) -----------------------------------------------
-    // Ships dark. The controller alone arms the owner-local sampled fingerprint writer;
-    // its measured sampling policy is internal to flipctl.h. Off and 1s
-    // dispatch pay one predicted branch per op and no fingerprint store. Trigger bands learn
-    // from the anchor's own quiet jitter; no separate controller tuning knobs remain.
+    // Boot automatic role-split switch; default 0/off, 1 enables, -1 invalid; unavailable
+    // in 1s. Only its controller arms fingerprint sampling; trigger bands learn quiet jitter.
     uint32_t flip_auto = 0;
-
-    // ---- network (boot-only) ---------------------------------------------------------------
+    // TCP port number; default 6379, 0 disables the plaintext listener, -1 invalid.
     uint16_t port = 6379;
-    uint16_t unixsocketperm = 0;  // boot-only octal mode; occupies port's alignment hole
+    // Boot UNIX socket mode in octal; default 0, 0 skips chmod, -1 invalid; maximum 0777.
+    uint16_t unixsocketperm = 0;
+    // Listener address string; default "127.0.0.1".
     const char* bind_addr = "127.0.0.1";
+    // Boot UNIX listener path; default null/empty disables it.
     const char* unixsocket = nullptr;
-    uint32_t maxclients = 10000;              // live; accept-path pre-count safety valve
-    uint32_t timeout = 0;                     // live; idle seconds, 0 = disabled
-    uint32_t tcp_keepalive = 300;             // live for newly accepted TCP clients, 0 = off
-    uint32_t tcp_backlog = 511;               // boot-only, passed directly to listen(2)
-    NetIoEngine net_io = NetIoEngine::Uring;  // boot-only: which network event engine io runs
-    uint32_t process_config_id = 0;  // cold sidecar, preserves every following member offset
+    // Live connection count limit; default 10000, 0 and -1 invalid.
+    uint32_t maxclients = 10000;
+    // Live idle timeout in seconds; default 0/off, -1 invalid.
+    uint32_t timeout = 0;
+    // Seconds for newly accepted TCP clients; default 300, 0 disables, -1 invalid.
+    uint32_t tcp_keepalive = 300;
+    // Boot listen(2) queue length; default 511, 0 is passed to listen, -1 invalid.
+    uint32_t tcp_backlog = 511;
+    // Boot network-engine enum; default uring; accepts uring or epoll.
+    NetIoEngine net_io = NetIoEngine::Uring;
+    // Internal sidecar handle; default 0 selects static process defaults without allocation.
+    uint32_t process_config_id = 0;
+    // Live per-class byte/time limits; defaults and 0/-1 rules are in ClientOutputBufferLimits.
     ClientOutputBufferLimits client_output_buffer_limits;
-
-    // ---- security / test commands ----------------------------------------------------------
-    const char* requirepass = nullptr;  // empty/unset = off; live via CONFIG SET
-    uint32_t protected_mode = 1;        // live 0|1; rejects unauthenticated non-loopback accepts
-    DebugCommandMode enable_debug_command = DebugCommandMode::No;  // boot-only: no|yes|local
-    const char* aclfile = nullptr;        // boot-only; empty/unset disables ACL LOAD/SAVE
-    uint32_t acl_pubsub_allchannels = 0;  // acl-pubsub-default: 0=resetchannels, 1=allchannels
-    uint64_t acllog_max_len = 128;        // live in L4; per-io-thread bound
-    std::vector<std::vector<std::string>> acl_users;  // repeatable `user name rules...` lines
-
-    // ---- persistence (dir/dbfilename are boot-only) ----------------------------------------
+    // Live password bytes; default null/empty disables password authentication.
+    const char* requirepass = nullptr;
+    // Live yes/no switch; default yes (1). no (0) disables non-loopback protection;
+    // numeric strings 0 and -1 are not accepted by the boot parser.
+    uint32_t protected_mode = 1;
+    // Boot enum; default no; accepts no, yes or local.
+    DebugCommandMode enable_debug_command = DebugCommandMode::No;
+    // Boot ACL path; default null/empty disables ACL LOAD/SAVE.
+    const char* aclfile = nullptr;
+    // ACL channel default enum; default resetchannels (0), alternative allchannels (1).
+    // Numeric 0 and -1 are not accepted spellings.
+    uint32_t acl_pubsub_allchannels = 0;
+    // Live per-IO ACL log capacity in entries; default 128, 0 retains none, -1 invalid.
+    uint64_t acllog_max_len = 128;
+    // Owned repeatable user-name/rules token lists; default empty (no file user directives).
+    std::vector<std::vector<std::string>> acl_users;
+    // Boot persistence directory; default "."; must be nonempty.
     const char* dir = ".";
+    // Boot snapshot filename; default "dump.tomo"; nonempty plain filename required.
     const char* dbfilename = "dump.tomo";
-    // Redis's default periodic snapshot policy. An empty vector is `save ""` and arms no
-    // mutation observers or cron work.
+    // Live (seconds, changes) schedule; default (3600,1), (300,100), (60,10000).
+    // Empty disables mutation observers/cron; seconds=0 is invalid, changes=0 is accepted,
+    // -1 is invalid for either unsigned count. Repeated clauses append within one source.
     std::vector<SaveClause> save{{3600, 1}, {300, 100}, {60, 10000}};
+    // AOF yes/no switch; default no. Numeric 0/-1 are invalid spellings.
     bool appendonly = false;
+    // AOF sync-policy enum; default everysec; accepts always, everysec or no.
     AppendFsyncPolicy appendfsync = AppendFsyncPolicy::Everysec;
+    // Boot mode enum; default 2s/split; also accepts 1s/fused.
     ThreadMode thread_mode = ThreadMode::Split;
-    // Boot-only local-read lane; its internal winners are fixed.
-    uint32_t read_local = 0;  // boot-only 0|1; GET/MGET lane in 1s or shard-less 2s IO
+    // Boot GET/MGET local-read switch; default 0/off, 1 enables in 1s or shard-less 2s IO,
+    // -1 invalid. Armed writes use immutable replacement and QSBR; local replies copy.
+    uint32_t read_local = 0;
+    // AOF base filename; default "appendonly.aof"; nonempty plain name required.
     const char* appendfilename = "appendonly.aof";
+    // AOF directory name; default "appendonlydir"; nonempty plain name required.
     const char* appenddirname = "appendonlydir";
+    // Live growth percentage; default 100, 0 disables automatic rewriting, -1 invalid.
     uint32_t auto_aof_rewrite_percentage = 100;
+    // Live rewrite minimum in bytes; default 64 MiB, 0 removes this size floor, -1 invalid.
     uint64_t auto_aof_rewrite_min_size = 64ull * 1024 * 1024;
+    // Live AOF timestamp yes/no switch; default no; numeric 0/-1 invalid.
     bool aof_timestamp_enabled = false;
-    bool aof_load_truncated = true;  // boot recovery policy; CONFIG overrides the next live load
-    uint8_t shutdown_on_sigint = 0;  // existing alignment bytes, live through atomic_ref
+    // AOF recovery yes/no policy; default yes; CONFIG changes apply on the next load.
+    // Numeric 0/-1 are invalid spellings.
+    bool aof_load_truncated = true;
+    // Live SIGINT policy flags; default 0 (default policy); accepts default/save/nosave/now/force.
+    // Numeric strings 0/-1 are invalid. Accessed through atomic_ref during signal handling.
+    uint8_t shutdown_on_sigint = 0;
+    // Live SIGTERM flags; default 0; same word grammar and 0/-1 rules as shutdown_on_sigint.
     uint8_t shutdown_on_sigterm = 0;
-
-    // Logical databases share the sharded store; physical namespace IDs are one byte.
+    // Logical database count; default 16, 0 and -1 invalid; range 1..256.
     uint32_t databases = 16;
-    // The live protocol bound applies to request bulk lengths (32-bit Slice ceiling).
+    // Live request bulk bound in bytes; default 512 MiB, 0/-1 invalid; range 1 MiB..LONG_MAX.
+    // The independent 32-bit Slice/receive-cursor representation still bounds actual frames.
     uint64_t proto_max_bulk_len = 512ull * 1024 * 1024;
-
-    // ---- data path (live via CONFIG SET) ----------------------------------------------------
-    uint32_t zc_min = 16384;  // Owner GET borrow threshold; lane replies always copy.
-                              // DEFAULT ON (owner: hardcode a consistent gain): -4.1%
-                              // server cycles at d16K on the wire-walled NIC, +20-24%
-                              // class on unwalled wires per the fork's history. 0 = off.
-                              // Also the multi-key gather cutover: min(zc-min, kInline).
-    uint64_t maxmemory = 0;   // bytes; zero removes all eviction-path work.
+    // Live owner-GET borrow threshold in bytes; default 16384, 0 disables, -1 invalid.
+    // Multi-key gather uses min(zc-min, ValueSlot::kInline); local-read replies always copy.
+    uint32_t zc_min = 16384;
+    // Live eviction budget in bytes; default 0 disables eviction-path work, -1 invalid.
+    uint64_t maxmemory = 0;
+    // Live eviction-policy enum; default noeviction; parse_maxmemory_policy lists accepted names.
     MaxmemoryPolicy maxmemory_policy = MaxmemoryPolicy::NoEviction;
+    // Live eviction sample count; default 5, 0/-1 invalid; range 1..64.
     uint32_t maxmemory_samples = 5;
-    // ---- optional cross-shard write groups ------------------------------------------------
-    // 1: one committed decision for multi-key writes and snapshot reads; collapse
-    // retains the winning committed value. 0 leaves EXEC/scripts/read cuts active.
+    // Live cross-shard write-group switch; default 0, 1 enables, -1 invalid.
+    // Zero leaves EXEC/scripts/read cuts active. Credits derive as min(16 * shards, 1024).
     uint32_t atomic = 0;
-    // The in-flight credit window is always min(16 * resolved shards, 1024), derived at boot.
-
-    // ---- scripting / collection encodings -------------------------------------------------
-    // The Lua instruction bound is fixed in scripting.cc; unused interpreters allocate nothing.
-    EncodingConfig encodings;  // Redis collection controls, live via CONFIG SET
-
-    // Empty flag string = notifications off.
+    // Live owned collection limits; defaults/units/sentinels are in EncodingConfig.
+    // The Lua instruction bound lives in scripting.cc; unused interpreters allocate nothing.
+    EncodingConfig encodings;
+    // Live notification flag string, stored as bits; default empty/0 disables notifications.
+    // Numeric strings 0/-1 are not notification flags.
     uint32_t notify_events = 0;
-    // Fused shadow priority: 0 = allocation-free FIFO, 1 = on.
-    // Split boot resolves both values to zero.
+    // Boot fused shadow-priority switch; default 0 uses allocation-free FIFO, 1 enables,
+    // -1 invalid. Split mode resolves either accepted value to 0.
     uint32_t reorder = 0;
-
-    // CLIENT TRACKING's bounded per-key remembering table (redis knob name and semantics:
-    // tracking-table-max-keys, default 1000000, 0 = unlimited). The bound is applied per io
-    // owner, because that is where this server keeps the table -- see tracking.cc. Nothing is
-    // allocated until a connection actually enables tracking.
+    // Live remembered-key count per IO owner; default 1000000, 0 unlimited, -1 invalid.
+    // The table allocates only when a connection enables tracking.
     uint64_t tracking_table_max_keys = 1000000;
-
-    // TLS is a separate listener.  All fields are boot-only in v1; tls-port=0 constructs no
-    // SSL_CTX, no BIO registry, and selects the compile-time-clean plaintext IO loop.
+    // Boot TLS port number; default 0 disables TLS (no SSL_CTX or BIO registry), -1 invalid.
     uint16_t tls_port = 0;
+    // Boot certificate path; default null; required when TLS is enabled.
     const char* tls_cert_file = nullptr;
+    // Boot private-key path; default null; required when TLS is enabled.
     const char* tls_key_file = nullptr;
+    // Boot CA certificate path; default null; one CA file/directory is required for client auth.
     const char* tls_ca_cert_file = nullptr;
+    // Boot CA directory path; default null; alternative to tls_ca_cert_file.
     const char* tls_ca_cert_dir = nullptr;
+    // Boot client-auth enum; default yes; accepts yes, no or optional.
     TlsAuthClients tls_auth_clients = TlsAuthClients::Yes;
+    // Boot TLS protocol list; default null leaves protocol selection to TLS setup.
     const char* tls_protocols = nullptr;
+    // Boot TLS cipher list; default null leaves cipher selection to TLS setup.
     const char* tls_ciphers = nullptr;
+    // Boot TLS 1.3 suite list; default null leaves suite selection to TLS setup.
     const char* tls_ciphersuites = nullptr;
+    // Boot yes/no switch; default no; numeric 0/-1 are invalid spellings.
     bool tls_prefer_server_ciphers = false;
-
-    // HLL promotion is boot-latched; use the TLS tail's alignment hole without moving fields.
+    // Boot HLL sparse promotion limit in bytes; default 3000, 0 permits no sparse growth, -1 invalid.
     uint32_t hll_sparse_max_bytes = 3000;
-
-    // SLOWLOG + LATENCY. Redis knob names, grammar and semantics exactly:
-    //   slowlog-log-slower-than  microseconds; -1 disables the log entirely, 0 logs everything
-    //   slowlog-max-len          ring capacity; 0 keeps no entries
-    //   latency-monitor-threshold milliseconds; 0 disables the latency monitor
-    // -1 is a real negative here rather than an unsigned sentinel because redis's grammar accepts
-    // and reports -1, and the knob-compat rule says shared features adopt the reference server's
-    // grammar exactly.
+    // Live slow-log threshold in microseconds; default 10000, 0 logs all, -1 disables.
     int64_t slowlog_log_slower_than = 10000;
+    // Live slow-log ring capacity in entries; default 128, 0 retains none, -1 invalid.
     uint64_t slowlog_max_len = 128;
+    // Live latency-monitor threshold in milliseconds; default 0/off, -1 invalid.
     uint32_t latency_monitor_threshold = 0;
-    // Deliberate deviation from Redis 7.4 (yes): tracking defaults to no.
-    // These flags occupy alignment bytes; the percentile vector uses reserved storage.
+    // Live histogram yes/no switch; default no; numeric 0/-1 invalid.
+    // This default differs from Redis 7.4's yes.
     bool latency_tracking = false;
+    // Internal flag; default false selects implicit percentiles; true permits an explicit empty list.
     bool latency_percentiles_explicit = false;
-    // The conf file this process booted from, retained purely so CONFIG REWRITE has a destination.
-    // It is set from the optional first argv path in main, before parse_config_args runs.
-    // Null means "started without a config file", which is exactly the
-    // condition CONFIG REWRITE reports as an error.
+    // Borrowed boot configuration path; default null makes CONFIG REWRITE report no destination.
     const char* conf_path = nullptr;
-    // Boot-only writeback policy; consume reserved bytes, preserving all prior offsets.
+    // Boot writeback selector; default 1 (composite half rule), 0 flushes all, -1 invalid.
     int32_t wb_policy = wb_rule::default_policy();
+    // Live query buffer bound in bytes; default 1 GiB, 0/-1 invalid; range 1 MiB..LONG_MAX.
     uint64_t client_query_buffer_limit = 1024ull * 1024 * 1024;
-    // The eighth encoding value consumes the former stream-limit slot. Move only these
-    // cold budgets into reserved storage; every ordinary Config field keeps its offset.
-    StreamLimits stream_limits;  // macro-node roll-over budgets, live via CONFIG SET
-    // Cold key planner only: 0 = PRE policy, -1 = derived damping, N = damping level.
+    // Live node roll-over budgets: default 4096 bytes and 100 entries.
+    // Zero disables the corresponding limit; -1 invalid for both uint32 values.
+    StreamLimits stream_limits;
+    // Boot planner damping level; default -1 derives damping, 0 disables damping,
+    // positive values set a level (dimensionless, up to INT32_MAX).
     int32_t key_lb_damping = -1;
-    // Boot-only writeback bounds; measured defaults, occupying the reserved tail.
+    // Boot small-pipeline threshold in operations; default 16, 0 uses the half rule,
+    // -1 invalid; range 0..kRobWindow.
     uint32_t wb_small_pipe = wb_rule::kSmallPipe;
+    // Boot completion-visit bound; default 3, 0 unbounded, -1 invalid; range 0..255.
     uint32_t wb_complete_visits = wb_rule::kCompleteVisits;
-    // Boot token length; zero also permits ordinary C-string callers of Config.
-    // Password bytes remain owned by the config token store (or argv).
+    // Internal borrowed-password byte count; default 0 falls back to strlen for C-string callers.
     uint32_t requirepass_size = 0;
+    // Live client-cron frequency in Hz; default 10, 0 clamps to 1, -1 invalid.
+    // Accepted 0..INT_MAX is clamped to 1..500 by ClientHz::parse.
     uint32_t hz = ClientHz::kDefault;
+    // Live yes/no switch; default yes (1), no (0) disables dynamic frequency scaling.
+    // Numeric 0/-1 are invalid spellings.
     uint32_t dynamic_hz = 1;
-    const char* locale_collate = "";  // Redis: empty selects the environment LC_COLLATE.
-    std::vector<double> latency_tracking_info_percentiles;  // implicit default: 50 99 99.9
+    // Live locale name; default empty string selects the environment LC_COLLATE.
+    const char* locale_collate = "";
+    // Owned live percentile list in percent; implicit default 50, 99, 99.9.
+    // Explicit empty list suppresses percentile output; 0 is a valid percentile, -1 invalid.
+    std::vector<double> latency_tracking_info_percentiles;
 };
 static_assert(sizeof(Config) == 624, "Config footprint changed; update the documented accounting");
 
@@ -721,11 +778,11 @@ inline Slice cfg_requirepass(const Config& cfg) {
     return Slice(password, cfg.requirepass_size ? cfg.requirepass_size : std::strlen(password));
 }
 
-// Boot-latched R7 capability; the exact-layout measurement twin disables it.
+// Boot-latched shadow-scheduling capability; the offline layout twin disables it.
 bool reorder_available();
 
-// Cold boot decision, shared by the executable and serverless fixtures. Split IO
-// already flushes independently; the measured wall loss scopes this policy to 1s.
+// Cold boot selection shared by the executable and serverless fixtures. Split IO
+// flushes independently, so shadow priority is enabled only in fused mode.
 inline int32_t reorder_for_mode(int32_t requested, ThreadMode mode) {
     return mode == ThreadMode::Fused ? requested : 0;
 }
@@ -734,7 +791,7 @@ inline constexpr uint32_t cfg_default_shards(uint32_t executors) {
     return executors >= 32 ? 256 : 8 * executors;
 }
 
-// epoll owns no io_uring ring; preserve its existing syscall persistence dependency.
+// epoll owns no io_uring ring and therefore uses syscall persistence IO.
 inline PersistIoEngine persistence_engine(const Config& cfg) {
     return cfg.net_io == NetIoEngine::Epoll ? PersistIoEngine::Normal : PersistIoEngine::Uring;
 }
@@ -766,8 +823,7 @@ inline bool cfg_parse_u64(const char* s, uint64_t& out) {
     return true;
 }
 
-// Signed flavor. The tree had no signed scalar parser until slowlog-log-slower-than, whose redis
-// grammar accepts a real -1.
+// Signed scalar grammar accepts an optional sign and the full int64 range, including -1.
 inline bool cfg_parse_i64(const char* s, int64_t& out) {
     if (!s || !*s) return false;
     const bool negative = *s == '-';
@@ -848,8 +904,8 @@ inline bool cfg_parse_u32_limit(Slice input, bool memory, uint32_t& out, const c
 
 inline bool EncodingConfig::parse(uint32_t key, Slice input, int64_t& out, bool legacy) {
     if (key >= Count) return false;
-    // Preserve the original TomoKV aliases' bare uint32 grammar (including leading zeroes).
-    // Redis spellings use the full reference range and grammar below. All paths share storage.
+    // TomoKV aliases accept bare uint32 decimals, including leading zeroes. Redis spellings
+    // use the full reference range and grammar below; both paths share storage.
     if (legacy) {
         if (!input.n) return false;
         uint64_t value = 0;
@@ -876,16 +932,16 @@ inline bool EncodingConfig::parse(uint32_t key, Slice input, int64_t& out, bool 
         out = static_cast<int64_t>(bytes);
         return true;
     }
-    // Redis string2ll: canonical decimal only, unlike the older TomoKV signed parser.
+    // Redis integer spellings require canonical decimal, unlike cfg_parse_i64.
     if (!input.n || input.p[0] == '+') return false;
     const std::string text(input.p, input.n);
     if (!cfg_parse_i64(text.c_str(), out) || std::to_string(out) != text) return false;
     return key == ListSize ? out >= INT_MIN && out <= INT_MAX : out >= 0 && out <= LONG_MAX;
 }
 
-// Cross-source state: --ratio and --place are mutually exclusive WITHIN a source; across sources
-// the later one (CLI over conf) silently replaces the earlier, which is what "base conf, per-run
-// shape override" bench scripts want.
+// Boot-owned source precedence, shared across directives in one parse. --ratio and
+// --place are mutually exclusive within a source; a later source replaces the earlier
+// choice. No pointers, publication or synchronization; parsing errors may leave progress.
 struct ConfigParseState {
     int ratio_source = 0;  // 0 = unset, 1 = conf, 2 = cli
     int place_source = 0;
@@ -904,12 +960,17 @@ __attribute__((noipa)) inline bool cfg_parse_key_lb_damping(const char* value, i
 
 enum : int { kConfigParsed = 0, kConfigError = 1, kConfigHelp = 2 };
 
-// Parses one token stream (no argv[0]) into cfg. `source` is 1 for the conf file, 2 for the CLI.
-// Prints its own error messages; the caller adds file context on conf failures.
+// Parse one boot token stream (without argv[0]) into cfg under exclusive caller access.
+// source is 1 for file directives or 2 for CLI; st carries precedence across calls.
+// args and optional lengths must align, and borrowed token storage must outlive cfg.
+// Writes cfg, process sidecars and the global hash choice without worker publication.
+// Returns Parsed/Help/Error and prints diagnostics; earlier options are not rolled back.
+// Most allocation failures propagate; the user-directive branch converts bad_alloc to Error.
 inline int /* TOMO_TOOL_BIND parse_config_args */ parse_config_args(
     const std::vector<const char*>& args, Config& cfg, ConfigParseState& st, int source,
     const char* prog, const std::vector<size_t>* lengths = nullptr,
     std::FILE* diagnostics = stderr) {
+    // Phase 1: walk tokens with length-aware value access and source precedence.
     const int argc = static_cast<int>(args.size());
     for (int i = 0; i < argc; i++) {
         auto next = [&](const char* d) { return (i + 1 < argc) ? args[++i] : d; };
@@ -918,6 +979,7 @@ inline int /* TOMO_TOOL_BIND parse_config_args */ parse_config_args(
         };
         auto next_integer = [&] { return value_slice(next(nullptr)); };
         const char* a = args[i];
+        // Phase 2: dispatch process and encoding settings through their shared metadata.
         const int process =
             !std::strncmp(a, "--", 2) ? cfg_process_find(Slice(a + 2, std::strlen(a + 2))) : -1;
         if (process >= 0) {
@@ -945,6 +1007,7 @@ inline int /* TOMO_TOOL_BIND parse_config_args */ parse_config_args(
             cfg.encodings.values[encoding] = parsed;
             continue;
         }
+        // Phase 3: apply network, security and observability options in parser order.
         if (!std::strcmp(a, "--port")) {
             uint32_t value = 0;
             if (!cfg_parse_redis_unsigned(next_integer(), value) || value > UINT16_MAX) {
@@ -1213,9 +1276,8 @@ inline int /* TOMO_TOOL_BIND parse_config_args */ parse_config_args(
                 return kConfigError;
             }
         }
-        // WHOLE-SERVER role counts, evenly spread across L3 domains by the server itself.
-        // This is the runtime replacement for authoring --place strings offline, and the knob a
-        // flip controller will drive: counts in, placement out, no per-node arithmetic.
+        // Phase 4: resolve placement and execution controls, then persistence and data limits.
+        // Role counts span the whole server; placement spreads them across L3 domains.
         else if (!std::strcmp(a, "--ratio")) {
             if (st.place_source == source) {
                 std::fprintf(diagnostics, "--ratio and --place are mutually exclusive\n");
@@ -1238,8 +1300,7 @@ inline int /* TOMO_TOOL_BIND parse_config_args */ parse_config_args(
             cfg.even_ifid = a2;
             cfg.even_ex = b;
         } else if (!std::strcmp(a, "--shards")) {
-            // Same grammar as every other numeric knob (a bare atoi accepted "16x" as 16 and
-            // turned "abc"/"-5" into a misleading range message from validate_config).
+            // Accept a complete uint32 decimal or exactly -1; partial numeric strings are invalid.
             const char* value = next(nullptr);
             if (value && !std::strcmp(value, "-1"))
                 cfg.shards = Config::kShardsAuto;
@@ -1537,6 +1598,7 @@ inline int /* TOMO_TOOL_BIND parse_config_args */ parse_config_args(
             }
             st.place_source = source;
             cfg.place = next("");
+            // Phase 5: report help or reject an unmatched option.
         } else if (!std::strcmp(a, "--help")) {
             std::printf(
                 "usage: %s [conf-file] [--port N] [--bind A] [--unixsocket PATH]\n"
@@ -1612,7 +1674,10 @@ inline int /* TOMO_TOOL_BIND parse_config_args */ parse_config_args(
     return kConfigParsed;
 }
 
-// Post-parse validation shared by every source combination. Call once, after all token streams.
+// Validate the combined boot configuration once after all sources, before starting workers.
+// Borrows cfg read-only; checks cross-option constraints and temporarily creates/frees a
+// locale object, without publishing state. Returns Parsed or the first Error with a
+// stderr diagnostic; numeric field validation also relies on the individual parsers.
 inline int /* TOMO_TOOL_BIND validate_config */ validate_config(const Config& cfg) {
     if (cfg.wb_small_pipe > kRobWindow || cfg.wb_complete_visits > UINT8_MAX) {
         std::fprintf(stderr, "--wb-small-pipe wants 0..64; --wb-complete-visits wants 0..255\n");
@@ -1718,6 +1783,10 @@ inline uint8_t cfg_hex_digit(char c) {
 // \xHH, single quotes recognize only \', and a closing quote must end the token. Quotes may start
 // after an unquoted prefix (`>"pass phrase"` is one ACL rule). A '#' has no special meaning here:
 // config.c treats it as a comment only when it is the first character of the trimmed line.
+// Append decoded tokens to caller-owned out; requires a NUL-terminated line and exclusive
+// access to out (boot parsing or a serialized CONFIG caller). No borrowed token survives.
+// False means malformed quoting and may leave preceding tokens appended; allocation
+// exceptions propagate. No worker publication or back-pressure protocol is involved.
 inline bool cfg_split_args(const char* line, std::vector<std::string>& out) {
     const char* p = line;
     while (true) {
@@ -1806,10 +1875,12 @@ inline void config_file_error(int number, const char* line, const char* error) {
                  kRedisCompatVersion, number, line, error);
 }
 
-// Conf-file loader: each physical line is one directive. The typed value parsers are shared
-// with CLI, but -- inside a file argument never starts another option. `pin yes|no` maps to the
-// valueless --no-pin. Token storage lives in `store` (must outlive parsing — Config keeps
-// const char* views into it).
+// Read boot directives into caller-owned store, optionally appending source lines and
+// end offsets. Run before workers, with exclusive access to all outputs. A line
+// argument beginning with -- remains a value; pin yes/no maps to --no-pin.
+// Complete storage before parsing, then keep it stable for Config's borrowed pointers.
+// Returns false with a diagnostic on open/read/grammar errors; earlier output remains.
+// Allocation exceptions propagate; the file handle is not guarded against exceptions.
 inline bool load_conf_file(const char* path, std::vector<std::string>& store,
                            std::vector<size_t>* line_ends = nullptr,
                            std::vector<ConfigFileLine>* lines = nullptr) {
@@ -1893,9 +1964,9 @@ inline bool load_conf_file(const char* path, std::vector<std::string>& store,
     return ok;
 }
 
-// Parse one physical directive at a time while retaining the decoded byte lengths.
-// ConfigParseState spans lines so repeated save/user directives and CLI precedence retain
-// their existing semantics. The string store outlives Config's borrowed pointers.
+// Parse physical directives individually while retaining decoded byte lengths.
+// ConfigParseState spans lines for repeated save/user clauses and CLI precedence.
+// The completed string store must remain stable throughout Config's borrowed-pointer use.
 __attribute__((noipa)) inline int parse_config_file(
     const std::vector<std::string>& store, const std::vector<size_t>& line_ends, Config& cfg,
     ConfigParseState& st, const char* prog, const std::vector<ConfigFileLine>* lines = nullptr) {

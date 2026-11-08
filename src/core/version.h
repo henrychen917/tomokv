@@ -1,3 +1,6 @@
+// Product and protocol version constants shared by the entry wrapper, configuration
+// diagnostics and INFO consumers. Immutable string spellings are part of external output;
+// this header owns no mutable state and has no fixed inclusion point.
 #pragma once
 
 namespace tomo {
