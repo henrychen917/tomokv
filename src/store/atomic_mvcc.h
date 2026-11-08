@@ -185,8 +185,8 @@ static_assert(offsetof(AtomicPendingState, group_records) ==
 static_assert(offsetof(AtomicPendingState, read_local_extended) == 1316);
 static_assert(offsetof(AtomicPendingState, ranges) == 1319);
 
-// Process-wide range-operation counters, separate for each compiled database namespace. Owners
-// update atomics and INFO samples them; relaxed operations supply counts, not a publication fence
+// Process-wide range-operation counters, separate for each compiled database namespace. Command
+// decision and owner paths update atomics; INFO samples them. Relaxed operations supply counts, not a fence
 // or an internally consistent snapshot of all fields. They own no per-store memory.
 struct AtomicFlushCounters {
     std::atomic<uint64_t> units{0}, range_reads{0}, post_versions{0};

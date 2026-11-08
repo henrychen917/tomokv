@@ -23,8 +23,8 @@ namespace tomo {
 // FlatStore's shard owner mutates counts/epochs; foreign readers acquire them without following
 // owner lists. Open all relevant cells before unsafe mutation, and close after raw state is safe.
 // Cell stores precede epoch stores, both release. Counts saturate positive until a full drain;
-// total/nesting overflow poisons permanently, and unmatched closes abort. No allocation or wait
-// occurs here. Multi-key validation additionally requires no complete epoch wrap in its window;
+// total/nesting overflow poisons permanently, and detected close underflows abort. No allocation or wait
+// occurs here. Equal epoch samples alone cannot exclude a complete wrap in their window;
 // this class does not enforce a bound on reader suspension.
 class alignas(64) ForeignReadSafety {
 public:

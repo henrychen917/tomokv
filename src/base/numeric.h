@@ -157,7 +157,7 @@ inline int cached_pow_index(int exponent) {
     }
 }
 
-// Trim the last digit down while every candidate still round-trips and the shorter one is closer
+// Decrement the last digit while each candidate still round-trips and the smaller one is closer
 // to w. This is Grisu2's "weeding" step; without it the last digit is merely inside the boundary
 // interval rather than the one redis prints.
 inline void weed_last_digit(char* digits, int count, uint64_t delta, uint64_t remainder,
@@ -409,8 +409,8 @@ private:
 
 // The redis getDoubleFromObject grammar (string2d), used wherever a double is a VALUE: ZADD and
 // ZINCRBY scores, ZUNIONSTORE weights, GEO coordinates, radii and box sides. Redis calls strtod
-// and then refuses the empty string, a leading space, trailing text, a magnitude strtod flagged
-// as out of range, and NaN. It does NOT refuse what strtod itself accepts, so "0x10" is 16,
+// and then refuses the empty string, a leading space, trailing text, NaN, and ERANGE that produces
+// infinity or zero. Nonzero subnormal results remain accepted. Other strtod spellings work: "0x10" is 16,
 // "0x1p-2" is 0.25 and "+5" is 5.
 //
 // An embedded NUL is refused because the consumed length is compared against the WHOLE argument

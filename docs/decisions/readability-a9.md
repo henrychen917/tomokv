@@ -219,3 +219,37 @@ not overwrite the discriminator read by foreign probes. The discriminator is
 initialized before arming. `live` and script-intent count share a cache line
 for `atomic_has_records`. Cold FLUSH clock/reference-release helpers remain
 outside the scatter/unpin callers to preserve their compilation boundaries.
+
+## 2026-11-08 — interface-first candidate (`Compact`)
+
+Compact is the sole eligible A9 class (384 token-bearing function lines in the
+inventory, including its small nested Iterator). Forty direct Compact member
+bodies were moved, in order and without body-token changes, into a topic header
+included immediately after the class inside namespace tomo. Nested Iterator
+bodies stayed with Iterator. Definitions became explicitly inline, static stayed
+on declarations, return-type qualification and default arguments were handled
+at the interface/definition boundary. The formatted body proof and candidate
+patch are retained under `docs/readability-a9/evidence/`.
+
+The candidate built and the required frozen-release comparison reported:
+
+```
+IDENTICAL (11167504 bytes after stripping)
+```
+
+The lane also explicitly requires each edited file's preprocessing-token stream
+to equal PRE, apart from allowed renames. Declarations and qualified definitions
+cannot satisfy that literal per-file rule. Pending clarification, the stronger
+literal proof is retained: the split is reverted and its successful experiment
+is supplied as a small reviewable patch. This is not a binary regression.
+
+## 2026-11-08 — contract audit refinements (base and storage helpers)
+
+The contract pass distinguishes raw string initialization from an allocating
+factory; names the actual topology caller (`Server::prepare_boot`) and C helper
+includers; records decision-path as well as owner-path FLUSH counter updates;
+and qualifies duplicate/underflow checks by what their branches actually detect.
+Numeric strict parsing accepts nonzero subnormal ERANGE results, and Grisu2's
+weeding decrements a digit rather than reducing the number of digits. Sized frees
+use the requested size, which object callers already round. None of these comment
+corrections changes the implementation or establishes a new runtime guarantee.

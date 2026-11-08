@@ -46,7 +46,7 @@ public:
     // Every declared CPU must belong to the allowed affinity mask.
     // Called by Server::prepare_boot and fixtures with exclusive access. Replaces the domain vectors with
     // the declared subset, rejects duplicates/out-of-affinity CPUs, and returns false on malformed
-    // syntax or affinity-query failure. It provides no rollback, waiting or publication barrier.
+    // syntax or affinity-query failure. It provides no rollback, retry protocol or publication barrier.
     bool declare(const char* spec) {
         cpu_set_t allowed;
         CPU_ZERO(&allowed);

@@ -5,7 +5,7 @@
 //          rule, stated here because it is the one that bites: a Slice is only valid while the
 //          buffer it points into is pinned. See Rob/Conn — the read buffer stays pinned until every
 //          in-flight Op referencing it has retired.
-// Buf    : an owned, growable byte buffer used for replies and for anything that must outlive the
+// SmallBuf: an owned, growable byte buffer used for replies and for anything that must outlive the
 //          read buffer.
 #pragma once
 #include <cstddef>

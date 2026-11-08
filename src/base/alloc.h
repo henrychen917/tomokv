@@ -68,9 +68,9 @@ inline void* alloc_raw(size_t n) {
 #endif
 }
 
-// SIZED free. `n` must be the size that was REQUESTED (not the rounded class) — jemalloc derives the
-// class itself. Passing a wrong size is undefined behaviour, which is why every caller here derives
-// it from the same function that built the object.
+// Sized free: n must match the allocation request, which KvObj callers already round to a class.
+// jemalloc derives the class from n. Passing a size from a different class is invalid; derive it
+// from the same layout/rounding calculation that reserved the block.
 inline void free_sized(void* p, size_t n) {
     if (!p) return;
 #if defined(TOMO_JEMALLOC)

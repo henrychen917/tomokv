@@ -39,8 +39,8 @@ inline uint32_t kv_block_class(size_t allocation) {
 // The accepting physical owner alone calls take/put during operation; post-join shutdown also
 // calls release_all. No list synchronization is provided. put takes ownership only on success,
 // after reader grace, and requires a class-rounded block of the stated size; rejection leaves
-// freeing to the caller. take transfers a cached block or returns null. Corrupt counts/classes
-// and an immediate duplicate put abort. Relaxed byte-gauge stores allow concurrent INFO samples,
+// freeing to the caller. take transfers a cached block or returns null. Detected count/class
+// corruption and an admitted duplicate of the class head abort. Relaxed byte-gauge stores allow INFO samples,
 // but do not publish list contents. Call release_all before destroying this aggregate.
 struct KvBlockCache {
     // The list node is written OVER the retired object; a block is either a live KvObj or a node,
