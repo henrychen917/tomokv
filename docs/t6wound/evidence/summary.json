@@ -64,6 +64,41 @@
         1,
         1
       ]
+    },
+    {
+      "arm": "after-release-2",
+      "run_directory": "/home/user/Projects/cx-t6wound/build/gate-run.1D0L7n",
+      "status": "ok",
+      "seconds": 813.13,
+      "attempts": 24,
+      "misses": 0,
+      "failed_legs": 0,
+      "opening_wounds": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
     }
   ]
 }
