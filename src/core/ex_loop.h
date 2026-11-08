@@ -3101,6 +3101,7 @@ private:
     uint32_t multi_retry_layout_pad_ = 0; // former fast count; retain following offsets
 public:
     // R7 bodies are isolated from the FIFO translation units.
+// clang-format off
 // BEGIN R7 GENERATED ENVELOPES
     uint32_t r7_fused_baseline_pass();
     template <uint32_t BatchOps, bool ConsumeTasks,
@@ -3114,6 +3115,7 @@ public:
               bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
     uint32_t r7_sweep();
 // END R7 GENERATED ENVELOPES
+// clang-format on
     template <uint32_t BatchOps = kGenthreadExBatchOps, bool IofusedPrivateQueue = false>
     __attribute__((noinline))
     uint32_t r7_drain_tasks(bool unmasked = false);

@@ -35,11 +35,15 @@ def update(path, generated, write):
         raise ValueError(f'missing or duplicate generated envelope marker in {path}')
     prefix, _, tail = old.partition(BEGIN.strip())
     current, _, suffix = tail.partition(END.strip())
-    if cpp.tokens(cpp.Source(current, old.aliases)) != cpp.tokens(cpp.Source(generated)):
-        if not write:
-            raise ValueError(f'stale R7 envelope: {path}; run tools/reorder_sync.py --write')
+    if write:
+        # Explicit regeneration also refreshes layout copied from formatted inputs.
+        # Check mode deliberately compares tokens, not physical source positions.
         generated = cpp.rename(generated, {stable: actual for actual, stable in old.aliases.items()})
-        path.write_text(prefix + BEGIN + generated + END.rstrip() + suffix)
+        updated = prefix + BEGIN + generated + END.rstrip() + suffix
+        if updated != old:
+            path.write_text(updated)
+    elif cpp.tokens(cpp.Source(current, old.aliases)) != cpp.tokens(cpp.Source(generated)):
+        raise ValueError(f'stale R7 envelope: {path}; run tools/reorder_sync.py --write')
 
 if __name__ == '__main__':
     # One generator owns the surviving shadow envelopes; retain this old command

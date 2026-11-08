@@ -80,6 +80,20 @@ ASSERT_DIRS := $(shell find src third_party/lua/helpers -type d)
 
 all: $(BIN) $(ASSERT_MAP)
 
+# One formatter for the maintained first-party sources, independent of PATH.
+FORMAT_VENV := build/clang-format-18.1.8
+$(FORMAT_VENV)/.installed: tools/format-requirements.txt
+	python3 -m venv --without-pip $(FORMAT_VENV)
+	python3 -m pip --python $(FORMAT_VENV)/bin/python install -r $<
+	@touch $@
+
+.PHONY: format-setup format format-check
+format-setup: $(FORMAT_VENV)/.installed
+format: format-setup
+	$(FORMAT_VENV)/bin/python tools/format.py
+format-check: format-setup
+	$(FORMAT_VENV)/bin/python tools/format.py --check
+
 # Directed atomfix6 record schedules; no server or worker threads.
 ATOMFIX6_UNIT_SRC := tests/atomfix6_unit.cc src/store/flush.cc src/cmd/storesize.cc src/cmd/multidb.cc
 ATOMFIX6_ASAN_FLAGS := -fsanitize=address,undefined -fno-omit-frame-pointer -no-pie

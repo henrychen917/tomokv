@@ -5544,6 +5544,7 @@ ordinary_shard_ready:
 public:
     // R7 bodies are isolated from the FIFO translation units.
     class r7_ReadLocalDemotionPlan;
+// clang-format off
 // BEGIN R7 GENERATED ENVELOPES
     template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false, bool SplitLocal = false>
     void r7_run_loop();
@@ -5583,6 +5584,7 @@ public:
                                        const ReadLocalFallbackReason* fallbacks,
                                        uint32_t probed_count, uint32_t& demoted);
 // END R7 GENERATED ENVELOPES
+// clang-format on
     void run_fused_reordered();
 
     // FLIP-only resource protocol; definitions stay out of hot translation units.

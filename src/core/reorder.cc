@@ -83,6 +83,7 @@ uint32_t ExLoopT<Fused>::r7_drain_tasks_impl(bool unmasked) {
     return n;
 }
 
+// clang-format off
 // BEGIN R7 GENERATED ENVELOPES
 class IoLoop::r7_ReadLocalDemotionPlan {
 private:
@@ -3306,6 +3307,7 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
     return 0;
 }
 // END R7 GENERATED ENVELOPES
+// clang-format on
 
 void IoLoop::run_split_read_local() {
     // ExLoopT<true> is also the split read-local executor; it does not imply 1s.
