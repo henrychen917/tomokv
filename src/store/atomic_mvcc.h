@@ -143,8 +143,7 @@ struct AtomicPendingState {
     AtomicEntry* conn_heads[64] = {};
     uint32_t live = 0;
     // Keep the plain GET/SET no-record/no-intent check confined to live and this adjacent word:
-    // atomic_has_records must not gain a second cache-line touch for script intents. Other pending
-    // state belongs to active version/intent paths.
+    // atomic_has_records must not gain a second cache-line touch for script intents.
     uint32_t script_intent_count = 0;
     AtomicScriptIntent* script_intents = nullptr;
     AtomicEntry* free_entries[kPoolClasses] = {};

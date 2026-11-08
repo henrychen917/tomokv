@@ -3,8 +3,8 @@
 //
 //   * FORMAT. std::to_chars gives the shortest round-trip digits. Redis renders finite nonzero
 //     doubles that are non-integral or outside +/-2^62 through fpconv_dtoa, which is Grisu2
-//     (Loitsch, "Printing Floating-Point Numbers Quickly and
-//     Accurately with Integers", PLDI 2010). Grisu2 is round-trip correct but NOT always shortest,
+//     (Loitsch, "Printing Floating-Point Numbers Quickly and Accurately with Integers", PLDI 2010).
+//     Grisu2 is round-trip correct but NOT always shortest,
 //     so its digit string can differ from to_chars' in the last place or in length: 1e126 is
 //     "9.999999999999999e+125" here and "1e+126" with to_chars. grisu2_digits() implements the
 //     published algorithm; compatibility observations and provenance are in the decision log.

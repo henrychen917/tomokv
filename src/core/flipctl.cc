@@ -1166,9 +1166,8 @@ void FlipController::anchor(Server& server, double rate) {
         std::max(automatic_rate_band(anchor_rate_jitter_, anchor_rate_), 2.0 * rate_ew_.sigma());
     anchor_rate_band_floor_ = anchor_rate_band_;
     // The placement model's outcome loop (flip_policy.h header; model_margin_ in flipctl.h):
-    // a maneuver that FLIPPED and
-    // still ended where it began is a projection that did not deliver, so the bar rises; a move
-    // that stuck lowers it again. A hold (no flip) is neither.
+    // a maneuver that FLIPPED and still ended where it began is a projection that did not deliver,
+    // so the bar rises; a move that stuck lowers it again. A hold (no flip) is neither.
     // A ROUND TRIP is a hypothesis that missed and returned to the split it departed from -- not
     // "ended where the maneuver began": a refinement's second step that misses returns to the
     // first step's landing, which is a miss all the same, and a delivered first step followed by a

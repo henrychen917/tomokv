@@ -4,7 +4,7 @@
 // output/atomic-group counters off the executor-facing completion-routing cache line.
 //
 // Workers touch only ROB Op state/replies, argv slices into rbuf_, reserved direct-reply bytes in
-// buf_[], and the executor-facing tail line: completion routing reads retire_queued_, wb_slot_,
+// buf_[], and the executor-facing tail line: completion routing uses retire_queued_, wb_slot_,
 // ifid_thread_ and id_, and WATCH uses its reference/generation/dirty atomics. Every other Client
 // scalar is single-writer IO-owner state; executors take connection facts from the Op snapshot,
 // never those fields. Op::state's release Done store publishes reply bytes to Rob::drain's acquire.

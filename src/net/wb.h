@@ -456,7 +456,7 @@ public:
     // and WANT retries require the same pinned plaintext range. An in-flight send/SQE shortage or
     // WANT leaves work staged. True means ciphertext was submitted or OpenSSL accepted plaintext;
     // false also covers no pending output, an in-flight send, WANT, SQE shortage and TLS failure.
-    // Callers decide teardown from tls.failed(), not this result. No cross-thread state is
+    // Callers check tls.failed() for TLS teardown, not this result. No cross-thread state is
     // published here beyond the submitted IO request.
     template <bool kEp = false, bool ClassifySend = false>
     bool pump_tls(Client& c, TlsConn& tls) {

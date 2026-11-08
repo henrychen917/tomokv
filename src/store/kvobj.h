@@ -5,11 +5,10 @@
 // Layout, contiguous, in this order:
 //   [ hdr 8B ][ klen_ext u32? ][ expire_at i64? ][ key bytes ][ value: bytes | ptr | i64 | compact ]
 //
-// A shard owns each resident object without a refcount or shared-integer cache. Read-local readers
-// borrow rather than share ownership: values move or are copied between keys, never shared.
-// A cross-thread refcount would add a shared-line write. Read-local readers
-// can borrow eligible strings under QSBR, and sends can borrow value bytes; replacement and
-// reclamation must respect those lifetimes. Header/key embedding avoids separate small-value
+// A shard owns each resident object without a refcount or shared-integer cache. Values move or
+// are copied between keys, never shared; a cross-thread refcount would add a shared-line write.
+// Read-local readers can borrow eligible strings under QSBR, and sends can borrow value bytes;
+// replacement and reclamation must respect those lifetimes. Header/key embedding avoids separate small-value
 // allocations. FlatStore's slot stores the 15-bit hash tag; KvObj stores no hash. Optional LRU/LFU
 // metadata shares the flags byte, with atomic access because foreign readers can touch it.
 #pragma once
@@ -363,8 +362,8 @@ inline uint32_t embedded_compact_capacity(const KvObj* o) {
 // A non-owning facade over either the current external Compact or embedded bytes. Entry.offset
 // remains absolute for external gap buffers and zero-based for embedded buffers; logical() is the
 // only sanctioned conversion, as in Compact; never derive a logical offset from Entry.offset
-// directly. Embedded small-N access rescans linearly
-// without a side index. Use on a caller-serialized collection, or privately during construction;
+// directly. Embedded small-N access rescans linearly without a side index. Use on a
+// caller-serialized collection, or privately during construction;
 // neither the view nor its iterators retain storage or publish it. Mutations invalidate borrowed
 // entries. A default view must be bound before use; invalid boundaries/capacity return false.
 // External operations delegate allocation/failure handling to Compact; embedded mutations do not

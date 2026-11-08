@@ -1820,8 +1820,8 @@ __attribute__((noinline)) bool atomic_collapse_preserves_tickets(
 // with atomic_snapshot() before floor with atomic_read_floor(); the floor protects registered
 // scatter/transaction snapshots only, not unregistered plain reads. Snapshot capture blocks
 // cleanup unless the range flush caller has prepared pre-images. Acquire-load decisions,
-// preserve suffix ticket ordering, select winners and transfer/free predecessors, closing filter cells before
-// release-decrementing group pins. ReadLocal selects QSBR retirement at compile time.
+// preserve suffix ticket ordering, select winners and transfer/free predecessors, closing filter
+// cells before release-decrementing group pins. ReadLocal selects QSBR retirement at compile time.
 // False means no eligible work or failed capacity/allocation preflight; records remain for
 // a later pass, though preflight may advance rehash. Armed retirement can wait for sink
 // capacity. This routine does not establish a per-call work bound.

@@ -212,10 +212,11 @@ public:
     size_t cap() const { return cap_; }
 
     // Advance len_ over n bytes already written past it; capacity must cover them, with no grow.
-    // Only the connection's IO thread calls this, at in-order retire: direct-reply commits after
-    // an executor filled the empty buffer, and coded-reply commits after reserve_fill, directly
-    // or through Conn::commit_fill. Op Done release / IO acquire orders the executor's bytes;
-    // this plain length store supplies no cross-thread publication barrier.
+    // During operation only the connection's IO thread calls this, at in-order retire: direct
+    // replies after an executor filled the empty buffer, and coded replies after reserve_fill,
+    // directly or through Conn::commit_fill. Joined shutdown can retire through the same helpers
+    // after issuer cancellation. Op Done release / IO acquire orders the executor's bytes; this
+    // plain length store supplies no cross-thread publication barrier.
     void commit_raw(size_t n) { len_ += n; }
 
     // Drops any heap growth and returns to the inline buffer. Called when a slot is recycled after
