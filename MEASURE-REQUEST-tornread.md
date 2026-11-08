@@ -77,10 +77,10 @@ The dangerous direction in the task's wording is above that bound.
    copied replies no longer read store versions, and borrowed replies retain their
    independent borrow references.
 6. Disconnect retains the Client until its ROB is quiescent (`conn.h:800`,
-   `io_loop.h:5508`), so completed requests still drain through that callback.
+   `io_loop.h:5576`), so completed requests still drain through that callback.
    Client LB requires `migration_protocol_idle()` and ROB quiescence (`conn.h:806`,
    `io_loop.h:375`). FLIP movers and stayers require quiescence too
-   (`flip_liveness.inc:13,168,241`); exceptions retain only a FLIP/blocking/WAIT
+   (`src/cmd/flip_liveness.inc:13,168,241`); exceptions retain only a FLIP/blocking/WAIT
    coordinator, which cannot carry a plain-read reference. No live reference can
    move to another IO or survive removing its old floor slot from placement.
 7. Post-join shutdown rebinds the retire callback with the same release and explicitly
@@ -115,7 +115,7 @@ adds no owner-side completion channel.
 
 ### Regression rows and negative controls
 
-The additional `2s/read-local 1` jobs are queued for fixed/release proof after the instruction run.
+The final normal-parser matrix is complete; the priority-parser matrix and added release falsifiers are in progress.
 
 `tests/tornread.py` preserves Phase B's writer-tagged serial-order oracle, owner geometry
 proof, worker errors, writes/read pairs/value-change checks, MGET-noise oracle, and
@@ -139,10 +139,14 @@ labels; neither EXPECT nor `tests/fixtures/nullrefresh-ledger-labels.json` was e
 - PART1 at atomic 0 still FAILS as expected: uring 7 violations / 211,456 pairs in
   0.3 s; epoll 2 / 413,392 in 0.5 s. Both round-trip controls pass.
   `build/gate-run.7BVM6s/ledger.partial`. This is why PART2 is required.
-- PART2: **24/24 rows PASS** (plus external-binary/footprint row: 25/25).
+- Initial PART2: **24/24 rows PASS** (plus external-binary/footprint row: 25/25).
   Pipelined: **112,463,736 pairs**, **12,480,617 value changes**, zero violations.
   Round-trip: **15,594,280 pairs**, **19,058,118 value changes**, zero violations.
   Ledger: `build/gate-run.vb6MT1/ledger.partial`; each job retains JSON and server logs.
+- Final PART2-r7, priority scheduling off: **32/32 rows PASS**, plus build/footprints.
+  Pipelined: **123,513,424 pairs**, **6,966,123 value changes**; round-trip:
+  **14,611,024 pairs**, **8,667,647 changes**. Every row ran at least 15 s with zero
+  violations, errors or vacuity flags. `build/gate-run.qJ1lUC/ledger.partial`.
 - PAD1(A) is a falsifier: 22,591 violations / 178,368 pairs in 0.3 s; its round-trip
   control passes. `build/gate-run.ziWzev/ledger.partial`.
 
