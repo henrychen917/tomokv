@@ -1,4 +1,8 @@
-// reorder.h -- fused owner-local shadow priority.
+// Owner-local priority queues and IO-owned long-predecessor hints. Included by
+// the IO/executor headers and reorder.cc; no queue survives an inbox drain or
+// ownership change. Tasks borrow Clients/ROB slots until execution publishes
+// completion. Hints inspect predecessor state with acquire loads, never retry
+// readers or retain mutable predecessor metadata across completion.
 #pragma once
 #include <algorithm>
 #include <cstddef>
@@ -27,7 +31,7 @@ inline constexpr uint32_t kExReorderSpecial =
     CmdFlags::Blocking | CmdFlags::Transaction | CmdFlags::StreamRoute | CmdFlags::SubcmdRoute |
     CmdFlags::FlipAsync;
 
-// Only the ordinary one-owner path participates. Every existing special mechanism is a hard
+// Only the ordinary one-owner path participates. Every special mechanism is a hard
 // barrier in the incoming sequence: queued ordinary work drains before it executes.
 inline bool candidate(const Task& task, uint8_t& length) {
     if (!task.client || task.scatter) return false;
@@ -45,15 +49,15 @@ inline bool candidate(const Task& task, uint8_t& length) {
     return true;
 }
 
-// R7's candidate service ratio matches the deciding 8:2 short/long mix. This is a
-// inherited fairness constant, NOT a measured optimum. No ratio knob is exposed.
+// Four priority picks between forced-oldest turns bound starvation. The
+// two-queue scheduler uses the same quota for short service; it is not tunable.
 inline constexpr uint32_t kExReorderShortQuota = 4;
 
 // The kind-A control changes only this out-of-line predicate. It leaves R7 enabled.
 bool shadow_available();
 
-// Ordinary tasks already use a negative shard to mean "resolve Op::shard". Keep that
-// meaning and carry SHADOW plus the distance to the preceding long in the otherwise
+// Ordinary tasks use a negative shard to mean "resolve Op::shard". That encoding
+// also carries SHADOW plus the distance to the preceding long in the otherwise
 // unused negative payload. Scatter/transaction/blocking tasks are never stamped.
 // A live ROB contains at most 64 slots, so six distance bits suffice. Nothing in Op,
 // Client, Rob, the inbox stride, or a shard's ownership state grows.
@@ -76,10 +80,12 @@ inline bool shadow_pending(const Task& task) {
            id >= rob.flush_id();
 }
 
-// Per-pass hint state on the connection's IO thread. Production seeds it lazily
-// from ShadowLongIndex; the bounded back-scan constructor remains the serverless
-// PRE oracle. IO owns ROB recycling, so both can read immutable command specs.
-// Each stamp captures its OWN preceding Long; later Longs cannot alter old tasks.
+// Per-parse-pass hint owned by one connection's IO thread, which also owns ROB
+// recycling. Borrows command specs and acquire-loads completion state; owns
+// only the newest long id. Seed lazily from ShadowLongIndex or use the bounded
+// back-scan constructor in fixtures. Stamp before the caller publishes a Task;
+// unsupported tasks and predecessors outside the live window leave it alone.
+// Each stamp captures its own preceding long; later longs cannot alter it.
 class ShadowDispatch {
     friend class ShadowDemotionDispatch;
     friend class ShadowLongIndex;
@@ -132,10 +138,13 @@ public:
     }
 };
 
-// Only the armed parser reads/writes these two words in Client's existing IO
-// padding. Bits are distances behind newest, so retirement/reuse requires no
-// per-short publication or retire hook. Client migration carries the index with
-// its ROB. No owner table, allocation, reader retry or executor-side metadata.
+// IO-owned index stored in two words of Client's IO padding; this helper owns
+// no allocation. Initialize on admission, record before publishing the ROB
+// slot, and unpublish on dispatch rollback. Only that Client's IO thread may
+// update it. Queries acquire-load completion and return UINT64_MAX if no live
+// long precedes the limit. Bits are distances behind newest, so retirement and
+// reuse need no per-short publication. Client migration carries both index and
+// ROB; there is no executor-owned side table or reader retry.
 class ShadowLongIndex {
 public:
     static constexpr size_t slots_offset() { return offsetof(Client, r7_long_slots_); }
@@ -189,10 +198,12 @@ public:
 static_assert(ShadowLongIndex::slots_offset() == 80);
 static_assert(ShadowLongIndex::newest_offset() == 88);
 
-// No ShadowDispatch exists until an ordinary dispatch has a pending Long in its
-// older prefix. In particular, empty/full/incomplete/backpressured passes and
-// pure-short pipelines construct none and never walk the ROB. Once constructed,
-// retain the original within-pass stamping rule, including subsequent Longs.
+// One IO parse pass owns this optional in-place dispatcher for one Client.
+// before is the pass's older-prefix limit; stamp tasks before inbox publication.
+// Completion checks use acquire loads and borrow only live ROB state. No
+// ShadowDispatch exists until an ordinary dispatch has a pending older long:
+// empty/full/incomplete/backpressured and pure-short passes construct none.
+// No allocation or wait is added; subsequent longs update the per-pass hint.
 class LazyShadowDispatch {
     std::optional<ShadowDispatch> dispatch_;
     uint64_t before_;
@@ -210,9 +221,9 @@ public:
                 newest_ = task.op_id;
                 return;
             }
-            // A Long stamped earlier in this pass may already be Done by its
-            // first short follower. The old hint would immediately clear at EX;
-            // do not construct a dispatcher for that already-completed hint.
+            // A long stamped earlier in this pass may be Done by its first
+            // short follower. Do not construct a hint the executor would
+            // immediately clear after observing that completion.
             if (newest_ != UINT64_MAX) {
                 TOMO_R7_SCAN_VISIT();
                 if (task.client->rob().at(newest_).state.load(std::memory_order_acquire) ==
@@ -229,11 +240,12 @@ public:
     }
 };
 
-// One index per demotion commit, owned by IO just like ROB recycling. The selected
-// ids are in ROB order; index only the prefix older than the last selected read.
-// Masking at each query keeps a younger Long from shadowing an older demotion.
-// Completion is monotone within this commit: prune Done Longs once, but recheck
-// the newest surviving predecessor at each query, as the old back-scan did.
+// One IO demotion commit owns this bitmap for one Client and its stable ROB
+// window. Selected ids must be in ROB order; index only the prefix older than
+// the last selected read. task() returns a borrowed Task for later publication,
+// without waiting or allocating. Mask each query so younger longs cannot
+// shadow an older demotion. Acquire-load completion, prune Done longs once,
+// and recheck the newest surviving predecessor at each query.
 // At most window-1 index visits + count successful probes + window failed probes.
 class ShadowDemotionDispatch {
     uint64_t first_;
@@ -276,9 +288,13 @@ inline bool priority_enabled(uint32_t requested) {
     return requested != 0;
 }
 
-// These queues live for ONE inbox drain, across its gathered batches. finish() is mandatory
+// Owned by one shard executor for one inbox drain across its gathered batches.
+// Owns bounded Task copies, not Clients or ROB slots; emit must consume/copy its
+// borrowed span before returning and may publish Done. No queue publication or
+// wait occurs here. Oversized batches/overflow and destruction with debt abort.
+// finish() is mandatory
 // before local-read service, snapshot/control work, LB acknowledgement, or returning to IO.
-// Thus no queued Task survives a shard/role ownership edge, and no new migration sidecar exists.
+// Thus no queued Task survives a shard/role ownership edge or needs a migration sidecar.
 // At most one batch of debt survives an admission; a second batch supplies the lookahead.
 //
 // A short entry must be a live ROB head. Any invisible predecessor (including an earlier
@@ -291,7 +307,6 @@ inline bool priority_enabled(uint32_t requested) {
 //
 // Queue cursors, the service quota and this dependency frontier are the mechanism's bookkeeping;
 // there are no per-op clocks, atomic updates, allocations, telemetry counters or Client/Op fields.
-// Costs and the conservative non-head classification still require S4 measurement.
 template <size_t BatchOps>
 class ExReorderQueues {
     // Queue geometry is generic; production uses the executor quantum.
@@ -300,8 +315,9 @@ class ExReorderQueues {
     static_assert((Capacity & (Capacity - 1)) == 0);
     static_assert(std::is_trivially_destructible_v<Task>);
 
-    // Default-constructing Task arrays would clear every unused slot at every drain. Activate
-    // only the occupied union member; Task has no destructor work when a ring slot is reused.
+    // Executor-owned storage: append placement-constructs only occupied Task
+    // members, and reuse needs no destructor work (Task is trivially destructible).
+    // No Client lifetime is owned here; capacity is checked before construction.
     union Slot {
         Task task;
         Slot() {}
@@ -383,9 +399,13 @@ public:
         short_quota_ = kExReorderShortQuota;
     }
 
-    // Admission is a batch decision. Empty-queue one-client and homogeneous coarse-class runs
-    // retain their original Task span: no queue entries, head loads or ratio picks. When debt
-    // exists, the same input must join the queues so it cannot jump a queued own predecessor.
+    // Executor-only admission of at most BatchOps live borrowed tasks; emit
+    // consumes/copies each span synchronously and may publish completion.
+    // Retains at most one batch between calls, drains before special barriers,
+    // and aborts on oversize input. finish() is required before ending the drain.
+    // Empty-queue one-client and homogeneous coarse-class runs pass through
+    // without queue entries. With debt, input must join the queues so it cannot
+    // jump an admitted predecessor from the same connection.
     template <typename Emit>
     void submit(const Task* tasks, uint32_t n, Emit& emit) {
         if (__builtin_expect(n > BatchOps, false)) std::abort();
@@ -435,18 +455,22 @@ public:
     }
 };
 
-// Shadow policy: only the front of each connection is eligible, in one of three
+// Executor-owned scratch for one inbox drain; owns Task copies and connection
+// links, but borrows Client/ROB lifetimes until emit consumes or copies them.
+// Completion hints use acquire loads; emit alone may publish Done. finish()
+// must empty all debt before ownership changes. Oversize/overflow and nonempty
+// destruction abort; admission carries at most one batch instead of waiting.
+// Only the front of each connection is eligible, in one of three
 // ready FIFOs: unshadowed short, long, shadowed short. Successors become eligible
 // in output order; this preserves write/RYOW order even for L s L on one owner.
-// All scratch dies at finish(), exactly like the inherited two-queue scheduler.
+// No queued Client reference survives finish().
 //
-// Fairness uses R7's one-batch carry and its ratio, not a clock or a new knob.
-// Give a newly opened scope B priority picks (so the entire three-pipe example
-// follows the requested priority order), then force the oldest queued task after
+// Fairness uses the one-batch carry and a fixed quota, without a clock.
+// Give a newly opened scope B priority picks, then force the oldest queued task after
 // each Q=4 priority picks. The oldest is always a connection head. With C=2B live
 // slots, an admitted task has <=C-1 older tasks; later arrivals cannot get ahead
 // of it on forced turns. It is selected within K=B+C*(Q+1) picks, including its
-// own pick: 352 at B=32, 1408 at B=128. Admission is bounded by C as in R7.
+// own pick: 352 at B=32, 1408 at B=128. Admission is bounded by C.
 // This is a pick bound, not a wall-time promise about long handlers/atomic waits.
 template <size_t BatchOps>
 class ShadowReorderQueues {
@@ -457,12 +481,18 @@ class ShadowReorderQueues {
     static constexpr Index None = UINT16_MAX;
     static_assert(Capacity < None);
     static constexpr uint32_t TableSize = 2 * Capacity;
+    // One executor-owned live slot: task borrows its Client, while links name
+    // slots in this queue only. Unlink before reuse; never access after emit
+    // can publish completion. Only a connection's head enters a ready FIFO.
     struct Node {
         Task task;
         Index older, newer, next_conn, hash_next;
         Index prev_ready = None, next_ready = None;
         uint8_t length, rank;
     };
+    // Storage alternates between a live Node and a free-list index. append
+    // constructs the Node; emit_queued unlinks it before activating next_free.
+    // Neither union member owns the referenced Client or performs publication.
     union Slot {
         Node node;
         Index next_free;
@@ -537,8 +567,8 @@ class ShadowReorderQueues {
         newest_ = i;
         if (previous == None) ready_append(i, rank(n));
         // Preserve the admitted owner order. A read-local demotion may legally
-        // lower an older read after a later independent op; its existing hazard
-        // protocol decides that order, not a new ROB-id sort/assertion here.
+        // lower an older read after a later independent op; the read-local
+        // hazard protocol decides that order, not a ROB-id sort here.
         else
             node(previous).next_conn = i;
         *link = i;
@@ -563,6 +593,10 @@ class ShadowReorderQueues {
         if (shadow_bit(n.task) && !shadow_pending(n.task)) n.task.shard = -1;
         ready_append(i, rank(n));
     }
+    // Executor-only: select at most one batch of queued connection heads,
+    // refreshing completion hints with acquire loads before selection. Unlink
+    // every selected slot before emit can publish Done and IO can recycle it.
+    // emit must consume/copy the stack span; invalid counts or empty picks abort.
     template <typename Emit>
     void emit_queued(uint32_t n, Emit& emit) {
         if (n > count_ || n > BatchOps) std::abort();
@@ -618,6 +652,11 @@ public:
         while (size()) emit_queued(std::min<uint32_t>(BatchOps, size()), emit);
         priority_left_ = BatchOps;
     }
+    // Executor-only admission of at most BatchOps live tasks, preserving each
+    // connection's admission order. emit consumes/copies spans synchronously
+    // and may publish Done; no borrowed Op metadata crosses that callback.
+    // Carry at most one batch, drain before special barriers, and require
+    // finish() before leaving the owner drain. Oversized input aborts.
     template <typename Emit>
     void submit(const Task* tasks, uint32_t n, Emit& emit) {
         if (n > BatchOps) std::abort();

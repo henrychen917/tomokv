@@ -66,3 +66,59 @@ kernels. The code establishes only that short reads and failures leave the
 default deterministic hash material in place; the rewritten contract states
 that narrower guarantee. Recovery may subsequently replace it with persisted
 hash material before routing or loading keys.
+
+## 2026-11-08 — Keep a bounded, fixed priority quota
+
+`ExReorderQueues`, `ShadowReorderQueues` and `kExReorderShortQuota` use a quota of
+four. The removed comment ties it to an 8:2 short/long workload, explicitly
+calling it inherited fairness policy rather than a measured optimum. The
+two-queue comment also left its conservative non-head classification costs for
+an S4 measurement. No result for that measurement is established here. The
+source retains the pick-count bound and explicitly makes no wall-time promise.
+
+## 2026-11-08 — Keep a bounded oracle beside the indexed hint
+
+`ShadowDispatch`'s scanning constructor remains a serverless reference for
+`ShadowLongIndex`, `LazyShadowDispatch` and `ShadowDemotionDispatch`. The
+production parse pass constructs its dispatcher only when a pending long
+predecessor matters. Each task keeps its own predecessor distance; later longs
+cannot change it. The demotion bitmap prunes completed longs but must recheck
+the newest surviving predecessor on every query. This preserves the old scan's
+completion observations without per-operation reader retries.
+
+## 2026-11-08 — Preserve capability controls in the isolated runtime
+
+`reorder_available` and `r7::shadow_available` are cold out-of-line predicates
+for existing kind-A behaviour twins: FIFO or non-shadow priority behaviour with
+the candidate's text size/layout. The source predicates and generated runtime
+remain in place; this lane changes no control or compiler input beyond its
+documented local renames. Binary identity, rather than a throughput experiment,
+is the acceptance criterion for these documentation changes.
+
+## 2026-11-08 — Capture one report for both shutdown renderers
+
+`collect_shutdown_report`, `print_shutdown_report_human` and
+`print_shutdown_report_json` share one owned value after worker join. The
+original header records that the fused path previously omitted per-thread,
+writeback, TLS and epoll evidence and that two independent `stuck:` walks had
+diverged. `ShutdownReportFinalLine` is declared first in main so its destructor
+prints the captured JSON after runtime teardown. Both output grammars stay
+byte-for-byte unchanged in source literals.
+
+## 2026-11-08 — Report lifetime work by final split role
+
+`collect_shutdown_report` charges each split thread's lifetime `LoopSignals::ops`
+to dispatched work when its final role is IO, and executed work otherwise.
+This is not exact accounting across role changes. The original decision avoids
+adding operation-path increments solely for shutdown attribution; the source
+contract now states this limitation directly.
+
+## 2026-11-08 — Fence issuer and coordinator cleanup separately
+
+`IoLoop::shutdown_on_issuer` runs on the physical issuer before join, after its
+snapshot and persistence guards drain. `shutdown_clients_after_join` runs on
+the coordinator only after all workers join, consumes owed completions, tries
+the ordered reply prefix once, exits the ring, then frees buffers and Clients.
+The former file header described only the post-join stage. The revised header
+documents both stages and preserves the prohibition on freeing buffers before
+the kernel lifetime fence. It changes no cancellation or retirement behaviour.

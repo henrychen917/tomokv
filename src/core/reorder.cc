@@ -1,5 +1,8 @@
-// R7 role bodies are isolated so the FIFO compiler input stays unchanged.
-// tests/r7shadow_sync.py checks the copied envelopes against the current mainline methods.
+// Priority runtime selection, owner-drain queues and generated role bodies.
+// This translation unit isolates their compiler budget from the FIFO loops.
+// Queue debt drains before any shard/role boundary; tasks retain admission order
+// within each connection. tests/r7shadow_sync.py owns the protected envelopes,
+// including the fused boot copied from genthread.cc; edit their source methods.
 #include "genthread.h"
 #include "fused_boot_gate.h"
 #include "boot_support.h"
@@ -21,27 +24,33 @@ __attribute__((noipa)) bool /* TOMO_TOOL_BIND shadow_available */ shadow_availab
 }
 }
 
+// INFO caller borrows nthreads live atomic counter rows, or passes nullptr for
+// an empty inventory. Relaxed loads report totals without a coherent snapshot;
+// append to the caller's string, aborting if the fixed row buffer truncates.
 void append_reorder_info(std::string& body, const ModeScheduleStats* stats, uint32_t nthreads) {
     TOMO_R7_PATH();
-    uint64_t batches = 0, multi = 0, permutations = 0;
-    uint32_t max_batch = 0;
+    uint64_t batches = 0, multi_client_runs = 0, permutations = 0;
+    uint32_t largest_batch = 0;
     if (stats)
         for (uint32_t tid = 0; tid < nthreads; tid++) {
-            const auto& s = stats[tid];
-            batches += s.reorder_batches.load(std::memory_order_relaxed);
-            multi += s.reorder_multi_client_runs.load(std::memory_order_relaxed);
-            permutations += s.reorder_permuted_runs.load(std::memory_order_relaxed);
-            max_batch = std::max(max_batch, s.reorder_max_batch.load(std::memory_order_relaxed));
+            const auto& thread_stats = stats[tid];
+            batches += thread_stats.reorder_batches.load(std::memory_order_relaxed);
+            multi_client_runs +=
+                thread_stats.reorder_multi_client_runs.load(std::memory_order_relaxed);
+            permutations += thread_stats.reorder_permuted_runs.load(std::memory_order_relaxed);
+            largest_batch = std::max(
+                largest_batch, thread_stats.reorder_max_batch.load(std::memory_order_relaxed));
         }
-    char row[512];
-    const int n = std::snprintf(
-        row, sizeof(row),
+    char row_buffer[512];
+    const int row_length = std::snprintf(
+        row_buffer, sizeof(row_buffer),
         "reorder_batches:%llu\r\nreorder_multi_client_runs:%llu\r\n"
         "reorder_permuted_runs:%llu\r\nreorder_max_batch:%u\r\nreorder_shadow:%u\r\n",
-        static_cast<unsigned long long>(batches), static_cast<unsigned long long>(multi),
-        static_cast<unsigned long long>(permutations), max_batch, r7::shadow_available());
-    if (n < 0 || static_cast<size_t>(n) >= sizeof(row)) std::abort();
-    body.append(row, static_cast<size_t>(n));
+        static_cast<unsigned long long>(batches),
+        static_cast<unsigned long long>(multi_client_runs),
+        static_cast<unsigned long long>(permutations), largest_batch, r7::shadow_available());
+    if (row_length < 0 || static_cast<size_t>(row_length) >= sizeof(row_buffer)) std::abort();
+    body.append(row_buffer, static_cast<size_t>(row_length));
 }
 
 template <bool Fused>
@@ -56,6 +65,12 @@ __attribute__((noinline)) uint32_t ExLoopT<Fused>::r7_drain_tasks(bool unmasked)
     return r7_drain_tasks_impl<false, BatchOps, IofusedPrivateQueue>(unmasked);
 }
 
+// Active owner thread only, with its inbox/role lifetime held for this drain.
+// Borrows inbox tasks and owns stack-local queue scratch; finish empties it
+// before returning. Execution may publish Done, so no emitted Op is inspected
+// again. If cross-shard retries block execution, append selected tasks to the
+// owner's deferred queue instead. Invalid queue bounds abort; allocations in
+// that deferred queue are not caught here. Returns the number drained.
 template <bool Fused>
 template <bool Shadow, uint32_t BatchOps, bool IofusedPrivateQueue>
 uint32_t ExLoopT<Fused>::r7_drain_tasks_impl(bool unmasked) {
@@ -3404,13 +3419,16 @@ void IoLoop::run_split_read_local() {
     return run_split_read_local_baseline();
 }
 
+// Main-thread choice before worker launch. Borrow all arguments through the
+// chosen boot routine's join; that routine owns listener transfer and failure
+// unwind. The selector adds no publication, wait or recovery step of its own.
 int run_fused_server_selected(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                               const std::vector<std::unique_ptr<AofReplayPlan>>& aof_plans,
                               const SnapshotLoadPlan* load_plan, TlsContext* tls_context,
                               LateUnixListener& unix_listener,
                               ShutdownReportFinalLine& final_report) {
-    // One boot choice. The original fused TU sees no R7 bodies, callbacks, or selectors;
-    // even a callback-only choice there changes its unit-wide inlining budget.
+    // Keep the boot selector outside the FIFO fused translation unit so priority
+    // bodies and callbacks do not enter its unit-wide inlining budget.
     if (srv.cfg().reorder)
         return run_fused_server_reordered(srv, aof_base_plan, aof_plans, load_plan, tls_context,
                                           unix_listener, final_report);

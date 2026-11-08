@@ -164,8 +164,9 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
     for (uint32_t tid = 0; tid < nthreads; tid++)
         // Physical worker tid owns both loop guards across role changes. It
         // borrows the arrays until join and publishes setup through boot's
-        // mutex. Failed setup reports once; exit parks the reader epoch before
-        // issuer-side cancellation. Runtime activation failure aborts.
+        // mutex. Failed setup reports once and unwinds on the issuer. Exit from
+        // the role loop parks the reader epoch before issuer-side cancellation.
+        // Runtime activation failure aborts.
         pool.emplace_back([&, tid] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
             IoLoop::ShutdownOnIssuer shutdown_io{ios[tid]};
@@ -346,36 +347,37 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
 __attribute__((noinline, cold)) void append_read_local_thread_info(std::string& body,
                                                                    const Server& srv) {
     uint32_t active_readers = 0;
-    uint32_t owned[kMaxThreads] = {};
+    uint32_t shards_by_thread[kMaxThreads] = {};
     // Read the published ownership directory, never a vector FLIP may be rewriting.
     for (uint32_t sid = 0; sid < srv.nshards(); sid++)
-        owned[srv.worker_of_shard(static_cast<int32_t>(sid))]++;
-    char row[192];  // fixed grammar, including full-width uint32/uint64 counters
+        shards_by_thread[srv.worker_of_shard(static_cast<int32_t>(sid))]++;
+    char row_buffer[192];  // fixed grammar, including full-width uint32/uint64 counters
     for (uint32_t tid = 0; tid < srv.nthreads(); tid++) {
         const ThreadCtx& thread = srv.thread(tid);
         const bool active = thread.read_local_lane_active();
         active_readers += active;
         const Role role = thread.role();
-        const char* name = role == Role::Idle                       ? "idle"
-                           : srv.thread_mode() == ThreadMode::Fused ? "unified"
-                           : role == Role::Ifid                     ? "ifid"
-                                                                    : "ex";
+        const char* role_name = role == Role::Idle                       ? "idle"
+                                : srv.thread_mode() == ThreadMode::Fused ? "unified"
+                                : role == Role::Ifid                     ? "ifid"
+                                                                         : "ex";
         const ReadLocalStats& stats = thread.read_local_stats();
         // Lifetime counters survive FLIP and RESETSTAT; INFO stats uses
         // RESETSTAT-relative aggregate counters separately.
-        const int n = std::snprintf(row, sizeof(row),
-                                    "read_local_thread_%u:role=%s,shards=%u,active=%u,"
-                                    "hits_total=%llu,mget_hits_total=%llu\r\n",
-                                    tid, name, owned[tid], active ? 1u : 0u,
-                                    static_cast<unsigned long long>(stats.hits),
-                                    static_cast<unsigned long long>(stats.mget_local_hits));
-        if (n < 0 || static_cast<size_t>(n) >= sizeof(row)) std::abort();
-        body.append(row, static_cast<size_t>(n));
+        const int row_length =
+            std::snprintf(row_buffer, sizeof(row_buffer),
+                          "read_local_thread_%u:role=%s,shards=%u,active=%u,"
+                          "hits_total=%llu,mget_hits_total=%llu\r\n",
+                          tid, role_name, shards_by_thread[tid], active ? 1u : 0u,
+                          static_cast<unsigned long long>(stats.hits),
+                          static_cast<unsigned long long>(stats.mget_local_hits));
+        if (row_length < 0 || static_cast<size_t>(row_length) >= sizeof(row_buffer)) std::abort();
+        body.append(row_buffer, static_cast<size_t>(row_length));
     }
-    const int n =
-        std::snprintf(row, sizeof(row), "read_local_active_threads:%u\r\n", active_readers);
-    if (n < 0 || static_cast<size_t>(n) >= sizeof(row)) std::abort();
-    body.append(row, static_cast<size_t>(n));
+    const int row_length = std::snprintf(row_buffer, sizeof(row_buffer),
+                                         "read_local_active_threads:%u\r\n", active_readers);
+    if (row_length < 0 || static_cast<size_t>(row_length) >= sizeof(row_buffer)) std::abort();
+    body.append(row_buffer, static_cast<size_t>(row_length));
 }
 
 }  // namespace tomo

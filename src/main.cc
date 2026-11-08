@@ -196,11 +196,11 @@ int main(int argc, char** argv) {
     // getrandom read replaces the defaults; failure or a short read leaves
     // those deterministic defaults in place and does not prevent boot.
     {
-        uint64_t buf[3] = {};
-        if (getrandom(buf, sizeof(buf), 0) == sizeof(buf)) {
-            g_hash_seed = buf[0];
-            g_sip_k0 = buf[1];
-            g_sip_k1 = buf[2];
+        uint64_t hash_material[3] = {};
+        if (getrandom(hash_material, sizeof(hash_material), 0) == sizeof(hash_material)) {
+            g_hash_seed = hash_material[0];
+            g_sip_k0 = hash_material[1];
+            g_sip_k1 = hash_material[2];
         }
     }
 
