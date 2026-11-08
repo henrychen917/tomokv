@@ -239,9 +239,10 @@ IDENTICAL (11167504 bytes after stripping)
 
 The lane also explicitly requires each edited file's preprocessing-token stream
 to equal PRE, apart from allowed renames. Declarations and qualified definitions
-cannot satisfy that literal per-file rule. Pending clarification, the stronger
-literal proof is retained: the split is reverted and its successful experiment
-is supplied as a small reviewable patch. This is not a binary regression.
+cannot satisfy that literal per-file rule. No source-token exception is assumed:
+the split is reverted to retain the exact per-file proof, and its successful
+experiment is supplied as a small reviewable patch. This is not a binary
+regression.
 
 ## 2026-11-08 — contract audit refinements (base and storage helpers)
 
