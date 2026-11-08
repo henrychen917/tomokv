@@ -128,8 +128,8 @@ and EXEC writers at atomic 0, each with strict round-trip controls.
 Matrix: both `2s`/`1s` × both read-local settings × both atomic settings × both
 epoll/uring engines, matching the current atomics/read-local rows (including the split
 read-local runtime). Sixteen whole jobs, two counted rows each.
-**DQ=+32, DF=+32**, counted at the `collect_job "tornread-..."` loop at `tests/gate.sh:7276`, BEFORE the quick
-exit at `tests/gate.sh:7518`, not at the job definition. At this base EXPECT_QUICK must become **1244**
+**DQ=+32, DF=+32**, counted at the `collect_job "tornread-..."` loop at `tests/gate.sh:7277`, BEFORE the quick
+exit at `tests/gate.sh:7519`, not at the job definition. At this base EXPECT_QUICK must become **1244**
 (1212+32), EXPECT_FULL **1261** (1229+32). The maintainer must add the 32 corresponding
 labels; neither EXPECT nor `tests/fixtures/nullrefresh-ledger-labels.json` was edited.
 
@@ -159,6 +159,12 @@ labels; neither EXPECT nor `tests/fixtures/nullrefresh-ledger-labels.json` was e
   Every row ran at least 15 s; `build/gate-run.3f63cJ/ledger.partial`.
 - PAD1(A) is a falsifier: 22,591 violations / 178,368 pairs in 0.3 s; its round-trip
   control passes. `build/gate-run.ziWzev/ledger.partial`.
+
+Final PART1-r7 also passes all 16 atomic-1 rows with effective-mode assertions:
+eight fused priority rows and eight split FIFO controls (`build/gate-run.9TtDVs/ledger.partial`).
+Final PART2-r7 default-mode guard checks pass in split read-local epoll and fused
+read-local priority uring, four rows (`build/gate-run.SoA55J/ledger.partial`).
+These include the added CONFIG-based setup checks; they do not add ledger labels.
 
 The generated-parser falsifier is the initial PART2 image (normal parser fixed,
 generated parser still old) with fused `--reorder 1`: both atomic settings tear within
