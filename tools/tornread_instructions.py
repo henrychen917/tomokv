@@ -8,7 +8,6 @@ exact commandstats delta. Results include each repeat, binary digest and perf ev
 import argparse
 import hashlib
 import json
-import multiprocessing as mp
 import os
 from pathlib import Path
 import re
@@ -22,53 +21,21 @@ import time
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tests"))
-from tornread import Conn, enc, info_fields
+from tornread import Conn, info_fields
 
 VALUE = b"v" * 64
+CLIENT = ROOT / "build/tornread/instr-client"
 
 
-def workload(port, verb, depth, count, worker, channel):
-    try:
-        os.sched_setaffinity(0, {8 + worker % 4})
-        conn = Conn("127.0.0.1", port)
-        batches = []
-        for offset in range(64):
-            frames = []
-            for j in range(depth):
-                k = (offset * depth + j) % 512
-                keys = [f"instr:{worker}:{(k + i) % 512}" for i in range(8)]
-                args = {"GET": [keys[0]], "SET": [keys[0], VALUE],
-                        "MGET": keys,
-                        "MSET": [item for key in keys for item in (key, VALUE)]}[verb]
-                frames.append(enc(verb, *args))
-            batches.append(b"".join(frames))
-        expected = VALUE if verb == "GET" else [VALUE] * 8 if verb == "MGET" else b"OK"
-
-        def run(n):
-            assert n % depth == 0
-            for i in range(n // depth):
-                conn.send(batches[i % len(batches)])
-                for _ in range(depth):
-                    reply = conn.reply()
-                    if reply != expected:
-                        raise AssertionError(repr(reply))
-
-        run(4096)
-        channel.send("ready")
-        assert channel.recv() == "run"
-        run(count)
-        channel.send(count)
-        assert channel.recv() == "close"
-        conn.close()
-    except BaseException as error:
-        channel.send(repr(error))
-        raise
-
-
-def receive(channel, timeout=120):
-    if not channel.poll(timeout):
+def receive(worker, timeout=120):
+    if not select.select([worker.stdout], [], [], timeout)[0]:
         raise TimeoutError("finite workload worker did not finish")
-    return channel.recv()
+    return worker.stdout.readline().strip()
+
+
+def send(worker, message):
+    worker.stdin.write(message + "\n")
+    worker.stdin.flush()
 
 
 def cell(binary, folder, seed, mode, atomic, verb, depth, count, clients):
@@ -77,6 +44,7 @@ def cell(binary, folder, seed, mode, atomic, verb, depth, count, clients):
         shutil.copy2(seed, folder / "workload.tomo")
     port = 26095
     guard = socket.socket()
+    guard.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     guard.bind(("127.0.0.1", port))
     guard.close()
     env = dict(os.environ, LC_ALL="C")
@@ -87,7 +55,7 @@ def cell(binary, folder, seed, mode, atomic, verb, depth, count, clients):
             "--dbfilename", "workload.tomo"]
     if mode == "2s":
         argv += ["--ratio", "6:2"]
-    workers, pipes = [], []
+    workers, worker_logs = [], []
     perf = None
     server = None
     fds = []
@@ -113,17 +81,16 @@ def cell(binary, folder, seed, mode, atomic, verb, depth, count, clients):
             if not seed.exists():
                 assert admin.call("SAVE") == b"OK"
                 shutil.copy2(folder / "workload.tomo", seed)
-            ctx = mp.get_context("fork")
             for worker in range(clients):
-                parent, child = ctx.Pipe()
-                proc = ctx.Process(target=workload,
-                                   args=(port, verb, depth, count, worker, child))
-                proc.start()
-                child.close()
+                worker_log = (folder / f"worker-{worker}.log").open("w")
+                worker_logs.append(worker_log)
+                proc = subprocess.Popen(["taskset", "-c", str(8 + worker % 4), str(CLIENT),
+                                         str(port), verb, str(depth), str(count), str(worker)],
+                                        stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                        stderr=worker_log, text=True, env=env)
                 workers.append(proc)
-                pipes.append(parent)
-            for pipe in pipes:
-                assert receive(pipe) == "ready"
+            for worker in workers:
+                assert receive(worker) == "ready"
             before = info_fields(admin)
             ctl_r, ctl_w = os.pipe()
             ack_r, ack_w = os.pipe()
@@ -136,27 +103,27 @@ def cell(binary, folder, seed, mode, atomic, verb, depth, count, clients):
 
             def control(command):
                 os.write(ctl_w, command.encode() + b"\n")
-                if not select.select([ack_r], [], [], 10)[0] or os.read(ack_r, 4) != b"ack\n":
+                if (not select.select([ack_r], [], [], 10)[0] or
+                        os.read(ack_r, 64) not in (b"ack\n", b"ack\n\0")):
                     raise RuntimeError("perf control acknowledgement missing")
 
             control("enable")
-            for pipe in pipes:
-                pipe.send("run")
-            for pipe in pipes:
-                assert receive(pipe) == count
+            for worker in workers:
+                send(worker, "run")
+            for worker in workers:
+                assert receive(worker) == str(count)
             control("disable")
             perf.send_signal(signal.SIGINT)
-            assert perf.wait(timeout=10) == 0
+            assert perf.wait(timeout=10) in (0, -signal.SIGINT)
             after = info_fields(admin)
             key = "cmdstat_" + verb.lower()
             calls = lambda row: int(row[key].split(",")[0].split("=")[1])
             completed = calls(after) - calls(before)
             assert completed == clients * count, (completed, clients * count)
-            for pipe in pipes:
-                pipe.send("close")
             for worker in workers:
-                worker.join(10)
-                assert worker.exitcode == 0
+                send(worker, "close")
+            for worker in workers:
+                assert worker.wait(timeout=10) == 0
             row = next(line.split(";") for line in (folder / "perf.csv").read_text().splitlines()
                        if ";instructions:u;" in line)
             instructions = int(row[0])
@@ -175,9 +142,11 @@ def cell(binary, folder, seed, mode, atomic, verb, depth, count, clients):
                 perf.send_signal(signal.SIGINT)
                 perf.wait(timeout=10)
             for worker in workers:
-                if worker.is_alive():
+                if worker.poll() is None:
                     worker.terminate()
-                    worker.join(10)
+                    worker.wait(timeout=10)
+            for worker_log in worker_logs:
+                worker_log.close()
             for fd in fds:
                 os.close(fd)
             if server is not None and server.poll() is None:
@@ -200,6 +169,8 @@ def main():
     args = parser.parse_args()
     out = ROOT / "build/tornread" / time.strftime("instructions-%Y%m%d-%H%M%S")
     out.mkdir(parents=True)
+    subprocess.run(["g++", "-std=c++20", "-O2", "-Wall", "-Wextra",
+                    str(ROOT / "tools/tornread_instr_client.cc"), "-o", str(CLIENT)], check=True)
     arms = {arm: ROOT / f"build/tornread/tomokv-{arm}" for arm in args.arms}
     (out / "binaries.json").write_text(json.dumps({arm: hashlib.sha256(path.read_bytes()).hexdigest()
                                                   for arm, path in arms.items()}, indent=2) + "\n")
