@@ -1,5 +1,16 @@
-// Shared executor body. Included in the ordinary and exact-timed templates
-// so ordinary callback symbol ownership and inlining match the original API.
+// Shared ExLoopT task-dispatch body. ex_loop.h includes it inside execute/execute_timed;
+// cmd/latency_tracking.cc includes it inside execute_latency. It is not a translation unit.
+// The enclosing templates supply Fused, IofusedPrivateQueue, ReadLocalNoEvict, Timed and
+// LatencyTracking, plus the Task named t and the executor's fields/helpers.
+//
+// Contract: the active executor thread may call this with a live Task/Client/ROB generation.
+// Recheck routing before any store access; only the current shard owner executes a write.
+// Park same-connection predecessors before installing transaction state. true means this
+// invocation has handled or transferred responsibility (possibly to a retry/commit/AOF queue),
+// not necessarily completed the reply. false leaves retry ownership with the caller, which
+// must hold younger ordered work. Done is release-published only after the reply is complete;
+// the IO owner's acquire permits retirement. Queue allocation exceptions are not handled here.
+// Phase 1: validate ownership before dispatching tagged transaction or cleanup work.
 Server::ClientWorkScope client_work(*srv_, self_->id());
 // Forwarding, rather than a request epoch, resolves the route-read/enqueue race.  This check
 // must precede every shard dereference, including tagged MULTI and ownerless cleanup tasks.
@@ -10,42 +21,28 @@ if (multi_task_tagged(t)) {
     // A remote decision may arrive midway through an inbox batch. Give
     // a previously refused markless waiter the newly opened gap before
     // this fresh unit places. A refusal closes chaining only; the note
-    // never becomes an additional placement predicate (H3/B9).
+    // never becomes an additional placement predicate.
     if (shard.txn_boundary_notes() && !multi_retries_.chaining && !multi_task_continuation(t))
         service_txn_boundary<IofusedPrivateQueue>();
-    // PROGRAM ORDER: a transaction fragment must not run past an older same-connection
-    // task parked in atomic_deferred_/xshard_retries_ on this shard. This branch used to
-    // skip the check entirely, so a pipelined EXEC's child executed before the
-    // connection's earlier cross-shard DEL fragment that was deferred here, and the
-    // transaction read the pre-DEL world (the seed-19 differ divergence). An ownerless
-    // teardown fragment (null client, the WATCH-disconnect path) belongs to no
-    // connection and carries no program order -- and has no ROB to consult.
+    // A transaction fragment must not pass an older same-connection task parked in either
+    // retry index on this shard. Otherwise EXEC can read before an earlier cross-shard DEL.
+    // An ownerless WATCH teardown (null client) has no connection order or ROB to consult.
     if (t.client) {
         Op& carrier = t.client->rob().at(t.op_id);
         if (has_parked_predecessor(t, carrier, t.shard)) {
             atomic_deferred_.push_back(t);
             return true;
         }
-        // PROGRAM ORDER, THE OTHER HALF: an older same-connection cross-shard unit that
-        // has already INSTALLED here but has not yet DECIDED. Nothing is parked, so the
-        // check above cannot see it, yet its physically installed candidate may still be
-        // withdrawn -- MSETNX under --atomic 1 installs first and only then discovers an
-        // existing key on another owner, and any group can still fail on OOM/maxmemory.
-        // A transaction fragment reads through the store's own-connection RYOW overlay
-        // (atomic_resolve_internal's own_private arm), which is keyed on the CONNECTION
-        // and therefore also exposes that other unit's undecided candidate. Running here
-        // let an EXEC clone a value that was never committed and install it as its own
-        // candidate, which then committed with a real ticket: a withdrawn MSETNX value
-        // laundered into an acknowledged transaction write, visible to every connection
-        // and permanent (tests/multirace.py).
-        // Deferring here rather than in prepare_write_key() is what makes it safe. This
-        // fragment has installed nothing yet on this owner, so parking it cannot hold a
-        // half-applied command; and the predecessor can never wait on it, because on
-        // every shard the older unit's fragment is drained first and, if it is itself
-        // parked, parked_predecessor_in() holds this younger fragment behind it. Putting
-        // the hold in prepare_write_key() deadlocked: the transaction held partial
-        // installs while waiting on an older group whose order-blind key probe then
-        // waited on those installs.
+        // An older same-connection unit may already have installed here without deciding,
+        // leaving nothing in the parked indexes. Its candidate can still be withdrawn:
+        // MSETNX can find a key on another owner, and any group can fail on OOM/maxmemory.
+        // atomic_resolve_internal's own_private overlay is connection-scoped, so this
+        // transaction could otherwise copy that undecided value and commit it permanently.
+        //
+        // Park at dispatch, before this fragment installs anything. The older fragment drains
+        // first on each shard; parked_predecessor_in keeps that order when it is deferred.
+        // Parking inside prepare_write_key would instead hold partial installs while waiting
+        // for an older group's order-blind key probe, allowing a circular dependency.
         if (__builtin_expect(shard.store().atomic_has_records(), false) &&
             shard.store().atomic_has_foreign_unit_undecided(
                 t.client->id(),
@@ -97,6 +94,7 @@ if (!t.client) {
     cleanup.publish_size();
     return true;
 }
+// Phase 2: bind the ordinary task, enforce precise writes, and park dependency conflicts.
 Op& op = t.client->rob().at(t.op_id);
 const int32_t shard_id = t.shard >= 0 ? t.shard : op.shard;
 Shard& sh = srv_->shard(shard_id);
@@ -133,14 +131,14 @@ if (op.has_blocking_state()) {
         return blocking_execute(*srv_, *self_, ring_, t, sh, op);
     }
 }
-// #77 TRIPWIRE A samples before any scheduler park. The first answer is retained across
-// retries; the debug registry qualifies begin-plain transitions when execution arrives.
+// Armed tripwire sampling precedes scheduler parking. Preserve the first answer across
+// retries so execution can detect a change from a plain-read classification.
 if (__builtin_expect(atomic_tripwire_enabled(), false)) xshard_tripwire_fragment_begin(t, sh, op);
 // The helper's plain/no-hazard arm is an immediate false. Keep that
 // predicate here so ordinary commands do not enter its scatter frame.
 // A WATCH-blocked writer acquires the hazard bit below before retry;
 // scatter tasks still enter even without it (including debug holds).
-// Pin the compact exact-timed fused body's no-hazard fallthrough.
+// The exact-timed fused path hints that ordinary tasks have no atomic hazard.
 if (has_parked_predecessor(t, op, shard_id) ||
     ((Timed && Fused ? __builtin_expect(t.scatter || op.atomic_hazard(), false)
                      : (t.scatter || op.atomic_hazard())) &&
@@ -159,6 +157,7 @@ if (!t.scatter) self_->note_command(op.spec->id);
 if (__builtin_expect(srv_->climon_armed() & Server::kClimonTracking, false))
     tracking_observe_read(sh, op);
 
+// Phase 3: execute scatter or point handlers and assign continuation/commit ownership.
 if (t.scatter) {
     const ScatterTaskResult result = [&] {
         if constexpr (LatencyTracking)
@@ -174,6 +173,8 @@ if (t.scatter) {
     }
     if (result == ScatterTaskResult::Retry) return false;
     if (lb_sample_rate_) {
+        // Stack-only callback context; xshard_visit_task_hashes consumes it synchronously on
+        // this shard's owner. It borrows both pointers and performs no publication.
         struct LbVisit {
             ExLoopT* loop;
             Shard* shard;
@@ -214,16 +215,14 @@ if (t.scatter) {
     }
 } else if (__builtin_expect(op.spec->flags & CmdFlags::DenyOom, false) &&
            !sh.store().budget_admit(op.arg(static_cast<uint32_t>(op.spec->first_key)))) {
-    // Growth gate (wrinkle fix 2026-08-25): collection growth mutates behind a stable
-    // KvObj and never crosses insert-admission, so an HSET-only workload could blow
-    // through maxmemory unbounded. One predicted-false flag test per op when disabled.
-    // Scatter tasks bypass it -- their writes replace whole objects through insert-level
-    // admission in their owner pass.
+    // Collection growth can mutate behind a stable KvObj without passing insert admission.
+    // This gate enforces maxmemory for those commands. Scatter writes replace whole objects
+    // and therefore use insert-level admission in their owner pass.
     reply_maxmemory_oom(op);
     if constexpr (Fused) l4prebuild_discard_set(op);
 } else {
     // A null pending-entry list is the sole common-path branch. With no cross-shard window,
-    // handlers take their original path with no epoch loads, allocations, or cleanup work.
+    // handlers run without MVCC epoch loads, scope allocations, or cleanup work.
     const bool scoped_foreign_write =
         read_local_enabled() && (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) &&
         (op.local_xshard() || (op.spec->flags & CmdFlags::ScriptRoute));
@@ -259,6 +258,7 @@ if (t.scatter) {
             op.spec->handler(sh, op);
     }
 }
+// Phase 4: finish observers and persistence, then release Done and notify the IO owner.
 if (!t.scatter) note_lb_hash(sh, op.hash);
 if (!t.scatter && __builtin_expect(aof_manager_ != nullptr, false)) {
     AofOwnerContext context{self_->id(), &ring_, &self_->sig(), t.client->id()};
@@ -285,11 +285,7 @@ op.state.store(OpState::Done, std::memory_order_release);
 if (test_after_done_) test_after_done_(t.client);
 #endif
 
-// Notify the connection's io thread; the claim flag dedupes a burst into one post.
-// EXECUTOR-ISSUED SENDS ARE A CLOSED DOOR: the exwb mode (executor
-// sends its own completed prefix) was built, measured #1 in zero cells across every size
-// and pipe depth, and deleted 2026-08-24 -- send work rides the scarce ex role, nearly
-// free at p1 and ruinous at p32. Flush-at-head-from-ex was separately built twice and
-// reverted twice before that (fixed sender 8.1-8.5M get_p32 vs 4.1-4.7M with wedges).
+// The connection's IO owner retires and sends replies. notify_sender coalesces completion
+// notices; this executor publishes readiness without taking over socket sends.
 notify_sender(t.client);
 return true;

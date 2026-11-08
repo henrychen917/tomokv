@@ -1,7 +1,18 @@
-// C1: run only steps made runnable by an owner event, without recursion.
-// The existing polling lanes remain the fallback for unsignalled dependencies.
+// Owner-local transaction boundary and event-driven retry members, included inside ExLoopT
+// by ex_loop.h in its executor translation units. No namespace or standalone TU is introduced.
+// The chaining flag prevents recursive draining. Polling queues remain the liveness backstop
+// for dependencies that provide no event; a boundary note must never block placed siblings.
+//
+// Contract: the current shard owner services boundary notes before starting a new transaction
+// unit. It snapshots notes, removes markless Tasks from their indexes, then executes/forwards
+// them without retaining stale Client/ROB references in an index. Only this owner clears notes;
+// unconsumed watch/blind notes are restored. false means allocation failure or a still-closed
+// boundary, so the caller stops chaining. Reserve failure leaves queued tasks in place; later
+// execution uses the ordinary retry and release-Done publication paths.
 template <bool IofusedPrivateQueue>
 __attribute__((noinline)) bool service_txn_boundary() {
+    // Borrows this owner's recursion flag and restores its previous value on every exit,
+    // including reserve failure. It owns no Tasks and publishes nothing to another thread.
     struct Guard {
         bool& flag;
         bool saved;
@@ -59,14 +70,18 @@ __attribute__((noinline)) bool service_txn_boundary() {
     return clear;
 }
 
+// Contract: the owner drains its event-ready transaction queue without recursion. A new unit
+// first closes boundary notes; a placed continuation may finish without that wait. The queue
+// transfers each popped Task to execute_resumed, which owns subsequent deferral/completion.
+// A closed boundary leaves ready work queued. Returns the number attempted, not replies sent.
 template <bool IofusedPrivateQueue = false>
 __attribute__((noinline)) uint32_t service_multi_chain() {
     if (multi_retries_.chaining || !multi_retries_.ready_head) return 0;
     multi_retries_.chaining = true;
     uint32_t work = 0;
     while (multi_retries_.ready_head) {
-        // H3 closes a chain before a new unit. Already placed siblings
-        // must finish: the note itself is never a wait target (B9).
+        // Close the boundary before a new unit. Already placed siblings must finish;
+        // the note itself is never a wait target.
         if (!multi_task_continuation(multi_retries_.ready_head->task) &&
             !service_txn_boundary<IofusedPrivateQueue>())
             break;
