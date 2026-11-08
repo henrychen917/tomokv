@@ -1,8 +1,13 @@
-// Shared read-local parse/RYOW classification. Included inside both ordinary and R7
-// parse_and_dispatch template bodies, preserving their scopes, locals and lambda identities.
-// No include guard: each parser instantiates this same source in its own context.
+// Owns read-local admission and RYOW classification inside IoLoop::parse_and_dispatch
+// in io_loop.h and the R7 parser in reorder.cc. It shares each enclosing parser's locals;
+// there is no include guard because both template bodies instantiate these statements.
+// Only the connection's IO owner enters, after arity checks and database-map stamping.
+// Build reservations before stateful hooks; publication belongs to the enclosing parser.
+// Retry exits leave the current frame unconsumed. Full local lanes defer reads; explicit
+// key conflicts and conservative routes use the owner/demotion protocol.
 if constexpr (Fused) {
     if (read_local_enabled) {
+        // Phase 1: classify the command and its older owner-route conflicts.
         constexpr uint32_t kWriteHazards = CmdFlags::Write | CmdFlags::SnapshotWrite |
                                            CmdFlags::Transaction | CmdFlags::ScriptRoute;
         constexpr uint32_t kNonPointRoutes = CmdFlags::AllShards | CmdFlags::RandomShard |
@@ -43,10 +48,11 @@ if constexpr (Fused) {
                 [&](const Op& owner) { return read_local_commands_overlap(*op, owner); });
         };
 
+        // Phase 2: stage write hazards and reserve any conflicting read demotion.
         if (write_hazard) {
-            // Stage every historical v1 hazard before the stateful climon gate. A
-            // syntactic one-key owner route or blind MSET keyset can be refined now
-            // that arity is proved. Other multi-key writes remain conservative.
+            // Stage write hazards before the stateful climon gate. Arity validation allows a
+            // one-key owner route or blind MSET keyset to refine the conservative write marker;
+            // other multi-key writes remain conservative.
             rob.mark_current_write();
             const bool ordinary_point_write =
                 point_route && (spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) != 0 &&
@@ -60,26 +66,15 @@ if constexpr (Fused) {
                 const bool reserve_owner_fenced_current =
                     read_local_owner_conflict &&
                     (climon_armed_cached_ & kReplaySensitiveClimon) != 0;
-                // An evicting maxmemory policy makes the write conservative, but it is
-                // still an ordinary one-owner route. Reserve that current append along
-                // with the demoted reads so the post-climon sequence remains infallible.
+                // An evicting maxmemory policy can mutate unnamed keys, so its write remains
+                // conservative even on a one-owner route. Reserve the current append with the demoted
+                // reads to make the post-climon commit infallible.
                 //
-                // TWO DIFFERENT QUESTIONS, ONE ANSWER USED FOR BOTH UNTIL NOW.
-                // "Which keys does this write touch" is answered by the eviction
-                // policy alone: with eviction off, an ordinary point write touches
-                // op->hash and nothing else, whatever the ROB's RYOW ring can hold.
-                // "Can the ring record this hash for LATER reads to be checked
-                // against" is a capacity question, and refine_current_write_hash
-                // answers no once sixteen writes are already in flight. Conjoining
-                // them made a full ring turn every further write into a demote-EVERY-
-                // pending-read wave: at 59% writes and pipeline 32 the ring overflows
-                // permanently and every single read on the connection is lowered to
-                // the owner queue (measured: 164000 of 164000 reads, INFO
-                // read_local_fallback_inflight_write). The selection below now asks
-                // only the keys question, which is the owner's rule verbatim -- a read
-                // is held back on explicit key conflict and on nothing else. Nothing
-                // is weakened: require_hash_match=true is already what an unfilled
-                // ring passes here on every ordinary point write.
+                // Key precision and write-ring capacity are distinct: with eviction off, a point write
+                // touches only op->hash even if the ring cannot record another hash for later reads.
+                // Select older pending reads by key overlap; a full RYOW ring must not turn that
+                // selection into a demotion of unrelated reads. refine_current_write_hash separately
+                // records whether later reads can use a precise descriptor.
                 const bool point_write_exact = fused_executor_->read_local_point_writes_precise();
                 // Still gated: with an evicting policy the write may touch keys it
                 // never names, so it must stay a conservative ring generation and no
@@ -88,17 +83,11 @@ if constexpr (Fused) {
                     (void)rob.refine_current_write_hash(op->hash);
                     op->mark_read_local_precise_write();
                 }
-                // DEMOTION-PLAN GATE. prepare() returns true
-                // without building a plan -- loop_ stays null, so active() is false
-                // and commit_reads() is its `if (!loop_) return;` no-op -- unless the
-                // current append must be reserved or a still-pending local read may
-                // overlap this write. Both predicates are single inline loads that
-                // prepare() itself performs first; deciding them here skips the
-                // 12-argument out-of-line call and its abort prologue on the common
-                // disjoint / no-pending-read point write. This is the exact negation
-                // of prepare()'s two true-early-outs for this call site (no intersect
-                // command, no fallback seeds, no filter miss): behaviour identical,
-                // measured -108 instr/op and -23 cyc/op on the armed SET at 1T.
+                // A demotion plan is needed only to reserve the current owner append or to move a
+                // possibly overlapping pending local read. Otherwise prepare() returns with loop_ null
+                // and commit_reads() has no work. These predicates match prepare()'s early exits for
+                // this point-write call (no intersect command or fallback seeds), avoiding its cold
+                // allocation/reservation path when the pending-key filter proves absence.
                 const bool needs_demotion_plan =
                     (reserve_owner_fenced_current && op->shard >= 0) ||
                     (rob.has_pending_read_local() &&
@@ -140,6 +129,7 @@ if constexpr (Fused) {
                 read_local_commit_before_lowering = true;
             }
         } else if ((spec->flags & CmdFlags::ReadLocalEligible) != 0) {
+            // Phase 3: evaluate local-read safety and capacity before admitting this read.
             const bool mget = command_is_read_local_mget(*spec);
             read_local_mget_candidate = mget;
             // MGET owns a one-command latest-read boundary in both outcomes: local
@@ -147,7 +137,7 @@ if constexpr (Fused) {
             // whole command at this pass's pinned cut. Do not let an older local GET
             // from the same pass complete at a newer world and then follow it with an
             // MGET fallback at the older cut. Leave this frame unconsumed; after the
-            // existing local lane resolves, reparsing samples a fresh pass cut.
+            // local lane resolves, reparsing samples a fresh pass cut.
             if (mget) {
                 if (rob.has_pending_read_local()) break;
                 op->hash = FlatStore::hash_key(op->arg(1));
@@ -162,12 +152,9 @@ if constexpr (Fused) {
             bool write_conflict = false;
             bool mget_atomic_pending = false;
             if (mget) {
-                // Sample only the pending-key filter here. An open group outlives the
-                // parse-to-execute gap, so that sample predicts the executor's answer;
-                // the table-mutation bit is one ~200 ns exchange bracket that has
-                // closed long before the executor reads, and sampling it on every
-                // touched shard rejected about 11% of MGETs for nothing the executor's
-                // own probe/validate would not have caught (mget_fallback_seq_churn).
+                // Sample the pending-key filter here: an open group can outlive the parse-to-execute
+                // gap. Leave the transient table-mutation check to the executor's probe/validation,
+                // which observes the store when the read is actually attempted.
                 for (uint32_t arg = 1; arg < op->argc(); arg++) {
                     const uint64_t hash = arg == 1 ? op->hash : FlatStore::hash_key(op->arg(arg));
                     const int32_t shard = arg == 1 ? op->shard : srv_->router().shard_of(hash);
@@ -215,7 +202,7 @@ if constexpr (Fused) {
                     read_local_eligible = false;
                 } else if (mget && fused_executor_->read_local_keymiss_notify_armed()) {
                     // A notify-aware owner lookup can emit keymiss. Local MGET serves
-                    // stable misses as nil, so keep the whole command on the unchanged
+                    // stable misses as nil, so keep the whole command on the
                     // owner/scatter path while key-miss notifications are configured.
                     read_local_fallback_reason = ReadLocalFallbackReason::ContextKeymissNotify;
                     read_local_eligible = false;
@@ -236,39 +223,21 @@ if constexpr (Fused) {
                         read_local_fallback_reason = ReadLocalFallbackReason::SeqChurn;
                         read_local_eligible = false;
                     } else if (rob.pending_read_local_count() >= read_local_quota) {
-                        // LANE ADMISSION, fair share: the lane is under
-                        // pressure and this connection already holds its share of
-                        // it. DEFER -- see the lane-full arm below for the shape.
-                        // Deliberately does NOT re-arm the pressure window: a signal
-                        // the actuator itself produces cannot police the actuator
-                        // (measured: at the lane boundary the window fed by its own
-                        // quota deferrals stayed armed forever and deferred 0.8% of
-                        // reads where the lane itself refused 0.00008%). Only a real
-                        // lane-full event arms it, so the lane proves pressure again
-                        // every kReadLocalLanePressureRotations rotations.
+                        // Fair-share admission: defer when this connection already holds its quota under
+                        // lane pressure. Quota deferrals must not rearm the pressure window: feeding the
+                        // actuator's own deferrals back into its signal would sustain pressure indefinitely.
+                        // Only an actual full-lane refusal rearms it; pressure must be observed again within
+                        // kReadLocalLanePressureRotations rotations.
                         self_->read_local_stats().defer_quota++;
                         break;
                     } else if (!fused_executor_->local_read_lane_has_room(read_local_lane_demand)) {
-                        // LANE ADMISSION, lane full: DEFER, never demote.
-                        // Nothing about this frame has been published -- the ROB
-                        // slot is acquired but not published, no lane entry, no
-                        // pending bit, no owner slot -- so leaving the bytes at rpos
-                        // and ending the pass is the same shape as the MGET
-                        // admission fence above. The pass reports Progress, so
-                        // more_input keeps the connection in active_ and the next
-                        // flush_ready re-parses it after this thread's own EX pass
-                        // has drained the lane. The active set supplies that next
-                        // visit in both O1 modes; no separate IFID queue is needed.
-                        // The former alternative, demoting the read to its shard
-                        // owner as an ordinary task, was the seed of the p128 and
-                        // 2048-connection pure-read collapse: 7/8 of those tasks
-                        // were cross-thread, every pending owner task suppresses the
-                        // receiving thread's lane tail-drain, its lane keeps a
-                        // residue and fills sooner, and the demotions feed back. A
-                        // read whose data is right here now waits one rotation
-                        // instead. The deferral arms the pressure window, so the
-                        // next rotation divides the lane fairly (quota arm above)
-                        // instead of refusing whichever connections it parses last.
+                        // A full local lane defers this frame without demoting it. Its ROB slot is acquired
+                        // but unpublished; no lane entry, pending bit, or owner task exists yet. Leave bytes at
+                        // rpos and return Progress so active_ retries after a local-lane drain in either O1 mode.
+                        // Demoting on capacity pressure can create a feedback loop: remote owner tasks delay
+                        // the receiving thread's lane drain, leaving less room and causing more demotions.
+                        // The deferral instead arms the pressure window so the next rotation shares capacity
+                        // among connections rather than repeatedly refusing the last ones parsed.
                         self_->read_local_stats().defer_lane_full++;
                         fused_executor_->note_local_read_lane_full();
                         break;
@@ -306,6 +275,7 @@ if constexpr (Fused) {
                             : classify_owner_conflict([](const Op&) { return true; });
             read_local_owner_conflict =
                 read_local_owner_conflict_reason != ReadLocalFallbackReason::None;
+            // Phase 4: preserve owner-route ordering for other read commands.
             // Every owner read is an ordering predecessor, even without an older
             // conflict or a pending local read to demote. Otherwise a younger GET
             // can run first and return an older value. The owner-slot overlap check

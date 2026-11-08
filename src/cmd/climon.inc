@@ -1,21 +1,24 @@
-// climon.inc -- declarations for the IO-owned CLIENT/MONITOR/TRACKING transport.
+// Owns the CLIENT/MONITOR/TRACKING members of IoLoop. Included inside the class in
+// core/io_loop.h; definitions are in climon.cc and tracking.cc, compiled in both database
+// namespaces. Connection pointers and catalogs belong to the connection's IO owner and
+// move together at the migration commit. Cross-IO messages carry connection IDs.
 //
-// Included inside IoLoop. Implementations live in climon.cc (connection control, MONITOR) and
-// tracking.cc (client-side caching), so adding cold CLIENT catalog work cannot move or perturb
-// the hot parse/dispatch code emitted from main.cc.
-//
-// ZERO-COST CONTRACT. Nothing declared here is read on an unarmed path. parse_and_dispatch makes
-// exactly ONE feature decision -- the pre-existing notification-armed test -- and this lane rides
-// it: srv_->climon_armed() folds into notify_armed_ once per io batch, and every per-operation
-// hook below sits behind that same already-taken branch, out of line in a cold translation unit.
+// parse_and_dispatch shares the notification-armed branch with these features:
+// srv_->climon_armed() folds into notify_armed_ once per IO batch, and the parser
+// hooks run out of line only behind that branch. Pending MONITOR records keep the
+// private refresh bit armed until their ROB entries retire.
 
 enum class ClimonStartResult : uint8_t { NotHandled, Sync, Async };
 enum class ClimonPendingKind : uint8_t { ClientList, ClientKill, ClientUnblock };
-// Private cache invalidation bit: the existing per-batch comparison keeps
+// Private cache invalidation bit: the per-batch comparison keeps
 // servicing pending monitor records until their ROB entries retire. It is
 // never published in Server's feature mask or read by an unarmed operation.
 static constexpr uint32_t kClimonRefreshPending = 1u << 31;
 
+// Connection-IO scatter continuation for CLIENT catalog commands. Owns collected text
+// and counts, borrows client and its published ROB slot until every remote result arrives.
+// Mailbox handoff orders result visibility; the owner release-stores completion and erases
+// this entry. Allocation recovery is not supplied by the record itself.
 struct ClimonPending {
     ClimonPendingKind kind = ClimonPendingKind::ClientList;
     Client* client = nullptr;
@@ -39,6 +42,11 @@ enum : uint8_t {
 // bytes and its io-hot head is layout-tuned, and an entry is created only for a connection
 // that actually uses one of these features. An idle server holds an empty map.
 // Per-read storage is reached through an armed spec copy, never Op padding.
+// Receipt owned by ClimonConn::tracking_reads. Copies the command spec and immutable
+// key metadata before dispatch; original is a borrowed registry spec. Executor hooks
+// fill per-shard observations, and IO retirement consumes them after command completion.
+// The receipt must outlive every hook; cancellation marks it until retirement can reclaim
+// it. Vector allocation may throw; the constructor has no separate failure result.
 struct TrackingRead : CommandSpec {
     const CommandSpec* original;
     uint64_t dispatch_stamp;
@@ -59,12 +67,23 @@ struct TrackingRead : CommandSpec {
           dispatch_epoch(epoch),
           observed(shards, UINT64_MAX) {}
 };
+// IO-owned per-key invalidation obligation. The reads vector borrows Ops whose receipts
+// are owned by tracking_reads; retirement/forget paths remove them before reclaiming.
+// Stamps track invalidated/delivered state without cross-thread mutation of this table.
 struct TrackingPending {
     std::vector<Op*> reads;
     uint64_t invalidated = 0;
     uint64_t delivered = 0;
 };
+// Connection-IO feature state allocated only when needed, outside the fixed Client layout.
+// Owns tracking receipts, enrollment/broadcast tables, and pending MONITOR lines; client
+// is borrowed. Migrate all tables in the connection ownership critical section. Executor
+// observations are consumed at retirement, not by concurrent map access. Pending records
+// can keep the state non-idle after a feature is disabled; allocation recovery belongs
+// to callers and is not established by this aggregate.
 struct ClimonConn {
+    // IO-owned copied log record held behind an older script's nested MONITOR records.
+    // Contains value identities and text, never a command/Client ownership reference.
     struct MonitorPending {
         uint64_t id;
         uint64_t excluded;
@@ -92,7 +111,7 @@ struct ClimonConn {
     uint64_t gate_op_id = UINT64_MAX;
     bool gate_reply_skip = false;
     std::unordered_map<Op*, std::unique_ptr<TrackingRead>> tracking_reads;
-    // All three tables move in the existing connection ownership commit section.
+    // All three tables move in the connection ownership commit section.
     std::unordered_map<std::string, TrackingPending> tracking_pending;
     std::unordered_map<std::string, uint64_t> tracking_enrolled;
     // Invalidations in flight belong to one TRACKING configuration. This
@@ -131,8 +150,8 @@ void climon_handle_client_result(PubSubEvent& event);
 bool climon_handle_event(PubSubEvent& event);
 
 // ---- the single armed hook -----------------------------------------------------------------
-// Called from parse_and_dispatch ONLY from inside the pre-existing notify-armed branch.
-// Returns true to HOLD the connection (CLIENT PAUSE): the frame stays unparsed and is retried.
+// Called from parse_and_dispatch ONLY from inside the notify-armed branch.
+// Returns true to HOLD the connection (CLIENT PAUSE): the frame stays unconsumed and is retried.
 bool climon_armed_gate(Client* client, Op& op);
 // Per-io-batch refresh of the cached armed word + pause deadline. Per batch is free.
 void climon_refresh_armed();
