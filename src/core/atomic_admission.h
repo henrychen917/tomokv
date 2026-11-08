@@ -1,4 +1,6 @@
-// atomic_admission.h -- exact atomic-window accounting with bounded admission and retirement.
+// Atomic-window credit accounting shared by dispatch and retirement through server.h.
+// A packed limit/count is updated atomically; refusal never spins on another thread.
+// Credits bound admitted work, and the seq_cst recheck/retire pair supports the credit doorbell.
 #pragma once
 #include <atomic>
 #include <cstdint>
@@ -6,6 +8,10 @@
 
 namespace tomo {
 
+// Contract: dispatch threads reserve one credit with an acq_rel CAS; retirement returns it
+// with a seq_cst decrement. init() requires exclusive access before concurrent use. A zero
+// limit is unlimited up to UINT32_MAX active credits. Full/Contended leave admission to the
+// caller's retry path; each admitted unit must retire exactly once (underflow aborts).
 class AtomicAdmissionCredits {
 public:
     enum class Attempt { Admitted, Full, Contended };
@@ -21,7 +27,7 @@ public:
     Attempt try_admit() {
         uint64_t state = state_.load(std::memory_order_acquire);
         if (!has_room(state)) return Attempt::Full;
-        // A failed reservation returns to the existing dispatch backpressure path. Strong CAS
+        // A failed reservation returns to dispatch backpressure. Strong CAS
         // avoids spurious refusal; a competing admission or retirement can win only this
         // attempt, never make the connection-owning thread spin on its behalf.
         return state_.compare_exchange_strong(state, state + 1, std::memory_order_acq_rel,

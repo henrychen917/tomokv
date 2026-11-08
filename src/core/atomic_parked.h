@@ -1,3 +1,6 @@
+// Owner-local parked-task indexes, included by ex_loop.h in executor translation units.
+// FIFO order supports forwarding; per-connection order supports dependency polling. Entries
+// borrow Client/ROB lifetimes and must be removed before execution can retire those objects.
 #pragma once
 #include "thread.h"
 #include "../net/conn.h"
@@ -8,18 +11,23 @@
 #include <unordered_map>
 
 namespace tomo {
-// Owner-local indexes over parked tasks. Nothing is allocated before the first
-// park. Empty tests and every following ExLoop field retain the deque layout.
-// Tasks are removed from both indexes before execution/forwarding can release
-// the ROB or hand the shard to another owner; no index is shared across owners.
+// Contract: one executor owns the container and all its indexes; no method synchronizes with
+// another owner. Task copies borrow their Client and ROB slots until removed. The first park
+// allocates state; empty() allocates nothing. erase/pop require a live entry, and oldest/front/
+// rotation require a nonempty container. Allocation failures propagate; an exception rollback
+// guarantee is not established here. The deque-sized footprint keeps following executor offsets.
 class AtomicParkedTasks {
     using Fifo = std::list<Task>;
     using ByOp = std::multimap<uint64_t, Fifo::iterator>;
+    // Borrows FIFO iterators and its rotation node from State. poll selects an oldest op id;
+    // equal-id siblings rotate without allowing a younger same-connection op to pass them.
     struct Connection {
         ByOp tasks;
         ByOp::iterator poll;
         std::list<Client*>::iterator rotation;
     };
+    // Owns all three indexes. Only this executor may mutate them, and removal unlinks both
+    // secondary indexes before destroying the FIFO node; the indexed Tasks own no Client.
     struct State {
         Fifo fifo;
         std::unordered_map<Client*, Connection> connections;
