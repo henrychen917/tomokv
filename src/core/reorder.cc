@@ -3204,6 +3204,7 @@ static int  run_fused_server_reordered(
     const std::vector<std::unique_ptr<AofReplayPlan>>& aof_plans, const SnapshotLoadPlan* load_plan,
     TlsContext* tls_context, LateUnixListener& unix_listener,
     ShutdownReportFinalLine& final_report) {
+    // Phase 1: allocate loop lifetimes and the stop-aware boot rendezvous.
     const Config& cfg = srv.cfg();
     const uint32_t nthreads = srv.nthreads();
     print_boot_presentation(srv);
@@ -3211,14 +3212,12 @@ static int  run_fused_server_reordered(
     std::vector<std::thread> pool;
     std::vector<IoLoop> ios(nthreads);
     std::vector<FusedExLoop> executors(nthreads);
-    // ONE boot gate. The ad-hoc mutex/cv gate this replaced needed a separate `runners_stopped`
-    // counter so a thread that saw shutdown while parked still reported at the gate (without it a
-    // SIGTERM during a long snapshot recovery hung main forever). FusedBootGate keeps that property as a
-    // first-class `gave_up` arrival, and every wait/advance also takes the stop edge, so the two
-    // predicates cannot disagree.
+    // Every parked worker reports either readiness or giving up. Waits and
+    // phase advances observe stop, so shutdown during recovery cannot leave
+    // main waiting for a readiness arrival from a worker that has exited.
     FusedBootGate boot(nthreads);
-    // Identical to placement().ifid_threads().front() whenever a unixsocket is configured, but
-    // read from the server so the LB's unix_owner_tid_ and the actual attach point cannot drift.
+    // Use the server's Unix owner so listener attachment and load balancing
+    // agree on the physical thread that owns the pathname's listening fd.
     const uint32_t unix_owner = srv.unix_owner_tid();
     auto report_graceful_shutdown = [&] {
         srv.snapshot().cancel_after_join(srv);
@@ -3244,7 +3243,11 @@ static int  run_fused_server_reordered(
         acl_shutdown();
     };
 
+    // Phase 2: recover each worker's shards, wire its loops and await activation.
     for (uint32_t tid = 0; tid < nthreads; tid++)
+        // Runs only on tid; owns its ring/persistence guards and borrows the
+        // enclosing arrays until join. Arrival publishes initialization through
+        // boot's mutex. Failure reports once and unwinds on this issuer thread.
         pool.emplace_back([&, tid] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
             IoLoop::ShutdownOnIssuer shutdown_io{ios[tid]};
@@ -3315,9 +3318,9 @@ static int  run_fused_server_reordered(
                 boot.give_up(tid, "unified listener activation failed");
                 return;
             }
-            // arrive_ready() returns false on the stop edge: a worker can leave wait_until_ready(),
-            // spend time arming its listeners, and come back after main already saw a signal. That
-            // arrival is recorded as gave_up so main's wait still sees every thread report.
+            // A stop can race listener activation after wait_until_ready().
+            // arrive_ready records that worker as gave_up, so every participant
+            // is accounted for even when it never enters the running phase.
             if (!boot.arrive_ready(tid)) return;
             if (!boot.wait_until_running(tid, self.stop_flag())) return;
             self.publish_ready_role(Role::Ifid);
@@ -3326,6 +3329,7 @@ static int  run_fused_server_reordered(
             self.publish_ready_role(Role::Idle);
         });
 
+    // Phase 3: join failures or publish recovery completion before opening ports.
     auto stop_workers = [&] {
         for (uint32_t tid = 0; tid < nthreads; tid++)
             srv.thread(tid).stop_flag().store(true, std::memory_order_relaxed);
@@ -3347,6 +3351,7 @@ static int  run_fused_server_reordered(
         return 0;
     }
 
+    // Phase 4: probe TCP/TLS, transfer the Unix fd, then release the ready workers.
     const bool port_ok = probe_boot_listener(cfg, cfg.port, false, make_exclusive_boot_listener);
     const bool tls_port_ok =
         port_ok && probe_boot_listener(cfg, cfg.tls_port, true, make_exclusive_boot_listener);
@@ -3379,12 +3384,13 @@ static int  run_fused_server_reordered(
         return interrupted ? 0 : 1;
     }
 
-    // Reached only when advance_running() succeeded, i.e. no stop edge was taken; the old
-    // `if (!stopping)` guard around these lines is now the gate's own postcondition.
+    // Phase 5: announce the completed boot and monitor the running workers.
+    // advance_running succeeded without observing a stop at the boot barrier.
     print_ready_listeners(cfg, unix_listener.bound());
     cfgfix_process_ready();
     srv.monitor_controllers();
 
+    // Phase 6: join every issuer before reclaiming records and capturing the report.
     srv.databases().join_workers(srv, pool);
     // The unix socket file is unlinked by its RAII owner in main, for every return path.
     report_graceful_shutdown();
