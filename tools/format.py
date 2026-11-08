@@ -62,15 +62,16 @@ def main():
     files = file_list()
     for filename in files:
         path = ROOT / filename
-        before = path.read_text()
-        after = subprocess.check_output([str(clang), '--Werror', f'--style=file:{ROOT / ".clang-format"}', str(path)], text=True)
+        # Keep physical newline bytes significant inside raw/escaped literals.
+        before = path.read_bytes().decode()
+        after = subprocess.check_output([str(clang), '--Werror', f'--style=file:{ROOT / ".clang-format"}', str(path)]).decode()
         preserve(before, after, filename)
         if before != after:
             pending.append((path, after))
     for path, after in pending:
         print(path.relative_to(ROOT))
         if not args.check:
-            path.write_text(after)
+            path.write_bytes(after.encode())
     if args.check and pending:
         print(f'{len(pending)} files need formatting; run make format', file=sys.stderr)
         return 1

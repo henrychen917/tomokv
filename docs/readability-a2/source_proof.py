@@ -18,7 +18,7 @@ def digest(values):
 
 rows = []
 for filename in file_list():
-    before, after = original(filename), (ROOT / filename).read_text()
+    before, after = original(filename), (ROOT / filename).read_bytes().decode()
     pre_tokens = tuple(t.text for t in cpp.lex(before))
     post_tokens = tuple(t.text for t in cpp.lex(after))
     pre_literals, post_literals = literals(before), literals(after)
