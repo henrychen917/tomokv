@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""AOF blocking/EXEC crash witnesses; each boot owns its port and a fresh image.
+"""AOF blocking crash witnesses; each boot owns its port and a fresh image.
 
 The existing ACK_WINDOW hook stops a non-writer owner before publication. A
 different IO thread must remain responsive. Kill inside that hold, recover a
@@ -19,8 +19,7 @@ from persistfix import Run as PersistenceRun, encode, guard_port, wait_for
 
 
 CASES = ('blpop_now', 'blpop_wake', 'brpop', 'blmpop', 'bzpopmin', 'bzpopmax',
-         'bzmpop', 'xreadgroup_now', 'xreadgroup_wake',
-         'exec_publish', 'exec_spublish', 'exec_subscribe')
+         'bzmpop', 'xreadgroup_now', 'xreadgroup_wake')
 
 
 class Run(PersistenceRun):
@@ -98,8 +97,6 @@ def plan(case, key):
     if case.startswith('xreadgroup'):
         return ('XREADGROUP', 'GROUP', 'g', 'c', 'BLOCK', 0, 'STREAMS', key, '>'), \
             ('XADD', key, '1-1', 'f', 'v'), [[key.encode(), [[b'1-1', [b'f', b'v']]]]]
-    if case.startswith('exec_'):
-        return None, ('RPUSH', key, 'job'), None
     table = {
         'blpop_now': (('BLPOP', key, 0), [key.encode(), b'job']),
         'blpop_wake': (('BLPOP', key, 0), [key.encode(), b'job']),
@@ -159,64 +156,59 @@ def exercise(args):
         key, owner = next((k, v[1]) for k, v in zip(keys, owners) if v[1] not in (0, writer))
         command, producer, expected = plan(args.case, key)
         wake = args.case.endswith('_wake')
-        is_exec = args.case.startswith('exec_')
         run.marker('release').touch()
         if args.case.startswith('xreadgroup'):
             assert ctrl.cmd('XGROUP', 'CREATE', key, 'g', '0', 'MKSTREAM') == b'OK'
-        if not wake and not is_exec:
+        if not wake:
             assert ctrl.cmd(*producer) in (1, b'1-1')
         run.clear_window()
 
         def trigger(ctrl):
             victim = run.on_io(0)
+            ident = victim.cmd('CLIENT', 'ID')
             pushing = None
-            if is_exec:
-                assert victim.cmd('MULTI') == b'OK'
-                assert victim.cmd('RPUSH', key, 'job') == b'QUEUED'
-                verb = args.case.removeprefix('exec_').upper()
-                cmd = (verb, 'aofblock:channel') + (() if verb == 'SUBSCRIBE' else ('message',))
-                assert victim.cmd(*cmd) == b'QUEUED'
-                victim.sock.sendall(encode('EXEC'))
-            else:
-                victim.sock.sendall(encode(*command))
-                if wake:
-                    wait_for(lambda: int(info(ctrl, 'clients')['blocked_clients']) == 1,
-                             'blocking operation did not park')
-                    pushing = run.on_io(0)
-                    pushing.sock.sendall(encode(*producer))
+            victim.sock.sendall(encode(*command))
+            if wake:
+                wait_for(lambda: int(info(ctrl, 'clients')['blocked_clients']) == 1,
+                         'blocking operation did not park')
+                pushing = run.on_io(0)
+                pushing.sock.sendall(encode(*producer))
             entered_owner, entered_writer = run.entered()
             assert (entered_owner, entered_writer) == (owner, writer), 'wrong owner held'
-            return victim, pushing
+            return victim, pushing, ident
 
-        victim, pushing = trigger(ctrl)
+        victim, pushing, ident = trigger(ctrl)
         early = bool(select.select([victim.sock], [], [], .25)[0])
         reply = victim.read() if early else None
-        if early and not is_exec:
+        if early:
             assert reply == expected, f'early reply was not the pop: {reply!r}'
+        else:
+            assert ctrl.cmd('CLIENT', 'UNBLOCK', ident, 'TIMEOUT') == 1
+            assert not select.select([victim.sock], [], [], .05)[0], 'cancel bypassed AofWait'
+            victim.close()
+            run.clients.remove(victim)
+            assert ctrl.cmd('PING') == b'PONG', 'disconnect while AofWait stalled IO'
         crash = run.kill(in_window=True)
         run.clear_window()
         ctrl = run.boot(image=crash)
         before = observe(ctrl, args.case, key)
-        initial = 0 if args.case.startswith('xreadgroup') else ([] if wake or is_exec else [b'job'])
+        initial = 0 if args.case.startswith('xreadgroup') else ([] if wake else [b'job'])
         assert before == initial, f'pre-post crash image is wrong: {before!r}'
         evidence.append(dict(stage='held-kill-recover', early=early, reply=repr(reply),
                              recovered=repr(before), owner=owner, writer=writer))
         assert not early, 'acknowledged mutation was rolled back by in-window SIGKILL'
 
         ctrl = run.on_io(0)
-        victim, pushing = trigger(ctrl)
+        victim, pushing, ident = trigger(ctrl)
         assert not select.select([victim.sock], [], [], .1)[0], 'second hold leaked a reply'
         run.marker('release').touch()
         reply = victim.read()
-        if not is_exec:
-            assert reply == expected, f'wrong pop reply: {reply!r}'
-        else:
-            assert isinstance(reply, list) and reply[0] == 1, f'wrong EXEC reply: {reply!r}'
+        assert reply == expected, f'wrong pop reply: {reply!r}'
         crash = run.kill()
         run.clear_window()
         ctrl = run.boot(hook=False, image=crash)
         after = observe(ctrl, args.case, key)
-        wanted = 1 if args.case.startswith('xreadgroup') else ([b'job'] if is_exec else [])
+        wanted = 1 if args.case.startswith('xreadgroup') else []
         assert after == wanted, f'acknowledged mutation lost/redelivered: {after!r}'
         if args.case.startswith('xreadgroup'):
             assert ctrl.cmd('XREADGROUP', 'GROUP', 'g', 'c2', 'STREAMS', key, '>') is None

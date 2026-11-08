@@ -1,0 +1,28 @@
+tomo_db0::AofManager::defer_completion(unsigned int, tomo_db0::Op&, tomo_db0::Client*)
+--- PRE
++++ POST
+@@ -70,15 +70,15 @@
+ 010c [ 5] call <tomo_db0::AofManager::fail(char const*, int)> | e8 ?? ?? ?? ??
+ 0111 [ 5] jmp <+0x71> | e9 5b ff ff ff
+ 0116 [10] cs nopw 0x0(%rax,%rax,1) | 66 2e 0f 1f 84 00 00 00 00 00
+-0120 [ 5] mov $0x1,%eax | b8 01 00 00 00
+-0125 [ 5] mov $0x3,%edx | ba 03 00 00 00
+-012a [10] lock cmpxchg %dl,0xb8(%r12) | f0 41 0f b0 94 24 b8 00 00 00
+-0134 [ 6] je <+0x94> | 0f 84 5a ff ff ff
+-013a [ 3] sub $0x2,%eax | 83 e8 02
+-013d [ 2] cmp $0x1,%al | 3c 01
+-013f [ 4] setbe %r13b | 41 0f 96 c5
+-0143 [ 5] jmp <+0x1e> | e9 d6 fe ff ff
+-0148 [ 8] nopl 0x0(%rax,%rax,1) | 0f 1f 84 00 00 00 00 00
++0120 [ 2] xor %eax,%eax | 31 c0
++0122 [ 5] mov $0x3,%edx | ba 03 00 00 00
++0127 [10] lock cmpxchg %dl,0xb8(%r12) | f0 41 0f b0 94 24 b8 00 00 00
++0131 [ 6] je <+0x94> | 0f 84 5d ff ff ff
++0137 [ 3] sub $0x2,%eax | 83 e8 02
++013a [ 2] cmp $0x1,%al | 3c 01
++013c [ 4] setbe %r13b | 41 0f 96 c5
++0140 [ 5] jmp <+0x1e> | e9 d9 fe ff ff
++0145 [11] data16 cs nopw 0x0(%rax,%rax,1) | 66 66 2e 0f 1f 84 00 00 00 00 00
+ 0150 [ 7] mov 0x288(%rbp),%rcx | 48 8b 8d 88 02 00 00
+ 0157 [ 3] mov %rax,%r15 | 49 89 c7
+ 015a [ 3] sub %rcx,%r15 | 49 29 cf

@@ -1,0 +1,118 @@
+tomo_db0::(anonymous namespace)::blocking_finish_cancelled(tomo_db0::BlockingState&, tomo_db0::ThreadCtx*, tomo_db0::Ring*)
+--- PRE
++++ POST
+@@ -1,46 +1,68 @@
+-0000 [ 2] push %r13 | 41 55
+-0002 [ 2] push %r12 | 41 54
+-0004 [ 1] push %rbp | 55
+-0005 [ 3] mov %rdx,%r12 | 49 89 d4
+-0008 [ 1] push %rbx | 53
+-0009 [ 3] mov %rdi,%rbx | 48 89 fb
+-000c [ 4] sub $0x8,%rsp | 48 83 ec 08
+-0010 [ 4] mov 0x40(%rdi),%rdi | 48 8b 7f 40
+-0014 [ 4] mov 0x38(%rbx),%rdx | 48 8b 53 38
+-0018 [ 2] mov %edi,%eax | 89 f8
+-001a [ 3] and $0x7,%edi | 83 e7 07
+-001d [ 3] shr $0x3,%eax | c1 e8 03
+-0020 [ 3] and $0x7,%eax | 83 e0 07
+-0023 [ 7] imul $0x150,%rdi,%rdi | 48 69 ff 50 01 00 00
+-002a [ 8] add 0x80(%rdx,%rax,8),%rdi | 48 03 bc c2 80 00 00 00
+-0032 [ 7] movzbl 0xb8(%rdi),%eax | 0f b6 87 b8 00 00 00
+-0039 [ 2] cmp $0x3,%al | 3c 03
+-003b [ 2] je <+0x63> | 74 26
+-003d [ 3] mov %rsi,%rbp | 48 89 f5
+-0040 [ 7] lea 0xb8(%rdi),%r13 | 4c 8d af b8 00 00 00
+-0047 [ 5] call <tomo_db0::slowlog_complete(tomo_db0::Op const&)> | e8 ?? ?? ?? ??
+-004c [ 5] mov $0x2,%eax | b8 02 00 00 00
+-0051 [ 4] xchg %al,0x0(%r13) | 41 86 45 00
+-0055 [ 2] cmp $0x2,%al | 3c 02
+-0057 [ 2] je <+0x63> | 74 0a
+-0059 [ 3] test %rbp,%rbp | 48 85 ed
+-005c [ 2] je <+0x63> | 74 05
+-005e [ 3] test %r12,%r12 | 4d 85 e4
+-0061 [ 2] jne <+0x70> | 75 0d
+-0063 [ 4] add $0x8,%rsp | 48 83 c4 08
+-0067 [ 1] pop %rbx | 5b
+-0068 [ 1] pop %rbp | 5d
+-0069 [ 2] pop %r12 | 41 5c
+-006b [ 2] pop %r13 | 41 5d
+-006d [ 1] ret | c3
+-006e [ 2] xchg %ax,%ax | 66 90
+-0070 [ 4] mov 0x38(%rbx),%rcx | 48 8b 4b 38
+-0074 [ 4] mov 0x30(%rbx),%rdi | 48 8b 7b 30
+-0078 [ 4] add $0x8,%rsp | 48 83 c4 08
+-007c [ 3] mov %r12,%rdx | 4c 89 e2
+-007f [ 1] pop %rbx | 5b
+-0080 [ 3] mov %rbp,%rsi | 48 89 ee
+-0083 [ 1] pop %rbp | 5d
+-0084 [ 2] pop %r12 | 41 5c
+-0086 [ 2] pop %r13 | 41 5d
+-0088 [ 5] jmp <tomo_db0::(anonymous namespace)::blocking_notify_sender(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client*)> | e9 ?? ?? ?? ??
++0000 [ 2] push %r14 | 41 56
++0002 [ 2] push %r13 | 41 55
++0004 [ 2] push %r12 | 41 54
++0006 [ 3] mov %rdx,%r12 | 49 89 d4
++0009 [ 1] push %rbp | 55
++000a [ 1] push %rbx | 53
++000b [ 4] mov 0x40(%rdi),%rbx | 48 8b 5f 40
++000f [ 4] mov 0x38(%rdi),%rdx | 48 8b 57 38
++0013 [ 2] mov %ebx,%eax | 89 d8
++0015 [ 3] and $0x7,%ebx | 83 e3 07
++0018 [ 3] shr $0x3,%eax | c1 e8 03
++001b [ 3] and $0x7,%eax | 83 e0 07
++001e [ 7] imul $0x150,%rbx,%rbx | 48 69 db 50 01 00 00
++0025 [ 8] add 0x80(%rdx,%rax,8),%rbx | 48 03 9c c2 80 00 00 00
++002d [ 7] movzbl 0xb8(%rbx),%eax | 0f b6 83 b8 00 00 00
++0034 [ 2] cmp $0x3,%al | 3c 03
++0036 [ 2] je <+0x70> | 74 38
++0038 [ 3] mov %rdi,%rbp | 48 89 fd
++003b [ 3] mov %rsi,%r13 | 49 89 f5
++003e [ 3] mov %rbx,%rdi | 48 89 df
++0041 [ 7] lea 0xb8(%rbx),%r14 | 4c 8d b3 b8 00 00 00
++0048 [ 5] call <tomo_db0::slowlog_complete(tomo_db0::Op const&)> | e8 ?? ?? ?? ??
++004d [ 3] test %r13,%r13 | 4d 85 ed
++0050 [ 2] je <+0xc0> | 74 6e
++0052 [ 4] mov 0x30(%rbp),%rdi | 48 8b 7d 30
++0056 [ 7] cmpb $0x0,0x10380(%rdi) | 80 bf 80 03 01 00 00
++005d [ 2] jne <+0x80> | 75 21
++005f [ 5] mov $0x2,%eax | b8 02 00 00 00
++0064 [ 3] xchg %al,(%r14) | 41 86 06
++0067 [ 2] cmp $0x2,%al | 3c 02
++0069 [ 2] je <+0x70> | 74 05
++006b [ 3] test %r12,%r12 | 4d 85 e4
++006e [ 2] jne <+0xa0> | 75 30
++0070 [ 1] pop %rbx | 5b
++0071 [ 1] pop %rbp | 5d
++0072 [ 2] pop %r12 | 41 5c
++0074 [ 2] pop %r13 | 41 5d
++0076 [ 2] pop %r14 | 41 5e
++0078 [ 1] ret | c3
++0079 [ 7] nopl 0x0(%rax) | 0f 1f 80 00 00 00 00
++0080 [ 4] mov 0x38(%rbp),%rcx | 48 8b 4d 38
++0084 [ 4] mov 0x0(%r13),%esi | 41 8b 75 00
++0088 [ 7] add $0x10380,%rdi | 48 81 c7 80 03 01 00
++008f [ 3] mov %rbx,%rdx | 48 89 da
++0092 [ 5] call <tomo_db0::AofManager::defer_completion(unsigned int, tomo_db0::Op&, tomo_db0::Client*)> | e8 ?? ?? ?? ??
++0097 [ 2] test %al,%al | 84 c0
++0099 [ 2] je <+0x5f> | 74 c4
++009b [ 2] jmp <+0x70> | eb d3
++009d [ 3] nopl (%rax) | 0f 1f 00
++00a0 [ 4] mov 0x38(%rbp),%rcx | 48 8b 4d 38
++00a4 [ 4] mov 0x30(%rbp),%rdi | 48 8b 7d 30
++00a8 [ 1] pop %rbx | 5b
++00a9 [ 3] mov %r12,%rdx | 4c 89 e2
++00ac [ 1] pop %rbp | 5d
++00ad [ 3] mov %r13,%rsi | 4c 89 ee
++00b0 [ 2] pop %r12 | 41 5c
++00b2 [ 2] pop %r13 | 41 5d
++00b4 [ 2] pop %r14 | 41 5e
++00b6 [ 5] jmp <tomo_db0::(anonymous namespace)::blocking_notify_sender(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client*)> | e9 ?? ?? ?? ??
++00bb [ 5] nopl 0x0(%rax,%rax,1) | 0f 1f 44 00 00
++00c0 [ 5] mov $0x2,%eax | b8 02 00 00 00
++00c5 [ 3] xchg %al,(%r14) | 41 86 06
++00c8 [ 1] pop %rbx | 5b
++00c9 [ 1] pop %rbp | 5d
++00ca [ 2] pop %r12 | 41 5c
++00cc [ 2] pop %r13 | 41 5d
++00ce [ 2] pop %r14 | 41 5e
++00d0 [ 1] ret | c3

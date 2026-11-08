@@ -2157,7 +2157,8 @@ job_persistfix_units(){
 # PS1/PS2/PS14: one row, collected BEFORE the quick-tier exit. EXPECT stays owner-owned.
 row_begin "AOF publication/shutdown witnesses + negative controls"
 if unit_ready persistfix-units && taskset -c "$CORES" python3 tests/persistfix_checks.py \
-    >"$TMPDIR/persistfix-unit.log" 2>&1; then
+    >"$TMPDIR/persistfix-unit.log" 2>&1 \
+    && taskset -c "$CORES" ./build/persistfix-unit blocking >>"$TMPDIR/persistfix-unit.log" 2>&1; then
   ok "AOF publication/shutdown witnesses + negative controls"
 else
   bad "AOF publication/shutdown witnesses + negative controls" "see $TMPDIR/persistfix-unit.log"
