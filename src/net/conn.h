@@ -291,7 +291,8 @@ private:
 };
 
 // Owns receive storage, ROB chunks, output buffers/segments and its MultiSession; fd close and
-// TLS-slot destruction belong to IoLoop. The IO owner mutates cursors, while dispatched workers
+// TLS-slot destruction belong to IoLoop. The IO owner mutates cursors; joined shutdown may
+// drain/reclaim remaining clients after issuer cancellation. Dispatched workers
 // hold pinned argv/direct-reply ranges and publish completion through Op::state. set_ifid_thread
 // release-publishes an ownership change, paired with ifid_thread's acquire. ROB capacity and
 // read_space enforce input back-pressure; safe_to_release also waits for IO, retire posts and WATCH

@@ -14,8 +14,9 @@
 //      issues recv/send/accept itself, synchronously, and the "completion" is the syscall's return
 //      value fed to the same accounting the CQE result feeds.
 //   2. io_uring holds a pointer into our buffers while a recv/send is in flight. epoll never does.
-//      That makes the read buffer resettable at every quiescence point rather than only when no
-//      recv is armed, and it makes a closing connection releasable immediately.
+//      Read-buffer relocation still requires ROB quiescence. Output relocation also respects
+//      OpenSSL retry reservations. Closing clients still wait for safe_to_release's operation,
+//      retire-post and WATCH lifetime fences.
 //   3. epoll has no cross-thread doorbell of its own. io_uring has msg_ring. See uring.h for the
 //      eventfd mailbox that implements the same executor/channel wake interface.
 //
@@ -42,10 +43,11 @@
 
 namespace tomo {
 
-// Owns an epoll descriptor and its last event batch for one IoLoop. Boot/migration preparation
-// and the loop serialize access; this wrapper supplies no lock. Separate sets preserve the
-// accept distribution provided by SO_REUSEPORT. init/add/del return failure; wait maps any
-// nonpositive syscall result, including EINTR, to an empty batch. shutdown closes the descriptor.
+// Owns an epoll descriptor and its last event batch for one IoLoop. The loop owns batch access;
+// migration preparation can add/delete destination registrations from the source IO through
+// ThreadCtx hooks. These call kernel epoll_ctl; this wrapper supplies no lock. Separate sets
+// preserve SO_REUSEPORT accept distribution. init/add/del return failure; wait maps nonpositive
+// syscall results, including EINTR, to an empty batch. shutdown closes the descriptor after use.
 class EpollSet {
 public:
     static constexpr int kMaxEvents = 256;

@@ -174,7 +174,8 @@ struct ReadLocalPendingFilter {
 static_assert(sizeof(ReadLocalPendingFilter) == 32, "fills the Rob's spare flush_-line tail");
 
 // Owns lazily allocated Op chunks and optional read-local sidecar; Capacity is a power-of-two
-// multiple of eight, at most 64. The IO owner acquires/publishes and drains in order; dispatched
+// multiple of eight, at most 64. The IO owner acquires/publishes and drains in order; joined
+// shutdown can drain the ready prefix with rebound callbacks. Dispatched
 // executors complete Ops with release Done stores, acquired by drain before invoking its sink.
 // publish release-stores dispatch_; drain release-stores the final flush frontier. Full acquire
 // returns null, chunk allocation can throw, and sidecar allocation has an explicit false fallback.
@@ -679,7 +680,8 @@ public:
     // ---- retirement side (the connection IO owner) -------------------------------------------------
     // Retire every completed op from the head, in order, handing each reply to `sink`. Stops at the
     // first op still running — a later op finishing early must wait, which is the whole point.
-    // The IO owner calls this with a sink that finishes using each reply before its slot is freed.
+    // The IO owner (or joined shutdown coordinator) supplies a sink that finishes using each
+    // reply before its slot is freed.
     // Done acquire orders reply bytes; the final flush_ release publishes the batch retirement.
     // The sink may release command state/stage output; it must not retain an Op across reuse.
     template <typename Sink>

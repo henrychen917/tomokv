@@ -367,3 +367,22 @@ the old claim that OFF accepts “anything” was too broad. ON replaces optin/o
 noloop modifiers, rejects explicit contradictions, and ON BCAST without PREFIX
 adds one implicit empty prefix even to an explicit prefix set. Sort that prefix
 first and avoid duplicate registration/allocation/accounting on repeated ON BCAST.
+
+## 2026-11-08 — epoll still obeys connection lifetime fences
+
+`EpollSet` / `Client::safe_to_release`: synchronous socket syscalls remove the
+kernel's outstanding receive-buffer reference. They do not remove ROB, retire-post,
+WATCH or OpenSSL reservation fences. The inherited overview's claim that a closing
+epoll connection is immediately releasable was too broad; the source now names the
+remaining fences.
+
+## 2026-11-08 — shutdown and migration caller exceptions
+
+`EpollSet` registration hooks can execute on a migration's source IO against the
+destination epoll descriptor. The event batch remains destination-owned; kernel
+registration calls do not imply serialized access to the entire wrapper.
+`WbEngine`, `Rob::drain`, `Ring` CQ draining and `Client` cursor cleanup also run
+from shutdown_clients_after_join after issuer cancellation and worker joins.
+The coordinator rebinds joined-owner callbacks, disables completion followups and
+attempts nonblocking ready-prefix output. Contracts explicitly include these
+callers instead of treating every use as a running IO-thread operation.

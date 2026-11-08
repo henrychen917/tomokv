@@ -47,7 +47,9 @@ __attribute__((noinline)) void stage_coded_reply(Client& conn, Op& op) {
         conn.fill_buf().commit_raw(n);
 }
 
-// Per-IoLoop sender, called by the connection's current IO role. bind installs borrowed Ring,
+// Per-IoLoop sender: the current IO role drives replies; shutdown_clients_after_join also
+// drains completions and ready replies on the coordinator with joined-owner callbacks.
+// bind installs borrowed Ring,
 // callback contexts, limit state, clock and signals, all of which must outlive use. Client owns
 // the bytes/iovecs; this engine owns deferred push frames and acquires completed Ops via Rob::drain.
 // Staging preserves frame boundaries; a send CQE or synchronous result releases consumed borrows.
@@ -56,7 +58,7 @@ __attribute__((noinline)) void stage_coded_reply(Client& conn, Op& op) {
 // throw; buffer allocation behavior belongs to Client/SmallBuf. There is no internal sender lock.
 class WbEngine {
     // Owned frame bytes grouped behind an exclusive ROB issue frontier. The enclosing IO-owned
-    // queue releases them after flush_id reaches after; no other thread mutates this value.
+    // queue releases them after flush_id reaches after, including during joined shutdown cleanup.
     struct DeferredOob {
         uint64_t after = 0;  // exclusive ROB issue frontier preceding these frames
         std::string bytes;
@@ -382,11 +384,10 @@ public:
         }
     }
 
-    // The epoll send loop. Same three sources in the same order as the uring pump -- legacy
-    // remainder, then the segment queue (which is where a BORROWed value rides, so zero-copy is
-    // unchanged: the borrow is still handed to the kernel by pointer through an iovec and released
-    // only for the bytes the kernel reports accepted), then a promoted fill buffer -- but each
-    // write is issued here and accounted here.
+    // The epoll send loop uses the uring pump's source order: legacy remainder, segment queue,
+    // then promoted fill buffer. A Borrow segment goes to the kernel by pointer through an
+    // iovec and is released for the bytes the kernel reports accepted. Each write is issued
+    // and accounted synchronously here.
     //
     // THREE EXITS, and only the first one is "done": nothing left to write; EAGAIN (the socket is
     // full, so stop staged and let the EPOLLOUT edge call us back); or a fatal errno, which latches
@@ -448,7 +449,8 @@ public:
         return classify_cold_sends_ ? pump_tls<false, true>(c, tls) : pump_tls<false>(c, tls);
     }
 
-    // Advance TLS output on the connection IO owner with a bound engine and stable Client/TlsConn.
+    // Advance TLS output on the connection IO owner, or the joined shutdown coordinator,
+    // with a bound engine and stable Client/TlsConn.
     // Send pending ciphertext first, then offer the plaintext head to OpenSSL. Client cursors advance
     // by accepted plaintext; BIO cursors advance by ciphertext send results. Borrow segments abort,
     // and WANT retries require the same pinned plaintext range. An in-flight send/SQE shortage or
@@ -549,7 +551,8 @@ public:
         return encrypted.op == TlsOp::Progress;
     }
 
-    // Consume the IO owner's send CQE (byte count or negative errno), releasing Client's send pin.
+    // Consume a send CQE on the IO owner or joined shutdown coordinator (with followup disabled),
+    // releasing Client's send pin. The result is a byte count or negative errno.
     // Accepted bytes advance the legacy/segment frontier; completed borrows use release_fn_.
     // EAGAIN/EINTR retain output and optionally re-pump; fatal errors return false for teardown.
     // The Client and bound callbacks must survive this CQE; no reply is retired by this function.
@@ -608,7 +611,8 @@ public:
         return true;
     }
 
-    // Consume a ciphertext CQE on the IO owner while Client/TlsConn and callbacks are valid.
+    // Consume a ciphertext CQE on the IO owner, or joined shutdown coordinator with followup
+    // disabled, while Client/TlsConn and callbacks are valid.
     // Clear the send pin and consume BIO bytes, never Client plaintext cursors. Retryable errors
     // optionally re-pump; failed BIO consumption/fatal sends return false. A closing connection
     // discards unsendable BIO output for teardown; the caller owns the remaining lifetime fences.
@@ -830,7 +834,8 @@ private:
     if (!retired) stats_.serves_empty++;                                                         \
     return did;
 
-    // IO-owner ordinary/kTLS retirement: acquire Done Ops through drain, run special-state hooks,
+    // Ordinary/kTLS retirement on the IO owner or joined shutdown coordinator: acquire Done
+    // Ops through drain, run special-state hooks,
     // then stage bytes before borrows and CRLF. TrackOutput selects accounting/limit closure;
     // Submit=false leaves pumping to the caller and clears submit_allowed on a limit close.
     // TlsNoBorrow copies and releases values instead of lending them to the kernel. Bound callback
@@ -852,7 +857,8 @@ private:
             , if (!conn.nothing_to_write()) did |= pump<kEp, ClassifySend>(c);)
     }
 
-    // IO-owner userspace-TLS retirement with the same Done-acquire, callback and output-limit
+    // Userspace-TLS retirement on the IO owner or joined shutdown coordinator; the Done-acquire,
+    // callback and output-limit
     // contract as serve_impl. Copy borrowed values into owned segments and release the shard
     // references after staging CRLF. Submit also considers pending ciphertext; WANT/SQE shortage
     // leaves output for later progress. Client/TlsConn and bound callbacks must remain valid.

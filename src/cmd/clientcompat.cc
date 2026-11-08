@@ -167,8 +167,10 @@ void IoLoop::tracking_retire_exec_read(Client& client, Op& op, NotifyBatch* batc
 // multi_exec_io_commands calls on the connection IO after owner completion; batch is
 // borrowed from its acquire-loaded transaction pointer. Consume selected route bits,
 // retaining tracking records/certificates for ordinary EXEC retirement. A null batch
-// or no selected records yields no chain. Allocation failure is best effort: consume
-// those routes and count dropped events; a returned shared_ptr owns the reservation.
+// or no selected records yields no chain. Allocation failure or notification-budget
+// exhaustion consumes those routes and counts drops without waiting. The returned
+// shared_ptr owns a reservation accounted by Server's relaxed CAS/fetch_sub; it
+// does not itself publish the chain to recipients.
 [[gnu::noinline]] std::shared_ptr<PubSubNotificationChain> notify_multi_before(Server& server,
                                                                                NotifyBatch* batch,
                                                                                uint32_t order) {

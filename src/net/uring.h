@@ -77,7 +77,8 @@ inline T* ur_ptr(uint64_t tag) {
 }
 
 // Owns the native ring or eventfd/mailbox and deferred CQEs; the process shutdown fd is borrowed.
-// The issuer performs SQ/CQ work; peers post mailbox tags under mail_mu_, whose unlock/lock pairs
+// The issuer performs SQ/CQ work; the joined shutdown coordinator drains residual CQEs.
+// Peers post mailbox tags under mail_mu_, whose unlock/lock pairs
 // publish payloads before consumption. Native ordering follows liburing's SQ/CQ protocol. Teardown
 // requires issuer/peer quiescence before freeing objects named by tags. init reports failure;
 // sqe retries one submission when full and can still return null, while callers retain retry work.
@@ -139,7 +140,7 @@ public:
     // POST-JOIN FENCE. io_uring CQEs carry raw Client*/buffer pointers and the epoll fallback's
     // mailbox carries the same tagged pointers. Queue teardown must therefore precede destruction
     // of any connection those entries can name. Normal shutdown calls this after every ring
-    // issuer has joined on normal shutdown; idempotence also supports destructor cleanup and
+    // issuer has joined; idempotence also supports destructor cleanup and
     // partially initialized boot failures.
     void shutdown() {
         if (inited_) {
