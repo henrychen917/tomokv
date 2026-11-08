@@ -9,9 +9,16 @@ Base: `7595a6705a` on branch `cx-tornread`. No push. No edits to the parallel la
 | Arm | Source | Binary |
 |---|---|---|
 | PRE | `7595a6705a` | `build/tornread/tomokv-pre` |
-| PART1 | `f417f6211b` + `6fa209107f` | `build/tornread/tomokv-part1` |
-| PART2 | `5df760dfe5` (on PART1) | `build/tornread/tomokv-part2` |
-| PAD1 | **(A) behaviour twin**: PRE cleanup behavior in PART1's exact text/data layout | `build/tornread/tomokv-pad1` |
+| PART1 | `f417f6211b` + `6fa209107f` + `9169f5e4e8` | `build/tornread/tomokv-part1-r7` |
+| PART2 | `5df760dfe5` + `4520adb478` (on PART1) | `build/tornread/tomokv-part2-r7` |
+| PAD1 | **(A) behaviour twin**: PRE cleanup behavior in PART1's exact text/data layout | `build/tornread/tomokv-pad1-r7` |
+
+The two late commits apply the same PART1 and PART2 changes to the generated priority
+parser in `src/core/reorder.cc`; the normal parser lives in `src/core/io_loop.h`.
+`tests/r7shadow_sync.py` and its falsifier pass, and the `reorder_sync` gate job passes
+(`build/gate-run.M3quIf/ledger.partial`). The final arm names carry `-r7` to distinguish
+them from the earlier images used for the completed normal-path endurance and broad
+correctness run. Both sets remain available; no binary was replaced during a running job.
 
 PART1 adds an IO-private, refcounted list of ordinary read cuts to `ScatterArenaPool`.
 An ordinary stamped read with any older ROB operation registers before either local-lane
@@ -62,7 +69,7 @@ The dangerous direction in the task's wording is above that bound.
 4. Every dispatch has exactly one owner of its reference: IO before publication,
    the ROB afterward. Registration OOM leaves neither a marker nor a floor change.
    Cursor/arity/security/scatter errors precede ordinary registration. A refused
-   queue post unpublishes and unregisters (`io_loop.h:4579`). A successful local or
+   queue post unpublishes and unregisters (`io_loop.h:4579`, `reorder.cc:3103`). A successful local or
    owner publication transfers the reference to the ordinary retirement path.
 5. Both ordinary and reply-suppressing WB drains invoke the retirement callback for
    marked reads (`src/net/wb.h:329,832`). The IO callback releases the reference
@@ -191,6 +198,12 @@ Artifacts: `build/tornread/endurance-20261108-212512/`.
 
 Total: **482,360,656 pairs**, **48,319,428 value changes**, zero violations, zero worker errors. Every arm proved distinct owners before the run and stable placement afterward; every arm ended by duration with no vacuity flags.
 
+Exact endurance image: initial PART2 `build/tornread/tomokv-part2`, SHA-256
+`60ba613ade3987fa7a50fb6ea6d6697328d1c9b59391c83520c9d256bd583ce0`.
+These arms leave priority scheduling off. The subsequent source changes only correct
+the separate priority parser; the normal parser and the floor/retirement code exercised
+here are unchanged. Final-image normal and priority matrices are recorded separately.
+
 
 ### Instructions per operation
 
@@ -264,5 +277,5 @@ and PART1→PART2 independently; also compare PRE→PAD1(A) and PART1→PAD1(A).
 cells are GET p1/p32 at atomic 0/1, SET p32, MGET-8/MSET-8 p8 at atomic 0/1, both thread
 modes, plus the armed read-local twins and the established headline regression cells.
 Record rate, cycles/op, instructions/op and IPC. Rate at matched load is the merit
-verdict; instruction counts below only price work. No weakening of the correctness
+verdict; instruction counts above only price work. No weakening of the correctness
 oracle is an acceptable way to avoid PART2's cost.
