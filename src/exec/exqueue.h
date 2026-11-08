@@ -1,17 +1,8 @@
-// exqueue.h — fixed-capacity SPSC backing for the remaining pointer/control channels.
-//
-// Task dispatch moved to masked_queue.h's consumer-owned monolith. Channel still uses this compact
-// fixed-capacity primitive for client completions, borrow releases and connection transfers. Each
-// instance has exactly one producer and one consumer; an MPSC replacement would need an atomic RMW
-// per push, whereas SPSC needs only a release store.
-//
-// TWO CACHE LINES, NOT ONE. head and tail sit on separate lines. If they share, the producer's
-// store to tail invalidates the line the consumer is reading head from on every single push — the
-// classic false-sharing own-goal that makes a "lock-free" queue slower than a mutex.
-//
-// INDEX CACHING (DPDK-style). The producer keeps its own stale copy of head and only re-reads the
-// real one when its cached copy says the ring is full. The consumer does the same with tail. In the
-// common case neither thread touches the other's line at all.
+// Bounded single-producer/single-consumer queue used by the Channel transport in thread.h.
+// Release/acquire tail publication protects slot writes; release/acquire head publication permits
+// reuse after pop. The separate retired frontier tracks completed callbacks for quiescence.
+// Producer and consumer frontiers occupy separate cache lines; each caches the remote frontier
+// until its local view reports full/empty, avoiding remote loads on ordinary pushes and pops.
 #pragma once
 #include <atomic>
 #include <cstdint>
@@ -21,23 +12,29 @@ namespace tomo {
 
 inline constexpr size_t kCacheLine = 64;
 
+// Contract: one producer calls push/free-slot methods and one consumer calls pop/retire.
+// The queue owns inline slot storage; pointer payloads retain their caller-managed lifetimes.
+// Capacity is a nonzero power of two, and callers bound batch counts to that capacity. push
+// refuses without publication when full; pop refuses when empty. Refused items remain with their
+// caller; accepted items require one retire after their callback. Quiescence needs stopped producers
+// and retired==tail,
+// not head==tail. Prepared callbacks must not throw after changing external state.
 template <typename T, uint32_t Capacity>
 class ExQueue {
     static_assert((Capacity & (Capacity - 1)) == 0, "capacity must be a power of two");
     static constexpr uint32_t kMask = Capacity - 1;
 
 public:
-    // Producer side. Returns false when full; the caller must NOT drop the op on the floor —
-    // ignoring a full queue is exactly the dropped-dispatch bug that lost replies and wedged the
-    // connection in the fork. Back off and retry, or apply backpressure.
+    // Producer-only. Full leaves the value unpublished; retain it and retry or apply
+    // backpressure. Dropping a refused operation loses its reply and strands the connection.
     bool push(T v) {
-        const uint32_t t = tail_.load(std::memory_order_relaxed);
-        const uint32_t next = t + 1;
+        const uint32_t tail = tail_.load(std::memory_order_relaxed);
+        const uint32_t next = tail + 1;
         if (next - head_cached_ > Capacity) {  // cached says full: re-read
             head_cached_ = head_.load(std::memory_order_acquire);
             if (next - head_cached_ > Capacity) return false;  // genuinely full
         }
-        slots_[t & kMask] = v;
+        slots_[tail & kMask] = v;
         tail_.store(next, std::memory_order_release);  // publishes the slot write
         return true;
     }
@@ -46,14 +43,14 @@ public:
     // before the release tail store. Sample countdowns therefore advance only for accepted tasks.
     template <typename Prepare>
     bool push_prepared(T v, Prepare&& prepare) {
-        const uint32_t t = tail_.load(std::memory_order_relaxed);
-        const uint32_t next = t + 1;
+        const uint32_t tail = tail_.load(std::memory_order_relaxed);
+        const uint32_t next = tail + 1;
         if (next - head_cached_ > Capacity) {
             head_cached_ = head_.load(std::memory_order_acquire);
             if (next - head_cached_ > Capacity) return false;
         }
         prepare(v);
-        slots_[t & kMask] = v;
+        slots_[tail & kMask] = v;
         tail_.store(next, std::memory_order_release);
         return true;
     }
@@ -64,13 +61,13 @@ public:
     // pays one publication instead of one per shard task.
     bool push_batch(const T* values, uint32_t count) {
         if (!count) return true;
-        const uint32_t t = tail_.load(std::memory_order_relaxed);
-        const uint32_t next = t + count;
+        const uint32_t tail = tail_.load(std::memory_order_relaxed);
+        const uint32_t next = tail + count;
         if (next - head_cached_ > Capacity) {
             head_cached_ = head_.load(std::memory_order_acquire);
             if (next - head_cached_ > Capacity) return false;
         }
-        for (uint32_t i = 0; i < count; i++) slots_[(t + i) & kMask] = values[i];
+        for (uint32_t i = 0; i < count; i++) slots_[(tail + i) & kMask] = values[i];
         tail_.store(next, std::memory_order_release);
         return true;
     }
@@ -78,8 +75,8 @@ public:
     template <typename Prepare>
     bool push_batch_prepared(const T* values, uint32_t count, Prepare&& prepare) {
         if (!count) return true;
-        const uint32_t t = tail_.load(std::memory_order_relaxed);
-        const uint32_t next = t + count;
+        const uint32_t tail = tail_.load(std::memory_order_relaxed);
+        const uint32_t next = tail + count;
         if (next - head_cached_ > Capacity) {
             head_cached_ = head_.load(std::memory_order_acquire);
             if (next - head_cached_ > Capacity) return false;
@@ -87,7 +84,7 @@ public:
         for (uint32_t i = 0; i < count; i++) {
             T value = values[i];
             prepare(value);
-            slots_[(t + i) & kMask] = value;
+            slots_[(tail + i) & kMask] = value;
         }
         tail_.store(next, std::memory_order_release);
         return true;
@@ -104,26 +101,24 @@ public:
 
     // Consumer side.
     bool pop(T& out) {
-        const uint32_t h = head_.load(std::memory_order_relaxed);
-        if (h == tail_cached_) {  // cached says empty: re-read
+        const uint32_t head = head_.load(std::memory_order_relaxed);
+        if (head == tail_cached_) {  // cached says empty: re-read
             tail_cached_ = tail_.load(std::memory_order_acquire);
-            if (h == tail_cached_) return false;
+            if (head == tail_cached_) return false;
         }
-        out = slots_[h & kMask];
-        head_.store(h + 1, std::memory_order_release);
+        out = slots_[head & kMask];
+        head_.store(head + 1, std::memory_order_release);
         return true;
     }
 
-    // Called by the consumer AFTER the popped op has actually executed. This is not bookkeeping
-    // pedantry: `head` advances at pop time, so head == tail means "nothing left to take", NOT
-    // "nothing in flight" — the worker may still be executing what it just popped. Any teardown,
-    // reshard, or role conversion that tests head == tail will race against an op that is mid-
-    // execution. The fork learned this the hard way and carries the same separate frontier.
+    // Consumer-only, after the popped operation's callback finishes. head advances at pop,
+    // while that callback may still be executing. Teardown, resharding and role conversion must
+    // wait for retired==tail; head==tail alone permits a race with in-flight execution.
     void retire() {
         retired_.store(retired_.load(std::memory_order_relaxed) + 1, std::memory_order_release);
     }
 
-    // THE quiescence predicate. Use this one, never depth() == 0.
+    // Completion-aware quiescence. The caller must prevent new producer publications.
     bool quiesced() const {
         return retired_.load(std::memory_order_acquire) == tail_.load(std::memory_order_acquire);
     }
@@ -140,10 +135,10 @@ public:
     // flow and is called only by the 100us signal beat.
     template <typename Extract>
     uint32_t newest_nonzero(Extract&& extract) const {
-        const uint32_t h = head_.load(std::memory_order_relaxed);
-        uint32_t t = tail_.load(std::memory_order_acquire);
-        while (t != h) {
-            const uint32_t value = extract(slots_[(--t) & kMask]);
+        const uint32_t head = head_.load(std::memory_order_relaxed);
+        uint32_t tail = tail_.load(std::memory_order_acquire);
+        while (tail != head) {
+            const uint32_t value = extract(slots_[(--tail) & kMask]);
             if (value) return value;
         }
         return 0;

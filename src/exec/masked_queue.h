@@ -1,13 +1,8 @@
-// masked_queue.h — one consumer-owned slot array, split into private SPSC sub-rings.
-//
-// The old IO -> EX transport embedded one Capacity-wide slot array in every producer/consumer
-// Channel object.  This keeps the exact same SPSC publication frontiers, but puts all slots for one
-// consumer in one fixed allocation and assigns contiguous power-of-two blocks to producers.  A
-// block is never smaller than a cache line and adjacent producers therefore never write one line.
-//
-// Repartition is deliberately absent from every push/pop path.  remask_quiesced() is legal only
-// after every retired frontier has caught its producer tail; FLIP's ExDrain -> ExInstall barrier is
-// the caller.  The block base/mask are then stable for the whole role tenure.
+// Consumer-owned slot arena partitioned into private SPSC rings, used by ThreadCtx in thread.h.
+// Each physical producer writes one contiguous power-of-two block; blocks never share cache lines.
+// Release/acquire tail and head frontiers protect slot publication/reuse. The retired frontier
+// separately tracks callback completion. FLIP may remask only with producers parked and every
+// retired frontier caught up to tail; block addresses remain stable for the whole role tenure.
 #pragma once
 
 #include <atomic>
@@ -23,7 +18,7 @@
 
 namespace tomo {
 
-// Compatibility name; queue layout follows the canonical cache-line quantity.
+// Queue alignment uses the canonical cache-line size.
 inline constexpr size_t kMaskedQueueCacheLine = tomo::kCacheLine;
 static_assert(kMaskedQueueCacheLine == tomo::kCacheLine);
 
@@ -43,6 +38,13 @@ struct MaskedQueueDiagnostics {
     }
 };
 
+// Contract: the consumer owns the allocation and all consumer lines; each producer exclusively
+// owns one producer line. Init/growth/remask require external exclusion of queue users and no
+// outstanding reservations. Destruction requires all users stopped. Slot contents publish with
+// release tail/acquire tail and become reusable with release head/acquire head; retire marks
+// callback completion separately. Full lanes refuse without publication; reservations hold
+// capacity until consumed/cancelled. Invalid layouts or allocation failures return false; misuse
+// of reservation accounting aborts. Callbacks must not throw after externally visible effects.
 template <typename T, uint32_t MaxProducers>
 class MaskedSpscArray {
     static_assert(std::is_nothrow_default_constructible_v<T>);
@@ -51,13 +53,15 @@ class MaskedSpscArray {
     static_assert(kMaskedQueueCacheLine % sizeof(T) == 0,
                   "slot size must tile a cache line so producer blocks cannot share one");
 
-    // Direct owner-to-owner waves already exist (scatter phase 2, script apply and stale-owner
+    // Direct owner-to-owner waves (scatter phase 2, script apply and stale-owner
     // forwarding).  They are not IO traffic and must not be relayed through IO, so each live EX
     // keeps one small private block in this same allocation.  256 is the largest owner-grouped
     // task bundle and is cache-line granular for Task's 32-byte footprint.
     static constexpr uint32_t kInternalProducerSlots = 256;
     static_assert(std::has_single_bit(kInternalProducerSlots));
 
+    // Consumer-written frontiers/cache and diagnostics. base/mask/capacity are installed only
+    // while quiesced; producers acquire head before reusing slots and retired before teardown.
     struct alignas(kMaskedQueueCacheLine) ConsumerLine {
         std::atomic<uint32_t> head{0};
         std::atomic<uint32_t> retired{0};
@@ -68,6 +72,8 @@ class MaskedSpscArray {
         uint32_t lane_high_water = 0;
     };
 
+    // Sole-producer frontiers, reservation ceiling and counters. Consumers acquire tail before
+    // reading slots. Layout fields are immutable during a tenure; diagnostics are approximate.
     struct alignas(kMaskedQueueCacheLine) ProducerLine {
         std::atomic<uint32_t> tail{0};
         uint32_t head_cached = 0;
@@ -78,13 +84,14 @@ class MaskedSpscArray {
         uint32_t available_capacity = 0;
 
         // A lane has one physical producer for its whole tenure, so these diagnostics remain plain
-        // single-writer counters just like head_cached.  Only the rare full slow path scans the
-        // consumer's complete arena; successful pushes retain the old publication shape.
+        // single-writer counters just like head_cached. Only a full lane scans the complete
+        // arena for diagnostics; successful pushes publish only the tail.
         uint64_t lane_full_events = 0;
         uint64_t arena_occupancy_at_lane_full_sum = 0;
         uint64_t arena_capacity_at_lane_full_sum = 0;
     };
 
+    // Owns two isolated metadata lines for one SPSC pair; slot storage belongs to the arena.
     struct Lane {
         ConsumerLine consumer;
         ProducerLine producer;
@@ -119,7 +126,7 @@ public:
 
     // Fused owners use every physical thread as both a client producer and an executor producer.
     // One producer id still has exactly one SPSC lane into this consumer, including the self lane;
-    // give every lane the original per-thread capacity instead of partitioning by split roles.
+    // give every lane SlotsPerProducer slots, independent of split-role partitioning.
     template <uint32_t SlotsPerProducer>
     bool init_local_fused(uint32_t producers) {
         static_assert(std::has_single_bit(SlotsPerProducer));
@@ -150,7 +157,7 @@ public:
     }
 
     // Cold growth hook.  No caller may use it outside the same parked/quiesced discipline as
-    // remask_quiesced(); there is intentionally no capacity check or allocation in push().
+    // remask_quiesced(); push() checks lane capacity but never grows or allocates storage.
     bool grow_quiesced(uint32_t wanted, const std::vector<uint32_t>& io,
                        const std::vector<uint32_t>& ex) {
         if (wanted <= total_slots_ || !all_quiesced()) return false;
@@ -170,8 +177,11 @@ public:
         return true;
     }
 
-    // IO blocks receive all burst capacity left after the bounded direct-EX reserve.  The capacity
-    // is a power of two, so the stable fast path retains the old bit-mask wrap and branch shape.
+    // Contract: the consumer repartitions a quiesced arena while all producers are parked and
+    // no reservations remain. io/ex must be disjoint and cover every producer. IO receives the
+    // power-of-two share left after direct-EX reserves. Invalid inputs/capacity return false
+    // before installing lanes; relaxed frontier resets rely on the external role barrier for
+    // publication. No storage is allocated and no in-flight Task may survive the reset.
     bool remask_quiesced(const std::vector<uint32_t>& io, const std::vector<uint32_t>& ex) {
         if (!slots_ || io.empty() || ex.empty() || io.size() + ex.size() != producers_ ||
             !all_quiesced())
@@ -239,7 +249,7 @@ public:
         const uint32_t tail = p.tail.load(std::memory_order_relaxed);
         const uint32_t next = tail + 1;
         // Producer reservations are capacity credits, not pre-published holes. reserve() removes
-        // those credits from capacity, so this remains the original reservation-free hot check.
+        // those credits from available_capacity, so ordinary pushes cannot spend them.
         if (next - p.head_cached > p.available_capacity) {
             p.head_cached = c.head.load(std::memory_order_acquire);
             if (next - p.head_cached > p.available_capacity) {
@@ -315,9 +325,9 @@ public:
 
     // The 1s iofused-family boot shape is lifetime-fixed: every physical thread is both a producer
     // and a consumer, FLIP is unavailable, and init_local_fused() gives producer p exactly
-    // [p * SlotsPerProducer, (p + 1) * SlotsPerProducer). These private entry points reproduce the
-    // pre-reservation fork mechanics directly. They never read or update capacity-credit state;
-    // the retained legacy streams source keeps the reservation-aware entry points above.
+    // [p * SlotsPerProducer, (p + 1) * SlotsPerProducer). Private entry points use that fixed
+    // block and must not mix with reservations: they never read or update capacity credits.
+    // Callers that reserve capacity use the reservation-aware entry points above.
     template <uint32_t SlotsPerProducer>
     bool push_fused_private(uint32_t producer, T value) {
         static_assert(std::has_single_bit(SlotsPerProducer));
@@ -523,9 +533,8 @@ public:
         return p.tail.load(std::memory_order_relaxed) - c.head.load(std::memory_order_relaxed);
     }
 
-    // Consumer-only form used by the standing 100us full-lane sweep.  It turns that already-paid
-    // depth sample into an observed per-lane high-water mark without adding a producer-side atomic
-    // load to every successful push.
+    // Consumer-only: the 100us full-lane sweep records its sampled depth as a high-water mark.
+    // Producers do not load this diagnostic on successful pushes.
     uint32_t sample_depth(uint32_t producer) {
         ConsumerLine& c = lanes_[producer].consumer;
         const ProducerLine& p = lanes_[producer].producer;

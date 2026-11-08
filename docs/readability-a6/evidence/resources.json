@@ -1,0 +1,10 @@
+{
+  "final_worktree_allocated_bytes": 25550688256,
+  "limit_bytes": 30000000000,
+  "peak_observed_bytes": 28033974272,
+  "scratch_removed_bytes": 4472024038,
+  "production_source_head": "c6764439e4",
+  "full_gate_run": false,
+  "benchmarks_run": false,
+  "push_performed": false
+}

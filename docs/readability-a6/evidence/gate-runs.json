@@ -1,0 +1,325 @@
+[
+  {
+    "run_directory": "build/gate-run.j3SbqL",
+    "cpus": "96-127",
+    "server_cores": "96-119",
+    "load_cores": "120-127",
+    "ports": "25400-25498",
+    "thread_count": 8,
+    "shards": 16,
+    "ratio": "6:2",
+    "exit_code": 0,
+    "passed_rows": 20,
+    "failed_rows": 0,
+    "jobs": [
+      {
+        "job": "abba_selftest",
+        "exit_code": 0,
+        "passed_rows": 1,
+        "failed_rows": 0,
+        "ledger": [
+          {
+            "verdict": "ok",
+            "seconds": 653.78,
+            "label": "ABBA comparison + saturation negative controls"
+          }
+        ]
+      },
+      {
+        "job": "exbatch_live",
+        "exit_code": 0,
+        "passed_rows": 2,
+        "failed_rows": 0,
+        "ledger": [
+          {
+            "verdict": "ok",
+            "seconds": 0.36,
+            "label": "exbatch publication and WATCH lifecycle (1s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": 0.31,
+            "label": "exbatch publication and WATCH lifecycle (2s)"
+          }
+        ]
+      },
+      {
+        "job": "exbatch_units",
+        "exit_code": 0,
+        "passed_rows": 3,
+        "failed_rows": 0,
+        "ledger": [
+          {
+            "verdict": "ok",
+            "seconds": 21.56,
+            "label": "exbatch publication unit + negative controls"
+          },
+          {
+            "verdict": "ok",
+            "seconds": 59.78,
+            "label": "exbatch watch unit + negative controls"
+          },
+          {
+            "verdict": "ok",
+            "seconds": 23.54,
+            "label": "exbatch metadata unit + negative controls"
+          }
+        ]
+      },
+      {
+        "job": "perfex_units",
+        "exit_code": 0,
+        "passed_rows": 2,
+        "failed_rows": 0,
+        "ledger": [
+          {
+            "verdict": "ok",
+            "seconds": 1.31,
+            "label": "perfex clock binary regression"
+          },
+          {
+            "verdict": "ok",
+            "seconds": 1.13,
+            "label": "perfex batch binary regression"
+          }
+        ]
+      },
+      {
+        "job": "production_units",
+        "exit_code": 0,
+        "passed_rows": 0,
+        "failed_rows": 0,
+        "ledger": []
+      },
+      {
+        "job": "release",
+        "exit_code": 0,
+        "passed_rows": 1,
+        "failed_rows": 0,
+        "ledger": [
+          {
+            "verdict": "ok",
+            "seconds": 0.04,
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      },
+      {
+        "job": "reorder_engagement",
+        "exit_code": 0,
+        "passed_rows": 1,
+        "failed_rows": 0,
+        "ledger": [
+          {
+            "verdict": "ok",
+            "seconds": 18.03,
+            "label": "R7 production engagement (both database runtimes)"
+          }
+        ]
+      },
+      {
+        "job": "reorder_identity",
+        "exit_code": 0,
+        "passed_rows": 1,
+        "failed_rows": 0,
+        "ledger": [
+          {
+            "verdict": "ok",
+            "seconds": 322.63,
+            "label": "R7 FIFO twin off-path identity + negative controls"
+          }
+        ]
+      },
+      {
+        "job": "reorder_sync",
+        "exit_code": 0,
+        "passed_rows": 1,
+        "failed_rows": 0,
+        "ledger": [
+          {
+            "verdict": "ok",
+            "seconds": 29.63,
+            "label": "R7 generated envelope parity"
+          }
+        ]
+      },
+      {
+        "job": "source_identity",
+        "exit_code": 0,
+        "passed_rows": 1,
+        "failed_rows": 0,
+        "ledger": [
+          {
+            "verdict": "ok",
+            "seconds": 131.9,
+            "label": "production source identity + stable assertion ids"
+          }
+        ]
+      },
+      {
+        "job": "splitlocal_units",
+        "exit_code": 0,
+        "passed_rows": 1,
+        "failed_rows": 0,
+        "ledger": [
+          {
+            "verdict": "ok",
+            "seconds": 10.72,
+            "label": "splitlocal template forwarding + old-argument controls"
+          }
+        ]
+      },
+      {
+        "job": "wb_rule_units",
+        "exit_code": 0,
+        "passed_rows": 4,
+        "failed_rows": 0,
+        "ledger": [
+          {
+            "verdict": "ok",
+            "seconds": 0.18,
+            "label": "writeback c12 policy witnesses + negative controls"
+          },
+          {
+            "verdict": "ok",
+            "seconds": 9.85,
+            "label": "writeback c12 phase witnesses + negative controls"
+          },
+          {
+            "verdict": "ok",
+            "seconds": 4.01,
+            "label": "writeback c12 stages witnesses + negative controls"
+          },
+          {
+            "verdict": "ok",
+            "seconds": 6.91,
+            "label": "writeback c12 split-phase witnesses + negative controls"
+          }
+        ]
+      },
+      {
+        "job": "wbland_units",
+        "exit_code": 0,
+        "passed_rows": 2,
+        "failed_rows": 0,
+        "ledger": [
+          {
+            "verdict": "ok",
+            "seconds": 34.47,
+            "label": "writeback policy clauses witnesses + negative controls"
+          },
+          {
+            "verdict": "ok",
+            "seconds": 2.27,
+            "label": "writeback policy paths witnesses + negative controls"
+          }
+        ]
+      }
+    ],
+    "unit_ready": [
+      "aoforder-scheduled",
+      "at15-db0-unit",
+      "at15-unit",
+      "at412-owner",
+      "atomic-survivors-unit",
+      "blockfix-cost",
+      "blockfix2-db0-unit",
+      "blockfix2-unit",
+      "core-concurrency-unit",
+      "encodingfix-unit",
+      "exbatch-db0-unit",
+      "exbatch-unit",
+      "exec1s-unit",
+      "exec1s-word-tsan",
+      "execabort-watch-db0-unit",
+      "execabort-watch-unit",
+      "expire-notify-unit",
+      "flushfix-units",
+      "gaterows5-units",
+      "ktls-keyupdate",
+      "ktls-keyupdate-unit",
+      "ktls-lifetime-unit",
+      "lbplanner-units",
+      "mdbqsbr-live-arms",
+      "moverfix-db0-unit",
+      "moverfix-unit",
+      "multidb-boundary-unit",
+      "multidb-unit",
+      "netcap-unit",
+      "netcmd-unit",
+      "persistfix-units",
+      "publishfix-unit",
+      "racefix-climon",
+      "rehash-waits-unit",
+      "reorder-engagement-unit",
+      "reorder-engagement-unit-db0",
+      "respresume-migration",
+      "respresume-unit",
+      "rltopo-unit",
+      "shutdown-unit",
+      "splitlocal-unit",
+      "storesize-unit",
+      "txnorder-chain-db0-unit",
+      "txnorder-chain-unit",
+      "txnorder-episodes",
+      "txnorder-episodes-debug",
+      "txnorder-fifo-db0-unit",
+      "txnorder-fifo-unit",
+      "txnorder-index-db0-unit",
+      "txnorder-index-unit",
+      "txnorder-retry-unit",
+      "txnorder-wake-unit",
+      "txnorder-watch-db0-unit",
+      "txnorder-watch-unit",
+      "txnorder-wound-db0-unit",
+      "txnorder-wound-unit",
+      "waits-unit",
+      "wave15-flip-eof-db0-unit",
+      "wave15-flip-eof-unit",
+      "wave15-idle-db0-unit",
+      "wave15-idle-unit",
+      "wave15-stream-db0-unit",
+      "wave15-stream-unit",
+      "wb-rule-units",
+      "wbland-units"
+    ]
+  },
+  {
+    "run_directory": "build/gate-run.sDDdS2",
+    "cpus": "96-127",
+    "server_cores": "96-103",
+    "load_cores": "104-127",
+    "ports": "25430-25498",
+    "thread_count": 8,
+    "shards": 16,
+    "ratio": "6:2",
+    "exit_code": 0,
+    "passed_rows": 1,
+    "failed_rows": 0,
+    "jobs": [
+      {
+        "job": "racefix_counters",
+        "exit_code": 0,
+        "passed_rows": 1,
+        "failed_rows": 0,
+        "ledger": [
+          {
+            "verdict": "ok",
+            "seconds": 2.93,
+            "label": "INFO command/socket counters (TSan, both modes)"
+          }
+        ]
+      },
+      {
+        "job": "racefix_tsan_build",
+        "exit_code": 0,
+        "passed_rows": 0,
+        "failed_rows": 0,
+        "ledger": []
+      }
+    ],
+    "unit_ready": [
+      "racefix-tsan"
+    ]
+  }
+]

@@ -1,0 +1,696 @@
+{
+  "environment": {
+    "LC_ALL": "C",
+    "TOMO_INFO_GIT_SHA1": "5c363128",
+    "TOMO_INFO_GIT_DIRTY": "0"
+  },
+  "cpus": "96-127",
+  "checks": [
+    {
+      "argv": [
+        "make",
+        "-q",
+        "all"
+      ],
+      "kind": "release",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/wave15-stream-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/wave15-stream-db0-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/wave15-flip-eof-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/wave15-flip-eof-db0-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/wave15-idle-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/wave15-idle-db0-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/gaterows5-units"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/expire-notify-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/ktls-lifetime-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/moverfix-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/moverfix-db0-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/publishfix-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/at15-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/at15-db0-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/execabort-watch-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/execabort-watch-db0-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/core-concurrency-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/atomic-survivors-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/exec1s-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/exec1s-word-tsan"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/at412-owner"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-fifo-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-fifo-db0-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-chain-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-chain-db0-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-index-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-index-db0-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-retry-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-wound-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-wound-db0-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-wake-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-episodes"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-episodes-debug"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-watch-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-watch-db0-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/netcmd-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/encodingfix-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/netcap-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/waits-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/rehash-waits-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/multidb-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/multidb-boundary-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/storesize-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/wb-rule-units"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/wbland-units"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/rltopo-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/lbplanner-units"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/shutdown-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/persistfix-units"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/exbatch-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/exbatch-db0-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/ktls-keyupdate"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/ktls-keyupdate-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/flushfix-units"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/splitlocal-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/reorder-engagement-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/reorder-engagement-unit-db0"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/racefix-climon"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/aoforder-scheduled"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/respresume-unit"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "build/respresume-migration"
+      ],
+      "kind": "primary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-q",
+        "mdbqsbr-live-arms"
+      ],
+      "kind": "supplementary",
+      "exit_code": 0,
+      "output": "make BUILD_ROOT=build/mdbqsbr2-park CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK' all\nmake[1]: Entering directory '/home/user/Projects/cx-readability-a6'\nmake[1]: Leaving directory '/home/user/Projects/cx-readability-a6'\nmake BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all\nmake[1]: Entering directory '/home/user/Projects/cx-readability-a6'\nmake[1]: Leaving directory '/home/user/Projects/cx-readability-a6'\n"
+    },
+    {
+      "argv": [
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "tools/blockfix_cost.mk",
+        "-q",
+        "build/blockfix-cost"
+      ],
+      "kind": "supplementary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "tools/blockfix_cost.mk",
+        "-q",
+        "build/tomokv.blockfix-cost.sha256"
+      ],
+      "kind": "supplementary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "tools/blockfix2.mk",
+        "-q",
+        "build/blockfix2-unit"
+      ],
+      "kind": "supplementary",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "tools/blockfix2.mk",
+        "-q",
+        "build/blockfix2-db0-unit"
+      ],
+      "kind": "supplementary",
+      "exit_code": 0,
+      "output": ""
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+build/clang-format-18.1.8/bin/python tools/format.py
+R7 shadow production envelopes: current
+src/exec/op.h
+clang-format 18.1.8: 418 files formatted
+build/clang-format-18.1.8/bin/python tools/format.py --check
+clang-format 18.1.8: 418 files checked

@@ -530,8 +530,11 @@ template <uint32_t BatchOps, bool ConsumeTasks, bool IofusedPrivateQueue,
               bool InterleaveLocalReads>
     uint32_t  ExLoopT<Fused>::r7_fused_pass_impl() {
     TOMO_R7_PATH();
+        // Phase 1: bind the rotation lifetime, refresh clocks, and check ownership barriers.
         ++exec1s_counters[self_->id()].owner_passes;
         Server::ClientWorkScope client_work(*srv_, self_->id());
+        // Borrows this thread/server until scope exit and seq_cst-publishes quiescence only
+        // after nested drains have consumed every foreign capture; no Client lifetime is owned.
         struct RotationBoundary {
             bool enabled;
             ThreadCtx* self;
@@ -541,11 +544,9 @@ template <uint32_t BatchOps, bool ConsumeTasks, bool IofusedPrivateQueue,
             }
         } rotation_boundary{read_local_enabled(), self_, srv_};
         cached_now_ms_ = realtime_ms();
-        // A completed LB stage may have changed this owner's shard vector. Armed retirement sinks
-        // must follow ownership before any work; the literal baseline notification block remains in
-        // lb_control_pass below. Since the ownership edge itself now rebinds
-        // (Server::adopt_read_local_retire_sink) this is a no-op standing check, kept because a
-        // no-op is the cheapest proof that the eager rebind ran.
+        // LB can change this owner's shard vector. Retirement sinks must follow that ownership
+        // before any work. Server::adopt_read_local_retire_sink binds at the ownership edge;
+        // this pass reaffirms the binding. lb_control_pass also rebinds notification sinks.
         if (lb_rebind_pending_ && srv_->lb_stage() != LbStage::ExDrain)
             read_local_rebind_owned_shards_after_lb();
 #ifdef TOMO_RL_CACHE_DEBUG
@@ -565,14 +566,15 @@ template <uint32_t BatchOps, bool ConsumeTasks, bool IofusedPrivateQueue,
             static_assert(Fused && ConsumeTasks);
             static_assert(BatchOps == kReadLocalOwnerTaskChunkOps);
             if (!read_local_enabled()) std::abort();
-            // Exceptional debt keeps its established total order. The ordinary saturated turn is
-            // the only place that caps fresh owner work before WB.
+            // Retry, migration and snapshot debt keep their required order. Only a turn free
+            // of that debt caps fresh owner work before writeback.
             fairlane_turn = !lb_frozen && !fairlane_owner_debt_pending();
             if (fairlane_turn) {
                 compact_local_read_tombstones();
                 fairlane_turn = read_local_impl().lane_count != 0;
             }
         }
+        // Phase 2: drain local captures, then service frozen or runnable owner work in order.
         uint32_t did = 0;
         if (fairlane_turn) {
             // EARLY: reads parsed by the preceding IFID phase get the first execution/reply slots.
@@ -638,6 +640,7 @@ template <uint32_t BatchOps, bool ConsumeTasks, bool IofusedPrivateQueue,
             did += aof_flush_pass();
             did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
         }
+        // Phase 3: finish local tails and reclamation before acknowledging control work.
         if (fairlane_turn) {
             owner_work_remains |= fairlane_owner_debt_pending();
             if (!owner_work_remains) did += drain_local_read_tail();
@@ -649,11 +652,8 @@ template <uint32_t BatchOps, bool ConsumeTasks, bool IofusedPrivateQueue,
             // One rotation of the lane-admission pressure window has elapsed.
             if (__builtin_expect(read_local_impl().lane_pressure != 0, false))
                 read_local_impl().lane_pressure--;
-            // Adopt the test lane cap, if one is set. ONE relaxed load per ROTATION of a
-            // read-mostly word that production never writes (so it stays shared-clean in every
-            // core's L1), against ~1000 ops per rotation, and the store happens only when the
-            // value actually changes -- the admission path itself keeps reading a plain uint16 on
-            // a line it already owns. 0 means derive, which is what production always sees.
+            // Adopt the debug cap with one relaxed load per rotation, storing only on change.
+            // Admission reads the thread-local uint16. Zero derives the physical lane capacity.
             const uint32_t cap = srv_->debug_read_local_lane_cap();
             const uint16_t want = cap == 0
                                       ? static_cast<uint16_t>(kInboxSlots)
@@ -669,6 +669,7 @@ template <uint32_t BatchOps, bool ConsumeTasks, bool IofusedPrivateQueue,
             ring_.submit_and_reap();
             ++did;
         }
+        // Phase 4: account for progress, then audit queue state after bounded idle spinning.
         if (did) {
             fused_idle_spins_ = 0;
             return did;
@@ -708,6 +709,8 @@ template <uint32_t BatchOps, bool ConsumeTasks, bool IofusedPrivateQueue,
         ++exec1s_counters[self_->id()].owner_passes;
         if (lb_controller_armed_ && srv_->lb_dispatch_paused())
             return r7_fused_pass_impl<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+        // Borrows this thread/server until scope exit and seq_cst-publishes quiescence only
+        // after nested drains have consumed every foreign capture; no Client lifetime is owned.
         struct RotationBoundary {
             bool enabled;
             ThreadCtx* self;

@@ -1,0 +1,53 @@
+[
+  {
+    "file": "src/exec/exqueue.h",
+    "function": "push",
+    "names": {
+      "t": "tail"
+    }
+  },
+  {
+    "file": "src/exec/exqueue.h",
+    "function": "push_prepared",
+    "names": {
+      "t": "tail"
+    }
+  },
+  {
+    "file": "src/exec/exqueue.h",
+    "function": "push_batch",
+    "names": {
+      "t": "tail"
+    }
+  },
+  {
+    "file": "src/exec/exqueue.h",
+    "function": "push_batch_prepared",
+    "names": {
+      "t": "tail"
+    }
+  },
+  {
+    "file": "src/exec/exqueue.h",
+    "function": "pop",
+    "names": {
+      "h": "head"
+    }
+  },
+  {
+    "file": "src/exec/exqueue.h",
+    "function": "newest_nonzero",
+    "names": {
+      "h": "head",
+      "t": "tail"
+    }
+  },
+  {
+    "file": "src/exec/op.h",
+    "function": "push_arg",
+    "names": {
+      "ncap": "new_capacity",
+      "n": "new_argv"
+    }
+  }
+]
