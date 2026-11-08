@@ -186,13 +186,18 @@ call/return; it is a layout control, not instruction-identical PRE.
 ### Validation status
 
 - Builds: PRE, PART1, PART2, production `make all`, and `build/tornread-unit` succeeded.
-- `make unit`: PASS; `build/tornread/make-unit.log`.
+  The explicitly rebuilt native `build/tomokv` matches PART2-r7 byte for byte;
+  `build/tornread/SHA256SUM-native-final` records its identity.
+- Final `make all unit`: PASS; `build/tornread/make-all-unit-final.log`.
 - Shutdown policy/signal/persistence gate jobs: **8/8 PASS**;
   `build/gate-run.gYPAED/ledger.partial`.
 - Directed unit: reference reuse/removal, low-word wrap alias, registration OOM rollback,
   mixed plain/scatter floors, early completion, same-pass scatter ordering,
   publish/confirm advancement, real normal/suppressed/closing WB drains (including an
   unfinished-read hold), final UINT64_MAX floor, and all locked sizes pass.
+  The confirmation case uses a fresh pool so it cannot inherit the scatter's newer
+  cut; it must exercise the post-publication advancement. The final directed unit
+  log is `build/tornread/unit-final.log`.
 - `python3 tests/gates_test.py`: final **83 tests PASS**, 241.198 s
   (`build/tornread/gates-test-final.log`); the earlier run also passed.
 - `python3 tests/gate_ledger_fixture.py --self-test`: **12 tests, 1 failure + 1 error**,
@@ -211,10 +216,17 @@ call/return; it is a layout control, not instruction-identical PRE.
   INFO selective collection (8) and rlfix5 (6) refuse native witnesses after the
   source/parser change; txnorder2 (15) and txnorder_wake (1) cannot find companion
   executables beside the frozen external image. The live WATCH-flush row passes.
-  These are rerun with the final native build and colocated witnesses; no failed
-  row is counted as passing on the strength of this run.
+  All **30 formerly failing labels PASS** in the final native rerun, verified by
+  exact label-set inclusion. That rerun is **132/132 PASS** with matching companion
+  executables (`build/gate-run.xraDia/ledger.partial`). It also covers FLUSH/MVCC,
+  blocking interactions, BGSAVE/EXEC, generated-parser parity/engagement, WB retirement,
+  FLIP/MULTI/WATCH, atomics, ASAN and read-local ordering. No failed row is counted
+  as passing on the strength of the earlier run.
+  The earlier fused/epoll recheck was **59/59 PASS** on the initial PART2 image
+  (`build/gate-run.kBlw6y/ledger.partial`); it is not a final-image receipt.
   Exact selections: `build/tornread/proof-jobs.txt`, `proof-supplement-jobs.txt`,
-  and `proof-final-jobs.txt`. The fused transaction boot is running with epoll.
+  and `proof-final-jobs.txt`. The final native run uses fused transaction boots and
+  epoll for jobs accepting those overrides; jobs with explicit matrices retain all legs.
   `GATE_PROOF_NO_RATES=1` leaves throughput-only checks to the maintainer: the atomic
   MGET/MSET throughput floor is NOT RUN, and the RYOW rate assertion is disabled;
   their correctness witnesses retain their original assertions.
