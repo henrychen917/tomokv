@@ -1,4 +1,5 @@
 aofblock: see MEASURE-REQUEST-aofblock.md, section ## aofblock.
-PRE/POST/PAD-A are built in build/aofblock/. PAD-A is kind A (PRE behaviour, exact POST layout).
+Final arms: /home/user/Projects/bins/aofblock-PRE-8aa098c9, aofblock-POST-e25f8b6f, aofblock-PADA-6e1042a2.
+PAD-A is kind A (PRE behaviour, exact POST layout). SHA-256 and provenance: MEASURE-REQUEST-aofblock.md.
 Owner: matched-load ABBA for GET/SET/MGET/MSET/INCR in 1s and 2s; rate is the verdict, cycles/op and IPC explain it.
 No measurements were run by this lane.
