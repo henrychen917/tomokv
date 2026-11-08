@@ -1,7 +1,10 @@
 // Final IO lifetime cleanup: issuer-thread cancellation before join, then
-// coordinator-only connection/borrow reclamation after every worker joins.
-// IoLoop's guards/destructor call these methods; request and role-change paths
-// do not. Kernel cancellation/queue exit fence every buffer freed here.
+// coordinator-only connection/borrow reclamation after every worker joins, including
+// former IO owners. ShutdownOnIssuer calls shutdown_on_issuer; ~IoLoop calls
+// shutdown_clients_after_join. Each runtime's post-join lambda (main.cc, genthread.cc,
+// rl2s.cc, generated reorder.cc) calls shutdown_release_abandoned_script_pins before
+// stores release atomic records and before IoLoop destruction. Request and role-change
+// paths never enter this file. Kernel cancellation/queue exit fence every buffer freed here.
 #include "io_loop.h"
 
 namespace tomo {
@@ -48,7 +51,8 @@ void IoLoop::shutdown_release_abandoned_script_pins(Server& srv) {
 // ready ordered reply prefix, then fence kernel pointers with queue exit before
 // freeing clients and borrows. No command admission or peer waits are allowed.
 // Sends are attempted without waiting for delivery; pending output/events may
-// be discarded. Partial initialization is a no-op; allocations may throw.
+// be discarded. Partial initialization is a no-op; an allocation exception escaping
+// this call from ~IoLoop terminates.
 void IoLoop::shutdown_clients_after_join() {
     // Phase 1: replace callbacks that require live owners with joined-owner cleanup.
     // Serverless fixtures may borrow stack Clients. Only init() creates an owning

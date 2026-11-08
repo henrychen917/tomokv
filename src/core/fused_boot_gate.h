@@ -1,5 +1,6 @@
 // Boot-only rendezvous shared by main.cc, genthread.cc, rl2s.cc and the generated
-// fused boot in reorder.cc. Main advances phases; workers report their own slots.
+// fused boot in reorder.cc. Main advances Loaded -> Ready -> Running; main or, in
+// split boot, a failing worker may call stop(). Workers report their own slots.
 //
 // The gate's public phase is monotonic: Loaded -> Ready -> Running (or Stopping).  Per-worker
 // state makes every arrival and gave-up edge once-only, so a stop racing either rendezvous cannot
@@ -23,8 +24,10 @@ namespace tomo {
 // calls arrive/wait/give_up for one valid slot. stop() may wake either side.
 // Mutex unlock/lock publishes initialization and phase changes. Relaxed stop
 // loads are cancellation checks, not publication of worker data. Waits poll
-// stop every 10 ms without an overall deadline. Bad ids/transitions abort;
-// reported failure or stopping makes the corresponding waits return false.
+// stop every 10 ms without an overall deadline. Worker calls abort on bad ids or
+// out-of-order states; main's advances return false when phase, arrival count or
+// failure state forbids them. give_up accepts any state for a valid id. Reported
+// failure or stopping makes the corresponding waits return false.
 class FusedBootGate {
 public:
     enum class Phase : uint8_t { Loaded, Ready, Running, Stopping };

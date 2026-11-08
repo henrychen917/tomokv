@@ -3227,8 +3227,9 @@ static int  run_fused_server_reordered(
     // phase advances observe stop, so shutdown during recovery cannot leave
     // main waiting for a readiness arrival from a worker that has exited.
     FusedBootGate boot(nthreads);
-    // Use the server's Unix owner so listener attachment and load balancing
-    // agree on the physical thread that owns the pathname's listening fd.
+    // The Unix owner is placement().ifid_threads().front() with a configured unixsocket,
+    // UINT32_MAX otherwise. Read Server's field so the listener attach point and the
+    // LB/FLIP exclusions on unix_owner_tid_ cannot drift.
     const uint32_t unix_owner = srv.unix_owner_tid();
     auto report_graceful_shutdown = [&] {
         srv.snapshot().cancel_after_join(srv);
@@ -3330,8 +3331,9 @@ static int  run_fused_server_reordered(
                 return;
             }
             // A stop can race listener activation after wait_until_ready().
-            // arrive_ready records that worker as gave_up, so every participant
-            // is accounted for even when it never enters the running phase.
+            // If main already moved the gate to Stopping, arrive_ready records gave_up
+            // and returns false. If only the stop flag is set, wait_until_running records
+            // the give-up instead. Either way main sees every worker report.
             if (!boot.arrive_ready(tid)) return;
             if (!boot.wait_until_running(tid, self.stop_flag())) return;
             self.publish_ready_role(Role::Ifid);
