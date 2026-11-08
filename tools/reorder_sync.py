@@ -25,8 +25,30 @@ def rename(text, names):
     aliases = {new: old for old, new in cpp.bindings(str(text)).items()}
     aliases.update(getattr(text, 'aliases', {}))
     text = cpp.rename(text, aliases)
-    text = re.sub(r'/\*\s*TOMO_TOOL_(?:BIND|FUNCTION)\s+[^*]+\*/', '', text)
-    return cpp.rename(text, names)
+    # Remove only real marker comments. A marker ending a line must not leave
+    # trailing spaces when formatted input places it on a line of its own.
+    for match in reversed(list(cpp.LEXER.finditer(text))):
+        if match.lastgroup != 'comment' or not re.fullmatch(
+                r'/\*\s*TOMO_TOOL_(?:BIND|FUNCTION)\s+[^*]+\*/', match[0]):
+            continue
+        start, end = match.span()
+        newline = text.find('\n', end)
+        if newline >= 0 and not text[end:newline].strip():
+            end = newline
+            while start and text[start - 1] in ' \t':
+                start -= 1
+        text = text[:start] + text[end:]
+    text = cpp.rename(text, names)
+    # The original generator also renamed function references in comments.
+    # Preserve that documented shadow-call spelling, without editing literals.
+    for match in reversed(list(cpp.LEXER.finditer(text))):
+        if match.lastgroup != 'comment':
+            continue
+        comment = match[0]
+        for before, after in names.items():
+            comment = re.sub(r'\b' + re.escape(before) + r'(?=\s*[<(])', after, comment)
+        text = text[:match.start()] + comment + text[match.end():]
+    return text
 
 
 def update(path, generated, write):

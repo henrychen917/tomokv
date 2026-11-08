@@ -9,6 +9,9 @@ import source_tokens as cpp
 
 
 def main():
+    rendered = sync.base.rename('void f() { // f()\n const char* s = "f()"; }', {'f': 'r7_f'})
+    assert '// r7_f()' in rendered, 'generated function reference lost its shadow name'
+    assert '"f()"' in rendered, 'renaming a comment must not edit a literal'
     root = sync.ROOT
     with tempfile.TemporaryDirectory() as temp:
         target = Path(temp)

@@ -28,6 +28,7 @@ QualifierAlignment: Leave
 ReflowComments: false
 FixNamespaceComments: false
 RawStringFormats: []
+StatementMacros: [Q_UNUSED, QT_REQUIRE_VERSION, X]
 '''
 
 
@@ -62,7 +63,9 @@ def main():
             dest = root / path
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_text(after)
-            return dict(path=path, changed=before != after,
+            again = subprocess.check_output([str(CLANG), '--Werror', f'--style=file:{config}',
+                                             f'--assume-filename={path}'], input=after, text=True)
+            return dict(path=path, changed=before != after, fixed_point=again == after,
                         tokens_equal=tuple(t.text for t in cpp.lex(before)) == tuple(t.text for t in cpp.lex(after)),
                         literals_equal=literal_tokens(before) == literal_tokens(after))
         with ThreadPoolExecutor(max_workers=8) as pool:
@@ -73,7 +76,7 @@ def main():
         stats = [line.split('\t') for line in diff.stdout.splitlines() if not line.endswith('.clang-format')]
         row = dict(preset=preset, changed_files=sum(c['changed'] for c in checks),
                    added=sum(int(s[0]) for s in stats), deleted=sum(int(s[1]) for s in stats),
-                   exceptions=[c for c in checks if not c['tokens_equal'] or not c['literals_equal']])
+                   exceptions=[c for c in checks if not all(c[k] for k in ('tokens_equal', 'literals_equal', 'fixed_point'))])
         results.append(row)
         (WORK / 'results.json').write_text(json.dumps(results, indent=2) + '\n')
         print(json.dumps(row), flush=True)

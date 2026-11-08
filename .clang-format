@@ -15,3 +15,4 @@ QualifierAlignment: Leave
 ReflowComments: false
 FixNamespaceComments: false
 RawStringFormats: []
+StatementMacros: [Q_UNUSED, QT_REQUIRE_VERSION, X]
