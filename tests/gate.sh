@@ -1042,6 +1042,10 @@ job_body(){
     rootcompat) job_rootcompat all;;
     rootcompat-*) job_rootcompat "${name#rootcompat-}";;
     tornread-*) job_tornread "$name";;
+    tornhold-progress-*) job_tornhold_progress "$name";;
+    tornhold-wait-*) job_tornhold_progress "$name";;
+    tornhold-flip-*) job_tornhold_progress "$name";;
+    tornhold-*) job_tornhold "$name";;
     multifix-*) job_multifix "$name";;
     climonfix4-*) job_climonfix4 "$name";;
     scriptfix4-*) job_scriptfix4 "${name#scriptfix4-}";;
@@ -1191,8 +1195,14 @@ plan_jobs(){
   for TR_SHAPE in 2s-0 2s-1 1s-0 1s-1; do for TR_ENGINE in uring epoll; do
     for TR_ATOMIC in 0 1; do
       JOB_NAMES+=("tornread-$TR_SHAPE-$TR_ENGINE-$TR_ATOMIC")
+      JOB_NAMES+=("tornhold-$TR_SHAPE-$TR_ENGINE-$TR_ATOMIC")
     done
   done; done
+  JOB_NAMES+=(tornhold_units)
+  for TH_MODE in 1s 2s; do for TH_ENGINE in uring epoll; do
+    JOB_NAMES+=("tornhold-progress-$TH_MODE-$TH_ENGINE" "tornhold-wait-$TH_MODE-$TH_ENGINE")
+  done; done
+  for TH_ENGINE in uring epoll; do JOB_NAMES+=("tornhold-flip-2s-$TH_ENGINE"); done
   JOB_NAMES+=(clientcompat-pause clientcompat-disconnect clientcompat-multi-tracking clientcompat-multi-controls clientcompat-enable-race)
   JOB_NAMES+=(cmdfix2-geo cmdfix2-scores cmdfix2-hll cmdfix2-lcs cmdfix2-channels cmdfix2-xsetid)
   for MF_MODE in 1s 2s; do for MF_ENGINE in uring epoll; do
@@ -3188,6 +3198,68 @@ job_tornread(){
     fi
     stop
   done
+}
+
+job_tornhold(){
+  local prefix mode read_local engine atomic boot_fn=boot writer=mset shape label effective_reorder=0
+  local control=()
+  IFS=- read -r prefix mode read_local engine atomic <<< "$1"
+  [ "$mode" != 1s ] || boot_fn=boot_fused
+  [ "$mode" != 1s ] || effective_reorder=${GATE_TORNREAD_REORDER:-0}
+  [ "$atomic" != 0 ] || writer=exec
+  for shape in getmget getmget-seq; do
+    label="tornhold $shape ($mode read-local $read_local $engine atomic $atomic)"
+    row_begin "$label" "requested_reorder=${GATE_TORNREAD_REORDER:-0} effective_reorder=$effective_reorder"
+    control=(); [ "$shape" != getmget-seq ] || control=(--getmget-sequential)
+    if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" --atomic "$atomic" \
+        --reorder "${GATE_TORNREAD_REORDER:-0}" \
+        --read-local "$read_local" --key-lb 0 --client-lb 0 --flip-auto 0 \
+        --enable-debug-command yes &&
+      py tests/tornread.py --port "$PORT" --label "$1-$shape" --seconds 15 \
+        --max-violations 1 --geometry debug --require-atomic "$atomic" \
+        --require-mode "$mode" --require-read-local "$read_local" --require-reorder "$effective_reorder" \
+        --read-mode getmget --depth 1 --order ab --lag-noise 2 --readers 4 \
+        --writer-kind "$writer" "${control[@]}" --json "$TMPDIR/$shape.json" \
+        >"$TMPDIR/$shape.log" 2>&1; then
+      ok "$label"
+    else
+      bad "$label" "see $TMPDIR/$shape.log and $SRVLOG"
+    fi
+    stop
+  done
+}
+
+job_tornhold_units(){
+  row_begin "tornhold generation/bucket/parser/WB lifetimes (normal and db0)"
+  if pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/tornread-unit build/tornhold-db0-unit \
+      >"$TMPDIR/build.log" 2>&1 &&
+      taskset -c "$CORES" build/tornread-unit >"$TMPDIR/unit.log" 2>&1 &&
+      taskset -c "$CORES" build/tornhold-db0-unit >>"$TMPDIR/unit.log" 2>&1; then
+    ok "tornhold generation/bucket/parser/WB lifetimes (normal and db0)"
+  else
+    bad "tornhold generation/bucket/parser/WB lifetimes (normal and db0)" "see $TMPDIR/{build,unit}.log"
+  fi
+}
+
+job_tornhold_progress(){
+  local prefix kind mode engine boot_fn=boot label hold_binary="$CANDIDATE_BINARY" ptrace_binary=''
+  IFS=- read -r prefix kind mode engine <<< "$1"
+  [ "$mode" != 1s ] || boot_fn=boot_fused
+  label="tornhold $kind cleanup progress ($mode $engine atomic 0)"
+  row_begin "$label"
+  if [ "$kind" = flip ]; then
+    hold_binary="$PWD/tests/tornhold_progress.py"
+    ptrace_binary="$CANDIDATE_BINARY"
+  fi
+  if TORNHOLD_PTRACE_BINARY="$ptrace_binary" "$boot_fn" "$hold_binary" --net-io "$engine" --atomic 0 --read-local 0 \
+      --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes &&
+      py tests/tornhold_progress.py --port "$PORT" --case "$kind" --seconds 30 \
+      --json "$TMPDIR/progress.json" >"$TMPDIR/progress.log" 2>&1; then
+    ok "$label"
+  else
+    bad "$label" "see $TMPDIR/progress.log and $SRVLOG"
+  fi
+  stop
 }
 
 job_atomic_batteries(){
@@ -7061,6 +7133,7 @@ job_dependencies(){
     wait_units) echo 'production_units waits_tsan_build';;
     debug-*|fused-*|txn_group_*|exec1s|txnorder_fifo|txnorder_chain|txnorder_index|txnorder_wound|txnorder2|txnorder_wake|txnorder-*|at412-owner|aof_frame|aoforder|moverfix) echo 'release production_units';;
     lbplanner_units|climonfix|persistfix_units|exbatch_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement|reorder_bounds|rob_portable) echo production_units;;
+    tornhold-progress-*|tornhold-wait-*|tornhold-flip-*) echo 'release tornhold_units';;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
     rlcache) echo rldbg;;
@@ -7294,8 +7367,17 @@ collect_job release_batteries
 for TR_SHAPE in 2s-0 2s-1 1s-0 1s-1; do for TR_ENGINE in uring epoll; do
   for TR_ATOMIC in 0 1; do
     collect_job "tornread-$TR_SHAPE-$TR_ENGINE-$TR_ATOMIC"
+    collect_job "tornhold-$TR_SHAPE-$TR_ENGINE-$TR_ATOMIC"
   done
  done; done
+# tornhold: +32 GET/MGET rows above, +1 directed row and +10 liveness rows here.
+# All collection sites precede the quick exit: DQ=DF=+43 beyond tornread.
+collect_job tornhold_units
+for TH_MODE in 1s 2s; do for TH_ENGINE in uring epoll; do
+  collect_job "tornhold-progress-$TH_MODE-$TH_ENGINE"
+  collect_job "tornhold-wait-$TH_MODE-$TH_ENGINE"
+done; done
+for TH_ENGINE in uring epoll; do collect_job "tornhold-flip-2s-$TH_ENGINE"; done
 collect_job atomic_batteries
 collect_job moverfix
 # hexpread: eight independently scored rows before the quick exit (DQ +8 / DF +8).

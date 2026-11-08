@@ -38,11 +38,10 @@ def send(worker, message):
     worker.stdin.flush()
 
 
-def cell(binary, folder, seed, mode, atomic, verb, depth, count, clients, place_io):
+def cell(binary, folder, seed, mode, atomic, verb, depth, count, clients, place_io, port):
     folder.mkdir(parents=True)
     if seed.exists():
         shutil.copy2(seed, folder / "workload.tomo")
-    port = 26095
     guard = socket.socket()
     guard.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     guard.bind(("127.0.0.1", port))
@@ -188,6 +187,9 @@ def main():
     parser.add_argument("--modes", nargs="+", default=["2s", "1s"])
     parser.add_argument("--arms", nargs="+", default=["pre", "part1-r7", "part2-r7"])
     parser.add_argument("--smoke", action="store_true")
+    parser.add_argument("--port", type=int, default=26595)
+    parser.add_argument("--get-depths", nargs="+", type=int, default=[1, 32])
+    parser.add_argument("--seed", type=Path, help="reuse the original pricing keyspace/hash seed")
     parser.add_argument("--place-io", action="store_true",
                         help="hold each worker on a DEBUG-witnessed IO thread across all arms")
     args = parser.parse_args()
@@ -199,7 +201,10 @@ def main():
     (out / "binaries.json").write_text(json.dumps({arm: hashlib.sha256(path.read_bytes()).hexdigest()
                                                   for arm, path in arms.items()}, indent=2) + "\n")
     cells = [(verb, depth, atomic) for atomic in (0, 1)
-             for verb, depth in (("GET", 1), ("GET", 32), ("SET", 32), ("MGET", 8), ("MSET", 8))]
+             for verb, depth in ([("GET", depth) for depth in args.get_depths] +
+                                 [("SET", 32), ("MGET", 8), ("MSET", 8)])]
+    if args.seed:
+        shutil.copy2(args.seed, out / "seed.tomo")
     if args.smoke:
         cells = cells[:1]
     print(out, flush=True)
@@ -211,7 +216,7 @@ def main():
                 for arm in order:
                     name = f"{mode}-a{atomic}-{verb}-p{depth}-r{rep}-{arm}"
                     row = cell(arms[arm], out / name, out / "seed.tomo", mode, atomic, verb, depth,
-                               args.count, args.clients, args.place_io)
+                               args.count, args.clients, args.place_io, args.port)
                     row.update(arm=arm, repeat=rep)
                     results.append(row)
                     (out / "results.json").write_text(json.dumps(results, indent=2) + "\n")

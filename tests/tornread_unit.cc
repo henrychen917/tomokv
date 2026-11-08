@@ -136,6 +136,13 @@ static void bucket_cases(Server& server) {
     pool.plain_hold_discard(server, h, 0);  // joined shutdown, including both buckets
     assert(!h.live() && server.atomic_read_floor() == UINT64_MAX);
 
+    puts("PASS ring/buckets: allocation-free, wrap, full join, rotation, progress, combined floors, confirmation, discard");
+}
+
+static void continuous_progress(Server& server) {
+    ScatterArenaPool pool;
+    PlainReadHold h;
+    uint8_t bucket = 0;
     // Continuous sliding window: the ROB is never quiescent, and B may extend over
     // several passes. A must rotate out so the floor advances throughout the run.
     uint64_t issued = 0, flush = 0, previous_floor = 0;
@@ -155,7 +162,7 @@ static void bucket_cases(Server& server) {
     }
     assert(advances > 100);  // always extending A fails this assertion
     pool.plain_hold_discard(server, h, 0);
-    puts("PASS ring/buckets: allocation-free, wrap, full join, rotation, progress, combined floors, confirmation, discard");
+    puts("PASS continuously nonempty ROB advances cleanup floor");
 }
 
 struct DrainContext { Server& server; ScatterArenaPool& pool; unsigned calls = 0; };
@@ -171,7 +178,8 @@ static void bind_drain(WbEngine& wb, Ring& ring, DrainContext& context, uint32_t
     });
 }
 static void drain_cases(Server& server) {
-    for (bool suppress : {false, true}) for (bool closing : {false, true}) {
+    for (bool suppress : {false, true}) for (bool closing : {false, true})
+        for (bool parked : {false, true}) {
         ScatterArenaPool pool;
         Client client(-1);
         if (closing) client.mark_closing();
@@ -184,6 +192,13 @@ static void drain_cases(Server& server) {
                               uint16_t(rob.dispatch_id()), bucket, 0);
         reply_ok(second->sink()); rob.publish();
         pool.plain_hold_cover(rob.plain_hold(), bucket, uint16_t(rob.dispatch_id()));
+        Op* coordinator = nullptr;
+        if (parked) {
+            coordinator = rob.acquire<true>(); assert(coordinator);
+            reply_ok(coordinator->sink()); rob.publish();
+            if (suppress) coordinator->mark_reply_skip();
+            // An uncovered coordinator must not extend the covered read's end.
+        }
         if (suppress) { first->mark_reply_skip(); second->mark_reply_skip(); }
         Ring ring; WbEngine wb; uint32_t now = 0; LoopSignals signals;
         std::atomic<bool> limits{false}; DrainContext context{server, pool};
@@ -197,7 +212,12 @@ static void drain_cases(Server& server) {
         first->state.store(OpState::Done, std::memory_order_release);
         drain(); assert(context.calls == 1 && rob.plain_hold().live() && !rob.quiesced());
         second->state.store(OpState::Done, std::memory_order_release);
-        drain(); assert(context.calls == 2 && !rob.plain_hold().live() && rob.quiesced());
+        drain(); assert(context.calls == 2 && !rob.plain_hold().live());
+        assert(rob.quiesced() == !parked);
+        if (parked) {
+            coordinator->state.store(OpState::Done, std::memory_order_release);
+            drain(); assert(context.calls == 2 && rob.quiesced());
+        }
         assert(server.atomic_read_floor() == UINT64_MAX);
         if (suppress) assert(client.nothing_to_write());
     }
@@ -213,15 +233,19 @@ struct CoreConcurrencyTest {
         for (uint32_t tid : server.placement().ex_threads())
             assert(server.thread(tid).init_task_inbox_local(server.placement().ifid_threads(),
                                                            server.placement().ex_threads()));
-        for (uint64_t start : {uint64_t{65534}, UINT64_MAX - 1}) {
+        for (uint64_t start : {uint64_t{65534}, UINT64_MAX - 1})
+            for (const char* tail : {"", "*3\r\n$4\r\nWAIT\r\n$1\r\n1\r\n$1\r\n0\r\n",
+                                    "*3\r\n$4\r\nFLIP\r\n$1\r\n1\r\n$1\r\n7\r\n"}) {
             Client client(-1); client.set_id(1); client.set_ifid_thread(0);
             client.set_wb_slot(server.thread(0).assign_wb_slot(&client));
             auto& rob = client.rob();
             rob.dispatch_.store(start); rob.flush_.store(start);
             constexpr char request[] = "*2\r\n$3\r\nGET\r\n$1\r\nx\r\n*2\r\n$3\r\nGET\r\n$1\r\ny\r\n";
             std::memcpy(client.rbuf(), request, sizeof(request) - 1);
-            client.commit_read(sizeof(request) - 1);
+            std::memcpy(client.rbuf() + sizeof(request) - 1, tail, std::strlen(tail));
+            client.commit_read(sizeof(request) - 1 + std::strlen(tail));
             io.parse_and_dispatch<false>(&client);
+            assert(client.rpos() == sizeof(request) - 1); // OrderedLocal waits for both reads.
             assert(rob.dispatch_id() == start + 2 && rob.plain_hold().live());
             assert(rob.plain_hold().a_end == uint16_t(start + 2));
             unsigned posted = 0;
@@ -248,15 +272,21 @@ struct CoreConcurrencyTest {
 };
 }
 
-int main() {
+int main(int argc, char** argv) {
     static_assert(sizeof(Op) == 336 && sizeof(Client) == 1984 && sizeof(ThreadCtx) == 1408);
     static_assert(sizeof(Shard) == 1440 && sizeof(FlatStore) == 944 && sizeof(Rob<64>) == 192);
     static_assert(sizeof(AtomicEntry) == 144 && sizeof(Config) == 624);
-    ring_cases();
+    if (argc == 1) ring_cases();
     assert(command_registry_init(false));
     Config cfg; cfg.databases = 1; cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
     cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0; cfg.save.clear();
     Server server; assert(server.prepare_boot(cfg) && server.init(cfg));
-    bucket_cases(server); drain_cases(server); CoreConcurrencyTest::parser_wrap(server);
+    if (argc == 2) {
+        assert(std::string(argv[1]) == "--progress");
+        continuous_progress(server);
+        return 0;
+    }
+    bucket_cases(server); continuous_progress(server);
+    drain_cases(server); CoreConcurrencyTest::parser_wrap(server);
     puts("PASS tornhold layouts and hold lifetime");
 }

@@ -8,8 +8,9 @@ HERE=$ROOT/tests
 BIN=${TORNREAD_BIN:-$ROOT/build/tornread/tomokv-part2-r7}
 REDIS74_ROOT=${REDIS74_ROOT:-/tmp/claude-1000/redis74}
 REDIS_BIN=$REDIS74_ROOT/src/redis-server
-SERVER_CPUS=0-7
-CLIENT_CPUS=8-11
+SERVER_CPUS=${TORNREAD_SERVER_CPUS:-0-7}
+CLIENT_CPUS=${TORNREAD_CLIENT_CPUS:-8-11}
+PORT_BASE=${TORNREAD_PORT_BASE:-26590}
 FAILED=0
 
 [ -x "$BIN" ] || { echo "missing $BIN" >&2; exit 2; }
@@ -125,16 +126,20 @@ TARGETS=("$@")
 for target in "${TARGETS[@]}"; do
   case "$target" in
     tomo1)
-      boot tomo1 26090 tomo --atomic 1 --key-lb 0 --flip-auto 0 --enable-debug-command yes || { FAILED=1; continue; }
-      run_matrix tomo1 26090 1 tomo
+      boot tomo1 "$PORT_BASE" tomo --atomic 1 --key-lb 0 --flip-auto 0 --enable-debug-command yes || { FAILED=1; continue; }
+      run_matrix tomo1 "$PORT_BASE" 1 tomo
+      arm tomo1 "$PORT_BASE" getmget 180 --geometry debug --require-atomic 1 \
+          --read-mode getmget --depth 1 --order ab --lag-noise 2 --readers 4
       stop_pid "$SRV_PID";;
     tomo0)
-      boot tomo0 26091 tomo --atomic 0 --key-lb 0 --flip-auto 0 --enable-debug-command yes || { FAILED=1; continue; }
-      run_matrix tomo0 26091 0 tomo
+      boot tomo0 "$((PORT_BASE+1))" tomo --atomic 0 --key-lb 0 --flip-auto 0 --enable-debug-command yes || { FAILED=1; continue; }
+      run_matrix tomo0 "$((PORT_BASE+1))" 0 tomo
+      arm tomo0 "$((PORT_BASE+1))" getmget-exec 180 --geometry debug --require-atomic 0 \
+          --read-mode getmget --depth 1 --order ab --lag-noise 2 --readers 4 --writer-kind exec
       stop_pid "$SRV_PID";;
     redis)
-      boot redis 26092 redis || { FAILED=1; continue; }
-      run_matrix redis 26092 - redis
+      boot redis "$((PORT_BASE+2))" redis || { FAILED=1; continue; }
+      run_matrix redis "$((PORT_BASE+2))" - redis
       stop_pid "$SRV_PID";;
     *) echo "unknown target $target" >&2;;
   esac

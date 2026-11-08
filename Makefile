@@ -857,6 +857,8 @@ $(BUILD_ROOT)/publishfix-unit: tests/publishfix_unit.cc $(PUBLISHFIX_OBJ) $(wild
 
 build/tornread-unit: tests/tornread_unit.cc $(filter-out build/src/main.o,$(OBJ)) $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(filter-out build/src/main.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/tornhold-db0-unit: tests/tornread_unit.cc $(DB0_TEST_OBJ) $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< $(DB0_TEST_OBJ) $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
 build/atomic-survivors-unit: tests/atomiccollapse_checks.inc tests/atomic_plain_checks.inc tests/txnorder_checks.inc
 build/atomic-survivors-unit: tests/atomic_survivors_unit.cc src/cmd/xshard.cc $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
