@@ -43,7 +43,7 @@ invalidate them. The report is the only non-source deliverable.
 
 | readability-a9-comment-audit.md | 1 | **fixed**: handoff requires an empty source deferred queue before rebinding; reclaim consults the store's current sink (`src/core/ex_loop.h:1570-1578`, `src/core/server.h:2156-2166`, `src/store/flatstore_impl.h:reclaim helpers`). **outside source scope:** `docs/decisions/readability-a9.md:147` retains the wrong queued-retirement claim. |
 | readability-a9-comment-audit.md | 2 | **fixed**: documented coordinator retirement of a disabled idle clock after sink rebind, its quiescence premise and debug-owner rejection (`src/core/server.h:2325-2338`, `src/store/flatstore.h:1563-1569`, `src/core/read_local.h:432-447`). No behavioral fix attempted. |
-| readability-a9-comment-audit.md | 3 | **fixed**: commit_raw callers are IO retirement's direct/coded commits, directly or through commit_fill; Done publication orders worker bytes (`src/net/wb.h:45-47`, `:314`, `:808-810`, `src/net/conn.h:480-482`). **outside source scope:** corresponding decision-log and A9 report/evidence caller lists remain unchanged. |
+| readability-a9-comment-audit.md | 3 | **fixed**: commit_raw callers are IO retirement's direct/coded commits, directly or through commit_fill; Done publication orders worker bytes (`src/net/wb.h:45-47`, `:314`, `:808-810`, `src/net/conn.h:480-482`). **outside source scope:** `docs/decisions/readability-a9.md:67` and `MEASURE-REQUEST-readability-a9.md:183` remain unchanged. |
 | readability-a9-comment-audit.md | 4 | **fixed**: all three measured memcmp exceptions are named with per-site rationale (`src/store/flatstore_impl.h:50-53`, `:549`, `:755-759`); namespace/length identity remains shared. |
 | readability-a9-comment-audit.md | 5 | **fixed**: distinguished SORT ALPHA locale collation without STORE from binary numeric ties/ALPHA STORE (`src/cmd/t_sort.cc:172-195`). |
 | readability-a9-comment-audit.md | 6 | **fixed**: scratch keys must borrow stable record/ScatterState storage, never values retired during ongoing index probes (`src/store/flush.cc:294-328`, `src/store/flatstore_atomic.inc:atomic_entry_key`). |
@@ -74,11 +74,29 @@ invalidate them. The report is the only non-source deliverable.
 | readability-a9-comment-audit.md | 31 | **fixed**: discover falls back to per-CPU domains for unreadable L3 sysfs and fails for affinity/empty-mask cases; other discovery methods have different failures (`src/base/topology.h:104-137`). |
 | readability-a9-comment-audit.md | 32 | **fixed**: ThreadCtx latches sched_getcpu after optional pinning; this need not be an assigned CPU (`src/core/thread.h:476-482`). |
 
+| readability-a10-comment-audit.md | 1 | **fixed**: Client NO-TOUCH deliberately equals Op::kNoTouch bit 4; reset copies the flag byte and maxmemory execution reads the Op snapshot (`src/exec/op.h:99`, `:205`, `:475`, `src/core/ex_execute.inc:58`, `:121`). |
+| readability-a10-comment-audit.md | 2 | **fixed** in conn.h and rob.h: Done-before-notify requires the executor epoch fence and safe_to_release recheck; close retains the corpse another loop iteration (`src/core/ex_execute.inc:283-290`, `src/core/io_loop.h:395`, `:5597-5635`). **outside source scope:** `docs/decisions/readability-a10.md:128-134` retains the incomplete fence list. |
+| readability-a10-comment-audit.md | 3 | **fixed**: receive realloc preserves the old buffer; SmallBuf/SegmentQueue output growth malloc is unchecked (`src/net/conn.h:403-408`, `:253-263`, `src/base/slice.h:grow`). |
+| readability-a10-comment-audit.md | 4 | **fixed**: unarmed returns true, but an armed overflow generation refuses precise-write marking until retirement (`src/net/rob.h:528-533`, `src/core/read_local_parse.inc:117-118`). |
+| readability-a10-comment-audit.md | 5 | **fixed**: parsed argv is immutable because owner execution and read-local conflict scans can read it concurrently; alternative argv requires a separate Op (`src/net/rob.h:518-520`, `:622-643`, `src/exec/op.h:decoder lifetime comment`). |
+| readability-a10-comment-audit.md | 6 | **fixed**: restored exclusive worker-access list and IO single-writer rule for remaining Client scalars; connection facts travel in the Op snapshot (`src/net/conn.h:929-936`, `src/core/ex_execute.inc:58`, `:121`). |
+| readability-a10-comment-audit.md | 7 | **fixed**: restored all three provenance/licence comment lines byte-for-byte from `git show 7595a6705a:src/net/resp.h`, naming redis-7.2 / valkey (BSD-3) and the RSALv2/SSPLv1 Redis 8.6.2 fork. **outside source scope:** decision-log provenance entry was not edited; this report records the restoration. |
+| readability-a10-comment-audit.md | 8 | **fixed**: after owners complete, notify_multi_before may mutate only IO-owned route bits (`src/cmd/clientcompat.cc:210-216`, `src/cmd/multi.inc:2997-3000`). |
+| readability-a10-comment-audit.md | 9 | **fixed**: restored warning that pure GET/SET cells miss routing-line regression paid by atomic/cross-shard work (`src/net/conn.h:958-979`). |
+| readability-a10-comment-audit.md | 10 | **fixed**: live-socket probe is a deliberate stricter policy under the single-instance release rule; retained both probe/unlink and TCP boot TOCTOU limitations (`src/net/unix_listener.h:59-83`). |
+| readability-a10-comment-audit.md | 11 | **fixed**: restored peer-abort classification rationale and timing-dependent send_errors==0 hazard; both plain/kTLS and memory-BIO completions preserve this split (`src/net/wb.h:568-578`, TLS completion peer-abort branch). |
+| readability-a10-comment-audit.md | 12 | **fixed**: reclamation belongs to cold cron; forget also runs at close/migration, not request retirement (`src/core/io_loop.h:idle_buffers_.visit/forget callers`). |
+| readability-a10-comment-audit.md | 13 | **fixed**: false is not a teardown signal; TLS callers inspect failed(), while return value describes progress and also covers no-work/WANT/SQE-shortage cases (`src/net/wb.h:461-551`, `src/core/wb_rule.h:TLS serve branch`). |
+| readability-a10-comment-audit.md | 14 | **fixed**: assertion pins TLS offset 1980; no assertion pins last_interaction_s_ at offset 12 (`src/net/conn.h:838-839`, `:954-955`). |
+| readability-a10-comment-audit.md | 15 | **fixed**: coded replies apply to Fused=true instantiations in 1s and 2s SplitLocal, not plain 2s (`src/core/rl2s.cc:88-95`, `src/core/wb_rule.h:Phase2::serve`). |
+| readability-a10-comment-audit.md | 16 | **fixed**: direct rob.h includers are conn.h and core/thread.h, for ReadLocalArmStats (source include search). |
+| readability-a10-comment-audit.md | 17 | **fixed**: op_materialise_code uses the table during retirement for segment staging/borrowed MGET flush (`src/net/wb.h:290`, `:306`, `:783`, `:790`, `src/cmd/xshard_commands.inc:1983`). |
+
 FACT LEDGER: replacements retain ownership, ordering, lifetime, failure and caller
 obligations. Added qualifications follow this base's code rather than copying
 suggested replacements blindly. Removed wording is either the specific false
 claim named in its row or retained in the replacement with a precise scope.
 
-A7-A9 complete: 60/60 source findings addressed; out-of-scope documentation
-occurrences are identified in their rows. A10 and final verification are pending.
+All 77 source findings addressed; out-of-scope documentation occurrences are
+identified in their rows. Final verification is pending.
 No gate rows added or retired: EXPECT_QUICK / EXPECT_FULL remain unchanged.

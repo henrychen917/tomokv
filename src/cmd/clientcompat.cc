@@ -171,6 +171,8 @@ void IoLoop::tracking_retire_exec_read(Client& client, Op& op, NotifyBatch* batc
 // exhaustion consumes those routes and counts drops without waiting. The returned
 // shared_ptr owns a reservation accounted by Server's relaxed CAS/fetch_sub; it
 // does not itself publish the chain to recipients.
+// Owners have completed, so the batch is immutable except for these IO-owned route bits;
+// that makes the unsynchronized routes updates safe.
 [[gnu::noinline]] std::shared_ptr<PubSubNotificationChain> notify_multi_before(Server& server,
                                                                                NotifyBatch* batch,
                                                                                uint32_t order) {

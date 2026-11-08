@@ -3,10 +3,11 @@
 // relevant protocol/transport drains. Pack receive/send scalars together and keep per-operation
 // output/atomic-group counters off the executor-facing completion-routing cache line.
 //
-// Workers access ROB Op state/replies, argv slices into rbuf_, and reserved direct-reply bytes in
-// buf_[]. Op::state's release Done store publishes reply bytes to the acquire in Rob::drain.
-// Completion routing uses retire_queued_, wb_slot_, ifid_thread_ and id_; WATCH additionally uses
-// its reference/generation/dirty atomics. The IO owner maintains buffer headers and cursors.
+// Workers touch only ROB Op state/replies, argv slices into rbuf_, reserved direct-reply bytes in
+// buf_[], and the executor-facing tail line: completion routing reads retire_queued_, wb_slot_,
+// ifid_thread_ and id_, and WATCH uses its reference/generation/dirty atomics. Every other Client
+// scalar is single-writer IO-owner state; executors take connection facts from the Op snapshot,
+// never those fields. Op::state's release Done store publishes reply bytes to Rob::drain's acquire.
 //
 // ============================================================================================
 // THE READ BUFFER MUST NEVER MOVE LIVE BYTES. This is the subtle one.
@@ -296,7 +297,9 @@ private:
 // hold pinned argv/direct-reply ranges and publish completion through Op::state. set_ifid_thread
 // release-publishes an ownership change, paired with ifid_thread's acquire. ROB capacity and
 // read_space enforce input back-pressure; safe_to_release also waits for IO, retire posts and WATCH
-// references. Construction's malloc is unchecked; buffer-growth failure retains existing storage.
+// references. Construction's malloc is unchecked. Failed receive-buffer realloc in read_space
+// keeps the old buffer; output growth is not recoverable (SmallBuf::grow and SegmentQueue growth
+// use unchecked malloc). safe_to_release is only one part of the lifetime fence described below.
 class Client {
 public:
     explicit Client(int fd) : fd_(fd) {
@@ -740,8 +743,9 @@ public:
         else
             connection_flags_ &= static_cast<uint8_t>(~kResp3);
     }
-    // CLIENT NO-TOUCH uses bit 4 of the connection byte passed through op_route_flags(). Op's
-    // routing-bit assignments leave that bit available, keeping the footprint and flag load shared.
+    // CLIENT NO-TOUCH is bit 4 of this byte, deliberately matching Op::kNoTouch. Op::reset copies
+    // op_route_flags() wholesale, so every Op captures it without another field or load; ExLoop
+    // reads Op::no_touch when maxmemory is enabled. Keep both bit assignments equal.
     bool no_touch() const { return connection_flags_ & kNoTouch; }
     void set_no_touch(bool value) {
         if (value)
@@ -786,11 +790,14 @@ public:
         if (watched_refs_.fetch_sub(1, std::memory_order_acq_rel) == 0) std::abort();
     }
     // ---- cross-thread lifetime fences ---------------------------------------------------------
-    // Release requires ROB quiescence, no outstanding recv/send, no claimed retire-channel post,
-    // and no WATCH references. A worker may post Client* before IO retires it through flush_ready;
-    // quiescence alone cannot make that queued pointer disappear. retire_queued_ is claimed before
-    // posting and cleared when the consumer takes the entry. After the final completion there is
-    // no new completion claim, so checking the claim with acquire closes that lifetime window.
+    // safe_to_release requires ROB quiescence, no outstanding recv/send, no claimed retire-channel
+    // post and no WATCH references. It is necessary, not sufficient: notify_sender claims
+    // retire_queued_ and posts Client* AFTER the executor stores Done, so IO can see quiescence
+    // while a claim is still coming. close_client re-checks safe_to_release around
+    // client_executor_quiesced (ClientWorkScope epochs), then retains the corpse for a full loop
+    // iteration before freeing it. Migration uses the same executor-epoch fence. retire_queued_
+    // is claimed before posting and cleared when the consumer takes the entry; ROB quiescence
+    // alone cannot make a queued pointer disappear.
     bool safe_to_release() {
         return rob_.quiesced() && !recv_armed_ &&
                !send_inflight_ &&  // the KERNEL holds no pointer into us
@@ -835,8 +842,8 @@ public:
     uint32_t wb_slot() const { return wb_slot_.load(std::memory_order_relaxed); }
     void set_wb_slot(uint32_t s) { wb_slot_.store(s, std::memory_order_release); }
 
-    // The IO owner's out-of-line TLS state is named by a four-byte slot at offset 1980.
-    // Offset 12 belongs to last_interaction_s_; the static_asserts lock these layout assignments.
+    // The IO owner's out-of-line TLS state is named by a four-byte slot at offset 1980
+    // (static_assert below). Offset 12 holds last_interaction_s_; no assertion pins that offset.
     static constexpr uint32_t kNoTlsSlot = UINT32_MAX;
     bool is_tls() const { return tls_slot_ != kNoTlsSlot; }
     uint32_t tls_slot() const { return tls_slot_; }
@@ -958,6 +965,7 @@ static_assert(Client::tls_slot_offset() == 1980,
 // Completion-routing fields ifid_thread_, wb_slot_ and id_ share one 64-byte line. Per-append
 // obuf_bytes_ and per-atomic-command atomic_groups_io_ occupy IO-private lines so those writes
 // do not invalidate the routing line that executors read. The assertions lock both placements.
+// A regression here is invisible in pure GET/SET cells and paid by atomic/cross-shard workloads.
 constexpr size_t Client::executor_line_offset() { return offsetof(Client, retire_queued_); }
 constexpr size_t Client::wb_slot_offset() { return offsetof(Client, wb_slot_); }
 constexpr size_t Client::ifid_thread_offset() { return offsetof(Client, ifid_thread_); }

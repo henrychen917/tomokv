@@ -454,8 +454,10 @@ public:
     // Send pending ciphertext first, then offer the plaintext head to OpenSSL. Client cursors advance
     // by accepted plaintext; BIO cursors advance by ciphertext send results. Borrow segments abort,
     // and WANT retries require the same pinned plaintext range. An in-flight send/SQE shortage or
-    // WANT leaves work staged; TLS failure returns false for caller teardown. No cross-thread
-    // state is published here beyond the submitted IO request; return value reports progress.
+    // WANT leaves work staged. True means ciphertext was submitted or OpenSSL accepted plaintext;
+    // false also covers no pending output, an in-flight send, WANT, SQE shortage and TLS failure.
+    // Callers decide teardown from tls.failed(), not this result. No cross-thread state is
+    // published here beyond the submitted IO request.
     template <bool kEp = false, bool ClassifySend = false>
     bool pump_tls(Client& c, TlsConn& tls) {
         if (c.send_inflight()) return false;
@@ -567,9 +569,11 @@ public:
                     resubmit = true;
                 } else if (res == -ECONNRESET || res == -EPIPE || res == -ECONNABORTED ||
                            c.closing()) {
-                    // Peer resets/broken pipes/aborts and closing clients count separately from
-                    // other send failures, including CLIENT KILL and kTLS on this plain path.
-                    // The memory-BIO completion path also separates peer aborts from send errors.
+                    // Peer resets/broken pipes/aborts and closing clients, including CLIENT KILL
+                    // and kTLS on this path, are peer_aborts rather than send_errors: no reply
+                    // the peer could still read is lost. Counting these as send_errors made
+                    // send_errors == 0 assertions timing-dependent. The memory-BIO completion
+                    // path makes the same split.
                     stats_.peer_aborts++;
                     return false;
                 } else {
@@ -757,8 +761,9 @@ private:
         return flushed;
     }
 
-    // Coded is a template choice supplied by the loop's Fused specialization: flush_ready carries
-    // that role and run_fused selects Fused=true. if constexpr removes code handling when false.
+    // Coded is the loop's Fused template choice: flush_ready passes Fused to Phase2::serve.
+    // run_fused (1s) and rl2s's SplitLocal run_loop (2s read-local) both instantiate Fused=true;
+    // plain 2s does not. if constexpr removes code handling when false.
     // This avoids a runtime forwarding boundary that changes inlining of the retirement body.
     // The macro shares retirement, staging, OOB flushing, limits and accounting inside the original
     // template/lambda contexts; a separate function would change those compiler contexts. It adds

@@ -3,6 +3,10 @@
 // borrow the input buffer, while quoted inline arguments own decoded bytes in Op's argv block.
 // Reply helpers write a caller-owned sink or record a code for later formatting. resp3.h is
 // included after these builders to supply protocol-selecting overloads.
+//
+// Patterned on the protocol as documented and as implemented in redis-7.2 / valkey (BSD-3). Nothing
+// here is copied from our own Redis 8.6.2 fork, which carries RSALv2/SSPLv1 and would contaminate
+// the licence of this tree.
 #pragma once
 #include <cstdint>
 #include <cstdio>
@@ -94,7 +98,9 @@ struct RespInlineDecoder {
 
     // Validate/count with null outputs, then decode into the caller's args/bytes block on a
     // second pass. decode supplies argc Slice slots and at least end-p payload bytes. Input and
-    // reply storage are untouched; consumers retain the parsed argv (EXEC builds a separate Op).
+    // reply storage are untouched. Args are immutable after parsing: executors and the read-local
+    // conflict predicate can read a live op's argv concurrently, so commands that build another
+    // argv use a separate Op (e.g. EXEC).
     // The parsing caller serializes these local writes; malformed quotes return false, possibly
     // after partial output. There is no allocation, publication or waiting in this routine.
     [[gnu::cold, gnu::noinline]] static bool split(const char* p, const char* end, Slice* args,
@@ -845,8 +851,9 @@ inline void reply_bulk(Buf&& b, Slice s) {
 // Fixed replies pair 16 bytes with their wire length. format_reply_code copies all 16 bytes
 // at a computed index, so callers reserve kReplyCodeMax even for shorter replies. This keeps the
 // copy width constant and the length beside the bytes, without a switch/jump-table dispatch.
-// Retirement formats into the connection owner's fill storage; op_materialise_code also uses
-// this table when a consumer needs reply bytes before retirement.
+// Retirement formats into the connection owner's fill storage; op_materialise_code uses the
+// same table during retirement when a coded reply must first become bytes in op.reply (WbEngine
+// segment staging and assemble_mget's borrowed flush).
 struct FixedReply {
     char bytes[16];
     uint32_t len;
