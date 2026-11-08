@@ -1,4 +1,5 @@
-// Redis query-buffer-limit accounting. Only overflow, INFO and RESETSTAT touch this cache line.
+// Query-buffer-limit disconnect counter shared by IoLoop and INFO/RESETSTAT.
+// Relaxed increments record overflow closes; the counter does not publish connection state.
 #pragma once
 #include <atomic>
 #include <cstdint>
