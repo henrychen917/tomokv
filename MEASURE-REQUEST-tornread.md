@@ -132,8 +132,11 @@ exit at `tests/gate.sh:7516`, not at the job definition. At this base EXPECT_QUI
 labels; neither EXPECT nor `tests/fixtures/nullrefresh-ledger-labels.json` was edited.
 
 - Specified release `/home/user/Projects/bins/readability-pre-5c363128/tomokv`:
-  all **12 pipelined rows FAIL**, each at the first ~0.3-second check;
-  all **12 round-trip controls PASS**. Ledger: `build/gate-run.RNyIRh/ledger.partial`.
+  all **16 pipelined rows FAIL**, each at the first ~0.3-second check;
+  all **16 round-trip controls PASS**. Original twelve-shape ledger:
+  `build/gate-run.RNyIRh/ledger.partial`; the four added split read-local shapes:
+  `build/gate-run.STc8Fz/ledger.partial`. Every falsifier has zero worker errors
+  and no vacuity flags; failures are observed torn replies.
 - PART1 at atomic 1: both network engines' hunts and controls passed.
   `build/gate-run.yt0k43/ledger.partial` (initial PART1 build before the scatter-cut followup).
 - PART1 at atomic 0 still FAILS as expected: uring 7 violations / 211,456 pairs in
