@@ -1,0 +1,10 @@
+{
+  "pre": "/home/user/Projects/bins/readability-pre-5c363128/tomokv",
+  "pre_sha256": "0de6bbdea50caf4f90f797c4e52a4e86be30e2c554fb544f257f5148bf4016cd",
+  "post": "build/tomokv",
+  "post_sha256": "ab2cf736985d580e7e5876b2da87571da86199c1a5eeae01c9233d9bd0bea501",
+  "info_git_sha1": "5c363128",
+  "info_git_dirty": "0",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "proof": "IDENTICAL (11167504 bytes after stripping)"
+}

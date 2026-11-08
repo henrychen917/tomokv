@@ -77,7 +77,9 @@ The R7 blocks in `src/core/reorder.cc`, `src/core/io_loop.h` and `src/core/ex_lo
 have `// clang-format off/on` immediately outside their existing BEGIN/END markers.
 The formatter handles the handwritten inputs first, then invokes
 `tests/r7shadow_sync.py --write`. Generated output is never hand-formatted. Both sync
-entry points pass on POST, and `make format-check` includes the generator's check mode.
+entry points pass on POST through the source-tool matrix. The existing `reorder_sync`
+gate job checks generator parity separately, keeping `make format-check` strictly
+limited to the formatter manifest.
 
 No literal-bearing file needed exclusion. [The full audit](docs/readability-a2/source_proof.py)
 uses A1's `tools/source_tokens.py` **raw `lex()` tokens**, without identifier normalization.
@@ -86,6 +88,8 @@ including all 12 raw literals and the Lua/help strings in scripting/functions. L
 spelling is also compared separately before splice normalization. Every `TOMO_TOOL_*`
 comment remains at the same token boundary. There are **zero exceptions**. All **528**
 generated/vendor/archive files audited separately remain byte-identical.
+The ordered comment text also matches PRE after removing whitespace, apart from the six
+explicitly requested generated-region formatter guards.
 
 The final pinned configuration's `make format-check` passes POST and rejects a disposable
 exact PRE source copy overlaid only with the new formatter tooling: **397 offending files,
@@ -100,7 +104,16 @@ the source PAD checks, 41 WB controls, six flush sites, four WBLAND controls, ni
 controls, three persistence controls, six applicable blockfix controls, metadata/docs
 generators, SplitLocal, and the Makefile Climon/L4 token controls.
 
-Explicit regeneration exposed two A1 generator gaps, fixed in the tools:
+All **nine ELF controls** pass and reject missing symbols under both source roots,
+with identical required symbol inventories. Eight compare the supplied frozen production
+binary against POST: HLL, both executor checks, idle-clock allocation, both R7 capabilities
+and both LB controls. The ninth checks both database routes in the serverless storesize
+fixture, using that same fixture binary with each source root. The function-capture wrapper
+and exbatch ELF controls also pass through their gate jobs. [Tool summary](docs/readability-a2/evidence/tool-summary.json),
+[PRE cases](docs/readability-a2/evidence/tools-pre.json), [POST cases](docs/readability-a2/evidence/tools-post.json),
+and [313 output hashes](docs/readability-a2/evidence/emitted-tokens.json).
+
+Explicit regeneration exposed three A1 generator gaps, fixed in the tools:
 
 - `--write` previously did nothing when tokens matched, leaving stale generated layout.
   Explicit writes now refresh layout; unchanged output retains its mtime. The existing
@@ -108,6 +121,11 @@ Explicit regeneration exposed two A1 generator gaps, fixed in the tools:
 - The pinning helper was copied with its ordinary `TOMO_TOOL_BIND`, adding an extra
   generated binding. It now uses the same marker-stripping path as the other copied
   helpers. Marker removal handles actual comments and does not leave trailing spaces.
+- The token-only renamer stopped renaming function references in comments, losing two
+  existing `r7_` prefixes. The generator now retains the original comment-reference rule
+  within actual comments, with a regression check that literal contents stay untouched.
+  This correction is included in the preparation/reformat commits; the reformat preserves
+  all pre-existing non-whitespace comment text.
 
 The A1 proof driver also assumed CPUs 64–95 and hashes newly emitted files by mtime.
 The [A2 adapter](docs/readability-a2/prove_tools.py) passes the active authorized CPU mask
@@ -137,17 +155,39 @@ only `build/tomokv` as an executable, plus its assertion map. The frozen PRE was
 Completed independent checks:
 
 - `python3 tests/gates_test.py`: **83 tests, OK**.
-- Label-fixture unittest: **12 tests, OK**; **1,229 declared labels**, **1,230 fixture rows
-  including NIC**. `tests/gate.sh` and the fixture are unchanged. `EXPECT_QUICK=1212`,
+- Label-fixture unittest: **12 tests, OK**; **1,229 declared/fixture labels**. The optional
+  NIC row is additional in a full ledger and was not run. `tests/gate.sh` and the fixture
+  are unchanged. `EXPECT_QUICK=1212`,
   `EXPECT_FULL=1229`, and the quick-tier boundary are unchanged; row delta is zero.
 - Lottery runner/AST checks: **20 tests, OK**; A1b caller-inventory controls: **14 tests, OK**.
+- Production identity lint: **61 C++ translation units in both database variants and
+  six shared C translation units**, pass; stable assertion/source-identity tests pass.
 
-Selected runtime jobs and the production-unit build/freshness inventory are still running
-at this report checkpoint. Their final results and receipts will replace this paragraph.
+Every `job_production_units` target builds. The independent final build/freshness sweep is
+**71/71**: `all` plus all 61 primary targets, both MDB witness builds, blockfix cost plus
+its digest, both blockfix2 namespaces, both Climon token-control units, and the L4 unit.
+Each build exits zero and every concrete `make -q` query exits zero. Default `make -q`
+also exits zero with the INFO pins. [Exact targets and results](docs/readability-a2/evidence/builds.json).
+
+The selected gate run finishes **198 rows passed / zero failures**, across **49 counted
+jobs plus two build-only prerequisites**. Every selected job exits zero. The shared jobs'
+row-label multisets exactly match A1's recorded selection. This is a partial correctness
+run, not a full-gate certification. [Commands and environment](docs/readability-a2/evidence/gate-command.json),
+[per-job rows and exits](docs/readability-a2/evidence/gate-results.json), and
+[gate transcript](docs/readability-a2/evidence/gate.log).
+
 The job runner selects A1's previous jobs plus the three A1b caller jobs, with server CPUs
 0–31, load CPUs 32–47, no SMT, ports 25100–25198, and `GATE_TEST_PORT=25199`. Each ordinary
 boot retains the gate's eight-core, 16-shard, 6:2 geometry. `GATE_PROOF_NO_RATES=1` is used
 only with selected partial jobs. No full iteration, ABBA, NIC or throughput benchmark runs.
+
+[Binary inputs/hashes](docs/readability-a2/evidence/binary.json),
+[IDENTICAL output](docs/readability-a2/evidence/binary-neutral.log),
+[full source audit](docs/readability-a2/evidence/source-proof.json),
+[style measurements](docs/readability-a2/evidence/style.json),
+[candidate diffs](docs/readability-a2/evidence/candidates.json),
+[PRE rejection](docs/readability-a2/evidence/format-check-pre-final.json), and
+[POST formatter check](docs/readability-a2/evidence/format-check-post.log) are retained.
 
 Reproduction helpers: [gate selection](docs/readability-a2/run_gate.py),
 [build/freshness inventory](docs/readability-a2/build_proof.py), and
