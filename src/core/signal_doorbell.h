@@ -1,8 +1,10 @@
 // Process-wide shutdown eventfd: a nonterminal save-request wake and a sticky terminal wake.
 // Shared by main's signal handlers, worker rings, the monitor and the save-owner shutdown path.
-// Writes use the eventfd-required eight-byte uint64_t{1}. The save owner drains nonterminal
-// requests, including late writes after failed saves. A release/acquire terminal latch restores
-// any stop edge caught by that drain so other workers can still observe shutdown.
+// Writes use the eventfd-required eight-byte uint64_t{1}. Only the elected save-cron IO drains
+// nonterminal requests before starting the save and again for late writes after a failed save.
+// SHUTDOWN ABORT also drains when cancelling a pending request. Every other user polls without
+// reading. A release/acquire terminal latch restores any stop edge caught by that drain so
+// other workers can still observe shutdown.
 
 #pragma once
 

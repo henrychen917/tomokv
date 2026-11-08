@@ -2,8 +2,9 @@
 // Physical IO issuers operate their own rings/epoll instances. FLIP stage acknowledgements
 // fence listener cancellation, registration and ownership changes; admission/resumed
 // release-acquire epochs fence retained-fd admission. CONFIG uses a worker rendezvous with
-// barriers before replacing descriptors. A listener's home identifies its slot independently of
-// its current IO owner.
+// barriers before replacing descriptors. A listener record keeps its home IO and slot while its
+// owner changes. This is cold lifecycle code: accept branches, FLIP control, CONFIG rendezvous
+// and boot/shutdown; stable request paths do not enter here.
 
 #include "io_loop.h"
 #include <sys/resource.h>
@@ -36,10 +37,12 @@ struct FlipListenerState {
         int next;
         UrKind kind;
     };
-    // Contract: home identifies the stable array slot; owner selects the current issuer and
-    // target is the prepared destination. Issuers mutate accept/cancel flags; FLIP or CONFIG
-    // changes descriptor ownership after cancellation/rendezvous fences. This record does not
-    // close fd on destruction.
+    // Contract: home is the dense IO id whose native descriptor this record wraps; its stable
+    // slot is 3*home plus the TCP/TLS/UNIX index. owner selects the current issuer and target the
+    // prepared destination (home when home stays IO). Issuers mutate accept/cancel flags; FLIP
+    // or CONFIG changes ownership after cancellation/rendezvous fences. When owner == home,
+    // the issuer uses its native accept tag/armed flag and IoLoop destruction closes fd; a
+    // non-home owner closes fd in fliplisten_shutdown. This record itself never closes fd.
     struct Listener {
         int fd = -1;
         uint32_t home = 0, owner = 0, target = 0;

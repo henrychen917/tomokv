@@ -4,6 +4,8 @@
 // publishing owner work. A surviving IO may retain blocked/TLS/non-draining clients, but a
 // converting IO must refuse them. Borrow releases resume after final executor masks are
 // installed.
+// Ordinary command dispatch never calls these helpers; among command paths only blocking
+// continuations consult flip_blocked_dispatch_allowed.
 
 // Offline behaviour-twin patch point in both namespaces. A copied ELF can select the comparison
 // behavior by changing this immediate while retaining the candidate text layout; no runtime

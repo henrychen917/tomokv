@@ -3,7 +3,7 @@
 // incremental search instead uses count spread as a tie-breaker. Demand is the primary
 // objective and bytes can be a separate secondary objective, without blending their units.
 // Search mutates caller-owned temporary vectors, not client/shard ownership. Applying a plan
-// requires the migration protocol.
+// requires the migration protocol. Search is deterministic and never runs on a request path.
 
 #pragma once
 #include <atomic>
