@@ -1,4 +1,4 @@
-// Late-bound AF_UNIX listener ownership.
+// AF_UNIX listener lifetime for main.cc and the fused, R7 and split-read-local boot paths.
 //
 // Persistence is loaded before open() is called.  The object owns both an untransferred fd and,
 // after a successful bind, the filesystem pathname; transferring the fd to IoLoop deliberately
@@ -17,6 +17,10 @@
 
 namespace tomo {
 
+// Boot-thread owner of an untransferred fd and a bound pathname. path_ borrows configuration
+// storage, which must outlive this object. open reports errors without publishing to workers;
+// release_fd transfers the descriptor after attach_listener succeeds, retaining unlink duty.
+// Destruction closes any retained fd and unlinks an owned path; there is no internal locking.
 class LateUnixListener {
 public:
     explicit LateUnixListener(const char* path) : path_(path) {}
@@ -32,7 +36,10 @@ public:
     bool bound() const { return owns_path_; }
     int fd() const { return fd_; }
 
-    // May be called exactly once, after persistence load and before any IoLoop activates.
+    // Bind/listen on the boot thread after persistence loading and before listener activation.
+    // An empty path succeeds without a socket; a second call with an owned fd/path fails.
+    // Failures set error; post-bind chmod failure leaves fd/path cleanup to the destructor.
+    // This method establishes no atomic exclusion against another process binding the same path.
     bool open(uint32_t backlog, std::string& error, uint16_t permissions) {
         if (!configured()) return true;
         if (fd_ >= 0 || owns_path_) {
@@ -49,10 +56,10 @@ public:
         }
         std::memcpy(address.sun_path, path_, path_length + 1);
 
-        // Keep stale-path replacement, but never detach a live server's endpoint.
-        // Redis 7.4 unlinks even live sockets; the single-instance release rule is
-        // deliberately stricter here. Probe and unlink remain a concurrent-boot
-        // TOCTOU window, just like the disposable TCP boot probe.
+        // Probe an existing socket before replacing its pathname: a successful connection or
+        // any error other than ECONNREFUSED rejects the bind. Redis 7.4 unlinks even accepting
+        // sockets; this probe protects an observed accepting endpoint, but probe and unlink
+        // still have a concurrent-boot TOCTOU window, as does the disposable TCP boot probe.
         struct stat existing {};
         if (::stat(path_, &existing) == 0 && S_ISSOCK(existing.st_mode)) {
             const int probe = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0);
@@ -88,7 +95,7 @@ public:
         }
         owns_path_ = true;
         // Redis mode 0 leaves the process umask in charge. Apply an explicit mode before
-        // listening; the existing pathname/fd owner also cleans up a chmod failure.
+        // listening; this pathname/fd owner also cleans up a chmod failure.
         if (permissions && ::chmod(path_, static_cast<mode_t>(permissions)) != 0) {
             error = std::string("chmod unixsocket: ") + std::strerror(errno);
             return false;

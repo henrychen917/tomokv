@@ -1,3 +1,6 @@
+// CLIENT PAUSE command interface and expiry clock shared by store lookups.
+// command_bind_server release-publishes the Server-owned deadline pointer; readers acquire it.
+// The pointed-to deadline uses relaxed loads and remains owned by the bound Server.
 #pragma once
 #include <atomic>
 #include <cstdint>
