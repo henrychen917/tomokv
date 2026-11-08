@@ -1,5 +1,6 @@
 #include "src/core/server.h"
 #include "src/cmd/xshard.h"
+#include "src/net/wb.h"
 #include <cassert>
 #include <cstdio>
 #include <new>
@@ -78,5 +79,38 @@ int main() {
     assert(server.atomic_read_floor()==newer+1);
     pool.unregister_plain_read(server,a,0);
     assert(server.atomic_read_floor()==UINT64_MAX && !a.read_cut_registered_);
-    puts("PASS: references, wrap, OOM rollback, mixed floors, scatter ordering, early completion, confirmation, layouts");
+    // Real WB drains must release plain references even without zc_ptr or tracking.
+    for (bool suppress : {false, true}) for (bool closing : {false, true}) {
+        Client client(-1);
+        if (closing) client.mark_closing();
+        Op* op = client.rob().acquire<true>();
+        assert(op);
+        uint64_t live_cut=server.atomic_snapshot();
+        assert(pool.register_plain_read(server,*op,live_cut,0));
+        if (suppress) op->mark_reply_skip();
+        reply_ok(op->sink());
+        client.rob().publish();
+        Ring ring;
+        WbEngine wb;
+        uint32_t now=0;
+        LoopSignals signals;
+        std::atomic<bool> limits{false};
+        struct Context { Server& server; ScatterArenaPool& pool; } context{server,pool};
+        wb.bind(&ring, nullptr, [](void*,int32_t,const char*) { std::abort(); }, &context,
+                [](void* opaque, Client&, Op& done) {
+                    auto& c=*static_cast<Context*>(opaque);
+                    assert(done.read_cut_registered_);
+                    c.pool.unregister_plain_read(c.server,done,0);
+                }, &limits, nullptr, [](void*,Client&) { return false; }, &now, &signals);
+        bool submit=false;
+        wb.prepare<true,true>(client,submit);
+        assert(server.atomic_read_floor()==live_cut+1 && !client.rob().quiesced());
+        op->state.store(OpState::Done,std::memory_order_release);
+        if (suppress) wb.prepare_suppressing(client,submit,false);
+        else wb.prepare<true,true>(client,submit);
+        assert(client.rob().quiesced() && !op->read_cut_registered_);
+        assert(server.atomic_read_floor()==UINT64_MAX);
+        if (suppress) assert(client.nothing_to_write());
+    }
+    puts("PASS: references, wrap, OOM rollback, mixed floors, scatter ordering, early completion, confirmation, WB/suppressed/closing retirement, layouts");
 }

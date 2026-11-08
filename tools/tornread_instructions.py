@@ -11,6 +11,7 @@ import json
 import multiprocessing as mp
 import os
 from pathlib import Path
+import re
 import select
 import signal
 import shutil
@@ -101,6 +102,8 @@ def cell(binary, folder, seed, mode, atomic, verb, depth, count, clients):
                     time.sleep(.05)
             else:
                 raise TimeoutError("server readiness")
+            listeners = subprocess.check_output(["ss", "-H", "-ltnp", f"sport = :{port}"], text=True)
+            assert set(re.findall(r"pid=(\d+)", listeners)) == {str(server.pid)}, listeners
             for worker in range(clients):
                 for i in range(0, 512, 32):
                     args = [item for k in range(i, i + 32) for item in (f"instr:{worker}:{k}", VALUE)]
