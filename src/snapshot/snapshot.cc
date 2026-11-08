@@ -26,7 +26,7 @@
 namespace tomo {
 namespace {
 
-constexpr uint8_t kFileMagic[8] = {'T','O','M','O','S','N','P','\0'};
+constexpr uint8_t kFileMagic[8] = {'T', 'O', 'M', 'O', 'S', 'N', 'P', '\0'};
 constexpr uint32_t kFileHeaderBytes = 80;
 static_assert(DatabaseMap::kPayloadBytes == 256,
               "snapshot version 1 stores mapping bytes only, excluding Map::epoch");
@@ -91,8 +91,7 @@ void consume_iovecs(SnapshotIoRequest& request, size_t bytes) {
         return;
     }
     if (bytes && request.vector_count) {
-        request.vectors[0].iov_base =
-            static_cast<uint8_t*>(request.vectors[0].iov_base) + bytes;
+        request.vectors[0].iov_base = static_cast<uint8_t*>(request.vectors[0].iov_base) + bytes;
         request.vectors[0].iov_len -= bytes;
     }
 }
@@ -108,7 +107,7 @@ bool queue_snapshot_write(Ring& ring, SnapshotIoRequest& request) {
 }
 
 bool read_all_fd(int fd, std::vector<uint8_t>& out, std::string& error) {
-    struct stat st{};
+    struct stat st {};
     if (::fstat(fd, &st) != 0 || st.st_size < 0) {
         error = "could not stat snapshot";
         return false;
@@ -123,7 +122,10 @@ bool read_all_fd(int fd, std::vector<uint8_t>& out, std::string& error) {
     while (off < out.size()) {
         const ssize_t n = ::read(fd, out.data() + off, out.size() - off);
         if (n < 0 && errno == EINTR) continue;
-        if (n <= 0) { error = "short snapshot read"; return false; }
+        if (n <= 0) {
+            error = "short snapshot read";
+            return false;
+        }
         off += static_cast<size_t>(n);
     }
     return true;
@@ -131,10 +133,14 @@ bool read_all_fd(int fd, std::vector<uint8_t>& out, std::string& error) {
 
 const char* hook_error(SnapshotHookStatus status) {
     switch (status) {
-        case SnapshotHookStatus::Unsupported: return "snapshot contains an unsupported value type";
-        case SnapshotHookStatus::Corrupt: return "corrupt snapshot type payload";
-        case SnapshotHookStatus::Oom: return "out of memory loading snapshot";
-        case SnapshotHookStatus::Ok: break;
+        case SnapshotHookStatus::Unsupported:
+            return "snapshot contains an unsupported value type";
+        case SnapshotHookStatus::Corrupt:
+            return "corrupt snapshot type payload";
+        case SnapshotHookStatus::Oom:
+            return "out of memory loading snapshot";
+        case SnapshotHookStatus::Ok:
+            break;
     }
     return "snapshot type hook failed";
 }
@@ -144,7 +150,7 @@ const char* hook_error(SnapshotHookStatus status) {
 const SnapshotTypeHooks& snapshot_type_hooks(Type type) {
     static const SnapshotTypeHooks hooks[] = {
         string_snapshot_hooks(), hash_snapshot_hooks(), list_snapshot_hooks(),
-        set_snapshot_hooks(), zset_snapshot_hooks(), stream_snapshot_hooks(),
+        set_snapshot_hooks(),    zset_snapshot_hooks(), stream_snapshot_hooks(),
     };
     const uint32_t index = static_cast<uint32_t>(type);
     return hooks[index < 6 ? index : 0];
@@ -160,12 +166,8 @@ static std::atomic<bool> last_bgsave_ok{true};
 [[gnu::noinline, gnu::cold]] static void record_bgsave_failure(AofManager* rewrite) {
     if (!rewrite) last_bgsave_ok.store(false, std::memory_order_relaxed);
 }
-bool snapshot_last_bgsave_ok() {
-    return last_bgsave_ok.load(std::memory_order_relaxed);
-}
-uint64_t snapshot_completed_saves() {
-    return completed_saves.load(std::memory_order_relaxed);
-}
+bool snapshot_last_bgsave_ok() { return last_bgsave_ok.load(std::memory_order_relaxed); }
+uint64_t snapshot_completed_saves() { return completed_saves.load(std::memory_order_relaxed); }
 
 SnapshotManager::~SnapshotManager() {
     // Server (the only owner) is mid-destruction here: members declared after snapshot_ -- the
@@ -177,7 +179,10 @@ SnapshotManager::~SnapshotManager() {
     if (chunk_in_) {
         for (uint32_t p = 0; p < nthreads_; p++) {
             SnapshotChunk* chunk = nullptr;
-            while (chunk_in_[p].recv(chunk)) { delete chunk; chunk_in_[p].retire(); }
+            while (chunk_in_[p].recv(chunk)) {
+                delete chunk;
+                chunk_in_[p].retire();
+            }
         }
     }
 }
@@ -218,8 +223,8 @@ void SnapshotManager::cancel_after_join(Server& server) {
     server.set_shutdown_snapshot_active(false);
 }
 
-SnapshotManager::StartResult SnapshotManager::cancel_for_shutdown(
-        Server& server, ThreadCtx& writer, Ring& ring, std::string& error) {
+SnapshotManager::StartResult SnapshotManager::cancel_for_shutdown(Server& server, ThreadCtx& writer,
+                                                                  Ring& ring, std::string& error) {
     if (!in_progress()) return StartResult::Started;
     // Without a running IO owner there is nobody who can retire this capture.
     if (!writer.ring()) {
@@ -246,8 +251,7 @@ SnapshotManager::StartResult SnapshotManager::cancel_for_shutdown(
 }
 
 void SnapshotManager::init(uint32_t nthreads, uint32_t nshards, uint32_t executor_count,
-                           const char* dir, const char* dbfilename,
-                           PersistIoEngine engine) {
+                           const char* dir, const char* dbfilename, PersistIoEngine engine) {
     // Redis defines LASTSAVE before the first successful save as the server start time.
     last_save_time_.store(now_realtime_ms() / 1000, std::memory_order_relaxed);
     completed_saves.store(0, std::memory_order_relaxed);
@@ -271,18 +275,18 @@ void SnapshotManager::set_error(const char* text) {
 }
 
 SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& writer,
-                                                     Ring& writer_ring, bool is_blocking,
-                                                     std::string& error, AofManager* rewrite,
-                                                     const char* target_dir,
-                                                     const char* target_filename, bool shutdown) {
+                                                    Ring& writer_ring, bool is_blocking,
+                                                    std::string& error, AofManager* rewrite,
+                                                    const char* target_dir,
+                                                    const char* target_filename, bool shutdown) {
     // An owner may still be sealing a record into its bounded AOF channel.
     // Every wait below must service that channel before asking it to acknowledge
     // the snapshot. Reuse the writer-only drain; it cannot start another rewrite.
     // SAVE can run while Redis's AOF child is active. The native format shares
     // one snapshot coordinator, so finish that capture before taking SAVE's cut.
     // The caller may own its IO ring or a fused shard and must advance both.
-    const bool finish_rewrite = is_blocking && !shutdown && !rewrite &&
-        server.aof().rewrite_in_progress();
+    const bool finish_rewrite =
+        is_blocking && !shutdown && !rewrite && server.aof().rewrite_in_progress();
     while (finish_rewrite && (server.aof().rewrite_in_progress() || in_progress())) {
         writer.progress_fused_executor();
         server.aof().drain_for_producer(writer.id(), writer_ring);
@@ -301,13 +305,15 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         // Pair this admission edge with Server's FLIP/LB publication. Without the short mutex,
         // two IO owners could both observe the other's atomic state as idle and publish Preparing
         // and Planning concurrently.
-        std::unique_lock<std::mutex> transition_lock(server.shape_transition_mutex(), std::defer_lock);
+        std::unique_lock<std::mutex> transition_lock(server.shape_transition_mutex(),
+                                                     std::defer_lock);
         if (shutdown) {
             if (!transition_lock.try_lock()) {
                 error = "placement transition admission is busy";
                 return StartResult::Busy;
             }
-        } else transition_lock.lock();
+        } else
+            transition_lock.lock();
         if (server.placement_transition_active() || cfgfix_control_busy(server)) {
             error = "placement transition is in progress";
             return StartResult::Busy;
@@ -410,8 +416,8 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     }
 
     active_dir_ = target_dir && *target_dir ? target_dir : dir_;
-    const char* active_name = target_filename && *target_filename
-        ? target_filename : dbfilename_.c_str();
+    const char* active_name =
+        target_filename && *target_filename ? target_filename : dbfilename_.c_str();
     final_path_ = active_dir_ + "/" + active_name;
     char suffix[96];
     std::snprintf(suffix, sizeof(suffix), ".tmp.%ld.%llu", static_cast<long>(::getpid()),
@@ -529,14 +535,18 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
                 if (functions.size() > UINT32_MAX - kFileHeaderBytes - DatabaseMap::kPayloadBytes)
                     throw std::bad_alloc();
                 function_metadata_.assign(database_map_.begin(), database_map_.end());
-                function_metadata_.insert(function_metadata_.end(), functions.begin(), functions.end());
-            } catch (const std::bad_alloc&) { fail(next_epoch, "out of memory saving functions"); }
+                function_metadata_.insert(function_metadata_.end(), functions.begin(),
+                                          functions.end());
+            } catch (const std::bad_alloc&) {
+                fail(next_epoch, "out of memory saving functions");
+            }
         }
     }
 
     if (phase() != Phase::Mark) {
         while (cancelled_owners_.load(std::memory_order_acquire) +
-                   finished_owners_.load(std::memory_order_acquire) != executor_count_) {
+                   finished_owners_.load(std::memory_order_acquire) !=
+               executor_count_) {
             if (shutdown_expired()) return StartResult::Failed;
             writer.progress_fused_executor();
             server.aof().drain_for_producer(writer.id(), writer_ring);
@@ -563,11 +573,13 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
             writer_ring.msg_to(*target, ur_tag(UrKind::Wake, nullptr));
     writer_ring.submit_and_reap();
     const bool header_started = engine_ == PersistIoEngine::Normal
-        ? write_header_normal() : submit_header_uring(writer_ring);
+                                    ? write_header_normal()
+                                    : submit_header_uring(writer_ring);
     if (!header_started) {
         fail(next_epoch, "could not write snapshot header");
         while (cancelled_owners_.load(std::memory_order_acquire) +
-                   finished_owners_.load(std::memory_order_acquire) != executor_count_) {
+                   finished_owners_.load(std::memory_order_acquire) !=
+               executor_count_) {
             if (shutdown_expired()) return StartResult::Failed;
             writer.progress_fused_executor();
             server.aof().drain_for_producer(writer.id(), writer_ring);
@@ -591,21 +603,20 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         server.aof().drain_for_producer(writer.id(), writer_ring);
         writer_pass(writer, writer_ring, true);
         writer_ring.submit_and_reap();
-        if (engine_ == PersistIoEngine::Uring)
-            pump_io_completions(writer, writer_ring);
+        if (engine_ == PersistIoEngine::Uring) pump_io_completions(writer, writer_ring);
         std::this_thread::yield();
     }
     if (phase() == Phase::Failed) {
         while (cancelled_owners_.load(std::memory_order_acquire) +
-                   finished_owners_.load(std::memory_order_acquire) != executor_count_ ||
+                       finished_owners_.load(std::memory_order_acquire) !=
+                   executor_count_ ||
                io_inflight_ != 0) {
             if (shutdown_expired()) return StartResult::Failed;
             writer.progress_fused_executor();
             server.aof().drain_for_producer(writer.id(), writer_ring);
             writer_pass(writer, writer_ring, true);
             writer_ring.submit_and_reap();
-            if (engine_ == PersistIoEngine::Uring)
-                pump_io_completions(writer, writer_ring);
+            if (engine_ == PersistIoEngine::Uring) pump_io_completions(writer, writer_ring);
             std::this_thread::yield();
         }
         writer_pass(writer, writer_ring, true);
@@ -671,7 +682,8 @@ void SnapshotManager::fail(uint64_t value, const char* reason) {
     set_error(reason);
     Phase current = phase();
     while (current != Phase::Idle && current != Phase::Failed &&
-           !phase_.compare_exchange_weak(current, Phase::Failed, std::memory_order_acq_rel)) {}
+           !phase_.compare_exchange_weak(current, Phase::Failed, std::memory_order_acq_rel)) {
+    }
 }
 
 bool SnapshotManager::post_chunk(uint32_t producer, std::unique_ptr<SnapshotChunk>& chunk,
@@ -702,8 +714,10 @@ bool SnapshotManager::post_chunk(uint32_t producer, std::unique_ptr<SnapshotChun
 
 bool SnapshotManager::write_header_normal() {
     uint8_t h[kFileHeaderBytes + DatabaseMap::kPayloadBytes] = {};
-    const uint32_t header_bytes = kFileHeaderBytes + (function_metadata_.empty()
-        ? (database_map_extended_ ? DatabaseMap::kPayloadBytes : 0) : function_metadata_.size());
+    const uint32_t header_bytes =
+        kFileHeaderBytes + (function_metadata_.empty()
+                                ? (database_map_extended_ ? DatabaseMap::kPayloadBytes : 0)
+                                : function_metadata_.size());
     std::memcpy(h, kFileMagic, sizeof(kFileMagic));
     snapshot_put_u32(h + 8, persistence_routing_version(nshards_));
     snapshot_put_u32(h + 12, header_bytes);
@@ -717,13 +731,17 @@ bool SnapshotManager::write_header_normal() {
     snapshot_put_u64(h + 64, snapshot_checksum(h, 64));
     if (database_map_extended_) {
         std::memcpy(h + kFileHeaderBytes, database_map_.data(), DatabaseMap::kPayloadBytes);
-        snapshot_put_u64(h + 72, snapshot_checksum(database_map_.data(), DatabaseMap::kPayloadBytes));
+        snapshot_put_u64(h + 72,
+                         snapshot_checksum(database_map_.data(), DatabaseMap::kPayloadBytes));
     }
     if (!function_metadata_.empty()) {
-        snapshot_put_u64(h + 72, snapshot_checksum(function_metadata_.data(), function_metadata_.size()));
+        snapshot_put_u64(h + 72,
+                         snapshot_checksum(function_metadata_.data(), function_metadata_.size()));
         if (!write_all(fd_, h, kFileHeaderBytes) ||
-            !write_all(fd_, function_metadata_.data(), function_metadata_.size())) return false;
-    } else if (!write_all(fd_, h, header_bytes)) return false;
+            !write_all(fd_, function_metadata_.data(), function_metadata_.size()))
+            return false;
+    } else if (!write_all(fd_, h, header_bytes))
+        return false;
     file_offset_ = header_bytes;
     header_complete_ = true;
     return true;
@@ -753,9 +771,11 @@ bool SnapshotManager::validate_frame(const SnapshotChunk& chunk, uint8_t* h) {
             const uint32_t next = sid + 1;
             save_current_shard_.store(next, std::memory_order_release);
             if (server_ && next < nshards_) {
-                ThreadCtx& owner = server_->thread(server_->worker_of_shard(static_cast<int32_t>(next)));
+                ThreadCtx& owner =
+                    server_->thread(server_->worker_of_shard(static_cast<int32_t>(next)));
                 Ring* source = writer_ring_.load(std::memory_order_acquire);
-                if (source && owner.ring()) source->msg_to(*owner.ring(), ur_tag(UrKind::Wake, nullptr));
+                if (source && owner.ring())
+                    source->msg_to(*owner.ring(), ur_tag(UrKind::Wake, nullptr));
             }
         }
     }
@@ -765,8 +785,8 @@ bool SnapshotManager::validate_frame(const SnapshotChunk& chunk, uint8_t* h) {
 bool SnapshotManager::write_frame_normal(const SnapshotChunk& chunk) {
     uint8_t h[kFrameHeaderBytes] = {};
     if (!validate_frame(chunk, h)) return false;
-    if (!write_all(fd_, h, sizeof(h)) ||
-        !write_all(fd_, chunk.bytes.data(), chunk.bytes.size())) return false;
+    if (!write_all(fd_, h, sizeof(h)) || !write_all(fd_, chunk.bytes.data(), chunk.bytes.size()))
+        return false;
     file_offset_ += sizeof(h) + chunk.bytes.size();
     return true;
 }
@@ -774,8 +794,10 @@ bool SnapshotManager::write_frame_normal(const SnapshotChunk& chunk) {
 bool SnapshotManager::submit_header_uring(Ring& ring) {
     auto* request = new (std::nothrow) SnapshotIoRequest();
     if (!request) return false;
-    const uint32_t header_bytes = kFileHeaderBytes + (function_metadata_.empty()
-        ? (database_map_extended_ ? DatabaseMap::kPayloadBytes : 0) : function_metadata_.size());
+    const uint32_t header_bytes =
+        kFileHeaderBytes + (function_metadata_.empty()
+                                ? (database_map_extended_ ? DatabaseMap::kPayloadBytes : 0)
+                                : function_metadata_.size());
     request->role = SnapshotIoHeader;
     request->epoch = epoch();
     request->fd = fd_;
@@ -789,12 +811,13 @@ bool SnapshotManager::submit_header_uring(Ring& ring) {
     snapshot_put_u64(request->header.data() + 40, g_hash_seed);
     snapshot_put_u64(request->header.data() + 48, g_sip_k0);
     snapshot_put_u64(request->header.data() + 56, g_sip_k1);
-    snapshot_put_u64(request->header.data() + 64,
-                     snapshot_checksum(request->header.data(), 64));
+    snapshot_put_u64(request->header.data() + 64, snapshot_checksum(request->header.data(), 64));
     request->offset = 0;
     if (database_map_extended_) {
-        std::memcpy(request->header.data() + kFileHeaderBytes, database_map_.data(), DatabaseMap::kPayloadBytes);
-        snapshot_put_u64(request->header.data() + 72, snapshot_checksum(database_map_.data(), DatabaseMap::kPayloadBytes));
+        std::memcpy(request->header.data() + kFileHeaderBytes, database_map_.data(),
+                    DatabaseMap::kPayloadBytes);
+        snapshot_put_u64(request->header.data() + 72,
+                         snapshot_checksum(database_map_.data(), DatabaseMap::kPayloadBytes));
     }
     request->remaining = header_bytes;
     request->vectors[0] = {request->header.data(), header_bytes};
@@ -806,7 +829,10 @@ bool SnapshotManager::submit_header_uring(Ring& ring) {
         request->vectors[1] = {function_metadata_.data(), function_metadata_.size()};
         request->vector_count = 2;
     }
-    if (!queue_snapshot_write(ring, *request)) { delete request; return false; }
+    if (!queue_snapshot_write(ring, *request)) {
+        delete request;
+        return false;
+    }
     file_offset_ = header_bytes;
     io_inflight_++;
     return true;
@@ -818,14 +844,20 @@ bool SnapshotManager::submit_frame_uring(std::unique_ptr<SnapshotChunk> chunk, R
     request->role = SnapshotIoFrame;
     request->epoch = epoch();
     request->fd = fd_;
-    if (!validate_frame(*chunk, request->header.data())) { delete request; return false; }
+    if (!validate_frame(*chunk, request->header.data())) {
+        delete request;
+        return false;
+    }
     request->chunk = std::move(chunk);
     request->offset = file_offset_;
     request->remaining = kFrameHeaderBytes + request->chunk->bytes.size();
     request->vectors[0] = {request->header.data(), kFrameHeaderBytes};
     request->vectors[1] = {request->chunk->bytes.data(), request->chunk->bytes.size()};
     request->vector_count = 2;
-    if (!queue_snapshot_write(ring, *request)) { delete request; return false; }
+    if (!queue_snapshot_write(ring, *request)) {
+        delete request;
+        return false;
+    }
     file_offset_ += request->remaining;
     io_inflight_++;
     return true;
@@ -841,13 +873,15 @@ bool SnapshotManager::submit_footer_uring(Ring& ring) {
     snapshot_put_u32(request->header.data() + 4, nshards_);
     snapshot_put_u64(request->header.data() + 8, epoch());
     snapshot_put_u64(request->header.data() + 16, frame_count_);
-    snapshot_put_u64(request->header.data() + 24,
-                     snapshot_checksum(request->header.data(), 24));
+    snapshot_put_u64(request->header.data() + 24, snapshot_checksum(request->header.data(), 24));
     request->offset = file_offset_;
     request->remaining = kFooterBytes;
     request->vectors[0] = {request->header.data(), kFooterBytes};
     request->vector_count = 1;
-    if (!queue_snapshot_write(ring, *request)) { delete request; return false; }
+    if (!queue_snapshot_write(ring, *request)) {
+        delete request;
+        return false;
+    }
     file_offset_ += kFooterBytes;
     footer_submitted_ = true;
     io_inflight_++;
@@ -861,9 +895,11 @@ bool SnapshotManager::submit_sync_uring(Ring& ring, int fd, uint8_t role) {
     request->epoch = epoch();
     request->fd = fd;
     io_uring_sqe* sqe = ring.sqe();
-    if (!sqe) { delete request; return false; }
-    io_uring_prep_fsync(sqe, fd,
-                        role == SnapshotIoDirectorySync ? 0 : IORING_FSYNC_DATASYNC);
+    if (!sqe) {
+        delete request;
+        return false;
+    }
+    io_uring_prep_fsync(sqe, fd, role == SnapshotIoDirectorySync ? 0 : IORING_FSYNC_DATASYNC);
     sqe->user_data = ur_tag(UrKind::SnapshotIo, request);
     ring.note_owned_completion();
     io_inflight_++;
@@ -883,7 +919,10 @@ bool SnapshotManager::finish_file_normal() {
 }
 
 bool SnapshotManager::finish_file_metadata(Ring* ring) {
-    if (::close(fd_) != 0) { fd_ = -1; return false; }
+    if (::close(fd_) != 0) {
+        fd_ = -1;
+        return false;
+    }
     fd_ = -1;
     if (::rename(temp_path_.c_str(), final_path_.c_str()) != 0) return false;
     const int dfd = ::open(active_dir_.c_str(), O_RDONLY | O_DIRECTORY | O_CLOEXEC);
@@ -974,8 +1013,7 @@ void SnapshotManager::on_io_complete(ThreadCtx&, Ring& ring, void* opaque, int r
         if (io_inflight_) io_inflight_--;
         if (role == SnapshotIoHeader) {
             header_complete_ = true;
-        } else if (role == SnapshotIoFooter &&
-                   !submit_sync_uring(ring, fd_, SnapshotIoFileSync)) {
+        } else if (role == SnapshotIoFooter && !submit_sync_uring(ring, fd_, SnapshotIoFileSync)) {
             finalization_failed();
         }
         return;
@@ -1008,8 +1046,14 @@ uint32_t SnapshotManager::pump_io_completions(ThreadCtx& writer, Ring& ring) {
 void SnapshotManager::abort_file() {
     // Only an admitted RDB save owns this status. AOF rewrites and teardown do not.
     if (server_ && !rewrite_) last_bgsave_ok.store(false, std::memory_order_relaxed);
-    if (fd_ >= 0) { ::close(fd_); fd_ = -1; }
-    if (directory_fd_ >= 0) { ::close(directory_fd_); directory_fd_ = -1; }
+    if (fd_ >= 0) {
+        ::close(fd_);
+        fd_ = -1;
+    }
+    if (directory_fd_ >= 0) {
+        ::close(directory_fd_);
+        directory_fd_ = -1;
+    }
     if (!temp_path_.empty()) (void)::unlink(temp_path_.c_str());
     if (server_) server_->set_snapshot_atomic_barrier(false);
     writer_tid_.store(UINT32_MAX, std::memory_order_relaxed);
@@ -1034,7 +1078,8 @@ uint32_t SnapshotManager::writer_pass(ThreadCtx& writer, Ring& ring, bool drain_
     if (writer.id() != writer_tid_.load(std::memory_order_relaxed)) return 0;
     if (phase() == Phase::Failed) {
         if (cancelled_owners_.load(std::memory_order_acquire) +
-                finished_owners_.load(std::memory_order_acquire) == executor_count_ &&
+                    finished_owners_.load(std::memory_order_acquire) ==
+                executor_count_ &&
             io_inflight_ == 0) {
             discard_chunks();
             abort_file();
@@ -1072,7 +1117,8 @@ uint32_t SnapshotManager::writer_pass(ThreadCtx& writer, Ring& ring, bool drain_
             g_snapshot_room_waiters[(producer >> 6) & (NotifyMask::kWords - 1)];
         const uint64_t bit = uint64_t{1} << (producer & 63);
         if (!(waiting.load(std::memory_order_relaxed) & bit) ||
-            !(waiting.fetch_and(~bit, std::memory_order_acq_rel) & bit)) return;
+            !(waiting.fetch_and(~bit, std::memory_order_acq_rel) & bit))
+            return;
         Ring* target = server_ ? server_->thread(producer).ring() : nullptr;
         if (!target || target == &ring) return;
         while (!ring.msg_to(*target, ur_tag(UrKind::Wake, nullptr))) ring.submit_and_reap();
@@ -1115,10 +1161,10 @@ uint32_t SnapshotManager::writer_pass(ThreadCtx& writer, Ring& ring, bool drain_
         }
     }
     if (ended_shards_ == nshards_ &&
-        finished_owners_.load(std::memory_order_acquire) == executor_count_ &&
-        io_inflight_ == 0 && !footer_submitted_) {
-        const bool finishing = engine_ == PersistIoEngine::Normal
-            ? finish_file_normal() : submit_footer_uring(ring);
+        finished_owners_.load(std::memory_order_acquire) == executor_count_ && io_inflight_ == 0 &&
+        !footer_submitted_) {
+        const bool finishing =
+            engine_ == PersistIoEngine::Normal ? finish_file_normal() : submit_footer_uring(ring);
         if (!finishing) {
             set_error("could not finalize snapshot file");
             writer_failed_.store(true, std::memory_order_relaxed);
@@ -1132,7 +1178,10 @@ uint32_t SnapshotManager::writer_pass(ThreadCtx& writer, Ring& ring, bool drain_
 std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t expected_shards,
                                                      std::string& error) {
     const int fd = ::open(path, O_RDONLY | O_CLOEXEC);
-    if (fd < 0) { error = "could not open snapshot"; return nullptr; }
+    if (fd < 0) {
+        error = "could not open snapshot";
+        return nullptr;
+    }
     std::vector<uint8_t> file;
     const bool read_ok = read_all_fd(fd, file, error);
     ::close(fd);
@@ -1168,16 +1217,25 @@ std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t 
     std::vector<uint8_t> began(plan->shard_count, 0), ended(plan->shard_count, 0);
 
     const uint32_t header_bytes = snapshot_get_u32(file.data() + 12);
-    if (header_bytes > file.size() - kFooterBytes) { error = "truncated database mapping"; return nullptr; }
+    if (header_bytes > file.size() - kFooterBytes) {
+        error = "truncated database mapping";
+        return nullptr;
+    }
     if (header_bytes != kFileHeaderBytes) {
         const uint8_t* map = file.data() + kFileHeaderBytes;
-        if (snapshot_get_u64(file.data() + 72) != snapshot_checksum(map, header_bytes - kFileHeaderBytes)) {
-            error = "invalid database mapping checksum"; return nullptr;
+        if (snapshot_get_u64(file.data() + 72) !=
+            snapshot_checksum(map, header_bytes - kFileHeaderBytes)) {
+            error = "invalid database mapping checksum";
+            return nullptr;
         }
         bool seen[DatabaseMap::kPayloadBytes]{};
         for (unsigned i = 0; i < DatabaseMap::kPayloadBytes; ++i) {
-            if (seen[map[i]]) { error = "invalid database mapping"; return nullptr; }
-            seen[map[i]] = true; plan->database_map[i] = map[i];
+            if (seen[map[i]]) {
+                error = "invalid database mapping";
+                return nullptr;
+            }
+            seen[map[i]] = true;
+            plan->database_map[i] = map[i];
         }
         plan->functions.assign(file.begin() + kFileHeaderBytes + DatabaseMap::kPayloadBytes,
                                file.begin() + header_bytes);
@@ -1185,7 +1243,10 @@ std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t 
     size_t pos = header_bytes;
     uint64_t frames = 0;
     while (pos + kFooterBytes <= file.size() && snapshot_get_u32(file.data() + pos) == kFrameTag) {
-        if (pos + kFrameHeaderBytes > file.size()) { error = "truncated snapshot frame"; return nullptr; }
+        if (pos + kFrameHeaderBytes > file.size()) {
+            error = "truncated snapshot frame";
+            return nullptr;
+        }
         const uint8_t* h = file.data() + pos;
         const uint32_t sid = snapshot_get_u32(h + 4);
         const uint32_t seq = snapshot_get_u32(h + 8);
@@ -1199,9 +1260,15 @@ std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t 
             return nullptr;
         }
         if (flags & SnapshotFrameBegin) {
-            if (began[sid]) { error = "duplicate shard section"; return nullptr; }
+            if (began[sid]) {
+                error = "duplicate shard section";
+                return nullptr;
+            }
             began[sid] = 1;
-        } else if (!began[sid]) { error = "shard section has no begin frame"; return nullptr; }
+        } else if (!began[sid]) {
+            error = "shard section has no begin frame";
+            return nullptr;
+        }
         try {
             plan->sections[sid].insert(plan->sections[sid].end(), file.data() + pos,
                                        file.data() + pos + len);
@@ -1222,31 +1289,43 @@ std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t 
         return nullptr;
     }
     for (uint32_t sid = 0; sid < plan->shard_count; sid++) {
-        if (!began[sid] || !ended[sid]) { error = "incomplete shard section"; return nullptr; }
+        if (!began[sid] || !ended[sid]) {
+            error = "incomplete shard section";
+            return nullptr;
+        }
     }
     return plan;
 }
 
-template<bool Merge>
+template <bool Merge>
 static bool load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& shard,
                        std::string& error) {
     const int64_t now = now_realtime_ms();
     const uint32_t sid = static_cast<uint32_t>(shard.id());
     if (sid == 0 && !server.databases().restore(plan.database_map.data())) {
-        error = "could not restore snapshot database mapping"; return false;
+        error = "could not restore snapshot database mapping";
+        return false;
     }
     if (sid == 0 && !plan.functions_loaded &&
-        !function_snapshot_load(Slice(reinterpret_cast<const char*>(plan.functions.data()),
-                                      plan.functions.size()), plan.flush, plan.merge, error)) return false;
+        !function_snapshot_load(
+            Slice(reinterpret_cast<const char*>(plan.functions.data()), plan.functions.size()),
+            plan.flush, plan.merge, error))
+        return false;
     shard.set_cached_now_ms(now);
     const RecoverySections sources(plan.routing_version, plan.shard_count, shard);
     for (uint32_t source = sources.first; source < sources.end; ++source) {
         const std::vector<uint8_t>& section = plan.sections[source];
         size_t pos = 0;
         while (pos < section.size()) {
-            if (section.size() - pos < kRecordHeaderBytes) { error = "truncated record"; return false; }
+            if (section.size() - pos < kRecordHeaderBytes) {
+                error = "truncated record";
+                return false;
+            }
             const uint8_t* h = section.data() + pos;
-            if (snapshot_get_u32(h) != kRecordTag) { error = "invalid record tag"; return false; }
+            if (snapshot_get_u32(h) != kRecordTag) {
+                error = "invalid record tag";
+                return false;
+            }
             const uint8_t type_raw = h[4];
             const uint8_t encoding = h[5];
             const uint32_t key_len = snapshot_get_u32(h + 8);
@@ -1260,7 +1339,10 @@ static bool load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& shar
                 return false;
             }
             const Slice key(reinterpret_cast<const char*>(section.data() + pos), key_len, h[6]);
-            if (h[6] >= server.cfg().databases) { error = "snapshot database is out of range"; return false; }
+            if (h[6] >= server.cfg().databases) {
+                error = "snapshot database is out of range";
+                return false;
+            }
             pos += key_len;
             const Slice payload(reinterpret_cast<const char*>(section.data() + pos),
                                 static_cast<uint32_t>(payload_len));
@@ -1274,11 +1356,15 @@ static bool load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& shar
             }
             if (destination != sid) continue;
             if constexpr (!Merge) {
-                if (shard.store().find(hash, key)) { error = "duplicate snapshot key"; return false; }
+                if (shard.store().find(hash, key)) {
+                    error = "duplicate snapshot key";
+                    return false;
+                }
             }
             KvObj* object = nullptr;
-            const SnapshotHookStatus status = snapshot_type_hooks(static_cast<Type>(type_raw)).load(
-                key, encoding, expire, payload, shard.type_limits(), object);
+            const SnapshotHookStatus status =
+                snapshot_type_hooks(static_cast<Type>(type_raw))
+                    .load(key, encoding, expire, payload, shard.type_limits(), object);
             if (status != SnapshotHookStatus::Ok || !object) {
                 error = hook_error(status);
                 return false;
@@ -1300,7 +1386,8 @@ bool snapshot_load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& sh
                          std::string& error) {
     // MERGE is an explicit DEBUG option. Preserve the ordinary loader's inline
     // budget without expanding every store helper into both recovery loops.
-    if (plan.merge) [[unlikely]] return load_shard<true>(plan, server, shard, error);
+    if (plan.merge) [[unlikely]]
+        return load_shard<true>(plan, server, shard, error);
     return load_shard<false>(plan, server, shard, error);
 }
 
@@ -1309,8 +1396,7 @@ bool snapshot_load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& sh
 // publishing the saved map would otherwise relocate those retained live keys.
 // This administrative preparation never runs in the ordinary save/load loops.
 [[gnu::cold, gnu::noinline]]
-static bool remap_reload_namespaces(SnapshotLoadPlan& plan, Server& server,
-                                    std::string& error) {
+static bool remap_reload_namespaces(SnapshotLoadPlan& plan, Server& server, std::string& error) {
     if constexpr (kSingleDatabase) return true;
     const DatabaseMap::Map current = server.databases().capture();
     if (plan.database_map == static_cast<const DatabaseMap::Payload&>(current)) return true;
@@ -1324,7 +1410,8 @@ static bool remap_reload_namespaces(SnapshotLoadPlan& plan, Server& server,
             size_t pos = 0;
             while (pos < section.size()) {
                 if (section.size() - pos < kRecordHeaderBytes) {
-                    error = "truncated record"; return false;
+                    error = "truncated record";
+                    return false;
                 }
                 const uint8_t* h = section.data() + pos;
                 const uint32_t key_len = snapshot_get_u32(h + 8);
@@ -1332,13 +1419,15 @@ static bool remap_reload_namespaces(SnapshotLoadPlan& plan, Server& server,
                 if (snapshot_get_u32(h) != kRecordTag || payload_len > UINT32_MAX ||
                     uint64_t(key_len) + payload_len > section.size() - pos - kRecordHeaderBytes ||
                     h[6] >= server.cfg().databases || logical[h[6]] >= server.cfg().databases) {
-                    error = "invalid record lengths or namespace"; return false;
+                    error = "invalid record lengths or namespace";
+                    return false;
                 }
                 const char* bytes = reinterpret_cast<const char*>(h + kRecordHeaderBytes);
                 const uint64_t old_hash = FlatStore::hash_key(Slice(bytes, key_len, h[6]));
                 if ((legacy ? legacy_shard(old_hash, plan.shard_count)
                             : server.router().shard_of(old_hash)) != source) {
-                    error = "snapshot key is in the wrong shard section"; return false;
+                    error = "snapshot key is in the wrong shard section";
+                    return false;
                 }
                 const uint8_t physical = current[logical[h[6]]];
                 const uint64_t hash = FlatStore::hash_key(Slice(bytes, key_len, physical));
@@ -1355,7 +1444,8 @@ static bool remap_reload_namespaces(SnapshotLoadPlan& plan, Server& server,
         plan.routing_version = persistence_routing_version(plan.shard_count);
         return true;
     } catch (const std::bad_alloc&) {
-        error = "out of memory remapping snapshot namespaces"; return false;
+        error = "out of memory remapping snapshot namespaces";
+        return false;
     }
 }
 
@@ -1363,32 +1453,43 @@ bool prepare_debug_reload(Server& server, Op& op, uint32_t owner_io,
                           std::unique_ptr<SnapshotLoadPlan>& plan) {
     bool save = true, flush = true, merge = false;
     for (uint32_t i = 2; i < op.argc(); ++i) {
-        if (op.arg(i).eq_icase("nosave")) save = false;
-        else if (op.arg(i).eq_icase("noflush")) flush = false;
-        else if (op.arg(i).eq_icase("merge")) merge = true;
+        if (op.arg(i).eq_icase("nosave"))
+            save = false;
+        else if (op.arg(i).eq_icase("noflush"))
+            flush = false;
+        else if (op.arg(i).eq_icase("merge"))
+            merge = true;
         else {
-            reply_err(op.sink(), "ERR DEBUG RELOAD only supports the MERGE, NOFLUSH and NOSAVE options.");
+            reply_err(op.sink(),
+                      "ERR DEBUG RELOAD only supports the MERGE, NOFLUSH and NOSAVE options.");
             return false;
         }
     }
     ThreadCtx& writer = server.thread(owner_io);
     Ring* ring = writer.ring();
-    if (!ring) { reply_err(op.sink(), "ERR snapshot command has no IO owner"); return false; }
+    if (!ring) {
+        reply_err(op.sink(), "ERR snapshot command has no IO owner");
+        return false;
+    }
     std::string error;
     if (save) {
         const auto saved = server.snapshot().start(server, writer, *ring, true, error);
         if (saved != SnapshotManager::StartResult::Started) {
             reply_err(op.sink(), saved == SnapshotManager::StartResult::Busy
-                ? "ERR Background save already in progress" : "ERR snapshot failed");
+                                     ? "ERR Background save already in progress"
+                                     : "ERR snapshot failed");
             return false;
         }
     }
     const std::string path = server.snapshot().dir() + "/" + server.snapshot().dbfilename();
     plan = snapshot_read_plan(path.c_str(), server.nshards(), error);
-    if (plan && (flush || remap_reload_namespaces(*plan, server, error)) && function_snapshot_load(
+    if (plan && (flush || remap_reload_namespaces(*plan, server, error)) &&
+        function_snapshot_load(
             Slice(reinterpret_cast<const char*>(plan->functions.data()), plan->functions.size()),
             flush, merge, error)) {
-        plan->flush = flush; plan->merge = merge; plan->functions_loaded = true;
+        plan->flush = flush;
+        plan->merge = merge;
+        plan->functions_loaded = true;
         return true;
     }
     reply_err(op.sink(), "ERR Error trying to load the RDB dump, check server logs.");

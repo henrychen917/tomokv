@@ -101,7 +101,10 @@ bool parse_i64_slice(Slice s, int64_t& out) {
     if (!s.n || s.n > 20) return false;
     uint32_t i = 0;
     bool negative = false;
-    if (s.p[0] == '-' || s.p[0] == '+') { negative = s.p[0] == '-'; i = 1; }
+    if (s.p[0] == '-' || s.p[0] == '+') {
+        negative = s.p[0] == '-';
+        i = 1;
+    }
     if (i >= s.n) return false;
     uint64_t value = 0;
     for (; i < s.n; i++) {
@@ -128,7 +131,10 @@ bool parse_i64_canonical(Slice s, int64_t& out) {
     if (!s.n || s.n > 20) return false;
     uint32_t i = 0;
     bool negative = false;
-    if (s.p[0] == '-') { negative = true; i = 1; }
+    if (s.p[0] == '-') {
+        negative = true;
+        i = 1;
+    }
     if (i >= s.n) return false;
     if (s.p[i] == '0') {
         if (negative || i + 1 != s.n) return false;
@@ -167,8 +173,12 @@ void appendf(std::string& out, const char* fmt, ...) {
     va_copy(copy, ap);
     int n = std::vsnprintf(stack, sizeof(stack), fmt, ap);
     va_end(ap);
-    if (n < 0) { va_end(copy); return; }
-    if (static_cast<size_t>(n) < sizeof(stack)) out.append(stack, static_cast<size_t>(n));
+    if (n < 0) {
+        va_end(copy);
+        return;
+    }
+    if (static_cast<size_t>(n) < sizeof(stack))
+        out.append(stack, static_cast<size_t>(n));
     else {
         std::vector<char> buf(static_cast<size_t>(n) + 1);
         std::vsnprintf(buf.data(), buf.size(), fmt, copy);
@@ -211,12 +221,20 @@ std::array<ClientCatalog*, kMaxThreads> g_client_catalogs{};
 struct RegisteredClientCatalog final : ClientCatalog {
     RegisteredClientCatalog() {
         std::lock_guard<std::mutex> lock(g_client_meta_mu);
-        for (auto& slot : g_client_catalogs) if (!slot) { slot = this; return; }
+        for (auto& slot : g_client_catalogs)
+            if (!slot) {
+                slot = this;
+                return;
+            }
         std::abort();
     }
     ~RegisteredClientCatalog() {
         std::lock_guard<std::mutex> lock(g_client_meta_mu);
-        for (auto& slot : g_client_catalogs) if (slot == this) { slot = nullptr; return; }
+        for (auto& slot : g_client_catalogs)
+            if (slot == this) {
+                slot = nullptr;
+                return;
+            }
     }
 };
 static_assert(sizeof(RegisteredClientCatalog) == sizeof(ClientCatalog));
@@ -277,21 +295,19 @@ std::string client_info_line_impl(const Client& client, const ClientMeta& meta, 
 
     const uint64_t age = now_ms >= meta.created_ms ? (now_ms - meta.created_ms) / 1000 : 0;
     const uint64_t now_s = now_ms / 1000;
-    const uint64_t idle = now_s >= client.last_interaction_s()
-        ? now_s - client.last_interaction_s() : 0;
+    const uint64_t idle =
+        now_s >= client.last_interaction_s() ? now_s - client.last_interaction_s() : 0;
     uint64_t qbuf = client.rlen() - client.rpos();
-    const uint64_t qbuf_free = client.rcap() >= client.rlen()
-        ? client.rcap() - client.rlen() : 0;
+    const uint64_t qbuf_free = client.rcap() >= client.rlen() ? client.rcap() - client.rlen() : 0;
     const uint64_t omem = client.buffered_output_bytes();
-    const uint64_t total_mem = sizeof(Client) + client.rcap() + omem +
-                               multi_session_memory(client);
-    const int64_t multi = multi_session_active(client)
-        ? static_cast<int64_t>(multi_session_queue_size(client)) : -1;
+    const uint64_t total_mem = sizeof(Client) + client.rcap() + omem + multi_session_memory(client);
+    const int64_t multi =
+        multi_session_active(client) ? static_cast<int64_t>(multi_session_queue_size(client)) : -1;
     const char* username = acl_username(client.acl_user_idx());
     std::string last_cmd = "NULL";
     const uint64_t dispatched = client.rob().dispatch_id();
-    if (meta.last_command && (meta.last_command_id == dispatched ||
-                             meta.last_command_id + 1 == dispatched)) {
+    if (meta.last_command &&
+        (meta.last_command_id == dispatched || meta.last_command_id + 1 == dispatched)) {
         const Slice name = command_metadata_name(*meta.last_command);
         last_cmd.assign(name.p, name.n);
         const Op& current = client.rob().at(meta.last_command_id);
@@ -310,32 +326,46 @@ std::string client_info_line_impl(const Client& client, const ClientMeta& meta, 
 
     std::string out;
     appendf(out,
-        "id=%llu addr=%s laddr=%s fd=%d name=%s age=%llu idle=%llu flags=%s db=%u "
-        "sub=%u psub=%u ssub=%u multi=%lld watch=%u qbuf=%llu qbuf-free=%llu "
-        "argv-mem=0 multi-mem=%llu rbs=%llu rbp=%llu obl=0 oll=%u omem=%llu "
-        "tot-mem=%llu events=%s cmd=%s user=%s redir=%lld resp=%u lib-name=%s lib-ver=%s\n",
-        static_cast<unsigned long long>(client.id()), meta.addr.c_str(), meta.laddr.c_str(),
-        client.fd(), meta.name.c_str(), static_cast<unsigned long long>(age),
-        static_cast<unsigned long long>(idle), flags, client.session().db_index,
-        meta.subscriptions, meta.pattern_subscriptions, meta.shard_subscriptions,
-        static_cast<long long>(multi), multi_session_watch_size(client),
-        static_cast<unsigned long long>(qbuf), static_cast<unsigned long long>(qbuf_free),
-        static_cast<unsigned long long>(multi_session_memory(client)),
-        static_cast<unsigned long long>(client.rcap()),
-        static_cast<unsigned long long>(client.rcap()), client.output_list_length(),
-        static_cast<unsigned long long>(omem), static_cast<unsigned long long>(total_mem),
-        events, last_cmd.c_str(), username,
-        static_cast<long long>(meta.tracking ? meta.tracking_redirect : -1),
-        client.resp3() ? 3u : 2u,
-        meta.lib_name.c_str(), meta.lib_ver.c_str());
+            "id=%llu addr=%s laddr=%s fd=%d name=%s age=%llu idle=%llu flags=%s db=%u "
+            "sub=%u psub=%u ssub=%u multi=%lld watch=%u qbuf=%llu qbuf-free=%llu "
+            "argv-mem=0 multi-mem=%llu rbs=%llu rbp=%llu obl=0 oll=%u omem=%llu "
+            "tot-mem=%llu events=%s cmd=%s user=%s redir=%lld resp=%u lib-name=%s lib-ver=%s\n",
+            static_cast<unsigned long long>(client.id()), meta.addr.c_str(), meta.laddr.c_str(),
+            client.fd(), meta.name.c_str(), static_cast<unsigned long long>(age),
+            static_cast<unsigned long long>(idle), flags, client.session().db_index,
+            meta.subscriptions, meta.pattern_subscriptions, meta.shard_subscriptions,
+            static_cast<long long>(multi), multi_session_watch_size(client),
+            static_cast<unsigned long long>(qbuf), static_cast<unsigned long long>(qbuf_free),
+            static_cast<unsigned long long>(multi_session_memory(client)),
+            static_cast<unsigned long long>(client.rcap()),
+            static_cast<unsigned long long>(client.rcap()), client.output_list_length(),
+            static_cast<unsigned long long>(omem), static_cast<unsigned long long>(total_mem),
+            events, last_cmd.c_str(), username,
+            static_cast<long long>(meta.tracking ? meta.tracking_redirect : -1),
+            client.resp3() ? 3u : 2u, meta.lib_name.c_str(), meta.lib_ver.c_str());
     return out;
 }
 
 enum class ConfigKind : uint8_t {
-    String, Bool, Unsigned, Bytes, Enum, Policy, ClientOutputBufferLimit, NotifyFlags, Save,
+    String,
+    Bool,
+    Unsigned,
+    Bytes,
+    Enum,
+    Policy,
+    ClientOutputBufferLimit,
+    NotifyFlags,
+    Save,
     // slowlog-log-slower-than is the tree's first genuinely signed knob: redis's grammar accepts
     // and reports -1, so an unsigned representation would not round-trip.
-    Signed, Encoding, Uint32, Uint32Bytes, Hz, Shutdown, LatencyPercentiles, Process
+    Signed,
+    Encoding,
+    Uint32,
+    Uint32Bytes,
+    Hz,
+    Shutdown,
+    LatencyPercentiles,
+    Process
 };
 struct ConfigValue {
     const char* name;
@@ -351,8 +381,10 @@ struct ConfigLock {
     ConfigLock() {
         while (!g_config_mu.try_lock()) {
             const auto context = snapshot_io_context();
-            const uint32_t tid = g_config_worker != UINT32_MAX ? g_config_worker :
-                g_thread ? g_thread->id() : context.thread ? context.thread->id() : UINT32_MAX;
+            const uint32_t tid = g_config_worker != UINT32_MAX ? g_config_worker
+                                 : g_thread                    ? g_thread->id()
+                                 : context.thread              ? context.thread->id()
+                                                               : UINT32_MAX;
             if (g_server && tid < g_server->nthreads()) g_server->debug_sleep_poll(tid);
             std::this_thread::yield();
         }
@@ -371,7 +403,7 @@ void add_config(const char* name, ConfigKind kind, uint64_t value) {
     g_config.push_back(ConfigValue{name, kind, std::to_string(value)});
 }
 
-void /* TOMO_TOOL_BIND init_config */init_config(const Config& cfg) {
+void /* TOMO_TOOL_BIND init_config */ init_config(const Config& cfg) {
     ConfigLock lock;
     g_config.clear();
     for (size_t i = 0; i < kProcessConfigCount; ++i) {
@@ -386,54 +418,57 @@ void /* TOMO_TOOL_BIND init_config */init_config(const Config& cfg) {
                         std::to_string(cfg.hll_sparse_max_bytes), true});
     g_config.push_back({"port", ConfigKind::Unsigned, std::to_string(cfg.port)});
     g_config.push_back({"bind", ConfigKind::String, cfg.bind_addr});
-    g_config.push_back({"unixsocket", ConfigKind::String,
-                        cfg.unixsocket ? cfg.unixsocket : "", true});
+    g_config.push_back(
+        {"unixsocket", ConfigKind::String, cfg.unixsocket ? cfg.unixsocket : "", true});
     char unix_mode[8];
     std::snprintf(unix_mode, sizeof(unix_mode), "%o", static_cast<unsigned>(cfg.unixsocketperm));
     g_config.push_back({"unixsocketperm", ConfigKind::String, unix_mode, true});
     g_proto_max_bulk_len.store(cfg.proto_max_bulk_len, std::memory_order_relaxed);
     g_config.push_back({"save", ConfigKind::Save, cfg_save_schedule_string(cfg.save)});
-    g_config.push_back({"shutdown-on-sigint", ConfigKind::Shutdown, cfg_shutdown_string(cfg.shutdown_on_sigint)});
-    g_config.push_back({"shutdown-on-sigterm", ConfigKind::Shutdown, cfg_shutdown_string(cfg.shutdown_on_sigterm)});
+    g_config.push_back(
+        {"shutdown-on-sigint", ConfigKind::Shutdown, cfg_shutdown_string(cfg.shutdown_on_sigint)});
+    g_config.push_back({"shutdown-on-sigterm", ConfigKind::Shutdown,
+                        cfg_shutdown_string(cfg.shutdown_on_sigterm)});
     g_config.push_back({"dir", ConfigKind::String, (cfg.dir && *cfg.dir) ? cfg.dir : "."});
     g_config.push_back({"dbfilename", ConfigKind::String,
                         (cfg.dbfilename && *cfg.dbfilename) ? cfg.dbfilename : "dump.tomo"});
     g_config.push_back({"appendonly", ConfigKind::Bool, cfg.appendonly ? "yes" : "no", false});
-    const char* appendfsync = cfg.appendfsync == AppendFsyncPolicy::Always ? "always" :
-                              cfg.appendfsync == AppendFsyncPolicy::No ? "no" : "everysec";
+    const char* appendfsync = cfg.appendfsync == AppendFsyncPolicy::Always ? "always"
+                              : cfg.appendfsync == AppendFsyncPolicy::No   ? "no"
+                                                                           : "everysec";
     g_config.push_back({"appendfsync", ConfigKind::Enum, appendfsync});
     // Boot-only: reported so an operator can confirm which engine a running
     // server actually chose, and refused by CONFIG SET rather than silently accepted.
-    g_config.push_back({"net-io", ConfigKind::Enum,
-                        cfg.net_io == NetIoEngine::Epoll ? "epoll" : "uring", true});
+    g_config.push_back(
+        {"net-io", ConfigKind::Enum, cfg.net_io == NetIoEngine::Epoll ? "epoll" : "uring", true});
     g_config.push_back({"thread-mode", ConfigKind::Enum,
                         cfg.thread_mode == ThreadMode::Fused ? "1s" : "2s", true});
-    g_config.push_back({"read-local", ConfigKind::Unsigned,
-                        std::to_string(cfg.read_local), true});
-    g_config.push_back({"reorder", ConfigKind::Signed,
-                        std::to_string(static_cast<int32_t>(cfg.reorder)), true});
+    g_config.push_back({"read-local", ConfigKind::Unsigned, std::to_string(cfg.read_local), true});
+    g_config.push_back(
+        {"reorder", ConfigKind::Signed, std::to_string(static_cast<int32_t>(cfg.reorder)), true});
     g_config.push_back({"wb-policy", ConfigKind::Signed, std::to_string(cfg.wb_policy), true});
-    g_config.push_back({"wb-small-pipe", ConfigKind::Unsigned, std::to_string(cfg.wb_small_pipe), true});
-    g_config.push_back({"wb-complete-visits", ConfigKind::Unsigned, std::to_string(cfg.wb_complete_visits), true});
+    g_config.push_back(
+        {"wb-small-pipe", ConfigKind::Unsigned, std::to_string(cfg.wb_small_pipe), true});
+    g_config.push_back(
+        {"wb-complete-visits", ConfigKind::Unsigned, std::to_string(cfg.wb_complete_visits), true});
     g_config.push_back({"key-lb", ConfigKind::Unsigned, std::to_string(cfg.key_lb), true});
-    g_config.push_back({"key-lb-damping", ConfigKind::Signed, std::to_string(cfg.key_lb_damping), true});
+    g_config.push_back(
+        {"key-lb-damping", ConfigKind::Signed, std::to_string(cfg.key_lb_damping), true});
     g_config.push_back({"client-lb", ConfigKind::Unsigned, std::to_string(cfg.client_lb), true});
-    g_config.push_back({"flip-auto", ConfigKind::Unsigned,
-                        std::to_string(cfg.flip_auto), true});
+    g_config.push_back({"flip-auto", ConfigKind::Unsigned, std::to_string(cfg.flip_auto), true});
     g_config.push_back({"appendfilename", ConfigKind::String, cfg.appendfilename, true});
     g_config.push_back({"appenddirname", ConfigKind::String, cfg.appenddirname, true});
     add_config("auto-aof-rewrite-percentage", ConfigKind::Unsigned,
                cfg.auto_aof_rewrite_percentage);
-    add_config("auto-aof-rewrite-min-size", ConfigKind::Bytes,
-               cfg.auto_aof_rewrite_min_size);
+    add_config("auto-aof-rewrite-min-size", ConfigKind::Bytes, cfg.auto_aof_rewrite_min_size);
     g_config.push_back({"aof-use-rdb-preamble", ConfigKind::String, "yes"});
-    g_config.push_back({"aof-timestamp-enabled", ConfigKind::Bool,
-                        cfg.aof_timestamp_enabled ? "yes" : "no"});
-    g_config.push_back({"aof-load-truncated", ConfigKind::Bool,
-                        cfg.aof_load_truncated ? "yes" : "no"});
+    g_config.push_back(
+        {"aof-timestamp-enabled", ConfigKind::Bool, cfg.aof_timestamp_enabled ? "yes" : "no"});
+    g_config.push_back(
+        {"aof-load-truncated", ConfigKind::Bool, cfg.aof_load_truncated ? "yes" : "no"});
     add_config("maxmemory", ConfigKind::Bytes, cfg.maxmemory);
-    g_config.push_back({"maxmemory-policy", ConfigKind::Policy,
-                        maxmemory_policy_name(cfg.maxmemory_policy)});
+    g_config.push_back(
+        {"maxmemory-policy", ConfigKind::Policy, maxmemory_policy_name(cfg.maxmemory_policy)});
     add_config("maxmemory-samples", ConfigKind::Unsigned, cfg.maxmemory_samples);
     add_config("maxclients", ConfigKind::Unsigned, cfg.maxclients);
     add_config("timeout", ConfigKind::Unsigned, cfg.timeout);
@@ -442,21 +477,22 @@ void /* TOMO_TOOL_BIND init_config */init_config(const Config& cfg) {
     add_config("tcp-keepalive", ConfigKind::Unsigned, cfg.tcp_keepalive);
     add_config("tcp-backlog", ConfigKind::Unsigned, cfg.tcp_backlog);
     g_config.push_back({"tls-port", ConfigKind::Unsigned, std::to_string(cfg.tls_port), true});
-    g_config.push_back({"tls-cert-file", ConfigKind::String,
-                        cfg.tls_cert_file ? cfg.tls_cert_file : "", true});
-    g_config.push_back({"tls-key-file", ConfigKind::String,
-                        cfg.tls_key_file ? cfg.tls_key_file : "", true});
+    g_config.push_back(
+        {"tls-cert-file", ConfigKind::String, cfg.tls_cert_file ? cfg.tls_cert_file : "", true});
+    g_config.push_back(
+        {"tls-key-file", ConfigKind::String, cfg.tls_key_file ? cfg.tls_key_file : "", true});
     g_config.push_back({"tls-ca-cert-file", ConfigKind::String,
                         cfg.tls_ca_cert_file ? cfg.tls_ca_cert_file : "", true});
     g_config.push_back({"tls-ca-cert-dir", ConfigKind::String,
                         cfg.tls_ca_cert_dir ? cfg.tls_ca_cert_dir : "", true});
-    const char* tls_auth = cfg.tls_auth_clients == TlsAuthClients::No ? "no" :
-                           cfg.tls_auth_clients == TlsAuthClients::Optional ? "optional" : "yes";
+    const char* tls_auth = cfg.tls_auth_clients == TlsAuthClients::No         ? "no"
+                           : cfg.tls_auth_clients == TlsAuthClients::Optional ? "optional"
+                                                                              : "yes";
     g_config.push_back({"tls-auth-clients", ConfigKind::Enum, tls_auth});
-    g_config.push_back({"tls-protocols", ConfigKind::String,
-                        cfg.tls_protocols ? cfg.tls_protocols : "", true});
-    g_config.push_back({"tls-ciphers", ConfigKind::String,
-                        cfg.tls_ciphers ? cfg.tls_ciphers : "", true});
+    g_config.push_back(
+        {"tls-protocols", ConfigKind::String, cfg.tls_protocols ? cfg.tls_protocols : "", true});
+    g_config.push_back(
+        {"tls-ciphers", ConfigKind::String, cfg.tls_ciphers ? cfg.tls_ciphers : "", true});
     g_config.push_back({"tls-ciphersuites", ConfigKind::String,
                         cfg.tls_ciphersuites ? cfg.tls_ciphersuites : "", true});
     g_config.push_back({"tls-prefer-server-ciphers", ConfigKind::Bool,
@@ -483,15 +519,13 @@ void /* TOMO_TOOL_BIND init_config */init_config(const Config& cfg) {
     for (uint32_t i = 0; i < EncodingConfig::Count; i++)
         g_config.push_back({EncodingConfig::settings[i].name, ConfigKind::Encoding,
                             std::to_string(cfg.encodings.values[i])});
-    add_config("stream-node-max-bytes", ConfigKind::Uint32Bytes,
-               cfg.stream_limits.node_max_bytes);
-    add_config("stream-node-max-entries", ConfigKind::Uint32,
-               cfg.stream_limits.node_max_entries);
+    add_config("stream-node-max-bytes", ConfigKind::Uint32Bytes, cfg.stream_limits.node_max_bytes);
+    add_config("stream-node-max-entries", ConfigKind::Uint32, cfg.stream_limits.node_max_entries);
     const Slice boot_password = cfg_requirepass(cfg);
-    g_config.push_back({"requirepass", ConfigKind::String,
-                        std::string(boot_password.p, boot_password.n)});
-    g_config.push_back({"protected-mode", ConfigKind::Bool,
-                        cfg.protected_mode != 0 ? "yes" : "no"});
+    g_config.push_back(
+        {"requirepass", ConfigKind::String, std::string(boot_password.p, boot_password.n)});
+    g_config.push_back(
+        {"protected-mode", ConfigKind::Bool, cfg.protected_mode != 0 ? "yes" : "no"});
     g_config.push_back({"aclfile", ConfigKind::String, cfg.aclfile ? cfg.aclfile : "", true});
     g_config.push_back({"acl-pubsub-default", ConfigKind::Enum,
                         cfg.acl_pubsub_allchannels ? "allchannels" : "resetchannels"});
@@ -503,19 +537,20 @@ void /* TOMO_TOOL_BIND init_config */init_config(const Config& cfg) {
     g_latency_percentiles_explicit = cfg.latency_percentiles_explicit;
     g_config.push_back({"latency-tracking", ConfigKind::Bool, cfg.latency_tracking ? "yes" : "no"});
     g_config.push_back({"latency-tracking-info-percentiles", ConfigKind::LatencyPercentiles,
-        cfg.latency_percentiles_explicit
-            ? cfg_latency_percentiles_string(cfg.latency_tracking_info_percentiles) : "50 99 99.9"});
-    add_config("latency-monitor-threshold", ConfigKind::Uint32,
-               cfg.latency_monitor_threshold);
-    const char* debug_mode = cfg.enable_debug_command == DebugCommandMode::Yes ? "yes" :
-                             cfg.enable_debug_command == DebugCommandMode::Local ? "local" : "no";
+                        cfg.latency_percentiles_explicit
+                            ? cfg_latency_percentiles_string(cfg.latency_tracking_info_percentiles)
+                            : "50 99 99.9"});
+    add_config("latency-monitor-threshold", ConfigKind::Uint32, cfg.latency_monitor_threshold);
+    const char* debug_mode = cfg.enable_debug_command == DebugCommandMode::Yes     ? "yes"
+                             : cfg.enable_debug_command == DebugCommandMode::Local ? "local"
+                                                                                   : "no";
     g_config.push_back({"enable-debug-command", ConfigKind::String, debug_mode, true});
     if (g_server) {
         auth_publish_requirepass(*g_server, boot_password);
     }
 }
 
-ConfigValue* /* TOMO_TOOL_BIND find_config */find_config(Slice name) {
+ConfigValue* /* TOMO_TOOL_BIND find_config */ find_config(Slice name) {
     const int encoding = EncodingConfig::find(name);
     if (encoding >= 0) {
         const char* canonical = EncodingConfig::settings[encoding].name;
@@ -536,26 +571,24 @@ bool authenticate_acl_user(Slice username, Slice password) {
 void note_acl_auth_denial(Op& op, Slice username) {
     if (!g_thread || !g_client) return;
     g_thread->sig().acl_access_denied_auth++;
-    acl_log_denial(*g_thread, *g_client, AclDeniedReason::Auth,
-                   AclLogContext::Toplevel, op.cmd_name(), username);
+    acl_log_denial(*g_thread, *g_client, AclDeniedReason::Auth, AclLogContext::Toplevel,
+                   op.cmd_name(), username);
 }
 
-bool parse_bytes(Slice input, uint64_t& value) {
-    return cfg_parse_memory(input.p, input.n, value);
-}
+bool parse_bytes(Slice input, uint64_t& value) { return cfg_parse_memory(input.p, input.n, value); }
 
-bool parse_client_output_buffer_limit_slice(Slice input,
-                                            const ClientOutputBufferLimits& base,
-                                            ClientOutputBufferLimits& out,
-                                            const char*& error) {
+bool parse_client_output_buffer_limit_slice(Slice input, const ClientOutputBufferLimits& base,
+                                            ClientOutputBufferLimits& out, const char*& error) {
     std::vector<std::string> words;
     size_t pos = 0;
     while (pos < input.n) {
         while (pos < input.n && (input.p[pos] == ' ' || input.p[pos] == '\t' ||
-                                 input.p[pos] == '\r' || input.p[pos] == '\n')) pos++;
+                                 input.p[pos] == '\r' || input.p[pos] == '\n'))
+            pos++;
         const size_t begin = pos;
         while (pos < input.n && input.p[pos] != ' ' && input.p[pos] != '\t' &&
-               input.p[pos] != '\r' && input.p[pos] != '\n') pos++;
+               input.p[pos] != '\r' && input.p[pos] != '\n')
+            pos++;
         if (pos > begin) words.emplace_back(input.p + begin, pos - begin);
     }
     std::vector<const char*> argv;
@@ -566,12 +599,12 @@ bool parse_client_output_buffer_limit_slice(Slice input,
 }
 
 std::string config_range_error(int64_t low, int64_t high) {
-    return "argument must be between " + std::to_string(low) + " and " +
-           std::to_string(high) + " inclusive";
+    return "argument must be between " + std::to_string(low) + " and " + std::to_string(high) +
+           " inclusive";
 }
 
-bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
-                      const char*& error, bool legacy_compact = false) {
+bool normalize_config(const ConfigValue& entry, Slice input, std::string& out, const char*& error,
+                      bool legacy_compact = false) {
     // Redis yesnotoi/configEnumGetValue consume C strings, while numeric
     // string2ll consumes the entire decoded argument (including embedded NUL).
     if (entry.kind == ConfigKind::Bool || entry.kind == ConfigKind::Enum ||
@@ -614,10 +647,11 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
                 int64_t integer = 0;
                 uint64_t memory = 0;
                 const bool bytes = EncodingConfig::settings[key].memory;
-                const bool parsed = bytes ? cfg_parse_memory(input.p, input.n, memory) :
-                                            cfg_parse_integer(input, integer);
-                if (!parsed) error = bytes ? "argument must be a memory value" :
-                                            "argument couldn't be parsed into an integer";
+                const bool parsed = bytes ? cfg_parse_memory(input.p, input.n, memory)
+                                          : cfg_parse_integer(input, integer);
+                if (!parsed)
+                    error = bytes ? "argument must be a memory value"
+                                  : "argument couldn't be parsed into an integer";
                 else {
                     out = config_range_error(key == EncodingConfig::ListSize ? INT_MIN : 0,
                                              key == EncodingConfig::ListSize ? INT_MAX : LONG_MAX);
@@ -631,14 +665,23 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
         case ConfigKind::String:
             if (!std::strcmp(entry.name, "locale-collate")) {
                 out.assign(input.p, strnlen(input.p, input.n));
-                if (!sort_locale_valid(out.c_str())) { error = "Invalid locale name"; return false; }
+                if (!sort_locale_valid(out.c_str())) {
+                    error = "Invalid locale name";
+                    return false;
+                }
                 return true;
             }
             out.assign(input.p, input.n);
             return true;
         case ConfigKind::Bool:
-            if (eq_icase(input, "yes")) { out = "yes"; return true; }
-            if (eq_icase(input, "no")) { out = "no"; return true; }
+            if (eq_icase(input, "yes")) {
+                out = "yes";
+                return true;
+            }
+            if (eq_icase(input, "no")) {
+                out = "no";
+                return true;
+            }
             error = "argument must be 'yes' or 'no'";
             return false;
         case ConfigKind::Unsigned: {
@@ -650,13 +693,23 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
             int64_t low = 0, high = LONG_MAX;
             if (!std::strcmp(entry.name, "zc-min")) high = UINT32_MAX;
             if (!std::strcmp(entry.name, "port")) high = 65535;
-            if (!std::strcmp(entry.name, "maxmemory-samples")) { low = 1; high = 64; }
+            if (!std::strcmp(entry.name, "maxmemory-samples")) {
+                low = 1;
+                high = 64;
+            }
             if (!std::strcmp(entry.name, "atomic")) high = 1;
-            if (!std::strcmp(entry.name, "databases")) { low = 1; high = 256; }
+            if (!std::strcmp(entry.name, "databases")) {
+                low = 1;
+                high = 256;
+            }
             if (!std::strcmp(entry.name, "auto-aof-rewrite-percentage")) high = INT_MAX;
-            if (!std::strcmp(entry.name, "maxclients")) { low = 1; high = UINT32_MAX; }
+            if (!std::strcmp(entry.name, "maxclients")) {
+                low = 1;
+                high = UINT32_MAX;
+            }
             if (!std::strcmp(entry.name, "timeout") || !std::strcmp(entry.name, "tcp-keepalive") ||
-                !std::strcmp(entry.name, "tcp-backlog")) high = INT_MAX;
+                !std::strcmp(entry.name, "tcp-backlog"))
+                high = INT_MAX;
             if (value < low || value > high) {
                 out = config_range_error(low, high);
                 error = out.c_str();
@@ -682,7 +735,8 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
                 return false;
             }
             if (!std::strcmp(entry.name, "proto-max-bulk-len") &&
-                (value < kProtoMinBulkLen || value > kProtoMaxBulkLenSupported)) return false;
+                (value < kProtoMinBulkLen || value > kProtoMaxBulkLenSupported))
+                return false;
             out = std::to_string(value);
             return true;
         }
@@ -690,39 +744,64 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
             std::string reason;
             const int index = cfg_process_find(Slice(entry.name, std::strlen(entry.name)));
             if (cfg_process_normalize(index, input, out, reason)) return true;
-            out = std::move(reason); error = out.c_str(); return false;
+            out = std::move(reason);
+            error = out.c_str();
+            return false;
         }
         case ConfigKind::Enum:
             if (!std::strcmp(entry.name, "tls-auth-clients")) {
                 for (const char* value : {"no", "yes", "optional"})
-                    if (input.eq_icase(value)) { out = value; return true; }
+                    if (input.eq_icase(value)) {
+                        out = value;
+                        return true;
+                    }
                 error = "argument(s) must be one of the following: no, yes, optional";
                 return false;
             }
             if (!std::strcmp(entry.name, "acl-pubsub-default")) {
-                if (eq_icase(input, "allchannels")) { out = "allchannels"; return true; }
-                if (eq_icase(input, "resetchannels")) { out = "resetchannels"; return true; }
+                if (eq_icase(input, "allchannels")) {
+                    out = "allchannels";
+                    return true;
+                }
+                if (eq_icase(input, "resetchannels")) {
+                    out = "resetchannels";
+                    return true;
+                }
                 error = "argument(s) must be one of the following: allchannels, resetchannels";
                 return false;
             }
-            if (eq_icase(input, "always")) { out = "always"; return true; }
-            if (eq_icase(input, "everysec")) { out = "everysec"; return true; }
-            if (eq_icase(input, "no")) { out = "no"; return true; }
+            if (eq_icase(input, "always")) {
+                out = "always";
+                return true;
+            }
+            if (eq_icase(input, "everysec")) {
+                out = "everysec";
+                return true;
+            }
+            if (eq_icase(input, "no")) {
+                out = "no";
+                return true;
+            }
             error = "argument(s) must be one of the following: everysec, always, no";
             return false;
         case ConfigKind::Policy: {
-            static const char* policies[] = {"noeviction", "allkeys-lru", "allkeys-lfu",
-                "allkeys-random", "volatile-lru", "volatile-lfu", "volatile-random", "volatile-ttl"};
+            static const char* policies[] = {"noeviction",      "allkeys-lru",  "allkeys-lfu",
+                                             "allkeys-random",  "volatile-lru", "volatile-lfu",
+                                             "volatile-random", "volatile-ttl"};
             for (const char* policy : policies)
-                if (eq_icase(input, policy)) { out = policy; return true; }
-            error = "argument(s) must be one of the following: volatile-lru, volatile-lfu, volatile-random, volatile-ttl, allkeys-lru, allkeys-lfu, allkeys-random, noeviction";
+                if (eq_icase(input, policy)) {
+                    out = policy;
+                    return true;
+                }
+            error =
+                "argument(s) must be one of the following: volatile-lru, volatile-lfu, volatile-random, volatile-ttl, allkeys-lru, allkeys-lfu, allkeys-random, noeviction";
             return false;
         }
         case ConfigKind::ClientOutputBufferLimit: {
             ClientOutputBufferLimits parsed;
             const char* error = nullptr;
-            if (!parse_client_output_buffer_limit_slice(input, g_client_obuf_limits,
-                                                        parsed, error)) return false;
+            if (!parse_client_output_buffer_limit_slice(input, g_client_obuf_limits, parsed, error))
+                return false;
             out = cfg_client_output_buffer_limit_string(parsed);
             return true;
         }
@@ -765,13 +844,15 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
     return false;
 }
 
-bool collect_config_updates(Op& op,
-                            std::vector<std::pair<ConfigValue*, std::string>>& updates) {
+bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::string>>& updates) {
     if (op.argc() < 4) {
         command_reply_subcommand_wrong_args(op, "CONFIG", "set");
         return false;
     }
-    if ((op.argc() & 1u) != 0) { reply_syntax(op.sink()); return false; }
+    if ((op.argc() & 1u) != 0) {
+        reply_syntax(op.sink());
+        return false;
+    }
     // Redis checks the whole parameter list before parsing values: a later
     // immutable/unknown/duplicate argument wins over an earlier invalid value.
     for (uint32_t i = 2; i < op.argc(); i += 2) {
@@ -779,19 +860,23 @@ bool collect_config_updates(Op& op,
         const char* error = nullptr;
         if (!item) {
             std::string message = "ERR Unknown option or number of arguments for CONFIG SET - '";
-            message.append(op.arg(i).p, op.arg(i).n); message += "'";
-            reply_err(op.sink(), message.c_str()); return false;
+            message.append(op.arg(i).p, op.arg(i).n);
+            message += "'";
+            reply_err(op.sink(), message.c_str());
+            return false;
         }
         // Tomo-only boot controls have no Redis counterpart. Preserve their
         // established rejection; the standard config surface uses Redis text.
         if (item->immutable) {
-            static constexpr const char* native[] = {"net-io", "thread-mode", "read-local",
-                "reorder", "wb-policy", "wb-small-pipe", "wb-complete-visits", "key-lb",
-                "key-lb-damping", "client-lb", "flip-auto"};
-            for (const char* name : native) if (!std::strcmp(item->name, name)) {
-                reply_err(op.sink(), "ERR parameter is immutable at runtime");
-                return false;
-            }
+            static constexpr const char* native[] = {
+                "net-io",         "thread-mode",   "read-local",         "reorder",
+                "wb-policy",      "wb-small-pipe", "wb-complete-visits", "key-lb",
+                "key-lb-damping", "client-lb",     "flip-auto"};
+            for (const char* name : native)
+                if (!std::strcmp(item->name, name)) {
+                    reply_err(op.sink(), "ERR parameter is immutable at runtime");
+                    return false;
+                }
         }
         if (item->immutable || !std::strcmp(item->name, "tcp-backlog"))
             error = "can't set immutable config";
@@ -804,13 +889,18 @@ bool collect_config_updates(Op& op,
         if (!error) {
             const std::string requested(op.arg(i).p, op.arg(i).n);
             for (uint32_t previous = 2; previous < i; previous += 2)
-                if (eq_icase(op.arg(previous), requested.c_str())) { error = "duplicate parameter"; break; }
+                if (eq_icase(op.arg(previous), requested.c_str())) {
+                    error = "duplicate parameter";
+                    break;
+                }
         }
         if (error) {
             std::string message = "ERR CONFIG SET failed (possibly related to argument '";
             message.append(op.arg(i).p, op.arg(i).n);
-            message += "') - "; message += error;
-            reply_err(op.sink(), message.c_str()); return false;
+            message += "') - ";
+            message += error;
+            reply_err(op.sink(), message.c_str());
+            return false;
         }
     }
     ClientOutputBufferLimits obuf_scratch = g_client_obuf_limits;
@@ -818,14 +908,18 @@ bool collect_config_updates(Op& op,
         ConfigValue* item = find_config(op.arg(i));
         if (!item) {
             std::string msg = "ERR Unknown option or number of arguments for CONFIG SET - '";
-            msg.append(op.arg(i).p, op.arg(i).n); msg.push_back('\'');
-            reply_err(op.sink(), msg.c_str()); return false;
+            msg.append(op.arg(i).p, op.arg(i).n);
+            msg.push_back('\'');
+            reply_err(op.sink(), msg.c_str());
+            return false;
         }
         const int encoding = EncodingConfig::find(op.arg(i));
         const bool legacy_compact = encoding >= 0 && EncodingConfig::legacy(encoding, op.arg(i));
         if (!std::strcmp(item->name, "aof-use-rdb-preamble")) {
             if (!eq_icase(op.arg(i + 1), "yes")) {
-                reply_err(op.sink(), "ERR aof-use-rdb-preamble no is unsupported: the AOF base file is a TomoKV snapshot");
+                reply_err(
+                    op.sink(),
+                    "ERR aof-use-rdb-preamble no is unsupported: the AOF base file is a TomoKV snapshot");
                 return false;
             }
         }
@@ -835,8 +929,8 @@ bool collect_config_updates(Op& op,
         if (item->kind == ConfigKind::ClientOutputBufferLimit) {
             ClientOutputBufferLimits parsed;
             const char* error = nullptr;
-            normalized = parse_client_output_buffer_limit_slice(
-                op.arg(i + 1), obuf_scratch, parsed, error);
+            normalized =
+                parse_client_output_buffer_limit_slice(op.arg(i + 1), obuf_scratch, parsed, error);
             config_error = error;
             if (normalized) {
                 obuf_scratch = parsed;
@@ -844,10 +938,13 @@ bool collect_config_updates(Op& op,
             }
         } else {
             // The old TomoKV spelling accepted leading zeroes and bare bytes only.
-            const int network = item->kind == ConfigKind::Bool ? -1 :
-                normalize_network_config(item->name, op.arg(i + 1), value, config_error);
-            normalized = network >= 0 ? network == 1 :
-                normalize_config(*item, op.arg(i + 1), value, config_error, legacy_compact);
+            const int network =
+                item->kind == ConfigKind::Bool
+                    ? -1
+                    : normalize_network_config(item->name, op.arg(i + 1), value, config_error);
+            normalized = network >= 0 ? network == 1
+                                      : normalize_config(*item, op.arg(i + 1), value, config_error,
+                                                         legacy_compact);
         }
         if (!normalized) {
             if (config_error) {
@@ -856,13 +953,18 @@ bool collect_config_updates(Op& op,
                 // Parameter-list errors above retain the submitted spelling.
                 for (char ch : op.arg(i))
                     msg.push_back(ch >= 'A' && ch <= 'Z' ? ch + ('a' - 'A') : ch);
-                msg += "') - "; msg += config_error;
-                reply_err(op.sink(), msg.c_str()); return false;
+                msg += "') - ";
+                msg += config_error;
+                reply_err(op.sink(), msg.c_str());
+                return false;
             }
             std::string msg = "ERR Invalid argument '";
             msg.append(op.arg(i + 1).p, op.arg(i + 1).n);
-            msg += "' for CONFIG SET '"; msg += item->name; msg.push_back('\'');
-            reply_err(op.sink(), msg.c_str()); return false;
+            msg += "' for CONFIG SET '";
+            msg += item->name;
+            msg.push_back('\'');
+            reply_err(op.sink(), msg.c_str());
+            return false;
         }
         if (g_server && !std::strcmp(item->name, "maxclients")) {
             uint64_t requested = 0;
@@ -881,15 +983,18 @@ bool collect_config_updates(Op& op,
 }
 
 void snapshot_command(Op& op, bool blocking) {
-    if (!g_server) { reply_err(op.sink(), "ERR snapshot subsystem is unavailable"); return; }
+    if (!g_server) {
+        reply_err(op.sink(), "ERR snapshot subsystem is unavailable");
+        return;
+    }
     const SnapshotIoContext context = snapshot_io_context();
     if (!context.thread || !context.ring) {
         reply_err(op.sink(), "ERR snapshot command has no IO owner");
         return;
     }
     std::string error;
-    const SnapshotManager::StartResult result = g_server->snapshot().start(
-        *g_server, *context.thread, *context.ring, blocking, error);
+    const SnapshotManager::StartResult result =
+        g_server->snapshot().start(*g_server, *context.thread, *context.ring, blocking, error);
     if (result == SnapshotManager::StartResult::Busy) {
         reply_err(op.sink(), "ERR Background save already in progress");
     } else if (result == SnapshotManager::StartResult::Failed) {
@@ -905,14 +1010,17 @@ void snapshot_command(Op& op, bool blocking) {
 void cmd_save(Shard&, Op& op) { snapshot_command(op, true); }
 void cmd_bgsave(Shard&, Op& op) {
     if (op.argc() > 1 && (op.argc() != 2 || !eq_icase(op.arg(1), "SCHEDULE"))) {
-        reply_syntax(op.sink()); return;
+        reply_syntax(op.sink());
+        return;
     }
     if (g_server && g_server->aof().rewrite_in_progress()) {
         if (op.argc() == 2) {
             g_server->schedule_bgsave();
             reply_simple(op.sink(), "Background saving scheduled");
-        } else reply_err(op.sink(), "ERR Another child process is active (AOF?): can't BGSAVE right now. "
-            "Use BGSAVE SCHEDULE in order to schedule a BGSAVE whenever possible.");
+        } else
+            reply_err(op.sink(),
+                      "ERR Another child process is active (AOF?): can't BGSAVE right now. "
+                      "Use BGSAVE SCHEDULE in order to schedule a BGSAVE whenever possible.");
         return;
     }
     snapshot_command(op, false);
@@ -922,33 +1030,45 @@ void cmd_bgrewriteaof(Shard&, Op& op) {
         reply_err(op.sink(), "ERR Background append only file rewriting already in progress");
         return;
     }
-    static constexpr const char* failed = "ERR Can't execute an AOF background rewriting. "
+    static constexpr const char* failed =
+        "ERR Can't execute an AOF background rewriting. "
         "Please check the server logs for more information.";
-    if (!g_server) { reply_err(op.sink(), failed); return; }
+    if (!g_server) {
+        reply_err(op.sink(), failed);
+        return;
+    }
     const bool scheduled = g_server->snapshot().in_progress();
-    if (!g_server->aof().request_rewrite()) { reply_err(op.sink(), failed); return; }
+    if (!g_server->aof().request_rewrite()) {
+        reply_err(op.sink(), failed);
+        return;
+    }
     if (!g_server->aof().configured()) {
-        if (scheduled) g_server->schedule_offline_rewrite();
+        if (scheduled)
+            g_server->schedule_offline_rewrite();
         else {
             const auto context = snapshot_io_context();
             std::string error;
             if (!context.thread || !context.ring ||
                 !g_server->aof().start_offline_rewrite(*context.thread, *context.ring, error)) {
                 std::fprintf(stderr, "AOF rewrite error: %s\n", error.c_str());
-                reply_err(op.sink(), failed); return;
+                reply_err(op.sink(), failed);
+                return;
             }
         }
     }
-    reply_simple(op.sink(), scheduled ? "Background append only file rewriting scheduled" :
-                                      "Background append only file rewriting started");
+    reply_simple(op.sink(), scheduled ? "Background append only file rewriting scheduled"
+                                      : "Background append only file rewriting started");
 }
 void cmd_lastsave(Shard&, Op& op) {
-    reply_int(op.sink(), g_server ? static_cast<long long>(g_server->snapshot().last_save_time()) : 0);
+    reply_int(op.sink(),
+              g_server ? static_cast<long long>(g_server->snapshot().last_save_time()) : 0);
 }
 
 void cmd_ping(Shard&, Op& op) {
-    if (op.argc() == 2) reply_bulk(op.sink(), op.arg(1));
-    else reply_pong(op.sink());
+    if (op.argc() == 2)
+        reply_bulk(op.sink(), op.arg(1));
+    else
+        reply_pong(op.sink());
 }
 
 void cmd_echo(Shard&, Op& op) { reply_bulk(op.sink(), op.arg(1)); }
@@ -956,7 +1076,9 @@ void cmd_echo(Shard&, Op& op) { reply_bulk(op.sink(), op.arg(1)); }
 void cmd_auth(Shard&, Op& op) {
     const Slice password = op.argc() == 2 ? op.arg(1) : op.arg(2);
     if (op.argc() == 2 && acl_default_nopass()) {
-        reply_err(op.sink(), "ERR AUTH <password> called without any password configured for the default user. Are you sure your configuration is correct?");
+        reply_err(
+            op.sink(),
+            "ERR AUTH <password> called without any password configured for the default user. Are you sure your configuration is correct?");
         return;
     }
     const Slice username = op.argc() == 2 ? Slice("default", 7) : op.arg(1);
@@ -997,7 +1119,9 @@ void cmd_hello(Shard&, Op& op) {
         } else if (eq_icase(option, "setname") && next + 1 < op.argc()) {
             client_name = op.arg(next + 1);
             if (!valid_client_text(client_name)) {
-                reply_err(op.sink(), "ERR Client names cannot contain spaces, newlines or special characters.");
+                reply_err(
+                    op.sink(),
+                    "ERR Client names cannot contain spaces, newlines or special characters.");
                 return;
             }
             has_name = true;
@@ -1019,10 +1143,10 @@ void cmd_hello(Shard&, Op& op) {
         }
         if (g_client) g_client->set_authenticated(true);
     }
-    if (g_server && g_server->requirepass_enabled() &&
-        (!g_client || !g_client->authenticated())) {
-        reply_err(op.sink(),
-                  "NOAUTH HELLO must be called with the client already authenticated, otherwise the HELLO <proto> AUTH <user> <pass> option can be used to authenticate the client and select the RESP protocol version at the same time");
+    if (g_server && g_server->requirepass_enabled() && (!g_client || !g_client->authenticated())) {
+        reply_err(
+            op.sink(),
+            "NOAUTH HELLO must be called with the client already authenticated, otherwise the HELLO <proto> AUTH <user> <pass> option can be used to authenticate the client and select the RESP protocol version at the same time");
         return;
     }
     if (has_name) command_client_set_name(g_client, client_name);
@@ -1030,18 +1154,23 @@ void cmd_hello(Shard&, Op& op) {
     const bool resp3 = version == 3;
     auto sink = op.sink();
     reply_map_header(sink, 7, resp3);
-    reply_bulk(sink, Slice("server", 6)); reply_bulk(sink, Slice("redis", 5));
-    reply_bulk(sink, Slice("version", 7)); reply_bulk(sink, Slice(kRedisCompatVersion, std::strlen(kRedisCompatVersion)));
-    reply_bulk(sink, Slice("proto", 5)); reply_int(sink, static_cast<long long>(version));
-    reply_bulk(sink, Slice("id", 2)); reply_int(sink, g_client ? static_cast<long long>(g_client->id()) : 0);
-    reply_bulk(sink, Slice("mode", 4)); reply_bulk(sink, Slice("standalone", 10));
-    reply_bulk(sink, Slice("role", 4)); reply_bulk(sink, Slice("master", 6));
-    reply_bulk(sink, Slice("modules", 7)); reply_array_header(sink, 0);
+    reply_bulk(sink, Slice("server", 6));
+    reply_bulk(sink, Slice("redis", 5));
+    reply_bulk(sink, Slice("version", 7));
+    reply_bulk(sink, Slice(kRedisCompatVersion, std::strlen(kRedisCompatVersion)));
+    reply_bulk(sink, Slice("proto", 5));
+    reply_int(sink, static_cast<long long>(version));
+    reply_bulk(sink, Slice("id", 2));
+    reply_int(sink, g_client ? static_cast<long long>(g_client->id()) : 0);
+    reply_bulk(sink, Slice("mode", 4));
+    reply_bulk(sink, Slice("standalone", 10));
+    reply_bulk(sink, Slice("role", 4));
+    reply_bulk(sink, Slice("master", 6));
+    reply_bulk(sink, Slice("modules", 7));
+    reply_array_header(sink, 0);
 }
 
-void cmd_select(Shard&, Op& op) {
-    multidb_select(g_server, g_client, op);
-}
+void cmd_select(Shard&, Op& op) { multidb_select(g_server, g_client, op); }
 
 void cmd_reset(Shard&, Op& op) {
     if (g_client) g_client->session().db_index = 0;
@@ -1054,7 +1183,7 @@ void cmd_reset(Shard&, Op& op) {
     reply_simple(op.sink(), "RESET");
 }
 
-void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
+void /* TOMO_TOOL_BIND cmd_debug_impl */ cmd_debug_impl(Shard& shard, Op& op) {
     const Slice subcommand = op.arg(1);
 #ifdef TOMO_CONNRESET_TRACE
     if (eq_icase(subcommand, "close-stats") && op.argc() == 2) {
@@ -1086,22 +1215,31 @@ void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
     // live IO producer before a 63:1 -> 1:63 flip. Returning the connection owner is observational;
     // it does not alter placement and is available only behind the existing DEBUG permission gate.
     if (eq_icase(subcommand, "io-thread") && op.argc() == 2) {
-        if (!g_client) { reply_err(op.sink(), "ERR no client context"); return; }
+        if (!g_client) {
+            reply_err(op.sink(), "ERR no client context");
+            return;
+        }
         reply_int(op.sink(), static_cast<long long>(g_client->ifid_thread()));
         return;
     }
     if (eq_icase(subcommand, "flipctl") && op.argc() == 2) {
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
         const std::string out = g_server->flipctl_debug_dump();
         reply_verbatim(op.sink(), Slice(out.data(), out.size()), "txt", op.resp3());
         return;
     }
-    if (eq_icase(subcommand, "flipctl") && op.argc() == 3 &&
-        eq_icase(op.arg(2), "trigger")) {
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+    if (eq_icase(subcommand, "flipctl") && op.argc() == 3 && eq_icase(op.arg(2), "trigger")) {
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
         if (!g_server->flipctl_available()) {
-            reply_err(op.sink(),
-                      "ERR flip controller is unavailable with --thread-mode 1s: threads are fused");
+            reply_err(
+                op.sink(),
+                "ERR flip controller is unavailable with --thread-mode 1s: threads are fused");
             return;
         }
         if (!g_server->flipctl_enabled()) {
@@ -1119,10 +1257,14 @@ void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
     // cost (negative restores the measurement). Cold, behind the DEBUG permission gate.
     if (eq_icase(subcommand, "flipctl") && (op.argc() == 4 || op.argc() == 5) &&
         eq_icase(op.arg(2), "seek")) {
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
         if (!g_server->flipctl_available()) {
-            reply_err(op.sink(),
-                      "ERR flip controller is unavailable with --thread-mode 1s: threads are fused");
+            reply_err(
+                op.sink(),
+                "ERR flip controller is unavailable with --thread-mode 1s: threads are fused");
             return;
         }
         uint64_t target = 0;
@@ -1144,10 +1286,14 @@ void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
         return;
     }
     if (eq_icase(subcommand, "flipctl") && op.argc() == 4 && eq_icase(op.arg(2), "cost")) {
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
         if (!g_server->flipctl_available()) {
-            reply_err(op.sink(),
-                      "ERR flip controller is unavailable with --thread-mode 1s: threads are fused");
+            reply_err(
+                op.sink(),
+                "ERR flip controller is unavailable with --thread-mode 1s: threads are fused");
             return;
         }
         double per_client = 0;
@@ -1182,7 +1328,10 @@ void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
     }
     if (eq_icase(subcommand, "lbsignals") && op.argc() == 2) {
         // Raw monotonic dump; windowing is the reader's job (two calls, subtract). See lbsignals.h.
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
         std::string out;
         lbsignals_format(lbsignals_capture(*g_server), out);
         reply_verbatim(op.sink(), Slice(out.data(), out.size()), "txt", op.resp3());
@@ -1232,7 +1381,10 @@ void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
             return;
         }
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
         g_server->set_debug_atomic_direct_defer(static_cast<uint32_t>(passes));
         reply_ok(op.sink());
         return;
@@ -1249,7 +1401,10 @@ void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
             return;
         }
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
         g_server->set_debug_read_local_lane_cap(static_cast<uint32_t>(cap));
         reply_ok(op.sink());
         return;
@@ -1287,7 +1442,10 @@ void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
             return;
         }
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
         g_server->set_debug_barrier_hold(static_cast<uint32_t>(armed));
         reply_ok(op.sink());
         return;
@@ -1296,7 +1454,10 @@ void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
     // how many blocked -> unblocked transitions consumed the arm, so the test cannot pass without
     // reaching the retirement/cron ordering it claims to cover.
     if (eq_icase(subcommand, "blocking-timeout-reap")) {
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
         if (op.argc() == 2) {
             reply_int(op.sink(), g_server->debug_blocking_timeout_reaps());
             return;
@@ -1315,7 +1476,10 @@ void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
     // cross-shard group -- and a cross-shard battery that silently ran same-owner proves nothing.
     // This is the geometry oracle those batteries gate on.
     if (eq_icase(subcommand, "shard") && op.argc() == 3) {
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
         // DEBUG has no key metadata, so multidb_stamp leaves its argv unnamespaced.
         // Use the operation's captured physical DB, including SELECT/SWAPDB mapping,
         // exactly as the real key commands whose geometry this oracle reports.
@@ -1329,7 +1493,10 @@ void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
     // non-obstructing observer, so a reply concurrent with FLIP may contain rows from both the old
     // and new placements rather than pretending to be one coherent placement snapshot.
     if (eq_icase(subcommand, "shards") && op.argc() >= 3) {
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
         auto sink = op.sink();
         reply_array_header(sink, op.argc() - 2);
         for (uint32_t i = 2; i < op.argc(); i++) {
@@ -1363,7 +1530,10 @@ void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
             return;
         }
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
         g_server->set_debug_script_stage_watch(client);
         reply_ok(op.sink());
         return;
@@ -1376,7 +1546,10 @@ void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
             return;
         }
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
         g_server->set_debug_atomic_commit_hold(held != 0);
         reply_ok(op.sink());
         return;
@@ -1401,13 +1574,17 @@ void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
     // holds a group between ticket draw and publication; atomic OFF parks non-lead mutation
     // owners at the scatter hop. Last writer wins, and zero through either alias disarms both.
     if ((eq_icase(subcommand, "atomic-commit-delay") ||
-         eq_icase(subcommand, "atomic-off-hop-delay")) && op.argc() == 3) {
+         eq_icase(subcommand, "atomic-off-hop-delay")) &&
+        op.argc() == 3) {
         uint64_t microseconds = 0;
         if (!parse_u64(op.arg(2), microseconds) || microseconds > 1000000) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
             return;
         }
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
         g_server->set_debug_hop_delay(static_cast<uint32_t>(microseconds));
         reply_ok(op.sink());
         return;
@@ -1421,7 +1598,10 @@ void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
             return;
         }
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
         g_server->set_debug_atomic_read_delay(static_cast<uint32_t>(microseconds));
         reply_ok(op.sink());
         return;
@@ -1437,7 +1617,10 @@ void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
             return;
         }
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
         g_server->set_debug_txn_place_defer(static_cast<uint32_t>(delay));
         reply_ok(op.sink());
         return;
@@ -1451,7 +1634,10 @@ void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
             return;
         }
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
         g_server->set_debug_blocking_register_defer(static_cast<uint32_t>(delay));
         reply_ok(op.sink());
         return;
@@ -1472,7 +1658,10 @@ void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
             return;
         }
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
         g_server->set_debug_atomic_fanout_defer(static_cast<uint32_t>(microseconds));
         reply_ok(op.sink());
         return;
@@ -1487,7 +1676,10 @@ void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
             return;
         }
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
         g_server->set_debug_atomic_conditional_defer(static_cast<uint32_t>(microseconds));
         reply_ok(op.sink());
         return;
@@ -1500,7 +1692,10 @@ void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
             return;
         }
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
         g_server->set_debug_flip_stage_hold(static_cast<uint16_t>(microseconds));
         reply_ok(op.sink());
         return;
@@ -1516,21 +1711,31 @@ void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
             return;
         }
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
         g_server->set_debug_script_stage_defer(static_cast<uint32_t>(microseconds));
         reply_ok(op.sink());
         return;
     }
-    if ((eq_icase(subcommand, "script-apply-defer") || eq_icase(subcommand, "script-escalate-force")) && op.argc() == 3) {
+    if ((eq_icase(subcommand, "script-apply-defer") ||
+         eq_icase(subcommand, "script-escalate-force")) &&
+        op.argc() == 3) {
         uint64_t value = 0;
         const bool force = eq_icase(subcommand, "script-escalate-force");
         if (!parse_u64(op.arg(2), value) || value > (force ? 1u : 10000000u)) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
             return;
         }
-        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
-        if (force) g_server->set_debug_script_escalate_force(value);
-        else g_server->set_debug_script_apply_defer(value);
+        if (!g_server) {
+            reply_err(op.sink(), "ERR no server context");
+            return;
+        }
+        if (force)
+            g_server->set_debug_script_escalate_force(value);
+        else
+            g_server->set_debug_script_apply_defer(value);
         reply_ok(op.sink());
         return;
     }
@@ -1559,7 +1764,8 @@ void /* TOMO_TOOL_BIND cmd_debug_impl */cmd_debug_impl(Shard& shard, Op& op) {
     }
     if (eq_icase(subcommand, "aof-rewrite-pause") && op.argc() == 3) {
         AofRewriteDebugStage stage = AofRewriteDebugStage::None;
-        if (eq_icase(op.arg(2), "before-mark")) stage = AofRewriteDebugStage::BeforeMark;
+        if (eq_icase(op.arg(2), "before-mark"))
+            stage = AofRewriteDebugStage::BeforeMark;
         else if (eq_icase(op.arg(2), "before-manifest"))
             stage = AofRewriteDebugStage::BeforeManifest;
         else if (eq_icase(op.arg(2), "after-manifest"))
@@ -1606,9 +1812,7 @@ void cmd_quit(Shard&, Op& op) {
     if (g_client) g_client->mark_closing();
 }
 
-void cmd_pubsub_only(Shard&, Op& op) {
-    reply_err(op.sink(), "ERR internal pubsub routing error");
-}
+void cmd_pubsub_only(Shard&, Op& op) { reply_err(op.sink(), "ERR internal pubsub routing error"); }
 
 // MONITOR never reaches a shard: the io dispatcher routes it into climon_start_client_command.
 // This row exists so registry validation, ACL categories and COMMAND DOCS see a real handler.
@@ -1620,12 +1824,15 @@ void cmd_client(Shard&, Op& op) {
     const Slice sub = op.arg(1);
     // Redis answers a wrong-arity subcommand with a per-subcommand message, and an unrecognised
     // one with the CLIENT HELP pointer -- never with a bare syntax error.
-    static constexpr struct { const char* name; const char* lower; int32_t min; int32_t max; }
-        kArity[] = {
-            {"ID", "id", 2, 2}, {"GETNAME", "getname", 2, 2}, {"SETNAME", "setname", 3, 3},
-            {"SETINFO", "setinfo", 4, 4}, {"INFO", "info", 2, 2},
-            {"NO-EVICT", "no-evict", 3, 3},
-        };
+    static constexpr struct {
+        const char* name;
+        const char* lower;
+        int32_t min;
+        int32_t max;
+    } kArity[] = {
+        {"ID", "id", 2, 2},           {"GETNAME", "getname", 2, 2}, {"SETNAME", "setname", 3, 3},
+        {"SETINFO", "setinfo", 4, 4}, {"INFO", "info", 2, 2},       {"NO-EVICT", "no-evict", 3, 3},
+    };
     for (const auto& entry : kArity) {
         if (!eq_icase(sub, entry.name)) continue;
         if (static_cast<int32_t>(op.argc()) < entry.min ||
@@ -1639,15 +1846,18 @@ void cmd_client(Shard&, Op& op) {
         reply_int(op.sink(), g_client ? static_cast<long long>(g_client->id()) : 0);
     } else if (eq_icase(sub, "SETNAME") && op.argc() == 3) {
         if (!valid_client_text(op.arg(2))) {
-            reply_err(op.sink(), "ERR Client names cannot contain spaces, newlines or special characters.");
+            reply_err(op.sink(),
+                      "ERR Client names cannot contain spaces, newlines or special characters.");
             return;
         }
         command_client_set_name(g_client, op.arg(2));
         reply_ok(op.sink());
     } else if (eq_icase(sub, "GETNAME") && op.argc() == 2) {
         const std::string name = command_client_name(g_client);
-        if (name.empty()) reply_null(op.sink(), op.resp3());
-        else reply_bulk(op.sink(), Slice(name.data(), name.size()));
+        if (name.empty())
+            reply_null(op.sink(), op.resp3());
+        else
+            reply_bulk(op.sink(), Slice(name.data(), name.size()));
     } else if (eq_icase(sub, "SETINFO") && op.argc() == 4) {
         if (!eq_icase(op.arg(2), "LIB-NAME") && !eq_icase(op.arg(2), "LIB-VER")) {
             std::string error = "ERR Unrecognized option '";
@@ -1669,8 +1879,7 @@ void cmd_client(Shard&, Op& op) {
         }
         reply_ok(op.sink());
     } else if (eq_icase(sub, "INFO") && op.argc() == 2) {
-        const std::string body = command_client_info_line(
-            *g_client, now_ns() / 1000000ull);
+        const std::string body = command_client_info_line(*g_client, now_ns() / 1000000ull);
         reply_verbatim(op.sink(), Slice(body.data(), body.size()), "txt", op.resp3());
     } else if (eq_icase(sub, "LIST") || eq_icase(sub, "KILL")) {
         reply_err(op.sink(), "ERR CLIENT scatter is unavailable in this execution context");
@@ -1735,26 +1944,28 @@ void cmd_command(Shard&, Op& op) {
     }
     // LIST / GETKEYS / GETKEYSANDFLAGS / HELP live in the server-tail feature file.
     if (server_tail_command_subcommand(op)) return;
-    reply_err(sink, "ERR unknown subcommand or wrong number of arguments for 'command'. Try COMMAND HELP.");
+    reply_err(
+        sink,
+        "ERR unknown subcommand or wrong number of arguments for 'command'. Try COMMAND HELP.");
 }
 
 static constexpr SubcommandArity kConfigSubcommands[] = {
-    {"get",       3, -1},
-    {"set",       4, -1},
-    {"rewrite",   2,  2},
-    {"resetstat", 2,  2},
-    {"help",      2,  2},
+    {"get", 3, -1}, {"set", 4, -1}, {"rewrite", 2, 2}, {"resetstat", 2, 2}, {"help", 2, 2},
 };
 
 using ConfigUpdates = std::vector<std::pair<ConfigValue*, std::string>>;
 
-struct ConfigApplyResult { const Op* op; std::string error; };
-std::vector<ConfigApplyResult> g_config_apply_results; // g_config_mu; retired at reply assembly
+struct ConfigApplyResult {
+    const Op* op;
+    std::string error;
+};
+std::vector<ConfigApplyResult> g_config_apply_results;  // g_config_mu; retired at reply assembly
 
 bool config_apply_listeners(Shard& sh, Op& op, const ConfigUpdates& updates) {
     bool listeners = false, locale = false, aof = false;
     for (const auto& update : updates) {
-        listeners |= !std::strcmp(update.first->name, "port") || !std::strcmp(update.first->name, "bind");
+        listeners |=
+            !std::strcmp(update.first->name, "port") || !std::strcmp(update.first->name, "bind");
         locale |= !std::strcmp(update.first->name, "locale-collate");
         aof |= !std::strcmp(update.first->name, "appendonly");
     }
@@ -1772,16 +1983,22 @@ bool config_apply_listeners(Shard& sh, Op& op, const ConfigUpdates& updates) {
     int appendonly = -1;
     struct PreparedLocale {
         locale_t value = nullptr;
-        ~PreparedLocale() { if (value) freelocale(value); }
+        ~PreparedLocale() {
+            if (value) freelocale(value);
+        }
     } prepared;
     for (const auto& update : updates) {
         if (!std::strcmp(update.first->name, "port")) port = std::stoul(update.second);
-        if (!std::strcmp(update.first->name, "bind")) { bind = update.second; parameter = "bind"; }
+        if (!std::strcmp(update.first->name, "bind")) {
+            bind = update.second;
+            parameter = "bind";
+        }
         if (!std::strcmp(update.first->name, "appendonly")) appendonly = update.second == "yes";
         if (!std::strcmp(update.first->name, "locale-collate")) {
             prepared.value = newlocale(LC_COLLATE_MASK, update.second.c_str(), nullptr);
             if (!prepared.value) {
-                result.error = "ERR CONFIG SET failed (possibly related to argument 'locale-collate') - Invalid locale name";
+                result.error =
+                    "ERR CONFIG SET failed (possibly related to argument 'locale-collate') - Invalid locale name";
                 if (!op.has_scatter_state()) reply_err(op.sink(), result.error.c_str());
                 return false;
             }
@@ -1789,17 +2006,19 @@ bool config_apply_listeners(Shard& sh, Op& op, const ConfigUpdates& updates) {
     }
     std::string reason;
     if (!(listeners || aof) || !g_server ||
-        cfgfix_rebind(*g_server, g_server->worker_of_shard(sh.id()), port, bind, reason, appendonly)) {
+        cfgfix_rebind(*g_server, g_server->worker_of_shard(sh.id()), port, bind, reason,
+                      appendonly)) {
         // No allocation or fallible apply remains after installing listeners.
         if (prepared.value) sort_locale_install(std::exchange(prepared.value, nullptr));
         return true;
     }
     if (aof && (!listeners || reason.starts_with("appendonly:"))) parameter = "appendonly";
     std::fprintf(stderr, "CONFIG %s: %s\n", parameter, reason.c_str());
-    result.error = std::string("ERR CONFIG SET failed (possibly related to argument '") + parameter +
-        "') - " + (!std::strcmp(parameter, "appendonly") ? "Unable to turn on AOF. Check server logs." :
-                  !std::strcmp(parameter, "port") ? "Unable to listen on this port. Check server logs." :
-                                                   "Failed to bind to specified addresses.");
+    result.error =
+        std::string("ERR CONFIG SET failed (possibly related to argument '") + parameter + "') - " +
+        (!std::strcmp(parameter, "appendonly") ? "Unable to turn on AOF. Check server logs."
+         : !std::strcmp(parameter, "port")     ? "Unable to listen on this port. Check server logs."
+                                               : "Failed to bind to specified addresses.");
     if (!op.has_scatter_state()) reply_err(op.sink(), result.error.c_str());
     return false;
 }
@@ -1824,16 +2043,18 @@ std::vector<MemoryPublicationClaim> g_memory_publication_claims;  // guarded by 
 
 bool config_claim_memory_publication(const Op& op) {
     const uint32_t fragments = g_server && op.has_scatter_state() ? g_server->nshards() : 1;
-    for (auto it = g_memory_publication_claims.begin();
-         it != g_memory_publication_claims.end(); ++it) {
+    for (auto it = g_memory_publication_claims.begin(); it != g_memory_publication_claims.end();
+         ++it) {
         if (it->op != &op) continue;
         if (++it->fragments >= fragments) g_memory_publication_claims.erase(it);
         return false;
     }
     if (fragments > 1) {
         // Unrecorded on allocation failure: later fragments republish this Op's same values.
-        try { g_memory_publication_claims.push_back({&op, 1}); }
-        catch (const std::bad_alloc&) {}
+        try {
+            g_memory_publication_claims.push_back({&op, 1});
+        } catch (const std::bad_alloc&) {
+        }
     }
     return true;
 }
@@ -1844,7 +2065,8 @@ void config_publish_memory(Shard& sh, ConfigUpdates& updates) {
     // Shard 0 refuses an unusable locale before its table writes; never publish ahead of that.
     for (const auto& update : updates)
         if (!std::strcmp(update.first->name, "locale-collate") &&
-            !sort_locale_valid(update.second.c_str())) return;
+            !sort_locale_valid(update.second.c_str()))
+            return;
     for (auto& update : updates)
         if (config_memory_parameter(*update.first)) update.first->value = update.second;
     if (!g_server) return;
@@ -1855,23 +2077,26 @@ void config_publish_memory(Shard& sh, ConfigUpdates& updates) {
     for (const auto& update : updates) {
         const Slice text(update.second.data(), static_cast<uint32_t>(update.second.size()));
         if (!std::strcmp(update.first->name, "maxmemory")) {
-            parse_u64(text, desired.maxmemory); set_memory = true;
+            parse_u64(text, desired.maxmemory);
+            set_memory = true;
         } else if (!std::strcmp(update.first->name, "maxmemory-policy")) {
-            parse_maxmemory_policy(text.sv(), desired.policy); set_policy = true;
+            parse_maxmemory_policy(text.sv(), desired.policy);
+            set_policy = true;
         } else if (!std::strcmp(update.first->name, "maxmemory-samples")) {
             uint64_t samples = 0;
             parse_u64(text, samples);
-            desired.samples = static_cast<uint32_t>(samples); set_samples = true;
+            desired.samples = static_cast<uint32_t>(samples);
+            set_samples = true;
         }
     }
-    g_server->set_maxmemory_config(desired.maxmemory, desired.policy, desired.samples,
-                                   set_memory, set_policy, set_samples);
+    g_server->set_maxmemory_config(desired.maxmemory, desired.policy, desired.samples, set_memory,
+                                   set_policy, set_samples);
 }
 
 void cmd_config(Shard& sh, Op& op) {
     if (!command_validate_subcommand(op, "CONFIG", kConfigSubcommands,
-                                     sizeof(kConfigSubcommands) /
-                                         sizeof(kConfigSubcommands[0]))) return;
+                                     sizeof(kConfigSubcommands) / sizeof(kConfigSubcommands[0])))
+        return;
     if (eq_icase(op.arg(1), "GET") && op.argc() >= 3) {
         std::vector<std::pair<std::string, std::string>> matches;
         {
@@ -1900,7 +2125,8 @@ void cmd_config(Shard& sh, Op& op) {
                     };
                     match(item.name);
                     if (item.kind == ConfigKind::Encoding) {
-                        const int key = EncodingConfig::find(Slice(item.name, std::strlen(item.name)));
+                        const int key =
+                            EncodingConfig::find(Slice(item.name, std::strlen(item.name)));
                         if (key >= 0 && EncodingConfig::settings[key].alias)
                             match(EncodingConfig::settings[key].alias);
                         if (key >= 0 && EncodingConfig::settings[key].tomo_alias)
@@ -1931,7 +2157,8 @@ void cmd_config(Shard& sh, Op& op) {
             // IO validated before fan-out, so failure here can only mean internal table corruption.
             if (!collect_config_updates(op, updates)) return;
             if (!config_apply_listeners(sh, op, updates)) return;
-            for (const auto& update : updates) memory_update |= config_memory_parameter(*update.first);
+            for (const auto& update : updates)
+                memory_update |= config_memory_parameter(*update.first);
             if (memory_update && config_claim_memory_publication(op))
                 config_publish_memory(sh, updates);
             if (sh.id() == 0) {
@@ -1941,7 +2168,8 @@ void cmd_config(Shard& sh, Op& op) {
                 if (g_server)
                     for (const auto& update : updates)
                         if (!std::strcmp(update.first->name, "latency-tracking") &&
-                            update.second == "yes") latency_enable_start = now_ns();
+                            update.second == "yes")
+                            latency_enable_start = now_ns();
                 for (auto& update : updates) {
                     if (update.first->kind == ConfigKind::LatencyPercentiles) {
                         // INFO copies this side vector under the same lock as
@@ -1951,7 +2179,8 @@ void cmd_config(Shard& sh, Op& op) {
                             if (op.arg(i).eq_icase("latency-tracking-info-percentiles")) {
                                 std::vector<double> next;
                                 const char* error = nullptr;
-                                if (!cfg_latency_percentiles(op.arg(i + 1), next, error)) std::abort();
+                                if (!cfg_latency_percentiles(op.arg(i + 1), next, error))
+                                    std::abort();
                                 g_latency_percentiles.swap(next);
                                 g_latency_percentiles_explicit = true;
                                 break;
@@ -1961,10 +2190,12 @@ void cmd_config(Shard& sh, Op& op) {
                     if (!config_memory_parameter(*update.first)) {
                         if (update.first->kind == ConfigKind::NotifyFlags) {
                             uint32_t flags = 0;
-                            if (!parse_notify_flags(Slice(update.second.data(), update.second.size()), flags))
+                            if (!parse_notify_flags(
+                                    Slice(update.second.data(), update.second.size()), flags))
                                 std::abort();
                             update.first->value = serialize_notify_flags(flags);
-                        } else update.first->value = update.second;
+                        } else
+                            update.first->value = update.second;
                     }
                     if (!std::strcmp(update.first->name, "client-output-buffer-limit")) {
                         ClientOutputBufferLimits parsed;
@@ -1995,14 +2226,14 @@ void cmd_config(Shard& sh, Op& op) {
             uint32_t flags = 0;
             if (!parse_notify_flags(
                     Slice(update.second.data(), static_cast<uint32_t>(update.second.size())),
-                    flags)) std::abort();
+                    flags))
+                std::abort();
             // Preserve the tracking arm across a notify-config barrier: the CONFIG task publishes
             // the configured classes, the tracking bit is owned by CLIENT TRACKING.
             const bool tracking =
                 g_server && (g_server->climon_armed() & Server::kClimonTracking) != 0;
             const bool save_armed = g_server && g_server->save_schedule_armed();
-            sh.set_notify_mask(flags |
-                               (tracking ? NOTIFY_TRACKING : 0u) |
+            sh.set_notify_mask(flags | (tracking ? NOTIFY_TRACKING : 0u) |
                                (save_armed ? NOTIFY_SAVE : 0u));
         }
 
@@ -2017,20 +2248,25 @@ void cmd_config(Shard& sh, Op& op) {
                     cfgfix_key_load_delay(std::strtol(update.second.c_str(), nullptr, 10));
                 } else if (!std::strcmp(update.first->name, "tls-auth-clients")) {
                     auto& auth = const_cast<Config&>(g_server->cfg()).tls_auth_clients;
-                    std::atomic_ref<TlsAuthClients>(auth).store(update.second == "no" ? TlsAuthClients::No :
-                        update.second == "optional" ? TlsAuthClients::Optional : TlsAuthClients::Yes,
+                    std::atomic_ref<TlsAuthClients>(auth).store(
+                        update.second == "no"         ? TlsAuthClients::No
+                        : update.second == "optional" ? TlsAuthClients::Optional
+                                                      : TlsAuthClients::Yes,
                         std::memory_order_relaxed);
                 } else if (!std::strcmp(update.first->name, "save")) {
                     std::vector<SaveClause> clauses;
                     if (!cfg_parse_save_schedule(update.second.data(), update.second.size(),
-                                                 clauses)) std::abort();
+                                                 clauses))
+                        std::abort();
                     g_server->set_save_schedule(clauses);
                 } else if (update.first->kind == ConfigKind::Shutdown) {
                     uint8_t flags = 0;
                     const char* error = nullptr;
-                    if (!cfg_shutdown_flags(Slice(update.second.data(), update.second.size()), flags, error))
+                    if (!cfg_shutdown_flags(Slice(update.second.data(), update.second.size()),
+                                            flags, error))
                         std::abort();
-                    g_server->set_shutdown_policy(!std::strcmp(update.first->name, "shutdown-on-sigint"), flags);
+                    g_server->set_shutdown_policy(
+                        !std::strcmp(update.first->name, "shutdown-on-sigint"), flags);
                 } else if (!std::strcmp(update.first->name, "proto-max-bulk-len")) {
                     uint64_t value = 0;
                     if (!parse_u64(Slice(update.second.data(), update.second.size()), value))
@@ -2052,14 +2288,15 @@ void cmd_config(Shard& sh, Op& op) {
                 uint32_t flags = 0;
                 if (!parse_notify_flags(
                         Slice(update.second.data(), static_cast<uint32_t>(update.second.size())),
-                        flags)) std::abort();
+                        flags))
+                    std::abort();
                 g_server->set_notify_events(flags);
             }
             for (const auto& update : updates) {
                 uint64_t value = 0;
                 if (!std::strcmp(update.first->name, "requirepass")) {
-                    auth_publish_requirepass(
-                        *g_server, Slice(update.second.data(), update.second.size()));
+                    auth_publish_requirepass(*g_server,
+                                             Slice(update.second.data(), update.second.size()));
                     continue;
                 }
                 if (!std::strcmp(update.first->name, "latency-tracking")) {
@@ -2083,10 +2320,10 @@ void cmd_config(Shard& sh, Op& op) {
                     continue;
                 }
                 if (!std::strcmp(update.first->name, "appendfsync")) {
-                    const AppendFsyncPolicy policy = update.second == "always"
-                        ? AppendFsyncPolicy::Always
-                        : update.second == "no" ? AppendFsyncPolicy::No
-                                                 : AppendFsyncPolicy::Everysec;
+                    const AppendFsyncPolicy policy =
+                        update.second == "always" ? AppendFsyncPolicy::Always
+                        : update.second == "no"   ? AppendFsyncPolicy::No
+                                                  : AppendFsyncPolicy::Everysec;
                     g_server->aof().set_fsync_policy(policy);
                     continue;
                 }
@@ -2164,9 +2401,12 @@ void cmd_config(Shard& sh, Op& op) {
             uint64_t value = 0;
             if (!parse_u64(Slice(update.second.data(), update.second.size()), value)) continue;
             const uint32_t v = static_cast<uint32_t>(value);
-            if (!std::strcmp(update.first->name, "zc-min")) sh.set_zc_min(v);
-            else if (!std::strcmp(update.first->name, "stream-node-max-bytes")) stream_limits.node_max_bytes = v;
-            else if (!std::strcmp(update.first->name, "stream-node-max-entries")) stream_limits.node_max_entries = v;
+            if (!std::strcmp(update.first->name, "zc-min"))
+                sh.set_zc_min(v);
+            else if (!std::strcmp(update.first->name, "stream-node-max-bytes"))
+                stream_limits.node_max_bytes = v;
+            else if (!std::strcmp(update.first->name, "stream-node-max-entries"))
+                stream_limits.node_max_entries = v;
         }
         sh.set_type_limits(limits);
         sh.set_stream_limits(stream_limits);
@@ -2231,11 +2471,9 @@ void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
     total.mget_fallback_watch += local.mget_fallback_watch;
     total.mget_fallback_context += local.mget_fallback_context;
     total.mget_fallback_context_owner_key += local.mget_fallback_context_owner_key;
-    total.mget_fallback_context_connection_state +=
-        local.mget_fallback_context_connection_state;
+    total.mget_fallback_context_connection_state += local.mget_fallback_context_connection_state;
     total.mget_fallback_context_route += local.mget_fallback_context_route;
-    total.mget_fallback_context_keymiss_notify +=
-        local.mget_fallback_context_keymiss_notify;
+    total.mget_fallback_context_keymiss_notify += local.mget_fallback_context_keymiss_notify;
     total.mget_fallback_inflight_write += local.mget_fallback_inflight_write;
     total.mget_fallback_arm_transient += local.mget_fallback_arm_transient;
     total.mget_fallback_atomic_pending += local.mget_fallback_atomic_pending;
@@ -2310,14 +2548,17 @@ bool info_section(Op& op, const char* wanted, bool included_by_default = true) {
     if (op.argc() == 1) return included_by_default;
     for (uint32_t i = 1; i < op.argc(); i++) {
         if (eq_icase(op.arg(i), "ALL") || eq_icase(op.arg(i), "EVERYTHING") ||
-            eq_icase(op.arg(i), wanted) ||
-            (included_by_default && eq_icase(op.arg(i), "DEFAULT"))) return true;
+            eq_icase(op.arg(i), wanted) || (included_by_default && eq_icase(op.arg(i), "DEFAULT")))
+            return true;
     }
     return false;
 }
 
 void cmd_flip(Shard&, Op& op) {
-    if (!g_server) { reply_err(op.sink(), "ERR server is not initialized"); return; }
+    if (!g_server) {
+        reply_err(op.sink(), "ERR server is not initialized");
+        return;
+    }
     if (op.argc() != 1) {
         // The three-argument mutation form is intercepted by IoLoop and completed asynchronously.
         // Reaching the ordinary local handler means the grammar was neither report nor mutation.
@@ -2361,31 +2602,27 @@ void cmd_info(Shard&, Op& op) {
     const bool want_keyspace = info_section(op, "KEYSPACE");
     const bool want_commands = info_section(op, "COMMANDSTATS", false);
     std::string body;
-    uint64_t keys = 0, expires = 0, obj_bytes = 0, hits = 0, misses = 0, expired = 0,
-             evicted = 0, keyspace_rehashes = 0, active_expire_reap_lag_ms_max = 0;
+    uint64_t keys = 0, expires = 0, obj_bytes = 0, hits = 0, misses = 0, expired = 0, evicted = 0,
+             keyspace_rehashes = 0, active_expire_reap_lag_ms_max = 0;
     uint64_t total_ops = 0, sampled_ops = 0, connections = 0, rejected = 0;
     uint64_t net_input_bytes = 0, net_output_bytes = 0, auth_failures = 0;
-    uint64_t sends_submitted = 0, short_writes = 0, bytes_sent = 0,
-             peer_aborts = 0, send_errors = 0, zc_sends = 0, zc_releases = 0;
-    uint64_t acl_denied_cmd = 0, acl_denied_key = 0, acl_denied_channel = 0,
-             acl_denied_auth = 0;
-    uint64_t atomic_predecessor_reads = 0, atomic_chain_max = 0,
-             atomic_promotions = 0, atomic_records_freed = 0,
-             atomic_entries = 0, atomic_pending_entries = 0,
-             atomic_cleanup_fast = 0, atomic_cleanup_slow = 0,
-             atomic_localfast = 0, atomic_scan_holds = 0, blocking_waiters = 0,
-             atomic_gauge_underflows = 0, atomic_exec_order_holds = 0,
-             watch_reservation_waits = 0, watch_reservation_coexist = 0,
-             watch_reservation_precommit_aborts = 0;
+    uint64_t sends_submitted = 0, short_writes = 0, bytes_sent = 0, peer_aborts = 0,
+             send_errors = 0, zc_sends = 0, zc_releases = 0;
+    uint64_t acl_denied_cmd = 0, acl_denied_key = 0, acl_denied_channel = 0, acl_denied_auth = 0;
+    uint64_t atomic_predecessor_reads = 0, atomic_chain_max = 0, atomic_promotions = 0,
+             atomic_records_freed = 0, atomic_entries = 0, atomic_pending_entries = 0,
+             atomic_cleanup_fast = 0, atomic_cleanup_slow = 0, atomic_localfast = 0,
+             atomic_scan_holds = 0, blocking_waiters = 0, atomic_gauge_underflows = 0,
+             atomic_exec_order_holds = 0, watch_reservation_waits = 0,
+             watch_reservation_coexist = 0, watch_reservation_precommit_aborts = 0;
     uint64_t hash_field_expires = 0, expired_hash_fields = 0;
     uint64_t foreign_read_unsafe_refs = 0, foreign_read_occupied_cells = 0,
              foreign_read_wildcard_cells = 0, foreign_read_saturated_cells = 0,
              foreign_read_poisoned_shards = 0;
     uint64_t plain_accepts = 0, tls_accepts = 0, tls_handshakes_started = 0,
-             tls_handshakes_completed = 0, tls_handshakes_failed = 0,
-             tls_connections_freed = 0, tls_want_read = 0, tls_want_write = 0,
-             tls_ciphertext_input = 0, tls_plaintext_input = 0,
-             tls_ciphertext_output = 0, tls_plaintext_output = 0,
+             tls_handshakes_completed = 0, tls_handshakes_failed = 0, tls_connections_freed = 0,
+             tls_want_read = 0, tls_want_write = 0, tls_ciphertext_input = 0,
+             tls_plaintext_input = 0, tls_ciphertext_output = 0, tls_plaintext_output = 0,
              tls_zc_suppressed = 0, tls_ktls_active = 0, tls_ktls_fallback = 0;
     // --net-io epoll only. Both stay zero on the io_uring engine, which is what makes them usable
     // as a live FIRED-MECHANISM proof: a test that claims to be running on epoll and sees
@@ -2394,41 +2631,42 @@ void cmd_info(Shard&, Op& op) {
     ReadLocalStats read_local;
     if (g_server) {
         if (want_stats || want_memory || (kSingleDatabase && want_keyspace))
-        for (uint32_t i = 0; i < g_server->nshards(); i++) {
-            const Shard& sh = g_server->shard(static_cast<int32_t>(i));
-            if (want_memory || (kSingleDatabase && want_keyspace)) keys += sh.published_size();
-            if (kSingleDatabase && want_keyspace) expires += sh.published_expires();
-            if (want_memory) obj_bytes += sh.published_obj_bytes();
-            if (!want_stats) continue;
-            hash_field_expires += sh.store().field_expire_count();
-            expired_hash_fields += sh.store().field_expired();
-            hits += sh.stats().hits; misses += sh.stats().misses; expired += sh.stats().expired;
-            evicted += sh.published_evicted();
-            keyspace_rehashes += sh.stats().rehashes;
-            active_expire_reap_lag_ms_max = std::max(
-                active_expire_reap_lag_ms_max,
-                static_cast<uint64_t>(sh.published_active_expire_reap_lag_ms_max()));
-            atomic_predecessor_reads += sh.stats().atomic_predecessor_reads;
-            atomic_chain_max = std::max(atomic_chain_max, sh.stats().atomic_chain_max);
-            atomic_promotions += sh.stats().atomic_promotions;
-            atomic_records_freed += sh.stats().atomic_records_freed;
-            atomic_entries += sh.stats().atomic_entries;
-            atomic_gauge_underflows += sh.stats().atomic_gauge_underflows;
-            atomic_exec_order_holds += sh.stats().atomic_exec_order_holds;
-            watch_reservation_waits += sh.stats().watch_reservation_waits;
-            watch_reservation_coexist += sh.stats().watch_reservation_coexist;
-            watch_reservation_precommit_aborts +=
-                sh.stats().watch_reservation_precommit_aborts;
-            atomic_pending_entries += sh.store().atomic_pending_entries();
-            atomic_cleanup_fast += sh.store().atomic_cleanup_fast();
-            atomic_cleanup_slow += sh.store().atomic_cleanup_slow();
-            foreign_read_unsafe_refs += sh.store().foreign_read_unsafe_refs();
-            foreign_read_occupied_cells += sh.store().foreign_read_occupied_cells();
-            foreign_read_wildcard_cells += sh.store().foreign_read_wildcard_cells();
-            foreign_read_saturated_cells += sh.store().foreign_read_saturated_cells();
-            foreign_read_poisoned_shards += sh.store().foreign_read_poisoned();
-            blocking_waiters += sh.blocking_waiters();
-        }
+            for (uint32_t i = 0; i < g_server->nshards(); i++) {
+                const Shard& sh = g_server->shard(static_cast<int32_t>(i));
+                if (want_memory || (kSingleDatabase && want_keyspace)) keys += sh.published_size();
+                if (kSingleDatabase && want_keyspace) expires += sh.published_expires();
+                if (want_memory) obj_bytes += sh.published_obj_bytes();
+                if (!want_stats) continue;
+                hash_field_expires += sh.store().field_expire_count();
+                expired_hash_fields += sh.store().field_expired();
+                hits += sh.stats().hits;
+                misses += sh.stats().misses;
+                expired += sh.stats().expired;
+                evicted += sh.published_evicted();
+                keyspace_rehashes += sh.stats().rehashes;
+                active_expire_reap_lag_ms_max =
+                    std::max(active_expire_reap_lag_ms_max,
+                             static_cast<uint64_t>(sh.published_active_expire_reap_lag_ms_max()));
+                atomic_predecessor_reads += sh.stats().atomic_predecessor_reads;
+                atomic_chain_max = std::max(atomic_chain_max, sh.stats().atomic_chain_max);
+                atomic_promotions += sh.stats().atomic_promotions;
+                atomic_records_freed += sh.stats().atomic_records_freed;
+                atomic_entries += sh.stats().atomic_entries;
+                atomic_gauge_underflows += sh.stats().atomic_gauge_underflows;
+                atomic_exec_order_holds += sh.stats().atomic_exec_order_holds;
+                watch_reservation_waits += sh.stats().watch_reservation_waits;
+                watch_reservation_coexist += sh.stats().watch_reservation_coexist;
+                watch_reservation_precommit_aborts += sh.stats().watch_reservation_precommit_aborts;
+                atomic_pending_entries += sh.store().atomic_pending_entries();
+                atomic_cleanup_fast += sh.store().atomic_cleanup_fast();
+                atomic_cleanup_slow += sh.store().atomic_cleanup_slow();
+                foreign_read_unsafe_refs += sh.store().foreign_read_unsafe_refs();
+                foreign_read_occupied_cells += sh.store().foreign_read_occupied_cells();
+                foreign_read_wildcard_cells += sh.store().foreign_read_wildcard_cells();
+                foreign_read_saturated_cells += sh.store().foreign_read_saturated_cells();
+                foreign_read_poisoned_shards += sh.store().foreign_read_poisoned();
+                blocking_waiters += sh.blocking_waiters();
+            }
         if (want_stats) {
             for (uint32_t t = 0; t < g_server->nthreads(); t++) {
                 for (uint32_t id = 0; id < command_registry_size(); id++) {
@@ -2490,8 +2728,8 @@ void cmd_info(Shard&, Op& op) {
         std::lock_guard<std::mutex> lock(g_stat_baseline_mu);
         baseline = g_stat_baseline;
     }
-    const uint64_t expired_subkeys = want_stats
-        ? minus_baseline(expired_hash_fields, baseline.expired_subkeys) : 0;
+    const uint64_t expired_subkeys =
+        want_stats ? minus_baseline(expired_hash_fields, baseline.expired_subkeys) : 0;
     if (want_stats) {
         if (g_server && g_server->read_local_enabled()) {
             hits += read_local.keyspace_hits;
@@ -2516,104 +2754,105 @@ void cmd_info(Shard&, Op& op) {
         acl_denied_auth = minus_baseline(acl_denied_auth, baseline.acl_denied_auth);
         if (g_server && g_server->read_local_enabled()) {
             read_local.hits = minus_baseline(read_local.hits, baseline.read_local.hits);
-            read_local.keyspace_hits = minus_baseline(
-                read_local.keyspace_hits, baseline.read_local.keyspace_hits);
-            read_local.keyspace_misses = minus_baseline(
-                read_local.keyspace_misses, baseline.read_local.keyspace_misses);
-            read_local.fallback_multi = minus_baseline(
-                read_local.fallback_multi, baseline.read_local.fallback_multi);
-            read_local.fallback_watch = minus_baseline(
-                read_local.fallback_watch, baseline.read_local.fallback_watch);
-            read_local.fallback_context = minus_baseline(
-                read_local.fallback_context, baseline.read_local.fallback_context);
-            read_local.fallback_context_owner_key = minus_baseline(
-                read_local.fallback_context_owner_key,
-                baseline.read_local.fallback_context_owner_key);
-            read_local.fallback_context_connection_state = minus_baseline(
-                read_local.fallback_context_connection_state,
-                baseline.read_local.fallback_context_connection_state);
+            read_local.keyspace_hits =
+                minus_baseline(read_local.keyspace_hits, baseline.read_local.keyspace_hits);
+            read_local.keyspace_misses =
+                minus_baseline(read_local.keyspace_misses, baseline.read_local.keyspace_misses);
+            read_local.fallback_multi =
+                minus_baseline(read_local.fallback_multi, baseline.read_local.fallback_multi);
+            read_local.fallback_watch =
+                minus_baseline(read_local.fallback_watch, baseline.read_local.fallback_watch);
+            read_local.fallback_context =
+                minus_baseline(read_local.fallback_context, baseline.read_local.fallback_context);
+            read_local.fallback_context_owner_key =
+                minus_baseline(read_local.fallback_context_owner_key,
+                               baseline.read_local.fallback_context_owner_key);
+            read_local.fallback_context_connection_state =
+                minus_baseline(read_local.fallback_context_connection_state,
+                               baseline.read_local.fallback_context_connection_state);
             read_local.fallback_context_route = minus_baseline(
                 read_local.fallback_context_route, baseline.read_local.fallback_context_route);
-            read_local.fallback_context_keymiss_notify = minus_baseline(
-                read_local.fallback_context_keymiss_notify,
-                baseline.read_local.fallback_context_keymiss_notify);
+            read_local.fallback_context_keymiss_notify =
+                minus_baseline(read_local.fallback_context_keymiss_notify,
+                               baseline.read_local.fallback_context_keymiss_notify);
             read_local.fallback_inflight_write = minus_baseline(
                 read_local.fallback_inflight_write, baseline.read_local.fallback_inflight_write);
             read_local.fallback_arm_transient = minus_baseline(
                 read_local.fallback_arm_transient, baseline.read_local.fallback_arm_transient);
-            read_local.arm.arms = minus_baseline(
-                read_local.arm.arms, baseline.read_local.arm.arms);
-            read_local.arm.sidecars = minus_baseline(
-                read_local.arm.sidecars, baseline.read_local.arm.sidecars);
+            read_local.arm.arms = minus_baseline(read_local.arm.arms, baseline.read_local.arm.arms);
+            read_local.arm.sidecars =
+                minus_baseline(read_local.arm.sidecars, baseline.read_local.arm.sidecars);
             read_local.arm.write_ring_records = minus_baseline(
                 read_local.arm.write_ring_records, baseline.read_local.arm.write_ring_records);
             read_local.fallback_atomic_pending = minus_baseline(
                 read_local.fallback_atomic_pending, baseline.read_local.fallback_atomic_pending);
-            read_local.fallback_missing = minus_baseline(
-                read_local.fallback_missing, baseline.read_local.fallback_missing);
-            read_local.fallback_typed = minus_baseline(
-                read_local.fallback_typed, baseline.read_local.fallback_typed);
-            read_local.fallback_expired = minus_baseline(
-                read_local.fallback_expired, baseline.read_local.fallback_expired);
-            read_local.fallback_seq_churn = minus_baseline(
-                read_local.fallback_seq_churn, baseline.read_local.fallback_seq_churn);
+            read_local.fallback_missing =
+                minus_baseline(read_local.fallback_missing, baseline.read_local.fallback_missing);
+            read_local.fallback_typed =
+                minus_baseline(read_local.fallback_typed, baseline.read_local.fallback_typed);
+            read_local.fallback_expired =
+                minus_baseline(read_local.fallback_expired, baseline.read_local.fallback_expired);
+            read_local.fallback_seq_churn = minus_baseline(read_local.fallback_seq_churn,
+                                                           baseline.read_local.fallback_seq_churn);
             read_local.fallback_generation = minus_baseline(
                 read_local.fallback_generation, baseline.read_local.fallback_generation);
-            read_local.defer_lane_full = minus_baseline(
-                read_local.defer_lane_full, baseline.read_local.defer_lane_full);
-            read_local.defer_quota = minus_baseline(
-                read_local.defer_quota, baseline.read_local.defer_quota);
-            read_local.mget_local_hits = minus_baseline(
-                read_local.mget_local_hits, baseline.read_local.mget_local_hits);
+            read_local.defer_lane_full =
+                minus_baseline(read_local.defer_lane_full, baseline.read_local.defer_lane_full);
+            read_local.defer_quota =
+                minus_baseline(read_local.defer_quota, baseline.read_local.defer_quota);
+            read_local.mget_local_hits =
+                minus_baseline(read_local.mget_local_hits, baseline.read_local.mget_local_hits);
             read_local.mget_fallback_multi = minus_baseline(
                 read_local.mget_fallback_multi, baseline.read_local.mget_fallback_multi);
             read_local.mget_fallback_watch = minus_baseline(
                 read_local.mget_fallback_watch, baseline.read_local.mget_fallback_watch);
             read_local.mget_fallback_context = minus_baseline(
                 read_local.mget_fallback_context, baseline.read_local.mget_fallback_context);
-            read_local.mget_fallback_context_owner_key = minus_baseline(
-                read_local.mget_fallback_context_owner_key,
-                baseline.read_local.mget_fallback_context_owner_key);
-            read_local.mget_fallback_context_connection_state = minus_baseline(
-                read_local.mget_fallback_context_connection_state,
-                baseline.read_local.mget_fallback_context_connection_state);
-            read_local.mget_fallback_context_route = minus_baseline(
-                read_local.mget_fallback_context_route,
-                baseline.read_local.mget_fallback_context_route);
-            read_local.mget_fallback_context_keymiss_notify = minus_baseline(
-                read_local.mget_fallback_context_keymiss_notify,
-                baseline.read_local.mget_fallback_context_keymiss_notify);
-            read_local.mget_fallback_inflight_write = minus_baseline(
-                read_local.mget_fallback_inflight_write,
-                baseline.read_local.mget_fallback_inflight_write);
-            read_local.mget_fallback_arm_transient = minus_baseline(
-                read_local.mget_fallback_arm_transient,
-                baseline.read_local.mget_fallback_arm_transient);
-            read_local.mget_fallback_atomic_pending = minus_baseline(
-                read_local.mget_fallback_atomic_pending,
-                baseline.read_local.mget_fallback_atomic_pending);
+            read_local.mget_fallback_context_owner_key =
+                minus_baseline(read_local.mget_fallback_context_owner_key,
+                               baseline.read_local.mget_fallback_context_owner_key);
+            read_local.mget_fallback_context_connection_state =
+                minus_baseline(read_local.mget_fallback_context_connection_state,
+                               baseline.read_local.mget_fallback_context_connection_state);
+            read_local.mget_fallback_context_route =
+                minus_baseline(read_local.mget_fallback_context_route,
+                               baseline.read_local.mget_fallback_context_route);
+            read_local.mget_fallback_context_keymiss_notify =
+                minus_baseline(read_local.mget_fallback_context_keymiss_notify,
+                               baseline.read_local.mget_fallback_context_keymiss_notify);
+            read_local.mget_fallback_inflight_write =
+                minus_baseline(read_local.mget_fallback_inflight_write,
+                               baseline.read_local.mget_fallback_inflight_write);
+            read_local.mget_fallback_arm_transient =
+                minus_baseline(read_local.mget_fallback_arm_transient,
+                               baseline.read_local.mget_fallback_arm_transient);
+            read_local.mget_fallback_atomic_pending =
+                minus_baseline(read_local.mget_fallback_atomic_pending,
+                               baseline.read_local.mget_fallback_atomic_pending);
             read_local.mget_fallback_typed = minus_baseline(
                 read_local.mget_fallback_typed, baseline.read_local.mget_fallback_typed);
             read_local.mget_fallback_expired = minus_baseline(
                 read_local.mget_fallback_expired, baseline.read_local.mget_fallback_expired);
             read_local.mget_fallback_seq_churn = minus_baseline(
-                read_local.mget_fallback_seq_churn,
-                baseline.read_local.mget_fallback_seq_churn);
+                read_local.mget_fallback_seq_churn, baseline.read_local.mget_fallback_seq_churn);
             read_local.mget_fallback_generation = minus_baseline(
-                read_local.mget_fallback_generation,
-                baseline.read_local.mget_fallback_generation);
+                read_local.mget_fallback_generation, baseline.read_local.mget_fallback_generation);
         }
     }
 
     if (info_section(op, "SERVER")) {
-        const uint64_t uptime = g_started_monotonic_ns ? (now_ns() - g_started_monotonic_ns) / 1000000000ull : 0;
+        const uint64_t uptime =
+            g_started_monotonic_ns ? (now_ns() - g_started_monotonic_ns) / 1000000000ull : 0;
         // zc-min is live: cfg() is only the boot request. Read the same synchronized value as
         // CONFIG GET, after which a benchmark can verify a completed CONFIG SET of either arm.
         std::string zc_min;
         {
             ConfigLock lock;
             for (const ConfigValue& item : g_config)
-                if (!std::strcmp(item.name, "zc-min")) { zc_min = item.value; break; }
+                if (!std::strcmp(item.name, "zc-min")) {
+                    zc_min = item.value;
+                    break;
+                }
         }
         // process_id and tcp_port are plain facts about this process, not telemetry that could be
         // stale -- and tooling depends on them. The NIC bench harness identifies the server it just
@@ -2621,39 +2860,39 @@ void cmd_info(Shard&, Op& op) {
         // opaque "boot/cell FAIL" long before any measurement was taken.
         // read_local is the effective boot state. Actual loop entry and successful completions
         // are separate observations: a configured but unreachable lane must be visible in INFO.
-        appendf(body, "# Server\r\nredis_version:%s\r\ntomokv_version:%s\r\nredis_mode:standalone\r\n"
-                      "thread_mode:%s\r\nshards:%u\r\nreorder:%d\r\nreorder_retired:%u\r\nread_local:%u\r\natomic:%u\r\n"
-                      "arch_bits:%zu\r\nmultiplexing_api:%s\r\nprocess_id:%lld\r\n"
-                      "run_id:%s\r\ntcp_port:%u\r\nuptime_in_seconds:%llu\r\nuptime_in_days:%llu\r\n"
-                      "executable:%s\r\nconfig_file:%s\r\nio_threads_active:1\r\n",
-                kRedisCompatVersion, kTomoVersion, g_server ? g_server->thread_mode_name() : "2s",
-                g_server ? g_server->nshards() : 0u,
-                g_server ? static_cast<int32_t>(g_server->cfg().reorder) : 0,
-                reorder_available() && g_server &&
-                    reorder_for_mode(1, g_server->thread_mode()) ? 0u : 1u,
-                g_server && g_server->read_local_enabled() ? 1u : 0u,
-                g_server && g_server->atomic_enabled() ? 1u : 0u,
-                sizeof(void*) * 8,
-                g_ring_epoll_mode ? "epoll" : "io_uring",
-                static_cast<long long>(::getpid()), info_run_id(),
-                static_cast<unsigned>(g_server ? g_server->cfg().port : 0),
-                static_cast<unsigned long long>(uptime),
-                static_cast<unsigned long long>(uptime / 86400),
-                info_executable(), info_config_file());
+        appendf(
+            body,
+            "# Server\r\nredis_version:%s\r\ntomokv_version:%s\r\nredis_mode:standalone\r\n"
+            "thread_mode:%s\r\nshards:%u\r\nreorder:%d\r\nreorder_retired:%u\r\nread_local:%u\r\natomic:%u\r\n"
+            "arch_bits:%zu\r\nmultiplexing_api:%s\r\nprocess_id:%lld\r\n"
+            "run_id:%s\r\ntcp_port:%u\r\nuptime_in_seconds:%llu\r\nuptime_in_days:%llu\r\n"
+            "executable:%s\r\nconfig_file:%s\r\nio_threads_active:1\r\n",
+            kRedisCompatVersion, kTomoVersion, g_server ? g_server->thread_mode_name() : "2s",
+            g_server ? g_server->nshards() : 0u,
+            g_server ? static_cast<int32_t>(g_server->cfg().reorder) : 0,
+            reorder_available() && g_server && reorder_for_mode(1, g_server->thread_mode()) ? 0u
+                                                                                            : 1u,
+            g_server && g_server->read_local_enabled() ? 1u : 0u,
+            g_server && g_server->atomic_enabled() ? 1u : 0u, sizeof(void*) * 8,
+            g_ring_epoll_mode ? "epoll" : "io_uring", static_cast<long long>(::getpid()),
+            info_run_id(), static_cast<unsigned>(g_server ? g_server->cfg().port : 0),
+            static_cast<unsigned long long>(uptime),
+            static_cast<unsigned long long>(uptime / 86400), info_executable(), info_config_file());
         info_stats_build_fields(body);
         appendf(body, "hz:%u\r\nconfigured_hz:%u\r\n",
                 g_server ? g_server->client_hz() : ClientHz::kDefault,
                 g_server ? g_server->configured_hz() : ClientHz::kDefault);
-        appendf(body, "key_lb:%u\r\nclient_lb:%u\r\nflip_auto:%u\r\n"
-                      "flip_fingerprint_window:%u\r\nnet_io:%s\r\nhash:%s\r\nzc_min:%s\r\n"
-                      "pin_threads:%u\r\n",
+        appendf(body,
+                "key_lb:%u\r\nclient_lb:%u\r\nflip_auto:%u\r\n"
+                "flip_fingerprint_window:%u\r\nnet_io:%s\r\nhash:%s\r\nzc_min:%s\r\n"
+                "pin_threads:%u\r\n",
                 g_server && g_server->key_lb_signals_enabled() ? 1u : 0u,
                 g_server && g_server->client_lb_signals_enabled() ? 1u : 0u,
                 g_server && g_server->flipctl_enabled() ? 1u : 0u,
                 flip_fingerprint_window(g_server && g_server->flipctl_enabled()),
                 g_ring_epoll_mode ? "epoll" : "uring",
-                g_hash_kind == HashKind::SipHash12 ? "siphash" : "mix64",
-                zc_min.c_str(), g_server && g_server->cfg().pin_threads ? 1u : 0u);
+                g_hash_kind == HashKind::SipHash12 ? "siphash" : "mix64", zc_min.c_str(),
+                g_server && g_server->cfg().pin_threads ? 1u : 0u);
         if (g_server) {
             // Boot homes stay immutable through FLIP/LB. Current owners come from dispatch's
             // authoritative acquire loads, so INFO never echoes a requested but unused map.
@@ -2694,11 +2933,9 @@ void cmd_info(Shard&, Op& op) {
                     "flip_unit_threads:%u\r\nflip_bucket_min:%u\r\nflip_bucket_max:%u\r\n"
                     "flip_client_min:%u\r\nflip_client_max:%u\r\n"
                     "flip_last_transfers:%llu\r\nflip_in_progress:%u\r\n",
-                    flip.live_io, flip.live_ex, flip.target_io, flip.target_ex,
-                    flip.unit_threads, flip.bucket_min, flip.bucket_max,
-                    flip.client_min, flip.client_max,
-                    static_cast<unsigned long long>(flip.last_transfers),
-                    flip.moving ? 1u : 0u);
+                    flip.live_io, flip.live_ex, flip.target_io, flip.target_ex, flip.unit_threads,
+                    flip.bucket_min, flip.bucket_max, flip.client_min, flip.client_max,
+                    static_cast<unsigned long long>(flip.last_transfers), flip.moving ? 1u : 0u);
         }
     }
     if (info_section(op, "FLIPCTL")) {
@@ -2741,31 +2978,28 @@ void cmd_info(Shard&, Op& op) {
                     static_cast<unsigned long long>(ctl.rate_collapse_triggers),
                     static_cast<unsigned long long>(ctl.forced_triggers),
                     static_cast<unsigned long long>(ctl.null_maneuvers),
-                    static_cast<unsigned long long>(ctl.model_holds),
-                    ctl.shift_confirmations, ctl.rate_confirmations,
-                    static_cast<unsigned long long>(ctl.round_trips), ctl.model_margin,
-                    ctl.last_trigger.c_str(),
-                    ctl.model_last_decision.c_str(), ctl.model_kappa,
-                    ctl.model_moves, ctl.model_misses,
+                    static_cast<unsigned long long>(ctl.model_holds), ctl.shift_confirmations,
+                    ctl.rate_confirmations, static_cast<unsigned long long>(ctl.round_trips),
+                    ctl.model_margin, ctl.last_trigger.c_str(), ctl.model_last_decision.c_str(),
+                    ctl.model_kappa, ctl.model_moves, ctl.model_misses,
                     static_cast<unsigned long long>(ctl.invalidated_maneuvers),
-                    static_cast<unsigned long long>(ctl.cost_holds),
-                    ctl.client_cost, ctl.last_flip_lost,
-                    static_cast<unsigned long long>(ctl.last_flip_moved), ctl.flip_ticks,
-                    ctl.refine_decision.c_str(), ctl.refine_steps);
+                    static_cast<unsigned long long>(ctl.cost_holds), ctl.client_cost,
+                    ctl.last_flip_lost, static_cast<unsigned long long>(ctl.last_flip_moved),
+                    ctl.flip_ticks, ctl.refine_decision.c_str(), ctl.refine_steps);
         }
     }
     if (info_section(op, "CLIENTS")) {
         uint64_t blocking_keys = 0, blocking_on_nokey = 0;
         if (g_server) blocking_key_counts(*g_server, blocking_keys, blocking_on_nokey);
-        appendf(body, "# Clients\r\nconnected_clients:%llu\r\nblocked_clients:%llu\r\n"
-                      "tracking_clients:%llu\r\nmonitor_clients:%llu\r\n"
-                      "total_blocking_keys:%llu\r\ntotal_blocking_keys_on_nokey:%llu\r\n",
-                static_cast<unsigned long long>(clientcompat_post()
-                    ? g_connected_clients.load(std::memory_order_relaxed)
-                    : (g_server ? g_server->live_clients() : 0)),
-                static_cast<unsigned long long>(g_server ? g_server->blocked_clients() : 0),
+        appendf(body,
+                "# Clients\r\nconnected_clients:%llu\r\nblocked_clients:%llu\r\n"
+                "tracking_clients:%llu\r\nmonitor_clients:%llu\r\n"
+                "total_blocking_keys:%llu\r\ntotal_blocking_keys_on_nokey:%llu\r\n",
                 static_cast<unsigned long long>(
-                    g_server ? g_server->climon_tracking_clients() : 0),
+                    clientcompat_post() ? g_connected_clients.load(std::memory_order_relaxed)
+                                        : (g_server ? g_server->live_clients() : 0)),
+                static_cast<unsigned long long>(g_server ? g_server->blocked_clients() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->climon_tracking_clients() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->climon_monitors() : 0),
                 static_cast<unsigned long long>(blocking_keys),
                 static_cast<unsigned long long>(blocking_on_nokey));
@@ -2778,10 +3012,13 @@ void cmd_info(Shard&, Op& op) {
         const uint64_t used_memory_peak = info_stats_observe_memory(used_memory);
         size_t allocated = 0, resident = 0;
 #if defined(TOMO_JEMALLOC)
-        uint64_t epoch = 1; size_t epoch_size = sizeof(epoch);
+        uint64_t epoch = 1;
+        size_t epoch_size = sizeof(epoch);
         mallctl("epoch", &epoch, &epoch_size, &epoch, sizeof(epoch));
-        size_t sz = sizeof(allocated); mallctl("stats.allocated", &allocated, &sz, nullptr, 0);
-        sz = sizeof(resident); mallctl("stats.resident", &resident, &sz, nullptr, 0);
+        size_t sz = sizeof(allocated);
+        mallctl("stats.allocated", &allocated, &sz, nullptr, 0);
+        sz = sizeof(resident);
+        mallctl("stats.resident", &resident, &sz, nullptr, 0);
 #endif
         // Armed writes recycle their retired blocks through a per-owner cache. Those bytes are
         // allocated but hold no key, so they are reported here and deliberately left out of
@@ -2791,24 +3028,25 @@ void cmd_info(Shard&, Op& op) {
         if (g_server)
             for (uint32_t t = 0; t < g_server->nthreads(); t++)
                 block_cache += g_server->thread(t).read_local_block_cache_bytes();
-        appendf(body, "# Memory\r\nused_memory:%llu\r\nused_memory_dataset:%llu\r\n"
-                      "used_memory_rss:%llu\r\nused_memory_peak:%llu\r\n"
-                      "mem_allocator:%s\r\nallocator_allocated:%llu\r\nallocator_resident:%llu\r\n"
-                      "mem_block_cache:%llu\r\n",
-                static_cast<unsigned long long>(used_memory),
-                static_cast<unsigned long long>(obj_bytes),
-                static_cast<unsigned long long>(resident),
-                static_cast<unsigned long long>(used_memory_peak),
-                alloc_backend(), static_cast<unsigned long long>(allocated),
-                static_cast<unsigned long long>(resident),
-                static_cast<unsigned long long>(block_cache));
+        appendf(
+            body,
+            "# Memory\r\nused_memory:%llu\r\nused_memory_dataset:%llu\r\n"
+            "used_memory_rss:%llu\r\nused_memory_peak:%llu\r\n"
+            "mem_allocator:%s\r\nallocator_allocated:%llu\r\nallocator_resident:%llu\r\n"
+            "mem_block_cache:%llu\r\n",
+            static_cast<unsigned long long>(used_memory),
+            static_cast<unsigned long long>(obj_bytes), static_cast<unsigned long long>(resident),
+            static_cast<unsigned long long>(used_memory_peak), alloc_backend(),
+            static_cast<unsigned long long>(allocated), static_cast<unsigned long long>(resident),
+            static_cast<unsigned long long>(block_cache));
 #if TOMO_SINGLE_DATABASE
         // Keep each compiler variant's ordinary inlining decisions: the db0
         // renderer remains here; the multi-DB renderer is in info_stats.cc.
         const ScriptStats scripting = script_stats();
         const FunctionStats functions = function_stats();
-        appendf(body, "number_of_cached_scripts:%llu\r\nnumber_of_functions:%llu\r\n"
-                      "number_of_libraries:%llu\r\n",
+        appendf(body,
+                "number_of_cached_scripts:%llu\r\nnumber_of_functions:%llu\r\n"
+                "number_of_libraries:%llu\r\n",
                 static_cast<unsigned long long>(scripting.cached_scripts),
                 static_cast<unsigned long long>(functions.functions),
                 static_cast<unsigned long long>(functions.libraries));
@@ -2820,404 +3058,412 @@ void cmd_info(Shard&, Op& op) {
         if (g_server)
             for (uint32_t i = 0; i < g_server->nshards(); i++)
                 preimages += g_server->shard(static_cast<int32_t>(i)).store().snapshot_preimages();
-        appendf(body,
-                "# Persistence\r\nloading:%u\r\nrdb_changes_since_last_save:%llu\r\n"
-                "rdb_bgsave_in_progress:%u\r\nrdb_last_save_time:%lld\r\n"
-                "rdb_last_bgsave_status:%s\r\nrdb_saves:%llu\r\n"
-                "rdb_scheduled_saves:%llu\r\n"
-                "rdb_save_cron_checks:%llu\r\n"
-                "snapshot_preimages:%llu\r\n"
-                "snapshot_cuts_armed:%llu\r\nsnapshot_cuts_waited:%llu\r\n"
-                "snapshot_groups_drained:%llu\r\n"
-                "snapshot_cut_ticket:%llu\r\n"
-                "aof_enabled:%u\r\naof_rewrite_in_progress:%u\r\n"
-                "aof_rewrite_scheduled:%u\r\naof_last_bgrewrite_status:%s\r\n"
-                "aof_rewrites:%llu\r\naof_rewrites_consecutive_failures:%u\r\n"
-                "aof_last_write_status:%s\r\naof_current_size:%llu\r\n"
-                "aof_base_size:%llu\r\naof_pending_rewrite:%u\r\n"
-                "aof_records_written:%llu\r\n"
-                "aof_replayed_records:%llu\r\naof_groups_committed:%llu\r\n"
-                "aof_groups_skipped_on_replay:%llu\r\naof_fsyncs:%llu\r\n"
-                "aof_send_gate_waits:%llu\r\naof_control_frames_deferred:%llu\r\n"
-                "aof_rewrite_base_size:%llu\r\n"
-                "aof_rewrite_requests:%llu\r\n"
-                "aof_auto_rewrite_triggers:%llu\r\naof_history_unlinks:%llu\r\n"
-                "aof_rewrite_failures:%llu\r\n"
-                "aof_auto_rewrite_backoff_skips:%llu\r\n",
-                g_server && g_server->loading() ? 1u : 0u,
-                static_cast<unsigned long long>(
-                    g_server ? g_server->save_changes_since_last_save() : 0),
-                g_server && g_server->snapshot().in_progress() &&
-                    !g_server->aof().rewrite_in_progress() ? 1u : 0u,
-                static_cast<long long>(g_server ? g_server->snapshot().last_save_time() : 0),
-                snapshot_last_bgsave_ok() ? "ok" : "err",
-                static_cast<unsigned long long>(snapshot_completed_saves()),
-                static_cast<unsigned long long>(
-                    g_server ? g_server->scheduled_save_triggers() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->save_cron_checks() : 0),
-                static_cast<unsigned long long>(preimages),
-                static_cast<unsigned long long>(g_server ? g_server->snapshot().cuts_armed() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->snapshot().cuts_waited() : 0),
-                static_cast<unsigned long long>(
-                    g_server ? g_server->snapshot().drained_groups() : 0),
-                static_cast<unsigned long long>(
-                    g_server ? g_server->snapshot().cut_ticket() : 0),
-                g_server && g_server->aof().configured() ? 1u : 0u,
-                g_server && g_server->aof().rewrite_in_progress() ? 1u : 0u,
-                g_server && g_server->aof().rewrite_scheduled() ? 1u : 0u,
-                g_server && g_server->aof().last_rewrite_ok() ? "ok" : "err",
-                static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_completions() : 0),
-                g_server ? g_server->aof().consecutive_rewrite_failures() : 0,
-                g_server && g_server->aof().failed() ? "err" : "ok",
-                static_cast<unsigned long long>(g_server ? g_server->aof().current_size() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->aof().base_size() : 0),
-                g_server && g_server->aof().rewrite_scheduled() ? 1u : 0u,
-                static_cast<unsigned long long>(g_server ? g_server->aof().records_written() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->aof().replayed_records() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->aof().groups_committed() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->aof().groups_skipped() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->aof().fsyncs() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->aof().send_gate_waits() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->aof().control_defers() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_base_size() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_requests() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->aof().auto_rewrite_triggers() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->aof().history_unlinks() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_failures() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->aof().auto_rewrite_backoff_skips() : 0));
+        appendf(
+            body,
+            "# Persistence\r\nloading:%u\r\nrdb_changes_since_last_save:%llu\r\n"
+            "rdb_bgsave_in_progress:%u\r\nrdb_last_save_time:%lld\r\n"
+            "rdb_last_bgsave_status:%s\r\nrdb_saves:%llu\r\n"
+            "rdb_scheduled_saves:%llu\r\n"
+            "rdb_save_cron_checks:%llu\r\n"
+            "snapshot_preimages:%llu\r\n"
+            "snapshot_cuts_armed:%llu\r\nsnapshot_cuts_waited:%llu\r\n"
+            "snapshot_groups_drained:%llu\r\n"
+            "snapshot_cut_ticket:%llu\r\n"
+            "aof_enabled:%u\r\naof_rewrite_in_progress:%u\r\n"
+            "aof_rewrite_scheduled:%u\r\naof_last_bgrewrite_status:%s\r\n"
+            "aof_rewrites:%llu\r\naof_rewrites_consecutive_failures:%u\r\n"
+            "aof_last_write_status:%s\r\naof_current_size:%llu\r\n"
+            "aof_base_size:%llu\r\naof_pending_rewrite:%u\r\n"
+            "aof_records_written:%llu\r\n"
+            "aof_replayed_records:%llu\r\naof_groups_committed:%llu\r\n"
+            "aof_groups_skipped_on_replay:%llu\r\naof_fsyncs:%llu\r\n"
+            "aof_send_gate_waits:%llu\r\naof_control_frames_deferred:%llu\r\n"
+            "aof_rewrite_base_size:%llu\r\n"
+            "aof_rewrite_requests:%llu\r\n"
+            "aof_auto_rewrite_triggers:%llu\r\naof_history_unlinks:%llu\r\n"
+            "aof_rewrite_failures:%llu\r\n"
+            "aof_auto_rewrite_backoff_skips:%llu\r\n",
+            g_server && g_server->loading() ? 1u : 0u,
+            static_cast<unsigned long long>(g_server ? g_server->save_changes_since_last_save()
+                                                     : 0),
+            g_server && g_server->snapshot().in_progress() && !g_server->aof().rewrite_in_progress()
+                ? 1u
+                : 0u,
+            static_cast<long long>(g_server ? g_server->snapshot().last_save_time() : 0),
+            snapshot_last_bgsave_ok() ? "ok" : "err",
+            static_cast<unsigned long long>(snapshot_completed_saves()),
+            static_cast<unsigned long long>(g_server ? g_server->scheduled_save_triggers() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->save_cron_checks() : 0),
+            static_cast<unsigned long long>(preimages),
+            static_cast<unsigned long long>(g_server ? g_server->snapshot().cuts_armed() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->snapshot().cuts_waited() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->snapshot().drained_groups() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->snapshot().cut_ticket() : 0),
+            g_server && g_server->aof().configured() ? 1u : 0u,
+            g_server && g_server->aof().rewrite_in_progress() ? 1u : 0u,
+            g_server && g_server->aof().rewrite_scheduled() ? 1u : 0u,
+            g_server && g_server->aof().last_rewrite_ok() ? "ok" : "err",
+            static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_completions() : 0),
+            g_server ? g_server->aof().consecutive_rewrite_failures() : 0,
+            g_server && g_server->aof().failed() ? "err" : "ok",
+            static_cast<unsigned long long>(g_server ? g_server->aof().current_size() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->aof().base_size() : 0),
+            g_server && g_server->aof().rewrite_scheduled() ? 1u : 0u,
+            static_cast<unsigned long long>(g_server ? g_server->aof().records_written() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->aof().replayed_records() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->aof().groups_committed() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->aof().groups_skipped() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->aof().fsyncs() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->aof().send_gate_waits() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->aof().control_defers() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_base_size() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_requests() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->aof().auto_rewrite_triggers() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->aof().history_unlinks() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_failures() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->aof().auto_rewrite_backoff_skips()
+                                                     : 0));
     }
     if (want_stats) {
         const ScriptStats scripting = script_stats();
         const FunctionStats functions = function_stats();
         const AtomicTripwireCounts tripwire = atomic_tripwire_counts();
         const auto sampled_rates = info_stats_rates();
-        appendf(body, "# Stats\r\ntotal_connections_received:%llu\r\nrejected_connections:%llu\r\n"
-                      "total_commands_processed:%llu\r\nkeyspace_hits:%llu\r\nkeyspace_misses:%llu\r\n"
-                      "expired_keys:%llu\r\nactive_expire_reap_lag_ms_max:%llu\r\n"
-                      "evicted_keys:%llu\r\ninstantaneous_ops_per_sec:%llu\r\n"
-                      "instantaneous_input_kbps:%.2f\r\ninstantaneous_output_kbps:%.2f\r\n"
-                      "latest_fork_usec:0\r\n"
-                      "expired_subkeys:%llu\r\nexpired_hash_fields:%llu\r\nhash_field_expires:%llu\r\n"
-                      "keyspace_rehashes:%llu\r\n"
-                      "total_net_input_bytes:%llu\r\ntotal_net_output_bytes:%llu\r\n"
-                      "sends_submitted:%llu\r\nshort_writes:%llu\r\nbytes_sent:%llu\r\n"
-                      "peer_aborts:%llu\r\nsend_errors:%llu\r\n"
-                      "zc_sends:%llu\r\nzc_releases:%llu\r\n"
-                      "auth_failures:%llu\r\n"
-                      "acl_access_denied_auth:%llu\r\nacl_access_denied_cmd:%llu\r\n"
-                      "acl_access_denied_key:%llu\r\nacl_access_denied_channel:%llu\r\n"
-                      "acl_pubsub_clients_killed:%llu\r\nacl_perm_retired:%llu\r\n"
-                      "atomic_groups:%llu\r\natomic_inflight:%llu\r\n"
-                      "atomic_predecessor_reads:%llu\r\natomic_chain_max:%llu\r\n"
-                      "atomic_cleanup_fast:%llu\r\natomic_cleanup_slow:%llu\r\n"
-                      "atomic_promotions:%llu\r\natomic_window_stalls:%llu\r\n"
-                      "atomic_records_freed:%llu\r\natomic_entries:%llu\r\n"
-                      "atomic_gauge_underflows:%llu\r\n"
-                      "atomic_pending_entries:%llu\r\natomic_localfast:%llu\r\n"
-                      "atomic_scan_order_holds:%llu\r\natomic_exec_order_holds:%llu\r\n"
-                      "atomic_exec_order_late:%llu\r\n"
-                      "watch_reservation_waits:%llu\r\n"
-                      "watch_reservation_coexist:%llu\r\n"
-                      "watch_reservation_precommit_aborts:%llu\r\n"
-                      "atomic_commit_windows:%llu\r\natomic_commit_holds:%llu\r\n"
-                      "atomic_read_cuts_held:%llu\r\natomic_fanout_cuts:%llu\r\n"
-                      "atomic_exec_read_cuts:%llu\r\n"
-                      "atomic_tripwire_plain_path_changes:%llu\r\n"
-                      "atomic_tripwire_chain_smaller_tickets:%llu\r\n"
-                      "atomic_tripwire_samekey_masked_out:%llu\r\n"
-                      "atomic_tripwire_samekey_visible_lost:%llu\r\n"
-                      "atomic_tripwire_samekey_undecided:%llu\r\n"
-                      "atomic_tripwire_samekey_undecided_le_cut:%llu\r\n"
-                      "atomic_tripwire_samekey_undecided_gt_cut:%llu\r\n"
-                      "atomic_tripwire_excluded_reader_zero:%llu\r\n"
-                      "atomic_tripwire_excluded_conn_mismatch:%llu\r\n"
-                      "atomic_tripwire_collapse_undelete:%llu\r\n"
-                      "atomic_tripwire_collapse_write_other:%llu\r\n"
-                      "atomic_credit_pool:%u\r\natomic_credit_debt:%u\r\n"
-                      "script_stage_owner_tasks:%llu\r\nscript_run_attempts:%llu\r\n"
-                      "script_validate_owner_tasks:%llu\r\nscript_apply_owner_tasks:%llu\r\n"
-                      "script_crossshard_activations:%llu\r\nscript_group_commits:%llu\r\n"
-                      "script_group_occ_retries:%llu\r\nscript_group_occ_giveups:%llu\r\n"
-                      "script_staged_bytes_total:%llu\r\nscript_crossshard_window_refusals:%llu\r\n"
-                      "script_crossshard_window_waits:%llu\r\n"
-                      "script_escalations:%llu\r\nscript_escalated_commits:%llu\r\n"
-                      "script_group_aborts_oom:%llu\r\n"
-                      "script_keys_armed:%llu\r\nscript_keys_released:%llu\r\n"
-                      "script_intents_live:%llu\r\nscript_write_tickets_forced:%llu\r\n"
-                      "sort_deref_lookups:%llu\r\nsort_deref_refusals:%llu\r\n"
-                      "sort_scatter_general:%llu\r\nsort_deref_escapes:%llu\r\n"
-                      "pubsub_channels:%llu\r\npubsub_subscriptions:%llu\r\n"
-                      "pubsubshard_channels:%llu\r\npubsubshard_subscriptions:%llu\r\n"
-                      "pubsub_patterns:%llu\r\npubsub_home_entries:%llu\r\n"
-                      "pubsub_inflight:%llu\r\npubsub_pending_commands:%llu\r\n"
-                      "pubsub_blobs:%llu\r\npubsub_deliveries:%llu\r\n"
-                      "pubsub_delivery_batches:%llu\r\npubsub_forwarded_stale:%llu\r\n"
-                      "client_query_buffer_limit_disconnections:%llu\r\n"
-                      "client_output_buffer_limit_disconnections:%llu\r\n"
-                      "notify_events_fired:%llu\r\nnotify_events_dropped:%llu\r\n"
-                      "client_scatter_requests:%llu\r\nclient_scatter_io_responses:%llu\r\n"
-                      "plain_connections_received:%llu\r\ntls_connections_received:%llu\r\n"
-                      "tls_current_connections:%llu\r\ntls_handshakes_started:%llu\r\n"
-                      "tls_handshakes_completed:%llu\r\ntls_handshakes_failed:%llu\r\n"
-                      "tls_want_read:%llu\r\ntls_want_write:%llu\r\n"
-                      "tls_ciphertext_input_bytes:%llu\r\ntls_plaintext_input_bytes:%llu\r\n"
-                      "tls_ciphertext_output_bytes:%llu\r\ntls_plaintext_output_bytes:%llu\r\n"
-                      "tls_zc_suppressed:%llu\r\n"
-                      "tls_ktls_active:%llu\r\ntls_ktls_fallback:%llu\r\n"
-                      "tls_ktls_rx_declined_13:%llu\r\ntls_ktls_tx_rekeys:%llu\r\n"
-                      "blocking_waiters:%llu\r\n"
-                      "script_flush_generation:%llu\r\nscript_interpreter_builds:%llu\r\n"
-                      "script_chunk_cache_hits:%llu\r\nscript_chunk_cache_misses:%llu\r\n"
-                      "script_readonly_rejections:%llu\r\n"
-                      "script_effect_writes:%llu\r\nscript_failed_after_effects:%llu\r\n"
-                      "function_generation:%llu\r\nfunction_calls:%llu\r\n"
-                      "function_thread_rebuilds:%llu\r\nfunction_readonly_rejections:%llu\r\n"
-                      "monitor_feed_lines:%llu\r\nmonitor_forwarded_stale:%llu\r\n"
-                      "client_pause_holds:%llu\r\n"
-                      "client_no_touch_ops:%llu\r\n"
-                      "tracking_total_keys:%llu\r\ntracking_total_items:%llu\r\n"
-                      "tracking_total_prefixes:%llu\r\ntracking_invalidations:%llu\r\n"
-                      "tracking_forwarded_stale:%llu\r\n"
-                      "slowlog_batches_timed:%llu\r\nslowlog_escalations:%llu\r\n"
-                      "slowlog_entries_recorded:%llu\r\nlatency_events_recorded:%llu\r\n"
-                      "net_io_epoll_events:%llu\r\nnet_io_epoll_recvs:%llu\r\n"
-                      "oob_frames_segmented:%llu\r\noob_frames_deferred:%llu\r\n"
-                      "barrier_owner_overlaps:%llu\r\nbarrier_releases_held:%llu\r\n",
-                static_cast<unsigned long long>(connections), static_cast<unsigned long long>(rejected),
-                static_cast<unsigned long long>(total_ops), static_cast<unsigned long long>(hits),
-                static_cast<unsigned long long>(misses), static_cast<unsigned long long>(expired),
-                static_cast<unsigned long long>(active_expire_reap_lag_ms_max),
-                static_cast<unsigned long long>(evicted),
-                static_cast<unsigned long long>(sampled_rates[0]),
-                double(float(sampled_rates[1]) / 1024),
-                double(float(sampled_rates[2]) / 1024),
-                static_cast<unsigned long long>(expired_subkeys),
-                static_cast<unsigned long long>(expired_hash_fields),
-                static_cast<unsigned long long>(hash_field_expires),
-                static_cast<unsigned long long>(keyspace_rehashes),
-                static_cast<unsigned long long>(net_input_bytes),
-                static_cast<unsigned long long>(net_output_bytes),
-                static_cast<unsigned long long>(sends_submitted),
-                static_cast<unsigned long long>(short_writes),
-                static_cast<unsigned long long>(bytes_sent),
-                static_cast<unsigned long long>(peer_aborts),
-                static_cast<unsigned long long>(send_errors),
-                static_cast<unsigned long long>(zc_sends),
-                static_cast<unsigned long long>(zc_releases),
-                static_cast<unsigned long long>(auth_failures),
-                static_cast<unsigned long long>(acl_denied_auth),
-                static_cast<unsigned long long>(acl_denied_cmd),
-                static_cast<unsigned long long>(acl_denied_key),
-                static_cast<unsigned long long>(acl_denied_channel),
-                static_cast<unsigned long long>(
-                    g_server ? g_server->acl_pubsub_clients_killed() : 0),
-                static_cast<unsigned long long>(
-                    g_server ? g_server->acl_perm_retired_count() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->atomic_groups() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->atomic_inflight() : 0),
-                static_cast<unsigned long long>(atomic_predecessor_reads),
-                static_cast<unsigned long long>(atomic_chain_max),
-                static_cast<unsigned long long>(atomic_cleanup_fast),
-                static_cast<unsigned long long>(atomic_cleanup_slow),
-                static_cast<unsigned long long>(atomic_promotions),
-                static_cast<unsigned long long>(g_server ? g_server->atomic_window_stalls() : 0),
-                static_cast<unsigned long long>(atomic_records_freed),
-                static_cast<unsigned long long>(atomic_entries),
-                static_cast<unsigned long long>(atomic_gauge_underflows),
-                static_cast<unsigned long long>(atomic_pending_entries),
-                static_cast<unsigned long long>(atomic_localfast),
-                static_cast<unsigned long long>(atomic_scan_holds),
-                static_cast<unsigned long long>(atomic_exec_order_holds),
-                static_cast<unsigned long long>(multi_exec_order_late()),
-                static_cast<unsigned long long>(watch_reservation_waits),
-                static_cast<unsigned long long>(watch_reservation_coexist),
-                static_cast<unsigned long long>(watch_reservation_precommit_aborts),
-                static_cast<unsigned long long>(
-                    g_server ? g_server->atomic_commit_windows() : 0),
-                static_cast<unsigned long long>(
-                    g_server ? g_server->atomic_commit_holds() : 0),
-                static_cast<unsigned long long>(
-                    g_server ? g_server->atomic_read_cuts_held() : 0),
-                static_cast<unsigned long long>(
-                    g_server ? g_server->atomic_fanout_cuts() : 0),
-                static_cast<unsigned long long>(
-                    g_server ? g_server->atomic_exec_read_cuts() : 0),
-                static_cast<unsigned long long>(tripwire.plain_path_changes),
-                static_cast<unsigned long long>(tripwire.chain_smaller_tickets),
-                static_cast<unsigned long long>(tripwire.samekey_masked_out),
-                static_cast<unsigned long long>(tripwire.samekey_visible_lost),
-                static_cast<unsigned long long>(tripwire.samekey_undecided),
-                static_cast<unsigned long long>(tripwire.samekey_undecided_le_cut),
-                static_cast<unsigned long long>(tripwire.samekey_undecided_gt_cut),
-                static_cast<unsigned long long>(tripwire.excluded_reader_zero),
-                static_cast<unsigned long long>(tripwire.excluded_conn_mismatch),
-                static_cast<unsigned long long>(tripwire.collapse_undelete),
-                static_cast<unsigned long long>(tripwire.collapse_write_other),
-                g_server ? g_server->atomic_credit_pool() : 0,
-                g_server ? g_server->atomic_credit_debt() : 0,
-                static_cast<unsigned long long>(g_server ? g_server->script_stage_owner_tasks() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->script_run_attempts() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->script_validate_owner_tasks() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->script_apply_owner_tasks() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->script_crossshard_activations() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->script_group_commits() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->script_group_occ_retries() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->script_group_occ_giveups() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->script_staged_bytes_total() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->script_crossshard_window_refusals() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->script_crossshard_window_waits() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->script_escalations() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->script_escalated_commits() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->script_group_aborts_oom() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->script_keys_armed() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->script_keys_released() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->script_intents_live() : 0),
-                static_cast<unsigned long long>(
-                    g_server ? g_server->script_write_tickets_forced() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->sort_deref_lookups() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->sort_deref_refusals() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->sort_scatter_general() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->sort_deref_escapes() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->pubsub_active_channels() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->pubsub_subscriptions() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->pubsub_shard_channels() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->pubsub_shard_subscriptions() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->pubsub_pattern_subscriptions() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->pubsub_home_entries() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->pubsub_inflight() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->pubsub_pending() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->pubsub_blobs() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->pubsub_deliveries() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->pubsub_delivery_batches() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->pubsub_forwarded_stale() : 0),
-                static_cast<unsigned long long>(query_limit_disconnections.load(std::memory_order_relaxed)),
-                static_cast<unsigned long long>(
-                    g_server ? g_server->client_output_buffer_limit_disconnections() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->notify_events_fired() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->notify_events_dropped() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->client_scatter_requests() : 0),
-                static_cast<unsigned long long>(
-                    g_server ? g_server->client_scatter_io_responses() : 0),
-                static_cast<unsigned long long>(plain_accepts),
-                static_cast<unsigned long long>(tls_accepts),
-                static_cast<unsigned long long>(tls_accepts - tls_connections_freed),
-                static_cast<unsigned long long>(tls_handshakes_started),
-                static_cast<unsigned long long>(tls_handshakes_completed),
-                static_cast<unsigned long long>(tls_handshakes_failed),
-                static_cast<unsigned long long>(tls_want_read),
-                static_cast<unsigned long long>(tls_want_write),
-                static_cast<unsigned long long>(tls_ciphertext_input),
-                static_cast<unsigned long long>(tls_plaintext_input),
-                static_cast<unsigned long long>(tls_ciphertext_output),
-                static_cast<unsigned long long>(tls_plaintext_output),
-                static_cast<unsigned long long>(tls_zc_suppressed),
-                static_cast<unsigned long long>(tls_ktls_active),
-                static_cast<unsigned long long>(tls_ktls_fallback),
-                static_cast<unsigned long long>(tls_ktls_rx_declined_13()),
-                static_cast<unsigned long long>(tls_ktls_tx_rekeys()),
-                static_cast<unsigned long long>(blocking_waiters),
-                static_cast<unsigned long long>(scripting.flush_generation),
-                static_cast<unsigned long long>(scripting.state_rebuilds),
-                static_cast<unsigned long long>(scripting.compile_hits),
-                static_cast<unsigned long long>(scripting.compile_misses),
-                static_cast<unsigned long long>(scripting.ro_rejections),
-                static_cast<unsigned long long>(scripting.effect_writes),
-                static_cast<unsigned long long>(scripting.failed_after_effects),
-                static_cast<unsigned long long>(functions.generation),
-                static_cast<unsigned long long>(functions.calls),
-                static_cast<unsigned long long>(functions.thread_rebuilds),
-                static_cast<unsigned long long>(functions.ro_rejections),
-                static_cast<unsigned long long>(g_server ? g_server->climon_monitor_lines() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->monitor_forwarded_stale() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->climon_pause_holds() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->climon_no_touch_ops() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->climon_tracking_keys() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->climon_tracking_items() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->climon_tracking_prefixes() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->climon_invalidations() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->tracking_forwarded_stale() : 0),
-                // Mechanism counters: a slowlog test that cannot see these move proves nothing.
-                static_cast<unsigned long long>(slowlog_batches_timed()),
-                static_cast<unsigned long long>(slowlog_escalations()),
-                static_cast<unsigned long long>(slowlog_entries_recorded()),
-                static_cast<unsigned long long>(latency_events_recorded()),
-                static_cast<unsigned long long>(epoll_events),
-                static_cast<unsigned long long>(epoll_recvs),
-                // Out-of-band frame channel: a push battery that cannot see these move never
-                // reached the non-quiesced / mid-drain geometry it is there to cover.
-                static_cast<unsigned long long>(g_server ? g_server->oob_frames_segmented() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->oob_frames_deferred() : 0),
-                // barrier_owner_overlaps must read 0 on any production run: blocking dispatch
-                // requires an empty ROB and bars younger parsing, excluding a second owner.
-                // barrier_releases_held is the fired-mechanism proof for DEBUG BARRIER-HOLD --
-                // a barrier-ownership test that leaves it at 0 never reached its geometry and
-                // must fail, not pass.
-                static_cast<unsigned long long>(
-                    g_server ? g_server->barrier_owner_overlaps() : 0),
-                static_cast<unsigned long long>(
-                    g_server ? g_server->barrier_releases_held() : 0));
+        appendf(
+            body,
+            "# Stats\r\ntotal_connections_received:%llu\r\nrejected_connections:%llu\r\n"
+            "total_commands_processed:%llu\r\nkeyspace_hits:%llu\r\nkeyspace_misses:%llu\r\n"
+            "expired_keys:%llu\r\nactive_expire_reap_lag_ms_max:%llu\r\n"
+            "evicted_keys:%llu\r\ninstantaneous_ops_per_sec:%llu\r\n"
+            "instantaneous_input_kbps:%.2f\r\ninstantaneous_output_kbps:%.2f\r\n"
+            "latest_fork_usec:0\r\n"
+            "expired_subkeys:%llu\r\nexpired_hash_fields:%llu\r\nhash_field_expires:%llu\r\n"
+            "keyspace_rehashes:%llu\r\n"
+            "total_net_input_bytes:%llu\r\ntotal_net_output_bytes:%llu\r\n"
+            "sends_submitted:%llu\r\nshort_writes:%llu\r\nbytes_sent:%llu\r\n"
+            "peer_aborts:%llu\r\nsend_errors:%llu\r\n"
+            "zc_sends:%llu\r\nzc_releases:%llu\r\n"
+            "auth_failures:%llu\r\n"
+            "acl_access_denied_auth:%llu\r\nacl_access_denied_cmd:%llu\r\n"
+            "acl_access_denied_key:%llu\r\nacl_access_denied_channel:%llu\r\n"
+            "acl_pubsub_clients_killed:%llu\r\nacl_perm_retired:%llu\r\n"
+            "atomic_groups:%llu\r\natomic_inflight:%llu\r\n"
+            "atomic_predecessor_reads:%llu\r\natomic_chain_max:%llu\r\n"
+            "atomic_cleanup_fast:%llu\r\natomic_cleanup_slow:%llu\r\n"
+            "atomic_promotions:%llu\r\natomic_window_stalls:%llu\r\n"
+            "atomic_records_freed:%llu\r\natomic_entries:%llu\r\n"
+            "atomic_gauge_underflows:%llu\r\n"
+            "atomic_pending_entries:%llu\r\natomic_localfast:%llu\r\n"
+            "atomic_scan_order_holds:%llu\r\natomic_exec_order_holds:%llu\r\n"
+            "atomic_exec_order_late:%llu\r\n"
+            "watch_reservation_waits:%llu\r\n"
+            "watch_reservation_coexist:%llu\r\n"
+            "watch_reservation_precommit_aborts:%llu\r\n"
+            "atomic_commit_windows:%llu\r\natomic_commit_holds:%llu\r\n"
+            "atomic_read_cuts_held:%llu\r\natomic_fanout_cuts:%llu\r\n"
+            "atomic_exec_read_cuts:%llu\r\n"
+            "atomic_tripwire_plain_path_changes:%llu\r\n"
+            "atomic_tripwire_chain_smaller_tickets:%llu\r\n"
+            "atomic_tripwire_samekey_masked_out:%llu\r\n"
+            "atomic_tripwire_samekey_visible_lost:%llu\r\n"
+            "atomic_tripwire_samekey_undecided:%llu\r\n"
+            "atomic_tripwire_samekey_undecided_le_cut:%llu\r\n"
+            "atomic_tripwire_samekey_undecided_gt_cut:%llu\r\n"
+            "atomic_tripwire_excluded_reader_zero:%llu\r\n"
+            "atomic_tripwire_excluded_conn_mismatch:%llu\r\n"
+            "atomic_tripwire_collapse_undelete:%llu\r\n"
+            "atomic_tripwire_collapse_write_other:%llu\r\n"
+            "atomic_credit_pool:%u\r\natomic_credit_debt:%u\r\n"
+            "script_stage_owner_tasks:%llu\r\nscript_run_attempts:%llu\r\n"
+            "script_validate_owner_tasks:%llu\r\nscript_apply_owner_tasks:%llu\r\n"
+            "script_crossshard_activations:%llu\r\nscript_group_commits:%llu\r\n"
+            "script_group_occ_retries:%llu\r\nscript_group_occ_giveups:%llu\r\n"
+            "script_staged_bytes_total:%llu\r\nscript_crossshard_window_refusals:%llu\r\n"
+            "script_crossshard_window_waits:%llu\r\n"
+            "script_escalations:%llu\r\nscript_escalated_commits:%llu\r\n"
+            "script_group_aborts_oom:%llu\r\n"
+            "script_keys_armed:%llu\r\nscript_keys_released:%llu\r\n"
+            "script_intents_live:%llu\r\nscript_write_tickets_forced:%llu\r\n"
+            "sort_deref_lookups:%llu\r\nsort_deref_refusals:%llu\r\n"
+            "sort_scatter_general:%llu\r\nsort_deref_escapes:%llu\r\n"
+            "pubsub_channels:%llu\r\npubsub_subscriptions:%llu\r\n"
+            "pubsubshard_channels:%llu\r\npubsubshard_subscriptions:%llu\r\n"
+            "pubsub_patterns:%llu\r\npubsub_home_entries:%llu\r\n"
+            "pubsub_inflight:%llu\r\npubsub_pending_commands:%llu\r\n"
+            "pubsub_blobs:%llu\r\npubsub_deliveries:%llu\r\n"
+            "pubsub_delivery_batches:%llu\r\npubsub_forwarded_stale:%llu\r\n"
+            "client_query_buffer_limit_disconnections:%llu\r\n"
+            "client_output_buffer_limit_disconnections:%llu\r\n"
+            "notify_events_fired:%llu\r\nnotify_events_dropped:%llu\r\n"
+            "client_scatter_requests:%llu\r\nclient_scatter_io_responses:%llu\r\n"
+            "plain_connections_received:%llu\r\ntls_connections_received:%llu\r\n"
+            "tls_current_connections:%llu\r\ntls_handshakes_started:%llu\r\n"
+            "tls_handshakes_completed:%llu\r\ntls_handshakes_failed:%llu\r\n"
+            "tls_want_read:%llu\r\ntls_want_write:%llu\r\n"
+            "tls_ciphertext_input_bytes:%llu\r\ntls_plaintext_input_bytes:%llu\r\n"
+            "tls_ciphertext_output_bytes:%llu\r\ntls_plaintext_output_bytes:%llu\r\n"
+            "tls_zc_suppressed:%llu\r\n"
+            "tls_ktls_active:%llu\r\ntls_ktls_fallback:%llu\r\n"
+            "tls_ktls_rx_declined_13:%llu\r\ntls_ktls_tx_rekeys:%llu\r\n"
+            "blocking_waiters:%llu\r\n"
+            "script_flush_generation:%llu\r\nscript_interpreter_builds:%llu\r\n"
+            "script_chunk_cache_hits:%llu\r\nscript_chunk_cache_misses:%llu\r\n"
+            "script_readonly_rejections:%llu\r\n"
+            "script_effect_writes:%llu\r\nscript_failed_after_effects:%llu\r\n"
+            "function_generation:%llu\r\nfunction_calls:%llu\r\n"
+            "function_thread_rebuilds:%llu\r\nfunction_readonly_rejections:%llu\r\n"
+            "monitor_feed_lines:%llu\r\nmonitor_forwarded_stale:%llu\r\n"
+            "client_pause_holds:%llu\r\n"
+            "client_no_touch_ops:%llu\r\n"
+            "tracking_total_keys:%llu\r\ntracking_total_items:%llu\r\n"
+            "tracking_total_prefixes:%llu\r\ntracking_invalidations:%llu\r\n"
+            "tracking_forwarded_stale:%llu\r\n"
+            "slowlog_batches_timed:%llu\r\nslowlog_escalations:%llu\r\n"
+            "slowlog_entries_recorded:%llu\r\nlatency_events_recorded:%llu\r\n"
+            "net_io_epoll_events:%llu\r\nnet_io_epoll_recvs:%llu\r\n"
+            "oob_frames_segmented:%llu\r\noob_frames_deferred:%llu\r\n"
+            "barrier_owner_overlaps:%llu\r\nbarrier_releases_held:%llu\r\n",
+            static_cast<unsigned long long>(connections), static_cast<unsigned long long>(rejected),
+            static_cast<unsigned long long>(total_ops), static_cast<unsigned long long>(hits),
+            static_cast<unsigned long long>(misses), static_cast<unsigned long long>(expired),
+            static_cast<unsigned long long>(active_expire_reap_lag_ms_max),
+            static_cast<unsigned long long>(evicted),
+            static_cast<unsigned long long>(sampled_rates[0]),
+            double(float(sampled_rates[1]) / 1024), double(float(sampled_rates[2]) / 1024),
+            static_cast<unsigned long long>(expired_subkeys),
+            static_cast<unsigned long long>(expired_hash_fields),
+            static_cast<unsigned long long>(hash_field_expires),
+            static_cast<unsigned long long>(keyspace_rehashes),
+            static_cast<unsigned long long>(net_input_bytes),
+            static_cast<unsigned long long>(net_output_bytes),
+            static_cast<unsigned long long>(sends_submitted),
+            static_cast<unsigned long long>(short_writes),
+            static_cast<unsigned long long>(bytes_sent),
+            static_cast<unsigned long long>(peer_aborts),
+            static_cast<unsigned long long>(send_errors), static_cast<unsigned long long>(zc_sends),
+            static_cast<unsigned long long>(zc_releases),
+            static_cast<unsigned long long>(auth_failures),
+            static_cast<unsigned long long>(acl_denied_auth),
+            static_cast<unsigned long long>(acl_denied_cmd),
+            static_cast<unsigned long long>(acl_denied_key),
+            static_cast<unsigned long long>(acl_denied_channel),
+            static_cast<unsigned long long>(g_server ? g_server->acl_pubsub_clients_killed() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->acl_perm_retired_count() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->atomic_groups() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->atomic_inflight() : 0),
+            static_cast<unsigned long long>(atomic_predecessor_reads),
+            static_cast<unsigned long long>(atomic_chain_max),
+            static_cast<unsigned long long>(atomic_cleanup_fast),
+            static_cast<unsigned long long>(atomic_cleanup_slow),
+            static_cast<unsigned long long>(atomic_promotions),
+            static_cast<unsigned long long>(g_server ? g_server->atomic_window_stalls() : 0),
+            static_cast<unsigned long long>(atomic_records_freed),
+            static_cast<unsigned long long>(atomic_entries),
+            static_cast<unsigned long long>(atomic_gauge_underflows),
+            static_cast<unsigned long long>(atomic_pending_entries),
+            static_cast<unsigned long long>(atomic_localfast),
+            static_cast<unsigned long long>(atomic_scan_holds),
+            static_cast<unsigned long long>(atomic_exec_order_holds),
+            static_cast<unsigned long long>(multi_exec_order_late()),
+            static_cast<unsigned long long>(watch_reservation_waits),
+            static_cast<unsigned long long>(watch_reservation_coexist),
+            static_cast<unsigned long long>(watch_reservation_precommit_aborts),
+            static_cast<unsigned long long>(g_server ? g_server->atomic_commit_windows() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->atomic_commit_holds() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->atomic_read_cuts_held() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->atomic_fanout_cuts() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->atomic_exec_read_cuts() : 0),
+            static_cast<unsigned long long>(tripwire.plain_path_changes),
+            static_cast<unsigned long long>(tripwire.chain_smaller_tickets),
+            static_cast<unsigned long long>(tripwire.samekey_masked_out),
+            static_cast<unsigned long long>(tripwire.samekey_visible_lost),
+            static_cast<unsigned long long>(tripwire.samekey_undecided),
+            static_cast<unsigned long long>(tripwire.samekey_undecided_le_cut),
+            static_cast<unsigned long long>(tripwire.samekey_undecided_gt_cut),
+            static_cast<unsigned long long>(tripwire.excluded_reader_zero),
+            static_cast<unsigned long long>(tripwire.excluded_conn_mismatch),
+            static_cast<unsigned long long>(tripwire.collapse_undelete),
+            static_cast<unsigned long long>(tripwire.collapse_write_other),
+            g_server ? g_server->atomic_credit_pool() : 0,
+            g_server ? g_server->atomic_credit_debt() : 0,
+            static_cast<unsigned long long>(g_server ? g_server->script_stage_owner_tasks() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->script_run_attempts() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->script_validate_owner_tasks() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->script_apply_owner_tasks() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->script_crossshard_activations()
+                                                     : 0),
+            static_cast<unsigned long long>(g_server ? g_server->script_group_commits() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->script_group_occ_retries() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->script_group_occ_giveups() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->script_staged_bytes_total() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->script_crossshard_window_refusals()
+                                                     : 0),
+            static_cast<unsigned long long>(g_server ? g_server->script_crossshard_window_waits()
+                                                     : 0),
+            static_cast<unsigned long long>(g_server ? g_server->script_escalations() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->script_escalated_commits() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->script_group_aborts_oom() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->script_keys_armed() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->script_keys_released() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->script_intents_live() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->script_write_tickets_forced() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->sort_deref_lookups() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->sort_deref_refusals() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->sort_scatter_general() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->sort_deref_escapes() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->pubsub_active_channels() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->pubsub_subscriptions() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->pubsub_shard_channels() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->pubsub_shard_subscriptions() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->pubsub_pattern_subscriptions()
+                                                     : 0),
+            static_cast<unsigned long long>(g_server ? g_server->pubsub_home_entries() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->pubsub_inflight() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->pubsub_pending() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->pubsub_blobs() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->pubsub_deliveries() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->pubsub_delivery_batches() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->pubsub_forwarded_stale() : 0),
+            static_cast<unsigned long long>(
+                query_limit_disconnections.load(std::memory_order_relaxed)),
+            static_cast<unsigned long long>(
+                g_server ? g_server->client_output_buffer_limit_disconnections() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->notify_events_fired() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->notify_events_dropped() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->client_scatter_requests() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->client_scatter_io_responses() : 0),
+            static_cast<unsigned long long>(plain_accepts),
+            static_cast<unsigned long long>(tls_accepts),
+            static_cast<unsigned long long>(tls_accepts - tls_connections_freed),
+            static_cast<unsigned long long>(tls_handshakes_started),
+            static_cast<unsigned long long>(tls_handshakes_completed),
+            static_cast<unsigned long long>(tls_handshakes_failed),
+            static_cast<unsigned long long>(tls_want_read),
+            static_cast<unsigned long long>(tls_want_write),
+            static_cast<unsigned long long>(tls_ciphertext_input),
+            static_cast<unsigned long long>(tls_plaintext_input),
+            static_cast<unsigned long long>(tls_ciphertext_output),
+            static_cast<unsigned long long>(tls_plaintext_output),
+            static_cast<unsigned long long>(tls_zc_suppressed),
+            static_cast<unsigned long long>(tls_ktls_active),
+            static_cast<unsigned long long>(tls_ktls_fallback),
+            static_cast<unsigned long long>(tls_ktls_rx_declined_13()),
+            static_cast<unsigned long long>(tls_ktls_tx_rekeys()),
+            static_cast<unsigned long long>(blocking_waiters),
+            static_cast<unsigned long long>(scripting.flush_generation),
+            static_cast<unsigned long long>(scripting.state_rebuilds),
+            static_cast<unsigned long long>(scripting.compile_hits),
+            static_cast<unsigned long long>(scripting.compile_misses),
+            static_cast<unsigned long long>(scripting.ro_rejections),
+            static_cast<unsigned long long>(scripting.effect_writes),
+            static_cast<unsigned long long>(scripting.failed_after_effects),
+            static_cast<unsigned long long>(functions.generation),
+            static_cast<unsigned long long>(functions.calls),
+            static_cast<unsigned long long>(functions.thread_rebuilds),
+            static_cast<unsigned long long>(functions.ro_rejections),
+            static_cast<unsigned long long>(g_server ? g_server->climon_monitor_lines() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->monitor_forwarded_stale() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->climon_pause_holds() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->climon_no_touch_ops() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->climon_tracking_keys() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->climon_tracking_items() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->climon_tracking_prefixes() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->climon_invalidations() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->tracking_forwarded_stale() : 0),
+            // Mechanism counters: a slowlog test that cannot see these move proves nothing.
+            static_cast<unsigned long long>(slowlog_batches_timed()),
+            static_cast<unsigned long long>(slowlog_escalations()),
+            static_cast<unsigned long long>(slowlog_entries_recorded()),
+            static_cast<unsigned long long>(latency_events_recorded()),
+            static_cast<unsigned long long>(epoll_events),
+            static_cast<unsigned long long>(epoll_recvs),
+            // Out-of-band frame channel: a push battery that cannot see these move never
+            // reached the non-quiesced / mid-drain geometry it is there to cover.
+            static_cast<unsigned long long>(g_server ? g_server->oob_frames_segmented() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->oob_frames_deferred() : 0),
+            // barrier_owner_overlaps must read 0 on any production run: blocking dispatch
+            // requires an empty ROB and bars younger parsing, excluding a second owner.
+            // barrier_releases_held is the fired-mechanism proof for DEBUG BARRIER-HOLD --
+            // a barrier-ownership test that leaves it at 0 never reached its geometry and
+            // must fail, not pass.
+            static_cast<unsigned long long>(g_server ? g_server->barrier_owner_overlaps() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->barrier_releases_held() : 0));
         const auto& f = atomic_flush_counters;
         body += "atomic_flush_units:" + std::to_string(f.units.load()) + "\r\n";
         body += "atomic_flush_range_reads:" + std::to_string(f.range_reads.load()) + "\r\n";
         body += "atomic_flush_post_versions:" + std::to_string(f.post_versions.load()) + "\r\n";
-        body += "atomic_flush_script_conflicts:" + std::to_string(f.script_conflicts.load()) + "\r\n";
+        body +=
+            "atomic_flush_script_conflicts:" + std::to_string(f.script_conflicts.load()) + "\r\n";
         body += "atomic_flush_collapses:" + std::to_string(f.collapses.load()) + "\r\n";
         body += "atomic_flush_slow_collapses:" + std::to_string(f.slow_collapses.load()) + "\r\n";
         body += "atomic_flush_slow_work:" + std::to_string(f.slow_work.load()) + "\r\n";
-        appendf(body, "script_waiters_peak:%llu\r\n", static_cast<unsigned long long>(
-            g_server ? g_server->script_waiters_peak() : 0));
-        appendf(body, "script_stage_watch_tasks:%llu\r\n", static_cast<unsigned long long>(
-            g_server ? g_server->debug_script_stage_watch_tasks() : 0));
-        static constexpr const char* txn_fields[] = {
-            "atomic_txn_attempts", "atomic_txn_retries", "atomic_txn_dooms", "atomic_txn_wounds",
-            "atomic_txn_waits", "atomic_txn_intents", "atomic_txn_intents_live",
-            "atomic_group_dooms", "atomic_group_retries",
-            "atomic_group_barriers", "atomic_txn_executed", "atomic_txn_place_waits",
-            "atomic_txn_writer_waits", "atomic_txn_writer_marks", "atomic_txn_blind_restarts",
-            "atomic_txn_readonly", "atomic_txn_order_violations", "atomic_group_wounds",
-            "atomic_txn_fast_polls", "atomic_txn_poll_skips",
-            "atomic_txn_fifo_waits", "atomic_txn_fifo_passes", "atomic_txn_writer_promotions"
-        };
+        appendf(body, "script_waiters_peak:%llu\r\n",
+                static_cast<unsigned long long>(g_server ? g_server->script_waiters_peak() : 0));
+        appendf(body, "script_stage_watch_tasks:%llu\r\n",
+                static_cast<unsigned long long>(
+                    g_server ? g_server->debug_script_stage_watch_tasks() : 0));
+        static constexpr const char* txn_fields[] = {"atomic_txn_attempts",
+                                                     "atomic_txn_retries",
+                                                     "atomic_txn_dooms",
+                                                     "atomic_txn_wounds",
+                                                     "atomic_txn_waits",
+                                                     "atomic_txn_intents",
+                                                     "atomic_txn_intents_live",
+                                                     "atomic_group_dooms",
+                                                     "atomic_group_retries",
+                                                     "atomic_group_barriers",
+                                                     "atomic_txn_executed",
+                                                     "atomic_txn_place_waits",
+                                                     "atomic_txn_writer_waits",
+                                                     "atomic_txn_writer_marks",
+                                                     "atomic_txn_blind_restarts",
+                                                     "atomic_txn_readonly",
+                                                     "atomic_txn_order_violations",
+                                                     "atomic_group_wounds",
+                                                     "atomic_txn_fast_polls",
+                                                     "atomic_txn_poll_skips",
+                                                     "atomic_txn_fifo_waits",
+                                                     "atomic_txn_fifo_passes",
+                                                     "atomic_txn_writer_promotions"};
         static_assert(std::size(txn_fields) == static_cast<unsigned>(TxnCounter::Count));
         for (unsigned i = 0; i < std::size(txn_fields); ++i)
-            appendf(body, "%s:%llu\r\n", txn_fields[i], static_cast<unsigned long long>(
-                g_server ? g_server->txn_counter(static_cast<TxnCounter>(i)) : 0));
-        appendf(body,
-                "flip_completed:%llu\r\nflip_refused:%llu\r\n"
-                "flip_clients_transferred:%llu\r\nflip_last_transfers:%llu\r\n"
-                "flip_conservation_checks:%llu\r\nflip_conservation_violations:%llu\r\n"
-                "flip_stale_stage_refusals:%llu\r\n",
-                static_cast<unsigned long long>(g_server ? g_server->flip_completed() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->flip_refused() : 0),
-                static_cast<unsigned long long>(
-                    g_server ? g_server->flip_clients_transferred() : 0),
-                static_cast<unsigned long long>(
-                    g_server ? g_server->flip_last_transfers() : 0),
-                static_cast<unsigned long long>(
-                    g_server ? g_server->flip_conservation_checks() : 0),
-                static_cast<unsigned long long>(
-                    g_server ? g_server->flip_conservation_violations() : 0),
-                static_cast<unsigned long long>(
-                    g_server ? g_server->flip_stale_stage_refusals() : 0));
+            appendf(body, "%s:%llu\r\n", txn_fields[i],
+                    static_cast<unsigned long long>(
+                        g_server ? g_server->txn_counter(static_cast<TxnCounter>(i)) : 0));
+        appendf(
+            body,
+            "flip_completed:%llu\r\nflip_refused:%llu\r\n"
+            "flip_clients_transferred:%llu\r\nflip_last_transfers:%llu\r\n"
+            "flip_conservation_checks:%llu\r\nflip_conservation_violations:%llu\r\n"
+            "flip_stale_stage_refusals:%llu\r\n",
+            static_cast<unsigned long long>(g_server ? g_server->flip_completed() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->flip_refused() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->flip_clients_transferred() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->flip_last_transfers() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->flip_conservation_checks() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->flip_conservation_violations()
+                                                     : 0),
+            static_cast<unsigned long long>(g_server ? g_server->flip_stale_stage_refusals() : 0));
         for (unsigned kind = 0; kind < 3; ++kind) {
             const char* name = kind == 0 ? "blocked" : kind == 1 ? "tls" : "output";
-            appendf(body, "flip_skipped_%s:%llu\r\nflip_refused_%s:%llu\r\n", name,
-                    static_cast<unsigned long long>(g_server ? g_server->flip_skipped_class(kind) : 0), name,
-                    static_cast<unsigned long long>(g_server ? g_server->flip_refused_class(kind) : 0));
+            appendf(
+                body, "flip_skipped_%s:%llu\r\nflip_refused_%s:%llu\r\n", name,
+                static_cast<unsigned long long>(g_server ? g_server->flip_skipped_class(kind) : 0),
+                name,
+                static_cast<unsigned long long>(g_server ? g_server->flip_refused_class(kind) : 0));
         }
-        appendf(body, "flip_late_output:%llu\r\nflip_output_transferred:%llu\r\n",
-                static_cast<unsigned long long>(g_server ? g_server->flip_late_output() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->flip_output_transferred() : 0));
+        appendf(
+            body, "flip_late_output:%llu\r\nflip_output_transferred:%llu\r\n",
+            static_cast<unsigned long long>(g_server ? g_server->flip_late_output() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->flip_output_transferred() : 0));
         appendf(body,
                 "flip_session_clients_transferred:%llu\r\n"
                 "flip_refused_s2:%llu\r\n"
                 "flip_refused_close:%llu\r\n",
                 static_cast<unsigned long long>(
                     g_server ? g_server->flip_session_clients_transferred() : 0),
-                static_cast<unsigned long long>(
-                    g_server ? g_server->flip_refused_s2() : 0),
-                static_cast<unsigned long long>(
-                    g_server ? g_server->flip_refused_close() : 0));
+                static_cast<unsigned long long>(g_server ? g_server->flip_refused_s2() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->flip_refused_close() : 0));
         appendf(body,
                 "foreign_read_unsafe_refs:%llu\r\n"
                 "foreign_read_occupied_cells:%llu\r\n"
@@ -3301,11 +3547,9 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.mget_fallback_watch),
                 static_cast<unsigned long long>(read_local.mget_fallback_context),
                 static_cast<unsigned long long>(read_local.mget_fallback_context_owner_key),
-                static_cast<unsigned long long>(
-                    read_local.mget_fallback_context_connection_state),
+                static_cast<unsigned long long>(read_local.mget_fallback_context_connection_state),
                 static_cast<unsigned long long>(read_local.mget_fallback_context_route),
-                static_cast<unsigned long long>(
-                    read_local.mget_fallback_context_keymiss_notify),
+                static_cast<unsigned long long>(read_local.mget_fallback_context_keymiss_notify),
                 static_cast<unsigned long long>(read_local.mget_fallback_inflight_write),
                 static_cast<unsigned long long>(read_local.mget_fallback_arm_transient),
                 static_cast<unsigned long long>(read_local.mget_fallback_atomic_pending),
@@ -3317,12 +3561,14 @@ void cmd_info(Shard&, Op& op) {
     error_stats_info(body, want_stats, want_errors);
     if (info_section(op, "CPU")) info_stats_cpu_fields(body);
     if (info_section(op, "REPLICATION"))
-        appendf(body, "# Replication\r\nrole:master\r\nconnected_slaves:0\r\n"
+        appendf(body,
+                "# Replication\r\nrole:master\r\nconnected_slaves:0\r\n"
                 "master_failover_state:no-failover\r\nmaster_replid:%s\r\n"
                 "master_replid2:0000000000000000000000000000000000000000\r\n"
                 "master_repl_offset:0\r\nsecond_repl_offset:-1\r\n"
                 "repl_backlog_active:0\r\nrepl_backlog_size:1048576\r\n"
-                "repl_backlog_first_byte_offset:0\r\nrepl_backlog_histlen:0\r\n", info_run_id());
+                "repl_backlog_first_byte_offset:0\r\nrepl_backlog_histlen:0\r\n",
+                info_run_id());
     if (want_commands) {
         body += "# Commandstats\r\n";
         for (uint32_t id = 0; id < command_registry_size(); id++) {
@@ -3341,8 +3587,8 @@ void cmd_info(Shard&, Op& op) {
             if (!calls && !rejected_calls && !failed_calls) continue;
             const std::string name = lower_name(command_registry_at(id)->name);
             // Omit unmeasured timing and unimplemented failed_calls; never invent counters.
-            appendf(body, "cmdstat_%s:calls=%llu,rejected_calls=%llu\r\n",
-                    name.c_str(), static_cast<unsigned long long>(calls),
+            appendf(body, "cmdstat_%s:calls=%llu,rejected_calls=%llu\r\n", name.c_str(),
+                    static_cast<unsigned long long>(calls),
                     static_cast<unsigned long long>(rejected_calls));
         }
     }
@@ -3351,8 +3597,8 @@ void cmd_info(Shard&, Op& op) {
         std::vector<double> percentiles;
         if (enabled) {
             std::lock_guard lock(g_config_mu);
-            percentiles = g_latency_percentiles_explicit
-                ? g_latency_percentiles : std::vector<double>{50, 99, 99.9};
+            percentiles = g_latency_percentiles_explicit ? g_latency_percentiles
+                                                         : std::vector<double>{50, 99, 99.9};
         }
         latency_tracking_info(body, percentiles, enabled);
     }
@@ -3377,11 +3623,11 @@ void cmd_info(Shard&, Op& op) {
                 const Shard& shard = g_server->shard(static_cast<int32_t>(i));
                 const uint64_t deadline = shard.store().published_avg_deadline();
                 if (deadline > now)
-                    ttl_sum += static_cast<unsigned __int128>(deadline - now) * shard.published_expires();
+                    ttl_sum +=
+                        static_cast<unsigned __int128>(deadline - now) * shard.published_expires();
             }
             appendf(body, "db0:keys=%llu,expires=%llu,avg_ttl=%llu,subexpiry=0\r\n",
-                    static_cast<unsigned long long>(keys),
-                    static_cast<unsigned long long>(expires),
+                    static_cast<unsigned long long>(keys), static_cast<unsigned long long>(expires),
                     static_cast<unsigned long long>(expires ? ttl_sum / expires : 0));
         } else if (!kSingleDatabase && g_server) {
             const uint64_t now = now_realtime_ms();
@@ -3400,7 +3646,8 @@ void cmd_info(Shard&, Op& op) {
                         count = static_cast<uint32_t>(packed);
                         expiring = packed >> 32;
                     }
-                    dbkeys += count; dbexpires += expiring;
+                    dbkeys += count;
+                    dbexpires += expiring;
                     const uint64_t deadline = shard.store().published_avg_deadline(map[db]);
                     if (deadline > now)
                         ttl_sum += static_cast<unsigned __int128>(deadline - now) * expiring;
@@ -3425,11 +3672,15 @@ void cmd_dbsize(Shard&, Op& op) {
         return;
     }
     uint64_t keys = 0;
-    if (g_server) for (uint32_t i = 0; i < g_server->nshards(); i++) {
-        const auto& shard = g_server->shard(static_cast<int32_t>(i));
-        if constexpr (kSingleDatabase) keys += shard.published_size();
-        else keys += static_cast<uint32_t>(shard.store().published_database_counts(op.physical_db));
-    }
+    if (g_server)
+        for (uint32_t i = 0; i < g_server->nshards(); i++) {
+            const auto& shard = g_server->shard(static_cast<int32_t>(i));
+            if constexpr (kSingleDatabase)
+                keys += shard.published_size();
+            else
+                keys +=
+                    static_cast<uint32_t>(shard.store().published_database_counts(op.physical_db));
+        }
     reply_int(op.sink(), static_cast<long long>(keys));
 }
 
@@ -3455,12 +3706,18 @@ void cmd_flush(Shard& sh, Op& op) {
 
 const char* object_type(const KvObj* obj) {
     switch (static_cast<Type>(obj->type)) {
-        case Type::String: return "string";
-        case Type::Hash: return "hash";
-        case Type::List: return "list";
-        case Type::Set: return "set";
-        case Type::Zset: return "zset";
-        case Type::Stream: return "stream";
+        case Type::String:
+            return "string";
+        case Type::Hash:
+            return "hash";
+        case Type::List:
+            return "list";
+        case Type::Set:
+            return "set";
+        case Type::Zset:
+            return "zset";
+        case Type::Stream:
+            return "stream";
     }
     return "none";
 }
@@ -3482,19 +3739,22 @@ struct ScanCommandVisitor {
 void cmd_scan(Shard& sh, Op& op) {
     uint64_t outer = 0;
     if (!command_parse_scan_cursor(op.arg(1), outer)) {
-        reply_err(op.sink(), "ERR invalid cursor"); return;
+        reply_err(op.sink(), "ERR invalid cursor");
+        return;
     }
     const uint32_t shard_id = static_cast<uint32_t>(outer >> 56);
     uint64_t inner = outer & kScanInnerMask;
-    if (!g_server || shard_id >= g_server->nshards() || shard_id != static_cast<uint32_t>(sh.id()) ||
-        inner > kMaxInnerCursor) {
-        reply_err(op.sink(), "ERR invalid cursor"); return;
+    if (!g_server || shard_id >= g_server->nshards() ||
+        shard_id != static_cast<uint32_t>(sh.id()) || inner > kMaxInnerCursor) {
+        reply_err(op.sink(), "ERR invalid cursor");
+        return;
     }
     Slice match("*", 1), type;
     uint32_t count = 10;
     for (uint32_t i = 2; i < op.argc();) {
         if (eq_icase(op.arg(i), "MATCH") && i + 1 < op.argc()) {
-            match = op.arg(i + 1); i += 2;
+            match = op.arg(i + 1);
+            i += 2;
         } else if (eq_icase(op.arg(i), "COUNT") && i + 1 < op.argc()) {
             // Two different errors, as Redis and as HSCAN/SSCAN/ZSCAN here already spell them:
             // an unparseable COUNT is an integer error, a parseable one below 1 is a syntax
@@ -3505,9 +3765,13 @@ void cmd_scan(Shard& sh, Op& op) {
             // backwards; this side is the one that matches.
             int64_t parsed = 0;
             if (!parse_i64_canonical(op.arg(i + 1), parsed)) {
-                reply_err(op.sink(), "ERR value is not an integer or out of range"); return;
+                reply_err(op.sink(), "ERR value is not an integer or out of range");
+                return;
             }
-            if (parsed < 1) { reply_syntax(op.sink()); return; }
+            if (parsed < 1) {
+                reply_syntax(op.sink());
+                return;
+            }
             // A COUNT past the slot-work hint's range is clamped, not rejected: it is a hint, and
             // one call is bounded by the table anyway.
             count = parsed > static_cast<int64_t>(UINT32_MAX) ? UINT32_MAX
@@ -3517,16 +3781,22 @@ void cmd_scan(Shard& sh, Op& op) {
             type = op.arg(i + 1);
             i += 2;
         } else if (eq_icase(op.arg(i), "NOVALUES")) {
-            reply_err(op.sink(), "ERR NOVALUES option can only be used in HSCAN"); return;
-        } else { reply_syntax(op.sink()); return; }
+            reply_err(op.sink(), "ERR NOVALUES option can only be used in HSCAN");
+            return;
+        } else {
+            reply_syntax(op.sink());
+            return;
+        }
     }
 
     std::vector<Slice> keys;
     keys.reserve(std::min<uint32_t>(count, 1024));
     inner = sh.store().scan(inner, count, ScanCommandVisitor{op, type, match, keys});
     uint64_t next = 0;
-    if (inner) next = (static_cast<uint64_t>(shard_id) << 56) | inner;
-    else if (shard_id + 1 < g_server->nshards()) next = static_cast<uint64_t>(shard_id + 1) << 56;
+    if (inner)
+        next = (static_cast<uint64_t>(shard_id) << 56) | inner;
+    else if (shard_id + 1 < g_server->nshards())
+        next = static_cast<uint64_t>(shard_id + 1) << 56;
 
     char cursor[24];
     const uint32_t cursor_len = u64_to_dec(cursor, next);
@@ -3541,58 +3811,66 @@ void cmd_transaction_control(Shard&, Op& op) {
     reply_err(op.sink(), "ERR internal transaction routing error");
 }
 
-static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */ kTable[] = {
     // name       min max flags                                                    handler        first last step
-    {"PING",       1,  2, CmdFlags::ConnLocal,                                    cmd_ping,       0,  0, 0},
-    {"ACL",        2, -1, CmdFlags::ConnLocal,                                    cmd_acl,        0,  0, 0},
-    {"SAVE",       1,  1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_save,       0,  0, 0},
-    {"BGSAVE",     1, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_bgsave,     0,  0, 0},
-    {"BGREWRITEAOF",1, 1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_bgrewriteaof,0, 0, 0},
-    {"LASTSAVE",   1,  1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_lastsave,   0,  0, 0},
-    {"ECHO",       2,  2, CmdFlags::ConnLocal,                                    cmd_echo,       0,  0, 0},
-    {"AUTH",       2,  3, CmdFlags::ConnLocal | CmdFlags::AclExempt,              cmd_auth,       0,  0, 0},
-    {"HELLO",       1, -1, CmdFlags::ConnLocal | CmdFlags::AclExempt,              cmd_hello,      0,  0, 0},
-    {"RESET",      1,  1, CmdFlags::ConnLocal | CmdFlags::AclExempt |
-                          CmdFlags::Climon,                                       cmd_reset,      0,  0, 0},
-    {"QUIT",       1, -1, CmdFlags::ConnLocal | CmdFlags::AclExempt,              cmd_quit,       0,  0, 0},
-    {"SUBSCRIBE",   2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
-    {"UNSUBSCRIBE", 1, -1, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
-    {"PSUBSCRIBE",  2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
-    {"PUNSUBSCRIBE",1, -1, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
-    {"SSUBSCRIBE",   2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
-    {"SUNSUBSCRIBE", 1, -1, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
-    {"PUBLISH",     3,  3, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
-    {"SPUBLISH",    3,  3, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
-    {"PUBSUB",      2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub | CmdFlags::Admin,cmd_pubsub_only,0,0,0},
-    {"CLIENT",     2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub | CmdFlags::Admin |
-                          CmdFlags::Climon,                                       cmd_client,    0,  0, 0},
+    {"PING", 1, 2, CmdFlags::ConnLocal, cmd_ping, 0, 0, 0},
+    {"ACL", 2, -1, CmdFlags::ConnLocal, cmd_acl, 0, 0, 0},
+    {"SAVE", 1, 1, CmdFlags::ConnLocal | CmdFlags::Admin, cmd_save, 0, 0, 0},
+    {"BGSAVE", 1, -1, CmdFlags::ConnLocal | CmdFlags::Admin, cmd_bgsave, 0, 0, 0},
+    {"BGREWRITEAOF", 1, 1, CmdFlags::ConnLocal | CmdFlags::Admin, cmd_bgrewriteaof, 0, 0, 0},
+    {"LASTSAVE", 1, 1, CmdFlags::ConnLocal | CmdFlags::Admin, cmd_lastsave, 0, 0, 0},
+    {"ECHO", 2, 2, CmdFlags::ConnLocal, cmd_echo, 0, 0, 0},
+    {"AUTH", 2, 3, CmdFlags::ConnLocal | CmdFlags::AclExempt, cmd_auth, 0, 0, 0},
+    {"HELLO", 1, -1, CmdFlags::ConnLocal | CmdFlags::AclExempt, cmd_hello, 0, 0, 0},
+    {"RESET", 1, 1, CmdFlags::ConnLocal | CmdFlags::AclExempt | CmdFlags::Climon, cmd_reset, 0, 0,
+     0},
+    {"QUIT", 1, -1, CmdFlags::ConnLocal | CmdFlags::AclExempt, cmd_quit, 0, 0, 0},
+    {"SUBSCRIBE", 2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub, cmd_pubsub_only, 0, 0, 0},
+    {"UNSUBSCRIBE", 1, -1, CmdFlags::ConnLocal | CmdFlags::PubSub, cmd_pubsub_only, 0, 0, 0},
+    {"PSUBSCRIBE", 2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub, cmd_pubsub_only, 0, 0, 0},
+    {"PUNSUBSCRIBE", 1, -1, CmdFlags::ConnLocal | CmdFlags::PubSub, cmd_pubsub_only, 0, 0, 0},
+    {"SSUBSCRIBE", 2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub, cmd_pubsub_only, 0, 0, 0},
+    {"SUNSUBSCRIBE", 1, -1, CmdFlags::ConnLocal | CmdFlags::PubSub, cmd_pubsub_only, 0, 0, 0},
+    {"PUBLISH", 3, 3, CmdFlags::ConnLocal | CmdFlags::PubSub, cmd_pubsub_only, 0, 0, 0},
+    {"SPUBLISH", 3, 3, CmdFlags::ConnLocal | CmdFlags::PubSub, cmd_pubsub_only, 0, 0, 0},
+    {"PUBSUB", 2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub | CmdFlags::Admin, cmd_pubsub_only, 0,
+     0, 0},
+    {"CLIENT", 2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub | CmdFlags::Admin | CmdFlags::Climon,
+     cmd_client, 0, 0, 0},
     // MONITOR is answered entirely on the io side by the climon object; the PubSub flag is the
     // established "io-owned async command" routing, not a pub/sub semantic.
-    {"MONITOR",    1,  1, CmdFlags::ConnLocal | CmdFlags::PubSub | CmdFlags::Admin |
-                          CmdFlags::Climon,                                       cmd_monitor,    0,  0, 0},
-    {"COMMAND",    1, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_command,    0,  0, 0},
-    {"CONFIG",     2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_config,     0,  0, 0},
-    {"DEBUG",      2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute |
-                              CmdFlags::DebugSleep,                                cmd_debug,      0,  0, 0},
-    {"FLIP",       1,  3, CmdFlags::Write | CmdFlags::Admin | CmdFlags::ConnLocal |
-                          CmdFlags::OrderedLocal | CmdFlags::NoScript | CmdFlags::NoMulti |
-                          CmdFlags::NoAsyncLoading | CmdFlags::FlipAsync,           cmd_flip,       0,  0, 0},
-    {"INFO",       1, -1, CmdFlags::ConfigRoute | CmdFlags::Admin,                cmd_info,       0,  0, 0},
-    {"SELECT",     2,  2, CmdFlags::ConnLocal,                                    cmd_select,     0,  0, 0},
-    {"MOVE",       3,  3, CmdFlags::Write | CmdFlags::MultiShard,                 cmd_xshard_only,1,1,1},
-    {"SWAPDB",     3,  3, CmdFlags::Write | CmdFlags::Admin | CmdFlags::AllShards,  cmd_transaction_control,0,0,0},
-    {"DBSIZE",     1,  2, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_dbsize,     0,  0, 0},
-    {"FLUSHALL",   1,  2, CmdFlags::Write | CmdFlags::Admin | CmdFlags::AllShards,cmd_flush,      0,  0, 0},
-    {"FLUSHDB",    1,  2, CmdFlags::Write | CmdFlags::Admin | CmdFlags::AllShards,cmd_flush,      0,  0, 0},
-    {"RANDOMKEY",  1,  1, CmdFlags::Readonly | CmdFlags::AllShards,               cmd_xshard_only,  0,  0, 0},
-    {"SCAN",       2, -1, CmdFlags::Readonly | CmdFlags::CursorShard,             cmd_scan,       0,  0, 0},
-    {"KEYS",       2,  2, CmdFlags::Readonly | CmdFlags::Admin | CmdFlags::MultiShard,cmd_xshard_only,0,0,0},
-    {"SORT",       2, -1, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,cmd_xshard_only,1,1,1},
-    {"MULTI",      1,  1, CmdFlags::ConnLocal | CmdFlags::Transaction,              cmd_transaction_control,0,0,0},
-    {"EXEC",       1,  1, CmdFlags::ConnLocal | CmdFlags::Transaction,              cmd_transaction_control,0,0,0},
-    {"DISCARD",    1,  1, CmdFlags::ConnLocal | CmdFlags::Transaction,              cmd_transaction_control,0,0,0},
-    {"WATCH",      2, -1, CmdFlags::ConnLocal | CmdFlags::Transaction,              cmd_transaction_control,1,-1,1},
-    {"UNWATCH",    1,  1, CmdFlags::ConnLocal | CmdFlags::Transaction,              cmd_transaction_control,0,0,0},
+    {"MONITOR", 1, 1, CmdFlags::ConnLocal | CmdFlags::PubSub | CmdFlags::Admin | CmdFlags::Climon,
+     cmd_monitor, 0, 0, 0},
+    {"COMMAND", 1, -1, CmdFlags::ConnLocal | CmdFlags::Admin, cmd_command, 0, 0, 0},
+    {"CONFIG", 2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute, cmd_config, 0, 0, 0},
+    {"DEBUG", 2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute | CmdFlags::DebugSleep, cmd_debug, 0,
+     0, 0},
+    {"FLIP", 1, 3,
+     CmdFlags::Write | CmdFlags::Admin | CmdFlags::ConnLocal | CmdFlags::OrderedLocal |
+         CmdFlags::NoScript | CmdFlags::NoMulti | CmdFlags::NoAsyncLoading | CmdFlags::FlipAsync,
+     cmd_flip, 0, 0, 0},
+    {"INFO", 1, -1, CmdFlags::ConfigRoute | CmdFlags::Admin, cmd_info, 0, 0, 0},
+    {"SELECT", 2, 2, CmdFlags::ConnLocal, cmd_select, 0, 0, 0},
+    {"MOVE", 3, 3, CmdFlags::Write | CmdFlags::MultiShard, cmd_xshard_only, 1, 1, 1},
+    {"SWAPDB", 3, 3, CmdFlags::Write | CmdFlags::Admin | CmdFlags::AllShards,
+     cmd_transaction_control, 0, 0, 0},
+    {"DBSIZE", 1, 2, CmdFlags::Admin | CmdFlags::ConfigRoute, cmd_dbsize, 0, 0, 0},
+    {"FLUSHALL", 1, 2, CmdFlags::Write | CmdFlags::Admin | CmdFlags::AllShards, cmd_flush, 0, 0, 0},
+    {"FLUSHDB", 1, 2, CmdFlags::Write | CmdFlags::Admin | CmdFlags::AllShards, cmd_flush, 0, 0, 0},
+    {"RANDOMKEY", 1, 1, CmdFlags::Readonly | CmdFlags::AllShards, cmd_xshard_only, 0, 0, 0},
+    {"SCAN", 2, -1, CmdFlags::Readonly | CmdFlags::CursorShard, cmd_scan, 0, 0, 0},
+    {"KEYS", 2, 2, CmdFlags::Readonly | CmdFlags::Admin | CmdFlags::MultiShard, cmd_xshard_only, 0,
+     0, 0},
+    {"SORT", 2, -1, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard, cmd_xshard_only, 1,
+     1, 1},
+    {"MULTI", 1, 1, CmdFlags::ConnLocal | CmdFlags::Transaction, cmd_transaction_control, 0, 0, 0},
+    {"EXEC", 1, 1, CmdFlags::ConnLocal | CmdFlags::Transaction, cmd_transaction_control, 0, 0, 0},
+    {"DISCARD", 1, 1, CmdFlags::ConnLocal | CmdFlags::Transaction, cmd_transaction_control, 0, 0,
+     0},
+    {"WATCH", 2, -1, CmdFlags::ConnLocal | CmdFlags::Transaction, cmd_transaction_control, 1, -1,
+     1},
+    {"UNWATCH", 1, 1, CmdFlags::ConnLocal | CmdFlags::Transaction, cmd_transaction_control, 0, 0,
+     0},
 };
 
 }  // namespace
@@ -3602,17 +3880,16 @@ bool debug_sleep_exec(Server& server, Shard& shard, std::atomic<long long>& stat
     const int64_t value = state.load(std::memory_order_acquire);
     if (value >= 0) {
         if (shard.id() != 0) return false;
-        const uint64_t ticket = server.debug_sleep_start(static_cast<uint64_t>(value), owner_thread_id);
+        const uint64_t ticket =
+            server.debug_sleep_start(static_cast<uint64_t>(value), owner_thread_id);
         if (ticket) state.store(-static_cast<int64_t>(ticket), std::memory_order_release);
         return false;
     }
     return server.debug_sleep_complete(static_cast<uint64_t>(-value));
 }
 
-DebugSleepResult debug_sleep_prepare(Server& server, Client& client, Op& op,
-                                     uint64_t& delay_us) {
-    if (op.argc() != 3 || !eq_icase(op.arg(1), "sleep"))
-        return DebugSleepResult::NotSleep;
+DebugSleepResult debug_sleep_prepare(Server& server, Client& client, Op& op, uint64_t& delay_us) {
+    if (op.argc() != 3 || !eq_icase(op.arg(1), "sleep")) return DebugSleepResult::NotSleep;
     if (!debug_command_allowed(server, &client)) {
         reply_debug_command_denied(op);
         return DebugSleepResult::Handled;
@@ -3625,7 +3902,7 @@ DebugSleepResult debug_sleep_prepare(Server& server, Client& client, Op& op,
     const double micros = std::strtod(text.get(), nullptr) * 1000000.0;
     if (!std::isfinite(micros) || micros < 1.0 || micros >= 0x1p63) {
         const timespec zero{};
-        ::nanosleep(&zero, nullptr); // DEBUG SLEEP 0 is a yield, not an indefinite timer
+        ::nanosleep(&zero, nullptr);  // DEBUG SLEEP 0 is a yield, not an indefinite timer
         reply_ok(op.sink());
         return DebugSleepResult::Handled;
     }
@@ -3644,8 +3921,7 @@ bool debug_command_allowed(const Server& server, const Client* client) {
 
     sockaddr_storage peer{};
     socklen_t length = sizeof(peer);
-    if (::getpeername(client->fd(), reinterpret_cast<sockaddr*>(&peer), &length) != 0)
-        return false;
+    if (::getpeername(client->fd(), reinterpret_cast<sockaddr*>(&peer), &length) != 0) return false;
     if (peer.ss_family == AF_UNIX) return true;
     if (peer.ss_family == AF_INET) {
         const auto* address = reinterpret_cast<const sockaddr_in*>(&peer);
@@ -3659,8 +3935,9 @@ bool debug_command_allowed(const Server& server, const Client* client) {
 }
 
 void reply_debug_command_denied(Op& op) {
-    reply_err(op.sink(),
-              "ERR DEBUG command not allowed. If the enable-debug-command option is set to \"local\", you can run it from a local connection, otherwise you need to set this option in the configuration file, and then restart the server.");
+    reply_err(
+        op.sink(),
+        "ERR DEBUG command not allowed. If the enable-debug-command option is set to \"local\", you can run it from a local connection, otherwise you need to set this option in the configuration file, and then restart the server.");
 }
 
 void cmd_debug(Shard& shard, Op& op) {
@@ -3687,8 +3964,7 @@ bool command_parse_scan_cursor(Slice text, uint64_t& cursor) {
 
     uint32_t position = 0;
     while (position < input.n &&
-           (input.p[position] == ' ' ||
-            (input.p[position] >= '\t' && input.p[position] <= '\r')))
+           (input.p[position] == ' ' || (input.p[position] >= '\t' && input.p[position] <= '\r')))
         position++;
     bool negative = false;
     if (position < input.n && (input.p[position] == '+' || input.p[position] == '-')) {
@@ -3758,11 +4034,14 @@ void command_config_resetstat() {
 void command_bind_server(Server* server) {
     g_server = server;
     client_pause_expiry_clock.store(server ? server->climon_pause_clock() : nullptr,
-                                   std::memory_order_release);
+                                    std::memory_order_release);
     scripting_bind_server(server);
     g_started_monotonic_ns = now_ns();
     info_stats_init(server);
-    if (server) { init_config(server->cfg()); slowlog_configure(server->cfg()); }
+    if (server) {
+        init_config(server->cfg());
+        slowlog_configure(server->cfg());
+    }
 }
 
 void command_set_local_context(Client* client, ThreadCtx* thread) {
@@ -3783,8 +4062,8 @@ bool command_client_slowlog_identity(uint64_t id, std::string& addr, std::string
     return false;
 }
 
-void command_client_connected(Client* client, const char* addr, const char* laddr,
-                              bool unix_socket, uint64_t now_ms) {
+void command_client_connected(Client* client, const char* addr, const char* laddr, bool unix_socket,
+                              uint64_t now_ms) {
     if (!client) return;
     register_client_catalog();
     std::lock_guard<std::mutex> lock(g_client_meta_mu);
@@ -3838,8 +4117,7 @@ void* command_client_migration_extract(Client* client) {
 }
 
 bool command_client_migration_install(void* opaque) {
-    std::unique_ptr<ClientMigrationCatalog> catalog(
-        static_cast<ClientMigrationCatalog*>(opaque));
+    std::unique_ptr<ClientMigrationCatalog> catalog(static_cast<ClientMigrationCatalog*>(opaque));
     if (!catalog || catalog->node.empty()) return false;
     register_client_catalog();
     std::lock_guard<std::mutex> lock(g_client_meta_mu);
@@ -3918,13 +4196,11 @@ std::string command_client_info_line(const Client& client, uint64_t now_ms) {
     return client_info_line_impl(client, fallback, now_ms);
 }
 
-bool command_client_filter_match(const Client& client, const PubSubEvent& event,
-                                 uint64_t now_ms) {
+bool command_client_filter_match(const Client& client, const PubSubEvent& event, uint64_t now_ms) {
     const ClientMeta* meta = client_meta(&client);
     if (!meta || client.dead() || client.closing()) return false;
     if (event.client_skipme && client.id() == event.caller_id) return false;
-    if ((event.client_filter_mask & ClientFilterId) && client.id() != event.client_id)
-        return false;
+    if ((event.client_filter_mask & ClientFilterId) && client.id() != event.client_id) return false;
     if (event.client_filter_mask & ClientFilterIdList) {
         bool found = false;
         for (const PubSubEventItem& item : event.items) found |= item.count == client.id();
@@ -3935,7 +4211,8 @@ bool command_client_filter_match(const Client& client, const PubSubEvent& event,
     if ((event.client_filter_mask & ClientFilterLaddr) && meta->laddr != event.client_laddr)
         return false;
     if ((event.client_filter_mask & ClientFilterUser) &&
-        event.client_user != acl_username(client.acl_user_idx())) return false;
+        event.client_user != acl_username(client.acl_user_idx()))
+        return false;
     if (event.client_filter_mask & ClientFilterMaxAge) {
         const uint64_t age = now_ms >= meta->created_ms ? (now_ms - meta->created_ms) / 1000 : 0;
         if (age < event.client_max_age) return false;
@@ -3943,11 +4220,17 @@ bool command_client_filter_match(const Client& client, const PubSubEvent& event,
     if (event.client_filter_mask & ClientFilterType) {
         const bool pubsub = client.subscriber_mode();
         switch (event.client_type) {
-            case ClientTypeFilter::Normal: if (pubsub) return false; break;
-            case ClientTypeFilter::Pubsub: if (!pubsub) return false; break;
+            case ClientTypeFilter::Normal:
+                if (pubsub) return false;
+                break;
+            case ClientTypeFilter::Pubsub:
+                if (!pubsub) return false;
+                break;
             case ClientTypeFilter::Master:
-            case ClientTypeFilter::Replica: return false;
-            case ClientTypeFilter::Any: break;
+            case ClientTypeFilter::Replica:
+                return false;
+            case ClientTypeFilter::Any:
+                break;
         }
     }
     return true;
@@ -3970,9 +4253,12 @@ std::string command_client_name(const Client* client) {
 bool command_client_set_info(Client* client, Slice option, Slice value) {
     ClientMeta* meta = client_meta(client);
     if (!meta) return false;
-    if (eq_icase(option, "LIB-NAME")) meta->lib_name.assign(value.p, value.n);
-    else if (eq_icase(option, "LIB-VER")) meta->lib_ver.assign(value.p, value.n);
-    else return false;
+    if (eq_icase(option, "LIB-NAME"))
+        meta->lib_name.assign(value.p, value.n);
+    else if (eq_icase(option, "LIB-VER"))
+        meta->lib_ver.assign(value.p, value.n);
+    else
+        return false;
     return true;
 }
 
@@ -4027,10 +4313,8 @@ void command_client_reset_meta(Client* client) {
 }
 
 bool command_prepare_scan_route(Server& server, Op& op) {
-    if (op.spec->flags & CmdFlags::SubcmdRoute)
-        return command_prepare_subcmd_route(server, op);
-    if (op.spec->flags & CmdFlags::ScriptRoute)
-        return command_prepare_script_route(server, op);
+    if (op.spec->flags & CmdFlags::SubcmdRoute) return command_prepare_subcmd_route(server, op);
+    if (op.spec->flags & CmdFlags::ScriptRoute) return command_prepare_script_route(server, op);
     if (op.spec->flags & CmdFlags::StreamRoute) {
         if (op.local_xshard()) return true;
         reply_err(op.sink(), "ERR internal XREAD local routing error");
@@ -4039,10 +4323,14 @@ bool command_prepare_scan_route(Server& server, Op& op) {
     uint64_t cursor = 0;
     if (!command_parse_scan_cursor(op.arg(1), cursor) ||
         (cursor & kScanInnerMask) > kMaxInnerCursor) {
-        reply_err(op.sink(), "ERR invalid cursor"); return false;
+        reply_err(op.sink(), "ERR invalid cursor");
+        return false;
     }
     const uint32_t shard = static_cast<uint32_t>(cursor >> 56);
-    if (shard >= server.nshards()) { reply_err(op.sink(), "ERR invalid cursor"); return false; }
+    if (shard >= server.nshards()) {
+        reply_err(op.sink(), "ERR invalid cursor");
+        return false;
+    }
     op.hash = cursor;
     op.shard = static_cast<int32_t>(shard);
     return true;
@@ -4051,7 +4339,8 @@ bool command_prepare_scan_route(Server& server, Op& op) {
 bool command_validate_all_shards(Op& op) {
     if (op.cmd_name().eq_icase("swapdb")) return g_server && multidb_validate_swap(*g_server, op);
     if (op.argc() == 1) return true;
-    if (op.argc() == 2 && (eq_icase(op.arg(1), "ASYNC") || eq_icase(op.arg(1), "SYNC"))) return true;
+    if (op.argc() == 2 && (eq_icase(op.arg(1), "ASYNC") || eq_icase(op.arg(1), "SYNC")))
+        return true;
     reply_syntax(op.sink());
     return false;
 }
@@ -4063,20 +4352,23 @@ bool command_config_routes_all_shards(Op& op, bool execution_boundary) {
     // batch-boundary publication lag the plain DBSIZE reads.
     if (op.cmd_name().eq_icase("info"))
         return info_section(op, "KEYSPACE", true) &&
-            // INFO queued in EXEC must census the transaction-visible images at its
-            // command position, even when no published field-TTL attention is set.
-            (execution_boundary || !storesize_published_route() ||
-             (g_server && storesize_field_census(*g_server)));
-    if (op.cmd_name().eq_icase("dbsize")) return (op.argc() == 1 && !storesize_published_route()) || (op.argc() == 2 && eq_icase(op.arg(1), "NOW"));
+               // INFO queued in EXEC must census the transaction-visible images at its
+               // command position, even when no published field-TTL attention is set.
+               (execution_boundary || !storesize_published_route() ||
+                (g_server && storesize_field_census(*g_server)));
+    if (op.cmd_name().eq_icase("dbsize"))
+        return (op.argc() == 1 && !storesize_published_route()) ||
+               (op.argc() == 2 && eq_icase(op.arg(1), "NOW"));
     if (op.cmd_name().eq_icase("debug"))
         return (op.argc() >= 2 && eq_icase(op.arg(1), "reload")) ||
-               (op.argc() == 2 && (eq_icase(op.arg(1), "loadaof") ||
-                                   eq_icase(op.arg(1), "borrowcount")));
+               (op.argc() == 2 &&
+                (eq_icase(op.arg(1), "loadaof") || eq_icase(op.arg(1), "borrowcount")));
     return op.argc() >= 2 && eq_icase(op.arg(1), "SET");
 }
 
 bool command_validate_config_set(Op& op) {
-    if (op.cmd_name().eq_icase("dbsize") || op.cmd_name().eq_icase("info")) return true;   // DBSIZE NOW needs no further validation
+    if (op.cmd_name().eq_icase("dbsize") || op.cmd_name().eq_icase("info"))
+        return true;  // DBSIZE NOW needs no further validation
     ConfigLock lock;
     std::vector<std::pair<ConfigValue*, std::string>> updates;
     return collect_config_updates(op, updates);
@@ -4100,8 +4392,6 @@ void command_info_with_databases(Server& server, Op& op, const DatabaseStatsTabl
     g_database_stats = nullptr;
 }
 
-CommandTable server_command_table() {
-    return {kTable, sizeof(kTable) / sizeof(kTable[0])};
-}
+CommandTable server_command_table() { return {kTable, sizeof(kTable) / sizeof(kTable[0])}; }
 
 }  // namespace tomo

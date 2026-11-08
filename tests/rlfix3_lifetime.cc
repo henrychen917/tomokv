@@ -12,9 +12,12 @@ int main() {
     reply.zc_ptr = bytes;
     reply.zc_len = sizeof(bytes) - 1;
     const auto slot = ring.push();
-    assert(ring.seal(7) == 1); // owner removes/replaces the captured value
+    assert(ring.seal(7) == 1);  // owner removes/replaces the captured value
     bool reclaimed = false;
-    auto destroy = [&](uint32_t at) { assert(at == slot); reclaimed = true; };
+    auto destroy = [&](uint32_t at) {
+        assert(at == slot);
+        reclaimed = true;
+    };
     assert(ring.drain_below(7, destroy) == 0);
     // Reader publishes its next rotation; socket progress is not part of QSBR.
     assert(ring.drain_below(8, destroy) == 1);

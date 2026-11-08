@@ -12,15 +12,14 @@ __attribute__((noinline, noipa)) int flip_liveness_enabled() {
 
 bool Client::flip_execution_idle() const {
     return rob_.quiesced() && !retire_queued_.load(std::memory_order_acquire) &&
-           barrier_owners_ == 0 && atomic_groups_io_ == 0 && !blocked() &&
-           !segments_.has_borrow();
+           barrier_owners_ == 0 && atomic_groups_io_ == 0 && !blocked() && !segments_.has_borrow();
 }
 
 bool Client::flip_held_output_idle() const {
     if (multi_session_ && multi_session_->pending) return false;
     const size_t aliases = multi_session_ ? multi_session_->watched.size() : 0;
-    return watched_refs_.load(std::memory_order_acquire) == aliases &&
-           !send_inflight_ && flip_execution_idle();
+    return watched_refs_.load(std::memory_order_acquire) == aliases && !send_inflight_ &&
+           flip_execution_idle();
 }
 
 bool IoLoop::flip_post_drain() const {
@@ -28,8 +27,8 @@ bool IoLoop::flip_post_drain() const {
 }
 
 bool IoLoop::flip_output_held(const Client* client) const {
-    return std::binary_search(flip_held_output_.begin(), flip_held_output_.end(),
-                              client, std::less<const Client*>{});
+    return std::binary_search(flip_held_output_.begin(), flip_held_output_.end(), client,
+                              std::less<const Client*>{});
 }
 
 bool IoLoop::flip_output_hold() {
@@ -42,8 +41,7 @@ bool IoLoop::flip_output_hold() {
     try {
         flip_held_output_.reserve(self_->clients().size());
         flip_stayers_.reserve(self_->clients().size());
-    }
-    catch (const std::bad_alloc&) {
+    } catch (const std::bad_alloc&) {
         srv_->flip_note_failure("ERR FLIP could not reserve socket-output holds");
         return false;
     }
@@ -68,7 +66,10 @@ bool IoLoop::flip_output_hold() {
     std::sort(flip_held_output_.begin(), flip_held_output_.end(), std::less<Client*>{});
     std::sort(flip_stayers_.begin(), flip_stayers_.end(), std::less<Client*>{});
     for (const Client* client : flip_stayers_)
-        if (client->flip_borrowed_output()) { flip_borrow_hold(); break; }
+        if (client->flip_borrowed_output()) {
+            flip_borrow_hold();
+            break;
+        }
     return true;
 }
 
@@ -81,7 +82,9 @@ bool IoLoop::flip_output_plan() {
         for (uint32_t i = 0; i < planned; ++i)
             moving.push_back(srv_->flip_client_at(self_->id(), i));
         std::sort(moving.begin(), moving.end(), std::less<Client*>{});
-    } catch (const std::bad_alloc&) { return false; }
+    } catch (const std::bad_alloc&) {
+        return false;
+    }
     size_t keep = 0;
     for (Client* client : flip_held_output_) {
         if (std::binary_search(moving.begin(), moving.end(), client, std::less<Client*>{})) {
@@ -106,9 +109,8 @@ void IoLoop::flip_output_release() {
 }
 
 void IoLoop::flip_output_adopt(Client* client) {
-    if (!client->serve_pending()) return; // LB has no held serve; unchanged behavior.
-    if (!flip_liveness_enabled() || srv_->flip_stage() < FlipStage::ClientCommit)
-        std::abort();
+    if (!client->serve_pending()) return;  // LB has no held serve; unchanged behavior.
+    if (!flip_liveness_enabled() || srv_->flip_stage() < FlipStage::ClientCommit) std::abort();
     // A newly activated IO has not run its FLIP-gated cron yet. Its zero clock
     // would underflow the inherited output soft-limit timestamp on first serve.
     cached_now_ms_ = now_ns() / 1000000ull;
@@ -145,14 +147,16 @@ void IoLoop::flip_output_prepare() {
         bool submit_allowed = true;
         if (climon_reply_suppressed(client))
             (void)climon_prepare_suppressed(client, submit_allowed);
-        else if (epoll_) (void)wb_.prepare<true, true>(*client, submit_allowed);
-        else (void)wb_.prepare<false, true>(*client, submit_allowed);
+        else if (epoll_)
+            (void)wb_.prepare<true, true>(*client, submit_allowed);
+        else
+            (void)wb_.prepare<false, true>(*client, submit_allowed);
     }
 }
 
 void IoLoop::flip_output_unhold(Client* client) {
-    auto at = std::lower_bound(flip_held_output_.begin(), flip_held_output_.end(),
-                                client, std::less<Client*>{});
+    auto at = std::lower_bound(flip_held_output_.begin(), flip_held_output_.end(), client,
+                               std::less<Client*>{});
     if (at == flip_held_output_.end() || *at != client) return;
     flip_held_output_.erase(at);
     client->set_serve_pending(false);
@@ -166,7 +170,8 @@ bool Client::flip_stationary_idle() const {
         return rob_.quiesced() && !retire_queued_.load(std::memory_order_acquire) &&
                barrier_owners_ == 0 && atomic_groups_io_ == 0;
     if (retire_queued_.load(std::memory_order_acquire) || atomic_groups_io_ ||
-        rob_.in_flight() != 1) return false;
+        rob_.in_flight() != 1)
+        return false;
     const Op& op = rob_.at(rob_.flush_id());
     // The blocking/WAIT dispatcher publishes its ROB range with the reset Free
     // marker; it does not use ordinary owner dispatch's Issued marker.
@@ -188,7 +193,7 @@ uint8_t IoLoop::flip_immovable_kind(const Client* client) const {
     if (client->closing()) return 0;
     if (client->blocked()) return 1;
     if (client->is_tls()) return 2;
-    if (flip_output_held(client)) return 0; // late owned output travels under its send hold
+    if (flip_output_held(client)) return 0;  // late owned output travels under its send hold
     if (client->send_inflight() || !client->nothing_to_write()) {
         pollfd socket{client->fd(), POLLOUT, 0};
         // A ready socket may complete its existing send during normal drain.
@@ -223,9 +228,10 @@ bool IoLoop::flip_immovable_refused() {
         const uint8_t kind = flip_immovable_kind(client);
         if (!kind) continue;
         if (!converting) continue;
-        const char* error = kind == 1 ? "ERR FLIP refused: converting IO owns a blocked connection" :
-                            kind == 2 ? "ERR FLIP refused: converting IO owns a TLS connection" :
-                                        "ERR FLIP refused: converting IO owns non-draining output";
+        const char* error = kind == 1 ? "ERR FLIP refused: converting IO owns a blocked connection"
+                            : kind == 2
+                                ? "ERR FLIP refused: converting IO owns a TLS connection"
+                                : "ERR FLIP refused: converting IO owns non-draining output";
         srv_->flip_note_immovable_refusal(kind, error);
         return true;
     }
@@ -236,32 +242,36 @@ bool IoLoop::flip_client_drained(const Client* client, bool coordinator) const {
     const bool enabled = flip_liveness_enabled();
     const bool post = enabled && srv_->flip_stage() == FlipStage::ClientInstall;
     const bool stays = enabled && (flip_client_stays(client) ||
-        (srv_->flip_stage() == FlipStage::IoDrain &&
-         srv_->flip_candidate_target(self_->id()) != Role::Ex && flip_immovable_kind(client)));
+                                   (srv_->flip_stage() == FlipStage::IoDrain &&
+                                    srv_->flip_candidate_target(self_->id()) != Role::Ex &&
+                                    flip_immovable_kind(client)));
     // Deferred WB frames own their bytes and stay with this IO. In particular,
     // an invalidation behind the coordinator's unfinished FLIP cannot flush
     // until FLIP finishes. Only a possible transfer must empty that WB map;
     // ClientInstall is past every transfer and keeps the installed IO owner.
-    if (!(enabled && (post || stays || coordinator)) && !wb_.migration_ready(*client))
-        return false;
+    if (!(enabled && (post || stays || coordinator)) && !wb_.migration_ready(*client)) return false;
     if (coordinator)
         return client->rob().in_flight() == 1 &&
-               (stays || (post ? !client->flip_borrowed_output() :
-                !client->send_inflight() && !client->serve_pending() && client->nothing_to_write()));
+               (stays || (post ? !client->flip_borrowed_output()
+                               : !client->send_inflight() && !client->serve_pending() &&
+                                     client->nothing_to_write()));
     if (stays) return client->flip_stationary_idle();
     return post ? client->flip_execution_idle() : client->flip_drain_idle();
 }
 
 bool IoLoop::flip_timers_drained() const {
     if (deferred_timers_.empty()) return true;
-    if (!flip_liveness_enabled() || srv_->flip_candidate_target(self_->id()) == Role::Ex) return false;
+    if (!flip_liveness_enabled() || srv_->flip_candidate_target(self_->id()) == Role::Ex)
+        return false;
     for (const auto& timer : deferred_timers_) {
         // A FIN can also arrive after commit on a retained IO. Once all owner
         // work has retired, its timer and buffered input stay with that Client
         // and resume at Idle. Neither is an outstanding executor obligation.
         if (flip_post_drain() &&
-            (timer.kind == DeferredTimerKind::ReceiveFin || timer.kind == DeferredTimerKind::ReceiveEof) &&
-            timer.client->ifid_thread() == self_->id() && timer.client->flip_execution_idle()) continue;
+            (timer.kind == DeferredTimerKind::ReceiveFin ||
+             timer.kind == DeferredTimerKind::ReceiveEof) &&
+            timer.client->ifid_thread() == self_->id() && timer.client->flip_execution_idle())
+            continue;
         if (timer.kind != DeferredTimerKind::WaitZero || !timer.client->flip_stationary_idle())
             return false;
     }
@@ -269,16 +279,21 @@ bool IoLoop::flip_timers_drained() const {
 }
 
 void IoLoop::flip_skip_stayers() {
-    if (!flip_liveness_enabled()) { flip_skipped_local_ = 0; return; }
+    if (!flip_liveness_enabled()) {
+        flip_skipped_local_ = 0;
+        return;
+    }
     if (flip_skip_epoch_ == srv_->flip_epoch()) return;
     flip_skip_epoch_ = srv_->flip_epoch();
     flip_skipped_local_ = 0;
     for (uint32_t i = 0, n = srv_->flip_source_clients(self_->id()); i < n; ++i) {
         Client* client = srv_->flip_client_at(self_->id(), i);
         if (!std::binary_search(flip_stayers_.begin(), flip_stayers_.end(), client,
-                                std::less<Client*>{})) continue;
+                                std::less<Client*>{}))
+            continue;
         if (srv_->flip_candidate_target(self_->id()) == Role::Ex) std::abort();
-        srv_->flip_drop_planned_client(self_->id(), srv_->flip_client_destination(self_->id(), i), true);
+        srv_->flip_drop_planned_client(self_->id(), srv_->flip_client_destination(self_->id(), i),
+                                       true);
         srv_->flip_forget_planned_client(self_->id(), i);
         ++flip_skipped_local_;
     }
@@ -286,8 +301,8 @@ void IoLoop::flip_skip_stayers() {
 
 bool IoLoop::flip_client_stays(const Client* client) const {
     return flip_stay_epoch_ == srv_->flip_epoch() &&
-        std::binary_search(flip_stayers_.begin(), flip_stayers_.end(), client,
-                           std::less<const Client*>{});
+           std::binary_search(flip_stayers_.begin(), flip_stayers_.end(), client,
+                              std::less<const Client*>{});
 }
 
 bool Server::flip_blocked_dispatch_allowed(uint32_t tid) const {
@@ -317,7 +332,8 @@ void IoLoop::flip_borrow_release() {
 
 void IoLoop::flip_borrow_resume() {
     if (!flip_borrow_held_ || srv_->flip_stage() != FlipStage::ExInstall ||
-        !srv_->flip_all_role_acked(Role::Ex, FlipStage::ExInstall)) return;
+        !srv_->flip_all_role_acked(Role::Ex, FlipStage::ExInstall))
+        return;
     // All consumers have installed their final masks. This runs before the
     // existing listener-admission acknowledgement on EVERY surviving IO, so
     // Idle (and the next FLIP) cannot overtake a deferred release callback.

@@ -51,8 +51,9 @@ struct RandomKeyCursor {
     };
     sample.cursor = scan(sample.cursor, 256, [&](KvObj* object) {
         const Slice key = object->key();
-        if (key.ns == physical && atomic_physical_key_visible(
-                hash_key(key), key, atomic_read_epoch_)) choose(key);
+        if (key.ns == physical &&
+            atomic_physical_key_visible(hash_key(key), key, atomic_read_epoch_))
+            choose(key);
     });
     if (sample.cursor) return false;
     atomic_for_each_side_key(atomic_read_epoch_, choose);

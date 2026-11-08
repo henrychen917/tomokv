@@ -47,8 +47,7 @@ inline bool read_local_command_touches_hash(const Op& op, uint64_t hash) {
     if (!read_local_command_is_mget(op) && !read_local_command_is_precise_mset(op))
         return op.hash == hash;
     const uint32_t step = static_cast<uint32_t>(op.spec->key_step);
-    for (uint32_t arg = static_cast<uint32_t>(op.spec->first_key);
-         arg < op.argc(); arg += step)
+    for (uint32_t arg = static_cast<uint32_t>(op.spec->first_key); arg < op.argc(); arg += step)
         if (FlatStore::hash_key(op.arg(arg)) == hash) return true;
     return false;
 }
@@ -65,8 +64,7 @@ inline bool read_local_command_touches_hash_collect(const Op& op, uint64_t hash,
     }
     bool touched = false;
     const uint32_t step = static_cast<uint32_t>(op.spec->key_step);
-    for (uint32_t arg = static_cast<uint32_t>(op.spec->first_key);
-         arg < op.argc(); arg += step) {
+    for (uint32_t arg = static_cast<uint32_t>(op.spec->first_key); arg < op.argc(); arg += step) {
         const uint64_t key = FlatStore::hash_key(op.arg(arg));
         keys.add(key);
         touched |= key == hash;
@@ -82,8 +80,8 @@ inline bool read_local_pending_filter_may_touch_command(const ReadLocalPendingFi
     if (!read_local_command_is_mget(command) && !read_local_command_is_precise_mset(command))
         return pending.may_contain(command.hash);
     const uint32_t step = static_cast<uint32_t>(command.spec->key_step);
-    for (uint32_t arg = static_cast<uint32_t>(command.spec->first_key);
-         arg < command.argc(); arg += step)
+    for (uint32_t arg = static_cast<uint32_t>(command.spec->first_key); arg < command.argc();
+         arg += step)
         if (pending.may_contain(FlatStore::hash_key(command.arg(arg)))) return true;
     return false;
 }
@@ -92,9 +90,8 @@ inline bool read_local_command_is_precise_point(const Op& op) {
     if (!op.spec) return false;
     constexpr uint32_t kNonPointRoutes =
         CmdFlags::AllShards | CmdFlags::RandomShard | CmdFlags::CursorShard |
-        CmdFlags::ConfigRoute | CmdFlags::MultiShard | CmdFlags::ScriptRoute |
-        CmdFlags::Blocking | CmdFlags::Transaction | CmdFlags::StreamRoute |
-        CmdFlags::SubcmdRoute;
+        CmdFlags::ConfigRoute | CmdFlags::MultiShard | CmdFlags::ScriptRoute | CmdFlags::Blocking |
+        CmdFlags::Transaction | CmdFlags::StreamRoute | CmdFlags::SubcmdRoute;
     return (op.spec->flags & kNonPointRoutes) == 0 && op.spec->first_key > 0 &&
            op.spec->last_key == op.spec->first_key && op.spec->key_step == 1;
 }
@@ -117,14 +114,14 @@ inline bool read_local_commands_overlap_precise_keyset(const Op& read, const Op&
     if (!read_local_command_is_mget(read))
         return read_local_command_touches_hash(command, read.hash);
     for (uint32_t arg = 1; arg < read.argc(); arg++)
-        if (read_local_command_touches_hash(
-                command, FlatStore::hash_key(read.arg(arg)))) return true;
+        if (read_local_command_touches_hash(command, FlatStore::hash_key(read.arg(arg))))
+            return true;
     return false;
 }
 
 // Same predicate, also reporting every key hash of `read` into `keys` (planner filter rebuild).
-inline bool read_local_commands_overlap_precise_keyset_collect(
-        const Op& read, const Op& command, ReadLocalPendingFilter& keys) {
+inline bool read_local_commands_overlap_precise_keyset_collect(const Op& read, const Op& command,
+                                                               ReadLocalPendingFilter& keys) {
     if (!read_local_command_is_mget(read)) {
         keys.add(read.hash);
         return read_local_command_touches_hash(command, read.hash);
@@ -142,8 +139,8 @@ inline bool read_local_commands_overlap(const Op& read, const Op& owner) {
     if (!read_local_command_is_mget(read))
         return read_local_owner_command_touches_hash(owner, read.hash);
     for (uint32_t arg = 1; arg < read.argc(); arg++)
-        if (read_local_owner_command_touches_hash(
-                owner, FlatStore::hash_key(read.arg(arg)))) return true;
+        if (read_local_owner_command_touches_hash(owner, FlatStore::hash_key(read.arg(arg))))
+            return true;
     return false;
 }
 
@@ -162,8 +159,8 @@ struct ReadLocalRetireRing {
     static_assert((kBatchCapacity & (kBatchCapacity - 1)) == 0);
 
     struct Batch {
-        uint64_t stamp;   // the OLD epoch value returned by the seal's fetch_add
-        uint32_t count;   // entries in this batch, contiguous from the drain head
+        uint64_t stamp;  // the OLD epoch value returned by the seal's fetch_add
+        uint32_t count;  // entries in this batch, contiguous from the drain head
     };
 
     bool empty() const { return count == 0; }
@@ -240,7 +237,7 @@ struct ReadLocalRetireRing {
     uint32_t head = 0;
     uint32_t tail = 0;
     uint32_t count = 0;
-    uint32_t unsealed = 0;      // entries at the tail not yet covered by a batch
+    uint32_t unsealed = 0;  // entries at the tail not yet covered by a batch
     uint32_t batch_head = 0;
     uint32_t batch_count = 0;
 };
@@ -297,10 +294,12 @@ public:
         // the corruption this P0 is chasing, so name it at the double retire instead.
         dbg_check_owner("defer");
         if (!dbg_pending_.insert(payload).second) {
-            std::fprintf(stderr,
+            std::fprintf(
+                stderr,
                 "\nRLRING-VIOLATION double-retire: payload %p aux %zu reclaim %p (queue %p, "
-                "ring count %u)\n", payload, auxiliary,
-                reinterpret_cast<void*>(reclaim), static_cast<void*>(this), ring_.count);
+                "ring count %u)\n",
+                payload, auxiliary, reinterpret_cast<void*>(reclaim), static_cast<void*>(this),
+                ring_.count);
             std::fflush(stderr);
             std::abort();
         }
@@ -327,11 +326,11 @@ public:
         // non-empty ring has a sealed batch here. Preallocated resize records carry the stamp
         // of their unlink instead; the same participant scan covers both FIFOs.
         const uint64_t oldest = std::min(ring_.empty() ? UINT64_MAX : ring_.head_stamp(),
-                                        resizes_.empty() ? UINT64_MAX : resizes_.head_stamp());
+                                         resizes_.empty() ? UINT64_MAX : resizes_.head_stamp());
         const uint64_t grace_floor = server_->read_local_grace_floor(oldest, grace_hint_);
-        const uint32_t drained = ring_.drain_below(
-            grace_floor, [this](uint32_t slot) { reclaim_entry(entries_[slot]); }) +
-            resizes_.drain_below(grace_floor);
+        const uint32_t drained = ring_.drain_below(grace_floor, [this](uint32_t slot) {
+            reclaim_entry(entries_[slot]);
+        }) + resizes_.drain_below(grace_floor);
         return drained;
     }
 
@@ -345,8 +344,9 @@ public:
         dbg_owner_tid_ = static_cast<long>(::syscall(SYS_gettid));
         block_cache_.dbg_owner_tid = dbg_owner_tid_;
 #endif
-        const uint32_t drained = ring_.drain_all(
-            [this](uint32_t slot) { reclaim_entry(entries_[slot]); }) + resizes_.drain_all();
+        const uint32_t drained = ring_.drain_all([this](uint32_t slot) {
+            reclaim_entry(entries_[slot]);
+        }) + resizes_.drain_all();
         // Shutdown returns the cache too: the store destructors that follow free the LIVE objects,
         // and these blocks are live to nobody.
         block_cache_.release_all();
@@ -364,10 +364,9 @@ private:
     };
     static_assert(sizeof(Entry) == 32);
 
-    static void defer_thunk(void* context, void* owner, void* payload,
-                            size_t auxiliary, ReadLocalRetireSink::ReclaimFn reclaim) {
-        static_cast<ReadLocalDeferredQueue*>(context)->defer(
-            owner, payload, auxiliary, reclaim);
+    static void defer_thunk(void* context, void* owner, void* payload, size_t auxiliary,
+                            ReadLocalRetireSink::ReclaimFn reclaim) {
+        static_cast<ReadLocalDeferredQueue*>(context)->defer(owner, payload, auxiliary, reclaim);
     }
 
     // A reclaimed slot is not scrubbed: defer() assigns every field before the slot is live again,
@@ -376,9 +375,8 @@ private:
 #ifdef TOMO_RL_CACHE_DEBUG
         dbg_check_owner("reclaim");
         if (dbg_pending_.erase(entry.payload) != 1) {
-            std::fprintf(stderr,
-                "\nRLRING-VIOLATION reclaim-of-unpending: payload %p (queue %p)\n",
-                entry.payload, static_cast<void*>(this));
+            std::fprintf(stderr, "\nRLRING-VIOLATION reclaim-of-unpending: payload %p (queue %p)\n",
+                         entry.payload, static_cast<void*>(this));
             std::fflush(stderr);
             std::abort();
         }
@@ -391,8 +389,7 @@ private:
         // Every object/table in the suffix was unlinked before this seq-cst RMW. The returned old
         // epoch is therefore a valid common retirement stamp for the entire owner-pass batch --
         // recorded once, not once per entry.
-        [[maybe_unused]] const uint32_t sealed =
-            ring_.seal(server_->advance_read_local_epoch());
+        [[maybe_unused]] const uint32_t sealed = ring_.seal(server_->advance_read_local_epoch());
     }
 
     void force_oldest_grace() {
@@ -410,7 +407,6 @@ private:
         }
     }
 
-
 #ifdef TOMO_RL_CACHE_DEBUG
     // The retire ring is the owner's private QSBR list. Both laws -- one thread, each payload
     // resident at most once -- are stated here as assertions in the debug build only.
@@ -419,11 +415,14 @@ private:
     std::unordered_set<void*> dbg_pending_;
     void dbg_check_owner(const char* op) {
         const long tid = static_cast<long>(::syscall(SYS_gettid));
-        if (!dbg_owner_tid_) { dbg_owner_tid_ = tid; return; }
+        if (!dbg_owner_tid_) {
+            dbg_owner_tid_ = tid;
+            return;
+        }
         if (dbg_owner_tid_ != tid && !dbg_shutdown_) {
             std::fprintf(stderr,
-                "\nRLRING-VIOLATION owner: %s on queue %p from tid %ld, owner tid %ld\n",
-                op, static_cast<void*>(this), tid, dbg_owner_tid_);
+                         "\nRLRING-VIOLATION owner: %s on queue %p from tid %ld, owner tid %ld\n",
+                         op, static_cast<void*>(this), tid, dbg_owner_tid_);
             std::fflush(stderr);
             std::abort();
         }
@@ -436,7 +435,7 @@ private:
     std::unique_ptr<Entry[]> entries_;
     ReadLocalRetireSink sink_;
     ReadLocalRetireRing ring_;
-    uint32_t grace_hint_ = UINT32_MAX;   // last participant seen blocking the oldest batch
+    uint32_t grace_hint_ = UINT32_MAX;  // last participant seen blocking the oldest batch
 };
 
 }  // namespace tomo

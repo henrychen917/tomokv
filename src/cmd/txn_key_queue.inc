@@ -1,17 +1,36 @@
 // Per-key index operations. Only the shard owner mutates nodes or queues.
 namespace {
-void /* TOMO_TOOL_BIND txn_unlink_waiter */txn_unlink_waiter(TxnWaiter& node, bool release = true) {
+void /* TOMO_TOOL_BIND txn_unlink_waiter */ txn_unlink_waiter(TxnWaiter& node,
+                                                              bool release = true) {
     auto& q = *node.queue;
     TOMO_ASSERT(node.waiting);
-    if (node.prev) node.prev->next = node.next; else q.head = node.next;
-    if (node.next) node.next->prev = node.prev; else q.tail = node.prev;
+    if (node.prev)
+        node.prev->next = node.next;
+    else
+        q.head = node.next;
+    if (node.next)
+        node.next->prev = node.prev;
+    else
+        q.tail = node.prev;
     if (node.entry.unit_mode == static_cast<uint8_t>(TxnClaimMode::Write)) {
-        if (node.wprev) node.wprev->wnext = node.wnext; else q.whead = node.wnext;
-        if (node.wnext) node.wnext->wprev = node.wprev; else q.wtail = node.wprev;
+        if (node.wprev)
+            node.wprev->wnext = node.wnext;
+        else
+            q.whead = node.wnext;
+        if (node.wnext)
+            node.wnext->wprev = node.wprev;
+        else
+            q.wtail = node.wprev;
     }
     if (node.entry.unit_kind == 1) {
-        if (node.eprev) node.eprev->enext = node.enext; else q.ehead = node.enext;
-        if (node.enext) node.enext->eprev = node.eprev; else q.etail = node.eprev;
+        if (node.eprev)
+            node.eprev->enext = node.enext;
+        else
+            q.ehead = node.enext;
+        if (node.enext)
+            node.enext->eprev = node.eprev;
+        else
+            q.etail = node.eprev;
     }
     node.eprev = node.enext = nullptr;
     --q.waiters;
@@ -33,8 +52,9 @@ TxnWaiter* txn_live_head(TxnKeyQueue& q, bool writes = false) {
     }
     return nullptr;
 }
-void /* TOMO_TOOL_BIND txn_link_waiter */txn_link_waiter(TxnKeyQueue& q, TxnWaiter& node,
-                     const Shard::WatchReservation& entry, bool acquire = true) {
+void /* TOMO_TOOL_BIND txn_link_waiter */ txn_link_waiter(TxnKeyQueue& q, TxnWaiter& node,
+                                                          const Shard::WatchReservation& entry,
+                                                          bool acquire = true) {
     TOMO_ASSERT(!node.waiting);
     auto* before = q.tail;
     const auto own = txn_unit_view(entry);
@@ -43,10 +63,19 @@ void /* TOMO_TOOL_BIND txn_link_waiter */txn_link_waiter(TxnKeyQueue& q, TxnWait
         if (!txn_version_before(own, txn_unit_view(before->entry))) break;
         before = before->prev;
     }
-    node.entry = entry; node.queue = &q; node.waiting = true;
-    node.prev = before; node.next = before ? before->next : q.head;
-    if (node.next) node.next->prev = &node; else q.tail = &node;
-    if (before) before->next = &node; else q.head = &node;
+    node.entry = entry;
+    node.queue = &q;
+    node.waiting = true;
+    node.prev = before;
+    node.next = before ? before->next : q.head;
+    if (node.next)
+        node.next->prev = &node;
+    else
+        q.tail = &node;
+    if (before)
+        before->next = &node;
+    else
+        q.head = &node;
     if (entry.unit_mode == static_cast<uint8_t>(TxnClaimMode::Write)) {
         auto* write = q.wtail;
         while (write) {
@@ -54,18 +83,32 @@ void /* TOMO_TOOL_BIND txn_link_waiter */txn_link_waiter(TxnKeyQueue& q, TxnWait
             if (!txn_version_before(own, txn_unit_view(write->entry))) break;
             write = write->wprev;
         }
-        node.wprev = write; node.wnext = write ? write->wnext : q.whead;
-        if (node.wnext) node.wnext->wprev = &node; else q.wtail = &node;
-        if (write) write->wnext = &node; else q.whead = &node;
+        node.wprev = write;
+        node.wnext = write ? write->wnext : q.whead;
+        if (node.wnext)
+            node.wnext->wprev = &node;
+        else
+            q.wtail = &node;
+        if (write)
+            write->wnext = &node;
+        else
+            q.whead = &node;
     }
     // Filter only the plain-writer FIFO predicate (D-F2=no). EXEC and
     // escalated scripts still share q.head and txn_version_before for placement.
     if (entry.unit_kind == 1) {
         auto* exec = q.etail;
         while (exec && txn_version_before(own, txn_unit_view(exec->entry))) exec = exec->eprev;
-        node.eprev = exec; node.enext = exec ? exec->enext : q.ehead;
-        if (node.enext) node.enext->eprev = &node; else q.etail = &node;
-        if (exec) exec->enext = &node; else q.ehead = &node;
+        node.eprev = exec;
+        node.enext = exec ? exec->enext : q.ehead;
+        if (node.enext)
+            node.enext->eprev = &node;
+        else
+            q.etail = &node;
+        if (exec)
+            exec->enext = &node;
+        else
+            q.ehead = &node;
     }
     ++q.waiters;
     if (acquire && entry.refs) entry.refs->fetch_add(1, std::memory_order_release);
@@ -74,10 +117,18 @@ void /* TOMO_TOOL_BIND txn_link_waiter */txn_link_waiter(TxnKeyQueue& q, TxnWait
 
 bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation unit,
                              const MultiRetryPromoter* promoter) {
-    auto& cached = unit.unit_kind == 1
-        ? static_cast<MultiExecState*>(const_cast<void*>(unit.token))->place_blockers[static_cast<MultiExecState*>(const_cast<void*>(unit.token))->slot(id())]
-        : static_cast<ScatterState*>(const_cast<void*>(unit.token))->group_attempt()->place_blockers[id()];
-    if (!txn_reservation_live(unit)) { cached.clear(); return true; }
+    auto& cached =
+        unit.unit_kind == 1
+            ? static_cast<MultiExecState*>(const_cast<void*>(unit.token))
+                  ->place_blockers[static_cast<MultiExecState*>(const_cast<void*>(unit.token))
+                                       ->slot(id())]
+            : static_cast<ScatterState*>(const_cast<void*>(unit.token))
+                  ->group_attempt()
+                  ->place_blockers[id()];
+    if (!txn_reservation_live(unit)) {
+        cached.clear();
+        return true;
+    }
     if (cached.live()) {
         server_->note_txn(server_->worker_of_shard(id()), TxnCounter::PollSkips);
         return false;
@@ -96,7 +147,11 @@ bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation
                 }
                 auto& q = *queue;
                 watch_finalize_queue(name, q);
-                if (q.empty()) { watch_reservations_.erase(name); refresh_has_watches(); return; }
+                if (q.empty()) {
+                    watch_reservations_.erase(name);
+                    refresh_has_watches();
+                    return;
+                }
                 // An episode may acquire a new key using an older saved stamp:
                 // marks are sorted by stamp, rather than assumed arrival-ordered.
                 for (const auto& mark : q.marks) {
@@ -106,7 +161,8 @@ bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation
                     break;
                 }
                 TxnWaiter* predecessor = nullptr;
-                if (key.mode == TxnClaimMode::Write && key.waiter.queue == queue && key.waiter.waiting) {
+                if (key.mode == TxnClaimMode::Write && key.waiter.queue == queue &&
+                    key.waiter.waiting) {
                     predecessor = key.waiter.prev;
                     while (predecessor) {
                         TOMO_TXN_REGISTRY_VISIT();
@@ -123,32 +179,46 @@ bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation
                     while (predecessor && !txn_reservation_live(predecessor->entry)) {
                         TOMO_TXN_REGISTRY_VISIT();
                         auto* next = writes ? predecessor->wnext : predecessor->next;
-                        txn_unlink_waiter(*predecessor); predecessor = next;
+                        txn_unlink_waiter(*predecessor);
+                        predecessor = next;
                     }
                 }
                 if (predecessor && txn_version_before(txn_unit_view(predecessor->entry), own)) {
                     ready = false;
-                    if (!older.refs) older.pin(predecessor->entry.epoch, predecessor->entry.aborted,
-                                                predecessor->entry.refs);
+                    if (!older.refs)
+                        older.pin(predecessor->entry.epoch, predecessor->entry.aborted,
+                                  predecessor->entry.refs);
                 }
                 bool wounded = false;
                 for (const auto& holder : q.held) {
                     TOMO_TXN_REGISTRY_VISIT();
-                    if (holder.token == unit.token || !txn_reservation_live(holder) || !holder.blocking) continue;
+                    if (holder.token == unit.token || !txn_reservation_live(holder) ||
+                        !holder.blocking)
+                        continue;
                     if (key.mode == TxnClaimMode::Read &&
-                        holder.unit_mode == static_cast<uint8_t>(TxnClaimMode::Read)) continue;
-                    if (!holder.unit_kind) { ready = false; continue; }
+                        holder.unit_mode == static_cast<uint8_t>(TxnClaimMode::Read))
+                        continue;
+                    if (!holder.unit_kind) {
+                        ready = false;
+                        continue;
+                    }
                     const auto foreign = txn_unit_view(holder);
                     if (txn_version_before(foreign, own) && !older.refs)
                         older.pin(holder.epoch, holder.aborted, holder.refs);
                     const auto phase = foreign.phase->load(std::memory_order_acquire);
-                    younger_placing |= phase == TxnPhase::Placing && txn_version_before(own, foreign);
+                    younger_placing |=
+                        phase == TxnPhase::Placing && txn_version_before(own, foreign);
                     if (phase == TxnPhase::Executing || !txn_version_before(own, foreign) ||
-                        !txn_wound(holder, *this, *server_)) ready = false;
-                    else wounded = true;
+                        !txn_wound(holder, *this, *server_))
+                        ready = false;
+                    else
+                        wounded = true;
                 }
                 if (wounded) watch_finalize_queue(name, q);
-                if (q.empty()) { watch_reservations_.erase(name); refresh_has_watches(); }
+                if (q.empty()) {
+                    watch_reservations_.erase(name);
+                    refresh_has_watches();
+                }
             };
             if (key.key.empty()) {
                 std::vector<std::string> names;
@@ -165,13 +235,16 @@ bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation
         for (const auto& key : keys) {
             auto& node = key.waiter;
             auto& q = node.queue ? *node.queue : watch_reservations_[key.key];
-            unit.entry_kind = ready ? 1 : 3; unit.blocking = ready;
+            unit.entry_kind = ready ? 1 : 3;
+            unit.blocking = ready;
             unit.unit_mode = static_cast<uint8_t>(key.mode);
             if (node.waiting) {
                 if (!ready) continue;
                 auto claim = node.entry;
-                claim.entry_kind = 1; claim.blocking = true;
-                q.held.emplace_back(claim, &node); // allocation must precede unlinking the lifetime pin
+                claim.entry_kind = 1;
+                claim.blocking = true;
+                q.held.emplace_back(claim,
+                                    &node);  // allocation must precede unlinking the lifetime pin
                 txn_unlink_waiter(node, false);
                 continue;
             }
@@ -180,19 +253,25 @@ bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation
                 TOMO_TXN_REGISTRY_VISIT();
                 auto& r = q.held[i];
                 if (r.token != unit.token || r.entry_kind < 1) continue;
-                r.entry_kind = unit.entry_kind; r.blocking = ready; r.unit_mode = unit.unit_mode;
-                r.handle = &node; node.queue = &q;
+                r.entry_kind = unit.entry_kind;
+                r.blocking = ready;
+                r.unit_mode = unit.unit_mode;
+                r.handle = &node;
+                node.queue = &q;
                 if (!ready) {
                     const auto waiter = r;
                     q.held.erase(q.held.begin() + i);
                     txn_link_waiter(q, node, waiter, false);
                 }
-                exists = true; break;
+                exists = true;
+                break;
             }
             if (!exists && !watch_append_reservation(key.key, unit, &node)) throw std::bad_alloc();
         }
-        if (ready) for (const auto& key : keys) watch_promote_unit_waiter(key.key, promoter);
-        else if (older.refs && !younger_placing) cached.take(older);
+        if (ready)
+            for (const auto& key : keys) watch_promote_unit_waiter(key.key, promoter);
+        else if (older.refs && !younger_placing)
+            cached.take(older);
         return ready;
     } catch (const std::bad_alloc&) {
         // A placement allocation error is terminal, unlike a wound. Publish
@@ -207,8 +286,7 @@ bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation
     }
 }
 
-void Shard::watch_promote_unit_waiter(const std::string& key,
-                                     const MultiRetryPromoter* promoter) {
+void Shard::watch_promote_unit_waiter(const std::string& key, const MultiRetryPromoter* promoter) {
     auto found = watch_reservations_.find(key);
     if (found == watch_reservations_.end()) return;
     auto& q = found->second;
@@ -220,7 +298,10 @@ void Shard::watch_promote_unit_waiter(const std::string& key,
         watch_key_ready(key, q.marks.front().token, false))
         promoter->promote_writer(promoter->context, q.marks.front().token, id());
     if (!head) {
-        if (q.empty()) { watch_reservations_.erase(found); refresh_has_watches(); }
+        if (q.empty()) {
+            watch_reservations_.erase(found);
+            refresh_has_watches();
+        }
         return;
     }
     if (head->entry.unit_kind != 1) return;

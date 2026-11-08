@@ -17,7 +17,7 @@ struct NetcmdRegression {
         server.live_config_mailboxes_[0].init(server.live_config_committed_);
         server.shards_.push_back(std::make_unique<Shard>());
         server.shards_[0]->init_private(&server, 0, server.cfg_.encodings.type_limits(),
-                                       server.cfg_.stream_limits);
+                                        server.cfg_.stream_limits);
         command_bind_server(&server);
     }
     ~NetcmdRegression() { command_bind_server(nullptr); }
@@ -45,7 +45,8 @@ static std::string bulk(const std::string& s) {
 }
 static void encoding(tomo::NetcmdRegression& fixture, const char* key, const char* expected) {
     const auto actual = fixture.run({"OBJECT", "ENCODING", key});
-    if (actual != bulk(expected)) std::cerr << key << ": " << actual << "expected " << expected << '\n';
+    if (actual != bulk(expected))
+        std::cerr << key << ": " << actual << "expected " << expected << '\n';
     check(actual == bulk(expected), "exact collection encoding");
 }
 static void knob(tomo::NetcmdRegression& fixture) {
@@ -57,20 +58,24 @@ static void knob(tomo::NetcmdRegression& fixture) {
         check(fixture.run({"CONFIG", "GET", name}) == "*2\r\n" + bulk(name) + bulk(value),
               "full public integer round trip");
         const auto owner_limit = []<class Limits>(const Limits& limits) {
-            if constexpr (requires { limits.set_intset_max_entries; }) return limits.set_intset_max_entries;
-            else return 128u; // PRE control: the missing knob must fail the same witness.
+            if constexpr (requires { limits.set_intset_max_entries; })
+                return limits.set_intset_max_entries;
+            else
+                return 128u;  // PRE control: the missing knob must fail the same witness.
         }(fixture.server.shard(0).type_limits());
-        check(owner_limit == std::min<uint64_t>(std::stoull(value), 1u << 30), "owner limit changed");
+        check(owner_limit == std::min<uint64_t>(std::stoull(value), 1u << 30),
+              "owner limit changed");
     }
     for (const char* value : {"-1", "+1", "01", "-0", "1kb", "", "9223372036854775808"}) {
-        check(fixture.run({"CONFIG", "SET", name, value}).starts_with("-ERR"), "invalid grammar rejected");
+        check(fixture.run({"CONFIG", "SET", name, value}).starts_with("-ERR"),
+              "invalid grammar rejected");
         check(fixture.run({"CONFIG", "GET", name}) == "*2\r\n" + bulk(name) + bulk("512"),
               "invalid SET preserved value");
     }
 }
 static void precedence(tomo::NetcmdRegression& f) {
-    check(f.run({"CONFIG", "SET", "set-max-intset-entries", "3",
-                 "set-max-listpack-entries", "5", "set-max-listpack-value", "8"}) == "+OK\r\n",
+    check(f.run({"CONFIG", "SET", "set-max-intset-entries", "3", "set-max-listpack-entries", "5",
+                 "set-max-listpack-value", "8"}) == "+OK\r\n",
           "non-default thresholds");
     check(f.run({"SADD", "grow", "0", "1", "2"}) == ":3\r\n", "integer set seeded");
     encoding(f, "grow", "intset");
@@ -96,7 +101,8 @@ static void precedence(tomo::NetcmdRegression& f) {
     check(f.run({"CONFIG", "SET", "set-max-intset-entries", "0"}) == "+OK\r\n", "disable intsets");
     check(f.run({"SADD", "zero", "1"}) == ":1\r\n", "zero intset limit insertion");
     encoding(f, "zero", "listpack");
-    check(f.run({"CONFIG", "SET", "set-max-listpack-entries", "0"}) == "+OK\r\n", "disable listpacks");
+    check(f.run({"CONFIG", "SET", "set-max-listpack-entries", "0"}) == "+OK\r\n",
+          "disable listpacks");
     check(f.run({"SADD", "off", "1"}) == ":1\r\n", "both compact forms disabled");
     encoding(f, "off", "hashtable");
 }
@@ -114,8 +120,10 @@ int main(int argc, char** argv) {
             for (unsigned i = 0; i < count; ++i) {
                 check(bool(std::getline(std::cin, line)) && line[0] == '$', "RESP bulk header");
                 const auto n = std::stoul(line.substr(1));
-                std::string value(n, '\0'); std::cin.read(value.data(), n);
-                char crlf[2]; std::cin.read(crlf, 2);
+                std::string value(n, '\0');
+                std::cin.read(value.data(), n);
+                char crlf[2];
+                std::cin.read(crlf, 2);
                 check(bool(std::cin) && crlf[0] == '\r' && crlf[1] == '\n', "complete RESP bulk");
                 args.push_back(std::move(value));
             }
@@ -125,8 +133,12 @@ int main(int argc, char** argv) {
     }
     for (unsigned atomic : {0u, 1u}) {
         tomo::NetcmdRegression f(atomic);
-        if (mode == "knob") knob(f);
-        else { check(mode == "precedence", "known unit mode"); precedence(f); }
+        if (mode == "knob")
+            knob(f);
+        else {
+            check(mode == "precedence", "known unit mode");
+            precedence(f);
+        }
     }
     std::printf("PASS encodingfix %s: atomic=0,1; no server started\n", mode.c_str());
 }

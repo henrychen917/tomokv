@@ -155,7 +155,7 @@ public:
         const uint32_t index = victim->node_index;
         Node& removed = nodes_[index];
         const EraseResult result{true, static_cast<uint32_t>(removed.field.size()),
-                                static_cast<uint32_t>(removed.value.size())};
+                                 static_cast<uint32_t>(removed.value.size())};
         const uint64_t removed_memory = node_memory(removed);
 
         unlink_scan_bucket(victim_table, victim_pos);
@@ -317,8 +317,7 @@ private:
 
     void maybe_start_shrink() {
         if (rehashing() || cap_[0] <= kMinCap) return;
-        if (static_cast<uint64_t>(nodes_.size()) * 100 <=
-            static_cast<uint64_t>(cap_[0]) * 15)
+        if (static_cast<uint64_t>(nodes_.size()) * 100 <= static_cast<uint64_t>(cap_[0]) * 15)
             (void)start_resize(cap_[0] >> 1);
     }
 
@@ -397,8 +396,7 @@ private:
             tab_[table][bucket.scan_prev - 1].scan_next = bucket.scan_next;
         else
             tab_[table][home].home_head = bucket.scan_next;
-        if (bucket.scan_next)
-            tab_[table][bucket.scan_next - 1].scan_prev = bucket.scan_prev;
+        if (bucket.scan_next) tab_[table][bucket.scan_next - 1].scan_prev = bucket.scan_prev;
         bucket.scan_next = bucket.scan_prev = 0;
     }
 
@@ -530,8 +528,8 @@ bool decode_pair(const Compact::Entry& entry, PairView& out) {
             if (field_len > entry.value.n - header) return false;
             out.entry = entry;
             out.field = Slice(entry.value.p + header, field_len);
-            out.value = Slice(entry.value.p + header + field_len,
-                              entry.value.n - header - field_len);
+            out.value =
+                Slice(entry.value.p + header + field_len, entry.value.n - header - field_len);
             return true;
         }
         shift += 7;
@@ -559,13 +557,14 @@ void compact_for_each(const CollectionRef& hash, Fn&& fn) {
 }
 
 uint64_t hash_compact_payload(const CollectionRef& hash) {
-    return hash.is_embedded() ? hash.aux0()
-                              : hash.external_as<HashVal>()->compact_payload_bytes;
+    return hash.is_embedded() ? hash.aux0() : hash.external_as<HashVal>()->compact_payload_bytes;
 }
 
 void set_hash_compact_payload(CollectionRef& hash, uint64_t bytes) {
-    if (hash.is_embedded()) hash.set_aux0(bytes);
-    else hash.external_as<HashVal>()->compact_payload_bytes = bytes;
+    if (hash.is_embedded())
+        hash.set_aux0(bytes);
+    else
+        hash.external_as<HashVal>()->compact_payload_bytes = bytes;
 }
 
 uint64_t hash_random_state(const CollectionRef& hash) {
@@ -573,13 +572,13 @@ uint64_t hash_random_state(const CollectionRef& hash) {
 }
 
 void set_hash_random_state(CollectionRef& hash, uint64_t state) {
-    if (hash.is_embedded()) hash.set_aux1(state);
-    else hash.external_as<HashVal>()->random_state = state;
+    if (hash.is_embedded())
+        hash.set_aux1(state);
+    else
+        hash.external_as<HashVal>()->random_state = state;
 }
 
-HashFieldMap* hash_fields(const CollectionRef& hash) {
-    return hash.external_as<HashVal>()->fields;
-}
+HashFieldMap* hash_fields(const CollectionRef& hash) { return hash.external_as<HashVal>()->fields; }
 
 uint64_t hash_random_bounded(CollectionRef& hash, uint64_t bound) {
     if (!bound) return 0;
@@ -619,8 +618,8 @@ bool promote_hash(CollectionRef& hash) {
     const uint32_t logical_entries = hash.entries();
     const uint64_t logical_payload = hash_compact_payload(hash);
     external->fields = map;
-    external->promote(CollectionEncoding::Hashtable, expanded_allocation(hash),
-                      logical_entries, logical_payload);
+    external->promote(CollectionEncoding::Hashtable, expanded_allocation(hash), logical_entries,
+                      logical_payload);
     external->compact_payload_bytes = 0;
     return true;
 }
@@ -644,16 +643,16 @@ HashSetKind hash_set(CollectionRef& hash, const CompactLimit& limit, Slice field
             std::string encoded;
             if (!encode_pair(field, value, encoded)) return HashSetKind::Oom;
             if (exists) {
-                if (!hash.replace(old.entry, Slice(encoded.data(), static_cast<uint32_t>(encoded.size()))))
+                if (!hash.replace(old.entry,
+                                  Slice(encoded.data(), static_cast<uint32_t>(encoded.size()))))
                     return HashSetKind::Oom;
-                set_hash_compact_payload(hash,
-                    hash_compact_payload(hash) - old.value.n + value.n);
+                set_hash_compact_payload(hash, hash_compact_payload(hash) - old.value.n + value.n);
                 return HashSetKind::Updated;
             }
             if (!hash.append(Slice(encoded.data(), static_cast<uint32_t>(encoded.size()))))
                 return HashSetKind::Oom;
-            set_hash_compact_payload(hash,
-                hash_compact_payload(hash) + static_cast<uint64_t>(field.n) + value.n);
+            set_hash_compact_payload(
+                hash, hash_compact_payload(hash) + static_cast<uint64_t>(field.n) + value.n);
             return HashSetKind::Inserted;
         }
     }
@@ -719,11 +718,13 @@ bool attach_new_hash(Shard& shard, Op& op, HashVal* hash) {
         return false;
     }
     const FlatStore::InsertResult inserted_ = shard.store_insert<kNotify>(op.hash, object);
-if (inserted_ != FlatStore::InsertResult::Inserted) {
-    kvobj_free(object);
-    if (inserted_ == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
-    else reply_err(op.sink(), "ERR keyspace insert failed");
-    return false;
+    if (inserted_ != FlatStore::InsertResult::Inserted) {
+        kvobj_free(object);
+        if (inserted_ == FlatStore::InsertResult::MaxmemoryOom)
+            reply_maxmemory_oom(op);
+        else
+            reply_err(op.sink(), "ERR keyspace insert failed");
+        return false;
     }
     return true;
 }
@@ -733,7 +734,10 @@ bool externalize_hash(Shard& shard, Op& op, KvObj*& object) {
     CollectionRef source(object);
     if (!source.is_embedded()) return true;
     auto* value = new (std::nothrow) HashVal;
-    if (!value) { reply_err(op.sink(), "ERR out of memory"); return false; }
+    if (!value) {
+        reply_err(op.sink(), "ERR out of memory");
+        return false;
+    }
     for (const Compact::Entry entry : source.compact()) {
         if (!value->append(entry.value)) {
             delete value;
@@ -743,9 +747,8 @@ bool externalize_hash(Shard& shard, Op& op, KvObj*& object) {
     }
     value->compact_payload_bytes = hash_compact_payload(source);
     value->random_state = hash_random_state(source);
-    KvObj* replacement = kvobj_new_hash(object->key(), value,
-                                        shard.store().deadline(op.hash, object),
-                                        object->has_ttl_slot());
+    KvObj* replacement = kvobj_new_hash(
+        object->key(), value, shard.store().deadline(op.hash, object), object->has_ttl_slot());
     if (!replacement) {
         delete value;
         reply_err(op.sink(), "ERR out of memory");
@@ -755,8 +758,10 @@ bool externalize_hash(Shard& shard, Op& op, KvObj*& object) {
     const FlatStore::InsertResult inserted = shard.store_insert<kNotify>(op.hash, replacement);
     if (inserted != FlatStore::InsertResult::Inserted) {
         kvobj_free(replacement);
-        if (inserted == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
-        else reply_err(op.sink(), "ERR keyspace insert failed");
+        if (inserted == FlatStore::InsertResult::MaxmemoryOom)
+            reply_maxmemory_oom(op);
+        else
+            reply_err(op.sink(), "ERR keyspace insert failed");
         return false;
     }
     object = replacement;
@@ -764,9 +769,8 @@ bool externalize_hash(Shard& shard, Op& op, KvObj*& object) {
 }
 
 template <bool kNotify>
-bool ensure_hash_write_capacity(Shard& shard, Op& op, KvObj*& object,
-                                uint32_t additional_entries, uint64_t additional_encoded,
-                                uint32_t incoming_max) {
+bool ensure_hash_write_capacity(Shard& shard, Op& op, KvObj*& object, uint32_t additional_entries,
+                                uint64_t additional_encoded, uint32_t incoming_max) {
     if (!object) return true;
     CollectionRef hash(object);
     if (!hash.is_embedded()) return true;
@@ -789,8 +793,8 @@ void reply_wrong_arity(Op& op) {
         command[i] = (ch >= 'A' && ch <= 'Z') ? static_cast<char>(ch + ('a' - 'A')) : ch;
     }
     command[name_len] = '\0';
-    std::snprintf(message, sizeof(message),
-                  "ERR wrong number of arguments for '%s' command", command);
+    std::snprintf(message, sizeof(message), "ERR wrong number of arguments for '%s' command",
+                  command);
     reply_err(op.sink(), message);
 }
 
@@ -814,8 +818,8 @@ const HashFieldTtl* hash_ttls_of(const KvObj* object) {
 template <bool kNotify>
 inline bool hash_lookup(Shard& shard, Op& op, KvObj*& object) {
     object = (op.spec->flags & CmdFlags::Readonly)
-        ? shard.store_find_read<kNotify>(op.hash, op.key())
-        : shard.store_find<kNotify>(op.hash, op.key());
+                 ? shard.store_find_read<kNotify>(op.hash, op.key())
+                 : shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return false;
     if (__builtin_expect(shard.store().field_expire_count() != 0, false) && object)
         return hash_ttl_on_access(shard, op, object, kNotify);
@@ -826,8 +830,7 @@ bool preconvert_hset(CollectionRef& hash, const CompactLimit& limit, const Op& o
     if (hash.encoding() != CollectionEncoding::Compact) return true;
     const uint32_t incoming_fields = (op.argc() - 2) / 2;
     bool promote = incoming_fields > limit.max_entries;
-    for (uint32_t i = 2; !promote && i < op.argc(); i++)
-        promote = op.arg(i).n > limit.max_value;
+    for (uint32_t i = 2; !promote && i < op.argc(); i++) promote = op.arg(i).n > limit.max_value;
     return !promote || promote_hash(hash);
 }
 
@@ -898,14 +901,15 @@ void cmd_hset(Shard& shard, Op& op) {
         incoming_max = std::max(incoming_max, std::max(op.arg(i).n, op.arg(i + 1).n));
     }
     if (!ensure_hash_write_capacity<kNotify>(shard, op, object, (op.argc() - 2) / 2,
-                                    additional_encoded, incoming_max)) return;
+                                             additional_encoded, incoming_max))
+        return;
     HashVal* owned = object ? nullptr : new (std::nothrow) HashVal(op.hash);
     if (!object && !owned) {
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
     CollectionRef hash = object ? as_hash(object) : CollectionRef(owned);
-    ObjectSizeTracker size_tracker(shard.store(), object);   // existing object: track growth
+    ObjectSizeTracker size_tracker(shard.store(), object);  // existing object: track growth
     // Wide fresh HSET/HMSET must not repeatedly scan an ever-growing Compact. As Redis, Valkey,
     // and the optimized fork do, use only the incoming pair count/lengths to pre-promote when the
     // command itself cannot fit; duplicates may conservatively over-promote, never under-promote.
@@ -916,7 +920,8 @@ void cmd_hset(Shard& shard, Op& op) {
     }
     uint32_t created = 0;
     for (uint32_t i = 2; i < op.argc(); i += 2) {
-        const HashSetKind result = hash_set(hash, shard.type_limits().hash, op.arg(i), op.arg(i + 1));
+        const HashSetKind result =
+            hash_set(hash, shard.type_limits().hash, op.arg(i), op.arg(i + 1));
         if (result == HashSetKind::Oom) {
             if (!object) delete owned;
             reply_err(op.sink(), "ERR out of memory");
@@ -928,10 +933,11 @@ void cmd_hset(Shard& shard, Op& op) {
     if (__builtin_expect(object != nullptr && shard.store().field_expire_count() != 0, false))
         for (uint32_t i = 2; i < op.argc(); i += 2) hash_ttl_clear_field(shard, object, op.arg(i));
     if (!object && !attach_new_hash<kNotify>(shard, op, owned)) return;
-    if constexpr (kNotify)
-        notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hset, op.key());
-    if (op.cmd_name().eq_icase("hmset")) reply_ok(op.sink());
-    else reply_int(op.sink(), created);
+    if constexpr (kNotify) notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hset, op.key());
+    if (op.cmd_name().eq_icase("hmset"))
+        reply_ok(op.sink());
+    else
+        reply_int(op.sink(), created);
 }
 
 template <bool kNotify>
@@ -948,8 +954,9 @@ void cmd_hsetnx(Shard& shard, Op& op) {
 
     const uint32_t pair_bytes = uleb_size(op.arg(2).n) + op.arg(2).n + op.arg(3).n;
     if (!ensure_hash_write_capacity<kNotify>(shard, op, object, 1,
-                                    Compact::entry_encoded_size(pair_bytes),
-                                    std::max(op.arg(2).n, op.arg(3).n))) return;
+                                             Compact::entry_encoded_size(pair_bytes),
+                                             std::max(op.arg(2).n, op.arg(3).n)))
+        return;
     HashVal* owned = object ? nullptr : new (std::nothrow) HashVal(op.hash);
     if (!object && !owned) {
         reply_err(op.sink(), "ERR out of memory");
@@ -963,27 +970,27 @@ void cmd_hsetnx(Shard& shard, Op& op) {
         return;
     }
     if (!object && !attach_new_hash<kNotify>(shard, op, owned)) return;
-    if constexpr (kNotify)
-        notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hset, op.key());
+    if constexpr (kNotify) notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hset, op.key());
     reply_int(op.sink(), 1);
 }
 
 template <bool kNotify>
 void cmd_hget(Shard& shard, Op& op) {
-    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
-        hash_parked_reply(shard, op)) return;
+    if (__builtin_expect(shard.store().atomic_has_records(), false) && hash_parked_reply(shard, op))
+        return;
     KvObj* object = nullptr;
     if (!hash_lookup<kNotify>(shard, op, object)) return;
     Slice value;
     if (!object || !hash_get(as_hash(object), op.arg(2), value))
         reply_null(op.sink(), op.resp3());
-    else reply_bulk(op.sink(), value);
+    else
+        reply_bulk(op.sink(), value);
 }
 
 template <bool kNotify>
 void cmd_hmget(Shard& shard, Op& op) {
-    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
-        hash_parked_reply(shard, op)) return;
+    if (__builtin_expect(shard.store().atomic_has_records(), false) && hash_parked_reply(shard, op))
+        return;
     KvObj* object = nullptr;
     if (!hash_lookup<kNotify>(shard, op, object)) return;
     reply_array_header(op.sink(), op.argc() - 2);
@@ -991,7 +998,8 @@ void cmd_hmget(Shard& shard, Op& op) {
         Slice value;
         if (!object || !hash_get(as_hash(object), op.arg(i), value))
             reply_null(op.sink(), op.resp3());
-        else reply_bulk(op.sink(), value);
+        else
+            reply_bulk(op.sink(), value);
     }
 }
 
@@ -1017,20 +1025,21 @@ void cmd_hdel(Shard& shard, Op& op) {
                 notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hdel, op.key());
                 notified = true;
             }
-            size_tracker.finish();               // account the shrink; erase subtracts the rest
+            size_tracker.finish();  // account the shrink; erase subtracts the rest
             shard.store_erase<kNotify>(op.hash, op.key());
             break;
         }
     }
-    if constexpr (kNotify) if (deleted && !notified)
-        notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hdel, op.key());
+    if constexpr (kNotify)
+        if (deleted && !notified)
+            notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hdel, op.key());
     reply_int(op.sink(), deleted);
 }
 
 template <bool kNotify>
 void cmd_hlen(Shard& shard, Op& op) {
-    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
-        hash_parked_reply(shard, op)) return;
+    if (__builtin_expect(shard.store().atomic_has_records(), false) && hash_parked_reply(shard, op))
+        return;
     KvObj* object = nullptr;
     if (!hash_lookup<kNotify>(shard, op, object)) return;
     reply_int(op.sink(), object ? as_hash(object).entries() : 0);
@@ -1038,8 +1047,8 @@ void cmd_hlen(Shard& shard, Op& op) {
 
 template <bool kNotify>
 void cmd_hexists(Shard& shard, Op& op) {
-    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
-        hash_parked_reply(shard, op)) return;
+    if (__builtin_expect(shard.store().atomic_has_records(), false) && hash_parked_reply(shard, op))
+        return;
     KvObj* object = nullptr;
     if (!hash_lookup<kNotify>(shard, op, object)) return;
     Slice value;
@@ -1048,8 +1057,8 @@ void cmd_hexists(Shard& shard, Op& op) {
 
 template <bool kNotify>
 void cmd_hstrlen(Shard& shard, Op& op) {
-    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
-        hash_parked_reply(shard, op)) return;
+    if (__builtin_expect(shard.store().atomic_has_records(), false) && hash_parked_reply(shard, op))
+        return;
     KvObj* object = nullptr;
     if (!hash_lookup<kNotify>(shard, op, object)) return;
     Slice value;
@@ -1082,10 +1091,11 @@ void cmd_hincrby(Shard& shard, Op& op) {
     char text[24];
     const uint32_t length = i64_to_dec(text, value);
 
-    const uint32_t encoded = Compact::entry_encoded_size(
-        uleb_size(op.arg(2).n) + op.arg(2).n + length);
+    const uint32_t encoded =
+        Compact::entry_encoded_size(uleb_size(op.arg(2).n) + op.arg(2).n + length);
     if (!ensure_hash_write_capacity<kNotify>(shard, op, object, 1, encoded,
-                                    std::max(op.arg(2).n, length))) return;
+                                             std::max(op.arg(2).n, length)))
+        return;
     HashVal* owned = object ? nullptr : new (std::nothrow) HashVal(op.hash);
     if (!object && !owned) {
         reply_err(op.sink(), "ERR out of memory");
@@ -1100,8 +1110,7 @@ void cmd_hincrby(Shard& shard, Op& op) {
         return;
     }
     if (!object && !attach_new_hash<kNotify>(shard, op, owned)) return;
-    if constexpr (kNotify)
-        notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hincrby, op.key());
+    if constexpr (kNotify) notify_record(shard, op, NOTIFY_HASH, NotifyEventId::Hincrby, op.key());
     reply_int(op.sink(), value);
 }
 
@@ -1138,10 +1147,11 @@ void cmd_hincrbyfloat(Shard& shard, Op& op) {
         return;
     }
 
-    const uint32_t encoded = Compact::entry_encoded_size(
-        uleb_size(op.arg(2).n) + op.arg(2).n + length);
+    const uint32_t encoded =
+        Compact::entry_encoded_size(uleb_size(op.arg(2).n) + op.arg(2).n + length);
     if (!ensure_hash_write_capacity<kNotify>(shard, op, object, 1, encoded,
-                                    std::max(op.arg(2).n, length))) return;
+                                             std::max(op.arg(2).n, length)))
+        return;
     HashVal* owned = object ? nullptr : new (std::nothrow) HashVal(op.hash);
     if (!object && !owned) {
         reply_err(op.sink(), "ERR out of memory");
@@ -1165,13 +1175,15 @@ enum class GetAllMode : uint8_t { Fields, Values, Both };
 
 template <bool kNotify>
 void generic_getall(Shard& shard, Op& op, GetAllMode mode) {
-    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
-        hash_parked_reply(shard, op)) return;
+    if (__builtin_expect(shard.store().atomic_has_records(), false) && hash_parked_reply(shard, op))
+        return;
     KvObj* object = nullptr;
     if (!hash_lookup<kNotify>(shard, op, object)) return;
     if (!object) {
-        if (mode == GetAllMode::Both) reply_map_header(op.sink(), 0, op.resp3());
-        else reply_array_header(op.sink(), 0);
+        if (mode == GetAllMode::Both)
+            reply_map_header(op.sink(), 0, op.resp3());
+        else
+            reply_array_header(op.sink(), 0);
         return;
     }
     CollectionRef hash = as_hash(object);
@@ -1195,11 +1207,17 @@ void generic_getall(Shard& shard, Op& op, GetAllMode mode) {
 }
 
 template <bool kNotify>
-void cmd_hgetall(Shard& shard, Op& op) { generic_getall<kNotify>(shard, op, GetAllMode::Both); }
+void cmd_hgetall(Shard& shard, Op& op) {
+    generic_getall<kNotify>(shard, op, GetAllMode::Both);
+}
 template <bool kNotify>
-void cmd_hkeys(Shard& shard, Op& op) { generic_getall<kNotify>(shard, op, GetAllMode::Fields); }
+void cmd_hkeys(Shard& shard, Op& op) {
+    generic_getall<kNotify>(shard, op, GetAllMode::Fields);
+}
 template <bool kNotify>
-void cmd_hvals(Shard& shard, Op& op) { generic_getall<kNotify>(shard, op, GetAllMode::Values); }
+void cmd_hvals(Shard& shard, Op& op) {
+    generic_getall<kNotify>(shard, op, GetAllMode::Values);
+}
 
 struct ScanOptions {
     Slice pattern;
@@ -1262,8 +1280,8 @@ void cmd_hscan(Shard& shard, Op& op) {
         reply_err(op.sink(), "ERR invalid cursor");
         return;
     }
-    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
-        hash_parked_reply(shard, op)) return;
+    if (__builtin_expect(shard.store().atomic_has_records(), false) && hash_parked_reply(shard, op))
+        return;
     KvObj* object = nullptr;
     if (!hash_lookup<kNotify>(shard, op, object)) return;
     if (!object) {
@@ -1291,15 +1309,15 @@ void cmd_hscan(Shard& shard, Op& op) {
         } else {
             uint64_t sampled = 0;
             uint64_t iterations = 0;
-            const uint64_t max_iterations = options.count > UINT64_MAX / 10
-                                                ? UINT64_MAX : options.count * 10;
+            const uint64_t max_iterations =
+                options.count > UINT64_MAX / 10 ? UINT64_MAX : options.count * 10;
             do {
                 cursor = hash_fields(hash)->scan(cursor, [&](const HashFieldMap::Node& node) {
                     sampled++;
                     const Slice field(node.field.data(), static_cast<uint32_t>(node.field.size()));
                     if (!options.use_pattern || command_glob_match(options.pattern, field))
                         items.push_back({field, Slice(node.value.data(),
-                                                     static_cast<uint32_t>(node.value.size()))});
+                                                      static_cast<uint32_t>(node.value.size()))});
                 });
                 iterations++;
             } while (cursor && sampled < options.count && iterations < max_iterations);
@@ -1334,8 +1352,8 @@ bool select_unique(CollectionRef& hash, uint32_t population, uint32_t count,
             std::vector<uint32_t> all(population);
             for (uint32_t i = 0; i < population; i++) all[i] = i;
             for (uint32_t i = 0; i < count; i++) {
-                const uint32_t chosen = i + static_cast<uint32_t>(
-                    hash_random_bounded(hash, static_cast<uint64_t>(population - i)));
+                const uint32_t chosen = i + static_cast<uint32_t>(hash_random_bounded(
+                                                hash, static_cast<uint64_t>(population - i)));
                 std::swap(all[i], all[chosen]);
                 selected.push_back(all[i]);
             }
@@ -1385,20 +1403,24 @@ void cmd_hrandfield(Shard& shard, Op& op) {
         }
     }
 
-    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
-        hash_parked_reply(shard, op)) return;
+    if (__builtin_expect(shard.store().atomic_has_records(), false) && hash_parked_reply(shard, op))
+        return;
     KvObj* object = nullptr;
     if (!hash_lookup<kNotify>(shard, op, object)) return;
     if (!object) {
-        if (op.argc() == 2) reply_null(op.sink(), op.resp3());
-        else reply_array_header(op.sink(), 0);
+        if (op.argc() == 2)
+            reply_null(op.sink(), op.resp3());
+        else
+            reply_array_header(op.sink(), 0);
         return;
     }
     CollectionRef hash = as_hash(object);
     const uint32_t population = hash.entries();
     if (!population) {
-        if (op.argc() == 2) reply_null(op.sink(), op.resp3());
-        else reply_array_header(op.sink(), 0);
+        if (op.argc() == 2)
+            reply_null(op.sink(), op.resp3());
+        else
+            reply_array_header(op.sink(), 0);
         return;
     }
 
@@ -1426,8 +1448,8 @@ void cmd_hrandfield(Shard& shard, Op& op) {
     }
 
     const bool unique = signed_count > 0;
-    const uint64_t requested = unique ? static_cast<uint64_t>(signed_count)
-                                      : static_cast<uint64_t>(-signed_count);
+    const uint64_t requested =
+        unique ? static_cast<uint64_t>(signed_count) : static_cast<uint64_t>(-signed_count);
     if (!unique) {
         const bool pairs = with_values && op.resp3();
         reply_array_header(op.sink(), requested * (with_values && !pairs ? 2 : 1));
@@ -1443,8 +1465,8 @@ void cmd_hrandfield(Shard& shard, Op& op) {
     const uint32_t count = requested >= population ? population : static_cast<uint32_t>(requested);
     if (count == population) {
         const bool pairs = with_values && op.resp3();
-        reply_array_header(op.sink(), static_cast<uint64_t>(count) *
-                                      (with_values && !pairs ? 2 : 1));
+        reply_array_header(op.sink(),
+                           static_cast<uint64_t>(count) * (with_values && !pairs ? 2 : 1));
         for (uint32_t i = 0; i < count; i++) {
             const auto pair = pair_at(i);
             if (pairs) reply_array_header(op.sink(), 2);
@@ -1460,8 +1482,8 @@ void cmd_hrandfield(Shard& shard, Op& op) {
         return;
     }
     const bool pairs = with_values && op.resp3();
-    reply_array_header(op.sink(), static_cast<uint64_t>(selected.size()) *
-                                  (with_values && !pairs ? 2 : 1));
+    reply_array_header(op.sink(),
+                       static_cast<uint64_t>(selected.size()) * (with_values && !pairs ? 2 : 1));
     for (uint32_t index : selected) {
         const auto pair = pair_at(index);
         if (pairs) reply_array_header(op.sink(), 2);
@@ -1472,30 +1494,30 @@ void cmd_hrandfield(Shard& shard, Op& op) {
 
 #define TOMO_HANDLER_PAIR(fn) fn<false>, 1, 1, 1, notify_handler<fn<true>>
 
-static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */ kTable[] = {
     // name          min max flags                handler             first last step
-    {"HSET",          4, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hset)},
-    {"HMSET",         4, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hset)},
-    {"HSETNX",        4,  4, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hsetnx)},
-    {"HGET",          3,  3, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hget)},
-    {"HMGET",         3, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hmget)},
-    {"HDEL",          3, -1, CmdFlags::Write,    TOMO_HANDLER_PAIR(cmd_hdel)},
-    {"HLEN",          2,  2, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hlen)},
-    {"HEXISTS",       3,  3, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hexists)},
-    {"HSTRLEN",       3,  3, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hstrlen)},
-    {"HINCRBY",       4,  4, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hincrby)},
-    {"HINCRBYFLOAT",  4,  4, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hincrbyfloat)},
-    {"HGETALL",       2,  2, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hgetall)},
-    {"HKEYS",         2,  2, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hkeys)},
-    {"HVALS",         2,  2, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hvals)},
-    {"HRANDFIELD",    2, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hrandfield)},
-    {"HSCAN",         3, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hscan)},
+    {"HSET", 4, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hset)},
+    {"HMSET", 4, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hset)},
+    {"HSETNX", 4, 4, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hsetnx)},
+    {"HGET", 3, 3, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hget)},
+    {"HMGET", 3, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hmget)},
+    {"HDEL", 3, -1, CmdFlags::Write, TOMO_HANDLER_PAIR(cmd_hdel)},
+    {"HLEN", 2, 2, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hlen)},
+    {"HEXISTS", 3, 3, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hexists)},
+    {"HSTRLEN", 3, 3, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hstrlen)},
+    {"HINCRBY", 4, 4, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_hincrby)},
+    {"HINCRBYFLOAT", 4, 4, CmdFlags::Write | CmdFlags::DenyOom,
+     TOMO_HANDLER_PAIR(cmd_hincrbyfloat)},
+    {"HGETALL", 2, 2, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hgetall)},
+    {"HKEYS", 2, 2, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hkeys)},
+    {"HVALS", 2, 2, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hvals)},
+    {"HRANDFIELD", 2, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hrandfield)},
+    {"HSCAN", 3, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_hscan)},
 };
 
 #undef TOMO_HANDLER_PAIR
 
 }  // namespace
-
 
 namespace {
 
@@ -1557,13 +1579,20 @@ SnapshotHookStatus hash_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* desti
     uint64_t idx = 0;
     bool stopped = false;
     hash_walk(hash, [&](Slice f, Slice v) {
-        if (stopped) { idx++; return; }
-        if (idx < cursor.lane[0]) { idx++; return; }
+        if (stopped) {
+            idx++;
+            return;
+        }
+        if (idx < cursor.lane[0]) {
+            idx++;
+            return;
+        }
         e.pos = 0;
         e.resume = idx == cursor.lane[0] ? cursor.lane[1] : 0;
-        const bool ok = e.put_u32(f.n) && e.put(f.p, f.n) && e.put_u32(v.n) && e.put(v.p, v.n) &&
-                        (!with_ttl ||
-                         e.put_u64(static_cast<uint64_t>(ttls ? ttls->get(f) : HashFieldTtl::kNone)));
+        const bool ok =
+            e.put_u32(f.n) && e.put(f.p, f.n) && e.put_u32(v.n) && e.put(v.p, v.n) &&
+            (!with_ttl ||
+             e.put_u64(static_cast<uint64_t>(ttls ? ttls->get(f) : HashFieldTtl::kNone)));
         if (!ok) {
             cursor.lane[0] = idx;
             cursor.lane[1] = e.pos;
@@ -1571,7 +1600,10 @@ SnapshotHookStatus hash_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* desti
         }
         idx++;
     });
-    if (!stopped) { cursor.lane[0] = idx; cursor.lane[1] = 0; }
+    if (!stopped) {
+        cursor.lane[0] = idx;
+        cursor.lane[1] = 0;
+    }
     cursor.offset += e.out;
     written = e.out;
     return SnapshotHookStatus::Ok;
@@ -1593,25 +1625,45 @@ SnapshotHookStatus hash_snapshot_load(Slice key, uint8_t encoding, int64_t expir
     uint64_t left = payload.n;
     uint32_t skipped = 0;
     while (left) {
-        if (left < 4) { delete hash; return SnapshotHookStatus::Corrupt; }
+        if (left < 4) {
+            delete hash;
+            return SnapshotHookStatus::Corrupt;
+        }
         const uint32_t flen = snapshot_get_u32(p);
-        p += 4; left -= 4;
-        if (left < static_cast<uint64_t>(flen) + 4) { delete hash; return SnapshotHookStatus::Corrupt; }
+        p += 4;
+        left -= 4;
+        if (left < static_cast<uint64_t>(flen) + 4) {
+            delete hash;
+            return SnapshotHookStatus::Corrupt;
+        }
         const Slice field(reinterpret_cast<const char*>(p), flen);
-        p += flen; left -= flen;
+        p += flen;
+        left -= flen;
         const uint32_t vlen = snapshot_get_u32(p);
-        p += 4; left -= 4;
-        if (left < vlen) { delete hash; return SnapshotHookStatus::Corrupt; }
+        p += 4;
+        left -= 4;
+        if (left < vlen) {
+            delete hash;
+            return SnapshotHookStatus::Corrupt;
+        }
         const Slice value(reinterpret_cast<const char*>(p), vlen);
-        p += vlen; left -= vlen;
+        p += vlen;
+        left -= vlen;
         int64_t field_expire = HashFieldTtl::kNone;
         if (with_ttl) {
-            if (left < 8) { delete hash; return SnapshotHookStatus::Corrupt; }
+            if (left < 8) {
+                delete hash;
+                return SnapshotHookStatus::Corrupt;
+            }
             field_expire = static_cast<int64_t>(snapshot_get_u64(p));
-            p += 8; left -= 8;
+            p += 8;
+            left -= 8;
             // Absolute deadlines make this the whole of "recovery honours field TTLs": a field that
             // already lapsed is simply not loaded, exactly as a lapsed key is not.
-            if (field_expire >= 0 && field_expire <= now_ms) { skipped++; continue; }
+            if (field_expire >= 0 && field_expire <= now_ms) {
+                skipped++;
+                continue;
+            }
         }
         if (hash_set(hash_ref, limits.hash, field, value) == HashSetKind::Oom) {
             delete hash;
@@ -1620,9 +1672,15 @@ SnapshotHookStatus hash_snapshot_load(Slice key, uint8_t encoding, int64_t expir
         if (field_expire >= 0) {
             if (!hash->ttls) {
                 hash->ttls = new (std::nothrow) HashFieldTtl;
-                if (!hash->ttls) { delete hash; return SnapshotHookStatus::Oom; }
+                if (!hash->ttls) {
+                    delete hash;
+                    return SnapshotHookStatus::Oom;
+                }
             }
-            if (!hash->ttls->set(field, field_expire)) { delete hash; return SnapshotHookStatus::Oom; }
+            if (!hash->ttls->set(field, field_expire)) {
+                delete hash;
+                return SnapshotHookStatus::Oom;
+            }
         }
     }
     if (hash->ttls) hash->ttl_bytes = hash->ttls->allocation_bytes();
@@ -1638,11 +1696,17 @@ SnapshotHookStatus hash_snapshot_load(Slice key, uint8_t encoding, int64_t expir
     // RENAME and RESTORE until it was caught). A hash carrying deadlines is external by definition.
     if (hash->ttls) {
         result = kvobj_new_hash(key, hash, key_expire);
-        if (!result) { delete hash; return SnapshotHookStatus::Oom; }
+        if (!result) {
+            delete hash;
+            return SnapshotHookStatus::Oom;
+        }
         return SnapshotHookStatus::Ok;
     }
     result = kvobj_adopt_hash(key, hash, key_expire);
-    if (!result) { delete hash; return SnapshotHookStatus::Oom; }
+    if (!result) {
+        delete hash;
+        return SnapshotHookStatus::Oom;
+    }
     return SnapshotHookStatus::Ok;
 }
 
@@ -1653,7 +1717,7 @@ SnapshotHookStatus hash_snapshot_load(Slice key, uint8_t encoding, int64_t expir
 // the surface this small is what lets the two representations stay private to this file.
 
 HashFieldTtl** hash_ttl_slot(KvObj* object) {
-    if (static_cast<Enc>(object->enc) == Enc::Compact) return nullptr;   // embedded: no HashVal
+    if (static_cast<Enc>(object->enc) == Enc::Compact) return nullptr;  // embedded: no HashVal
     return &static_cast<HashVal*>(object->external_ptr())->ttls;
 }
 
@@ -1686,9 +1750,7 @@ SnapshotTypeHooks hash_snapshot_hooks() {
     return {hash_snapshot_begin, hash_snapshot_read, hash_snapshot_load};
 }
 
-CommandTable hash_command_table() {
-    return {kTable, sizeof(kTable) / sizeof(kTable[0])};
-}
+CommandTable hash_command_table() { return {kTable, sizeof(kTable) / sizeof(kTable[0])}; }
 
 // SORT's `BY h_*->f` / `GET h_*->f` read a field on a key the command was NOT routed on, so it may
 // not go through hash_lookup(): that path reaps lapsed fields and, when the last one goes, erases
@@ -1702,9 +1764,9 @@ bool hash_field_value_ro(const KvObj* object, Slice field, Slice& value) {
 
 // Borrow fields without touching the hash, including its random state and TTL min cache.
 // count==0 visits every field; otherwise this is HSCAN's existing physical cursor walk.
-__attribute__((cold, noinline))
-uint64_t hash_read_visit(const KvObj* object, uint64_t cursor, uint64_t count,
-                         void* context, void (*visit)(void*, Slice, Slice)) {
+__attribute__((cold, noinline)) uint64_t hash_read_visit(const KvObj* object, uint64_t cursor,
+                                                         uint64_t count, void* context,
+                                                         void (*visit)(void*, Slice, Slice)) {
     CollectionRef hash = as_hash(const_cast<KvObj*>(object));
     if (hash.encoding() == CollectionEncoding::Compact) {
         // Like Redis's listpack scan, a compact immutable predecessor is one

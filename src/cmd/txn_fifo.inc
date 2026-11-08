@@ -2,7 +2,7 @@
 // retain watch_write_ready's original predicate (R-F2, D-F1/2/3 = no/no/no).
 bool Shard::watch_fifo_write_ready(Slice key, const void* token) {
     return !has_watches() || (watch_key_ready("", token, false) &&
-        watch_key_ready_impl<true>(watch_key_string(key), token, false));
+                              watch_key_ready_impl<true>(watch_key_string(key), token, false));
 }
 
 bool Shard::watch_fifo_all_write_ready(const void* token) {
@@ -12,9 +12,12 @@ bool Shard::watch_fifo_all_write_ready(const void* token) {
     try {
         keys.reserve(watch_reservations_.size());
         for (const auto& item : watch_reservations_) keys.push_back(item.first);
-    } catch (const std::bad_alloc&) { return false; }
+    } catch (const std::bad_alloc&) {
+        return false;
+    }
     for (const auto& key : keys)
-        if (!watch_key_ready_impl<true>(key, token, false, stamp ? stamp : UINT64_MAX)) return false;
+        if (!watch_key_ready_impl<true>(key, token, false, stamp ? stamp : UINT64_MAX))
+            return false;
     return true;
 }
 
@@ -22,9 +25,8 @@ namespace {
 template <bool Probe>
 bool txn_fifo_plain_gate(Shard& shard, Op& op) {
     bool ready = true;
-    for_each_plain_write_key(op, [&](uint64_t, Slice key) {
-        ready &= shard.watch_fifo_write_ready(key, &op);
-    });
+    for_each_plain_write_key(
+        op, [&](uint64_t, Slice key) { ready &= shard.watch_fifo_write_ready(key, &op); });
     if (ready) {
         // R-F1: keep the original marks through both dispatch probes; remove
         // them only at the final execution gate, with no intervening owner task.
@@ -35,11 +37,11 @@ bool txn_fifo_plain_gate(Shard& shard, Op& op) {
             // that never waited has no marks to remove or count.
             if (!op.atomic_hazard()) return true;
             bool stamped = false;
-            for_each_plain_write_key(op, [&](uint64_t, Slice key) {
-                stamped |= shard.watch_writer_unmark(key, &op);
-            });
-            if (stamped) shard.server()->note_txn(shard.server()->worker_of_shard(shard.id()),
-                                                TxnCounter::FifoPasses);
+            for_each_plain_write_key(
+                op, [&](uint64_t, Slice key) { stamped |= shard.watch_writer_unmark(key, &op); });
+            if (stamped)
+                shard.server()->note_txn(shard.server()->worker_of_shard(shard.id()),
+                                         TxnCounter::FifoPasses);
         }
         return true;
     }

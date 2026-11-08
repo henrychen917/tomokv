@@ -22,9 +22,7 @@ struct CoreConcurrencyTest {
             std::_Exit(1);
         }
     }
-    static Slice slice(const std::string& s) {
-        return {s.data(), static_cast<uint32_t>(s.size())};
-    }
+    static Slice slice(const std::string& s) { return {s.data(), static_cast<uint32_t>(s.size())}; }
 
     template <bool ReadLocal, bool FusedExecutor = ReadLocal>
     struct Fixture {
@@ -46,9 +44,9 @@ struct CoreConcurrencyTest {
             }
             require(count == 8, "eight allowed CPUs required, no skip");
             require(server.topo_.declare(domain.c_str()), "declare fixture topology");
-            require(mode == ThreadMode::Fused
-                        ? server.placement_.build_fused(server.topo_, nullptr)
-                        : server.placement_.build_even(server.topo_, 6, 2), "place fixture");
+            require(mode == ThreadMode::Fused ? server.placement_.build_fused(server.topo_, nullptr)
+                                              : server.placement_.build_even(server.topo_, 6, 2),
+                    "place fixture");
             require(server.placement_.reserve_runtime_roles(8), "reserve fixture roles");
             Config config;
             config.databases = databases;
@@ -64,26 +62,31 @@ struct CoreConcurrencyTest {
             require(server.nthreads() == 8 && server.nshards() == 16, "gate geometry");
             loop.srv_ = &server;
             loop.self_ = &server.thread(owner);
-            require(mode == ThreadMode::Fused ? loop.self_->init_task_inbox_local_fused()
+            require(mode == ThreadMode::Fused
+                        ? loop.self_->init_task_inbox_local_fused()
                         : loop.self_->init_task_inbox_local(server.placement().ifid_threads(),
-                                                           server.placement().ex_threads()),
+                                                            server.placement().ex_threads()),
                     "allocate the production task inbox");
             loop.cached_now_ms_ = 1000;
             if constexpr (ReadLocal) {
-            loop.read_local_.impl = std::make_unique<ReadLocalExImpl>();
-            loop.read_local_impl().lane = std::make_unique<ReadLocalExImpl::LaneEntry[]>(kInboxSlots);
-            loop.read_local_impl().lane_fallbacks = std::make_unique<ReadLocalFallbackReason[]>(kInboxSlots);
-            auto& deferred = loop.read_local_impl().deferred;
-            require(deferred.init(&server, loop.self_), "owner QSBR queue");
-            for (Shard* sh : loop.self_->shards())
-                sh->store().configure_read_local(true, *deferred.sink());
+                loop.read_local_.impl = std::make_unique<ReadLocalExImpl>();
+                loop.read_local_impl().lane =
+                    std::make_unique<ReadLocalExImpl::LaneEntry[]>(kInboxSlots);
+                loop.read_local_impl().lane_fallbacks =
+                    std::make_unique<ReadLocalFallbackReason[]>(kInboxSlots);
+                auto& deferred = loop.read_local_impl().deferred;
+                require(deferred.init(&server, loop.self_), "owner QSBR queue");
+                for (Shard* sh : loop.self_->shards())
+                    sh->store().configure_read_local(true, *deferred.sink());
             }
             server.bind_owner_notify_pending(owner, &loop.notify_keyless_pending_);
             loop.refresh_live_config();
             loop.slowlog_armed_ = false;
-            if constexpr (FusedExecutor) if (mode == ThreadMode::Fused)
-                loop.bind_fused_completion(nullptr, [](void*, Client*) {});
-            require(loop.read_local_enabled() == ReadLocal && server.atomic_enabled(), "requested owner paths");
+            if constexpr (FusedExecutor)
+                if (mode == ThreadMode::Fused)
+                    loop.bind_fused_completion(nullptr, [](void*, Client*) {});
+            require(loop.read_local_enabled() == ReadLocal && server.atomic_enabled(),
+                    "requested owner paths");
             require((server.mode_schedule_stats() != nullptr) == (server.cfg().reorder != 0),
                     "both disabled mechanisms allocate no witness sidecar");
         }
@@ -97,8 +100,9 @@ struct CoreConcurrencyTest {
         std::string key(uint8_t ns = 0) {
             for (uint32_t tries = 0; tries < 100000; tries++) {
                 std::string s = "owner-prefetch-" + std::to_string(key_serial++);
-                if (server.router().shard_of(FlatStore::hash_key(
-                        Slice(s.data(), s.size(), ns))) == sid()) return s;
+                if (server.router().shard_of(FlatStore::hash_key(Slice(s.data(), s.size(), ns))) ==
+                    sid())
+                    return s;
             }
             require(false, "bounded owner key search");
             return {};
@@ -153,13 +157,11 @@ struct CoreConcurrencyTest {
         f.server.climon_tracking_added();
         const uint64_t enabled = f.server.live_config_snapshot(f.owner).version;
         acknowledge_other_owners(enabled);
-        require(f.loop.live_config_version_ < enabled &&
-                    !f.server.tracking_config_ready(enabled),
+        require(f.loop.live_config_version_ < enabled && !f.server.tracking_config_ready(enabled),
                 "tracking enable must wait for this actual owner");
         f.server.lb_stage_.store(LbStage::IoDrain, std::memory_order_release);
         pass();
-        require(f.loop.live_config_version_ == enabled &&
-                    f.server.tracking_config_ready(enabled),
+        require(f.loop.live_config_version_ == enabled && f.server.tracking_config_ready(enabled),
                 "R7 owner did not acknowledge tracking during LB IoDrain");
 
         // ExDrain owns the shard-vector handover. The same correction must
@@ -172,16 +174,16 @@ struct CoreConcurrencyTest {
         f.server.lb_stage_.store(LbStage::ExDrain, std::memory_order_release);
         f.server.lb_ack(f.owner);
         pass();
-        require(f.loop.live_config_version_ == enabled &&
-                    !f.server.tracking_config_ready(disabled),
+        require(f.loop.live_config_version_ == enabled && !f.server.tracking_config_ready(disabled),
                 "R7 owner refreshed configuration while ExDrain owned shards");
         f.server.lb_stage_.store(LbStage::Idle, std::memory_order_release);
         pass();
-        require(f.loop.live_config_version_ == disabled &&
-                    f.server.tracking_config_ready(disabled),
+        require(f.loop.live_config_version_ == disabled && f.server.tracking_config_ready(disabled),
                 "tracking publication did not finish after ExDrain");
-        std::printf("PASS R7 tracking/LB read-local=%u reorder=%d: armed IoDrain receipt, "
-                    "ExDrain freeze, Idle completion\n", ReadLocal, f.server.cfg().reorder);
+        std::printf(
+            "PASS R7 tracking/LB read-local=%u reorder=%d: armed IoDrain receipt, "
+            "ExDrain freeze, Idle completion\n",
+            ReadLocal, f.server.cfg().reorder);
     }
 
     inline static std::vector<uint64_t> observed;
@@ -192,7 +194,8 @@ struct CoreConcurrencyTest {
     template <bool ReadLocal>
     static void run(ThreadMode mode, int32_t requested, bool expect_available,
                     bool use_sweep = false) {
-        require(reorder_available() == expect_available, "binary capability differs from expected arm");
+        require(reorder_available() == expect_available,
+                "binary capability differs from expected arm");
         Fixture<ReadLocal> f(mode, requested);
         const int32_t reorder = f.server.cfg().reorder;
         CommandSpec short_op = *command_lookup(Slice("GET"));
@@ -209,7 +212,7 @@ struct CoreConcurrencyTest {
             Task task = f.prepare(c, {Slice(i % 2 ? "GET" : "BITCOUNT"), Slice("probe")});
             Op& op = c.rob().at(task.op_id);
             op.spec = i % 2 ? &short_op : &long_op;
-            op.hash = i; // Stable handler-order identity; neither handler reads the store.
+            op.hash = i;  // Stable handler-order identity; neither handler reads the store.
             tasks.push_back(task);
             require(f.loop.self_->post_task_quiet(0, task, f.server.thread(0).sig()),
                     "publish all 64 owner tasks, spanning two gathers");
@@ -247,17 +250,20 @@ struct CoreConcurrencyTest {
         } else {
             for (uint32_t i = 0; i < count; i++) expected.push_back(i);
         }
-        require(observed == expected, "production handler order disagrees with shadow/R7/FIFO oracle");
-        require(f.loop.xshard_retries_.empty() && f.loop.ordered_deferred_.empty(), "unexpected retry debt");
+        require(observed == expected,
+                "production handler order disagrees with shadow/R7/FIFO oracle");
+        require(f.loop.xshard_retries_.empty() && f.loop.ordered_deferred_.empty(),
+                "unexpected retry debt");
         for (const auto& task : tasks) {
             Op& op = task.client->rob().at(task.op_id);
             require(op.state.load() == OpState::Done, "all ROB slots completed");
             require(task.client->rob().drain([](Op&) {}) == 1, "ready prefix retires");
         }
-        std::printf("PASS R7 production drain %s read-local=%u requested=%d effective=%d: "
-                    "64 handlers, %s, empty carry\n",
-                    mode == ThreadMode::Fused ? "1s" : "2s", ReadLocal, requested, reorder,
-                    reorder ? (r7::shadow_available() ? "shadow priority" : "R7 4:1") : "FIFO");
+        std::printf(
+            "PASS R7 production drain %s read-local=%u requested=%d effective=%d: "
+            "64 handlers, %s, empty carry\n",
+            mode == ThreadMode::Fused ? "1s" : "2s", ReadLocal, requested, reorder,
+            reorder ? (r7::shadow_available() ? "shadow priority" : "R7 4:1") : "FIFO");
     }
 
     // The ordinary and generated parsers must retain the same active-set work.
@@ -269,12 +275,12 @@ struct CoreConcurrencyTest {
         io.srv_ = &f.server;
         io.self_ = &f.server.thread(mode == ThreadMode::Fused ? f.owner : 0);
         if constexpr (ReadLocal) io.fused_executor_ = &f.loop;
-        io.refresh_notify_config(); // Match the production pass before parsing.
+        io.refresh_notify_config();  // Match the production pass before parsing.
         Client client(-1), dead(-1);
         f.client(client, 1);
         const std::string key = f.key();
-        const std::string wire = "*3\r\n$3\r\nSET\r\n$" + std::to_string(key.size()) +
-                                 "\r\n" + key + "\r\n$1\r\nv\r\n";
+        const std::string wire =
+            "*3\r\n$3\r\nSET\r\n$" + std::to_string(key.size()) + "\r\n" + key + "\r\n$1\r\nv\r\n";
         auto parse = [&]<uint32_t B, bool SplitLocal>() {
             if constexpr (B == kGenthreadIfidBatchOps && !SplitLocal)
                 if (f.server.cfg().reorder)
@@ -283,9 +289,9 @@ struct CoreConcurrencyTest {
         };
         auto dispatch = [&] {
             return mode == ThreadMode::Fused
-                ? parse.template operator()<kGenthreadIfidBatchOps, false>()
-                : ReadLocal ? parse.template operator()<0, true>()
-                            : parse.template operator()<0, false>();
+                       ? parse.template operator()<kGenthreadIfidBatchOps, false>()
+                   : ReadLocal ? parse.template operator()<0, true>()
+                               : parse.template operator()<0, false>();
         };
         const uint32_t prefix = wire.size() - 1;
         std::memcpy(client.rbuf(), wire.data(), prefix);
@@ -330,13 +336,13 @@ struct CoreConcurrencyTest {
     static void io_dispatch_membership_all() {
         for (auto mode : {ThreadMode::Fused, ThreadMode::Split})
 
-                for (int32_t requested : {0, 1, -1}) {
-                    if (mode == ThreadMode::Fused)
-                        io_dispatch_membership<false, true>(mode, requested);
-                    else
-                        io_dispatch_membership<false>(mode, requested);
-                    io_dispatch_membership<true>(mode, requested);
-                }
+            for (int32_t requested : {0, 1, -1}) {
+                if (mode == ThreadMode::Fused)
+                    io_dispatch_membership<false, true>(mode, requested);
+                else
+                    io_dispatch_membership<false>(mode, requested);
+                io_dispatch_membership<true>(mode, requested);
+            }
     }
 
     template <bool ReadLocal>
@@ -347,7 +353,7 @@ struct CoreConcurrencyTest {
         io.srv_ = &f.server;
         io.self_ = &f.server.thread(mode == ThreadMode::Fused ? f.owner : 0);
         if constexpr (ReadLocal) io.fused_executor_ = &f.loop;
-        io.refresh_notify_config(); // Match the production pass before parsing.
+        io.refresh_notify_config();  // Match the production pass before parsing.
         // Writes exercise the owner scheduler with read-local armed as well. Clean
         // GETs may legitimately take the read-local lane outside these queues.
         CommandSpec short_op = *command_lookup(Slice("SET"));
@@ -372,15 +378,17 @@ struct CoreConcurrencyTest {
             std::memcpy(c.rbuf(), wire.data(), wire.size());
             c.commit_read(wire.size());
             auto parse = [&]<uint32_t B, bool SplitLocal>() {
-                if constexpr (B == kGenthreadIfidBatchOps && !SplitLocal) if (reorder)
-                    return io.r7_parse_and_dispatch<false, B, SplitLocal>(&c);
+                if constexpr (B == kGenthreadIfidBatchOps && !SplitLocal)
+                    if (reorder) return io.r7_parse_and_dispatch<false, B, SplitLocal>(&c);
                 return io.parse_and_dispatch<false, B, SplitLocal>(&c);
             };
             const auto result = mode == ThreadMode::Fused
-                ? parse.template operator()<kGenthreadIfidBatchOps, false>()
-                : ReadLocal ? parse.template operator()<0, true>() : parse.template operator()<0, false>();
+                                    ? parse.template operator()<kGenthreadIfidBatchOps, false>()
+                                : ReadLocal ? parse.template operator()<0, true>()
+                                            : parse.template operator()<0, false>();
             require(result == IoLoop::DispatchResult::Progress && c.rpos() == c.rlen() &&
-                        c.rob().in_flight() == pattern.size(), "real parser did not dispatch the entire pipe");
+                        c.rob().in_flight() == pattern.size(),
+                    "real parser did not dispatch the entire pipe");
             for (uint32_t id = 0; id < pattern.size(); ++id) {
                 Op& op = c.rob().at(id);
                 op.spec = pattern[id] == 'L' ? &long_op : &short_op;
@@ -400,14 +408,16 @@ struct CoreConcurrencyTest {
         require(shadows == (shadow ? 7u : 0u), "dispatch shadow stamp count/PAD/FIFO witness");
         observed.clear();
         const uint32_t drained = f.drain();
-        require(drained == total && observed.size() == total, "production three-pipe drain lost work");
-        const std::vector<uint64_t> expected = shadow
-            ? std::vector<uint64_t>{0,11,1,12,2,13,6,3,14,7,4,15,8,5,9,10}
-            : reorder ? std::vector<uint64_t>{0,11,1,2,3,4,5,6,7,8,9,10,12,13,14,15}
-                        : std::vector<uint64_t>{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+        require(drained == total && observed.size() == total,
+                "production three-pipe drain lost work");
+        const std::vector<uint64_t> expected =
+            shadow    ? std::vector<uint64_t>{0, 11, 1, 12, 2, 13, 6, 3, 14, 7, 4, 15, 8, 5, 9, 10}
+            : reorder ? std::vector<uint64_t>{0, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15}
+                      : std::vector<uint64_t>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
         require(observed == expected, "actual parser-to-handler three-pipe order disagrees");
         for (auto& c : clients)
-            require(c->rob().drain([](Op&) {}) == c->rob().dispatch_id(), "RESP prefix did not retire in order");
+            require(c->rob().drain([](Op&) {}) == c->rob().dispatch_id(),
+                    "RESP prefix did not retire in order");
         std::printf("PASS production parser + three pipes %s read-local=%u reorder=%u shadow=%u\n",
                     mode == ThreadMode::Fused ? "1s" : "2s", ReadLocal, requested, shadow);
     }
@@ -438,19 +448,20 @@ struct CoreConcurrencyTest {
         }
         require(!key.empty(), "bounded database key search");
         const std::string wire = "*2\r\n$6\r\nSELECT\r\n$1\r\n" + std::to_string(logical) +
-            "\r\n*2\r\n$8\r\nBITCOUNT\r\n$" + std::to_string(key.size()) + "\r\n" + key +
-            "\r\n*3\r\n$3\r\nSET\r\n$" + std::to_string(key.size()) + "\r\n" + key +
-            "\r\n$1\r\nv\r\n";
+                                 "\r\n*2\r\n$8\r\nBITCOUNT\r\n$" + std::to_string(key.size()) +
+                                 "\r\n" + key + "\r\n*3\r\n$3\r\nSET\r\n$" +
+                                 std::to_string(key.size()) + "\r\n" + key + "\r\n$1\r\nv\r\n";
         std::memcpy(client.rbuf(), wire.data(), wire.size());
         client.commit_read(wire.size());
         auto parse = [&] {
             return f.server.cfg().reorder
-                ? io.r7_parse_and_dispatch<false, kGenthreadIfidBatchOps>(&client)
-                : io.parse_and_dispatch<false, kGenthreadIfidBatchOps>(&client);
+                       ? io.r7_parse_and_dispatch<false, kGenthreadIfidBatchOps>(&client)
+                       : io.parse_and_dispatch<false, kGenthreadIfidBatchOps>(&client);
         };
         require(parse() == IoLoop::DispatchResult::Progress &&
                     client.session().db_index == logical && client.rob().dispatch_id() == 1 &&
-                    client.rpos() < client.rlen(), "SELECT ends the current parser pass");
+                    client.rpos() < client.rlen(),
+                "SELECT ends the current parser pass");
         require(client.rob().drain([](Op&) {}) == 1, "SELECT retires before its following pipe");
         if constexpr (!kSingleDatabase) {
             require(!f.server.database_boundary_begin(boundary, f.owner, 0),
@@ -460,7 +471,8 @@ struct CoreConcurrencyTest {
             require(client.flip_backpressure() && client.rpos() == before &&
                         client.rob().dispatch_id() == 1 && client.rob().quiesced(),
                     "armed parser dispatched inside the SWAPDB boundary");
-            require(f.server.databases().swap(logical, physical), "publish changed physical database");
+            require(f.server.databases().swap(logical, physical),
+                    "publish changed physical database");
             f.server.database_boundary_end(boundary, 0);
             client.set_flip_backpressure(false);
         }
@@ -472,13 +484,16 @@ struct CoreConcurrencyTest {
         for (const auto& task : queued) {
             const Op& op = client.rob().at(task.op_id);
             require(op.db == logical && op.physical_db == physical && op.arg(1).ns == physical &&
-                        op.shard == f.sid() && op.hash == FlatStore::hash_key(Slice(key.data(), key.size(), physical)),
+                        op.shard == f.sid() &&
+                        op.hash == FlatStore::hash_key(Slice(key.data(), key.size(), physical)),
                     "database stamp/hash/shard must use the post-boundary map");
-            require(f.loop.self_->post_task_quiet(f.owner, task, io.self_->sig()), "requeue database pipe");
+            require(f.loop.self_->post_task_quiet(f.owner, task, io.self_->sig()),
+                    "requeue database pipe");
         }
         require(r7::shadow_pending(queued[1]) == (f.server.cfg().reorder && r7::shadow_available()),
                 "database stamping lost the same-pipe Long shadow");
-        require((f.server.cfg().reorder ? f.loop.r7_drain_tasks<>(true) : f.loop.drain_tasks<>(true)) == 2,
+        require((f.server.cfg().reorder ? f.loop.r7_drain_tasks<>(true)
+                                        : f.loop.drain_tasks<>(true)) == 2,
                 "database pipe did not execute");
         std::string replies;
         const auto retired = client.rob().drain([&](Op& op) {
@@ -486,12 +501,13 @@ struct CoreConcurrencyTest {
             replies.append(op.reply.data(), op.reply.size());
         });
         if (retired != 2 || replies != ":0\r\n+OK\r\n")
-            std::fprintf(stderr, "database pipe requested=%d retired=%u replies=%s\n",
-                         requested, static_cast<unsigned>(retired), replies.c_str());
+            std::fprintf(stderr, "database pipe requested=%d retired=%u replies=%s\n", requested,
+                         static_cast<unsigned>(retired), replies.c_str());
         require(retired == 2 && replies == ":0\r\n+OK\r\n", "database pipe replies/retirement");
         command_bind_server(nullptr);
-        std::printf("PASS reorder database parser %s requested=%d: SELECT, boundary, stamp, shadow, replies\n",
-                    kSingleDatabase ? "db0" : "multidb", requested);
+        std::printf(
+            "PASS reorder database parser %s requested=%d: SELECT, boundary, stamp, shadow, replies\n",
+            kSingleDatabase ? "db0" : "multidb", requested);
     }
 
     static void shadow_foreign_passes() {
@@ -517,28 +533,34 @@ struct CoreConcurrencyTest {
         auto parse = [&](const char* command, const std::string& key) {
             const std::string cmd = command;
             const std::string wire = "*2\r\n$" + std::to_string(cmd.size()) + "\r\n" + cmd +
-                "\r\n$" + std::to_string(key.size()) + "\r\n" + key + "\r\n";
+                                     "\r\n$" + std::to_string(key.size()) + "\r\n" + key + "\r\n";
             std::memcpy(c.rbuf() + c.rlen(), wire.data(), wire.size());
             c.commit_read(wire.size());
-            require((f.server.cfg().reorder ? io.r7_parse_and_dispatch<false, kGenthreadIfidBatchOps>(&c) : io.parse_and_dispatch<false, kGenthreadIfidBatchOps>(&c)) == IoLoop::DispatchResult::Progress &&
-                        c.rpos() == c.rlen(), "real parser pass did not dispatch");
+            require((f.server.cfg().reorder
+                         ? io.r7_parse_and_dispatch<false, kGenthreadIfidBatchOps>(&c)
+                         : io.parse_and_dispatch<false, kGenthreadIfidBatchOps>(&c)) ==
+                            IoLoop::DispatchResult::Progress &&
+                        c.rpos() == c.rlen(),
+                    "real parser pass did not dispatch");
         };
         parse("BITCOUNT", local_key);
-        parse("GET", foreign_key); // Separate parse pass AND a different executor.
+        parse("GET", foreign_key);  // Separate parse pass AND a different executor.
         Task long_task, short_task;
         require(f.loop.self_->drain_tasks_unmasked([&](const Task& t) { long_task = t; }) == 1 &&
-                foreign.drain_tasks_unmasked([&](const Task& t) { short_task = t; }) == 1,
+                    foreign.drain_tasks_unmasked([&](const Task& t) { short_task = t; }) == 1,
                 "both owner queues must contain their actual task");
-        require(long_task.op_id == 0 && short_task.op_id == 1 &&
-                    r7::shadow_pending(short_task) == (reorder_available() && r7::shadow_available()),
-                "foreign long was lost across the parse boundary");
+        require(
+            long_task.op_id == 0 && short_task.op_id == 1 &&
+                r7::shadow_pending(short_task) == (reorder_available() && r7::shadow_available()),
+            "foreign long was lost across the parse boundary");
         c.rob().at(0).state.store(OpState::Done, std::memory_order_release);
         require(c.rob().flush_id() == 0 && !r7::shadow_pending(short_task),
                 "foreign completion did not clear before IO retirement");
         parse("GET", foreign_key);
         Task cleared;
         require(foreign.drain_tasks_unmasked([&](const Task& t) { cleared = t; }) == 1 &&
-                    !r7::shadow_bit(cleared), "next parser pass kept a completed long");
+                    !r7::shadow_bit(cleared),
+                "next parser pass kept a completed long");
         c.rob().at(1).state.store(OpState::Done, std::memory_order_release);
         c.rob().at(2).state.store(OpState::Done, std::memory_order_release);
         require(c.rob().drain([](Op&) {}) == 3, "foreign tasks did not retire in RESP order");
@@ -554,40 +576,52 @@ struct CoreConcurrencyTest {
         io.srv_ = &f.server;
         io.self_ = &f.server.thread(mode == ThreadMode::Fused ? f.owner : 0);
         io.fused_executor_ = &f.loop;
-        io.refresh_notify_config(); // Adopt the armed read-local admission flag.
+        io.refresh_notify_config();  // Adopt the armed read-local admission flag.
         const std::string key = f.key();
-        const std::string read_key = f.key(); // Disjoint from the owner-queued BITCOUNT key.
+        const std::string read_key = f.key();  // Disjoint from the owner-queued BITCOUNT key.
         Client a(-1), b(-1);
-        f.client(a, 1); f.client(b, 2);
+        f.client(a, 1);
+        f.client(b, 2);
         auto frame = [&](const char* command, bool write = false) {
             const std::string cmd = command;
             const std::string& target = cmd == "GET" ? read_key : key;
             return std::string(write ? "*3\r\n$" : "*2\r\n$") + std::to_string(cmd.size()) +
-                "\r\n" + cmd + "\r\n$" + std::to_string(target.size()) + "\r\n" + target +
-                (write ? "\r\n$1\r\nv\r\n" : "\r\n");
+                   "\r\n" + cmd + "\r\n$" + std::to_string(target.size()) + "\r\n" + target +
+                   (write ? "\r\n$1\r\nv\r\n" : "\r\n");
         };
         const std::string wire = frame("BITCOUNT") + frame("GET") + frame("BITCOUNT");
-        std::memcpy(a.rbuf(), wire.data(), wire.size()); a.commit_read(wire.size());
-        const auto parsed = mode == ThreadMode::Fused
-            ? (armed ? io.r7_parse_and_dispatch<false, kGenthreadIfidBatchOps>(&a) : io.parse_and_dispatch<false, kGenthreadIfidBatchOps>(&a))
-            : io.parse_and_dispatch<false, 0, true>(&a);
+        std::memcpy(a.rbuf(), wire.data(), wire.size());
+        a.commit_read(wire.size());
+        const auto parsed =
+            mode == ThreadMode::Fused
+                ? (armed ? io.r7_parse_and_dispatch<false, kGenthreadIfidBatchOps>(&a)
+                         : io.parse_and_dispatch<false, kGenthreadIfidBatchOps>(&a))
+                : io.parse_and_dispatch<false, 0, true>(&a);
         require(parsed == IoLoop::DispatchResult::Progress && a.rob().dispatch_id() == 3 &&
-                    a.rob().pending_read_local(1), "clean GET did not enter the real local lane");
+                    a.rob().pending_read_local(1),
+                "clean GET did not enter the real local lane");
         const uint64_t id = 1;
         const ReadLocalFallbackReason reason = ReadLocalFallbackReason::ContextOwnerKey;
         uint32_t demoted = 0;
-        require((armed ? io.r7_fused_demote_local_read_batch(&a, &id, &reason, 1, demoted) : io.fused_demote_local_read_batch(&a, &id, &reason, 1, demoted)) && demoted == 1,
+        require((armed ? io.r7_fused_demote_local_read_batch(&a, &id, &reason, 1, demoted)
+                       : io.fused_demote_local_read_batch(&a, &id, &reason, 1, demoted)) &&
+                    demoted == 1,
                 "actual local-read demotion did not post exactly one task");
         const std::string write = frame("SET", true);
-        std::memcpy(b.rbuf(), write.data(), write.size()); b.commit_read(write.size());
-        if (armed) io.r7_parse_and_dispatch<false, kGenthreadIfidBatchOps>(&b);
-        else if (mode == ThreadMode::Fused) io.parse_and_dispatch<false, kGenthreadIfidBatchOps>(&b);
-        else io.parse_and_dispatch<false, 0, true>(&b);
+        std::memcpy(b.rbuf(), write.data(), write.size());
+        b.commit_read(write.size());
+        if (armed)
+            io.r7_parse_and_dispatch<false, kGenthreadIfidBatchOps>(&b);
+        else if (mode == ThreadMode::Fused)
+            io.parse_and_dispatch<false, kGenthreadIfidBatchOps>(&b);
+        else
+            io.parse_and_dispatch<false, 0, true>(&b);
         std::vector<Task> tasks;
         require(f.loop.self_->drain_tasks_unmasked([&](const Task& t) { tasks.push_back(t); }) == 4,
                 "demotion fixture owner wave missing");
         require(tasks[0].op_id == 0 && tasks[1].op_id == 2 && tasks[2].op_id == 1 &&
-                    tasks[2].client == &a, "late older-read dispatch window did not open");
+                    tasks[2].client == &a,
+                "late older-read dispatch window did not open");
         require(r7::shadow_bit(tasks[2]) == shadow, "demoted read lost shadow hint");
         if (shadow)
             require(r7::shadow_id(tasks[2]) == 0 && r7::shadow_pending(tasks[2]),
@@ -600,20 +634,23 @@ struct CoreConcurrencyTest {
             Op& op = t.client->rob().at(t.op_id);
             op.spec = t.client == &a && t.op_id != 1 ? &long_op : &short_op;
             op.hash = t.client == &a ? t.op_id : 3;
-            require(f.loop.self_->post_task_quiet(io.self_->id(), t, io.self_->sig()), "requeue demotion wave");
+            require(f.loop.self_->post_task_quiet(io.self_->id(), t, io.self_->sig()),
+                    "requeue demotion wave");
         }
         observed.clear();
         require((armed ? f.loop.r7_drain_tasks<>(true) : f.loop.drain_tasks<>(true)) == 4 &&
-                    observed == (armed ? std::vector<uint64_t>{3,0,2,1} : std::vector<uint64_t>{0,2,1,3}),
+                    observed == (armed ? std::vector<uint64_t>{3, 0, 2, 1}
+                                       : std::vector<uint64_t>{0, 2, 1, 3}),
                 "scheduler changed established owner order for a late local read");
         f.loop.compact_local_read_tombstones();
         require(a.rob().drain([](Op&) {}) == 3 && b.rob().drain([](Op&) {}) == 1,
                 "late read did not retire in RESP order");
-        std::printf("PASS production read-local demotion %s: older blocker stamp, late owner order, shadow=%u\n",
-                    mode == ThreadMode::Fused ? "1s" : "2s", shadow);
+        std::printf(
+            "PASS production read-local demotion %s: older blocker stamp, late owner order, shadow=%u\n",
+            mode == ThreadMode::Fused ? "1s" : "2s", shadow);
     }
 };
-} // namespace tomo
+}  // namespace tomo
 
 int main(int argc, char** argv) {
     using T = tomo::CoreConcurrencyTest;
@@ -625,26 +662,26 @@ int main(int argc, char** argv) {
     T::require(argc == 3 && (std::string(argv[1]) == "on" || std::string(argv[1]) == "off") &&
                    (std::string(argv[2]) == "shadow" || std::string(argv[2]) == "r7"),
                "supply independently expected capabilities: on|off shadow|r7");
-    T::require(tomo::r7::shadow_available() == (std::string(argv[2]) == "shadow"), "shadow capability");
+    T::require(tomo::r7::shadow_available() == (std::string(argv[2]) == "shadow"),
+               "shadow capability");
     T::require(tomo::command_registry_init(false), "command registry");
     T::tracking_lb_drain<false>();
     T::tracking_lb_drain<true>();
     T::io_dispatch_membership_all();
     for (auto mode : {tomo::ThreadMode::Fused, tomo::ThreadMode::Split})
 
-            for (uint32_t reorder : {0u, 1u})
-                T::run<true>(mode, reorder, std::string(argv[1]) == "on");
+        for (uint32_t reorder : {0u, 1u}) T::run<true>(mode, reorder, std::string(argv[1]) == "on");
 
-        for (uint32_t reorder : {0u, 1u})
-            T::run<false>(tomo::ThreadMode::Split, reorder, std::string(argv[1]) == "on");
+    for (uint32_t reorder : {0u, 1u})
+        T::run<false>(tomo::ThreadMode::Split, reorder, std::string(argv[1]) == "on");
     // The idle/parking sweep is shared by the fused scheduler, so trimming the
     // split owner loop must not silently send this path through FIFO.
     T::run<true>(tomo::ThreadMode::Fused, 1, std::string(argv[1]) == "on", true);
     for (auto mode : {tomo::ThreadMode::Fused, tomo::ThreadMode::Split})
 
-            for (uint32_t reorder : {0u, 1u}) T::shadow_pipes<true>(mode, reorder);
+        for (uint32_t reorder : {0u, 1u}) T::shadow_pipes<true>(mode, reorder);
 
-        for (uint32_t reorder : {0u, 1u}) T::shadow_pipes<false>(tomo::ThreadMode::Split, reorder);
+    for (uint32_t reorder : {0u, 1u}) T::shadow_pipes<false>(tomo::ThreadMode::Split, reorder);
     T::shadow_foreign_passes();
     T::shadow_demotions(tomo::ThreadMode::Fused);
     T::shadow_demotions(tomo::ThreadMode::Split);

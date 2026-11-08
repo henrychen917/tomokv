@@ -38,7 +38,7 @@
 #include <vector>
 #include "shard.h"
 #include "signal.h"
-#include "../net/rob.h"     // ReadLocalArmStats: the armed lane's cold arm-on-demand counters
+#include "../net/rob.h"  // ReadLocalArmStats: the armed lane's cold arm-on-demand counters
 #include "flipctl.h"
 #include "pubsub_event.h"
 #include "../base/topology.h"
@@ -80,9 +80,9 @@ static_assert(sizeof(AtomicAdmissionState) == 64);
 // client's ROB, so a recycled slot cannot be reached through a stale pointer. The client itself
 // cannot be torn down while any op is in flight — that is the quiescence fence.
 struct Task {
-    Client*  client = nullptr;
-    uint64_t op_id  = 0;
-    int32_t  shard  = -1;       // -1 means use Op::shard (the ordinary single-shard path)
+    Client* client = nullptr;
+    uint64_t op_id = 0;
+    int32_t shard = -1;  // -1 means use Op::shard (the ordinary single-shard path)
     // The original layout has a four-byte hole here before the aligned pointer. Sampled enqueue
     // time uses the low monotonic-microsecond word; modular subtraction is valid for queue delays
     // below 2^32 us. Zero means unsampled.
@@ -98,8 +98,8 @@ static_assert(offsetof(Task, enqueue_us_low) == 20,
               "Task enqueue stamp no longer occupies the proven four-byte padding hole");
 
 struct BorrowRelease {
-    int32_t     shard = -1;
-    const char* ptr   = nullptr;
+    int32_t shard = -1;
+    const char* ptr = nullptr;
 };
 
 // Dedicated IO-to-IO ownership transport. `catalog` is an opaque extracted command-metadata node;
@@ -111,7 +111,7 @@ struct ClientTransfer {
     uint32_t source = 0;
 };
 
-using TaskInbox  = MaskedChannelArray<Task, kMaxThreads>;
+using TaskInbox = MaskedChannelArray<Task, kMaxThreads>;
 using ClientChan = Channel<Client*, kInboxSlots>;
 using ReleaseChan = Channel<BorrowRelease, kInboxSlots>;
 using TransferChan = Channel<ClientTransfer, kInboxSlots>;
@@ -120,17 +120,17 @@ enum class ReadLocalFallbackReason : uint8_t {
     None,
     Multi,
     Watch,
-    ContextOwnerKey,        // unfinished precise owner op with an overlapping key hash
-    ContextConnectionState, // blocked or subscriber-mode connection
-    ContextRoute,           // scatter/script/all-shard or conservative broad-owner route
-    ContextKeymissNotify,   // MGET miss must retain owner-side notification behavior
+    ContextOwnerKey,         // unfinished precise owner op with an overlapping key hash
+    ContextConnectionState,  // blocked or subscriber-mode connection
+    ContextRoute,            // scatter/script/all-shard or conservative broad-owner route
+    ContextKeymissNotify,    // MGET miss must retain owner-side notification behavior
     InflightWrite,
-    ArmTransient,           // pre-arming writes or sidecar exhaustion, bounded by ROB retirement
+    ArmTransient,  // pre-arming writes or sidecar exhaustion, bounded by ROB retirement
     AtomicPending,
     Missing,
     Typed,
     Expired,
-    SeqChurn,               // topology demotion to owners, never a local retry
+    SeqChurn,  // topology demotion to owners, never a local retry
     Generation,
 };
 
@@ -200,27 +200,27 @@ struct ReadLocalStats {
     // three at zero -- that is the design's first proof obligation, stated as a number.
     ReadLocalArmStats arm{};
 
-
     uint64_t fallbacks() const {
-        return fallback_multi + fallback_watch + fallback_context +
-               fallback_inflight_write + fallback_arm_transient +
-               fallback_atomic_pending + fallback_missing +
-               fallback_typed + fallback_expired + fallback_seq_churn +
-               fallback_generation;
+        return fallback_multi + fallback_watch + fallback_context + fallback_inflight_write +
+               fallback_arm_transient + fallback_atomic_pending + fallback_missing +
+               fallback_typed + fallback_expired + fallback_seq_churn + fallback_generation;
     }
 
     uint64_t mget_fallbacks() const {
         return mget_fallback_multi + mget_fallback_watch + mget_fallback_context +
                mget_fallback_inflight_write + mget_fallback_arm_transient +
-               mget_fallback_atomic_pending +
-               mget_fallback_typed + mget_fallback_expired + mget_fallback_seq_churn +
-               mget_fallback_generation;
+               mget_fallback_atomic_pending + mget_fallback_typed + mget_fallback_expired +
+               mget_fallback_seq_churn + mget_fallback_generation;
     }
 
     void note_fallback(ReadLocalFallbackReason reason, bool mget = false) {
         switch (reason) {
-            case ReadLocalFallbackReason::Multi: fallback_multi++; break;
-            case ReadLocalFallbackReason::Watch: fallback_watch++; break;
+            case ReadLocalFallbackReason::Multi:
+                fallback_multi++;
+                break;
+            case ReadLocalFallbackReason::Watch:
+                fallback_watch++;
+                break;
             case ReadLocalFallbackReason::ContextOwnerKey:
                 fallback_context++;
                 fallback_context_owner_key++;
@@ -237,20 +237,41 @@ struct ReadLocalStats {
                 fallback_context++;
                 fallback_context_keymiss_notify++;
                 break;
-            case ReadLocalFallbackReason::InflightWrite: fallback_inflight_write++; break;
-            case ReadLocalFallbackReason::ArmTransient: fallback_arm_transient++; break;
-            case ReadLocalFallbackReason::AtomicPending: fallback_atomic_pending++; break;
-            case ReadLocalFallbackReason::Missing: fallback_missing++; break;
-            case ReadLocalFallbackReason::Typed: fallback_typed++; break;
-            case ReadLocalFallbackReason::Expired: fallback_expired++; break;
-            case ReadLocalFallbackReason::SeqChurn: fallback_seq_churn++; break;
-            case ReadLocalFallbackReason::Generation: fallback_generation++; break;
-            case ReadLocalFallbackReason::None: std::abort();
+            case ReadLocalFallbackReason::InflightWrite:
+                fallback_inflight_write++;
+                break;
+            case ReadLocalFallbackReason::ArmTransient:
+                fallback_arm_transient++;
+                break;
+            case ReadLocalFallbackReason::AtomicPending:
+                fallback_atomic_pending++;
+                break;
+            case ReadLocalFallbackReason::Missing:
+                fallback_missing++;
+                break;
+            case ReadLocalFallbackReason::Typed:
+                fallback_typed++;
+                break;
+            case ReadLocalFallbackReason::Expired:
+                fallback_expired++;
+                break;
+            case ReadLocalFallbackReason::SeqChurn:
+                fallback_seq_churn++;
+                break;
+            case ReadLocalFallbackReason::Generation:
+                fallback_generation++;
+                break;
+            case ReadLocalFallbackReason::None:
+                std::abort();
         }
         if (!mget) return;
         switch (reason) {
-            case ReadLocalFallbackReason::Multi: mget_fallback_multi++; break;
-            case ReadLocalFallbackReason::Watch: mget_fallback_watch++; break;
+            case ReadLocalFallbackReason::Multi:
+                mget_fallback_multi++;
+                break;
+            case ReadLocalFallbackReason::Watch:
+                mget_fallback_watch++;
+                break;
             case ReadLocalFallbackReason::ContextOwnerKey:
                 mget_fallback_context++;
                 mget_fallback_context_owner_key++;
@@ -276,14 +297,23 @@ struct ReadLocalStats {
             case ReadLocalFallbackReason::AtomicPending:
                 mget_fallback_atomic_pending++;
                 break;
-            case ReadLocalFallbackReason::Typed: mget_fallback_typed++; break;
-            case ReadLocalFallbackReason::Expired: mget_fallback_expired++; break;
-            case ReadLocalFallbackReason::SeqChurn: mget_fallback_seq_churn++; break;
-            case ReadLocalFallbackReason::Generation: mget_fallback_generation++; break;
+            case ReadLocalFallbackReason::Typed:
+                mget_fallback_typed++;
+                break;
+            case ReadLocalFallbackReason::Expired:
+                mget_fallback_expired++;
+                break;
+            case ReadLocalFallbackReason::SeqChurn:
+                mget_fallback_seq_churn++;
+                break;
+            case ReadLocalFallbackReason::Generation:
+                mget_fallback_generation++;
+                break;
             // A local MGET miss is an invariant success. Keep a hard edge here so a future caller
             // cannot silently turn it into a reasoned MGET fallback counter.
             case ReadLocalFallbackReason::Missing:
-            case ReadLocalFallbackReason::None: std::abort();
+            case ReadLocalFallbackReason::None:
+                std::abort();
         }
     }
 };
@@ -309,9 +339,10 @@ static_assert(offsetof(ReadLocalThreadState, lane_active) == 368,
 static_assert(sizeof(ReadLocalThreadState) == 376,
               "dead retry counter removed only from the armed sidecar, never ThreadCtx");
 
-class /* TOMO_TOOL_BIND ThreadCtx */ThreadCtx {
+class /* TOMO_TOOL_BIND ThreadCtx */ ThreadCtx {
     friend struct FlipListenerState;
     friend uint32_t xshard_flush_snapshot_progress(Server&, ThreadCtx&);
+
 public:
     using RolePrepareFn = bool (*)(void*);
     using RoleCancelFn = void (*)(void*);
@@ -332,7 +363,7 @@ public:
         id_ = id;
         exec1s_counters[id_] = {};
         role_.store(r, std::memory_order_relaxed);
-        nchan_     = nthreads;
+        nchan_ = nthreads;
         client_in_ = std::make_unique<ClientChan[]>(nthreads);
         release_in_ = std::make_unique<ReleaseChan[]>(nthreads);
         transfer_in_ = std::make_unique<TransferChan[]>(nthreads);
@@ -340,8 +371,7 @@ public:
         flip_fingerprint_.configure(flip_work_window);
     }
 
-    bool init_task_inbox_local(const std::vector<uint32_t>& io,
-                               const std::vector<uint32_t>& ex) {
+    bool init_task_inbox_local(const std::vector<uint32_t>& io, const std::vector<uint32_t>& ex) {
         std::unique_ptr<TaskInbox> inbox(new (std::nothrow) TaskInbox);
         if (!inbox || !inbox->init_local(nchan_, kInboxSlots, io, ex)) return false;
         task_in_ = std::move(inbox);
@@ -373,8 +403,8 @@ public:
         command_counts_ = count ? std::make_unique<std::atomic<uint64_t>[]>(count) : nullptr;
     }
 
-    uint32_t id()   const { return id_; }
-    Role     role() const { return role_.load(std::memory_order_acquire); }
+    uint32_t id() const { return id_; }
+    Role role() const { return role_.load(std::memory_order_acquire); }
     void set_role(Role role) { role_.store(role, std::memory_order_release); }
     Role ready_role() const { return ready_role_.load(std::memory_order_acquire); }
     void publish_ready_role(Role role) { ready_role_.store(role, std::memory_order_release); }
@@ -400,9 +430,7 @@ public:
     bool reserve_listener_handover() {
         return !io_role_prepare_ || io_role_prepare_(io_role_context_);
     }
-    bool prepare_io_role() {
-        return io_role_prepare_ && io_role_prepare_(io_role_context_);
-    }
+    bool prepare_io_role() { return io_role_prepare_ && io_role_prepare_(io_role_context_); }
     void cancel_prepared_io_role() {
         if (io_role_cancel_) io_role_cancel_(io_role_context_);
     }
@@ -439,33 +467,51 @@ public:
     // Shard::note_execution so the shard can tell local work from foreign work; that ratio is the
     // signal a later flip/LB controller acts on.
     void latch_placement(const Topology& topo) {
-        cpu_    = sched_getcpu();
+        cpu_ = sched_getcpu();
         domain_ = topo.domain_of(cpu_);
     }
     uint32_t domain() const { return domain_; }
 
     // The owner is the only writer; INFO and its cron may read concurrently. Relaxed
     // load/store increments publish race-free counts without a lock-prefixed RMW or fence.
-    __attribute__((always_inline)) void /* TOMO_TOOL_BIND note_command */note_command(uint16_t id) {
-        if (id < command_count_size_) { auto& n = command_counts_[id]; n.store(n.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed); }
-        total_commands_.store(total_commands_.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed);
+    __attribute__((always_inline)) void /* TOMO_TOOL_BIND note_command */ note_command(
+        uint16_t id) {
+        if (id < command_count_size_) {
+            auto& n = command_counts_[id];
+            n.store(n.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed);
+        }
+        total_commands_.store(total_commands_.load(std::memory_order_relaxed) + 1,
+                              std::memory_order_relaxed);
     }
-    uint64_t /* TOMO_TOOL_BIND command_calls */command_calls(uint32_t id) const {
+    uint64_t /* TOMO_TOOL_BIND command_calls */ command_calls(uint32_t id) const {
         return id < command_count_size_ ? command_counts_[id].load(std::memory_order_relaxed) : 0;
     }
     void note_command_rejected(uint16_t id) {
-        if (id < command_count_size_) { auto& n = command_counts_[command_count_size_ + id]; n.store(n.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed); }
+        if (id < command_count_size_) {
+            auto& n = command_counts_[command_count_size_ + id];
+            n.store(n.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed);
+        }
     }
     void note_command_failed(uint16_t id) {
-        if (id < command_count_size_) { auto& n = command_counts_[size_t(command_count_size_) * 2 + id]; n.store(n.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed); }
+        if (id < command_count_size_) {
+            auto& n = command_counts_[size_t(command_count_size_) * 2 + id];
+            n.store(n.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed);
+        }
     }
-    uint64_t /* TOMO_TOOL_BIND command_rejected_calls */command_rejected_calls(uint32_t id) const {
-        return id < command_count_size_ ? command_counts_[command_count_size_ + id].load(std::memory_order_relaxed) : 0;
+    uint64_t /* TOMO_TOOL_BIND command_rejected_calls */ command_rejected_calls(uint32_t id) const {
+        return id < command_count_size_
+                   ? command_counts_[command_count_size_ + id].load(std::memory_order_relaxed)
+                   : 0;
     }
-    uint64_t /* TOMO_TOOL_BIND command_failed_calls */command_failed_calls(uint32_t id) const {
-        return id < command_count_size_ ? command_counts_[size_t(command_count_size_) * 2 + id].load(std::memory_order_relaxed) : 0;
+    uint64_t /* TOMO_TOOL_BIND command_failed_calls */ command_failed_calls(uint32_t id) const {
+        return id < command_count_size_
+                   ? command_counts_[size_t(command_count_size_) * 2 + id].load(
+                         std::memory_order_relaxed)
+                   : 0;
     }
-    uint64_t /* TOMO_TOOL_BIND total_commands */total_commands() const { return total_commands_.load(std::memory_order_relaxed); }
+    uint64_t /* TOMO_TOOL_BIND total_commands */ total_commands() const {
+        return total_commands_.load(std::memory_order_relaxed);
+    }
     FlipFingerprintWriter& flip_fingerprint() { return flip_fingerprint_; }
     const FlipFingerprintWriter& flip_fingerprint() const { return flip_fingerprint_; }
     void note_atomic_group() { atomic_groups_++; }
@@ -499,11 +545,12 @@ public:
     // Push AND flag, in that order. Flagging before the push would let the consumer take the bit,
     // find an empty queue, and clear it while the item is still in flight.
     bool post_task(uint32_t from, const Task& t, Ring& my_ring, LoopSignals& sig) {
-        const bool pushed = sig.age_sample_rate
-            ? task_in_->push_prepared(from, t, sig, [&](Task& queued) {
-                  queued.enqueue_us_low = sig.next_age_stamp();
-              })
-            : task_in_->push(from, t, sig);
+        const bool pushed =
+            sig.age_sample_rate
+                ? task_in_->push_prepared(
+                      from, t, sig,
+                      [&](Task& queued) { queued.enqueue_us_low = sig.next_age_stamp(); })
+                : task_in_->push(from, t, sig);
         if (!pushed) return false;
         // Publish the bit FIRST, wake only if we are the producer that raised it. Order matters more
         // than it looks -- see Channel::push/wake.
@@ -519,9 +566,8 @@ public:
     // has to be perfect.
     bool post_task_quiet(uint32_t from, const Task& t, LoopSignals& sig) {
         if (!sig.age_sample_rate) return task_in_->push(from, t, sig);
-        return task_in_->push_prepared(from, t, sig, [&](Task& queued) {
-            queued.enqueue_us_low = sig.next_age_stamp();
-        });
+        return task_in_->push_prepared(
+            from, t, sig, [&](Task& queued) { queued.enqueue_us_low = sig.next_age_stamp(); });
     }
     bool post_tasks_quiet(uint32_t from, const Task* tasks, uint32_t count, LoopSignals& sig) {
         if (!sig.age_sample_rate) return task_in_->push_batch(from, tasks, count, sig);
@@ -529,9 +575,7 @@ public:
             queued.enqueue_us_low = sig.next_age_stamp();
         });
     }
-    uint32_t task_free_slots(uint32_t from) const {
-        return task_in_->producer_free_slots(from);
-    }
+    uint32_t task_free_slots(uint32_t from) const { return task_in_->producer_free_slots(from); }
     // Private source-fork transport for both boot-fixed 1s iofused-family rotations. The fused
     // inbox has exactly kInboxSlots per producer for its full lifetime, so these calls bypass the
     // legacy streams reservation-credit ceiling and dynamic block geometry entirely.
@@ -539,15 +583,11 @@ public:
         return task_in_->fused_private_free_slots<kInboxSlots>(from);
     }
     bool post_iofused_task_quiet(uint32_t from, const Task& task, LoopSignals& sig) {
-        if (!sig.age_sample_rate)
-            return task_in_->push_fused_private<kInboxSlots>(from, task, sig);
+        if (!sig.age_sample_rate) return task_in_->push_fused_private<kInboxSlots>(from, task, sig);
         return task_in_->push_fused_private_prepared<kInboxSlots>(
-            from, task, sig, [&](Task& queued) {
-                queued.enqueue_us_low = sig.next_age_stamp();
-            });
+            from, task, sig, [&](Task& queued) { queued.enqueue_us_low = sig.next_age_stamp(); });
     }
-    bool post_iofused_task(uint32_t from, const Task& task, Ring& my_ring,
-                           LoopSignals& sig) {
+    bool post_iofused_task(uint32_t from, const Task& task, Ring& my_ring, LoopSignals& sig) {
         if (!post_iofused_task_quiet(from, task, sig)) return false;
         if (task_notify_.publish(from)) task_in_->wake(my_ring, sig, ring());
         return true;
@@ -555,12 +595,10 @@ public:
     bool post_iofused_tasks_quiet(uint32_t from, const Task* tasks, uint32_t count,
                                   LoopSignals& sig) {
         if (!sig.age_sample_rate)
-            return task_in_->push_fused_private_batch<kInboxSlots>(
-                from, tasks, count, sig);
+            return task_in_->push_fused_private_batch<kInboxSlots>(from, tasks, count, sig);
         return task_in_->push_fused_private_batch_prepared<kInboxSlots>(
-            from, tasks, count, sig, [&](Task& queued) {
-                queued.enqueue_us_low = sig.next_age_stamp();
-            });
+            from, tasks, count, sig,
+            [&](Task& queued) { queued.enqueue_us_low = sig.next_age_stamp(); });
     }
     bool reserve_task_slots(uint32_t from, uint32_t count) {
         return task_in_->reserve(from, count);
@@ -573,9 +611,8 @@ public:
             task_in_->push_reserved(from, task);
             return;
         }
-        task_in_->push_reserved_prepared(from, task, [&](Task& queued) {
-            queued.enqueue_us_low = sig.next_age_stamp();
-        });
+        task_in_->push_reserved_prepared(
+            from, task, [&](Task& queued) { queued.enqueue_us_low = sig.next_age_stamp(); });
     }
     void flush_task_notify(uint32_t from, Ring& my_ring, LoopSignals& sig) {
         if (task_notify_.publish(from)) task_in_->wake(my_ring, sig, ring());
@@ -591,8 +628,8 @@ public:
         if (release_notify_.set(from)) release_in_[from].wake(my_ring, sig, ring());
         return true;
     }
-    bool post_client_transfer(uint32_t from, const ClientTransfer& transfer,
-                              Ring& my_ring, LoopSignals& sig) {
+    bool post_client_transfer(uint32_t from, const ClientTransfer& transfer, Ring& my_ring,
+                              LoopSignals& sig) {
         if (!transfer_in_[from].push(transfer, sig)) return false;
         std::atomic_thread_fence(std::memory_order_seq_cst);
         if (transfer_notify_.set(from)) transfer_in_[from].wake(my_ring, sig, ring());
@@ -616,8 +653,8 @@ public:
     // Keyless expiry/eviction events originate on EX.  Reserve the ordinary producer lane marker
     // before making the payload visible, and never spin if that SPSC lane is full.  Holding the
     // cold inbox mutex closes the marker-before-payload race with the IO consumer.
-    bool post_pubsub_event_nonblocking(uint32_t from, PubSubEvent* event,
-                                       Ring& producer_ring, LoopSignals& sig) {
+    bool post_pubsub_event_nonblocking(uint32_t from, PubSubEvent* event, Ring& producer_ring,
+                                       LoopSignals& sig) {
         std::lock_guard<std::mutex> lock(pubsub_mu_);
         if (!pubsub_notified_) {
             if (!post_client(from, nullptr, producer_ring, sig)) return false;
@@ -658,7 +695,9 @@ public:
                     uint64_t age = 0;
                     if (t.enqueue_us_low && sig_.observe_queue_delay(t.enqueue_us_low, age))
                         sig_.observe_oldest_age(age);
-                    fn(t); task_in_->retire(p); n++;
+                    fn(t);
+                    task_in_->retire(p);
+                    n++;
                 }
             }
         }
@@ -695,8 +734,13 @@ public:
                     uint64_t age = 0;
                     if (t.enqueue_us_low && sig_.observe_queue_delay(t.enqueue_us_low, age))
                         sig_.observe_oldest_age(age);
-                    fn(t); task_in_->retire(p); n++;
-                    if (++taken == LaneCap) { capped |= 1ull << b; break; }
+                    fn(t);
+                    task_in_->retire(p);
+                    n++;
+                    if (++taken == LaneCap) {
+                        capped |= 1ull << b;
+                        break;
+                    }
                 }
             }
             if (capped) task_notify_.restore(w, capped);
@@ -707,7 +751,8 @@ public:
     template <bool IofusedPrivateQueue, uint32_t LaneCap, typename Fn>
     uint32_t drain_tasks_unmasked_capped(Fn&& fn) {
         static_assert(LaneCap != 0);
-        uint32_t n = 0; Task t;
+        uint32_t n = 0;
+        Task t;
         for (uint32_t p = 0; p < nchan_; p++) {
             auto recv = [&] {
                 if constexpr (IofusedPrivateQueue)
@@ -720,7 +765,9 @@ public:
                 uint64_t age = 0;
                 if (t.enqueue_us_low && sig_.observe_queue_delay(t.enqueue_us_low, age))
                     sig_.observe_oldest_age(age);
-                fn(t); task_in_->retire(p); n++;
+                fn(t);
+                task_in_->retire(p);
+                n++;
                 if (++taken == LaneCap) {
                     task_notify_.restore((p >> 6) & (NotifyMask::kWords - 1), 1ull << (p & 63));
                     break;
@@ -737,8 +784,7 @@ public:
     // exactly-empty lane may cost one empty look next pass, while a non-empty lane can never wedge.
     template <bool IofusedPrivateQueue = false, typename Fn, typename BatchBoundary>
     uint32_t drain_task_producer_chunks(uint32_t per_producer_limit, Fn&& fn,
-                                        BatchBoundary&& batch_boundary,
-                                        bool unmasked = false) {
+                                        BatchBoundary&& batch_boundary, bool unmasked = false) {
         if (!per_producer_limit) std::abort();
         uint32_t n = 0;
         auto take_lane = [&](uint32_t producer) {
@@ -752,8 +798,7 @@ public:
             };
             while (drained < per_producer_limit && recv()) {
                 uint64_t age = 0;
-                if (task.enqueue_us_low &&
-                    sig_.observe_queue_delay(task.enqueue_us_low, age))
+                if (task.enqueue_us_low && sig_.observe_queue_delay(task.enqueue_us_low, age))
                     sig_.observe_oldest_age(age);
                 const bool completed_batch = fn(task);
                 task_in_->retire(producer);
@@ -767,8 +812,7 @@ public:
         };
 
         if (unmasked) {
-            for (uint32_t producer = 0; producer < nchan_; producer++)
-                take_lane(producer);
+            for (uint32_t producer = 0; producer < nchan_; producer++) take_lane(producer);
             return n;
         }
         for (uint32_t word = 0; word < NotifyMask::kWords; word++) {
@@ -812,7 +856,11 @@ public:
                 const uint32_t p = w * 64 + b;
                 if (p >= nchan_) continue;
                 Client* c = nullptr;
-                while (client_in_[p].recv(c)) { fn(c); client_in_[p].retire(); n++; }
+                while (client_in_[p].recv(c)) {
+                    fn(c);
+                    client_in_[p].retire();
+                    n++;
+                }
             }
         }
         return n;
@@ -829,7 +877,11 @@ public:
                 const uint32_t p = w * 64 + b;
                 if (p >= nchan_) continue;
                 BorrowRelease r;
-                while (release_in_[p].recv(r)) { fn(r); release_in_[p].retire(); n++; }
+                while (release_in_[p].recv(r)) {
+                    fn(r);
+                    release_in_[p].retire();
+                    n++;
+                }
             }
         }
         return n;
@@ -858,12 +910,12 @@ public:
 
     // The current role-tenure ring peers poke to wake this physical thread. A role edge publishes
     // its already-provisioned opposite ring before that new loop acknowledges ready.
-    void  set_ring(Ring* r) { ring_.store(r, std::memory_order_release); }
-    Ring* ring() const      { return ring_.load(std::memory_order_acquire); }
+    void set_ring(Ring* r) { ring_.store(r, std::memory_order_release); }
+    Ring* ring() const { return ring_.load(std::memory_order_acquire); }
 
-    std::vector<Shard*>&  shards()  { return shards_; }    // Ex role
+    std::vector<Shard*>& shards() { return shards_; }  // Ex role
     const std::vector<Shard*>& shards() const { return shards_; }
-    std::vector<Client*>& clients() { return clients_; }   // Ifid role
+    std::vector<Client*>& clients() { return clients_; }  // Ifid role
     uint32_t client_count() const { return client_count_.load(std::memory_order_acquire); }
     void add_client(Client* client) {
         clients_.push_back(client);
@@ -890,17 +942,13 @@ public:
     // IO-only INFO surface. Published for each IO tenure when IoLoop binds its send engine; INFO then
     // sums the engine's single-writer counters with the same exceptional cross-thread read shape
     // used for sig(). Executor threads leave this null because they do not send.
-    void set_wb_engine(WbEngine* engine) {
-        wb_engine_.store(engine, std::memory_order_release);
-    }
-    WbEngine* wb_engine() const {
-        return wb_engine_.load(std::memory_order_acquire);
-    }
+    void set_wb_engine(WbEngine* engine) { wb_engine_.store(engine, std::memory_order_release); }
+    WbEngine* wb_engine() const { return wb_engine_.load(std::memory_order_acquire); }
 
     // Sample inbound pressure on a monotonic time gate. The old iteration gate let thousands of
     // idle spins over-contribute zeros and paid a 4*nchan scan on every pass. At most one sample per
     // ~100us makes depth_sum/depth_samples a time-weighted signal without another clock read.
-    bool /* TOMO_TOOL_BIND sample_depth */sample_depth(uint64_t cached_now_us) {
+    bool /* TOMO_TOOL_BIND sample_depth */ sample_depth(uint64_t cached_now_us) {
         sig_.cached_now_us = cached_now_us;
         if (cached_now_us < depth_sample_next_us_) return false;
         depth_sample_next_us_ = cached_now_us + 100;
@@ -925,8 +973,8 @@ public:
             // low-32-bit stamp, so consulting newest_nonzero() here would feed stale/sentinel age
             // into the EWMA after the queue drained.
             if (sample_inbox_age && task_depth) {
-                const uint32_t stamp = task_in_->newest_nonzero(i,
-                    [](const Task& task) { return task.enqueue_us_low; });
+                const uint32_t stamp = task_in_->newest_nonzero(
+                    i, [](const Task& task) { return task.enqueue_us_low; });
                 if (stamp) {
                     uint64_t age = 0;
                     if (sig_.sampled_age(stamp, age)) {
@@ -939,8 +987,10 @@ public:
         sig_.depth_sum += d;
         sig_.depth_samples++;
         if (sample_inbox_age) {
-            if (inbox_age_observed) sig_.observe_oldest_age(inbox_age_us);
-            else                    sig_.clear_oldest_age();
+            if (inbox_age_observed)
+                sig_.observe_oldest_age(inbox_age_us);
+            else
+                sig_.clear_oldest_age();
         }
         return true;
     }
@@ -952,7 +1002,8 @@ public:
         parked_.store(true, std::memory_order_release);
         task_in_->arm_blocked();
         for (uint32_t i = 0; i < nchan_; i++) {
-            client_in_[i].arm_blocked(); release_in_[i].arm_blocked();
+            client_in_[i].arm_blocked();
+            release_in_[i].arm_blocked();
             transfer_in_[i].arm_blocked();
         }
         // The other half of the Dekker pair. Declaring intent to block is a store; the role-specific
@@ -965,7 +1016,8 @@ public:
         parked_.store(false, std::memory_order_release);
         task_in_->clear_blocked();
         for (uint32_t i = 0; i < nchan_; i++) {
-            client_in_[i].clear_blocked(); release_in_[i].clear_blocked();
+            client_in_[i].clear_blocked();
+            release_in_[i].clear_blocked();
             transfer_in_[i].clear_blocked();
         }
     }
@@ -991,15 +1043,15 @@ public:
         if (!(publication & kReadLocalParkedBit)) std::abort();
         // First make this participant visibly active with its conservative pre-wait tick. The
         // caller then samples the global epoch and republishes before it may probe a foreign slot.
-        read_local_state_->tick.store(
-            publication & ~kReadLocalParkedBit, std::memory_order_seq_cst);
+        read_local_state_->tick.store(publication & ~kReadLocalParkedBit,
+                                      std::memory_order_seq_cst);
     }
     void refresh_read_local_quiescence(uint64_t tick) {
         if (tick & kReadLocalParkedBit) std::abort();
         if (!read_local_state_) std::abort();
         const uint64_t publication = read_local_state_->tick.load(std::memory_order_seq_cst);
-        read_local_state_->tick.store(
-            tick | (publication & kReadLocalParkedBit), std::memory_order_seq_cst);
+        read_local_state_->tick.store(tick | (publication & kReadLocalParkedBit),
+                                      std::memory_order_seq_cst);
     }
     uint64_t read_local_publication() const {
         if (!read_local_state_) std::abort();
@@ -1010,8 +1062,7 @@ public:
         read_local_state_->lane_active.store(active, std::memory_order_release);
     }
     bool read_local_lane_active() const {
-        return read_local_state_ &&
-               read_local_state_->lane_active.load(std::memory_order_acquire);
+        return read_local_state_ && read_local_state_->lane_active.load(std::memory_order_acquire);
     }
     static bool read_local_publication_parked(uint64_t publication) {
         return (publication & kReadLocalParkedBit) != 0;
@@ -1065,7 +1116,8 @@ public:
     // a handful of loads, and it only runs when the thread has already decided it has no work.
     template <bool IofusedPrivateQueue = false, typename Fn>
     uint32_t drain_tasks_unmasked(Fn&& fn) {
-        uint32_t n = 0; Task t;
+        uint32_t n = 0;
+        Task t;
         for (uint32_t p = 0; p < nchan_; p++) {
             auto recv = [&] {
                 if constexpr (IofusedPrivateQueue)
@@ -1077,28 +1129,46 @@ public:
                 uint64_t age = 0;
                 if (t.enqueue_us_low && sig_.observe_queue_delay(t.enqueue_us_low, age))
                     sig_.observe_oldest_age(age);
-                fn(t); task_in_->retire(p); n++;
+                fn(t);
+                task_in_->retire(p);
+                n++;
             }
         }
         return n;
     }
-    template <typename Fn> uint32_t drain_clients_unmasked(Fn&& fn) {
-        uint32_t n = 0; Client* c = nullptr;
+    template <typename Fn>
+    uint32_t drain_clients_unmasked(Fn&& fn) {
+        uint32_t n = 0;
+        Client* c = nullptr;
         for (uint32_t p = 0; p < nchan_; p++)
-            while (client_in_[p].recv(c)) { fn(c); client_in_[p].retire(); n++; }
+            while (client_in_[p].recv(c)) {
+                fn(c);
+                client_in_[p].retire();
+                n++;
+            }
         return n;
     }
-    template <typename Fn> uint32_t drain_releases_unmasked(Fn&& fn) {
-        uint32_t n = 0; BorrowRelease r;
+    template <typename Fn>
+    uint32_t drain_releases_unmasked(Fn&& fn) {
+        uint32_t n = 0;
+        BorrowRelease r;
         for (uint32_t p = 0; p < nchan_; p++)
-            while (release_in_[p].recv(r)) { fn(r); release_in_[p].retire(); n++; }
+            while (release_in_[p].recv(r)) {
+                fn(r);
+                release_in_[p].retire();
+                n++;
+            }
         return n;
     }
-    template <typename Fn> uint32_t drain_client_transfers_unmasked(Fn&& fn) {
-        uint32_t n = 0; ClientTransfer transfer;
+    template <typename Fn>
+    uint32_t drain_client_transfers_unmasked(Fn&& fn) {
+        uint32_t n = 0;
+        ClientTransfer transfer;
         for (uint32_t p = 0; p < nchan_; p++)
             while (transfer_in_[p].recv(transfer)) {
-                fn(transfer); transfer_in_[p].retire(); n++;
+                fn(transfer);
+                transfer_in_[p].retire();
+                n++;
             }
         return n;
     }
@@ -1110,9 +1180,14 @@ public:
 
     uint32_t assign_wb_slot(Client* c) {
         uint32_t s;
-        if (!free_slots_.empty()) { s = free_slots_.back(); free_slots_.pop_back(); }
-        else if (slots_.size() < ReadyMask::kSlots) { s = static_cast<uint32_t>(slots_.size()); slots_.push_back(nullptr); }
-        else return kNoWbSlot;                    // table full: caller stays on the channel path
+        if (!free_slots_.empty()) {
+            s = free_slots_.back();
+            free_slots_.pop_back();
+        } else if (slots_.size() < ReadyMask::kSlots) {
+            s = static_cast<uint32_t>(slots_.size());
+            slots_.push_back(nullptr);
+        } else
+            return kNoWbSlot;  // table full: caller stays on the channel path
         slots_[s] = c;
         return s;
     }
@@ -1137,9 +1212,7 @@ public:
     // Exact sender-private high-water word. Assignment alone grows slots_; reserve changes
     // capacity, and release/reuse never shrink the high water. Thus even a late notification
     // for a released slot is drained, while no producer can name a word above this bound.
-    uint32_t wb_slot_words() const {
-        return static_cast<uint32_t>((slots_.size() + 63) / 64);
-    }
+    uint32_t wb_slot_words() const { return static_cast<uint32_t>((slots_.size() + 63) / 64); }
 
     ReadyMask& ready() { return ready_; }
 
@@ -1169,11 +1242,13 @@ public:
         return false;
     }
     bool any_fused_inbound() const {
-        if (ready_.any() || task_notify_.any() || client_notify_.any() ||
-            release_notify_.any() || transfer_notify_.any()) return true;
+        if (ready_.any() || task_notify_.any() || client_notify_.any() || release_notify_.any() ||
+            transfer_notify_.any())
+            return true;
         for (uint32_t i = 0; i < nchan_; i++)
             if (task_in_->depth(i) || client_in_[i].depth() || release_in_[i].depth() ||
-                transfer_in_[i].depth()) return true;
+                transfer_in_[i].depth())
+                return true;
         return false;
     }
     bool ex_inbound_quiesced() const {
@@ -1197,11 +1272,11 @@ public:
 
 private:
     friend struct ThreadCtxLayoutLock;
-    uint32_t          id_ = 0;
+    uint32_t id_ = 0;
     std::atomic<Role> role_{Role::Idle};
     std::atomic<Role> ready_role_{Role::Idle};
     std::atomic<bool> stop_{false};
-    bool snapshot_writer_bound_ = false; // owner-private; occupies existing alignment padding
+    bool snapshot_writer_bound_ = false;  // owner-private; occupies existing alignment padding
     std::atomic<Ring*> ring_{nullptr};
     void* io_role_context_ = nullptr;
     RolePrepareFn io_role_prepare_ = nullptr;
@@ -1209,7 +1284,7 @@ private:
     ClientRegistrationPrepareFn client_registration_prepare_ = nullptr;
     ClientRegistrationCancelFn client_registration_cancel_ = nullptr;
     ClientCapacityPrepareFn client_capacity_prepare_ = nullptr;
-    int      cpu_    = -1;
+    int cpu_ = -1;
     uint32_t domain_ = kNoDomain;
 
     std::unique_ptr<TaskInbox> task_in_;
@@ -1230,10 +1305,10 @@ private:
     // samples total_commands_; the swap removes sharing with transport, not all peer reads.
     std::atomic<uint64_t> total_commands_{0};
     AtomicAdmissionState atomic_admission_state_;
-    ReadyMask  ready_;                     // as a sender: which of my clients completed work
-    std::vector<Client*>  slots_;          // slot -> client, sender-owned
+    ReadyMask ready_;             // as a sender: which of my clients completed work
+    std::vector<Client*> slots_;  // slot -> client, sender-owned
     std::vector<uint32_t> free_slots_;
-    std::atomic<bool>     parked_{false};
+    std::atomic<bool> parked_{false};
     NotifyMask task_notify_;      // "which producers have ops for me"
     NotifyMask client_notify_;    // "which producers have clients for me"
     NotifyMask release_notify_;   // "which producers returned store borrows to me"
@@ -1247,10 +1322,10 @@ private:
     std::deque<PubSubEvent*> pubsub_events_;
     bool pubsub_notified_ = false;
 
-    std::vector<Shard*>  shards_;
+    std::vector<Shard*> shards_;
     std::vector<Client*> clients_;
     std::atomic<uint32_t> client_count_{0};
-    LoopSignals          sig_;
+    LoopSignals sig_;
     // Cold publication only: keep every pre-existing ThreadCtx member at its current offset.
     std::atomic<WbEngine*> wb_engine_{nullptr};
     // Fused-only callbacks live at the true tail so split-mode ThreadCtx offsets stay unchanged.

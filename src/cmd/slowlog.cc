@@ -52,10 +52,10 @@ namespace {
 
 struct SlowlogEntry {
     uint64_t id = 0;
-    int64_t  unix_seconds = 0;
+    int64_t unix_seconds = 0;
     uint64_t duration_us = 0;
     std::shared_ptr<const SlowlogIdentity> identity;
-    bool     exact = true;
+    bool exact = true;
     std::vector<std::string> argv;
 };
 
@@ -72,9 +72,11 @@ SlowlogShard* recorder(uint32_t id) {
     if (value) return value;
     try {
         auto fresh = std::make_unique<SlowlogShard>();
-        if (g_slowlog[id].compare_exchange_strong(value, fresh.get(),
-                std::memory_order_release, std::memory_order_acquire)) value = fresh.release();
-    } catch (const std::bad_alloc&) {}
+        if (g_slowlog[id].compare_exchange_strong(value, fresh.get(), std::memory_order_release,
+                                                  std::memory_order_acquire))
+            value = fresh.release();
+    } catch (const std::bad_alloc&) {
+    }
     return value;
 }
 std::atomic<uint64_t> g_slowlog_max_len{128};
@@ -91,7 +93,7 @@ std::atomic<uint64_t> g_latency_events{0};
 constexpr size_t kLatencyMaxSamples = 160;
 
 struct LatencySample {
-    int64_t  unix_seconds = 0;
+    int64_t unix_seconds = 0;
     uint32_t latency_ms = 0;
 };
 
@@ -152,7 +154,8 @@ ClientDirectoryShard* directory_shard(uint64_t client_id, bool create = false) {
     if (value || !create) return value;
     auto fresh = std::make_unique<ClientDirectoryShard>();
     if (slot.compare_exchange_strong(value, fresh.get(), std::memory_order_release,
-                                    std::memory_order_acquire)) value = fresh.release();
+                                     std::memory_order_acquire))
+        value = fresh.release();
     return value;
 }
 
@@ -167,9 +170,12 @@ std::shared_ptr<const SlowlogIdentity> directory_lookup(uint64_t client_id) {
     // without synchronization, or allocate a directory entry while disarmed.
     try {
         SlowlogIdentity identity;
-        if (!command_client_slowlog_identity(client_id, identity.addr, identity.name)) return nullptr;
+        if (!command_client_slowlog_identity(client_id, identity.addr, identity.name))
+            return nullptr;
         return std::make_shared<const SlowlogIdentity>(std::move(identity));
-    } catch (const std::bad_alloc&) { return nullptr; }
+    } catch (const std::bad_alloc&) {
+        return nullptr;
+    }
 }
 
 bool eq_icase(Slice s, const char* lit) {
@@ -189,7 +195,10 @@ bool parse_i64(Slice s, int64_t& out) {
     if (!s.n || s.n > 20) return false;
     uint32_t i = 0;
     bool negative = false;
-    if (s.p[0] == '-') { negative = true; i = 1; }
+    if (s.p[0] == '-') {
+        negative = true;
+        i = 1;
+    }
     if (i >= s.n) return false;
     // Canonical decimal, as redis's string2ll: no leading '+', no leading zeroes, no negative
     // zero. "SLOWLOG GET 05" was accepted before this.
@@ -231,8 +240,8 @@ bool build_argv(const SlowlogCapture& capture, std::vector<std::string>& out) {
         for (uint32_t i = 0; i < capture.captured; i++) {
             std::string value(capture.bytes + capture.off[i], capture.len[i]);
             if (capture.full[i] > capture.len[i])
-                value += "... (" + std::to_string(capture.full[i] - capture.len[i]) +
-                         " more bytes)";
+                value +=
+                    "... (" + std::to_string(capture.full[i] - capture.len[i]) + " more bytes)";
             out.push_back(std::move(value));
         }
         if (capture.total_argc > capture.captured)
@@ -245,8 +254,8 @@ bool build_argv(const SlowlogCapture& capture, std::vector<std::string>& out) {
 }
 
 // The shared tail of both recorders: latency sampling, threshold test, ring insert.
-void slowlog_finish(uint32_t thread_id, SlowlogEntry& entry, uint64_t duration_ns,
-                    int64_t now_ms, const SlowlogArm& arm) {
+void slowlog_finish(uint32_t thread_id, SlowlogEntry& entry, uint64_t duration_ns, int64_t now_ms,
+                    const SlowlogArm& arm) {
     if (arm.latency_ms) {
         const uint64_t duration_ms = duration_ns / 1000000;
         if (duration_ms >= arm.latency_ms)
@@ -264,8 +273,11 @@ void slowlog_finish(uint32_t thread_id, SlowlogEntry& entry, uint64_t duration_n
         // Re-read under the lock so a concurrent CONFIG SET slowlog-max-len 0 cannot be raced.
         const uint64_t live_max = g_slowlog_max_len.load(std::memory_order_acquire);
         if (!live_max) return;
-        try { shard.entries.push_front(std::move(entry)); }
-        catch (const std::bad_alloc&) { return; }
+        try {
+            shard.entries.push_front(std::move(entry));
+        } catch (const std::bad_alloc&) {
+            return;
+        }
         while (shard.entries.size() > live_max) shard.entries.pop_back();
     }
     g_entries_recorded.fetch_add(1, std::memory_order_relaxed);
@@ -303,23 +315,23 @@ const char* const kSlowlogHelp[] = {
 };
 
 constexpr SubcommandArity kSlowlogSubcommands[] = {
-    {"get",   2, 3, SubcommandArityError::UnknownOrWrong},
-    {"len",   2, 2},
+    {"get", 2, 3, SubcommandArityError::UnknownOrWrong},
+    {"len", 2, 2},
     {"reset", 2, 2},
-    {"help",  2, 2},
+    {"help", 2, 2},
 };
 
 void cmd_slowlog(Shard&, Op& op) {
     if (!command_validate_subcommand(op, "SLOWLOG", kSlowlogSubcommands,
-                                     sizeof(kSlowlogSubcommands) /
-                                         sizeof(kSlowlogSubcommands[0]))) return;
+                                     sizeof(kSlowlogSubcommands) / sizeof(kSlowlogSubcommands[0])))
+        return;
     const Slice sub = op.arg(1);
     if (eq_icase(sub, "LEN") && op.argc() == 2) {
         size_t total = 0;
         for (auto& slot : g_slowlog) {
-        auto* target = slot.load(std::memory_order_acquire);
-        if (!target) continue;
-        SlowlogShard& shard = *target;
+            auto* target = slot.load(std::memory_order_acquire);
+            if (!target) continue;
+            SlowlogShard& shard = *target;
             std::lock_guard<std::mutex> lock(shard.mutex);
             total += shard.entries.size();
         }
@@ -328,9 +340,9 @@ void cmd_slowlog(Shard&, Op& op) {
     }
     if (eq_icase(sub, "RESET") && op.argc() == 2) {
         for (auto& slot : g_slowlog) {
-        auto* target = slot.load(std::memory_order_acquire);
-        if (!target) continue;
-        SlowlogShard& shard = *target;
+            auto* target = slot.load(std::memory_order_acquire);
+            if (!target) continue;
+            SlowlogShard& shard = *target;
             std::lock_guard<std::mutex> lock(shard.mutex);
             shard.entries.clear();
         }
@@ -353,9 +365,11 @@ void cmd_slowlog(Shard&, Op& op) {
         reply_array_header(sink, entries.size());
         for (const SlowlogEntry& entry : entries) {
             const Slice addr = entry.identity
-                ? Slice(entry.identity->addr.data(), entry.identity->addr.size()) : Slice("unknown:0", 9);
+                                   ? Slice(entry.identity->addr.data(), entry.identity->addr.size())
+                                   : Slice("unknown:0", 9);
             const Slice name = entry.identity
-                ? Slice(entry.identity->name.data(), entry.identity->name.size()) : Slice("", 0);
+                                   ? Slice(entry.identity->name.data(), entry.identity->name.size())
+                                   : Slice("", 0);
             reply_array_header(sink, 6);
             reply_int(sink, static_cast<long long>(entry.id));
             reply_int(sink, static_cast<long long>(entry.unix_seconds));
@@ -391,19 +405,14 @@ const char* const kLatencyHelp[] = {
 };
 
 constexpr SubcommandArity kLatencySubcommands[] = {
-    {"doctor",  2,  2},
-    {"graph",   3,  3},
-    {"history", 3,  3},
-    {"histogram", 2, -1},
-    {"latest",  2,  2},
-    {"reset",   2, -1},
-    {"help",    2,  2},
+    {"doctor", 2, 2}, {"graph", 3, 3},  {"history", 3, 3}, {"histogram", 2, -1},
+    {"latest", 2, 2}, {"reset", 2, -1}, {"help", 2, 2},
 };
 
 void cmd_latency(Shard&, Op& op) {
     if (!command_validate_subcommand(op, "LATENCY", kLatencySubcommands,
-                                     sizeof(kLatencySubcommands) /
-                                         sizeof(kLatencySubcommands[0]))) return;
+                                     sizeof(kLatencySubcommands) / sizeof(kLatencySubcommands[0])))
+        return;
     const Slice sub = op.arg(1);
     if (eq_icase(sub, "HISTOGRAM")) {
         latency_tracking_histogram(op);
@@ -423,8 +432,7 @@ void cmd_latency(Shard&, Op& op) {
             if (entry.second.samples.empty()) continue;
             const LatencySample& last = entry.second.samples.back();
             reply_array_header(sink, 4);
-            reply_bulk(sink, Slice(entry.first.data(),
-                                   static_cast<uint32_t>(entry.first.size())));
+            reply_bulk(sink, Slice(entry.first.data(), static_cast<uint32_t>(entry.first.size())));
             reply_int(sink, static_cast<long long>(last.unix_seconds));
             reply_int(sink, last.latency_ms);
             reply_int(sink, entry.second.max_latency_ms);
@@ -435,7 +443,10 @@ void cmd_latency(Shard&, Op& op) {
         std::lock_guard<std::mutex> lock(g_latency_mu);
         auto sink = op.sink();
         auto found = g_latency.find(std::string(op.arg(2).p, op.arg(2).n));
-        if (found == g_latency.end()) { reply_array_header(sink, 0); return; }
+        if (found == g_latency.end()) {
+            reply_array_header(sink, 0);
+            return;
+        }
         reply_array_header(sink, found->second.samples.size());
         for (const LatencySample& sample : found->second.samples) {
             reply_array_header(sink, 2);
@@ -469,9 +480,10 @@ void cmd_latency(Shard&, Op& op) {
                     worst_event = entry.first.c_str();
                 }
             if (!worst_event) {
-                text = "No latency spike was observed during the lifetime of this tomokv "
-                       "instance. Either the latency monitor is disabled "
-                       "(latency-monitor-threshold 0) or nothing has crossed the threshold yet.";
+                text =
+                    "No latency spike was observed during the lifetime of this tomokv "
+                    "instance. Either the latency monitor is disabled "
+                    "(latency-monitor-threshold 0) or nothing has crossed the threshold yet.";
             } else {
                 char line[256];
                 std::snprintf(line, sizeof(line),
@@ -498,19 +510,21 @@ void cmd_latency(Shard&, Op& op) {
                 return;
             }
             const LatencyEvent& event = found->second;
-            text = std::string(op.arg(2).p, op.arg(2).n) + " - high " +
-                   std::to_string(event.max_latency_ms) + " ms, low " +
-                   std::to_string(std::min_element(event.samples.begin(), event.samples.end(),
-                       [](const LatencySample& a, const LatencySample& b) {
-                           return a.latency_ms < b.latency_ms;
-                       })->latency_ms) + " ms (all time high " +
-                   std::to_string(event.max_latency_ms) + " ms)\n";
+            text =
+                std::string(op.arg(2).p, op.arg(2).n) + " - high " +
+                std::to_string(event.max_latency_ms) + " ms, low " +
+                std::to_string(std::min_element(event.samples.begin(), event.samples.end(),
+                                                [](const LatencySample& a, const LatencySample& b) {
+                                                    return a.latency_ms < b.latency_ms;
+                                                })
+                                   ->latency_ms) +
+                " ms (all time high " + std::to_string(event.max_latency_ms) + " ms)\n";
             // Eight rows of vertical bars, oldest sample on the left, exactly like redis's shape.
             const uint32_t peak = event.max_latency_ms ? event.max_latency_ms : 1;
             for (int row = 8; row >= 1; row--) {
                 for (const LatencySample& sample : event.samples)
-                    text.push_back(sample.latency_ms * 8 / peak >= static_cast<uint32_t>(row)
-                                   ? '#' : ' ');
+                    text.push_back(
+                        sample.latency_ms * 8 / peak >= static_cast<uint32_t>(row) ? '#' : ' ');
                 text.push_back('\n');
             }
         }
@@ -520,7 +534,7 @@ void cmd_latency(Shard&, Op& op) {
     }
 }
 
-static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */ kTable[] = {
     // Both are cold introspection commands answered entirely on the connection's IO thread.
     {"SLOWLOG", 2, 3, CmdFlags::ConnLocal | CmdFlags::Admin, cmd_slowlog, 0, 0, 0},
     {"LATENCY", 2, -1, CmdFlags::ConnLocal | CmdFlags::Admin, cmd_latency, 0, 0, 0},
@@ -530,12 +544,12 @@ static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
 
 bool slowlog_validate_container_subcommand(Op& op, bool slowlog) {
     if (slowlog)
-        return command_validate_subcommand(op, "SLOWLOG", kSlowlogSubcommands,
-                                           sizeof(kSlowlogSubcommands) /
-                                               sizeof(kSlowlogSubcommands[0]));
-    return command_validate_subcommand(op, "LATENCY", kLatencySubcommands,
-                                       sizeof(kLatencySubcommands) /
-                                           sizeof(kLatencySubcommands[0]));
+        return command_validate_subcommand(
+            op, "SLOWLOG", kSlowlogSubcommands,
+            sizeof(kSlowlogSubcommands) / sizeof(kSlowlogSubcommands[0]));
+    return command_validate_subcommand(
+        op, "LATENCY", kLatencySubcommands,
+        sizeof(kLatencySubcommands) / sizeof(kLatencySubcommands[0]));
 }
 
 // -------------------------------------------------------------------------------------------
@@ -549,7 +563,7 @@ bool slowlog_validate_container_subcommand(Op& op, bool slowlog) {
 // visible positions, before copying or truncating; neither the password nor its original length
 // enters the capture. Command execution continues to consume the original Op arguments.
 __attribute__((noipa)) bool diagnostic_redact_argument(const Op& op, uint32_t index,
-                                                      uint32_t& hello_cursor) {
+                                                       uint32_t& hello_cursor) {
     const uint32_t argc = op.argc();
     if (!index || index >= argc) return false;
     if (eq_icase(op.cmd_name(), "AUTH") && argc <= 3) {
@@ -562,10 +576,13 @@ __attribute__((noipa)) bool diagnostic_redact_argument(const Op& op, uint32_t in
                 hello_cursor += 3;
             } else if (eq_icase(op.arg(i), "SETNAME") && i + 1 < argc) {
                 hello_cursor += 2;
-            } else { hello_cursor = argc; break; }
+            } else {
+                hello_cursor = argc;
+                break;
+            }
         }
-    } else if (eq_icase(op.cmd_name(), "CONFIG") && argc >= 4 &&
-               argc % 2 == 0 && eq_icase(op.arg(1), "SET")) {
+    } else if (eq_icase(op.cmd_name(), "CONFIG") && argc >= 4 && argc % 2 == 0 &&
+               eq_icase(op.arg(1), "SET")) {
         return index >= 3 && index % 2 == 1 && eq_icase(op.arg(index - 1), "requirepass");
     } else if (eq_icase(op.cmd_name(), "ACL") && argc >= 3 &&
                (eq_icase(op.arg(1), "SETUSER") || eq_icase(op.arg(1), "DELUSER") ||
@@ -583,10 +600,15 @@ SlowlogTiming idle_timing;
 thread_local SlowlogTiming* active_timing = &idle_timing;
 }
 
-SlowlogTiming::SlowlogTiming(const Op* operation, uint64_t client, uint32_t thread,
-                            uint64_t start, int64_t now, const SlowlogArm& setting)
-    : op(operation), client_id(client), started(start), now_ms(now), arm(setting),
-      thread_id(thread), previous(active_timing) {
+SlowlogTiming::SlowlogTiming(const Op* operation, uint64_t client, uint32_t thread, uint64_t start,
+                             int64_t now, const SlowlogArm& setting)
+    : op(operation),
+      client_id(client),
+      started(start),
+      now_ms(now),
+      arm(setting),
+      thread_id(thread),
+      previous(active_timing) {
     if (op) active_timing = this;
 }
 
@@ -601,12 +623,12 @@ __attribute__((noinline, cold)) void slowlog_complete(const Op& op) {
     const uint64_t elapsed = now_ns() - timing.started;
     // slowlog_record tests the measured duration before copying argv or taking
     // the directory reference. The caller still owns the unpublished operation.
-    slowlog_recorder(timing.thread_id, timing.client_id, op, elapsed,
-                   timing.now_ms, timing.arm, true, timing.started);
+    slowlog_recorder(timing.thread_id, timing.client_id, op, elapsed, timing.now_ms, timing.arm,
+                     true, timing.started);
 }
 
-std::shared_ptr<const SlowlogIdentity> slowlog_capture(
-    const Op& op, SlowlogCapture& out, uint64_t client_id) {
+std::shared_ptr<const SlowlogIdentity> slowlog_capture(const Op& op, SlowlogCapture& out,
+                                                       uint64_t client_id) {
     // Capture before the executor publishes Done: a younger SETNAME or a
     // disconnect may change the directory as soon as the reply retires.
     auto identity = directory_lookup(client_id);
@@ -619,7 +641,8 @@ std::shared_ptr<const SlowlogIdentity> slowlog_capture(
     uint32_t hello_cursor = 2;
     for (uint32_t i = 0; i < limit; i++) {
         const Slice arg = diagnostic_redact_argument(op, i, hello_cursor)
-            ? Slice("(redacted)", 10) : multidb_display_argument(op, i);
+                              ? Slice("(redacted)", 10)
+                              : multidb_display_argument(op, i);
         const uint32_t take = arg.n < kSlowlogMaxArgBytes ? arg.n : kSlowlogMaxArgBytes;
         if (out.used + take > sizeof(out.bytes)) break;
         if (take) std::memcpy(out.bytes + out.used, arg.p, take);
@@ -654,9 +677,10 @@ void slowlog_record(uint32_t thread_id, uint64_t client_id, const Op& op, uint64
 }
 
 // The executor path, fed from a capture taken before execute().
-void slowlog_record_captured(uint32_t thread_id, const std::shared_ptr<const SlowlogIdentity>& identity,
-                             const SlowlogCapture& capture,
-                             uint64_t duration_ns, int64_t now_ms, const SlowlogArm& arm) {
+void slowlog_record_captured(uint32_t thread_id,
+                             const std::shared_ptr<const SlowlogIdentity>& identity,
+                             const SlowlogCapture& capture, uint64_t duration_ns, int64_t now_ms,
+                             const SlowlogArm& arm) {
     const uint64_t duration_us = duration_ns / 1000;
     SlowlogEntry entry;
     entry.unix_seconds = now_ms / 1000;
@@ -664,8 +688,8 @@ void slowlog_record_captured(uint32_t thread_id, const std::shared_ptr<const Slo
     entry.duration_us = duration_us;
     entry.exact = true;
     if (arm.slowlog_us >= 0 && duration_us >= static_cast<uint64_t>(arm.slowlog_us) &&
-        g_slowlog_max_len.load(std::memory_order_acquire) &&
-        !build_argv(capture, entry.argv)) return;
+        g_slowlog_max_len.load(std::memory_order_acquire) && !build_argv(capture, entry.argv))
+        return;
     slowlog_finish(thread_id, entry, duration_ns, now_ms, arm);
 }
 
@@ -704,7 +728,8 @@ void slowlog_note_client(uint64_t client_id, const char* addr) {
         std::lock_guard<std::mutex> lock(shard->mutex);
         shard->entries[client_id] = std::make_shared<const SlowlogIdentity>(
             SlowlogIdentity{addr ? addr : "unknown:0", std::string()});
-    } catch (const std::bad_alloc&) {}
+    } catch (const std::bad_alloc&) {
+    }
 }
 
 void slowlog_note_client_name(uint64_t client_id, const char* name, uint32_t name_len) {
@@ -713,11 +738,15 @@ void slowlog_note_client_name(uint64_t client_id, const char* name, uint32_t nam
     std::lock_guard<std::mutex> lock(shard->mutex);
     auto found = shard->entries.find(client_id);
     if (found == shard->entries.end()) return;
-    if (!directory_armed()) { shard->entries.erase(found); return; }
+    if (!directory_armed()) {
+        shard->entries.erase(found);
+        return;
+    }
     try {
         found->second = std::make_shared<const SlowlogIdentity>(
             SlowlogIdentity{found->second->addr, std::string(name, name_len)});
-    } catch (const std::bad_alloc&) {}
+    } catch (const std::bad_alloc&) {
+    }
 }
 
 void slowlog_forget_client(uint64_t client_id) {
@@ -727,8 +756,6 @@ void slowlog_forget_client(uint64_t client_id) {
     shard->entries.erase(client_id);
 }
 
-CommandTable slowlog_command_table() {
-    return {kTable, sizeof(kTable) / sizeof(kTable[0])};
-}
+CommandTable slowlog_command_table() { return {kTable, sizeof(kTable) / sizeof(kTable[0])}; }
 
 }  // namespace tomo

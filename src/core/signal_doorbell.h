@@ -48,9 +48,7 @@ private:
     int fd_ = -1;
 };
 
-inline int signal_doorbell_fd() {
-    return static_cast<int>(g_signal_doorbell_fd);
-}
+inline int signal_doorbell_fd() { return static_cast<int>(g_signal_doorbell_fd); }
 
 inline void signal_doorbell_request_notify() {
     const int saved_errno = errno;
@@ -76,7 +74,8 @@ inline void signal_doorbell_consume_request() {
     const int fd = signal_doorbell_fd();
     if (fd < 0) return;
     uint64_t count;
-    while (::read(fd, &count, sizeof(count)) == static_cast<ssize_t>(sizeof(count))) {}
+    while (::read(fd, &count, sizeof(count)) == static_cast<ssize_t>(sizeof(count))) {
+    }
     // A terminal publisher before/during the drain is restored. A publisher after this load
     // supplies its own write, closing the other side of the race without consuming a stop.
     if (g_signal_doorbell_terminal.load(std::memory_order_acquire))
@@ -89,9 +88,8 @@ inline void signal_doorbell_consume_request() {
 inline bool signal_doorbell_wait(uint32_t timeout_ms) {
     const int fd = signal_doorbell_fd();
     pollfd event{fd, POLLIN, 0};
-    const int timeout = timeout_ms > static_cast<uint32_t>(INT_MAX)
-                            ? INT_MAX
-                            : static_cast<int>(timeout_ms);
+    const int timeout =
+        timeout_ms > static_cast<uint32_t>(INT_MAX) ? INT_MAX : static_cast<int>(timeout_ms);
     int result;
     do {
         result = ::poll(fd >= 0 ? &event : nullptr, fd >= 0 ? 1 : 0, timeout);

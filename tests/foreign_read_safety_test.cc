@@ -87,31 +87,30 @@ int main() {
     const CollisionSet collision = find_three_fingerprints_in_one_cell();
     const uint64_t other = find_hash_in_another_cell(collision.first);
     require(ForeignReadSafety::cell_index(collision.first) ==
-                ForeignReadSafety::cell_index(collision.second) &&
-            ForeignReadSafety::cell_index(collision.first) ==
-                ForeignReadSafety::cell_index(collision.third),
+                    ForeignReadSafety::cell_index(collision.second) &&
+                ForeignReadSafety::cell_index(collision.first) ==
+                    ForeignReadSafety::cell_index(collision.third),
             "collision synthesizer returned different cells");
     require(ForeignReadSafety::fingerprint(collision.first) !=
-                ForeignReadSafety::fingerprint(collision.second) &&
-            ForeignReadSafety::fingerprint(collision.first) !=
-                ForeignReadSafety::fingerprint(collision.third) &&
-            ForeignReadSafety::fingerprint(collision.second) !=
-                ForeignReadSafety::fingerprint(collision.third),
+                    ForeignReadSafety::fingerprint(collision.second) &&
+                ForeignReadSafety::fingerprint(collision.first) !=
+                    ForeignReadSafety::fingerprint(collision.third) &&
+                ForeignReadSafety::fingerprint(collision.second) !=
+                    ForeignReadSafety::fingerprint(collision.third),
             "collision synthesizer returned duplicate fingerprints");
 
     ForeignReadSafety duplicate_refs;
     require_empty(duplicate_refs, "fresh filter is not empty");
     require(!duplicate_refs.might_contain(collision.first), "fresh filter false-positive");
     add(duplicate_refs, {collision.first, collision.first});
-    require(duplicate_refs.unsafe_total_refs() == 2 &&
-                duplicate_refs.occupied_cells() == 1 &&
+    require(duplicate_refs.unsafe_total_refs() == 2 && duplicate_refs.occupied_cells() == 1 &&
                 duplicate_refs.wildcard_cells() == 0 &&
                 duplicate_refs.might_contain(collision.first),
             "same-fingerprint references did not merge exactly");
     close_refs(duplicate_refs, {collision.first});
-    require(duplicate_refs.unsafe_total_refs() == 1 &&
-                duplicate_refs.might_contain(collision.first),
-            "first overlapping close exposed a still-live key");
+    require(
+        duplicate_refs.unsafe_total_refs() == 1 && duplicate_refs.might_contain(collision.first),
+        "first overlapping close exposed a still-live key");
     close_refs(duplicate_refs, {collision.first});
     require_empty(duplicate_refs, "same-fingerprint bucket did not drain");
 
@@ -129,15 +128,12 @@ int main() {
     ForeignReadSafety wildcard;
     add(wildcard, {collision.first, collision.second});
     require(wildcard.unsafe_total_refs() == 2 && wildcard.occupied_cells() == 1 &&
-                wildcard.wildcard_cells() == 1 &&
-                wildcard.might_contain(collision.first) &&
-                wildcard.might_contain(collision.second) &&
-                wildcard.might_contain(collision.third),
+                wildcard.wildcard_cells() == 1 && wildcard.might_contain(collision.first) &&
+                wildcard.might_contain(collision.second) && wildcard.might_contain(collision.third),
             "different fingerprints did not publish one wildcard bucket");
     close_refs(wildcard, {collision.second});
     require(wildcard.unsafe_total_refs() == 1 && wildcard.wildcard_cells() == 1 &&
-                wildcard.might_contain(collision.first) &&
-                wildcard.might_contain(collision.third),
+                wildcard.might_contain(collision.first) && wildcard.might_contain(collision.third),
             "wildcard did not remain sticky while the bucket was occupied");
     close_refs(wildcard, {collision.first});
     require_empty(wildcard, "wildcard bucket did not clear at exact drain");
@@ -157,8 +153,7 @@ int main() {
     poison.poison_close();
     require(poison.poison_refs() == 0 && poison.unsafe_total_refs() == 1 &&
                 poison.occupied_cells() == 1 && poison.wildcard_cells() == 1 &&
-                poison.might_contain(collision.first) &&
-                poison.might_contain(collision.third),
+                poison.might_contain(collision.first) && poison.might_contain(collision.third),
             "final poison close lost the surviving sticky bucket");
     close_refs(poison, {collision.first});
     require_empty(poison, "poison plus exact reference did not drain");
@@ -239,19 +234,22 @@ int main() {
     rebuild_epochs.test_set_cell(collision.first, ForeignReadSafety::kCountMask - 1);
     rebuild_epochs.test_set_unsafe_total_refs(0);
     add(rebuild_epochs, {collision.first});
-    require(rebuild_epochs.cell_epoch(collision.first) == 1 && rebuild_epochs.cell_epoch(other) == 0,
-            "saturating add did not touch exactly its bucket");
+    require(
+        rebuild_epochs.cell_epoch(collision.first) == 1 && rebuild_epochs.cell_epoch(other) == 0,
+        "saturating add did not touch exactly its bucket");
     close_refs(rebuild_epochs, {collision.first});
-    require(rebuild_epochs.cell_epoch(collision.first) == 3 && rebuild_epochs.cell_epoch(other) == 1,
-            "exact-drain rebuild did not touch every bucket");
+    require(
+        rebuild_epochs.cell_epoch(collision.first) == 3 && rebuild_epochs.cell_epoch(other) == 1,
+        "exact-drain rebuild did not touch every bucket");
     require_empty(rebuild_epochs, "rebuild epochs filter did not drain");
     rebuild_epochs.test_set_cell_epoch(other, UINT32_MAX);
     add(rebuild_epochs, {other});
     require(rebuild_epochs.cell_epoch(other) == 0, "epoch wrap did not stay a plain modular step");
     close_refs(rebuild_epochs, {other});
     rebuild_epochs.fail_closed_permanently();
-    require(rebuild_epochs.cell_epoch(collision.first) == 4 && rebuild_epochs.cell_epoch(other) == 2,
-            "permanent poison did not touch every bucket");
+    require(
+        rebuild_epochs.cell_epoch(collision.first) == 4 && rebuild_epochs.cell_epoch(other) == 2,
+        "permanent poison did not touch every bucket");
 
     std::puts("foreign-read-safety unit: PASS");
     return 0;

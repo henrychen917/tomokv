@@ -35,7 +35,8 @@ int main() {
     observing = false;
     check(reply == ":1048577\r\n", "append length");
     check(fixture.run({"GET", "append"}) == bulk(old + 'y'), "append bytes");
-    std::printf("large_copied_bytes=%zu scratch_allocations=%zu\n", large_copies, scratch_allocations);
+    std::printf("large_copied_bytes=%zu scratch_allocations=%zu\n", large_copies,
+                scratch_allocations);
     check(large_copies <= length + 1 && scratch_allocations == 0,
           "APPEND must copy the old value once without a merged scratch allocation");
 }

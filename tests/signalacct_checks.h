@@ -8,7 +8,10 @@
 namespace signalacct_test {
 struct Clock {
     inline static uint64_t time = 100, calls = 0;
-    static uint64_t now() { ++calls; return time++; }
+    static uint64_t now() {
+        ++calls;
+        return time++;
+    }
 };
 inline void require(bool ok, const char* state) {
     if (!ok) {
@@ -24,21 +27,26 @@ inline void conserved(const tomo::IoTenureRecord& r, const char* state) {
 }
 inline int run(const char* only = "all") {
     if (!std::strcmp(only, "all") || !std::strcmp(only, "passes")) {
-        Clock::time = 100; Clock::calls = 0;
+        Clock::time = 100;
+        Clock::calls = 0;
         tomo::LoopSignals sig;
         tomo::IoTenure<Clock, 0> tenure(sig);
         Clock::time = 110;
         require(tenure.pass() == 110 && sig.busy_ns == 9, "entry/prologue cut");
         // Productive pass includes dispatch, submit/reap, and its continue edge.
-        Clock::time = 150; tenure.pass();
+        Clock::time = 150;
+        tenure.pass();
         require(sig.busy_ns == 49, "did-submit elapsed is booked at next boundary");
-        Clock::time = 180; tenure.pass();
+        Clock::time = 180;
+        tenure.pass();
         require(sig.busy_ns == 79, "sweep-submit elapsed is booked at next boundary");
         // Idle includes park publication, callbacks and resume, as on the real IO loop.
         sig.idle_ns += 10;
-        Clock::time = 210; tenure.pass();
+        Clock::time = 210;
+        tenure.pass();
         require(sig.busy_ns == 99 && sig.idle_ns == 10, "idle subtracted exactly once");
-        Clock::time = 220; tenure.pass();
+        Clock::time = 220;
+        tenure.pass();
         require(sig.busy_ns == 109, "no-work non-idle prologue/sweep is booked");
         Clock::time = 233;
         const auto r = tenure.finish(false, true);
@@ -46,52 +54,67 @@ inline int run(const char* only = "all") {
         conserved(r, "did/sweep/idle/no-work/final-tail tenure conserves wall");
         require(Clock::calls == 9, "five passes use five clocks plus four cold endpoint cuts");
         std::printf("signalacct passes: busy=%llu idle=%llu wall=%llu outer=%llu uncertainty=2\n",
-            (unsigned long long)r.busy_ns, (unsigned long long)r.idle_ns,
-            (unsigned long long)(r.end_ns-r.begin_ns), (unsigned long long)(r.exit_ns-r.entry_ns));
+                    (unsigned long long)r.busy_ns, (unsigned long long)r.idle_ns,
+                    (unsigned long long)(r.end_ns - r.begin_ns),
+                    (unsigned long long)(r.exit_ns - r.entry_ns));
     }
     if (!std::strcmp(only, "all") || !std::strcmp(only, "roles")) {
         Clock::time = 1000;
         tomo::LoopSignals sig;
         tomo::IoTenure<Clock> first(sig);
-        Clock::time = 1010; first.pass();
+        Clock::time = 1010;
+        first.pass();
         Clock::time = 1020;
         const auto a = first.finish(true, false);
         conserved(a, "first IO role exit conserves wall");
         // EX consumes 500ns, including its own independent busy/idle accounting.
-        sig.busy_ns += 400; sig.idle_ns += 100;
+        sig.busy_ns += 400;
+        sig.idle_ns += 100;
         Clock::time = 1520;
         tomo::IoTenure<Clock> second(sig);
-        Clock::time = 1530; second.pass();
-        sig.idle_ns += 15; // stop arrives during park; idle destructor runs before final flush
+        Clock::time = 1530;
+        second.pass();
+        sig.idle_ns += 15;  // stop arrives during park; idle destructor runs before final flush
         Clock::time = 1550;
         const auto b = second.finish(false, true);
-        require(b.busy_ns == 14 && b.idle_ns == 15, "IO->EX->IO excludes EX and stop-during-park flushes");
+        require(b.busy_ns == 14 && b.idle_ns == 15,
+                "IO->EX->IO excludes EX and stop-during-park flushes");
         conserved(b, "reentered IO tenure conserves its independent wall");
         require(sig.busy_ns == a.busy_ns + 400 + b.busy_ns &&
-                sig.idle_ns == a.idle_ns + 100 + b.idle_ns, "role-separated sums count each tenure once");
+                    sig.idle_ns == a.idle_ns + 100 + b.idle_ns,
+                "role-separated sums count each tenure once");
         std::printf("signalacct roles: IO1=%llu EX=500 IO2=%llu busy2=%llu idle2=%llu\n",
-            (unsigned long long)(a.end_ns-a.begin_ns), (unsigned long long)(b.end_ns-b.begin_ns),
-            (unsigned long long)b.busy_ns, (unsigned long long)b.idle_ns);
+                    (unsigned long long)(a.end_ns - a.begin_ns),
+                    (unsigned long long)(b.end_ns - b.begin_ns), (unsigned long long)b.busy_ns,
+                    (unsigned long long)b.idle_ns);
     }
     if (!std::strcmp(only, "all") || !std::strcmp(only, "window")) {
-        Clock::time = 100; Clock::calls = 0;
+        Clock::time = 100;
+        Clock::calls = 0;
         tomo::LoopSignals sig;
         tomo::IoTenure<Clock> tenure(sig);
-        Clock::time = 110; tenure.pass();
+        Clock::time = 110;
+        tenure.pass();
         require(sig.busy_ns == 9, "window entry/prologue published");
         // Uneven productive/sweep/park passes, including an entire idle span.
         // No elapsed interval is dropped or multiplied by a sampling weight.
-        Clock::time = 120; tenure.pass();
-        Clock::time = 90000; tenure.pass();
+        Clock::time = 120;
+        tenure.pass();
+        Clock::time = 90000;
+        tenure.pass();
         sig.idle_ns += 5000;
-        Clock::time = 100109; tenure.pass();
+        Clock::time = 100109;
+        tenure.pass();
         require(sig.busy_ns == 9, "window suppresses intermediate shared busy stores");
-        Clock::time = 100110; tenure.pass();
+        Clock::time = 100110;
+        tenure.pass();
         require(sig.busy_ns == 95009, "window includes all uneven passes and subtracts idle once");
-        sig.idle_ns += 170000; // a long wait spans more than one publication window
-        Clock::time = 300000; tenure.pass();
+        sig.idle_ns += 170000;  // a long wait spans more than one publication window
+        Clock::time = 300000;
+        tenure.pass();
         require(sig.busy_ns == 124899, "long pass publishes complete actual wall");
-        Clock::time = 300050; tenure.pass();
+        Clock::time = 300050;
+        tenure.pass();
         require(sig.busy_ns == 124899, "new window suppresses a burst after the long pass");
         Clock::time = 300080;
         const auto r = tenure.finish(true, false);
@@ -126,4 +149,4 @@ inline int run(const char* only = "all") {
     std::puts("PASS signalacct deterministic accounting");
     return 0;
 }
-} // namespace signalacct_test
+}  // namespace signalacct_test

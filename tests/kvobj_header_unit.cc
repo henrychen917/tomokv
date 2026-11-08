@@ -13,8 +13,8 @@ static void require(bool ok, const char* site, const char* claim) {
     }
 }
 
-static void compare(const char* site, KvObj* object, Slice key, Type type, Enc enc,
-                    uint32_t length, bool ttl, uint8_t flags, int64_t deadline) {
+static void compare(const char* site, KvObj* object, Slice key, Type type, Enc enc, uint32_t length,
+                    bool ttl, uint8_t flags, int64_t deadline) {
     require(object, site, "allocation");
     alignas(KvObj) unsigned char storage[sizeof(KvObj) + sizeof(uint32_t)]{};
     auto* expected = reinterpret_cast<KvObj*>(storage);
@@ -24,11 +24,11 @@ static void compare(const char* site, KvObj* object, Slice key, Type type, Enc e
     require(std::memcmp(object, expected, sizeof(KvObj)) == 0, site,
             "8-byte header equals kvobj_init_header");
     if (key.identity() >= 255)
-        require(std::memcmp(object->tail(), expected->tail(), sizeof(uint32_t)) == 0,
-                site, "extended key length equals kvobj_init_header");
+        require(std::memcmp(object->tail(), expected->tail(), sizeof(uint32_t)) == 0, site,
+                "extended key length equals kvobj_init_header");
     require(object->key().key_eq(key), site, "key bytes and namespace round trip");
-    require(object->has_ttl_slot() == ttl && object->expire_at_ms() == deadline,
-            site, "TTL slot and deadline round trip");
+    require(object->has_ttl_slot() == ttl && object->expire_at_ms() == deadline, site,
+            "TTL slot and deadline round trip");
 }
 
 static void release(KvObj* object) {
@@ -55,51 +55,60 @@ int main(int argc, char** argv) {
                 const bool ttl = reserved || deadline >= 0;
                 if (wants("raw")) {
                     const Slice value("raw", 3);
-                    void* mem = alloc_raw(good_size(kvobj_alloc_size(key.identity(), value.n, ttl, Enc::Raw)));
+                    void* mem = alloc_raw(
+                        good_size(kvobj_alloc_size(key.identity(), value.n, ttl, Enc::Raw)));
                     auto* o = kvobj_init_raw_string(mem, key, value, deadline, reserved);
                     compare("raw", o, key, Type::String, Enc::Raw, value.n, ttl, 0, deadline);
-                    release(o); ++checked;
+                    release(o);
+                    ++checked;
                 }
                 if (wants("int")) {
-                    void* mem = alloc_raw(good_size(kvobj_alloc_size(key.identity(), 0, ttl, Enc::Int)));
+                    void* mem =
+                        alloc_raw(good_size(kvobj_alloc_size(key.identity(), 0, ttl, Enc::Int)));
                     auto* o = kvobj_init_int(mem, key, 42, deadline, reserved);
                     compare("int", o, key, Type::String, Enc::Int, 0, ttl, 0, deadline);
-                    release(o); ++checked;
+                    release(o);
+                    ++checked;
                 }
                 if (wants("string")) {
                     const std::string value(kEmbedThreshold + 1, 'v');
                     auto* o = kvobj_new_string(key, Slice(value), deadline, reserved);
                     compare("string", o, key, Type::String, Enc::Extern, value.size(), ttl,
                             KvObjFlags::OwnsExtern, deadline);
-                    release(o); ++checked;
+                    release(o);
+                    ++checked;
                 }
                 for (Type type : {Type::Hash, Type::List, Type::Set, Type::Zset}) {
-                    if (wants("typeval")) for (bool owns : {false, true}) {
-                        uint64_t payload = 0;
-                        auto* o = kvobj_new_typeval(key, type, &payload, sizeof(payload),
-                                                   deadline, owns, reserved);
-                        compare("typeval", o, key, type, Enc::Extern, sizeof(payload), ttl,
-                                owns ? KvObjFlags::OwnsExtern : 0, deadline);
-                        release(o); ++checked;
-                    }
+                    if (wants("typeval"))
+                        for (bool owns : {false, true}) {
+                            uint64_t payload = 0;
+                            auto* o = kvobj_new_typeval(key, type, &payload, sizeof(payload),
+                                                        deadline, owns, reserved);
+                            compare("typeval", o, key, type, Enc::Extern, sizeof(payload), ttl,
+                                    owns ? KvObjFlags::OwnsExtern : 0, deadline);
+                            release(o);
+                            ++checked;
+                        }
                     Compact compact;
                     require(compact.append(Slice("entry", 5)), "fixture", "compact payload");
                     const uint32_t length = sizeof(EmbeddedCompact) + compact.encoded_bytes();
                     if (wants("embedded")) {
-                        auto* o = kvobj_new_embedded_typeval(key, type, compact, 7, 9,
-                                                            deadline, reserved);
+                        auto* o = kvobj_new_embedded_typeval(key, type, compact, 7, 9, deadline,
+                                                             reserved);
                         compare("embedded", o, key, type, Enc::Compact, length, ttl, 0, deadline);
-                        release(o); ++checked;
+                        release(o);
+                        ++checked;
                     }
                     if (wants("reheader")) {
                         auto* source = kvobj_new_embedded_typeval(key, type, compact, 7, 9,
-                                                                 deadline, reserved);
+                                                                  deadline, reserved);
                         require(source, "reheader", "source allocation");
                         for (int64_t next : {int64_t(-1), int64_t(654321)}) {
                             auto* o = kvobj_reheader(source, next);
                             compare("reheader", o, key, type, Enc::Compact, length,
                                     ttl || next >= 0, 0, next);
-                            release(o); ++checked;
+                            release(o);
+                            ++checked;
                         }
                         release(source);
                     }

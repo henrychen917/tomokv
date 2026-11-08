@@ -53,7 +53,7 @@ std::string selftest();
 // image), force dense if any input was dense, otherwise update registers in ascending order through
 // the sparse mutation algorithm. The caller must already have merged and validated every input.
 bool merge_result(Slice destination, bool destination_present,
-                  const std::array<uint8_t, kRegisters>& maximum,
-                  bool any_dense, std::string& result);
+                  const std::array<uint8_t, kRegisters>& maximum, bool any_dense,
+                  std::string& result);
 
 }  // namespace tomo::hll

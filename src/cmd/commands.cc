@@ -54,11 +54,14 @@ const AclCommandCategoryDefinition* generated_acl_categories(const char* name) {
     while (lo < hi) {
         const size_t mid = lo + (hi - lo) / 2;
         const int order = std::strcmp(kAclCommandCategories[mid].name, name);
-        if (order < 0) lo = mid + 1;
-        else hi = mid;
+        if (order < 0)
+            lo = mid + 1;
+        else
+            hi = mid;
     }
     return lo < kAclCommandCategoryCount && !std::strcmp(kAclCommandCategories[lo].name, name)
-        ? &kAclCommandCategories[lo] : nullptr;
+               ? &kAclCommandCategories[lo]
+               : nullptr;
 }
 
 bool command_equal(Slice input, const char* canonical) {
@@ -66,7 +69,8 @@ bool command_equal(Slice input, const char* canonical) {
     if (input.n != n) return false;
     for (size_t i = 0; i < n; i++)
         if (ascii_upper(static_cast<uint8_t>(input.p[i])) !=
-            ascii_upper(static_cast<uint8_t>(canonical[i]))) return false;
+            ascii_upper(static_cast<uint8_t>(canonical[i])))
+            return false;
     return true;
 }
 
@@ -82,22 +86,55 @@ bool command_name_in(const char* name, const char* const (&names)[N]) {
 // every arity, and a bounded LRANGE is still Long. That is the cost of constant policy lookup.
 CommandLengthClass command_length_class_for(const CommandSpec& spec, bool read_local_armed) {
     static constexpr const char* kSmallMulti[] = {
-        "DEL", "UNLINK", "EXISTS", "TOUCH", "MGET", "MSET", "MSETNX",
-        "HMGET", "SMISMEMBER", "ZMSCORE",
-        "SMOVE", "LMOVE", "RPOPLPUSH",
-        "BLPOP", "BRPOP", "BZPOPMIN", "BZPOPMAX", "BLMOVE", "BRPOPLPUSH",
+        "DEL",   "UNLINK",     "EXISTS",   "TOUCH",  "MGET",       "MSET",      "MSETNX",
+        "HMGET", "SMISMEMBER", "ZMSCORE",  "SMOVE",  "LMOVE",      "RPOPLPUSH", "BLPOP",
+        "BRPOP", "BZPOPMIN",   "BZPOPMAX", "BLMOVE", "BRPOPLPUSH",
     };
     static constexpr const char* kLong[] = {
-        "GETRANGE", "SUBSTR", "SETRANGE", "BITFIELD", "BITFIELD_RO", "BITCOUNT",
-        "BITPOS", "DUMP", "RESTORE", "RESTORE-ASKING",
-        "HGETALL", "HKEYS", "HVALS", "HRANDFIELD", "HSCAN",
-        "LINDEX", "LINSERT", "LRANGE", "LREM", "LSET", "LPOS", "LTRIM",
-        "SMEMBERS", "SRANDMEMBER", "SSCAN",
-        "ZRANGE", "ZRANGEBYSCORE", "ZREVRANGEBYSCORE", "ZRANGEBYLEX",
-        "ZREVRANGEBYLEX", "ZREVRANGE", "ZRANDMEMBER", "ZSCAN",
-        "ZREMRANGEBYRANK", "ZREMRANGEBYSCORE", "ZREMRANGEBYLEX",
-        "GEOSEARCH", "XRANGE", "XREVRANGE", "XPENDING", "XCLAIM", "XAUTOCLAIM",
-        "XTRIM", "SCAN",
+        "GETRANGE",
+        "SUBSTR",
+        "SETRANGE",
+        "BITFIELD",
+        "BITFIELD_RO",
+        "BITCOUNT",
+        "BITPOS",
+        "DUMP",
+        "RESTORE",
+        "RESTORE-ASKING",
+        "HGETALL",
+        "HKEYS",
+        "HVALS",
+        "HRANDFIELD",
+        "HSCAN",
+        "LINDEX",
+        "LINSERT",
+        "LRANGE",
+        "LREM",
+        "LSET",
+        "LPOS",
+        "LTRIM",
+        "SMEMBERS",
+        "SRANDMEMBER",
+        "SSCAN",
+        "ZRANGE",
+        "ZRANGEBYSCORE",
+        "ZREVRANGEBYSCORE",
+        "ZRANGEBYLEX",
+        "ZREVRANGEBYLEX",
+        "ZREVRANGE",
+        "ZRANDMEMBER",
+        "ZSCAN",
+        "ZREMRANGEBYRANK",
+        "ZREMRANGEBYSCORE",
+        "ZREMRANGEBYLEX",
+        "GEOSEARCH",
+        "XRANGE",
+        "XREVRANGE",
+        "XPENDING",
+        "XCLAIM",
+        "XAUTOCLAIM",
+        "XTRIM",
+        "SCAN",
     };
     CommandLengthClass length = CommandLengthClass::Point;
     if (command_name_in(spec.name, kSmallMulti))
@@ -125,16 +162,12 @@ HotCommandSpecs g_hot_command_specs;
 bool command_registry_init(bool tls_enabled, bool fused_mode, bool read_local_armed) {
     if (g_registry.built) return true;
     const CommandTable families[] = {
-        string_command_table(), hash_command_table(), hash_ttl_command_table(),
-        list_command_table(),
-        set_command_table(), zset_command_table(), zset_ops_command_table(),
-        geo_command_table(), stream_command_table(),
-        stream_group_command_table(), server_command_table(),
-        scripting_command_table(), functions_command_table(),
-        server_tail_command_table(), slowlog_command_table(),
-        lcs_command_table(),
-        cmdgap_command_table(),
-        pfdebug_command_table(),
+        string_command_table(),       hash_command_table(),        hash_ttl_command_table(),
+        list_command_table(),         set_command_table(),         zset_command_table(),
+        zset_ops_command_table(),     geo_command_table(),         stream_command_table(),
+        stream_group_command_table(), server_command_table(),      scripting_command_table(),
+        functions_command_table(),    server_tail_command_table(), slowlog_command_table(),
+        lcs_command_table(),          cmdgap_command_table(),      pfdebug_command_table(),
     };
     size_t total = 0;
     for (const CommandTable& family : families) total += family.size;
@@ -236,18 +269,23 @@ bool command_registry_init(bool tls_enabled, bool fused_mode, bool read_local_ar
     for (const CommandSpec& entry : g_registry.entries) {
         const CommandSpec* spec = &entry;
         const size_t n = std::strlen(spec->name);
-        if (!std::strcmp(spec->name, "GET")) g_hot_command_specs.get = spec;
-        else if (!std::strcmp(spec->name, "SET")) g_hot_command_specs.set = spec;
-        else if (!std::strcmp(spec->name, "DEL")) g_hot_command_specs.del = spec;
-        else if (!std::strcmp(spec->name, "MGET")) g_hot_command_specs.mget = spec;
-        else if (!std::strcmp(spec->name, "MSET")) g_hot_command_specs.mset = spec;
-        else if (!std::strcmp(spec->name, "INCR")) g_hot_command_specs.incr = spec;
+        if (!std::strcmp(spec->name, "GET"))
+            g_hot_command_specs.get = spec;
+        else if (!std::strcmp(spec->name, "SET"))
+            g_hot_command_specs.set = spec;
+        else if (!std::strcmp(spec->name, "DEL"))
+            g_hot_command_specs.del = spec;
+        else if (!std::strcmp(spec->name, "MGET"))
+            g_hot_command_specs.mget = spec;
+        else if (!std::strcmp(spec->name, "MSET"))
+            g_hot_command_specs.mset = spec;
+        else if (!std::strcmp(spec->name, "INCR"))
+            g_hot_command_specs.incr = spec;
         if (n == 0 || spec->min_arity < 1 ||
-            (spec->max_arity >= 0 && spec->max_arity < spec->min_arity) ||
-            spec->first_key < 0 || spec->key_step < 0 ||
-            (!(spec->flags & (CmdFlags::ConnLocal | CmdFlags::AllShards |
-                              CmdFlags::RandomShard | CmdFlags::CursorShard |
-                              CmdFlags::ConfigRoute | CmdFlags::MultiShard |
+            (spec->max_arity >= 0 && spec->max_arity < spec->min_arity) || spec->first_key < 0 ||
+            spec->key_step < 0 ||
+            (!(spec->flags & (CmdFlags::ConnLocal | CmdFlags::AllShards | CmdFlags::RandomShard |
+                              CmdFlags::CursorShard | CmdFlags::ConfigRoute | CmdFlags::MultiShard |
                               CmdFlags::ScriptRoute)) &&
              spec->first_key >= spec->min_arity)) {
             std::fprintf(stderr, "invalid command registry row '%s'\n", spec->name);
@@ -304,8 +342,7 @@ void append_ascii_lower(std::string& out, const char* text) {
 void reply_metadata_subcommand_wrong_args(Op& op, const CommandSpec& spec,
                                           const CommandMetadata& metadata) {
     const char* separator = std::strchr(command_metadata_name(metadata).p, '|');
-    command_reply_subcommand_wrong_args(op, spec.name,
-                                        separator ? separator + 1 : spec.name);
+    command_reply_subcommand_wrong_args(op, spec.name, separator ? separator + 1 : spec.name);
 }
 
 }  // namespace
@@ -317,7 +354,7 @@ void command_reply_subcommand_error(Op& op, const char* container, bool unknown)
     size_t length = 0;
     while (length < subcommand.n && length < 128 && subcommand.p[length]) ++length;
     std::string message = unknown ? "ERR unknown subcommand '"
-        : "ERR unknown subcommand or wrong number of arguments for '";
+                                  : "ERR unknown subcommand or wrong number of arguments for '";
     message.append(subcommand.p, length);
     message += "'. Try ";
     message += container;
@@ -325,8 +362,7 @@ void command_reply_subcommand_error(Op& op, const char* container, bool unknown)
     reply_err(op.sink(), message.c_str());
 }
 
-void command_reply_subcommand_wrong_args(Op& op, const char* container,
-                                         const char* subcommand) {
+void command_reply_subcommand_wrong_args(Op& op, const char* container, const char* subcommand) {
     std::string message = "ERR wrong number of arguments for '";
     append_ascii_lower(message, container);
     message.push_back('|');
@@ -335,15 +371,15 @@ void command_reply_subcommand_wrong_args(Op& op, const char* container,
     reply_err(op.sink(), message.c_str());
 }
 
-bool command_validate_subcommand(Op& op, const char* container,
-                                 const SubcommandArity* table, size_t count) {
+bool command_validate_subcommand(Op& op, const char* container, const SubcommandArity* table,
+                                 size_t count) {
     const Slice subcommand = op.arg(1);
     for (size_t i = 0; i < count; i++) {
         const SubcommandArity& entry = table[i];
         if (!command_equal(subcommand, entry.name)) continue;
-        const bool valid = op.argc() >= static_cast<uint32_t>(entry.min_arity) &&
-                           (entry.max_arity < 0 ||
-                            op.argc() <= static_cast<uint32_t>(entry.max_arity));
+        const bool valid =
+            op.argc() >= static_cast<uint32_t>(entry.min_arity) &&
+            (entry.max_arity < 0 || op.argc() <= static_cast<uint32_t>(entry.max_arity));
         if (valid) return true;
         if (entry.error == SubcommandArityError::UnknownOrWrong)
             command_reply_subcommand_error(op, container, false);
@@ -357,8 +393,7 @@ bool command_validate_subcommand(Op& op, const char* container,
     return false;
 }
 
-bool command_validate_container_subcommand(Op& op, const CommandSpec& spec,
-                                           int16_t& first_key) {
+bool command_validate_container_subcommand(Op& op, const CommandSpec& spec, int16_t& first_key) {
     const CommandMetadata* metadata = command_metadata_resolve(op, 0);
     if (!metadata || !command_metadata_is_subcommand(*metadata)) {
         command_reply_subcommand_error(op, spec.name);
@@ -379,13 +414,13 @@ bool command_reply_container_subcommand_arity(Op& op, const CommandSpec& spec, C
     if (!(spec.flags & CmdFlags::SubcmdRoute)) return false;
     const CommandMetadata* metadata = command_metadata_resolve(op, 0);
     if (!metadata || !command_metadata_is_subcommand(*metadata) ||
-        command_metadata_arity_ok(*metadata, op.argc())) return false;
+        command_metadata_arity_ok(*metadata, op.argc()))
+        return false;
     reply_metadata_subcommand_wrong_args(op, spec, *metadata);
     return true;
 }
 
-bool command_reply_container_outer_arity(Op& op, const CommandSpec& spec,
-                                         bool unauthenticated) {
+bool command_reply_container_outer_arity(Op& op, const CommandSpec& spec, bool unauthenticated) {
     if (auth_arity_reply(op, spec, unauthenticated, true)) return true;
     if (op.argc() < 2) return false;
     if (spec.flags & CmdFlags::SubcmdRoute) {
@@ -395,8 +430,7 @@ bool command_reply_container_outer_arity(Op& op, const CommandSpec& spec,
         // shape is MEMORY USAGE crossing its finite container maximum. Its handler grammar
         // precedes key lookup and Redis reports syntax error for those tails. XINFO STREAM
         // has no outer maximum: its handler must look up the key before parsing the tail.
-        if (command_validate_container_subcommand(op, spec, first_key))
-            reply_syntax(op.sink());
+        if (command_validate_container_subcommand(op, spec, first_key)) reply_syntax(op.sink());
         return true;
     }
     if (!std::strcmp(spec.name, "SLOWLOG")) {
@@ -406,9 +440,7 @@ bool command_reply_container_outer_arity(Op& op, const CommandSpec& spec,
     return false;
 }
 
-uint32_t command_registry_size() {
-    return static_cast<uint32_t>(g_registry.entries.size());
-}
+uint32_t command_registry_size() { return static_cast<uint32_t>(g_registry.entries.size()); }
 
 const CommandSpec* command_registry_at(uint32_t id) {
     return id < g_registry.entries.size() ? &g_registry.entries[id] : nullptr;
@@ -420,15 +452,15 @@ uint64_t command_acl_category_mask(const CommandSpec& spec) {
 
 const CommandSpec* command_notify_variant(const CommandSpec* spec) {
     return spec && spec->id < g_registry.notify_entries.size()
-        ? &g_registry.notify_entries[spec->id] : spec;
+               ? &g_registry.notify_entries[spec->id]
+               : spec;
 }
 
 const CommandSpec* command_tls_variant(const CommandSpec* spec) {
     if (!spec || g_registry.tls_entries.empty() || spec->id >= g_registry.tls_entries.size())
         return spec;
-    return (spec->flags & CmdFlags::NotifySelected)
-        ? &g_registry.tls_notify_entries[spec->id]
-        : &g_registry.tls_entries[spec->id];
+    return (spec->flags & CmdFlags::NotifySelected) ? &g_registry.tls_notify_entries[spec->id]
+                                                    : &g_registry.tls_entries[spec->id];
 }
 
 }  // namespace tomo

@@ -69,14 +69,17 @@ struct CoreConcurrencyTest {
                     if (tid) place += ',';
                     place += "ifid@" + std::to_string(allowed[tid % allowed.size()]);
                 }
-                require(server.placement_.build_fused(server.topo_, place.c_str()), "fused placement");
+                require(server.placement_.build_fused(server.topo_, place.c_str()),
+                        "fused placement");
                 io_id = thread_count - 1;
             } else {
                 require(thread_count == 8, "split fixture retains gate geometry");
-                require(server.placement_.build_even(server.topo_, split_io, thread_count - split_io),
-                        "split placement");
+                require(
+                    server.placement_.build_even(server.topo_, split_io, thread_count - split_io),
+                    "split placement");
             }
-            require(server.placement_.reserve_runtime_roles(thread_count), "reserve placement roles");
+            require(server.placement_.reserve_runtime_roles(thread_count),
+                    "reserve placement roles");
             Config config;
             config.atomic = atomic;
             config.shards = shard_count;
@@ -88,7 +91,8 @@ struct CoreConcurrencyTest {
             config.key_lb_damping = key_damping;
             config.save.clear();
             require(server.init(config), "initialize in-memory fixture");
-            require(server.nshards() == shard_count && server.nthreads() == thread_count, "fixture geometry");
+            require(server.nshards() == shard_count && server.nthreads() == thread_count,
+                    "fixture geometry");
             for (uint32_t tid = 0; tid < thread_count; tid++) {
                 ThreadCtx& thread = server.thread(tid);
                 require(Fused ? thread.init_task_inbox_local_fused()
@@ -153,14 +157,14 @@ struct CoreConcurrencyTest {
         require(f.loops[f.server.worker_of_shard(op.shard)].execute(Task{&client, id, -1, nullptr}),
                 "command execution");
         std::string reply;
-        require(client.rob().drain([&](Op& done) {
-                    reply.assign(done.reply.data(), done.reply.size());
-                }) == 1, "command completed exactly once");
+        require(client.rob().drain(
+                    [&](Op& done) { reply.assign(done.reply.data(), done.reply.size()); }) == 1,
+                "command completed exactly once");
         return reply;
     }
 
-    #include "slowlog_completion_checks.inc"
-    #include "wave5_dispatch_checks.inc"
+#include "slowlog_completion_checks.inc"
+#include "wave5_dispatch_checks.inc"
 
     static void watch_disconnect() {
         Fixture f;
@@ -177,11 +181,12 @@ struct CoreConcurrencyTest {
         // swap can keep tracking an absent key. Assert the exact shard set.
         std::set<int32_t> expected;
         for (unsigned ns = 0; ns < f.server.cfg().databases; ++ns)
-            expected.insert(f.server.router().shard_of(
-                FlatStore::hash_key(Slice(key.data(), key.size(), ns))));
+            expected.insert(
+                f.server.router().shard_of(FlatStore::hash_key(Slice(key.data(), key.size(), ns))));
         MultiExecState* state = nullptr;
         require(multi_handle_io(f.server, client, op, f.io_id, state) == MultiIoAction::Dispatch &&
-                    state && multi_dispatch_count(state) == expected.size(), "WATCH owner fragments prepared");
+                    state && multi_dispatch_count(state) == expected.size(),
+                "WATCH owner fragments prepared");
         std::set<int32_t> actual;
         for (unsigned i = 0; i < multi_dispatch_count(state); ++i)
             actual.insert(multi_dispatch_shard(state, i));
@@ -192,7 +197,8 @@ struct CoreConcurrencyTest {
         multi_dispatch_started(client, state);
         for (int32_t target : actual)
             require(f.loops[f.server.worker_of_shard(target)].execute(
-                multi_make_task(&client, 0, target, state)), "WATCH alias executed");
+                        multi_make_task(&client, 0, target, state)),
+                    "WATCH alias executed");
         const auto drain_aliases = [&] {
             for (unsigned pass = 0; pass < 1000; ++pass) {
                 bool pending = false;
@@ -211,18 +217,20 @@ struct CoreConcurrencyTest {
         require(deferred.empty() && f.server.shard(sid).has_watches(), "WATCH registration exists");
         require(!client.safe_to_release(), "watcher reference pins disconnected client");
         state = multi_prepare_close(f.server, client, f.io_id);
-        require(state && multi_dispatch_count(state) == expected.size(), "disconnect cleanup prepared");
+        require(state && multi_dispatch_count(state) == expected.size(),
+                "disconnect cleanup prepared");
         multi_internal_dispatch_started(state);
         for (int32_t target : actual) {
             const Task cleanup = multi_make_task(nullptr, UINT64_MAX, target, state);
-            require(multi_task_tagged(cleanup) && cleanup.client == nullptr, "null tagged task armed");
-            require(f.loops[f.server.worker_of_shard(target)].execute(cleanup), "null tagged cleanup executed");
+            require(multi_task_tagged(cleanup) && cleanup.client == nullptr,
+                    "null tagged task armed");
+            require(f.loops[f.server.worker_of_shard(target)].execute(cleanup),
+                    "null tagged cleanup executed");
         }
         drain_aliases();
         for (int32_t target : actual)
             require(!f.server.shard(target).has_watches(), "cleanup removed physical alias");
-        require(client.safe_to_release(),
-                "cleanup removed watcher and released client");
+        require(client.safe_to_release(), "cleanup removed watcher and released client");
     }
 
     inline static std::mutex pause_mutex;
@@ -244,12 +252,15 @@ struct CoreConcurrencyTest {
         prepare(*client, {Slice("SET"), slice(key), Slice("new")}, f.server);
         client->rob().publish();
         ExLoop::test_after_done_ = hold_done;
-        std::thread worker([&] { require(f.loops[f.source].execute(Task{client, 0, -1, nullptr}),
-                                        "paused executor completed"); });
+        std::thread worker([&] {
+            require(f.loops[f.source].execute(Task{client, 0, -1, nullptr}),
+                    "paused executor completed");
+        });
         {
             std::unique_lock lock(pause_mutex);
-            require(pause_cv.wait_for(lock, std::chrono::seconds(10), [] { return done_hook_entered; }),
-                    "executor reached post-Done/pre-notification window");
+            require(
+                pause_cv.wait_for(lock, std::chrono::seconds(10), [] { return done_hook_entered; }),
+                "executor reached post-Done/pre-notification window");
         }
         require(client->rob().drain([](Op&) {}) == 1 && client->safe_to_release(),
                 "IO backstop retired Done before notification");
@@ -280,7 +291,8 @@ struct CoreConcurrencyTest {
     }
 
     static void close_cycle_timeout(int) {
-        constexpr char message[] = "FAIL core concurrency: close pass did not return while peer epoch was held\n";
+        constexpr char message[] =
+            "FAIL core concurrency: close pass did not return while peer epoch was held\n";
         const auto written = ::write(STDERR_FILENO, message, sizeof(message) - 1);
         (void)written;
         std::_Exit(1);
@@ -318,27 +330,31 @@ struct CoreConcurrencyTest {
         }
         std::optional<Server::DatabaseWorkScope> first(std::in_place, f.server, f.io_id);
         std::optional<Server::DatabaseWorkScope> second(std::in_place, f.server, other);
-        require((f.server.client_work_epoch(f.io_id) & 1) &&
-                    (f.server.client_work_epoch(other) & 1), "both outer IO epochs armed");
+        require(
+            (f.server.client_work_epoch(f.io_id) & 1) && (f.server.client_work_epoch(other) & 1),
+            "both outer IO epochs armed");
         for (unsigned i = 0; i < 2; ++i) {
-            require(clients[i]->safe_to_release() &&
-                        !ios[i]->client_executor_quiesced(clients[i]),
+            require(clients[i]->safe_to_release() && !ios[i]->client_executor_quiesced(clients[i]),
                     "closing ROB is empty but peer epoch must still end");
             const uint32_t missing = ios[1 - i]->self_->id();
             require(ios[i]->client_work_fences_.at(clients[i]).epochs[missing] ==
-                        f.server.client_work_epoch(missing), "reciprocal close wait captured");
+                        f.server.client_work_epoch(missing),
+                    "reciprocal close wait captured");
         }
         std::printf("ARMED close-cycle mode=%s reorder=%u: reciprocal IO epoch waits\n",
                     Fused ? "1s" : "2s", Reorder);
         std::fflush(stdout);
-        struct sigaction action{}, previous{};
+        struct sigaction action {
+        }, previous{};
         action.sa_handler = close_cycle_timeout;
         sigemptyset(&action.sa_mask);
         require(sigaction(SIGALRM, &action, &previous) == 0, "install close-pass watchdog");
-        alarm(5); // PRE spins inside flush_ready; timeout is a loud FAIL, never success/skip.
+        alarm(5);  // PRE spins inside flush_ready; timeout is a loud FAIL, never success/skip.
         auto pass = [](IoLoop& io) {
-            if constexpr (Reorder) io.r7_flush_ready<false, true, Fused>();
-            else io.flush_ready<false, true, Fused>();
+            if constexpr (Reorder)
+                io.r7_flush_ready<false, true, Fused>();
+            else
+                io.flush_ready<false, true, Fused>();
         };
         for (unsigned n = 0; n < 2; ++n) {
             for (auto* io : ios) pass(*io);
@@ -353,7 +369,7 @@ struct CoreConcurrencyTest {
                 "peer closes only after its captured epoch ends");
         second.reset();
         first.emplace(f.server, f.io_id);
-        second.emplace(f.server, other); // newer active epochs must not require global idle
+        second.emplace(f.server, other);  // newer active epochs must not require global idle
         pass(f.io);
         require(clients[0]->dead() && f.server.live_clients() == 0,
                 "next pass closes after captured epochs end, even with newer scopes active");
@@ -422,8 +438,9 @@ struct CoreConcurrencyTest {
             if (tid != f.io_id) f.server.lb_ack(tid);
         require(!f.server.lb_begin_ex_drain(), "unpublished producer prevents ownership move");
         client.rob().publish();
-        require(f.server.thread(sampled_owner).post_task_quiet(
-                    f.io_id, unpublished, f.server.thread(f.io_id).sig()), "publish old-route SET");
+        require(f.server.thread(sampled_owner)
+                    .post_task_quiet(f.io_id, unpublished, f.server.thread(f.io_id).sig()),
+                "publish old-route SET");
         f.server.lb_ack(f.io_id);
         require(f.server.lb_begin_ex_drain(), "all IO passed publication barrier");
         require(!f.loops[f.source].flip_quiesced(), "published old-route task prevents EX ack");
@@ -473,12 +490,14 @@ struct CoreConcurrencyTest {
             Server::ClientWorkScope unfinished(f.server, f.source);
             completed->state.store(OpState::Done, std::memory_order_release);
             require(client.rob().drain([](Op&) {}) == 1, "retire reply before executor scope ends");
-            for (unsigned pass = 0; pass < 4 && f.server.lb_stage() == LbStage::ClientDrain; pass++) {
+            for (unsigned pass = 0; pass < 4 && f.server.lb_stage() == LbStage::ClientDrain;
+                 pass++) {
                 std::memcpy(client.rbuf() + client.rlen(), request, sizeof(request) - 1);
                 client.commit_read(sizeof(request) - 1);
                 arrivals++;
-                require(f.io.template parse_and_dispatch<false, Fused ? kGenthreadIfidBatchOps : 0>(
-                            &client) == IoLoop::DispatchResult::Progress,
+                require(f.io.template parse_and_dispatch < false,
+                        Fused ? kGenthreadIfidBatchOps
+                              : 0 > (&client) == IoLoop::DispatchResult::Progress,
                         "production parser visits held input");
                 require(client.rpos() == 0 && client.rob().quiesced() && client.in_active() &&
                             client.migration_protocol_idle(),
@@ -492,14 +511,16 @@ struct CoreConcurrencyTest {
             require(!f.server.lb_timed_out(), "pass bound fires before five-second guard");
             require(f.server.lb_stage() == LbStage::Idle && f.server.lb_client_refused() == 1,
                     "busy move MUST be refused within four passes of continuous arrivals");
-            require(arrivals == 1, "busy move refuses on the FIRST tail, even without destination ACK");
+            require(arrivals == 1,
+                    "busy move refuses on the FIRST tail, even without destination ACK");
             std::string error;
             require(!f.io.client_transfer_ready(&client, destination, error) &&
                         error == "connection has an unfinished executor completion",
                     "refusal never weakens the lifetime fence");
         }
-        require(f.server.lb_policy_->stall.refused[static_cast<size_t>(LbStallReason::Executor)] == 1,
-                "diagnostic identifies the outstanding executor predicate");
+        require(
+            f.server.lb_policy_->stall.refused[static_cast<size_t>(LbStallReason::Executor)] == 1,
+            "diagnostic identifies the outstanding executor predicate");
 #ifdef TOMO_LB_STALL_DEBUG
         require(f.server.lb_policy_->stall.parked_passes >= 1 &&
                     f.server.lb_policy_->stall.parked_bytes_max >= sizeof(request) - 1,
@@ -510,9 +531,11 @@ struct CoreConcurrencyTest {
                     info.find("tomokv_lbstall_executor:1\r\n") != std::string::npos,
                 "INFO exposes the armed diagnostic and refusing predicate");
 #endif
-        require(f.io.template parse_and_dispatch<false, Fused ? kGenthreadIfidBatchOps : 0>(
-                    &client) == IoLoop::DispatchResult::Progress &&
-                    client.rpos() == client.rlen(), "refusal resumes the SAME buffered frames");
+        require(f.io.template parse_and_dispatch < false,
+                Fused ? kGenthreadIfidBatchOps
+                      : 0 > (&client) == IoLoop::DispatchResult::Progress &&
+                            client.rpos() == client.rlen(),
+                "refusal resumes the SAME buffered frames");
         uint32_t replies = 0;
         client.rob().drain([&](Op& op) {
             require(op.reply_code_ == static_cast<uint8_t>(ReplyCode::Pong) ||
@@ -524,8 +547,9 @@ struct CoreConcurrencyTest {
         client.set_recv_armed(false);
         command_client_disconnected(&client);
         f.server.thread(f.io_id).clients().clear();
-        std::printf("PASS LB busy client mode=%s destination_ack=%u arrivals=%u (first-tail refusal)\n",
-                    Fused ? "1s" : "2s", unsigned(DestinationAck), arrivals);
+        std::printf(
+            "PASS LB busy client mode=%s destination_ack=%u arrivals=%u (first-tail refusal)\n",
+            Fused ? "1s" : "2s", unsigned(DestinationAck), arrivals);
     }
 
     static void lb_destination_and_executor() {
@@ -558,9 +582,11 @@ struct CoreConcurrencyTest {
         {
             Server::ClientWorkScope unfinished(f.server, f.source);
             completed->state.store(OpState::Done, std::memory_order_release);
-            require(client.rob().drain([](Op&) {}) == 1, "retire Done while its executor still holds Client");
+            require(client.rob().drain([](Op&) {}) == 1,
+                    "retire Done while its executor still holds Client");
             require(client.migration_protocol_idle(), "executor-only fence with empty ROB");
-            require(!f.io.client_transfer_ready(&client, 1, error), "unfinished scope really armed");
+            require(!f.io.client_transfer_ready(&client, 1, error),
+                    "unfinished scope really armed");
             require(f.io.lb_control_pass() != 0 && f.server.lb_stage() == LbStage::Idle,
                     "unfinished executor refuses move without waiving its lifetime fence");
         }
@@ -571,8 +597,9 @@ struct CoreConcurrencyTest {
                     f.server.lb_stage() == LbStage::ClientMoving,
                 "bounded refusal cannot revoke an in-flight kernel-pointer handoff");
         f.server.lb_client_move_cancelled(client.id());
-        require(f.server.lb_policy_->stall.refused[static_cast<size_t>(LbStallReason::Executor)] == 1,
-                "executor-only refusal has its own diagnostic");
+        require(
+            f.server.lb_policy_->stall.refused[static_cast<size_t>(LbStallReason::Executor)] == 1,
+            "executor-only refusal has its own diagnostic");
         command_client_disconnected(&client);
         f.server.thread(f.io_id).clients().clear();
     }
@@ -624,7 +651,8 @@ struct CoreConcurrencyTest {
             f.server.lb_ack(tid);
         }
         require(f.io.lb_control_pass() && f.server.lb_stage() == LbStage::Idle &&
-                    f.server.worker_of_shard(sid) == f.destination && f.server.lb_bucket_moves() == 1,
+                    f.server.worker_of_shard(sid) == f.destination &&
+                    f.server.lb_bucket_moves() == 1,
                 "same busy shard plan commits after both drains finish");
         require(command(f, client, {Slice("GET"), slice(key)}) == "$4\r\nheld\r\n",
                 "RYOW survives a committed shard move");
@@ -652,11 +680,16 @@ struct CoreConcurrencyTest {
             entered.fetch_add(1);
             while (entered.load() < 2) std::this_thread::yield();
         };
-        std::thread mover([&] { barrier(); committed = f.server.lb_commit_shard_plan(1); });
-        std::thread canceller([&] {
-            barrier(); refused = f.server.lb_refuse_stalled(1, LbStallReason::PassLimit);
+        std::thread mover([&] {
+            barrier();
+            committed = f.server.lb_commit_shard_plan(1);
         });
-        mover.join(); canceller.join();
+        std::thread canceller([&] {
+            barrier();
+            refused = f.server.lb_refuse_stalled(1, LbStallReason::PassLimit);
+        });
+        mover.join();
+        canceller.join();
         require(committed != refused && f.server.lb_stage() == LbStage::Idle,
                 "commit and bounded refusal have exactly one winner");
         require(f.server.worker_of_shard(sid) == (committed ? f.destination : f.source),
@@ -691,7 +724,8 @@ struct CoreConcurrencyTest {
             : Fixture<Fused>(true, Fused ? owners : 8, Fused ? 2 * owners : 16),
               visits(this->server.nshards(), 1000) {
             require(this->server.placement().ex_threads().size() == owners &&
-                        this->server.shard_owner_count() == owners, "LB fixture owner count");
+                        this->server.shard_owner_count() == owners,
+                    "LB fixture owner count");
             this->server.cfg_.client_lb = 0;
             this->server.lb_policy_->last_fold_ns = clock_ms * 1000000;
             this->server.lb_policy_->bucket_fold_ns = clock_ms * 1000000;
@@ -700,9 +734,10 @@ struct CoreConcurrencyTest {
             clock_ms += LbAutotune::kTickMs;
             for (uint32_t sid = 0; sid < visits.size(); sid++) {
                 Shard& physical = this->server.shard(sid);
-                physical.stats().ops += hot_admission_only
-                    ? (this->server.worker_of_shard(sid) == this->source ? 10000 : 1000)
-                    : visits[sid];
+                physical.stats().ops +=
+                    hot_admission_only
+                        ? (this->server.worker_of_shard(sid) == this->source ? 10000 : 1000)
+                        : visits[sid];
                 // Two buckets per shard make the dominant-bucket veto independent of the
                 // indivisible-shard/no-improvement case (neither bucket exceeds half).
                 physical.note_lb_sample(physical.bucket_begin(), visits[sid] / 2);
@@ -777,8 +812,8 @@ struct CoreConcurrencyTest {
     static void lb_floor() {
         for (uint32_t owners : lb_owner_counts) {
             const double pairs = double(owners) * (owners - 1) / 2;
-            const double expected = 100 * std::sqrt((4 + 2 * std::log(pairs)) *
-                                                   2 / LbAutotune::kSamplesPerDecision);
+            const double expected =
+                100 * std::sqrt((4 + 2 * std::log(pairs)) * 2 / LbAutotune::kSamplesPerDecision);
             LbAutotune::QuietJitter noise;
             for (uint32_t tick = 0; tick < 256; tick++) {
                 noise.observe(1.0);
@@ -798,7 +833,8 @@ struct CoreConcurrencyTest {
         LbFixture<Fused> f(owners);
         f.small_residual();
         for (uint32_t tick = 0; tick < 96; tick++)
-            require(!f.tick(), "stationary residual yields no move through and after stabilization");
+            require(!f.tick(),
+                    "stationary residual yields no move through and after stabilization");
         require(f.server.lb_policy_->key_jitter.previous > 0 &&
                     f.server.lb_policy_->key_jitter.jitter < 1e-9 &&
                     f.server.lb_policy_->key_jitter.windows > LbAutotune::kDecisionTicks,
@@ -812,8 +848,10 @@ struct CoreConcurrencyTest {
         LbFixture<Fused> f(owners);
         if (modest) f.balanced_owner_loads();
         for (uint32_t tick = 0; tick < 96; tick++) require(!f.tick(), "prime stationary hot test");
-        if (modest) f.modest_imbalance();
-        else f.visits[f.sid()] += 8000;
+        if (modest)
+            f.modest_imbalance();
+        else
+            f.visits[f.sid()] += 8000;
         const double before = f.demand_spread();
         require(before > 0, "hot-shard test armed a real owner imbalance");
         bool planned = false;
@@ -821,15 +859,19 @@ struct CoreConcurrencyTest {
         // the old stationary history. Two further decision windows must find the hot shard.
         for (uint32_t tick = 0; tick < 3 * LbAutotune::kDecisionTicks && !planned; tick++)
             planned = f.tick();
-        require_lb(planned && f.server.lb_bucket_gathers() > 0 && !f.server.lb_shard_moves_.empty(), owners,
-                "induced hot shard fires within nine ticks after stationary warmup");
+        require_lb(planned && f.server.lb_bucket_gathers() > 0 && !f.server.lb_shard_moves_.empty(),
+                   owners, "induced hot shard fires within nine ticks after stationary warmup");
         f.commit();
         require(f.server.lb_bucket_moves() > 0, "hot-shard proof committed actual ownership moves");
-        require_lb(f.demand_spread() < before, owners, "hot-shard move improves actual owner spread");
-        if (modest) require_lb(f.demand_spread() == 0, owners, "modest imbalance is eliminated by one move");
+        require_lb(f.demand_spread() < before, owners,
+                   "hot-shard move improves actual owner spread");
+        if (modest)
+            require_lb(f.demand_spread() == 0, owners,
+                       "modest imbalance is eliminated by one move");
         // Keep the induced workload fixed by physical shard; let further beneficial plans
         // finish, then require a zero-move stationary suffix.
-        for (uint32_t tick = 0; tick < 96; tick++) if (f.tick()) f.commit();
+        for (uint32_t tick = 0; tick < 96; tick++)
+            if (f.tick()) f.commit();
         const uint64_t settled_moves = f.server.lb_bucket_moves();
         for (uint32_t tick = 0; tick < 48; tick++)
             require(!f.tick(), "fixed hot-shard workload stops moving after stabilization");
@@ -842,7 +884,8 @@ struct CoreConcurrencyTest {
     }
 
     static void lb_hot_all() {
-        lb_hot<false>(); lb_hot<true>(); // preserve the original large-hot-shard assertions
+        lb_hot<false>();
+        lb_hot<true>();  // preserve the original large-hot-shard assertions
         for (uint32_t owners : {8u, 32u, 64u}) lb_hot<true>(owners, true);
     }
 
@@ -850,16 +893,19 @@ struct CoreConcurrencyTest {
         for (uint32_t owners : lb_owner_counts) {
             LbFixture<true> f(owners);
             f.balanced_owner_loads();
-            for (uint32_t tick = 0; tick < 96; tick++) require(!f.tick(), "prime clearable-floor test");
+            for (uint32_t tick = 0; tick < 96; tick++)
+                require(!f.tick(), "prime clearable-floor test");
             f.modest_imbalance();
-            require(f.demand_spread() == 2500, "clearable-floor witness has exactly 25% owner spread");
+            require(f.demand_spread() == 2500,
+                    "clearable-floor witness has exactly 25% owner spread");
             for (uint32_t tick = 0; tick < 9 && !f.server.lb_bucket_gathers(); tick++)
                 if (f.tick()) f.commit();
             require_lb(f.server.lb_bucket_gathers() > 0, owners,
                        "25% owner imbalance clears admission within nine ticks");
             const auto& noise = f.server.lb_policy_->key_jitter;
-            require_lb(std::abs(noise.previous - 25.0) < 1e-9 && noise.band(owners) < 25.0, owners,
-                       "production admission observes the stated realistic imbalance above its floor");
+            require_lb(
+                std::abs(noise.previous - 25.0) < 1e-9 && noise.band(owners) < 25.0, owners,
+                "production admission observes the stated realistic imbalance above its floor");
         }
     }
 
@@ -878,7 +924,7 @@ struct CoreConcurrencyTest {
     }
 
     static void lb_sampling_all() {
-        lb_sampling<false>(); // two actual owners, eight total threads
+        lb_sampling<false>();  // two actual owners, eight total threads
         for (uint32_t owners : lb_owner_counts) lb_sampling<true>(owners);
     }
 
@@ -898,16 +944,16 @@ struct CoreConcurrencyTest {
         for (uint32_t tick = 0; tick < 9 && !f.server.lb_bucket_gathers(); tick++) {
             if (f.tick()) f.commit();
         }
-        require(f.server.lb_bucket_gathers() > 0 &&
-                    f.server.lb_bucket_last_samples_ != before_samples,
-                "gather witness and sample fold both fire on admitted evidence");
+        require(
+            f.server.lb_bucket_gathers() > 0 && f.server.lb_bucket_last_samples_ != before_samples,
+            "gather witness and sample fold both fire on admitted evidence");
     }
 
     template <bool Fused>
     static void lb_no_move() {
         LbFixture<Fused> f;
         std::fill(f.visits.begin(), f.visits.end(), 0);
-        f.visits[f.sid()] = 10000; // one indivisible shard; relocating it cannot improve spread
+        f.visits[f.sid()] = 10000;  // one indivisible shard; relocating it cannot improve spread
         for (uint32_t tick = 0; tick < 9 && !f.server.lb_bucket_gathers(); tick++)
             require(!f.tick(), "indivisible load cannot produce a beneficial move");
         const uint64_t gathered = f.server.lb_bucket_gathers();
@@ -938,8 +984,9 @@ struct CoreConcurrencyTest {
         const uint64_t hash = FlatStore::hash_key(slice(key));
         physical.set_cached_now_ms(1000, 0);
         KvObj* object = kvobj_new_string(slice(key), Slice("expired-accounting-witness"), 1001);
-        require(object && physical.store().insert(hash, object) == FlatStore::InsertResult::Inserted,
-                "read-only fold planted a real expiring object");
+        require(
+            object && physical.store().insert(hash, object) == FlatStore::InsertResult::Inserted,
+            "read-only fold planted a real expiring object");
         physical.set_cached_now_ms(1002, 0);
         physical.note_lb_sample(hash, 17);
         const uint64_t bytes = physical.store().object_bytes();
@@ -955,7 +1002,8 @@ struct CoreConcurrencyTest {
         require(f.server.lb_bucket_gathers() == 1 && items.size() == f.server.nshards(),
                 "read-only proof executed full detailed gather");
         require(physical.store().size() == 1 && physical.store().expire_count() == 1 &&
-                    physical.store().object_bytes() == bytes && physical.stats().expired == expired &&
+                    physical.store().object_bytes() == bytes &&
+                    physical.stats().expired == expired &&
                     physical.lb_bucket_samples(bucket_of(hash)) == 17,
                 "fold and census preserve objects, TTLs, bytes and owner sample counters");
         require(physical.store().find(hash, slice(key)) == nullptr &&
@@ -981,16 +1029,19 @@ struct CoreConcurrencyTest {
             sig.busy_ns = tid < 6 ? 400 : 1500;
         }
         command_bind_server(&f.server);
-        Op info; info.push_arg(Slice("INFO")); info.push_arg(Slice("ALL"));
+        Op info;
+        info.push_arg(Slice("INFO"));
+        info.push_arg(Slice("ALL"));
         command_lookup(Slice("INFO"))->handler(f.server.shard(0), info);
         const std::string body(info.reply.data(), info.reply.size());
         for (const char* row : {"tomokv_clientlb_moves:11", "tomokv_clientlb_refused:13",
-                               "tomokv_clientlb_cross_domain_moves:17",
-                               "tomokv_clientlb_weight_spread_current:19.000",
-                               "tomokv_clientlb_weight_spread_before:23.000",
-                               "tomokv_clientlb_weight_spread_after:29.000"}) {
+                                "tomokv_clientlb_cross_domain_moves:17",
+                                "tomokv_clientlb_weight_spread_current:19.000",
+                                "tomokv_clientlb_weight_spread_before:23.000",
+                                "tomokv_clientlb_weight_spread_after:29.000"}) {
             std::string key(row);
-            if (legacy_schema) key.replace(0, std::strlen("tomokv_clientlb_"), "tomokv_keylb_client_");
+            if (legacy_schema)
+                key.replace(0, std::strlen("tomokv_clientlb_"), "tomokv_keylb_client_");
             const std::string wire = std::string("\r\n") + key + "\r\n";
             const size_t at = body.find(wire);
             require(at != std::string::npos && body.find(wire, at + 1) == std::string::npos,
@@ -998,30 +1049,35 @@ struct CoreConcurrencyTest {
         }
         if (!legacy_schema) {
             for (const char* removed : {"tomokv_keylb_client_", "lb_ratio_star_io_frac:",
-                                       "flipctl_surge_triggers:", "flipctl_collapse_triggers:"})
-                require(body.find(removed) == std::string::npos, "deadcode2 INFO: retired publication");
+                                        "flipctl_surge_triggers:", "flipctl_collapse_triggers:"})
+                require(body.find(removed) == std::string::npos,
+                        "deadcode2 INFO: retired publication");
         } else {
             require(body.find("tomokv_clientlb_moves:") == std::string::npos,
                     "deadcode2 PAD: PRE client schema only");
             if constexpr (!Fused)
                 require(body.find("lb_ratio_star_io_frac:0.2500\r\n") != std::string::npos &&
-                        body.find("flipctl_surge_triggers:31\r\n") != std::string::npos &&
-                        body.find("flipctl_collapse_triggers:37\r\n") != std::string::npos,
+                            body.find("flipctl_surge_triggers:31\r\n") != std::string::npos &&
+                            body.find("flipctl_collapse_triggers:37\r\n") != std::string::npos,
                         "deadcode2 PAD: actual PRE ratio and duplicate trigger values");
         }
         if constexpr (!Fused) {
             require(body.find("flipctl_rate_surge_triggers:31\r\n") != std::string::npos &&
-                    body.find("flipctl_rate_collapse_triggers:37\r\n") != std::string::npos,
+                        body.find("flipctl_rate_collapse_triggers:37\r\n") != std::string::npos,
                     "deadcode2 INFO: canonical flip trigger counters retain their values");
         }
-        Op debug; debug.push_arg(Slice("DEBUG")); debug.push_arg(Slice("LBSIGNALS"));
+        Op debug;
+        debug.push_arg(Slice("DEBUG"));
+        debug.push_arg(Slice("LBSIGNALS"));
         command_lookup(Slice("DEBUG"))->handler(f.server.shard(0), debug);
         const std::string derived(debug.reply.data(), debug.reply.size());
         require(derived.find("derived ") != std::string::npos &&
-                derived.find("owner_threads ") != std::string::npos &&
-                ((legacy_schema && !Fused)
-                    ? derived.find("ratio_star_io_frac 0.250000 ratio_star_io 2 ratio_star_ex 6") != std::string::npos
-                    : derived.find("ratio_star") == std::string::npos),
+                    derived.find("owner_threads ") != std::string::npos &&
+                    ((legacy_schema && !Fused)
+                         ? derived.find(
+                               "ratio_star_io_frac 0.250000 ratio_star_io 2 ratio_star_ex 6") !=
+                               std::string::npos
+                         : derived.find("ratio_star") == std::string::npos),
                 "deadcode2 DEBUG: actual topology and requested diagnostic schema");
         command_bind_server(nullptr);
         std::printf("PASS deadcode2 INFO/DEBUG schema=%s mode=%s databases=%u\n",
@@ -1042,10 +1098,14 @@ struct CoreConcurrencyTest {
         lb_hot_all();
         lb_clearable();
         lb_sampling_all();
-        lb_lazy_gather<false>(); lb_lazy_gather<true>();
-        lb_no_move<false>(); lb_no_move<true>();
-        lb_step_floor<false>(); lb_step_floor<true>();
-        lb_fold_read_only<false>(); lb_fold_read_only<true>();
+        lb_lazy_gather<false>();
+        lb_lazy_gather<true>();
+        lb_no_move<false>();
+        lb_no_move<true>();
+        lb_step_floor<false>();
+        lb_step_floor<true>();
+        lb_fold_read_only<false>();
+        lb_fold_read_only<true>();
     }
 
 #include "signalacct_core_checks.inc"
@@ -1074,15 +1134,17 @@ struct CoreConcurrencyTest {
         f.move(sid, false);
         FlatStore& store = f.server.shard(sid).store();
         require(store.snapshot_prepare(1, 1000) == FlatStore::SnapshotWriteResult::Ready &&
-                    store.snapshot_mark(sid, 1000), "snapshot capture active after move");
+                    store.snapshot_mark(sid, 1000),
+                "snapshot capture active after move");
         auto& old = f.loops[f.source];
         old.snapshot_backlogs_.resize(16);
         old.schedule_snapshot_task(stale);
         require(old.snapshot_backlogs_[sid].empty() && store.snapshot_preimages() == 0,
                 "former owner neither captures foreign preimage nor retains foreign backlog");
         std::vector<Task> forwarded;
-        f.server.thread(f.destination).drain_tasks_unmasked(
-            [&](const Task& task) { forwarded.push_back(task); });
+        f.server.thread(f.destination).drain_tasks_unmasked([&](const Task& task) {
+            forwarded.push_back(task);
+        });
         require(forwarded.size() == 1 && forwarded[0].op_id == stale.op_id,
                 "stale task forwarded exactly once");
         auto& owner = f.loops[f.destination];
@@ -1115,11 +1177,13 @@ struct CoreConcurrencyTest {
         f.move(sid, range);
         require(owner.live_config_version_ == version, "destination version unchanged by move");
         owner.refresh_live_config();
-        require(f.server.shard(sid).store().maxmemory_enabled(), "incoming store enabled maxmemory");
+        require(f.server.shard(sid).store().maxmemory_enabled(),
+                "incoming store enabled maxmemory");
         Client client(-1);
         f.client(client);
         const std::string key = f.key(sid);
-        const std::string reply = command(f, client, {Slice("SET"), slice(key), Slice("too-large")});
+        const std::string reply =
+            command(f, client, {Slice("SET"), slice(key), Slice("too-large")});
         require(reply.find("OOM") != std::string::npos && f.server.shard(sid).store().size() == 0,
                 "incoming store enforces the published memory limit");
     }
@@ -1172,7 +1236,9 @@ struct CoreConcurrencyTest {
         for (uint32_t databases : {1u, 2u}) {
             Fixture<true> f(false, 8, 16, databases, 6, true);
             command_bind_server(&f.server);
-            Op op; op.push_arg(Slice("INFO")); op.push_arg(Slice("STATS"));
+            Op op;
+            op.push_arg(Slice("INFO"));
+            op.push_arg(Slice("STATS"));
             command_lookup(Slice("INFO"))->handler(f.server.shard(0), op);
             const std::string body(op.reply.data(), op.reply.size());
             const std::string row = "read_local_mget_generation_retries:0\r\n";
@@ -1184,7 +1250,7 @@ struct CoreConcurrencyTest {
         std::puts("PASS deadfused PAD-A: PRE INFO row restored for both database counts");
     }
 };
-} // namespace tomo
+}  // namespace tomo
 
 #ifndef TOMO_CORE_CONCURRENCY_EMBED
 int main(int argc, char** argv) {
@@ -1193,39 +1259,62 @@ int main(int argc, char** argv) {
     T::require(tomo::command_registry_init(false), "command registry initialization");
     const std::string row = argv[1];
 #ifdef TOMO_LANEFULL_ONLY
-    if (row == "lanefull") T::lanefull_all();
-    else if (row == "deadcode2-info-pre") T::deadcode2_info_all(true);
-    else if (row == "deadcode2-info") T::deadcode2_info_all();
-    else if (row == "lanefull-info") T::lanefull_info_all();
-    else if (row == "lanefull-info-pre") T::lanefull_info_all(true);
-    else T::require(false, "select lanefull or lanefull-info");
+    if (row == "lanefull")
+        T::lanefull_all();
+    else if (row == "deadcode2-info-pre")
+        T::deadcode2_info_all(true);
+    else if (row == "deadcode2-info")
+        T::deadcode2_info_all();
+    else if (row == "lanefull-info")
+        T::lanefull_info_all();
+    else if (row == "lanefull-info-pre")
+        T::lanefull_info_all(true);
+    else
+        T::require(false, "select lanefull or lanefull-info");
 #else
-    if (row == "watch") T::watch_disconnect();
+    if (row == "watch")
+        T::watch_disconnect();
     else if (row == "lifetime") {
-        T::lifetime(); T::close_cycles(); T::flip_close();
-        T::slowlog_completion<false>(); T::slowlog_completion<true>();
-        T::wave5_dispatch_defer<false>(); T::wave5_dispatch_defer<true>();
-    }
-    else if (row == "wave5-dispatch") {
-        T::wave5_dispatch_defer<false>(); T::wave5_dispatch_defer<true>();
-    }
-    else if (row == "slowlog-completion") {
-        T::slowlog_completion<false>(); T::slowlog_completion<true>();
-    }
-    else if (row == "slowlog-completion-negative") T::slowlog_completion<false>(true);
-    else if (row == "flip-close") T::flip_close();
-    else if (row == "flipfix-plan") { T::flipfix_plan_lifetime(); T::flipfix_plan_race(); }
-    else if (row == "flipfix-plan-race") T::flipfix_plan_race();
-    else if (row == "flipfix-plan-lifetime") T::flipfix_plan_lifetime();
-    else if (row == "flipfix-fingerprint") T::flipfix_fingerprint();
-    else if (row == "flipfix5") T::flipfix5_all();
-    else if (row == "flipfix7") { for (unsigned db : {1u, 16u}) {
+        T::lifetime();
+        T::close_cycles();
+        T::flip_close();
+        T::slowlog_completion<false>();
+        T::slowlog_completion<true>();
+        T::wave5_dispatch_defer<false>();
+        T::wave5_dispatch_defer<true>();
+    } else if (row == "wave5-dispatch") {
+        T::wave5_dispatch_defer<false>();
+        T::wave5_dispatch_defer<true>();
+    } else if (row == "slowlog-completion") {
+        T::slowlog_completion<false>();
+        T::slowlog_completion<true>();
+    } else if (row == "slowlog-completion-negative")
+        T::slowlog_completion<false>(true);
+    else if (row == "flip-close")
+        T::flip_close();
+    else if (row == "flipfix-plan") {
+        T::flipfix_plan_lifetime();
+        T::flipfix_plan_race();
+    } else if (row == "flipfix-plan-race")
+        T::flipfix_plan_race();
+    else if (row == "flipfix-plan-lifetime")
+        T::flipfix_plan_lifetime();
+    else if (row == "flipfix-fingerprint")
+        T::flipfix_fingerprint();
+    else if (row == "flipfix5")
+        T::flipfix5_all();
+    else if (row == "flipfix7") {
+        for (unsigned db : {1u, 16u}) {
             T::flipfix7_readiness(db);
-            T::flipfix7_output(db); T::flipfix7_borrow(db); T::flipfix7_coordinator(db);
+            T::flipfix7_output(db);
+            T::flipfix7_borrow(db);
+            T::flipfix7_coordinator(db);
             for (unsigned atomic : {0u, 1u}) T::flipfix7_blocked(db, atomic);
-        } }
-    else if (row == "flipfix6-watch") { T::flipfix6_watch(1); T::flipfix6_watch(16); }
-    else if (row == "flipfix6") {
+        }
+    } else if (row == "flipfix6-watch") {
+        T::flipfix6_watch(1);
+        T::flipfix6_watch(16);
+    } else if (row == "flipfix6") {
         for (auto db : {1u, 16u}) {
             T::flipfix6_watch(db);
             for (auto atomic : {0u, 1u}) {
@@ -1234,62 +1323,121 @@ int main(int argc, char** argv) {
                 for (bool converting : {false, true})
                     T::flipfix6_s2(db, atomic, converting, false, true);
             }
-            for (auto atomic : {0u, 1u}) for (bool converting : {false, true})
-                for (bool watch_pending : {false, true}) T::flipfix6_s2(db, atomic, converting, watch_pending);
+            for (auto atomic : {0u, 1u})
+                for (bool converting : {false, true})
+                    for (bool watch_pending : {false, true})
+                        T::flipfix6_s2(db, atomic, converting, watch_pending);
             for (bool converting : {false, true}) T::flipfix6_close_fence(db, converting);
         }
     }
     // Negative controls: the pre-flipfix5 live-epoch test must replay (FAIL) or abort.
-    else if (row == "flipfix5-planted") T::flipfix5_ex(tomo::FlipStage::ExInstall, true, false);
-    else if (row == "flipfix5-planted-abort") T::flipfix5_ex(tomo::FlipStage::ExInstall, true, true);
-    else if (row == "flipfix5-planted-boundary") T::flipfix5_ex(tomo::FlipStage::DatabaseExDrain, true, false);
-    else if (row == "flipfix5-planted-io") T::flipfix5_io(true);
+    else if (row == "flipfix5-planted")
+        T::flipfix5_ex(tomo::FlipStage::ExInstall, true, false);
+    else if (row == "flipfix5-planted-abort")
+        T::flipfix5_ex(tomo::FlipStage::ExInstall, true, true);
+    else if (row == "flipfix5-planted-boundary")
+        T::flipfix5_ex(tomo::FlipStage::DatabaseExDrain, true, false);
+    else if (row == "flipfix5-planted-io")
+        T::flipfix5_io(true);
     else if (row == "flipfix5-planted-late-token")
         T::flipfix5_ex(tomo::FlipStage::ExInstall, false, false, true, true);
-    else if (row == "close-cycle") T::close_cycles();
-    else if (row == "drain") T::drain_ack();
-    else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); T::signalacct(); T::flipsettle_all(); T::lanefull_all(); T::flipreport_all(); }
-    else if (row == "deadfused-notify" || row == "deadfused-notify-control") {
+    else if (row == "close-cycle")
+        T::close_cycles();
+    else if (row == "drain")
+        T::drain_ack();
+    else if (row == "route") {
+        T::route_order();
+        T::lb_stalls();
+        T::lb_signals();
+        T::signalacct();
+        T::flipsettle_all();
+        T::lanefull_all();
+        T::flipreport_all();
+    } else if (row == "deadfused-notify" || row == "deadfused-notify-control") {
         const bool broken = row == "deadfused-notify-control";
-        T::deadfused_notify<false>(broken); T::deadfused_notify<true>(broken);
-    }
-    else if (row == "deadfused-info-pad") T::deadfused_info_pad();
-    else if (row == "lanefull") T::lanefull_all();
-    else if (row == "deadcode2-info-pre") T::deadcode2_info_all(true);
-    else if (row == "deadcode2-info") T::deadcode2_info_all();
-    else if (row == "lanefull-info") T::lanefull_info_all();
-    else if (row == "lanefull-info-pre") T::lanefull_info_all(true);
-    else if (row == "flipreport") T::flipreport_all();
-    else if (row == "flipreport-wire") T::flipreport_all(true);
-    else if (row == "flipsettle") T::flipsettle_all();
-    else if (row.starts_with("flipsettle-")) T::flipsettle(row.c_str() + 11);
-    else if (row == "signalacct-report-2s") { T::signalacct_report<false>(); return 0; }
-    else if (row == "signalacct-report-1s") { T::signalacct_report<true>(); return 0; }
-    else if (row == "signalacct-post") T::signalacct_physical(false, true);
-    else if (row == "signalacct") T::signalacct();
-    else if (row == "lbfix") T::lb_signals();
-    else if (row == "lbfix-floor") T::lb_floor();
-    else if (row == "lbfix-stationary") T::lb_stationary_all();
-    else if (row == "lbfix-hot") T::lb_hot_all();
-    else if (row == "lbfix-hot-8") T::lb_hot<true>(8, true);
-    else if (row == "lbfix-hot-32") T::lb_hot<true>(32, true);
-    else if (row == "lbfix-hot-64") T::lb_hot<true>(64, true);
-    else if (row == "lbfix-clearable") T::lb_clearable();
-    else if (row == "lbfix-sampling") T::lb_sampling_all();
-    else if (row == "lbfix-gather") { T::lb_lazy_gather<false>(); T::lb_lazy_gather<true>(); }
-    else if (row == "lbfix-no-move") { T::lb_no_move<false>(); T::lb_no_move<true>(); }
-    else if (row == "lbfix-step") { T::lb_step_floor<false>(); T::lb_step_floor<true>(); }
-    else if (row == "lbfix-read-only") { T::lb_fold_read_only<false>(); T::lb_fold_read_only<true>(); }
-    else if (row == "lbstall") T::lb_stalls();
-    else if (row == "lbshard") { T::lb_shard_progress<false>(); T::lb_shard_progress<true>(); }
-    else if (row == "snapshot") T::snapshot_forward();
+        T::deadfused_notify<false>(broken);
+        T::deadfused_notify<true>(broken);
+    } else if (row == "deadfused-info-pad")
+        T::deadfused_info_pad();
+    else if (row == "lanefull")
+        T::lanefull_all();
+    else if (row == "deadcode2-info-pre")
+        T::deadcode2_info_all(true);
+    else if (row == "deadcode2-info")
+        T::deadcode2_info_all();
+    else if (row == "lanefull-info")
+        T::lanefull_info_all();
+    else if (row == "lanefull-info-pre")
+        T::lanefull_info_all(true);
+    else if (row == "flipreport")
+        T::flipreport_all();
+    else if (row == "flipreport-wire")
+        T::flipreport_all(true);
+    else if (row == "flipsettle")
+        T::flipsettle_all();
+    else if (row.starts_with("flipsettle-"))
+        T::flipsettle(row.c_str() + 11);
+    else if (row == "signalacct-report-2s") {
+        T::signalacct_report<false>();
+        return 0;
+    } else if (row == "signalacct-report-1s") {
+        T::signalacct_report<true>();
+        return 0;
+    } else if (row == "signalacct-post")
+        T::signalacct_physical(false, true);
+    else if (row == "signalacct")
+        T::signalacct();
+    else if (row == "lbfix")
+        T::lb_signals();
+    else if (row == "lbfix-floor")
+        T::lb_floor();
+    else if (row == "lbfix-stationary")
+        T::lb_stationary_all();
+    else if (row == "lbfix-hot")
+        T::lb_hot_all();
+    else if (row == "lbfix-hot-8")
+        T::lb_hot<true>(8, true);
+    else if (row == "lbfix-hot-32")
+        T::lb_hot<true>(32, true);
+    else if (row == "lbfix-hot-64")
+        T::lb_hot<true>(64, true);
+    else if (row == "lbfix-clearable")
+        T::lb_clearable();
+    else if (row == "lbfix-sampling")
+        T::lb_sampling_all();
+    else if (row == "lbfix-gather") {
+        T::lb_lazy_gather<false>();
+        T::lb_lazy_gather<true>();
+    } else if (row == "lbfix-no-move") {
+        T::lb_no_move<false>();
+        T::lb_no_move<true>();
+    } else if (row == "lbfix-step") {
+        T::lb_step_floor<false>();
+        T::lb_step_floor<true>();
+    } else if (row == "lbfix-read-only") {
+        T::lb_fold_read_only<false>();
+        T::lb_fold_read_only<true>();
+    } else if (row == "lbstall")
+        T::lb_stalls();
+    else if (row == "lbshard") {
+        T::lb_shard_progress<false>();
+        T::lb_shard_progress<true>();
+    } else if (row == "snapshot")
+        T::snapshot_forward();
     else if (row == "config") {
-        for (bool range : {false, true}) { T::transfer_config<false>(range); T::transfer_config<true>(range); }
+        for (bool range : {false, true}) {
+            T::transfer_config<false>(range);
+            T::transfer_config<true>(range);
+        }
     } else if (row == "notify") {
-        for (bool range : {false, true}) { T::transfer_notify<false>(range); T::transfer_notify<true>(range); }
-    } else T::require(false, "unknown regression row");
-    #endif
+        for (bool range : {false, true}) {
+            T::transfer_notify<false>(range);
+            T::transfer_notify<true>(range);
+        }
+    } else
+        T::require(false, "unknown regression row");
+#endif
     std::printf("PASS core concurrency %s (state assertions fired)\n", argv[1]);
 }
 
-#endif // TOMO_CORE_CONCURRENCY_EMBED
+#endif  // TOMO_CORE_CONCURRENCY_EMBED

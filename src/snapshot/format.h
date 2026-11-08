@@ -24,7 +24,7 @@ inline constexpr uint32_t kSnapshotChunkBytes = 64 * 1024;
 
 enum SnapshotFrameFlags : uint32_t {
     SnapshotFrameBegin = 1u << 0,
-    SnapshotFrameEnd   = 1u << 1,
+    SnapshotFrameEnd = 1u << 1,
 };
 
 struct SnapshotChunk {
@@ -52,12 +52,12 @@ struct SnapshotSaveCursor {
 };
 
 using SnapshotBeginSaveHook = SnapshotHookStatus (*)(const KvObj&, SnapshotSaveCursor&,
-                                                       uint8_t& encoding);
+                                                     uint8_t& encoding);
 using SnapshotReadSaveHook = SnapshotHookStatus (*)(SnapshotSaveCursor&, uint8_t* destination,
-                                                      size_t capacity, size_t& written);
+                                                    size_t capacity, size_t& written);
 using SnapshotLoadHook = SnapshotHookStatus (*)(Slice key, uint8_t encoding, int64_t expire_at_ms,
-                                                 Slice payload, const TypeLimits& limits,
-                                                 KvObj*& result);
+                                                Slice payload, const TypeLimits& limits,
+                                                KvObj*& result);
 
 struct SnapshotTypeHooks {
     SnapshotBeginSaveHook begin_save;
@@ -97,10 +97,12 @@ inline uint64_t snapshot_get_u64(const uint8_t* p) {
 
 inline uint64_t snapshot_checksum(const uint8_t* p, size_t n) {
     uint64_t h = 1469598103934665603ULL;
-    for (size_t i = 0; i < n; i++) { h ^= p[i]; h *= 1099511628211ULL; }
+    for (size_t i = 0; i < n; i++) {
+        h ^= p[i];
+        h *= 1099511628211ULL;
+    }
     return h;
 }
-
 
 // Streams one element's bytes into a bounded destination with resume support.  A hook keeps the
 // next element index in lane[0] and the byte position inside that element in lane[1]; per element
@@ -117,18 +119,33 @@ struct SnapshotElementEmitter {
         if (full) return false;
         const uint64_t start = pos, end = pos + n;
         const uint64_t from = start < resume ? resume : start;
-        if (from >= end) { pos = end; return true; }
+        if (from >= end) {
+            pos = end;
+            return true;
+        }
         const size_t want = static_cast<size_t>(end - from);
         const size_t can = cap - out;
         const size_t take = want < can ? want : can;
         std::memcpy(dst + out, static_cast<const uint8_t*>(p) + (from - start), take);
         out += take;
-        if (take < want) { full = true; pos = from + take; return false; }
+        if (take < want) {
+            full = true;
+            pos = from + take;
+            return false;
+        }
         pos = end;
         return true;
     }
-    bool put_u32(uint32_t v) { uint8_t b[4]; snapshot_put_u32(b, v); return put(b, 4); }
-    bool put_u64(uint64_t v) { uint8_t b[8]; snapshot_put_u64(b, v); return put(b, 8); }
+    bool put_u32(uint32_t v) {
+        uint8_t b[4];
+        snapshot_put_u32(b, v);
+        return put(b, 4);
+    }
+    bool put_u64(uint64_t v) {
+        uint8_t b[8];
+        snapshot_put_u64(b, v);
+        return put(b, 8);
+    }
 };
 
 }  // namespace tomo

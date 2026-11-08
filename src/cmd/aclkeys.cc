@@ -15,9 +15,8 @@ bool acl_pattern_allowed(const AclSelector& perm, Slice value) {
 }
 
 __attribute__((noinline)) AclDeniedReason acl_check_metadata_keys(
-    const AclSelector& perm, const CommandSpec& spec, uint32_t argc,
-    const void* argument_context, Slice (*argument_at)(const void*, uint32_t),
-    uint32_t* denied_arg) {
+    const AclSelector& perm, const CommandSpec& spec, uint32_t argc, const void* argument_context,
+    Slice (*argument_at)(const void*, uint32_t), uint32_t* denied_arg) {
     // Use precisely the same subcommand resolution and rich key specs as COMMAND GETKEYS.
     // Legacy routing ranges cannot describe timeouts, key counts, or keyless HELP arms.
     // This scratch view borrows argument bytes; it exists only for restricted ACL users.

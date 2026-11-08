@@ -28,7 +28,7 @@ namespace tomo {
 namespace {
 
 /* TOMO_TOOL_FUNCTION pin_fused_thread */
-void /* TOMO_TOOL_BIND pin_fused_thread */pin_fused_thread(int cpu) {
+void /* TOMO_TOOL_BIND pin_fused_thread */ pin_fused_thread(int cpu) {
     if (cpu < 0) return;
     cpu_set_t set;
     CPU_ZERO(&set);
@@ -39,27 +39,35 @@ void /* TOMO_TOOL_BIND pin_fused_thread */pin_fused_thread(int cpu) {
 }  // namespace
 
 /* TOMO_TOOL_FUNCTION IoLoop::run_fused */
-void IoLoop::/* TOMO_TOOL_BIND run_fused */run_fused() {
+void IoLoop::/* TOMO_TOOL_BIND run_fused */ run_fused() {
     if (!fused_executor_) std::abort();
-    const bool has_unix = unix_listen_fd_ >= 0 ||
-                          (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
+    const bool has_unix =
+        unix_listen_fd_ >= 0 || (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
     auto run = [&] {
         if (epoll_) {
             if (tls_context_) {
-                if (has_unix) run_loop<true, true, true, true>();
-                else run_loop<false, true, true, true>();
+                if (has_unix)
+                    run_loop<true, true, true, true>();
+                else
+                    run_loop<false, true, true, true>();
             } else {
-                if (has_unix) run_loop<true, false, true, true>();
-                else run_loop<false, false, true, true>();
+                if (has_unix)
+                    run_loop<true, false, true, true>();
+                else
+                    run_loop<false, false, true, true>();
             }
             return;
         }
         if (tls_context_) {
-            if (has_unix) run_loop<true, true, false, true>();
-            else run_loop<false, true, false, true>();
+            if (has_unix)
+                run_loop<true, true, false, true>();
+            else
+                run_loop<false, true, false, true>();
         } else {
-            if (has_unix) run_loop<true, false, false, true>();
-            else run_loop<false, false, false, true>();
+            if (has_unix)
+                run_loop<true, false, false, true>();
+            else
+                run_loop<false, false, false, true>();
         }
     };
     // Fused owner-batch prefetch is independent of the ordinary IO loop.
@@ -69,11 +77,11 @@ void IoLoop::/* TOMO_TOOL_BIND run_fused */run_fused() {
 }
 
 /* TOMO_TOOL_FUNCTION run_fused_server */
-int /* TOMO_TOOL_BIND run_fused_server */run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
-                     const std::vector<std::unique_ptr<AofReplayPlan>>& aof_plans,
-                     const SnapshotLoadPlan* load_plan, TlsContext* tls_context,
-                     LateUnixListener& unix_listener,
-                     ShutdownReportFinalLine& final_report) {
+int /* TOMO_TOOL_BIND run_fused_server */ run_fused_server(
+    Server& srv, const SnapshotLoadPlan* aof_base_plan,
+    const std::vector<std::unique_ptr<AofReplayPlan>>& aof_plans, const SnapshotLoadPlan* load_plan,
+    TlsContext* tls_context, LateUnixListener& unix_listener,
+    ShutdownReportFinalLine& final_report) {
     const Config& cfg = srv.cfg();
     const uint32_t nthreads = srv.nthreads();
     print_boot_presentation(srv);
@@ -140,9 +148,7 @@ int /* TOMO_TOOL_BIND run_fused_server */run_fused_server(Server& srv, const Sna
             } else if (ok && load_plan) {
                 ok = snapshot_load_owned(*load_plan, srv, self, local_error);
             }
-            if (ok)
-                ok = ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, -1,
-                                   tls_context, true);
+            if (ok) ok = ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, -1, tls_context, true);
             if (ok)
                 self.bind_io_role_hooks(
                     &ios[tid],
@@ -157,32 +163,26 @@ int /* TOMO_TOOL_BIND run_fused_server */run_fused_server(Server& srv, const Sna
                         static_cast<IoLoop*>(p)->cancel_client_registration(client);
                     });
             if (ok)
-                self.bind_client_capacity_hook(
-                    [](void* p, uint32_t incoming) {
-                        return static_cast<IoLoop*>(p)->prepare_client_transfer_capacity(incoming);
-                    });
+                self.bind_client_capacity_hook([](void* p, uint32_t incoming) {
+                    return static_cast<IoLoop*>(p)->prepare_client_transfer_capacity(incoming);
+                });
             if (ok) {
                 executors[tid].activate_fused();
                 ios[tid].bind_fused_executor(&executors[tid]);
-                executors[tid].bind_fused_completion(
-                    &ios[tid],
-                    [](void* p, Client* client) {
-                        static_cast<IoLoop*>(p)->fused_executor_completion(client);
-                    });
+                executors[tid].bind_fused_completion(&ios[tid], [](void* p, Client* client) {
+                    static_cast<IoLoop*>(p)->fused_executor_completion(client);
+                });
                 if (srv.read_local_enabled())
                     executors[tid].bind_read_local_demotion(
-                        &ios[tid],
-                        [](void* p, Client* client, const uint64_t* probed,
-                           const ReadLocalFallbackReason* fallbacks,
-                           uint32_t probed_count, uint32_t& demoted) {
+                        &ios[tid], [](void* p, Client* client, const uint64_t* probed,
+                                      const ReadLocalFallbackReason* fallbacks,
+                                      uint32_t probed_count, uint32_t& demoted) {
                             return static_cast<IoLoop*>(p)->fused_demote_local_read_batch(
                                 client, probed, fallbacks, probed_count, demoted);
                         });
                 self.bind_fused_executor_hooks(
                     &executors[tid],
-                    [](void* p) {
-                        return static_cast<FusedExLoop*>(p)->fused_baseline_pass();
-                    },
+                    [](void* p) { return static_cast<FusedExLoop*>(p)->fused_baseline_pass(); },
                     [](void* p, SnapshotManager* manager) {
                         static_cast<FusedExLoop*>(p)->fused_snapshot_start(manager);
                     });
@@ -200,8 +200,7 @@ int /* TOMO_TOOL_BIND run_fused_server */run_fused_server(Server& srv, const Sna
             if (!boot.wait_until_running(tid, self.stop_flag())) return;
             self.publish_ready_role(Role::Ifid);
             ios[tid].run_fused();
-            if (srv.read_local_enabled())
-                self.publish_read_local_parked(srv.read_local_epoch());
+            if (srv.read_local_enabled()) self.publish_read_local_parked(srv.read_local_epoch());
             self.publish_ready_role(Role::Idle);
         });
 
@@ -227,8 +226,8 @@ int /* TOMO_TOOL_BIND run_fused_server */run_fused_server(Server& srv, const Sna
     }
 
     const bool port_ok = probe_boot_listener(cfg, cfg.port, false, make_exclusive_boot_listener);
-    const bool tls_port_ok = port_ok &&
-        probe_boot_listener(cfg, cfg.tls_port, true, make_exclusive_boot_listener);
+    const bool tls_port_ok =
+        port_ok && probe_boot_listener(cfg, cfg.tls_port, true, make_exclusive_boot_listener);
     if (!port_ok || !tls_port_ok) {
         std::perror(port_ok ? "bind tls-port" : "bind");
         stop_workers();
@@ -248,8 +247,7 @@ int /* TOMO_TOOL_BIND run_fused_server */run_fused_server(Server& srv, const Sna
         }
         (void)unix_listener.release_fd();
     }
-    if (!boot.advance_ready(srv.shutting_down()) ||
-        !boot.wait_ready(srv.shutting_down()) ||
+    if (!boot.advance_ready(srv.shutting_down()) || !boot.wait_ready(srv.shutting_down()) ||
         !boot.advance_running(srv.shutting_down())) {
         stop_workers();
         const std::string error = boot.error();

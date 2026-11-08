@@ -23,9 +23,10 @@ consteval uint32_t assert_site_id(const char* text, uint32_t salt = 0) {
 #ifdef NDEBUG
 #define TOMO_ASSERT_ID(cond, id) (static_cast<void>(0))
 #else
-#define TOMO_ASSERT_ID(cond, id)                                                   \
-    (static_cast<bool>(cond) ? void(0)                                             \
-                            : __assert_fail("see tomokv.asserts", "tomokv", (id), "site"))
+#define TOMO_ASSERT_ID(cond, id)       \
+    (static_cast<bool>(cond) ? void(0) \
+                             : __assert_fail("see tomokv.asserts", "tomokv", (id), "site"))
 #endif
 #define TOMO_ASSERT(cond) TOMO_ASSERT_ID(cond, ::tomo::detail::assert_site_id(#cond))
-#define TOMO_ASSERT_SALT(cond, salt) TOMO_ASSERT_ID(cond, ::tomo::detail::assert_site_id(#cond, salt))
+#define TOMO_ASSERT_SALT(cond, salt) \
+    TOMO_ASSERT_ID(cond, ::tomo::detail::assert_site_id(#cond, salt))

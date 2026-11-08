@@ -37,7 +37,7 @@ class FlatStore;
 
 class HashFieldTtl {
 public:
-    static constexpr int64_t kNone  = -1;
+    static constexpr int64_t kNone = -1;
     static constexpr int64_t kNever = std::numeric_limits<int64_t>::max();
 
     HashFieldTtl() = default;
@@ -130,15 +130,15 @@ public:
 private:
     struct Slot {
         std::string field;
-        int64_t     expire_ms = 0;
-        uint64_t    hash = 0;
-        uint8_t     state = 0;
+        int64_t expire_ms = 0;
+        uint64_t hash = 0;
+        uint8_t state = 0;
     };
 
     static constexpr uint8_t kEmpty = 0;
-    static constexpr uint8_t kLive  = 1;
-    static constexpr uint8_t kTomb  = 2;
-    static constexpr size_t  kMinCap = 8;
+    static constexpr uint8_t kLive = 1;
+    static constexpr uint8_t kTomb = 2;
+    static constexpr size_t kMinCap = 8;
     static constexpr uint64_t kLoadPct = 70;
 
     static uint64_t mix(uint64_t value) {
@@ -191,7 +191,10 @@ private:
         for (size_t probes = 0; probes < slots_.size(); probes++) {
             Slot& slot = slots_[pos];
             if (slot.state == kEmpty) return &slot;
-            if (slot.state == kTomb) { tombs_--; return &slot; }
+            if (slot.state == kTomb) {
+                tombs_--;
+                return &slot;
+            }
             pos = (pos + 1) & mask;
         }
         return nullptr;
@@ -202,7 +205,8 @@ private:
         if ((static_cast<uint64_t>(live_) + tombs_ + 1) * 100 < slots_.size() * kLoadPct)
             return true;
         const size_t next = static_cast<uint64_t>(live_ + 1) * 100 >= slots_.size() * kLoadPct
-                                ? slots_.size() * 2 : slots_.size();
+                                ? slots_.size() * 2
+                                : slots_.size();
         return rehash(next);
     }
 
@@ -239,11 +243,11 @@ private:
     }
 
     std::vector<Slot> slots_;
-    uint32_t          live_ = 0;
-    uint32_t          tombs_ = 0;
-    uint64_t          string_bytes_ = 0;
-    mutable int64_t   min_expire_ms_ = kNever;
-    mutable bool      min_dirty_ = false;
+    uint32_t live_ = 0;
+    uint32_t tombs_ = 0;
+    uint64_t string_bytes_ = 0;
+    mutable int64_t min_expire_ms_ = kNever;
+    mutable bool min_dirty_ = false;
 };
 
 // ---- seam: implemented in t_hash.cc, consumed by t_hash_ttl.cc ---------------------------------
@@ -254,13 +258,13 @@ private:
 // The hash's TTL table slot, or nullptr when the object cannot hold one (an embedded hash).
 HashFieldTtl** hash_ttl_slot(KvObj* object);
 // Cached allocation size of the TTL table, kept on HashVal so kvobj_size() stays branch-cheap.
-void     hash_ttl_note_bytes(KvObj* object);
-bool     hash_ttl_field_exists(const KvObj* object, Slice field);
-bool     hash_ttl_field_erase(KvObj* object, Slice field);
+void hash_ttl_note_bytes(KvObj* object);
+bool hash_ttl_field_exists(const KvObj* object, Slice field);
+bool hash_ttl_field_erase(KvObj* object, Slice field);
 uint32_t hash_ttl_field_count(const KvObj* object);
 // Moves an embedded hash to the external representation so a TTL table can hang off it. Writes an
 // error reply and returns false on failure.
-bool     hash_ttl_externalize(Shard& shard, Op& op, KvObj*& object, bool notify);
+bool hash_ttl_externalize(Shard& shard, Op& op, KvObj*& object, bool notify);
 
 // ---- seam: implemented in t_hash_ttl.cc, consumed by t_hash.cc and flatstore.h -----------------
 
@@ -273,8 +277,8 @@ bool hash_ttl_on_access(Shard& shard, Op& op, KvObj*& object, bool notify);
 bool hash_parked_reply(Shard& shard, Op& op);
 bool hash_capture_reply(Shard& shard, Op& op, KvObj* object);
 bool hash_field_value_ro(const KvObj* object, Slice field, Slice& value);
-uint64_t hash_read_visit(const KvObj* object, uint64_t cursor, uint64_t count,
-                         void* context, void (*visit)(void*, Slice, Slice));
+uint64_t hash_read_visit(const KvObj* object, uint64_t cursor, uint64_t count, void* context,
+                         void (*visit)(void*, Slice, Slice));
 
 // (The active-cycle reap hook, hash_ttl_active_reap, is declared in flatstore.h next to its caller.)
 // HSET semantics: writing a field's value clears that field's TTL (Redis 7.4).

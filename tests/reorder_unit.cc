@@ -11,7 +11,9 @@
 // This fixture never creates a MULTI session or executes a command. Keep the only out-of-line
 // Client destructor dependency explicit, and fail if the fixture ever strays into that subsystem.
 namespace tomo {
-void multi_session_destroy(MultiSession* session) { if (session) std::abort(); }
+void multi_session_destroy(MultiSession* session) {
+    if (session) std::abort();
+}
 }
 
 namespace {
@@ -22,7 +24,9 @@ using namespace tomo::r7;
     std::fprintf(stderr, "reorder battery: FAIL: %s\n", what);
     std::exit(1);
 }
-void require(bool condition, const char* what) { if (!condition) fail(what); }
+void require(bool condition, const char* what) {
+    if (!condition) fail(what);
+}
 void unused_handler(Shard&, Op&) { fail("fixture executed a command"); }
 
 constexpr CommandSpec spec(const char* name, CommandLengthClass length, uint32_t flags) {
@@ -31,8 +35,8 @@ constexpr CommandSpec spec(const char* name, CommandLengthClass length, uint32_t
     return out;
 }
 constexpr auto point = spec("GET", CommandLengthClass::Point, CmdFlags::Readonly);
-constexpr auto small = spec("MGET", CommandLengthClass::SmallMulti,
-                            CmdFlags::Readonly | CmdFlags::MultiShard);
+constexpr auto small =
+    spec("MGET", CommandLengthClass::SmallMulti, CmdFlags::Readonly | CmdFlags::MultiShard);
 constexpr auto long_op = spec("BITCOUNT", CommandLengthClass::Long, CmdFlags::Readonly);
 constexpr auto admin = spec("DEBUG", CommandLengthClass::Point, CmdFlags::Admin);
 
@@ -73,7 +77,8 @@ template <size_t Capacity>
 void verify(Task (&tasks)[Capacity], const std::vector<Task>& expected, bool must_move) {
     require(expected.size() <= Capacity, "oracle exceeds its input capacity");
     const std::vector<Task> before(tasks, tasks + Capacity);
-    const ReorderResult witness = test::schedule_test_batch(tasks, static_cast<uint32_t>(expected.size()));
+    const ReorderResult witness =
+        test::schedule_test_batch(tasks, static_cast<uint32_t>(expected.size()));
     bool moved = false;
     for (size_t i = 0; i < expected.size(); i++) {
         require(same(tasks[i], expected[i]), "actual permutation differs from exact oracle");
@@ -90,8 +95,10 @@ void verify(Task (&tasks)[Capacity], const std::vector<Task>& expected, bool mus
     for (size_t i = expected.size(); i < Capacity; i++)
         require(same(tasks[i], before[i]), "scheduler touched the unused batch suffix");
     require(moved == must_move, "required reordering did not fire (or FIFO control moved)");
-    require((witness.permuted_runs != 0) == moved, "permutation telemetry differs from actual tasks");
-    require(witness.permuted_runs <= witness.multi_client_runs, "permutation without a multi-client run");
+    require((witness.permuted_runs != 0) == moved,
+            "permutation telemetry differs from actual tasks");
+    require(witness.permuted_runs <= witness.multi_client_runs,
+            "permutation without a multi-client run");
     permutations += moved;
 }
 
@@ -125,10 +132,8 @@ void pipelines() {
     Client a(-1), b(-1);
     for (uint32_t round = 0; round < 4; round++) {
         Task tasks[Capacity];
-        for (uint32_t i = 0; i < Capacity / 2; i++)
-            tasks[i] = publish(a, i ? point : long_op);
-        for (uint32_t i = 0; i < Capacity / 2; i++)
-            tasks[Capacity / 2 + i] = publish(b, point);
+        for (uint32_t i = 0; i < Capacity / 2; i++) tasks[i] = publish(a, i ? point : long_op);
+        for (uint32_t i = 0; i < Capacity / 2; i++) tasks[Capacity / 2 + i] = publish(b, point);
         std::vector<Task> expected;
         expected.reserve(Capacity);
         expected.push_back(tasks[Capacity / 2]);
@@ -147,20 +152,22 @@ void pipelines() {
 template <size_t Capacity>
 void barriers() {
     constexpr uint32_t barrier_at = Capacity == 128 ? 32 : 16;
-    constexpr uint32_t flags[] = {CmdFlags::Admin, CmdFlags::ConnLocal, CmdFlags::AllShards,
-        CmdFlags::RandomShard, CmdFlags::CursorShard, CmdFlags::ConfigRoute, CmdFlags::ScriptRoute,
-        CmdFlags::PubSub, CmdFlags::Blocking, CmdFlags::Transaction, CmdFlags::StreamRoute,
-        CmdFlags::SubcmdRoute, CmdFlags::FlipAsync};
+    constexpr uint32_t flags[] = {
+        CmdFlags::Admin,       CmdFlags::ConnLocal,   CmdFlags::AllShards,   CmdFlags::RandomShard,
+        CmdFlags::CursorShard, CmdFlags::ConfigRoute, CmdFlags::ScriptRoute, CmdFlags::PubSub,
+        CmdFlags::Blocking,    CmdFlags::Transaction, CmdFlags::StreamRoute, CmdFlags::SubcmdRoute,
+        CmdFlags::FlipAsync};
     for (uint32_t kind = 0; kind < std::size(flags) + 5; kind++) {
         Task tasks[Capacity];
         std::vector<std::unique_ptr<Client>> clients;
-        const auto special = spec("BARRIER", CommandLengthClass::Point,
-                                  kind < std::size(flags) ? flags[kind] : 0);
+        const auto special =
+            spec("BARRIER", CommandLengthClass::Point, kind < std::size(flags) ? flags[kind] : 0);
         const auto invalid = spec("INVALID", CommandLengthClass::Count, 0);
         for (uint32_t i = 0; i < Capacity; i++) {
             clients.push_back(std::make_unique<Client>(-1));
-            tasks[i] = publish(*clients.back(), i == barrier_at ? special :
-                               i == 0 || i == barrier_at + 1 ? long_op : point);
+            tasks[i] = publish(*clients.back(), i == barrier_at                 ? special
+                                                : i == 0 || i == barrier_at + 1 ? long_op
+                                                                                : point);
         }
         if (kind == std::size(flags)) tasks[barrier_at].client = nullptr;
         if (kind == std::size(flags) + 1)
@@ -168,8 +175,10 @@ void barriers() {
         if (kind == std::size(flags) + 2)
             clients[barrier_at]->rob().at(tasks[barrier_at].op_id).spec = nullptr;
         if (kind == std::size(flags) + 3)
-            clients[barrier_at]->rob().at(tasks[barrier_at].op_id).attach_blocking_state(
-                reinterpret_cast<BlockingState*>(clients.back().get()));
+            clients[barrier_at]
+                ->rob()
+                .at(tasks[barrier_at].op_id)
+                .attach_blocking_state(reinterpret_cast<BlockingState*>(clients.back().get()));
         if (kind == std::size(flags) + 4)
             clients[barrier_at]->rob().at(tasks[barrier_at].op_id).spec = &invalid;
         uint8_t length = 255;
@@ -203,15 +212,16 @@ void fifo_controls() {
     retire_all(a);
     tasks[0] = publish(a, point);
     tasks[1] = publish(b, point);
-    verify(tasks, {tasks[0], tasks[1]}, false); // homogeneous equal-rank degeneration
+    verify(tasks, {tasks[0], tasks[1]}, false);  // homogeneous equal-rank degeneration
     retire_all(a);
     retire_all(b);
     tasks[0] = publish(a, point);
     tasks[1] = publish(b, long_op);
-    verify(tasks, {tasks[0], tasks[1]}, false); // already selected bucket order
+    verify(tasks, {tasks[0], tasks[1]}, false);  // already selected bucket order
     retire_all(a);
     retire_all(b);
-    std::puts("  controls: empty/single task, one full client, homogeneous and already ordered FIFO");
+    std::puts(
+        "  controls: empty/single task, one full client, homogeneous and already ordered FIFO");
 }
 
 void hidden_predecessors() {
@@ -220,11 +230,13 @@ void hidden_predecessors() {
         Task tasks[kGenthreadExBatchOps];
         (void)publish(a, point);
         tasks[0] = publish(a, point);
-        tasks[1] = publish(c, long_op); // opens a real coarse-class mix
+        tasks[1] = publish(c, long_op);  // opens a real coarse-class mix
         tasks[2] = publish(b, small);
         require(tasks[0].op_id - a.rob().flush_id() == 1, "hidden-head state was not entered");
         verify(tasks, {tasks[2], tasks[0], tasks[1]}, true);
-        retire_all(a); retire_all(b); retire_all(c);
+        retire_all(a);
+        retire_all(b);
+        retire_all(c);
     }
     {
         Client a(-1), b(-1), c(-1);
@@ -236,7 +248,9 @@ void hidden_predecessors() {
         tasks[3] = publish(b, small);
         require(tasks[1].op_id == tasks[0].op_id + 2, "in-run gap state was not entered");
         verify(tasks, {tasks[0], tasks[3], tasks[1], tasks[2]}, true);
-        retire_all(a); retire_all(b); retire_all(c);
+        retire_all(a);
+        retire_all(b);
+        retire_all(c);
     }
     {
         Client a(-1), b(-1);
@@ -245,7 +259,8 @@ void hidden_predecessors() {
         tasks[1] = publish(b, small);
         require(a.rob().at(tasks[0].op_id).atomic_hazard(), "atomic hazard state was not entered");
         verify(tasks, {tasks[1], tasks[0]}, true);
-        retire_all(a); retire_all(b);
+        retire_all(a);
+        retire_all(b);
     }
     std::puts("  predecessor controls: missing head, in-run gap and atomic hazard");
 }
@@ -314,9 +329,10 @@ void continuous() {
     queues.finish(emit);
     require(!queues.size() && output.size() == 2 * Capacity + 3 && witnessed > 0,
             "continuous drain failed to finish or never reordered");
-    require(output[2 * Capacity + 1] == 2 * Capacity + 2 &&
-            output.back() == 2 * Capacity + 1, "post-barrier ratio phase was not reset");
-    std::puts("  continuous: cross-gather promotion, bounded debt, barrier and immediate destruction");
+    require(output[2 * Capacity + 1] == 2 * Capacity + 2 && output.back() == 2 * Capacity + 1,
+            "post-barrier ratio phase was not reset");
+    std::puts(
+        "  continuous: cross-gather promotion, bounded debt, barrier and immediate destruction");
 }
 
 // Check long service while both FIFOs remain backlogged through repeated admissions/ring wraps.
@@ -333,7 +349,8 @@ void sustained_service() {
                 require(since_long <= 4, "long FIFO starved while both classes were backlogged");
                 since_long = 0;
                 longs++;
-            } else since_long++;
+            } else
+                since_long++;
             seen++;
             retire_all(*tasks[i].client);
         }
@@ -368,8 +385,10 @@ void connection_stream() {
         // This permutation changes the connection adjacency at every gather while keeping each
         // producer's own command ids increasing and its live window within the actual ROB.
         const uint32_t client = (i * 13 + (i / client_count) * 7) % client_count;
-        const auto& command = i % 113 == 112 ? admin :
-                              i % 7 == 0 ? long_op : i % 3 == 0 ? small : point;
+        const auto& command = i % 113 == 112 ? admin
+                              : i % 7 == 0   ? long_op
+                              : i % 3 == 0   ? small
+                                             : point;
         input.push_back(publish(*clients[client], command, i % 53 == 0));
         input.back().enqueue_us_low = i + 1;
         segments.push_back(segment);
@@ -385,7 +404,8 @@ void connection_stream() {
                     "connection stream lost, duplicated or damaged a Task");
             require(segments[original] == segments[count], "connection stream crossed a barrier");
             auto& rob = task.client->rob();
-            require(task.op_id == rob.flush_id(), "connection stream violated execution/RYOW order");
+            require(task.op_id == rob.flush_id(),
+                    "connection stream violated execution/RYOW order");
             if (rob.at(task.op_id).spec == &admin)
                 require(original == count, "connection stream moved a special-task barrier");
             seen[original] = true;
@@ -423,6 +443,7 @@ int main() {
     connection_stream<kGenthreadExBatchOps>();
     connection_stream<kGenthreadPipelineExBatchOps>();
     require(permutations == 205, "a required positive batch case silently disappeared");
-    std::printf("reorder battery: PASS, %u batch permutations plus continuous service, max batch 128\n",
-                permutations);
+    std::printf(
+        "reorder battery: PASS, %u batch permutations plus continuous service, max batch 128\n",
+        permutations);
 }

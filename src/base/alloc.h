@@ -49,8 +49,8 @@ inline size_t good_size(size_t n) {
     if (n == 0) return 0;
     if (n <= 8) return 8;
     if (n <= 128) return (n + 15) & ~size_t(15);
-    const int k = 63 - __builtin_clzll(static_cast<unsigned long long>(n - 1));   // floor(log2(n-1))
-    const size_t step = size_t(1) << (k - 2);                                     // group / 4
+    const int k = 63 - __builtin_clzll(static_cast<unsigned long long>(n - 1));  // floor(log2(n-1))
+    const size_t step = size_t(1) << (k - 2);                                    // group / 4
     return (n + step - 1) & ~(step - 1);
 }
 

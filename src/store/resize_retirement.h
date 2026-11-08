@@ -25,8 +25,10 @@ public:
         record->table = table;
         record->stamp = stamp;
         record->next = nullptr;
-        if (tail_) tail_->next = record;
-        else head_ = record;
+        if (tail_)
+            tail_->next = record;
+        else
+            head_ = record;
         tail_ = record;
         count_++;
     }
@@ -58,4 +60,4 @@ private:
     uint32_t count_ = 0;
 };
 
-} // namespace tomo
+}  // namespace tomo

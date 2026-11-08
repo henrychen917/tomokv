@@ -44,7 +44,10 @@ struct Histogram {
     static uint64_t high(size_t i) {
         return low(i) + (i < 256 ? 0 : (uint64_t{1} << ((i >> 7) - 1)) - 1);
     }
-    void add(uint64_t ns) { ++bins[index(std::clamp(ns, uint64_t{1}, kMaximum))]; ++calls; }
+    void add(uint64_t ns) {
+        ++bins[index(std::clamp(ns, uint64_t{1}, kMaximum))];
+        ++calls;
+    }
     void merge(const Histogram& other) {
         calls += other.calls;
         for (size_t i = 0; i < kBins; ++i) bins[i] += other.bins[i];
@@ -80,7 +83,9 @@ struct alignas(64) ExecutorHistograms {
     // addresses, until the outer script's accepted attempt retires.
     std::map<const Op*, std::vector<std::pair<uint32_t, uint64_t>>> script_children;
 };
-struct Slot { alignas(64) std::atomic<ExecutorHistograms*> value{nullptr}; };
+struct Slot {
+    alignas(64) std::atomic<ExecutorHistograms*> value{nullptr};
+};
 std::array<Slot, kMaxThreads> stores{};
 // A homogeneous GET batch holds its physical executor's histogram lock once.
 // The existing per-command start/completion clocks and pre-Done recording stay
@@ -95,7 +100,9 @@ thread_local GetHistogramBatch* active_get_batch = nullptr;
 uint64_t infofix_batch_locks = 0;
 #endif
 struct Cleanup {
-    ~Cleanup() { for (auto& slot : stores) delete slot.value.load(std::memory_order_relaxed); }
+    ~Cleanup() {
+        for (auto& slot : stores) delete slot.value.load(std::memory_order_relaxed);
+    }
 } cleanup;
 
 ExecutorHistograms& store(uint32_t executor) {
@@ -153,11 +160,11 @@ void reply_histogram(Op& op, uint32_t id, const Histogram& histogram) {
         reply_int(op.sink(), count);
     }
 }
-} // namespace
+}  // namespace
 
 namespace {
-void record_tracked(uint32_t executor, uint64_t client, const Op& op, uint64_t ns,
-                    int64_t ms, const SlowlogArm& arm, bool exact, uint64_t started) {
+void record_tracked(uint32_t executor, uint64_t client, const Op& op, uint64_t ns, int64_t ms,
+                    const SlowlogArm& arm, bool exact, uint64_t started) {
     // Disabling CONFIG SET must not insert itself after disabling the feature.
     if (!op.has_scatter_state() && !op.has_multi_state() && !op.has_blocking_state())
         if (auto* server = command_server(); server && server->latency_tracking()) {
@@ -168,7 +175,8 @@ void record_tracked(uint32_t executor, uint64_t client, const Op& op, uint64_t n
             // An ordinary script cannot resume after this completion. Nested
             // calls begun after yes must not survive their rejected parent and
             // attach to the next command using the same ROB slot.
-            else latency_tracking_forget(op);
+            else
+                latency_tracking_forget(op);
         }
     slowlog_record(executor, client, op, ns, ms, arm, exact, started);
 }
@@ -215,8 +223,10 @@ void latency_tracking_bind(bool enabled, uint32_t* escalation) {
     latency_blocking_retire = enabled ? retire_blocking : blocking_retire;
     latency_multi_retire = enabled ? retire_multi : multi_retire_entry;
     if (escalation) {
-        if (enabled) *escalation = UINT32_MAX;
-        else if (*escalation > kSlowlogEscalateBatches) *escalation = 0;
+        if (enabled)
+            *escalation = UINT32_MAX;
+        else if (*escalation > kSlowlogEscalateBatches)
+            *escalation = 0;
     }
 }
 
@@ -252,8 +262,7 @@ void latency_tracking_part(uint32_t executor, const Op& op, uint64_t started) {
     // Its other fragments can observe different configuration generations.
     if (op.cmd_name().eq_icase("config") && op.argc() > 3 && op.arg(1).eq_icase("set"))
         for (uint32_t i = 2; i + 1 < op.argc(); i += 2)
-            if (op.arg(i).eq_icase("latency-tracking") && op.arg(i + 1).eq_icase("yes"))
-                return;
+            if (op.arg(i).eq_icase("latency-tracking") && op.arg(i + 1).eq_icase("yes")) return;
     const uint64_t duration = now_ns() - started;
     if (auto* server = command_server(); !server || !server->latency_tracking()) return;
     auto& local = store(executor);
@@ -278,7 +287,8 @@ void latency_tracking_retire(uint32_t executor, const Op& op) {
         std::lock_guard lock(local->mutex);
         if (auto* server = command_server(); server && server->latency_tracking())
             retire_script_children(*local, op);
-        else local->script_children.erase(&op);
+        else
+            local->script_children.erase(&op);
         const auto row = local->pending.find(&op);
         if (row == local->pending.end()) continue;
         duration += row->second;
@@ -359,8 +369,8 @@ void latency_tracking_script_begin(const Op& parent) {
         local->script_children.erase(&parent);
     }
 }
-void latency_tracking_script_part(uint32_t executor, const Op& parent,
-                                  const Op& child, uint64_t started) {
+void latency_tracking_script_part(uint32_t executor, const Op& parent, const Op& child,
+                                  uint64_t started) {
     if (!started) return;
     const uint64_t duration = now_ns() - started;
     if (auto* server = command_server(); !server || !server->latency_tracking()) return;
@@ -373,9 +383,7 @@ void latency_tracking_script_part(uint32_t executor, const Op& parent,
     local.script_children[&parent].emplace_back(command_metadata_index(*metadata), duration);
 }
 
-uint64_t latency_tracking_start() {
-    return slowlog_recorder != slowlog_record ? now_ns() : 0;
-}
+uint64_t latency_tracking_start() { return slowlog_recorder != slowlog_record ? now_ns() : 0; }
 void latency_tracking_finish(uint32_t executor, const Op& op, uint64_t started) {
     if (started) {
         const uint64_t duration = now_ns() - started;
@@ -388,7 +396,8 @@ namespace {
 void record_generation(uint32_t executor, const Op& op, uint64_t duration_ns, uint64_t cut) {
     if (auto* server = command_server(); !server || !server->latency_tracking()) return;
     if (executor >= stores.size() || !op.spec) return;
-    if (auto* batch = active_get_batch; batch && batch->executor == executor && batch->current == &op) {
+    if (auto* batch = active_get_batch;
+        batch && batch->executor == executor && batch->current == &op) {
         if (cut == disabled_cut_ns.load(std::memory_order_acquire))
             batch->histogram->add((duration_ns / 1000) * 1000);
         return;
@@ -406,10 +415,9 @@ void record_generation(uint32_t executor, const Op& op, uint64_t duration_ns, ui
     local.values[command_metadata_index(*metadata)].add((duration_ns / 1000) * 1000);
 }
 
-} // namespace
+}  // namespace
 void latency_tracking_record(uint32_t executor, const Op& op, uint64_t duration_ns) {
-    record_generation(executor, op, duration_ns,
-                      disabled_cut_ns.load(std::memory_order_acquire));
+    record_generation(executor, op, duration_ns, disabled_cut_ns.load(std::memory_order_acquire));
 }
 
 void latency_tracking_histogram(Op& op) {
@@ -417,18 +425,19 @@ void latency_tracking_histogram(Op& op) {
     std::vector<std::pair<uint32_t, const Histogram*>> selected;
     if (op.argc() == 2) {
         for (const auto& [id, histogram] : all) selected.emplace_back(id, &histogram);
-    } else for (uint32_t arg = 2; arg < op.argc(); ++arg) {
-        const auto* requested = command_metadata_lookup(op.arg(arg));
-        if (!requested) continue;
-        const auto name = command_metadata_name(*requested);
-        for (const auto& [id, histogram] : all) {
-            const auto candidate = command_metadata_name(*command_metadata_at(id));
-            if (candidate.sv() == name.sv() ||
-                (candidate.n > name.n && candidate.p[name.n] == '|' &&
-                 candidate.sv().substr(0, name.n) == name.sv()))
-                selected.emplace_back(id, &histogram);
+    } else
+        for (uint32_t arg = 2; arg < op.argc(); ++arg) {
+            const auto* requested = command_metadata_lookup(op.arg(arg));
+            if (!requested) continue;
+            const auto name = command_metadata_name(*requested);
+            for (const auto& [id, histogram] : all) {
+                const auto candidate = command_metadata_name(*command_metadata_at(id));
+                if (candidate.sv() == name.sv() ||
+                    (candidate.n > name.n && candidate.p[name.n] == '|' &&
+                     candidate.sv().substr(0, name.n) == name.sv()))
+                    selected.emplace_back(id, &histogram);
+            }
         }
-    }
     reply_map_header(op.sink(), selected.size(), op.resp3());
     for (const auto& [id, histogram] : selected) reply_histogram(op, id, *histogram);
 }
@@ -449,7 +458,8 @@ void latency_tracking_info(std::string& out, const std::vector<double>& percenti
             if (n > 0 && key[n - 1] == '.') --n;
             out += 'p';
             out.append(key, n);
-            std::snprintf(value, sizeof(value), "=%.3f", double(histogram.percentile(percentiles[i])) / 1000);
+            std::snprintf(value, sizeof(value), "=%.3f",
+                          double(histogram.percentile(percentiles[i])) / 1000);
             out += value;
         }
         out += "\r\n";
@@ -479,15 +489,15 @@ uint64_t latency_tracking_allocated_histograms() {
 
 // Instantiate tracked executor bodies only here. Keeping them out of the normal
 // executor translation units preserves their off-path inlining decisions.
-template<bool Fused>
-template<bool IofusedPrivateQueue, bool ReadLocalNoEvict>
+template <bool Fused>
+template <bool IofusedPrivateQueue, bool ReadLocalNoEvict>
 bool ExLoopT<Fused>::execute_latency(const Task& t) {
     constexpr bool Timed = true;
     constexpr bool LatencyTracking = true;
 #include "../core/ex_execute.inc"
 }
-template<bool Fused>
-template<bool IofusedPrivateQueue>
+template <bool Fused>
+template <bool IofusedPrivateQueue>
 void ExLoopT<Fused>::exec_batch_latency(ExLoopT* loop, const Task* batch, uint32_t n) {
     Server::ClientWorkScope client_work(*loop->srv_, loop->self_->id());
     const SlowlogArm arm = loop->slowlog_arm_;
@@ -503,16 +513,17 @@ void ExLoopT<Fused>::exec_batch_latency(ExLoopT* loop, const Task* batch, uint32
         }
         const Op& op = batch[i].client->rob().at(batch[i].op_id);
         get_batch = op.spec &&
-            (op.spec->flags & (CmdFlags::ReadLocalEligible | CmdFlags::MultiShard)) ==
-                CmdFlags::ReadLocalEligible &&
-            !op.has_scatter_state() && !op.has_multi_state() && !op.has_blocking_state();
+                    (op.spec->flags & (CmdFlags::ReadLocalEligible | CmdFlags::MultiShard)) ==
+                        CmdFlags::ReadLocalEligible &&
+                    !op.has_scatter_state() && !op.has_multi_state() && !op.has_blocking_state();
     }
     if (get_batch) {
         auto& local = store(loop->self_->id());
         std::lock_guard lock(local.mutex);
-        const auto* metadata = command_metadata_for(*batch[0].client->rob().at(batch[0].op_id).spec);
+        const auto* metadata =
+            command_metadata_for(*batch[0].client->rob().at(batch[0].op_id).spec);
         GetHistogramBatch capture{loop->self_->id(), nullptr,
-            &local.values[command_metadata_index(*metadata)]};
+                                  &local.values[command_metadata_index(*metadata)]};
         struct Scope {
             GetHistogramBatch* previous = active_get_batch;
             explicit Scope(GetHistogramBatch& batch) { active_get_batch = &batch; }
@@ -524,8 +535,8 @@ void ExLoopT<Fused>::exec_batch_latency(ExLoopT* loop, const Task* batch, uint32
         for (uint32_t i = 0; i < n; ++i) {
             Client* client = batch[i].client;
             capture.current = &client->rob().at(batch[i].op_id);
-            SlowlogTiming timing(capture.current, client->id(), loop->self_->id(),
-                                now_ns(), loop->cached_now_ms_, arm);
+            SlowlogTiming timing(capture.current, client->id(), loop->self_->id(), now_ns(),
+                                 loop->cached_now_ms_, arm);
             if (loop->template execute_latency<IofusedPrivateQueue>(batch[i])) continue;
             loop->xshard_retries_.push_back(batch[i]);
             for (uint32_t j = i + 1; j < n; ++j) loop->ordered_deferred_.push_back(batch[j]);
@@ -536,8 +547,8 @@ void ExLoopT<Fused>::exec_batch_latency(ExLoopT* loop, const Task* batch, uint32
     for (uint32_t i = 0; i < n; ++i) {
         Client* client = batch[i].client;
         SlowlogTiming timing(client ? &client->rob().at(batch[i].op_id) : nullptr,
-            client ? client->id() : 0, loop->self_->id(), now_ns(),
-            loop->cached_now_ms_, arm);
+                             client ? client->id() : 0, loop->self_->id(), now_ns(),
+                             loop->cached_now_ms_, arm);
         const bool okay = loop->template execute_latency<IofusedPrivateQueue>(batch[i]);
         loop->flush_xshard_commits_timed();
         if (okay) continue;
@@ -546,13 +557,13 @@ void ExLoopT<Fused>::exec_batch_latency(ExLoopT* loop, const Task* batch, uint32
         return;
     }
 }
-template<bool Fused>
-template<bool IofusedPrivateQueue>
+template <bool Fused>
+template <bool IofusedPrivateQueue>
 bool ExLoopT<Fused>::execute_resumed_latency(const Task& task) {
     Client* client = task.client;
     SlowlogTiming timing(client ? &client->rob().at(task.op_id) : nullptr,
-                         client ? client->id() : 0, self_->id(), now_ns(),
-                         cached_now_ms_, slowlog_arm_);
+                         client ? client->id() : 0, self_->id(), now_ns(), cached_now_ms_,
+                         slowlog_arm_);
     const bool result = execute_latency<IofusedPrivateQueue>(task);
     flush_xshard_commits_timed();
     return result;
@@ -563,4 +574,4 @@ template void ExLoopT<true>::exec_batch_latency<true>(ExLoopT*, const Task*, uin
 template bool ExLoopT<false>::execute_resumed_latency<false>(const Task&);
 template bool ExLoopT<true>::execute_resumed_latency<false>(const Task&);
 template bool ExLoopT<true>::execute_resumed_latency<true>(const Task&);
-} // namespace tomo
+}  // namespace tomo

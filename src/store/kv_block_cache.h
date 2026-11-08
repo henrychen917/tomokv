@@ -103,12 +103,14 @@ struct KvBlockCache {
     // FLUSH and from maxmemory pressure, where a crossing would NOT be benign.
     void dbg_check_owner(const char* op, bool fatal = true) {
         const long tid = static_cast<long>(::syscall(SYS_gettid));
-        if (!dbg_owner_tid) { dbg_owner_tid = tid; return; }
+        if (!dbg_owner_tid) {
+            dbg_owner_tid = tid;
+            return;
+        }
         if (dbg_owner_tid != tid) {
-            std::fprintf(stderr,
-                "\nRLCACHE-%s owner: %s on cache %p from tid %ld, owner tid %ld\n",
-                fatal ? "VIOLATION" : "CROSSING", op, static_cast<void*>(this), tid,
-                dbg_owner_tid);
+            std::fprintf(stderr, "\nRLCACHE-%s owner: %s on cache %p from tid %ld, owner tid %ld\n",
+                         fatal ? "VIOLATION" : "CROSSING", op, static_cast<void*>(this), tid,
+                         dbg_owner_tid);
             std::fflush(stderr);
             if (fatal) std::abort();
         }
@@ -116,17 +118,18 @@ struct KvBlockCache {
     void dbg_enter(void* memory, size_t allocation, uint32_t cls) {
         if (!dbg_resident.insert(memory).second) {
             std::fprintf(stderr,
-                "\nRLCACHE-VIOLATION double-put: block %p allocation %zu class %u already "
-                "resident (cache %p, class_nodes %u, bytes %zu)\n",
-                memory, allocation, cls, static_cast<void*>(this), class_nodes[cls],
-                bytes.load(std::memory_order_relaxed));
+                         "\nRLCACHE-VIOLATION double-put: block %p allocation %zu class %u already "
+                         "resident (cache %p, class_nodes %u, bytes %zu)\n",
+                         memory, allocation, cls, static_cast<void*>(this), class_nodes[cls],
+                         bytes.load(std::memory_order_relaxed));
             std::fflush(stderr);
             std::abort();
         }
     }
     void dbg_leave(void* memory, size_t allocation, uint32_t cls) {
         if (dbg_resident.erase(memory) != 1) {
-            std::fprintf(stderr,
+            std::fprintf(
+                stderr,
                 "\nRLCACHE-VIOLATION take-of-nonresident: block %p allocation %zu class %u "
                 "(cache %p, class_nodes %u, bytes %zu)\n",
                 memory, allocation, cls, static_cast<void*>(this), class_nodes[cls],
@@ -149,33 +152,36 @@ struct KvBlockCache {
         for (FreeBlock* b = heads[cls]; b; b = b->next) {
             if (!dbg_resident.count(b)) {
                 std::fprintf(stderr,
-                    "\nRLCACHE-VIOLATION %s: class %u list holds non-resident block %p at "
-                    "depth %u (cache %p)\n", op, cls, static_cast<void*>(b), seen,
-                    static_cast<void*>(this));
+                             "\nRLCACHE-VIOLATION %s: class %u list holds non-resident block %p at "
+                             "depth %u (cache %p)\n",
+                             op, cls, static_cast<void*>(b), seen, static_cast<void*>(this));
                 std::fflush(stderr);
                 std::abort();
             }
             if (b->allocation != allocation) {
-                std::fprintf(stderr,
+                std::fprintf(
+                    stderr,
                     "\nRLCACHE-VIOLATION %s: class %u block %p carries allocation %zu, class "
-                    "size %zu, depth %u (cache %p)\n", op, cls, static_cast<void*>(b),
-                    b->allocation, allocation, seen, static_cast<void*>(this));
+                    "size %zu, depth %u (cache %p)\n",
+                    op, cls, static_cast<void*>(b), b->allocation, allocation, seen,
+                    static_cast<void*>(this));
                 std::fflush(stderr);
                 std::abort();
             }
             if (++seen > class_nodes[cls]) {
                 std::fprintf(stderr,
-                    "\nRLCACHE-VIOLATION %s: class %u list longer than its counter %u "
-                    "(cycle or lost update; cache %p)\n", op, cls, class_nodes[cls],
-                    static_cast<void*>(this));
+                             "\nRLCACHE-VIOLATION %s: class %u list longer than its counter %u "
+                             "(cycle or lost update; cache %p)\n",
+                             op, cls, class_nodes[cls], static_cast<void*>(this));
                 std::fflush(stderr);
                 std::abort();
             }
         }
         if (seen != class_nodes[cls]) {
-            std::fprintf(stderr,
-                "\nRLCACHE-VIOLATION %s: class %u list length %u != counter %u (cache %p)\n",
-                op, cls, seen, class_nodes[cls], static_cast<void*>(this));
+            std::fprintf(
+                stderr,
+                "\nRLCACHE-VIOLATION %s: class %u list length %u != counter %u (cache %p)\n", op,
+                cls, seen, class_nodes[cls], static_cast<void*>(this));
             std::fflush(stderr);
             std::abort();
         }

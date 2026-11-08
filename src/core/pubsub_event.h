@@ -41,10 +41,10 @@ enum class PubSubEventKind : uint8_t {
     ClientKillRequest,
     ClientKillResult,
     // Lane F. All four are produced only while the CLIENT/MONITOR armed word is non-zero.
-    MonitorFeed,          // one pre-formatted feed line, encoded once and shared by every owner
-    TrackingInvalidate,   // keys whose value changed; each owner filters against its own table
-    TrackingFlush,        // FLUSHALL/FLUSHDB: deliver the null invalidation to every tracker
-    TrackingDeliver,      // redirect hop: owner of the redirect target emits the frame
+    MonitorFeed,         // one pre-formatted feed line, encoded once and shared by every owner
+    TrackingInvalidate,  // keys whose value changed; each owner filters against its own table
+    TrackingFlush,       // FLUSHALL/FLUSHDB: deliver the null invalidation to every tracker
+    TrackingDeliver,     // redirect hop: owner of the redirect target emits the frame
     ClientUnblockRequest,
     ClientUnblockResult,
     ClientRoutingInstalled,
@@ -109,7 +109,7 @@ struct PubSubResult {
 struct PubSubNotificationItem {
     std::string channel;
     std::string message;
-    Op* reply = nullptr; // committed EXEC child, completed only on coordinator IO
+    Op* reply = nullptr;  // committed EXEC child, completed only on coordinator IO
     bool shard = false;
 };
 

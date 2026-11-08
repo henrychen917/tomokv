@@ -21,9 +21,7 @@ struct CoreConcurrencyTest {
             std::_Exit(1);
         }
     }
-    static Slice slice(const std::string& s) {
-        return {s.data(), static_cast<uint32_t>(s.size())};
-    }
+    static Slice slice(const std::string& s) { return {s.data(), static_cast<uint32_t>(s.size())}; }
 
     struct Fixture {
         Server server;
@@ -43,11 +41,12 @@ struct CoreConcurrencyTest {
             }
             require(count == 8, "eight allowed CPUs required, no skip");
             require(server.topo_.declare(domain.c_str()), "declare fixture topology");
-            require(mode == ThreadMode::Fused
-                        ? server.placement_.build_fused(server.topo_, nullptr)
-                        : server.placement_.build_even(server.topo_, 6, 2), "place fixture");
+            require(mode == ThreadMode::Fused ? server.placement_.build_fused(server.topo_, nullptr)
+                                              : server.placement_.build_even(server.topo_, 6, 2),
+                    "place fixture");
             require(server.placement_.reserve_runtime_roles(8), "reserve fixture roles");
-            Config config; config.databases = 1;
+            Config config;
+            config.databases = 1;
             config.thread_mode = mode;
             config.shards = 16;
             config.read_local = local;
@@ -70,7 +69,8 @@ struct CoreConcurrencyTest {
             loop.slowlog_armed_ = false;
             if (mode == ThreadMode::Fused)
                 loop.bind_fused_completion(nullptr, [](void*, Client*) {});
-            require(loop.read_local_enabled() == local && server.atomic_enabled(), "resolved owner paths");
+            require(loop.read_local_enabled() == local && server.atomic_enabled(),
+                    "resolved owner paths");
             require(server.mode_schedule_stats() == nullptr,
                     "prefetch allocates no witness sidecar");
         }
@@ -111,8 +111,10 @@ struct CoreConcurrencyTest {
         uint64_t passes() const { return owner_prefetch_passes; }
         void witness(uint32_t n, uint64_t before) {
             const bool warmed = server.thread_mode() == ThreadMode::Fused && n > 1;
-            require(passes() == before + (warmed ? 1 : 0), "each eligible fused batch enters its prefetch body");
-            require(server.mode_schedule_stats() == nullptr, "fused prefetch allocates no schedule sidecar");
+            require(passes() == before + (warmed ? 1 : 0),
+                    "each eligible fused batch enters its prefetch body");
+            require(server.mode_schedule_stats() == nullptr,
+                    "fused prefetch allocates no schedule sidecar");
         }
     };
 
@@ -123,7 +125,8 @@ struct CoreConcurrencyTest {
                     "fused prefetch is unconditional; read-local split retains ordinary prefetch");
             f.loop.slowlog_armed_ = true;
             f.loop.slowlog_state_.escalate_batches = 1;
-            require(!f.loop.owner_prefetch_enabled(n), "exact slowlog escalation excludes prefetch");
+            require(!f.loop.owner_prefetch_enabled(n),
+                    "exact slowlog escalation excludes prefetch");
             f.loop.slowlog_armed_ = false;
             f.loop.slowlog_state_.escalate_batches = 0;
         }
@@ -143,7 +146,8 @@ struct CoreConcurrencyTest {
             batch[i] = f.prepare(clients[i % 2], {Slice("INCR"), slice(key)});
         const uint64_t before = f.passes();
         f.loop.exec_batch(batch, n);
-        require(f.loop.xshard_retries_.empty() && f.loop.ordered_deferred_.empty(), "no false blocker");
+        require(f.loop.xshard_retries_.empty() && f.loop.ordered_deferred_.empty(),
+                "no false blocker");
         for (uint32_t i = 0; i < n; i++) {
             const Op& op = batch[i].client->rob().at(batch[i].op_id);
             const std::string expected = ":" + std::to_string(i + 1) + "\r\n";
@@ -163,7 +167,8 @@ struct CoreConcurrencyTest {
         Task batch[128];
         for (uint32_t i = 0; i < n; i++) {
             keys.push_back(f.key());
-            batch[i] = f.prepare(clients[i % 2], {Slice("SET"), slice(keys.back()), Slice("value")});
+            batch[i] =
+                f.prepare(clients[i % 2], {Slice("SET"), slice(keys.back()), Slice("value")});
         }
         Client watcher(-1);
         std::atomic<uint64_t> epoch{0};
@@ -172,15 +177,17 @@ struct CoreConcurrencyTest {
         Shard& sh = f.server.shard(f.sid());
         const Slice key = slice(keys[stop]);
         require(sh.watch_add(key, &watcher, watcher.watch_generation()), "WATCH registration");
-        require(sh.watch_validate_and_reserve(key, &watcher, watcher.watch_generation(),
-                    &watcher, &epoch, &aborted, &refs, false), "reserve live WATCH claim");
+        require(sh.watch_validate_and_reserve(key, &watcher, watcher.watch_generation(), &watcher,
+                                              &epoch, &aborted, &refs, false),
+                "reserve live WATCH claim");
         require(refs.load() == 1 && !sh.watch_write_ready(key), "blocker must actually be armed");
         const uint64_t before = f.passes();
         f.loop.exec_batch(batch, n);
         f.witness(n, before);
         require(f.loop.xshard_retries_.size() == 1 &&
                     f.loop.xshard_retries_.front().client == batch[stop].client &&
-                    f.loop.xshard_retries_.front().op_id == batch[stop].op_id, "park first blocked task");
+                    f.loop.xshard_retries_.front().op_id == batch[stop].op_id,
+                "park first blocked task");
         require(f.loop.ordered_deferred_.size() == n - stop - 1, "park the entire suffix");
         for (uint32_t i = 0; i < n; i++) {
             const Op& op = batch[i].client->rob().at(batch[i].op_id);
@@ -198,28 +205,29 @@ struct CoreConcurrencyTest {
         require(refs.load() == 0, "WATCH reference released");
         f.loop.service_xshard_retries();
         f.loop.service_ordered_deferred<128>();
-        require(f.loop.xshard_retries_.empty() && f.loop.ordered_deferred_.empty(), "retry drains suffix");
+        require(f.loop.xshard_retries_.empty() && f.loop.ordered_deferred_.empty(),
+                "retry drains suffix");
         for (uint32_t i = 0; i < n; i++)
             require(batch[i].client->rob().at(batch[i].op_id).state.load() == OpState::Done,
                     "released batch completes every task");
         for (auto& c : clients) c.rob().drain([](Op&) {});
     }
 };
-} // namespace tomo
+}  // namespace tomo
 
 int main() {
     using T = tomo::CoreConcurrencyTest;
     T::require(tomo::command_registry_init(false), "command registry");
     for (auto mode : {tomo::ThreadMode::Fused, tomo::ThreadMode::Split}) {
-        for (bool local : {false, true})
-        {
+        for (bool local : {false, true}) {
             T::Fixture fixture(mode, local);
             T::eligibility(fixture);
             for (uint32_t n : {0u, 1u, 2u, 3u, 31u, 32u, 127u, 128u}) T::ordered(fixture, n);
             for (uint32_t n : {1u, 2u, 3u, 32u, 128u})
                 for (uint32_t stop : {0u, n / 2, n - 1}) T::blocked(fixture, n, stop);
-            std::printf("PASS owner prefetch %s read-local=%d reorder=0 atomic=key-lb=client-lb=1\n",
-                        mode == tomo::ThreadMode::Fused ? "1s" : "2s", local);
+            std::printf(
+                "PASS owner prefetch %s read-local=%d reorder=0 atomic=key-lb=client-lb=1\n",
+                mode == tomo::ThreadMode::Fused ? "1s" : "2s", local);
         }
     }
 }

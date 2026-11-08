@@ -48,6 +48,7 @@ class AtomicParkedTasks {
         state_->fifo.erase(task);
         ++removed_;
     }
+
 public:
     bool empty() const { return removed_ == added_; }
     size_t size() const { return added_ - removed_; }
@@ -85,17 +86,18 @@ public:
     void rotate_oldest() {
         auto& connection = state_->connections.at(state_->rotation.front());
         auto next = std::next(connection.poll);
-        connection.poll = next == connection.tasks.end() ||
-            next->first != connection.tasks.begin()->first ? connection.tasks.begin() : next;
-        state_->rotation.splice(state_->rotation.end(), state_->rotation,
-                                state_->rotation.begin());
+        connection.poll =
+            next == connection.tasks.end() || next->first != connection.tasks.begin()->first
+                ? connection.tasks.begin()
+                : next;
+        state_->rotation.splice(state_->rotation.end(), state_->rotation, state_->rotation.begin());
     }
     void pop_oldest() {
         auto task = state_->connections.at(state_->rotation.front()).poll->second;
         rotate_oldest();
         remove(task);
     }
-    template<class Fn>
+    template <class Fn>
     bool older(Client* client, uint64_t op_id, Fn&& match) const {
         if (empty()) return false;
         auto found = state_->connections.find(client);
@@ -123,4 +125,4 @@ public:
 };
 static_assert(sizeof(AtomicParkedTasks) == sizeof(std::deque<Task>));
 static_assert(alignof(AtomicParkedTasks) == alignof(std::deque<Task>));
-} // namespace tomo
+}  // namespace tomo

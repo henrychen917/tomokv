@@ -12,4 +12,4 @@ inline std::atomic<uint64_t> query_limit_disconnections{0};
     query_limit_disconnections.fetch_add(1, std::memory_order_relaxed);
     return true;
 }
-} // namespace tomo
+}  // namespace tomo

@@ -17,7 +17,8 @@ extern "C" bool wrapped_save(std::vector<uint8_t>& image, std::string& error) {
     const bool result = real_save(image, error);
     const char* path = std::getenv("WAVE14_CAPTURE_HOLD");
     auto* server = tomo::command_server();
-    if (result && path && server && server->aof().rewrite_in_progress() && ::access(path, F_OK) == 0) {
+    if (result && path && server && server->aof().rewrite_in_progress() &&
+        ::access(path, F_OK) == 0) {
         const std::string ready = std::string(path) + ".ready";
         FILE* file = std::fopen(ready.c_str(), "w");
         if (!file) std::abort();

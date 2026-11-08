@@ -20,8 +20,12 @@
 
 using namespace tomo;
 namespace {
-struct SslAccess { using Type = SSL* TlsConn::*; friend Type member(SslAccess); };
-template <SslAccess::Type P> struct SslMember {
+struct SslAccess {
+    using Type = SSL* TlsConn::*;
+    friend Type member(SslAccess);
+};
+template <SslAccess::Type P>
+struct SslMember {
     friend SslAccess::Type member(SslAccess) { return P; }
 };
 template struct SslMember<&TlsConn::ssl_>;
@@ -50,27 +54,31 @@ struct Fixture {
     int fds[2]{-1, -1};
     Fixture(const std::string& dir, int version, bool attempt, bool tx, bool rx,
             const char* suite = "TLS_AES_128_GCM_SHA256", bool small_fragment = false) {
-        fake_tx = tx; fake_rx = rx; rx_installs = tx_installs = 0;
-        installed_keys.clear(); peer_secrets.clear();
+        fake_tx = tx;
+        fake_rx = rx;
+        rx_installs = tx_installs = 0;
+        installed_keys.clear();
+        peer_secrets.clear();
         Config cfg;
         const auto cert = dir + "/server.crt", key = dir + "/server.key";
-        cfg.tls_cert_file = cert.c_str(); cfg.tls_key_file = key.c_str();
+        cfg.tls_cert_file = cert.c_str();
+        cfg.tls_key_file = key.c_str();
         cfg.tls_ciphersuites = suite;
         cfg.tls_protocols = version == TLS1_3_VERSION ? "TLSv1.3" : "TLSv1.2";
         std::string error;
         context = TlsContext::create(cfg, error);
         require(context != nullptr, error.c_str());
-        require(socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0, fds) == 0,
-                "local socketpair");
+        require(socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0, fds) == 0, "local socketpair");
         require(server.init(*context, TlsAuthClients::No, fds[0], attempt, error), error.c_str());
         observed_bio = SSL_get_wbio(server.*member(SslAccess{}));
         client_context = SSL_CTX_new(TLS_client_method());
         require(client_context && SSL_CTX_set_min_proto_version(client_context, version) == 1 &&
-                SSL_CTX_set_max_proto_version(client_context, version) == 1, "client protocol");
-        require(SSL_CTX_set_ciphersuites(client_context, suite) == 1,
-                "client cipher");
+                    SSL_CTX_set_max_proto_version(client_context, version) == 1,
+                "client protocol");
+        require(SSL_CTX_set_ciphersuites(client_context, suite) == 1, "client cipher");
         if (small_fragment)
-            require(SSL_CTX_set_tlsext_max_fragment_length(client_context, TLSEXT_max_fragment_length_512) == 1,
+            require(SSL_CTX_set_tlsext_max_fragment_length(client_context,
+                                                           TLSEXT_max_fragment_length_512) == 1,
                     "request pure userspace live arm's maximum fragment length");
         SSL_CTX_set_keylog_callback(client_context, peer_keylog);
         client = SSL_new(client_context);
@@ -80,8 +88,10 @@ struct Fixture {
             if (!client_done) {
                 ERR_clear_error();
                 const int n = SSL_connect(client);
-                if (n == 1) client_done = true;
-                else want(n, "client handshake");
+                if (n == 1)
+                    client_done = true;
+                else
+                    want(n, "client handshake");
             }
             pump();
             if (server.handshaking()) {
@@ -94,14 +104,18 @@ struct Fixture {
         require(client_done && server.connected(), "bounded handshake completed");
         require(SSL_version(client) == version, "negotiated requested version");
         if (small_fragment)
-            require(SSL_SESSION_get_max_fragment_length(SSL_get_session(client)) == TLSEXT_max_fragment_length_512 &&
-                    SSL_SESSION_get_max_fragment_length(SSL_get_session(server.*member(SslAccess{}))) == TLSEXT_max_fragment_length_512,
+            require(SSL_SESSION_get_max_fragment_length(SSL_get_session(client)) ==
+                            TLSEXT_max_fragment_length_512 &&
+                        SSL_SESSION_get_max_fragment_length(SSL_get_session(
+                            server.*member(SslAccess{}))) == TLSEXT_max_fragment_length_512,
                     "both peers agree on userspace-only fragment size");
     }
     ~Fixture() {
         observed_bio = nullptr;
-        SSL_free(client); SSL_CTX_free(client_context);
-        close(fds[0]); close(fds[1]);
+        SSL_free(client);
+        SSL_CTX_free(client_context);
+        close(fds[0]);
+        close(fds[1]);
     }
     void want(int n, const char* message) {
         const int error = SSL_get_error(client, n);
@@ -113,14 +127,17 @@ struct Fixture {
         int pending = server.peek_output(src);
         if (pending > 0) {
             const int n = ::send(fds[0], src, pending, MSG_NOSIGNAL);
-            if (n > 0) require(server.consume_output(n), "ciphertext output accounting");
-            else require(errno == EAGAIN || errno == EWOULDBLOCK, "ciphertext send");
+            if (n > 0)
+                require(server.consume_output(n), "ciphertext output accounting");
+            else
+                require(errno == EAGAIN || errno == EWOULDBLOCK, "ciphertext send");
         }
         char* dst = nullptr;
         const int space = server.reserve_input(dst, TlsConn::kBioBytes);
         if (space > 0) {
             const int n = ::recv(fds[0], dst, space, 0);
-            if (n > 0) require(server.commit_input(n), "ciphertext input accounting");
+            if (n > 0)
+                require(server.commit_input(n), "ciphertext input accounting");
             else {
                 server.abandon_input();
                 require(n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK), "ciphertext recv");
@@ -137,29 +154,39 @@ struct Fixture {
             if (sent < request.size()) {
                 ERR_clear_error();
                 const int n = SSL_write(client, request.data() + sent, request.size() - sent);
-                if (n > 0) sent += n; else want(n, "client request write");
+                if (n > 0)
+                    sent += n;
+                else
+                    want(n, "client request write");
             }
             pump();
             if (got_request.size() < request.size()) {
                 const auto read = server.read_plain(bytes, sizeof(bytes));
-                if (read.op == TlsOp::Progress) got_request.append(bytes, read.bytes);
-                else require(read.op == TlsOp::WantRead || read.op == TlsOp::WantWrite,
-                             server.last_error().c_str());
+                if (read.op == TlsOp::Progress)
+                    got_request.append(bytes, read.bytes);
+                else
+                    require(read.op == TlsOp::WantRead || read.op == TlsOp::WantWrite,
+                            server.last_error().c_str());
             }
             if (got_request.size() >= request.size()) {
                 require(got_request == request, "KeyUpdate control bytes never reach RESP");
                 if (replied < response.size()) {
-                    const auto write = server.write_plain(response.data() + replied,
-                                                          response.size() - replied);
-                    if (write.op == TlsOp::Progress) replied += write.bytes;
-                    else require(write.op == TlsOp::WantRead || write.op == TlsOp::WantWrite,
-                                 server.last_error().c_str());
+                    const auto write =
+                        server.write_plain(response.data() + replied, response.size() - replied);
+                    if (write.op == TlsOp::Progress)
+                        replied += write.bytes;
+                    else
+                        require(write.op == TlsOp::WantRead || write.op == TlsOp::WantWrite,
+                                server.last_error().c_str());
                 }
             }
             pump();
             ERR_clear_error();
             const int n = SSL_read(client, bytes, sizeof(bytes));
-            if (n > 0) got_reply.append(bytes, n); else want(n, "client response read");
+            if (n > 0)
+                got_reply.append(bytes, n);
+            else
+                want(n, "client response read");
         }
         require(got_reply == response, "PING survives KeyUpdate");
     }
@@ -185,21 +212,26 @@ extern "C" long __wrap_BIO_ctrl(BIO* bio, int command, long value, void* ptr) {
 }
 extern "C" int __wrap_setsockopt(int, int level, int option, const void* value, socklen_t length) {
     require(level == SOL_TLS, "only kTLS setsockopt is intercepted");
-    if (option == TLS_RX) ++rx_installs;
+    if (option == TLS_RX)
+        ++rx_installs;
     else if (option == TLS_TX) {
         ++tx_installs;
         installed_keys.emplace_back(static_cast<const unsigned char*>(value),
                                     static_cast<const unsigned char*>(value) + length);
-        if (reject_tx) { errno = EBUSY; return -1; }
-    }
-    else require(false, "unexpected kTLS option");
+        if (reject_tx) {
+            errno = EBUSY;
+            return -1;
+        }
+    } else
+        require(false, "unexpected kTLS option");
     return 0;
 }
 // Compare the kernel key/IV to the secrets learned by the *peer*, deriving with the separate
 // OpenSSL TLS13-KDF API. This catches wrong direction/hash/label, stale keys and nonzero sequences.
 template <class Crypto>
 void check_keys(uint16_t cipher, const char* digest) {
-    require(installed_keys.size() == 2 && peer_secrets.size() == 2, "two peer-confirmed TX re-keys");
+    require(installed_keys.size() == 2 && peer_secrets.size() == 2,
+            "two peer-confirmed TX re-keys");
     for (size_t i = 0; i < installed_keys.size(); ++i) {
         require(installed_keys[i].size() == sizeof(Crypto), "kernel cipher structure size");
         Crypto crypto;
@@ -220,28 +252,35 @@ void check_keys(uint16_t cipher, const char* digest) {
             char prefix[] = "tls13 ";
             OSSL_PARAM params[]{
                 OSSL_PARAM_construct_int(OSSL_KDF_PARAM_MODE, &mode),
-                OSSL_PARAM_construct_utf8_string(OSSL_KDF_PARAM_DIGEST, const_cast<char*>(digest), 0),
+                OSSL_PARAM_construct_utf8_string(OSSL_KDF_PARAM_DIGEST, const_cast<char*>(digest),
+                                                 0),
                 OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_KEY, secret, hex.size() / 2),
-                OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_PREFIX, prefix, sizeof(prefix) - 1),
+                OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_PREFIX, prefix,
+                                                  sizeof(prefix) - 1),
                 OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_LABEL, label, std::strlen(label)),
                 OSSL_PARAM_construct_end()};
-            require(context && EVP_KDF_derive(context, make_iv ? iv : key,
-                    make_iv ? sizeof(iv) : sizeof(crypto.key), params) == 1, "derive peer key/IV");
+            require(
+                context && EVP_KDF_derive(context, make_iv ? iv : key,
+                                          make_iv ? sizeof(iv) : sizeof(crypto.key), params) == 1,
+                "derive peer key/IV");
             EVP_KDF_CTX_free(context);
         }
         require(std::memcmp(crypto.key, key, sizeof(crypto.key)) == 0 &&
-                std::memcmp(crypto.salt, iv, sizeof(crypto.salt)) == 0 &&
-                std::memcmp(crypto.iv, iv + sizeof(crypto.salt), sizeof(crypto.iv)) == 0,
+                    std::memcmp(crypto.salt, iv, sizeof(crypto.salt)) == 0 &&
+                    std::memcmp(crypto.iv, iv + sizeof(crypto.salt), sizeof(crypto.iv)) == 0,
                 "TLS13_TX_REKEY_MATERIAL: kernel key/IV match the peer");
         for (auto byte : crypto.rec_seq) require(byte == 0, "new key starts at sequence zero");
-        OPENSSL_cleanse(secret, sizeof(secret)); OPENSSL_cleanse(key, sizeof(key));
-        OPENSSL_cleanse(iv, sizeof(iv)); OPENSSL_cleanse(&crypto, sizeof(crypto));
+        OPENSSL_cleanse(secret, sizeof(secret));
+        OPENSSL_cleanse(key, sizeof(key));
+        OPENSSL_cleanse(iv, sizeof(iv));
+        OPENSSL_cleanse(&crypto, sizeof(crypto));
     }
     require(installed_keys[0] != installed_keys[1], "repeated KeyUpdates install distinct keys");
 }
 int main(int argc, char** argv) {
     std::signal(SIGPIPE, SIG_IGN);
-    require(argc == 3, "usage: ktls-keyupdate-unit CERT_DIR rx-policy|tls12|userspace|tx-rekey|tx-failure");
+    require(argc == 3,
+            "usage: ktls-keyupdate-unit CERT_DIR rx-policy|tls12|userspace|tx-rekey|tx-failure");
     current_case = argv[2];
     if (current_case == "rx-policy") {
         for (bool native_rx : {false, true}) {
@@ -258,11 +297,21 @@ int main(int argc, char** argv) {
             f.updates();
             require(tx_installs == 2, "TLS13_TX_REKEY: both requested updates reinstall TX");
             switch (SSL_CIPHER_get_protocol_id(SSL_get_current_cipher(f.client))) {
-            case 0x1301: check_keys<tls12_crypto_info_aes_gcm_128>(TLS_CIPHER_AES_GCM_128, "SHA256"); break;
-            case 0x1302: check_keys<tls12_crypto_info_aes_gcm_256>(TLS_CIPHER_AES_GCM_256, "SHA384"); break;
-            case 0x1303: check_keys<tls12_crypto_info_chacha20_poly1305>(TLS_CIPHER_CHACHA20_POLY1305, "SHA256"); break;
-            case 0x1304: check_keys<tls12_crypto_info_aes_ccm_128>(TLS_CIPHER_AES_CCM_128, "SHA256"); break;
-            default: require(false, "known re-key cipher");
+                case 0x1301:
+                    check_keys<tls12_crypto_info_aes_gcm_128>(TLS_CIPHER_AES_GCM_128, "SHA256");
+                    break;
+                case 0x1302:
+                    check_keys<tls12_crypto_info_aes_gcm_256>(TLS_CIPHER_AES_GCM_256, "SHA384");
+                    break;
+                case 0x1303:
+                    check_keys<tls12_crypto_info_chacha20_poly1305>(TLS_CIPHER_CHACHA20_POLY1305,
+                                                                    "SHA256");
+                    break;
+                case 0x1304:
+                    check_keys<tls12_crypto_info_aes_ccm_128>(TLS_CIPHER_AES_CCM_128, "SHA256");
+                    break;
+                default:
+                    require(false, "known re-key cipher");
             }
         }
     } else if (current_case == "tx-failure") {
@@ -270,12 +319,14 @@ int main(int argc, char** argv) {
         f.exchange();
         reject_tx = true;
         require(SSL_key_update(f.client, SSL_KEY_UPDATE_REQUESTED) == 1 &&
-                SSL_do_handshake(f.client) == 1, "request update before rejected TX install");
+                    SSL_do_handshake(f.client) == 1,
+                "request update before rejected TX install");
         char bytes[128];
         (void)f.server.read_plain(bytes, sizeof(bytes));
         const auto write = f.server.write_plain("+PONG\r\n", 7);
-        require(tx_installs == 1 && f.server.failed() && write.op == TlsOp::Error && write.bytes == 0,
-                "TLS13_TX_REKEY_FAILURE: reject application writes after failed key install");
+        require(
+            tx_installs == 1 && f.server.failed() && write.op == TlsOp::Error && write.bytes == 0,
+            "TLS13_TX_REKEY_FAILURE: reject application writes after failed key install");
         require(f.server.last_error().find("kTLS TX re-key failed") != std::string::npos,
                 "failed re-key has a diagnostic");
     } else if (current_case == "tls12") {
@@ -284,11 +335,13 @@ int main(int argc, char** argv) {
         require(rx_installs == 0, "TLS12_KTLS: no manual key install");
     } else if (current_case == "userspace") {
         for (bool attempt : {false, true}) {
-            Fixture f(argv[1], TLS1_3_VERSION, attempt, false, false, "TLS_AES_128_GCM_SHA256", attempt);
+            Fixture f(argv[1], TLS1_3_VERSION, attempt, false, false, "TLS_AES_128_GCM_SHA256",
+                      attempt);
             require(f.server.memory_userspace(), "userspace fallback stays on the BIO pair");
             f.updates();
             require(rx_installs == 0 && tx_installs == 0, "userspace never installs kernel keys");
         }
-    } else require(false, "unknown case");
+    } else
+        require(false, "unknown case");
     std::printf("ok: NET2 %s (TlsConn=%zu)\n", current_case.c_str(), sizeof(TlsConn));
 }

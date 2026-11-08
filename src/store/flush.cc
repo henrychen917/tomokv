@@ -4,12 +4,15 @@
 
 namespace tomo {
 int64_t atomic_flush_now_ms() { return now_realtime_ms(); }
-bool atomic_flush_covers(const AtomicEntry& entry, Slice key) { return atomic_range_covers(entry, key); }
+bool atomic_flush_covers(const AtomicEntry& entry, Slice key) {
+    return atomic_range_covers(entry, key);
+}
 // Namespace records: cold FLUSH publication, resolution and reclamation.
 AtomicEntry* FlatStore::atomic_install_flush(ScatterState* group, int ns,
-                                 std::atomic<uint64_t>* epoch,
-                                 std::atomic<bool>* aborted,
-                                 std::atomic<uint32_t>* refs, uint64_t origin, uint32_t shard) {
+                                             std::atomic<uint64_t>* epoch,
+                                             std::atomic<bool>* aborted,
+                                             std::atomic<uint32_t>* refs, uint64_t origin,
+                                             uint32_t shard) {
     if (!atomic_ensure_pending()) return nullptr;
     auto* entry = atomic_alloc_entry(0, 0);
     if (!entry) return nullptr;
@@ -34,12 +37,17 @@ AtomicEntry* FlatStore::atomic_install_flush(ScatterState* group, int ns,
 
 void FlatStore::atomic_flush_release(AtomicEntry* entry) {
     if (!entry || !entry->namespace_range || !entry->linked) std::abort();
-    if (entry->prev) entry->prev->next = entry->next;
-    else atomic_pending_->head = entry->next;
-    if (entry->next) entry->next->prev = entry->prev;
-    else atomic_pending_->tail = entry->prev;
+    if (entry->prev)
+        entry->prev->next = entry->next;
+    else
+        atomic_pending_->head = entry->next;
+    if (entry->next)
+        entry->next->prev = entry->prev;
+    else
+        atomic_pending_->tail = entry->prev;
     atomic_unlink_conn(*entry);
-    if (atomic_pending_->ranges != UINT8_MAX) --atomic_pending_->ranges;
+    if (atomic_pending_->ranges != UINT8_MAX)
+        --atomic_pending_->ranges;
     else {
         uint8_t remaining = 0;
         for (auto* e = atomic_pending_->head; e && remaining != UINT8_MAX; e = e->next)
@@ -68,8 +76,10 @@ bool FlatStore::atomic_flush_ready(AtomicEntry* range, uint64_t floor, uint64_t 
             if (e->namespace_range) return false;
         // Capture has already preserved every covered physical preimage;
         // ordinary records installed during capture used the same COW gate.
-        if (read_local_enabled_) atomic_collapse_impl<true>(floor, cutoff, true);
-        else atomic_collapse_impl<false>(floor, cutoff, true);
+        if (read_local_enabled_)
+            atomic_collapse_impl<true>(floor, cutoff, true);
+        else
+            atomic_collapse_impl<false>(floor, cutoff, true);
     }
     return atomic_pending_->head == range;
 }
@@ -82,7 +92,8 @@ bool FlatStore::atomic_flush_has_post(const AtomicEntry& range) const {
     // Count actual installed key versions, from the cold reclamation task.
     // Overlapping ranges can observe the same version; this is a window
     // falsifier, not a count of unique client writes.
-    if (versions) atomic_flush_counters.post_versions.fetch_add(versions, std::memory_order_relaxed);
+    if (versions)
+        atomic_flush_counters.post_versions.fetch_add(versions, std::memory_order_relaxed);
     return versions != 0;
 }
 
@@ -101,7 +112,7 @@ class FlushPostIndex {
     };
     struct Node {
         Slot value;
-        uint64_t bit = UINT64_MAX; // leaf
+        uint64_t bit = UINT64_MAX;  // leaf
         size_t child[2] = {};
     };
     static constexpr size_t absent = SIZE_MAX;
@@ -118,22 +129,21 @@ class FlushPostIndex {
         const uint64_t byte = bit / 9;
         if (byte >= key.n) return 0;
         const unsigned within = bit % 9;
-        if (!within) return 1; // byte present; zero terminates the key
+        if (!within) return 1;  // byte present; zero terminates the key
         return (static_cast<unsigned char>(key.p[byte]) >> (8 - within)) & 1;
     }
     uint64_t difference(const Slot& a, const Slot& b) {
         if (a.hash != b.hash) return std::countl_zero(a.hash ^ b.hash);
-        if (a.key.ns != b.key.ns)
-            return 64 + std::countl_zero(unsigned(a.key.ns ^ b.key.ns)) - 24;
+        if (a.key.ns != b.key.ns) return 64 + std::countl_zero(unsigned(a.key.ns ^ b.key.ns)) - 24;
         uint64_t i = 0;
         while (i < std::min(a.key.n, b.key.n)) {
             ++work_;
-            const unsigned diff = static_cast<unsigned char>(a.key.p[i]) ^
-                                  static_cast<unsigned char>(b.key.p[i]);
+            const unsigned diff =
+                static_cast<unsigned char>(a.key.p[i]) ^ static_cast<unsigned char>(b.key.p[i]);
             if (diff) return 72 + 9 * i + 1 + std::countl_zero(diff) - 24;
             ++i;
         }
-        return 72 + 9 * i; // unequal lengths: present marker versus terminator
+        return 72 + 9 * i;  // unequal lengths: present marker versus terminator
     }
     KvObj** find_overflow(uint64_t hash, Slice key) {
         if (root_ == absent) return nullptr;
@@ -177,23 +187,29 @@ class FlushPostIndex {
         branch.child[side ^ 1] = at;
         const size_t fork = overflow_.size();
         overflow_.push_back(branch);
-        if (parent == absent) root_ = fork;
-        else overflow_[parent].child[direction] = fork;
+        if (parent == absent)
+            root_ = fork;
+        else
+            overflow_[parent].child[direction] = fork;
     }
+
 public:
     FlushPostIndex(size_t occurrences, uint64_t& work) : work_(work) {
         size_t capacity = 32;
         while (capacity / 2 < occurrences) capacity *= 2;
         slots_.resize(capacity);
-        work_ += capacity; // include scratch initialization in the work witness
+        work_ += capacity;  // include scratch initialization in the work witness
     }
     void insert(uint64_t hash, Slice key, KvObj** parked) {
         const size_t mask = slots_.size() - 1;
         for (unsigned i = 0; i < probes; ++i) {
             ++work_;
             auto& slot = slots_[(hash + i) & mask];
-            if (!slot.parked) { slot = Slot{hash, key, parked}; return; }
-            if (slot.matches(hash, key)) return; // retain the FIRST occurrence
+            if (!slot.parked) {
+                slot = Slot{hash, key, parked};
+                return;
+            }
+            if (slot.matches(hash, key)) return;  // retain the FIRST occurrence
         }
         insert_overflow(Slot{hash, key, parked});
     }
@@ -207,19 +223,23 @@ public:
         }
         return find_overflow(hash, key);
     }
-    template<class Fn> void for_each(Fn&& fn) {
-        for (const auto& slot : slots_) { ++work_; if (slot.parked) fn(slot.parked); }
+    template <class Fn>
+    void for_each(Fn&& fn) {
+        for (const auto& slot : slots_) {
+            ++work_;
+            if (slot.parked) fn(slot.parked);
+        }
         for (const auto& node : overflow_) {
             ++work_;
             if (node.bit == UINT64_MAX) fn(node.value.parked);
         }
     }
 };
-} // namespace
+}  // namespace
 
 // The first later occurrence owns the pre-flush resident. Removing that
 // slot also makes a later abort roll back to absence, never resurrect it.
-bool FlatStore::/* TOMO_TOOL_BIND atomic_flush_erase */atomic_flush_erase(AtomicEntry& range) {
+bool FlatStore::/* TOMO_TOOL_BIND atomic_flush_erase */ atomic_flush_erase(AtomicEntry& range) {
     uint64_t work = 0;
     size_t occurrences = 0;
     for (auto* e = range.next; e; e = e->next) {
@@ -272,24 +292,28 @@ bool FlatStore::/* TOMO_TOOL_BIND atomic_flush_erase */atomic_flush_erase(Atomic
                 retire_obj(object);
                 tab_[table][slot] = kTombBit;
             }
-            --live_[table]; ++tombs_[table];
+            --live_[table];
+            ++tombs_[table];
         }
     }
     // Includes keys whose post-flush version deleted their physical slot.
     first_post->for_each([&](KvObj** parked) {
-            if (!*parked) return;
-            KvObj* old = *parked;
-            *parked = nullptr;
-            atomic_gauge_sub(kvobj_size(old));
-            if (read_local_enabled_) retire_detached_obj_read_local(old);
-            else retire_detached_obj(old);
+        if (!*parked) return;
+        KvObj* old = *parked;
+        *parked = nullptr;
+        atomic_gauge_sub(kvobj_size(old));
+        if (read_local_enabled_)
+            retire_detached_obj_read_local(old);
+        else
+            retire_detached_obj(old);
     });
     atomic_flush_counters.slow_work.fetch_add(work, std::memory_order_relaxed);
     atomic_flush_counters.slow_collapses.fetch_add(1, std::memory_order_relaxed);
     return true;
 }
 
-uint64_t FlatStore::/* TOMO_TOOL_BIND atomic_flush_resolved_size */atomic_flush_resolved_size(uint64_t snapshot) {
+uint64_t FlatStore::/* TOMO_TOOL_BIND atomic_flush_resolved_size */ atomic_flush_resolved_size(
+    uint64_t snapshot) {
     uint64_t visible = 0;
     for_each([&](KvObj* object) {
         const Slice key = object->key();
@@ -300,7 +324,7 @@ uint64_t FlatStore::/* TOMO_TOOL_BIND atomic_flush_resolved_size */atomic_flush_
 }
 
 AtomicResolved FlatStore::atomic_resolve_range(uint64_t hash, Slice key, uint64_t snapshot,
-                                       bool count_predecessor) {
+                                               bool count_predecessor) {
     KvObj* physical_value = atomic_find_physical(hash, key);
     if (!atomic_pending_ || !atomic_pending_->live)
         return AtomicResolved{atomic_live_value(physical_value), false, true};
@@ -327,7 +351,8 @@ AtomicResolved FlatStore::atomic_resolve_range(uint64_t hash, Slice key, uint64_
     uint64_t prev_epoch = 0;
     auto consider = [&](AtomicEntry& owner, KvObj* candidate, bool is_physical) {
         if (owner.group_epoch && owner.group_aborted &&
-            owner.group_aborted->load(std::memory_order_acquire)) return;
+            owner.group_aborted->load(std::memory_order_acquire))
+            return;
         uint64_t epoch = atomic_epoch(owner);
         // Applied BEFORE the visibility tests below: a snapshot excluding a connection's
         // earlier record must exclude its later one too, which is what lifting the epoch
@@ -341,8 +366,8 @@ AtomicResolved FlatStore::atomic_resolve_range(uint64_t hash, Slice key, uint64_
             prev_conn_id = owner.origin_conn_id;
             prev_epoch = epoch;
         }
-        const bool own_committed = atomic_read_origin_conn_id_ != 0 &&
-            owner.origin_conn_id == atomic_read_origin_conn_id_;
+        const bool own_committed =
+            atomic_read_origin_conn_id_ != 0 && owner.origin_conn_id == atomic_read_origin_conn_id_;
         // A transaction's own still-private installs are its RYOW overlay.  Foreign epoch-zero
         // candidates remain invisible exactly as before; ordinary pipelined commands still
         // defer on their own undecided predecessor before reaching this resolver.
@@ -351,8 +376,7 @@ AtomicResolved FlatStore::atomic_resolve_range(uint64_t hash, Slice key, uint64_
             // entry IS the reader's own earlier write, so landing here means the read failed
             // the own_committed test -- the RYOW hole the seed-19 divergence goes through.
             if (__builtin_expect(atomic_tripwire_enabled(), false))
-                atomic_tripwire_excluded(hash, snapshot, 0,
-                                         atomic_read_origin_conn_id_,
+                atomic_tripwire_excluded(hash, snapshot, 0, atomic_read_origin_conn_id_,
                                          owner.origin_conn_id);
             return;
         }
@@ -362,8 +386,7 @@ AtomicResolved FlatStore::atomic_resolve_range(uint64_t hash, Slice key, uint64_
             // read that carried no origin conn (context never set on its path) or a stale
             // one -- the two candidate mechanisms for the seed-19 stale-read divergence.
             if (__builtin_expect(atomic_tripwire_enabled(), false))
-                atomic_tripwire_excluded(hash, snapshot, epoch,
-                                         atomic_read_origin_conn_id_,
+                atomic_tripwire_excluded(hash, snapshot, epoch, atomic_read_origin_conn_id_,
                                          owner.origin_conn_id);
             return;
         }
@@ -377,8 +400,7 @@ AtomicResolved FlatStore::atomic_resolve_range(uint64_t hash, Slice key, uint64_
         // committed ones, the later occurrence still wins (equal epochs are several physical
         // installs inside one command, whose last occurrence is that command's final value).
         const bool own_private = owner.group_epoch && epoch == 0;
-        if (!winner_set ||
-            (own_private ? true : (!winner_private && epoch >= winner_epoch))) {
+        if (!winner_set || (own_private ? true : (!winner_private && epoch >= winner_epoch))) {
             winner = candidate;
             winner_epoch = epoch;
             winner_set = true;
@@ -410,7 +432,8 @@ AtomicResolved FlatStore::atomic_resolve_range(uint64_t hash, Slice key, uint64_
             for (auto* next = entry; next && physical; next = next->next) {
                 if (!(next->membership & bit)) continue;
                 for (uint32_t j = next == entry ? i + 1 : 0; j < next->count; ++j)
-                    if (atomic_entry_hash(*next, j) == hash && atomic_entry_key(*next, j).key_eq(key)) {
+                    if (atomic_entry_hash(*next, j) == hash &&
+                        atomic_entry_key(*next, j).key_eq(key)) {
                         candidate = next->parked()[j];
                         physical = false;
                         break;
@@ -430,18 +453,16 @@ AtomicResolved FlatStore::atomic_resolve_range(uint64_t hash, Slice key, uint64_
     // correctness gate: count every occurrence, and let the process-global one-shot retain the
     // first answer/ticket pair. The armed check precedes the extra list walk, so a production
     // server pays none of the diagnostic work and performs no new atomic operation.
-    if (__builtin_expect(!from_physical && snapshot != UINT64_MAX &&
-                         atomic_tripwire_enabled(), false)) {
+    if (__builtin_expect(!from_physical && snapshot != UINT64_MAX && atomic_tripwire_enabled(),
+                         false)) {
         const uint64_t answer_ticket = winner_entry ? atomic_epoch(*winner_entry) : 0;
         uint64_t smaller_ticket = 0;
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
             if (!entry->group_epoch ||
-                (entry->group_aborted &&
-                 entry->group_aborted->load(std::memory_order_acquire)))
+                (entry->group_aborted && entry->group_aborted->load(std::memory_order_acquire)))
                 continue;
             const uint64_t ticket = atomic_epoch(*entry);
-            if (ticket && ticket < snapshot &&
-                (!smaller_ticket || ticket < smaller_ticket))
+            if (ticket && ticket < snapshot && (!smaller_ticket || ticket < smaller_ticket))
                 smaller_ticket = ticket;
         }
         if (smaller_ticket)
@@ -457,11 +478,10 @@ AtomicResolved FlatStore::atomic_resolve_range(uint64_t hash, Slice key, uint64_
             const bool range = atomic_range_covers(*entry, key);
             for (uint32_t i = 0; i < (range ? 1u : entry->count); i++) {
                 if (!range && (atomic_entry_hash(*entry, i) != hash ||
-                    !atomic_entry_key(*entry, i).key_eq(key)))
+                               !atomic_entry_key(*entry, i).key_eq(key)))
                     continue;
                 if (!entry->group_epoch ||
-                    (entry->group_aborted &&
-                     entry->group_aborted->load(std::memory_order_acquire)))
+                    (entry->group_aborted && entry->group_aborted->load(std::memory_order_acquire)))
                     break;
                 uint64_t ticket = atomic_epoch(*entry);
                 if (ticket == 0) {
@@ -480,9 +500,8 @@ AtomicResolved FlatStore::atomic_resolve_range(uint64_t hash, Slice key, uint64_
                     else
                         atomic_tripwire_samekey(AtomicTripwireSamekey::UndecidedGtCut);
                 } else if (ticket <= snapshot && ticket > answer_ticket) {
-                    atomic_tripwire_samekey(walked
-                                                ? AtomicTripwireSamekey::VisibleLost
-                                                : AtomicTripwireSamekey::MaskedOut);
+                    atomic_tripwire_samekey(walked ? AtomicTripwireSamekey::VisibleLost
+                                                   : AtomicTripwireSamekey::MaskedOut);
                 }
                 break;
             }
@@ -491,4 +510,4 @@ AtomicResolved FlatStore::atomic_resolve_range(uint64_t hash, Slice key, uint64_
     return AtomicResolved{atomic_live_value(value), true, from_physical};
 }
 
-} // namespace tomo
+}  // namespace tomo

@@ -58,10 +58,9 @@ FlipSignature flip_signature(const FlipFingerprintWindow& sample) {
     if (!sample.commands) return signature;
     normalize(sample.pass_depth, signature.pass_depth);
     normalize(sample.command_class, signature.command_class);
-    signature.keys_per_multikey = sample.multikey_ops
-        ? static_cast<double>(sample.multikey_keys) / sample.multikey_ops : 0;
-    signature.value_bytes_per_command =
-        static_cast<double>(sample.value_bytes) / sample.commands;
+    signature.keys_per_multikey =
+        sample.multikey_ops ? static_cast<double>(sample.multikey_keys) / sample.multikey_ops : 0;
+    signature.value_bytes_per_command = static_cast<double>(sample.value_bytes) / sample.commands;
     signature.commands = sample.commands;
     signature.valid = true;
     return signature;
@@ -87,8 +86,8 @@ double flip_signature_distance(const FlipSignature& left, const FlipSignature& r
     // through the rate detector, which owns volume.
     return (class_l1 * 0.5 +
             unit_normalized_distance(left.keys_per_multikey, right.keys_per_multikey) +
-            unit_normalized_distance(left.value_bytes_per_command,
-                                     right.value_bytes_per_command)) / 3.0;
+            unit_normalized_distance(left.value_bytes_per_command, right.value_bytes_per_command)) /
+           3.0;
 }
 
 double flip_signature_pass_distance(const FlipSignature& left, const FlipSignature& right) {
@@ -164,8 +163,7 @@ bool FlipShiftDetector::observe(const FlipFingerprintWindow& sample) {
         learning_origin_ = incoming;
     } else {
         for (size_t i = 0; i < smoothed_.pass_depth.size(); i++)
-            smoothed_.pass_depth[i] =
-                (smoothed_.pass_depth[i] + incoming.pass_depth[i]) * 0.5;
+            smoothed_.pass_depth[i] = (smoothed_.pass_depth[i] + incoming.pass_depth[i]) * 0.5;
         for (size_t i = 0; i < smoothed_.command_class.size(); i++)
             smoothed_.command_class[i] =
                 (smoothed_.command_class[i] + incoming.command_class[i]) * 0.5;
@@ -177,8 +175,7 @@ bool FlipShiftDetector::observe(const FlipFingerprintWindow& sample) {
         smoothed_.valid = true;
     }
 
-    const double adjacent = have_previous_
-        ? flip_signature_distance(smoothed_, previous_) : 0;
+    const double adjacent = have_previous_ ? flip_signature_distance(smoothed_, previous_) : 0;
     if (anchored_) {
         last_distance_ = flip_signature_distance(smoothed_, anchored_signature_);
         const bool fired = configured_band_ != 0 && last_distance_ > band_;
@@ -215,8 +212,7 @@ bool FlipShiftDetector::observe(const FlipFingerprintWindow& sample) {
         signature_noise_.add(adjacent);
     }
     if (!anchored_ && learning_origin_.valid) {
-        jitter_ = std::max(jitter_,
-                           flip_signature_distance(smoothed_, learning_origin_));
+        jitter_ = std::max(jitter_, flip_signature_distance(smoothed_, learning_origin_));
         have_jitter_ = true;
     }
     previous_ = smoothed_;
@@ -237,8 +233,7 @@ bool FlipController::init(bool enabled, uint32_t nthreads) {
     enabled_ = enabled;
     signature_learning_windows_ = std::max<uint32_t>(1, nthreads);
     maneuver_learning_windows_ = 0;
-    for (uint32_t value = nthreads; value > 1; value >>= 1)
-        maneuver_learning_windows_++;
+    for (uint32_t value = nthreads; value > 1; value >>= 1) maneuver_learning_windows_++;
     maneuver_learning_windows_ = std::max<uint32_t>(1, maneuver_learning_windows_);
     // The signature noise estimate's time constant is the same window count the controller already
     // uses to learn a signature at an anchor -- derived from the live pool, not typed.
@@ -263,25 +258,38 @@ bool FlipController::init(bool enabled, uint32_t nthreads) {
 
 const char* FlipController::phase_name(Phase phase) {
     switch (phase) {
-        case Phase::Disabled: return "disabled";
-        case Phase::BootPending: return "boot-pending";
-        case Phase::Measuring: return "measuring";
-        case Phase::WaitingFlip: return "waiting-flip";
-        case Phase::Seeking: return "seeking";
-        case Phase::Settling: return "settling";
-        case Phase::Anchored: return "anchored";
+        case Phase::Disabled:
+            return "disabled";
+        case Phase::BootPending:
+            return "boot-pending";
+        case Phase::Measuring:
+            return "measuring";
+        case Phase::WaitingFlip:
+            return "waiting-flip";
+        case Phase::Seeking:
+            return "seeking";
+        case Phase::Settling:
+            return "settling";
+        case Phase::Anchored:
+            return "anchored";
     }
     return "disabled";
 }
 
 const char* FlipController::reason_name(FlipctlTriggerReason reason) {
     switch (reason) {
-        case FlipctlTriggerReason::None: return "none";
-        case FlipctlTriggerReason::Boot: return "boot";
-        case FlipctlTriggerReason::FingerprintShift: return "fingerprint-shift";
-        case FlipctlTriggerReason::AnchorRateSurge: return "anchor-rate-surge";
-        case FlipctlTriggerReason::AnchorRateCollapse: return "anchor-rate-collapse";
-        case FlipctlTriggerReason::Forced: return "forced";
+        case FlipctlTriggerReason::None:
+            return "none";
+        case FlipctlTriggerReason::Boot:
+            return "boot";
+        case FlipctlTriggerReason::FingerprintShift:
+            return "fingerprint-shift";
+        case FlipctlTriggerReason::AnchorRateSurge:
+            return "anchor-rate-surge";
+        case FlipctlTriggerReason::AnchorRateCollapse:
+            return "anchor-rate-collapse";
+        case FlipctlTriggerReason::Forced:
+            return "forced";
     }
     return "none";
 }
@@ -294,9 +302,9 @@ uint64_t FlipController::total_commands(const Server& server) const {
 }
 
 FlipController::MovementStamp FlipController::movement_stamp(const Server& server) const {
-    return MovementStamp{
-        server.flip_completed(), server.flip_refused(), server.flip_clients_transferred(),
-        server.lb_bucket_moves(), server.lb_client_moves()};
+    return MovementStamp{server.flip_completed(), server.flip_refused(),
+                         server.flip_clients_transferred(), server.lb_bucket_moves(),
+                         server.lb_client_moves()};
 }
 
 bool FlipController::sample_fingerprint(Server& server) {
@@ -309,7 +317,8 @@ bool FlipController::sample_fingerprint(Server& server) {
         // Acquire the owner's window count and compare it BEFORE copying any counter (CT4.3).
         FlipFingerprintWindow current;
         if (!server.thread(tid).flip_fingerprint().published_since(previous.closed_windows,
-                                                                   current)) continue;
+                                                                   current))
+            continue;
         add_delta(current.commands, previous.commands, aggregate.commands);
         add_delta(current.multikey_keys, previous.multikey_keys, aggregate.multikey_keys);
         add_delta(current.multikey_ops, previous.multikey_ops, aggregate.multikey_ops);
@@ -327,13 +336,12 @@ bool FlipController::sample_fingerprint(Server& server) {
     fingerprint_sampled_this_tick_ = true;
     if (phase_ == Phase::Settling) anchor_signature_samples_++;
     const bool shifted = shift_detector_.observe(aggregate);
-    if (phase_ != Phase::Anchored && phase_ != Phase::Disabled &&
-        phase_ != Phase::BootPending && !shift_detector_.anchored()) {
+    if (phase_ != Phase::Anchored && phase_ != Phase::Disabled && phase_ != Phase::BootPending &&
+        !shift_detector_.anchored()) {
         maneuver_signature_samples_++;
-        const uint32_t learning_windows = phase_ == Phase::Settling
-            ? signature_learning_windows_ : maneuver_learning_windows_;
-        if (maneuver_signature_samples_ >= learning_windows)
-            shift_detector_.anchor();
+        const uint32_t learning_windows =
+            phase_ == Phase::Settling ? signature_learning_windows_ : maneuver_learning_windows_;
+        if (maneuver_signature_samples_ >= learning_windows) shift_detector_.anchor();
     }
     return shifted;
 }
@@ -364,8 +372,8 @@ bool FlipController::sample_rate(Server& server, uint64_t now_ms, double& rate) 
     const uint64_t commands = total_commands(server);
     const MovementStamp movement = movement_stamp(server);
     const bool quiescent = server.flip_stage() == FlipStage::Idle &&
-                           server.lb_stage() == LbStage::Idle &&
-                           !server.snapshot().in_progress() && !server.loading();
+                           server.lb_stage() == LbStage::Idle && !server.snapshot().in_progress() &&
+                           !server.loading();
     if (!rate_window_ms_ || !quiescent || !(movement == rate_window_movement_)) {
         rate_window_ms_ = now_ms;
         rate_window_commands_ = commands;
@@ -383,17 +391,18 @@ bool FlipController::sample_rate(Server& server, uint64_t now_ms, double& rate) 
     // The maneuver alone arms stamps. Derive their rate over the same three-tick decision
     // window; keep this computation behind the armed check, including its clock/window inputs.
     if (signal_sample_rate_.load(std::memory_order_relaxed))
-        signal_sample_rate_.store(LbAutotune::sample_every(
-            completed, elapsed_ms, server.flipctl_tick_ms() * kSettleTicks),
-            std::memory_order_release);
+        signal_sample_rate_.store(LbAutotune::sample_every(completed, elapsed_ms,
+                                                           server.flipctl_tick_ms() * kSettleTicks),
+                                  std::memory_order_release);
     // Every rate sample, selected or not, feeds the long-window noise estimate; a tick at the
     // near-idle floor (one command per thread per tick, the boot gate's own idle line) is not load.
     {
         const uint64_t tick_ms = std::max<uint32_t>(1, server.flipctl_tick_ms());
         if (rate_ew_.alpha <= 0)
-            rate_ew_.configure(static_cast<uint32_t>(std::max<uint64_t>(1, kBootMaxDeferralMs / tick_ms)));
-        const double idle_rate = static_cast<double>(server.nthreads()) * 1000.0 /
-                                 static_cast<double>(tick_ms);
+            rate_ew_.configure(
+                static_cast<uint32_t>(std::max<uint64_t>(1, kBootMaxDeferralMs / tick_ms)));
+        const double idle_rate =
+            static_cast<double>(server.nthreads()) * 1000.0 / static_cast<double>(tick_ms);
         rate_ew_.add(rate, idle_rate);
     }
     return true;
@@ -420,8 +429,8 @@ bool FlipController::pair_rate(double rate, double& prior_rate) {
     // shorter window does not have. An empty constituent has zero observed absolute variance;
     // retain the nonempty one's count, including across a complete stop/restart of the load.
     rate_sample_commands_ = completed && previous_subwindow_commands_
-        ? std::min(completed, previous_subwindow_commands_)
-        : std::max(completed, previous_subwindow_commands_);
+                                ? std::min(completed, previous_subwindow_commands_)
+                                : std::max(completed, previous_subwindow_commands_);
     previous_subwindow_commands_ = completed;
     return true;
 }
@@ -469,7 +478,7 @@ FlipctlTriggerReason FlipController::rate_trigger(double rate) {
     // The same two-sub-window rule that makes a reading comparable supplies "sustained" here.
     if (surge_streak_ >= rate_confirmations_ || collapse_streak_ >= rate_confirmations_)
         return surge_streak_ >= 2 ? FlipctlTriggerReason::AnchorRateSurge
-                                 : FlipctlTriggerReason::AnchorRateCollapse;
+                                  : FlipctlTriggerReason::AnchorRateCollapse;
     return FlipctlTriggerReason::None;
 }
 
@@ -482,8 +491,8 @@ void FlipController::learn_anchored_rate(double rate) {
     anchor_rate_ += (rate - anchor_rate_) * kAnchorRateEwmaAlpha;
     // The final settling windows define the minimum quiet jitter that this anchor already
     // proved it needs. Live learning may widen the band, but must never erase that floor.
-    anchor_rate_band_ = std::max(
-        anchor_rate_band_floor_, automatic_rate_band(anchor_rate_jitter_, anchor_rate_));
+    anchor_rate_band_ =
+        std::max(anchor_rate_band_floor_, automatic_rate_band(anchor_rate_jitter_, anchor_rate_));
 }
 
 bool FlipController::boot_load_stable(Server& server, uint64_t now_ms) {
@@ -507,8 +516,8 @@ bool FlipController::boot_load_stable(Server& server, uint64_t now_ms) {
     const uint64_t tick_ms = std::max<uint32_t>(1, server.flipctl_tick_ms());
     // A health check or controller INFO poll is not a workload worth optimizing. One command per
     // provisioned thread per controller interval is the self-scaled near-idle floor.
-    const double idle_rate = static_cast<double>(server.nthreads()) * 1000.0 /
-                             static_cast<double>(tick_ms);
+    const double idle_rate =
+        static_cast<double>(server.nthreads()) * 1000.0 / static_cast<double>(tick_ms);
     if (rate <= idle_rate) {
         // Forget stale startup work so an idle interval cannot be joined to later traffic and
         // mistaken for either a flat trend or elapsed non-idle deferral.
@@ -524,8 +533,8 @@ bool FlipController::boot_load_stable(Server& server, uint64_t now_ms) {
     // rate ticks: a workload below one fingerprint window per tick must still reach the cap.
     boot_work_observed_ = boot_work_observed_ || fingerprint_sampled_this_tick_;
     if (!boot_work_observed_) return false;
-    const uint64_t max_deferral_ticks = std::max<uint64_t>(
-        1, (kBootMaxDeferralMs + tick_ms - 1) / tick_ms);
+    const uint64_t max_deferral_ticks =
+        std::max<uint64_t>(1, (kBootMaxDeferralMs + tick_ms - 1) / tick_ms);
     if (boot_nonidle_ticks_ >= max_deferral_ticks) return true;
 
     if (!boot_rate_ewma_valid_) {
@@ -539,8 +548,7 @@ bool FlipController::boot_load_stable(Server& server, uint64_t now_ms) {
     const double previous_ewma = boot_rate_ewma_;
     boot_rate_ewma_ = (boot_rate_ewma_ + rate) * 0.5;
     const double scale = std::max(std::abs(previous_ewma), std::abs(boot_rate_ewma_));
-    const double ewma_change = scale > 0
-        ? (boot_rate_ewma_ - previous_ewma) / scale : 0;
+    const double ewma_change = scale > 0 ? (boot_rate_ewma_ - previous_ewma) / scale : 0;
     if (!boot_previous_ewma_change_valid_) {
         boot_previous_ewma_change_ = ewma_change;
         boot_previous_ewma_change_valid_ = true;
@@ -550,8 +558,8 @@ bool FlipController::boot_load_stable(Server& server, uint64_t now_ms) {
     // Jitter is variation in the EWMA's adjacent movement. A monotone connection ramp therefore
     // remains directional drift instead of widening its own stability band and blessing itself.
     const double jitter_sample = std::abs(ewma_change - boot_previous_ewma_change_);
-    boot_rate_jitter_ = boot_rate_jitter_valid_
-        ? (boot_rate_jitter_ + jitter_sample) * 0.5 : jitter_sample;
+    boot_rate_jitter_ =
+        boot_rate_jitter_valid_ ? (boot_rate_jitter_ + jitter_sample) * 0.5 : jitter_sample;
     boot_rate_jitter_valid_ = true;
     boot_previous_ewma_change_ = ewma_change;
 
@@ -563,31 +571,33 @@ bool FlipController::boot_load_stable(Server& server, uint64_t now_ms) {
     if (!have_trend) return false;
 
     const double trend_scale = std::max(std::abs(trend_origin), std::abs(boot_rate_ewma_));
-    boot_rate_slope_ = trend_scale > 0
-        ? std::abs(boot_rate_ewma_ - trend_origin) /
-              (trend_scale * static_cast<double>(kBootTrendTicks))
-        : 0;
+    boot_rate_slope_ = trend_scale > 0 ? std::abs(boot_rate_ewma_ - trend_origin) /
+                                             (trend_scale * static_cast<double>(kBootTrendTicks))
+                                       : 0;
     // Adjacent EWMA-change jitter estimates the noise in one slope observation. Its standard
     // error over the N-tick trend supplies a workload-derived threshold; one command per tick is
     // retained only as a measurement-quantum floor. A monotone ramp has slope but little change
     // jitter, while stationary rate noise cancels across the longer trend.
     const double command_rate_quantum = 1000.0 / static_cast<double>(tick_ms);
     const double relative_quantum = command_rate_quantum / boot_rate_ewma_;
-    boot_rate_slope_threshold_ =
-        2.0 * std::max(boot_rate_jitter_, relative_quantum) /
-        std::sqrt(static_cast<double>(kBootTrendTicks));
+    boot_rate_slope_threshold_ = 2.0 * std::max(boot_rate_jitter_, relative_quantum) /
+                                 std::sqrt(static_cast<double>(kBootTrendTicks));
     return boot_rate_slope_ <= boot_rate_slope_threshold_;
 }
 
-void FlipController::start_maneuver(Server& server, FlipctlTriggerReason reason,
-                                    uint64_t now_ms) {
+void FlipController::start_maneuver(Server& server, FlipctlTriggerReason reason, uint64_t now_ms) {
     last_trigger_ = reason;
     triggers_++;
-    if (reason == FlipctlTriggerReason::Boot) boot_triggers_++;
-    else if (reason == FlipctlTriggerReason::FingerprintShift) fingerprint_triggers_++;
-    else if (reason == FlipctlTriggerReason::AnchorRateSurge) rate_surge_triggers_++;
-    else if (reason == FlipctlTriggerReason::AnchorRateCollapse) rate_collapse_triggers_++;
-    else if (reason == FlipctlTriggerReason::Forced) forced_triggers_++;
+    if (reason == FlipctlTriggerReason::Boot)
+        boot_triggers_++;
+    else if (reason == FlipctlTriggerReason::FingerprintShift)
+        fingerprint_triggers_++;
+    else if (reason == FlipctlTriggerReason::AnchorRateSurge)
+        rate_surge_triggers_++;
+    else if (reason == FlipctlTriggerReason::AnchorRateCollapse)
+        rate_collapse_triggers_++;
+    else if (reason == FlipctlTriggerReason::Forced)
+        forced_triggers_++;
 
     phase_ = Phase::Measuring;
     // Where this maneuver started. If the search comes back here, the trigger that started it
@@ -602,8 +612,8 @@ void FlipController::start_maneuver(Server& server, FlipctlTriggerReason reason,
     // Adjacent readings overlap; this is a sample cap, not an elapsed-time guarantee.
     {
         const uint64_t tick_ms = std::max<uint32_t>(1, server.flipctl_tick_ms());
-        model_readings_cap_ = static_cast<uint32_t>(std::max<uint64_t>(
-            kMinModelSamples, (kBootMaxDeferralMs / tick_ms) / 2));
+        model_readings_cap_ = static_cast<uint32_t>(
+            std::max<uint64_t>(kMinModelSamples, (kBootMaxDeferralMs / tick_ms) / 2));
     }
     model_gain_mean_ = model_gain_low_ = model_gain_high_ = 0;
     model_required_gain_ = 0;
@@ -652,8 +662,8 @@ void FlipController::start_maneuver(Server& server, FlipctlTriggerReason reason,
     // Derive the initial maneuver rate from the last traffic observation, then adapt it on
     // each completed rate window. Idle and anchored states leave stamping off entirely.
     signal_sample_rate_.store(
-        LbAutotune::sample_every(rate_ew_.prev1 > 0 ? rate_ew_.prev1 : boot_rate_ewma_,
-                                1000, server.flipctl_tick_ms() * kSettleTicks),
+        LbAutotune::sample_every(rate_ew_.prev1 > 0 ? rate_ew_.prev1 : boot_rate_ewma_, 1000,
+                                 server.flipctl_tick_ms() * kSettleTicks),
         std::memory_order_release);
     for (uint32_t tid = 0; tid < server.nthreads(); tid++) {
         const LoopSignals& signal = server.thread(tid).sig();
@@ -719,8 +729,8 @@ bool FlipController::issue_flip(Server& server, uint32_t coordinator, uint32_t t
     flip_issue_commands_ = total_commands(server);
     flip_issue_transfers_ = server.flip_clients_transferred();
     flip_issue_rate_ = rate_before;
-    flip_issue_naive_ = flip_naive_transfers(io_clients(server), server.role_count(Role::Ifid),
-                                             target_io);
+    flip_issue_naive_ =
+        flip_naive_transfers(io_clients(server), server.role_count(Role::Ifid), target_io);
     if (!server.flip_begin(target_io, server.nthreads() - target_io, coordinator, error,
                            corrected ? pending_completed_ : UINT64_MAX))
         return false;
@@ -747,11 +757,13 @@ void FlipController::measure_flip(Server& server, uint64_t now_ms) {
     // A refused flip moved nothing and cost nothing worth learning from.
     if (server.flip_completed() <= pending_completed_) return;
     const uint64_t tick_ms = std::max<uint32_t>(1, server.flipctl_tick_ms());
-    const double elapsed_s = now_ms > flip_issue_ms_
-        ? static_cast<double>(now_ms - flip_issue_ms_) / 1000.0 : 0;
+    const double elapsed_s =
+        now_ms > flip_issue_ms_ ? static_cast<double>(now_ms - flip_issue_ms_) / 1000.0 : 0;
     const uint64_t served = total_commands(server) - flip_issue_commands_;
-    const double lost = flip_issue_rate_ > 0
-        ? std::max(0.0, flip_issue_rate_ * elapsed_s - static_cast<double>(served)) : 0;
+    const double lost =
+        flip_issue_rate_ > 0
+            ? std::max(0.0, flip_issue_rate_ * elapsed_s - static_cast<double>(served))
+            : 0;
     const uint64_t moved = server.flip_clients_transferred() - flip_issue_transfers_;
     const double ticks = std::max(1.0, elapsed_s * 1000.0 / static_cast<double>(tick_ms));
     last_flip_lost_ = lost;
@@ -780,8 +792,8 @@ void FlipController::measure_flip(Server& server, uint64_t now_ms) {
 // park publication/resumption, not merely the blocking syscall.
 bool FlipController::sample_role_demand(Server& server, uint64_t now_ms, double& io_frac,
                                         double& io_headroom, double& ex_headroom) {
-    const double wall = now_ms > maneuver_mark_ms_
-        ? static_cast<double>(now_ms - maneuver_mark_ms_) * 1e6 : 0;
+    const double wall =
+        now_ms > maneuver_mark_ms_ ? static_cast<double>(now_ms - maneuver_mark_ms_) * 1e6 : 0;
     double role_ops[2] = {};
     double role_work[2] = {};
     double headroom[2] = {1.0, 1.0};
@@ -806,8 +818,8 @@ bool FlipController::sample_role_demand(Server& server, uint64_t now_ms, double&
     // Capacity is unidentifiable without observed work on both sides. Keep measuring instead of
     // inventing a workload prior. The constraint guard deliberately examines each role's busiest
     // thread; idle peers therefore cannot veto a move demanded by the loaded owner.
-    if (wall <= 0 || role_ops[0] <= 0 || role_ops[1] <= 0 ||
-        role_work[0] <= 0 || role_work[1] <= 0) return false;
+    if (wall <= 0 || role_ops[0] <= 0 || role_ops[1] <= 0 || role_work[0] <= 0 || role_work[1] <= 0)
+        return false;
 
     // WORK CONSERVATION, WITH BOTH OPERANDS THE SAME QUANTITY. The throughput-optimal split gives
     // each role the thread fraction its PER-COMMAND service cost demands,
@@ -857,8 +869,12 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
         // demand draw or choosing a new placement from missing evidence.
         if (corrected && model_readings_ >= model_readings_cap_) {
             record(server.role_count(Role::Ifid), rate);
-            if (refining_) refine_decision_ = "hold-no-demand";
-            else { model_last_decision_ = "hold-no-demand"; ++model_holds_; }
+            if (refining_)
+                refine_decision_ = "hold-no-demand";
+            else {
+                model_last_decision_ = "hold-no-demand";
+                ++model_holds_;
+            }
             debug_seek_io_ = 0;
             debug_seek_force_ = false;
             enter_settling();
@@ -881,10 +897,10 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
     // CALIBRATION. The chooser works in the model's own units; a projection the outcome record
     // says is worth kappa of itself has to clear a bar 1/kappa as high.
     model_kappa_ = cost_.kappa();
-    const double bar_model_units = model_kappa_ > 0
-        ? std::min(1.0, model_required_gain_ / model_kappa_) : 1.0;
-    FlipPlacementChoice choice = flip_choose_split(
-        now_units, total_units, demand_window_, bar_model_units, kMinModelSamples);
+    const double bar_model_units =
+        model_kappa_ > 0 ? std::min(1.0, model_required_gain_ / model_kappa_) : 1.0;
+    FlipPlacementChoice choice = flip_choose_split(now_units, total_units, demand_window_,
+                                                   bar_model_units, kMinModelSamples);
     // A DEBUG FLIPCTL SEEK request replaces the model's target with the operator's: judged by the
     // model's projection for THAT split under the same bars, or, forced, by the outcome loop alone.
     const bool debug_seek = debug_seek_io_ != 0 && debug_seek_io_ / unit != now_units &&
@@ -894,9 +910,9 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
         const uint32_t s = debug_seek_io_ / unit;
         choice.target_units = s;
         choice.gain_mean = flip_projected_gain(s, now_units, total_units, demand_window_.mean);
-        choice.gain_low = std::min({choice.gain_mean,
-            flip_projected_gain(s, now_units, total_units, choice.io_frac_low),
-            flip_projected_gain(s, now_units, total_units, choice.io_frac_high)});
+        choice.gain_low = std::min(
+            {choice.gain_mean, flip_projected_gain(s, now_units, total_units, choice.io_frac_low),
+             flip_projected_gain(s, now_units, total_units, choice.io_frac_high)});
         choice.decided = true;
         choice.move = debug_force || choice.gain_low > bar_model_units;
     }
@@ -922,12 +938,17 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
     bool visited = false;
     if (refining_ && choice.decided && choice.move && choice.target_units != now_units)
         for (const Reading& r : readings_)
-            if (r.split == choice.target_units * unit) { visited = true; break; }
+            if (r.split == choice.target_units * unit) {
+                visited = true;
+                break;
+            }
     // ... and stops when the projected gain is inside the model's own demonstrated error.
     bool within_error = false;
     if (refining_ && choice.decided && choice.move && choice.target_units != now_units && !visited)
         within_error = model_kappa_ * choice.gain_low <= refine_bar_;
-    if (visited || within_error) { choice.move = false; }
+    if (visited || within_error) {
+        choice.move = false;
+    }
     // COST GATE + VERIFICATION WINDOW (flip_policy.h). Only a target that already clears the noise
     // bar is priced. The window at the target is sized from the origin's own noise; the gate
     // credits the kappa-scaled gain over the stationarity the workload has demonstrated, less the
@@ -938,15 +959,18 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
         const double g_mean = model_kappa_ * choice.gain_mean;
         const uint64_t tick_ms = std::max<uint32_t>(1, server.flipctl_tick_ms());
         const double tick_s = static_cast<double>(tick_ms) / 1000.0;
-        model_verify_readings_ = flip_verify_window(
-            std::max(origin_window_.sigma(), rate_ew_.sigma()), origin_window_.samples,
-            std::max(g_mean, 0.0), model_readings_cap_);
+        model_verify_readings_ =
+            flip_verify_window(std::max(origin_window_.sigma(), rate_ew_.sigma()),
+                               origin_window_.samples, std::max(g_mean, 0.0), model_readings_cap_);
         const double blackout_s = (cost_.flip_ticks() + kSettleTicks +
-            (model_verify_readings_ ? model_verify_readings_ - 1 : 0)) * tick_s;
-        const double stationary_s = (now_ms > stationary_since_ms_ && stationary_since_ms_)
-            ? static_cast<double>(now_ms - stationary_since_ms_) / 1000.0 : 0;
-        const double transfers = cost_.predicted_transfers(
-            io_clients(server), now_units * unit, choice.target_units * unit);
+                                   (model_verify_readings_ ? model_verify_readings_ - 1 : 0)) *
+                                  tick_s;
+        const double stationary_s =
+            (now_ms > stationary_since_ms_ && stationary_since_ms_)
+                ? static_cast<double>(now_ms - stationary_since_ms_) / 1000.0
+                : 0;
+        const double transfers = cost_.predicted_transfers(io_clients(server), now_units * unit,
+                                                           choice.target_units * unit);
         model_cost_ = flip_cost_gate(g_low, g_mean, rate, stationary_s, blackout_s,
                                      cost_.client_cost() * transfers, cost_.miss_probability(),
                                      model_margin_);
@@ -954,7 +978,10 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
         if (!pays && !capped && !externally_bound) {
             // Not yet: the horizon grows and the origin's noise estimate tightens while sampling.
             const char* v = model_verify_readings_ ? "sampling-cost" : "sampling-unverifiable";
-            if (refining_) refine_decision_ = v; else model_last_decision_ = v;
+            if (refining_)
+                refine_decision_ = v;
+            else
+                model_last_decision_ = v;
             return false;
         }
     }
@@ -968,8 +995,8 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
     // may quieten, so keep measuring until the reading cap and let the cap deliver the honest
     // "too noisy to decide" hold. The live split is the optimum is a different verdict and still
     // decides immediately.
-    const bool bar_bound = choice.decided && !choice.move && !visited &&
-                           choice.target_units != now_units;
+    const bool bar_bound =
+        choice.decided && !choice.move && !visited && choice.target_units != now_units;
     if (bar_bound && !capped && !externally_bound) {
         model_last_decision_ = "sampling-bar";
         return false;
@@ -978,13 +1005,14 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
 
     record(now_units * unit, rate);
     if (externally_bound || !choice.decided || !choice.move || !pays) {
-        const char* verdict = externally_bound ? "hold-unsaturated"
-            : !choice.decided ? "hold-unresolved"
-            : choice.target_units == now_units ? "hold-optimum"
-            : visited ? "hold-visited"
-            : within_error ? "hold-within-error"
-            : !choice.move ? "hold-below-bar"
-            : !model_verify_readings_ ? "hold-unverifiable" : "hold-cost";
+        const char* verdict = externally_bound                   ? "hold-unsaturated"
+                              : !choice.decided                  ? "hold-unresolved"
+                              : choice.target_units == now_units ? "hold-optimum"
+                              : visited                          ? "hold-visited"
+                              : within_error                     ? "hold-within-error"
+                              : !choice.move                     ? "hold-below-bar"
+                              : !model_verify_readings_          ? "hold-unverifiable"
+                                                                 : "hold-cost";
         if (refining_) {
             // The landing stands: the maneuver's outcome stays "moved-delivered" and the LOCAL
             // verdict is kept separately, so a trail can say whether the landing was its own argmax
@@ -1002,7 +1030,10 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
         enter_settling();
         return false;
     }
-    if (refining_) { refine_decision_ = "move"; refine_steps_++; }
+    if (refining_) {
+        refine_decision_ = "move";
+        refine_steps_++;
+    }
     // MOVE: retain the raw model prediction for record_outcome. Cost and verification
     // above use the calibrated forecast; feeding that forecast back into kappa
     // would calibrate an already calibrated prediction on every subsequent move.
@@ -1041,8 +1072,8 @@ void FlipController::begin_refinement(Server& server, uint64_t now_ms) {
     // model_kappa_ is the pre-outcome calibration saved with the hypothesis.
     // Keep the refinement bar in delivered-gain units, independently of the
     // learner's raw-input contract. cost_.kappa() has already learned this hit.
-    refine_bar_ = flip_refine_bar(
-        (ctlfix_correctness() ? model_kappa_ : 1.0) * hyp_predicted_, hyp_delivered_);
+    refine_bar_ = flip_refine_bar((ctlfix_correctness() ? model_kappa_ : 1.0) * hyp_predicted_,
+                                  hyp_delivered_);
     phase_ = Phase::Measuring;
     demand_window_.reset();
     origin_window_.reset();
@@ -1072,7 +1103,8 @@ bool FlipController::settle(Server& server, uint32_t coordinator, uint64_t now_m
     const uint32_t current = server.role_count(Role::Ifid);
     if (current != best->split) {
         if (issue_flip(server, coordinator, best->split, Phase::Settling, now_ms,
-                       readings_.back().rate)) return true;
+                       readings_.back().rate))
+            return true;
     }
     enter_settling();
     return false;
@@ -1094,11 +1126,11 @@ bool FlipController::seek_after_reading(Server& server, uint32_t coordinator, ui
     if (seek_ == Seek::AtTarget && current == seek_target_io_) {
         target_window_.add(rate);
         const uint32_t k = target_window_.samples;
-        hyp_threshold_ = flip_verify_threshold(hyp_sigma_, hyp_origin_samples_, k,
-                                               verification_band(rate));
+        hyp_threshold_ =
+            flip_verify_threshold(hyp_sigma_, hyp_origin_samples_, k, verification_band(rate));
         hyp_delivered_ = origin_rate_ > 0 ? target_window_.mean / origin_rate_ - 1.0 : 0;
-        const FlipOutcome verdict = flip_judge(hyp_delivered_, hyp_threshold_, k,
-                                               model_verify_readings_);
+        const FlipOutcome verdict =
+            flip_judge(hyp_delivered_, hyp_threshold_, k, model_verify_readings_);
         if (verdict == FlipOutcome::Pending) {
             model_last_decision_ = "verifying";
             return false;
@@ -1114,7 +1146,8 @@ bool FlipController::seek_after_reading(Server& server, uint32_t coordinator, ui
         pending_miss_ = true;
         seek_ = Seek::Returning;
         if (issue_flip(server, coordinator, seek_origin_io_, Phase::Settling, now_ms,
-                       target_window_.mean)) return true;
+                       target_window_.mean))
+            return true;
     }
     // A refused return, or a reading at a split this seek did not ask for: stop on the best
     // evidence in hand.
@@ -1127,11 +1160,12 @@ void FlipController::anchor(Server& server, double rate) {
     anchor_io_ = current;
     anchor_ex_ = server.nthreads() - current;
     anchor_rate_ = anchor_learning_rate_samples_
-        ? anchor_learning_rate_sum_ / anchor_learning_rate_samples_ : rate;
+                       ? anchor_learning_rate_sum_ / anchor_learning_rate_samples_
+                       : rate;
     if (anchor_learning_rate_samples_ > 1) {
-        anchor_learning_rate_jitter_ = std::max(
-            anchor_learning_rate_jitter_,
-            relative_distance(anchor_learning_rate_min_, anchor_learning_rate_max_));
+        anchor_learning_rate_jitter_ =
+            std::max(anchor_learning_rate_jitter_,
+                     relative_distance(anchor_learning_rate_min_, anchor_learning_rate_max_));
     }
     anchor_rate_jitter_ = anchor_learning_rate_jitter_;
     // THE NULL-MANEUVER RULE, CLOSED ON THE OUTCOME. A maneuver that ends on the split it started
@@ -1148,19 +1182,19 @@ void FlipController::anchor(Server& server, double rate) {
     // detector could never fire again at any workload -- an accidentally disabled trigger.
     // A threshold learned from an excursion can exceed every excursion; a window cannot.
     const bool null_maneuver = current == maneuver_origin_io_ &&
-        (last_trigger_ == FlipctlTriggerReason::FingerprintShift ||
-         last_trigger_ == FlipctlTriggerReason::AnchorRateSurge ||
-         last_trigger_ == FlipctlTriggerReason::AnchorRateCollapse);
+                               (last_trigger_ == FlipctlTriggerReason::FingerprintShift ||
+                                last_trigger_ == FlipctlTriggerReason::AnchorRateSurge ||
+                                last_trigger_ == FlipctlTriggerReason::AnchorRateCollapse);
     // A manual intervention has no automatic hypothesis to credit or penalize.
-    const bool moved_split = last_trigger_ != FlipctlTriggerReason::None &&
-                             current != maneuver_origin_io_;
-    const uint32_t confirmation_cap =
-        std::max(kMinConfirmations, signature_learning_windows_);
+    const bool moved_split =
+        last_trigger_ != FlipctlTriggerReason::None && current != maneuver_origin_io_;
+    const uint32_t confirmation_cap = std::max(kMinConfirmations, signature_learning_windows_);
     uint32_t* responsible = last_trigger_ == FlipctlTriggerReason::FingerprintShift
-        ? &shift_confirmations_
-        : (last_trigger_ == FlipctlTriggerReason::AnchorRateSurge ||
-           last_trigger_ == FlipctlTriggerReason::AnchorRateCollapse)
-              ? &rate_confirmations_ : nullptr;
+                                ? &shift_confirmations_
+                            : (last_trigger_ == FlipctlTriggerReason::AnchorRateSurge ||
+                               last_trigger_ == FlipctlTriggerReason::AnchorRateCollapse)
+                                ? &rate_confirmations_
+                                : nullptr;
     if (null_maneuver) null_maneuvers_++;
     if (responsible) {
         if (null_maneuver)
@@ -1168,8 +1202,8 @@ void FlipController::anchor(Server& server, double rate) {
         else if (moved_split)
             *responsible = std::max(kMinConfirmations, *responsible / 2);
     }
-    anchor_rate_band_ = std::max(automatic_rate_band(anchor_rate_jitter_, anchor_rate_),
-                                 2.0 * rate_ew_.sigma());
+    anchor_rate_band_ =
+        std::max(automatic_rate_band(anchor_rate_jitter_, anchor_rate_), 2.0 * rate_ew_.sigma());
     anchor_rate_band_floor_ = anchor_rate_band_;
     // The placement model's own outcome loop (flip_policy.h, rule 3): a maneuver that FLIPPED and
     // still ended where it began is a projection that did not deliver, so the bar rises; a move
@@ -1189,8 +1223,8 @@ void FlipController::anchor(Server& server, double rate) {
         // -48%, and that miss stands.
         bool baseline_moved = false;
         if (pending_miss_ && origin_rate_ > 0 && anchor_rate_ > 0)
-            baseline_moved = flip_corrected_gain(hyp_delivered_, anchor_rate_ / origin_rate_ - 1.0)
-                             > hyp_threshold_;
+            baseline_moved = flip_corrected_gain(hyp_delivered_, anchor_rate_ / origin_rate_ -
+                                                                     1.0) > hyp_threshold_;
         if (baseline_moved) {
             invalidated_maneuvers_++;
             model_last_decision_ = "moved-reverted-invalidated";
@@ -1238,10 +1272,12 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
             advanced = completed > pending_completed_;
             refused = server.flip_refused() > pending_refused_;
             own_completion = advanced && phase_ == Phase::WaitingFlip &&
-                completed == pending_completed_ + 1 && !refused &&
-                server.role_count(Role::Ifid) == pending_target_io_;
-            if (own_completion) measure_flip(server, now_ms);
-            else if (advanced) flip_measure_armed_ = false;
+                             completed == pending_completed_ + 1 && !refused &&
+                             server.role_count(Role::Ifid) == pending_target_io_;
+            if (own_completion)
+                measure_flip(server, now_ms);
+            else if (advanced)
+                flip_measure_armed_ = false;
             // pending_completed_ is also the consumed-completion cursor. A batch
             // advances it by its entire count, once, even if the final split is
             // the original split or multiple accepted requests were no-ops.
@@ -1277,7 +1313,8 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
         // below. Its baseline remains the last consumed completion count.
     }
     if (phase_ == Phase::BootPending) {
-        if (forced) start_maneuver(server, FlipctlTriggerReason::Forced, now_ms);
+        if (forced)
+            start_maneuver(server, FlipctlTriggerReason::Forced, now_ms);
         else if (boot_load_stable(server, now_ms))
             start_maneuver(server, FlipctlTriggerReason::Boot, now_ms);
         return false;
@@ -1305,7 +1342,10 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
 
     uint32_t coordinator = UINT32_MAX;
     for (uint32_t tid = 0; tid < server.nthreads(); tid++)
-        if (server.thread(tid).role() == Role::Ifid) { coordinator = tid; break; }
+        if (server.thread(tid).role() == Role::Ifid) {
+            coordinator = tid;
+            break;
+        }
     if (coordinator == UINT32_MAX) return false;
 
     if (phase_ == Phase::WaitingFlip) {
@@ -1354,8 +1394,7 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
         }
         if (!sample_stabilized_rate(server, now_ms, rate)) return false;
         record(server.role_count(Role::Ifid), rate);
-        anchor_learning_rate_jitter_ =
-            std::max(anchor_learning_rate_jitter_, stable_pair_delta_);
+        anchor_learning_rate_jitter_ = std::max(anchor_learning_rate_jitter_, stable_pair_delta_);
         anchor_learning_rate_sum_ += rate;
         if (!anchor_learning_rate_samples_) {
             anchor_learning_rate_min_ = anchor_learning_rate_max_ = rate;
@@ -1446,8 +1485,10 @@ void FlipController::debug_cost(double commands_per_client) {
 FlipctlReport FlipController::report() const {
     std::lock_guard<std::mutex> lock(mutex_);
     FlipctlReport report;
-    report.state = !enabled_ ? "disabled" : phase_ == Phase::BootPending
-        ? "awaiting-load-stability" : phase_ == Phase::Anchored ? "anchored" : "maneuvering";
+    report.state = !enabled_                      ? "disabled"
+                   : phase_ == Phase::BootPending ? "awaiting-load-stability"
+                   : phase_ == Phase::Anchored    ? "anchored"
+                                                  : "maneuvering";
     report.phase = phase_name(phase_);
     report.last_trigger = reason_name(last_trigger_);
     report.anchor_io = anchor_io_;
@@ -1515,45 +1556,42 @@ std::string FlipController::debug_dump() const {
         "hyp_origin_samples=%u target_readings=%u pending_miss=%d\n"
         "last_flip_lost=%.1f last_flip_moved=%llu invalidated=%llu cost_holds=%llu\n"
         "refine_decision=%s refine_steps=%u seek_origin_io=%u refining=%d refine_bar=%.4f\n",
-        !enabled_ ? "disabled" : phase_ == Phase::BootPending ? "awaiting-load-stability"
-            : phase_ == Phase::Anchored ? "anchored" : "maneuvering",
+        !enabled_                      ? "disabled"
+        : phase_ == Phase::BootPending ? "awaiting-load-stability"
+        : phase_ == Phase::Anchored    ? "anchored"
+                                       : "maneuvering",
         phase_name(phase_), anchor_io_, anchor_ex_, anchor_rate_, shift_detector_.band(),
-        shift_detector_.last_distance(), shift_detector_.jitter(),
-        shift_detector_.noise_bound(), shift_detector_.noise_samples(), anchor_rate_band_,
-        anchor_rate_jitter_, last_shift_distance_, last_shift_band_, boot_rate_ewma_,
-        boot_rate_jitter_, boot_rate_slope_, boot_rate_slope_threshold_, boot_nonidle_ticks_,
-        model_io_frac_, model_io_frac_low_, model_io_frac_high_,
-        demand_window_.samples, model_readings_cap_,
-        model_io_headroom_, model_ex_headroom_,
-        model_target_io_, model_gain_mean_, model_gain_low_, model_gain_high_,
-        model_required_gain_, model_margin_, model_last_decision_,
+        shift_detector_.last_distance(), shift_detector_.jitter(), shift_detector_.noise_bound(),
+        shift_detector_.noise_samples(), anchor_rate_band_, anchor_rate_jitter_,
+        last_shift_distance_, last_shift_band_, boot_rate_ewma_, boot_rate_jitter_,
+        boot_rate_slope_, boot_rate_slope_threshold_, boot_nonidle_ticks_, model_io_frac_,
+        model_io_frac_low_, model_io_frac_high_, demand_window_.samples, model_readings_cap_,
+        model_io_headroom_, model_ex_headroom_, model_target_io_, model_gain_mean_, model_gain_low_,
+        model_gain_high_, model_required_gain_, model_margin_, model_last_decision_,
         static_cast<unsigned long long>(model_holds_),
-        static_cast<unsigned long long>(round_trips_), maneuver_flips_,
-        shift_confirmations_, rate_confirmations_, shift_streak_,
-        static_cast<unsigned long long>(null_maneuvers_), maneuver_origin_io_,
-        reason_name(last_trigger_),
-        static_cast<unsigned long long>(triggers_),
+        static_cast<unsigned long long>(round_trips_), maneuver_flips_, shift_confirmations_,
+        rate_confirmations_, shift_streak_, static_cast<unsigned long long>(null_maneuvers_),
+        maneuver_origin_io_, reason_name(last_trigger_), static_cast<unsigned long long>(triggers_),
         static_cast<unsigned long long>(boot_triggers_),
         static_cast<unsigned long long>(fingerprint_triggers_),
         static_cast<unsigned long long>(rate_surge_triggers_),
         static_cast<unsigned long long>(rate_collapse_triggers_),
         static_cast<unsigned long long>(forced_triggers_), pending_target_io_,
-        seek_ == Seek::AtTarget ? "at-target" : seek_ == Seek::Returning ? "returning" : "none",
-        seek_target_io_, origin_rate_,
-        origin_window_.samples, origin_window_.lo, origin_window_.hi, baseline_band(),
-        origin_window_.sigma(), cost_.kappa(), model_verify_readings_,
-        rate_ew_.sigma(), rate_ew_.samples,
-        model_cost_.benefit, model_cost_.cost, model_cost_.transfer_cost, model_cost_.blackout_s,
-        model_cost_.horizon_s, model_cost_.payback_s, model_cost_.pays ? 1 : 0,
-        cost_.client_cost(), cost_.reshuffle(), cost_.flip_ticks(), cost_.miss_probability(),
-        static_cast<unsigned long long>(cost_.flips), cost_.moves, cost_.misses,
-        cost_.lost_sum, cost_.moved_sum,
-        hyp_predicted_, hyp_delivered_, hyp_threshold_, hyp_sigma_, hyp_origin_samples_,
-        target_window_.samples, pending_miss_ ? 1 : 0,
-        last_flip_lost_, static_cast<unsigned long long>(last_flip_moved_),
+        seek_ == Seek::AtTarget    ? "at-target"
+        : seek_ == Seek::Returning ? "returning"
+                                   : "none",
+        seek_target_io_, origin_rate_, origin_window_.samples, origin_window_.lo, origin_window_.hi,
+        baseline_band(), origin_window_.sigma(), cost_.kappa(), model_verify_readings_,
+        rate_ew_.sigma(), rate_ew_.samples, model_cost_.benefit, model_cost_.cost,
+        model_cost_.transfer_cost, model_cost_.blackout_s, model_cost_.horizon_s,
+        model_cost_.payback_s, model_cost_.pays ? 1 : 0, cost_.client_cost(), cost_.reshuffle(),
+        cost_.flip_ticks(), cost_.miss_probability(), static_cast<unsigned long long>(cost_.flips),
+        cost_.moves, cost_.misses, cost_.lost_sum, cost_.moved_sum, hyp_predicted_, hyp_delivered_,
+        hyp_threshold_, hyp_sigma_, hyp_origin_samples_, target_window_.samples,
+        pending_miss_ ? 1 : 0, last_flip_lost_, static_cast<unsigned long long>(last_flip_moved_),
         static_cast<unsigned long long>(invalidated_maneuvers_),
-        static_cast<unsigned long long>(cost_holds_),
-        refine_decision_, refine_steps_, seek_origin_io_, refining_ ? 1 : 0, refine_bar_);
+        static_cast<unsigned long long>(cost_holds_), refine_decision_, refine_steps_,
+        seek_origin_io_, refining_ ? 1 : 0, refine_bar_);
     std::string out(head, n > 0 ? static_cast<size_t>(n) : 0);
     // Cold signature detail. The scalar `signature_distance` above says a shift happened; these
     // two vectors and the four family contributions say WHICH input moved, which is the only way
@@ -1566,9 +1604,9 @@ std::string FlipController::debug_dump() const {
             "class=%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f kpm=%.6f vbpc=%.6f\n",
             tag, sig.valid ? 1 : 0, static_cast<unsigned long long>(sig.commands),
             sig.pass_depth[0], sig.pass_depth[1], sig.pass_depth[2], sig.pass_depth[3],
-            sig.command_class[0], sig.command_class[1], sig.command_class[2],
-            sig.command_class[3], sig.command_class[4], sig.command_class[5],
-            sig.command_class[6], sig.keys_per_multikey, sig.value_bytes_per_command);
+            sig.command_class[0], sig.command_class[1], sig.command_class[2], sig.command_class[3],
+            sig.command_class[4], sig.command_class[5], sig.command_class[6], sig.keys_per_multikey,
+            sig.value_bytes_per_command);
         out.append(line, m > 0 ? static_cast<size_t>(m) : 0);
     };
     emit_signature("sig_now", shift_detector_.smoothed());
@@ -1583,16 +1621,18 @@ std::string FlipController::debug_dump() const {
             for (size_t i = 0; i < now.command_class.size(); i++)
                 class_l1 += std::abs(now.command_class[i] - anc.command_class[i]);
         }
-        const double kpm = (now.valid && anc.valid)
-            ? unit_normalized_distance(now.keys_per_multikey, anc.keys_per_multikey) : 0;
-        const double vbpc = (now.valid && anc.valid)
-            ? unit_normalized_distance(now.value_bytes_per_command,
-                                       anc.value_bytes_per_command) : 0;
+        const double kpm =
+            (now.valid && anc.valid)
+                ? unit_normalized_distance(now.keys_per_multikey, anc.keys_per_multikey)
+                : 0;
+        const double vbpc =
+            (now.valid && anc.valid)
+                ? unit_normalized_distance(now.value_bytes_per_command, anc.value_bytes_per_command)
+                : 0;
         char line[256];
-        const int m = std::snprintf(
-            line, sizeof(line),
-            "dist_parts pass=%.9f class=%.9f kpm=%.9f vbpc=%.9f\n",
-            pass_l1 * 0.5, class_l1 * 0.5 / 3.0, kpm / 3.0, vbpc / 3.0);
+        const int m = std::snprintf(line, sizeof(line),
+                                    "dist_parts pass=%.9f class=%.9f kpm=%.9f vbpc=%.9f\n",
+                                    pass_l1 * 0.5, class_l1 * 0.5 / 3.0, kpm / 3.0, vbpc / 3.0);
         out.append(line, m > 0 ? static_cast<size_t>(m) : 0);
     }
     out += "visited=";

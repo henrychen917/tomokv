@@ -29,7 +29,7 @@ struct LcsMatch {
 };
 
 struct LcsResult {
-    std::string value;                 // the subsequence itself; empty for LEN/IDX
+    std::string value;  // the subsequence itself; empty for LEN/IDX
     uint64_t length = 0;
     std::vector<LcsMatch> matches;
 };

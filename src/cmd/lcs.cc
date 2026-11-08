@@ -65,7 +65,10 @@ bool lcs_parse_options(Op& op, LcsOptions& out) {
         } else if (op.arg(i).eq_icase("withmatchlen")) {
             out.withmatchlen = true;
         } else if (op.arg(i).eq_icase("minmatchlen")) {
-            if (i + 1 >= op.argc()) { reply_syntax(op.sink()); return false; }
+            if (i + 1 >= op.argc()) {
+                reply_syntax(op.sink());
+                return false;
+            }
             if (!parse_minmatchlen(op.arg(i + 1), out.minmatchlen)) {
                 reply_err(op.sink(), "ERR value is not an integer or out of range");
                 return false;
@@ -77,8 +80,7 @@ bool lcs_parse_options(Op& op, LcsOptions& out) {
         }
     }
     if (out.len && out.idx) {
-        reply_err(op.sink(),
-                  "ERR If you want both the length and indexes, please just use IDX.");
+        reply_err(op.sink(), "ERR If you want both the length and indexes, please just use IDX.");
         return false;
     }
     return true;
@@ -119,8 +121,8 @@ bool lcs_compute(const std::string& a, const std::string& b, const LcsOptions& o
     for (size_t i = 1; i <= n; i++)
         for (size_t j = 1; j <= m; j++)
             at(i, j) = (a[i - 1] == b[j - 1])
-                ? at(i - 1, j - 1) + 1
-                : (at(i - 1, j) >= at(i, j - 1) ? at(i - 1, j) : at(i, j - 1));
+                           ? at(i - 1, j - 1) + 1
+                           : (at(i - 1, j) >= at(i, j - 1) ? at(i - 1, j) : at(i, j - 1));
 
     out.length = at(n, m);
 
@@ -147,14 +149,20 @@ bool lcs_compute(const std::string& a, const std::string& b, const LcsOptions& o
     while (i > 0 && j > 0) {
         if (a[i - 1] == b[j - 1]) {
             if (want_value) reversed.push_back(a[i - 1]);
-            if (!run) { run_end_a = static_cast<uint32_t>(i - 1); run_end_b = static_cast<uint32_t>(j - 1); }
+            if (!run) {
+                run_end_a = static_cast<uint32_t>(i - 1);
+                run_end_b = static_cast<uint32_t>(j - 1);
+            }
             run++;
-            i--; j--;
+            i--;
+            j--;
             continue;
         }
         flush_run();
-        if (at(i - 1, j) > at(i, j - 1)) i--;
-        else j--;
+        if (at(i - 1, j) > at(i, j - 1))
+            i--;
+        else
+            j--;
     }
     flush_run();
     delete[] table;
@@ -185,20 +193,21 @@ void lcs_reply(Op& op, const LcsOptions& options, const LcsResult& result) {
         reply_int(sink, static_cast<long long>(result.length));
         return;
     }
-    if (options.len) { reply_int(sink, static_cast<long long>(result.length)); return; }
+    if (options.len) {
+        reply_int(sink, static_cast<long long>(result.length));
+        return;
+    }
     reply_bulk(sink, Slice(result.value.data(), static_cast<uint32_t>(result.value.size())));
 }
 
 namespace {
-static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */ kTable[] = {
     // Two string keys, read-only, lowered by the scatter engine exactly like the other two-key
     // reads. min_arity 3 is `LCS k1 k2`; the trailing options are unbounded.
     {"LCS", 3, -1, CmdFlags::Readonly | CmdFlags::MultiShard, cmd_xshard_only, 1, 2, 1},
 };
 }  // namespace
 
-CommandTable lcs_command_table() {
-    return {kTable, sizeof(kTable) / sizeof(kTable[0])};
-}
+CommandTable lcs_command_table() { return {kTable, sizeof(kTable) / sizeof(kTable[0])}; }
 
 }  // namespace tomo

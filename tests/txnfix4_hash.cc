@@ -12,22 +12,30 @@
 using namespace tomo;
 
 static void need(bool condition, const char* why) {
-    if (!condition) { std::fprintf(stderr, "FAIL %s\n", why); std::exit(2); }
+    if (!condition) {
+        std::fprintf(stderr, "FAIL %s\n", why);
+        std::exit(2);
+    }
 }
 
 static std::string printable(const std::string& reply) {
     std::string out;
-    for (char ch : reply) out += ch == '\r' ? std::string("\\r") : ch == '\n' ? std::string("\\n")
-                                : std::string(1, ch);
+    for (char ch : reply)
+        out += ch == '\r'   ? std::string("\\r")
+               : ch == '\n' ? std::string("\\n")
+                            : std::string(1, ch);
     return out;
 }
 
 static std::string command(Shard& shard, const std::vector<std::string>& args) {
-    Op op; op.reset();
+    Op op;
+    op.reset();
     for (const auto& arg : args)
         need(op.push_arg(Slice(arg.data(), static_cast<uint32_t>(arg.size()))), "args");
-    op.spec = command_lookup(op.arg(0)); need(op.spec, "command registered");
-    op.hash = FlatStore::hash_key(op.arg(1)); op.shard = 0;
+    op.spec = command_lookup(op.arg(0));
+    need(op.spec, "command registered");
+    op.hash = FlatStore::hash_key(op.arg(1));
+    op.shard = 0;
     FlatStore& store = shard.store();
     // The executor's capture write gate: a write first serializes its key's pre-image.
     while (store.snapshot_active() && (op.spec->flags & CmdFlags::Write)) {
@@ -43,13 +51,22 @@ static std::string command(Shard& shard, const std::vector<std::string>& args) {
 
 int main() {
     need(command_registry_init(false), "registry");
-    const std::vector<std::vector<std::string>> cases{
-        {"HGET", "h", "f"}, {"HMGET", "h", "f", "keep"}, {"HGETALL", "h"}, {"HLEN", "h"},
-        {"HEXISTS", "h", "f"}, {"HSTRLEN", "h", "f"}, {"HKEYS", "h"}, {"HVALS", "h"},
-        {"HSCAN", "h", "0", "COUNT", "100"}, {"HRANDFIELD", "h", "1"},
-        {"HTTL", "h", "FIELDS", "1", "f"}, {"HINCRBY", "h", "f", "1"},
-        {"HINCRBYFLOAT", "h", "f", "1.5"}, {"HSETNX", "h", "f", "new"},
-        {"HSET", "h", "f", "set"}, {"HPERSIST", "h", "FIELDS", "1", "f"}};
+    const std::vector<std::vector<std::string>> cases{{"HGET", "h", "f"},
+                                                      {"HMGET", "h", "f", "keep"},
+                                                      {"HGETALL", "h"},
+                                                      {"HLEN", "h"},
+                                                      {"HEXISTS", "h", "f"},
+                                                      {"HSTRLEN", "h", "f"},
+                                                      {"HKEYS", "h"},
+                                                      {"HVALS", "h"},
+                                                      {"HSCAN", "h", "0", "COUNT", "100"},
+                                                      {"HRANDFIELD", "h", "1"},
+                                                      {"HTTL", "h", "FIELDS", "1", "f"},
+                                                      {"HINCRBY", "h", "f", "1"},
+                                                      {"HINCRBYFLOAT", "h", "f", "1.5"},
+                                                      {"HSETNX", "h", "f", "new"},
+                                                      {"HSET", "h", "f", "set"},
+                                                      {"HPERSIST", "h", "FIELDS", "1", "f"}};
     unsigned passed = 0;
     for (const auto& args : cases) {
         // Fresh shards per command. The ordinary arm is the same handler after the deadline
@@ -60,12 +77,13 @@ int main() {
         for (Shard* shard : {&normal, &captured}) {
             shard->set_cached_now_ms(1000, 0);
             need(command(*shard, {"HSET", "h", "f", "5", "keep", "live"}) == ":2\r\n", "seed");
-            need(command(*shard, {"HPEXPIREAT", "h", "1100", "FIELDS", "1", "f"}) ==
-                 "*1\r\n:1\r\n", "arm field deadline");
+            need(command(*shard, {"HPEXPIREAT", "h", "1100", "FIELDS", "1", "f"}) == "*1\r\n:1\r\n",
+                 "arm field deadline");
         }
         FlatStore& store = captured.store();
         need(store.snapshot_prepare(1, 1000) == FlatStore::SnapshotWriteResult::Ready &&
-             store.snapshot_mark(0, 1000) && store.snapshot_active(), "capture window opened");
+                 store.snapshot_mark(0, 1000) && store.snapshot_active(),
+             "capture window opened");
         normal.set_cached_now_ms(1101, 0);
         captured.set_cached_now_ms(1101, 0);
         const std::string expected = command(normal, args), actual = command(captured, args);

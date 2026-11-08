@@ -38,8 +38,9 @@ public:
     [[gnu::noinline, gnu::cold]] void purge_reclaimed(uint64_t now_ms) {
         if (!reclaimed_) return;
         uint64_t previous = last_purge_ms_.load(std::memory_order_relaxed);
-        if (now_ms - previous < 100 || !last_purge_ms_.compare_exchange_strong(
-                previous, now_ms, std::memory_order_relaxed)) return;
+        if (now_ms - previous < 100 ||
+            !last_purge_ms_.compare_exchange_strong(previous, now_ms, std::memory_order_relaxed))
+            return;
         reclaimed_ = false;
 #if defined(TOMO_JEMALLOC)
         char name[64];
@@ -54,8 +55,11 @@ public:
     // Capacity growth is itself a conservative peak witness. Sampling that and
     // existing cursors avoids introducing a peak store on each receive/reply.
     [[gnu::noinline, gnu::cold]] bool visit(Client& c, uint64_t now_ms, bool read_pinned,
-                                         bool output_pinned) {
-        if (c.closing() || c.dead()) { forget(c.id()); return false; }
+                                            bool output_pinned) {
+        if (c.closing() || c.dead()) {
+            forget(c.id());
+            return false;
+        }
         if (c.rcap_ == kRbufInitial && c.buf_[0].cap() == kWbufInline &&
             c.buf_[1].cap() == kWbufInline) {
             forget(c.id());
@@ -70,22 +74,29 @@ public:
         size_t live_query = rest;
         if (c.multibulk_pending() && c.multibulk_.bulk != UINT64_MAX)
             live_query = std::max<uint64_t>(live_query, c.multibulk_.bulk + 2);
-        if (c.rcap_ > p.query_cap) p.query = c.rcap_; // includes bursts between cron samples
+        if (c.rcap_ > p.query_cap) p.query = c.rcap_;  // includes bursts between cron samples
         p.query_cap = c.rcap_;
         size_t target = c.rcap_;
         if (c.rcap_ - rest > 4096) {
-            if (idle) target = std::max(kRbufInitial, rest);
+            if (idle)
+                target = std::max(kRbufInitial, rest);
             else if (c.rcap_ > 32768 && c.rcap_ / 2 > p.query)
                 target = std::max({kRbufInitial, live_query, p.query});
         }
         p.query = live_query;
         bool cancel_read = false;
         if (target < c.rcap_ && c.rob_.quiesced()) {
-            if (read_pinned) cancel_read = true;
+            if (read_pinned)
+                cancel_read = true;
             else {
                 c.reset_rbuf_at_quiescence();
                 char* resized = static_cast<char*>(std::realloc(c.rbuf_, target));
-                if (resized) { c.rbuf_ = resized; c.rcap_ = target; p.query_cap = target; reclaimed_ = true; }
+                if (resized) {
+                    c.rbuf_ = resized;
+                    c.rcap_ = target;
+                    p.query_cap = target;
+                    reclaimed_ = true;
+                }
             }
         }
 
@@ -102,16 +113,17 @@ public:
             if (!output_pinned && !c.send_inflight_ && c.rob_.quiesced() && used == 0 &&
                 b.cap() > kWbufInline && b.cap() / 2 > p.output[i]) {
                 const size_t retain = std::max(kWbufInline, p.output[i] + 1);
-                if (retain == kWbufInline) b.shrink_to_inline();
+                if (retain == kWbufInline)
+                    b.shrink_to_inline();
                 else {
                     char* resized = static_cast<char*>(std::realloc(b.data_, retain));
-                    if (!resized) continue; // preserve the old allocation on failure
+                    if (!resized) continue;  // preserve the old allocation on failure
                     b.data_ = resized;
                     b.cap_ = retain;
                     b.len_ = 0;
                 }
                 reclaimed_ = true;
-                if (send) c.wsent_ = 0; // the old, fully sent buffer retained a stale size/offset
+                if (send) c.wsent_ = 0;  // the old, fully sent buffer retained a stale size/offset
                 p.output_cap[i] = b.cap();
             }
             if (now_ms - p.output_reset_ms >= 5000) p.output[i] = used;
@@ -120,4 +132,4 @@ public:
         return cancel_read;
     }
 };
-} // namespace tomo
+}  // namespace tomo

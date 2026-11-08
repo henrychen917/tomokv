@@ -15,7 +15,10 @@
 
 // Deliberately outside namespace tomo: the -Dtomo=tomo_db0 objects share one arm.
 namespace lottery {
-struct Record { const char* kind; uint64_t id, a, b, c, d, ns, ms, seq; };
+struct Record {
+    const char* kind;
+    uint64_t id, a, b, c, d, ns, ms, seq;
+};
 
 inline std::atomic<uint64_t> armed{0};
 // Call-site order. The reducer orders records by this stamp, taken at the
@@ -49,8 +52,8 @@ inline std::vector<Record>& local() {
     return *mine;
 }
 
-inline void event(uint64_t mask, const char* kind, uint64_t id=0, uint64_t a=0,
-                  uint64_t b=0, uint64_t c=0, uint64_t d=0) {
+inline void event(uint64_t mask, const char* kind, uint64_t id = 0, uint64_t a = 0, uint64_t b = 0,
+                  uint64_t c = 0, uint64_t d = 0) {
     if (!enabled(mask)) return;
     // Announce, then re-check: stop() disarms first and waits for announced writers.
     writers.fetch_add(1, std::memory_order_seq_cst);
@@ -61,9 +64,9 @@ inline void event(uint64_t mask, const char* kind, uint64_t id=0, uint64_t a=0,
         } else {
             timespec now{};
             clock_gettime(CLOCK_MONOTONIC, &now);
-            const uint64_t ns = uint64_t(now.tv_sec)*1000000000 + now.tv_nsec;
+            const uint64_t ns = uint64_t(now.tv_sec) * 1000000000 + now.tv_nsec;
             clock_gettime(CLOCK_REALTIME, &now);
-            const uint64_t ms = uint64_t(now.tv_sec)*1000 + now.tv_nsec/1000000;
+            const uint64_t ms = uint64_t(now.tv_sec) * 1000 + now.tv_nsec / 1000000;
             local().push_back(Record{kind, id, a, b, c, d, ns, ms, at});
         }
     }
@@ -82,10 +85,13 @@ inline void mark(const std::string& name) {
 inline bool start(uint64_t mask, const std::string& path) {
     std::lock_guard<std::mutex> lock(mutex);
     if (output || !mask || armed.load(std::memory_order_seq_cst)) return false;
-    const int fd = ::open(path.c_str(), O_WRONLY|O_CREAT|O_EXCL|O_CLOEXEC, 0600);
+    const int fd = ::open(path.c_str(), O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0600);
     if (fd < 0) return false;
     output = ::fdopen(fd, "w");
-    if (!output) { ::close(fd); return false; }
+    if (!output) {
+        ::close(fd);
+        return false;
+    }
     for (auto* buffer : buffers) buffer->clear();
     clock.store(0, std::memory_order_seq_cst);
     recorded.store(0, std::memory_order_seq_cst);
@@ -98,7 +104,8 @@ inline bool start(uint64_t mask, const std::string& path) {
 // Disarm, wait out in-flight writers, then write every record in stamp order.
 inline bool stop() {
     armed.store(0, std::memory_order_seq_cst);
-    while (writers.load(std::memory_order_seq_cst) != 0) {}
+    while (writers.load(std::memory_order_seq_cst) != 0) {
+    }
     std::lock_guard<std::mutex> lock(mutex);
     if (!output) return false;
     std::vector<Record> all;
@@ -113,15 +120,16 @@ inline bool stop() {
               [](const Record& x, const Record& y) { return x.seq < y.seq; });
     bool ok = !overflow.load(std::memory_order_seq_cst);
     if (std::fprintf(output, "LOTTERY2 %d %llu\n", int(::getpid()),
-                     (unsigned long long)armed_mask) < 0) ok = false;
+                     (unsigned long long)armed_mask) < 0)
+        ok = false;
     uint64_t sequence = 0;
     for (const Record& r : all)
         if (std::fprintf(output, "%llu %s %llu %llu %llu %llu %llu %llu %llu %llu\n",
                          (unsigned long long)++sequence, r.kind, (unsigned long long)r.id,
-                         (unsigned long long)r.a, (unsigned long long)r.b,
-                         (unsigned long long)r.c, (unsigned long long)r.d,
-                         (unsigned long long)r.ns, (unsigned long long)r.ms,
-                         (unsigned long long)r.seq) < 0) ok = false;
+                         (unsigned long long)r.a, (unsigned long long)r.b, (unsigned long long)r.c,
+                         (unsigned long long)r.d, (unsigned long long)r.ns,
+                         (unsigned long long)r.ms, (unsigned long long)r.seq) < 0)
+            ok = false;
     if (std::ferror(output)) ok = false;
     if (std::fprintf(output, "END %llu %d\n", (unsigned long long)sequence, int(ok)) < 0)
         ok = false;
@@ -131,10 +139,14 @@ inline bool stop() {
 }
 
 struct Scope {
-    uint64_t mask; const char* end; uint64_t id, a;
-    Scope(uint64_t m, const char* begin, const char* finish, uint64_t i,
-          uint64_t x=0, uint64_t y=0, uint64_t z=0, uint64_t w=0)
-        : mask(m), end(finish), id(i), a(x) { event(m, begin, i, x, y, z, w); }
+    uint64_t mask;
+    const char* end;
+    uint64_t id, a;
+    Scope(uint64_t m, const char* begin, const char* finish, uint64_t i, uint64_t x = 0,
+          uint64_t y = 0, uint64_t z = 0, uint64_t w = 0)
+        : mask(m), end(finish), id(i), a(x) {
+        event(m, begin, i, x, y, z, w);
+    }
     ~Scope() { event(mask, end, id, a); }
 };
 }

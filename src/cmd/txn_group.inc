@@ -8,18 +8,18 @@ std::atomic<bool> txn_barrier_witness_armed{false};
 // is still unparsed behind the actual Scatter barrier claim. Merely preparing
 // a barrier, or an EXEC parked on an owner after it was parsed, cannot count.
 void txn_group_barrier_witness(ScatterState& state, Client& client) {
-    if (!txn_barrier_witness_armed.load(std::memory_order_relaxed) ||
-        state.kind != Kind::Msetnx || !state.atomic_write || !state.barrier ||
-        !client.barrier_held_by(BarrierOwner::Scatter)) return;
+    if (!txn_barrier_witness_armed.load(std::memory_order_relaxed) || state.kind != Kind::Msetnx ||
+        !state.atomic_write || !state.barrier || !client.barrier_held_by(BarrierOwner::Scatter))
+        return;
     auto& conn = client;
     constexpr char next[] = "*1\r\n$5\r\nMULTI\r\n";
     if (conn.rlen() - conn.rpos() < sizeof(next) - 1 ||
-        std::memcmp(conn.rbuf() + conn.rpos(), next, sizeof(next) - 1) != 0) return;
+        std::memcmp(conn.rbuf() + conn.rpos(), next, sizeof(next) - 1) != 0)
+        return;
     state.server->note_txn(state.owner_io, TxnCounter::GroupBarriers);
 }
 
-bool txn_group_prepare(ScatterState& state, Server& server, uint32_t io,
-                       ScatterArenaPool* pool) {
+bool txn_group_prepare(ScatterState& state, Server& server, uint32_t io, ScatterArenaPool* pool) {
     // AT4.12: only non-forced script activations reach this call; each takes its optimistic slot
     // here (design §3.2 step 2). Escalated attempts and EXEC children take none (C8).
     if (state.kind == Kind::Script) return script_window_admit(state);
@@ -104,18 +104,18 @@ bool txn_group_arrive(ScatterState& state, Shard& shard, Op& op) {
     if (!(noted & 8u)) {
         try {
             const bool store = is_store_setop(state.kind) || is_store_zsetop(state.kind) ||
-                state.kind == Kind::Bitop || state.kind == Kind::Pfmerge ||
-                state.kind == Kind::Zrangestore || is_geo_kind(state.kind) ||
-                (state.kind == Kind::Sort && state.sort_options.store);
+                               state.kind == Kind::Bitop || state.kind == Kind::Pfmerge ||
+                               state.kind == Kind::Zrangestore || is_geo_kind(state.kind) ||
+                               (state.kind == Kind::Sort && state.sort_options.store);
             for (uint32_t i = 0; i < state.key_count; ++i) {
                 const auto& key = state.keys[i];
                 if (key.shard != shard.id()) continue;
                 const auto mode = (store && i != 0) || (state.kind == Kind::Copy && i == 0)
-                    ? TxnClaimMode::Read : TxnClaimMode::Write;
+                                      ? TxnClaimMode::Read
+                                      : TxnClaimMode::Write;
                 txn_add_claim(claims, op.arg(key.arg), mode);
             }
-            if (state.kind == Kind::Flush)
-                txn_add_claim(claims, {}, TxnClaimMode::Write, true);
+            if (state.kind == Kind::Flush) txn_add_claim(claims, {}, TxnClaimMode::Write, true);
             if (state.kind == Kind::Sort && state.sort_options.deref)
                 txn_add_claim(claims, {}, TxnClaimMode::Read, true);
             if (claims.size() > kTxnClaimsPerShard) attempt->retire_claims[shard.id()] = claims;
@@ -135,9 +135,10 @@ bool txn_group_arrive(ScatterState& state, Shard& shard, Op& op) {
     return attempt->arrivals.load(std::memory_order_acquire) == attempt->participants;
 }
 
-bool /* TOMO_TOOL_BIND txn_group_ready */txn_group_ready(ScatterState& state, Shard& shard, Op& op) {
+bool /* TOMO_TOOL_BIND txn_group_ready */ txn_group_ready(ScatterState& state, Shard& shard,
+                                                          Op& op) {
     auto* attempt = state.group_attempt();
-    if (!attempt) return true; // forced EXEC child is covered by its parent's claims
+    if (!attempt) return true;  // forced EXEC child is covered by its parent's claims
     if (state.aborted.load(std::memory_order_acquire)) return false;
     auto& noted = attempt->arrived[shard.id()];
     if (noted & 2u) return true;
@@ -155,9 +156,11 @@ bool /* TOMO_TOOL_BIND txn_group_ready */txn_group_ready(ScatterState& state, Sh
                                                 std::memory_order_acq_rel);
             // The phase CAS owns this restart even if the last placer helped
             // cancel the epoch while this owner was descheduled.
-            state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::BlindRestarts);
-            attempt->retry_after_ns = now_ns() + std::min(kTxnRetryBackoffMax,
-                uint64_t{1000} << std::min(attempt->attempt, uint32_t{10}));
+            state.server->note_txn(state.server->worker_of_shard(shard.id()),
+                                   TxnCounter::BlindRestarts);
+            attempt->retry_after_ns =
+                now_ns() + std::min(kTxnRetryBackoffMax,
+                                    uint64_t{1000} << std::min(attempt->attempt, uint32_t{10}));
             /* TOMO_TOOL_ANCHOR woundfix-group-blind-abort */
             state.aborted.store(true, std::memory_order_release);
         }
@@ -178,8 +181,9 @@ bool /* TOMO_TOOL_BIND txn_group_ready */txn_group_ready(ScatterState& state, Sh
         state.server->note_txn(owner, TxnCounter::Intents);
         state.server->note_txn(owner, TxnCounter::IntentsLive);
     }
-    Shard::WatchReservation claim{&state, &state.epoch, &state.aborted,
-        &state.watch_refs, state.commit_client, 0, false, true};
+    Shard::WatchReservation claim{
+        &state, &state.epoch, &state.aborted, &state.watch_refs, state.commit_client, 0,
+        false,  true};
     claim.unit_kind = 2;
     if (!shard.watch_place_unit(claims, claim)) return false;
     if (state.aborted.load(std::memory_order_acquire)) return false;
@@ -197,40 +201,46 @@ bool /* TOMO_TOOL_BIND txn_group_ready */txn_group_ready(ScatterState& state, Sh
             return false;
         }
     }
-    noted |= 4u; // plain writers cannot pass a shard that has started its read phase
+    noted |= 4u;  // plain writers cannot pass a shard that has started its read phase
     return true;
 }
 
 void txn_group_cancel(ScatterState& state, uint32_t shard) {
     if (!state.group_attempt() || state.aborted.load(std::memory_order_acquire) ||
-        state.epoch.load(std::memory_order_acquire)) return;
+        state.epoch.load(std::memory_order_acquire))
+        return;
     state.server->note_txn(state.server->worker_of_shard(shard), TxnCounter::OrderViolations);
 }
 
 bool txn_group_touch(ScatterState& state, Shard& shard, uint64_t hash, Slice key, bool) {
     if (!state.group_attempt()) return true;
     if (state.epoch.load(std::memory_order_acquire) == kAtomicCancelledEpoch ||
-        state.aborted.load(std::memory_order_acquire)) return false;
+        state.aborted.load(std::memory_order_acquire))
+        return false;
     bool ready = true;
     shard.store().atomic_visit_unit_records(hash, key, false, [&](AtomicEntry& entry) {
         if (entry.group == &state) return;
-        auto epoch = entry.group_epoch ? entry.group_epoch->load(std::memory_order_acquire) : entry.epoch;
+        auto epoch =
+            entry.group_epoch ? entry.group_epoch->load(std::memory_order_acquire) : entry.epoch;
         if (auto* parent = multi_record_decision(entry)) {
             epoch = parent->epoch.load(std::memory_order_acquire);
             multi_help_child(entry, epoch);
             if (parent->aborted.load(std::memory_order_acquire)) return;
         }
-        if (epoch == kAtomicCancelledEpoch || (entry.group_aborted &&
-            entry.group_aborted->load(std::memory_order_acquire))) return;
+        if (epoch == kAtomicCancelledEpoch ||
+            (entry.group_aborted && entry.group_aborted->load(std::memory_order_acquire)))
+            return;
         if (!epoch && entry.group && entry.group->kind == Kind::Script) {
             multi_cancel_record(entry);
             epoch = entry.group_epoch->load(std::memory_order_acquire);
             if (epoch == kAtomicCancelledEpoch) return;
         }
         if (!epoch) {
-            state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::OrderViolations);
+            state.server->note_txn(state.server->worker_of_shard(shard.id()),
+                                   TxnCounter::OrderViolations);
             ready = false;
-        } else if (entry.origin_conn_id != state.origin_conn_id && epoch > state.server->atomic_snapshot()) {
+        } else if (entry.origin_conn_id != state.origin_conn_id &&
+                   epoch > state.server->atomic_snapshot()) {
             state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::Waits);
             ready = false;
         }
@@ -241,19 +251,21 @@ bool txn_group_touch(ScatterState& state, Shard& shard, uint64_t hash, Slice key
 TxnGroupRead txn_group_read_prepare(ScatterState& state, Shard& shard, Op& op) {
     if (!state.group_attempt()) return TxnGroupRead::Ready;
     if (!txn_group_ready(state, shard, op))
-        return state.aborted.load(std::memory_order_acquire)
-            ? TxnGroupRead::Done : TxnGroupRead::Wait;
+        return state.aborted.load(std::memory_order_acquire) ? TxnGroupRead::Done
+                                                             : TxnGroupRead::Wait;
     const auto& group = *group_for(state, shard.id());
     for (uint32_t i = 0; i < group.count; ++i) {
         if (sort_deref_gathering(state)) {
-            const auto& request = state.sort_deref->requests[
-                state.sort_deref->key_order[group.begin + i]];
+            const auto& request =
+                state.sort_deref->requests[state.sort_deref->key_order[group.begin + i]];
             if (!txn_group_touch(state, shard, request.hash, sort_deref_key(request)))
-                return state.aborted.load(std::memory_order_acquire) ? TxnGroupRead::Done : TxnGroupRead::Wait;
+                return state.aborted.load(std::memory_order_acquire) ? TxnGroupRead::Done
+                                                                     : TxnGroupRead::Wait;
         } else {
             const auto& key = state.keys[state.key_order[group.begin + i]];
             if (!txn_group_touch(state, shard, key.hash, op.arg(key.arg)))
-                return state.aborted.load(std::memory_order_acquire) ? TxnGroupRead::Done : TxnGroupRead::Wait;
+                return state.aborted.load(std::memory_order_acquire) ? TxnGroupRead::Done
+                                                                     : TxnGroupRead::Wait;
         }
     }
     return TxnGroupRead::Ready;
@@ -266,8 +278,8 @@ bool txn_group_decide(ScatterState& state, uint64_t ticket) {
         // it into a cancelled unit after it has already answered. If the wound
         // won, finish its cancellation instead. Ordinary errors keep tickets.
         TxnPhase placing = TxnPhase::Placing;
-        if (!state.group_attempt()->phase.compare_exchange_strong(
-                placing, TxnPhase::Executing, std::memory_order_acq_rel) &&
+        if (!state.group_attempt()->phase.compare_exchange_strong(placing, TxnPhase::Executing,
+                                                                  std::memory_order_acq_rel) &&
             placing == TxnPhase::Wounded) {
             uint64_t zero = 0;
             state.epoch.compare_exchange_strong(zero, kAtomicCancelledEpoch,
@@ -275,8 +287,7 @@ bool txn_group_decide(ScatterState& state, uint64_t ticket) {
         }
     }
     uint64_t undecided = 0;
-    if (state.epoch.compare_exchange_strong(undecided, ticket,
-                                           std::memory_order_acq_rel)) {
+    if (state.epoch.compare_exchange_strong(undecided, ticket, std::memory_order_acq_rel)) {
         return true;
     }
     if (undecided != kAtomicCancelledEpoch) std::abort();
@@ -286,11 +297,11 @@ bool txn_group_decide(ScatterState& state, uint64_t ticket) {
     return false;
 }
 
-ScatterFinish txn_group_retry(Server& server, ThreadCtx& self, Ring& ring,
-                              const Task& task) {
+ScatterFinish txn_group_retry(Server& server, ThreadCtx& self, Ring& ring, const Task& task) {
     auto& state = *task.scatter;
     if (!state.group_attempt() || state.multi_child ||
-        state.epoch.load(std::memory_order_acquire) != kAtomicCancelledEpoch) std::abort();
+        state.epoch.load(std::memory_order_acquire) != kAtomicCancelledEpoch)
+        std::abort();
     aof_abort_scatter_group(state);
     server.atomic_apply_close(self.id(), state.apply_open);
     state.commit_next = nullptr;
@@ -305,16 +316,15 @@ ScatterFinish txn_group_retry(Server& server, ThreadCtx& self, Ring& ring,
 // Called only from the existing atomic completion arm. Ordinary scatters
 // retain the original completion interpreter and test sequence.
 template <bool IofusedPrivateQueue>
-ScatterFinish txn_group_complete(Server& server, ThreadCtx& self, Ring& ring,
-                                   const Task& task, Op& op) {
+ScatterFinish txn_group_complete(Server& server, ThreadCtx& self, Ring& ring, const Task& task,
+                                 Op& op) {
     ScatterState& state = *task.scatter;
-    if (state.kind == Kind::Flush)
-        return flush_complete(server, self, ring, task, op);
+    if (state.kind == Kind::Flush) return flush_complete(server, self, ring, task, op);
     if (state.kind == Kind::Script) {
         if (state.script_phase == ScriptPhase::Apply && !state.script_resume_post &&
-            !complete_owner_record_wave(state, self.id())) return ScatterFinish::Waiting;
-        return xshard_complete_script<IofusedPrivateQueue>(
-            server, self, ring, task, op, state);
+            !complete_owner_record_wave(state, self.id()))
+            return ScatterFinish::Waiting;
+        return xshard_complete_script<IofusedPrivateQueue>(server, self, ring, task, op, state);
     }
     auto final = [&]() {
         if (op.spec->flags & CmdFlags::NotifySelected)
@@ -329,8 +339,7 @@ ScatterFinish txn_group_complete(Server& server, ThreadCtx& self, Ring& ring,
     if (state.atomic_write || (state.atomic_apply && state.phase == 2)) {
         if (!complete_owner_record_wave(state, self.id())) return ScatterFinish::Waiting;
     }
-    if (state.pending.fetch_sub(1, std::memory_order_acq_rel) != 1)
-        return ScatterFinish::Waiting;
+    if (state.pending.fetch_sub(1, std::memory_order_acq_rel) != 1) return ScatterFinish::Waiting;
     if (state.pop_missed && state.phase == 2) {
         aof_abort_scatter_group(state);
         state.aof_group.reset();
@@ -353,8 +362,7 @@ ScatterFinish txn_group_complete(Server& server, ThreadCtx& self, Ring& ring,
                 return state.group_attempt() ? ScatterFinish::CommitQueued : final();
             }
             if (sort_deref_gathering(state)) {
-                if (publish_sort_deref<IofusedPrivateQueue>(
-                        server, self, ring, task, state))
+                if (publish_sort_deref<IofusedPrivateQueue>(server, self, ring, task, state))
                     return ScatterFinish::Waiting;
                 return state.group_attempt() ? ScatterFinish::CommitQueued : final();
             }
@@ -420,9 +428,9 @@ ScatterFinish txn_group_complete(Server& server, ThreadCtx& self, Ring& ring,
             return txn_group_retry(server, self, ring, task);
         const bool commit_ready = finish_phase2(state);
         if (state.group_attempt()) return ScatterFinish::CommitQueued;
-        const bool pop_commit_ready = state.aof_group && state.atomic_pop &&
-            (state.final_reply == FinalReply::Lmpop ||
-             state.final_reply == FinalReply::Zmpop);
+        const bool pop_commit_ready =
+            state.aof_group && state.atomic_pop &&
+            (state.final_reply == FinalReply::Lmpop || state.final_reply == FinalReply::Zmpop);
         if (commit_ready || pop_commit_ready) return ScatterFinish::CommitQueued;
         if (state.aof_group) {
             const uint64_t ticket = state.epoch.load(std::memory_order_acquire);
@@ -461,8 +469,8 @@ ScatterFinish txn_group_complete(Server& server, ThreadCtx& self, Ring& ring,
 }
 
 template <bool IofusedPrivateQueue>
-void txn_group_redispatch(Server& server, ThreadCtx& self, Ring& ring,
-                          ScatterArenaPool& pool, ScatterState& previous) {
+void txn_group_redispatch(Server& server, ThreadCtx& self, Ring& ring, ScatterArenaPool& pool,
+                          ScatterState& previous) {
     auto& attempt = *previous.group_attempt();
     Client& client = *previous.commit_client;
     Op& op = client.rob().at(previous.commit_op_id);
@@ -485,8 +493,8 @@ void txn_group_redispatch(Server& server, ThreadCtx& self, Ring& ring,
     // Transfer the still-live admission lease, as EXEC retries do. force_atomic
     // avoids both a second lease and a transient same-owner shortcut after FLIP;
     // it does not turn this bare command into an EXEC child.
-    const auto prepared = xshard_prepare(server, op, pool, self.id(), client.id(),
-                                         dispatch, true, &client);
+    const auto prepared =
+        xshard_prepare(server, op, pool, self.id(), client.id(), dispatch, true, &client);
     if (prepared != ScatterPrepare::Ready) {
         op.clear_reply();
         attempt.retry_after_ns = now_ns() + kTxnRetryBackoffMax;
@@ -496,7 +504,8 @@ void txn_group_redispatch(Server& server, ThreadCtx& self, Ring& ring,
     ScatterState* next = dispatch.state;
     if (next->group_attempt() || next->snapshot_registered || !next->atomic_group) std::abort();
     if (!txn_group_prepare(*next, server, self.id()) ||
-        ((next->atomic_write || next->atomic_direct || next->kind == Kind::Flush) && !aof_prepare_scatter_group(*next))) {
+        ((next->atomic_write || next->atomic_direct || next->kind == Kind::Flush) &&
+         !aof_prepare_scatter_group(*next))) {
         xshard_abandon_unpublished(next, pool, self.id());
         attempt.retry_after_ns = now_ns() + kTxnRetryBackoffMax;
         again();
@@ -506,8 +515,8 @@ void txn_group_redispatch(Server& server, ThreadCtx& self, Ring& ring,
     for (uint32_t i = 0; i < next->nsub; ++i)
         ++needed[server.worker_of_shard(next->groups[i].shard)];
     for (uint32_t tid = 0; tid < server.nthreads(); ++tid) {
-        if (needed[tid] && scatter_task_free_slots<IofusedPrivateQueue>(
-                server.thread(tid), self.id()) < needed[tid]) {
+        if (needed[tid] && scatter_task_free_slots<IofusedPrivateQueue>(server.thread(tid),
+                                                                        self.id()) < needed[tid]) {
             xshard_abandon_unpublished(next, pool, self.id());
             again();
             return;
@@ -533,7 +542,8 @@ void txn_group_redispatch(Server& server, ThreadCtx& self, Ring& ring,
         const int32_t sid = next->groups[i].shard;
         auto& owner = server.thread(server.worker_of_shard(sid));
         if (!scatter_post_task_quiet<IofusedPrivateQueue>(
-                owner, self.id(), Task{&client, op_id, sid, next}, self.sig())) std::abort();
+                owner, self.id(), Task{&client, op_id, sid, next}, self.sig()))
+            std::abort();
     }
     for (uint32_t tid = 0; tid < server.nthreads(); ++tid)
         if (needed[tid]) server.thread(tid).flush_task_notify(self.id(), ring, self.sig());
@@ -554,7 +564,7 @@ void txn_group_shutdown(ScatterState& state, ScatterArenaPool& pool) {
     op.state.store(OpState::Done, std::memory_order_relaxed);
     xshard_destroy(&state, pool, state.owner_io);
 }
-} // namespace
+}  // namespace
 
 void txn_barrier_witness(bool armed) {
     txn_barrier_witness_armed.store(armed, std::memory_order_relaxed);
@@ -565,13 +575,14 @@ void atomic_free_unit_intent(UnitRef* allocation) {
     if (unit.unit_kind == UnitRef::Kind::Group) {
         auto& state = *static_cast<ScatterState*>(const_cast<void*>(unit.unit));
         const auto& intent = *reinterpret_cast<const AtomicScriptIntent*>(&unit + 1);
-        const uint32_t shard = intent.kind == 2 ? intent.hash
-            : state.server->router().shard_of(intent.hash);
+        const uint32_t shard =
+            intent.kind == 2 ? intent.hash : state.server->router().shard_of(intent.hash);
         state.server->shard(shard).watch_finish_unit(state.group_attempt()->claims[shard], &state);
-        state.server->shard(shard).watch_finish_unit(state.group_attempt()->retire_claims[shard], &state);
+        state.server->shard(shard).watch_finish_unit(state.group_attempt()->retire_claims[shard],
+                                                     &state);
         if (state.watch_refs.fetch_sub(1, std::memory_order_release) == 0) std::abort();
     }
     std::free(allocation);
 }
 
-} // namespace tomo
+}  // namespace tomo

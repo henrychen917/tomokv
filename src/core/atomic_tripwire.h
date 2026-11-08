@@ -25,10 +25,10 @@ namespace tomo {
 // DEBUG TRIPWIRE rows are intentionally the requested four-tuple.  `phase` makes the rows of the
 // one-shot dump self-describing without adding another field to the wire format.
 enum class AtomicTripwirePhase : uint32_t {
-    PlainBegin       = 1,
-    PlainExecution   = 2,
-    ChainAnswer      = 3,
-    ParkedSmaller    = 4,
+    PlainBegin = 1,
+    PlainExecution = 2,
+    ChainAnswer = 3,
+    ParkedSmaller = 4,
 };
 
 struct AtomicTripwireRow {
@@ -73,9 +73,9 @@ struct AtomicTripwireCounts {
 namespace atomic_tripwire_detail {
 
 struct ProbeKey {
-    const void* scope = nullptr;       // transaction/scatter lifetime owner
-    const void* fragment = nullptr;    // child command or scatter state
-    uint64_t slot = 0;                 // shard + key occurrence + wave
+    const void* scope = nullptr;     // transaction/scatter lifetime owner
+    const void* fragment = nullptr;  // child command or scatter state
+    uint64_t slot = 0;               // shard + key occurrence + wave
 
     bool operator==(const ProbeKey& other) const {
         return scope == other.scope && fragment == other.fragment && slot == other.slot;
@@ -134,8 +134,7 @@ inline void capture_locked(State& s, const AtomicTripwireRow* rows, size_t count
 inline void atomic_tripwire_configure(bool enabled) {
     if (enabled) {
         if (!atomic_tripwire_detail::state)
-            atomic_tripwire_detail::state.reset(
-                new (std::nothrow) atomic_tripwire_detail::State());
+            atomic_tripwire_detail::state.reset(new (std::nothrow) atomic_tripwire_detail::State());
     } else {
         atomic_tripwire_detail::state.reset();
         atomic_tripwire_detail::armed.store(false, std::memory_order_relaxed);
@@ -188,10 +187,9 @@ inline void atomic_tripwire_plain_begin(const void* scope, const void* fragment,
 // Called immediately before a read that has selected FlatStore's plain (non-chain) arm.  Probes
 // are consumed even when unchanged, so pointer reuse after a completed command cannot inherit an
 // old begin verdict.
-inline void atomic_tripwire_plain_execution(const void* scope, const void* fragment,
-                                            uint64_t slot, uint64_t key_hash, uint64_t cut,
-                                            uint64_t ticket, bool needs_version,
-                                            bool plain_path) {
+inline void atomic_tripwire_plain_execution(const void* scope, const void* fragment, uint64_t slot,
+                                            uint64_t key_hash, uint64_t cut, uint64_t ticket,
+                                            bool needs_version, bool plain_path) {
     auto* state = atomic_tripwire_detail::state.get();
     if (!state) return;
     std::lock_guard<std::mutex> lock(state->mu);
@@ -215,13 +213,14 @@ inline void atomic_tripwire_forget_scope(const void* scope) {
     if (!state) return;
     std::lock_guard<std::mutex> lock(state->mu);
     for (auto it = state->probes.begin(); it != state->probes.end();) {
-        if (it->first.scope == scope) it = state->probes.erase(it);
-        else ++it;
+        if (it->first.scope == scope)
+            it = state->probes.erase(it);
+        else
+            ++it;
     }
 }
 
-inline void atomic_tripwire_chain_smaller(uint64_t key_hash, uint64_t cut,
-                                          uint64_t answer_ticket,
+inline void atomic_tripwire_chain_smaller(uint64_t key_hash, uint64_t cut, uint64_t answer_ticket,
                                           uint64_t smaller_ticket) {
     auto* state = atomic_tripwire_detail::state.get();
     if (!state) return;
@@ -269,8 +268,10 @@ inline void atomic_tripwire_excluded(uint64_t key_hash, uint64_t snapshot, uint6
     auto* state = atomic_tripwire_detail::state.get();
     if (!state) return;
     std::lock_guard<std::mutex> lock(state->mu);
-    if (reader_conn == 0) state->counts.excluded_reader_zero++;
-    else state->counts.excluded_conn_mismatch++;
+    if (reader_conn == 0)
+        state->counts.excluded_reader_zero++;
+    else
+        state->counts.excluded_conn_mismatch++;
     const AtomicTripwireRow rows[] = {
         {key_hash, snapshot, epoch, AtomicTripwirePhase::ChainAnswer},
         {reader_conn, owner_conn, epoch, AtomicTripwirePhase::ParkedSmaller},
@@ -283,11 +284,21 @@ inline void atomic_tripwire_samekey(AtomicTripwireSamekey kind) {
     if (!state) return;
     std::lock_guard<std::mutex> lock(state->mu);
     switch (kind) {
-        case AtomicTripwireSamekey::MaskedOut:      state->counts.samekey_masked_out++; break;
-        case AtomicTripwireSamekey::VisibleLost:    state->counts.samekey_visible_lost++; break;
-        case AtomicTripwireSamekey::Undecided:      state->counts.samekey_undecided++; break;
-        case AtomicTripwireSamekey::UndecidedLeCut: state->counts.samekey_undecided_le_cut++; break;
-        case AtomicTripwireSamekey::UndecidedGtCut: state->counts.samekey_undecided_gt_cut++; break;
+        case AtomicTripwireSamekey::MaskedOut:
+            state->counts.samekey_masked_out++;
+            break;
+        case AtomicTripwireSamekey::VisibleLost:
+            state->counts.samekey_visible_lost++;
+            break;
+        case AtomicTripwireSamekey::Undecided:
+            state->counts.samekey_undecided++;
+            break;
+        case AtomicTripwireSamekey::UndecidedLeCut:
+            state->counts.samekey_undecided_le_cut++;
+            break;
+        case AtomicTripwireSamekey::UndecidedGtCut:
+            state->counts.samekey_undecided_gt_cut++;
+            break;
     }
 }
 
@@ -310,9 +321,9 @@ inline std::string atomic_tripwire_dump() {
     for (size_t i = 0; i < state->ring_size; i++) {
         const AtomicTripwireRow& row = state->ring[i];
         char line[128];
-        const int n = std::snprintf(
-            line, sizeof(line), "%016" PRIx64 " %" PRIu64 " %" PRIu64 " %u\n",
-            row.key_hash, row.cut, row.ticket, static_cast<unsigned>(row.phase));
+        const int n =
+            std::snprintf(line, sizeof(line), "%016" PRIx64 " %" PRIu64 " %" PRIu64 " %u\n",
+                          row.key_hash, row.cut, row.ticket, static_cast<unsigned>(row.phase));
         if (n > 0) out.append(line, static_cast<size_t>(n));
     }
     return out;

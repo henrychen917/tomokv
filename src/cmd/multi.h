@@ -33,8 +33,8 @@ struct MultiTrackingView {
 };
 MultiTrackingView multi_tracking_view(const MultiExecState&);
 void multi_tracking_children(MultiExecState&, void*,
-    void (*)(void*, Op&, bool prebuilt, bool io_local, bool acl,
-             bool& io_effect_done, uint32_t order));
+                             void (*)(void*, Op&, bool prebuilt, bool io_local, bool acl,
+                                      bool& io_effect_done, uint32_t order));
 struct MultiSession;
 struct Task;
 struct MultiOwnerRetryNode;
@@ -54,7 +54,7 @@ struct TxnClaim {
     std::string key;
     uint64_t hash = 0;
     TxnClaimMode mode = TxnClaimMode::Read;
-    mutable TxnWaiter waiter; // stable once the attempt is published; also caches the queue
+    mutable TxnWaiter waiter;  // stable once the attempt is published; also caches the queue
 };
 // A refused unit's owner-local lifetime pin. No Op, Shard or plain-writer state.
 // Only older conflicting units may be retained, so these pins cannot form a cycle.
@@ -74,7 +74,7 @@ struct TxnPlaceBlocker {
     }
     bool live() const {
         return epoch && epoch->load(std::memory_order_acquire) == 0 &&
-            !aborted->load(std::memory_order_acquire);
+               !aborted->load(std::memory_order_acquire);
     }
     void pin(std::atomic<uint64_t>* e, std::atomic<bool>* a, std::atomic<uint32_t>* r) {
         r->fetch_add(1, std::memory_order_relaxed);
@@ -94,15 +94,34 @@ struct TxnPlaceBlocker {
     }
 };
 
-inline constexpr uint32_t kTxnRetryBackoffMin = 1; // one IO pass
-inline constexpr uint64_t kTxnRetryBackoffMax = 1000000; // ns
+inline constexpr uint32_t kTxnRetryBackoffMin = 1;        // one IO pass
+inline constexpr uint64_t kTxnRetryBackoffMax = 1000000;  // ns
 
 enum class TxnCounter : uint8_t {
-    Attempts, Retries, Dooms, Wounds, Waits, Intents, IntentsLive,
-    GroupDooms, GroupRetries, GroupBarriers,
-    Executed, PlaceWaits, WriterWaits, WriterMarks, BlindRestarts, Readonly,
-    OrderViolations, GroupWounds, FastPolls, PollSkips,
-    FifoWaits, FifoPasses, WriterPromotions, Count
+    Attempts,
+    Retries,
+    Dooms,
+    Wounds,
+    Waits,
+    Intents,
+    IntentsLive,
+    GroupDooms,
+    GroupRetries,
+    GroupBarriers,
+    Executed,
+    PlaceWaits,
+    WriterWaits,
+    WriterMarks,
+    BlindRestarts,
+    Readonly,
+    OrderViolations,
+    GroupWounds,
+    FastPolls,
+    PollSkips,
+    FifoWaits,
+    FifoPasses,
+    WriterPromotions,
+    Count
 };
 // DEBUG-only witness arming; no per-operation state on ordinary commands.
 void txn_barrier_witness(bool armed);
@@ -115,16 +134,16 @@ struct MultiRetryNode {
     MultiRetryNode* next = nullptr;
     void* unit = nullptr;
     Kind kind = Kind::Execute;
-    uint32_t owner_io = 0;            // fits the existing tail padding
+    uint32_t owner_io = 0;  // fits the existing tail padding
 };
 static_assert(sizeof(MultiRetryNode) == 24);
 struct alignas(64) MultiRetryLane {
     std::atomic<MultiRetryNode*> head{nullptr};
-    uint32_t age_seq = 0;              // IO-owned, used only at first admission
-    std::atomic<std::atomic<bool>*> signal{nullptr}; // worker TLS; bound before serving
-    uint8_t script_admission = 0;       // IO only: count | FIFO-present bit
-    std::atomic<uint8_t> script_releases{0}; // last owners publish; IO folds
-    std::shared_ptr<ScriptWindow> script_window; // allocated only for waiters
+    uint32_t age_seq = 0;                             // IO-owned, used only at first admission
+    std::atomic<std::atomic<bool>*> signal{nullptr};  // worker TLS; bound before serving
+    uint8_t script_admission = 0;                     // IO only: count | FIFO-present bit
+    std::atomic<uint8_t> script_releases{0};          // last owners publish; IO folds
+    std::shared_ptr<ScriptWindow> script_window;      // allocated only for waiters
 };
 static_assert(sizeof(MultiRetryLane) == 64);
 

@@ -14,7 +14,7 @@
 #include <cstdio>
 #include <limits>
 
-namespace tomo::/* TOMO_TOOL_BIND hll */hll {
+namespace tomo::/* TOMO_TOOL_BIND hll */ hll {
 namespace {
 
 constexpr uint8_t kDense = 0;
@@ -26,13 +26,9 @@ constexpr uint8_t kRegisterMax = 63;
 uint32_t g_sparse_max_bytes = 3000;  // Boot-latched before any worker can use the HLL helpers.
 constexpr double kAlphaInf = 0.721347520444481703680;
 
-inline const uint8_t* bytes(Slice image) {
-    return reinterpret_cast<const uint8_t*>(image.p);
-}
+inline const uint8_t* bytes(Slice image) { return reinterpret_cast<const uint8_t*>(image.p); }
 
-inline uint8_t* bytes(std::string& image) {
-    return reinterpret_cast<uint8_t*>(image.data());
-}
+inline uint8_t* bytes(std::string& image) { return reinterpret_cast<uint8_t*>(image.data()); }
 
 inline bool sparse_zero(uint8_t opcode) { return (opcode & 0xc0) == 0; }
 inline bool sparse_xzero(uint8_t opcode) { return (opcode & 0xc0) == 0x40; }
@@ -59,8 +55,7 @@ uint8_t dense_get(const uint8_t* registers, uint32_t index) {
     const uint32_t first_bit = bit & 7;
     const uint32_t b0 = registers[byte];
     const uint32_t b1 = byte + 1 < kDenseBytes ? registers[byte + 1] : 0;
-    return static_cast<uint8_t>(((b0 >> first_bit) | (b1 << (8 - first_bit))) &
-                                kRegisterMax);
+    return static_cast<uint8_t>(((b0 >> first_bit) | (b1 << (8 - first_bit))) & kRegisterMax);
 }
 
 void dense_put(uint8_t* registers, uint32_t index, uint8_t value) {
@@ -90,14 +85,11 @@ uint64_t murmur_hash64a(Slice element) {
     const uint8_t* data = bytes(element);
     const uint8_t* end = data + (element.n - (element.n & 7));
     while (data != end) {
-        uint64_t value = static_cast<uint64_t>(data[0]) |
-                         (static_cast<uint64_t>(data[1]) << 8) |
-                         (static_cast<uint64_t>(data[2]) << 16) |
-                         (static_cast<uint64_t>(data[3]) << 24) |
-                         (static_cast<uint64_t>(data[4]) << 32) |
-                         (static_cast<uint64_t>(data[5]) << 40) |
-                         (static_cast<uint64_t>(data[6]) << 48) |
-                         (static_cast<uint64_t>(data[7]) << 56);
+        uint64_t value =
+            static_cast<uint64_t>(data[0]) | (static_cast<uint64_t>(data[1]) << 8) |
+            (static_cast<uint64_t>(data[2]) << 16) | (static_cast<uint64_t>(data[3]) << 24) |
+            (static_cast<uint64_t>(data[4]) << 32) | (static_cast<uint64_t>(data[5]) << 40) |
+            (static_cast<uint64_t>(data[6]) << 48) | (static_cast<uint64_t>(data[7]) << 56);
         value *= multiplier;
         value ^= value >> shift;
         value *= multiplier;
@@ -106,14 +98,30 @@ uint64_t murmur_hash64a(Slice element) {
         data += 8;
     }
     switch (element.n & 7) {
-        case 7: hash ^= static_cast<uint64_t>(data[6]) << 48; [[fallthrough]];
-        case 6: hash ^= static_cast<uint64_t>(data[5]) << 40; [[fallthrough]];
-        case 5: hash ^= static_cast<uint64_t>(data[4]) << 32; [[fallthrough]];
-        case 4: hash ^= static_cast<uint64_t>(data[3]) << 24; [[fallthrough]];
-        case 3: hash ^= static_cast<uint64_t>(data[2]) << 16; [[fallthrough]];
-        case 2: hash ^= static_cast<uint64_t>(data[1]) << 8; [[fallthrough]];
-        case 1: hash ^= static_cast<uint64_t>(data[0]); hash *= multiplier; [[fallthrough]];
-        case 0: break;
+        case 7:
+            hash ^= static_cast<uint64_t>(data[6]) << 48;
+            [[fallthrough]];
+        case 6:
+            hash ^= static_cast<uint64_t>(data[5]) << 40;
+            [[fallthrough]];
+        case 5:
+            hash ^= static_cast<uint64_t>(data[4]) << 32;
+            [[fallthrough]];
+        case 4:
+            hash ^= static_cast<uint64_t>(data[3]) << 24;
+            [[fallthrough]];
+        case 3:
+            hash ^= static_cast<uint64_t>(data[2]) << 16;
+            [[fallthrough]];
+        case 2:
+            hash ^= static_cast<uint64_t>(data[1]) << 8;
+            [[fallthrough]];
+        case 1:
+            hash ^= static_cast<uint64_t>(data[0]);
+            hash *= multiplier;
+            [[fallthrough]];
+        case 0:
+            break;
     }
     hash ^= hash >> shift;
     hash *= multiplier;
@@ -233,8 +241,9 @@ int sparse_set(std::string& image, uint32_t index, uint8_t value) {
     const bool is_zero = sparse_zero(opcode);
     const bool is_xzero = sparse_xzero(opcode);
     const bool is_value = sparse_val(opcode);
-    const uint32_t run = is_zero ? zero_len(opcode) :
-                         is_xzero ? xzero_len(bytes(image) + pos) : val_len(opcode);
+    const uint32_t run = is_zero    ? zero_len(opcode)
+                         : is_xzero ? xzero_len(bytes(image) + pos)
+                                    : val_len(opcode);
 
     if (is_value) {
         const uint8_t old = val_value(opcode);
@@ -424,9 +433,7 @@ void invalidate_cache(std::string& image) {
     if (image.size() >= kHeaderBytes) image[15] = static_cast<char>(image[15] | 0x80);
 }
 
-bool cache_valid(Slice image) {
-    return image.n >= kHeaderBytes && (bytes(image)[15] & 0x80) == 0;
-}
+bool cache_valid(Slice image) { return image.n >= kHeaderBytes && (bytes(image)[15] & 0x80) == 0; }
 
 uint64_t cached_count(Slice image) {
     const uint8_t* card = bytes(image) + 8;
@@ -443,13 +450,12 @@ int add(std::string& image, Slice element) {
     uint32_t index = 0;
     const uint8_t length = pattern_length(element, index);
     const uint8_t encoding = static_cast<uint8_t>(image[4]);
-    if (encoding == kDense)
-        return dense_set(bytes(image) + kHeaderBytes, index, length);
+    if (encoding == kDense) return dense_set(bytes(image) + kHeaderBytes, index, length);
     if (encoding == kSparse) return sparse_set(image, index, length);
     return -1;
 }
 
-uint64_t /* TOMO_TOOL_BIND count */count(Slice image, bool& corrupt) {
+uint64_t /* TOMO_TOOL_BIND count */ count(Slice image, bool& corrupt) {
     int histogram[64] = {};
     if (bytes(image)[4] == kDense) {
         const uint8_t* registers = bytes(image) + kHeaderBytes;
@@ -525,8 +531,9 @@ std::string selftest() {
         for (uint32_t i = 0; i < kRegisters; ++i) {
             const uint8_t actual = dense_get(packed, i);
             if (actual != expected[i]) {
-                std::snprintf(message, sizeof(message), "ERR TESTFAILED Register %u should be %u but is %u",
-                              i, unsigned(expected[i]), unsigned(actual));
+                std::snprintf(message, sizeof(message),
+                              "ERR TESTFAILED Register %u should be %u but is %u", i,
+                              unsigned(expected[i]), unsigned(actual));
                 return message;
             }
         }
@@ -556,14 +563,19 @@ std::string selftest() {
         const uint64_t estimate_sparse = estimate_image(sparse_view, corrupt);
         std::string converted = sparse;
         if (!make_dense(converted) || corrupt || estimate_dense != estimate_sparse ||
-            estimate_image(Slice(converted.data(), converted.size()), corrupt) != estimate_dense || corrupt)
+            estimate_image(Slice(converted.data(), converted.size()), corrupt) != estimate_dense ||
+            corrupt)
             return "ERR TESTFAILED dense/sparse disagree";
-        const uint64_t error = estimate_dense > cardinality ? estimate_dense - cardinality : cardinality - estimate_dense;
-        const uint64_t bound = cardinality == 10 ? 1 :
-            static_cast<uint64_t>(std::ceil(relative_error * 6 * cardinality));
+        const uint64_t error = estimate_dense > cardinality ? estimate_dense - cardinality
+                                                            : cardinality - estimate_dense;
+        const uint64_t bound =
+            cardinality == 10 ? 1
+                              : static_cast<uint64_t>(std::ceil(relative_error * 6 * cardinality));
         if (error > bound) {
-            std::snprintf(message, sizeof(message), "ERR TESTFAILED Too big error. card:%llu abserr:%llu",
-                          static_cast<unsigned long long>(cardinality), static_cast<unsigned long long>(error));
+            std::snprintf(message, sizeof(message),
+                          "ERR TESTFAILED Too big error. card:%llu abserr:%llu",
+                          static_cast<unsigned long long>(cardinality),
+                          static_cast<unsigned long long>(error));
             return message;
         }
         checkpoint *= 10;
@@ -572,10 +584,12 @@ std::string selftest() {
 }
 
 bool merge_result(Slice destination, bool destination_present,
-                  const std::array<uint8_t, kRegisters>& maximum,
-                  bool any_dense, std::string& result) {
-    if (destination_present) result.assign(destination.p, destination.n);
-    else result = create_sparse();
+                  const std::array<uint8_t, kRegisters>& maximum, bool any_dense,
+                  std::string& result) {
+    if (destination_present)
+        result.assign(destination.p, destination.n);
+    else
+        result = create_sparse();
 
     if (any_dense) {
         if (!sparse_to_dense(result)) return false;
@@ -585,8 +599,8 @@ bool merge_result(Slice destination, bool destination_present,
         for (uint32_t i = 0; i < kRegisters; i++) {
             if (!maximum[i]) continue;
             const int changed = static_cast<uint8_t>(result[4]) == kDense
-                ? dense_set(bytes(result) + kHeaderBytes, i, maximum[i])
-                : sparse_set(result, i, maximum[i]);
+                                    ? dense_set(bytes(result) + kHeaderBytes, i, maximum[i])
+                                    : sparse_set(result, i, maximum[i]);
             if (changed < 0) return false;
         }
     }

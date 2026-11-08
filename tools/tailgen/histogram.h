@@ -39,8 +39,8 @@ public:
     double percentile_ms(uint32_t parts) const {
         if (parts > 100000) throw std::invalid_argument("percentile outside [0, 100000]");
         if (!count_) return 0;
-        const uint64_t rank = std::max<uint64_t>(1,
-            count_ / 100000 * parts + (count_ % 100000 * parts + 99999) / 100000);
+        const uint64_t rank = std::max<uint64_t>(
+            1, count_ / 100000 * parts + (count_ % 100000 * parts + 99999) / 100000);
         uint64_t seen = 0;
         for (size_t i = 0; i < bins_.size(); ++i) {
             seen += bins_[i];
@@ -70,15 +70,16 @@ public:
         if (std::isnan(ms)) throw std::invalid_argument("attainment threshold is NaN");
         if (ms < 0) return 0;
         const double ns = ms * 1e6;
-        const uint64_t limit_us = ns >= static_cast<double>(max_ns) ? max_us
-                                                                     : static_cast<uint64_t>(std::llround(ns)) / 1000;
+        const uint64_t limit_us = ns >= static_cast<double>(max_ns)
+                                      ? max_us
+                                      : static_cast<uint64_t>(std::llround(ns)) / 1000;
         uint64_t seen = 0;
         // upper() never decreases, so the first bucket above the limit ends the scan.
         for (size_t i = 0; i < bins_.size() && upper(i) <= limit_us; ++i) seen += bins_[i];
         return seen;
     }
     double fraction_at_or_below_ms(double ms) const {
-        const uint64_t at_or_below = count_at_or_below_ms(ms); // validates ms even when empty
+        const uint64_t at_or_below = count_at_or_below_ms(ms);  // validates ms even when empty
         return count_ ? static_cast<double>(at_or_below) / static_cast<double>(count_) : 0;
     }
 
@@ -99,4 +100,4 @@ private:
     uint64_t maximum_ns_ = 0;
 };
 
-} // namespace tailgen
+}  // namespace tailgen

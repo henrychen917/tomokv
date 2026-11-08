@@ -69,22 +69,53 @@ inline bool parse_notify_flags(Slice input, uint32_t& flags) {
     uint32_t parsed = 0;
     for (uint32_t i = 0; i < input.n; i++) {
         switch (input.p[i]) {
-            case 'K': parsed |= NOTIFY_KEYSPACE; break;
-            case 'E': parsed |= NOTIFY_KEYEVENT; break;
-            case 'g': parsed |= NOTIFY_GENERIC; break;
-            case '$': parsed |= NOTIFY_STRING; break;
-            case 'l': parsed |= NOTIFY_LIST; break;
-            case 's': parsed |= NOTIFY_SET; break;
-            case 'h': parsed |= NOTIFY_HASH; break;
-            case 'z': parsed |= NOTIFY_ZSET; break;
-            case 'x': parsed |= NOTIFY_EXPIRED; break;
-            case 'e': parsed |= NOTIFY_EVICTED; break;
-            case 't': parsed |= NOTIFY_STREAM; break;
-            case 'm': parsed |= NOTIFY_KEY_MISS; break;
-            case 'd': parsed |= NOTIFY_MODULE; break;
-            case 'n': parsed |= NOTIFY_NEW; break;
-            case 'A': parsed |= NOTIFY_ALL; break;
-            default: return false;
+            case 'K':
+                parsed |= NOTIFY_KEYSPACE;
+                break;
+            case 'E':
+                parsed |= NOTIFY_KEYEVENT;
+                break;
+            case 'g':
+                parsed |= NOTIFY_GENERIC;
+                break;
+            case '$':
+                parsed |= NOTIFY_STRING;
+                break;
+            case 'l':
+                parsed |= NOTIFY_LIST;
+                break;
+            case 's':
+                parsed |= NOTIFY_SET;
+                break;
+            case 'h':
+                parsed |= NOTIFY_HASH;
+                break;
+            case 'z':
+                parsed |= NOTIFY_ZSET;
+                break;
+            case 'x':
+                parsed |= NOTIFY_EXPIRED;
+                break;
+            case 'e':
+                parsed |= NOTIFY_EVICTED;
+                break;
+            case 't':
+                parsed |= NOTIFY_STREAM;
+                break;
+            case 'm':
+                parsed |= NOTIFY_KEY_MISS;
+                break;
+            case 'd':
+                parsed |= NOTIFY_MODULE;
+                break;
+            case 'n':
+                parsed |= NOTIFY_NEW;
+                break;
+            case 'A':
+                parsed |= NOTIFY_ALL;
+                break;
+            default:
+                return false;
         }
     }
     flags = parsed;
@@ -96,13 +127,17 @@ inline std::string serialize_notify_flags(uint32_t flags) {
     if ((flags & NOTIFY_ALL) == NOTIFY_ALL) {
         out.push_back('A');
     } else {
-        static constexpr struct { uint32_t bit; char flag; } classes[] = {
-            {NOTIFY_GENERIC, 'g'}, {NOTIFY_STRING, '$'}, {NOTIFY_LIST, 'l'},
-            {NOTIFY_SET, 's'}, {NOTIFY_HASH, 'h'}, {NOTIFY_ZSET, 'z'},
+        static constexpr struct {
+            uint32_t bit;
+            char flag;
+        } classes[] = {
+            {NOTIFY_GENERIC, 'g'}, {NOTIFY_STRING, '$'},  {NOTIFY_LIST, 'l'},
+            {NOTIFY_SET, 's'},     {NOTIFY_HASH, 'h'},    {NOTIFY_ZSET, 'z'},
             {NOTIFY_EXPIRED, 'x'}, {NOTIFY_EVICTED, 'e'}, {NOTIFY_STREAM, 't'},
-            {NOTIFY_MODULE, 'd'}, {NOTIFY_NEW, 'n'},
+            {NOTIFY_MODULE, 'd'},  {NOTIFY_NEW, 'n'},
         };
-        for (const auto& entry : classes) if (flags & entry.bit) out.push_back(entry.flag);
+        for (const auto& entry : classes)
+            if (flags & entry.bit) out.push_back(entry.flag);
     }
     if (flags & NOTIFY_KEYSPACE) out.push_back('K');
     if (flags & NOTIFY_KEYEVENT) out.push_back('E');
@@ -111,17 +146,71 @@ inline std::string serialize_notify_flags(uint32_t flags) {
 }
 
 enum class NotifyEventId : uint8_t {
-    Set, Expire, Del, Persist, RenameFrom, RenameTo, MoveFrom, MoveTo, CopyTo, Restore,
-    Setrange, Append, Incrby, Incrbyfloat, Setbit, Pfadd,
-    Lpush, Rpush, Lpop, Rpop, Linsert, Lset, Lrem, Ltrim, Sortstore,
-    Sadd, Srem, Spop, Sinterstore, Sunionstore, Sdiffstore,
-    Hset, Hincrby, Hincrbyfloat, Hdel, Hexpire, Hpersist, Hexpired,
-    Zadd, Zincr, Zrem, Zremrangebyrank, Zremrangebyscore, Zremrangebylex,
-    Zpopmin, Zpopmax, Zrangestore, Zunionstore, Zinterstore, Zdiffstore,
-    Geosearchstore, Georadiusstore,
-    Xadd, Xdel, Xtrim,
-    XgroupCreate, XgroupDestroy, XgroupCreateconsumer, XgroupDelconsumer, XgroupSetid, Xsetid,
-    Expired, Evicted, Keymiss, New,
+    Set,
+    Expire,
+    Del,
+    Persist,
+    RenameFrom,
+    RenameTo,
+    MoveFrom,
+    MoveTo,
+    CopyTo,
+    Restore,
+    Setrange,
+    Append,
+    Incrby,
+    Incrbyfloat,
+    Setbit,
+    Pfadd,
+    Lpush,
+    Rpush,
+    Lpop,
+    Rpop,
+    Linsert,
+    Lset,
+    Lrem,
+    Ltrim,
+    Sortstore,
+    Sadd,
+    Srem,
+    Spop,
+    Sinterstore,
+    Sunionstore,
+    Sdiffstore,
+    Hset,
+    Hincrby,
+    Hincrbyfloat,
+    Hdel,
+    Hexpire,
+    Hpersist,
+    Hexpired,
+    Zadd,
+    Zincr,
+    Zrem,
+    Zremrangebyrank,
+    Zremrangebyscore,
+    Zremrangebylex,
+    Zpopmin,
+    Zpopmax,
+    Zrangestore,
+    Zunionstore,
+    Zinterstore,
+    Zdiffstore,
+    Geosearchstore,
+    Georadiusstore,
+    Xadd,
+    Xdel,
+    Xtrim,
+    XgroupCreate,
+    XgroupDestroy,
+    XgroupCreateconsumer,
+    XgroupDelconsumer,
+    XgroupSetid,
+    Xsetid,
+    Expired,
+    Evicted,
+    Keymiss,
+    New,
 };
 
 // Independent of pub/sub configuration; only armed handlers call this observer.
@@ -177,6 +266,7 @@ public:
     ~NotifyExecutionScope();
     NotifyExecutionScope(const NotifyExecutionScope&) = delete;
     NotifyExecutionScope& operator=(const NotifyExecutionScope&) = delete;
+
 private:
     Shard* shard_ = nullptr;
     Op* carrier_ = nullptr;
@@ -189,16 +279,16 @@ void notify_execute_enter(Shard& shard, Op& carrier, Op& source, uint32_t order_
 void notify_execute_source(Shard& shard, Op& source, uint32_t order_base = 0);
 void notify_execute_leave(Shard& shard);
 void notify_execute_handler(Shard& shard, Op& op, void (*handler)(Shard&, Op&));
-bool notify_record_slow(Shard& shard, Op& source, uint32_t mask, uint32_t cls,
-                        NotifyEventId event, Slice key);
-bool notify_record_keyless_slow(Shard& shard, uint32_t mask, uint32_t cls,
-                                NotifyEventId event, Slice key);
+bool notify_record_slow(Shard& shard, Op& source, uint32_t mask, uint32_t cls, NotifyEventId event,
+                        Slice key);
+bool notify_record_keyless_slow(Shard& shard, uint32_t mask, uint32_t cls, NotifyEventId event,
+                                Slice key);
 
 // Dependent templates let this narrow header keep Shard forward-declared while still inlining the
 // sole feature-off gate at every candidate fire point. Subscriber/batch machinery is out of line.
 template <typename ShardLike>
-inline bool notify_record(ShardLike& shard, Op& source, uint32_t cls,
-                          NotifyEventId event, Slice key, bool report_watch = true) {
+inline bool notify_record(ShardLike& shard, Op& source, uint32_t cls, NotifyEventId event,
+                          Slice key, bool report_watch = true) {
     if constexpr (requires { shard.has_watches(); })
         if (report_watch && watch_notification_mutates(event))
             watch_record_notification(shard, event, key);
@@ -213,11 +303,9 @@ inline bool notify_record(ShardLike& shard, Op& source, uint32_t cls,
 }
 
 template <typename ShardLike>
-inline bool notify_record_keyless(ShardLike& shard, uint32_t cls,
-                                  NotifyEventId event, Slice key) {
+inline bool notify_record_keyless(ShardLike& shard, uint32_t cls, NotifyEventId event, Slice key) {
     if constexpr (requires { shard.has_watches(); })
-        if (watch_notification_mutates(event))
-            watch_record_notification(shard, event, key);
+        if (watch_notification_mutates(event)) watch_record_notification(shard, event, key);
     const uint32_t mask = shard.notify_mask();
     const bool observed = (mask & NOTIFY_OBSERVERS) && (NOTIFY_ALL & cls);
     if (__builtin_expect((mask & cls) == 0 && !observed, true)) return false;
@@ -236,8 +324,7 @@ void notify_elapsed_set(Shard& shard, Op& op, Slice key);
 bool notify_flat_enabled(void* shard, uint32_t cls);
 void notify_flat_emit(void* shard, uint32_t cls, NotifyEventId event, Slice key);
 void notify_bind_flat_store(const FlatStore* store, FlatNotifySink* sink);
-void notify_flat_store_emit(const FlatStore* store, uint32_t cls,
-                            NotifyEventId event, Slice key);
+void notify_flat_store_emit(const FlatStore* store, uint32_t cls, NotifyEventId event, Slice key);
 
 // The registry points at this wrapper only in its armed shadow row. Context setup, mask reads, and
 // recording therefore have no representation in the clean handler specialization or ExLoop.
@@ -247,8 +334,8 @@ void notify_handler(Shard& shard, Op& op) {
 }
 
 // Lane B: one bounded executor pass, using a non-blocking marker post to the nearest/home IO.
-uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
-                              ThreadCtx& thread, Ring& ring, LoopSignals& signals);
+uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer, ThreadCtx& thread,
+                              Ring& ring, LoopSignals& signals);
 
 // Tracking-only certificates. No locked structure carries this state.
 uint64_t tracking_clock_observe();
@@ -264,10 +351,11 @@ void notify_tracking_commit(Op& op);
 
 // IO retirement.  Special states surrender their batch before their existing destructor runs.
 NotifyBatch* notify_take_batch(Op& op);
-void notify_tracking_multi_writes(IoLoop& loop, NotifyBatch* batch, uint64_t writer, uint32_t order);
+void notify_tracking_multi_writes(IoLoop& loop, NotifyBatch* batch, uint64_t writer,
+                                  uint32_t order);
 uint64_t notify_tracking_read_stamp(NotifyBatch* batch, Slice key, uint32_t order);
-std::shared_ptr<PubSubNotificationChain> notify_multi_before(
-    Server& server, NotifyBatch* batch, uint32_t order);
+std::shared_ptr<PubSubNotificationChain> notify_multi_before(Server& server, NotifyBatch* batch,
+                                                             uint32_t order);
 void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch, uint64_t writer_id = 0);
 void notify_discard_batch(NotifyBatch* batch);
 void notify_discard_speculative(std::atomic<NotifyBatch*>& slot);

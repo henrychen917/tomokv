@@ -91,11 +91,12 @@ struct FlipControllerTest {
                 max_band = std::max(max_band, band);
                 reported_floor &= band >= 1.0 / std::sqrt(static_cast<double>(commands));
             }
-            std::printf("flipctl rate trace: +/-%.0f/sqrt(N) N=%llu ticks=%u "
-                        "band_initial=%.9f band_min=%.9f band_max=%.9f surge=%u collapse=%u\n",
-                        amplitude / std::sqrt(static_cast<double>(mean)),
-                        static_cast<unsigned long long>(mean), ticks,
-                        initial_band, min_band, max_band, f.surges, f.collapses);
+            std::printf(
+                "flipctl rate trace: +/-%.0f/sqrt(N) N=%llu ticks=%u "
+                "band_initial=%.9f band_min=%.9f band_max=%.9f surge=%u collapse=%u\n",
+                amplitude / std::sqrt(static_cast<double>(mean)),
+                static_cast<unsigned long long>(mean), ticks, initial_band, min_band, max_band,
+                f.surges, f.collapses);
             check(amplitude == 70 ? "stationary +/-1/sqrt(N), 96 ticks"
                                   : "stationary +/-2/sqrt(N), 96 ticks",
                   f.readings == ticks && f.surges == 0 && f.collapses == 0);
@@ -104,10 +105,9 @@ struct FlipControllerTest {
 
         for (int direction : {-1, 1}) {
             FlipControllerTest f;
-            for (uint32_t k = 0; k < ticks; k++)
-                f.tick((k / 4) % 2 ? mean - 70 : mean + 70);
+            for (uint32_t k = 0; k < ticks; k++) f.tick((k / 4) % 2 ? mean - 70 : mean + 70);
             f.tick(mean);
-            f.tick(mean); // finish the noise phase with no pending rate streak
+            f.tick(mean);  // finish the noise phase with no pending rate streak
             const uint32_t before = f.surges + f.collapses;
             const uint64_t stepped = direction < 0 ? mean - 245 : mean + 245;
             const auto wanted = direction < 0 ? FlipctlTriggerReason::AnchorRateCollapse
@@ -129,7 +129,8 @@ struct FlipControllerTest {
             check(direction < 0 ? "5% collapse confirms within two full readings"
                                 : "5% surge confirms within two full readings",
                   first >= 2 && first <= 3 && correct_reason &&
-                  f.surges + f.collapses == before + 1 && f.controller.rate_confirmations_ == 2);
+                      f.surges + f.collapses == before + 1 &&
+                      f.controller.rate_confirmations_ == 2);
         }
 
         {
@@ -148,7 +149,7 @@ struct FlipControllerTest {
 
         {
             FlipControllerTest f;
-            f.controller.anchor_rate_band_ = 0.0014; // stale anchor, before the sampling floor
+            f.controller.anchor_rate_band_ = 0.0014;  // stale anchor, before the sampling floor
             double first = f.sample(mean - 70);
             const bool premature = f.controller.stabilize_rate(first);
             double second = f.sample(mean + 70);
@@ -174,7 +175,7 @@ struct FlipControllerTest {
 
         {
             FlipControllerTest f;
-            double rate = f.sample(490, 100); // same 4900/s, one tenth as many commands
+            double rate = f.sample(490, 100);  // same 4900/s, one tenth as many commands
             const double short_band = f.controller.automatic_rate_band(0, rate);
             double prior = 0;
             const bool premature = f.controller.pair_rate(rate, prior);
@@ -191,9 +192,9 @@ struct FlipControllerTest {
             const double long_band = f.controller.automatic_rate_band(0, rate);
             check("counts follow elapsed windows, unequal pairs and movement resets",
                   !premature && paired && !stale_pair && fresh_pair &&
-                  std::abs(short_band - 2.0 * std::sqrt(2.0 / 490)) < 1e-12 &&
-                  unequal_band == short_band &&
-                  std::abs(short_band / long_band - std::sqrt(10.0)) < 1e-12);
+                      std::abs(short_band - 2.0 * std::sqrt(2.0 / 490)) < 1e-12 &&
+                      unequal_band == short_band &&
+                      std::abs(short_band / long_band - std::sqrt(10.0)) < 1e-12);
             rate = f.sample(1, 4000);
             check("the existing command-rate quantum still wins when larger",
                   f.controller.automatic_rate_band(0, rate) == 8.0);
@@ -211,8 +212,8 @@ struct FlipControllerTest {
             const double ramp_band = f.controller.verification_band(mean);
             check("placement/anchor verification retains sampling, sigma and baseline floors",
                   quiet_band >= 2.0 * std::sqrt(2.0 / mean) &&
-                  std::abs(noisy_band - 0.08) < 1e-12 &&
-                  ramp_band == f.controller.baseline_band() && ramp_band > noisy_band);
+                      std::abs(noisy_band - 0.08) < 1e-12 &&
+                      ramp_band == f.controller.baseline_band() && ramp_band > noisy_band);
         }
 
         {
@@ -222,8 +223,8 @@ struct FlipControllerTest {
             const auto second = f.tick(0);
             check("a complete stop still confirms a collapse",
                   first == FlipctlTriggerReason::None &&
-                  second == FlipctlTriggerReason::AnchorRateCollapse &&
-                  f.collapses == 1 && f.confirmed_readings == 2);
+                      second == FlipctlTriggerReason::AnchorRateCollapse && f.collapses == 1 &&
+                      f.confirmed_readings == 2);
         }
         std::printf("flipctl rate: %d/%d rows passed\n", rows - failed, rows);
         return failed;
@@ -394,13 +395,11 @@ int main(int argc, char** argv) {
         return FlipControllerTest::run() ? 1 : 0;
     // ---- detector rows (unchanged) --------------------------------------------------------------
     FlipShiftDetector detector(-1);
-    if (detector.observe(quiet(80, 20)) ||
-        detector.observe(quiet(79, 21, 1)) ||
+    if (detector.observe(quiet(80, 20)) || detector.observe(quiet(79, 21, 1)) ||
         detector.observe(quiet(81, 19)))
         fail("learning windows fired before anchor");
     detector.anchor();
-    if (!detector.anchored() || detector.band() <= 0)
-        fail("auto band was not learned at anchor");
+    if (!detector.anchored() || detector.band() <= 0) fail("auto band was not learned at anchor");
     const double anchored_band = detector.band();
 
     // Scripted quiet-state count noise stays inside the signature's own learned band.
@@ -410,8 +409,7 @@ int main(int argc, char** argv) {
         fail("post-anchor traffic changed the learned quiet-state band");
 
     // The same command count changes pipe-depth, command class, keys/op and value bytes together.
-    if (!detector.observe(multikey_mix()))
-        fail("scripted workload mix change did not fire");
+    if (!detector.observe(multikey_mix())) fail("scripted workload mix change did not fire");
 
     // THE TYPED BAND IS A FLOOR, NOT A CEILING. The gate-hygiene lane's instrumented failure: a
     // driver holding its rate to 0.07% across 34 samples, a fingerprint distance of 0.2518 against
@@ -419,7 +417,7 @@ int main(int argc, char** argv) {
     // A detector whose signature genuinely moves between adjacent quiet windows must end up with a
     // band above that movement whatever the operator typed, and must still fire on a real change.
     {
-        FlipShiftDetector typed(2, 4);   // internal explicit-band control: 2%
+        FlipShiftDetector typed(2, 4);  // internal explicit-band control: 2%
         // Stationary but NOISY: the read/write split alternates 35:65 / 65:35 window to window.
         // The detector smooths the signature, so the anchored distance this produces is ~0.09.
         const auto noisy = [](int k) { return quiet(k % 2 ? 65 : 35, k % 2 ? 35 : 65); };
@@ -490,14 +488,15 @@ int main(int argc, char** argv) {
     {
         for (uint32_t window : {60u, 100u}) {
             XorShift rng;
-            FlipShiftDetector typed(2, 8);   // internal explicit-band control: 2%
+            FlipShiftDetector typed(2, 8);  // internal explicit-band control: 2%
             int fires = 0, confirmed = 0, streak = 0;
             for (int w = 0; w < 60; w++) {
                 FlipFingerprintWriter writer;
-                writer.configure(1);          // sample every pass; `window` frames make one window
+                writer.configure(1);  // sample every pass; `window` frames make one window
                 drive(writer, rng, window, 1, [&rng](uint64_t, uint32_t) {
-                    return Frame{rng.next() & 1 ? FlipFingerprintClass::Read
-                                                : FlipFingerprintClass::Write, 1, 32};
+                    return Frame{
+                        rng.next() & 1 ? FlipFingerprintClass::Read : FlipFingerprintClass::Write,
+                        1, 32};
                 });
                 const FlipFingerprintWindow& pub = writer.published();
                 if (pub.commands != window) fail("the driven window did not publish its frames");
@@ -505,7 +504,10 @@ int main(int argc, char** argv) {
                 if (w == 7) typed.anchor();
                 fires += fired ? 1 : 0;
                 streak = fired ? streak + 1 : 0;
-                if (streak >= 2) { confirmed++; streak = 0; }
+                if (streak >= 2) {
+                    confirmed++;
+                    streak = 0;
+                }
             }
             if (confirmed) fail("a typed band under the real sampler fired on a stationary stream");
             if (!(typed.band() >= 2.0 / std::sqrt(static_cast<double>(window)) - 1e-12))
@@ -530,11 +532,13 @@ int main(int argc, char** argv) {
     }
     // FlipEwBound itself: mean + 2 sd of a non-negative sample, zero before it has two.
     {
-        FlipEwBound b; b.configure(8);
+        FlipEwBound b;
+        b.configure(8);
         if (b.bound() != 0) fail("an empty bound is not zero");
         for (int k = 0; k < 60; k++) b.add(k % 2 ? 0.30 : 0.20);
         if (!(b.bound() > 0.25 && b.bound() < 0.60)) fail("bound of a 0.2/0.3 alternation");
-        FlipEwBound flat; flat.configure(8);
+        FlipEwBound flat;
+        flat.configure(8);
         for (int k = 0; k < 40; k++) flat.add(0.0);
         if (flat.bound() != 0) fail("a flat-zero signal has a bound");
     }
@@ -544,8 +548,7 @@ int main(int argc, char** argv) {
     writer.configure(4);
     if (!writer.enabled() || !writer.pass_sampled())
         fail("an armed writer must sample its first pass");
-    for (unsigned i = 0; i < 4; i++)
-        writer.note_command(FlipFingerprintClass::Read, 1, 0);
+    for (unsigned i = 0; i < 4; i++) writer.note_command(FlipFingerprintClass::Read, 1, 0);
     if (!writer.finish_parse_pass()) fail("the sampled first pass did not report itself");
     {
         const FlipFingerprintWindow& published = writer.published();
@@ -559,10 +562,12 @@ int main(int argc, char** argv) {
         const uint32_t depths[4] = {1, 4, 16, 17};
         for (size_t b = 0; b < 4; b++) {
             w.configure(1);
-            for (uint32_t i = 0; i < depths[b]; i++) w.note_command(FlipFingerprintClass::Write, 1, 8);
+            for (uint32_t i = 0; i < depths[b]; i++)
+                w.note_command(FlipFingerprintClass::Write, 1, 8);
             w.finish_parse_pass();
             for (size_t k = 0; k < 4; k++)
-                if (w.published().pass_depth[k] != (k == b ? 1u : 0u)) fail("depth bucket mismatch");
+                if (w.published().pass_depth[k] != (k == b ? 1u : 0u))
+                    fail("depth bucket mismatch");
         }
     }
     // An empty sampled pass publishes nothing but still spends its sample.
@@ -587,7 +592,7 @@ int main(int argc, char** argv) {
         for (uint64_t r = 0; r < span; r++) {
             const uint32_t gap = FlipFingerprintWriter::gap_for(r, w);
             if (gap > 2 * w - 2) fail("gap outside [0, 2W-2]");
-            sum += gap + 1;   // passes between sampled passes, inclusive of the sampled one
+            sum += gap + 1;  // passes between sampled passes, inclusive of the sampled one
         }
         if (std::fabs(static_cast<double>(sum / span) - static_cast<double>(w)) > 1e-9)
             fail("mean distance between sampled passes is not W");
@@ -602,11 +607,13 @@ int main(int argc, char** argv) {
             FlipFingerprintWriter w;
             w.configure(100);
             const uint64_t passes = 1'000'000;
-            const uint64_t sampled = drive(w, rng, passes, depth,
-                                           [](uint64_t, uint32_t) { return Frame{FlipFingerprintClass::Read, 1, 0}; });
+            const uint64_t sampled = drive(w, rng, passes, depth, [](uint64_t, uint32_t) {
+                return Frame{FlipFingerprintClass::Read, 1, 0};
+            });
             // Renewal count over P passes with gap mean W and gap sd ~57.4: sd ~ sqrt(P) * 57.4 /
             // W^1.5 = 57 sampled passes; accept +-4 sd around P/W.
-            if (sampled < 9'770 || sampled > 10'230) fail("sampled pass count is not 1/W of the passes");
+            if (sampled < 9'770 || sampled > 10'230)
+                fail("sampled pass count is not 1/W of the passes");
             if (w.published().commands != sampled * depth)
                 fail("a sampled pass must contribute all of its frames");
             if (w.published().closed_windows != sampled)
@@ -622,11 +629,14 @@ int main(int argc, char** argv) {
         w.configure(2);
         const uint64_t passes = 400'000;
         drive(w, rng, passes, 4, [](uint64_t p, uint32_t) {
-            return Frame{p % 2 == 0 ? FlipFingerprintClass::Read : FlipFingerprintClass::Write, 1, 0};
+            return Frame{p % 2 == 0 ? FlipFingerprintClass::Read : FlipFingerprintClass::Write, 1,
+                         0};
         });
         const FlipFingerprintWindow& pub = w.published();
-        const double reads = static_cast<double>(pub.command_class[static_cast<size_t>(FlipFingerprintClass::Read)]);
-        const double writes = static_cast<double>(pub.command_class[static_cast<size_t>(FlipFingerprintClass::Write)]);
+        const double reads =
+            static_cast<double>(pub.command_class[static_cast<size_t>(FlipFingerprintClass::Read)]);
+        const double writes = static_cast<double>(
+            pub.command_class[static_cast<size_t>(FlipFingerprintClass::Write)]);
         const double share = reads / (reads + writes);
         if (share < 0.47 || share > 0.53) fail("period-2 workload was not sampled in proportion");
         // The counter-example the uniform gap exists to avoid: a fixed stride of exactly W.
@@ -658,8 +668,7 @@ int main(int argc, char** argv) {
         legacy.flush();
         if (!same_counters(sampled.published(), legacy.published()))
             fail("W = 1 sampled writer diverged from the exhaustive writer");
-        if (sampled.published().closed_windows != 20'000)
-            fail("W = 1 must publish once per pass");
+        if (sampled.published().closed_windows != 20'000) fail("W = 1 must publish once per pass");
     }
 
     // ---- the signature is scale-free; only the quantum floor moves with the sample count -------
@@ -679,14 +688,15 @@ int main(int argc, char** argv) {
         if (flip_signature_distance(full, sampled) != 0)
             fail("a 1/W sample of a stationary window changed the signature");
         FlipShiftDetector k100(-1), k10(-1);
-        k100.observe(quiet(80, 20)); k100.anchor();
-        k10.observe(quiet(8, 2)); k10.anchor();
+        k100.observe(quiet(80, 20));
+        k100.anchor();
+        k10.observe(quiet(8, 2));
+        k10.anchor();
         // jitter is zero after one window and the noise bound needs two, so band = 2/sqrt(K).
         if (std::fabs(k100.band() - 2.0 / std::sqrt(100.0)) > 1e-12 ||
             std::fabs(k10.band() - 2.0 / std::sqrt(10.0)) > 1e-12)
             fail("quantum floor is not 2 / sqrt(commands)");
-        if (!(k10.band() > k100.band()))
-            fail("a thinner sample did not widen the floor");
+        if (!(k10.band() > k100.band())) fail("a thinner sample did not widen the floor");
     }
     // ---- placement policy (flip_policy.h) -----------------------------------------------------
     // THE DEFECT, in the model's own arithmetic. The estimator then in use read io = 82% on 8-key
@@ -696,7 +706,9 @@ int main(int argc, char** argv) {
     if (flip_projected_gain(7, 5, 8, 0.82) >= 0) fail("7:1 did not project as a loss at io=0.82");
     {
         FlipDemandWindow w;
-        w.add(0.82); w.add(0.82); w.add(0.82);
+        w.add(0.82);
+        w.add(0.82);
+        w.add(0.82);
         const FlipPlacementChoice c = flip_choose_split(5, 8, w, 0.02, 3);
         if (!c.decided || !c.move || c.target_units != 6)
             fail("exact io=0.82 at 5:3 did not choose 6:2");
@@ -707,7 +719,9 @@ int main(int argc, char** argv) {
     // of the pool for 37% of the work (0.85x). Hold, decided.
     {
         FlipDemandWindow w;
-        w.add(0.63); w.add(0.63); w.add(0.63);
+        w.add(0.63);
+        w.add(0.63);
+        w.add(0.63);
         const FlipPlacementChoice c = flip_choose_split(2, 4, w, 0.02, 3);
         if (!c.decided || c.move || c.target_units != 2)
             fail("io=0.63 at 2:2 of 4 did not hold the live split");
@@ -720,7 +734,9 @@ int main(int argc, char** argv) {
     // straddle the bar: undecided, keep sampling. Draws that tighten around the mean resolve it.
     {
         FlipDemandWindow w;
-        w.add(0.55); w.add(0.75); w.add(0.65);   // mean 0.65, half-width 0.115
+        w.add(0.55);
+        w.add(0.75);
+        w.add(0.65);  // mean 0.65, half-width 0.115
         FlipPlacementChoice c = flip_choose_split(5, 8, w, 0.02, 3);
         if (c.decided) fail("a 0.20-wide window decided a one-thread move");
         for (int i = 0; i < 12; i++) w.add(0.65);
@@ -733,7 +749,8 @@ int main(int argc, char** argv) {
     // Fewer than the minimum draws never decide, whatever they say.
     {
         FlipDemandWindow w;
-        w.add(0.9); w.add(0.9);
+        w.add(0.9);
+        w.add(0.9);
         if (flip_choose_split(5, 8, w, 0.02, 3).decided) fail("two draws decided a move");
     }
     // The bar matters: a real +20% clears 2%, and a required gain above it refuses the move. (The
@@ -742,7 +759,9 @@ int main(int argc, char** argv) {
     // available gain says the measurement is inadequate, not that the live split is right.)
     {
         FlipDemandWindow w;
-        w.add(0.82); w.add(0.82); w.add(0.82);
+        w.add(0.82);
+        w.add(0.82);
+        w.add(0.82);
         if (!flip_choose_split(5, 8, w, 0.19, 3).move) fail("+20% did not clear a 19% bar");
         const FlipPlacementChoice c = flip_choose_split(5, 8, w, 0.21, 3);
         if (!c.decided || c.move) fail("+20% cleared a 21% bar");
@@ -776,16 +795,21 @@ int main(int argc, char** argv) {
         const double f = io_work / (io_work + ex_work);
         if (std::abs(f - 0.506) > 0.005) fail("wall-idle share of the sk1:1 window is not 0.506");
         FlipDemandWindow w;
-        w.add(f); w.add(f); w.add(f);
+        w.add(f);
+        w.add(f);
+        w.add(f);
         const FlipPlacementChoice c = flip_choose_split(2, 4, w, 0.012, 3);
         if (!c.decided || c.move || c.target_units != 2)
             fail("the wall-idle share did not hold 2:2 on the sk1:1 window");
         // The busy share the guard used projected +5.8% for 1:3 -- the round trip it took.
         FlipDemandWindow busy;
-        busy.add(0.321); busy.add(0.321); busy.add(0.321);
+        busy.add(0.321);
+        busy.add(0.321);
+        busy.add(0.321);
         const FlipPlacementChoice b = flip_choose_split(2, 4, busy, 0.012, 3);
         if (!b.move || b.target_units != 1) fail("the busy share did not reproduce the 1:3 move");
-        if (flip_role_work(0, 5) != 0 || flip_role_work(10, 12) != 0 || flip_role_work(10, -1) != 10)
+        if (flip_role_work(0, 5) != 0 || flip_role_work(10, 12) != 0 ||
+            flip_role_work(10, -1) != 10)
             fail("flip_role_work bounds");
     }
     // The mk window: io 27.6+3.5 / 25.75+3.24 of 38.1 s, ex 38.7+1.2 / 37.5+1.45 of 40.0 s.
@@ -795,7 +819,9 @@ int main(int argc, char** argv) {
         const double f = io_work / (io_work + ex_work);
         if (std::abs(f - 0.472) > 0.005) fail("wall-idle share of the mk window is not 0.472");
         FlipDemandWindow w;
-        w.add(f); w.add(f); w.add(f);
+        w.add(f);
+        w.add(f);
+        w.add(f);
         if (flip_choose_split(2, 4, w, 0.02, 3).move) fail("mk at 2:2 moved on the work share");
     }
     // Naive transfers: every client of a converted thread when io shrinks, the new threads' share
@@ -811,8 +837,8 @@ int main(int argc, char** argv) {
     // and more origin readings shorten the target's window.
     if (flip_verify_window(0.01, 3, 0.20, 15) != 1) fail("+20% at 1% noise did not verify in one");
     {
-        const uint32_t n3 = flip_verify_window(0.01, 3, 0.03, 15);   // (0.75)^2 - 1/3 = 0.229 -> 5
-        const uint32_t n5 = flip_verify_window(0.01, 5, 0.03, 15);   // 0.5625 - 0.2 = 0.3625 -> 3
+        const uint32_t n3 = flip_verify_window(0.01, 3, 0.03, 15);  // (0.75)^2 - 1/3 = 0.229 -> 5
+        const uint32_t n5 = flip_verify_window(0.01, 5, 0.03, 15);  // 0.5625 - 0.2 = 0.3625 -> 3
         if (n3 != 5) fail("+3% at 1% noise with 3 origin readings is not 5 target readings");
         if (n5 != 3) fail("+3% at 1% noise with 5 origin readings is not 3 target readings");
         if (!(n5 < n3)) fail("more origin readings did not shorten the target window");
@@ -827,7 +853,8 @@ int main(int argc, char** argv) {
     if (flip_verify_threshold(0.01, 3, 1, 0.40) != 0.40) fail("threshold floor did not hold");
     // Sequential judgment: early accept, early reject, and the planned-count verdict.
     if (flip_judge(0.30, 0.10, 1, 5) != FlipOutcome::Hit) fail("a clear gain did not accept early");
-    if (flip_judge(-0.30, 0.10, 1, 5) != FlipOutcome::Miss) fail("a clear loss did not reject early");
+    if (flip_judge(-0.30, 0.10, 1, 5) != FlipOutcome::Miss)
+        fail("a clear loss did not reject early");
     if (flip_judge(0.05, 0.10, 1, 5) != FlipOutcome::Pending) fail("an unresolved reading decided");
     if (flip_judge(0.05, 0.10, 5, 5) != FlipOutcome::Miss) fail("the planned count did not reject");
     // COST GATE. Units: commands = gain x rate x seconds. The blackout risks the whole ORIGIN
@@ -837,9 +864,11 @@ int main(int argc, char** argv) {
     // horizon covers the blackout risk. R0 = 236k/s (this rig at 3:1), gain +100%.
     {
         FlipCostModel m;
-        if (m.client_cost() != 0 || m.kappa() != 1.0 || std::abs(m.miss_probability() - 0.5) > 1e-12)
+        if (m.client_cost() != 0 || m.kappa() != 1.0 ||
+            std::abs(m.miss_probability() - 0.5) > 1e-12)
             fail("fresh cost model priors");
-        const FlipCostVerdict v = flip_cost_gate(1.0, 1.0, 236000, 12.0, 4.0, 0, m.miss_probability(), 1);
+        const FlipCostVerdict v =
+            flip_cost_gate(1.0, 1.0, 236000, 12.0, 4.0, 0, m.miss_probability(), 1);
         // benefit 1.0 x 236k x (12-4) = 1.888M; cost 0.5 x 236k x 4 = 472k
         if (!v.pays || std::abs(v.benefit - 1.888e6) > 1 || std::abs(v.cost - 472000) > 1)
             fail("first-flip cost gate arithmetic");
@@ -859,7 +888,8 @@ int main(int argc, char** argv) {
     {
         const FlipCostVerdict no = flip_cost_gate(0.05, 0.05, 500000, 10.0, 4.0, 0, 0.5, 1);
         if (no.pays) fail("a +5% move off a healthy split paid at 10 s of stationarity");
-        if (std::abs(no.cost - 1.0e6) > 1e-3) fail("the blackout cost did not risk the origin rate");
+        if (std::abs(no.cost - 1.0e6) > 1e-3)
+            fail("the blackout cost did not risk the origin rate");
         const FlipCostVerdict yes = flip_cost_gate(0.05, 0.05, 500000, 45.0, 4.0, 0, 0.5, 1);
         if (!yes.pays) fail("the +5% move did not pay at 45 s of stationarity");
         // The bar doubles on a miss: at 45 s margin 1 pays, margin 2 does not.
@@ -869,24 +899,29 @@ int main(int argc, char** argv) {
     // The measured transfer cost dominates once a flip has been priced (second move onward).
     {
         FlipCostModel m;
-        const double naive = flip_naive_transfers(256, 3, 2);       // 85.33: the converted thread's share
-        m.record_flip(250000, 154, naive, 1.0);     // lost 250k commands moving 154 clients
+        const double naive =
+            flip_naive_transfers(256, 3, 2);     // 85.33: the converted thread's share
+        m.record_flip(250000, 154, naive, 1.0);  // lost 250k commands moving 154 clients
         if (std::abs(m.client_cost() - 250000.0 / 154) > 1e-6) fail("per-client cost");
         if (std::abs(m.reshuffle() - 154 / naive) > 1e-9) fail("re-plan ratio");
-        const double transfers = m.predicted_transfers(256, 2, 3);   // naive 85.33 x 1.805 = 154
-        if (std::abs(transfers - 154) > 1e-6) fail("predicted transfers did not reproduce the plan");
-        const double xfer_cost = m.client_cost() * transfers;        // 250k commands
+        const double transfers = m.predicted_transfers(256, 2, 3);  // naive 85.33 x 1.805 = 154
+        if (std::abs(transfers - 154) > 1e-6)
+            fail("predicted transfers did not reproduce the plan");
+        const double xfer_cost = m.client_cost() * transfers;  // 250k commands
         // benefit 0.20 x 500k x (T-4); cost 250k x 1.5 + 0.5 x 500k x 4 = 375k + 1M = 1.375M.
         const FlipCostVerdict no = flip_cost_gate(0.20, 0.20, 500000, 10.0, 4.0, xfer_cost, 0.5, 1);
-        if (no.pays || std::abs(no.cost - 1.375e6) > 1e-3) fail("+20% move priced with a measured flip");
-        const FlipCostVerdict yes = flip_cost_gate(0.20, 0.20, 500000, 30.0, 4.0, xfer_cost, 0.5, 1);
+        if (no.pays || std::abs(no.cost - 1.375e6) > 1e-3)
+            fail("+20% move priced with a measured flip");
+        const FlipCostVerdict yes =
+            flip_cost_gate(0.20, 0.20, 500000, 30.0, 4.0, xfer_cost, 0.5, 1);
         if (!yes.pays) fail("+20% move did not pay at 30 s with the measured flip cost");
     }
     // The pre-move wait is distance-derived: a huge, tight gain decides at the two-draw floor,
     // while a marginal one stays undecided until the interval tightens (flip_choose_split, above).
     {
         FlipDemandWindow w;
-        w.add(0.11); w.add(0.13);   // 28:4-like: ex saturated, io idle -> move toward more ex
+        w.add(0.11);
+        w.add(0.13);  // 28:4-like: ex saturated, io idle -> move toward more ex
         const FlipPlacementChoice c = flip_choose_split(3, 4, w, 0.02, 2);
         if (!c.decided || !c.move) fail("a wildly wrong split did not decide at two draws");
         // A MARGINAL move: at mean io=0.72 of 8, 5:3 -> 6:2 is +2.9% (just over the 2% bar), but the
@@ -894,7 +929,8 @@ int main(int argc, char** argv) {
         // pessimistic gain is below the bar -- keep sampling (undecided), the wait deriving from
         // how close the split is to the crossover, not from a fixed floor.
         FlipDemandWindow n;
-        n.add(0.70); n.add(0.74);
+        n.add(0.70);
+        n.add(0.74);
         if (flip_choose_split(5, 8, n, 0.02, 2).decided)
             fail("a marginal two-draw window decided a one-thread move");
     }
@@ -913,7 +949,7 @@ int main(int argc, char** argv) {
         if (h.kappa() != 1.0) fail("over-delivery bought credit above one");
         if (std::abs(h.miss_probability() - 1.0 / 3.0) > 1e-12) fail("Laplace after one hit");
         FlipCostModel partial;
-        partial.record_outcome(0.20, 0.05, true);   // (0.05 + 0.2) / (0.2 + 0.2)
+        partial.record_outcome(0.20, 0.05, true);  // (0.05 + 0.2) / (0.2 + 0.2)
         if (std::abs(partial.kappa() - 0.625) > 1e-12) fail("partial delivery kappa");
         FlipCostModel induced;
         induced.record_outcome(-0.50, -0.60, false);
@@ -925,32 +961,38 @@ int main(int argc, char** argv) {
     // -49%; +5% delivered against a baseline that fell 10% is really +17% and the test was voided.
     if (!(flip_corrected_gain(-0.479, 0.022) < -0.48)) fail("a -48% miss survived a 2% wobble");
     if (!(flip_corrected_gain(0.05, -0.10) > 0.16)) fail("a fallen baseline did not void the miss");
-    if (std::abs(flip_corrected_gain(0.10, 0.0) - 0.10) > 1e-12) fail("a still baseline changes the gain");
+    if (std::abs(flip_corrected_gain(0.10, 0.0) - 0.10) > 1e-12)
+        fail("a still baseline changes the gain");
     // REFINEMENT BAR. Owner box, 18:14 boot: the first step projected +36% and delivered +26%, so
     // the model's demonstrated error is 10 points; the second step it would project (13:19 -> 11:21,
     // +10% by work conservation, +2.5% measured) does not clear it at kappa 0.86 and the chain stops
     // one step short (-2.5%) instead of round-tripping or crossing the peak (10:22, -6.6%). A first
     // step that delivered what it promised leaves no bar beyond the noise.
     if (std::abs(flip_refine_bar(0.36, 0.26) - 0.10) > 1e-12) fail("refine bar is not the error");
-    if (!(0.86 * 0.10 <= flip_refine_bar(0.36, 0.26))) fail("a +10% projection cleared a 10-point error");
+    if (!(0.86 * 0.10 <= flip_refine_bar(0.36, 0.26)))
+        fail("a +10% projection cleared a 10-point error");
     if (flip_refine_bar(0.30, 0.31) != 0) fail("an over-delivering step left a bar");
-    if (flip_refine_bar(4.0, 2.9) < 1.0) fail("a wildly over-projected first step left a small bar");
+    if (flip_refine_bar(4.0, 2.9) < 1.0)
+        fail("a wildly over-projected first step left a small bar");
     // LONG-WINDOW NOISE, DETRENDED. The gate driver's six-second triangle (issue intervals x 0.8,
     // 0.95,1.1,1.2,1.05,0.9) puts per-tick rates at 1.25,1.05,0.91,0.83,0.95,1.11 of the mean:
     // per-reading sigma ~0.15. Two adjacent readings inside one phase read ~0.05%; the target's
     // +24% is that swing. The second-difference estimator must read the swing, and must NOT read
     // the boot ramp (a near-idle first sample, then the full rate) that blew the first form up.
     {
-        FlipEwVariance ew; ew.configure(30);
+        FlipEwVariance ew;
+        ew.configure(30);
         for (int cycle = 0; cycle < 4; cycle++)
             for (double r : {6050.0, 5100.0, 4400.0, 4030.0, 4600.0, 5370.0}) ew.add(r, 8.0);
-        if (!(ew.sigma() > 0.08 && ew.sigma() < 0.40)) fail("the triangle's long-window sigma did not read the swing");
+        if (!(ew.sigma() > 0.08 && ew.sigma() < 0.40))
+            fail("the triangle's long-window sigma did not read the swing");
         // The verification threshold it floors refuses the +24% that fooled the pair bands.
         if (!(flip_verify_threshold(ew.sigma(), 2, 1, 0.02) > 0.24))
             fail("the long-window sigma did not floor the threshold above the driver's swing");
         // The boot ramp: idle ticks (skipped), 40/s (skipped as idle), then a fast ramp to a steady
         // 690k. A linear ramp is invisible; only the knee leaves a blip that the warm-up dilutes.
-        FlipEwVariance ramp; ramp.configure(30);
+        FlipEwVariance ramp;
+        ramp.configure(30);
         for (double r : {0.0, 3.0, 40.0}) ramp.add(r, 50.0);
         for (double r : {200000.0, 434000.0, 685000.0, 690000.0}) ramp.add(r, 50.0);
         for (int k = 0; k < 12; k++) ramp.add(690000.0 * (1.0 + 0.01 * ((k % 3) - 1)), 50.0);
@@ -958,11 +1000,14 @@ int main(int argc, char** argv) {
         // dilutes it to ~0.1 within 14 ticks and the 1/30 decay carries it out from there.
         if (!(ramp.sigma() < 0.12)) fail("the boot ramp inflated the long-window sigma");
         // A x3 level step is a new regime: reset, not noise.
-        FlipEwVariance step; step.configure(30);
+        FlipEwVariance step;
+        step.configure(30);
         for (int k = 0; k < 10; k++) step.add(1000.0, 8.0);
-        step.add(3000.0, 8.0); step.add(3000.0, 8.0);
+        step.add(3000.0, 8.0);
+        step.add(3000.0, 8.0);
         if (step.samples > 1 && step.sigma() > 0.05) fail("a x3 level step was folded in as noise");
-        FlipEwVariance still; still.configure(30);
+        FlipEwVariance still;
+        still.configure(30);
         for (int k = 0; k < 40; k++) still.add(500000.0 * (1.0 + 0.01 * ((k % 3) - 1)), 8.0);
         if (!(still.sigma() < 0.03)) fail("a still load read a large long-window sigma");
         if (FlipEwVariance{}.sigma() != 0) fail("an empty long window has a sigma");
@@ -970,7 +1015,8 @@ int main(int argc, char** argv) {
     // The rate window: mean, relative sigma and the bracket band the trend guard uses.
     {
         FlipRateWindow r;
-        r.add(4898.601); r.add(6000.916);
+        r.add(4898.601);
+        r.add(6000.916);
         if (std::abs(r.mean - 5449.7585) > 1e-3) fail("rate window mean");
         if (!(r.bracket_band() > 0.22)) fail("rate window bracket did not floor the ramp");
         FlipRateWindow still;

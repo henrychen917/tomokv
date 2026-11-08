@@ -46,8 +46,16 @@ inline constexpr size_t kInlineLiteralMax = 16;
 inline constexpr uint32_t kInlineByteEqualMax = 32;
 
 __attribute__((always_inline)) inline bool bytes_equal(const char* a, const char* b, uint32_t n) {
-    auto ld8 = [](const char* q) { uint64_t v; std::memcpy(&v, q, 8); return v; };
-    auto ld4 = [](const char* q) { uint32_t v; std::memcpy(&v, q, 4); return v; };
+    auto ld8 = [](const char* q) {
+        uint64_t v;
+        std::memcpy(&v, q, 8);
+        return v;
+    };
+    auto ld4 = [](const char* q) {
+        uint32_t v;
+        std::memcpy(&v, q, 4);
+        return v;
+    };
     if (__builtin_expect(n >= 8, 1)) {
         if (__builtin_expect(n > kInlineByteEqualMax, false)) return std::memcmp(a, b, n) == 0;
         uint64_t d = (ld8(a) ^ ld8(b)) | (ld8(a + n - 8) ^ ld8(b + n - 8));
@@ -100,14 +108,17 @@ inline constexpr uint32_t kInlineByteCopyMax = 64;
 // operation SmallBuf::append, a GET returning a 128-byte value came out +9.7 instructions against
 // base. The ABI already guarantees 16, so xmm blocks cost nothing to enter.
 namespace detail {
-inline void copy4 (char* d, const char* s) { __builtin_memcpy(d, s, 4); }
-inline void copy8 (char* d, const char* s) { __builtin_memcpy(d, s, 8); }
+inline void copy4(char* d, const char* s) { __builtin_memcpy(d, s, 4); }
+inline void copy8(char* d, const char* s) { __builtin_memcpy(d, s, 8); }
 inline void copy16(char* d, const char* s) { __builtin_memcpy(d, s, 16); }
 }  // namespace detail
 
 __attribute__((always_inline)) inline void bytes_copy(char* d, const char* s, size_t n) {
     if (__builtin_expect(n >= 8, 1)) {
-        if (__builtin_expect(n > kInlineByteCopyMax, false)) { std::memcpy(d, s, n); return; }
+        if (__builtin_expect(n > kInlineByteCopyMax, false)) {
+            std::memcpy(d, s, n);
+            return;
+        }
         if (n >= 32) {
             detail::copy16(d, s);
             detail::copy16(d + 16, s + 16);
@@ -115,11 +126,20 @@ __attribute__((always_inline)) inline void bytes_copy(char* d, const char* s, si
             detail::copy16(d + n - 16, s + n - 16);
             return;
         }
-        if (n >= 16) { detail::copy16(d, s); detail::copy16(d + n - 16, s + n - 16); return; }
-        detail::copy8(d, s); detail::copy8(d + n - 8, s + n - 8);
+        if (n >= 16) {
+            detail::copy16(d, s);
+            detail::copy16(d + n - 16, s + n - 16);
+            return;
+        }
+        detail::copy8(d, s);
+        detail::copy8(d + n - 8, s + n - 8);
         return;
     }
-    if (n >= 4) { detail::copy4(d, s); detail::copy4(d + n - 4, s + n - 4); return; }
+    if (n >= 4) {
+        detail::copy4(d, s);
+        detail::copy4(d + n - 4, s + n - 4);
+        return;
+    }
     if (n == 0) return;
     d[0] = s[0];
     d[n >> 1] = s[n >> 1];
@@ -128,13 +148,13 @@ __attribute__((always_inline)) inline void bytes_copy(char* d, const char* s, si
 
 struct Slice {
     const char* p = nullptr;
-    uint32_t    n = 0;
+    uint32_t n = 0;
     // Key identity occupies the former ABI padding. Values still compare bytewise.
     // Physical namespace zero has precisely the old length/hash representation.
 #if TOMO_SINGLE_DATABASE
     static constexpr uint32_t ns = 0;
 #else
-    uint32_t    ns = 0;
+    uint32_t ns = 0;
 #endif
 
     Slice() = default;
@@ -175,7 +195,9 @@ struct Slice {
         return value;
 #endif
     }
-    bool key_eq(const Slice& o) const { return identity() == o.identity() && bytes_equal(p, o.p, n); }
+    bool key_eq(const Slice& o) const {
+        return identity() == o.identity() && bytes_equal(p, o.p, n);
+    }
     bool key_mem_eq(const Slice& o) const {
         return identity() == o.identity() && (n == 0 || std::memcmp(p, o.p, n) == 0);
     }
@@ -200,17 +222,20 @@ struct Slice {
 template <size_t Inline>
 class SmallBuf {
     friend class IdleBuffers;
+
 public:
     SmallBuf() : data_(inline_), cap_(Inline) {}
-    ~SmallBuf() { if (data_ != inline_) std::free(data_); }
+    ~SmallBuf() {
+        if (data_ != inline_) std::free(data_);
+    }
     SmallBuf(const SmallBuf&) = delete;
     SmallBuf& operator=(const SmallBuf&) = delete;
 
-    char*  data()       { return data_; }
+    char* data() { return data_; }
     const char* data() const { return data_; }
     size_t size() const { return len_; }
-    bool   empty() const { return len_ == 0; }
-    void   clear() { len_ = 0; }          // keeps the allocation for reuse
+    bool empty() const { return len_ == 0; }
+    void clear() { len_ = 0; }  // keeps the allocation for reuse
     size_t cap() const { return cap_; }
 
     // Publish n bytes that a WORKER already wrote past len_ (the direct-reply path). Only the
@@ -220,7 +245,11 @@ public:
     // Drops any heap growth and returns to the inline buffer. Called when a slot is recycled after
     // an unusually large reply, so one big reply does not permanently inflate every ring slot.
     void shrink_to_inline() {
-        if (data_ != inline_) { std::free(data_); data_ = inline_; cap_ = Inline; }
+        if (data_ != inline_) {
+            std::free(data_);
+            data_ = inline_;
+            cap_ = Inline;
+        }
         len_ = 0;
     }
 
@@ -239,7 +268,7 @@ public:
         len_ += n;
     }
     void append(std::string_view s) { append(s.data(), s.size()); }
-    void append(Slice s)            { append(s.p, s.n); }
+    void append(Slice s) { append(s.p, s.n); }
     // Literal overload, matching Op::Sink::append -- same contract, NUL excluded. It exists so the
     // resp.h reply helpers can be written once and compile to a store on whichever sink they are
     // instantiated with.
@@ -275,12 +304,12 @@ private:
         std::memcpy(nd, data_, len_);
         if (data_ != inline_) std::free(data_);
         data_ = nd;
-        cap_  = ncap;
+        cap_ = ncap;
     }
-    char*  data_;
+    char* data_;
     size_t len_ = 0;
     size_t cap_;
-    char   inline_[Inline];
+    char inline_[Inline];
 };
 
 }  // namespace tomo

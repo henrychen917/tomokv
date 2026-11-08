@@ -9,14 +9,17 @@
 #include "src/core/thread.h"
 #include "src/exec/op.h"
 #include "src/net/resp.h"
-namespace tomo { bool notify_keymiss_read_lookup(const Op&, Slice); }
+namespace tomo {
+bool notify_keymiss_read_lookup(const Op&, Slice);
+}
 using namespace tomo;
 
 int main() {
     const std::pair<const char*, const char*> flags[] = {
-        {"", ""}, {"AKE", "AKE"}, {"AKEn", "AKE"}, {"gnK", "gnK"},
-        {"gKn", "gnK"}, {"Em", "Em"}, {"KEA", "AKE"}, {"$lshzxe", "$lshzxe"},
-        {"g$lshzxetdnKEm", "AKEm"}, {"nKmE", "nKEm"}, {"AEmn", "AEm"},
+        {"", ""},         {"AKE", "AKE"},         {"AKEn", "AKE"},
+        {"gnK", "gnK"},   {"gKn", "gnK"},         {"Em", "Em"},
+        {"KEA", "AKE"},   {"$lshzxe", "$lshzxe"}, {"g$lshzxetdnKEm", "AKEm"},
+        {"nKmE", "nKEm"}, {"AEmn", "AEm"},
     };
     for (auto [input, expected] : flags) {
         uint32_t mask = 0;
@@ -24,18 +27,22 @@ int main() {
         assert(serialize_notify_flags(mask) == expected);
     }
 #ifndef TOMO_CCFIX_FLAGS_ONLY
-    for (const char* command : {"COPY", "SINTERSTORE", "SUNIONSTORE", "SDIFFSTORE", "BITOP", "SET"}) {
+    for (const char* command :
+         {"COPY", "SINTERSTORE", "SUNIONSTORE", "SDIFFSTORE", "BITOP", "SET"}) {
         Op op;
         CommandSpec spec(command, 2, -1, CmdFlags::Write, nullptr, 1, -1, 1);
         op.spec = &spec;
-        std::string name(command), a("same-key"), b(name == "COPY" ? "other-key" : "same-key"), c("same-key");
+        std::string name(command), a("same-key"), b(name == "COPY" ? "other-key" : "same-key"),
+            c("same-key");
         assert(op.push_arg(Slice(name.data(), name.size())));
         assert(op.push_arg(Slice(a.data(), a.size())));
         assert(op.push_arg(Slice(b.data(), b.size())));
         assert(op.push_arg(Slice(c.data(), c.size())));
         for (uint32_t arg = 1; arg < 4; ++arg) {
-            const bool expected = name == "COPY" ? arg == 1 : name == "BITOP" ? arg == 3 :
-                                  name == "SET" ? false : arg >= 2;
+            const bool expected = name == "COPY"    ? arg == 1
+                                  : name == "BITOP" ? arg == 3
+                                  : name == "SET"   ? false
+                                                    : arg >= 2;
             assert(notify_keymiss_read_lookup(op, op.arg(arg)) == expected);
         }
         // Equal bytes alone must never turn a destination/foreign lookup into a read lookup.

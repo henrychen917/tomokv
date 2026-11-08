@@ -5,10 +5,15 @@
 #include <cstdio>
 #include <cstdlib>
 
-namespace tomo { uint64_t netcap_scan_bytes = 0; }
+namespace tomo {
+uint64_t netcap_scan_bytes = 0;
+}
 namespace {
 void check(bool ok, const char* message) {
-    if (!ok) { std::fprintf(stderr, "FAIL netcap: %s\n", message); std::exit(1); }
+    if (!ok) {
+        std::fprintf(stderr, "FAIL netcap: %s\n", message);
+        std::exit(1);
+    }
 }
 void* watched_buffer = nullptr;
 unsigned buffer_frees = 0;
@@ -16,10 +21,12 @@ unsigned buffer_frees = 0;
 void inline_limit() {
     const std::string input(1024 * 1024, 'x');
     for (bool preauth : {false, true}) {
-        tomo::Op op; uint32_t pos = 0; const char* error = nullptr;
-        const auto result = preauth
-            ? tomo::resp_parse_limited(input.data(), input.size(), pos, op, &error, 10, 16384)
-            : tomo::resp_parse(input.data(), input.size(), pos, op, &error);
+        tomo::Op op;
+        uint32_t pos = 0;
+        const char* error = nullptr;
+        const auto result = preauth ? tomo::resp_parse_limited(input.data(), input.size(), pos, op,
+                                                               &error, 10, 16384)
+                                    : tomo::resp_parse(input.data(), input.size(), pos, op, &error);
         check(result == tomo::ParseResult::Error, "NET1: 1 MiB unterminated inline rejected");
         check(error && std::string(error) == "ERR Protocol error: too big inline request",
               "NET1: exact Redis inline error before and after AUTH");
@@ -28,40 +35,55 @@ void inline_limit() {
 #ifndef TOMO_NETCAP_OLD
 void scan() {
     using namespace tomo;
-    Client c(-1); size_t avail = 0;
+    Client c(-1);
+    size_t avail = 0;
     check(c.read_space(65537, avail, true) && avail >= 65537, "scan fixture allocation");
     std::memset(c.rbuf(), 'x', 65535);
-    c.rbuf()[65535] = '\r'; c.rbuf()[65536] = '\n';
+    c.rbuf()[65535] = '\r';
+    c.rbuf()[65536] = '\n';
     netcap_scan_bytes = 0;
-    Op op; const char* error = nullptr;
+    Op op;
+    const char* error = nullptr;
     for (uint32_t length = 1; length <= 65536; ++length) {
         c.commit_read(1);
         for (int retry = 0; retry != 3; ++retry) {
             uint32_t pos = c.rpos();
             check(resp_parse_inline(c.rbuf(), c.rlen(), pos, op, &error, c.inline_scanned()) ==
-                      ParseResult::Incomplete && pos == 0,
+                          ParseResult::Incomplete &&
+                      pos == 0,
                   "legal incomplete boundary stays open");
         }
     }
-    c.commit_read(1); uint32_t pos = 0;
-    check(resp_parse_inline(c.rbuf(), c.rlen(), pos, op, &error, c.inline_scanned()) == ParseResult::Ok,
+    c.commit_read(1);
+    uint32_t pos = 0;
+    check(resp_parse_inline(c.rbuf(), c.rlen(), pos, op, &error, c.inline_scanned()) ==
+              ParseResult::Ok,
           "split CRLF completes boundary inline");
     check(netcap_scan_bytes == 65537, "NET1: every byte scanned once for LF despite retries");
     check(pos == 65537 && op.argc() == 1 && op.arg(0).n == 65535, "boundary argument intact");
-    op.reset(); pos = 0;
-    check(resp_parse_inline(c.rbuf(), c.rlen(), pos, op, &error, c.inline_scanned()) == ParseResult::Ok,
+    op.reset();
+    pos = 0;
+    check(resp_parse_inline(c.rbuf(), c.rlen(), pos, op, &error, c.inline_scanned()) ==
+              ParseResult::Ok,
           "complete inline can be reparsed after dispatch backpressure");
 
     Client compact(-1);
-    std::memcpy(compact.rbuf(), "PING\r\npartial\r", 14); compact.commit_read(14);
-    compact.advance_parse(6); pos = compact.rpos(); op.reset();
+    std::memcpy(compact.rbuf(), "PING\r\npartial\r", 14);
+    compact.commit_read(14);
+    compact.advance_parse(6);
+    pos = compact.rpos();
+    op.reset();
     check(resp_parse_inline(compact.rbuf(), compact.rlen(), pos, op, &error,
-                            compact.inline_scanned()) == ParseResult::Incomplete, "partial after earlier command");
+                            compact.inline_scanned()) == ParseResult::Incomplete,
+          "partial after earlier command");
     const auto before = netcap_scan_bytes;
     compact.reset_rbuf_at_quiescence();
-    compact.rbuf()[compact.rlen()] = '\n'; compact.commit_read(1); pos = 0;
+    compact.rbuf()[compact.rlen()] = '\n';
+    compact.commit_read(1);
+    pos = 0;
     check(resp_parse_inline(compact.rbuf(), compact.rlen(), pos, op, &error,
-                            compact.inline_scanned()) == ParseResult::Ok && op.arg(0) == Slice("partial", 7),
+                            compact.inline_scanned()) == ParseResult::Ok &&
+              op.arg(0) == Slice("partial", 7),
           "scan cursor survives compaction");
     check(netcap_scan_bytes == before + 1, "compaction preserves scanned prefix");
     compact.advance_parse(pos);
@@ -69,11 +91,13 @@ void scan() {
 }
 void buffers() {
     using namespace tomo;
-    Client c(-1); size_t avail = 0;
+    Client c(-1);
+    size_t avail = 0;
     char* dst = c.read_space(2 * 1024 * 1024, avail, true, 512ull << 20, 1 << 20);
     check(dst && avail == (1 << 20) + 1 && c.rcap() == avail,
           "NET1: query cap bounds allocation including one overflow byte");
-    dst[0] = '*'; c.commit_read(1 << 20);
+    dst[0] = '*';
+    c.commit_read(1 << 20);
     check(!c.query_buffer_exceeded(1 << 20), "query limit equality is legal");
     check(c.read_space(16384, avail, false, 512ull << 20, 1 << 20) && avail == 1,
           "last overflow byte offered without growth");
@@ -85,7 +109,9 @@ void buffers() {
     check(!c.query_buffer_exceeded(1 << 20), "parsed pinned bytes excluded from pending input");
     check(c.query_buffer_exceeded(1 << 20, 10), "queued MULTI argv included in limit");
     Client inline_c(-1);
-    dst = inline_c.read_space(16384, avail, true); dst[0] = 'x'; inline_c.commit_read(1);
+    dst = inline_c.read_space(16384, avail, true);
+    dst[0] = 'x';
+    inline_c.commit_read(1);
     check(inline_c.read_space(1 << 20, avail, true) && inline_c.rcap() == 65537 && avail == 65536,
           "NET1: epoll and TLS buffering stops at inline frontier");
 }
@@ -95,18 +121,20 @@ void frontier() {
     Client c(-1);
     auto append = [&](std::string_view bytes) {
         size_t avail = 0;
-        char* dst = c.read_space(std::max<size_t>(kRbufInitial, bytes.size()), avail,
-                                 true, 512ull << 20, limit);
+        char* dst = c.read_space(std::max<size_t>(kRbufInitial, bytes.size()), avail, true,
+                                 512ull << 20, limit);
         check(dst && avail >= bytes.size(), "N4: receive offer includes the saved prefix");
         std::memcpy(dst, bytes.data(), bytes.size());
         c.commit_read(bytes.size());
     };
     auto parse = [&] {
-        Op op; const char* error = nullptr; uint32_t pos = c.rpos();
+        Op op;
+        const char* error = nullptr;
+        uint32_t pos = c.rpos();
         const auto result = c.multibulk_pending()
-            ? c.resume_multibulk(pos, op, &error, 1024 * 1024, 512ull << 20)
-            : resp_parse_t<false, true>(c.rbuf(), c.rlen(), pos, op, &error,
-                                        0, 0, &c.multibulk_frontier());
+                                ? c.resume_multibulk(pos, op, &error, 1024 * 1024, 512ull << 20)
+                                : resp_parse_t<false, true>(c.rbuf(), c.rlen(), pos, op, &error, 0,
+                                                            0, &c.multibulk_frontier());
         check(result == ParseResult::Incomplete, "N4: fixture really suspends the parser");
         c.suspend_multibulk();
     };
@@ -116,9 +144,9 @@ void frontier() {
     append(prefix);
     check(!c.query_buffer_exceeded(limit), "N4: initial read below limit");
     parse();
-    check(c.multibulk_frontier().completed == 149795 &&
-          c.multibulk_frontier().next == prefix.size(),
-          "N4: completed-prefix frontier actually opened");
+    check(
+        c.multibulk_frontier().completed == 149795 && c.multibulk_frontier().next == prefix.size(),
+        "N4: completed-prefix frontier actually opened");
     check(!c.query_buffer_exceeded(limit, limit),
           "N4: completed argv excluded even when queued MULTI equals the limit");
     append("$1");
@@ -130,8 +158,7 @@ void frontier() {
     append("\r\n");
     check(!c.query_buffer_exceeded(limit), "N4: partial header crosses retained-frame limit");
     parse();
-    check(c.multibulk_frontier().bulk == 1 &&
-          c.multibulk_frontier().next == c.rlen(),
+    check(c.multibulk_frontier().bulk == 1 && c.multibulk_frontier().next == c.rlen(),
           "N4: decoded header trimmed before its payload arrives");
     append("a\r");
     parse();
@@ -142,17 +169,22 @@ void frontier() {
     check(!std::memcmp(c.rbuf(), prefix.data(), prefix.size()),
           "N4: pinned argv bytes never rewritten or discarded");
 
-    Client payload(-1); size_t avail = 0;
+    Client payload(-1);
+    size_t avail = 0;
     const std::string header = "*2\r\n$4\r\nECHO\r\n$2097152\r\n";
-    std::memcpy(payload.rbuf(), header.data(), header.size()); payload.commit_read(header.size());
-    Op op; const char* error = nullptr; uint32_t pos = 0;
-    check(resp_parse_t<false, true>(payload.rbuf(), payload.rlen(), pos, op, &error,
-                                   0, 0, &payload.multibulk_frontier()) == ParseResult::Incomplete,
+    std::memcpy(payload.rbuf(), header.data(), header.size());
+    payload.commit_read(header.size());
+    Op op;
+    const char* error = nullptr;
+    uint32_t pos = 0;
+    check(resp_parse_t<false, true>(payload.rbuf(), payload.rlen(), pos, op, &error, 0, 0,
+                                    &payload.multibulk_frontier()) == ParseResult::Incomplete,
           "N4: payload fixture suspends after decoded header");
     payload.suspend_multibulk();
     char* dst = payload.read_space(limit + 1, avail, true, 512ull << 20, limit);
     check(dst && avail == limit + 1, "N4: payload cap allows exactly one overflow byte");
-    std::memset(dst, 'x', limit + 1); payload.commit_read(limit);
+    std::memset(dst, 'x', limit + 1);
+    payload.commit_read(limit);
     check(!payload.query_buffer_exceeded(limit), "N4: unparsed payload equality is legal");
     payload.commit_read(1);
     check(payload.query_buffer_exceeded(limit), "N4: unparsed payload overflow closes");
@@ -175,8 +207,8 @@ void frontier() {
         std::memcpy(edge.rbuf(), header.data(), header.size());
         edge.commit_read(header.size());
         pos = 0;
-        check(resp_parse_t<false, true>(edge.rbuf(), edge.rlen(), pos, op, &error,
-                                       0, 0, &edge.multibulk_frontier()) == ParseResult::Incomplete,
+        check(resp_parse_t<false, true>(edge.rbuf(), edge.rlen(), pos, op, &error, 0, 0,
+                                        &edge.multibulk_frontier()) == ParseResult::Incomplete,
               "N4: cap-equality fixture suspends after decoded header");
         edge.suspend_multibulk();
         check(edge.multibulk_frontier().next == header.size(),
@@ -187,8 +219,7 @@ void frontier() {
         edge.commit_read(fill);
         dst = edge.read_space(initial, avail, may_grow, 512ull << 20, initial - 1);
         if (may_grow) {
-            check(dst && edge.rcap() == initial + header.size() &&
-                  avail == tail + header.size(),
+            check(dst && edge.rcap() == initial + header.size() && avail == tail + header.size(),
                   "N4: cap equality restores frontier growth and exact-limit short receive");
         } else {
             check(!dst && !avail && edge.rcap() == initial,
@@ -200,43 +231,59 @@ void frontier() {
 }
 void grammar() {
     using namespace tomo;
-    Config cfg; ConfigParseState state;
+    Config cfg;
+    ConfigParseState state;
     check(cfg.client_query_buffer_limit == 1073741824, "Redis 1gb query limit default");
-    check(parse_config_args({"--client-query-buffer-limit", "2m"}, cfg, state, 1, "unit") == kConfigParsed &&
-          cfg.client_query_buffer_limit == 2000000, "CLI query limit accepts decimal memory suffix");
-    uint64_t value; const char* error = nullptr;
-    for (const auto& [input, expected] : {
-            std::pair{"1mb", 1048576ull}, {"2M", 2000000ull}, {"1GB", 1073741824ull},
-            {"001048576B", 1048576ull}, {"9223372036854775807", 9223372036854775807ull}})
-        check(cfg_parse_query_buffer_limit(input, std::strlen(input), value, error) && value == expected,
+    check(parse_config_args({"--client-query-buffer-limit", "2m"}, cfg, state, 1, "unit") ==
+                  kConfigParsed &&
+              cfg.client_query_buffer_limit == 2000000,
+          "CLI query limit accepts decimal memory suffix");
+    uint64_t value;
+    const char* error = nullptr;
+    for (const auto& [input, expected] : {std::pair{"1mb", 1048576ull},
+                                          {"2M", 2000000ull},
+                                          {"1GB", 1073741824ull},
+                                          {"001048576B", 1048576ull},
+                                          {"9223372036854775807", 9223372036854775807ull}})
+        check(cfg_parse_query_buffer_limit(input, std::strlen(input), value, error) &&
+                  value == expected,
               "Redis memory grammar accepted");
     for (const char* input : {"0", "1048575", "1m", "9223372036854775808", "", "mb"})
         check(!cfg_parse_query_buffer_limit(input, std::strlen(input), value, error) &&
-              std::string(error) == "argument must be between 1048576 and 9223372036854775807 inclusive",
+                  std::string(error) ==
+                      "argument must be between 1048576 and 9223372036854775807 inclusive",
               "query limit rejects unsupported range with Redis text");
     for (const char* input : {"-1", "1.5mb", "1MiB", "+1048576", " 1mb"})
         check(!cfg_parse_query_buffer_limit(input, std::strlen(input), value, error) &&
-              std::string(error) == "argument must be a memory value", "Redis memory grammar error");
+                  std::string(error) == "argument must be a memory value",
+              "Redis memory grammar error");
     for (const char* input : {"0", "-1", "1m", "bad"}) {
-        Config invalid; ConfigParseState invalid_state;
-        check(parse_config_args({"--client-query-buffer-limit", input}, invalid, invalid_state, 1, "unit") == kConfigError,
+        Config invalid;
+        ConfigParseState invalid_state;
+        check(parse_config_args({"--client-query-buffer-limit", input}, invalid, invalid_state, 1,
+                                "unit") == kConfigError,
               "CLI query limit rejects invalid values before boot");
     }
 }
 void framing() {
     using namespace tomo;
-    for (const auto& [input, expected] : {
-             std::pair{"*x\r\n", "ERR Protocol error: invalid multibulk length"},
-             {"*1\r\n!\r\n", "ERR Protocol error: expected '$', got '!'"},
-             {"*1\r\n$x\r\n", "ERR Protocol error: invalid bulk length"}}) {
-        Op op; uint32_t pos = 0; const char* error = nullptr;
+    for (const auto& [input, expected] :
+         {std::pair{"*x\r\n", "ERR Protocol error: invalid multibulk length"},
+          {"*1\r\n!\r\n", "ERR Protocol error: expected '$', got '!'"},
+          {"*1\r\n$x\r\n", "ERR Protocol error: invalid bulk length"}}) {
+        Op op;
+        uint32_t pos = 0;
+        const char* error = nullptr;
         check(resp_parse(input, std::strlen(input), pos, op, &error) == ParseResult::Error &&
-              error && std::string(error) == expected, "Redis framing error text");
+                  error && std::string(error) == expected,
+              "Redis framing error text");
     }
     for (unsigned byte = 0; byte != 256; ++byte) {
         if (byte == '$') continue;
         const char input[] = {'*', '1', '\r', '\n', static_cast<char>(byte), '\r', '\n'};
-        Op op; uint32_t pos = 0; const char* error = nullptr;
+        Op op;
+        uint32_t pos = 0;
+        const char* error = nullptr;
         if (byte == 0) {
             check(resp_parse(input, sizeof(input), pos, op, &error) == ParseResult::Incomplete,
                   "Redis count-line search stops at NUL before the CR");
@@ -264,14 +311,17 @@ namespace tomo {
 struct NetcmdRegression {
     static std::string command(Shard& shard, std::initializer_list<const char*> args) {
         Op op;
-        for (const char* arg : args) check(op.push_arg(Slice(arg, std::strlen(arg))), "config argv");
+        for (const char* arg : args)
+            check(op.push_arg(Slice(arg, std::strlen(arg))), "config argv");
         op.spec = command_lookup(op.cmd_name());
         check(op.spec != nullptr, "config command exists");
         op.spec->handler(shard, op);
         return std::string(op.reply.data(), op.reply.size());
     }
     static void config() {
-        Server server; ThreadCtx self; IoLoop loop;
+        Server server;
+        ThreadCtx self;
+        IoLoop loop;
         server.live_config_version_.store(2);
         server.live_config_committed_ = server.capture_live_config(2);
         server.live_config_mailboxes_ = std::make_unique<LiveConfigMailbox[]>(1);
@@ -280,28 +330,39 @@ struct NetcmdRegression {
         Shard& shard = *server.shards_[0];
         shard.init_private(&server, 0, TypeLimits{}, StreamLimits{});
         command_bind_server(&server);
-        loop.srv_ = &server; loop.self_ = &self;
+        loop.srv_ = &server;
+        loop.self_ = &self;
         auto get = [&] { return command(shard, {"CONFIG", "GET", "client-query-buffer-limit"}); };
-        check(get() == "*2\r\n$25\r\nclient-query-buffer-limit\r\n$10\r\n1073741824\r\n", "CONFIG query limit default");
-        check(command(shard, {"CONFIG", "SET", "client-query-buffer-limit", "2mb"}).empty(), "CONFIG query limit accepted");
+        check(get() == "*2\r\n$25\r\nclient-query-buffer-limit\r\n$10\r\n1073741824\r\n",
+              "CONFIG query limit default");
+        check(command(shard, {"CONFIG", "SET", "client-query-buffer-limit", "2mb"}).empty(),
+              "CONFIG query limit accepted");
         loop.refresh_notify_config();
-        check(loop.client_query_buffer_limit_ == 2097152, "NET1: CONFIG SET reaches IO committed snapshot");
-        check(get() == "*2\r\n$25\r\nclient-query-buffer-limit\r\n$7\r\n2097152\r\n", "CONFIG query limit normalized GET");
+        check(loop.client_query_buffer_limit_ == 2097152,
+              "NET1: CONFIG SET reaches IO committed snapshot");
+        check(get() == "*2\r\n$25\r\nclient-query-buffer-limit\r\n$7\r\n2097152\r\n",
+              "CONFIG query limit normalized GET");
         const auto before = get();
         const auto rejected = command(shard, {"CONFIG", "SET", "client-query-buffer-limit", "0"});
-        check(rejected == "-ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive\r\n",
-              "CONFIG query limit exact range error");
+        check(
+            rejected ==
+                "-ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive\r\n",
+            "CONFIG query limit exact range error");
         check(get() == before, "rejected CONFIG SET leaves published value intact");
-        check(command(shard, {"CONFIG", "GET", "proto-max-inline"}) == "*0\r\n", "Redis has no proto-max-inline knob");
-        Client queued(-1); MultiExecState* dispatch = nullptr;
+        check(command(shard, {"CONFIG", "GET", "proto-max-inline"}) == "*0\r\n",
+              "Redis has no proto-max-inline knob");
+        Client queued(-1);
+        MultiExecState* dispatch = nullptr;
         auto multi = [&](std::initializer_list<const char*> args) {
             Op op;
-            for (const char* arg : args) check(op.push_arg(Slice(arg, std::strlen(arg))), "MULTI argv");
+            for (const char* arg : args)
+                check(op.push_arg(Slice(arg, std::strlen(arg))), "MULTI argv");
             op.spec = command_lookup(op.cmd_name());
             check(multi_handle_io(server, queued, op, 0, dispatch) == MultiIoAction::LocalDone,
                   "serverless MULTI transition handled locally");
         };
-        multi({"MULTI"}); multi({"ECHO", "abc"});
+        multi({"MULTI"});
+        multi({"ECHO", "abc"});
         check(multi_session_query_bytes(queued) == 7 + 2 * sizeof(void*),
               "query limit counts queued payload and Redis argv pointer allowance");
         check(multi_session_memory(queued) == 7, "existing CLIENT memory reporting unchanged");
@@ -310,45 +371,69 @@ struct NetcmdRegression {
         command_bind_server(nullptr);
     }
     static void inline_close() {
-        Server server; ThreadCtx self; IoLoop loop;
-        loop.srv_ = &server; loop.self_ = &self;
-        Client* c = new Client(-1); c->set_id(2);
+        Server server;
+        ThreadCtx self;
+        IoLoop loop;
+        loop.srv_ = &server;
+        loop.self_ = &self;
+        Client* c = new Client(-1);
+        c->set_id(2);
         size_t avail = 0;
-        check(c->read_space(1 << 20, avail, true) && avail >= (1 << 20), "inline close fixture allocation");
-        std::memset(c->rbuf(), 'x', 1 << 20); c->commit_read(1 << 20);
-        watched_buffer = c->rbuf(); buffer_frees = 0; server.client_accepted();
+        check(c->read_space(1 << 20, avail, true) && avail >= (1 << 20),
+              "inline close fixture allocation");
+        std::memset(c->rbuf(), 'x', 1 << 20);
+        c->commit_read(1 << 20);
+        watched_buffer = c->rbuf();
+        buffer_frees = 0;
+        server.client_accepted();
         check(loop.parse_and_dispatch<false, 0>(c) == IoLoop::DispatchResult::Error && c->closing(),
               "NET1: real IO parser schedules inline close");
         check(c->rob().drain([](Op& op) {
-            check(std::string(op.reply.data(), op.reply.size()) == "-ERR Protocol error: too big inline request\r\n",
+            check(std::string(op.reply.data(), op.reply.size()) ==
+                      "-ERR Protocol error: too big inline request\r\n",
                   "real IO parser queues exact Redis inline error");
-        }) == 1, "one inline error retires in order");
+        }) == 1,
+              "one inline error retires in order");
         // Stand in for completion of the error reply's send; no socket or ring is started.
-        loop.pending_serve_.clear(); c->set_serve_pending(false);
-        loop.close_client(c); loop.reap_dead(); loop.reap_dead();
+        loop.pending_serve_.clear();
+        c->set_serve_pending(false);
+        loop.close_client(c);
+        loop.reap_dead();
+        loop.reap_dead();
         check(buffer_frees == 1, "NET1: inline rejection frees its receive buffer");
         watched_buffer = nullptr;
     }
     static void teardown() {
-        Server server; ThreadCtx self; IoLoop loop;
-        loop.srv_ = &server; loop.self_ = &self;
-        Client* c = new Client(-1); c->set_id(1);
+        Server server;
+        ThreadCtx self;
+        IoLoop loop;
+        loop.srv_ = &server;
+        loop.self_ = &self;
+        Client* c = new Client(-1);
+        c->set_id(1);
         size_t avail = 0;
         check(c->read_space(65537, avail, true), "teardown fixture grew receive buffer");
-        watched_buffer = c->rbuf(); buffer_frees = 0;
+        watched_buffer = c->rbuf();
+        buffer_frees = 0;
         server.client_accepted();
         // A recv CQE and an in-flight argv both fence reclamation, independently.
         c->set_recv_armed(true);
-        Op* op = c->rob().acquire(); check(op, "teardown fixture operation"); c->rob().publish();
+        Op* op = c->rob().acquire();
+        check(op, "teardown fixture operation");
+        c->rob().publish();
         loop.close_client(c);
-        loop.reap_dead(); loop.reap_dead();
+        loop.reap_dead();
+        loop.reap_dead();
         check(!buffer_frees && !c->dead(), "in-flight recv and argv keep buffer alive");
-        c->set_recv_armed(false); loop.close_client(c);
+        c->set_recv_armed(false);
+        loop.close_client(c);
         check(!buffer_frees && !c->dead(), "argv still pins receive buffer after recv completion");
-        op->state.store(OpState::Done); c->rob().drain([](Op&) {});
+        op->state.store(OpState::Done);
+        c->rob().drain([](Op&) {});
         loop.close_client(c);
         check(c->dead() && server.live_clients() == 0, "quiescent close releases connection");
-        loop.reap_dead(); check(!buffer_frees, "deferred lifetime is respected");
+        loop.reap_dead();
+        check(!buffer_frees, "deferred lifetime is respected");
         loop.reap_dead();
         check(buffer_frees == 1, "NET1: closed client receive buffer freed exactly once");
         watched_buffer = nullptr;
@@ -369,9 +454,11 @@ int main(int argc, char** argv) {
     if (which == "all" || which == "teardown") tomo::NetcmdRegression::teardown();
     if (which == "all" || which == "config") tomo::NetcmdRegression::config();
     if (which == "all" || which == "inline-close") tomo::NetcmdRegression::inline_close();
-    std::printf("layouts Op=%zu Client=%zu ThreadCtx=%zu Shard=%zu FlatStore=%zu Rob=%zu AtomicEntry=%zu Config=%zu\n",
+    std::printf(
+        "layouts Op=%zu Client=%zu ThreadCtx=%zu Shard=%zu FlatStore=%zu Rob=%zu AtomicEntry=%zu Config=%zu\n",
         sizeof(tomo::Op), sizeof(tomo::Client), sizeof(tomo::ThreadCtx), sizeof(tomo::Shard),
-        sizeof(tomo::FlatStore), sizeof(tomo::Rob<64>), sizeof(tomo::AtomicEntry), sizeof(tomo::Config));
+        sizeof(tomo::FlatStore), sizeof(tomo::Rob<64>), sizeof(tomo::AtomicEntry),
+        sizeof(tomo::Config));
 #endif
     std::printf("PASS netcap %s\n", which.c_str());
 }

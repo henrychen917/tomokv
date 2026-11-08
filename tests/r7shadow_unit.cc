@@ -7,15 +7,23 @@
 #include "reorder_batch_fixture.h"
 #include "src/core/config.h"
 
-namespace tomo { void multi_session_destroy(MultiSession* p) { if (p) std::abort(); } }
+namespace tomo {
+void multi_session_destroy(MultiSession* p) {
+    if (p) std::abort();
+}
+}
 namespace {
 using namespace tomo;
 using namespace tomo::r7;
 void require(bool ok, const char* msg) {
-    if (!ok) { std::fprintf(stderr, "FAIL shadow: %s\n", msg); std::exit(1); }
+    if (!ok) {
+        std::fprintf(stderr, "FAIL shadow: %s\n", msg);
+        std::exit(1);
+    }
 }
 void unused(Shard&, Op&) { std::abort(); }
-constexpr CommandSpec spec(const char* name, CommandLengthClass length, uint32_t flags = CmdFlags::Readonly) {
+constexpr CommandSpec spec(const char* name, CommandLengthClass length,
+                           uint32_t flags = CmdFlags::Readonly) {
     CommandSpec s(name, 2, 2, flags, unused, 1, 1, 1, unused);
     s.length_class = static_cast<uint8_t>(length);
     return s;
@@ -39,8 +47,12 @@ struct Pipe {
         rob.publish();
         return t;
     }
-    void done(uint64_t id) { client.rob().at(id).state.store(OpState::Done, std::memory_order_release); }
-    void retire() { client.rob().drain([](Op&) {}); }
+    void done(uint64_t id) {
+        client.rob().at(id).state.store(OpState::Done, std::memory_order_release);
+    }
+    void retire() {
+        client.rob().drain([](Op&) {});
+    }
 };
 
 template <size_t B>
@@ -51,14 +63,17 @@ void three_pipes() {
     for (uint32_t i = 0; i < 6; ++i) tasks[n++] = a.add(i == 3 ? long_op : short_op, 10 + i);
     for (uint32_t i = 0; i < 5; ++i) tasks[n++] = b.add(i == 0 ? long_op : short_op, 20 + i);
     for (uint32_t i = 0; i < 5; ++i) tasks[n++] = c.add(i == 3 ? long_op : short_op, 30 + i);
-    require(shadow_bit(tasks[4]) && shadow_id(tasks[4]) == 3 &&
-            shadow_bit(tasks[7]) && shadow_id(tasks[7]) == 0, "own-pipe shadows were not armed");
+    require(shadow_bit(tasks[4]) && shadow_id(tasks[4]) == 3 && shadow_bit(tasks[7]) &&
+                shadow_id(tasks[7]) == 0,
+            "own-pipe shadows were not armed");
     const auto witness = test::schedule_test_batch<B, true>(tasks, n);
-    constexpr uint32_t expected[] = {10,30,11,31,12,32,20,13,33,21,14,34,22,15,23,24};
+    constexpr uint32_t expected[] = {10, 30, 11, 31, 12, 32, 20, 13,
+                                     33, 21, 14, 34, 22, 15, 23, 24};
     require(witness.permuted_runs != 0, "three-pipe permutation did not engage");
     for (uint32_t i = 0; i < n; ++i)
         require(tasks[i].enqueue_us_low == expected[i], "three-pipe exact pick order");
-    std::printf("PASS three pipes B=%zu: six unshadowed shorts, three longs, seven shadowed shorts\n", B);
+    std::printf(
+        "PASS three pipes B=%zu: six unshadowed shorts, three longs, seven shadowed shorts\n", B);
 }
 
 void long_only_scope() {
@@ -67,13 +82,14 @@ void long_only_scope() {
     tasks[0] = a.add(long_op, 0);
     tasks[1] = b.add(long_op, 1);
     require(a.client.rob().at(0).state.load() == OpState::Issued &&
-            b.client.rob().at(0).state.load() == OpState::Issued,
+                b.client.rob().at(0).state.load() == OpState::Issued,
             "long-only scope never contained pending blockers");
     // The owner population after clean GETs take the read-local lane can be
     // entirely Long. Different clients and pending blockers still imply no pick.
     auto result = test::schedule_test_batch<kGenthreadExBatchOps, true>(tasks, 2);
-    require(result.permuted_runs == 0 && tasks[0].enqueue_us_low == 0 &&
-            tasks[1].enqueue_us_low == 1, "homogeneous Long scope invented a permutation");
+    require(
+        result.permuted_runs == 0 && tasks[0].enqueue_us_low == 0 && tasks[1].enqueue_us_low == 1,
+        "homogeneous Long scope invented a permutation");
     std::puts("PASS pending Long-only scope: FIFO and zero permutations are correct");
 }
 
@@ -86,11 +102,12 @@ void completion_and_newest() {
     require(shadow_id(middle) == first.op_id && shadow_id(last) == second.op_id,
             "newest long overwrote an older short's blocker");
     a.done(second.op_id);
-    require(shadow_pending(middle) && !shadow_pending(last), "Done must clear only the matching long");
+    require(shadow_pending(middle) && !shadow_pending(last),
+            "Done must clear only the matching long");
     require(a.client.rob().flush_id() == 0, "Done-before-retirement window missing");
     Task tasks[kGenthreadExBatchOps];
     tasks[0] = b.add(long_op, 10);
-    tasks[1] = last; // Its prior tasks are on another executor in this test.
+    tasks[1] = last;  // Its prior tasks are on another executor in this test.
     test::schedule_test_batch<kGenthreadExBatchOps, true>(tasks, 2);
     require(tasks[0].enqueue_us_low == 4 && !shadow_bit(tasks[0]), "Done shadow was not promoted");
     a.done(first.op_id);
@@ -116,7 +133,7 @@ void completion_and_newest() {
 
 void successor_completion() {
     Pipe a, b;
-    (void)a.add(long_op, 0); // queued on another owner
+    (void)a.add(long_op, 0);  // queued on another owner
     Task tasks[kGenthreadExBatchOps];
     tasks[0] = b.add(long_op, 3);
     tasks[1] = a.add(short_op, 1);
@@ -125,7 +142,8 @@ void successor_completion() {
     a.done(0);
     test::schedule_test_batch<kGenthreadExBatchOps, true>(tasks, 3);
     require(tasks[0].enqueue_us_low == 1 && tasks[1].enqueue_us_low == 2 &&
-                tasks[2].enqueue_us_low == 3, "newly eligible follower retained a completed shadow");
+                tasks[2].enqueue_us_low == 3,
+            "newly eligible follower retained a completed shadow");
     std::puts("PASS completion probe when a hidden follower becomes eligible");
 }
 
@@ -158,7 +176,8 @@ void barriers_and_order() {
     ShadowReorderQueues<B> q;
     q.submit(tasks, 9, emit);
     q.finish(emit);
-    require(out.size() == 9 && out[0] == 4 && out[5] == 5, "barrier test did not exercise reordering");
+    require(out.size() == 9 && out[0] == 4 && out[5] == 5,
+            "barrier test did not exercise reordering");
     std::printf("PASS L s L dependencies and barrier B=%zu\n", B);
 }
 
@@ -180,7 +199,7 @@ void queued_completion() {
     require(order.empty() && q.size() == B, "queued completion window did not open");
     for (uint32_t i = 1; i < B; ++i) {
         require(shadow_pending(tasks[i]), "queued shadow never armed");
-        pipes[i]->done(0); // Another executor completes; IO has not retired the long.
+        pipes[i]->done(0);  // Another executor completes; IO has not retired the long.
     }
     q.finish(emit);
     require(order.size() == B && order.back() == 0, "queued shadows did not clear on Done");
@@ -190,10 +209,11 @@ void queued_completion() {
 }
 
 void all_barriers() {
-    constexpr uint32_t flags[] = {CmdFlags::Admin, CmdFlags::ConnLocal, CmdFlags::AllShards,
-        CmdFlags::RandomShard, CmdFlags::CursorShard, CmdFlags::ConfigRoute, CmdFlags::ScriptRoute,
-        CmdFlags::PubSub, CmdFlags::Blocking, CmdFlags::Transaction, CmdFlags::StreamRoute,
-        CmdFlags::SubcmdRoute, CmdFlags::FlipAsync};
+    constexpr uint32_t flags[] = {
+        CmdFlags::Admin,       CmdFlags::ConnLocal,   CmdFlags::AllShards,   CmdFlags::RandomShard,
+        CmdFlags::CursorShard, CmdFlags::ConfigRoute, CmdFlags::ScriptRoute, CmdFlags::PubSub,
+        CmdFlags::Blocking,    CmdFlags::Transaction, CmdFlags::StreamRoute, CmdFlags::SubcmdRoute,
+        CmdFlags::FlipAsync};
     for (uint32_t flag : flags) {
         Pipe a, b, c;
         Task tasks[kGenthreadExBatchOps];
@@ -208,7 +228,7 @@ void all_barriers() {
         uint8_t length;
         require(!candidate(tasks[3], length), "special did not arm a barrier");
         test::schedule_test_batch<kGenthreadExBatchOps, true>(tasks, 7);
-        constexpr uint32_t expected[] = {2,0,1,3,6,4,5};
+        constexpr uint32_t expected[] = {2, 0, 1, 3, 6, 4, 5};
         for (uint32_t i = 0; i < 7; ++i)
             require(tasks[i].enqueue_us_low == expected[i], "shadow crossed a special barrier");
     }
@@ -254,7 +274,7 @@ void bounded_service() {
             auto& rob = t.client->rob();
             for (auto j = rob.flush_id(); j < rob.dispatch_id(); ++j) pipes[id]->done(j);
             pipes[id]->retire();
-            pipes[id].reset(); // ASAN catches any post-callback Client dereference.
+            pipes[id].reset();  // ASAN catches any post-callback Client dereference.
         }
     };
     for (uint32_t round = 0; round < rounds; ++round) {
@@ -263,7 +283,7 @@ void bounded_service() {
             const uint32_t id = round * B + i;
             pipes[id] = std::make_unique<Pipe>();
             // Keep plenty of unshadowed work arriving after old shadowed work.
-            if (i == 0) (void)pipes[id]->add(long_op, UINT32_MAX); // another owner's long
+            if (i == 0) (void)pipes[id]->add(long_op, UINT32_MAX);  // another owner's long
             tasks[i] = pipes[id]->add(i == 1 ? long_op : short_op, id);
             admitted[id] = picks;
         }
@@ -273,10 +293,11 @@ void bounded_service() {
     q.finish(emit);
     require(picks == rounds * B && shadow_picks == rounds && long_picks == rounds,
             "missing class, bypassed positive window, or unfinished work");
-    std::printf("PASS bounded service B=%zu: %u picks, max wait %u <= K=%u; immediate destruction\n",
-                B, picks, max_wait, q.kMaxWaitPicks);
+    std::printf(
+        "PASS bounded service B=%zu: %u picks, max wait %u <= K=%u; immediate destruction\n", B,
+        picks, max_wait, q.kMaxWaitPicks);
 }
-} // namespace
+}  // namespace
 
 int main() {
     long_only_scope();

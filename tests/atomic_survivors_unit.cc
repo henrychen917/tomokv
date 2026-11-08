@@ -37,7 +37,11 @@ void operator delete[](void* p, std::size_t) noexcept { std::free(p); }
 // throwing allocator. ASAN otherwise supplies nothrow new while our delete
 // frees its result, reporting an allocator mismatch in read-local teardown.
 void* operator new(std::size_t size, const std::nothrow_t&) noexcept {
-    try { return ::operator new(size); } catch (const std::bad_alloc&) { return nullptr; }
+    try {
+        return ::operator new(size);
+    } catch (const std::bad_alloc&) {
+        return nullptr;
+    }
 }
 void* operator new[](std::size_t size, const std::nothrow_t&) noexcept {
     return ::operator new(size, std::nothrow);
@@ -45,16 +49,18 @@ void* operator new[](std::size_t size, const std::nothrow_t&) noexcept {
 void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
 void operator delete[](void* p, const std::nothrow_t&) noexcept { std::free(p); }
 
-
 using namespace tomo;
 namespace {
 void require(bool yes, const char* why) {
-    if (!yes) { std::fprintf(stderr, "FAIL: %s\n", why); std::exit(1); }
+    if (!yes) {
+        std::fprintf(stderr, "FAIL: %s\n", why);
+        std::exit(1);
+    }
 }
 // Synthetic phase fixtures install claims before real IO participant discovery.
 // Keep their explicit shard IDs; production EXECs use compact participant slots.
 MultiExecState* fixture_allocate_state(Server& server, Client& client, uint32_t owner,
-                                      MultiStateKind kind) {
+                                       MultiStateKind kind) {
     auto* state = allocate_state(server, client, owner, kind);
     if (state && kind == MultiStateKind::Execute) {
         state->shard_slots.clear();
@@ -99,8 +105,10 @@ std::string local(Server& server, std::vector<std::string> args, uint64_t conn =
     PlainForeignReadScope scope;
     require(xshard_plain_prepare(server, shard, r.op, conn, scope), "plain preparation");
 #if __has_include("src/cmd/watch_modified.h")
-    if (shard.has_watches()) watch_execute_handler(shard, r.op);
-    else r.op.spec->handler(shard, r.op);
+    if (shard.has_watches())
+        watch_execute_handler(shard, r.op);
+    else
+        r.op.spec->handler(shard, r.op);
 #else
     r.op.spec->handler(shard, r.op);
 #endif
@@ -135,14 +143,21 @@ std::string multi_io(Server& server, Client& client, std::vector<std::string> ar
         for (unsigned i = 0; i < done.size(); i++) {
             if (done[i]) continue;
             const int s = state->shards[i];
-            const auto result = multi_execute_task(server, multi_make_task(&client, 0, s, state),
-                server.shard(s), server.worker_of_shard(s), 0, nullptr);
-            if (!multi_task_retry(result)) { done[i] = true; remaining--; }
+            const auto result =
+                multi_execute_task(server, multi_make_task(&client, 0, s, state), server.shard(s),
+                                   server.worker_of_shard(s), 0, nullptr);
+            if (!multi_task_retry(result)) {
+                done[i] = true;
+                remaining--;
+            }
         }
     }
     require(!remaining, "transaction owner phases completed (no reservation cycle)");
     set_state_reply(*state, r.op);
-    if (state->reset_watch) { client.next_watch_generation(); client.clear_watch_dirty(); }
+    if (state->reset_watch) {
+        client.next_watch_generation();
+        client.clear_watch_dirty();
+    }
     release_records(server);
     destroy_multi_state(state);
     return r.reply();
@@ -159,7 +174,8 @@ struct ScatterRun {
         client.set_id(777);
         ScatterDispatch dispatch;
         require(xshard_prepare(server, request.op, pool, 0, client.id(), dispatch, force) ==
-                ScatterPrepare::Ready, "cross-owner scatter prepared");
+                    ScatterPrepare::Ready,
+                "cross-owner scatter prepared");
         state = dispatch.state;
         state->now_cut_ms = now_realtime_ms();
         require(state->nsub > 1, "scatter spans multiple shards");
@@ -170,7 +186,8 @@ struct ScatterRun {
         if (p == ScriptPhase::Run) {
             const int s = state->script_coordinator_shard;
             require(xshard_execute(Task{&client, 0, s, state}, server.shard(s), request.op,
-                    server.worker_of_shard(s)) == ScatterTaskResult::Complete, "script RUN");
+                                   server.worker_of_shard(s)) == ScatterTaskResult::Complete,
+                    "script RUN");
             return;
         }
         const auto count = script_select_positions(*state, p);
@@ -180,14 +197,14 @@ struct ScatterRun {
         for (unsigned i = 0; i < state->nsub; i++) {
             const int s = state->groups[i].shard;
             require(xshard_execute(Task{&client, 0, s, state}, server.shard(s), request.op,
-                    server.worker_of_shard(s)) == ScatterTaskResult::Complete, "script owner phase");
+                                   server.worker_of_shard(s)) == ScatterTaskResult::Complete,
+                    "script owner phase");
         }
     }
     ~ScatterRun() {
         if (!state->epoch.load()) state->aborted.store(true);
         for (unsigned i = 0; i < state->owner_slots; i++)
-            while (state->owner_record_refs[i].remaining)
-                complete_owner_record_wave(*state, i);
+            while (state->owner_record_refs[i].remaining) complete_owner_record_wave(*state, i);
         release_records(server);
         xshard_destroy(state, pool, 0);
         pool.reap_deferred();
@@ -206,7 +223,8 @@ void admission(Server& server) {
     auto* group = group_for(*run.state, 0);
     require(group && group->count == 2, "two candidates share the admission owner");
     require(xshard_execute(Task{&run.client, 0, 0, run.state}, server.shard(0), run.request.op,
-            server.worker_of_shard(0)) == ScatterTaskResult::Complete, "admission owner ran");
+                           server.worker_of_shard(0)) == ScatterTaskResult::Complete,
+            "admission owner ran");
     require(group->error == WorkError::Maxmemory && run.state->aborted.load(),
             "second admission exceeded capacity");
     require(run.state->keys[run.state->key_order[group->begin]].key_anchor != nullptr,
@@ -237,7 +255,8 @@ void rename(Server& server, bool watch) {
     const auto a = key_on(server, 0, "rename-a"), b = key_on(server, 1, "rename-b");
     require(server.worker_of_shard(0) != server.worker_of_shard(1), "RENAME crosses owners");
     require(local(server, {"SET", a, "old"}) == "+OK\r\n", "seed RENAME source");
-    Client client(-1); client.set_id(81);
+    Client client(-1);
+    client.set_id(81);
     if (watch) require(multi_io(server, client, {"WATCH", a}) == "+OK\r\n", "WATCH registered");
     require(multi_io(server, client, {"MULTI"}) == "+OK\r\n", "MULTI opened");
     if (!watch) require(multi_io(server, client, {"SET", a, "new"}) == "+QUEUED\r\n", "SET queued");
@@ -259,11 +278,13 @@ void write_latest(Server& server) {
     require(local(server, {"INCR", key}, 101) == ":1\r\n", "first connection increment");
     require(server.atomic_snapshot() == cut && store.atomic_has_record(hash, slice(key)),
             "safe watermark held behind a completed write");
-    require(local(server, {"INCR", key}, 102) == ":2\r\n", "second connection sees first increment");
+    require(local(server, {"INCR", key}, 102) == ":2\r\n",
+            "second connection sees first increment");
     const auto fresh = key_on(server, 0, "increment-fresh");
     const auto fresh_hash = FlatStore::hash_key(slice(fresh));
     require(store.atomic_script_pin(fresh_hash, slice(fresh)), "fresh-key intent pinned");
-    require(local(server, {"SET", fresh, "new"}, 103) == "+OK\r\n", "fresh key committed after safe cut");
+    require(local(server, {"SET", fresh, "new"}, 103) == "+OK\r\n",
+            "fresh key committed after safe cut");
     require(local(server, {"MSETNX", fresh, "wrong"}, 104, true) == ":0\r\n",
             "local multi-key conditional writer sees the newest committed key");
     store.atomic_script_unpin(fresh_hash, slice(fresh));
@@ -317,7 +338,8 @@ void txn_intents(Server& server) {
     require(store.atomic_cleanup_unit_intents() == 0, "cleanup retains undecided unit");
     second.epoch.store(kAtomicCancelledEpoch, std::memory_order_release);
     require(store.atomic_cleanup_unit_intents() == 1, "cleanup reaps decided wildcard");
-    require(!store.atomic_has_records() && !server.atomic_work_active(), "activity balances to zero");
+    require(!store.atomic_has_records() && !server.atomic_work_active(),
+            "activity balances to zero");
     require(store.atomic_script_pin(hash, slice(key)), "PIN prefix re-arms from empty");
     require(store.atomic_unit_pin(one, hash, slice(key)) == 1, "unit appended to PIN prefix");
     require(store.atomic_unit_unpin(&first) == 1 && server.script_intents_active(),
@@ -325,7 +347,8 @@ void txn_intents(Server& server) {
     store.atomic_script_unpin(hash, slice(key));
     require(!server.script_intents_active() && !store.atomic_has_records(), "final accounting");
     {
-        Client client{-1}; client.set_id(887);
+        Client client{-1};
+        client.set_id(887);
         auto* state = fixture_allocate_state(server, client, 0, MultiStateKind::Execute);
         require(state != nullptr, "shutdown attempt allocated");
         state->shards.push_back(0);
@@ -347,11 +370,11 @@ void txn_intents(Server& server) {
         require(server.txn_counter(TxnCounter::IntentsLive) == 1, "live shutdown intent counted");
         store.atomic_shutdown_release_records();
         require(!store.atomic_has_records() && !server.script_intents_active() &&
-                server.txn_counter(TxnCounter::IntentsLive) == 0,
+                    server.txn_counter(TxnCounter::IntentsLive) == 0,
                 "shutdown releases a live unit intent without a PIN accounting change");
-        require(state->decision.aborted.load() &&
-                state->decision.epoch.load() == kAtomicCancelledEpoch,
-                "shutdown withdraws an undecided attempt");
+        require(
+            state->decision.aborted.load() && state->decision.epoch.load() == kAtomicCancelledEpoch,
+            "shutdown withdraws an undecided attempt");
         ScatterArenaPool pool;
         std::vector<MultiExecState*> deferred;
         multi_shutdown_attempt(state, pool, deferred);
@@ -372,11 +395,12 @@ void txn_intents(Server& server) {
         require(store.atomic_script_pin(hash, slice(key)), "second abandoned activation shares it");
         require(store.atomic_script_pin(other_hash, slice(other)), "abandoned PIN on another key");
         require(store.atomic_has_script_pins() && server.script_intents_active() &&
-                server.atomic_work_active(), "abandoned PINs armed at teardown");
+                    server.atomic_work_active(),
+                "abandoned PINs armed at teardown");
         IoLoop::shutdown_release_abandoned_script_pins(server);
         store.atomic_shutdown_release_records();
         require(!store.atomic_has_records() && !server.script_intents_active() &&
-                !server.atomic_work_active(),
+                    !server.atomic_work_active(),
                 "teardown releases abandoned PINs and balances their accounting");
     }
 }
@@ -423,23 +447,32 @@ void txn_group(Server& server) {
     {
         Attempt run(server, request);
         auto& state = run.state;
-        require(!txn_group_ready(state, server.shard(0), request.op), "group waits for all arrivals");
+        require(!txn_group_ready(state, server.shard(0), request.op),
+                "group waits for all arrivals");
         require(txn_group_arrive(state, server.shard(1), request.op), "second group arrival");
         require(txn_group_ready(state, server.shard(0), request.op), "group places source");
         require(state.watch_refs.load() == ScatterState::kGroupAttemptRef + 2,
                 "source claim and lazy anchor retain the attempt");
         require(!txn_group_release(state), "live owner pins prevent sidecar release");
-        Client older_client{-1}; older_client.set_id(898);
+        Client older_client{-1};
+        older_client.set_id(898);
         auto* older = fixture_allocate_state(server, older_client, 0, MultiStateKind::Execute);
         older->decision.age_ns = state.group_attempt()->age_ns - 1;
         txn_add_claim(older->claims[0], slice(a), TxnClaimMode::Write);
-        Shard::WatchReservation claim{older, &older->decision.epoch, &older->decision.aborted,
-            &older->watch_refs, &older_client, 0, false, true};
+        Shard::WatchReservation claim{older,
+                                      &older->decision.epoch,
+                                      &older->decision.aborted,
+                                      &older->watch_refs,
+                                      &older_client,
+                                      0,
+                                      false,
+                                      true};
         claim.unit_kind = 1;
         require(server.shard(0).watch_place_unit(older->claims[0], claim), "older EXEC places");
         require(state.epoch.load() == kAtomicCancelledEpoch && state.aborted.load(),
                 "older EXEC wounds a placing group");
-        require(!txn_group_decide(state, server.atomic_commit()), "wound cannot be overwritten by commit");
+        require(!txn_group_decide(state, server.atomic_commit()),
+                "wound cannot be overwritten by commit");
         older->decision.aborted.store(true);
         server.shard(0).watch_finish_unit(older->claims[0], older);
         destroy_multi_state(older);
@@ -451,26 +484,32 @@ void txn_group(Server& server) {
         // Suspend the doomer immediately after its CAS. The batch must take
         // its existing abort arm even before that doomer stores the flag.
         state.epoch.store(kAtomicCancelledEpoch);
-        require(!state.aborted.load(),
-                "cancelled word precedes doomer metadata");
+        require(!state.aborted.load(), "cancelled word precedes doomer metadata");
         require(!txn_group_decide(state, server.atomic_commit()) && state.aborted.load(),
                 "failed commit CAS publishes abort before batch completion");
     }
     {
         Attempt run(server, request);
         auto& state = run.state;
-        require(!txn_group_ready(state, server.shard(0), request.op), "first fragment waits for arrival");
-        require(!server.shard(0).has_watches(), "no early reservation before final fragment arrives");
-        require(txn_group_arrive(state, server.shard(1), request.op), "direct destination can arrive before source readiness");
+        require(!txn_group_ready(state, server.shard(0), request.op),
+                "first fragment waits for arrival");
+        require(!server.shard(0).has_watches(),
+                "no early reservation before final fragment arrives");
+        require(txn_group_arrive(state, server.shard(1), request.op),
+                "direct destination can arrive before source readiness");
         require(txn_group_ready(state, server.shard(0), request.op) &&
-                txn_group_ready(state, server.shard(1), request.op), "owners place after arrival");
-        require(state.watch_refs.load() == ScatterState::kGroupAttemptRef + 4, "two reservations and two lazy cleanup anchors");
+                    txn_group_ready(state, server.shard(1), request.op),
+                "owners place after arrival");
+        require(state.watch_refs.load() == ScatterState::kGroupAttemptRef + 4,
+                "two reservations and two lazy cleanup anchors");
         require(!server.shard(0).watch_write_ready(slice(a)) &&
-                !server.shard(1).watch_write_ready(slice(b)), "started group guards both owners' writes");
+                    !server.shard(1).watch_write_ready(slice(b)),
+                "started group guards both owners' writes");
         Request writer({"SET", a, "racing"});
         writer.op.hash = run.keys[0].hash;
         writer.op.shard = 0;
-        Client foreign{-1}; foreign.set_id(899);
+        Client foreign{-1};
+        foreign.set_id(899);
         const Task blocked{&foreign, 0, 0, nullptr};
         require(!writer.op.atomic_hazard(), "ordinary writer starts without a hazard mark");
         require(!multi_plain_write_ready(server.shard(0), writer.op) && writer.op.atomic_hazard(),
@@ -487,11 +526,12 @@ void txn_group(Server& server) {
         xshard_cleanup_shard_at(server.shard(1), UINT64_MAX, UINT64_MAX, 256);
         require(multi_plain_write_ready(server.shard(0), writer.op),
                 "released writer passes and removes its fairness mark");
-        require(state.watch_refs.load() == ScatterState::kGroupAttemptRef && !server.shard(0).has_watches() &&
-                !server.shard(1).has_watches(), "read-only owner cleanup retires every reservation");
+        require(state.watch_refs.load() == ScatterState::kGroupAttemptRef &&
+                    !server.shard(0).has_watches() && !server.shard(1).has_watches(),
+                "read-only owner cleanup retires every reservation");
     }
     require(server.txn_counter(TxnCounter::OrderViolations) == 0 &&
-            server.txn_counter(TxnCounter::IntentsLive) == 0,
+                server.txn_counter(TxnCounter::IntentsLive) == 0,
             "group unit leaves no violation or live intent");
 }
 
@@ -499,7 +539,8 @@ void txn_help(Server& server) {
     {
         const auto a = key_on(server, 0, "txn-watch-arrive-a");
         const auto b = key_on(server, 1, "txn-watch-arrive-b");
-        Client client{-1}; client.set_id(890);
+        Client client{-1};
+        client.set_id(890);
         auto* state = fixture_allocate_state(server, client, 0, MultiStateKind::Execute);
         require(state != nullptr, "WATCH arrival attempt allocated");
         state->shards = {0, 1};
@@ -509,25 +550,27 @@ void txn_help(Server& server) {
         state->watch_pending.store(2);
         state->read_only = false;
         for (const auto& key : state->watched)
-            require(server.shard(key.shard).watch_add(slice(key.key), &client,
-                        state->watch_generation), "WATCH arrival registry armed");
+            require(
+                server.shard(key.shard).watch_add(slice(key.key), &client, state->watch_generation),
+                "WATCH arrival registry armed");
         require(!execute_watch_phase(*state, server.shard(0)),
                 "first fragment waits for all participants before reserving");
         require(server.shard(0).watch_write_ready(slice(a)),
                 "a writer cannot hide missing EXEC fragments behind a WATCH claim");
-        require(!execute_watch_phase(*state, server.shard(0)) &&
-                state->watch_arrived.load() == 1, "arrival is counted once per shard");
+        require(!execute_watch_phase(*state, server.shard(0)) && state->watch_arrived.load() == 1,
+                "arrival is counted once per shard");
         require(execute_watch_phase(*state, server.shard(1)) &&
-                execute_watch_phase(*state, server.shard(0)),
+                    execute_watch_phase(*state, server.shard(0)),
                 "all arrivals allow the existing WATCH validation barrier to finish");
         require(!server.shard(0).watch_write_ready(slice(a)) &&
-                !server.shard(1).watch_write_ready(slice(b)),
+                    !server.shard(1).watch_write_ready(slice(b)),
                 "validated WATCH claims still block ordinary writers");
         state->decision.aborted.store(true);
         finalize_reservations(*state, server.shard(0));
         finalize_reservations(*state, server.shard(1));
         require(server.shard(0).watch_write_ready(slice(a)) &&
-                server.shard(1).watch_write_ready(slice(b)), "decided claims are released");
+                    server.shard(1).watch_write_ready(slice(b)),
+                "decided claims are released");
         destroy_multi_state(state);
     }
     {
@@ -540,11 +583,13 @@ void txn_help(Server& server) {
         KvObj* tombstone = nullptr;
         require(store.atomic_prepare_plain(slice(key), FlatStore::hash_key(slice(key)), 0, entry),
                 "Rule P foreign version prepared");
-        store.atomic_install_plain(FlatStore::hash_key(slice(key)), slice(key), entry, tombstone, last);
+        store.atomic_install_plain(FlatStore::hash_key(slice(key)), slice(key), entry, tombstone,
+                                   last);
         store.atomic_clear_read_epoch();
         server.atomic_commit_publish();
         require(server.atomic_snapshot() < first, "open publication bracket holds the watermark");
-        Client client{-1}; client.set_id(889);
+        Client client{-1};
+        client.set_id(889);
         auto* state = fixture_allocate_state(server, client, 0, MultiStateKind::Execute);
         require(state != nullptr, "Rule P attempt allocated");
         state->read_only = false;
@@ -565,7 +610,8 @@ void txn_help(Server& server) {
     {
         const auto key = key_on(server, 0, "txn-cancel-handler");
         require(local(server, {"LPUSH", key, "seed"}) == ":1\r\n", "collection predecessor");
-        Client client{-1}; client.set_id(888);
+        Client client{-1};
+        client.set_id(888);
         auto* state = fixture_allocate_state(server, client, 0, MultiStateKind::Execute);
         require(state != nullptr, "collection attempt allocated");
         Request request({"LPUSH", key, "ghost"});
@@ -575,7 +621,8 @@ void txn_help(Server& server) {
         initialize_multi_owner_record_refs(*state);
         Shard& shard = server.shard(0);
         require(prepare_local_write_keys(server, *state, *state->commands[0], shard,
-                    server.worker_of_shard(0)), "private collection clone installed");
+                                         server.worker_of_shard(0)),
+                "private collection clone installed");
         multi_cancel_decision(state->decision, 0);
         // A different owner can cancel exactly here, after prepare and before
         // the collection handler's find(). It must still mutate its clone.
@@ -600,7 +647,8 @@ void txn_help(Server& server) {
     for (uint32_t i = 0; i < run.state->nsub; ++i) {
         const int shard = run.state->groups[i].shard;
         require(xshard_execute(Task{&run.client, 0, shard, run.state}, server.shard(shard),
-                run.request.op, server.worker_of_shard(shard)) == ScatterTaskResult::Complete,
+                               run.request.op,
+                               server.worker_of_shard(shard)) == ScatterTaskResult::Complete,
                 "child candidate installed");
     }
     require(run.state->epoch.load() == 0, "child is still undecided");
@@ -613,7 +661,8 @@ void txn_help(Server& server) {
     auto& store = server.shard(0).store();
     store.atomic_set_read_context(UINT64_MAX, 91);
     auto* visible = store.find(FlatStore::hash_key(slice(a)), slice(a));
-    require(visible && visible->str_value() == Slice("new", 3), "writer clone sees the helped child");
+    require(visible && visible->str_value() == Slice("new", 3),
+            "writer clone sees the helped child");
     store.atomic_clear_read_epoch();
     server.atomic_commit_publish();
     MultiDecision cancelled;
@@ -627,13 +676,15 @@ void txn_help(Server& server) {
 void script_apply(Server& server) {
     const auto x = key_on(server, 0, "apply-x"), y = key_on(server, 1, "apply-y");
     require(local(server, {"SET", x, "B"}) == "+OK\r\n", "seed script image");
-    ScatterRun run(server, {"EVAL", "redis.call('GET',KEYS[2]); return redis.call('APPEND',KEYS[1],'S')",
-                           "2", x, y});
+    ScatterRun run(
+        server,
+        {"EVAL", "redis.call('GET',KEYS[2]); return redis.call('APPEND',KEYS[1],'S')", "2", x, y});
     // PIN is already grouped by xshard_prepare; the remaining phases use the production planner.
     for (unsigned i = 0; i < run.state->nsub; i++) {
         const int s = run.state->groups[i].shard;
         require(xshard_execute(Task{&run.client, 0, s, run.state}, server.shard(s), run.request.op,
-                server.worker_of_shard(s)) == ScatterTaskResult::Complete, "PIN ran");
+                               server.worker_of_shard(s)) == ScatterTaskResult::Complete,
+                "PIN ran");
     }
     run.state->script_cut = server.atomic_snapshot();
     run.phase(ScriptPhase::Read);
@@ -652,35 +703,47 @@ void script_apply(Server& server) {
     auto& store = server.shard(0).store();
     const auto hash = FlatStore::hash_key(slice(x));
     require(store.atomic_has_script_intent(hash, slice(x)), "write intent survives UNPIN");
-    require(!server.shard(1).store().atomic_has_script_intent(FlatStore::hash_key(slice(y)), slice(y)),
-            "read-only intent actually released in the same UNPIN wave");
-    require(local(server, {"APPEND", x, "W"}, 222) == ":2\r\n", "foreign APPEND completed in the window");
+    require(
+        !server.shard(1).store().atomic_has_script_intent(FlatStore::hash_key(slice(y)), slice(y)),
+        "read-only intent actually released in the same UNPIN wave");
+    require(local(server, {"APPEND", x, "W"}, 222) == ":2\r\n",
+            "foreign APPEND completed in the window");
     require(store.atomic_has_record(hash, slice(x)), "intervening writer drew a version");
     run.phase(ScriptPhase::Apply);
-    require(run.state->script_conflict.load() && run.state->aborted.load(), "APPLY rejects stale BS");
+    require(run.state->script_conflict.load() && run.state->aborted.load(),
+            "APPLY rejects stale BS");
     require(!store.atomic_has_script_intent(hash, slice(x)), "APPLY released the retained intent");
     server.atomic_commit_publish();
     require(local(server, {"GET", x}) == "$2\r\nBW\r\n", "foreign APPEND survives rejected APPLY");
 }
 void watch_cycle(Server& server) {
-    Client a(-1), b(-1); a.set_id(201); b.set_id(202);
+    Client a(-1), b(-1);
+    a.set_id(201);
+    b.set_id(202);
     Shard first, second;
-    first.init_private(&server, 0, {}, {}); second.init_private(&server, 1, {}, {});
+    first.init_private(&server, 0, {}, {});
+    second.init_private(&server, 1, {}, {});
     const Slice key("watched", 7);
     for (Shard* s : {&first, &second})
-        for (Client* c : {&a, &b}) require(s->watch_add(key, c, c->watch_generation()), "WATCH armed");
+        for (Client* c : {&a, &b})
+            require(s->watch_add(key, c, c->watch_generation()), "WATCH armed");
     std::atomic<uint64_t> ae{0}, be{0};
     std::atomic<bool> aa{false}, ba{false};
     std::atomic<uint32_t> ar{0}, br{0};
     auto reserve = [&](Shard& s, Client& c, auto& e, auto& abort, auto& refs) {
-        return s.watch_validate_and_reserve(key, &c, c.watch_generation(), &c, &e, &abort, &refs, false);
+        return s.watch_validate_and_reserve(key, &c, c.watch_generation(), &c, &e, &abort, &refs,
+                                            false);
     };
-    require(reserve(first, a, ae, aa, ar) && reserve(second, b, be, ba, br), "opposing first reservations");
+    require(reserve(first, a, ae, aa, ar) && reserve(second, b, be, ba, br),
+            "opposing first reservations");
     require(ar == 1 && br == 1 && !first.watch_write_ready(key) && !second.watch_write_ready(key),
             "both blocking reservations are live");
-    require(reserve(second, a, ae, aa, ar) && reserve(first, b, be, ba, br), "opposing validation completes");
-    require(ar == 2 && br == 2 && !a.watch_dirty() && !b.watch_dirty(), "read-only claims coexist cleanly");
-    ae.store(1); be.store(1);
+    require(reserve(second, a, ae, aa, ar) && reserve(first, b, be, ba, br),
+            "opposing validation completes");
+    require(ar == 2 && br == 2 && !a.watch_dirty() && !b.watch_dirty(),
+            "read-only claims coexist cleanly");
+    ae.store(1);
+    be.store(1);
     for (Shard* s : {&first, &second}) {
         require(s->watch_write_ready(key), "decided claims release writers");
         for (Client* c : {&a, &b}) s->watch_remove(key, c, c->watch_generation());
@@ -694,20 +757,24 @@ void post_apply_probe(Server& server) {
     // The original direct-phase fixture needed no inbox. Redispatch posts real
     // owner tasks, so initialize the same split inboxes as executor boot.
     for (unsigned tid = 0; tid < server.nthreads(); ++tid)
-        require(server.thread(tid).init_task_inbox_local(
-                    server.placement().ifid_threads(), server.placement().ex_threads()),
+        require(server.thread(tid).init_task_inbox_local(server.placement().ifid_threads(),
+                                                         server.placement().ex_threads()),
                 "escalation owner inbox initialized");
     for (bool commit_first : {false, true}) {
         const auto x = key_on(server, 0, commit_first ? "commit-first-x" : "writer-first-x");
         const auto y = key_on(server, 1, commit_first ? "commit-first-y" : "writer-first-y");
         require(server.worker_of_shard(0) != server.worker_of_shard(1), "two APPLY owners");
         require(local(server, {"SET", x, "B"}) == "+OK\r\n" &&
-                local(server, {"SET", y, "B"}) == "+OK\r\n", "seed both APPLY owners");
-        ScatterRun run(server, {"EVAL", "redis.call('APPEND',KEYS[2],'T'); return redis.call('APPEND',KEYS[1],'S')",
-                               "2", x, y});
+                    local(server, {"SET", y, "B"}) == "+OK\r\n",
+                "seed both APPLY owners");
+        ScatterRun run(
+            server,
+            {"EVAL", "redis.call('APPEND',KEYS[2],'T'); return redis.call('APPEND',KEYS[1],'S')",
+             "2", x, y});
         run.phase(ScriptPhase::Pin);
         run.state->script_cut = server.atomic_snapshot();
-        run.phase(ScriptPhase::Read); run.phase(ScriptPhase::Run);
+        run.phase(ScriptPhase::Read);
+        run.phase(ScriptPhase::Run);
         require(server.script_try_certification(), "script certification");
         run.state->script_certifier = true;
         run.state->script_ticket = server.atomic_commit_reserve();
@@ -716,41 +783,48 @@ void post_apply_probe(Server& server) {
         require(!run.state->script_conflict.load(), "validation succeeded before either APPLY");
         run.state->script_apply_after_unpin = true;
         run.phase(ScriptPhase::Unpin);
-        run.state->script_phase = ScriptPhase::Apply; run.state->phase = 2;
+        run.state->script_phase = ScriptPhase::Apply;
+        run.state->phase = 2;
         const auto count = script_select_positions(*run.state, ScriptPhase::Apply);
-        reset_groups(*run.state); build_groups(*run.state, run.state->hop2, count);
+        reset_groups(*run.state);
+        build_groups(*run.state, run.state->hop2, count);
         initialize_owner_completion(*run.state);
         require(run.state->nsub == 2, "both owners must install script writes");
         require(xshard_execute(Task{&run.client, 0, 0, run.state}, server.shard(0), run.request.op,
-                server.worker_of_shard(0)) == ScatterTaskResult::Complete, "first APPLY completed");
+                               server.worker_of_shard(0)) == ScatterTaskResult::Complete,
+                "first APPLY completed");
         require(!run.state->epoch.load() && server.shard(0).store().atomic_pending_entries() != 0,
                 "first script image is installed and still undecided");
-        require(local(server, {"GET", x}, 889) == "$1\r\nB\r\n", "foreign read completes without retry in open APPLY window");
+        require(local(server, {"GET", x}, 889) == "$1\r\nB\r\n",
+                "foreign read completes without retry in open APPLY window");
         std::string write_reply;
         if (!commit_first) write_reply = local(server, {"APPEND", x, "W"}, 888);
         require(xshard_execute(Task{&run.client, 0, 1, run.state}, server.shard(1), run.request.op,
-                server.worker_of_shard(1)) == ScatterTaskResult::Complete, "second APPLY completed");
+                               server.worker_of_shard(1)) == ScatterTaskResult::Complete,
+                "second APPLY completed");
         run.state->pending.store(1);
         Ring unused_ring;
-        const auto finished = xshard_complete_script<false>(server,
-            server.thread(server.worker_of_shard(1)), unused_ring,
+        const auto finished = xshard_complete_script<false>(
+            server, server.thread(server.worker_of_shard(1)), unused_ring,
             Task{&run.client, 0, 1, run.state}, run.request.op, *run.state);
         require(finished == (commit_first ? ScatterFinish::Final : ScatterFinish::Waiting),
                 "production script commits or hands off a conflicted attempt");
         if (commit_first) {
             write_reply = local(server, {"APPEND", x, "W"}, 888);
             require(run.request.reply() == ":2\r\n" && write_reply == ":3\r\n" &&
-                    local(server, {"GET", x}) == "$3\r\nBSW\r\n",
+                        local(server, {"GET", x}) == "$3\r\nBSW\r\n",
                     "committed script precedes foreign APPEND");
         } else {
             require(run.state->epoch.load() == kAtomicCancelledEpoch &&
-                    !run.state->apply_open.load() && write_reply == ":2\r\n" &&
-                    local(server, {"GET", x}) == "$2\r\nBW\r\n" &&
-                    local(server, {"GET", y}) == "$1\r\nB\r\n",
+                        !run.state->apply_open.load() && write_reply == ":2\r\n" &&
+                        local(server, {"GET", x}) == "$2\r\nBW\r\n" &&
+                        local(server, {"GET", y}) == "$1\r\nB\r\n",
                     "cancelled attempt preserves the foreign write and exposes no partial script");
             auto* attempt = run.state->group_attempt();
-            require(attempt && server.multi_retry_lane(0).head.exchange(nullptr) == &attempt->retry &&
-                    !attempt->retry.next, "conflict queues exactly one escalated attempt");
+            require(attempt &&
+                        server.multi_retry_lane(0).head.exchange(nullptr) == &attempt->retry &&
+                        !attempt->retry.next,
+                    "conflict queues exactly one escalated attempt");
             Op* carrier = run.client.rob().acquire<false>();
             require(carrier, "escalation carrier");
             for (const auto& arg : run.request.args)
@@ -759,33 +833,38 @@ void post_apply_probe(Server& server) {
             carrier->attach_scatter_state(run.state);
             carrier->state.store(OpState::Issued);
             run.client.rob().publish();
-            script_escalate_redispatch<false>(server, server.thread(0), unused_ring, run.pool, *run.state);
+            script_escalate_redispatch<false>(server, server.thread(0), unused_ring, run.pool,
+                                              *run.state);
             run.state = static_cast<ScatterState*>(carrier->scatter_state());
             require(run.state && run.state->group_attempt(), "redispatch carries real claims");
             std::vector<Task> pending;
             unsigned finals = 0;
             for (unsigned pass = 0; !finals && pass < 1000; ++pass) {
                 for (unsigned tid = 0; tid < server.nthreads(); ++tid)
-                    server.thread(tid).drain_tasks([&](const Task& task) { pending.push_back(task); });
+                    server.thread(tid).drain_tasks(
+                        [&](const Task& task) { pending.push_back(task); });
                 std::vector<Task> retry;
                 for (const Task& task : pending) {
                     auto& shard = server.shard(task.shard);
                     const auto owner = server.worker_of_shard(task.shard);
                     if (xshard_task_should_defer(server, shard, task, *carrier) ||
                         xshard_execute(task, shard, *carrier, owner) == ScatterTaskResult::Defer) {
-                        retry.push_back(task); continue;
+                        retry.push_back(task);
+                        continue;
                     }
-                    const auto result = xshard_complete_script<false>(server, server.thread(owner),
-                        unused_ring, task, *carrier, *run.state);
-                    if (result == ScatterFinish::Final) ++finals;
-                    else require(result == ScatterFinish::Waiting, "escalated phase continues");
+                    const auto result = xshard_complete_script<false>(
+                        server, server.thread(owner), unused_ring, task, *carrier, *run.state);
+                    if (result == ScatterFinish::Final)
+                        ++finals;
+                    else
+                        require(result == ScatterFinish::Waiting, "escalated phase continues");
                 }
                 pending.swap(retry);
             }
             require(finals == 1 && pending.empty() &&
-                    std::string(carrier->reply.data(), carrier->reply.size()) == ":3\r\n" &&
-                    local(server, {"GET", x}) == "$3\r\nBWS\r\n" &&
-                    local(server, {"GET", y}) == "$2\r\nBT\r\n",
+                        std::string(carrier->reply.data(), carrier->reply.size()) == ":3\r\n" &&
+                        local(server, {"GET", x}) == "$3\r\nBWS\r\n" &&
+                        local(server, {"GET", y}) == "$2\r\nBT\r\n",
                     "escalated script commits once after the foreign writer without refusal");
             carrier->detach_scatter_state();
         }
@@ -795,9 +874,11 @@ void post_apply_probe(Server& server) {
 void mset_arity(Server& server) {
     const auto a = key_on(server, 0, "arity-a"), b = key_on(server, 1, "arity-b");
     for (const char* verb : {"MSET", "MSETNX"}) {
-        Client c(-1); c.set_id(404);
+        Client c(-1);
+        c.set_id(404);
         require(multi_io(server, c, {"MULTI"}) == "+OK\r\n", "fresh MULTI");
-        require(multi_io(server, c, {verb, a, "one", b}) == "+QUEUED\r\n", "malformed pair list queued");
+        require(multi_io(server, c, {verb, a, "one", b}) == "+QUEUED\r\n",
+                "malformed pair list queued");
         const auto reply = multi_io(server, c, {"EXEC"});
         require(reply.starts_with("*1\r\n-ERR wrong number"), "EXEC has a command error element");
         require(local(server, {"GET", a}) == "$-1\r\n" && local(server, {"GET", b}) == "$-1\r\n",
@@ -806,22 +887,27 @@ void mset_arity(Server& server) {
 }
 void watch_oom(Server& server) {
     const std::string key(128, 'w');
-    unsigned failures = 0; bool saw_rollback = false, reached_success = false;
+    unsigned failures = 0;
+    bool saw_rollback = false, reached_success = false;
     const int max_budget = static_cast<int>(server.cfg().databases) * 8 + 64;
     for (int budget = 0; budget < max_budget; budget++) {
-        Client c(-1); c.set_id(505);
+        Client c(-1);
+        c.set_id(505);
         Request watch({"WATCH", key});
         MultiExecState* state = nullptr;
-        allocation_failed = false; fail_new_after = budget;
+        allocation_failed = false;
+        fail_new_after = budget;
         const auto action = multi_handle_io(server, c, watch.op, 0, state);
         fail_new_after = -1;
         if (allocation_failed) {
             failures++;
-            require(action == MultiIoAction::LocalDone && watch.reply().starts_with("-ERR out of memory"),
+            require(action == MultiIoAction::LocalDone &&
+                        watch.reply().starts_with("-ERR out of memory"),
                     "injected WATCH preparation failure reported");
             auto* session = c.multi_session();
             saw_rollback |= session && session->watched.capacity() != 0;
-            require(!session || session->watched.empty(), "failed WATCH did not leave a phantom session key");
+            require(!session || session->watched.empty(),
+                    "failed WATCH did not leave a phantom session key");
             require(c.flip_migration_protocol_idle(), "WATCH OOM leaves no phantom transfer pins");
             watch.op.clear_reply();
             require(multi_handle_io(server, c, watch.op, 0, state) == MultiIoAction::Dispatch,
@@ -835,22 +921,26 @@ void watch_oom(Server& server) {
         std::vector<bool> namespaces(server.cfg().databases, false);
         for (const auto& alias : state->watched) {
             require(alias.db == 0 && alias.key == key && alias.ns < namespaces.size() &&
-                    !namespaces[alias.ns], "one exact logical key, no duplicate namespace alias");
+                        !namespaces[alias.ns],
+                    "one exact logical key, no duplicate namespace alias");
             namespaces[alias.ns] = true;
         }
         require(!c.flip_migration_protocol_idle(), "prepared WATCH stays on source IO");
         multi_dispatch_started(c, state);
         for (const auto shard_id : state->shards)
-            require(execute_watch_phase(*state, server.shard(shard_id)), "retry registered owner watcher");
-        require(c.flip_migration_protocol_idle(), "all installed WATCH aliases exactly match session");
+            require(execute_watch_phase(*state, server.shard(shard_id)),
+                    "retry registered owner watcher");
+        require(c.flip_migration_protocol_idle(),
+                "all installed WATCH aliases exactly match session");
         c.watch_ref();
         require(!c.flip_migration_protocol_idle(), "transient WATCH pin still blocks transfer");
         c.watch_unref();
         server.shard(sid(server, key)).watch_write_committed(slice(key));
         require(c.watch_dirty(), "foreign mutation dirties the successfully retried WATCH");
         for (const auto& alias : state->watched)
-            server.shard(alias.shard).watch_remove(
-                Slice(alias.key.data(), alias.key.size(), alias.ns), &c, c.watch_generation());
+            server.shard(alias.shard)
+                .watch_remove(Slice(alias.key.data(), alias.key.size(), alias.ns), &c,
+                              c.watch_generation());
         require(c.safe_to_release(), "every alias releases its client reference");
         c.multi_session()->pending = nullptr;
         c.multi_session()->watched.clear();
@@ -858,35 +948,48 @@ void watch_oom(Server& server) {
         destroy_multi_state(state);
         if (reached_success) break;
     }
-    require(failures >= 10 && saw_rollback && reached_success, "swept through the post-append OOM window");
+    require(failures >= 10 && saw_rollback && reached_success,
+            "swept through the post-append OOM window");
 }
 
 void lua_case(Server& server, const std::string& name) {
     Shard& shard = server.shard(0);
     auto call = [&](std::vector<std::string> args) {
-        Request r(std::move(args)); r.op.spec->handler(shard, r.op); return r.reply();
+        Request r(std::move(args));
+        r.op.spec->handler(shard, r.op);
+        return r.reply();
     };
     if (name == "closure") {
-        require(call({"FUNCTION", "LOAD", "#!lua name=retained\nlocal reg=redis.register_function\n"
-             "reg('retained',function() reg('late',function() return 1 end); return 42 end)"}) ==
-             "$8\r\nretained\r\n", "retained closure library loaded");
+        require(
+            call(
+                {"FUNCTION", "LOAD",
+                 "#!lua name=retained\nlocal reg=redis.register_function\n"
+                 "reg('retained',function() reg('late',function() return 1 end); return 42 end)"}) ==
+                "$8\r\nretained\r\n",
+            "retained closure library loaded");
         const auto reply = call({"FCALL", "retained", "0"});
-        require(reply == "-ERR redis.register_function can only be called on FUNCTION LOAD command "
-                         "script: retained, on @user_function:3.\r\n",
+        require(reply ==
+                    "-ERR redis.register_function can only be called on FUNCTION LOAD command "
+                    "script: retained, on @user_function:3.\r\n",
                 "escaped registration closure is revoked after materialization");
     } else if (name == "lua_conversion") {
         for (const char* body : {"error('conversion failed')", "while true do end"}) {
-            const std::string table = std::string("setmetatable({}, {__index=function() ") + body + " end})";
-            require(call({"EVAL", "return " + table, "0"}) == "*0\r\n", "reply conversion never invokes __index");
+            const std::string table =
+                std::string("setmetatable({}, {__index=function() ") + body + " end})";
+            require(call({"EVAL", "return " + table, "0"}) == "*0\r\n",
+                    "reply conversion never invokes __index");
             require(call({"EVAL", "error(" + table + ")", "0"}).starts_with("-ERR"),
                     "error conversion never invokes __index");
         }
     } else if (name == "lua_lines") {
-        require(call({"EVAL", "return {ok='OK\\r\\n:42'}", "0"}) == "+OK  :42\r\n", "status has exactly one frame");
-        require(call({"EVAL", "return {err='ERR bad\\r\\n:42'}", "0"}) == "-ERR bad  :42\r\n", "error has exactly one frame");
+        require(call({"EVAL", "return {ok='OK\\r\\n:42'}", "0"}) == "+OK  :42\r\n",
+                "status has exactly one frame");
+        require(call({"EVAL", "return {err='ERR bad\\r\\n:42'}", "0"}) == "-ERR bad  :42\r\n",
+                "error has exactly one frame");
     } else if (name == "library_limit") {
-        for (const char* body : {"while true do end", "redis.register_function('late',function() return 1 end); "
-                               "while true do end"}) {
+        for (const char* body : {"while true do end",
+                                 "redis.register_function('late',function() return 1 end); "
+                                 "while true do end"}) {
             const auto before = function_stats().libraries;
             const auto reply = call({"FUNCTION", "LOAD", std::string("#!lua name=spin\n") + body});
             require(reply.starts_with("-") && reply.find("instruction limit") != std::string::npos,
@@ -897,27 +1000,32 @@ void lua_case(Server& server, const std::string& name) {
         // Check that public boundary, then keep the caught-timeout regression at
         // the real library-call seam with a sandbox that exposes pcall.
         const auto before = function_stats().libraries;
-        const auto reply = call({"FUNCTION", "LOAD", "#!lua name=spin\n"
-            "pcall(function() while true do end end); "
-            "redis.register_function('late',function() return 1 end)"});
+        const auto reply = call({"FUNCTION", "LOAD",
+                                 "#!lua name=spin\n"
+                                 "pcall(function() while true do end end); "
+                                 "redis.register_function('late',function() return 1 end)"});
         require(reply.starts_with("-ERR Error registering functions:") &&
-                reply.find("nonexistent global variable 'pcall'") != std::string::npos,
+                    reply.find("nonexistent global variable 'pcall'") != std::string::npos,
                 "FUNCTION LOAD cannot access pcall");
-        require(function_stats().libraries == before, "invalid registration environment leaves no library");
+        require(function_stats().libraries == before,
+                "invalid registration environment leaves no library");
         lua_State* state = script_new_sandbox_state();
         require(state != nullptr, "library timeout sandbox allocated");
         require(luaL_loadstring(state,
-            "local ok=pcall(function() while true do end end); return 42") == 0,
-            "caught library timeout chunk compiled");
+                                "local ok=pcall(function() while true do end end); return 42") == 0,
+                "caught library timeout chunk compiled");
         require(script_pcall_library(state) == LUA_ERRRUN && lua_gettop(state) == 1 &&
-                std::string(lua_tostring(state, -1)) == "ERR function library exceeded the instruction limit",
+                    std::string(lua_tostring(state, -1)) ==
+                        "ERR function library exceeded the instruction limit",
                 "library-call budget failure is terminal even when caught");
         lua_settop(state, 0);
         require(luaL_loadstring(state, "return 7") == 0 && script_pcall_library(state) == 0 &&
-                lua_gettop(state) == 0, "library-call context and stack recover after timeout");
+                    lua_gettop(state) == 0,
+                "library-call context and stack recover after timeout");
         lua_close(state);
     } else if (name == "instruction_limit") {
-        require(call({"EVAL", "local ok=pcall(function() while true do end end); return 42", "0"}).starts_with("-BUSY"),
+        require(call({"EVAL", "local ok=pcall(function() while true do end end); return 42", "0"})
+                    .starts_with("-BUSY"),
                 "caught instruction-limit error still fails the activation");
     }
     require(call({"EVAL", "return 7", "0"}) == ":7\r\n", "interpreter remains usable");
@@ -932,9 +1040,11 @@ void stage_flag(Server& server) {
     run.state->script_cut = server.atomic_snapshot();
     run.phase(ScriptPhase::Read);
     require(run.state->script_staged_bytes > server.script_crossshard_max_bytes() &&
-            run.state->script_stage_limit.load() && run.state->aborted.load(), "derived staging cap fired");
+                run.state->script_stage_limit.load() && run.state->aborted.load(),
+            "derived staging cap fired");
     script_engine_error_reply(run.request.op, *run.state, WorkError::Oom);
-    require(run.request.reply() == "-ERR cross-shard script staging limit exceeded\r\n", "staging error retained");
+    require(run.request.reply() == "-ERR cross-shard script staging limit exceeded\r\n",
+            "staging error retained");
 }
 }
 
@@ -945,37 +1055,61 @@ void stage_flag(Server& server) {
 int main(int argc, char** argv) {
     require(argc == 2, "one named regression is required");
     require(command_registry_init(false), "command registry");
-    Config cfg; cfg.databases = 1;
+    Config cfg;
+    cfg.databases = 1;
     const std::string name = argv[1];
     if (name == "watch_oom_db16") cfg.databases = 16;
     if (name.starts_with("plain_")) cfg.atomic = name.ends_with("_1") ? 1 : 0;
-    cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
-    cfg.key_lb = cfg.client_lb = 0; cfg.flip_auto = 0;
+    cfg.shards = 16;
+    cfg.even_ifid = 6;
+    cfg.even_ex = 2;
+    cfg.key_lb = cfg.client_lb = 0;
+    cfg.flip_auto = 0;
     // Exercise the fixed production instruction budget, including caught-limit failure.
     Server server;
-    require(server.prepare_boot(cfg) && server.init(cfg), "16-shard, 6:2 owner geometry initialized");
+    require(server.prepare_boot(cfg) && server.init(cfg),
+            "16-shard, 6:2 owner geometry initialized");
     command_bind_server(&server);
     std::string acl_error;
     require(acl_initialize(server, cfg, acl_error), "default ACL initialized");
-    if (name.starts_with("txnorder_")) txnorder_checks(server, name);
-    else if (name.starts_with("plain_")) atomic_plain_checks(server, name);
-    else if (name == "admission") { admission(server); atomiccollapse_checks(); }
-    else if (name.starts_with("collapse_")) atomiccollapse_checks(name.substr(9));
-    else if (name == "script_keys") script_keys(server);
-    else if (name == "txn_intents") txn_intents(server);
-    else if (name == "txn_help") txn_help(server);
-    else if (name == "txn_group") txn_group(server);
-    else if (name == "rename_overlay" || name == "watch_parent") rename(server, name == "watch_parent");
-    else if (name == "write_latest") write_latest(server);
-    else if (name == "script_apply") script_apply(server);
-    else if (name == "watch_cycle") watch_cycle(server);
-    else if (name == "post_apply_probe") post_apply_probe(server);
-    else if (name == "mset_arity") mset_arity(server);
-    else if (name == "watch_oom" || name == "watch_oom_db16") watch_oom(server);
-    else if (name == "stage_flag") stage_flag(server);
+    if (name.starts_with("txnorder_"))
+        txnorder_checks(server, name);
+    else if (name.starts_with("plain_"))
+        atomic_plain_checks(server, name);
+    else if (name == "admission") {
+        admission(server);
+        atomiccollapse_checks();
+    } else if (name.starts_with("collapse_"))
+        atomiccollapse_checks(name.substr(9));
+    else if (name == "script_keys")
+        script_keys(server);
+    else if (name == "txn_intents")
+        txn_intents(server);
+    else if (name == "txn_help")
+        txn_help(server);
+    else if (name == "txn_group")
+        txn_group(server);
+    else if (name == "rename_overlay" || name == "watch_parent")
+        rename(server, name == "watch_parent");
+    else if (name == "write_latest")
+        write_latest(server);
+    else if (name == "script_apply")
+        script_apply(server);
+    else if (name == "watch_cycle")
+        watch_cycle(server);
+    else if (name == "post_apply_probe")
+        post_apply_probe(server);
+    else if (name == "mset_arity")
+        mset_arity(server);
+    else if (name == "watch_oom" || name == "watch_oom_db16")
+        watch_oom(server);
+    else if (name == "stage_flag")
+        stage_flag(server);
     else if (name == "closure" || name == "lua_conversion" || name == "lua_lines" ||
-             name == "library_limit" || name == "instruction_limit") lua_case(server, name);
-    else require(false, "known regression name");
+             name == "library_limit" || name == "instruction_limit")
+        lua_case(server, name);
+    else
+        require(false, "known regression name");
     release_records(server);
     std::printf("PASS %s\n", name.c_str());
 }

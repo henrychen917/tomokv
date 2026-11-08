@@ -18,7 +18,8 @@ int main() {
         if (args.empty()) continue;
         const auto* spec = command_lookup(Slice(args[0]));
         if (!spec) continue;
-        Op op; op.reset();
+        Op op;
+        op.reset();
         for (const auto& arg : args) op.push_arg(Slice(arg));
         op.spec = spec;
         const bool script = spec->flags & CmdFlags::ScriptRoute;

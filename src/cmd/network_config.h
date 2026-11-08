@@ -28,14 +28,19 @@ inline int normalize_network_config(const char* name, Slice input, std::string& 
         return 1;
     }
     if (!std::strcmp(name, "protected-mode")) {
-        if (cfg_memory_suffix(input.p, input.n, "yes")) { out = "yes"; return 1; }
-        if (cfg_memory_suffix(input.p, input.n, "no")) { out = "no"; return 1; }
+        if (cfg_memory_suffix(input.p, input.n, "yes")) {
+            out = "yes";
+            return 1;
+        }
+        if (cfg_memory_suffix(input.p, input.n, "no")) {
+            out = "no";
+            return 1;
+        }
         error = "argument must be 'yes' or 'no'";
         return 0;
     }
     const bool clients = !std::strcmp(name, "maxclients");
-    if (!clients && std::strcmp(name, "timeout") && std::strcmp(name, "tcp-keepalive"))
-        return -1;
+    if (!clients && std::strcmp(name, "timeout") && std::strcmp(name, "tcp-keepalive")) return -1;
     int64_t value = 0;
     const auto result = std::from_chars(input.p, input.p + input.n, value);
     if (result.ec != std::errc{} || result.ptr != input.p + input.n ||
@@ -44,11 +49,11 @@ inline int normalize_network_config(const char* name, Slice input, std::string& 
         return 0;
     }
     if (value < (clients ? 1 : 0) || uint64_t(value) > (clients ? UINT32_MAX : INT_MAX)) {
-        error = clients ? "argument must be between 1 and 4294967295 inclusive" :
-                          "argument must be between 0 and 2147483647 inclusive";
+        error = clients ? "argument must be between 1 and 4294967295 inclusive"
+                        : "argument must be between 0 and 2147483647 inclusive";
         return 0;
     }
     out = std::to_string(value);
     return 1;
 }
-} // namespace tomo
+}  // namespace tomo

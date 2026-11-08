@@ -53,13 +53,16 @@ constexpr char kDumpMagic[8] = {'T', 'O', 'M', 'O', 'F', 'U', 'N', '1'};
 // Redis 7 function flags. no-writes implies OOM admission; allow-oom permits writes
 // over the cap. Replica/cluster-specific flags have no additional effect on this
 // single-node server (there is no stale-replica or cluster state).
-constexpr uint32_t kFlagNoWrites       = 1u << 0;
-constexpr uint32_t kFlagAllowOom       = 1u << 1;
-constexpr uint32_t kFlagAllowStale     = 1u << 2;
-constexpr uint32_t kFlagNoCluster      = 1u << 3;
+constexpr uint32_t kFlagNoWrites = 1u << 0;
+constexpr uint32_t kFlagAllowOom = 1u << 1;
+constexpr uint32_t kFlagAllowStale = 1u << 2;
+constexpr uint32_t kFlagNoCluster = 1u << 3;
 constexpr uint32_t kFlagAllowCrossSlot = 1u << 4;
 
-struct FlagName { const char* name; uint32_t bit; };
+struct FlagName {
+    const char* name;
+    uint32_t bit;
+};
 constexpr FlagName kFlagNames[] = {
     {"no-writes", kFlagNoWrites},
     {"allow-oom", kFlagAllowOom},
@@ -75,15 +78,15 @@ std::atomic<uint64_t> g_ro_rejections{0};
 struct FunctionDef {
     std::string name;
     std::string description;
-    bool        has_description = false;
-    bool        callable = true; // last registration owns a case-folded callback
-    uint32_t    flags = 0;
+    bool has_description = false;
+    bool callable = true;  // last registration owns a case-folded callback
+    uint32_t flags = 0;
 };
 
 struct LibraryDef {
     std::string name;
     std::string code;
-    std::vector<FunctionDef> functions;   // sorted by name: FUNCTION LIST must be deterministic
+    std::vector<FunctionDef> functions;  // sorted by name: FUNCTION LIST must be deterministic
     uint64_t revision = 0;               // identity changes even for REPLACE of identical source
 };
 
@@ -91,32 +94,34 @@ struct LibraryDef {
 // for introspection and diagnostic tags.
 std::string function_key(std::string_view name) {
     std::string result(name);
-    for (char& ch : result) if (ch >= 'A' && ch <= 'Z') ch += 'a' - 'A';
+    for (char& ch : result)
+        if (ch >= 'A' && ch <= 'Z') ch += 'a' - 'A';
     return result;
 }
 
 bool valid_function_name(std::string_view name) {
     return !name.empty() && std::all_of(name.begin(), name.end(), [](unsigned char ch) {
-        return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') ||
-               (ch >= '0' && ch <= '9') || ch == '_';
+        return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') ||
+               ch == '_';
     });
 }
 
-constexpr const char* kNameError = "Library names can only contain letters, numbers, or "
-                                  "underscores(_) and must be at least one character long";
+constexpr const char* kNameError =
+    "Library names can only contain letters, numbers, or "
+    "underscores(_) and must be at least one character long";
 
 // ---- reply helpers ---------------------------------------------------------------------------
 
-void reply_text_error(Op& op, std::string_view kind, std::string_view detail,
-                      bool trim = true) {
+void reply_text_error(Op& op, std::string_view kind, std::string_view detail, bool trim = true) {
     std::string message(kind);
-    if (!detail.empty()) { message.push_back(' '); message.append(detail); }
+    if (!detail.empty()) {
+        message.push_back(' ');
+        message.append(detail);
+    }
     reply_err(op.sink(), message.data(), message.size(), trim);
 }
 
-void reply_err_string(Op& op, const std::string& message) {
-    reply_text_error(op, "ERR", message);
-}
+void reply_err_string(Op& op, const std::string& message) { reply_text_error(op, "ERR", message); }
 
 void reply_wrong_args(Op& op, const char* sub) {
     char text[96];
@@ -176,8 +181,11 @@ public:
         std::lock_guard<std::mutex> lock(mu_);
         if (respect_cut && final_cut_locked()) return AddResult::Held;
         std::map<std::string, LibraryDef> saved;
-        try { saved = libraries_; }
-        catch (const std::bad_alloc&) { return AddResult::Oom; }
+        try {
+            saved = libraries_;
+        } catch (const std::bad_alloc&) {
+            return AddResult::Oom;
+        }
         if (flush_first) libraries_.clear();
         for (LibraryDef& library : incoming) {
             const AddResult result = add_locked(std::move(library), replace, detail,
@@ -215,8 +223,9 @@ public:
             out.clear();
             out.reserve(libraries_.size());
             for (const auto& entry : libraries_) {
-                if (!by_name || command_glob_match(library_name,
-                        Slice(entry.first.data(), entry.first.size()), true))
+                if (!by_name ||
+                    command_glob_match(library_name, Slice(entry.first.data(), entry.first.size()),
+                                       true))
                     out.push_back(entry.second);
             }
             return true;
@@ -293,8 +302,8 @@ private:
     mutable std::mutex mu_;
     std::map<std::string, LibraryDef> libraries_;
     std::atomic<uint64_t> generation_{0};
-    uint64_t flush_generation_ = 0; // guarded by mu_; published with the library snapshot
-    uint64_t final_cut_epoch_ = 0;  // guarded by mu_; the shutdown save that copied us
+    uint64_t flush_generation_ = 0;  // guarded by mu_; published with the library snapshot
+    uint64_t final_cut_epoch_ = 0;   // guarded by mu_; the shutdown save that copied us
 };
 
 FunctionRegistry g_functions;
@@ -328,8 +337,8 @@ bool function_cut_wait() {
 // ---- the registration sandbox ------------------------------------------------------------------
 
 struct RegisterSink {
-    std::vector<FunctionDef>* defs = nullptr;   // metadata harvest (FUNCTION LOAD)
-    bool store_callbacks = false;               // materialize into kRegistryFunctions
+    std::vector<FunctionDef>* defs = nullptr;  // metadata harvest (FUNCTION LOAD)
+    bool store_callbacks = false;              // materialize into kRegistryFunctions
 };
 
 int fn_missing_index(lua_State* state) {
@@ -350,13 +359,25 @@ bool parse_flag_table(lua_State* state, int index, uint32_t& flags, const char*&
     flags = 0;
     lua_pushnil(state);
     while (lua_next(state, index)) {
-        if (lua_type(state, -1) != LUA_TSTRING) { lua_pop(state, 2); error = "unknown flag given"; return false; }
+        if (lua_type(state, -1) != LUA_TSTRING) {
+            lua_pop(state, 2);
+            error = "unknown flag given";
+            return false;
+        }
         const char* text = lua_tostring(state, -1);
         bool known = false;
         for (const FlagName& flag : kFlagNames)
-            if (!std::strcmp(text, flag.name)) { flags |= flag.bit; known = true; break; }
+            if (!std::strcmp(text, flag.name)) {
+                flags |= flag.bit;
+                known = true;
+                break;
+            }
         lua_pop(state, 1);
-        if (!known) { lua_pop(state, 1); error = "unknown flag given"; return false; }
+        if (!known) {
+            lua_pop(state, 1);
+            error = "unknown flag given";
+            return false;
+        }
     }
     return true;
 }
@@ -375,7 +396,8 @@ int register_error(lua_State* state, const char* message) {
 int fn_register(lua_State* state) {
     auto* sink = static_cast<RegisterSink*>(lua_touserdata(state, lua_upvalueindex(1)));
     if (!sink || (!sink->defs && !sink->store_callbacks))
-        return register_error(state, "redis.register_function can only be called on FUNCTION LOAD command");
+        return register_error(
+            state, "redis.register_function can only be called on FUNCTION LOAD command");
 
     std::string name;
     std::string description;
@@ -386,9 +408,10 @@ int fn_register(lua_State* state) {
 
     if (argc == 1) {
         if (!lua_istable(state, 1))
-            return register_error(state, "calling redis.register_function with a single argument is "
-                                     "only applicable to Lua table (representing named "
-                                     "arguments).");
+            return register_error(state,
+                                  "calling redis.register_function with a single argument is "
+                                  "only applicable to Lua table (representing named "
+                                  "arguments).");
         // Named argument labels are case-insensitive. Normalize into a private
         // table, leaving the caller's iteration keys (including numbers) intact.
         lua_newtable(state);
@@ -397,14 +420,18 @@ int fn_register(lua_State* state) {
         while (lua_next(state, 1)) {
             if (!lua_isstring(state, -2)) {
                 lua_pop(state, 2);
-                return register_error(state, "named argument key given to redis.register_function is not a string");
+                return register_error(
+                    state, "named argument key given to redis.register_function is not a string");
             }
             lua_pushvalue(state, -2);
             const char* text = lua_tostring(state, -1);
             const Slice label(text, std::strlen(text));
             const char* key = nullptr;
             for (const char* candidate : {"function_name", "callback", "flags", "description"})
-                if (label.eq_icase(candidate)) { key = candidate; break; }
+                if (label.eq_icase(candidate)) {
+                    key = candidate;
+                    break;
+                }
             lua_pop(state, 1);
             if (!key) {
                 lua_pop(state, 2);
@@ -417,25 +444,29 @@ int fn_register(lua_State* state) {
 
         lua_getfield(state, named, "function_name");
         if (lua_isnil(state, -1))
-            return register_error(state, "redis.register_function must get a function name argument");
+            return register_error(state,
+                                  "redis.register_function must get a function name argument");
         if (!field_to_string(state, -1, name))
-            return register_error(state, "function_name argument given to redis.register_function "
-                                     "must be a string");
+            return register_error(state,
+                                  "function_name argument given to redis.register_function "
+                                  "must be a string");
         lua_pop(state, 1);
 
         lua_getfield(state, named, "callback");
         if (lua_isnil(state, -1))
             return register_error(state, "redis.register_function must get a callback argument");
         if (!lua_isfunction(state, -1))
-            return register_error(state, "callback argument given to redis.register_function must be "
-                                     "a function");
+            return register_error(state,
+                                  "callback argument given to redis.register_function must be "
+                                  "a function");
         callback_index = lua_gettop(state);
 
         lua_getfield(state, named, "flags");
         if (!lua_isnil(state, -1)) {
             if (!lua_istable(state, -1))
-                return register_error(state, "flags argument to redis.register_function must be a "
-                                         "table representing function flags");
+                return register_error(state,
+                                      "flags argument to redis.register_function must be a "
+                                      "table representing function flags");
             const char* flag_error = nullptr;
             if (!parse_flag_table(state, lua_gettop(state), flags, flag_error))
                 return register_error(state, flag_error);
@@ -445,16 +476,19 @@ int fn_register(lua_State* state) {
         lua_getfield(state, named, "description");
         if (!lua_isnil(state, -1)) {
             if (!field_to_string(state, -1, description))
-                return register_error(state, "description argument given to redis.register_function "
-                                         "must be a string");
+                return register_error(state,
+                                      "description argument given to redis.register_function "
+                                      "must be a string");
             has_description = true;
         }
         lua_pop(state, 1);
     } else if (argc == 2) {
         if (!field_to_string(state, 1, name))
-            return register_error(state, "first argument to redis.register_function must be a string");
+            return register_error(state,
+                                  "first argument to redis.register_function must be a string");
         if (!lua_isfunction(state, 2))
-            return register_error(state, "second argument to redis.register_function must be a function");
+            return register_error(state,
+                                  "second argument to redis.register_function must be a function");
         callback_index = 2;
     } else {
         return register_error(state, "wrong number of arguments to redis.register_function");
@@ -507,8 +541,8 @@ void get_global_raw(lua_State* state, const char* name) {
 // duration, so a body that calls redis.call fails with the same message Redis produces. The
 // callbacks it registers resolve `redis` from _G when they later run, and therefore see the real
 // table with call/pcall/setresp.
-bool run_library_body(lua_State* state, Slice code, RegisterSink& sink,
-                      bool& compile_failed, std::string& error) {
+bool run_library_body(lua_State* state, Slice code, RegisterSink& sink, bool& compile_failed,
+                      std::string& error) {
     compile_failed = false;
     const int base = lua_gettop(state);
     // Lua 5.1 only skips a leading '#' line in luaL_loadfile, never in luaL_loadbuffer, so the
@@ -516,8 +550,12 @@ bool run_library_body(lua_State* state, Slice code, RegisterSink& sink,
     // slicing it off: every line number Lua reports then matches the source the operator sent,
     // which is what makes "user_function:2:" agree with Redis.
     std::string body;
-    try { body.assign(code.p, code.n); }
-    catch (const std::bad_alloc&) { error = "ERR out of memory"; return false; }
+    try {
+        body.assign(code.p, code.n);
+    } catch (const std::bad_alloc&) {
+        error = "ERR out of memory";
+        return false;
+    }
     for (size_t i = 0; i < body.size() && body[i] != '\n'; i++) body[i] = ' ';
     if (luaL_loadbuffer(state, body.data(), body.size(), kFunctionChunkName) != 0) {
         size_t length = 0;
@@ -603,8 +641,8 @@ bool run_library_body(lua_State* state, Slice code, RegisterSink& sink,
         }
         if (message.empty()) {
             const char* text = lua_tolstring(state, -1, &length);
-            message = "ERR " + script_clean_error(text ? text : "runtime error",
-                                                  text ? length : 13);
+            message =
+                "ERR " + script_clean_error(text ? text : "runtime error", text ? length : 13);
         }
         error = message;
         lua_settop(state, base);
@@ -646,12 +684,19 @@ bool parse_library_header(Slice source, std::string& engine, std::string& name,
             name = field.substr(5);
             named = true;
         } else {
-            error = "Invalid metadata value given: " + script_clean_error(field.c_str(), std::strlen(field.c_str()));
+            error = "Invalid metadata value given: " +
+                    script_clean_error(field.c_str(), std::strlen(field.c_str()));
             return false;
         }
     }
-    if (!named) { error = "Library name was not given"; return false; }
-    if (!valid_function_name(name)) { error = kNameError; return false; }
+    if (!named) {
+        error = "Library name was not given";
+        return false;
+    }
+    if (!valid_function_name(name)) {
+        error = kNameError;
+        return false;
+    }
     if (function_key(engine) != "lua") {
         error = "Engine '" + script_clean_error(engine.data(), engine.size()) + "' not found";
         return false;
@@ -669,7 +714,10 @@ bool compile_library(Slice source, LibraryDef& library, std::string& error) {
     if (!parse_library_header(source, engine, library.name, error)) return false;
 
     lua_State* state = script_new_sandbox_state();
-    if (!state) { error = "out of memory"; return false; }
+    if (!state) {
+        error = "out of memory";
+        return false;
+    }
     RegisterSink sink;
     sink.defs = &library.functions;
     bool compile_failed = false;
@@ -681,7 +729,10 @@ bool compile_library(Slice source, LibraryDef& library, std::string& error) {
                                : "Error registering functions: " + body_error;
         return false;
     }
-    if (library.functions.empty()) { error = "No functions registered"; return false; }
+    if (library.functions.empty()) {
+        error = "No functions registered";
+        return false;
+    }
     std::sort(library.functions.begin(), library.functions.end(),
               [](const FunctionDef& a, const FunctionDef& b) { return a.name < b.name; });
     try {
@@ -720,7 +771,10 @@ bool function_thread_sync(lua_State* state, std::string& error) {
 
     std::vector<LibraryDef> libraries;
     uint64_t stamp = 0, flush_generation = 0;
-    if (!g_functions.snapshot(libraries, stamp, &flush_generation)) { error = "out of memory"; return false; }
+    if (!g_functions.snapshot(libraries, stamp, &flush_generation)) {
+        error = "out of memory";
+        return false;
+    }
 
     const int base = lua_gettop(state);
     lua_getfield(state, LUA_REGISTRYINDEX, kRegistryFunctions);
@@ -787,9 +841,15 @@ bool invoke_fcall(Shard& shard, Op& op, Prepare&& prepare) {
         return true;
     }
     lua_State* state = script_thread_state(ScriptArgStyle::Params);
-    if (!state) { reply_text_error(op, "ERR", "out of memory"); return true; }
+    if (!state) {
+        reply_text_error(op, "ERR", "out of memory");
+        return true;
+    }
     std::string error;
-    if (!function_thread_sync(state, error)) { reply_err_string(op, error); return true; }
+    if (!function_thread_sync(state, error)) {
+        reply_err_string(op, error);
+        return true;
+    }
 
     const Slice name = op.arg(1);
     lua_getfield(state, LUA_REGISTRYINDEX, kRegistryFunctions);
@@ -822,8 +882,8 @@ bool invoke_fcall(Shard& shard, Op& op, Prepare&& prepare) {
     const uint32_t flags = static_cast<uint32_t>(lua_tonumber(state, -1));
     lua_pop(state, 1);
     lua_getfield(state, -1, "cb");
-    lua_replace(state, -3);      // callback takes the function-table slot
-    lua_pop(state, 1);           // drop the entry table; the callback is now on top
+    lua_replace(state, -3);  // callback takes the function-table slot
+    lua_pop(state, 1);       // drop the entry table; the callback is now on top
 
     // A library can be replaced between IO admission and owner execution. Check
     // the selected callback's flags again before an AOF-error admission takes effect.
@@ -844,8 +904,7 @@ bool invoke_fcall(Shard& shard, Op& op, Prepare&& prepare) {
     if (kReadonly && !(flags & kFlagNoWrites)) {
         lua_settop(state, 0);
         g_ro_rejections.fetch_add(1, std::memory_order_relaxed);
-        reply_text_error(op, "ERR",
-                         "Can not execute a script with write flag using *_ro command.");
+        reply_text_error(op, "ERR", "Can not execute a script with write flag using *_ro command.");
         return true;
     }
 
@@ -871,7 +930,10 @@ bool invoke_fcall(Shard& shard, Op& op, Prepare&& prepare) {
         // governs the callback. Keep this lookup/callback pair intact: a second
         // lookup could see different flags after a concurrent library update.
         FunctionMemoryScope memory_scope(shard.store(), true);
-        if (!prepare()) { lua_settop(state, 0); return false; }
+        if (!prepare()) {
+            lua_settop(state, 0);
+            return false;
+        }
         invoke();
     }
     return true;
@@ -898,11 +960,14 @@ void reply_function_entry(Op& op, const LibraryDef& library, bool with_code) {
         reply_bulk(op.sink(), Slice("name", 4));
         reply_bulk_string(op, fn.name);
         reply_bulk(op.sink(), Slice("description", 11));
-        if (fn.has_description) reply_bulk_string(op, fn.description);
-        else reply_null(op.sink(), resp3);
+        if (fn.has_description)
+            reply_bulk_string(op, fn.description);
+        else
+            reply_null(op.sink(), resp3);
         reply_bulk(op.sink(), Slice("flags", 5));
         uint32_t count = 0;
-        for (const FlagName& flag : kFlagNames) if (fn.flags & flag.bit) count++;
+        for (const FlagName& flag : kFlagNames)
+            if (fn.flags & flag.bit) count++;
         reply_set_header(op.sink(), count, resp3);
         for (const FlagName& flag : kFlagNames)
             if (fn.flags & flag.bit) reply_simple(op.sink(), flag.name);
@@ -918,7 +983,10 @@ void function_list(Op& op) {
     bool by_name = false;
     bool with_code = false;
     for (uint32_t i = 2; i < op.argc(); i++) {
-        if (!with_code && op.arg(i).eq_icase("withcode")) { with_code = true; continue; }
+        if (!with_code && op.arg(i).eq_icase("withcode")) {
+            with_code = true;
+            continue;
+        }
         if (!by_name && op.arg(i).eq_icase("libraryname")) {
             if (i + 1 >= op.argc()) {
                 reply_text_error(op, "ERR", "library name argument was not given");
@@ -986,8 +1054,8 @@ void function_dump(Op& op) {
         put_u32(payload, static_cast<uint32_t>(library.code.size()));
         payload.append(library.code);
     }
-    const uint64_t checksum = snapshot_checksum(
-        reinterpret_cast<const uint8_t*>(payload.data()), payload.size());
+    const uint64_t checksum =
+        snapshot_checksum(reinterpret_cast<const uint8_t*>(payload.data()), payload.size());
     uint8_t trailer[8];
     snapshot_put_u64(trailer, checksum);
     payload.append(reinterpret_cast<const char*>(trailer), 8);
@@ -1009,12 +1077,14 @@ void FunctionRegistry::bump() {
                 payload.append(library.code);
             }
             uint8_t trailer[8];
-            snapshot_put_u64(trailer, snapshot_checksum(
-                reinterpret_cast<const uint8_t*>(payload.data()), payload.size()));
+            snapshot_put_u64(trailer,
+                             snapshot_checksum(reinterpret_cast<const uint8_t*>(payload.data()),
+                                               payload.size()));
             payload.append(reinterpret_cast<const char*>(trailer), sizeof(trailer));
             if (payload.size() > UINT32_MAX - 40)
                 server->aof().fail("FUNCTION journal record is too large");
-            else server->aof().append_function_journal(Slice(payload));
+            else
+                server->aof().append_function_journal(Slice(payload));
         } catch (const std::bad_alloc&) {
             server->aof().fail("out of memory journaling FUNCTION registry");
         }
@@ -1056,11 +1126,14 @@ void function_restore(Op& op) {
     bool flush_first = false;
     bool replace = false;
     if (op.argc() == 4) {
-        if (op.arg(3).eq_icase("flush")) flush_first = true;
-        else if (op.arg(3).eq_icase("replace")) replace = true;
+        if (op.arg(3).eq_icase("flush"))
+            flush_first = true;
+        else if (op.arg(3).eq_icase("replace"))
+            replace = true;
         else if (!op.arg(3).eq_icase("append")) {
-            reply_text_error(op, "ERR", "Wrong restore policy given, value should be either "
-                                        "FLUSH, APPEND or REPLACE.");
+            reply_text_error(op, "ERR",
+                             "Wrong restore policy given, value should be either "
+                             "FLUSH, APPEND or REPLACE.");
             return;
         }
     }
@@ -1073,27 +1146,36 @@ void function_restore(Op& op) {
     for (const std::string& source : sources) {
         LibraryDef library;
         std::string error;
-        if (!compile_library(Slice(source.data(), static_cast<uint32_t>(source.size())),
-                             library, error)) {
+        if (!compile_library(Slice(source.data(), static_cast<uint32_t>(source.size())), library,
+                             error)) {
             reply_err_string(op, error);
             return;
         }
         incoming.push_back(std::move(library));
     }
     std::string detail;
-    for (;;) switch (g_functions.replace_all(std::move(incoming), flush_first, replace, detail,
-                                             /*respect_cut=*/true)) {
-        case AddResult::Held: if (function_cut_wait()) continue; return;
-        case AddResult::Ok: note_function_change(); reply_ok(op.sink()); return;
-        // Redis quotes the library name for LOAD and leaves it bare for RESTORE. Both shapes are
-        // reproduced here rather than unified.
-        case AddResult::LibraryExists:
-            reply_err_string(op, "Library " + detail + " already exists"); return;
-        case AddResult::FunctionExists:
-            reply_err_string(op, "Function " + detail + " already exists"); return;
-        case AddResult::Oom:
-            reply_text_error(op, "ERR", "out of memory"); return;
-    }
+    for (;;)
+        switch (g_functions.replace_all(std::move(incoming), flush_first, replace, detail,
+                                        /*respect_cut=*/true)) {
+            case AddResult::Held:
+                if (function_cut_wait()) continue;
+                return;
+            case AddResult::Ok:
+                note_function_change();
+                reply_ok(op.sink());
+                return;
+            // Redis quotes the library name for LOAD and leaves it bare for RESTORE. Both shapes are
+            // reproduced here rather than unified.
+            case AddResult::LibraryExists:
+                reply_err_string(op, "Library " + detail + " already exists");
+                return;
+            case AddResult::FunctionExists:
+                reply_err_string(op, "Function " + detail + " already exists");
+                return;
+            case AddResult::Oom:
+                reply_text_error(op, "ERR", "out of memory");
+                return;
+        }
 }
 
 // Our own wording: the subcommand set is ours and the Redis help block is source we do not copy.
@@ -1127,7 +1209,10 @@ void reply_function_help(Op& op) {
 void cmd_function(Shard&, Op& op) {
     const Slice subcommand = op.arg(1);
     if (subcommand.eq_icase("load")) {
-        if (op.argc() < 3) { reply_wrong_args(op, "load"); return; }
+        if (op.argc() < 3) {
+            reply_wrong_args(op, "load");
+            return;
+        }
         bool replace = false;
         uint32_t code_arg = 2;
         for (; code_arg + 1 < op.argc(); ++code_arg) {
@@ -1135,8 +1220,7 @@ void cmd_function(Shard&, Op& op) {
                 const Slice option = op.arg(code_arg);
                 // Preserve the raw suffix for the central Redis line builder:
                 // pre-mapping CR/LF to spaces would defeat its trailing trim.
-                reply_err_string(op, "Unknown option given: " +
-                    std::string(option.p, option.n));
+                reply_err_string(op, "Unknown option given: " + std::string(option.p, option.n));
                 return;
             }
             replace = true;
@@ -1150,19 +1234,30 @@ void cmd_function(Shard&, Op& op) {
         const std::string name = library.name;
         std::string detail;
         for (;;) switch (g_functions.add(std::move(library), replace, detail)) {
-            case AddResult::Held: if (function_cut_wait()) continue; return;
-            case AddResult::Ok: note_function_change(); reply_bulk_string(op, name); return;
-            case AddResult::LibraryExists:
-                reply_err_string(op, "Library '" + detail + "' already exists"); return;
-            case AddResult::FunctionExists:
-                reply_err_string(op, "Function " + detail + " already exists"); return;
-            case AddResult::Oom:
-                reply_text_error(op, "ERR", "out of memory"); return;
-        }
+                case AddResult::Held:
+                    if (function_cut_wait()) continue;
+                    return;
+                case AddResult::Ok:
+                    note_function_change();
+                    reply_bulk_string(op, name);
+                    return;
+                case AddResult::LibraryExists:
+                    reply_err_string(op, "Library '" + detail + "' already exists");
+                    return;
+                case AddResult::FunctionExists:
+                    reply_err_string(op, "Function " + detail + " already exists");
+                    return;
+                case AddResult::Oom:
+                    reply_text_error(op, "ERR", "out of memory");
+                    return;
+            }
         return;
     }
     if (subcommand.eq_icase("delete")) {
-        if (op.argc() != 3) { reply_wrong_args(op, "delete"); return; }
+        if (op.argc() != 3) {
+            reply_wrong_args(op, "delete");
+            return;
+        }
         for (bool held = false; !g_functions.remove(op.arg(2), held);) {
             if (!held) {
                 reply_text_error(op, "ERR", "Library not found");
@@ -1175,67 +1270,93 @@ void cmd_function(Shard&, Op& op) {
         return;
     }
     if (subcommand.eq_icase("flush")) {
-        if (op.argc() > 3) { reply_err_string(op, "unknown subcommand or wrong number of arguments for '" +
-            script_clean_error(subcommand.p, subcommand.n) + "'. Try FUNCTION HELP."); return; }
-        if (op.argc() == 3 &&
-            !(op.arg(2).eq_icase("sync") || op.arg(2).eq_icase("async"))) {
+        if (op.argc() > 3) {
+            reply_err_string(op, "unknown subcommand or wrong number of arguments for '" +
+                                     script_clean_error(subcommand.p, subcommand.n) +
+                                     "'. Try FUNCTION HELP.");
+            return;
+        }
+        if (op.argc() == 3 && !(op.arg(2).eq_icase("sync") || op.arg(2).eq_icase("async"))) {
             reply_text_error(op, "ERR", "FUNCTION FLUSH only supports SYNC|ASYNC option");
             return;
         }
         while (!g_functions.flush(/*respect_cut=*/true))
             if (!function_cut_wait()) return;
-        note_function_change();   // even an empty registry, as Redis
+        note_function_change();  // even an empty registry, as Redis
         reply_ok(op.sink());
         return;
     }
-    if (subcommand.eq_icase("list")) { function_list(op); return; }
+    if (subcommand.eq_icase("list")) {
+        function_list(op);
+        return;
+    }
     if (subcommand.eq_icase("stats")) {
-        if (op.argc() != 2) { reply_wrong_args(op, "stats"); return; }
+        if (op.argc() != 2) {
+            reply_wrong_args(op, "stats");
+            return;
+        }
         reply_function_stats(op);
         return;
     }
     if (subcommand.eq_icase("dump")) {
-        if (op.argc() != 2) { reply_wrong_args(op, "dump"); return; }
+        if (op.argc() != 2) {
+            reply_wrong_args(op, "dump");
+            return;
+        }
         function_dump(op);
         return;
     }
     if (subcommand.eq_icase("restore")) {
-        if (op.argc() > 4) { reply_err_string(op, "unknown subcommand or wrong number of arguments for '" +
-            script_clean_error(subcommand.p, subcommand.n) + "'. Try FUNCTION HELP."); return; }
-        if (op.argc() < 3) { reply_wrong_args(op, "restore"); return; }
+        if (op.argc() > 4) {
+            reply_err_string(op, "unknown subcommand or wrong number of arguments for '" +
+                                     script_clean_error(subcommand.p, subcommand.n) +
+                                     "'. Try FUNCTION HELP.");
+            return;
+        }
+        if (op.argc() < 3) {
+            reply_wrong_args(op, "restore");
+            return;
+        }
         function_restore(op);
         return;
     }
     if (subcommand.eq_icase("kill")) {
-        if (op.argc() != 2) { reply_wrong_args(op, "kill"); return; }
+        if (op.argc() != 2) {
+            reply_wrong_args(op, "kill");
+            return;
+        }
         reply_text_error(op, "NOTBUSY", "No scripts in execution right now.");
         return;
     }
     if (subcommand.eq_icase("help")) {
-        if (op.argc() != 2) { reply_wrong_args(op, "help"); return; }
+        if (op.argc() != 2) {
+            reply_wrong_args(op, "help");
+            return;
+        }
         reply_function_help(op);
         return;
     }
     command_reply_subcommand_error(op, "FUNCTION");
 }
 
-static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */ kTable[] = {
     // name       min max flags                                       handler      first last step
-    {"FCALL",      3, -1, CmdFlags::Write | CmdFlags::CursorShard | CmdFlags::ScriptRoute |
-                              CmdFlags::MultiShard,
-                cmd_fcall<false, false>, 3, -1, 1, notify_handler<cmd_fcall<true, false>>},
-    {"FCALL_RO",   3, -1, CmdFlags::Readonly | CmdFlags::CursorShard | CmdFlags::ScriptRoute |
-                              CmdFlags::MultiShard,
-                cmd_fcall<false, true>, 3, -1, 1, notify_handler<cmd_fcall<true, true>>},
-    {"FUNCTION",   2, -1, CmdFlags::ConnLocal | CmdFlags::OrderedLocal | CmdFlags::Admin,
-                cmd_function,  0,  0, 0},
+    {"FCALL", 3, -1,
+     CmdFlags::Write | CmdFlags::CursorShard | CmdFlags::ScriptRoute | CmdFlags::MultiShard,
+     cmd_fcall<false, false>, 3, -1, 1, notify_handler<cmd_fcall<true, false>>},
+    {"FCALL_RO", 3, -1,
+     CmdFlags::Readonly | CmdFlags::CursorShard | CmdFlags::ScriptRoute | CmdFlags::MultiShard,
+     cmd_fcall<false, true>, 3, -1, 1, notify_handler<cmd_fcall<true, true>>},
+    {"FUNCTION", 2, -1, CmdFlags::ConnLocal | CmdFlags::OrderedLocal | CmdFlags::Admin,
+     cmd_function, 0, 0, 0},
 };
 
 }  // namespace
 
 void function_final_cut(uint64_t epoch) { g_functions.final_cut(epoch); }
 
-bool /* TOMO_TOOL_BIND function_snapshot_save */function_snapshot_save(std::vector<uint8_t>& image, std::string& error) {
+bool /* TOMO_TOOL_BIND function_snapshot_save */ function_snapshot_save(std::vector<uint8_t>& image,
+                                                                        std::string& error) {
     try {
         std::vector<LibraryDef> libraries;
         uint64_t stamp = 0;
@@ -1245,14 +1366,19 @@ bool /* TOMO_TOOL_BIND function_snapshot_save */function_snapshot_save(std::vect
         for (auto& library : libraries) sources.push_back(std::move(library.code));
         if (encode_function_records(sources, image)) return true;
         error = "function library image too large";
-    } catch (const std::bad_alloc&) { error = "out of memory saving functions"; }
+    } catch (const std::bad_alloc&) {
+        error = "out of memory saving functions";
+    }
     return false;
 }
 
 bool function_snapshot_load(Slice image, bool flush, bool replace, std::string& error) {
     try {
         std::vector<std::string> sources;
-        if (!decode_function_records(image, sources)) { error = "invalid FUNCTION2 records"; return false; }
+        if (!decode_function_records(image, sources)) {
+            error = "invalid FUNCTION2 records";
+            return false;
+        }
         std::vector<LibraryDef> incoming;
         incoming.reserve(sources.size());
         for (const auto& code : sources) {
@@ -1265,12 +1391,18 @@ bool function_snapshot_load(Slice image, bool flush, bool replace, std::string& 
             return true;
         }
         return g_functions.replace_all(std::move(incoming), flush, replace, error) == AddResult::Ok;
-    } catch (const std::bad_alloc&) { error = "out of memory loading functions"; return false; }
+    } catch (const std::bad_alloc&) {
+        error = "out of memory loading functions";
+        return false;
+    }
 }
 
 bool function_restore_journal(Slice payload, std::string& error) {
     std::vector<std::string> sources;
-    if (!decode_dump(payload, sources)) { error = "invalid AOF FUNCTION payload"; return false; }
+    if (!decode_dump(payload, sources)) {
+        error = "invalid AOF FUNCTION payload";
+        return false;
+    }
     std::vector<LibraryDef> incoming;
     try {
         for (const auto& source : sources) {
@@ -1278,7 +1410,10 @@ bool function_restore_journal(Slice payload, std::string& error) {
             if (!compile_library(Slice(source), library, error)) return false;
             incoming.push_back(std::move(library));
         }
-    } catch (const std::bad_alloc&) { error = "out of memory replaying FUNCTION"; return false; }
+    } catch (const std::bad_alloc&) {
+        error = "out of memory replaying FUNCTION";
+        return false;
+    }
     struct ReplayScope {
         bool previous = t_function_replay;
         ReplayScope() { t_function_replay = true; }
@@ -1310,21 +1445,17 @@ bool function_metadata_write(const Op& op) {
     return op.argc() > 1 ? g_functions.writes(op.arg(1), fallback) : fallback;
 }
 
-bool function_execute_exec(Shard& shard, Op& op, void* context,
-                           bool (*prepare)(void*)) {
+bool function_execute_exec(Shard& shard, Op& op, void* context, bool (*prepare)(void*)) {
     auto before_callback = [&] { return prepare(context); };
     const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0;
     const bool readonly = op.cmd_name().eq_icase("fcall_ro");
-    if (readonly) return notify
-        ? invoke_fcall<true, true>(shard, op, before_callback)
-        : invoke_fcall<false, true>(shard, op, before_callback);
-    return notify
-        ? invoke_fcall<true, false>(shard, op, before_callback)
-        : invoke_fcall<false, false>(shard, op, before_callback);
+    if (readonly)
+        return notify ? invoke_fcall<true, true>(shard, op, before_callback)
+                      : invoke_fcall<false, true>(shard, op, before_callback);
+    return notify ? invoke_fcall<true, false>(shard, op, before_callback)
+                  : invoke_fcall<false, false>(shard, op, before_callback);
 }
 
-CommandTable functions_command_table() {
-    return {kTable, sizeof(kTable) / sizeof(kTable[0])};
-}
+CommandTable functions_command_table() { return {kTable, sizeof(kTable) / sizeof(kTable[0])}; }
 
 }  // namespace tomo

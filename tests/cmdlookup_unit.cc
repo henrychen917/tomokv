@@ -51,7 +51,11 @@ uint8_t ascii_upper(uint8_t c) {
     return (c >= 'a' && c <= 'z') ? static_cast<uint8_t>(c - ('a' - 'A')) : c;
 }
 
-struct HotRow { const char* name; uint32_t len; const CommandSpec* spec; };
+struct HotRow {
+    const char* name;
+    uint32_t len;
+    const CommandSpec* spec;
+};
 
 // commands.cc's command_equal: the relation the registry probe implements for a matching row.
 bool command_equal(const unsigned char* p, uint32_t n, const HotRow& row) {
@@ -87,14 +91,14 @@ const CommandSpec* check(const unsigned char* p, uint32_t n, const HotRow* rows,
 }  // namespace
 
 int main() {
-    g_hot_command_specs.get  = row(0);
-    g_hot_command_specs.set  = row(1);
-    g_hot_command_specs.del  = row(2);
+    g_hot_command_specs.get = row(0);
+    g_hot_command_specs.set = row(1);
+    g_hot_command_specs.del = row(2);
     g_hot_command_specs.mget = row(3);
     g_hot_command_specs.mset = row(4);
     g_hot_command_specs.incr = row(5);
     const HotRow rows[] = {
-        {"GET", 3, row(0)}, {"SET", 3, row(1)}, {"DEL", 3, row(2)},
+        {"GET", 3, row(0)},  {"SET", 3, row(1)},  {"DEL", 3, row(2)},
         {"MGET", 4, row(3)}, {"MSET", 4, row(4)}, {"INCR", 4, row(5)},
     };
     const size_t count = sizeof(rows) / sizeof(rows[0]);

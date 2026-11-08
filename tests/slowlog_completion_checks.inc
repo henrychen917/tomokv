@@ -34,8 +34,8 @@ static void slowlog_completion(bool publish_before_record = false) {
         const unsigned before = slowlog_completion_visits;
         ExLoopT<Fused>::test_after_done_ = slowlog_identity_after_done;
         {
-            SlowlogTiming timing(&op, client.id(), f.source, now_ns() - 20000000,
-                                 1000, SlowlogArm{threshold, 0});
+            SlowlogTiming timing(&op, client.id(), f.source, now_ns() - 20000000, 1000,
+                                 SlowlogArm{threshold, 0});
             const Task task{&client, id, -1, nullptr};
             if (publish_before_record) {
                 require(loop.execute(task), "negative completion executes");
@@ -50,8 +50,8 @@ static void slowlog_completion(bool publish_before_record = false) {
     }
     const auto reply = command(f, client, {Slice("SLOWLOG"), Slice("GET"), Slice("-1")});
     require(reply.starts_with("*1\r\n") && reply.find("wave5-before") != std::string::npos &&
-            reply.find("wave5-after") == std::string::npos &&
-            reply.find("127.0.0.1:26898") != std::string::npos,
+                reply.find("wave5-after") == std::string::npos &&
+                reply.find("127.0.0.1:26898") != std::string::npos,
             "default-threshold entry retains identity across immediate rename/disconnect");
     std::printf("PASS slowlog completion before Done (%s)\n", Fused ? "1s" : "2s");
 }

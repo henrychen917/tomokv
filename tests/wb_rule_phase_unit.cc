@@ -44,13 +44,20 @@ struct RingSqAccess {
     using Type = io_uring Ring::*;
     friend Type ring_sq(RingSqAccess);
 };
-template <RingSqAccess::Type Member> struct RingSqMember {
+template <RingSqAccess::Type Member>
+struct RingSqMember {
     friend RingSqAccess::Type ring_sq(RingSqAccess) { return Member; }
 };
 template struct RingSqMember<&Ring::r_>;
-#define AOF_ACCESS(Name, Type, Member) \
-    struct Name { using Ptr = Type AofManager::*; friend Ptr member(Name); }; \
-    template <Name::Ptr P> struct Name##Member { friend Name::Ptr member(Name) { return P; } }; \
+#define AOF_ACCESS(Name, Type, Member)              \
+    struct Name {                                   \
+        using Ptr = Type AofManager::*;             \
+        friend Ptr member(Name);                    \
+    };                                              \
+    template <Name::Ptr P>                          \
+    struct Name##Member {                           \
+        friend Name::Ptr member(Name) { return P; } \
+    };                                              \
     template struct Name##Member<&AofManager::Member>;
 AOF_ACCESS(AofConfigured, bool, configured_)
 AOF_ACCESS(AofRecording, std::atomic<bool>, recording_)
@@ -59,10 +66,14 @@ AOF_ACCESS(AofDurable, std::atomic<uint64_t>, durable_sequence_)
 #undef AOF_ACCESS
 struct CoreConcurrencyTest {
     static void require(bool ok, const char* message) {
-        if (!ok) { std::fprintf(stderr, "FAIL wb-rule %s: %s\n", selected, message); std::_Exit(1); }
+        if (!ok) {
+            std::fprintf(stderr, "FAIL wb-rule %s: %s\n", selected, message);
+            std::_Exit(1);
+        }
     }
     static Slice slice(const std::string& s) { return {s.data(), static_cast<uint32_t>(s.size())}; }
-    template <bool Fused, bool SplitLocal = false> struct Fixture {
+    template <bool Fused, bool SplitLocal = false>
+    struct Fixture {
         Server server;
         ExLoopT<Fused || SplitLocal> ex;
         IoLoop io;
@@ -86,12 +97,14 @@ struct CoreConcurrencyTest {
             require(count == 8, "eight allowed CPUs, no skip");
             require(server.topo_.declare(domain.c_str()), "topology");
             require(Fused ? server.placement_.build_fused(server.topo_, nullptr)
-                          : server.placement_.build_even(server.topo_, 6, 2), "placement");
+                          : server.placement_.build_even(server.topo_, 6, 2),
+                    "placement");
             require(server.placement_.reserve_runtime_roles(8), "roles");
             Config config;
             config.thread_mode = Fused ? ThreadMode::Fused : ThreadMode::Split;
             config.wb_policy = policy;
-            config.wb_small_pipe = small; config.wb_complete_visits = visits;
+            config.wb_small_pipe = small;
+            config.wb_complete_visits = visits;
             config.databases = kSingleDatabase ? 1 : 4;
             config.shards = 16;
             config.read_local = SplitLocal;
@@ -102,7 +115,8 @@ struct CoreConcurrencyTest {
                 ThreadCtx& thread = server.thread(tid);
                 require(Fused ? thread.init_task_inbox_local_fused()
                               : thread.init_task_inbox_local(server.placement_.ifid_threads(),
-                                                             server.placement_.ex_threads()), "inbox");
+                                                             server.placement_.ex_threads()),
+                        "inbox");
             }
             ex.srv_ = &server;
             ex.self_ = &server.thread(owner);
@@ -110,7 +124,8 @@ struct CoreConcurrencyTest {
             server.bind_owner_notify_pending(owner, &ex.notify_keyless_pending_);
             if constexpr (SplitLocal) {
                 ex.read_local_.impl = std::make_unique<ReadLocalExImpl>();
-                require(ex.read_local_impl().deferred.init(&server, ex.self_), "split reader QSBR queue");
+                require(ex.read_local_impl().deferred.init(&server, ex.self_),
+                        "split reader QSBR queue");
             }
             ex.refresh_live_config();
             ex.slowlog_armed_ = false;
@@ -132,9 +147,10 @@ struct CoreConcurrencyTest {
             raw.sq.sqes = sqes.data();
             raw.cq.khead = &cq_head;
             raw.cq.ktail = &cq_tail;
-            io.wb_.bind(&io.ring_, nullptr, [](void*, int32_t, const char*) {},
-                        nullptr, [](void*, Client&, Op&) {}, &limits, nullptr,
-                        [](void*, Client&) { return false; }, &now, &io.self_->sig());
+            io.wb_.bind(
+                &io.ring_, nullptr, [](void*, int32_t, const char*) {}, nullptr,
+                [](void*, Client&, Op&) {}, &limits, nullptr, [](void*, Client&) { return false; },
+                &now, &io.self_->sig());
         }
         std::string key(unsigned first = 0) {
             const int32_t sid = server.thread(owner).shards().front()->id();
@@ -154,7 +170,8 @@ struct CoreConcurrencyTest {
         Task get(Client& c, const std::string& key, bool set = false) {
             Op* op = c.rob().template acquire<false>();
             require(op != nullptr, "ROB acquire");
-            require(op->push_arg({set ? "SET" : "GET", 3}) && op->push_arg(slice(key)), "command argv");
+            require(op->push_arg({set ? "SET" : "GET", 3}) && op->push_arg(slice(key)),
+                    "command argv");
             if (set) require(op->push_arg({"value", 5}), "SET value");
             op->spec = command_lookup(op->arg(0));
             require(op->spec != nullptr, "GET registered");
@@ -169,93 +186,147 @@ struct CoreConcurrencyTest {
 
     static void fill(Client& c, unsigned n, unsigned prefix) {
         for (unsigned i = 0; i < n; ++i) {
-            Op* op = c.rob().acquire<false>(); require(op, "ROB capacity");
-            op->reply.append("+OK\r\n", 5); c.rob().publish();
+            Op* op = c.rob().acquire<false>();
+            require(op, "ROB capacity");
+            op->reply.append("+OK\r\n", 5);
+            c.rob().publish();
             op->state.store(i < prefix ? OpState::Done : OpState::Issued,
                             std::memory_order_release);
         }
     }
-    template <bool Fused, bool SplitLocal> static unsigned phase(Fixture<Fused, SplitLocal>& f, bool r7 = false) {
+    template <bool Fused, bool SplitLocal>
+    static unsigned phase(Fixture<Fused, SplitLocal>& f, bool r7 = false) {
         if constexpr (Fused) {
             if (r7) return f.io.template r7_flush_ready<false, false, true>();
         }
-        return f.io.template flush_ready<false, false, Fused || SplitLocal, false, false, SplitLocal>();
+        return f.io.template flush_ready < false, false, Fused || SplitLocal, false, false,
+               SplitLocal > ();
     }
-    template <bool Fused> static void budget(bool r7) {
+    template <bool Fused>
+    static void budget(bool r7) {
         Fixture<Fused> f;
         std::vector<std::unique_ptr<Client>> clients;
         constexpr unsigned count = 96;
         constexpr unsigned expected = count;
         for (unsigned i = 0; i < count; ++i) {
-            auto c = std::make_unique<Client>(-1); f.client(*c, i+1);
-            fill(*c, 1, 1); f.io.enqueue_serve(c.get()); clients.push_back(std::move(c));
+            auto c = std::make_unique<Client>(-1);
+            f.client(*c, i + 1);
+            fill(*c, 1, 1);
+            f.io.enqueue_serve(c.get());
+            clients.push_back(std::move(c));
         }
         submissions = submitted_sends = 0;
         phase(f, r7);
         require(f.io.wb_.stats().serves == expected, "exact mode-specific budget");
-        require(f.io.pending_serve_.size() == count-expected, "exact FIFO suffix");
+        require(f.io.pending_serve_.size() == count - expected, "exact FIFO suffix");
         for (unsigned i = 0; i < count; ++i) {
-            require(clients[i]->serve_pending() == (i >= expected), "served pin cleared; suffix pinned");
-            require(clients[i]->rob().in_flight() == unsigned(i >= expected), "budget retires exact prefix");
+            require(clients[i]->serve_pending() == (i >= expected),
+                    "served pin cleared; suffix pinned");
+            require(clients[i]->rob().in_flight() == unsigned(i >= expected),
+                    "budget retires exact prefix");
         }
-        require(submissions > 1 && submitted_sends >= count-8, "SQ full continues");
+        require(submissions > 1 && submitted_sends >= count - 8, "SQ full continues");
     }
-    template <bool Fused = true> static void fastpath(bool r7) {
+    template <bool Fused = true>
+    static void fastpath(bool r7) {
         Fixture<Fused> f;
-        Client staged(-1), issued(-1); f.client(staged, 1); f.client(issued, 2);
-        staged.fill_buf().append("+PUSH\r\n", 7); fill(issued, 1, 0);
-        f.io.enqueue_serve(&staged); f.io.enqueue_serve(&issued); phase(f, r7);
+        Client staged(-1), issued(-1);
+        f.client(staged, 1);
+        f.client(issued, 2);
+        staged.fill_buf().append("+PUSH\r\n", 7);
+        fill(issued, 1, 0);
+        f.io.enqueue_serve(&staged);
+        f.io.enqueue_serve(&issued);
+        phase(f, r7);
         require(f.io.wb_.stats().serves == 2, "staged-only and p1 enter ordinary serve");
         require(staged.send_inflight() && !staged.serve_pending(), "zero-inflight output sent");
-        require(issued.rob().in_flight() == 1 && !issued.send_inflight(), "p1 never retires Issued");
+        require(issued.rob().in_flight() == 1 && !issued.send_inflight(),
+                "p1 never retires Issued");
     }
-    template <bool Fused = true> static void fifo(bool r7) {
+    template <bool Fused = true>
+    static void fifo(bool r7) {
         Fixture<Fused> f;
         Client a(-1), b(-1), c(-1);
-        f.client(a, 1); f.client(b, 2); f.client(c, 3);
-        fill(a, 32, 1); fill(b, 32, 0); fill(c, 1, 1);
-        f.io.enqueue_serve(&a); f.io.enqueue_serve(&b); f.io.enqueue_serve(&c);
+        f.client(a, 1);
+        f.client(b, 2);
+        f.client(c, 3);
+        fill(a, 32, 1);
+        fill(b, 32, 0);
+        fill(c, 1, 1);
+        f.io.enqueue_serve(&a);
+        f.io.enqueue_serve(&b);
+        f.io.enqueue_serve(&c);
         phase(f, r7);
         require(c.rob().quiesced(), "younger eligible passes deferred head");
         require(f.io.pending_serve_.size() == 2 && f.io.pending_serve_[0] == &a &&
-                f.io.pending_serve_[1] == &b, "deferred rotation preserves order");
+                    f.io.pending_serve_[1] == &b,
+                "deferred rotation preserves order");
         require(a.serve_pending() && b.serve_pending(), "deferred lifetime pins kept");
         f.io.enqueue_serve(&a);
         require(f.io.pending_serve_.size() == 2, "pin deduplicates future notification");
-        require(a.rob().in_flight() == 32 && b.rob().in_flight() == 32, "deferred prefix not retired");
+        require(a.rob().in_flight() == 32 && b.rob().in_flight() == 32,
+                "deferred prefix not retired");
     }
-    template <bool Fused = true> static void capture(bool r7) {
+    template <bool Fused = true>
+    static void capture(bool r7) {
         Fixture<Fused> f;
         Client a(-1), b(-1), added(-1);
-        f.client(a, 1); f.client(b, 2); f.client(added, 3);
-        fill(a, 32, 0); fill(b, 1, 1); fill(added, 1, 1);
-        struct Context { Fixture<Fused>* f; Client* added; unsigned calls = 0; } ctx{&f, &added};
+        f.client(a, 1);
+        f.client(b, 2);
+        f.client(added, 3);
+        fill(a, 32, 0);
+        fill(b, 1, 1);
+        fill(added, 1, 1);
+        struct Context {
+            Fixture<Fused>* f;
+            Client* added;
+            unsigned calls = 0;
+        } ctx{&f, &added};
         b.rob().at(0).zc_ptr = reinterpret_cast<const char*>(&ctx);
         added.rob().at(0).zc_ptr = reinterpret_cast<const char*>(&ctx);
-        f.io.wb_.bind(&f.io.ring_, nullptr, [](void*, int32_t, const char*) {},
-            &ctx, [](void* raw, Client&, Op& op) {
-                auto& c = *static_cast<Context*>(raw); ++c.calls; op.zc_ptr = nullptr;
+        f.io.wb_.bind(
+            &f.io.ring_, nullptr, [](void*, int32_t, const char*) {}, &ctx,
+            [](void* raw, Client&, Op& op) {
+                auto& c = *static_cast<Context*>(raw);
+                ++c.calls;
+                op.zc_ptr = nullptr;
                 c.f->io.enqueue_serve(c.added);
-            }, &f.limits, nullptr, [](void*, Client&) { return false; }, &f.now, &f.io.self_->sig());
-        f.io.enqueue_serve(&a); f.io.enqueue_serve(&b); phase(f, r7);
+            },
+            &f.limits, nullptr, [](void*, Client&) { return false; }, &f.now, &f.io.self_->sig());
+        f.io.enqueue_serve(&a);
+        f.io.enqueue_serve(&b);
+        phase(f, r7);
         require(ctx.calls == 1, "callback cannot extend captured visit count");
         require(added.rob().in_flight() == 1 && added.serve_pending() &&
-                f.io.pending_serve_.size() == 2 && f.io.pending_serve_[0] == &a &&
-                f.io.pending_serve_[1] == &added,
+                    f.io.pending_serve_.size() == 2 && f.io.pending_serve_[0] == &a &&
+                    f.io.pending_serve_[1] == &added,
                 "new arrival stays queued and pinned");
     }
-    template <bool Fused> static void dead(bool r7) {
+    template <bool Fused>
+    static void dead(bool r7) {
         Fixture<Fused> f;
-        Client corpse(-1), live(-1); f.client(corpse, 1); f.client(live, 2);
-        fill(corpse, 32, 0); corpse.mark_dead(); fill(live, 1, 1);
-        f.io.enqueue_serve(&corpse); f.io.enqueue_serve(&live); phase(f, r7);
-        require(!corpse.serve_pending() && f.io.pending_serve_.empty(), "dead entry removed and unpinned");
-        require(f.io.wb_.stats().serves == 1 && live.rob().quiesced(), "dead entry consumes no service");
+        Client corpse(-1), live(-1);
+        f.client(corpse, 1);
+        f.client(live, 2);
+        fill(corpse, 32, 0);
+        corpse.mark_dead();
+        fill(live, 1, 1);
+        f.io.enqueue_serve(&corpse);
+        f.io.enqueue_serve(&live);
+        phase(f, r7);
+        require(!corpse.serve_pending() && f.io.pending_serve_.empty(),
+                "dead entry removed and unpinned");
+        require(f.io.wb_.stats().serves == 1 && live.rob().quiesced(),
+                "dead entry consumes no service");
     }
-    template <bool Fused = true> static void progress(bool r7) {
+    template <bool Fused = true>
+    static void progress(bool r7) {
         Fixture<Fused> f;
         require(phase(f, r7) == 0, "empty fixture has no unrelated work");
-        Client c(-1); f.client(c, 1); fill(c, 8, 1); f.io.enqueue_serve(&c);
+        Client c(-1);
+        f.client(c, 1);
+        fill(c, 8, 1);
+        f.io.enqueue_serve(&c);
         for (unsigned i = 0; i < wb_rule::kCompleteVisits; ++i)
             require(phase(f, r7) == 1 && f.io.wb_.stats().serves == 0 && c.serve_pending(),
                     "advancing deferral requires another visit");
@@ -276,92 +347,143 @@ struct CoreConcurrencyTest {
         require(idle.interval == 10, "parked interval excluded from learning");
         idle.observe(2000005, true);
         require(idle.interval == 10, "largest busy interval retained");
-        for (unsigned i = 1; i < 8; ++i) c.rob().at(i).state.store(OpState::Done, std::memory_order_release);
-        phase(f, r7); // Deliberately no new request or completion enqueue.
-        require(c.rob().quiesced() && !c.serve_pending(), "completion releases without fresh arrival");
+        for (unsigned i = 1; i < 8; ++i)
+            c.rob().at(i).state.store(OpState::Done, std::memory_order_release);
+        phase(f, r7);  // Deliberately no new request or completion enqueue.
+        require(c.rob().quiesced() && !c.serve_pending(),
+                "completion releases without fresh arrival");
     }
     static void split_policy() {
         // Exercise the wiring, ceil boundary and early-return rule in every IO schedule.
         for (unsigned n : {2u, 3u, 4u, 7u, 8u, 16u, 17u, 31u, 32u, 63u, 64u})
             for (unsigned waits = 0; waits <= wb_rule::kCompleteVisits; ++waits) {
-            const unsigned threshold = n <= wb_rule::kSmallPipe && waits < wb_rule::kCompleteVisits
-                                     ? n : (n+1)/2;
-            for (unsigned prefix : {threshold-1, threshold}) {
-                Fixture<false> f; Client c(-1); f.client(c, 1); fill(c, n, prefix);
-                c.wb_deferrals() = waits;
-                f.io.enqueue_serve(&c); phase(f);
-                const bool deferred = prefix < threshold;
-                require(c.rob().in_flight() == (deferred ? n : n-prefix) &&
-                        c.serve_pending() == deferred,
-                        "2s uses exact composite fraction");
+                const unsigned threshold =
+                    n <= wb_rule::kSmallPipe && waits < wb_rule::kCompleteVisits ? n : (n + 1) / 2;
+                for (unsigned prefix : {threshold - 1, threshold}) {
+                    Fixture<false> f;
+                    Client c(-1);
+                    f.client(c, 1);
+                    fill(c, n, prefix);
+                    c.wb_deferrals() = waits;
+                    f.io.enqueue_serve(&c);
+                    phase(f);
+                    const bool deferred = prefix < threshold;
+                    require(c.rob().in_flight() == (deferred ? n : n - prefix) &&
+                                c.serve_pending() == deferred,
+                            "2s uses exact composite fraction");
+                }
             }
-        }
         for (unsigned bytes : {511u, 512u, 513u}) {
-            Fixture<false> f; Client c(-1); f.client(c, 1); fill(c, 32, 1);
-            std::string payload(bytes-5, 'b'); c.rob().at(0).reply.append(payload.data(), payload.size());
-            f.io.enqueue_serve(&c); phase(f);
+            Fixture<false> f;
+            Client c(-1);
+            f.client(c, 1);
+            fill(c, 32, 1);
+            std::string payload(bytes - 5, 'b');
+            c.rob().at(0).reply.append(payload.data(), payload.size());
+            f.io.enqueue_serve(&c);
+            phase(f);
             require(c.rob().in_flight() == (bytes < 512 ? 32u : 31u), "2s Done byte clause");
         }
-        Fixture<false> f; Client c(-1); f.client(c, 1); fill(c, 32, 32);
+        Fixture<false> f;
+        Client c(-1);
+        f.client(c, 1);
+        fill(c, 32, 32);
         c.rob().at(0).state.store(OpState::Issued, std::memory_order_release);
         c.rob().at(1).reply.append(std::string(512, 'h').data(), 512);
-        f.io.enqueue_serve(&c); phase(f);
+        f.io.enqueue_serve(&c);
+        phase(f);
         require(c.rob().in_flight() == 32 && c.serve_pending(), "2s hole cannot be crossed");
     }
     static void split_local_policy(bool sweeping) {
-        Fixture<false, true> f; Client c(-1); f.client(c, 1); fill(c, 32, 1);
+        Fixture<false, true> f;
+        Client c(-1);
+        f.client(c, 1);
+        fill(c, 32, 1);
         require(f.ex.read_local_enabled() && f.server.thread_mode() == ThreadMode::Split,
                 "physical split reader is armed");
         f.io.enqueue_serve(&c);
         std::vector<std::unique_ptr<Client>> tails;
         for (unsigned i = 0; i < 96; ++i) {
-            auto tail = std::make_unique<Client>(-1); f.client(*tail, i+2);
-            fill(*tail, 1, 1); f.io.enqueue_serve(tail.get()); tails.push_back(std::move(tail));
+            auto tail = std::make_unique<Client>(-1);
+            f.client(*tail, i + 2);
+            fill(*tail, 1, 1);
+            f.io.enqueue_serve(tail.get());
+            tails.push_back(std::move(tail));
         }
-        if (sweeping) f.io.sweep<false, false, false, true, true>();
-        else phase(f);
+        if (sweeping)
+            f.io.sweep<false, false, false, true, true>();
+        else
+            phase(f);
         require(f.io.wb_.stats().serves == 96 && c.rob().in_flight() == 32 && c.serve_pending(),
                 "2s reader capability shares composite writeback");
     }
     static void split_chunk() {
-        Fixture<false> f; Client partial(-1); f.client(partial, 1); fill(partial, 32, 1);
+        Fixture<false> f;
+        Client partial(-1);
+        f.client(partial, 1);
+        fill(partial, 32, 1);
         f.io.enqueue_serve(&partial);
         std::vector<std::unique_ptr<Client>> tails;
         for (unsigned i = 0; i < 96; ++i) {
-            auto c = std::make_unique<Client>(-1); f.client(*c, i+2); fill(*c, 1, 1);
-            f.io.enqueue_serve(c.get()); tails.push_back(std::move(c));
+            auto c = std::make_unique<Client>(-1);
+            f.client(*c, i + 2);
+            fill(*c, 1, 1);
+            f.io.enqueue_serve(c.get());
+            tails.push_back(std::move(c));
         }
         phase(f);
         require(f.io.wb_.stats().serves == 96, "2s captured pass crosses scratch bound");
         require(f.io.pending_serve_.size() == 1 && f.io.pending_serve_.front() == &partial &&
-                partial.rob().in_flight() == 32 && partial.serve_pending(), "2s partial head stays pinned");
-        for (auto& c : tails) require(c->rob().quiesced() && !c->serve_pending(), "2s all eligible tails retired");
+                    partial.rob().in_flight() == 32 && partial.serve_pending(),
+                "2s partial head stays pinned");
+        for (auto& c : tails)
+            require(c->rob().quiesced() && !c->serve_pending(), "2s all eligible tails retired");
     }
     static void split_capture_multi() {
-        Fixture<false> f; Client partial(-1), added(-1);
-        f.client(partial, 1); f.client(added, 2); fill(partial, 32, 0); fill(added, 1, 1);
+        Fixture<false> f;
+        Client partial(-1), added(-1);
+        f.client(partial, 1);
+        f.client(added, 2);
+        fill(partial, 32, 0);
+        fill(added, 1, 1);
         f.io.enqueue_serve(&partial);
-        struct Context { Fixture<false>* f; Client* added; unsigned calls = 0; } ctx{&f, &added};
-        f.io.wb_.bind(&f.io.ring_, nullptr, [](void*, int32_t, const char*) {},
-            &ctx, [](void* raw, Client&, Op& op) {
-                auto& c = *static_cast<Context*>(raw); ++c.calls; op.zc_ptr = nullptr;
+        struct Context {
+            Fixture<false>* f;
+            Client* added;
+            unsigned calls = 0;
+        } ctx{&f, &added};
+        f.io.wb_.bind(
+            &f.io.ring_, nullptr, [](void*, int32_t, const char*) {}, &ctx,
+            [](void* raw, Client&, Op& op) {
+                auto& c = *static_cast<Context*>(raw);
+                ++c.calls;
+                op.zc_ptr = nullptr;
                 c.f->io.enqueue_serve(c.added);
-            }, &f.limits, nullptr, [](void*, Client&) { return false; }, &f.now, &f.io.self_->sig());
+            },
+            &f.limits, nullptr, [](void*, Client&) { return false; }, &f.now, &f.io.self_->sig());
         std::vector<std::unique_ptr<Client>> originals;
         for (unsigned i = 0; i < 65; ++i) {
-            auto c = std::make_unique<Client>(-1); f.client(*c, i+3); fill(*c, 1, 1);
+            auto c = std::make_unique<Client>(-1);
+            f.client(*c, i + 3);
+            fill(*c, 1, 1);
             c->rob().at(0).zc_ptr = reinterpret_cast<const char*>(&ctx);
-            f.io.enqueue_serve(c.get()); originals.push_back(std::move(c));
+            f.io.enqueue_serve(c.get());
+            originals.push_back(std::move(c));
         }
         added.rob().at(0).zc_ptr = reinterpret_cast<const char*>(&ctx);
         phase(f);
         require(ctx.calls == 65 && added.rob().in_flight() == 1 && added.serve_pending(),
                 "2s callback cannot extend captured chunks");
         require(f.io.pending_serve_.size() == 2 && f.io.pending_serve_[0] == &partial &&
-                f.io.pending_serve_[1] == &added, "2s deferred and callback FIFO order");
+                    f.io.pending_serve_[1] == &added,
+                "2s deferred and callback FIFO order");
     }
     static void split_aof() {
-        Fixture<false> f; Client c(-1); f.client(c, 1); fill(c, 1, 1); f.io.enqueue_serve(&c);
+        Fixture<false> f;
+        Client c(-1);
+        f.client(c, 1);
+        fill(c, 1, 1);
+        f.io.enqueue_serve(&c);
         auto& aof = f.server.aof();
         aof.*member(AofConfigured{}) = true;
         (aof.*member(AofRecording{})).store(true);
@@ -378,12 +500,17 @@ struct CoreConcurrencyTest {
         aof.*member(AofConfigured{}) = false;
         (aof.*member(AofRecording{})).store(false);
     }
-    template <bool Fused> static void parse() {
-        Fixture<Fused> f; Client c(-1); f.client(c, 1);
+    template <bool Fused>
+    static void parse() {
+        Fixture<Fused> f;
+        Client c(-1);
+        f.client(c, 1);
         const std::string key = f.key();
-        const std::string request = "*2\r\n$3\r\nGET\r\n$" + std::to_string(key.size()) + "\r\n" + key + "\r\n";
+        const std::string request =
+            "*2\r\n$3\r\nGET\r\n$" + std::to_string(key.size()) + "\r\n" + key + "\r\n";
         for (unsigned i = 0; i < 128; ++i) {
-            std::memcpy(c.rbuf()+c.rlen(), request.data(), request.size()); c.commit_read(request.size());
+            std::memcpy(c.rbuf() + c.rlen(), request.data(), request.size());
+            c.commit_read(request.size());
         }
         f.io.template parse_and_dispatch<false, Fused ? kGenthreadIfidBatchOps : 0>(&c);
         const unsigned n = c.rob().in_flight();
@@ -399,138 +526,210 @@ struct CoreConcurrencyTest {
     static void observed_get(Shard& shard, Op& op) {
         // Observe the real notification-batch frontier at the handler boundary. This
         // distinguishes 32 from 64/128 even though drain_tasks consumes the whole queue.
-        require(observed_ex->notify_batch_n_ == observed_ops % 32, "default split EX chunk remains 32");
-        ++observed_ops; get_handler(shard, op);
+        require(observed_ex->notify_batch_n_ == observed_ops % 32,
+                "default split EX chunk remains 32");
+        ++observed_ops;
+        get_handler(shard, op);
     }
     static void split_ex(bool timed, bool unmasked) {
-        Fixture<false> f; const std::string key = f.key();
+        Fixture<false> f;
+        const std::string key = f.key();
         CommandSpec spec = *command_lookup(Slice{"GET", 3});
-        get_handler = spec.handler; spec.handler = observed_get;
-        observed_ex = &f.ex; observed_ops = 0;
+        get_handler = spec.handler;
+        spec.handler = observed_get;
+        observed_ex = &f.ex;
+        observed_ops = 0;
         std::vector<std::unique_ptr<Client>> clients;
         for (unsigned i = 0; i < 257; ++i) {
-            auto c = std::make_unique<Client>(-1); f.client(*c, i+1);
-            Task task = f.get(*c, key); c->rob().at(0).spec = &spec;
-            require(f.ex.self_->post_task_quiet(i%2, task, f.io.self_->sig()), "enqueue split GET");
+            auto c = std::make_unique<Client>(-1);
+            f.client(*c, i + 1);
+            Task task = f.get(*c, key);
+            c->rob().at(0).spec = &spec;
+            require(f.ex.self_->post_task_quiet(i % 2, task, f.io.self_->sig()),
+                    "enqueue split GET");
             clients.push_back(std::move(c));
         }
-        for (unsigned p = 0; p < 2; ++p) f.ex.self_->flush_task_notify(p, f.io.ring_, f.io.self_->sig());
+        for (unsigned p = 0; p < 2; ++p)
+            f.ex.self_->flush_task_notify(p, f.io.ring_, f.io.self_->sig());
         f.ex.slowlog_armed_ = timed;
         if (timed) f.ex.slowlog_state_.escalate_batches = 1;
         // Omit the template argument: pins the default entry, not an explicit test-only width.
-        require(f.ex.drain_tasks<>(unmasked) == 257 && observed_ops == 257, "default split EX full drain");
-        for (auto& c : clients) require(c->rob().at(0).state.load() == OpState::Done, "all GETs Done");
+        require(f.ex.drain_tasks<>(unmasked) == 257 && observed_ops == 257,
+                "default split EX full drain");
+        for (auto& c : clients)
+            require(c->rob().at(0).state.load() == OpState::Done, "all GETs Done");
         require(f.ex.self_->ex_inbound_quiesced(), "EX sources retired");
     }
-    template <bool Fused, bool Local = false> static void wbland_policies(bool r7) {
+    template <bool Fused, bool Local = false>
+    static void wbland_policies(bool r7) {
         for (const auto& [small, delay] : {std::pair{16u, 3u}, {0u, 3u}, {8u, 1u}, {64u, 0u}})
-        for (unsigned depth : {2u, 4u, 5u, 8u, 16u, 17u, 32u, 64u}) for (int policy : {0, 1}) {
-            Fixture<Fused, Local> f(policy, small, delay);
-            require(f.io.wb_config_.policy == policy && f.io.wb_config_.small_pipe == small &&
-                    f.io.wb_config_.complete_visits == delay, "real boot cache preserves writeback knobs");
-            std::vector<std::unique_ptr<Client>> clients;
-            std::array<bool, 96> queued; queued.fill(true);
-            std::array<unsigned, 96> waits{};
-            for (unsigned i = 0; i < queued.size(); ++i) {
-                auto c = std::make_unique<Client>(-1); f.client(*c, i+1);
-                fill(*c, depth, i%depth+1); f.io.enqueue_serve(c.get()); clients.push_back(std::move(c));
-            }
-            Client staged(-1); f.client(staged, 97); staged.fill_buf().append("+OK\r\n", 5);
-            f.io.enqueue_serve(&staged);
-            unsigned total_served = 1;
-            for (unsigned pass = 0; pass <= wb_rule::kCompleteVisits; ++pass) {
-                phase(f, r7);
-                require(staged.send_inflight() && !staged.serve_pending(), "wb-policy empty pipe sends");
-                unsigned pending = 0;
-                for (unsigned i = 0; i < clients.size(); ++i) {
-                    Client& c = *clients[i];
-                    const unsigned prefix = i%depth+1;
-                    const bool complete = depth <= small && (delay == 0 || waits[i] < delay);
-                    const unsigned need = complete ? depth : depth/2 + depth%2;
-                    if (queued[i] && (policy == 0 || prefix >= need)) {
-                        queued[i] = false; waits[i] = 0; ++total_served;
-                    } else if (queued[i] && complete && delay) ++waits[i];
-                    require(c.rob().in_flight() == (queued[i] ? depth : depth-prefix),
-                            "wb-policy exact retirement in every physical schedule");
-                    require(c.serve_pending() == queued[i], "wb-policy retains deferred pins");
-                    require(c.wb_deferrals() == waits[i], "physical serve resets and deferral saturates");
-                    pending += queued[i];
+            for (unsigned depth : {2u, 4u, 5u, 8u, 16u, 17u, 32u, 64u})
+                for (int policy : {0, 1}) {
+                    Fixture<Fused, Local> f(policy, small, delay);
+                    require(f.io.wb_config_.policy == policy &&
+                                f.io.wb_config_.small_pipe == small &&
+                                f.io.wb_config_.complete_visits == delay,
+                            "real boot cache preserves writeback knobs");
+                    std::vector<std::unique_ptr<Client>> clients;
+                    std::array<bool, 96> queued;
+                    queued.fill(true);
+                    std::array<unsigned, 96> waits{};
+                    for (unsigned i = 0; i < queued.size(); ++i) {
+                        auto c = std::make_unique<Client>(-1);
+                        f.client(*c, i + 1);
+                        fill(*c, depth, i % depth + 1);
+                        f.io.enqueue_serve(c.get());
+                        clients.push_back(std::move(c));
+                    }
+                    Client staged(-1);
+                    f.client(staged, 97);
+                    staged.fill_buf().append("+OK\r\n", 5);
+                    f.io.enqueue_serve(&staged);
+                    unsigned total_served = 1;
+                    for (unsigned pass = 0; pass <= wb_rule::kCompleteVisits; ++pass) {
+                        phase(f, r7);
+                        require(staged.send_inflight() && !staged.serve_pending(),
+                                "wb-policy empty pipe sends");
+                        unsigned pending = 0;
+                        for (unsigned i = 0; i < clients.size(); ++i) {
+                            Client& c = *clients[i];
+                            const unsigned prefix = i % depth + 1;
+                            const bool complete =
+                                depth <= small && (delay == 0 || waits[i] < delay);
+                            const unsigned need = complete ? depth : depth / 2 + depth % 2;
+                            if (queued[i] && (policy == 0 || prefix >= need)) {
+                                queued[i] = false;
+                                waits[i] = 0;
+                                ++total_served;
+                            } else if (queued[i] && complete && delay)
+                                ++waits[i];
+                            require(c.rob().in_flight() == (queued[i] ? depth : depth - prefix),
+                                    "wb-policy exact retirement in every physical schedule");
+                            require(c.serve_pending() == queued[i],
+                                    "wb-policy retains deferred pins");
+                            require(c.wb_deferrals() == waits[i],
+                                    "physical serve resets and deferral saturates");
+                            pending += queued[i];
+                        }
+                        require(f.io.pending_serve_.size() == pending, "captured FIFO count");
+                        unsigned previous = 0;
+                        for (Client* c : f.io.pending_serve_) {
+                            require(c->id() > previous,
+                                    "FIFO rotations preserve deferred relative order");
+                            previous = c->id();
+                        }
+                        require(f.io.wb_.stats().serves == total_served,
+                                "one visit per captured client");
+                    }
+                    // Complete remaining work and empty the FIFO before giving the SAME
+                    // connections a new short pipe. Old sends may still be outstanding.
+                    for (auto& c : clients) {
+                        for (unsigned i = 0; i < c->rob().in_flight(); ++i)
+                            c->rob()
+                                .at(c->rob().flush_id() + i)
+                                .state.store(OpState::Done, std::memory_order_release);
+                        f.io.enqueue_serve(c.get());
+                    }
+                    phase(f, r7);
+                    require(f.io.pending_serve_.empty(), "complete pipes leave FIFO");
+                    for (auto& c : clients) {
+                        require(c->rob().in_flight() == 0 && c->wb_deferrals() == 0,
+                                "completion resets count");
+                        fill(*c, 8, 4);
+                        f.io.enqueue_serve(c.get());
+                    }
+                    phase(f, r7);
+                    for (auto& c : clients) {
+                        const bool complete = policy != 0 && small >= 8;
+                        require(c->rob().in_flight() == (complete ? 8u : 4u),
+                                "served connection completes again next pipe");
+                        require(c->wb_deferrals() == unsigned(complete && delay),
+                                "new pipe wait count");
+                    }
                 }
-                require(f.io.pending_serve_.size() == pending, "captured FIFO count");
-                unsigned previous = 0;
-                for (Client* c : f.io.pending_serve_) {
-                    require(c->id() > previous, "FIFO rotations preserve deferred relative order");
-                    previous = c->id();
-                }
-                require(f.io.wb_.stats().serves == total_served, "one visit per captured client");
-            }
-            // Complete remaining work and empty the FIFO before giving the SAME
-            // connections a new short pipe. Old sends may still be outstanding.
-            for (auto& c : clients) {
-                for (unsigned i = 0; i < c->rob().in_flight(); ++i)
-                    c->rob().at(c->rob().flush_id()+i).state.store(OpState::Done, std::memory_order_release);
-                f.io.enqueue_serve(c.get());
-            }
-            phase(f, r7);
-            require(f.io.pending_serve_.empty(), "complete pipes leave FIFO");
-            for (auto& c : clients) {
-                require(c->rob().in_flight() == 0 && c->wb_deferrals() == 0, "completion resets count");
-                fill(*c, 8, 4); f.io.enqueue_serve(c.get());
-            }
-            phase(f, r7);
-            for (auto& c : clients) {
-                const bool complete = policy != 0 && small >= 8;
-                require(c->rob().in_flight() == (complete ? 8u : 4u),
-                        "served connection completes again next pipe");
-                require(c->wb_deferrals() == unsigned(complete && delay), "new pipe wait count");
-            }
-        }
         // Dead entries bypass defer() but must clear a nonzero wait count, and closing
         // live entries must still drain. Exercise the physical envelope, including R7.
         Fixture<Fused, Local> f;
-        Client dead(-1), closing(-1); f.client(dead, 1); f.client(closing, 2);
+        Client dead(-1), closing(-1);
+        f.client(dead, 1);
+        f.client(closing, 2);
         dead.wb_deferrals() = closing.wb_deferrals() = wb_rule::kCompleteVisits;
-        dead.mark_dead(); closing.mark_closing(); fill(closing, 1, 1);
-        f.io.enqueue_serve(&dead); f.io.enqueue_serve(&closing); phase(f, r7);
-        require(f.io.pending_serve_.empty() && !dead.serve_pending() && !closing.serve_pending(), "dead/closing pins released");
-        require(dead.wb_deferrals() == 0 && closing.wb_deferrals() == 0 && closing.rob().in_flight() == 0,
+        dead.mark_dead();
+        closing.mark_closing();
+        fill(closing, 1, 1);
+        f.io.enqueue_serve(&dead);
+        f.io.enqueue_serve(&closing);
+        phase(f, r7);
+        require(f.io.pending_serve_.empty() && !dead.serve_pending() && !closing.serve_pending(),
+                "dead/closing pins released");
+        require(dead.wb_deferrals() == 0 && closing.wb_deferrals() == 0 &&
+                    closing.rob().in_flight() == 0,
                 "dead and closing exits reset physical counter");
     }
     static int run(int argc, char** argv) {
         require(argc == 2 || argc == 3, "usage: wb-rule-phase-unit CASE [r7]");
-        selected = argv[1]; const std::string name = selected;
+        selected = argv[1];
+        const std::string name = selected;
         const bool r7 = argc == 3 && std::string(argv[2]) == "r7";
         require(argc == 2 || r7, "known fused schedule");
         require(command_registry_init(false), "command registry");
-        if (name == "wbland-fused") wbland_policies<true>(r7);
-        else if (name == "wbland-split") wbland_policies<false>(false);
-        else if (name == "wbland-local") wbland_policies<false, true>(false);
-        else if (name == "fused-budget") budget<true>(r7);
-        else if (name == "split-budget") budget<false>(false);
-        else if (name == "fastpath") fastpath(r7);
-        else if (name == "fifo") fifo(r7);
-        else if (name == "capture") capture(r7);
-        else if (name == "dead") dead<true>(r7);
-        else if (name == "split-dead") dead<false>(false);
-        else if (name == "progress") progress(r7);
-        else if (name == "split-policy") split_policy();
-        else if (name == "split-fastpath") fastpath<false>(false);
-        else if (name == "split-fifo") fifo<false>(false);
-        else if (name == "split-capture") capture<false>(false);
-        else if (name == "split-progress") progress<false>(false);
-        else if (name == "split-chunk") split_chunk();
-        else if (name == "split-aof") split_aof();
-        else if (name == "split-capture-multi") split_capture_multi();
-        else if (name == "split-local") split_local_policy(false);
-        else if (name == "split-local-sweep") split_local_policy(true);
-        else if (name == "fused-parse") parse<true>();
-        else if (name == "split-parse") parse<false>();
-        else if (name == "split-ex") split_ex(false, false);
-        else if (name == "split-ex-unmasked") split_ex(false, true);
-        else if (name == "split-ex-timed") split_ex(true, false);
-        else require(false, "known proof");
-        std::printf("PASS wb-rule %s\n", selected); return 0;
+        if (name == "wbland-fused")
+            wbland_policies<true>(r7);
+        else if (name == "wbland-split")
+            wbland_policies<false>(false);
+        else if (name == "wbland-local")
+            wbland_policies<false, true>(false);
+        else if (name == "fused-budget")
+            budget<true>(r7);
+        else if (name == "split-budget")
+            budget<false>(false);
+        else if (name == "fastpath")
+            fastpath(r7);
+        else if (name == "fifo")
+            fifo(r7);
+        else if (name == "capture")
+            capture(r7);
+        else if (name == "dead")
+            dead<true>(r7);
+        else if (name == "split-dead")
+            dead<false>(false);
+        else if (name == "progress")
+            progress(r7);
+        else if (name == "split-policy")
+            split_policy();
+        else if (name == "split-fastpath")
+            fastpath<false>(false);
+        else if (name == "split-fifo")
+            fifo<false>(false);
+        else if (name == "split-capture")
+            capture<false>(false);
+        else if (name == "split-progress")
+            progress<false>(false);
+        else if (name == "split-chunk")
+            split_chunk();
+        else if (name == "split-aof")
+            split_aof();
+        else if (name == "split-capture-multi")
+            split_capture_multi();
+        else if (name == "split-local")
+            split_local_policy(false);
+        else if (name == "split-local-sweep")
+            split_local_policy(true);
+        else if (name == "fused-parse")
+            parse<true>();
+        else if (name == "split-parse")
+            parse<false>();
+        else if (name == "split-ex")
+            split_ex(false, false);
+        else if (name == "split-ex-unmasked")
+            split_ex(false, true);
+        else if (name == "split-ex-timed")
+            split_ex(true, false);
+        else
+            require(false, "known proof");
+        std::printf("PASS wb-rule %s\n", selected);
+        return 0;
     }
 };
-} // namespace tomo
+}  // namespace tomo
 int main(int argc, char** argv) { return tomo::CoreConcurrencyTest::run(argc, argv); }

@@ -4,9 +4,8 @@ namespace tomo {
 
 bool acl_pattern_allowed(const AclSelector& perm, Slice value);
 __attribute__((noinline)) AclDeniedReason acl_check_metadata_keys(
-    const AclSelector& perm, const CommandSpec& spec, uint32_t argc,
-    const void* argument_context, Slice (*argument_at)(const void*, uint32_t),
-    uint32_t* denied_arg);
+    const AclSelector& perm, const CommandSpec& spec, uint32_t argc, const void* argument_context,
+    Slice (*argument_at)(const void*, uint32_t), uint32_t* denied_arg);
 
 namespace {
 
@@ -17,14 +16,15 @@ namespace {
 // denied; it can never name the new account. Handle 0 is always the default user's.
 constexpr uint32_t kAclMaxUsers = 65536;
 constexpr uint32_t kAclSlotMask = kAclMaxUsers - 1;
-static_assert((kAclMaxUsers & kAclSlotMask) == 0, "handle slot bits need a power-of-two slot count");
+static_assert((kAclMaxUsers & kAclSlotMask) == 0,
+              "handle slot bits need a power-of-two slot count");
 std::mutex g_acl_mu;
 std::array<std::atomic<AclUser*>, kAclMaxUsers> g_acl_slots{};
-std::unordered_map<std::string, uint32_t> g_acl_names;   // name -> live handle
-uint32_t g_acl_next_index = 1;                           // first never-used slot
+std::unordered_map<std::string, uint32_t> g_acl_names;  // name -> live handle
+uint32_t g_acl_next_index = 1;                          // first never-used slot
 uint32_t g_acl_live_users = 0;
-std::deque<uint32_t> g_acl_free_handles;                 // deleted handles, oldest first
-std::vector<AclUser*> g_acl_retired_users;               // replaced tombstones, freed at shutdown
+std::deque<uint32_t> g_acl_free_handles;    // deleted handles, oldest first
+std::vector<AclUser*> g_acl_retired_users;  // replaced tombstones, freed at shutdown
 bool g_acl_initialized = false;
 bool g_acl_pubsub_default_all = false;
 Server* g_acl_server = nullptr;
@@ -64,8 +64,10 @@ AclLogStore* acl_log_store(uint32_t id) {
     try {
         auto fresh = std::make_unique<AclLogStore>();
         if (slot.compare_exchange_strong(store, fresh.get(), std::memory_order_release,
-                                         std::memory_order_acquire)) store = fresh.release();
-    } catch (const std::bad_alloc&) {}
+                                         std::memory_order_acquire))
+            store = fresh.release();
+    } catch (const std::bad_alloc&) {
+    }
     return store;
 }
 std::atomic<uint64_t> g_acl_log_max_len{128};
@@ -110,8 +112,7 @@ const AclCategoryDefinition* acl_category(Slice name) {
     return nullptr;
 }
 
-bool acl_digest_equal(const std::array<uint64_t, 4>& left,
-                      const std::array<uint64_t, 4>& right) {
+bool acl_digest_equal(const std::array<uint64_t, 4>& left, const std::array<uint64_t, 4>& right) {
     uint64_t difference = 0;
     for (uint32_t i = 0; i < left.size(); i++) difference |= left[i] ^ right[i];
     return difference == 0;
@@ -154,8 +155,10 @@ bool acl_command_bit(const AclSelector& perm, uint32_t id) {
 void acl_set_command_bit(AclSelector& perm, uint32_t id, bool value) {
     if (id >= kAclFutureCommandBit) return;
     const uint64_t bit = uint64_t{1} << (id & 63);
-    if (value) perm.allowed_commands[id >> 6] |= bit;
-    else perm.allowed_commands[id >> 6] &= ~bit;
+    if (value)
+        perm.allowed_commands[id >> 6] |= bit;
+    else
+        perm.allowed_commands[id >> 6] &= ~bit;
 }
 
 bool acl_future_commands(const AclSelector& perm) {
@@ -165,8 +168,10 @@ bool acl_future_commands(const AclSelector& perm) {
 
 void acl_reset_commands(AclSelector& perm, bool all) {
     for (uint64_t& word : perm.allowed_commands) word = all ? UINT64_MAX : 0;
-    if (all) perm.flags |= AclAllCommands;
-    else perm.flags &= ~AclAllCommands;
+    if (all)
+        perm.flags |= AclAllCommands;
+    else
+        perm.flags &= ~AclAllCommands;
     perm.command_rules.clear();
     perm.allowed_subcommands.clear();
     perm.allowed_firstargs.clear();
@@ -181,10 +186,11 @@ bool acl_subcommand_bit(const AclSelector& perm, const CommandMetadata& metadata
 void acl_set_subcommand_bit(AclSelector& perm, const CommandMetadata& metadata, bool allow) {
     if (perm.allowed_subcommands.empty())
         perm.allowed_subcommands.assign((command_metadata_size() + 63) / 64,
-                                         acl_future_commands(perm) ? UINT64_MAX : 0);
+                                        acl_future_commands(perm) ? UINT64_MAX : 0);
     const uint32_t id = command_metadata_index(metadata);
     const uint64_t bit = uint64_t{1} << (id & 63);
-    if (allow) perm.allowed_subcommands[id >> 6] |= bit;
+    if (allow)
+        perm.allowed_subcommands[id >> 6] |= bit;
     else {
         perm.allowed_subcommands[id >> 6] &= ~bit;
         perm.flags &= ~AclAllCommands;
@@ -194,7 +200,8 @@ void acl_set_subcommand_bit(AclSelector& perm, const CommandMetadata& metadata, 
 void acl_change_command(AclSelector& perm, const CommandSpec& spec, bool allow) {
     acl_set_command_bit(perm, spec.id, allow);
     if (!allow) perm.flags &= ~AclAllCommands;
-    std::erase_if(perm.allowed_firstargs, [&](const auto& entry) { return entry.first == spec.id; });
+    std::erase_if(perm.allowed_firstargs,
+                  [&](const auto& entry) { return entry.first == spec.id; });
     for (uint32_t i = 0; i < command_metadata_size(); i++) {
         const auto& metadata = *command_metadata_at(i);
         if (!command_metadata_is_subcommand(metadata)) continue;
@@ -206,13 +213,14 @@ void acl_change_command(AclSelector& perm, const CommandSpec& spec, bool allow) 
 }
 
 void acl_update_command_rule(AclSelector& perm, const std::string& rule) {
-    const std::string target = acl_lower(
-        Slice(rule.data() + 1, static_cast<uint32_t>(rule.size() - 1)));
+    const std::string target =
+        acl_lower(Slice(rule.data() + 1, static_cast<uint32_t>(rule.size() - 1)));
     for (size_t i = 0; i < perm.command_rules.size();) {
         const std::string& old = perm.command_rules[i];
         const std::string previous = acl_lower(Slice(old.data() + 1, old.size() - 1));
-        if (previous == target || (previous.size() > target.size() &&
-                previous.compare(0, target.size(), target) == 0 && previous[target.size()] == '|'))
+        if (previous == target ||
+            (previous.size() > target.size() && previous.compare(0, target.size(), target) == 0 &&
+             previous[target.size()] == '|'))
             perm.command_rules.erase(perm.command_rules.begin() + i);
         else
             i++;
@@ -271,8 +279,14 @@ bool acl_apply_command_rule(AclSelector& perm, Slice rule, std::string& error,
                 error = "Allowing first-arg of a subcommand is not supported";
                 return false;
             }
-            if (!spec) { error = "Unknown command or category name in ACL"; return false; }
-            if (separator + 1 == normalized.size()) { error = "Syntax error"; return false; }
+            if (!spec) {
+                error = "Unknown command or category name in ACL";
+                return false;
+            }
+            if (separator + 1 == normalized.size()) {
+                error = "Syntax error";
+                return false;
+            }
             if (metadata && command_metadata_is_subcommand(*metadata)) {
                 acl_set_subcommand_bit(perm, *metadata, true);
             } else {
@@ -281,12 +295,17 @@ bool acl_apply_command_rule(AclSelector& perm, Slice rule, std::string& error,
                 for (uint32_t i = 0; i < command_metadata_size(); i++) {
                     const Slice name = command_metadata_name(*command_metadata_at(i));
                     container |= name.n > parent.n && name.p[parent.n] == '|' &&
-                        !std::memcmp(name.p, normalized.data(), parent.n);
+                                 !std::memcmp(name.p, normalized.data(), parent.n);
                 }
-                if (container) { error = "Unknown command or category name in ACL"; return false; }
-                const std::pair<uint32_t, std::string> entry(spec->id, normalized.substr(separator + 1));
-                if (std::find(perm.allowed_firstargs.begin(), perm.allowed_firstargs.end(), entry) ==
-                    perm.allowed_firstargs.end()) perm.allowed_firstargs.push_back(entry);
+                if (container) {
+                    error = "Unknown command or category name in ACL";
+                    return false;
+                }
+                const std::pair<uint32_t, std::string> entry(spec->id,
+                                                             normalized.substr(separator + 1));
+                if (std::find(perm.allowed_firstargs.begin(), perm.allowed_firstargs.end(),
+                              entry) == perm.allowed_firstargs.end())
+                    perm.allowed_firstargs.push_back(entry);
             }
         } else if (metadata && command_metadata_is_subcommand(*metadata)) {
             acl_set_subcommand_bit(perm, *metadata, allow);
@@ -310,8 +329,9 @@ void acl_add_unique(std::vector<std::string>& patterns, Slice value) {
 bool acl_valid_username(Slice name) {
     if (!name.n) return false;
     for (uint32_t i = 0; i < name.n; i++)
-        if (name.p[i] == '\0' || name.p[i] == ' ' || name.p[i] == '\t' ||
-            name.p[i] == '\r' || name.p[i] == '\n') return false;
+        if (name.p[i] == '\0' || name.p[i] == ' ' || name.p[i] == '\t' || name.p[i] == '\r' ||
+            name.p[i] == '\n')
+            return false;
     return true;
 }
 
@@ -329,7 +349,8 @@ bool acl_has_spaces(Slice value) {
     for (uint32_t i = 0; i < value.n; i++) {
         const char byte = value.p[i];
         if (byte == ' ' || byte == '\t' || byte == '\n' || byte == '\v' || byte == '\f' ||
-            byte == '\r' || byte == '\0') return true;
+            byte == '\r' || byte == '\0')
+            return true;
     }
     return false;
 }
@@ -352,11 +373,13 @@ bool acl_apply_permission_rule(AclSelector& perm, Slice rule, std::string& error
     } else if (acl_equal_icase(rule, "nocommands")) {
         acl_reset_commands(perm, false);
     } else if (rule.p[0] == '%') {
-        error = "Read/write key patterns are not supported until command key specifications are available";
+        error =
+            "Read/write key patterns are not supported until command key specifications are available";
         return false;
     } else if (rule.p[0] == '~') {
         if (perm.flags & AclAllKeys) {
-            error = "Adding a pattern after the * pattern (or the 'allkeys' flag) is not valid and does not have any effect. Try 'resetkeys' to start with an empty list of patterns";
+            error =
+                "Adding a pattern after the * pattern (or the 'allkeys' flag) is not valid and does not have any effect. Try 'resetkeys' to start with an empty list of patterns";
             return false;
         }
         if (acl_has_spaces(Slice(rule.p + 1, rule.n - 1))) {
@@ -366,7 +389,8 @@ bool acl_apply_permission_rule(AclSelector& perm, Slice rule, std::string& error
         acl_add_unique(perm.key_patterns, Slice(rule.p + 1, rule.n - 1));
     } else if (rule.p[0] == '&') {
         if (perm.flags & AclAllChannels) {
-            error = "Adding a pattern after the * pattern (or the 'allchannels' flag) is not valid and does not have any effect. Try 'resetchannels' to start with an empty list of channels";
+            error =
+                "Adding a pattern after the * pattern (or the 'allchannels' flag) is not valid and does not have any effect. Try 'resetchannels' to start with an empty list of channels";
             return false;
         }
         if (acl_has_spaces(Slice(rule.p + 1, rule.n - 1))) {
@@ -419,24 +443,30 @@ bool acl_apply_rule(AclUserImage& image, Slice rule, std::string& error) {
         image.perm.selectors.clear();
     } else if (rule.p[0] == '>' || rule.p[0] == '#') {
         std::array<uint64_t, 4> digest;
-        if (rule.p[0] == '>') digest = auth_password_digest(Slice(rule.p + 1, rule.n - 1));
+        if (rule.p[0] == '>')
+            digest = auth_password_digest(Slice(rule.p + 1, rule.n - 1));
         else if (!acl_parse_hash(Slice(rule.p + 1, rule.n - 1), digest)) {
-            error = "The password hash must be exactly 64 characters and contain only lowercase hexadecimal characters";
+            error =
+                "The password hash must be exactly 64 characters and contain only lowercase hexadecimal characters";
             return false;
         }
         bool duplicate = false;
-        for (const auto& password : image.passwords) duplicate |= acl_digest_equal(password, digest);
+        for (const auto& password : image.passwords)
+            duplicate |= acl_digest_equal(password, digest);
         if (!duplicate) image.passwords.push_back(digest);
         image.flags &= ~AclUserNoPass;
     } else if (rule.p[0] == '<' || rule.p[0] == '!') {
         std::array<uint64_t, 4> digest;
-        if (rule.p[0] == '<') digest = auth_password_digest(Slice(rule.p + 1, rule.n - 1));
+        if (rule.p[0] == '<')
+            digest = auth_password_digest(Slice(rule.p + 1, rule.n - 1));
         else if (!acl_parse_hash(Slice(rule.p + 1, rule.n - 1), digest)) {
-            error = "The password hash must be exactly 64 characters and contain only lowercase hexadecimal characters";
+            error =
+                "The password hash must be exactly 64 characters and contain only lowercase hexadecimal characters";
             return false;
         }
-        auto found = std::find_if(image.passwords.begin(), image.passwords.end(),
-            [&](const auto& password) { return acl_digest_equal(password, digest); });
+        auto found =
+            std::find_if(image.passwords.begin(), image.passwords.end(),
+                         [&](const auto& password) { return acl_digest_equal(password, digest); });
         if (found == image.passwords.end()) {
             error = "The password you are trying to remove from the user does not exist";
             return false;
@@ -451,8 +481,8 @@ bool acl_apply_rule(AclUserImage& image, Slice rule, std::string& error) {
     return true;
 }
 
-bool acl_apply_rules(AclUserImage& image, const std::vector<std::string>& rules,
-                     size_t begin, std::string& error, std::string* failed = nullptr) {
+bool acl_apply_rules(AclUserImage& image, const std::vector<std::string>& rules, size_t begin,
+                     std::string& error, std::string* failed = nullptr) {
     for (size_t i = begin; i < rules.size(); i++) {
         if (!rules[i].empty() && rules[i][0] == '(') {
             error = "ACL selectors are not supported";
@@ -473,18 +503,22 @@ void acl_verify_command_description(const AclSelector& perm) {
     acl_reset_commands(predicted, acl_future_commands(perm));
     for (const std::string& rule : perm.command_rules) {
         std::string error;
-        if (!acl_apply_command_rule(predicted,
-                Slice(rule.data(), static_cast<uint32_t>(rule.size())), error, false)) std::abort();
+        if (!acl_apply_command_rule(
+                predicted, Slice(rule.data(), static_cast<uint32_t>(rule.size())), error, false))
+            std::abort();
     }
     if (std::memcmp(predicted.allowed_commands, perm.allowed_commands,
-                    sizeof(perm.allowed_commands))) std::abort();
+                    sizeof(perm.allowed_commands)))
+        std::abort();
     for (uint32_t i = 0; i < command_metadata_size(); i++) {
         const auto& metadata = *command_metadata_at(i);
         if (command_metadata_is_subcommand(metadata) &&
-            acl_subcommand_bit(predicted, metadata) != acl_subcommand_bit(perm, metadata)) std::abort();
+            acl_subcommand_bit(predicted, metadata) != acl_subcommand_bit(perm, metadata))
+            std::abort();
     }
     if (!std::is_permutation(predicted.allowed_firstargs.begin(), predicted.allowed_firstargs.end(),
-                             perm.allowed_firstargs.begin(), perm.allowed_firstargs.end())) std::abort();
+                             perm.allowed_firstargs.begin(), perm.allowed_firstargs.end()))
+        std::abort();
 }
 
 std::string acl_describe_commands(const AclSelector& perm) {
@@ -598,8 +632,8 @@ bool acl_publish_image_locked(AclUser* user, AclUserImage&& image) {
 void acl_tombstone_user_locked(uint32_t index) {
     AclUser* user = acl_slot(index);
     if (!user) return;
-    const AclPerm* retired = user->perm.exchange(
-        &g_acl_denied_permissions, std::memory_order_acq_rel);
+    const AclPerm* retired =
+        user->perm.exchange(&g_acl_denied_permissions, std::memory_order_acq_rel);
     user->passwords.clear();
     user->flags = AclUserDisabled | AclUserSanitize;
     if (retired) {
@@ -616,10 +650,12 @@ AclUser* acl_create_locked(AclUserImage&& image, uint32_t requested_index = UINT
     // Choose without consuming: a refused creation leaves every slot and the free list unchanged.
     uint32_t handle = requested_index;
     const bool fresh = handle == UINT32_MAX && g_acl_next_index < kAclMaxUsers;
-    if (fresh) handle = g_acl_next_index;
+    if (fresh)
+        handle = g_acl_next_index;
     else if (handle == UINT32_MAX && !g_acl_free_handles.empty())
         handle = g_acl_free_handles.front() + kAclMaxUsers;
-    else if (handle == UINT32_MAX) return nullptr;
+    else if (handle == UINT32_MAX)
+        return nullptr;
     auto* user = new (std::nothrow) AclUser;
     if (!user) return nullptr;
     user->name = image.name;
@@ -631,20 +667,23 @@ AclUser* acl_create_locked(AclUserImage&& image, uint32_t requested_index = UINT
     g_acl_names.emplace(user->name, handle);
     // Readers may still hold a replaced tombstone (acl_username's name, a denied permission set):
     // like retired permissions it is reclaimed only at shutdown.
-    AclUser* replaced = g_acl_slots[handle & kAclSlotMask].exchange(user, std::memory_order_acq_rel);
+    AclUser* replaced =
+        g_acl_slots[handle & kAclSlotMask].exchange(user, std::memory_order_acq_rel);
     if (replaced) g_acl_retired_users.push_back(replaced);
-    if (fresh) g_acl_next_index++;
-    else if (requested_index == UINT32_MAX) g_acl_free_handles.pop_front();
+    if (fresh)
+        g_acl_next_index++;
+    else if (requested_index == UINT32_MAX)
+        g_acl_free_handles.pop_front();
     g_acl_live_users++;
     return user;
 }
-
 
 bool acl_channel_allowed(const AclSelector& perm, Slice value, bool literal_pattern) {
     for (const std::string& pattern : perm.channel_patterns) {
         const Slice allowed(pattern.data(), static_cast<uint32_t>(pattern.size()));
         if (literal_pattern ? (allowed.n == value.n && !std::memcmp(allowed.p, value.p, value.n))
-                            : command_glob_match(allowed, value)) return true;
+                            : command_glob_match(allowed, value))
+            return true;
     }
     return false;
 }
@@ -693,7 +732,8 @@ uint32_t acl_sort_restricted_option(uint32_t argc, GetArg&& get_arg, bool readon
             continue;
         } else if (option.eq_icase("limit") && operands >= 2) {
             if (!acl_parse_log_count(get_arg(arg + 1), ignored) ||
-                !acl_parse_log_count(get_arg(arg + 2), ignored)) return UINT32_MAX;
+                !acl_parse_log_count(get_arg(arg + 2), ignored))
+                return UINT32_MAX;
             arg += 2;
         } else if (!readonly && option.eq_icase("store") && operands >= 1) {
             arg++;
@@ -712,7 +752,7 @@ uint32_t acl_sort_restricted_option(uint32_t argc, GetArg&& get_arg, bool readon
 
 template <typename GetArg>
 AclDeniedReason acl_check_arguments(const AclSelector& perm, const CommandSpec& spec, uint32_t argc,
-                               GetArg&& get_arg, uint32_t* denied_arg) {
+                                    GetArg&& get_arg, uint32_t* denied_arg) {
     // Admission runs before MULTI queues an IO-local command. EXEC uses this
     // same predicate against both live ACLs and its preceding SETUSER shadow.
     // Check within one selector, so command and channel grants cannot be mixed.
@@ -733,10 +773,12 @@ AclDeniedReason acl_check_arguments(const AclSelector& perm, const CommandSpec& 
     using Arguments = std::remove_reference_t<GetArg>;
     // The declared keys first (SORT's source and final STORE target, as sortGetKeys): Redis's
     // ACL check precedes the command, so a denied key answers NOPERM before any option error.
-    const AclDeniedReason keys = acl_check_metadata_keys(perm, spec, argc, &get_arg,
+    const AclDeniedReason keys = acl_check_metadata_keys(
+        perm, spec, argc, &get_arg,
         [](const void* arguments, uint32_t arg) {
             return (*static_cast<const Arguments*>(arguments))(arg);
-        }, denied_arg);
+        },
+        denied_arg);
     if (keys != AclDeniedReason::None) return keys;
     const Slice command(spec.name, static_cast<uint32_t>(std::strlen(spec.name)));
     const bool sort = command.eq_icase("sort");
@@ -751,9 +793,10 @@ AclDeniedReason acl_check_arguments(const AclSelector& perm, const CommandSpec& 
 }
 
 template <typename GetArg>
-__attribute__((noinline)) AclDeniedReason acl_check_permission(
-        uint32_t user_index, const CommandSpec& spec, uint32_t argc,
-        GetArg&& get_arg, uint32_t* denied_arg = nullptr) {
+__attribute__((noinline)) AclDeniedReason acl_check_permission(uint32_t user_index,
+                                                               const CommandSpec& spec,
+                                                               uint32_t argc, GetArg&& get_arg,
+                                                               uint32_t* denied_arg = nullptr) {
     if (spec.flags & CmdFlags::AclExempt) return AclDeniedReason::None;
     AclUser* user = acl_slot(user_index);
     if (!user) return AclDeniedReason::Command;
@@ -767,8 +810,8 @@ __attribute__((noinline)) AclDeniedReason acl_check_permission(
         if (!acl_command_allowed(selector, spec, argc > 1 ? get_arg(1) : Slice{})) return false;
         command_allowed = true;
         uint32_t candidate = UINT32_MAX;
-        const AclDeniedReason denied = acl_check_arguments(
-            selector, spec, argc, get_arg, &candidate);
+        const AclDeniedReason denied =
+            acl_check_arguments(selector, spec, argc, get_arg, &candidate);
         if (denied == AclDeniedReason::None) return true;
         if (first_denied_arg == UINT32_MAX || denied > argument_denied) {
             first_denied_arg = candidate;
@@ -798,18 +841,21 @@ void acl_reply_denied(Client& client, Op& op, uint32_t user_index, AclDeniedReas
         object = Slice(normalized_command.data(), static_cast<uint32_t>(normalized_command.size()));
     }
     if ((reason == AclDeniedReason::Key || reason == AclDeniedReason::Channel) &&
-        denied_arg < op.argc()) object = op.arg(denied_arg);
+        denied_arg < op.argc())
+        object = op.arg(denied_arg);
     acl_log_denial(thread, client, reason, context, object, username);
     if (reason == AclDeniedReason::Command) {
         signals.acl_access_denied_cmd++;
         std::string message = op.cmd_name().eq_icase("exec")
-            ? "EXECABORT Transaction discarded because of: NOPERM User " : "NOPERM User ";
+                                  ? "EXECABORT Transaction discarded because of: NOPERM User "
+                                  : "NOPERM User ";
         message += username_text;
         message += " has no permissions to run the '";
         if (const auto* metadata = command_metadata_resolve(op, 0)) {
             const Slice name = command_metadata_name(*metadata);
             message.append(name.p, name.n);
-        } else message += acl_lower(op.cmd_name());
+        } else
+            message += acl_lower(op.cmd_name());
         message += "' command";
         reply_err(op.sink(), message.c_str());
     } else if (reason == AclDeniedReason::Key) {
@@ -876,8 +922,8 @@ bool acl_parse_file(const std::string& filename, std::vector<AclUserImage>& imag
             continue;
         }
         if (!acl_valid_username(Slice(words[1].data(), words[1].size()))) {
-            errors += "'" + filename + ":" + std::to_string(lineno) + ": username '" +
-                      words[1] + "' contains invalid characters. ";
+            errors += "'" + filename + ":" + std::to_string(lineno) + ": username '" + words[1] +
+                      "' contains invalid characters. ";
             continue;
         }
         if (!names.insert(words[1]).second) {
@@ -898,7 +944,8 @@ bool acl_parse_file(const std::string& filename, std::vector<AclUserImage>& imag
         images.push_back(std::move(image));
     }
     if (!errors.empty()) {
-        errors += "WARNING: ACL errors detected, no change to the previously active ACL rules was performed";
+        errors +=
+            "WARNING: ACL errors detected, no change to the previously active ACL rules was performed";
         return false;
     }
     bool has_default = false;
@@ -935,8 +982,8 @@ bool acl_commit_images_locked(std::vector<AclUserImage>& images, IoLoop* loop = 
             if (!user) return false;
             if (!acl_publish_image_locked(user, std::move(image))) return false;
             if (loop)
-                acl_broadcast_user_change(
-                    *loop, user->index, user->perm.load(std::memory_order_acquire), false);
+                acl_broadcast_user_change(*loop, user->index,
+                                          user->perm.load(std::memory_order_acquire), false);
         }
     }
     acl_refresh_security_locked();
@@ -950,9 +997,8 @@ std::vector<AclUser*> acl_sorted_users_locked() {
         AclUser* user = acl_slot(entry.second);
         if (user) users.push_back(user);
     }
-    std::sort(users.begin(), users.end(), [](const AclUser* left, const AclUser* right) {
-        return left->name < right->name;
-    });
+    std::sort(users.begin(), users.end(),
+              [](const AclUser* left, const AclUser* right) { return left->name < right->name; });
     return users;
 }
 
@@ -981,7 +1027,10 @@ bool acl_save_file_locked() {
     while (offset < contents.size()) {
         const ssize_t written = ::write(fd, contents.data() + offset, contents.size() - offset);
         if (written < 0 && errno == EINTR) continue;
-        if (written <= 0) { ok = false; break; }
+        if (written <= 0) {
+            ok = false;
+            break;
+        }
         offset += static_cast<size_t>(written);
     }
     if (ok && ::fsync(fd) != 0) ok = false;
@@ -989,8 +1038,8 @@ bool acl_save_file_locked() {
     if (ok && ::rename(temporary.c_str(), g_acl_filename.c_str()) != 0) ok = false;
     if (ok) {
         const size_t slash = g_acl_filename.rfind('/');
-        const std::string directory = slash == std::string::npos ? "." :
-                                      (slash == 0 ? "/" : g_acl_filename.substr(0, slash));
+        const std::string directory =
+            slash == std::string::npos ? "." : (slash == 0 ? "/" : g_acl_filename.substr(0, slash));
         const int dirfd = ::open(directory.c_str(), O_RDONLY | O_DIRECTORY);
         if (dirfd < 0 || ::fsync(dirfd) != 0) ok = false;
         if (dirfd >= 0) ::close(dirfd);
@@ -1020,14 +1069,14 @@ void acl_reply_category(Op& op) {
         const CommandMetadata* spec = command_metadata_at(id);
         if (command_metadata_categories(*spec) & category->bit) commands.push_back(spec);
     }
-    std::sort(commands.begin(), commands.end(), [](const CommandMetadata* left,
-                                                    const CommandMetadata* right) {
-        const Slice left_name = command_metadata_name(*left);
-        const Slice right_name = command_metadata_name(*right);
-        const size_t common = std::min(left_name.n, right_name.n);
-        const int order = std::memcmp(left_name.p, right_name.p, common);
-        return order ? order < 0 : left_name.n < right_name.n;
-    });
+    std::sort(commands.begin(), commands.end(),
+              [](const CommandMetadata* left, const CommandMetadata* right) {
+                  const Slice left_name = command_metadata_name(*left);
+                  const Slice right_name = command_metadata_name(*right);
+                  const size_t common = std::min(left_name.n, right_name.n);
+                  const int order = std::memcmp(left_name.p, right_name.p, common);
+                  return order ? order < 0 : left_name.n < right_name.n;
+              });
     reply_array_header(op.sink(), commands.size());
     for (const CommandMetadata* spec : commands)
         reply_bulk(op.sink(), command_metadata_name(*spec));
@@ -1038,20 +1087,29 @@ const char* kAclNoFileError =
 
 const char* acl_log_reason_name(AclDeniedReason reason) {
     switch (reason) {
-        case AclDeniedReason::Command: return "command";
-        case AclDeniedReason::Key: return "key";
-        case AclDeniedReason::Channel: return "channel";
-        case AclDeniedReason::Auth: return "auth";
-        default: return "unknown";
+        case AclDeniedReason::Command:
+            return "command";
+        case AclDeniedReason::Key:
+            return "key";
+        case AclDeniedReason::Channel:
+            return "channel";
+        case AclDeniedReason::Auth:
+            return "auth";
+        default:
+            return "unknown";
     }
 }
 
 const char* acl_log_context_name(AclLogContext context) {
     switch (context) {
-        case AclLogContext::Toplevel: return "toplevel";
-        case AclLogContext::Multi: return "multi";
-        case AclLogContext::Lua: return "lua";
-        case AclLogContext::Module: return "module";
+        case AclLogContext::Toplevel:
+            return "toplevel";
+        case AclLogContext::Multi:
+            return "multi";
+        case AclLogContext::Lua:
+            return "lua";
+        case AclLogContext::Module:
+            return "module";
     }
     return "unknown";
 }
@@ -1070,7 +1128,10 @@ bool acl_parse_log_count(Slice value, int64_t& count) {
     if (!value.n || value.n > 20) return false;
     uint32_t position = 0;
     bool negative = false;
-    if (value.p[0] == '-') { negative = true; position = 1; }
+    if (value.p[0] == '-') {
+        negative = true;
+        position = 1;
+    }
     if (position == value.n) return false;
     // ACL LOG count has the same string2ll grammar as SLOWLOG GET: canonical decimal only.
     if (value.p[position] == '0') {
@@ -1089,8 +1150,7 @@ bool acl_parse_log_count(Slice value, int64_t& count) {
     }
     const uint64_t limit = negative ? (uint64_t{1} << 63) : (uint64_t{1} << 63) - 1;
     if (parsed > limit) return false;
-    count = negative ? (parsed == (uint64_t{1} << 63) ? INT64_MIN
-                                                       : -static_cast<int64_t>(parsed))
+    count = negative ? (parsed == (uint64_t{1} << 63) ? INT64_MIN : -static_cast<int64_t>(parsed))
                      : static_cast<int64_t>(parsed);
     return true;
 }
@@ -1115,11 +1175,12 @@ void acl_reply_log(Op& op) {
         std::lock_guard<std::mutex> lock(store.mutex);
         entries.insert(entries.end(), store.entries.begin(), store.entries.end());
     }
-    std::sort(entries.begin(), entries.end(), [](const AclLogEntry& left,
-                                                  const AclLogEntry& right) {
-        if (left.updated_ms != right.updated_ms) return left.updated_ms > right.updated_ms;
-        return left.entry_id > right.entry_id;
-    });
+    std::sort(entries.begin(), entries.end(),
+              [](const AclLogEntry& left, const AclLogEntry& right) {
+                  if (left.updated_ms != right.updated_ms)
+                      return left.updated_ms > right.updated_ms;
+                  return left.entry_id > right.entry_id;
+              });
     if (static_cast<uint64_t>(requested) < entries.size())
         entries.resize(static_cast<size_t>(requested));
     reply_array_header(op.sink(), entries.size());
@@ -1140,8 +1201,7 @@ void acl_reply_log(Op& op) {
         reply_bulk(sink, Slice("username", 8));
         reply_bulk(sink, Slice(entry.username.data(), entry.username.size()));
         reply_bulk(sink, Slice("age-seconds", 11));
-        reply_double(sink, std::max<int64_t>(0, now - entry.updated_ms) / 1000.0,
-                     op.resp3());
+        reply_double(sink, std::max<int64_t>(0, now - entry.updated_ms) / 1000.0, op.resp3());
         reply_bulk(sink, Slice("client-info", 11));
         reply_bulk(sink, Slice(entry.client_info.data(), entry.client_info.size()));
         reply_bulk(sink, Slice("entry-id", 8));
@@ -1179,7 +1239,7 @@ void acl_log_denial(ThreadCtx& thread, const Client& client, AclDeniedReason rea
     candidate.updated_ms = now;
     candidate.created_ms = now;
     candidate.client_info = "id=" + std::to_string(client.id()) +
-        " addr=unknown:0 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0";
+                            " addr=unknown:0 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0";
 
     AclLogStore* target = acl_log_store(thread.id());
     if (!target) return;
@@ -1191,7 +1251,8 @@ void acl_log_denial(ThreadCtx& thread, const Client& client, AclDeniedReason rea
     for (size_t i = 0; i < scan; i++) {
         AclLogEntry& old = store.entries[i];
         if (old.reason != reason || old.context != context || old.object != candidate.object ||
-            old.username != candidate.username || now - old.updated_ms > 60000) continue;
+            old.username != candidate.username || now - old.updated_ms > 60000)
+            continue;
         old.count++;
         old.updated_ms = now;
         old.client_info = std::move(candidate.client_info);
@@ -1207,8 +1268,8 @@ void acl_log_denial(ThreadCtx& thread, const Client& client, AclDeniedReason rea
     while (store.entries.size() > max_len) store.entries.pop_back();
 }
 
-void acl_broadcast_user_change(IoLoop& loop, uint32_t user_index,
-                               const AclPerm* permissions, bool deleted) {
+void acl_broadcast_user_change(IoLoop& loop, uint32_t user_index, const AclPerm* permissions,
+                               bool deleted) {
     loop.acl_broadcast_user_change(user_index, permissions, deleted);
 }
 
@@ -1225,8 +1286,7 @@ bool acl_initialize(Server& server, const Config& config, std::string& error) {
     acl_reset_commands(default_image.perm, true);
     if (!cfg_requirepass(config).empty()) {
         default_image.flags &= ~AclUserNoPass;
-        default_image.passwords.push_back(
-            auth_password_digest(cfg_requirepass(config)));
+        default_image.passwords.push_back(auth_password_digest(cfg_requirepass(config)));
     }
     if (!acl_create_locked(std::move(default_image), kAclDefaultUser)) {
         error = "ACL initialization failed: out of memory";
@@ -1313,7 +1373,8 @@ bool acl_update_default_requirepass(Server&, Slice password) {
     AclUser* user = acl_slot(kAclDefaultUser);
     if (!user) return false;
     user->passwords.clear();
-    if (password.empty()) user->flags |= AclUserNoPass;
+    if (password.empty())
+        user->flags |= AclUserNoPass;
     else {
         user->flags &= ~AclUserNoPass;
         user->passwords.push_back(auth_password_digest(password));
@@ -1362,8 +1423,7 @@ void acl_set_pubsub_default(bool allchannels) {
     g_acl_pubsub_default_all = allchannels;
 }
 
-bool acl_channel_allowed_any(const AclPerm& permissions, Slice channel,
-                             bool literal_pattern) {
+bool acl_channel_allowed_any(const AclPerm& permissions, Slice channel, bool literal_pattern) {
     auto allowed = [&](const AclSelector& selector) {
         return (selector.flags & AclAllChannels) ||
                acl_channel_allowed(selector, channel, literal_pattern);
@@ -1374,9 +1434,10 @@ bool acl_channel_allowed_any(const AclPerm& permissions, Slice channel,
     return false;
 }
 
-__attribute__((cold, noinline)) bool acl_finish_dispatch_denial(
-        IoLoop& loop, Client& client, Op& op, uint32_t consumed,
-        AclDeniedReason denied, uint32_t denied_arg) {
+__attribute__((cold, noinline)) bool acl_finish_dispatch_denial(IoLoop& loop, Client& client,
+                                                                Op& op, uint32_t consumed,
+                                                                AclDeniedReason denied,
+                                                                uint32_t denied_arg) {
     multi_mark_queue_error(client);
     client.advance_parse(consumed);
     // Redis counts a SORT option denial as a call of SORT (its own error reply), not a rejection.
@@ -1392,8 +1453,8 @@ __attribute__((cold, noinline)) bool acl_finish_dispatch_denial(
 
 bool acl_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed,
                         uint8_t security_flags) {
-    const bool unauthenticated = (security_flags & Server::kSecurityAuth) &&
-                                 !client.authenticated();
+    const bool unauthenticated =
+        (security_flags & Server::kSecurityAuth) && !client.authenticated();
     const bool acl_active = (security_flags & Server::kSecurityAcl) != 0;
     if (auth_arity_reply(op, *op.spec, unauthenticated)) {
         multi_mark_queue_error(client);
@@ -1412,46 +1473,51 @@ bool acl_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed,
     if (spec.flags & CmdFlags::AclExempt) return false;
     uint32_t denied_arg = UINT32_MAX;
     const AclDeniedReason denied = acl_check_permission(
-        client.acl_user_idx(), spec, op.argc(),
-        [&](uint32_t arg) { return op.arg(arg); }, &denied_arg);
+        client.acl_user_idx(), spec, op.argc(), [&](uint32_t arg) { return op.arg(arg); },
+        &denied_arg);
     if (denied == AclDeniedReason::None) return false;
     // Redis admits the declared keys now; BY/GET restrictions are a command
     // error inside EXEC. Its preparation already retains the caller identity.
     if (denied == AclDeniedReason::Key && (denied_arg & kAclSortOptionDenied) &&
-        multi_session_active(client)) return false;
+        multi_session_active(client))
+        return false;
     return acl_finish_dispatch_denial(loop, client, op, consumed, denied, denied_arg);
 }
 
 bool acl_reply_sort_option_denied(Op& op, AclDeniedReason reason, uint32_t denied_arg) {
     if (reason != AclDeniedReason::Key || !(denied_arg & kAclSortOptionDenied)) return false;
-    reply_err(op.sink(), op.arg(denied_arg & ~kAclSortOptionDenied).eq_icase("by")
-        ? "ERR BY option of SORT denied due to insufficient ACL permissions."
-        : "ERR GET option of SORT denied due to insufficient ACL permissions.");
+    reply_err(op.sink(),
+              op.arg(denied_arg & ~kAclSortOptionDenied).eq_icase("by")
+                  ? "ERR BY option of SORT denied due to insufficient ACL permissions."
+                  : "ERR GET option of SORT denied due to insufficient ACL permissions.");
     return true;
 }
 
 AclDeniedReason acl_check_queued(uint32_t user_index, const CommandSpec& spec,
-                                 const std::vector<std::string>& argv,
-                                 uint32_t* denied_arg) {
-    return acl_check_permission(user_index, spec,
-        static_cast<uint32_t>(argv.size()), [&](uint32_t arg) {
+                                 const std::vector<std::string>& argv, uint32_t* denied_arg) {
+    return acl_check_permission(
+        user_index, spec, static_cast<uint32_t>(argv.size()),
+        [&](uint32_t arg) {
             const std::string& value = argv[arg];
             return Slice(value.data(), static_cast<uint32_t>(value.size()));
-        }, denied_arg);
+        },
+        denied_arg);
 }
 
 AclDeniedReason acl_check_multi(uint32_t user_index, const CommandSpec& spec,
-                               const std::vector<std::string>& argv,
-                               std::unique_ptr<AclPerm>& permissions, uint32_t* denied_arg) {
+                                const std::vector<std::string>& argv,
+                                std::unique_ptr<AclPerm>& permissions, uint32_t* denied_arg) {
     const auto arg = [&](uint32_t i) { return Slice(argv[i]); };
     AclDeniedReason denied = AclDeniedReason::None;
-    if (!permissions) denied = acl_check_queued(user_index, spec, argv, denied_arg);
+    if (!permissions)
+        denied = acl_check_queued(user_index, spec, argv, denied_arg);
     else if (!(spec.flags & CmdFlags::AclExempt)) {
         bool granted = false;
         uint32_t first = UINT32_MAX;
         AclDeniedReason argument_denied = AclDeniedReason::Key;
         const auto check = [&](const AclSelector& selector) {
-            if (!acl_command_allowed(selector, spec, argv.size() > 1 ? arg(1) : Slice{})) return false;
+            if (!acl_command_allowed(selector, spec, argv.size() > 1 ? arg(1) : Slice{}))
+                return false;
             granted = true;
             uint32_t candidate = UINT32_MAX;
             const auto reason = acl_check_arguments(selector, spec, argv.size(), arg, &candidate);
@@ -1469,8 +1535,9 @@ AclDeniedReason acl_check_multi(uint32_t user_index, const CommandSpec& spec,
             if (denied_arg) *denied_arg = first;
         }
     }
-    if (denied != AclDeniedReason::None || argv.size() < 3 ||
-        !arg(0).eq_icase("acl") || !arg(1).eq_icase("setuser")) return denied;
+    if (denied != AclDeniedReason::None || argv.size() < 3 || !arg(0).eq_icase("acl") ||
+        !arg(1).eq_icase("setuser"))
+        return denied;
     std::lock_guard<std::mutex> lock(g_acl_mu);
     AclUser* user = acl_slot(user_index);
     if (!user || argv[2] != user->name) return denied;
@@ -1489,12 +1556,13 @@ bool acl_pubsub_channel_entry(Client& client, Op& op, bool pattern, ThreadCtx& t
         acl_reply_denied(client, op, client.acl_user_idx(), AclDeniedReason::Channel, 1, thread);
         return false;
     }
-    const uint32_t first = (op.cmd_name().eq_icase("publish") ||
-                            op.cmd_name().eq_icase("spublish")) ? 1 : 1;
-    const uint32_t last = (op.cmd_name().eq_icase("publish") ||
-                           op.cmd_name().eq_icase("spublish")) ? 2 : op.argc();
+    const uint32_t first =
+        (op.cmd_name().eq_icase("publish") || op.cmd_name().eq_icase("spublish")) ? 1 : 1;
+    const uint32_t last =
+        (op.cmd_name().eq_icase("publish") || op.cmd_name().eq_icase("spublish")) ? 2 : op.argc();
     auto allowed = [&](const AclSelector& selector) {
-        if (!acl_command_allowed(selector, *op.spec, op.argc() > 1 ? op.arg(1) : Slice{})) return false;
+        if (!acl_command_allowed(selector, *op.spec, op.argc() > 1 ? op.arg(1) : Slice{}))
+            return false;
         if (selector.flags & AclAllChannels) return true;
         for (uint32_t arg = first; arg < last; arg++)
             if (!acl_channel_allowed(selector, op.arg(arg), pattern)) return false;
@@ -1503,8 +1571,7 @@ bool acl_pubsub_channel_entry(Client& client, Op& op, bool pattern, ThreadCtx& t
     if (allowed(*perm)) return true;
     for (const AclSelector& selector : perm->selectors)
         if (allowed(selector)) return true;
-    acl_reply_denied(client, op, client.acl_user_idx(),
-                     AclDeniedReason::Channel, first, thread);
+    acl_reply_denied(client, op, client.acl_user_idx(), AclDeniedReason::Channel, first, thread);
     return false;
 }
 
@@ -1512,28 +1579,28 @@ bool acl_recheck_blocking(Client& client, Op& op, ThreadCtx& thread) {
     if (!g_acl_server || !g_acl_server->acl_active()) return false;
     uint32_t denied_arg = UINT32_MAX;
     const AclDeniedReason denied = acl_check_permission(
-        client.acl_user_idx(), *op.spec, op.argc(),
-        [&](uint32_t arg) { return op.arg(arg); }, &denied_arg);
+        client.acl_user_idx(), *op.spec, op.argc(), [&](uint32_t arg) { return op.arg(arg); },
+        &denied_arg);
     if (denied == AclDeniedReason::None) return false;
-    op.clear_reply();   // direct bytes and the reply code too, or the denial is a SECOND reply
+    op.clear_reply();  // direct bytes and the reply code too, or the denial is a SECOND reply
     acl_reply_denied(client, op, client.acl_user_idx(), denied, denied_arg, thread);
     return true;
 }
 
 static constexpr SubcommandArity kAclSubcommands[] = {
-    {"cat",      2,  3, SubcommandArityError::UnknownOrWrong},
-    {"deluser",  3, -1},
-    {"dryrun",   4, -1},
-    {"genpass",  2,  3, SubcommandArityError::UnknownOrWrong},
-    {"getuser",  3,  3},
-    {"list",     2,  2},
-    {"load",     2,  2},
-    {"log",      2,  3, SubcommandArityError::UnknownOrWrong},
-    {"save",     2,  2},
-    {"setuser",  3, -1},
-    {"users",    2,  2},
-    {"whoami",   2,  2},
-    {"help",     2,  2},
+    {"cat", 2, 3, SubcommandArityError::UnknownOrWrong},
+    {"deluser", 3, -1},
+    {"dryrun", 4, -1},
+    {"genpass", 2, 3, SubcommandArityError::UnknownOrWrong},
+    {"getuser", 3, 3},
+    {"list", 2, 2},
+    {"load", 2, 2},
+    {"log", 2, 3, SubcommandArityError::UnknownOrWrong},
+    {"save", 2, 2},
+    {"setuser", 3, -1},
+    {"users", 2, 2},
+    {"whoami", 2, 2},
+    {"help", 2, 2},
 };
 
 // A DRYRUN inspects one immutable permission image. It never dispatches the
@@ -1573,8 +1640,8 @@ void acl_dryrun(Op& op) {
     const Slice verb = op.arg(3);
     const bool publish = verb.eq_icase("publish") || verb.eq_icase("spublish");
     const bool pattern = verb.eq_icase("psubscribe");
-    const bool channels = publish || pattern || verb.eq_icase("subscribe") ||
-                          verb.eq_icase("ssubscribe");
+    const bool channels =
+        publish || pattern || verb.eq_icase("subscribe") || verb.eq_icase("ssubscribe");
     auto check = [&](const AclSelector& selector) {
         if (!(spec->flags & CmdFlags::AclExempt) &&
             !acl_command_granted(selector, *spec, op.argc() > 4 ? op.arg(4) : Slice{}))
@@ -1601,25 +1668,36 @@ void acl_dryrun(Op& op) {
     bool allowed = perm && check(*perm);
     if (perm && !allowed)
         for (const auto& selector : perm->selectors)
-            if (check(selector)) { allowed = true; break; }
-    if (allowed) { reply_ok(op.sink()); return; }
+            if (check(selector)) {
+                allowed = true;
+                break;
+            }
+    if (allowed) {
+        reply_ok(op.sink());
+        return;
+    }
     std::string error = "User ";
     error.append(op.arg(2).p, op.arg(2).n);
     error += reason == AclDeniedReason::Command ? " has no permissions to run the '"
-                                               : " has no permissions to access the '";
+                                                : " has no permissions to access the '";
     const Slice object = reason == AclDeniedReason::Command ? name : op.arg(denied_arg);
     error.append(object.p, object.n);
-    error += reason == AclDeniedReason::Command ? "' command" :
-             reason == AclDeniedReason::Key ? "' key" : "' channel";
+    error += reason == AclDeniedReason::Command ? "' command"
+             : reason == AclDeniedReason::Key   ? "' key"
+                                                : "' channel";
     reply_bulk(op.sink(), Slice(error.data(), error.size()));
 }
 
 void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
     if (auth_arity_reply(op, *op.spec, false)) return;
     if (!command_validate_subcommand(op, "ACL", kAclSubcommands,
-                                     sizeof(kAclSubcommands) / sizeof(kAclSubcommands[0]))) return;
+                                     sizeof(kAclSubcommands) / sizeof(kAclSubcommands[0])))
+        return;
     const Slice sub = op.arg(1);
-    if (sub.eq_icase("dryrun")) { acl_dryrun(op); return; }
+    if (sub.eq_icase("dryrun")) {
+        acl_dryrun(op);
+        return;
+    }
     if (sub.eq_icase("cat") && (op.argc() == 2 || op.argc() == 3)) {
         acl_reply_category(op);
         return;
@@ -1643,7 +1721,8 @@ void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
         std::string error, failed;
         if (!acl_apply_rules(image, rules, 0, error, &failed)) {
             std::string message = "ERR ";
-            if (error.rfind("Unmatched parenthesis", 0) == 0) message += error;
+            if (error.rfind("Unmatched parenthesis", 0) == 0)
+                message += error;
             else {
                 // Redis formats the modifier with %s: a NUL ends the modifier, not the reply.
                 message += "Error in ACL SETUSER modifier '";
@@ -1659,8 +1738,8 @@ void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
             return;
         }
         if (user)
-            acl_broadcast_user_change(
-                loop, user->index, user->perm.load(std::memory_order_acquire), false);
+            acl_broadcast_user_change(loop, user->index, user->perm.load(std::memory_order_acquire),
+                                      false);
         acl_refresh_security_locked();
         reply_ok(op.sink());
         return;
@@ -1668,7 +1747,10 @@ void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
     if (sub.eq_icase("getuser") && op.argc() == 3) {
         std::lock_guard<std::mutex> lock(g_acl_mu);
         auto found = g_acl_names.find(std::string(op.arg(2).p, op.arg(2).n));
-        if (found == g_acl_names.end()) { reply_null(op.sink(), op.resp3()); return; }
+        if (found == g_acl_names.end()) {
+            reply_null(op.sink(), op.resp3());
+            return;
+        }
         AclUser* user = acl_slot(found->second);
         const AclUserImage image = acl_image(*user);
         auto sink = op.sink();
@@ -1720,9 +1802,10 @@ void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
         reply_array_header(op.sink(), users.size());
         for (AclUser* user : users) {
             std::string text;
-            if (sub.eq_icase("list")) text = "user " + user->name + " " +
-                                             acl_describe_image(acl_image(*user));
-            else text = user->name;
+            if (sub.eq_icase("list"))
+                text = "user " + user->name + " " + acl_describe_image(acl_image(*user));
+            else
+                text = user->name;
             reply_bulk(op.sink(), Slice(text.data(), text.size()));
         }
         return;
@@ -1771,14 +1854,20 @@ void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
             return;
         }
         std::lock_guard<std::mutex> lock(g_acl_mu);
-        if (!acl_commit_images_locked(images, &loop)) reply_err(op.sink(), "ERR out of memory");
-        else reply_ok(op.sink());
+        if (!acl_commit_images_locked(images, &loop))
+            reply_err(op.sink(), "ERR out of memory");
+        else
+            reply_ok(op.sink());
         return;
     }
     if (sub.eq_icase("save") && op.argc() == 2) {
         std::lock_guard<std::mutex> lock(g_acl_mu);
-        if (acl_save_file_locked()) reply_ok(op.sink());
-        else reply_err(op.sink(), "ERR There was an error trying to save the ACLs. Please check the server logs for more information");
+        if (acl_save_file_locked())
+            reply_ok(op.sink());
+        else
+            reply_err(
+                op.sink(),
+                "ERR There was an error trying to save the ACLs. Please check the server logs for more information");
         return;
     }
     if (sub.eq_icase("genpass") && (op.argc() == 2 || op.argc() == 3)) {
@@ -1787,12 +1876,17 @@ void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
             bits = 0;
             for (uint32_t i = 0; i < op.arg(2).n; i++) {
                 const char byte = op.arg(2).p[i];
-                if (byte < '0' || byte > '9' || bits > 4096) { bits = 0; break; }
+                if (byte < '0' || byte > '9' || bits > 4096) {
+                    bits = 0;
+                    break;
+                }
                 bits = bits * 10 + static_cast<uint64_t>(byte - '0');
             }
         }
         if (!bits || bits > 4096) {
-            reply_err(op.sink(), "ERR ACL GENPASS argument must be the number of bits for the output password, a positive number up to 4096");
+            reply_err(
+                op.sink(),
+                "ERR ACL GENPASS argument must be the number of bits for the output password, a positive number up to 4096");
             return;
         }
         const size_t chars = (bits + 3) / 4;
@@ -1816,25 +1910,33 @@ void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
             "    Delete a list of users.",
             "DRYRUN <username> <command> [<arg> ...]",
             "    Returns whether the user can execute the given command without executing the command.",
-            "GETUSER <username>", "    Get the user's details.",
+            "GETUSER <username>",
+            "    Get the user's details.",
             "GENPASS [<bits>]",
             "    Generate a secure 256-bit user password. The optional `bits` argument can",
             "    be used to specify a different size.",
-            "LIST", "    Show users details in config file format.",
-            "LOAD", "    Reload users from the ACL file.",
-            "LOG [<count> | RESET]", "    Show the ACL log entries.",
-            "SAVE", "    Save the current config to the ACL file.",
+            "LIST",
+            "    Show users details in config file format.",
+            "LOAD",
+            "    Reload users from the ACL file.",
+            "LOG [<count> | RESET]",
+            "    Show the ACL log entries.",
+            "SAVE",
+            "    Save the current config to the ACL file.",
             "SETUSER <username> <attribute> [<attribute> ...]",
             "    Create or modify a user with the specified attributes.",
-            "USERS", "    List all the registered usernames.",
-            "WHOAMI", "    Return the current connection username.",
-            "HELP", "    Print this help."
-        };
+            "USERS",
+            "    List all the registered usernames.",
+            "WHOAMI",
+            "    Return the current connection username.",
+            "HELP",
+            "    Print this help."};
         reply_array_header(op.sink(), sizeof(help) / sizeof(help[0]));
         for (const char* line : help) reply_simple(op.sink(), line);
         return;
     }
-    reply_err(op.sink(), "ERR Unknown subcommand or wrong number of arguments for 'acl'. Try ACL HELP.");
+    reply_err(op.sink(),
+              "ERR Unknown subcommand or wrong number of arguments for 'acl'. Try ACL HELP.");
 }
 
 void cmd_acl(Shard&, Op& op) {

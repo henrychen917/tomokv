@@ -18,7 +18,7 @@ struct StreamXreadArgs {
     uint32_t first_key = 0;
     uint32_t key_count = 0;
     uint32_t first_id = 0;
-    uint64_t count = 0;                 // zero = unlimited
+    uint64_t count = 0;  // zero = unlimited
     uint64_t block_ms = 0;
     bool block = false;
 };
@@ -28,7 +28,7 @@ struct StreamXreadGroupArgs {
     uint32_t consumer_arg = 0;
     uint32_t key_arg = 0;
     uint32_t id_arg = 0;
-    uint64_t count = 0;                  // zero = unlimited
+    uint64_t count = 0;  // zero = unlimited
     uint64_t block_ms = 0;
     bool block = false;
     bool noack = false;
@@ -70,11 +70,9 @@ uint64_t stream_object_live_length(KvObj* object);
 uint64_t stream_object_physical_length(KvObj* object);
 bool stream_object_first_live(KvObj* object, StreamID& id);
 bool stream_object_last_live(KvObj* object, StreamID& id);
-bool stream_object_collect(KvObj* object, const StreamID& start, bool exclusive,
-                           uint64_t count, bool include_deleted,
-                           std::vector<StreamOwnedEntry>& entries);
-bool stream_object_find(KvObj* object, const StreamID& id, StreamOwnedEntry& entry,
-                        bool& found);
+bool stream_object_collect(KvObj* object, const StreamID& start, bool exclusive, uint64_t count,
+                           bool include_deleted, std::vector<StreamOwnedEntry>& entries);
+bool stream_object_find(KvObj* object, const StreamID& id, StreamOwnedEntry& entry, bool& found);
 // Merge strictly increasing IDs supplied by next with the ordered physical stream. visit receives
 // nullptr when a target has no physical record; tombstones are returned as deleted entries.
 bool stream_object_merge_scan(KvObj* object, void* context, StreamMergeNext next,
@@ -83,11 +81,16 @@ bool stream_force_external(Shard& shard, Op& op, KvObj*& object, bool notify);
 bool stream_create_empty_external(Shard& shard, Op& op, bool notify, KvObj*& object);
 
 enum class StreamGroupProbe : uint8_t {
-    Empty, Ready, MissingGroup, WrongType, Corrupt, Oom,
+    Empty,
+    Ready,
+    MissingGroup,
+    WrongType,
+    Corrupt,
+    Oom,
 };
 StreamGroupProbe stream_group_probe(Shard& shard, Slice key, uint64_t hash, Slice group);
-StreamGroupProbe stream_group_prepare_waiter(Shard& shard, Slice key, uint64_t hash,
-                                             Slice group, Slice consumer);
+StreamGroupProbe stream_group_prepare_waiter(Shard& shard, Slice key, uint64_t hash, Slice group,
+                                             Slice consumer);
 bool stream_xreadgroup_execute(Shard& shard, Op& op, bool may_block = true);
 void stream_xreadgroup_reply_nogroup(Op& op);
 
@@ -98,9 +101,8 @@ bool stream_groups_snapshot_load(StreamVal& stream, Slice payload);
 
 // Payload is a lane-owned binary gather format. It is decoded only after every shard completes;
 // no value bytes are borrowed across owner boundaries.
-StreamReadResult stream_xread_gather(Shard& shard, Slice key, uint64_t hash,
-                                     const StreamID& cursor, bool latest, uint64_t count,
-                                     std::vector<uint8_t>& payload,
+StreamReadResult stream_xread_gather(Shard& shard, Slice key, uint64_t hash, const StreamID& cursor,
+                                     bool latest, uint64_t count, std::vector<uint8_t>& payload,
                                      const StreamID* upper_bound = nullptr);
 bool stream_reply_xread_payload(Op& op, Slice key, const std::vector<uint8_t>& payload);
 

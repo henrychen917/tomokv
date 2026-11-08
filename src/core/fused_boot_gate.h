@@ -156,8 +156,8 @@ private:
     }
 
     void mark_gave_up_locked(uint32_t tid) {
-        if (worker_state_[tid] == WorkerState::GaveUp ||
-            worker_state_[tid] == WorkerState::Running) return;
+        if (worker_state_[tid] == WorkerState::GaveUp || worker_state_[tid] == WorkerState::Running)
+            return;
         worker_state_[tid] = WorkerState::GaveUp;
         gave_up_++;
     }
@@ -181,8 +181,7 @@ private:
     template <typename Predicate>
     void wait_main_locked(std::unique_lock<std::mutex>& lock, Predicate done,
                           const std::atomic<bool>& stop) {
-        while (!done() && phase_ != Phase::Stopping &&
-               !stop.load(std::memory_order_relaxed)) {
+        while (!done() && phase_ != Phase::Stopping && !stop.load(std::memory_order_relaxed)) {
             cv_.wait_for(lock, kStopPoll);
         }
     }

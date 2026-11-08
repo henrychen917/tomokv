@@ -30,13 +30,27 @@ void climon_quote_arg(Slice value, std::string& out) {
     for (uint32_t i = 0; i < value.n; i++) {
         const unsigned char ch = static_cast<unsigned char>(value.p[i]);
         switch (ch) {
-            case '\\': out += "\\\\"; break;
-            case '"':  out += "\\\""; break;
-            case '\n': out += "\\n"; break;
-            case '\r': out += "\\r"; break;
-            case '\t': out += "\\t"; break;
-            case '\a': out += "\\a"; break;
-            case '\b': out += "\\b"; break;
+            case '\\':
+                out += "\\\\";
+                break;
+            case '"':
+                out += "\\\"";
+                break;
+            case '\n':
+                out += "\\n";
+                break;
+            case '\r':
+                out += "\\r";
+                break;
+            case '\t':
+                out += "\\t";
+                break;
+            case '\a':
+                out += "\\a";
+                break;
+            case '\b':
+                out += "\\b";
+                break;
             default:
                 if (ch >= ' ' && ch <= '~') {
                     out.push_back(static_cast<char>(ch));
@@ -51,8 +65,14 @@ void climon_quote_arg(Slice value, std::string& out) {
 }
 
 bool climon_eq_on_off(Slice value, bool& enabled) {
-    if (value.eq_icase("on")) { enabled = true; return true; }
-    if (value.eq_icase("off")) { enabled = false; return true; }
+    if (value.eq_icase("on")) {
+        enabled = true;
+        return true;
+    }
+    if (value.eq_icase("off")) {
+        enabled = false;
+        return true;
+    }
     return false;
 }
 
@@ -132,7 +152,10 @@ static bool client_parse_i64(Slice value, int64_t& out) {
     if (!value.n) return false;
     uint32_t pos = 0;
     bool negative = false;
-    if (value.p[pos] == '-') { negative = true; if (++pos == value.n) return false; }
+    if (value.p[pos] == '-') {
+        negative = true;
+        if (++pos == value.n) return false;
+    }
     // Canonical decimal, as redis's string2ll: no leading '+', no leading zeroes, no negative
     // zero. "CLIENT UNBLOCK 05" and "CLIENT KILL ID 05" were accepted before this.
     if (value.p[pos] == '0') {
@@ -151,29 +174,27 @@ static bool client_parse_i64(Slice value, int64_t& out) {
         magnitude = magnitude * 10 + digit;
     }
     if (negative) {
-        out = magnitude == uint64_t{INT64_MAX} + 1
-            ? INT64_MIN : -static_cast<int64_t>(magnitude);
+        out = magnitude == uint64_t{INT64_MAX} + 1 ? INT64_MIN : -static_cast<int64_t>(magnitude);
     } else {
         out = static_cast<int64_t>(magnitude);
     }
     return true;
 }
-bool IoLoop::climon_parse_i64(Slice value, int64_t& out) {
-    return client_parse_i64(value, out);
-}
+bool IoLoop::climon_parse_i64(Slice value, int64_t& out) { return client_parse_i64(value, out); }
 
-
-std::string IoLoop::climon_string(Slice value) {
-    return std::string(value.p, value.n);
-}
+std::string IoLoop::climon_string(Slice value) { return std::string(value.p, value.n); }
 
 bool IoLoop::climon_parse_client_type(Slice value, ClientTypeFilter& type) {
-    if (value.eq_icase("normal")) type = ClientTypeFilter::Normal;
-    else if (value.eq_icase("master")) type = ClientTypeFilter::Master;
+    if (value.eq_icase("normal"))
+        type = ClientTypeFilter::Normal;
+    else if (value.eq_icase("master"))
+        type = ClientTypeFilter::Master;
     else if (value.eq_icase("replica") || value.eq_icase("slave"))
         type = ClientTypeFilter::Replica;
-    else if (value.eq_icase("pubsub")) type = ClientTypeFilter::Pubsub;
-    else return false;
+    else if (value.eq_icase("pubsub"))
+        type = ClientTypeFilter::Pubsub;
+    else
+        return false;
     return true;
 }
 
@@ -197,7 +218,10 @@ bool command_client_pause(Server& server, Op& op, uint64_t time_base_ms, uint32_
     if (!op.cmd_name().eq_icase("client") || op.argc() < 2) return false;
     const Slice sub = op.arg(1);
     if (sub.eq_icase("unpause")) {
-        if (op.argc() != 2) { climon_wrong_args(op, "unpause"); return true; }
+        if (op.argc() != 2) {
+            climon_wrong_args(op, "unpause");
+            return true;
+        }
         server.climon_clear_pause();
         // IOs holding paused frames notice only at their next pass: wake them now, as Redis
         // resumes paused clients at once.
@@ -207,10 +231,14 @@ bool command_client_pause(Server& server, Op& op, uint64_t time_base_ms, uint32_
     }
 
     if (sub.eq_icase("pause")) {
-        if (op.argc() < 3) { climon_wrong_args(op, "pause"); return true; }
+        if (op.argc() < 3) {
+            climon_wrong_args(op, "pause");
+            return true;
+        }
         if (op.argc() > 4) {
-            reply_err(op.sink(), "ERR unknown subcommand or wrong number of arguments for "
-                                 "'PAUSE'. Try CLIENT HELP.");
+            reply_err(op.sink(),
+                      "ERR unknown subcommand or wrong number of arguments for "
+                      "'PAUSE'. Try CLIENT HELP.");
             return true;
         }
         int64_t timeout = 0;
@@ -224,8 +252,10 @@ bool command_client_pause(Server& server, Op& op, uint64_t time_base_ms, uint32_
         }
         uint8_t mode = Server::kPauseAll;
         if (op.argc() == 4) {
-            if (op.arg(3).eq_icase("write")) mode = Server::kPauseWrite;
-            else if (op.arg(3).eq_icase("all")) mode = Server::kPauseAll;
+            if (op.arg(3).eq_icase("write"))
+                mode = Server::kPauseWrite;
+            else if (op.arg(3).eq_icase("all"))
+                mode = Server::kPauseAll;
             else {
                 reply_err(op.sink(), "ERR CLIENT PAUSE mode must be WRITE or ALL");
                 return true;
@@ -258,22 +288,22 @@ void IoLoop::climon_refresh_armed() {
             for (auto it = climon_conn_.begin(); it != climon_conn_.end();) {
                 it->second.monitor_pending.clear();
                 it->second.monitor_script_id = UINT64_MAX;
-                if (it->second.idle()) it = climon_conn_.erase(it);
-                else ++it;
+                if (it->second.idle())
+                    it = climon_conn_.erase(it);
+                else
+                    ++it;
             }
         }
         // Ignore the private refresh bit when deciding whether parse variants
         // changed. Do this inside the already-armed branch, never on plain EXEC.
-        before = (before & ~kClimonRefreshPending) |
-                 (climon_armed_cached_ & kClimonRefreshPending);
+        before = (before & ~kClimonRefreshPending) | (climon_armed_cached_ & kClimonRefreshPending);
     }
     // parse_and_dispatch caches the armed word ONCE per pass (that is what makes it free when
     // off). A CLIENT subcommand that arms or disarms the lane therefore invalidates the cache of
     // the very pass it is running in -- a pipelined `CLIENT REPLY OFF; PING` would otherwise
     // answer the PING. Flag it; the cold dispatch branches end the pass so the next one re-reads.
     if (climon_armed_cached_ != before) climon_armed_dirty_ = true;
-    notify_armed_ = notify_config_armed_ || save_config_armed_ ||
-                    climon_armed_cached_ != 0;
+    notify_armed_ = notify_config_armed_ || save_config_armed_ || climon_armed_cached_ != 0;
     climon_pause_deadline_ms_ = srv_->climon_pause_end_ms();
     // A held connection parked with unparsed bytes, nothing to write and a quiesced ROB -- which
     // is exactly the shape flush_ready drops from the active set. Whoever ends the pause (the
@@ -286,11 +316,16 @@ void IoLoop::climon_refresh_armed() {
                 command_client_set_pause_blocked(it->second.client, false);
                 srv_->blocking_client_unparked();
             }
-            if (it->second.idle()) it = climon_conn_.erase(it);
-            else ++it;
+            if (it->second.idle())
+                it = climon_conn_.erase(it);
+            else
+                ++it;
         }
         for (Client* c : self_->clients())
-            if (c && !c->dead()) { enqueue_serve(c); mark_active(c); }
+            if (c && !c->dead()) {
+                enqueue_serve(c);
+                mark_active(c);
+            }
     }
 }
 
@@ -339,8 +374,7 @@ bool IoLoop::client_routing_prepare(ClientMigration& migration, std::string& err
                 return false;
             }
             if (!pubsub_prepare_rebind_events(pubsub->second, routing->client_id,
-                                              routing->destination,
-                                              routing->rebind_events)) {
+                                              routing->destination, routing->rebind_events)) {
                 error = "could not allocate pub/sub rebind events";
                 return false;
             }
@@ -415,10 +449,10 @@ void IoLoop::client_routing_commit_extract(ClientMigration& migration,
 }
 
 bool IoLoop::client_routing_install(void* opaque, Client* client, uint32_t source) {
-    std::unique_ptr<ClientRoutingMigration> routing(
-        static_cast<ClientRoutingMigration*>(opaque));
-    if (!routing || !client || routing->client_id != client->id() ||
-        routing->source != source || routing->destination != self_->id()) return false;
+    std::unique_ptr<ClientRoutingMigration> routing(static_cast<ClientRoutingMigration*>(opaque));
+    if (!routing || !client || routing->client_id != client->id() || routing->source != source ||
+        routing->destination != self_->id())
+        return false;
 
     if (!routing->pubsub.empty()) {
         routing->pubsub.mapped().client = client;
@@ -437,7 +471,8 @@ bool IoLoop::client_routing_install(void* opaque, Client* client, uint32_t sourc
         if (state.reply_mode != kClimonReplyOn) climon_local_reply_++;
     }
     if (routing->tracking &&
-        !tracking_migration_install(routing->client_id, routing->tracking_keys)) return false;
+        !tracking_migration_install(routing->client_id, routing->tracking_keys))
+        return false;
     client_routing_refresh_masks();
 
     if (routing->installed_event) {
@@ -473,7 +508,10 @@ void IoLoop::client_routing_cleanup_pass() {
     if (routing_forward_.empty() || srv_->pubsub_inflight() != 0) return;
     bool changed = false;
     for (auto it = routing_forward_.begin(); it != routing_forward_.end();) {
-        if (!it->second.installed) { ++it; continue; }
+        if (!it->second.installed) {
+            ++it;
+            continue;
+        }
         it = routing_forward_.erase(it);
         changed = true;
     }
@@ -507,9 +545,8 @@ void IoLoop::climon_untrack_client(Client* client) {
     auto found = climon_conn_.find(id);
     if (found == climon_conn_.end()) return;
     ClimonConn& state = found->second;
-    std::erase_if(state.monitor_pending, [](const auto& pending) {
-        return pending.id == UINT64_MAX;
-    });
+    std::erase_if(state.monitor_pending,
+                  [](const auto& pending) { return pending.id == UINT64_MAX; });
     climon_monitor_flush(state, UINT64_MAX);
     if (state.monitor) climon_monitor_stop(client, id);
     if (state.tracking_on || state.bcast) tracking_forget_client(id, state);
@@ -654,7 +691,8 @@ bool IoLoop::climon_unblock_local(uint64_t id, bool error_flavor) {
             Op& waiting = c->rob().at(timer.op_id);
             if (error_flavor)
                 reply_err(waiting.sink(), "UNBLOCKED client unblocked via CLIENT UNBLOCK");
-            else server_tail_reply_wait(waiting, c);
+            else
+                server_tail_reply_wait(waiting, c);
             waiting.state.store(OpState::Done, std::memory_order_release);
             c->set_blocked(false);
             c->set_last_interaction_s(cached_now_s_);
@@ -681,7 +719,8 @@ bool IoLoop::climon_unblock_local(uint64_t id, bool error_flavor) {
 bool IoLoop::climon_reply_suppressed(Client* client) {
     if (!climon_local_reply_ && !climon_local_trackers_) return false;
     const ClimonConn* state = climon_conn_find(client->id());
-    return state && (state->reply_mode != kClimonReplyOn || state->tracking_on || state->tracking_draining);
+    return state &&
+           (state->reply_mode != kClimonReplyOn || state->tracking_on || state->tracking_draining);
 }
 
 // SkipNow is the DRAIN state: a marked op may still be un-retired, so the suppressing variant
@@ -694,15 +733,18 @@ uint32_t IoLoop::climon_serve_suppressed(Client* client) {
         bool submit_allowed = true;
         did = climon_prepare_suppressed(client, submit_allowed) != 0;
         if (submit_allowed) {
-            did |= epoll_ ? wb_.pump_tls<true>(*client, *tls)
-                          : wb_.pump_tls<false>(*client, *tls);
+            did |= epoll_ ? wb_.pump_tls<true>(*client, *tls) : wb_.pump_tls<false>(*client, *tls);
             if (tls->socket_userspace() && tls->has_pinned_plain()) {
-                if (epoll_) arm_tls_socket_poll<true>(client, tls->wanted());
-                else arm_tls_socket_poll<false>(client, tls->wanted());
+                if (epoll_)
+                    arm_tls_socket_poll<true>(client, tls->wanted());
+                else
+                    arm_tls_socket_poll<false>(client, tls->wanted());
             }
-            if (tls->failed()) close_client(client, tls->output_pending() || client->send_inflight());
+            if (tls->failed())
+                close_client(client, tls->output_pending() || client->send_inflight());
         }
-    } else did = wb_.serve_suppressing(*client, tracking_retire_plain(client));
+    } else
+        did = wb_.serve_suppressing(*client, tracking_retire_plain(client));
     ClimonConn* state = climon_conn_find(client->id());
     if (state && state->reply_mode == kClimonReplySkipNow && client->rob().quiesced() &&
         state->gate_op_id != client->rob().dispatch_id()) {
@@ -716,7 +758,8 @@ uint32_t IoLoop::climon_serve_suppressed(Client* client) {
 }
 
 uint32_t IoLoop::climon_prepare_suppressed(Client* client, bool& submit_allowed) {
-    const bool did = wb_.prepare_suppressing(*client, submit_allowed, tracking_retire_plain(client));
+    const bool did =
+        wb_.prepare_suppressing(*client, submit_allowed, tracking_retire_plain(client));
     ClimonConn* state = climon_conn_find(client->id());
     // The drain state disarms once every marked op has actually retired -- not when it was
     // marked, and not when CLIENT REPLY ON ran -- or the suppressing variant would stop being
@@ -753,13 +796,13 @@ bool command_pause_write(const Op& op) {
         if (op.cmd_name().eq_icase("xgroup") && op.arg(1).eq_icase("help")) return false;
         if (op.cmd_name().eq_icase("function")) {
             const Slice sub = op.arg(1);
-            return sub.eq_icase("load") || sub.eq_icase("flush") ||
-                   sub.eq_icase("restore") || sub.eq_icase("delete");
+            return sub.eq_icase("load") || sub.eq_icase("flush") || sub.eq_icase("restore") ||
+                   sub.eq_icase("delete");
         }
     }
     // Redis's MAY_REPLICATE flag is deliberately absent from COMMAND INFO.
     return (op.spec->flags & CmdFlags::Write) || op.cmd_name().eq_icase("pfcount") ||
-        op.cmd_name().eq_icase("publish") || op.cmd_name().eq_icase("spublish");
+           op.cmd_name().eq_icase("publish") || op.cmd_name().eq_icase("spublish");
 }
 
 bool IoLoop::climon_pause_holds(const Client& client, Op& op) {
@@ -775,13 +818,13 @@ bool IoLoop::climon_pause_holds(const Client& client, Op& op) {
     // EXEC children; DENYOOM alone is not a pause classification.
     if (srv_->climon_pause_mode() == Server::kPauseWrite)
         return command_pause_write(op) ||
-            (op.cmd_name().eq_icase("exec") && multi_pause_writes(client));
+               (op.cmd_name().eq_icase("exec") && multi_pause_writes(client));
     return true;
 }
 
 void IoLoop::climon_release_pause() {
     srv_->climon_expire_pause(cached_now_ms_);
-    climon_refresh_armed();   // the 1->0 transition re-marks this owner's held connections
+    climon_refresh_armed();  // the 1->0 transition re-marks this owner's held connections
 }
 
 // ---- MONITOR -------------------------------------------------------------------------------
@@ -792,10 +835,9 @@ void IoLoop::climon_monitor_format(Client* client, Op& op, std::string& out) {
     ::clock_gettime(CLOCK_REALTIME, &ts);
     char head[96];
     const std::string addr = command_client_addr(client);
-    std::snprintf(head, sizeof(head), "+%lld.%06lld [%u %s]",
-                  static_cast<long long>(ts.tv_sec),
-                  static_cast<long long>(ts.tv_nsec / 1000),
-                  client->session().db_index, addr.c_str());
+    std::snprintf(head, sizeof(head), "+%lld.%06lld [%u %s]", static_cast<long long>(ts.tv_sec),
+                  static_cast<long long>(ts.tv_nsec / 1000), client->session().db_index,
+                  addr.c_str());
     out.assign(head);
     uint32_t hello_cursor = 2;
     for (uint32_t i = 0; i < op.argc(); i++) {
@@ -827,14 +869,13 @@ void IoLoop::climon_monitor_feed(Client* client, Op& op) {
             for (auto& pending : state.monitor_pending)
                 if (pending.id == UINT64_MAX) pending.id = id;
         } else if (op.cmd_name().eq_icase("discard") || op.cmd_name().eq_icase("reset")) {
-            std::erase_if(state.monitor_pending, [](const auto& pending) {
-                return pending.id == UINT64_MAX;
-            });
+            std::erase_if(state.monitor_pending,
+                          [](const auto& pending) { return pending.id == UINT64_MAX; });
         } else if (!op.cmd_name().eq_icase("multi")) {
             // QUEUED is not execution. Keep the transaction's records until its
             // EXEC retires, when nested script records can be interleaved by child.
-            state.monitor_pending.push_back({UINT64_MAX, excluded, script,
-                multi_session_queue_size(*client), std::move(line)});
+            state.monitor_pending.push_back(
+                {UINT64_MAX, excluded, script, multi_session_queue_size(*client), std::move(line)});
             climon_armed_cached_ |= kClimonRefreshPending;
             return;
         }
@@ -862,11 +903,13 @@ void IoLoop::climon_monitor_flush(ClimonConn& state, uint64_t completed, bool be
             const auto& rob = state.client->rob();
             if (pending.id < rob.dispatch_id() && rob.dispatch_id() - pending.id <= kRobWindow) {
                 const auto& op = rob.at(pending.id);
-                const bool null_reply = op.reply_code_ == static_cast<uint8_t>(ReplyCode::NullArray) ||
-                                        op.reply_code_ == static_cast<uint8_t>(ReplyCode::NullResp3);
-                if (null_reply || (op.reply.size() && (op.reply.data()[0] == '-' ||
-                    op.reply.data()[0] == '_' ||
-                    (op.reply.size() >= 3 && op.reply.data()[0] == '*' && op.reply.data()[1] == '-')))) {
+                const bool null_reply =
+                    op.reply_code_ == static_cast<uint8_t>(ReplyCode::NullArray) ||
+                    op.reply_code_ == static_cast<uint8_t>(ReplyCode::NullResp3);
+                if (null_reply ||
+                    (op.reply.size() && (op.reply.data()[0] == '-' || op.reply.data()[0] == '_' ||
+                                         (op.reply.size() >= 3 && op.reply.data()[0] == '*' &&
+                                          op.reply.data()[1] == '-')))) {
                     const uint64_t aborted = pending.id;
                     std::erase_if(state.monitor_pending, [aborted](const auto& record) {
                         return record.id == aborted && record.multi_order != UINT32_MAX;
@@ -881,7 +924,8 @@ void IoLoop::climon_monitor_flush(ClimonConn& state, uint64_t completed, bool be
     }
 }
 
-void IoLoop::climon_monitor_script_deliver(uint64_t writer_id, std::vector<MonitorScriptLine>& lines) {
+void IoLoop::climon_monitor_script_deliver(uint64_t writer_id,
+                                           std::vector<MonitorScriptLine>& lines) {
     if (lines.empty()) return;
     auto* state = climon_conn_find(writer_id);
     // Called by the ordinary ROB retirement callback, before flush_id advances.
@@ -912,8 +956,8 @@ std::string climon_monitor_script_format(Op& op) {
     timespec ts;
     ::clock_gettime(CLOCK_REALTIME, &ts);
     char head[80];
-    std::snprintf(head, sizeof(head), "+%lld.%06lld [%u lua]",
-        static_cast<long long>(ts.tv_sec), static_cast<long long>(ts.tv_nsec / 1000), op.db);
+    std::snprintf(head, sizeof(head), "+%lld.%06lld [%u lua]", static_cast<long long>(ts.tv_sec),
+                  static_cast<long long>(ts.tv_nsec / 1000), op.db);
     std::string line(head);
     for (uint32_t i = 0; i < op.argc(); ++i) {
         line.push_back(' ');
@@ -1000,8 +1044,10 @@ IoLoop::ClimonStartResult IoLoop::climon_start_client_unblock(Client* client, Op
     }
     bool error_flavor = false;
     if (op.argc() == 4) {
-        if (op.arg(3).eq_icase("timeout")) error_flavor = false;
-        else if (op.arg(3).eq_icase("error")) error_flavor = true;
+        if (op.arg(3).eq_icase("timeout"))
+            error_flavor = false;
+        else if (op.arg(3).eq_icase("error"))
+            error_flavor = true;
         else {
             reply_err(op.sink(), "ERR CLIENT UNBLOCK reason should be TIMEOUT or ERROR");
             return ClimonStartResult::Sync;
@@ -1068,8 +1114,7 @@ IoLoop::ClimonStartResult IoLoop::climon_start_client_list(Client* client, Op& o
                 return ClimonStartResult::Sync;
             }
             if (id >= 0)
-                filter.items.push_back(PubSubEventItem{
-                    0, false, static_cast<uint64_t>(id), {}});
+                filter.items.push_back(PubSubEventItem{0, false, static_cast<uint64_t>(id), {}});
         }
     } else {
         reply_syntax(op.sink());
@@ -1147,8 +1192,10 @@ IoLoop::ClimonStartResult IoLoop::climon_start_client_kill(Client* client, Op& o
                 filter.client_filter_mask |= ClientFilterUser;
                 filter.client_user = climon_string(value);
             } else if (option.eq_icase("skipme")) {
-                if (value.eq_icase("yes")) filter.client_skipme = true;
-                else if (value.eq_icase("no")) filter.client_skipme = false;
+                if (value.eq_icase("yes"))
+                    filter.client_skipme = true;
+                else if (value.eq_icase("no"))
+                    filter.client_skipme = false;
                 else {
                     reply_syntax(op.sink());
                     return ClimonStartResult::Sync;
@@ -1163,16 +1210,16 @@ IoLoop::ClimonStartResult IoLoop::climon_start_client_kill(Client* client, Op& o
     return climon_begin_client_scatter(client, filter, ClimonPendingKind::ClientKill);
 }
 
-IoLoop::ClimonStartResult IoLoop::climon_begin_client_scatter(
-        Client* client, const PubSubEvent& filter, ClimonPendingKind kind) {
+IoLoop::ClimonStartResult IoLoop::climon_begin_client_scatter(Client* client,
+                                                              const PubSubEvent& filter,
+                                                              ClimonPendingKind kind) {
     const auto& ios = srv_->placement().ifid_threads();
     std::vector<PubSubEvent*> events;
     events.reserve(ios.size());
     for (uint32_t io : ios) {
-        PubSubEvent* event = pubsub_new_event(
-            kind == ClimonPendingKind::ClientList
-                ? PubSubEventKind::ClientListRequest
-                : PubSubEventKind::ClientKillRequest);
+        PubSubEvent* event = pubsub_new_event(kind == ClimonPendingKind::ClientList
+                                                  ? PubSubEventKind::ClientListRequest
+                                                  : PubSubEventKind::ClientKillRequest);
         event->target_io = io;
         climon_copy_client_filter(*event, filter);
         events.push_back(event);
@@ -1216,7 +1263,10 @@ IoLoop::ClimonStartResult IoLoop::climon_start_client_command(Client* client, Op
     if (sub.eq_icase("unblock")) return climon_start_client_unblock(client, op);
 
     if (sub.eq_icase("help")) {
-        if (op.argc() != 2) { climon_wrong_args(op, "help"); return ClimonStartResult::Sync; }
+        if (op.argc() != 2) {
+            climon_wrong_args(op, "help");
+            return ClimonStartResult::Sync;
+        }
         auto sink = op.sink();
         reply_array_header(sink, sizeof(kClimonHelp) / sizeof(kClimonHelp[0]));
         for (const char* line : kClimonHelp) reply_simple(sink, line);
@@ -1224,7 +1274,10 @@ IoLoop::ClimonStartResult IoLoop::climon_start_client_command(Client* client, Op
     }
 
     if (sub.eq_icase("no-touch")) {
-        if (op.argc() != 3) { climon_wrong_args(op, "no-touch"); return ClimonStartResult::Sync; }
+        if (op.argc() != 3) {
+            climon_wrong_args(op, "no-touch");
+            return ClimonStartResult::Sync;
+        }
         bool enabled = false;
         if (!climon_eq_on_off(op.arg(2), enabled)) {
             reply_syntax(op.sink());
@@ -1241,7 +1294,10 @@ IoLoop::ClimonStartResult IoLoop::climon_start_client_command(Client* client, Op
     }
 
     if (sub.eq_icase("reply")) {
-        if (op.argc() != 3) { climon_wrong_args(op, "reply"); return ClimonStartResult::Sync; }
+        if (op.argc() != 3) {
+            climon_wrong_args(op, "reply");
+            return ClimonStartResult::Sync;
+        }
         ClimonConn& state = climon_conn_get(client);
         const uint8_t before = state.reply_mode;
         if (op.arg(2).eq_icase("on")) {
@@ -1260,7 +1316,8 @@ IoLoop::ClimonStartResult IoLoop::climon_start_client_command(Client* client, Op
             // in_flight() counts exactly the older ops: with none, ON is immediate and the hot
             // serve resumes on the very next drain.
             state.reply_mode = (before != kClimonReplyOn && client->rob().in_flight() != 0)
-                ? kClimonReplySkipNow : kClimonReplyOn;
+                                   ? kClimonReplySkipNow
+                                   : kClimonReplyOn;
             reply_ok(op.sink());
         } else if (op.arg(2).eq_icase("off")) {
             state.reply_mode = kClimonReplyOff;
@@ -1273,8 +1330,10 @@ IoLoop::ClimonStartResult IoLoop::climon_start_client_command(Client* client, Op
         }
         const bool was_armed = before != kClimonReplyOn;
         const bool now_armed = state.reply_mode != kClimonReplyOn;
-        if (!was_armed && now_armed) { climon_local_reply_++; srv_->climon_reply_added(); }
-        else if (was_armed && !now_armed) {
+        if (!was_armed && now_armed) {
+            climon_local_reply_++;
+            srv_->climon_reply_added();
+        } else if (was_armed && !now_armed) {
             if (climon_local_reply_) climon_local_reply_--;
             srv_->climon_reply_removed();
         }
@@ -1311,16 +1370,17 @@ void IoLoop::climon_handle_client_request(PubSubEvent& event) {
     cached_now_ms_ = now_ns() / 1000000ull;
     cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
     const bool list = event.kind == PubSubEventKind::ClientListRequest;
-    PubSubEvent* result = pubsub_new_event(
-        list ? PubSubEventKind::ClientListResult : PubSubEventKind::ClientKillResult);
+    PubSubEvent* result = pubsub_new_event(list ? PubSubEventKind::ClientListResult
+                                                : PubSubEventKind::ClientKillResult);
     result->conn_id = event.conn_id;
     result->op_id = event.op_id;
     std::vector<Client*> victims;
     for (Client* candidate : self_->clients()) {
-        if (!candidate || !command_client_filter_match(*candidate, event, cached_now_ms_))
-            continue;
-        if (list) result->message += command_client_info_line(*candidate, cached_now_ms_);
-        else victims.push_back(candidate);
+        if (!candidate || !command_client_filter_match(*candidate, event, cached_now_ms_)) continue;
+        if (list)
+            result->message += command_client_info_line(*candidate, cached_now_ms_);
+        else
+            victims.push_back(candidate);
     }
     if (!list) {
         result->count = victims.size();
@@ -1342,15 +1402,20 @@ void IoLoop::climon_finish_client_pending(uint64_t conn_id) {
     if (found == climon_pending_.end()) return;
     ClimonPending& pending = found->second;
     Client* client = pending.client;
-    if (!client || client->dead()) { climon_pending_.erase(found); return; }
+    if (!client || client->dead()) {
+        climon_pending_.erase(found);
+        return;
+    }
     Op& op = client->rob().at(pending.op_id);
     if (pending.kind == ClimonPendingKind::ClientList) {
-        reply_verbatim(op.sink(), Slice(pending.body.data(), pending.body.size()),
-                       "txt", op.resp3());
+        reply_verbatim(op.sink(), Slice(pending.body.data(), pending.body.size()), "txt",
+                       op.resp3());
     } else if (pending.kind == ClimonPendingKind::ClientKill) {
         if (pending.old_form) {
-            if (pending.count) reply_ok(op.sink());
-            else reply_err(op.sink(), "ERR No such client");
+            if (pending.count)
+                reply_ok(op.sink());
+            else
+                reply_err(op.sink(), "ERR No such client");
         } else {
             reply_int(op.sink(), static_cast<long long>(pending.count));
         }
@@ -1367,8 +1432,10 @@ void IoLoop::climon_handle_client_result(PubSubEvent& event) {
     auto found = climon_pending_.find(event.conn_id);
     if (found == climon_pending_.end() || found->second.op_id != event.op_id) return;
     ClimonPending& pending = found->second;
-    if (event.kind == PubSubEventKind::ClientListResult) pending.body += event.message;
-    else pending.count += event.count;
+    if (event.kind == PubSubEventKind::ClientListResult)
+        pending.body += event.message;
+    else
+        pending.count += event.count;
     if (!pending.remaining) std::abort();
     if (--pending.remaining == 0) climon_finish_client_pending(event.conn_id);
 }

@@ -49,21 +49,15 @@ public:
     AofStreamOwner(const AofStreamOwner&) = delete;
     AofStreamOwner& operator=(const AofStreamOwner&) = delete;
 
-    const OpenToken* open_token() const noexcept {
-        return std::get_if<OpenToken>(&state_);
-    }
-    const LargeToken* large_token() const noexcept {
-        return std::get_if<LargeToken>(&state_);
-    }
+    const OpenToken* open_token() const noexcept { return std::get_if<OpenToken>(&state_); }
+    const LargeToken* large_token() const noexcept { return std::get_if<LargeToken>(&state_); }
 
     // A transition invalidates the token reference passed to it. Callers deliberately perform no
     // more work through that reference after exchanging capabilities.
     void begin_large(const OpenToken&, uint32_t producer, uint64_t begin_offset) noexcept {
         state_ = LargeToken{producer, begin_offset};
     }
-    void finish_large(const LargeToken&) noexcept {
-        state_ = OpenToken{};
-    }
+    void finish_large(const LargeToken&) noexcept { state_ = OpenToken{}; }
 
 private:
     std::variant<OpenToken, LargeToken> state_;

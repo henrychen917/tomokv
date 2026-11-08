@@ -23,7 +23,8 @@ namespace tomo {
 // RESP line payloads are caller text, even when they originated as bulk strings.
 // Formatted errors trim terminal CR/LF before mapping; Redis's safe-SDS errors
 // and safe status replies map every CR/LF, including terminal ones.
-template <bool Trim = true, typename Buf> inline void reply_line_text(Buf&& b, const char* text, size_t len) {
+template <bool Trim = true, typename Buf>
+inline void reply_line_text(Buf&& b, const char* text, size_t len) {
     if constexpr (Trim)
         while (len && (text[len - 1] == '\r' || text[len - 1] == '\n')) --len;
     size_t start = 0;
@@ -35,27 +36,38 @@ template <bool Trim = true, typename Buf> inline void reply_line_text(Buf&& b, c
     }
     if (start < len) b.append(text + start, len - start);
 }
-template <typename Buf> [[gnu::cold, gnu::noinline]]
+template <typename Buf>
+[[gnu::cold, gnu::noinline]]
 void reply_err_unaccounted(Buf&& b, const char* msg, size_t len, bool trim = true) {
     b.push_back('-');
-    if (trim) reply_line_text(b, msg, len);
-    else reply_line_text<false>(b, msg, len);
+    if (trim)
+        reply_line_text(b, msg, len);
+    else
+        reply_line_text<false>(b, msg, len);
     b.append("\r\n", 2);
 }
-template <typename Buf> [[gnu::cold, gnu::noinline]]
+template <typename Buf>
+[[gnu::cold, gnu::noinline]]
 void reply_err(Buf&& b, const char* msg, size_t len, bool trim = true) {
     error_stats_record(msg, len, trim);
     reply_err_unaccounted(b, msg, len, trim);
 }
-template <typename Buf> inline void reply_err(Buf&& b, const char* msg) {
+template <typename Buf>
+inline void reply_err(Buf&& b, const char* msg) {
     error_stats_record(msg, std::strlen(msg));
-    b.push_back('-'); reply_line_text(b, msg, std::strlen(msg)); b.append("\r\n", 2);
+    b.push_back('-');
+    reply_line_text(b, msg, std::strlen(msg));
+    b.append("\r\n", 2);
 }
-template <typename Buf> [[gnu::cold, gnu::noinline]]
+template <typename Buf>
+[[gnu::cold, gnu::noinline]]
 void reply_simple(Buf&& b, const char* msg, size_t len) {
-    b.push_back('+'); reply_line_text<false>(b, msg, len); b.append("\r\n", 2);
+    b.push_back('+');
+    reply_line_text<false>(b, msg, len);
+    b.append("\r\n", 2);
 }
-template <typename Buf> inline void reply_simple(Buf&& b, const char* msg) {
+template <typename Buf>
+inline void reply_simple(Buf&& b, const char* msg) {
     reply_simple(b, msg, std::strlen(msg));
 }
 
@@ -84,8 +96,8 @@ struct RespInlineDecoder {
     // First pass validates and counts; second pass fills a single owned block.
     // No receive byte or reply storage is ever changed. Args are immutable after
     // parsing: commands that build another argv use a separate Op (e.g. EXEC).
-    [[gnu::cold, gnu::noinline]] static bool split(const char* p, const char* end, Slice* args, char* bytes,
-                      uint32_t& argc) {
+    [[gnu::cold, gnu::noinline]] static bool split(const char* p, const char* end, Slice* args,
+                                                   char* bytes, uint32_t& argc) {
         argc = 0;
         uint32_t written = 0;
         while (p != end) {
@@ -110,18 +122,33 @@ struct RespInlineDecoder {
                             if (c == 'x' && end - p >= 2 && hex(p[0]) >= 0 && hex(p[1]) >= 0) {
                                 c = static_cast<char>(hex(p[0]) * 16 + hex(p[1]));
                                 p += 2;
-                            } else switch (c) {
-                                case 'n': c = '\n'; break;
-                                case 'r': c = '\r'; break;
-                                case 't': c = '\t'; break;
-                                case 'b': c = '\b'; break;
-                                case 'a': c = '\a'; break;
-                            }
-                        } else if (*p == '\'') c = *p++;
+                            } else
+                                switch (c) {
+                                    case 'n':
+                                        c = '\n';
+                                        break;
+                                    case 'r':
+                                        c = '\r';
+                                        break;
+                                    case 't':
+                                        c = '\t';
+                                        break;
+                                    case 'b':
+                                        c = '\b';
+                                        break;
+                                    case 'a':
+                                        c = '\a';
+                                        break;
+                                }
+                        } else if (*p == '\'')
+                            c = *p++;
                     }
                 } else {
                     if (c == ' ' || c == '\t' || c == '\r' || c == '\n') break;
-                    if (c == '"' || c == '\'') { quote = c; continue; }
+                    if (c == '"' || c == '\'') {
+                        quote = c;
+                        continue;
+                    }
                 }
                 if (bytes) bytes[written] = c;
                 ++written;
@@ -132,8 +159,8 @@ struct RespInlineDecoder {
         return true;
     }
 
-    [[gnu::cold, gnu::noinline]] static ParseResult decode(
-            const char* p, const char* end, Op& op, const char** err) {
+    [[gnu::cold, gnu::noinline]] static ParseResult decode(const char* p, const char* end, Op& op,
+                                                           const char** err) {
         uint32_t argc;
         if (!split(p, end, nullptr, nullptr, argc)) {
             *err = "ERR Protocol error: unbalanced quotes in request";
@@ -155,8 +182,8 @@ struct RespInlineDecoder {
 // `scanned` is relative to the unconsumed request, so quiescent buffer compaction and
 // connection migration preserve it. Scan for LF, trimming an optional CR. No bytes
 // are copied or changed: argv can still point into the append-only receive buffer.
-inline ParseResult resp_parse_inline(const char* buf, uint32_t len, uint32_t& pos,
-                                      Op& op, const char** err, uint32_t& scanned) {
+inline ParseResult resp_parse_inline(const char* buf, uint32_t len, uint32_t& pos, Op& op,
+                                     const char** err, uint32_t& scanned) {
     const uint32_t available = len - pos;
     uint32_t i = scanned;
     for (; i < available; ++i) {
@@ -176,7 +203,7 @@ inline ParseResult resp_parse_inline(const char* buf, uint32_t len, uint32_t& po
     }
     const uint32_t next = pos + i + 1;
     const uint32_t eol = pos + i - (i && buf[pos + i - 1] == '\r');
-    scanned = 0; // A dispatch refusal may parse this complete frame again.
+    scanned = 0;  // A dispatch refusal may parse this complete frame again.
     if (!resp_inline_plain(buf + pos, buf + eol)) {
         const auto result = RespInlineDecoder::decode(buf + pos, buf + eol, op, err);
         if (result != ParseResult::Error) pos = next;
@@ -211,23 +238,25 @@ inline ParseResult resp_parse_inline(const char* buf, uint32_t len, uint32_t& po
 // In particular, malformed digits without CR are incomplete until the 64 KiB
 // bound (including the '*'/'$' prefix); a CR at the very end is still incomplete.
 // Redis's search stops at NUL and does not check that the byte after CR is LF.
-__attribute__((noinline, cold)) inline ParseResult resp_count_line(
-        const char* buf, uint32_t len, uint32_t start, uint32_t& end,
-        bool multibulk, const char** err) {
+__attribute__((noinline, cold)) inline ParseResult resp_count_line(const char* buf, uint32_t len,
+                                                                   uint32_t start, uint32_t& end,
+                                                                   bool multibulk,
+                                                                   const char** err) {
     end = start;
     while (end < len && buf[end] && buf[end] != '\r') ++end;
     if (end == len || !buf[end]) {
         if (len - start <= kProtoInlineMaxSize) return ParseResult::Incomplete;
         *err = multibulk ? "ERR Protocol error: too big mbulk count string"
-                        : "ERR Protocol error: too big bulk count string";
+                         : "ERR Protocol error: too big bulk count string";
         return ParseResult::Error;
     }
     return end + 1 < len ? ParseResult::Ok : ParseResult::Incomplete;
 }
 
-__attribute__((noinline, cold)) inline ParseResult resp_length_slow(
-        const char* buf, uint32_t len, uint32_t& pos, uint64_t maxv,
-        uint64_t& out, bool multibulk, const char** err) {
+__attribute__((noinline, cold)) inline ParseResult resp_length_slow(const char* buf, uint32_t len,
+                                                                    uint32_t& pos, uint64_t maxv,
+                                                                    uint64_t& out, bool multibulk,
+                                                                    const char** err) {
     uint32_t end;
     const auto line = resp_count_line(buf, len, pos - 1, end, multibulk, err);
     if (line != ParseResult::Ok) return line;
@@ -239,26 +268,31 @@ __attribute__((noinline, cold)) inline ParseResult resp_length_slow(
     // string2ll's stricter grammar (no +, whitespace, -0 or redundant zeroes).
     const bool zero = end == pos + 1 && buf[pos] == '0';
     if (!zero && (first >= end || buf[first] < '1' || buf[first] > '9')) {
-        *err = invalid; return ParseResult::Error;
+        *err = invalid;
+        return ParseResult::Error;
     }
     const auto parsed = std::from_chars(buf + pos, buf + end, value);
     if (parsed.ec != std::errc{} || parsed.ptr != buf + end ||
         (multibulk ? value > INT32_MAX : value < 0)) {
-        *err = invalid; return ParseResult::Error;
+        *err = invalid;
+        return ParseResult::Error;
     }
     // Keep the ordinary parser's original immediate bound. Counts above 1 Mi
     // take this cold continuation, up to Redis's INT_MAX; no eager argv reserve.
     if (multibulk && maxv == 1024 * 1024) maxv = INT32_MAX;
     if (value > 0 && static_cast<uint64_t>(value) > maxv) {
-        *err = invalid; return ParseResult::Error;
+        *err = invalid;
+        return ParseResult::Error;
     }
     out = value > 0 ? static_cast<uint64_t>(value) : 0;
     pos = end + 2;
     return ParseResult::Ok;
 }
 
-__attribute__((noinline, cold)) inline ParseResult resp_bulk_prefix_error(
-        const char* buf, uint32_t len, uint32_t pos, Op& op, const char** err) {
+__attribute__((noinline, cold)) inline ParseResult resp_bulk_prefix_error(const char* buf,
+                                                                          uint32_t len,
+                                                                          uint32_t pos, Op& op,
+                                                                          const char** err) {
     uint32_t end;
     const auto line = resp_count_line(buf, len, pos, end, false, err);
     if (line != ParseResult::Ok) return line;
@@ -271,9 +305,10 @@ __attribute__((noinline, cold)) inline ParseResult resp_bulk_prefix_error(
 // or the configured bulk ceiling, which Redis checks first. Reuse the strict
 // decoder on at most ten headers; completed payloads are only stepped over.
 // Ordinary parsing and the resumable frontier keep their calling conventions.
-[[gnu::cold, gnu::noinline]] inline const char* resp_preauth_error(
-        const char* buf, uint32_t len, uint32_t start, uint64_t max_bulk,
-        const char* original) {
+[[gnu::cold, gnu::noinline]] inline const char* resp_preauth_error(const char* buf, uint32_t len,
+                                                                   uint32_t start,
+                                                                   uint64_t max_bulk,
+                                                                   const char* original) {
     if (start >= len || buf[start] != '*') return original;
     uint32_t p = start + 1;
     uint64_t count = 0;
@@ -300,14 +335,19 @@ __attribute__((noinline, cold)) inline ParseResult resp_bulk_prefix_error(
 // the ordinary parser's argument loop. The already parsed argv prefix is kept:
 // resetting Op would discard the connection flags captured by ROB acquisition.
 // Only receive-buffer slices are replayed; no receive byte is copied or changed.
-[[gnu::cold, gnu::noinline]] inline ParseResult resp_parse_slow(
-        const char* buf, uint32_t len, uint32_t& pos, Op& op, const char** err,
-        uint64_t max_multibulk, uint64_t max_bulk) {
+[[gnu::cold, gnu::noinline]] inline ParseResult resp_parse_slow(const char* buf, uint32_t len,
+                                                                uint32_t& pos, Op& op,
+                                                                const char** err,
+                                                                uint64_t max_multibulk,
+                                                                uint64_t max_bulk) {
     uint32_t p = pos + 1;
     uint64_t nargs = 0;
     auto r = resp_length_slow(buf, len, p, max_multibulk, nargs, true, err);
     if (r != ParseResult::Ok) return r;
-    if (nargs == 0) { pos = p; return ParseResult::Empty; }
+    if (nargs == 0) {
+        pos = p;
+        return ParseResult::Empty;
+    }
     const uint32_t parsed = op.argc();
     for (uint64_t a = 0; a < nargs; ++a) {
         if (p >= len) return ParseResult::Incomplete;
@@ -329,8 +369,10 @@ __attribute__((noinline, cold)) inline ParseResult resp_bulk_prefix_error(
 
 // Keep constant-limit arguments out of the ordinary parser's calling convention.
 // This wrapper and its extra call exist only on the exceptional exit.
-[[gnu::cold, gnu::noinline]] inline ParseResult resp_parse_unlimited_slow(
-        const char* buf, uint32_t len, uint32_t& pos, Op& op, const char** err) {
+[[gnu::cold, gnu::noinline]] inline ParseResult resp_parse_unlimited_slow(const char* buf,
+                                                                          uint32_t len,
+                                                                          uint32_t& pos, Op& op,
+                                                                          const char** err) {
     return resp_parse_slow(buf, len, pos, op, err, 1024 * 1024, 512ull * 1024 * 1024);
 }
 
@@ -345,8 +387,8 @@ __attribute__((noinline, cold)) inline ParseResult resp_bulk_prefix_error(
 // Returns Ok / Incomplete / Error. Bounded by `maxv` so a hostile length cannot overflow:
 // that holds only while maxv <= (UINT64_MAX - 9) / 10, so every bulk-length caller passes
 // at most 512 MiB and lets resp_length_slow apply a larger configured limit.
-inline ParseResult parse_len_crlf(const char* buf, uint32_t len, uint32_t& pos,
-                                  uint64_t maxv, uint64_t& out) {
+inline ParseResult parse_len_crlf(const char* buf, uint32_t len, uint32_t& pos, uint64_t maxv,
+                                  uint64_t& out) {
     uint32_t i = pos;
     if (i >= len) return ParseResult::Incomplete;
     // Peel the first digit so its existing range check rejects zero as well as
@@ -381,13 +423,15 @@ inline ParseResult parse_len_crlf(const char* buf, uint32_t len, uint32_t& pos,
 // both protocols, without adding stores to complete-frame dispatch.
 inline constexpr uint32_t kRespMultibulkPending = uint32_t{1} << 31;
 struct RespFrontier {
-    struct Arg { uint32_t offset, length; };
+    struct Arg {
+        uint32_t offset, length;
+    };
     Arg* args = nullptr;
     uint32_t capacity = 0;
     uint32_t expected = 0;
     uint32_t completed = 0;
     uint32_t next = 0;
-    uint64_t bulk = UINT64_MAX; // known length: next names its payload, else '$'
+    uint64_t bulk = UINT64_MAX;  // known length: next names its payload, else '$'
 
     ~RespFrontier() { std::free(args); }
     bool push(uint32_t offset, uint32_t length) {
@@ -395,7 +439,8 @@ struct RespFrontier {
             const uint32_t cap = capacity ? capacity * 2 : 16;
             auto* grown = static_cast<Arg*>(std::realloc(args, size_t(cap) * sizeof(Arg)));
             if (!grown) return false;
-            args = grown; capacity = cap;
+            args = grown;
+            capacity = cap;
         }
         args[completed++] = {offset, length};
         return true;
@@ -404,14 +449,19 @@ struct RespFrontier {
         expected = completed = next = 0;
         bulk = UINT64_MAX;
         // As with Op::shrink, release burst argv growth at completion/close.
-        if (capacity > 512) { std::free(args); args = nullptr; capacity = 0; }
+        if (capacity > 512) {
+            std::free(args);
+            args = nullptr;
+            capacity = 0;
+        }
     }
 };
 static_assert(sizeof(RespFrontier) == 32);
 
-[[gnu::cold, gnu::noinline]] inline ParseResult resp_suspend(
-        RespFrontier& saved, const char* frame, Op& op, const char** err,
-        uint32_t expected, uint32_t next, uint64_t bulk = UINT64_MAX) {
+[[gnu::cold, gnu::noinline]] inline ParseResult resp_suspend(RespFrontier& saved, const char* frame,
+                                                             Op& op, const char** err,
+                                                             uint32_t expected, uint32_t next,
+                                                             uint64_t bulk = UINT64_MAX) {
     saved.expected = expected;
     saved.completed = 0;
     saved.next = next;
@@ -428,22 +478,26 @@ static_assert(sizeof(RespFrontier) == 32);
 
 // Exceptional headers continue at the current argument, never replaying the
 // prefix. Complete frames still build Op directly and never touch the frontier.
-[[gnu::cold, gnu::noinline]] inline ParseResult resp_parse_tail(
-        const char* buf, uint32_t len, uint32_t& pos, Op& op, const char** err,
-        uint64_t max_bulk, RespFrontier& saved, uint32_t nargs, uint32_t p) {
+[[gnu::cold, gnu::noinline]] inline ParseResult resp_parse_tail(const char* buf, uint32_t len,
+                                                                uint32_t& pos, Op& op,
+                                                                const char** err, uint64_t max_bulk,
+                                                                RespFrontier& saved, uint32_t nargs,
+                                                                uint32_t p) {
     while (op.argc() < nargs) {
         const uint32_t header = p;
         uint64_t bulk = 0;
         auto r = ParseResult::Incomplete;
         if (p < len) {
-            if (buf[p] != '$') r = resp_bulk_prefix_error(buf, len, p, op, err);
+            if (buf[p] != '$')
+                r = resp_bulk_prefix_error(buf, len, p, op, err);
             else {
                 ++p;
                 // parse_len_crlf's bound is its only overflow guard and configured limits
                 // reach LONG_MAX: as on the complete-frame path, larger headers continue
                 // in the signed, overflow-checked decoder.
-                r = parse_len_crlf(buf, len, p, max_bulk < 512ull * 1024 * 1024
-                                                ? max_bulk : 512ull * 1024 * 1024, bulk);
+                r = parse_len_crlf(
+                    buf, len, p, max_bulk < 512ull * 1024 * 1024 ? max_bulk : 512ull * 1024 * 1024,
+                    bulk);
                 if (r == ParseResult::Error)
                     r = resp_length_slow(buf, len, p, max_bulk, bulk, false, err);
             }
@@ -464,22 +518,26 @@ static_assert(sizeof(RespFrontier) == 32);
 }
 
 [[gnu::cold, gnu::noinline]] inline ParseResult resp_parse_start(
-        const char* buf, uint32_t len, uint32_t& pos, Op& op, const char** err,
-        uint64_t max_multibulk, uint64_t max_bulk, RespFrontier& saved) {
+    const char* buf, uint32_t len, uint32_t& pos, Op& op, const char** err, uint64_t max_multibulk,
+    uint64_t max_bulk, RespFrontier& saved) {
     uint32_t p = pos + 1;
     uint64_t nargs = 0;
     const auto r = resp_length_slow(buf, len, p, max_multibulk, nargs, true, err);
-    if (r == ParseResult::Incomplete)
-        return resp_suspend(saved, buf + pos, op, err, 0, 0);
+    if (r == ParseResult::Incomplete) return resp_suspend(saved, buf + pos, op, err, 0, 0);
     if (r == ParseResult::Error) return r;
-    if (!nargs) { pos = p; return ParseResult::Empty; }
-    return resp_parse_tail(buf, len, pos, op, err, max_bulk, saved,
-                           static_cast<uint32_t>(nargs), p);
+    if (!nargs) {
+        pos = p;
+        return ParseResult::Empty;
+    }
+    return resp_parse_tail(buf, len, pos, op, err, max_bulk, saved, static_cast<uint32_t>(nargs),
+                           p);
 }
 
-[[gnu::cold, gnu::noinline]] inline ParseResult resp_resume(
-        const char* buf, uint32_t len, uint32_t& pos, Op& op, const char** err,
-        uint64_t max_multibulk, uint64_t max_bulk, RespFrontier& saved) {
+[[gnu::cold, gnu::noinline]] inline ParseResult resp_resume(const char* buf, uint32_t len,
+                                                            uint32_t& pos, Op& op, const char** err,
+                                                            uint64_t max_multibulk,
+                                                            uint64_t max_bulk,
+                                                            RespFrontier& saved) {
     if (!saved.expected)
         return resp_parse_start(buf, len, pos, op, err, max_multibulk, max_bulk, saved);
     const char* frame = buf + pos;
@@ -490,12 +548,14 @@ static_assert(sizeof(RespFrontier) == 32);
             if (p == available) return ParseResult::Incomplete;
             ParseResult r;
             uint64_t bulk = 0;
-            if (frame[p] != '$') r = resp_bulk_prefix_error(frame, available, p, op, err);
+            if (frame[p] != '$')
+                r = resp_bulk_prefix_error(frame, available, p, op, err);
             else {
                 ++p;
                 // Same overflow bound as resp_parse_tail above.
-                r = parse_len_crlf(frame, available, p, max_bulk < 512ull * 1024 * 1024
-                                                    ? max_bulk : 512ull * 1024 * 1024, bulk);
+                r = parse_len_crlf(
+                    frame, available, p,
+                    max_bulk < 512ull * 1024 * 1024 ? max_bulk : 512ull * 1024 * 1024, bulk);
                 if (r == ParseResult::Error)
                     r = resp_length_slow(frame, available, p, max_bulk, bulk, false, err);
             }
@@ -544,12 +604,13 @@ inline ParseResult resp_parse_t(const char* buf, uint32_t len, uint32_t& pos, Op
     const uint32_t start = pos;
     if (pos >= len) return ParseResult::Incomplete;
 
-    if constexpr (!kResume) if (buf[pos] != '*') {
-        uint32_t scanned = 0; // Stateless callers; IoLoop supplies Client's saved cursor.
-        return resp_parse_inline(buf, len, pos, op, err, scanned);
-    }
+    if constexpr (!kResume)
+        if (buf[pos] != '*') {
+            uint32_t scanned = 0;  // Stateless callers; IoLoop supplies Client's saved cursor.
+            return resp_parse_inline(buf, len, pos, op, err, scanned);
+        }
 
-    uint32_t p = pos + 1;                      // past '*'
+    uint32_t p = pos + 1;  // past '*'
     uint64_t nargs = 0;
     ParseResult r = parse_len_crlf(buf, len, p, max_multibulk, nargs);
     if (r == ParseResult::Incomplete) {
@@ -559,43 +620,52 @@ inline ParseResult resp_parse_t(const char* buf, uint32_t len, uint32_t& pos, Op
     if (r == ParseResult::Error) {
         if constexpr (kResume)
             return resp_parse_start(buf, len, pos, op, err, max_multibulk, max_bulk, *saved);
-        if constexpr (!kLimited) return resp_parse_unlimited_slow(buf, len, pos, op, err);
-        else return resp_parse_slow(buf, len, pos, op, err, max_multibulk, max_bulk);
+        if constexpr (!kLimited)
+            return resp_parse_unlimited_slow(buf, len, pos, op, err);
+        else
+            return resp_parse_slow(buf, len, pos, op, err, max_multibulk, max_bulk);
     }
 
     for (uint64_t a = 0; a < nargs; a++) {
         if (p >= len) {
             if constexpr (kResume)
                 return resp_suspend(*saved, buf + start, op, err, nargs, p - start);
-            pos = start; return ParseResult::Incomplete;
+            pos = start;
+            return ParseResult::Incomplete;
         }
         if (buf[p] != '$') {
             if constexpr (kResume)
                 return resp_parse_tail(buf, len, pos, op, err, max_bulk, *saved, nargs, p);
-            if constexpr (!kLimited) return resp_parse_unlimited_slow(buf, len, pos, op, err);
-            else return resp_parse_slow(buf, len, pos, op, err, max_multibulk, max_bulk);
+            if constexpr (!kLimited)
+                return resp_parse_unlimited_slow(buf, len, pos, op, err);
+            else
+                return resp_parse_slow(buf, len, pos, op, err, max_multibulk, max_bulk);
         }
         p++;
         uint64_t blen = 0;
         // The common constant is unchanged. Larger configured limits use the
         // signed, overflow-checked cold decoder once this small bound is crossed.
-        r = parse_len_crlf(buf, len, p, max_bulk < 512ull * 1024 * 1024
-                                      ? max_bulk : 512ull * 1024 * 1024, blen);
+        r = parse_len_crlf(buf, len, p,
+                           max_bulk < 512ull * 1024 * 1024 ? max_bulk : 512ull * 1024 * 1024, blen);
         if (r == ParseResult::Incomplete) {
             if constexpr (kResume)
                 return resp_suspend(*saved, buf + start, op, err, nargs, p - 1 - start);
-            pos = start; return ParseResult::Incomplete;
+            pos = start;
+            return ParseResult::Incomplete;
         }
         if (r == ParseResult::Error) {
             if constexpr (kResume)
                 return resp_parse_tail(buf, len, pos, op, err, max_bulk, *saved, nargs, p - 1);
-            if constexpr (!kLimited) return resp_parse_unlimited_slow(buf, len, pos, op, err);
-            else return resp_parse_slow(buf, len, pos, op, err, max_multibulk, max_bulk);
+            if constexpr (!kLimited)
+                return resp_parse_unlimited_slow(buf, len, pos, op, err);
+            else
+                return resp_parse_slow(buf, len, pos, op, err, max_multibulk, max_bulk);
         }
         if (p + blen + 2 > len) {
             if constexpr (kResume)
                 return resp_suspend(*saved, buf + start, op, err, nargs, p - start, blen);
-            pos = start; return ParseResult::Incomplete;
+            pos = start;
+            return ParseResult::Incomplete;
         }
         if (!op.push_arg(Slice(buf + p, static_cast<uint32_t>(blen)))) {
             *err = "ERR out of memory parsing command";
@@ -613,8 +683,7 @@ inline ParseResult resp_parse(const char* buf, uint32_t len, uint32_t& pos, Op& 
 }
 
 inline ParseResult resp_parse_limited(const char* buf, uint32_t len, uint32_t& pos, Op& op,
-                                      const char** err, uint64_t max_multibulk,
-                                      uint64_t max_bulk) {
+                                      const char** err, uint64_t max_multibulk, uint64_t max_bulk) {
     return resp_parse_t<true>(buf, len, pos, op, err, max_multibulk, max_bulk);
 }
 
@@ -626,12 +695,18 @@ inline ParseResult resp_parse_limited(const char* buf, uint32_t len, uint32_t& p
 inline uint32_t u64_to_dec(char* dst, uint64_t v) {
     char tmp[20];
     uint32_t n = 0;
-    do { tmp[n++] = static_cast<char>('0' + (v % 10)); v /= 10; } while (v);
+    do {
+        tmp[n++] = static_cast<char>('0' + (v % 10));
+        v /= 10;
+    } while (v);
     for (uint32_t i = 0; i < n; i++) dst[i] = tmp[n - 1 - i];
     return n;
 }
 inline uint32_t i64_to_dec(char* dst, int64_t v) {
-    if (v < 0) { *dst = '-'; return 1 + u64_to_dec(dst + 1, static_cast<uint64_t>(-(v + 1)) + 1); }
+    if (v < 0) {
+        *dst = '-';
+        return 1 + u64_to_dec(dst + 1, static_cast<uint64_t>(-(v + 1)) + 1);
+    }
     return u64_to_dec(dst, static_cast<uint64_t>(v));
 }
 
@@ -650,8 +725,10 @@ inline uint32_t i64_to_dec(char* dst, int64_t v) {
 //
 // b.code() returns false on a non-empty sink, which is how a fixed reply nested inside a larger
 // one (an EXEC element after its array header) falls back to bytes and stays in order.
-#define TOMO_CODED_REPLY(sink, codeexpr)                                          \
-    if constexpr (requires { sink.code(codeexpr); }) { if (sink.code(codeexpr)) return; }
+#define TOMO_CODED_REPLY(sink, codeexpr)               \
+    if constexpr (requires { sink.code(codeexpr); }) { \
+        if (sink.code(codeexpr)) return;               \
+    }
 
 // always_inline ON THE FIXED-REPLY HELPERS. Adding the coded attempt grew these bodies just
 // enough to cross GCC's inlining threshold, and the loss was not the four instructions of the
@@ -660,35 +737,43 @@ inline uint32_t i64_to_dec(char* dst, int64_t v) {
 // plus a capacity test; they were inlined before this branch and must stay inlined. reply_int is
 // deliberately NOT in this list: it carries the digit loop and was already out of line in base,
 // so forcing it would change base's own decision.
-template <typename Buf> __attribute__((always_inline)) inline void reply_ok(Buf&& b)   {
+template <typename Buf>
+__attribute__((always_inline)) inline void reply_ok(Buf&& b) {
     TOMO_CODED_REPLY(b, ReplyCode::Ok)
     b.append("+OK\r\n");
 }
-template <typename Buf> __attribute__((always_inline)) inline void reply_nil(Buf&& b)  {
+template <typename Buf>
+__attribute__((always_inline)) inline void reply_nil(Buf&& b) {
     TOMO_CODED_REPLY(b, ReplyCode::Nil)
     b.append("$-1\r\n");
 }
-template <typename Buf> __attribute__((always_inline)) inline void reply_pong(Buf&& b) {
+template <typename Buf>
+__attribute__((always_inline)) inline void reply_pong(Buf&& b) {
     TOMO_CODED_REPLY(b, ReplyCode::Pong)
     b.append("+PONG\r\n");
 }
-template <typename Buf> __attribute__((always_inline)) inline void reply_null_array(Buf&& b) {
+template <typename Buf>
+__attribute__((always_inline)) inline void reply_null_array(Buf&& b) {
     TOMO_CODED_REPLY(b, ReplyCode::NullArray)
     b.append("*-1\r\n");
 }
-template <typename Buf> __attribute__((always_inline)) inline void reply_emptystr(Buf&& b) {
+template <typename Buf>
+__attribute__((always_inline)) inline void reply_emptystr(Buf&& b) {
     TOMO_CODED_REPLY(b, ReplyCode::EmptyStr)
     b.append("$0\r\n\r\n");
 }
-template <typename Buf> inline void reply_wrongtype(Buf&& b) {
+template <typename Buf>
+inline void reply_wrongtype(Buf&& b) {
     error_stats_record("WRONGTYPE ", 10);
     b.append("-WRONGTYPE Operation against a key holding the wrong kind of value\r\n", 68);
 }
-template <typename Buf> inline void reply_syntax(Buf&& b) {
+template <typename Buf>
+inline void reply_syntax(Buf&& b) {
     error_stats_record("ERR ", 4);
     b.append("-ERR syntax error\r\n", 19);
 }
-template <typename Buf> inline void reply_outofrange(Buf&& b) {
+template <typename Buf>
+inline void reply_outofrange(Buf&& b) {
     error_stats_record("ERR ", 4);
     // Redis's getRangeLongFromObject names the bounds it enforces; every caller of this helper
     // (SRANDMEMBER / ZRANDMEMBER / HRANDFIELD counts) is one of those sites.
@@ -702,7 +787,8 @@ template <typename Buf> inline void reply_outofrange(Buf&& b) {
 // value, LPUSH/SADD/HSET's length -- the executor computes the number, the owner renders the
 // digits. Outside int32 the code path is declined (the hole in Op holds four bytes, not eight) and
 // the digits are formatted here exactly as before; the wire bytes are identical either way.
-template <typename Buf> inline void reply_int(Buf&& b, long long v) {
+template <typename Buf>
+inline void reply_int(Buf&& b, long long v) {
     if constexpr (requires { b.code(ReplyCode::Int, int32_t{0}); }) {
         if (__builtin_expect(v >= -2147483648LL && v <= 2147483647LL, true) &&
             b.code(ReplyCode::Int, static_cast<int32_t>(v)))
@@ -712,39 +798,48 @@ template <typename Buf> inline void reply_int(Buf&& b, long long v) {
     char* q = p;
     *q++ = ':';
     q += i64_to_dec(q, v);
-    *q++ = '\r'; *q++ = '\n';
+    *q++ = '\r';
+    *q++ = '\n';
     b.advance(static_cast<size_t>(q - p));
 }
 
-template <typename Buf> inline void reply_array_header(Buf&& b, uint64_t n) {
+template <typename Buf>
+inline void reply_array_header(Buf&& b, uint64_t n) {
     char* p = b.reserve(24);
     char* q = p;
     *q++ = '*';
     q += u64_to_dec(q, n);
-    *q++ = '\r'; *q++ = '\n';
+    *q++ = '\r';
+    *q++ = '\n';
     b.advance(static_cast<size_t>(q - p));
 }
 
-template <typename Buf> inline void reply_bulk_header(Buf&& b, uint32_t len) {
+template <typename Buf>
+inline void reply_bulk_header(Buf&& b, uint32_t len) {
     char* p = b.reserve(24);
     char* q = p;
     *q++ = '$';
     q += u64_to_dec(q, len);
-    *q++ = '\r'; *q++ = '\n';
+    *q++ = '\r';
+    *q++ = '\n';
     b.advance(static_cast<size_t>(q - p));
 }
 
 // ONE reserve, ONE memcpy, no snprintf and no re-entry into the buffer. The previous version did a
 // reserve plus three appends, and each append re-checked capacity — for a reply whose total size is
 // known exactly before a byte is written.
-template <typename Buf> inline void reply_bulk(Buf&& b, Slice s) {
+template <typename Buf>
+inline void reply_bulk(Buf&& b, Slice s) {
     char* p = b.reserve(24 + static_cast<size_t>(s.n) + 2);
     char* q = p;
     *q++ = '$';
     q += u64_to_dec(q, s.n);
-    *q++ = '\r'; *q++ = '\n';
-    std::memcpy(q, s.p, s.n); q += s.n;
-    *q++ = '\r'; *q++ = '\n';
+    *q++ = '\r';
+    *q++ = '\n';
+    std::memcpy(q, s.p, s.n);
+    q += s.n;
+    *q++ = '\r';
+    *q++ = '\n';
     b.advance(static_cast<size_t>(q - p));
 }
 
@@ -763,23 +858,16 @@ template <typename Buf> inline void reply_bulk(Buf&& b, Slice s) {
 // and the length comes from the same cache line as the bytes. Writing all 16 bytes is safe and
 // deliberate -- every caller reserves kReplyCodeMax -- and it keeps the store width constant.
 struct FixedReply {
-    char     bytes[16];
+    char bytes[16];
     uint32_t len;
 };
 
 // Indexed by ReplyCode. Slot 0 (None) is unreachable: every caller tests reply_code_ != 0 first,
 // which inlining folds away. Its zero length is a fail-quiet, not a design.
 inline constexpr FixedReply kFixedReplies[] = {
-    {{0},                 0},   // None -- unreachable
-    {"+OK\r\n",           5},
-    {"$-1\r\n",           5},
-    {"+PONG\r\n",         7},
-    {"*-1\r\n",           5},
-    {"$0\r\n\r\n",        6},
-    {"_\r\n",             3},
-    {"#t\r\n",            4},
-    {"#f\r\n",            4},
-    {{0},                 0},   // Int -- handled below, never read from this table
+    {{0}, 0},  // None -- unreachable
+    {"+OK\r\n", 5}, {"$-1\r\n", 5}, {"+PONG\r\n", 7}, {"*-1\r\n", 5}, {"$0\r\n\r\n", 6},
+    {"_\r\n", 3},   {"#t\r\n", 4},  {"#f\r\n", 4},    {{0}, 0},  // Int -- handled below, never read from this table
 };
 
 // Digits straight into the destination, no scratch array -- an array here is what pulled a stack
@@ -787,7 +875,10 @@ inline constexpr FixedReply kFixedReplies[] = {
 inline uint32_t u32_to_dec_direct(char* dst, uint32_t v) {
     uint32_t n = 1;
     for (uint32_t t = v; t >= 10; t /= 10) n++;
-    for (uint32_t i = n; i-- > 0; ) { dst[i] = static_cast<char>('0' + v % 10); v /= 10; }
+    for (uint32_t i = n; i-- > 0;) {
+        dst[i] = static_cast<char>('0' + v % 10);
+        v /= 10;
+    }
     return n;
 }
 
@@ -795,15 +886,19 @@ inline uint32_t u32_to_dec_direct(char* dst, uint32_t v) {
 // retire lambda at every one of its twenty-odd instantiations; the lambda is the io thread's
 // hottest code and every op walks past those bytes whether or not it formats an integer.
 // ":-2147483648\r\n" is 14 bytes, inside kReplyCodeMax.
-__attribute__((noinline))
-inline uint32_t format_reply_code_int(char* dst, int32_t ival) {
+__attribute__((noinline)) inline uint32_t format_reply_code_int(char* dst, int32_t ival) {
     char* q = dst;
     *q++ = ':';
     uint32_t mag;
-    if (ival < 0) { *q++ = '-'; mag = static_cast<uint32_t>(-static_cast<int64_t>(ival)); }
-    else          { mag = static_cast<uint32_t>(ival); }
+    if (ival < 0) {
+        *q++ = '-';
+        mag = static_cast<uint32_t>(-static_cast<int64_t>(ival));
+    } else {
+        mag = static_cast<uint32_t>(ival);
+    }
     q += u32_to_dec_direct(q, mag);
-    *q++ = '\r'; *q++ = '\n';
+    *q++ = '\r';
+    *q++ = '\n';
     return static_cast<uint32_t>(q - dst);
 }
 
@@ -813,8 +908,8 @@ inline uint32_t format_reply_code_int(char* dst, int32_t ival) {
 // fixed reply -- which is every SET, the reply this change exists for -- becomes a table index, a
 // 16-byte load-store and a length load, and an integer reply pays one call, exactly as it paid one
 // memcpy call before.
-__attribute__((always_inline))
-inline uint32_t format_reply_code(char* dst, uint8_t code, int32_t ival) {
+__attribute__((always_inline)) inline uint32_t format_reply_code(char* dst, uint8_t code,
+                                                                 int32_t ival) {
     if (code != static_cast<uint8_t>(ReplyCode::Int)) {
         const FixedReply& f = kFixedReplies[code];
         __builtin_memcpy(dst, f.bytes, sizeof(f.bytes));
@@ -830,8 +925,7 @@ inline uint32_t format_reply_code(char* dst, uint8_t code, int32_t ival) {
 // SmallBuf::reserve's grow path -- malloc, memcpy, free -- into WbEngine's per-op retire lambda,
 // which is the io thread's hottest code; the lambda went 186 -> 263 instructions and the split GET
 // cell paid for all of it while using none of it.
-__attribute__((noinline))
-inline void op_materialise_code(Op& op) {
+__attribute__((noinline)) inline void op_materialise_code(Op& op) {
     if (op.reply_code_ == 0) return;
     char* p = op.reply.reserve(kReplyCodeMax);
     op.reply.advance(format_reply_code(p, op.reply_code_, op.reply_ival_));
@@ -839,7 +933,8 @@ inline void op_materialise_code(Op& op) {
 }
 
 // RESP2 has no native double: redis sends this same text as a bulk string.
-template <typename Buf> inline void reply_double(Buf&& b, double value) {
+template <typename Buf>
+inline void reply_double(Buf&& b, double value) {
     char text[kDoubleTextMax];
     const uint32_t length = redis_double_text(text, sizeof(text), value);
     reply_bulk(b, Slice(text, length));

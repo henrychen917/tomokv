@@ -12,9 +12,9 @@ static void wave5_dispatch_defer() {
     std::atomic<uint64_t> epoch{0};
     std::atomic<bool> aborted{false};
     std::atomic<uint32_t> refs{0};
-    require(shard.watch_append_reservation(database_owned_key(slice(key)),
-                Shard::WatchReservation{&epoch, &epoch, &aborted, &refs,
-                                        &blocker, 0, false, true}),
+    require(shard.watch_append_reservation(
+                database_owned_key(slice(key)),
+                Shard::WatchReservation{&epoch, &epoch, &aborted, &refs, &blocker, 0, false, true}),
             "dispatch WATCH claim armed");
     Op& op = prepare(client, {Slice("SET"), slice(key), Slice("after")}, f.server);
     const uint64_t id = client.rob().dispatch_id();
@@ -28,8 +28,8 @@ static void wave5_dispatch_defer() {
                 op.state.load() == OpState::Issued,
             "marked retry parks before Done without obstructing the owner");
     aborted.store(true, std::memory_order_release);
-    require(loop.template service_atomic_deferred<false>() == 1 &&
-                loop.atomic_deferred_.empty() && op.state.load() == OpState::Done,
+    require(loop.template service_atomic_deferred<false>() == 1 && loop.atomic_deferred_.empty() &&
+                op.state.load() == OpState::Done,
             "released claim resumes the parked writer exactly once");
     require(client.rob().drain([](Op&) {}) == 1 && refs.load() == 0,
             "dispatch releases the operation and claim");

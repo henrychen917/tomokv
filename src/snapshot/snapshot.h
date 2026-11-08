@@ -42,7 +42,7 @@ public:
     std::vector<uint8_t> functions;
     bool flush = true;
     bool merge = false;
-    bool functions_loaded = false; // DEBUG prepares the registry before dispatch
+    bool functions_loaded = false;  // DEBUG prepares the registry before dispatch
 };
 
 std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t expected_shards,
@@ -51,8 +51,7 @@ bool snapshot_load_owned(const SnapshotLoadPlan& plan, Server& server, ThreadCtx
                          std::string& error);
 bool snapshot_load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& shard,
                          std::string& error);
-bool prepare_debug_reload(Server&, Op&, uint32_t owner_io,
-                          std::unique_ptr<SnapshotLoadPlan>&);
+bool prepare_debug_reload(Server&, Op&, uint32_t owner_io, std::unique_ptr<SnapshotLoadPlan>&);
 
 class SnapshotManager {
 public:
@@ -73,13 +72,14 @@ public:
         ~WorkerLifetime() { manager_.worker_shutdown(writer_); }
         WorkerLifetime(const WorkerLifetime&) = delete;
         WorkerLifetime& operator=(const WorkerLifetime&) = delete;
+
     private:
         SnapshotManager& manager_;
         ThreadCtx& writer_;
     };
 
-    void init(uint32_t nthreads, uint32_t nshards, uint32_t executor_count,
-              const char* dir, const char* dbfilename, PersistIoEngine engine);
+    void init(uint32_t nthreads, uint32_t nshards, uint32_t executor_count, const char* dir,
+              const char* dbfilename, PersistIoEngine engine);
 
     StartResult start(Server& server, ThreadCtx& writer, Ring& writer_ring, bool blocking,
                       std::string& error, AofManager* rewrite = nullptr,
@@ -126,7 +126,7 @@ public:
     const std::string& dbfilename() const { return dbfilename_; }
 
 private:
-    friend struct CoreConcurrencyTest; // serverless finalization/owner-hold witness
+    friend struct CoreConcurrencyTest;  // serverless finalization/owner-hold witness
     using ChunkChan = Channel<SnapshotChunk*, 64>;
     bool write_header_normal();
     bool write_frame_normal(const SnapshotChunk& chunk);
@@ -188,10 +188,10 @@ private:
     // unchanged 256-byte database map, followed by Redis FUNCTION2 source records.
     std::vector<uint8_t> function_metadata_;
     std::mutex error_mu_;
-    int fd_ = -1;                         // designated writer thread only
+    int fd_ = -1;  // designated writer thread only
     uint64_t frame_count_ = 0;
     uint32_t ended_shards_ = 0;
-    std::vector<uint32_t> next_sequence_; // designated writer thread only
+    std::vector<uint32_t> next_sequence_;  // designated writer thread only
     std::vector<uint8_t> saw_begin_;
     std::vector<uint8_t> saw_end_;
     AofManager* rewrite_ = nullptr;

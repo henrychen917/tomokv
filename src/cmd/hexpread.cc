@@ -118,15 +118,15 @@ void reply_scan(Op& op, uint64_t cursor, const std::vector<ScanItem>& items, boo
 enum class GetAllMode : uint8_t { Fields, Values, Both };
 
 bool filtered_select_unique(HashReadView& view, uint32_t population, uint32_t count,
-                   std::vector<uint32_t>& selected) {
+                            std::vector<uint32_t>& selected) {
     try {
         selected.reserve(count);
         if (static_cast<uint64_t>(count) * 3 > population) {
             std::vector<uint32_t> all(population);
             for (uint32_t i = 0; i < population; i++) all[i] = i;
             for (uint32_t i = 0; i < count; i++) {
-                const uint32_t chosen = i + static_cast<uint32_t>(
-                    view.random(0, static_cast<uint64_t>(population - i)));
+                const uint32_t chosen = i + static_cast<uint32_t>(view.random(
+                                                0, static_cast<uint64_t>(population - i)));
                 std::swap(all[i], all[chosen]);
                 selected.push_back(all[i]);
             }
@@ -151,7 +151,8 @@ void filtered_cmd_hget(Shard& shard, Op& op, KvObj* object, HashReadView& view) 
     Slice value;
     if (!object || !view.visible(op.arg(2)) || !hash_field_value_ro(object, op.arg(2), value))
         reply_null(op.sink(), op.resp3());
-    else reply_bulk(op.sink(), value);
+    else
+        reply_bulk(op.sink(), value);
 }
 
 void filtered_cmd_hmget(Shard& shard, Op& op, KvObj* object, HashReadView& view) {
@@ -161,7 +162,8 @@ void filtered_cmd_hmget(Shard& shard, Op& op, KvObj* object, HashReadView& view)
         Slice value;
         if (!object || !view.visible(op.arg(i)) || !hash_field_value_ro(object, op.arg(i), value))
             reply_null(op.sink(), op.resp3());
-        else reply_bulk(op.sink(), value);
+        else
+            reply_bulk(op.sink(), value);
     }
 }
 
@@ -173,28 +175,40 @@ void filtered_cmd_hlen(Shard& shard, Op& op, KvObj* object, HashReadView& view) 
 void filtered_cmd_hexists(Shard& shard, Op& op, KvObj* object, HashReadView& view) {
     (void)shard;
     Slice value;
-    reply_int(op.sink(), object && view.visible(op.arg(2)) &&
-                        hash_field_value_ro(object, op.arg(2), value) ? 1 : 0);
+    reply_int(
+        op.sink(),
+        object && view.visible(op.arg(2)) && hash_field_value_ro(object, op.arg(2), value) ? 1 : 0);
 }
 
 void filtered_cmd_hstrlen(Shard& shard, Op& op, KvObj* object, HashReadView& view) {
     (void)shard;
     Slice value;
-    reply_int(op.sink(), object && view.visible(op.arg(2)) &&
-                        hash_field_value_ro(object, op.arg(2), value) ? value.n : 0);
+    reply_int(op.sink(),
+              object && view.visible(op.arg(2)) && hash_field_value_ro(object, op.arg(2), value)
+                  ? value.n
+                  : 0);
 }
 
-void filtered_generic_getall(Shard& shard, Op& op, GetAllMode mode, KvObj* object, HashReadView& view) {
+void filtered_generic_getall(Shard& shard, Op& op, GetAllMode mode, KvObj* object,
+                             HashReadView& view) {
     (void)shard;
     if (!object) {
-        if (mode == GetAllMode::Both) reply_map_header(op.sink(), 0, op.resp3());
-        else reply_array_header(op.sink(), 0);
+        if (mode == GetAllMode::Both)
+            reply_map_header(op.sink(), 0, op.resp3());
+        else
+            reply_array_header(op.sink(), 0);
         return;
     }
     const uint32_t count = hash_ttl_field_count(object) - view.expired;
-    if (mode == GetAllMode::Both) reply_map_header(op.sink(), count, op.resp3());
-    else reply_array_header(op.sink(), count);
-    struct Context { Op& op; HashReadView& view; GetAllMode mode; } context{op, view, mode};
+    if (mode == GetAllMode::Both)
+        reply_map_header(op.sink(), count, op.resp3());
+    else
+        reply_array_header(op.sink(), count);
+    struct Context {
+        Op& op;
+        HashReadView& view;
+        GetAllMode mode;
+    } context{op, view, mode};
     hash_read_visit(object, 0, 0, &context, [](void* raw, Slice field, Slice value) {
         auto& c = *static_cast<Context*>(raw);
         if (!c.view.visible(field)) return;
@@ -220,13 +234,17 @@ void filtered_cmd_hscan(Shard& shard, Op& op, KvObj* object, HashReadView& view)
 
     std::vector<ScanItem> items;
     try {
-        struct Context { HashReadView& view; ScanOptions& options; std::vector<ScanItem>& items; }
-            context{view, options, items};
-        cursor = hash_read_visit(object, cursor, options.count, &context,
-            [](void* raw, Slice field, Slice value) {
+        struct Context {
+            HashReadView& view;
+            ScanOptions& options;
+            std::vector<ScanItem>& items;
+        } context{view, options, items};
+        cursor = hash_read_visit(
+            object, cursor, options.count, &context, [](void* raw, Slice field, Slice value) {
                 auto& c = *static_cast<Context*>(raw);
-                if (c.view.visible(field) && (!c.options.use_pattern ||
-                    command_glob_match(c.options.pattern, field))) c.items.push_back({field, value});
+                if (c.view.visible(field) &&
+                    (!c.options.use_pattern || command_glob_match(c.options.pattern, field)))
+                    c.items.push_back({field, value});
             });
     } catch (const std::bad_alloc&) {
         reply_err(op.sink(), "ERR out of memory");
@@ -269,20 +287,27 @@ void filtered_cmd_hrandfield(Shard& shard, Op& op, KvObj* object, HashReadView& 
 
     (void)shard;
     if (!object) {
-        if (op.argc() == 2) reply_null(op.sink(), op.resp3());
-        else reply_array_header(op.sink(), 0);
+        if (op.argc() == 2)
+            reply_null(op.sink(), op.resp3());
+        else
+            reply_array_header(op.sink(), 0);
         return;
     }
     const uint32_t population = hash_ttl_field_count(object) - view.expired;
     if (!population) {
-        if (op.argc() == 2) reply_null(op.sink(), op.resp3());
-        else reply_array_header(op.sink(), 0);
+        if (op.argc() == 2)
+            reply_null(op.sink(), op.resp3());
+        else
+            reply_array_header(op.sink(), 0);
         return;
     }
     std::vector<ScanItem> live;
     try {
         live.reserve(population);
-        struct Context { HashReadView& view; std::vector<ScanItem>& live; } context{view, live};
+        struct Context {
+            HashReadView& view;
+            std::vector<ScanItem>& live;
+        } context{view, live};
         hash_read_visit(object, 0, 0, &context, [](void* raw, Slice field, Slice value) {
             auto& c = *static_cast<Context*>(raw);
             if (c.view.visible(field)) c.live.push_back({field, value});
@@ -294,7 +319,9 @@ void filtered_cmd_hrandfield(Shard& shard, Op& op, KvObj* object, HashReadView& 
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
-    auto pair_at = [&](uint32_t index) { return std::pair<Slice, Slice>{live[index].field, live[index].value}; };
+    auto pair_at = [&](uint32_t index) {
+        return std::pair<Slice, Slice>{live[index].field, live[index].value};
+    };
 
     if (op.argc() == 2) {
         const auto pair = pair_at(static_cast<uint32_t>(view.random(op.hash, population)));
@@ -307,8 +334,8 @@ void filtered_cmd_hrandfield(Shard& shard, Op& op, KvObj* object, HashReadView& 
     }
 
     const bool unique = signed_count > 0;
-    const uint64_t requested = unique ? static_cast<uint64_t>(signed_count)
-                                      : static_cast<uint64_t>(-signed_count);
+    const uint64_t requested =
+        unique ? static_cast<uint64_t>(signed_count) : static_cast<uint64_t>(-signed_count);
     if (!unique) {
         const bool pairs = with_values && op.resp3();
         reply_array_header(op.sink(), requested * (with_values && !pairs ? 2 : 1));
@@ -324,8 +351,8 @@ void filtered_cmd_hrandfield(Shard& shard, Op& op, KvObj* object, HashReadView& 
     const uint32_t count = requested >= population ? population : static_cast<uint32_t>(requested);
     if (count == population) {
         const bool pairs = with_values && op.resp3();
-        reply_array_header(op.sink(), static_cast<uint64_t>(count) *
-                                      (with_values && !pairs ? 2 : 1));
+        reply_array_header(op.sink(),
+                           static_cast<uint64_t>(count) * (with_values && !pairs ? 2 : 1));
         for (uint32_t i = 0; i < count; i++) {
             const auto pair = pair_at(i);
             if (pairs) reply_array_header(op.sink(), 2);
@@ -341,8 +368,8 @@ void filtered_cmd_hrandfield(Shard& shard, Op& op, KvObj* object, HashReadView& 
         return;
     }
     const bool pairs = with_values && op.resp3();
-    reply_array_header(op.sink(), static_cast<uint64_t>(selected.size()) *
-                                  (with_values && !pairs ? 2 : 1));
+    reply_array_header(op.sink(),
+                       static_cast<uint64_t>(selected.size()) * (with_values && !pairs ? 2 : 1));
     for (uint32_t index : selected) {
         const auto pair = pair_at(index);
         if (pairs) reply_array_header(op.sink(), 2);
@@ -350,7 +377,6 @@ void filtered_cmd_hrandfield(Shard& shard, Op& op, KvObj* object, HashReadView& 
         if (with_values) reply_bulk(op.sink(), pair.second);
     }
 }
-
 
 bool HashReadView::field_live(Slice field) const {
     const int64_t at = ttls->get(field);
@@ -393,20 +419,28 @@ bool hash_ttl_read_view(Shard& shard, Op& op, KvObj*& object, HashReadView& view
 
 bool hash_filtered_reply(Shard& shard, Op& op, KvObj* object, HashReadView& view) {
     const char* name = op.spec->name;
-    if (std::strcmp(name, "HGET") == 0) filtered_cmd_hget(shard, op, object, view);
-    else if (std::strcmp(name, "HMGET") == 0) filtered_cmd_hmget(shard, op, object, view);
-    else if (std::strcmp(name, "HLEN") == 0) filtered_cmd_hlen(shard, op, object, view);
-    else if (std::strcmp(name, "HEXISTS") == 0) filtered_cmd_hexists(shard, op, object, view);
-    else if (std::strcmp(name, "HSTRLEN") == 0) filtered_cmd_hstrlen(shard, op, object, view);
-    else if (std::strcmp(name, "HSCAN") == 0) filtered_cmd_hscan(shard, op, object, view);
-    else if (std::strcmp(name, "HRANDFIELD") == 0) filtered_cmd_hrandfield(shard, op, object, view);
+    if (std::strcmp(name, "HGET") == 0)
+        filtered_cmd_hget(shard, op, object, view);
+    else if (std::strcmp(name, "HMGET") == 0)
+        filtered_cmd_hmget(shard, op, object, view);
+    else if (std::strcmp(name, "HLEN") == 0)
+        filtered_cmd_hlen(shard, op, object, view);
+    else if (std::strcmp(name, "HEXISTS") == 0)
+        filtered_cmd_hexists(shard, op, object, view);
+    else if (std::strcmp(name, "HSTRLEN") == 0)
+        filtered_cmd_hstrlen(shard, op, object, view);
+    else if (std::strcmp(name, "HSCAN") == 0)
+        filtered_cmd_hscan(shard, op, object, view);
+    else if (std::strcmp(name, "HRANDFIELD") == 0)
+        filtered_cmd_hrandfield(shard, op, object, view);
     else if (std::strcmp(name, "HGETALL") == 0)
         filtered_generic_getall(shard, op, GetAllMode::Both, object, view);
     else if (std::strcmp(name, "HKEYS") == 0)
         filtered_generic_getall(shard, op, GetAllMode::Fields, object, view);
     else if (std::strcmp(name, "HVALS") == 0)
         filtered_generic_getall(shard, op, GetAllMode::Values, object, view);
-    else return false;
+    else
+        return false;
     return true;
 }
 
@@ -415,7 +449,8 @@ bool hash_filtered_reply(Shard& shard, Op& op, KvObj* object, HashReadView& view
 bool hash_parked_reply(Shard& shard, Op& op) {
     using namespace hexpread;
     // Resolve without touching the physical candidate. Safe reads return to the ordinary lookup.
-    KvObj* object = shard.store().atomic_resolve(op.hash, op.key(), shard.store().atomic_read_epoch());
+    KvObj* object =
+        shard.store().atomic_resolve(op.hash, op.key(), shard.store().atomic_read_epoch());
     if (!object || !object->is_type(Type::Hash)) return false;
     KvObj* found = object;
     HashReadView view;

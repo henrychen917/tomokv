@@ -48,5 +48,6 @@ int main() {
     // Actual elapsed time, not an assumed 100 ms, determines a delayed sample.
     sample(g_info_stats.last_sample_ns + 2 * tick, {200, 0, 0}, 12);
     assert(info_stats_rates()[0] == 62);
-    std::puts("INFOFIELDS cron arithmetic: PASS (warm-up, decay, read-only INFO, peak, reset, elapsed)");
+    std::puts(
+        "INFOFIELDS cron arithmetic: PASS (warm-up, decay, read-only INFO, peak, reset, elapsed)");
 }

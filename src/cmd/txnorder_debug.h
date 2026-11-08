@@ -24,7 +24,8 @@ inline TxnWriterDebug& txn_writer_debug() {
 inline void txn_debug_writer_mark(const void* token, int delta) {
     auto& state = txn_writer_debug();
     std::lock_guard guard(state.mutex);
-    if (delta > 0) state.marks[token] += static_cast<unsigned>(delta);
+    if (delta > 0)
+        state.marks[token] += static_cast<unsigned>(delta);
     else {
         auto it = state.marks.find(token);
         if (it == state.marks.end() || it->second < static_cast<unsigned>(-delta)) std::abort();
@@ -40,7 +41,7 @@ inline void txn_debug_writer_retire(const void* token) {
         std::abort();
     }
 }
-} // namespace tomo
+}  // namespace tomo
 #else
 #define TOMO_TXN_REGISTRY_VISIT() ((void)0)
 #endif

@@ -61,7 +61,11 @@ namespace {
 
 #include "cmdmeta_generated.inc"
 
-struct CommandDocs { const char* name; const char* resp2; const char* resp3; };
+struct CommandDocs {
+    const char* name;
+    const char* resp2;
+    const char* resp3;
+};
 #include "cmddocs_generated.inc"
 
 // The generator already emits lexical order. Keep the assertion next to the
@@ -69,11 +73,15 @@ struct CommandDocs { const char* name; const char* resp2; const char* resp3; };
 static_assert([] {
     for (size_t i = 1; i < std::size(kGeneratedMetadata); ++i)
         if (std::string_view(kGeneratedMetadata[i - 1].name) >=
-            std::string_view(kGeneratedMetadata[i].name)) return false;
+            std::string_view(kGeneratedMetadata[i].name))
+            return false;
     return true;
 }());
 
-struct MetadataIndexEntry { uint16_t length; uint16_t children; };
+struct MetadataIndexEntry {
+    uint16_t length;
+    uint16_t children;
+};
 constexpr auto kMetadataIndex = [] {
     std::array<MetadataIndexEntry, std::size(kGeneratedMetadata)> index{};
     for (size_t i = 0; i < index.size(); ++i) {
@@ -82,8 +90,7 @@ constexpr auto kMetadataIndex = [] {
         for (size_t j = i + 1; j < index.size(); ++j) {
             const std::string_view child(kGeneratedMetadata[j].name);
             if (!child.starts_with(parent)) break;
-            if (child.size() > parent.size() && child[parent.size()] == '|')
-                ++index[i].children;
+            if (child.size() > parent.size() && child[parent.size()] == '|') ++index[i].children;
         }
     }
     return index;
@@ -122,8 +129,8 @@ bool ascii_equal_icase(Slice left, Slice right) {
 }
 
 uint16_t key_flag(const char* name) {
-    for (uint32_t index = 0; index < sizeof(kGeneratedKeyFlagNames) /
-                                      sizeof(kGeneratedKeyFlagNames[0]); index++)
+    for (uint32_t index = 0;
+         index < sizeof(kGeneratedKeyFlagNames) / sizeof(kGeneratedKeyFlagNames[0]); index++)
         if (!std::strcmp(kGeneratedKeyFlagNames[index], name))
             return static_cast<uint16_t>(uint16_t{1} << index);
     return 0;
@@ -153,8 +160,8 @@ bool metadata_has_prefix(const CommandMetadata& candidate, const CommandMetadata
            candidate.name[parent_length] == '|';
 }
 
-void reply_string_set(Op::Sink& sink, uint64_t mask, const char* const* names,
-                      uint32_t count, bool resp3) {
+void reply_string_set(Op::Sink& sink, uint64_t mask, const char* const* names, uint32_t count,
+                      bool resp3) {
     reply_set_header(sink, static_cast<uint64_t>(__builtin_popcountll(mask)), resp3);
     for (uint32_t index = 0; index < count; index++) {
         if (!(mask & (uint64_t{1} << index))) continue;
@@ -175,18 +182,21 @@ void reply_key_spec(Op::Sink& sink, const GeneratedKeySpec& spec, bool resp3) {
     reply_bulk(sink, Slice("begin_search", 12));
     reply_map_header(sink, 2, resp3);
     reply_bulk(sink, Slice("type", 4));
-    const char* begin_type = spec.begin_type == BeginType::Index ? "index" :
-                             spec.begin_type == BeginType::Keyword ? "keyword" : "unknown";
+    const char* begin_type = spec.begin_type == BeginType::Index     ? "index"
+                             : spec.begin_type == BeginType::Keyword ? "keyword"
+                                                                     : "unknown";
     reply_bulk(sink, Slice(begin_type, std::strlen(begin_type)));
     reply_bulk(sink, Slice("spec", 4));
     if (spec.begin_type == BeginType::Index) {
         reply_map_header(sink, 1, resp3);
-        reply_bulk(sink, Slice("index", 5)); reply_int(sink, spec.begin_index);
+        reply_bulk(sink, Slice("index", 5));
+        reply_int(sink, spec.begin_index);
     } else if (spec.begin_type == BeginType::Keyword) {
         reply_map_header(sink, 2, resp3);
         reply_bulk(sink, Slice("keyword", 7));
         reply_bulk(sink, Slice(spec.keyword, std::strlen(spec.keyword)));
-        reply_bulk(sink, Slice("startfrom", 9)); reply_int(sink, spec.startfrom);
+        reply_bulk(sink, Slice("startfrom", 9));
+        reply_int(sink, spec.startfrom);
     } else {
         reply_map_header(sink, 0, resp3);
     }
@@ -194,20 +204,27 @@ void reply_key_spec(Op::Sink& sink, const GeneratedKeySpec& spec, bool resp3) {
     reply_bulk(sink, Slice("find_keys", 9));
     reply_map_header(sink, 2, resp3);
     reply_bulk(sink, Slice("type", 4));
-    const char* find_type = spec.find_type == FindType::Range ? "range" :
-                            spec.find_type == FindType::Keynum ? "keynum" : "unknown";
+    const char* find_type = spec.find_type == FindType::Range    ? "range"
+                            : spec.find_type == FindType::Keynum ? "keynum"
+                                                                 : "unknown";
     reply_bulk(sink, Slice(find_type, std::strlen(find_type)));
     reply_bulk(sink, Slice("spec", 4));
     if (spec.find_type == FindType::Range) {
         reply_map_header(sink, 3, resp3);
-        reply_bulk(sink, Slice("lastkey", 7)); reply_int(sink, spec.lastkey);
-        reply_bulk(sink, Slice("keystep", 7)); reply_int(sink, spec.keystep);
-        reply_bulk(sink, Slice("limit", 5)); reply_int(sink, spec.limit);
+        reply_bulk(sink, Slice("lastkey", 7));
+        reply_int(sink, spec.lastkey);
+        reply_bulk(sink, Slice("keystep", 7));
+        reply_int(sink, spec.keystep);
+        reply_bulk(sink, Slice("limit", 5));
+        reply_int(sink, spec.limit);
     } else if (spec.find_type == FindType::Keynum) {
         reply_map_header(sink, 3, resp3);
-        reply_bulk(sink, Slice("keynumidx", 9)); reply_int(sink, spec.keynumidx);
-        reply_bulk(sink, Slice("firstkey", 8)); reply_int(sink, spec.firstkey);
-        reply_bulk(sink, Slice("keystep", 7)); reply_int(sink, spec.keystep);
+        reply_bulk(sink, Slice("keynumidx", 9));
+        reply_int(sink, spec.keynumidx);
+        reply_bulk(sink, Slice("firstkey", 8));
+        reply_int(sink, spec.firstkey);
+        reply_bulk(sink, Slice("keystep", 7));
+        reply_int(sink, spec.keystep);
     } else {
         reply_map_header(sink, 0, resp3);
     }
@@ -229,8 +246,8 @@ void reply_info_row(Op& op, const CommandMetadata& metadata) {
     reply_bulk(sink, Slice(metadata.name, std::strlen(metadata.name)));
     reply_int(sink, metadata.arity);
     reply_string_set(sink, metadata.flags, kGeneratedCommandFlagNames,
-                     sizeof(kGeneratedCommandFlagNames) /
-                         sizeof(kGeneratedCommandFlagNames[0]), op.resp3());
+                     sizeof(kGeneratedCommandFlagNames) / sizeof(kGeneratedCommandFlagNames[0]),
+                     op.resp3());
     reply_int(sink, metadata.first_key);
     reply_int(sink, metadata.last_key);
     reply_int(sink, metadata.key_step);
@@ -336,7 +353,8 @@ bool command_metadata_skip_monitor(Op& op) {
         }
         return result;
     }();
-    static_assert(std::popcount(mask) == 2, "generated metadata must contain both MONITOR exclusions");
+    static_assert(std::popcount(mask) == 2,
+                  "generated metadata must contain both MONITOR exclusions");
     // Containers such as CONFIG have no flags. Redis checks the resolved subcommand.
     const auto* metadata = command_metadata_resolve(op, 0);
     return metadata && (metadata->flags & mask);
@@ -345,25 +363,27 @@ bool command_metadata_skip_monitor(Op& op) {
 const CommandMetadata* command_metadata_lookup(Slice name) {
     TOMO_EXBATCH_TWIN(legacy, 6);
     {
-    if (name.n > kMaxMetadataName) return nullptr;
-    size_t begin = 0, end = std::size(kGeneratedMetadata);
-    while (begin < end) {
-        const size_t mid = begin + (end - begin) / 2;
-        const auto& metadata = kGeneratedMetadata[mid];
-        const uint32_t length = kMetadataIndex[mid].length;
-        int comparison = 0;
-        for (uint32_t i = 0; i < std::min(name.n, length); ++i) {
-            unsigned char c = static_cast<unsigned char>(name.p[i]);
-            if (c >= 'A' && c <= 'Z') c += 'a' - 'A';
-            comparison = int(c) - static_cast<unsigned char>(metadata.name[i]);
-            if (comparison) break;
+        if (name.n > kMaxMetadataName) return nullptr;
+        size_t begin = 0, end = std::size(kGeneratedMetadata);
+        while (begin < end) {
+            const size_t mid = begin + (end - begin) / 2;
+            const auto& metadata = kGeneratedMetadata[mid];
+            const uint32_t length = kMetadataIndex[mid].length;
+            int comparison = 0;
+            for (uint32_t i = 0; i < std::min(name.n, length); ++i) {
+                unsigned char c = static_cast<unsigned char>(name.p[i]);
+                if (c >= 'A' && c <= 'Z') c += 'a' - 'A';
+                comparison = int(c) - static_cast<unsigned char>(metadata.name[i]);
+                if (comparison) break;
+            }
+            if (!comparison) comparison = int(name.n) - int(length);
+            if (comparison == 0) return &metadata;
+            if (comparison < 0)
+                end = mid;
+            else
+                begin = mid + 1;
         }
-        if (!comparison) comparison = int(name.n) - int(length);
-        if (comparison == 0) return &metadata;
-        if (comparison < 0) end = mid;
-        else begin = mid + 1;
-    }
-    return nullptr;
+        return nullptr;
     }
 legacy:
     for (const CommandMetadata& metadata : kGeneratedMetadata)
@@ -390,28 +410,30 @@ const CommandMetadata* command_metadata_subcommand(const CommandSpec& spec, Slic
 const CommandMetadata* command_metadata_resolve(Op& op, uint32_t command_argument) {
     TOMO_EXBATCH_TWIN(legacy, 6);
     {
-    if (command_argument >= op.argc()) return nullptr;
-    const CommandMetadata* parent = command_argument == 0 && op.spec
-        ? command_metadata_for(*op.spec) : command_metadata_lookup(op.arg(command_argument));
-    // Ordinary key-bearing commands (including HSET/ZADD) have no subcommands.
-    // Their first key must never be copied or searched as a command name.
-    if (parent && !child_count(*parent)) return parent;
-    if (command_argument + 1 < op.argc()) {
-        const Slice name = op.arg(command_argument), child = op.arg(command_argument + 1);
-        // Check each length before adding: input bulk lengths are untrusted.
-        if (name.n < kMaxMetadataName && child.n < kMaxMetadataName - name.n) {
-            char qualified[kMaxMetadataName];
-            std::memcpy(qualified, name.p, name.n);
-            qualified[name.n] = '|';
-            std::memcpy(qualified + name.n + 1, child.p, child.n);
-            if (const auto* subcommand = command_metadata_lookup(
-                    Slice(qualified, name.n + 1 + child.n))) return subcommand;
+        if (command_argument >= op.argc()) return nullptr;
+        const CommandMetadata* parent = command_argument == 0 && op.spec
+                                            ? command_metadata_for(*op.spec)
+                                            : command_metadata_lookup(op.arg(command_argument));
+        // Ordinary key-bearing commands (including HSET/ZADD) have no subcommands.
+        // Their first key must never be copied or searched as a command name.
+        if (parent && !child_count(*parent)) return parent;
+        if (command_argument + 1 < op.argc()) {
+            const Slice name = op.arg(command_argument), child = op.arg(command_argument + 1);
+            // Check each length before adding: input bulk lengths are untrusted.
+            if (name.n < kMaxMetadataName && child.n < kMaxMetadataName - name.n) {
+                char qualified[kMaxMetadataName];
+                std::memcpy(qualified, name.p, name.n);
+                qualified[name.n] = '|';
+                std::memcpy(qualified + name.n + 1, child.p, child.n);
+                if (const auto* subcommand =
+                        command_metadata_lookup(Slice(qualified, name.n + 1 + child.n)))
+                    return subcommand;
+            }
+            // A known container with an unrecognised first argument is not the broad parent for key
+            // extraction. Redis reports Invalid command specified for that full command.
+            if (parent) return nullptr;
         }
-        // A known container with an unrecognised first argument is not the broad parent for key
-        // extraction. Redis reports Invalid command specified for that full command.
-        if (parent) return nullptr;
-    }
-    return parent;
+        return parent;
     }
 legacy:
     if (command_argument >= op.argc()) return nullptr;
@@ -440,9 +462,7 @@ Slice command_metadata_name(const CommandMetadata& metadata) {
     return Slice(metadata.name, static_cast<uint32_t>(std::strlen(metadata.name)));
 }
 
-int16_t command_metadata_first_key(const CommandMetadata& metadata) {
-    return metadata.first_key;
-}
+int16_t command_metadata_first_key(const CommandMetadata& metadata) { return metadata.first_key; }
 uint64_t command_metadata_categories(const CommandMetadata& metadata) {
     return metadata.categories;
 }
@@ -460,7 +480,8 @@ bool command_metadata_arity_ok(const CommandMetadata& metadata, uint32_t argc) {
 
 void command_metadata_reply_docs(Op& op, const CommandMetadata& metadata) {
     const auto name = command_metadata_name(metadata).sv();
-    const auto* found = std::lower_bound(std::begin(kCommandDocs), std::end(kCommandDocs), name,
+    const auto* found = std::lower_bound(
+        std::begin(kCommandDocs), std::end(kCommandDocs), name,
         [](const CommandDocs& row, std::string_view key) { return row.name < key; });
     if (found == std::end(kCommandDocs) || found->name != name) std::abort();
     const char* reply = op.resp3() ? found->resp3 : found->resp2;
@@ -469,13 +490,16 @@ void command_metadata_reply_docs(Op& op, const CommandMetadata& metadata) {
 
 void command_metadata_reply_info(Op& op, const CommandMetadata* metadata) {
     auto sink = op.sink();
-    if (!metadata) { reply_null(sink, op.resp3()); return; }
+    if (!metadata) {
+        reply_null(sink, op.resp3());
+        return;
+    }
     reply_info_row(op, *metadata);
 }
 
-CommandMetadataKeysResult command_metadata_collect_keys(
-    Op& op, uint32_t command_argument, const CommandMetadata& metadata,
-    std::vector<CommandKeyMetadata>& keys) {
+CommandMetadataKeysResult command_metadata_collect_keys(Op& op, uint32_t command_argument,
+                                                        const CommandMetadata& metadata,
+                                                        std::vector<CommandKeyMetadata>& keys) {
     const Slice name = command_metadata_name(metadata);
     const uint32_t command_argc = op.argc() - command_argument;
     const uint16_t ro_access = key_flag("RO") | key_flag("access");
@@ -519,15 +543,14 @@ CommandMetadataKeysResult command_metadata_collect_keys(
                 bool get = false;
                 for (uint32_t index = command_argument + 3; index < op.argc(); index++)
                     get = get || ascii_equal_icase(op.arg(index), Slice("GET", 3));
-                flags = get ? key_flag("RW") | key_flag("access") | key_flag("update")
-                            : ow_update;
+                flags = get ? key_flag("RW") | key_flag("access") | key_flag("update") : ow_update;
             } else if (ascii_equal_icase(name, "bitfield")) {
                 bool write = false;
                 for (uint32_t index = command_argument + 2; index < op.argc(); index++)
                     write = write || ascii_equal_icase(op.arg(index), Slice("SET", 3)) ||
                             ascii_equal_icase(op.arg(index), Slice("INCRBY", 6));
-                flags = write ? key_flag("RW") | key_flag("access") | key_flag("update")
-                              : ro_access;
+                flags =
+                    write ? key_flag("RW") | key_flag("access") | key_flag("update") : ro_access;
             }
         }
 
@@ -550,10 +573,9 @@ CommandMetadataKeysResult command_metadata_collect_keys(
 
         if (spec.find_type == FindType::Range) {
             int32_t last = spec.lastkey >= 0 ? begin + spec.lastkey
-                                              : static_cast<int32_t>(command_argc) + spec.lastkey;
+                                             : static_cast<int32_t>(command_argc) + spec.lastkey;
             if (last < begin) continue;
-            if (spec.limit > 0)
-                last = begin + (last - begin + 1) / spec.limit - 1;
+            if (spec.limit > 0) last = begin + (last - begin + 1) / spec.limit - 1;
             if (last >= static_cast<int32_t>(command_argc) || spec.keystep <= 0)
                 return CommandMetadataKeysResult::InvalidArguments;
             for (int32_t index = begin; index <= last; index += spec.keystep)
@@ -561,19 +583,16 @@ CommandMetadataKeysResult command_metadata_collect_keys(
         } else if (spec.find_type == FindType::Keynum) {
             const int32_t count_index = begin + spec.keynumidx;
             const int32_t first = begin + spec.firstkey;
-            if (count_index < 0 || first < 0 ||
-                static_cast<uint32_t>(count_index) >= command_argc)
+            if (count_index < 0 || first < 0 || static_cast<uint32_t>(count_index) >= command_argc)
                 return CommandMetadataKeysResult::InvalidArguments;
             uint64_t count = 0;
             bool canonical = false;
             const bool parsed = parse_nonnegative(
                 op.arg(command_argument + static_cast<uint32_t>(count_index)), count, canonical);
-            const bool script = ascii_equal_icase(name, "eval") ||
-                                ascii_equal_icase(name, "evalsha") ||
-                                ascii_equal_icase(name, "eval_ro") ||
-                                ascii_equal_icase(name, "evalsha_ro") ||
-                                ascii_equal_icase(name, "fcall") ||
-                                ascii_equal_icase(name, "fcall_ro");
+            const bool script =
+                ascii_equal_icase(name, "eval") || ascii_equal_icase(name, "evalsha") ||
+                ascii_equal_icase(name, "eval_ro") || ascii_equal_icase(name, "evalsha_ro") ||
+                ascii_equal_icase(name, "fcall") || ascii_equal_icase(name, "fcall_ro");
             if (!parsed || count > command_argc ||
                 first + count * static_cast<uint64_t>(spec.keystep) > command_argc) {
                 if (script) continue;

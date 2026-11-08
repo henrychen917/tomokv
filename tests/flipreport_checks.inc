@@ -18,8 +18,8 @@ static void flipreport_wire(Fixture<Fused>& f, const char* state) {
         op.spec = command_lookup(Slice(verb));
         op.spec->handler(f.server.shard(0), op);
         flipreport_check(state, "wire entered", op.reply.size() > 0 && op.reply.data()[0] == '$');
-        std::printf("WIRE flipreport %s mode=%s databases=%u %s bytes=%u\n",
-                    state, Fused ? "1s" : "2s", f.server.cfg().databases, verb,
+        std::printf("WIRE flipreport %s mode=%s databases=%u %s bytes=%u\n", state,
+                    Fused ? "1s" : "2s", f.server.cfg().databases, verb,
                     static_cast<unsigned>(op.reply.size()));
         std::fwrite(op.reply.data(), 1, op.reply.size(), stdout);
     }
@@ -40,8 +40,10 @@ static void flipreport_horizon(uint32_t databases, bool wire) {
         for (uint32_t tid = 0; tid != 8; ++tid) {
             auto& thread = f.server.thread(tid);
             // Two IO and both EX threads work throughout; four IO threads idle.
-            if (tid < 2 || tid >= 6) thread.sig().ops += elapsed_ms * 3;
-            else thread.sig().idle_ns += elapsed_ms * 1000000;
+            if (tid < 2 || tid >= 6)
+                thread.sig().ops += elapsed_ms * 3;
+            else
+                thread.sig().idle_ns += elapsed_ms * 1000000;
             if (tid < 2)
                 for (uint64_t n = 0; n != elapsed_ms * 3; ++n) thread.note_command(UINT16_MAX);
         }
@@ -55,7 +57,7 @@ static void flipreport_horizon(uint32_t databases, bool wire) {
     flipreport_check("short", "actual horizon is 10 seconds", c.model_cost_.horizon_s == 10.0);
     flipreport_check("short", "cost blocks move",
                      !c.model_cost_.pays && c.phase_ == FlipController::Phase::Measuring &&
-                     std::strcmp(c.model_last_decision_, "sampling-cost") == 0);
+                         std::strcmp(c.model_last_decision_, "sampling-cost") == 0);
     std::printf("TRACE flipreport databases=%u now=11000 horizon=%.2f pays=%u decision=%s\n",
                 databases, c.model_cost_.horizon_s, c.model_cost_.pays, c.model_last_decision_);
     if (wire) flipreport_wire(f, "short");
@@ -64,8 +66,9 @@ static void flipreport_horizon(uint32_t databases, bool wire) {
     flipreport_check("long", "actual horizon grows to 45 seconds", c.model_cost_.horizon_s == 45.0);
     flipreport_check("long", "cost permits move",
                      c.model_cost_.pays && std::strcmp(c.model_last_decision_, "move") == 0);
-    std::printf("TRACE flipreport databases=%u now=46000 horizon=%.2f pays=%u decision=%s issued=%u\n",
-                databases, c.model_cost_.horizon_s, c.model_cost_.pays, c.model_last_decision_, issued);
+    std::printf(
+        "TRACE flipreport databases=%u now=46000 horizon=%.2f pays=%u decision=%s issued=%u\n",
+        databases, c.model_cost_.horizon_s, c.model_cost_.pays, c.model_last_decision_, issued);
     if (wire) flipreport_wire(f, "long");
 }
 

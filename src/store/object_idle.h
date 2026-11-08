@@ -10,9 +10,13 @@ namespace tomo {
 // One owner creates nodes; readers only traverse published immutable links and
 // make one unretried timestamp CAS. Object addresses cannot be reused before
 // their existing QSBR grace period. Nodes live until this clock is retired.
-class /* TOMO_TOOL_BIND ObjectIdleClock */ObjectIdleClock {
-    struct Branch { std::array<std::atomic<void*>, 512> child{}; };
-    struct Leaf { std::array<std::atomic<uint32_t>, 512> time{}; };
+class /* TOMO_TOOL_BIND ObjectIdleClock */ ObjectIdleClock {
+    struct Branch {
+        std::array<std::atomic<void*>, 512> child{};
+    };
+    struct Leaf {
+        std::array<std::atomic<uint32_t>, 512> time{};
+    };
     std::atomic<Branch*> root_{nullptr};
     static constexpr uint32_t mask = (1u << 24) - 1;
     static uint64_t index(const void* object) {
@@ -21,7 +25,10 @@ class /* TOMO_TOOL_BIND ObjectIdleClock */ObjectIdleClock {
     }
     static void destroy(void* raw, unsigned level) {
         if (!raw) return;
-        if (!level) { delete static_cast<Leaf*>(raw); return; }
+        if (!level) {
+            delete static_cast<Leaf*>(raw);
+            return;
+        }
         auto* branch = static_cast<Branch*>(raw);
         for (auto& child : branch->child) destroy(child.load(std::memory_order_relaxed), level - 1);
         delete branch;
@@ -38,10 +45,11 @@ class /* TOMO_TOOL_BIND ObjectIdleClock */ObjectIdleClock {
         void* node = root_.load(std::memory_order_acquire);
         const uint64_t bits = index(object);
         for (unsigned level = 4; node && level; --level)
-            node = static_cast<Branch*>(node)->child[(bits >> (9 * level)) & 511]
-                .load(std::memory_order_acquire);
+            node = static_cast<Branch*>(node)->child[(bits >> (9 * level)) & 511].load(
+                std::memory_order_acquire);
         return node ? &static_cast<Leaf*>(node)->time[bits & 511] : nullptr;
     }
+
 public:
     ~ObjectIdleClock() { destroy(root_.load(std::memory_order_relaxed), 4); }
     static uint32_t clock(int64_t now_ms) { return (uint64_t(now_ms) / 1000) & mask; }
@@ -54,13 +62,14 @@ public:
         if (!node) return 4 * sizeof(Branch) + sizeof(Leaf);
         const uint64_t bits = index(object);
         for (unsigned level = 4; level; --level) {
-            node = static_cast<Branch*>(node)->child[(bits >> (9 * level)) & 511]
-                .load(std::memory_order_relaxed);
+            node = static_cast<Branch*>(node)->child[(bits >> (9 * level)) & 511].load(
+                std::memory_order_relaxed);
             if (!node) return (level - 1) * sizeof(Branch) + sizeof(Leaf);
         }
         return 0;
     }
-    bool /* TOMO_TOOL_BIND install */install(const void* object, uint32_t timestamp, size_t& accounted) {
+    bool /* TOMO_TOOL_BIND install */ install(const void* object, uint32_t timestamp,
+                                              size_t& accounted) {
         auto* root = root_.load(std::memory_order_relaxed);
         if (!root) {
             root = new (std::nothrow) Branch;
@@ -83,7 +92,7 @@ public:
             node = next;
         }
         static_cast<Leaf*>(node)->time[bits & 511].store(timestamp | (1u << 24),
-                                                        std::memory_order_relaxed);
+                                                         std::memory_order_relaxed);
         return true;
     }
     uint32_t timestamp(const void* object, uint32_t fallback) const {
@@ -96,8 +105,7 @@ public:
         if (!at) return;
         uint32_t before = at->load(std::memory_order_relaxed);
         const uint32_t after = clock(now_ms) | (1u << 24);
-        if (before != after)
-            at->compare_exchange_strong(before, after, std::memory_order_relaxed);
+        if (before != after) at->compare_exchange_strong(before, after, std::memory_order_relaxed);
     }
     uint32_t idle(const void* object, int64_t now_ms) const {
         const uint32_t now = clock(now_ms), then = timestamp(object, now);
@@ -105,4 +113,4 @@ public:
         return now >= then ? now - then : now + (mask - then);
     }
 };
-} // namespace tomo
+}  // namespace tomo

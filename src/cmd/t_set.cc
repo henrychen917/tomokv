@@ -231,8 +231,7 @@ bool parse_i64_strict(Slice s, int64_t& out) {
         if (value > (limit - digit) / 10) return false;
         value = value * 10 + digit;
     }
-    out = negative ? (value == (uint64_t{1} << 63) ? INT64_MIN
-                                                    : -static_cast<int64_t>(value))
+    out = negative ? (value == (uint64_t{1} << 63) ? INT64_MIN : -static_cast<int64_t>(value))
                    : static_cast<int64_t>(value);
     return true;
 }
@@ -244,8 +243,8 @@ void reply_not_integer(Op& op) {
 uint64_t random64() {
     static thread_local uint64_t state = 0;
     if (state == 0) {
-        const uint64_t ticks = static_cast<uint64_t>(
-            std::chrono::steady_clock::now().time_since_epoch().count());
+        const uint64_t ticks =
+            static_cast<uint64_t>(std::chrono::steady_clock::now().time_since_epoch().count());
         state = mix64(ticks ^ static_cast<uint64_t>(reinterpret_cast<uintptr_t>(&state)));
         if (state == 0) state = 0x9e3779b97f4a7c15ULL;
     }
@@ -259,7 +258,9 @@ uint64_t random_below(uint64_t bound) {
     if (bound <= 1) return 0;
     const uint64_t threshold = (uint64_t{0} - bound) % bound;
     uint64_t value;
-    do { value = random64(); } while (value < threshold);
+    do {
+        value = random64();
+    } while (value < threshold);
     return value % bound;
 }
 
@@ -282,15 +283,16 @@ void encode_integer(char* dst, uint8_t width, int64_t value) {
 }
 
 SetSmallEncoding set_small_encoding(const CollectionRef& set) {
-    return set.is_embedded()
-        ? static_cast<SetSmallEncoding>((set.aux0() >> 40) & 0xff)
-        : set.external_as<SetVal>()->small_encoding;
+    return set.is_embedded() ? static_cast<SetSmallEncoding>((set.aux0() >> 40) & 0xff)
+                             : set.external_as<SetVal>()->small_encoding;
 }
 
 void set_small_encoding(CollectionRef& set, SetSmallEncoding encoding) {
-    if (set.is_embedded()) set.set_aux0((set.aux0() & ~(uint64_t{0xff} << 40)) |
-                                        (static_cast<uint64_t>(encoding) << 40));
-    else set.external_as<SetVal>()->small_encoding = encoding;
+    if (set.is_embedded())
+        set.set_aux0((set.aux0() & ~(uint64_t{0xff} << 40)) |
+                     (static_cast<uint64_t>(encoding) << 40));
+    else
+        set.external_as<SetVal>()->small_encoding = encoding;
 }
 
 uint8_t set_int_width(const CollectionRef& set) {
@@ -299,9 +301,10 @@ uint8_t set_int_width(const CollectionRef& set) {
 }
 
 void set_int_width(CollectionRef& set, uint8_t width) {
-    if (set.is_embedded()) set.set_aux0((set.aux0() & ~(uint64_t{0xff} << 32)) |
-                                        (static_cast<uint64_t>(width) << 32));
-    else set.external_as<SetVal>()->int_width = width;
+    if (set.is_embedded())
+        set.set_aux0((set.aux0() & ~(uint64_t{0xff} << 32)) | (static_cast<uint64_t>(width) << 32));
+    else
+        set.external_as<SetVal>()->int_width = width;
 }
 
 uint32_t set_max_member_bytes(const CollectionRef& set) {
@@ -310,8 +313,10 @@ uint32_t set_max_member_bytes(const CollectionRef& set) {
 }
 
 void set_max_member_bytes(CollectionRef& set, uint32_t bytes) {
-    if (set.is_embedded()) set.set_aux0((set.aux0() & ~uint64_t{UINT32_MAX}) | bytes);
-    else set.external_as<SetVal>()->max_member_bytes = bytes;
+    if (set.is_embedded())
+        set.set_aux0((set.aux0() & ~uint64_t{UINT32_MAX}) | bytes);
+    else
+        set.external_as<SetVal>()->max_member_bytes = bytes;
 }
 
 bool integer_at(const CollectionRef& set, uint32_t index, int64_t& out) {
@@ -339,8 +344,10 @@ bool integer_search(const CollectionRef& set, int64_t wanted, uint32_t& position
         const uint32_t mid = lo + (hi - lo) / 2;
         int64_t value = 0;
         if (!integer_at(set, mid, value)) return false;
-        if (value < wanted) lo = mid + 1;
-        else hi = mid;
+        if (value < wanted)
+            lo = mid + 1;
+        else
+            hi = mid;
     }
     position = lo;
     if (lo == set.entries()) return false;
@@ -469,7 +476,7 @@ AddResult add_member(CollectionRef& set, Slice member, const CompactLimit& limit
             }
             if (!insert_integer_compact(set, integer, position)) return AddResult::Oom;
             set_max_member_bytes(set,
-                std::max(set_max_member_bytes(set), integer_text_length(integer)));
+                                 std::max(set_max_member_bytes(set), integer_text_length(integer)));
             return AddResult::Added;
         }
 
@@ -482,8 +489,8 @@ AddResult add_member(CollectionRef& set, Slice member, const CompactLimit& limit
             int64_t first = 0, last = 0;
             if (!integer_at(set, 0, first) || !integer_at(set, set.entries() - 1, last))
                 return AddResult::Oom;
-            incoming_max = std::max(incoming_max,
-                std::max(integer_text_length(first), integer_text_length(last)));
+            incoming_max = std::max(
+                incoming_max, std::max(integer_text_length(first), integer_text_length(last)));
         }
         if (set.compact_fits(limit, resulting, incoming_max)) {
             if (!convert_integer_to_generic_with(set, member)) return AddResult::Oom;
@@ -613,7 +620,10 @@ bool externalize_set(Shard& shard, Op& op, KvObj*& object) {
     CollectionRef source(object);
     if (!source.is_embedded()) return true;
     auto* value = new (std::nothrow) SetVal;
-    if (!value) { reply_err(op.sink(), "ERR out of memory"); return false; }
+    if (!value) {
+        reply_err(op.sink(), "ERR out of memory");
+        return false;
+    }
     for (const Compact::Entry entry : source.compact()) {
         if (!value->append(entry.value)) {
             delete value;
@@ -624,9 +634,8 @@ bool externalize_set(Shard& shard, Op& op, KvObj*& object) {
     value->small_encoding = set_small_encoding(source);
     value->int_width = set_int_width(source);
     value->max_member_bytes = set_max_member_bytes(source);
-    KvObj* replacement = kvobj_new_set(object->key(), value,
-                                       shard.store().deadline(op.hash, object),
-                                       object->has_ttl_slot());
+    KvObj* replacement = kvobj_new_set(
+        object->key(), value, shard.store().deadline(op.hash, object), object->has_ttl_slot());
     if (!replacement) {
         delete value;
         reply_err(op.sink(), "ERR out of memory");
@@ -636,8 +645,10 @@ bool externalize_set(Shard& shard, Op& op, KvObj*& object) {
     const FlatStore::InsertResult inserted = shard.store_insert<kNotify>(op.hash, replacement);
     if (inserted != FlatStore::InsertResult::Inserted) {
         kvobj_free(replacement);
-        if (inserted == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
-        else reply_err(op.sink(), "ERR keyspace insert failed");
+        if (inserted == FlatStore::InsertResult::MaxmemoryOom)
+            reply_maxmemory_oom(op);
+        else
+            reply_err(op.sink(), "ERR keyspace insert failed");
         return false;
     }
     object = replacement;
@@ -668,9 +679,9 @@ bool ensure_set_add_capacity(Shard& shard, Op& op, KvObj*& object) {
             width = std::max(width, width_for(integer));
             if (!conversion_seen) {
                 integer_prefix++;
-                transient_integer_encoded = std::max(
-                    transient_integer_encoded,
-                    static_cast<uint64_t>(set.entries() + integer_prefix) * (width + 1));
+                transient_integer_encoded =
+                    std::max(transient_integer_encoded,
+                             static_cast<uint64_t>(set.entries() + integer_prefix) * (width + 1));
             }
         }
     }
@@ -741,8 +752,8 @@ void cmd_sadd(Shard& shard, Op& op) {
             }
         }
     } else if (set.encoding() == CollectionEncoding::Compact &&
-               hint > (set_small_encoding(set) == SetSmallEncoding::Integer
-                       ? intset_max_entries : limit.max_entries)) {
+               hint > (set_small_encoding(set) == SetSmallEncoding::Integer ? intset_max_entries
+                                                                            : limit.max_entries)) {
         // Redis/Valkey apply the multi-add size hint before looking for duplicates. Preserve that
         // observable upgrade rule while keeping the decision O(1).
         if (!promote_to_table(set, std::max(set.entries(), hint))) {
@@ -770,15 +781,17 @@ void cmd_sadd(Shard& shard, Op& op) {
             return;
         }
         const FlatStore::InsertResult inserted_ = shard.store_insert<kNotify>(op.hash, object);
-if (inserted_ != FlatStore::InsertResult::Inserted) {
-    kvobj_free(object);
-    if (inserted_ == FlatStore::InsertResult::MaxmemoryOom) reply_maxmemory_oom(op);
-    else reply_err(op.sink(), "ERR keyspace insert failed");
-    return;
+        if (inserted_ != FlatStore::InsertResult::Inserted) {
+            kvobj_free(object);
+            if (inserted_ == FlatStore::InsertResult::MaxmemoryOom)
+                reply_maxmemory_oom(op);
+            else
+                reply_err(op.sink(), "ERR keyspace insert failed");
+            return;
         }
     }
-    if constexpr (kNotify) if (added)
-        notify_record(shard, op, NOTIFY_SET, NotifyEventId::Sadd, op.key());
+    if constexpr (kNotify)
+        if (added) notify_record(shard, op, NOTIFY_SET, NotifyEventId::Sadd, op.key());
     reply_int(op.sink(), added);
 }
 
@@ -795,9 +808,9 @@ void cmd_srem(Shard& shard, Op& op) {
     ObjectSizeTracker size_tracker(shard.store(), object);
     uint32_t removed = 0;
     for (uint32_t i = 2; i < op.argc(); i++) removed += remove_member(set, op.arg(i));
-    size_tracker.finish();                       // account the shrink before any whole-key erase
-    if constexpr (kNotify) if (removed)
-        notify_record(shard, op, NOTIFY_SET, NotifyEventId::Srem, op.key());
+    size_tracker.finish();  // account the shrink before any whole-key erase
+    if constexpr (kNotify)
+        if (removed) notify_record(shard, op, NOTIFY_SET, NotifyEventId::Srem, op.key());
     if (set.entries() == 0) shard.store_erase<kNotify>(op.hash, op.key());
     reply_int(op.sink(), removed);
 }
@@ -875,7 +888,8 @@ int64_t popped_integer(Slice bytes) {
 bool pop_compact(Op& op, CollectionRef& set, uint32_t count, bool with_count) {
     const bool integers = set_small_encoding(set) == SetSmallEncoding::Integer;
     auto reply_member = [&](const Compact::Entry& entry) {
-        if (!integers) reply_bulk(op.sink(), entry.value);
+        if (!integers)
+            reply_bulk(op.sink(), entry.value);
         else {
             const int64_t value = popped_integer(entry.value);
             char text[24];
@@ -887,8 +901,8 @@ bool pop_compact(Op& op, CollectionRef& set, uint32_t count, bool with_count) {
         const uint32_t index = static_cast<uint32_t>(random_below(set.entries()));
         Compact::Entry entry;
         const bool found = integers
-            ? set.compact().at_offset(index * (set_int_width(set) + 1u), entry)
-            : set.compact().at(index, entry);
+                               ? set.compact().at_offset(index * (set_int_width(set) + 1u), entry)
+                               : set.compact().at(index, entry);
         if (!found) return false;
         if (with_count) reply_set_header(op.sink(), 1, op.resp3());
         reply_member(entry);
@@ -896,13 +910,18 @@ bool pop_compact(Op& op, CollectionRef& set, uint32_t count, bool with_count) {
     }
     Compact survivors;
     std::vector<uint32_t> selected;
-    try { selected.reserve(count); } catch (const std::bad_alloc&) { return false; }
+    try {
+        selected.reserve(count);
+    } catch (const std::bad_alloc&) {
+        return false;
+    }
     uint32_t remaining = count, index = 0;
     for (const Compact::Entry entry : set.compact()) {
         if (random_below(set.entries() - index) < remaining) {
             selected.push_back(index);
             --remaining;
-        } else if (!survivors.append(entry.value)) return false;
+        } else if (!survivors.append(entry.value))
+            return false;
         ++index;
     }
     if (with_count) reply_set_header(op.sink(), count, op.resp3());
@@ -929,8 +948,12 @@ bool pop_rebuilt(Shard& shard, Op& op, KvObj*& object, uint32_t count) {
     const bool integers = source.encoding() == CollectionEncoding::Compact &&
                           set_small_encoding(source) == SetSmallEncoding::Integer;
     std::vector<uint32_t> selected;
-    try { selected.reserve(keep); }
-    catch (const std::bad_alloc&) { reply_err(op.sink(), "ERR out of memory"); return false; }
+    try {
+        selected.reserve(keep);
+    } catch (const std::bad_alloc&) {
+        reply_err(op.sink(), "ERR out of memory");
+        return false;
+    }
     // Dense table indexing avoids scanning empty slots after previous removals.
     auto visit = [&](auto&& fn) {
         if (source.encoding() == CollectionEncoding::Hashtable) {
@@ -939,7 +962,8 @@ bool pop_rebuilt(Shard& shard, Op& op, KvObj*& object, uint32_t count) {
             // The iterator already carries the entry coordinates. integer_at()
             // would rediscover them by scanning/binary-searching the offset index.
             for (const Compact::Entry entry : source.compact()) {
-                if (!integers) fn(entry.value);
+                if (!integers)
+                    fn(entry.value);
                 else {
                     char text[24];
                     const uint32_t len = i64_to_dec(text, popped_integer(entry.value));
@@ -971,8 +995,9 @@ bool pop_rebuilt(Shard& shard, Op& op, KvObj*& object, uint32_t count) {
     rebuilt.int_width = width;
     rebuilt.max_member_bytes = max_bytes;
     const auto& limits = shard.type_limits();
-    const bool compact = integers ? keep <= limits.set_intset_max_entries
-        : keep <= limits.set.max_entries && max_bytes <= limits.set.max_value;
+    const bool compact = integers
+                             ? keep <= limits.set_intset_max_entries
+                             : keep <= limits.set.max_entries && max_bytes <= limits.set.max_value;
     if (!compact) {
         ok = rebuilt.table.reserve(keep) && ok;
         rebuilt.finish_table_promotion(0);
@@ -980,8 +1005,10 @@ bool pop_rebuilt(Shard& shard, Op& op, KvObj*& object, uint32_t count) {
     CollectionRef destination(&rebuilt);
     for (const Compact::Entry member : members) {
         if (!ok) break;
-        if (!compact) ok = add_to_table(destination, member.value) == AddResult::Added;
-        else if (!integers) ok = rebuilt.append(member.value);
+        if (!compact)
+            ok = add_to_table(destination, member.value) == AddResult::Added;
+        else if (!integers)
+            ok = rebuilt.append(member.value);
         else {
             int64_t value = 0;
             parse_i64_strict(member.value, value);
@@ -990,7 +1017,10 @@ bool pop_rebuilt(Shard& shard, Op& op, KvObj*& object, uint32_t count) {
             ok = rebuilt.append(Slice(bytes, width));
         }
     }
-    if (!ok) { reply_err(op.sink(), "ERR out of memory"); return false; }
+    if (!ok) {
+        reply_err(op.sink(), "ERR out of memory");
+        return false;
+    }
     if (source.is_embedded() && !compact) {
         if (!externalize_set<kNotify>(shard, op, object)) return false;
         source = CollectionRef(object);
@@ -1000,8 +1030,10 @@ bool pop_rebuilt(Shard& shard, Op& op, KvObj*& object, uint32_t count) {
     index = 0;
     uint32_t next = 0;
     visit([&](Slice member) {
-        if (next < selected.size() && index == selected[next]) ++next;
-        else reply_bulk(op.sink(), member);
+        if (next < selected.size() && index == selected[next])
+            ++next;
+        else
+            reply_bulk(op.sink(), member);
         ++index;
     });
     if (source.is_embedded()) {
@@ -1009,7 +1041,8 @@ bool pop_rebuilt(Shard& shard, Op& op, KvObj*& object, uint32_t count) {
         source.replace_compact(std::move(rebuilt.mutable_compact()));
         set_int_width(source, width);
         set_max_member_bytes(source, max_bytes);
-    } else *source.external_as<SetVal>() = std::move(rebuilt);
+    } else
+        *source.external_as<SetVal>() = std::move(rebuilt);
     return true;
 }
 
@@ -1027,8 +1060,10 @@ void cmd_spop(Shard& shard, Op& op) {
 
     KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
     if (!object) {
-        if (with_count) reply_set_header(op.sink(), 0, op.resp3());
-        else reply_null(op.sink(), op.resp3());
+        if (with_count)
+            reply_set_header(op.sink(), 0, op.resp3());
+        else
+            reply_null(op.sink(), op.resp3());
         return;
     }
     auto sink = op.sink();
@@ -1036,8 +1071,10 @@ void cmd_spop(Shard& shard, Op& op) {
     CollectionRef initial = as_set(object);
     const uint32_t size = initial.entries();
     if (!size) {
-        if (with_count) reply_set_header(op.sink(), 0, op.resp3());
-        else reply_null(op.sink(), op.resp3());
+        if (with_count)
+            reply_set_header(op.sink(), 0, op.resp3());
+        else
+            reply_null(op.sink(), op.resp3());
         return;
     }
     const uint64_t count = static_cast<uint64_t>(signed_count);
@@ -1049,8 +1086,7 @@ void cmd_spop(Shard& shard, Op& op) {
     if (count >= size) {
         if (with_count) reply_set_header(op.sink(), size, op.resp3());
         for_each_member(initial, [&](Slice member) { reply_bulk(op.sink(), member); });
-        if constexpr (kNotify)
-            notify_record(shard, op, NOTIFY_SET, NotifyEventId::Spop, op.key());
+        if constexpr (kNotify) notify_record(shard, op, NOTIFY_SET, NotifyEventId::Spop, op.key());
         shard.store_erase<kNotify>(op.hash, op.key());
         return;
     }
@@ -1066,10 +1102,10 @@ void cmd_spop(Shard& shard, Op& op) {
     ObjectSizeTracker size_tracker(shard.store(), object);
     if (set.encoding() == CollectionEncoding::Compact) {
         if (!pop_compact(op, set, static_cast<uint32_t>(count), with_count)) {
-            reply_err(op.sink(), "ERR out of memory"); return;
+            reply_err(op.sink(), "ERR out of memory");
+            return;
         }
-        if constexpr (kNotify)
-            notify_record(shard, op, NOTIFY_SET, NotifyEventId::Spop, op.key());
+        if constexpr (kNotify) notify_record(shard, op, NOTIFY_SET, NotifyEventId::Spop, op.key());
         return;
     }
     SetVal* expanded = set.external_as<SetVal>();
@@ -1082,8 +1118,7 @@ void cmd_spop(Shard& shard, Op& op) {
         expanded->table.erase_at(slot, erased_bytes);
         expanded->note_expanded_delete(erased_bytes, expanded->table.allocation_bytes());
     }
-    if constexpr (kNotify)
-        notify_record(shard, op, NOTIFY_SET, NotifyEventId::Spop, op.key());
+    if constexpr (kNotify) notify_record(shard, op, NOTIFY_SET, NotifyEventId::Spop, op.key());
 }
 
 bool select_unique(uint32_t population, uint32_t count, std::vector<uint32_t>& picks) {
@@ -1128,8 +1163,10 @@ void cmd_srandmember(Shard& shard, Op& op) {
 
     KvObj* object = shard.store_find_read<kNotify>(op.hash, op.key());
     if (!object) {
-        if (with_count) reply_array_header(op.sink(), 0);
-        else reply_null(op.sink(), op.resp3());
+        if (with_count)
+            reply_array_header(op.sink(), 0);
+        else
+            reply_null(op.sink(), op.resp3());
         return;
     }
     auto sink = op.sink();
@@ -1138,8 +1175,10 @@ void cmd_srandmember(Shard& shard, Op& op) {
     const uint32_t size = set.entries();
 
     if (!size) {
-        if (with_count) reply_array_header(op.sink(), 0);
-        else reply_null(op.sink(), op.resp3());
+        if (with_count)
+            reply_array_header(op.sink(), 0);
+        else
+            reply_null(op.sink(), op.resp3());
         return;
     }
 
@@ -1162,9 +1201,8 @@ void cmd_srandmember(Shard& shard, Op& op) {
         return;
     }
 
-    const uint32_t picks_count = static_cast<uint64_t>(count) >= size
-                                     ? size
-                                     : static_cast<uint32_t>(count);
+    const uint32_t picks_count =
+        static_cast<uint64_t>(count) >= size ? size : static_cast<uint32_t>(count);
     if (picks_count == size) {
         reply_array_header(op.sink(), size);
         for_each_member(set, [&](Slice member) { reply_bulk(op.sink(), member); });
@@ -1258,7 +1296,8 @@ void cmd_sscan(Shard& shard, Op& op) {
         if (options.use_pattern) {
             size_t kept = 0;
             for (uint32_t slot : matches)
-                if (command_glob_match(options.pattern, table.value_at(slot))) matches[kept++] = slot;
+                if (command_glob_match(options.pattern, table.value_at(slot)))
+                    matches[kept++] = slot;
             matches.erase(matches.begin() + kept, matches.end());
         }
     } catch (const std::bad_alloc&) {
@@ -1270,25 +1309,28 @@ void cmd_sscan(Shard& shard, Op& op) {
 
 #define TOMO_HANDLER_PAIR(fn) fn<false>, 1, 1, 1, notify_handler<fn<true>>
 
-static const CommandSpec /* TOMO_TOOL_BIND kTable */kTable[] = {
+static const CommandSpec /* TOMO_TOOL_BIND kTable */ kTable[] = {
     // name          min max flags                handler          first last step
-    {"SADD",          3, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_sadd)},
-    {"SREM",          3, -1, CmdFlags::Write,     TOMO_HANDLER_PAIR(cmd_srem)},
-    {"SISMEMBER",     3,  3, CmdFlags::Readonly,  TOMO_HANDLER_PAIR(cmd_sismember)},
-    {"SMISMEMBER",    3, -1, CmdFlags::Readonly,  TOMO_HANDLER_PAIR(cmd_smismember)},
-    {"SCARD",         2,  2, CmdFlags::Readonly,  TOMO_HANDLER_PAIR(cmd_scard)},
-    {"SMEMBERS",      2,  2, CmdFlags::Readonly,  TOMO_HANDLER_PAIR(cmd_smembers)},
-    {"SPOP",          2,  3, CmdFlags::Write,     TOMO_HANDLER_PAIR(cmd_spop)},
-    {"SRANDMEMBER",   2, -1, CmdFlags::Readonly,  TOMO_HANDLER_PAIR(cmd_srandmember)},
-    {"SSCAN",         3, -1, CmdFlags::Readonly,  TOMO_HANDLER_PAIR(cmd_sscan)},
-    {"SMOVE",         4,  4, CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,1,2,1},
-    {"SINTER",        2, -1, CmdFlags::Readonly | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
-    {"SUNION",        2, -1, CmdFlags::Readonly | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
-    {"SDIFF",         2, -1, CmdFlags::Readonly | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
-    {"SINTERCARD",    3, -1, CmdFlags::Readonly | CmdFlags::MultiShard,cmd_xshard_only,2,-1,1},
-    {"SINTERSTORE",   3, -1, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
-    {"SUNIONSTORE",   3, -1, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
-    {"SDIFFSTORE",    3, -1, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
+    {"SADD", 3, -1, CmdFlags::Write | CmdFlags::DenyOom, TOMO_HANDLER_PAIR(cmd_sadd)},
+    {"SREM", 3, -1, CmdFlags::Write, TOMO_HANDLER_PAIR(cmd_srem)},
+    {"SISMEMBER", 3, 3, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_sismember)},
+    {"SMISMEMBER", 3, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_smismember)},
+    {"SCARD", 2, 2, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_scard)},
+    {"SMEMBERS", 2, 2, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_smembers)},
+    {"SPOP", 2, 3, CmdFlags::Write, TOMO_HANDLER_PAIR(cmd_spop)},
+    {"SRANDMEMBER", 2, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_srandmember)},
+    {"SSCAN", 3, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_sscan)},
+    {"SMOVE", 4, 4, CmdFlags::Write | CmdFlags::MultiShard, cmd_xshard_only, 1, 2, 1},
+    {"SINTER", 2, -1, CmdFlags::Readonly | CmdFlags::MultiShard, cmd_xshard_only, 1, -1, 1},
+    {"SUNION", 2, -1, CmdFlags::Readonly | CmdFlags::MultiShard, cmd_xshard_only, 1, -1, 1},
+    {"SDIFF", 2, -1, CmdFlags::Readonly | CmdFlags::MultiShard, cmd_xshard_only, 1, -1, 1},
+    {"SINTERCARD", 3, -1, CmdFlags::Readonly | CmdFlags::MultiShard, cmd_xshard_only, 2, -1, 1},
+    {"SINTERSTORE", 3, -1, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,
+     cmd_xshard_only, 1, -1, 1},
+    {"SUNIONSTORE", 3, -1, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,
+     cmd_xshard_only, 1, -1, 1},
+    {"SDIFFSTORE", 3, -1, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,
+     cmd_xshard_only, 1, -1, 1},
 };
 
 #undef TOMO_HANDLER_PAIR
@@ -1306,8 +1348,7 @@ XshardElementResult xshard_set_contains(KvObj* object, Slice member, bool& conta
 namespace {
 
 template <bool kNotify>
-XshardElementResult xshard_externalize_set(Shard& shard, Slice key, uint64_t hash,
-                                           KvObj*& object) {
+XshardElementResult xshard_externalize_set(Shard& shard, Slice key, uint64_t hash, KvObj*& object) {
     CollectionRef source(object);
     if (!source.is_embedded()) return XshardElementResult::Ok;
     auto* value = new (std::nothrow) SetVal;
@@ -1321,8 +1362,8 @@ XshardElementResult xshard_externalize_set(Shard& shard, Slice key, uint64_t has
     value->small_encoding = set_small_encoding(source);
     value->int_width = set_int_width(source);
     value->max_member_bytes = set_max_member_bytes(source);
-    KvObj* replacement = kvobj_new_set(key, value, shard.store().deadline(hash, object),
-                                       object->has_ttl_slot());
+    KvObj* replacement =
+        kvobj_new_set(key, value, shard.store().deadline(hash, object), object->has_ttl_slot());
     if (!replacement) {
         delete value;
         return XshardElementResult::Oom;
@@ -1332,7 +1373,8 @@ XshardElementResult xshard_externalize_set(Shard& shard, Slice key, uint64_t has
     if (inserted != FlatStore::InsertResult::Inserted) {
         kvobj_free(replacement);
         return inserted == FlatStore::InsertResult::MaxmemoryOom
-            ? XshardElementResult::Maxmemory : XshardElementResult::InsertFailed;
+                   ? XshardElementResult::Maxmemory
+                   : XshardElementResult::InsertFailed;
     }
     object = replacement;
     return XshardElementResult::Ok;
@@ -1404,7 +1446,8 @@ XshardElementResult xshard_insert_set_element_impl(Shard& shard, Slice key, uint
         if (inserted != FlatStore::InsertResult::Inserted) {
             kvobj_free(fresh);
             return inserted == FlatStore::InsertResult::MaxmemoryOom
-                ? XshardElementResult::Maxmemory : XshardElementResult::InsertFailed;
+                       ? XshardElementResult::Maxmemory
+                       : XshardElementResult::InsertFailed;
         }
     }
     return XshardElementResult::Ok;
@@ -1414,18 +1457,15 @@ XshardElementResult xshard_insert_set_element_impl(Shard& shard, Slice key, uint
 
 XshardElementResult xshard_remove_set_element(Shard& shard, Slice key, uint64_t hash,
                                               Slice member) {
-    return shard.notify_carrier()
-        ? xshard_remove_set_element_impl<true>(shard, key, hash, member)
-        : xshard_remove_set_element_impl<false>(shard, key, hash, member);
+    return shard.notify_carrier() ? xshard_remove_set_element_impl<true>(shard, key, hash, member)
+                                  : xshard_remove_set_element_impl<false>(shard, key, hash, member);
 }
 
 XshardElementResult xshard_insert_set_element(Shard& shard, Slice key, uint64_t hash,
                                               Slice member) {
-    return shard.notify_carrier()
-        ? xshard_insert_set_element_impl<true>(shard, key, hash, member)
-        : xshard_insert_set_element_impl<false>(shard, key, hash, member);
+    return shard.notify_carrier() ? xshard_insert_set_element_impl<true>(shard, key, hash, member)
+                                  : xshard_insert_set_element_impl<false>(shard, key, hash, member);
 }
-
 
 namespace {
 
@@ -1453,8 +1493,14 @@ SnapshotHookStatus set_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* destin
     uint64_t idx = 0;
     bool stopped = false;
     for_each_member(set, [&](Slice member) {
-        if (stopped) { idx++; return; }
-        if (idx < cursor.lane[0]) { idx++; return; }
+        if (stopped) {
+            idx++;
+            return;
+        }
+        if (idx < cursor.lane[0]) {
+            idx++;
+            return;
+        }
         e.pos = 0;
         e.resume = idx == cursor.lane[0] ? cursor.lane[1] : 0;
         if (!(e.put_u32(member.n) && e.put(member.p, member.n))) {
@@ -1464,7 +1510,10 @@ SnapshotHookStatus set_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* destin
         }
         idx++;
     });
-    if (!stopped) { cursor.lane[0] = idx; cursor.lane[1] = 0; }
+    if (!stopped) {
+        cursor.lane[0] = idx;
+        cursor.lane[1] = 0;
+    }
     cursor.offset += e.out;
     written = e.out;
     return SnapshotHookStatus::Ok;
@@ -1481,19 +1530,31 @@ SnapshotHookStatus set_snapshot_load(Slice key, uint8_t encoding, int64_t expire
     const uint8_t* p = reinterpret_cast<const uint8_t*>(payload.p);
     uint64_t left = payload.n;
     while (left) {
-        if (left < 4) { delete set; return SnapshotHookStatus::Corrupt; }
+        if (left < 4) {
+            delete set;
+            return SnapshotHookStatus::Corrupt;
+        }
         const uint32_t len = snapshot_get_u32(p);
-        p += 4; left -= 4;
-        if (left < len) { delete set; return SnapshotHookStatus::Corrupt; }
+        p += 4;
+        left -= 4;
+        if (left < len) {
+            delete set;
+            return SnapshotHookStatus::Corrupt;
+        }
         const Slice member(reinterpret_cast<const char*>(p), len);
-        p += len; left -= len;
-        if (add_member(set_ref, member, limits.set, limits.set_intset_max_entries) == AddResult::Oom) {
+        p += len;
+        left -= len;
+        if (add_member(set_ref, member, limits.set, limits.set_intset_max_entries) ==
+            AddResult::Oom) {
             delete set;
             return SnapshotHookStatus::Oom;
         }
     }
     result = kvobj_adopt_set(key, set, expire_at_ms);
-    if (!result) { delete set; return SnapshotHookStatus::Oom; }
+    if (!result) {
+        delete set;
+        return SnapshotHookStatus::Oom;
+    }
     return SnapshotHookStatus::Ok;
 }
 
@@ -1503,9 +1564,7 @@ SnapshotTypeHooks set_snapshot_hooks() {
     return {set_snapshot_begin, set_snapshot_read, set_snapshot_load};
 }
 
-CommandTable set_command_table() {
-    return {kTable, sizeof(kTable) / sizeof(kTable[0])};
-}
+CommandTable set_command_table() { return {kTable, sizeof(kTable) / sizeof(kTable[0])}; }
 
 uint64_t SetMemberTable::scan(uint64_t cursor, uint64_t count,
                               std::vector<uint32_t>& members) const {

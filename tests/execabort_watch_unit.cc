@@ -13,7 +13,10 @@
 using namespace tomo;
 namespace {
 void require(bool yes, const char* why) {
-    if (!yes) { std::fprintf(stderr, "FAIL execabort-watch: %s\n", why); std::exit(1); }
+    if (!yes) {
+        std::fprintf(stderr, "FAIL execabort-watch: %s\n", why);
+        std::exit(1);
+    }
 }
 struct Request {
     std::vector<std::string> args;
@@ -36,9 +39,12 @@ struct Fixture {
     uint32_t io = 0;
     explicit Fixture(bool fused, int atomic) {
         Config cfg;
-        cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
+        cfg.shards = 16;
+        cfg.even_ifid = 6;
+        cfg.even_ex = 2;
         cfg.thread_mode = fused ? ThreadMode::Fused : ThreadMode::Split;
-        cfg.atomic = atomic; cfg.databases = kSingleDatabase ? 1 : 2;
+        cfg.atomic = atomic;
+        cfg.databases = kSingleDatabase ? 1 : 2;
         cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
         cfg.save.clear();
         cpu_set_t allowed;
@@ -79,11 +85,13 @@ struct Fixture {
         for (unsigned pass = 0; !remaining.empty() && pass < 1024; ++pass) {
             for (size_t i = 0; i < remaining.size();) {
                 const int32_t sid = remaining[i];
-                const auto result = multi_execute_task(server,
-                    multi_make_task(&client, 0, sid, state), server.shard(sid),
-                    server.worker_of_shard(sid), 0, nullptr);
-                if (multi_task_retry(result)) ++i;
-                else remaining.erase(remaining.begin() + i);
+                const auto result =
+                    multi_execute_task(server, multi_make_task(&client, 0, sid, state),
+                                       server.shard(sid), server.worker_of_shard(sid), 0, nullptr);
+                if (multi_task_retry(result))
+                    ++i;
+                else
+                    remaining.erase(remaining.begin() + i);
             }
         }
         require(remaining.empty(), "EXEC must reply within the owner-phase bound");
@@ -132,8 +140,9 @@ int main(int argc, char** argv) {
     const std::string control = selection == "armed" ? "" : selection;
     const std::string atomic_selection = argc == 4 ? argv[3] : "both";
     require(mode == "1s" || mode == "2s", "known mode");
-    require(control.empty() || control == "no-watch" || control == "no-error" || control == "no-arm",
-            "known control");
+    require(
+        control.empty() || control == "no-watch" || control == "no-error" || control == "no-arm",
+        "known control");
     require(atomic_selection == "both" || atomic_selection == "0" || atomic_selection == "1",
             "known atomic arm");
     require(command_registry_init(false), "command registry");
@@ -143,8 +152,7 @@ int main(int argc, char** argv) {
         const bool watched = control != "no-watch" && control != "no-arm";
         if (watched)
             require(fixture.multi({"WATCH", "execabort:watched"}) == "+OK\r\n", "WATCH reply");
-        if (control != "no-watch")
-            require(fixture.watches() > 0, "WATCH window never armed");
+        if (control != "no-watch") require(fixture.watches() > 0, "WATCH window never armed");
         require(fixture.multi({"MULTI"}) == "+OK\r\n", "MULTI reply");
         if (control != "no-error") {
             require(fixture.multi({"SET", "execabort:watched", "discarded"}) == "+QUEUED\r\n",
@@ -152,19 +160,23 @@ int main(int argc, char** argv) {
             require(fixture.multi({"SAVE"}) == "-ERR Command not allowed inside a transaction\r\n",
                     "ordinary queue-time error, independent of loading");
         }
-        require(fixture.multi({"EXEC"}) == (control == "no-error" ? "*0\r\n" :
-                    "-EXECABORT Transaction discarded because of previous errors.\r\n"), "EXEC reply");
+        require(fixture.multi({"EXEC"}) ==
+                    (control == "no-error"
+                         ? "*0\r\n"
+                         : "-EXECABORT Transaction discarded because of previous errors.\r\n"),
+                "EXEC reply");
         const uint64_t before = fixture.waits();
         unsigned denied = 0;
         const bool completed = fixture.set(denied);
-        std::printf("%s execabort-watch db=%s mode=%s atomic=%d control=%s "
-                    "watch_armed=%d exec_reply=%s later_set=%s denied=%u "
-                    "waits_before=%llu waits_after=%llu deferred=%zu\n",
-                    completed ? "PASS" : "FAIL", kSingleDatabase ? "db0" : "namespaced",
-                    mode.c_str(), atomic, control.empty() ? "armed" : control.c_str(), watched,
-                    control == "no-error" ? "empty-array" : "EXECABORT", completed ? "OK" : "blocked",
-                    denied, static_cast<unsigned long long>(before),
-                    static_cast<unsigned long long>(fixture.waits()), fixture.deferred.size());
+        std::printf(
+            "%s execabort-watch db=%s mode=%s atomic=%d control=%s "
+            "watch_armed=%d exec_reply=%s later_set=%s denied=%u "
+            "waits_before=%llu waits_after=%llu deferred=%zu\n",
+            completed ? "PASS" : "FAIL", kSingleDatabase ? "db0" : "namespaced", mode.c_str(),
+            atomic, control.empty() ? "armed" : control.c_str(), watched,
+            control == "no-error" ? "empty-array" : "EXECABORT", completed ? "OK" : "blocked",
+            denied, static_cast<unsigned long long>(before),
+            static_cast<unsigned long long>(fixture.waits()), fixture.deferred.size());
         require(completed, "later SET still blocked after 1024 dispatch attempts");
         multi_reap_deferred(fixture.deferred);
         require(fixture.deferred.empty() && fixture.watches() == 0,

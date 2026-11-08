@@ -5,7 +5,6 @@
 namespace tomo {
 namespace {
 
-
 bool bitfield_parse_i64(Slice input, int64_t& output) {
     if (input.n == 0 || input.n >= 32) return false;
     uint32_t position = 0;
@@ -30,26 +29,26 @@ bool bitfield_parse_i64(Slice input, int64_t& output) {
         value = value * 10 + digit;
     }
     if (negative) {
-        output = value == uint64_t{INT64_MAX} + 1
-            ? INT64_MIN : -static_cast<int64_t>(value);
+        output = value == uint64_t{INT64_MAX} + 1 ? INT64_MIN : -static_cast<int64_t>(value);
     } else {
         output = static_cast<int64_t>(value);
     }
     return true;
 }
 
-Slice bitfield_string_bytes(const KvObj* object, char (&integer)[24],
-                            KvObjRawReadBuffer& raw) {
+Slice bitfield_string_bytes(const KvObj* object, char (&integer)[24], KvObjRawReadBuffer& raw) {
     if (!object->is_int()) return kvobj_string_value(object, raw);
     return Slice(integer, i64_to_dec(integer, object->int_value()));
 }
 
 void reply_bitfield_store_error(Op& op, XshardStringStoreResult result) {
     op.clear_reply();
-    if (result == XshardStringStoreResult::Maxmemory) reply_maxmemory_oom(op);
+    if (result == XshardStringStoreResult::Maxmemory)
+        reply_maxmemory_oom(op);
     else if (result == XshardStringStoreResult::Oom)
         reply_err(op.sink(), "ERR out of memory");
-    else reply_err(op.sink(), "ERR keyspace insert failed");
+    else
+        reply_err(op.sink(), "ERR keyspace insert failed");
 }
 
 enum class BitfieldOpcode : uint8_t { Get, Set, Incrby };
@@ -93,15 +92,17 @@ private:
 
 bool parse_bitfield_type(Op& op, Slice argument, bool& is_signed, uint8_t& bits) {
     if (argument.n < 2 || (argument.p[0] != 'i' && argument.p[0] != 'u')) {
-        reply_err(op.sink(),
-                  "ERR Invalid bitfield type. Use something like i16 u8. Note that u64 is not supported but i64 is.");
+        reply_err(
+            op.sink(),
+            "ERR Invalid bitfield type. Use something like i16 u8. Note that u64 is not supported but i64 is.");
         return false;
     }
     int64_t parsed = 0;
     if (!bitfield_parse_i64(Slice(argument.p + 1, argument.n - 1), parsed) || parsed < 1 ||
         (argument.p[0] == 'i' ? parsed > 64 : parsed > 63)) {
-        reply_err(op.sink(),
-                  "ERR Invalid bitfield type. Use something like i16 u8. Note that u64 is not supported but i64 is.");
+        reply_err(
+            op.sink(),
+            "ERR Invalid bitfield type. Use something like i16 u8. Note that u64 is not supported but i64 is.");
         return false;
     }
     is_signed = argument.p[0] == 'i';
@@ -139,8 +140,7 @@ uint64_t get_unsigned_bitfield(const uint8_t* bytes, uint64_t offset, uint8_t bi
 }
 
 int64_t unsigned_bits_to_signed(uint64_t value, uint8_t bits) {
-    if (bits < 64 && (value & (uint64_t{1} << (bits - 1))))
-        value |= UINT64_MAX << bits;
+    if (bits < 64 && (value & (uint64_t{1} << (bits - 1)))) value |= UINT64_MAX << bits;
     int64_t result = 0;
     std::memcpy(&result, &value, sizeof(result));
     return result;
@@ -156,8 +156,7 @@ void set_unsigned_bitfield(uint8_t* bytes, uint64_t offset, uint8_t bits, uint64
         const uint8_t mask = static_cast<uint8_t>(1u << bit);
         const bool selected = value & (uint64_t{1} << (bits - 1 - index));
         uint8_t& byte = bytes[offset >> 3];
-        byte = selected ? static_cast<uint8_t>(byte | mask)
-                        : static_cast<uint8_t>(byte & ~mask);
+        byte = selected ? static_cast<uint8_t>(byte | mask) : static_cast<uint8_t>(byte & ~mask);
     }
 }
 
@@ -220,9 +219,12 @@ bool parse_bitfield_operations(Op& op, BitfieldOperations& operations, bool& rea
             operation.opcode = BitfieldOpcode::Incrby;
             width = 4;
         } else if (op.arg(index).eq_icase("overflow") && op.argc() - index >= 2) {
-            if (op.arg(index + 1).eq_icase("wrap")) overflow = BitfieldOverflow::Wrap;
-            else if (op.arg(index + 1).eq_icase("sat")) overflow = BitfieldOverflow::Sat;
-            else if (op.arg(index + 1).eq_icase("fail")) overflow = BitfieldOverflow::Fail;
+            if (op.arg(index + 1).eq_icase("wrap"))
+                overflow = BitfieldOverflow::Wrap;
+            else if (op.arg(index + 1).eq_icase("sat"))
+                overflow = BitfieldOverflow::Sat;
+            else if (op.arg(index + 1).eq_icase("fail"))
+                overflow = BitfieldOverflow::Fail;
             else {
                 reply_err(op.sink(), "ERR Invalid OVERFLOW type specified");
                 return false;
@@ -243,8 +245,8 @@ bool parse_bitfield_operations(Op& op, BitfieldOperations& operations, bool& rea
                 return false;
             }
             readonly = false;
-            highest_write_offset = std::max<uint64_t>(
-                highest_write_offset, operation.offset + operation.bits - 1);
+            highest_write_offset =
+                std::max<uint64_t>(highest_write_offset, operation.offset + operation.bits - 1);
         }
         if (!operations.push(operation)) {
             reply_err(op.sink(), "ERR out of memory");
@@ -279,8 +281,8 @@ void bitfield_generic(Shard& shard, Op& op, bool ro_variant) {
             const BitfieldOperation& operation = operations[index];
             const uint64_t value = read_unsigned_bitfield(old, operation.offset, operation.bits);
             reply_int(op.sink(), operation.is_signed
-                ? unsigned_bits_to_signed(value, operation.bits)
-                : static_cast<int64_t>(value));
+                                     ? unsigned_bits_to_signed(value, operation.bits)
+                                     : static_cast<int64_t>(value));
         }
         return;
     }
@@ -290,10 +292,13 @@ void bitfield_generic(Shard& shard, Op& op, bool ro_variant) {
     // byte needs at most eight extra bytes. The representable string cap reserves
     // 64 KiB below UINT32_MAX, so both this cast and every bit store remain safe.
     static_assert(kProtoMaxBulkLenRepresentable + 8 <= UINT32_MAX);
-    const uint32_t new_length = static_cast<uint32_t>(
-        std::max<uint64_t>(old.n, (highest_write_offset >> 3) + 1));
+    const uint32_t new_length =
+        static_cast<uint32_t>(std::max<uint64_t>(old.n, (highest_write_offset >> 3) + 1));
     uint8_t* image = static_cast<uint8_t*>(std::malloc(new_length));
-    if (!image) { reply_err(op.sink(), "ERR out of memory"); return; }
+    if (!image) {
+        reply_err(op.sink(), "ERR out of memory");
+        return;
+    }
     if (old.n) std::memcpy(image, old.p, old.n);
     if (new_length > old.n) std::memset(image + old.n, 0, new_length - old.n);
 
@@ -305,45 +310,45 @@ void bitfield_generic(Shard& shard, Op& op, bool ro_variant) {
         if (operation.opcode == BitfieldOpcode::Get) {
             const Slice current(reinterpret_cast<const char*>(image), new_length);
             const uint64_t raw = read_unsigned_bitfield(current, operation.offset, operation.bits);
-            reply_int(op.sink(), operation.is_signed
-                ? unsigned_bits_to_signed(raw, operation.bits)
-                : static_cast<int64_t>(raw));
+            reply_int(op.sink(), operation.is_signed ? unsigned_bits_to_signed(raw, operation.bits)
+                                                     : static_cast<int64_t>(raw));
             continue;
         }
 
         if (operation.is_signed) {
-            const int64_t old_value = get_signed_bitfield(
-                image, operation.offset, operation.bits);
-            const int64_t base = operation.opcode == BitfieldOpcode::Set
-                ? operation.argument : old_value;
-            const int64_t increment = operation.opcode == BitfieldOpcode::Set
-                ? 0 : operation.argument;
-            const SignedBitfieldResult result = signed_bitfield_result(
-                base, increment, operation.bits, operation.overflow);
+            const int64_t old_value = get_signed_bitfield(image, operation.offset, operation.bits);
+            const int64_t base =
+                operation.opcode == BitfieldOpcode::Set ? operation.argument : old_value;
+            const int64_t increment =
+                operation.opcode == BitfieldOpcode::Set ? 0 : operation.argument;
+            const SignedBitfieldResult result =
+                signed_bitfield_result(base, increment, operation.bits, operation.overflow);
             if (result.overflow && operation.overflow == BitfieldOverflow::Fail) {
                 reply_nil(op.sink());
                 continue;
             }
-            reply_int(op.sink(), operation.opcode == BitfieldOpcode::Set
-                ? old_value : result.value);
+            reply_int(op.sink(),
+                      operation.opcode == BitfieldOpcode::Set ? old_value : result.value);
             set_unsigned_bitfield(image, operation.offset, operation.bits,
                                   static_cast<uint64_t>(result.value));
             if (grew || old_value != result.value) changes++;
         } else {
-            const uint64_t old_value = get_unsigned_bitfield(
-                image, operation.offset, operation.bits);
+            const uint64_t old_value =
+                get_unsigned_bitfield(image, operation.offset, operation.bits);
             const uint64_t base = operation.opcode == BitfieldOpcode::Set
-                ? static_cast<uint64_t>(operation.argument) : old_value;
-            const int64_t increment = operation.opcode == BitfieldOpcode::Set
-                ? 0 : operation.argument;
-            const UnsignedBitfieldResult result = unsigned_bitfield_result(
-                base, increment, operation.bits, operation.overflow);
+                                      ? static_cast<uint64_t>(operation.argument)
+                                      : old_value;
+            const int64_t increment =
+                operation.opcode == BitfieldOpcode::Set ? 0 : operation.argument;
+            const UnsignedBitfieldResult result =
+                unsigned_bitfield_result(base, increment, operation.bits, operation.overflow);
             if (result.overflow && operation.overflow == BitfieldOverflow::Fail) {
                 reply_nil(op.sink());
                 continue;
             }
             reply_int(op.sink(), operation.opcode == BitfieldOpcode::Set
-                ? static_cast<int64_t>(old_value) : static_cast<int64_t>(result.value));
+                                     ? static_cast<int64_t>(old_value)
+                                     : static_cast<int64_t>(result.value));
             set_unsigned_bitfield(image, operation.offset, operation.bits, result.value);
             if (grew || old_value != result.value) changes++;
         }
@@ -351,16 +356,16 @@ void bitfield_generic(Shard& shard, Op& op, bool ro_variant) {
 
     const int64_t expire_at_ms = object ? shard.store().deadline(op.hash, object) : -1;
     const Slice replacement(reinterpret_cast<const char*>(image), new_length);
-    const XshardStringStoreResult stored = store_mutable_string(
-        shard, op.key(), op.hash, replacement, expire_at_ms,
-        object && object->has_ttl_slot(), kNotify);
+    const XshardStringStoreResult stored =
+        store_mutable_string(shard, op.key(), op.hash, replacement, expire_at_ms,
+                             object && object->has_ttl_slot(), kNotify);
     std::free(image);
     if (stored != XshardStringStoreResult::Stored) {
         reply_bitfield_store_error(op, stored);
         return;
     }
-    if constexpr (kNotify) if (changes)
-        notify_record(shard, op, NOTIFY_STRING, NotifyEventId::Setbit, op.key());
+    if constexpr (kNotify)
+        if (changes) notify_record(shard, op, NOTIFY_STRING, NotifyEventId::Setbit, op.key());
 }
 
 void cmd_bitfield_notify_body(Shard& shard, Op& op) { bitfield_generic<true>(shard, op, false); }

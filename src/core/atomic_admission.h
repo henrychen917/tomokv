@@ -26,7 +26,8 @@ public:
         // attempt, never make the connection-owning thread spin on its behalf.
         return state_.compare_exchange_strong(state, state + 1, std::memory_order_acq_rel,
                                               std::memory_order_relaxed)
-            ? Attempt::Admitted : Attempt::Contended;
+                   ? Attempt::Admitted
+                   : Attempt::Contended;
     }
 
     void retire() {
@@ -57,4 +58,4 @@ private:
 };
 static_assert(sizeof(AtomicAdmissionCredits) == sizeof(uint64_t));
 
-} // namespace tomo
+}  // namespace tomo

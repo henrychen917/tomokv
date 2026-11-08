@@ -22,7 +22,10 @@
 using namespace tomo;
 
 static void require(bool ok, const char* why) {
-    if (!ok) { std::fprintf(stderr, "FAIL rehash waits: %s\n", why); std::_Exit(1); }
+    if (!ok) {
+        std::fprintf(stderr, "FAIL rehash waits: %s\n", why);
+        std::_Exit(1);
+    }
 }
 static Slice slice(const std::string& s) { return {s.data(), static_cast<uint32_t>(s.size())}; }
 static uint64_t hash(const std::string& s) { return FlatStore::hash_key(slice(s)); }
@@ -43,7 +46,7 @@ struct CoreConcurrencyTest {
         require(server.nthreads() == 8, "eight real QSBR participants");
     }
 };
-} // namespace tomo
+}  // namespace tomo
 
 struct Fixture {
     static constexpr uint32_t owner = 6, pinned = 0;
@@ -102,25 +105,27 @@ struct Fixture {
         for (unsigned n = 0; n < 7; n++) store.active_expire(1);
         const auto progress = store.rehash_progress();
         require(progress.old_capacity == 64 && progress.current_capacity == 128 &&
-                progress.cursor == 56 && progress.old_live > 0,
+                    progress.cursor == 56 && progress.old_live > 0,
                 "one rehash step from table retirement, with a live key in the old table");
         require(store.expire_count() == 0, "lookup arm must have no TTL keys");
     }
     void full() {
         require(queue.empty(), "fresh queue before capacity arm");
         const uint64_t stamp = server.read_local_epoch();
-        server.thread(pinned).publish_read_local_tick(stamp); // deliberately NEVER refreshed
+        server.thread(pinned).publish_read_local_tick(stamp);  // deliberately NEVER refreshed
         for (uint32_t i = 0; i < ReadLocalDeferredQueue::kCapacity; i++)
             queue.defer(this, &payloads[i], 1, [](void* owner, void*, size_t) {
                 static_cast<Fixture*>(owner)->reclaimed++;
             });
-        require(queue.size() == 4096 && queue.drain_ready() == 0, "full, sealed, unreclaimable ring");
+        require(queue.size() == 4096 && queue.drain_ready() == 0,
+                "full, sealed, unreclaimable ring");
         server.thread(owner).publish_read_local_tick(server.read_local_epoch());
         uint32_t hint = pinned;
         require(server.read_local_grace_floor(stamp, hint) == stamp && hint == pinned &&
-                queue.drain_ready() == 0 && reclaimed == 0,
+                    queue.drain_ready() == 0 && reclaimed == 0,
                 "the ONE stale non-parked participant must pin the oldest batch");
-        require(!ThreadCtx::read_local_publication_parked(server.thread(pinned).read_local_publication()),
+        require(!ThreadCtx::read_local_publication_parked(
+                    server.thread(pinned).read_local_publication()),
                 "stale participant cannot be parked");
     }
 };
@@ -145,7 +150,7 @@ static const KvObj* lookup(FlatStore& store, const char* kind, const std::string
     if (!std::strcmp(kind, "foreign")) {
         const auto result = probeadapter::probe(store, h, k, "rehash foreign");
         require(result.result == FlatStore::ReadLocalProbeResult::Hit ||
-                result.result == FlatStore::ReadLocalProbeResult::Missing,
+                    result.result == FlatStore::ReadLocalProbeResult::Missing,
                 "foreign lookup must execute, never decline/skip");
         return result.object;
     }
@@ -155,7 +160,7 @@ static const KvObj* lookup(FlatStore& store, const char* kind, const std::string
 
 static void child(const char* kind) {
     std::signal(SIGALRM, deadline);
-    alarm(10); // arming failure/hang is never the expected read deadline
+    alarm(10);  // arming failure/hang is never the expected read deadline
     Fixture f;
     const bool expiry = !std::strcmp(kind, "expiry");
     const bool control = !std::strcmp(kind, "blocking-control");
@@ -163,7 +168,7 @@ static void child(const char* kind) {
         f.put("elapsed", 100);
         const KvObj* value = f.store.find_resident(hash("elapsed"), Slice("elapsed"));
         require(value && f.store.deadline(hash("elapsed"), value) == 100 &&
-                f.store.expire_count() == 1 && !f.store.rehashing(),
+                    f.store.expire_count() == 1 && !f.store.rehashing(),
                 "physically resident expired key, with NO resize to confound the result");
     } else if (!control) {
         f.resizing(!std::strcmp(kind, "tracked") || !std::strcmp(kind, "resolve"));
@@ -171,9 +176,10 @@ static void child(const char* kind) {
     f.full();
     const auto before = f.store.rehash_progress();
     const uint64_t publication = f.server.thread(Fixture::pinned).read_local_publication();
-    std::printf("ARMED %s ring=%u reclaims=%u stale_tick=%llu old_capacity=%u cursor=%u old_live=%u\n",
-                kind, f.queue.size(), f.reclaimed, static_cast<unsigned long long>(publication),
-                before.old_capacity, before.cursor, before.old_live);
+    std::printf(
+        "ARMED %s ring=%u reclaims=%u stale_tick=%llu old_capacity=%u cursor=%u old_live=%u\n",
+        kind, f.queue.size(), f.reclaimed, static_cast<unsigned long long>(publication),
+        before.old_capacity, before.cursor, before.old_live);
     std::fflush(stdout);
     read_armed = 1;
     alarm(1);
@@ -181,7 +187,8 @@ static void child(const char* kind) {
         // Establish that one additional retirement REALLY cannot return under this pin.
         f.queue.defer(&f, &f.payloads.back(), 1, [](void*, void*, size_t) {});
     } else if (expiry) {
-        require(lookup(f.store, kind, "elapsed") == nullptr, "expired read returns logical absence");
+        require(lookup(f.store, kind, "elapsed") == nullptr,
+                "expired read returns logical absence");
     } else {
         for (const std::string& key : {f.old_key, f.new_key}) {
             const KvObj* value = lookup(f.store, kind, key);
@@ -189,13 +196,14 @@ static void child(const char* kind) {
         }
         require(lookup(f.store, kind, "absent-key") == nullptr, "miss searches both tables");
         const auto after = f.store.rehash_progress();
-        require(after.current_capacity == before.current_capacity && after.old_capacity == before.old_capacity &&
-                after.cursor == before.cursor && after.old_live == before.old_live,
+        require(after.current_capacity == before.current_capacity &&
+                    after.old_capacity == before.old_capacity && after.cursor == before.cursor &&
+                    after.old_live == before.old_live,
                 "lookup must not advance or retire the rehash table");
     }
     alarm(0);
     require(f.queue.size() == 4096 && f.reclaimed == 0 &&
-            f.server.thread(Fixture::pinned).read_local_publication() == publication,
+                f.server.thread(Fixture::pinned).read_local_publication() == publication,
             "read returned without reclamation or releasing the pin");
     std::printf("RETURNED %s ring=4096 reclaims=0 stale_tick_unchanged=1\n", kind);
 }
@@ -204,14 +212,22 @@ static bool run(const char* kind, bool expect_block = false) {
     std::fflush(nullptr);
     const pid_t pid = fork();
     require(pid >= 0, "fork failed (no skip)");
-    if (pid == 0) { child(kind); std::fflush(nullptr); std::_Exit(0); }
+    if (pid == 0) {
+        child(kind);
+        std::fflush(nullptr);
+        std::_Exit(0);
+    }
     int status = 0;
     pid_t result;
-    do { result = waitpid(pid, &status, 0); } while (result < 0 && errno == EINTR);
+    do {
+        result = waitpid(pid, &status, 0);
+    } while (result < 0 && errno == EINTR);
     require(result == pid, "wait for our own child");
     const bool ok = WIFEXITED(status) && WEXITSTATUS(status) == (expect_block ? 42 : 0);
-    std::printf("%s %s%s (status=%d)\n", ok ? "PASS" : "FAIL", kind,
-                expect_block ? " proves pinned retirement blocks" : " read must not wait for quiescence", status);
+    std::printf(
+        "%s %s%s (status=%d)\n", ok ? "PASS" : "FAIL", kind,
+        expect_block ? " proves pinned retirement blocks" : " read must not wait for quiescence",
+        status);
     return ok;
 }
 
@@ -222,25 +238,31 @@ static void maintenance_child(bool expiry) {
     Fixture f;
     uint64_t expired_count = 0;
     f.store.bind_expired_counter(&expired_count);
-    if (expiry) f.put("elapsed", 100);
-    else f.resizing(false);
-    const auto capture = expiry ? FlatStore::ReadLocalPrefetchCapture{}
-                               : f.store.read_local_prefetch_capture(hash(f.old_key), slice(f.old_key));
+    if (expiry)
+        f.put("elapsed", 100);
+    else
+        f.resizing(false);
+    const auto capture =
+        expiry ? FlatStore::ReadLocalPrefetchCapture{}
+               : f.store.read_local_prefetch_capture(hash(f.old_key), slice(f.old_key));
     if (!expiry)
         require(capture.result == FlatStore::ReadLocalProbeResult::Hit && capture.slot &&
-                capture.object, "capture an actual old-table slot before its retirement");
+                    capture.object,
+                "capture an actual old-table slot before its retirement");
     f.full();
     const uint64_t pin = f.server.thread(Fixture::pinned).read_local_publication();
     read_armed = 1;
     alarm(1);
     if (expiry) {
-        struct Events { uint32_t expired = 0, missed = 0; } events;
+        struct Events {
+            uint32_t expired = 0, missed = 0;
+        } events;
         FlatNotifySink sink{&events, [](void*, uint32_t) { return true; },
-            [](void* p, uint32_t cls, NotifyEventId, Slice) {
-                auto& e = *static_cast<Events*>(p);
-                if (cls == NOTIFY_EXPIRED) e.expired++;
-                if (cls == NOTIFY_KEY_MISS) e.missed++;
-            }};
+                            [](void* p, uint32_t cls, NotifyEventId, Slice) {
+                                auto& e = *static_cast<Events*>(p);
+                                if (cls == NOTIFY_EXPIRED) e.expired++;
+                                if (cls == NOTIFY_KEY_MISS) e.missed++;
+                            }};
         notify_bind_flat_store(&f.store, &sink);
         for (unsigned i = 0; i < 3; i++) {
             require(!f.store.find_notify(hash("elapsed"), Slice("elapsed"), &sink),
@@ -248,8 +270,8 @@ static void maintenance_child(bool expiry) {
             require(f.store.active_expire(64) != 0, "capacity-blocked maintenance remains work");
         }
         require(events.expired == 0 && events.missed == 3 && expired_count == 0 &&
-                f.store.expire_count() == 1 && f.queue.size() == 4096 && f.reclaimed == 0 &&
-                f.store.find_resident(hash("elapsed"), Slice("elapsed")),
+                    f.store.expire_count() == 1 && f.queue.size() == 4096 && f.reclaimed == 0 &&
+                    f.store.find_resident(hash("elapsed"), Slice("elapsed")),
                 "no duplicate effects, unlink, retirement or lost expiry attention under pressure");
         require(f.server.thread(Fixture::pinned).read_local_publication() == pin,
                 "maintenance did not release the stale participant");
@@ -257,11 +279,12 @@ static void maintenance_child(bool expiry) {
         f.server.thread(Fixture::owner).publish_read_local_parked(f.server.read_local_epoch());
         require(f.queue.drain_ready() == 4096 && f.reclaimed == 4096, "release the real pin");
         require(f.store.active_expire(64) != 0 && !f.store.expire_count() &&
-                !f.store.find_resident(hash("elapsed"), Slice("elapsed")) &&
-                events.expired == 1 && expired_count == 1 && f.queue.size() == 1,
+                    !f.store.find_resident(hash("elapsed"), Slice("elapsed")) &&
+                    events.expired == 1 && expired_count == 1 && f.queue.size() == 1,
                 "owner reaps and accounts exactly once after capacity becomes available");
         require(!f.store.find_notify(hash("elapsed"), Slice("elapsed"), &sink) &&
-                events.expired == 1 && expired_count == 1, "later misses cannot re-emit expiry");
+                    events.expired == 1 && expired_count == 1,
+                "later misses cannot re-emit expiry");
     } else {
         // Complete several distinct resizes with the SAME full ring and stale tick. This rules
         // out a one-table emergency slot that merely postpones the next capacity deadlock.
@@ -275,16 +298,17 @@ static void maintenance_child(bool expiry) {
             for (uint32_t step = 0; step < armed.old_capacity / 8 && f.store.rehashing(); step++)
                 require(f.store.active_expire(0) != 0, "every resize step counts as owner work");
             require(!f.store.rehashing() && f.store.rehash_progress().cursor == 0 &&
-                    f.queue.size() == 4097 + generation && f.queue.resize_pending() &&
-                    f.queue.drain_ready() == 0 && f.reclaimed == 0 &&
-                    f.server.thread(Fixture::pinned).read_local_publication() == pin,
+                        f.queue.size() == 4097 + generation && f.queue.resize_pending() &&
+                        f.queue.drain_ready() == 0 && f.reclaimed == 0 &&
+                        f.server.thread(Fixture::pinned).read_local_publication() == pin,
                     "resize completes; all retired tables stay protected behind the stale pin");
             const auto* value = f.store.find(hash(f.old_key), slice(f.old_key));
             require(value && value->str_value() == Slice("value"), "value survives every resize");
         }
         // A captured foreign pointer remains readable until grace. ASAN also checks this load.
         require(__atomic_load_n(capture.slot, __ATOMIC_ACQUIRE) != 0 &&
-                capture.object->str_value() == Slice("value"), "old table/object retained until grace");
+                    capture.object->str_value() == Slice("value"),
+                "old table/object retained until grace");
         f.server.thread(Fixture::pinned).publish_read_local_parked(f.server.read_local_epoch());
         f.server.thread(Fixture::owner).publish_read_local_parked(f.server.read_local_epoch());
         require(f.queue.drain_ready() == 4100 && f.queue.empty() && f.reclaimed == 4096,
@@ -320,7 +344,7 @@ static void hash_expiry_child() {
         hash_ttl_note_bytes(value);
         require(shard.store().insert(hash(key), value) == FlatStore::InsertResult::Inserted,
                 "install hash and field-expiry attention");
-        shard.store().note_field_ttl(hash(key)); // the production HEXPIRE registration
+        shard.store().note_field_ttl(hash(key));  // the production HEXPIRE registration
         return value;
     };
     KvObj* elapsed = put_hash("elapsed-hash", false);
@@ -341,21 +365,23 @@ static void hash_expiry_child() {
                 "all-expired hash read returns absence without retirement");
     }
     require(shard.store().field_expired() == 0 && hash_ttl_field_count(elapsed) == 1 &&
-            shard.store().field_expire_count() == 2 && f.queue.size() == 4096 && f.reclaimed == 0,
+                shard.store().field_expire_count() == 2 && f.queue.size() == 4096 &&
+                f.reclaimed == 0,
             "deferred hash retains its fields, attention and zero expiry side effects");
     KvObj* object = partial;
     require(hash_ttl_on_access(shard, op, object, false) && object == partial &&
-            hash_ttl_field_count(partial) == 1 && hash_ttl_field_exists(partial, Slice("g")) &&
-            !hash_ttl_field_exists(partial, Slice("f")) && shard.store().field_expired() == 1 &&
-            f.queue.size() == 4096, "partial expiry preserves the live field without header retirement");
+                hash_ttl_field_count(partial) == 1 && hash_ttl_field_exists(partial, Slice("g")) &&
+                !hash_ttl_field_exists(partial, Slice("f")) && shard.store().field_expired() == 1 &&
+                f.queue.size() == 4096,
+            "partial expiry preserves the live field without header retirement");
     f.server.thread(Fixture::pinned).publish_read_local_parked(f.server.read_local_epoch());
     f.server.thread(Fixture::owner).publish_read_local_parked(f.server.read_local_epoch());
     require(f.queue.drain_ready() == 4096, "hash release of pinned capacity");
     require(shard.store().active_expire(64) != 0 && shard.store().field_expired() == 2 &&
-            !shard.store().find_resident(hash("elapsed-hash"), Slice("elapsed-hash")) &&
-            shard.store().find_resident(hash("partial-hash"), Slice("partial-hash")) == partial,
+                !shard.store().find_resident(hash("elapsed-hash"), Slice("elapsed-hash")) &&
+                shard.store().find_resident(hash("partial-hash"), Slice("partial-hash")) == partial,
             "owner eventually reaps only the all-expired hash");
-    f.queue.drain_shutdown(); // the callbacks name this shard, which dies before Fixture
+    f.queue.drain_shutdown();  // the callbacks name this shard, which dies before Fixture
     alarm(0);
     std::puts("PASS maintenance hash expiry under pinned capacity");
 }
@@ -368,8 +394,9 @@ static void snapshot_retirement_child() {
     require(f.store.active_expire(0) != 0 && f.queue.drain_ready() == 1,
             "consume the initial reserved record and reclaim its resize");
     require(f.store.snapshot_prepare(2, 1000) == FlatStore::SnapshotWriteResult::Ready &&
-            f.store.snapshot_mark(0, 1000), "snapshot must reserve its own table retirement");
-    f.store.snapshot_cancel(); // cancellation leaves an ordinary merge of both live tables
+                f.store.snapshot_mark(0, 1000),
+            "snapshot must reserve its own table retirement");
+    f.store.snapshot_cancel();  // cancellation leaves an ordinary merge of both live tables
     f.full();
     read_armed = 1;
     alarm(1);
@@ -377,7 +404,7 @@ static void snapshot_retirement_child() {
     for (uint32_t step = 0; step < armed.old_capacity / 8 && f.store.rehashing(); step++)
         require(f.store.active_expire(0) != 0, "post-snapshot merge work");
     require(!f.store.rehashing() && f.queue.size() == 4097 && f.queue.drain_ready() == 0 &&
-            f.store.find(hash(f.old_key), slice(f.old_key)),
+                f.store.find(hash(f.old_key), slice(f.old_key)),
             "snapshot merge completes behind a pinned, full ring without losing values");
     alarm(0);
     std::puts("PASS maintenance snapshot table retirement");
@@ -410,7 +437,8 @@ static void atomic_growth_child() {
     consume_boot_reservation(f);
     const uint32_t cap = f.store.rehash_progress().current_capacity;
     std::vector<std::string> keys{f.old_key, f.new_key};
-    for (unsigned n = 0; (uint64_t{f.store.size()} + 1) * 100 < uint64_t{cap} * FlatStore::kLoadPct; n++) {
+    for (unsigned n = 0; (uint64_t{f.store.size()} + 1) * 100 < uint64_t{cap} * FlatStore::kLoadPct;
+         n++) {
         keys.push_back("fill-" + std::to_string(n));
         f.put(keys.back());
     }
@@ -429,7 +457,8 @@ static void atomic_growth_child() {
             "the atomic resize's old table reclaims after grace");
     for (const std::string& key : keys) {
         const KvObj* value = f.store.find(hash(key), slice(key));
-        require(value && value->str_value() == Slice("value"), "every key survives the atomic resize");
+        require(value && value->str_value() == Slice("value"),
+                "every key survives the atomic resize");
     }
     alarm(0);
     std::puts("PASS atomic growth reserves its resize retirement");
@@ -462,7 +491,7 @@ static void flush_prepared_child() {
     finish_resize(f, "owner maintenance advances the post-capture merge");
     const KvObj* value = f.store.find(hash("after-flush"), slice("after-flush"));
     require(value && value->str_value() == Slice("value") &&
-            !f.store.find(hash("before-flush"), slice("before-flush")) && f.store.size() == 1,
+                !f.store.find(hash("before-flush"), slice("before-flush")) && f.store.size() == 1,
             "the flush and the post-flush write both survive the merge");
     alarm(0);
     std::puts("PASS flush keeps a prepared snapshot's resize retirement");
@@ -472,10 +501,16 @@ static int retirement_check(void (*child)(), const char* name) {
     std::fflush(nullptr);
     const pid_t pid = fork();
     require(pid >= 0, "fork failed (no skip)");
-    if (pid == 0) { child(); std::fflush(nullptr); std::_Exit(0); }
+    if (pid == 0) {
+        child();
+        std::fflush(nullptr);
+        std::_Exit(0);
+    }
     int status = 0;
     pid_t result;
-    do { result = waitpid(pid, &status, 0); } while (result < 0 && errno == EINTR);
+    do {
+        result = waitpid(pid, &status, 0);
+    } while (result < 0 && errno == EINTR);
     require(result == pid, "wait for our own child");
     const bool ok = WIFEXITED(status) && WEXITSTATUS(status) == 0;
     if (WIFSIGNALED(status))
@@ -514,7 +549,8 @@ void CoreConcurrencyTest::idle_visit_bound() {
     const uint32_t rounds = 2 * (before.old_capacity / 8);
     for (uint32_t n = 0; n < rounds && store.rehashing(); n++)
         require(loop.active_expire_cycle() != 0, "round-robin resize debt keeps idle owner awake");
-    require(!store.rehashing(), "idle maintenance reaches every owned shard within its visit bound");
+    require(!store.rehashing(),
+            "idle maintenance reaches every owned shard within its visit bound");
     owner.shards().clear();
     alarm(0);
     std::puts("PASS maintenance idle owner with more shards than the visit budget");
@@ -526,16 +562,22 @@ static int maintenance_checks() {
         const pid_t pid = fork();
         require(pid >= 0, "maintenance fork");
         if (!pid) {
-            if (which < 2) maintenance_child(which == 1);
-            else if (which == 2) hash_expiry_child();
-            else if (which == 3) snapshot_retirement_child();
-            else CoreConcurrencyTest::idle_visit_bound();
+            if (which < 2)
+                maintenance_child(which == 1);
+            else if (which == 2)
+                hash_expiry_child();
+            else if (which == 3)
+                snapshot_retirement_child();
+            else
+                CoreConcurrencyTest::idle_visit_bound();
             std::fflush(nullptr);
             std::_Exit(0);
         }
         int status = 0;
         pid_t result;
-        do { result = waitpid(pid, &status, 0); } while (result < 0 && errno == EINTR);
+        do {
+            result = waitpid(pid, &status, 0);
+        } while (result < 0 && errno == EINTR);
         require(result == pid && WIFEXITED(status) && WEXITSTATUS(status) == 0,
                 "maintenance must return without a quiescence deadline");
     }
@@ -545,7 +587,8 @@ static int maintenance_checks() {
 int main(int argc, char** argv) {
     require(argc == 2, "usage: rehash-waits-unit lookups|retirement|expiry|<lookup>");
     const std::string selection = argv[1];
-    if (selection == "probeadapter" || selection == "lookups" || selection == "retirement" || selection == "foreign")
+    if (selection == "probeadapter" || selection == "lookups" || selection == "retirement" ||
+        selection == "foreign")
         probeadapter::states(0);
     if (selection == "probeadapter") return 0;
     if (selection == "maintenance") return maintenance_checks();
@@ -554,7 +597,8 @@ int main(int argc, char** argv) {
         return retirement_check(flush_prepared_child, "flush between snapshot prepare and mark");
     bool ok = run("blocking-control", true);
     if (selection == "lookups" || selection == "retirement") {
-        for (const char* kind : {"find", "no-touch", "notify", "resident", "tracked", "resolve", "foreign"})
+        for (const char* kind :
+             {"find", "no-touch", "notify", "resident", "tracked", "resolve", "foreign"})
             ok = run(kind) && ok;
         if (selection == "retirement") ok = run("expiry") && ok;
     } else {

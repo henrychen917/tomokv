@@ -88,8 +88,8 @@ bool acl_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed,
 bool acl_finish_dispatch_denial(IoLoop& loop, Client& client, Op& op, uint32_t consumed,
                                 AclDeniedReason denied, uint32_t denied_arg);
 void acl_command_entry(IoLoop& loop, Client& client, Op& op);
-void acl_broadcast_user_change(IoLoop& loop, uint32_t user_index,
-                               const AclPerm* permissions, bool deleted);
+void acl_broadcast_user_change(IoLoop& loop, uint32_t user_index, const AclPerm* permissions,
+                               bool deleted);
 
 bool acl_pubsub_channel_entry(Client& client, Op& op, bool pattern, ThreadCtx& thread);
 bool acl_channel_allowed_any(const AclPerm& permissions, Slice channel, bool literal_pattern);
@@ -100,8 +100,8 @@ bool acl_reply_sort_option_denied(Op& op, AclDeniedReason reason, uint32_t denie
 // EXEC preflight sees earlier SETUSER changes to its own caller without
 // publishing any ACL side effect from an attempt that can still abort.
 AclDeniedReason acl_check_multi(uint32_t user_index, const CommandSpec& spec,
-                               const std::vector<std::string>& argv,
-                               std::unique_ptr<AclPerm>& permissions, uint32_t* denied_arg);
+                                const std::vector<std::string>& argv,
+                                std::unique_ptr<AclPerm>& permissions, uint32_t* denied_arg);
 // Live ACL check of a parked command, by whichever thread is about to run it (or retire a reply
 // it never executed for). True means it denied: the reply is now exactly that denial.
 bool acl_recheck_blocking(Client& client, Op& op, ThreadCtx& thread);

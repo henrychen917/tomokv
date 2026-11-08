@@ -77,7 +77,7 @@ namespace tomo {
 // in the ROB's own header, because it is the ROB's bound and because the read-local write ring
 // below is sized FROM it -- one number, so the ring can never drift out of step with the window
 // its unreachability proof is written against. net/conn.h re-exports it by including this file.
-inline constexpr uint32_t kRobWindow = 64;   // max in-flight ops per connection
+inline constexpr uint32_t kRobWindow = 64;  // max in-flight ops per connection
 
 // COLD-PATH COUNTERS FOR ARM-ON-DEMAND. Three events, none of them on a hot
 // path: a connection being armed, its RYOW sidecar being allocated, and one write being committed
@@ -88,9 +88,9 @@ inline constexpr uint32_t kRobWindow = 64;   // max in-flight ops per connection
 // block (installed at adopt and re-pointed at the migration edge) so that net/ need not know what
 // a ThreadCtx is; core/thread.h embeds one by value inside ReadLocalStats.
 struct ReadLocalArmStats {
-    uint64_t arms = 0;                  // connections a local read armed
-    uint64_t sidecars = 0;              // RYOW write-ring sidecars allocated (never at accept)
-    uint64_t write_ring_records = 0;    // writes committed into the RYOW write ring
+    uint64_t arms = 0;                // connections a local read armed
+    uint64_t sidecars = 0;            // RYOW write-ring sidecars allocated (never at accept)
+    uint64_t write_ring_records = 0;  // writes committed into the RYOW write ring
 };
 
 // Allocated only for connections served by the boot-armed fused read-local lane. The connection's
@@ -117,8 +117,7 @@ struct alignas(64) ReadLocalRobState {
     static_assert(kMaxPreciseKeysetKeys <= kWriteRingCapacity);
 
     static constexpr uint64_t keyset_filter(uint64_t hash) {
-        return (uint64_t{1} << (hash & 63)) |
-               (uint64_t{1} << ((hash >> 32) & 63));
+        return (uint64_t{1} << (hash & 63)) | (uint64_t{1} << ((hash >> 32) & 63));
     }
 
     enum class PendingWrite : uint8_t { None, Hash, Keyset, Overflow };
@@ -154,8 +153,7 @@ struct alignas(64) ReadLocalRobState {
 static_assert(alignof(ReadLocalRobState) >= 4, "read-local sidecar pointer uses its two low bits");
 // write_count is compared against the capacity and must be able to HOLD it, even though the
 // structural argument above says it never reaches it.
-static_assert(ReadLocalRobState::kWriteRingCapacity <=
-                  static_cast<uint32_t>(UINT8_MAX),
+static_assert(ReadLocalRobState::kWriteRingCapacity <= static_cast<uint32_t>(UINT8_MAX),
               "write_head/write_count are uint8_t");
 // THE PER-CONNECTION BILL, LOCKED LIKE EVERY OTHER LAYOUT IN THIS TREE. 1216 bytes, which jemalloc
 // rounds to its 1280-byte class -- measured as +965 bytes of RSS per connection that owns one
@@ -184,9 +182,7 @@ struct ReadLocalPendingFilter {
     static constexpr uint32_t word_of(uint64_t hash) {
         return static_cast<uint32_t>((hash >> 6) & (kWords - 1));
     }
-    void add(uint64_t hash) {
-        words[word_of(hash)] |= ReadLocalRobState::keyset_filter(hash);
-    }
+    void add(uint64_t hash) { words[word_of(hash)] |= ReadLocalRobState::keyset_filter(hash); }
     bool may_contain(uint64_t hash) const {
         const uint64_t bits = ReadLocalRobState::keyset_filter(hash);
         return (words[word_of(hash)] & bits) == bits;
@@ -211,11 +207,11 @@ class Rob {
 public:
     // ---- producer side (the parser / io thread) ------------------------------------------------
     uint64_t dispatch_id() const { return dispatch_.load(std::memory_order_relaxed); }
-    uint64_t flush_id()    const { return flush_.load(std::memory_order_acquire); }
+    uint64_t flush_id() const { return flush_.load(std::memory_order_acquire); }
 
     uint32_t in_flight() const { return static_cast<uint32_t>(dispatch_id() - flush_id()); }
-    bool     full()      const { return in_flight() >= Capacity; }
-    bool     quiesced()  const { return dispatch_id() == flush_id(); }
+    bool full() const { return in_flight() >= Capacity; }
+    bool quiesced() const { return dispatch_id() == flush_id(); }
 
     // Claim the next slot to fill. Null when the window is full — the caller must stop parsing and
     // let the sender drain. That backpressure is what bounds memory under a client that pipelines
@@ -310,7 +306,7 @@ public:
     // `op_id` must be the current dispatch id -- the caller has just loaded it to name the op it
     // is about to publish (io_loop.h, the read-local accept arm), so the load is not repeated here.
     __attribute__((always_inline)) void mark_current_read_local(
-            uint64_t op_id, const ReadLocalPendingFilter& keys) {
+        uint64_t op_id, const ReadLocalPendingFilter& keys) {
         mark_current_read_local_slot(op_id);
         read_local_pending_filter_.merge(keys);
     }
@@ -320,8 +316,8 @@ public:
     // MSET branch for such an op and compares op.hash alone, and the keyset overlap predicates use
     // read.hash alone. Merging a four-word summary whose other three words the caller had just
     // zeroed set the identical bits at three times the traffic.
-    __attribute__((always_inline)) void mark_current_read_local_hash(
-            uint64_t op_id, uint64_t hash) {
+    __attribute__((always_inline)) void mark_current_read_local_hash(uint64_t op_id,
+                                                                     uint64_t hash) {
         mark_current_read_local_slot(op_id);
         read_local_pending_filter_.add(hash);
     }
@@ -396,7 +392,8 @@ public:
         if constexpr (Capacity == 64) {
             asm volatile("tomo_rlfence_retire %2, %0, %1"
                          : "+r"(bits), "+m"(local_mget_fence_id_)
-                         : "r"(read_local_pending_slots_) : "rsi", "cc");
+                         : "r"(read_local_pending_slots_)
+                         : "rsi", "cc");
             read_local_pending_slots_ = bits;
             if (!bits) read_local_pending_filter_.clear();
         } else
@@ -445,8 +442,7 @@ public:
 
     void publish_pending_read_local_to_owner(uint64_t op_id) {
         const uint64_t bit = uint64_t{1} << (static_cast<uint32_t>(op_id) & kMask);
-        if (!(read_local_pending_slots_ & bit) || (read_local_owner_slots_ & bit))
-            std::abort();
+        if (!(read_local_pending_slots_ & bit) || (read_local_owner_slots_ & bit)) std::abort();
         read_local_retire_pending_bit(bit);
         read_local_owner_slots_ |= bit;
         read_local_clear_mget_fence(op_id);
@@ -501,8 +497,7 @@ public:
     // Mark an owner-routed read (or the precise point operation that forced its demotion). Younger
     // reads consult this slot only when their keysets overlap; ROB retirement alone orders replies.
     void extend_current_read_local_owner() {
-        read_local_owner_slots_ |=
-            uint64_t{1} << (static_cast<uint32_t>(dispatch_id()) & kMask);
+        read_local_owner_slots_ |= uint64_t{1} << (static_cast<uint32_t>(dispatch_id()) & kMask);
     }
 
     // Stage a conservative write record before the parser enters ACL/special lowering. The next
@@ -596,7 +591,7 @@ public:
     // staged slot, which tag equality cannot speak for) pays the walk.
     template <typename KeysetTouchesHash>
     __attribute__((always_inline)) bool read_local_write_conflicts(
-            uint64_t hash, KeysetTouchesHash&& keyset_touches_hash) {
+        uint64_t hash, KeysetTouchesHash&& keyset_touches_hash) {
         // ARM ON DEMAND, THE READ HALF. ONE predictable test, on a word this
         // frame's acquire_read_local has already pulled into L1 with dispatch_, and nothing is
         // evaluated behind it: a connection in steady state (armed, no arming generation left in
@@ -611,7 +606,8 @@ public:
         const uintptr_t state_word = read_local_state_;
         if (state_word == 0 || (state_word & kReadLocalStateInactive) != 0) return false;
         if ((state_word & kReadLocalStateStaged) == 0 &&
-            !read_local_write_tag_may_match(state_word, hash)) return false;
+            !read_local_write_tag_may_match(state_word, hash))
+            return false;
         return read_local_write_conflicts_pending(
             hash, static_cast<KeysetTouchesHash&&>(keyset_touches_hash));
     }
@@ -622,16 +618,17 @@ public:
     // cache line. Only a connection that really is carrying live precise writes reaches the tag
     // mirror in the sidecar, and for such a connection those two lines are hot -- its own write
     // frames wrote them.
-    __attribute__((always_inline)) bool read_local_write_tag_may_match(
-            uintptr_t state_word, uint64_t hash) const {
+    __attribute__((always_inline)) bool read_local_write_tag_may_match(uintptr_t state_word,
+                                                                       uint64_t hash) const {
         if (read_local_write_force_) return true;
         const uint64_t live = read_local_write_valid_;
         if (!live) return false;
         // A live keyset slot stores a key filter, not a hash: no tag can reject it, and there is
         // nothing to gain by finding out which one it is.
         if (read_local_write_wide_ & live) return true;
-        const uint16_t* tags = reinterpret_cast<const ReadLocalRobState*>(
-            state_word & ~kReadLocalStateTagBits)->write_tags;
+        const uint16_t* tags =
+            reinterpret_cast<const ReadLocalRobState*>(state_word & ~kReadLocalStateTagBits)
+                ->write_tags;
         const uint16_t tag = static_cast<uint16_t>(hash);
         // SIXTEEN LANES AT A TIME, AND ONLY OVER THE GROUPS THAT HOLD SOMETHING.
         //
@@ -663,8 +660,7 @@ public:
         // fencing every read. That is the whole trade, and it is why the walk is bounded by live.
         uint64_t rest = live;
         do {
-            const uint32_t g =
-                static_cast<uint32_t>(__builtin_ctzll(rest)) / kTagLanes;
+            const uint32_t g = static_cast<uint32_t>(__builtin_ctzll(rest)) / kTagLanes;
             const uint32_t shift = g * kTagLanes;
             const uint32_t live_g = static_cast<uint32_t>(rest >> shift) & 0xFFFFu;
             uint32_t hits = 0;
@@ -683,13 +679,11 @@ public:
     // write published during that overflow generation has retired. Unchanged from the merged form.
     template <typename KeysetTouchesHash>
     __attribute__((noinline)) bool read_local_write_conflicts_pending(
-            uint64_t hash, KeysetTouchesHash&& keyset_touches_hash) {
+        uint64_t hash, KeysetTouchesHash&& keyset_touches_hash) {
         ReadLocalRobState& state = read_local_state_required();
-        const bool has_keysets =
-            state.pending_write == ReadLocalRobState::PendingWrite::Keyset ||
-            state.write_keyset_slots != 0;
-        const uint64_t probe_filter = has_keysets
-            ? ReadLocalRobState::keyset_filter(hash) : 0;
+        const bool has_keysets = state.pending_write == ReadLocalRobState::PendingWrite::Keyset ||
+                                 state.write_keyset_slots != 0;
+        const uint64_t probe_filter = has_keysets ? ReadLocalRobState::keyset_filter(hash) : 0;
         // acquire_read_local normally resolves this first. Preserve the no-false-negative contract
         // if a future armed caller probes without acquiring through that door.
         if (state.pending_write == ReadLocalRobState::PendingWrite::Overflow) return true;
@@ -712,9 +706,8 @@ public:
             return false;
         }
         for (uint32_t i = 0; i < state.write_count; i++) {
-            const uint32_t at =
-                (static_cast<uint32_t>(state.write_head) + i) &
-                (ReadLocalRobState::kWriteRingCapacity - 1);
+            const uint32_t at = (static_cast<uint32_t>(state.write_head) + i) &
+                                (ReadLocalRobState::kWriteRingCapacity - 1);
             if (state.write_keyset_slots & (uint64_t{1} << at)) {
                 if ((state.write_ring[at].hash & probe_filter) == probe_filter &&
                     keyset_touches_hash(this->at(state.write_ring[at].op_id), hash))
@@ -748,9 +741,7 @@ public:
     // True while reads on this connection are being demoted by the ARMING TRANSIENT rather than by
     // an explicit key conflict. The parser reads it only on the demote path, to attribute the
     // fallback; it is never consulted by a read that is being served.
-    bool read_local_arm_fence_live() const {
-        return read_local_arm_state_ == kReadLocalArmFence;
-    }
+    bool read_local_arm_fence_live() const { return read_local_arm_state_ == kReadLocalArmFence; }
 
     // Test hook: the unarmed/armed/transient state, so the unit test can assert the transition
     // rather than infer it. 1 = unarmed, 2 = armed with pre-arming writes still in flight, 0 =
@@ -768,11 +759,11 @@ public:
         while (f != d) {
             Op& op = *slot(static_cast<uint32_t>(f) & kMask, false);
             if (op.state.load(std::memory_order_acquire) != OpState::Done) break;
-            sink(op);                                   // the acquire above orders the reply bytes
+            sink(op);  // the acquire above orders the reply bytes
 #ifdef TOMO_TXNORDER_DEBUG
             txn_debug_writer_retire(&op);
 #endif
-            if (op.oversized()) op.shrink();            // bounded retention: bursts do not pin heap
+            if (op.oversized()) op.shrink();  // bounded retention: bursts do not pin heap
             op.state.store(OpState::Free, std::memory_order_relaxed);
             f++;
             n++;
@@ -795,7 +786,7 @@ public:
 
 private:
     static constexpr uint32_t kChunkOps = 8;
-    static constexpr uint32_t kChunks   = Capacity / kChunkOps;
+    static constexpr uint32_t kChunks = Capacity / kChunkOps;
     static_assert(Capacity % kChunkOps == 0);
 
     // may_grow is true only from acquire() — the parser. Everyone else dereferences ground the
@@ -807,8 +798,10 @@ private:
     }
 
     static constexpr uint64_t capacity_slots_mask() {
-        if constexpr (Capacity == 64) return UINT64_MAX;
-        else return (uint64_t{1} << Capacity) - 1;
+        if constexpr (Capacity == 64)
+            return UINT64_MAX;
+        else
+            return (uint64_t{1} << Capacity) - 1;
     }
 
     static uint64_t active_slots_mask(uint64_t dispatch, uint64_t flush) {
@@ -828,8 +821,7 @@ private:
     // so there is always a free ring slot. Wide writes still start conservative generations.
     static_assert(ReadLocalRobState::kWriteRingCapacity >= Capacity,
                   "the RYOW write ring must cover the whole ROB window");
-    static_assert(ReadLocalRobState::kWriteRingCapacity <= 64,
-                  "valid_/wide_ slot bitmap width");
+    static_assert(ReadLocalRobState::kWriteRingCapacity <= 64, "valid_/wide_ slot bitmap width");
     // The tag sweep's vector width. Sixteen because that is the group size GCC turns into a
     // vpcmpeqw plus a bit-weight OR-reduction; see read_local_write_tag_may_match.
     static constexpr uint32_t kTagLanes = 16;
@@ -844,7 +836,7 @@ private:
     // Staged is a strict subset of "active": staging activates first, and deactivation is refused
     // while a candidate is parked (read_local_try_deactivate tests pending_write == None).
     static constexpr uintptr_t kReadLocalStateInactive = 1;
-    static constexpr uintptr_t kReadLocalStateStaged   = 2;
+    static constexpr uintptr_t kReadLocalStateStaged = 2;
     static constexpr uintptr_t kReadLocalStateTagBits =
         kReadLocalStateInactive | kReadLocalStateStaged;
 
@@ -861,7 +853,7 @@ private:
     // an interleaved connection it would never end and no read would ever be served locally again.
     // This fence is fixed at arming and is never extended; writes published after arming take
     // ordinary ring slots underneath it and are exact the moment it lifts.
-    static constexpr uint32_t kReadLocalUnarmed  = 1;
+    static constexpr uint32_t kReadLocalUnarmed = 1;
     static constexpr uint32_t kReadLocalArmFence = 2;
 
     // Cold half of the probe's arming gate. Returns true when this read must take the OWNER path:
@@ -892,8 +884,7 @@ private:
     }
 
     ReadLocalRobState* read_local_state_ptr() const {
-        return reinterpret_cast<ReadLocalRobState*>(
-            read_local_state_ & ~kReadLocalStateTagBits);
+        return reinterpret_cast<ReadLocalRobState*>(read_local_state_ & ~kReadLocalStateTagBits);
     }
     // "resolve_read_local_write() has work": exactly mark_current_write()'s parked candidate.
     bool read_local_state_staged() const {
@@ -957,18 +948,17 @@ private:
         }
         uint64_t retired_slots = 0;
         while (state.write_count &&
-               !read_local_id_active(
-                   state.write_ring[state.write_head].op_id, dispatch, flush)) {
+               !read_local_id_active(state.write_ring[state.write_head].op_id, dispatch, flush)) {
             state.write_keyset_slots &= ~(uint64_t{1} << state.write_head);
             retired_slots |= uint64_t{1} << state.write_head;
-            state.write_head = static_cast<uint8_t>(
-                (state.write_head + 1) & (ReadLocalRobState::kWriteRingCapacity - 1));
+            state.write_head = static_cast<uint8_t>((state.write_head + 1) &
+                                                    (ReadLocalRobState::kWriteRingCapacity - 1));
             state.write_count--;
         }
         if (!state.write_count) {
             state.write_head = 0;
             state.write_keyset_slots = 0;
-            read_local_write_reset_slots();      // overflow is false here, so force_ is already 0
+            read_local_write_reset_slots();  // overflow is false here, so force_ is already 0
             return;
         }
         // One pair of stores for the whole retired prefix rather than a pair per slot: the loop
@@ -1038,9 +1028,8 @@ private:
             return;
         }
 
-        const uint32_t tail =
-            (static_cast<uint32_t>(state.write_head) + state.write_count) &
-            (ReadLocalRobState::kWriteRingCapacity - 1);
+        const uint32_t tail = (static_cast<uint32_t>(state.write_head) + state.write_count) &
+                              (ReadLocalRobState::kWriteRingCapacity - 1);
         state.write_ring[tail] = ReadLocalRobState::WriteKey{hash, op_id};
         // THE bookkeeping this lane exists to remove from unarmed streams. Counted here, at the
         // single commit point, so "pure SET does zero ring bookkeeping" is a number in INFO and

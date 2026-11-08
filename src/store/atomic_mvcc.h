@@ -29,12 +29,12 @@ struct AtomicEntry {
     std::atomic<bool>* group_aborted = nullptr;
     uint32_t* owner_refs = nullptr;
     uint64_t origin_conn_id = 0;
-    uint64_t epoch = 0;                  // plain pseudo-entry; groups use group_epoch
+    uint64_t epoch = 0;  // plain pseudo-entry; groups use group_epoch
     uint64_t plain_hash = 0;
     uint64_t membership = 0;
     size_t allocation = 0;
-    uint32_t begin = 0;                  // key_order span in ScatterState
-    uint32_t count = 0;                  // installed prefix of the span
+    uint32_t begin = 0;  // key_order span in ScatterState
+    uint32_t count = 0;  // installed prefix of the span
     uint32_t capacity = 0;
     uint32_t key_len = 0;
     bool linked = false;
@@ -47,7 +47,7 @@ struct AtomicEntry {
     uint8_t key_ns = 0;
     bool namespace_range = false;
     bool range_all = false;
-    uint16_t range_padding = 0; // merge tail initialization into the existing store
+    uint16_t range_padding = 0;  // merge tail initialization into the existing store
 
     KvObj** parked() { return reinterpret_cast<KvObj**>(this + 1); }
     KvObj* const* parked() const { return reinterpret_cast<KvObj* const*>(this + 1); }
@@ -55,15 +55,11 @@ struct AtomicEntry {
     const char* plain_key_data() const {
         return reinterpret_cast<const char*>(parked() + capacity);
     }
-    uint32_t* group_key_offsets() {
-        return reinterpret_cast<uint32_t*>(parked() + capacity);
-    }
+    uint32_t* group_key_offsets() { return reinterpret_cast<uint32_t*>(parked() + capacity); }
     const uint32_t* group_key_offsets() const {
         return reinterpret_cast<const uint32_t*>(parked() + capacity);
     }
-    char* group_key_data() {
-        return reinterpret_cast<char*>(group_key_offsets() + capacity);
-    }
+    char* group_key_data() { return reinterpret_cast<char*>(group_key_offsets() + capacity); }
     const char* group_key_data() const {
         return reinterpret_cast<const char*>(group_key_offsets() + capacity);
     }
@@ -81,7 +77,7 @@ static_assert(sizeof(AtomicEntry) == 144);
 // bytes make the intent independent of the IO-owned request buffer.
 struct AtomicScriptIntent {
     uint32_t key_ns = 0;
-    uint32_t kind = 0;                 // 0: script PIN; 1: unit key; 2: unit shard
+    uint32_t kind = 0;  // 0: script PIN; 1: unit key; 2: unit shard
     AtomicScriptIntent* next = nullptr;
     uint64_t hash = 0;
     uint32_t refs = 0;
@@ -160,9 +156,10 @@ struct AtomicPendingState {
         // These two bytes are owner-only. Never widen this update over
         // read_local_extended: foreign readers inspect that immutable byte.
         uint16_t flags;
-        auto* flags_at = reinterpret_cast<char*>(this) + offsetof(AtomicPendingState, group_installing);
+        auto* flags_at =
+            reinterpret_cast<char*>(this) + offsetof(AtomicPendingState, group_installing);
         std::memcpy(&flags, flags_at, sizeof(flags));
-        flags += 0xffu; // installed flag 1 -> 0, group count +1 modulo 256
+        flags += 0xffu;  // installed flag 1 -> 0, group count +1 modulo 256
         std::memcpy(flags_at, &flags, sizeof(flags));
     }
 };
@@ -222,7 +219,7 @@ struct AtomicCollapseKey {
 
 struct AtomicCollapseSlot {
     uint64_t hash = 0;
-    uint32_t index = 0;                  // collapse_keys_ index + 1; zero is empty
+    uint32_t index = 0;  // collapse_keys_ index + 1; zero is empty
 };
 
 struct AtomicSeenKey {
@@ -235,14 +232,12 @@ struct AtomicSeenKey {
 // contexts whose cut is UINT64_MAX. No reader retries or waits on that decision.
 inline constexpr uint64_t kAtomicCancelledEpoch = UINT64_MAX;
 static uint64_t atomic_epoch(const AtomicEntry& entry) {
-    const uint64_t epoch = entry.group_epoch
-        ? entry.group_epoch->load(std::memory_order_acquire) : entry.epoch;
+    const uint64_t epoch =
+        entry.group_epoch ? entry.group_epoch->load(std::memory_order_acquire) : entry.epoch;
     return epoch == kAtomicCancelledEpoch ? 0 : epoch;
 }
 
-static uint64_t atomic_membership_bit(uint64_t hash) {
-    return uint64_t{1} << (hash & 63);
-}
+static uint64_t atomic_membership_bit(uint64_t hash) { return uint64_t{1} << (hash & 63); }
 
 // One definition, shared with the owner's block cache so the two size-class tables cannot drift.
 static uint32_t atomic_pool_class(size_t allocation) { return kv_block_class(allocation); }

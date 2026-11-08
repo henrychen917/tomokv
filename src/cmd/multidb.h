@@ -26,9 +26,20 @@ class Ring;
 #ifdef TOMO_MDBQSBR_TEST
 // Deterministic interleavings/faults; absent from production and measurement arms.
 struct DatabaseMapTestHooks {
-    enum Fault { None, ImmediateFree, NoReclaim, SampledEven, NestedAck,
-                 OmitIo, GlobalIdle, CommitAllocation, JournalOrder, SecondLoad,
-                 NoWake, IgnoreStop };
+    enum Fault {
+        None,
+        ImmediateFree,
+        NoReclaim,
+        SampledEven,
+        NestedAck,
+        OmitIo,
+        GlobalIdle,
+        CommitAllocation,
+        JournalOrder,
+        SecondLoad,
+        NoWake,
+        IgnoreStop
+    };
     inline static Fault fault = None;
     inline static Server* server = nullptr;
     inline static uint64_t sampled_even = 0;
@@ -54,7 +65,9 @@ public:
     static_assert(kPayloadBytes == UINT8_MAX + 1u, "one map byte per logical database");
     struct Map : Payload {
         uint32_t epoch = 0;
-        Map() { for (unsigned i = 0; i < size(); ++i) (*this)[i] = i; }
+        Map() {
+            for (unsigned i = 0; i < size(); ++i) (*this)[i] = i;
+        }
 #ifdef TOMO_MDBQSBR_TEST
         static void* operator new(size_t n) {
             void* p = ::operator new(n);
@@ -92,6 +105,7 @@ public:
 #endif
         uint8_t operator[](uint8_t db) const { return map_ ? (*map_)[db] : db; }
         uint32_t epoch() const { return map_ ? map_->epoch : 0; }
+
     private:
 #if defined(TOMO_MDBQSBR_PAD) && !TOMO_SINGLE_DATABASE
         const DatabaseMap& owner_;
@@ -102,7 +116,8 @@ public:
         if constexpr (kSingleDatabase) return false;
         return current_.load(std::memory_order_acquire) != nullptr;
     }
-    bool swap(uint8_t first, uint8_t second, AofProducer* journal = nullptr, uint64_t client_id = 0);
+    bool swap(uint8_t first, uint8_t second, AofProducer* journal = nullptr,
+              uint64_t client_id = 0);
     bool prepare_publish(const Map& map, std::unique_ptr<Map>& prepared);
     void publish_prepared(std::unique_ptr<Map> prepared);
     bool restore(const uint8_t* bytes);
@@ -132,6 +147,7 @@ public:
             map_.worker_entered(tid_);
         }
         ~WorkerLifetime() { map_.worker_exited(tid_); }
+
     private:
         DatabaseMap& map_;
         uint32_t tid_;
@@ -139,7 +155,7 @@ public:
     bool reclamation_pending() const {
         if constexpr (kSingleDatabase) return false;
 #ifdef TOMO_MDBQSBR_PAD
-        return false; // type A control: PRE reclaims only at writer-observed zero
+        return false;  // type A control: PRE reclaims only at writer-observed zero
 #else
         return grace_work_.load(std::memory_order_relaxed) != 0;
 #endif
@@ -159,6 +175,7 @@ public:
     void release_swap(const void* token) {
         swapping_.compare_exchange_strong(token, nullptr, std::memory_order_acq_rel);
     }
+
 private:
     friend struct DatabaseMapTest;
     struct State;
@@ -218,10 +235,12 @@ bool multidb_prepare_move(Server& server, Op& op);
 Slice multidb_display_argument(const Op& op, uint32_t argument);
 bool multidb_validate_swap(Server& server, Op& op);
 bool multidb_commit_swap(Server& server, Shard& shard, Op& op, uint64_t client_id = 0);
-struct DatabaseStats { uint64_t keys = 0, expires = 0, ttl = 0, subexpiry = 0; };
+struct DatabaseStats {
+    uint64_t keys = 0, expires = 0, ttl = 0, subexpiry = 0;
+};
 using DatabaseStatsTable = std::array<DatabaseStats, 256>;
 void multidb_stats(Shard& shard, DatabaseStatsTable& stats);
 void command_info_with_databases(Server& server, Op& op, const DatabaseStatsTable& stats);
 bool storesize_published_route();
 bool storesize_field_census(const Server& server);
-} // namespace tomo
+}  // namespace tomo

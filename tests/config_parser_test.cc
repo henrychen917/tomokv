@@ -48,8 +48,7 @@ struct StderrSilencer {
     }
 };
 
-std::string rejection_text(std::initializer_list<const char*> values,
-                           bool validate = false) {
+std::string rejection_text(std::initializer_list<const char*> values, bool validate = false) {
     std::FILE* capture = std::tmpfile();
     if (!capture) fail("tmpfile for stderr capture failed");
     const int saved_stderr = ::dup(STDERR_FILENO);
@@ -84,7 +83,8 @@ void documented_example() {
     const std::string markdown((std::istreambuf_iterator<char>(document)), {});
     const std::string marker = "```conf\n";
     const size_t begin = markdown.find(marker);
-    if (begin == std::string::npos || markdown.find(marker, begin + marker.size()) != std::string::npos)
+    if (begin == std::string::npos ||
+        markdown.find(marker, begin + marker.size()) != std::string::npos)
         fail("expected exactly one documented config example");
     const size_t end = markdown.find("\n```", begin + marker.size());
     if (end == std::string::npos) fail("unterminated documented config example");
@@ -104,14 +104,15 @@ void documented_example() {
     if (!loaded) fail("documented config example did not tokenize");
     tomo::Config config;
     tomo::ConfigParseState state;
-    if (tomo::parse_config_file(storage, line_ends, config, state, "docs-example") != tomo::kConfigParsed ||
+    if (tomo::parse_config_file(storage, line_ends, config, state, "docs-example") !=
+            tomo::kConfigParsed ||
         tomo::parse_config_args({"--ratio", "6:2", "--dir", "/tmp"}, config, state, 2,
                                 "docs-example") != tomo::kConfigParsed ||
         tomo::validate_config(config) != tomo::kConfigParsed)
         fail("documented config example must parse and validate");
     if (config.thread_mode != tomo::ThreadMode::Split || config.port != 6399 ||
-        config.shards != 16 || config.read_local || config.reorder ||
-        config.key_lb != 1 || config.client_lb != 1 || config.slowlog_log_slower_than != 10000 ||
+        config.shards != 16 || config.read_local || config.reorder || config.key_lb != 1 ||
+        config.client_lb != 1 || config.slowlog_log_slower_than != 10000 ||
         tomo::cfg_save_schedule_string(config.save) != "3600 1 300 100 60 10000")
         fail("documented config example posture differs");
     cpu_set_t allowed;
@@ -145,7 +146,8 @@ void authfix_parser() {
         std::ofstream file(path);
         file << text;
         file.close();
-        storage.clear(); ends.clear();
+        storage.clear();
+        ends.clear();
         return tomo::load_conf_file(path, storage, &ends);
     };
     for (const std::string escaped : {"cg4\\x00tail", "\\x00tail"}) {
@@ -162,17 +164,20 @@ void authfix_parser() {
         if (tomo::cfg_requirepass(cfg).sv() != expected || cfg.save.size() != 2)
             fail("config lost password bytes or repeated save lines");
         if (tomo::parse_config_args({"--requirepass", "override"}, cfg, state, 2, "authfix") !=
-                tomo::kConfigParsed || tomo::cfg_requirepass(cfg).sv() != "override")
+                tomo::kConfigParsed ||
+            tomo::cfg_requirepass(cfg).sv() != "override")
             fail("CLI password override retained file length");
         if (tomo::parse_config_args({"--requirepass", ""}, cfg, state, 2, "authfix") !=
-                tomo::kConfigParsed || !tomo::cfg_requirepass(cfg).empty())
+                tomo::kConfigParsed ||
+            !tomo::cfg_requirepass(cfg).empty())
             fail("explicit empty password rejected");
     }
     for (const char* words : {"nosave now", "save force", "default now", "nosave now force"}) {
         std::vector<std::string> storage;
         std::vector<size_t> ends;
-        if (!load(std::string("shutdown-on-sigterm ") + words +
-                  "\nshutdown-on-sigint " + words + "\n", storage, ends))
+        if (!load(std::string("shutdown-on-sigterm ") + words + "\nshutdown-on-sigint " + words +
+                      "\n",
+                  storage, ends))
             fail("multiword shutdown policy rejected by config file loader");
         tomo::Config cfg;
         tomo::ConfigParseState state;
@@ -185,11 +190,28 @@ void authfix_parser() {
     }
     {
         StderrSilencer silence;
-        for (const char* name : {"requirepass", "aclfile", "unixsocket", "tls-cert-file",
-                "tls-key-file", "tls-ca-cert-file", "tls-ca-cert-dir", "tls-protocols",
-                "tls-ciphers", "tls-ciphersuites", "latency-monitor-threshold", "ratio",
-                "shard-home", "place", "port", "dir", "dbfilename", "appendfilename",
-                "appenddirname", "save", "user", "client-output-buffer-limit"}) {
+        for (const char* name : {"requirepass",
+                                 "aclfile",
+                                 "unixsocket",
+                                 "tls-cert-file",
+                                 "tls-key-file",
+                                 "tls-ca-cert-file",
+                                 "tls-ca-cert-dir",
+                                 "tls-protocols",
+                                 "tls-ciphers",
+                                 "tls-ciphersuites",
+                                 "latency-monitor-threshold",
+                                 "ratio",
+                                 "shard-home",
+                                 "place",
+                                 "port",
+                                 "dir",
+                                 "dbfilename",
+                                 "appendfilename",
+                                 "appenddirname",
+                                 "save",
+                                 "user",
+                                 "client-output-buffer-limit"}) {
             for (const char* tail : {"", "bind 127.0.0.1\n"}) {
                 std::vector<std::string> storage;
                 std::vector<size_t> ends;
@@ -199,7 +221,8 @@ void authfix_parser() {
         }
         tomo::Config cfg;
         tomo::ConfigParseState state;
-        if (tomo::parse_config_args({"--requirepass"}, cfg, state, 2, "authfix") != tomo::kConfigError)
+        if (tomo::parse_config_args({"--requirepass"}, cfg, state, 2, "authfix") !=
+            tomo::kConfigError)
             fail("value-less CLI requirepass accepted");
     }
     ::unlink(path);
@@ -216,8 +239,9 @@ int main() {
     if (!file) fail("fdopen failed");
 
     std::fputs("  # leading comments are skipped after trimming\n", file);
-    std::fputs("user alice on #0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef >\"pass phrase\" ~*\n",
-               file);
+    std::fputs(
+        "user alice on #0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef >\"pass phrase\" ~*\n",
+        file);
     std::fputs("requirepass 'single quoted value'\n", file);
     std::fputs("reorder 1\n", file);
     if (std::fclose(file) != 0) fail("fclose failed");
@@ -243,10 +267,12 @@ int main() {
     tomo::Config reorder_file;
     tomo::ConfigParseState reorder_file_state;
     if (tomo::parse_config_args({tokens[tokens.size() - 2].c_str(), tokens.back().c_str()},
-                               reorder_file, reorder_file_state, 1, "conf") !=
-            tomo::kConfigParsed || reorder_file.reorder != 1 ||
-        tomo::parse_config_args({"--reorder", "0"}, reorder_file, reorder_file_state,
-                                2, "cli") != tomo::kConfigParsed || reorder_file.reorder != 0)
+                                reorder_file, reorder_file_state, 1,
+                                "conf") != tomo::kConfigParsed ||
+        reorder_file.reorder != 1 ||
+        tomo::parse_config_args({"--reorder", "0"}, reorder_file, reorder_file_state, 2, "cli") !=
+            tomo::kConfigParsed ||
+        reorder_file.reorder != 0)
         fail("reorder conf-file grammar or CLI override differs");
 
     std::vector<std::string> inline_hash;
@@ -255,8 +281,8 @@ int main() {
         fail("inline '#' was treated as a comment");
 
     std::vector<std::string> escaped;
-    if (!tomo::cfg_split_args("requirepass \"a\\n\\x23b\"", escaped) ||
-        escaped.size() != 2 || escaped[1] != "a\n#b")
+    if (!tomo::cfg_split_args("requirepass \"a\\n\\x23b\"", escaped) || escaped.size() != 2 ||
+        escaped[1] != "a\n#b")
         fail("double-quoted Redis escapes were not decoded");
 
     std::vector<std::string> malformed;
@@ -267,20 +293,34 @@ int main() {
     tomo::Config tls;
     tomo::ConfigParseState tls_state;
     const std::vector<const char*> tls_args = {
-        "--port", "0", "--tls-port", "7953",
-        "--tls-cert-file", "/cert.pem", "--tls-key-file", "/key.pem",
-        "--tls-ca-cert-file", "/ca.pem", "--tls-ca-cert-dir", "/ca-dir",
-        "--tls-auth-clients", "OpTiOnAl",
-        "--tls-protocols", "TLSv1.2 TLSv1.3",
-        "--tls-ciphers", "DEFAULT", "--tls-ciphersuites", "TLS_AES_256_GCM_SHA384",
-        "--tls-prefer-server-ciphers", "YeS",
+        "--port",
+        "0",
+        "--tls-port",
+        "7953",
+        "--tls-cert-file",
+        "/cert.pem",
+        "--tls-key-file",
+        "/key.pem",
+        "--tls-ca-cert-file",
+        "/ca.pem",
+        "--tls-ca-cert-dir",
+        "/ca-dir",
+        "--tls-auth-clients",
+        "OpTiOnAl",
+        "--tls-protocols",
+        "TLSv1.2 TLSv1.3",
+        "--tls-ciphers",
+        "DEFAULT",
+        "--tls-ciphersuites",
+        "TLS_AES_256_GCM_SHA384",
+        "--tls-prefer-server-ciphers",
+        "YeS",
     };
     if (tomo::parse_config_args(tls_args, tls, tls_state, 2, "test") != tomo::kConfigParsed ||
         tomo::validate_config(tls) != tomo::kConfigParsed)
         fail("valid TLS Redis grammar was rejected");
     if (tls.port != 0 || tls.tls_port != 7953 ||
-        tls.tls_auth_clients != tomo::TlsAuthClients::Optional ||
-        !tls.tls_prefer_server_ciphers ||
+        tls.tls_auth_clients != tomo::TlsAuthClients::Optional || !tls.tls_prefer_server_ciphers ||
         std::strcmp(tls.tls_protocols, "TLSv1.2 TLSv1.3") ||
         std::strcmp(tls.tls_ciphers, "DEFAULT") ||
         std::strcmp(tls.tls_ciphersuites, "TLS_AES_256_GCM_SHA384"))
@@ -293,48 +333,53 @@ int main() {
         const std::vector<const char*> args(values);
         return tomo::parse_config_args(args, cfg, state, 2, "test") == tomo::kConfigError;
     };
-    if (!rejects({"--tls-port", "65536"}) ||
-        !rejects({"--tls-port", "-1"}) ||
-        !rejects({"--tls-auth-clients", "true"}) ||
-        !rejects({"--tls-prefer-server-ciphers", "1"}))
+    if (!rejects({"--tls-port", "65536"}) || !rejects({"--tls-port", "-1"}) ||
+        !rejects({"--tls-auth-clients", "true"}) || !rejects({"--tls-prefer-server-ciphers", "1"}))
         fail("invalid TLS grammar was accepted");
 
-    for (const char* flag : {"--latency-monitor-threshold", "--stream-node-max-entries",
-                             "--stream-node-max-bytes"}) {
-        if (rejection_text({flag, "4294967296"}) != std::string(flag) +
-                ": argument must be between 0 and 4294967295 inclusive\n")
+    for (const char* flag :
+         {"--latency-monitor-threshold", "--stream-node-max-entries", "--stream-node-max-bytes"}) {
+        if (rejection_text({flag, "4294967296"}) !=
+            std::string(flag) + ": argument must be between 0 and 4294967295 inclusive\n")
             fail("uint32 config overflow has no precise range diagnostic");
         for (const char* value : {"0", "4294967295"}) {
             tomo::Config cfg;
             tomo::ConfigParseState state;
-            if (tomo::parse_config_args({flag, value}, cfg, state, 2, "test") != tomo::kConfigParsed)
+            if (tomo::parse_config_args({flag, value}, cfg, state, 2, "test") !=
+                tomo::kConfigParsed)
                 fail("uint32 config endpoint rejected at boot");
         }
     }
-    for (const char* flag : {"--script-crossshard-cut-slots", "--script-crossshard-conflict-retries"})
-        if (!rejects({flag, "4294967296"})) fail("retired script flag accepted an overflowing value");
+    for (const char* flag :
+         {"--script-crossshard-cut-slots", "--script-crossshard-conflict-retries"})
+        if (!rejects({flag, "4294967296"}))
+            fail("retired script flag accepted an overflowing value");
 
     // Redisgap boot knobs use the same parser for files and CLI. Set non-default values,
     // override them, and reject malformed/range inputs rather than silently keeping defaults.
     tomo::Config redisgap;
     tomo::ConfigParseState redisgap_state;
     if (tomo::parse_config_args({"--unixsocketperm", "0600", "--aof-load-truncated", "No",
-                                "--hll-sparse-max-bytes", "1kB"},
-                               redisgap, redisgap_state, 1, "conf") != tomo::kConfigParsed ||
+                                 "--hll-sparse-max-bytes", "1kB"},
+                                redisgap, redisgap_state, 1, "conf") != tomo::kConfigParsed ||
         redisgap.unixsocketperm != 0600 || redisgap.aof_load_truncated ||
         redisgap.hll_sparse_max_bytes != 1024 ||
-        tomo::parse_config_args({"--unixsocketperm", "0", "--aof-load-truncated", "YES",
-                                "--hll-sparse-max-bytes", "0"},
-                               redisgap, redisgap_state, 2, "cli") != tomo::kConfigParsed ||
+        tomo::parse_config_args(
+            {"--unixsocketperm", "0", "--aof-load-truncated", "YES", "--hll-sparse-max-bytes", "0"},
+            redisgap, redisgap_state, 2, "cli") != tomo::kConfigParsed ||
         redisgap.unixsocketperm != 0 || !redisgap.aof_load_truncated ||
         redisgap.hll_sparse_max_bytes != 0)
         fail("Redisgap file values or CLI overrides were not applied");
-    for (const auto& [flag, bad] : {
-             std::pair{"--unixsocketperm", "888"}, {"--unixsocketperm", "1000"},
-             {"--unixsocketperm", "-1"}, {"--unixsocketperm", "600x"},
-             {"--aof-load-truncated", "1"}, {"--aof-load-truncated", "true"},
-             {"--aof-load-truncated", ""}, {"--hll-sparse-max-bytes", "-1"},
-             {"--hll-sparse-max-bytes", "4294967296"}, {"--hll-sparse-max-bytes", "1xb"}})
+    for (const auto& [flag, bad] : {std::pair{"--unixsocketperm", "888"},
+                                    {"--unixsocketperm", "1000"},
+                                    {"--unixsocketperm", "-1"},
+                                    {"--unixsocketperm", "600x"},
+                                    {"--aof-load-truncated", "1"},
+                                    {"--aof-load-truncated", "true"},
+                                    {"--aof-load-truncated", ""},
+                                    {"--hll-sparse-max-bytes", "-1"},
+                                    {"--hll-sparse-max-bytes", "4294967296"},
+                                    {"--hll-sparse-max-bytes", "1xb"}})
         if (!rejects({flag, bad})) fail("invalid Redisgap boot grammar accepted");
     for (const char* flag : {"--unixsocketperm", "--aof-load-truncated", "--hll-sparse-max-bytes"})
         if (!rejects({flag})) fail("missing Redisgap boot argument accepted");
@@ -349,26 +394,23 @@ int main() {
         fail("restored encoding defaults changed the fixed behavior");
     if (defaults.hash.max_entries != 512 || defaults.set_intset_max_entries != 512)
         fail("hash/intset defaults differ from the pinned Redis 7.4.10 oracle");
-    if (tomo::parse_config_args({"--hash-max-ziplist-entries", "4",
-                                "--hash-max-ziplist-value", "1kb",
-                                "--list-max-ziplist-size", "-3",
-                                "--set-max-listpack-entries", "6",
-                                "--set-max-listpack-value", "20",
-                                "--set-max-intset-entries", "9",
-                                "--zset-max-ziplist-entries", "7",
-                                "--zset-max-ziplist-value", "2k"},
-                               encodings, encoding_state, 1, "conf") != tomo::kConfigParsed)
+    if (tomo::parse_config_args(
+            {"--hash-max-ziplist-entries", "4", "--hash-max-ziplist-value", "1kb",
+             "--list-max-ziplist-size", "-3", "--set-max-listpack-entries", "6",
+             "--set-max-listpack-value", "20", "--set-max-intset-entries", "9",
+             "--zset-max-ziplist-entries", "7", "--zset-max-ziplist-value", "2k"},
+            encodings, encoding_state, 1, "conf") != tomo::kConfigParsed)
         fail("reference encoding aliases or memory grammar rejected");
     auto limits = encodings.encodings.type_limits();
     if (limits.hash.max_entries != 4 || limits.hash.max_value != 1024 ||
         limits.list.max_entries != UINT32_MAX || limits.list.max_value != 16384 ||
         limits.set.max_entries != 6 || limits.set.max_value != 20 ||
-        limits.set_intset_max_entries != 9 ||
-        limits.zset.max_entries != 7 || limits.zset.max_value != 2000)
+        limits.set_intset_max_entries != 9 || limits.zset.max_entries != 7 ||
+        limits.zset.max_value != 2000)
         fail("reference encoding limits were not applied");
-    if (tomo::parse_config_args({"--hash-max-listpack-entries", "512",
-                                "--list-max-listpack-size", "4"},
-                               encodings, encoding_state, 2, "cli") != tomo::kConfigParsed ||
+    if (tomo::parse_config_args(
+            {"--hash-max-listpack-entries", "512", "--list-max-listpack-size", "4"}, encodings,
+            encoding_state, 2, "cli") != tomo::kConfigParsed ||
         encodings.encodings.values[tomo::EncodingConfig::HashEntries] != 512 ||
         encodings.encodings.type_limits().list.max_entries != 4)
         fail("canonical CLI encoding settings did not override file aliases");
@@ -377,9 +419,9 @@ int main() {
         tomo::Config cfg;
         tomo::ConfigParseState state;
         if (tomo::parse_config_args({flag.c_str(), "0"}, cfg, state, 2, "test") !=
-                tomo::kConfigParsed || !rejects({flag.c_str(), "1x"}) ||
-            !rejects({flag.c_str(), "+1"}) || !rejects({flag.c_str(), "-0"}) ||
-            !rejects({flag.c_str(), "9223372036854775808"}))
+                tomo::kConfigParsed ||
+            !rejects({flag.c_str(), "1x"}) || !rejects({flag.c_str(), "+1"}) ||
+            !rejects({flag.c_str(), "-0"}) || !rejects({flag.c_str(), "9223372036854775808"}))
             fail("encoding zero/range/decimal grammar differs");
         // Every encoding spelling sets one shared value and round-trips through canonical
         // output. Live SET/GET, owner limits and rewrite are exercised by netcmd's knob_matrix.
@@ -390,16 +432,17 @@ int main() {
             const char* input = legacy ? "007" : setting.memory ? "1kb" : "7";
             const int64_t expected_value = !legacy && setting.memory ? 1024 : 7;
             if (tomo::parse_config_args({alias_flag.c_str(), input}, cfg, state, 1, "conf") !=
-                    tomo::kConfigParsed)
+                tomo::kConfigParsed)
                 fail("encoding alias rejected its grammar");
-            const int key = tomo::EncodingConfig::find(tomo::Slice(spelling, std::strlen(spelling)));
+            const int key =
+                tomo::EncodingConfig::find(tomo::Slice(spelling, std::strlen(spelling)));
             if (key < 0 || cfg.encodings.values[key] != expected_value)
                 fail("encoding alias did not set its canonical value");
             const std::string output = std::to_string(cfg.encodings.values[key]);
             tomo::Config roundtrip;
             tomo::ConfigParseState roundtrip_state;
             if (tomo::parse_config_args({flag.c_str(), output.c_str()}, roundtrip, roundtrip_state,
-                                       2, "cli") != tomo::kConfigParsed ||
+                                        2, "cli") != tomo::kConfigParsed ||
                 roundtrip.encodings.values[key] != expected_value)
                 fail("encoding alias did not round-trip through canonical output");
             if (legacy && (!rejects({alias_flag.c_str(), "1kb"}) ||
@@ -407,18 +450,21 @@ int main() {
                 fail("legacy encoding alias lost its uint32 grammar");
         }
     }
-    for (const auto& probe : {std::pair{"-1", 4096u}, {"-2", 8192u},
-                              {"-3", 16384u}, {"-4", 32768u}, {"-5", 65536u},
-                              {"-6", 65536u}, {"-2147483648", 65536u}}) {
-        if (tomo::parse_config_args({"--list-max-listpack-size", probe.first},
-                                   encodings, encoding_state, 2, "test") != tomo::kConfigParsed ||
+    for (const auto& probe : {std::pair{"-1", 4096u},
+                              {"-2", 8192u},
+                              {"-3", 16384u},
+                              {"-4", 32768u},
+                              {"-5", 65536u},
+                              {"-6", 65536u},
+                              {"-2147483648", 65536u}}) {
+        if (tomo::parse_config_args({"--list-max-listpack-size", probe.first}, encodings,
+                                    encoding_state, 2, "test") != tomo::kConfigParsed ||
             encodings.encodings.type_limits().list.max_value != probe.second)
             fail("negative list mode did not select/clamp its byte budget");
     }
-    if (tomo::parse_config_args({"--list-max-listpack-size", "0",
-                                "--hash-max-listpack-entries", "9223372036854775807",
-                                "--hash-max-listpack-value", "4294967296"},
-                               encodings, encoding_state, 2, "test") != tomo::kConfigParsed ||
+    if (tomo::parse_config_args({"--list-max-listpack-size", "0", "--hash-max-listpack-entries",
+                                 "9223372036854775807", "--hash-max-listpack-value", "4294967296"},
+                                encodings, encoding_state, 2, "test") != tomo::kConfigParsed ||
         encodings.encodings.type_limits().list.max_entries != 1 ||
         encodings.encodings.type_limits().hash.max_entries != UINT32_MAX ||
         encodings.encodings.type_limits().hash.max_value != UINT32_MAX ||
@@ -437,21 +483,17 @@ int main() {
     const std::vector<const char*> shards_args = {"--shards", "256"};
     if (tomo::parse_config_args(shards_args, shards, shards_state, 2, "test") !=
             tomo::kConfigParsed ||
-        shards.shards != 256 ||
-        !rejects({"--shards", "0"}) ||
-        !rejects({"--shards", "257"}) ||
-        !rejects({"--shards", "abc"}) ||
-        !rejects({"--shards", "-5"}) ||
-        !rejects({"--shards", "16x"}) ||
-        !rejects({"--shards", ""}))
+        shards.shards != 256 || !rejects({"--shards", "0"}) || !rejects({"--shards", "257"}) ||
+        !rejects({"--shards", "abc"}) || !rejects({"--shards", "-5"}) ||
+        !rejects({"--shards", "16x"}) || !rejects({"--shards", ""}))
         fail("shards boot grammar differs");
     if (rejection_text({"--shards", "16x"}) != "--shards wants -1 (auto) or 1..256\n")
         fail("shards rejection text is not canonical");
     tomo::Config shards_default;
-    if (shards_default.shards != tomo::Config::kShardsAuto)
-        fail("shards default is not auto");
+    if (shards_default.shards != tomo::Config::kShardsAuto) fail("shards default is not auto");
     if (tomo::parse_config_args({"--shards", "-1"}, shards, shards_state, 2, "test") !=
-            tomo::kConfigParsed || shards.shards != tomo::Config::kShardsAuto)
+            tomo::kConfigParsed ||
+        shards.shards != tomo::Config::kShardsAuto)
         fail("explicit auto shards rejected");
 
     // The retained network engine also determines persistence; there is no separate selector.
@@ -460,17 +502,14 @@ int main() {
     const std::vector<const char*> network_args = {"--net-io", "EpOlL"};
     if (tomo::parse_config_args(network_args, network, network_state, 2, "test") !=
             tomo::kConfigParsed ||
-        network.net_io != tomo::NetIoEngine::Epoll ||
-        !rejects({"--net-io", "kqueue"}) ||
+        network.net_io != tomo::NetIoEngine::Epoll || !rejects({"--net-io", "kqueue"}) ||
         !rejects({"--net-io", ""}))
         fail("net-io boot grammar differs");
     tomo::Config network_default;
-    if (network_default.net_io != tomo::NetIoEngine::Uring)
-        fail("net-io default is not uring");
+    if (network_default.net_io != tomo::NetIoEngine::Uring) fail("net-io default is not uring");
 
     tomo::Config thread_default;
-    if (thread_default.thread_mode != tomo::ThreadMode::Split)
-        fail("thread default is not 2s");
+    if (thread_default.thread_mode != tomo::ThreadMode::Split) fail("thread default is not 2s");
     auto parses_threads = [](std::initializer_list<const char*> values, tomo::ThreadMode mode) {
         tomo::Config cfg;
         tomo::ConfigParseState state;
@@ -500,63 +539,61 @@ int main() {
     tomo::Config read_local;
     tomo::ConfigParseState read_local_state;
     const std::vector<const char*> read_local_args = {
-        "--thread-mode", "1s", "--read-local", "1",
+        "--thread-mode",
+        "1s",
+        "--read-local",
+        "1",
     };
     if (tomo::parse_config_args(read_local_args, read_local, read_local_state, 2, "test") !=
             tomo::kConfigParsed ||
         tomo::validate_config(read_local) != tomo::kConfigParsed ||
         read_local.thread_mode != tomo::ThreadMode::Fused || read_local.read_local != 1 ||
-        !rejects({"--read-local", "2"}) ||
-        !rejects({"--read-local", "yes"}) ||
-        !rejects({"--read-local", "-1"}) ||
-        !rejects({"--read-local", ""}))
+        !rejects({"--read-local", "2"}) || !rejects({"--read-local", "yes"}) ||
+        !rejects({"--read-local", "-1"}) || !rejects({"--read-local", ""}))
         fail("read-local boot grammar differs");
     tomo::Config read_local_default;
     if (read_local_default.read_local != 0) fail("read-local default differs");
     tomo::Config read_local_split;
     tomo::ConfigParseState read_local_split_state;
     const std::vector<const char*> read_local_split_args = {"--read-local", "1"};
-    if (tomo::parse_config_args(read_local_split_args, read_local_split,
-                                read_local_split_state, 2, "test") != tomo::kConfigParsed ||
+    if (tomo::parse_config_args(read_local_split_args, read_local_split, read_local_split_state, 2,
+                                "test") != tomo::kConfigParsed ||
         tomo::validate_config(read_local_split) != tomo::kConfigParsed ||
-        read_local_split.thread_mode != tomo::ThreadMode::Split ||
-        read_local_split.read_local != 1)
+        read_local_split.thread_mode != tomo::ThreadMode::Split || read_local_split.read_local != 1)
         fail("read-local split-mode lane was rejected");
-    auto parses_read_local_cell = [](const char* mode,
-                                     const char* lane, const char* reorder, const char* engine) {
+    auto parses_read_local_cell = [](const char* mode, const char* lane, const char* reorder,
+                                     const char* engine) {
         tomo::Config cfg;
         tomo::ConfigParseState state;
         const std::vector<const char*> args = {
-            "--thread-mode", mode, "--read-local", lane,
-            "--reorder", reorder, "--net-io", engine,
+            "--thread-mode", mode, "--read-local", lane, "--reorder", reorder, "--net-io", engine,
         };
-        return tomo::parse_config_args(args, cfg, state, 2, "test") ==
-                   tomo::kConfigParsed &&
+        return tomo::parse_config_args(args, cfg, state, 2, "test") == tomo::kConfigParsed &&
                tomo::validate_config(cfg) == tomo::kConfigParsed &&
                cfg.thread_mode == ((!std::strcmp(mode, "1s") || !std::strcmp(mode, "fused"))
-                   ? tomo::ThreadMode::Fused : tomo::ThreadMode::Split) &&
+                                       ? tomo::ThreadMode::Fused
+                                       : tomo::ThreadMode::Split) &&
                cfg.reorder == static_cast<uint32_t>(std::atoi(reorder)) &&
                cfg.read_local == static_cast<uint32_t>(*lane - '0');
     };
     for (const char* mode : {"1s", "2s", "fused", "split"})
-            for (const char* lane : {"0", "1"})
-                for (const char* reorder : {"0", "1"}) {
-                    if (!parses_read_local_cell(mode, lane, reorder, "uring"))
-                        fail("read-local/reorder boot cell was rejected");
-                    StderrSilencer quiet;
-                    if (!parses_read_local_cell(mode, lane, reorder, "epoll"))
-                        fail("epoll read-local/reorder validation differs");
-                }
+        for (const char* lane : {"0", "1"})
+            for (const char* reorder : {"0", "1"}) {
+                if (!parses_read_local_cell(mode, lane, reorder, "uring"))
+                    fail("read-local/reorder boot cell was rejected");
+                StderrSilencer quiet;
+                if (!parses_read_local_cell(mode, lane, reorder, "epoll"))
+                    fail("epoll read-local/reorder validation differs");
+            }
 
     tomo::Config reorder;
     tomo::ConfigParseState reorder_state;
     const std::vector<const char*> reorder_args = {"--reorder", "1"};
     if (tomo::parse_config_args(reorder_args, reorder, reorder_state, 2, "test") !=
             tomo::kConfigParsed ||
-        reorder.reorder != 1 ||
-        !rejects({"--reorder", "-1"}) || !rejects({"--reorder", "2"}) || !rejects({"--reorder", "yes"}) ||
-        !rejects({"--reorder", "-2"}) || !rejects({"--reorder", "1x"}) ||
-        !rejects({"--reorder", ""}) || !rejects({"--reorder"}))
+        reorder.reorder != 1 || !rejects({"--reorder", "-1"}) || !rejects({"--reorder", "2"}) ||
+        !rejects({"--reorder", "yes"}) || !rejects({"--reorder", "-2"}) ||
+        !rejects({"--reorder", "1x"}) || !rejects({"--reorder", ""}) || !rejects({"--reorder"}))
         fail("reorder boot grammar differs");
     if (rejection_text({"--reorder", "3"}) != "--reorder wants 0 or 1\n")
         fail("reorder parser rejection text is not canonical");
@@ -592,9 +629,11 @@ int main() {
         fail("LB pacing does not track completed transfer cost");
     tomo::LbAutotune::QuietJitter noise;
     for (double sample : {10.0, 11.0, 10.0, 11.0}) noise.observe(sample);
-    if (noise.band() != std::max(2.0, tomo::LbAutotune::sampling_floor(2))) fail("LB band is not floored measured quiet jitter");
+    if (noise.band() != std::max(2.0, tomo::LbAutotune::sampling_floor(2)))
+        fail("LB band is not floored measured quiet jitter");
     noise.observe(40.0);
-    if (noise.band() != std::max(2.0, tomo::LbAutotune::sampling_floor(2))) fail("an excursion widened its own LB band");
+    if (noise.band() != std::max(2.0, tomo::LbAutotune::sampling_floor(2)))
+        fail("an excursion widened its own LB band");
 
     tomo::Config lb_defaults;
     if (lb_defaults.key_lb_damping != -1) fail("key damping default is not auto");
@@ -602,10 +641,12 @@ int main() {
         tomo::Config lb;
         tomo::ConfigParseState state;
         if (tomo::parse_config_args({"--key-lb-damping", value}, lb, state, 1, "conf") !=
-                tomo::kConfigParsed || std::to_string(lb.key_lb_damping) != value)
+                tomo::kConfigParsed ||
+            std::to_string(lb.key_lb_damping) != value)
             fail("key damping canonical integer grammar");
         if (tomo::parse_config_args({"--key-lb-damping", "0"}, lb, state, 2, "cli") !=
-                tomo::kConfigParsed || lb.key_lb_damping != 0)
+                tomo::kConfigParsed ||
+            lb.key_lb_damping != 0)
             fail("key damping CLI override");
     }
     for (const char* value : {"-2", "2147483648", "1x", "yes", "", "+1", "01", "-0", " 1"})
@@ -618,19 +659,21 @@ int main() {
             for (const char* client : {"0", "1"}) {
                 tomo::Config lb;
                 tomo::ConfigParseState state;
-                if (tomo::parse_config_args({"--thread-mode", mode, "--key-lb", key,
-                                             "--client-lb", client}, lb, state, 1, "conf") !=
-                        tomo::kConfigParsed || tomo::validate_config(lb) != tomo::kConfigParsed ||
+                if (tomo::parse_config_args(
+                        {"--thread-mode", mode, "--key-lb", key, "--client-lb", client}, lb, state,
+                        1, "conf") != tomo::kConfigParsed ||
+                    tomo::validate_config(lb) != tomo::kConfigParsed ||
                     lb.key_lb != static_cast<uint32_t>(*key - '0') ||
                     lb.client_lb != static_cast<uint32_t>(*client - '0'))
                     fail("independent LB configuration cell differs");
                 // CLI overrides one feature without changing the other feature from the file.
                 if (tomo::parse_config_args({"--key-lb", "1"}, lb, state, 2, "cli") !=
-                        tomo::kConfigParsed || lb.key_lb != 1 ||
-                    lb.client_lb != static_cast<uint32_t>(*client - '0'))
+                        tomo::kConfigParsed ||
+                    lb.key_lb != 1 || lb.client_lb != static_cast<uint32_t>(*client - '0'))
                     fail("key-lb override changed client-lb");
                 if (tomo::parse_config_args({"--client-lb", "0"}, lb, state, 2, "cli") !=
-                        tomo::kConfigParsed || lb.key_lb != 1 || lb.client_lb != 0)
+                        tomo::kConfigParsed ||
+                    lb.key_lb != 1 || lb.client_lb != 0)
                     fail("client-lb override changed key-lb");
             }
     for (const char* flag : {"--key-lb", "--client-lb"}) {
@@ -658,18 +701,16 @@ int main() {
     for (uint32_t sid = 0; sid < 4; sid++)
         if (placement.shard_home(sid) != 1 + sid % 3)
             fail("default shard homes are not round-robin over executors");
-    if (!placement.assign_shard_homes(4, "0:1,1:1,2:2,3:2") ||
-        placement.ex_threads().size() != 3)
+    if (!placement.assign_shard_homes(4, "0:1,1:1,2:2,3:2") || placement.ex_threads().size() != 3)
         fail("manual shard homes rejected an empty filler executor");
     for (uint32_t sid = 0; sid < 4; sid++)
         if (placement.shard_home(sid) != 1 + sid / 2)
             fail("manual shard homes were silently replaced by default ownership");
     {
         StderrSilencer quiet;
-        for (const char* map : {"", "0:1", "0:1,1:1,2:2,2:2", "0:0,1:1,2:2,3:2",
-                                "0:4,1:1,2:2,3:2", "0:1,1:1,2:2,4:2",
-                                "0:1,1:1,2:2,3:2,", "0:1,1:1,2:2,3:2x",
-                                "0:1,1:1,2:2,3:4294967296"})
+        for (const char* map :
+             {"", "0:1", "0:1,1:1,2:2,2:2", "0:0,1:1,2:2,3:2", "0:4,1:1,2:2,3:2", "0:1,1:1,2:2,4:2",
+              "0:1,1:1,2:2,3:2,", "0:1,1:1,2:2,3:2x", "0:1,1:1,2:2,3:4294967296"})
             if (placement.assign_shard_homes(4, map)) fail("invalid shard-home map accepted");
     }
     if (!placement.build_fused(topology, nullptr) ||
@@ -679,35 +720,53 @@ int main() {
     tomo::ConfigParseState homes_state;
     if (homes.shard_home ||
         tomo::parse_config_args({"--shard-home", "0:1,1:1"}, homes, homes_state, 1, "conf") !=
-            tomo::kConfigParsed || std::strcmp(homes.shard_home, "0:1,1:1") ||
+            tomo::kConfigParsed ||
+        std::strcmp(homes.shard_home, "0:1,1:1") ||
         tomo::parse_config_args({"--shard-home", "0:2,1:2"}, homes, homes_state, 2, "cli") !=
-            tomo::kConfigParsed || std::strcmp(homes.shard_home, "0:2,1:2"))
+            tomo::kConfigParsed ||
+        std::strcmp(homes.shard_home, "0:2,1:2"))
         fail("shard-home conf grammar or CLI precedence differs");
     if (rejection_text({"--shard-home", ""}, true) !=
-            "--shard-home must contain shard:thread pairs\n")
+        "--shard-home must contain shard:thread pairs\n")
         fail("empty shard-home accepted at validation");
 
     // Each retired spelling must fail even with its formerly valid default. The same parser
     // consumes conf-file tokens, so this also prevents CONFIG REWRITE from reviving old knobs.
     const std::pair<const char*, const char*> retired[] = {
-        {"--read-local-prefetch-capture", "1"}, {"--read-local-atomic-filter", "1"},
-        {"--read-local-interleave", "1"}, {"--flip-auto-band", "-1"},
-        {"--l3-domains", "0-7"}, {"--smt-mode", "0"},
-        {"--genthread-schedule", "coarse"}, {"--atomic-window", "-1"},
-        {"--persist-io", "uring"}, {"--lru-clock-shift", "8"},
+        {"--read-local-prefetch-capture", "1"},
+        {"--read-local-atomic-filter", "1"},
+        {"--read-local-interleave", "1"},
+        {"--flip-auto-band", "-1"},
+        {"--l3-domains", "0-7"},
+        {"--smt-mode", "0"},
+        {"--genthread-schedule", "coarse"},
+        {"--atomic-window", "-1"},
+        {"--persist-io", "uring"},
+        {"--lru-clock-shift", "8"},
         {"--script-crossshard-max-bytes", "-1"},
         {"--script-crossshard-workbench-bytes", "-1"},
         {"--script-crossshard-conflict-retries", "-1"},
-        {"--script-crossshard-cut-slots", "-1"}, {"--tls-ktls", "yes"},
-        {"--lb", "1"}, {"--flip-work-window", "100"},
-        {"--script-instruction-limit", "100000"}, {"--lb-sample-rate", "64"},
-        {"--load", "dump.tomo"}, {"--conf", "tomokv.conf"},
-        {"--list-max-compact-entries", "4294967295"}, {"--list-max-compact-value", "8192"},
-        {"--set-max-compact-entries", "128"}, {"--set-max-compact-value", "64"},
-        {"--lb-age-sample-rate", "0"}, {"--lb-tick-ms", "1000"},
-        {"--lb-imbalance-pct", "25"}, {"--lb-move-cap", "1"},
-        {"--lb-cooldown-ms", "5000"}, {"--ex-sched", "0"}, {"--x-ex-sched", "0"},
-        {"--x-overlap", "0"}, {"--thread-pipeline", "0"},
+        {"--script-crossshard-cut-slots", "-1"},
+        {"--tls-ktls", "yes"},
+        {"--lb", "1"},
+        {"--flip-work-window", "100"},
+        {"--script-instruction-limit", "100000"},
+        {"--lb-sample-rate", "64"},
+        {"--load", "dump.tomo"},
+        {"--conf", "tomokv.conf"},
+        {"--list-max-compact-entries", "4294967295"},
+        {"--list-max-compact-value", "8192"},
+        {"--set-max-compact-entries", "128"},
+        {"--set-max-compact-value", "64"},
+        {"--lb-age-sample-rate", "0"},
+        {"--lb-tick-ms", "1000"},
+        {"--lb-imbalance-pct", "25"},
+        {"--lb-move-cap", "1"},
+        {"--lb-cooldown-ms", "5000"},
+        {"--ex-sched", "0"},
+        {"--x-ex-sched", "0"},
+        {"--x-overlap", "0"},
+        {"--thread-pipeline", "0"},
     };
     for (const auto& [flag, value] : retired) {
         if (!rejects({flag, value})) fail("retired knob was accepted");
@@ -719,23 +778,22 @@ int main() {
     tomo::Config flipctl;
     tomo::ConfigParseState flipctl_state;
     const std::vector<const char*> flipctl_args = {
-        "--flip-auto", "1",
+        "--flip-auto",
+        "1",
     };
     if (tomo::parse_config_args(flipctl_args, flipctl, flipctl_state, 2, "test") !=
             tomo::kConfigParsed ||
         flipctl.flip_auto != 1)
         fail("flip controller knob grammar or zero off posture differs");
     tomo::Config flipctl_default;
-    if (flipctl_default.flip_auto != 0)
-        fail("flip controller defaults differ");
-    if (!rejects({"--flip-auto", "2"}) ||
-        !rejects({"--flip-auto", "yes"}))
+    if (flipctl_default.flip_auto != 0) fail("flip controller defaults differ");
+    if (!rejects({"--flip-auto", "2"}) || !rejects({"--flip-auto", "yes"}))
         fail("invalid flip controller knob grammar was accepted");
 
     tomo::Config missing_ca;
     tomo::ConfigParseState missing_ca_state;
     const std::vector<const char*> missing_ca_args = {
-        "--tls-port", "7953", "--tls-cert-file", "/cert.pem",
+        "--tls-port",     "7953",     "--tls-cert-file",    "/cert.pem",
         "--tls-key-file", "/key.pem", "--tls-auth-clients", "yes",
     };
     {

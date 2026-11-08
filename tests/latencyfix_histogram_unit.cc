@@ -19,8 +19,10 @@ int main() {
         uint64_t random = 1;
         for (unsigned i = 0; i < 10000; ++i) {
             random = random * 6364136223846793005ULL + 1442695040888963407ULL;
-            uint64_t value = shape == 0 ? i : shape == 1 ? random % 2000000000 :
-                             shape == 2 ? (uint64_t{1} << (i % 31)) : 1000000000;
+            uint64_t value = shape == 0   ? i
+                             : shape == 1 ? random % 2000000000
+                             : shape == 2 ? (uint64_t{1} << (i % 31))
+                                          : 1000000000;
             value = std::clamp(value, uint64_t{1}, uint64_t{1000000000});
             actual.add(value);
             if (!hdr_record_value(oracle, value)) return 2;
@@ -29,9 +31,9 @@ int main() {
             const double percentile = double(p) / 1000;
             const uint64_t expected = hdr_value_at_percentile(oracle, percentile);
             if (actual.percentile(percentile) != expected) {
-                std::fprintf(stderr, "percentile shape=%u p=%f actual=%llu expected=%llu\n",
-                    shape, percentile, (unsigned long long)actual.percentile(percentile),
-                    (unsigned long long)expected);
+                std::fprintf(stderr, "percentile shape=%u p=%f actual=%llu expected=%llu\n", shape,
+                             percentile, (unsigned long long)actual.percentile(percentile),
+                             (unsigned long long)expected);
                 return 3;
             }
         }
@@ -48,9 +50,11 @@ int main() {
         if (actual.cdf() != expected) {
             std::fprintf(stderr, "CDF shape=%u differs\n", shape);
             for (const auto& [key, count] : actual.cdf())
-                std::fprintf(stderr, "actual %llu %llu\n", (unsigned long long)key, (unsigned long long)count);
+                std::fprintf(stderr, "actual %llu %llu\n", (unsigned long long)key,
+                             (unsigned long long)count);
             for (const auto& [key, count] : expected)
-                std::fprintf(stderr, "oracle %llu %llu\n", (unsigned long long)key, (unsigned long long)count);
+                std::fprintf(stderr, "oracle %llu %llu\n", (unsigned long long)key,
+                             (unsigned long long)count);
             return 4;
         }
         hdr_close(oracle);

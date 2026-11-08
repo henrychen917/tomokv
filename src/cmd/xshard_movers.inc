@@ -9,7 +9,8 @@ struct MoverLiveRead {
     uint64_t epoch;
     uint64_t origin;
     explicit MoverLiveRead(FlatStore& store_, const ScatterState& state)
-        : store(store_), epoch(store.atomic_read_epoch()),
+        : store(store_),
+          epoch(store.atomic_read_epoch()),
           origin(store.atomic_read_origin_conn_id()) {
         // An EXEC child must retain its private parent overlay. Bare mutations
         // select at the owner turn, never at phase one's potentially stale cut.
@@ -36,7 +37,7 @@ void admit_denyoom_mover(Shard& shard, Op& op, ScatterState& state, const ShardG
 // plain-version clone a key with an MVCC record takes first. COPY changes no source and keeps
 // every budget check.
 [[gnu::noinline, gnu::cold]] ScatterTaskResult execute_plain_image_hop(const Task& task,
-                                                                      Shard& shard, Op& op) {
+                                                                       Shard& shard, Op& op) {
     auto& state = *task.scatter;
     auto& group = *group_for(state, shard.id());
     const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0 || shard.has_watches();
@@ -49,18 +50,17 @@ void admit_denyoom_mover(Shard& shard, Op& op, ScatterState& state, const ShardG
         bool plain_active = false;
         if (shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
             const WorkError prepared = begin_plain_version(
-                *state.server, shard, op.arg(key.arg), key.hash, UINT64_MAX,
-                state.origin_conn_id);
+                *state.server, shard, op.arg(key.arg), key.hash, UINT64_MAX, state.origin_conn_id);
             if (prepared != WorkError::None) {
                 state.status[pos] = static_cast<uint8_t>(prepared);
                 continue;
             }
             plain_active = true;
         }
-        const bool watch_present = shard.has_watches() &&
-            shard.store().find_no_touch(key.hash, op.arg(key.arg));
-        const WorkError result = apply_image_selected(
-            notify, shard, op.arg(key.arg), key.hash, state.apply[pos], rename && pos == 0);
+        const bool watch_present =
+            shard.has_watches() && shard.store().find_no_touch(key.hash, op.arg(key.arg));
+        const WorkError result = apply_image_selected(notify, shard, op.arg(key.arg), key.hash,
+                                                      state.apply[pos], rename && pos == 0);
         state.status[pos] = static_cast<uint8_t>(result);
         if (result == WorkError::None && shard.has_watches() &&
             (watch_present || state.apply[pos].present))
@@ -87,38 +87,40 @@ ScatterTaskResult execute_plain_element_mover(const Task& task, Shard& shard, Op
         const uint32_t pos = state.key_order[group.begin + i];
         const auto& key = state.keys[pos];
         if (pos == 1 && state.direct_ready.load(std::memory_order_acquire) != 1)
-            continue; // missing/failed source never inserts a phase-one guess
+            continue;  // missing/failed source never inserts a phase-one guess
         auto foreign_read_scope = shard.store().foreign_read_key_guard(key.hash);
         bool plain_active = false;
         WorkError error = WorkError::None;
-        if (!state.multi_child &&
-            shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
-            error = begin_plain_version(*state.server, shard, op.arg(key.arg), key.hash,
-                                        UINT64_MAX, state.origin_conn_id);
+        if (!state.multi_child && shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
+            error = begin_plain_version(*state.server, shard, op.arg(key.arg), key.hash, UINT64_MAX,
+                                        state.origin_conn_id);
             plain_active = error == WorkError::None;
         }
         bool set_member_present = false;
         if (shard.has_watches() && state.kind == Kind::Smove && pos == 1)
-            xshard_set_contains(shard.store().find_no_touch(key.hash, op.arg(key.arg)),
-                                op.arg(3), set_member_present);
+            xshard_set_contains(shard.store().find_no_touch(key.hash, op.arg(key.arg)), op.arg(3),
+                                set_member_present);
         XshardElementResult moved = XshardElementResult::Missing;
         if (error == WorkError::None) {
             if (state.kind == Kind::Smove) {
-                moved = pos == 0
-                    ? xshard_remove_set_element(shard, op.arg(key.arg), key.hash, op.arg(3))
-                    : xshard_insert_set_element(shard, op.arg(key.arg), key.hash, op.arg(3));
+                moved =
+                    pos == 0
+                        ? xshard_remove_set_element(shard, op.arg(key.arg), key.hash, op.arg(3))
+                        : xshard_insert_set_element(shard, op.arg(key.arg), key.hash, op.arg(3));
                 if (pos == 0) state.final_integer = moved == XshardElementResult::Ok;
             } else {
                 auto& element = state.result->bulk;
                 if (pos == 0) {
                     moved = xshard_peek_list(shard.store().find(key.hash, op.arg(key.arg)),
-                                              state.from_left, element);
+                                             state.from_left, element);
                     if (moved == XshardElementResult::Ok)
                         moved = xshard_remove_list_element(shard, op.arg(key.arg), key.hash,
-                            state.from_left, Slice(element.data(), element.size()));
+                                                           state.from_left,
+                                                           Slice(element.data(), element.size()));
                 } else {
-                    moved = xshard_push_list_element(shard, op.arg(key.arg), key.hash,
-                        state.to_left, Slice(element.data(), element.size()));
+                    moved =
+                        xshard_push_list_element(shard, op.arg(key.arg), key.hash, state.to_left,
+                                                 Slice(element.data(), element.size()));
                 }
             }
             error = element_work_error(moved);
@@ -143,14 +145,11 @@ ScatterTaskResult execute_live_pop(const Task& task, Shard& shard, Op& op) {
     // The bare phase-two pop may mutate in place without needing an MVCC record.
     // Publish its selected key for the complete handler interval anyway; an EXEC
     // child can safely hold this duplicate scope beside its transaction entry.
-    auto foreign_read_scope =
-        shard.store().foreign_read_key_guard(key.hash);
+    auto foreign_read_scope = shard.store().foreign_read_key_guard(key.hash);
     bool plain_active = false;
-    if (!state.multi_child &&
-        shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
-        const WorkError prepared = begin_plain_version(
-            *state.server, shard, op.arg(key.arg), key.hash,
-            UINT64_MAX, state.origin_conn_id);
+    if (!state.multi_child && shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
+        const WorkError prepared = begin_plain_version(*state.server, shard, op.arg(key.arg),
+                                                       key.hash, UINT64_MAX, state.origin_conn_id);
         if (prepared != WorkError::None) {
             state.status[pos] = static_cast<uint8_t>(prepared);
             return ScatterTaskResult::Complete;
@@ -163,11 +162,12 @@ ScatterTaskResult execute_live_pop(const Task& task, Shard& shard, Op& op) {
         if (plain_active) shard.store().atomic_finish_plain();
         return ScatterTaskResult::Complete;
     }
-    const XshardPopResult popped = state.kind == Kind::Lmpop
-        ? xshard_pop_list(shard, op.arg(key.arg), key.hash, !state.pop_edge,
-                          state.pop_count, result->members)
-        : xshard_pop_zset(shard, op.arg(key.arg), key.hash, state.pop_edge,
-                          state.pop_count, result->members, result->scores);
+    const XshardPopResult popped =
+        state.kind == Kind::Lmpop
+            ? xshard_pop_list(shard, op.arg(key.arg), key.hash, !state.pop_edge, state.pop_count,
+                              result->members)
+            : xshard_pop_zset(shard, op.arg(key.arg), key.hash, state.pop_edge, state.pop_count,
+                              result->members, result->scores);
     if (popped == XshardPopResult::WrongType)
         state.status[pos] = static_cast<uint8_t>(WorkError::WrongType);
     else if (popped == XshardPopResult::Oom)
@@ -178,5 +178,5 @@ ScatterTaskResult execute_live_pop(const Task& task, Shard& shard, Op& op) {
     return ScatterTaskResult::Complete;
 }
 
-} // namespace
-} // namespace tomo
+}  // namespace
+}  // namespace tomo

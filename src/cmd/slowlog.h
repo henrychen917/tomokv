@@ -30,10 +30,10 @@ enum class ScatterTaskResult : uint8_t;
 // the armed test is a register compare, not a memory load, inside the batch loop.
 struct SlowlogArm {
     // Microseconds. Negative means the slow log is disabled. 0 means "log everything".
-    int64_t  slowlog_us = -1;
+    int64_t slowlog_us = -1;
     // Milliseconds. 0 means the latency monitor is disabled.
     uint32_t latency_ms = 0;
-    bool latency_tracking = false; // existing padding; no SlowlogArm size change
+    bool latency_tracking = false;  // existing padding; no SlowlogArm size change
     bool armed() const { return slowlog_us >= 0 || latency_ms != 0 || latency_tracking; }
 };
 
@@ -56,20 +56,20 @@ bool diagnostic_redact_argument(const Op& op, uint32_t index, uint32_t& hello_cu
 struct SlowlogIdentity;
 
 struct SlowlogCapture {
-    uint32_t total_argc = 0;                 // argc before truncation
-    uint32_t captured = 0;                   // arguments actually stored
-    uint32_t used = 0;                       // bytes consumed in `bytes`
+    uint32_t total_argc = 0;  // argc before truncation
+    uint32_t captured = 0;    // arguments actually stored
+    uint32_t used = 0;        // bytes consumed in `bytes`
     uint32_t off[kSlowlogMaxArgs] = {};
-    uint32_t len[kSlowlogMaxArgs] = {};      // stored length, <= kSlowlogMaxArgBytes
-    uint32_t full[kSlowlogMaxArgs] = {};     // original length, for the truncation marker
-    char     bytes[kSlowlogMaxArgs * kSlowlogMaxArgBytes];
+    uint32_t len[kSlowlogMaxArgs] = {};   // stored length, <= kSlowlogMaxArgBytes
+    uint32_t full[kSlowlogMaxArgs] = {};  // original length, for the truncation marker
+    char bytes[kSlowlogMaxArgs * kSlowlogMaxArgBytes];
 };
 
 // One executor's recorder state. Lives at the cold tail of ExLoop.
 struct SlowlogExState {
     // Batches remaining in per-op (exact attribution) mode. Set when a multi-op batch overruns.
     uint32_t escalate_batches = 0;
-    SlowlogCapture capture; // retained footprint; exact completion uses a cold stack capture
+    SlowlogCapture capture;  // retained footprint; exact completion uses a cold stack capture
 };
 
 // Exact timing owns this stack frame only until execution returns. Completion
@@ -86,8 +86,8 @@ struct SlowlogTiming {
     SlowlogTiming* previous = nullptr;
 
     SlowlogTiming() = default;
-    SlowlogTiming(const Op* operation, uint64_t client, uint32_t thread,
-                  uint64_t start, int64_t now, const SlowlogArm& setting);
+    SlowlogTiming(const Op* operation, uint64_t client, uint32_t thread, uint64_t start,
+                  int64_t now, const SlowlogArm& setting);
     ~SlowlogTiming();
     SlowlogTiming(const SlowlogTiming&) = delete;
     SlowlogTiming& operator=(const SlowlogTiming&) = delete;
@@ -100,13 +100,14 @@ void slowlog_complete(const Op& op);
 // Copies pinned arguments (at most 32 of 128 bytes) and snapshots the identity under the
 // directory shard lock. The returned shared reference keeps that version alive across Done;
 // the caller retains it until recording finishes. Used only by armed per-op timing.
-std::shared_ptr<const SlowlogIdentity> slowlog_capture(
-    const Op& op, SlowlogCapture& out, uint64_t client_id);
+std::shared_ptr<const SlowlogIdentity> slowlog_capture(const Op& op, SlowlogCapture& out,
+                                                       uint64_t client_id);
 
 // The executor-side recorder, fed from a capture rather than from the (possibly retired) op.
-void slowlog_record_captured(uint32_t thread_id, const std::shared_ptr<const SlowlogIdentity>& identity,
-                             const SlowlogCapture& capture,
-                             uint64_t duration_ns, int64_t now_ms, const SlowlogArm& arm);
+void slowlog_record_captured(uint32_t thread_id,
+                             const std::shared_ptr<const SlowlogIdentity>& identity,
+                             const SlowlogCapture& capture, uint64_t duration_ns, int64_t now_ms,
+                             const SlowlogArm& arm);
 
 // Records one completed operation. `duration_ns` is the measured span; `exact` says whether it is
 // this op's own time (batch of one, or escalated per-op timing) or the enclosing batch's time.
@@ -120,26 +121,26 @@ void slowlog_record(uint32_t thread_id, uint64_t client_id, const Op& op, uint64
 // rather than adding an off-state predicate to a command's execution path.
 // constinit suppresses an implicit TLS initialization guard at every call site.
 using SlowlogRecorder = decltype(&slowlog_record);
-extern thread_local constinit __attribute__((tls_model("local-exec")))
-    SlowlogRecorder slowlog_recorder;
+extern thread_local constinit
+    __attribute__((tls_model("local-exec"))) SlowlogRecorder slowlog_recorder;
 void latency_tracking_bind(bool enabled, uint32_t* escalation = nullptr);
 using LatencyScatterExecutor = ScatterTaskResult (*)(const Task&, Shard&, Op&, uint32_t);
-extern thread_local constinit __attribute__((tls_model("local-exec")))
-    LatencyScatterExecutor latency_xshard_execute;
-extern thread_local constinit __attribute__((tls_model("local-exec")))
-    LatencyScatterExecutor latency_watch_execute;
+extern thread_local constinit
+    __attribute__((tls_model("local-exec"))) LatencyScatterExecutor latency_xshard_execute;
+extern thread_local constinit
+    __attribute__((tls_model("local-exec"))) LatencyScatterExecutor latency_watch_execute;
 
-using LatencyScatterRetirer = void (*)(Server&, ThreadCtx&, Ring&, Client&, Op&,
-    ScatterArenaPool&, uint32_t, void*, void (*)(void*, int32_t, const char*), void (*)(void*));
+using LatencyScatterRetirer = void (*)(Server&, ThreadCtx&, Ring&, Client&, Op&, ScatterArenaPool&,
+                                       uint32_t, void*, void (*)(void*, int32_t, const char*),
+                                       void (*)(void*));
 using LatencyBlockingRetirer = void (*)(Server&, Client&, Op&, ThreadCtx&);
 using LatencyMultiRetirer = void (*)(IoLoop&, Client&, Op&);
-extern thread_local constinit __attribute__((tls_model("local-exec")))
-    LatencyScatterRetirer latency_xshard_retire;
-extern thread_local constinit __attribute__((tls_model("local-exec")))
-    LatencyBlockingRetirer latency_blocking_retire;
-extern thread_local constinit __attribute__((tls_model("local-exec")))
-    LatencyMultiRetirer latency_multi_retire;
-
+extern thread_local constinit
+    __attribute__((tls_model("local-exec"))) LatencyScatterRetirer latency_xshard_retire;
+extern thread_local constinit
+    __attribute__((tls_model("local-exec"))) LatencyBlockingRetirer latency_blocking_retire;
+extern thread_local constinit
+    __attribute__((tls_model("local-exec"))) LatencyMultiRetirer latency_multi_retire;
 
 // Resumable commands accumulate execution slices, never their parked interval.
 // These helpers are reached only by the cold scatter/transaction/blocking paths.
@@ -150,8 +151,8 @@ void latency_tracking_forget(const Op& op);
 void latency_tracking_forget_client(Client& client);
 void latency_tracking_discard_pending();
 void latency_tracking_script_begin(const Op& parent);
-void latency_tracking_script_part(uint32_t executor, const Op& parent,
-                                  const Op& child, uint64_t started);
+void latency_tracking_script_part(uint32_t executor, const Op& parent, const Op& child,
+                                  uint64_t started);
 struct LatencyTrackingPart {
     uint32_t executor;
     const Op* op;
@@ -179,9 +180,7 @@ struct LatencyTrackingScriptCall {
     uint64_t started;
     LatencyTrackingScriptCall(uint32_t owner, const Op& script, const Op& command)
         : executor(owner), parent(script), child(command), started(latency_tracking_start()) {}
-    ~LatencyTrackingScriptCall() {
-        latency_tracking_script_part(executor, parent, child, started);
-    }
+    ~LatencyTrackingScriptCall() { latency_tracking_script_part(executor, parent, child, started); }
 };
 
 // How many batches stay in per-op timing after an overrun.

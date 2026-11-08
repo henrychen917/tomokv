@@ -36,11 +36,19 @@ void* operator new(size_t n, std::align_val_t alignment) {
 }
 void* operator new[](size_t n, std::align_val_t a) { return ::operator new(n, a); }
 void* operator new(size_t n, const std::nothrow_t&) noexcept {
-    try { return ::operator new(n); } catch (...) { return nullptr; }
+    try {
+        return ::operator new(n);
+    } catch (...) {
+        return nullptr;
+    }
 }
 void* operator new[](size_t n, const std::nothrow_t& t) noexcept { return ::operator new(n, t); }
 void* operator new(size_t n, std::align_val_t a, const std::nothrow_t&) noexcept {
-    try { return ::operator new(n, a); } catch (...) { return nullptr; }
+    try {
+        return ::operator new(n, a);
+    } catch (...) {
+        return nullptr;
+    }
 }
 void* operator new[](size_t n, std::align_val_t a, const std::nothrow_t& t) noexcept {
     return ::operator new(n, a, t);
