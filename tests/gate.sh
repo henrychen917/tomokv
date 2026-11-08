@@ -3168,8 +3168,9 @@ job_tornread(){
   [ "$atomic" != 0 ] || writer=exec
   for shape in pipe seq; do
     label="tornread $shape ($mode read-local $read_local $engine atomic $atomic)"
-    row_begin "$label"
+    row_begin "$label" "reorder=${GATE_TORNREAD_REORDER:-0}"
     if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" --atomic "$atomic" \
+        --reorder "${GATE_TORNREAD_REORDER:-0}" \
         --read-local "$read_local" --key-lb 0 --client-lb 0 --flip-auto 0 \
         --enable-debug-command yes &&
       py tests/tornread.py --port "$PORT" --label "$1-$shape" --seconds 15 \

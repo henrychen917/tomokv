@@ -5,6 +5,7 @@ Replace only the two out-of-line registration entries with `return true`. IO alr
 stamped the Op before calling; the stub neither advances that cut nor takes a reference.
 No production object or source is changed. The negative hunt must fail on this arm.
 """
+import argparse
 import hashlib
 import json
 from pathlib import Path
@@ -13,8 +14,11 @@ import struct
 import subprocess
 
 root = Path(__file__).resolve().parents[1]
-source = root / "build/tornread/tomokv-part1"
-target = root / "build/tornread/tomokv-pad1"
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--part1", type=Path, default=root / "build/tornread/tomokv-part1")
+parser.add_argument("--output", type=Path, default=root / "build/tornread/tomokv-pad1")
+args = parser.parse_args()
+source, target = args.part1, args.output
 data = source.read_bytes()
 assert data[:6] == b"\x7fELF\x02\x01"
 assert struct.unpack_from("<H", data, 18)[0] == 62  # x86-64
@@ -46,5 +50,6 @@ assert all(a == b or i in allowed for i, (a, b) in enumerate(zip(data, changed))
 record = dict(kind="A: behaviour twin", source=str(source), target=str(target), patches=patches,
               source_sha256=hashlib.sha256(data).hexdigest(),
               target_sha256=hashlib.sha256(changed).hexdigest())
-(target.parent / "pad1.json").write_text(json.dumps(record, indent=2) + "\n")
+(target.parent / (target.name.removeprefix("tomokv-") + ".json")).write_text(
+    json.dumps(record, indent=2) + "\n")
 print(target)
