@@ -1,4 +1,6 @@
-// Cold client compatibility integration. Keep receipt-table instantiations out
+// CLIENT tracking integration with transaction execution and notification retirement.
+// The connection IO owns receipt maps and the stack visitor contexts below; executor
+// handlers borrow the selected receipt until completion. Keep receipt-table instantiations out
 // of xshard.cc so transaction changes cannot replace ordinary-path COMDATs.
 #include "../core/io_loop.h"
 #include "acl.h"
@@ -16,9 +18,10 @@ void tracking_execute_read(Shard& shard, Op& op) {
 
 IoLoop::ClimonStartResult IoLoop::tracking_ack_enable(Client* client, Op& op) {
     // Owners may still be draining a pass whose notification mask predates ON.
-    // Acknowledge only after their existing config refresh has applied this
-    // publication. This cold timer shares WAIT's already-conditional service;
-    // no command handler or unchanging owner pass gains a tracking check.
+    // For the current dispatch slot, defer acknowledgement until the owners'
+    // config refresh applies this publication. The TrackingOn timer uses the
+    // conditional deferred-timer service shared with WAIT; handlers and owner
+    // passes with an unchanged config version do not poll tracking readiness.
     const uint64_t version = srv_->live_config_snapshot(self_->id()).version;
     if (clientcompat_post() && !srv_->tracking_config_ready(version) &&
         &op == &client->rob().at(client->rob().dispatch_id())) {
@@ -38,7 +41,7 @@ IoLoop::ClimonStartResult IoLoop::tracking_ack_enable(Client* client, Op& op) {
         mark_active(client);
         // An idle owner otherwise applies the publication only after its
         // periodic park timeout. Wake each physical owner once through the
-        // existing ring doorbell; role changes retain their usual backstop.
+        // ring doorbell; periodic refresh remains the backstop across role changes.
         std::array<bool, kMaxThreads> notified{};
         for (uint32_t sid = 0; sid < srv_->nshards(); ++sid) {
             const uint32_t owner = srv_->worker_of_shard(sid);
@@ -59,6 +62,8 @@ void IoLoop::tracking_prepare_multi(Client& client, MultiExecState& state) {
     if (!tracking || !tracking->tracking_on) return;
     const auto view = multi_tracking_view(state);
     if (!view.execute) return;
+    // Borrowed IO-local state for multi_tracking_children's synchronous visitor.
+    // The visitor does not retain this stack context; snapshot/caching are values.
     struct Context {
         IoLoop* loop;
         Client* client;
@@ -90,6 +95,8 @@ void IoLoop::tracking_prepare_multi(Client& client, MultiExecState& state) {
 
 void IoLoop::tracking_finish_multi(Client& client, MultiExecState& state, NotifyBatch* batch) {
     if (!clientcompat_post()) return;
+    // Borrowed connection, loop and optional batch for the synchronous child visitor.
+    // The calling IO retains them for the visit; this context publishes no pointers.
     struct Context {
         IoLoop* loop;
         Client* client;
@@ -156,9 +163,12 @@ void IoLoop::tracking_retire_exec_read(Client& client, Op& op, NotifyBatch* batc
     tracking_retire_read(client, op);
 }
 
-// Only the committed EXEC subscription phase calls this helper. Owners have
-// joined, so the batch is immutable except for these IO-owned route bits.
-// Keep tracking records and their certificates for ordinary EXEC retirement.
+// Reserve ordered keyspace/keyevent publications before an EXEC subscription change.
+// multi_exec_io_commands calls on the connection IO after owner completion; batch is
+// borrowed from its acquire-loaded transaction pointer. Consume selected route bits,
+// retaining tracking records/certificates for ordinary EXEC retirement. A null batch
+// or no selected records yields no chain. Allocation failure is best effort: consume
+// those routes and count dropped events; a returned shared_ptr owns the reservation.
 [[gnu::noinline]] std::shared_ptr<PubSubNotificationChain> notify_multi_before(Server& server,
                                                                                NotifyBatch* batch,
                                                                                uint32_t order) {

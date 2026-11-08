@@ -1,15 +1,9 @@
-// climon.cc -- cold implementation of the IO-owned CLIENT connection-control surface and MONITOR.
-//
-// EVERYTHING IN THIS FILE IS COLD. parse_and_dispatch reaches it through exactly one call --
-// climon_armed_gate -- placed inside the notification-armed branch it already takes, so with the
-// lane idle the emitted hot path is byte-for-byte the pre-lane sequence. The previous attempt at
-// this surface sprinkled a feed hook at every dispatch site and measured +64.9 instructions/op on
-// an idle server; that patch is preserved out of tree as the cautionary reference and none of its
-// hot-path shape is reused here.
-//
-// CLIENT TRACKING lives in tracking.cc. This file owns:
-//   CLIENT HELP / NO-TOUCH / REPLY / PAUSE / UNPAUSE / UNBLOCK, MONITOR, and the shared
-//   per-connection lane state (ClimonConn) plus its arming counters.
+// CLIENT connection control, MONITOR delivery and the shared ClimonConn arming state.
+// IoLoop methods operate on their connection IO's maps; remote requests carry IDs
+// through pub/sub transport and are resolved by the receiving IO. PAUSE/UNPAUSE
+// also run during MULTI owner execution and use Server's atomic pause state.
+// CLIENT TRACKING implementation is in tracking.cc. The armed dispatch gate shares
+// the notification branch; cold command/retirement paths have separate entry points.
 
 #include "../core/io_loop.h"
 #include "cmdmeta.h"
@@ -157,7 +151,7 @@ static bool client_parse_i64(Slice value, int64_t& out) {
         if (++pos == value.n) return false;
     }
     // Canonical decimal, as redis's string2ll: no leading '+', no leading zeroes, no negative
-    // zero. "CLIENT UNBLOCK 05" and "CLIENT KILL ID 05" were accepted before this.
+    // zero. This rejects "CLIENT UNBLOCK 05" and "CLIENT KILL ID 05".
     if (value.p[pos] == '0') {
         if (negative || pos + 1 != value.n) return false;
         out = 0;
@@ -212,8 +206,14 @@ void IoLoop::climon_copy_client_filter(PubSubEvent& target, const PubSubEvent& s
     target.items = source.items;
 }
 
-// ---- lane state ----------------------------------------------------------------------------
+// ---- connection-control state ---------------------------------------------------------------
 
+// Handle PAUSE/UNPAUSE for IO dispatch and MULTI owner execution; op is borrowed
+// and its sink receives the reply. Other commands return false without a reply.
+// Invalid arguments reply synchronously. A nonzero time_base_ms supplies the
+// transaction time cut; otherwise use the monotonic clock. Server uses relaxed
+// pause mode/deadline operations and refresh_climon_armed's acq_rel exchange.
+// UNPAUSE wakes peers when waker names a thread; this helper does not park clients.
 bool command_client_pause(Server& server, Op& op, uint64_t time_base_ms, uint32_t waker) {
     if (!op.cmd_name().eq_icase("client") || op.argc() < 2) return false;
     const Slice sub = op.arg(1);
@@ -273,7 +273,7 @@ bool command_client_pause(Server& server, Op& op, uint64_t time_base_ms, uint32_
 void IoLoop::climon_refresh_armed() {
     uint32_t before = climon_armed_cached_;
     climon_armed_cached_ = srv_->climon_armed();
-    // The pre-existing monitor-lifetime branch also services pending records.
+    // The monitor-lifetime branch also services pending records.
     // On the first 0->1 transition there cannot yet be pending monitor work.
     if (before & Server::kClimonMonitor) {
         if (climon_armed_cached_ & Server::kClimonMonitor) {
@@ -295,7 +295,7 @@ void IoLoop::climon_refresh_armed() {
             }
         }
         // Ignore the private refresh bit when deciding whether parse variants
-        // changed. Do this inside the already-armed branch, never on plain EXEC.
+        // changed. This stays inside the monitor-armed branch; plain EXEC omits it.
         before = (before & ~kClimonRefreshPending) | (climon_armed_cached_ & kClimonRefreshPending);
     }
     // parse_and_dispatch caches the armed word ONCE per pass (that is what makes it free when
@@ -591,14 +591,14 @@ void IoLoop::climon_reset_client(Client* client, Op& op) {
 }
 
 // ---- THE armed gate ------------------------------------------------------------------------
-// The one per-operation entry point this lane owns. It is reached only from inside the branch
-// parse_and_dispatch already takes for keyspace notifications, and only while at least one lane
-// feature is armed. Returning true HOLDS the connection: the frame stays unparsed and is retried
-// on a later pass (CLIENT PAUSE).
+// parse_and_dispatch and its R7 envelope call inside the notification branch.
+// The cached control mask can still be zero when keyspace notifications alone
+// are armed; return immediately then. Returning true holds the connection: the
+// frame is not consumed and CLIENT PAUSE retries it on a later pass.
 
 bool IoLoop::climon_armed_gate(Client* client, Op& op) {
     const uint32_t armed = climon_armed_cached_;
-    // Keyspace notifications can be configured with the lane entirely idle. That case must not
+    // Keyspace notifications can be configured with client control idle. That case must not
     // walk any of the machinery below.
     if (__builtin_expect(armed == 0, true)) return false;
 
@@ -1032,6 +1032,13 @@ void IoLoop::climon_monitor_stop(Client* client, uint64_t id) {
 
 // ---- CLIENT subcommands owned by this file --------------------------------------------------
 
+// Run on the requesting connection IO with the current unpublished CLIENT slot.
+// Validate and answer local/missing targets synchronously. For a remote target,
+// retain the request in climon_pending_, release-publish the ROB slot and arm
+// the Climon barrier until the result retires. pubsub_post transfers the event
+// under the target queue mutex and can spin for wake-channel space. Allocation
+// exceptions propagate; a duplicate pending request aborts. No foreign Client
+// pointer is sent to the target owner.
 IoLoop::ClimonStartResult IoLoop::climon_start_client_unblock(Client* client, Op& op) {
     if (op.argc() != 3 && op.argc() != 4) {
         climon_wrong_args(op, "unblock");
@@ -1123,6 +1130,12 @@ IoLoop::ClimonStartResult IoLoop::climon_start_client_list(Client* client, Op& o
     return climon_begin_client_scatter(client, filter, ClimonPendingKind::ClientList);
 }
 
+// Parse CLIENT KILL on the requesting connection IO into an owned filter.
+// The caller supplies the current unpublished CLIENT slot. Syntax/argument
+// errors return Sync with a reply; a valid filter enters the shared scatter
+// path, which release-publishes the ROB slot and holds the Climon barrier
+// while owner-local results arrive. Allocations may throw; remote posting
+// can wait for wake-channel space in pubsub_post.
 IoLoop::ClimonStartResult IoLoop::climon_start_client_kill(Client* client, Op& op) {
     if (op.argc() == 2) {
         reply_err(op.sink(), "ERR wrong number of arguments for 'client|kill' command");
@@ -1248,6 +1261,13 @@ IoLoop::ClimonStartResult IoLoop::climon_begin_client_scatter(Client* client,
     return ClimonStartResult::Async;
 }
 
+// Dispatch validated MONITOR or CLIENT (argc >= 2) on the connection IO.
+// Borrow the current unpublished ROB slot and mutate this IO's control state.
+// Sync leaves completion to pubsub_start_command; Async helpers publish the
+// slot and install their barrier/deferred state. The fallback temporarily binds
+// command/snapshot context for the registry handler. Validation errors reply
+// synchronously; allocation exceptions propagate unless a delegated helper
+// handles them, and remote control requests can wait for transport space.
 IoLoop::ClimonStartResult IoLoop::climon_start_client_command(Client* client, Op& op) {
     if (op.cmd_name().eq_icase("monitor")) {
         if (op.argc() != 1) {
@@ -1304,17 +1324,15 @@ IoLoop::ClimonStartResult IoLoop::climon_start_client_command(Client* client, Op
             // CLIENT REPLY ON always answers, including the call that lifts OFF -- so undo the
             // mark the armed gate just made for this very op.
             op.clear_reply_skip();
-            // The mark is honoured ONLY by the suppressing serve, and that variant is selected
-            // per connection by reply_mode != ON. Ops marked while OFF may still be un-retired:
-            // a pipelined `REPLY OFF; MGET; REPLY ON` runs this Sync handler while the MGET's
-            // scatter is still in flight, and dropping straight to ON here handed that MGET to
-            // the hot serve, which never reads the mark -- the whole assembled array (header,
-            // borrowed bulks, CRLFs) reached the wire ahead of this +OK. So OFF, like a SKIP
-            // whose marked op is still pending, leaves through the SkipNow drain state; the
-            // armed gate marks nothing there, and climon_serve_suppressed returns the
-            // connection to ON once its ROB has quiesced. This op is not yet published, so
-            // in_flight() counts exactly the older ops: with none, ON is immediate and the hot
-            // serve resumes on the very next drain.
+            // Reply-skip marks are read by suppressing serve, selected while
+            // reply_mode != ON. In a pipeline such as REPLY OFF; MGET; REPLY ON,
+            // this Sync handler can run while the older MGET scatter is in flight.
+            // Keep suppressing serve until that marked array (header, borrowed bulks,
+            // CRLFs) retires, or hot serve would put it on the wire before this +OK.
+            // OFF and a pending SKIP therefore leave through SkipNow. The armed gate
+            // marks nothing in that state; climon_serve_suppressed restores ON after
+            // ROB quiescence. This slot is unpublished, so in_flight() counts just
+            // older ops: with none, ON is immediate and the next drain uses hot serve.
             state.reply_mode = (before != kClimonReplyOn && client->rob().in_flight() != 0)
                                    ? kClimonReplySkipNow
                                    : kClimonReplyOn;

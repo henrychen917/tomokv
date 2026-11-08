@@ -294,3 +294,76 @@ threshold. Client::migration_protocol_idle is a file-path patch site in
 `tests/wbland_checks.py` and inspected by `tests/racefix.py`; Rob is explicitly
 comments-only for A20. No class-body split is attempted, so none is kept or
 reverted. Definitions and includes retain their order and locations.
+
+## 2026-11-08 — cold CLIENT dispatch placement
+
+`IoLoop::climon_armed_gate` / `climon_start_client_command`: retain the armed gate
+inside the notification branch, with separate cold command and retirement entry
+points. The inherited header reports +64.9 instructions/op for an abandoned
+per-dispatch MONITOR feed hook on an idle server, and says its patch was retained
+out of tree. That historical measurement is not reproduced or validated here.
+The header's “exactly one call” claim did not cover the other cold entry points.
+
+## 2026-11-08 — canonical client identifiers
+
+`client_parse_i64`: reject leading plus, leading zeroes and negative zero, including
+`CLIENT UNBLOCK 05` and `CLIENT KILL ID 05`. The inherited comment describes those
+forms as previously accepted; the present contract describes their rejection.
+
+## 2026-11-08 — REPLY ON waits for suppressed predecessors
+
+`IoLoop::climon_start_client_command` / `climon_serve_suppressed`: a synchronous
+REPLY ON can run before an older pipelined MGET finishes. Preserve SkipNow until
+ROB quiescence so the suppressing writer consumes the earlier reply's header,
+borrowed bulks and CRLFs. The current slot is unpublished, so in_flight counts
+older operations and permits immediate ON when none remain. The inherited note
+reports a leak of that assembled array before ON's +OK when this drain state
+was omitted; the source now explains the hazard without a change narrative.
+
+## 2026-11-08 — tracking receipts and MULTI compatibility control
+
+`IoLoop::tracking_register_read` / `tracking_prepare_multi`: the clientcompat_post
+path collects EXEC receipts during execution preparation; the retained compatibility
+control can collect queued receipts without selecting them for execution. The
+inherited comment labels these POST and PAD-A/PRE. Experiment symbols and code
+remain intact. `tracking_ack_enable` uses deferred timer readiness for the current
+ROB dispatch slot; its condition does not defer IO-local EXEC children.
+
+## 2026-11-08 — tracking ownership and conservative membership
+
+`track_filter_add` / `tracking_broadcast_flush`: the global membership bits remain
+set across flushes, avoiding a race with remote registration. The inherited filter
+comment incorrectly said a flush clears them. Each IO owns its registration maps,
+but remote event transport uses ThreadCtx's pub/sub mutex; the inherited claim
+that no armed path has a lock was broader than the code. Observation helpers can
+receive unselected operations and return at the receipt tag check.
+
+## 2026-11-08 — invalidation wire compatibility
+
+`IoLoop::tracking_emit_invalidation` / `tracking_deliver_frame` /
+`tracking_reply_trackinginfo`: whole-cache invalidation uses RESP3 null and RESP2
+null bulk; RESP2 delivery requires a redirected subscriber. A missing redirect is
+detected on delivery, retains TRACKING ON and the redirect ID, sets the info flag,
+and sends a broken-redirect push on each eligible RESP3 attempt. TRACKINGINFO
+uses a RESP3 set for flags and an array for prefixes. The inherited comments cite
+oracle confirmation; these checks are not newly measured compatibility results.
+
+## 2026-11-08 — BCAST pass boundary
+
+`IoLoop::tracking_bcast_flush`: pubsub_pass_flush drains notification events,
+flushes accumulated BCAST keys, then clears the pending bit. flush_ready's bounded
+reply-serving pass follows. The inherited “after command retirement” description
+misidentified this boundary. Keep each prefix's sorted key array and last-writer
+NOLOOP decision, including writes whose own delivery is suppressed.
+
+## 2026-11-08 — TRACKING validation and prefix ordering
+
+`IoLoop::tracking_client_subcommand`: the inherited differential-test notes name
+seed 20 for ordered collision precedence and seed 23 for the implicit empty prefix.
+Preserve state-before-value validation for CACHING, mode-before-prefix validation
+for TRACKING, and for each supplied prefix compare held prefixes before later
+supplied prefixes. OFF parses options but skips the enable-gated constraints;
+the old claim that OFF accepts “anything” was too broad. ON replaces optin/optout/
+noloop modifiers, rejects explicit contradictions, and ON BCAST without PREFIX
+adds one implicit empty prefix even to an explicit prefix set. Sort that prefix
+first and avoid duplicate registration/allocation/accounting on repeated ON BCAST.
