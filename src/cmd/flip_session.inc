@@ -1,9 +1,12 @@
-// D18.1: only ClientPrepare (after IoDrain/ExDrain) uses this exception. The
-// session, queued argv/error and watched aliases belong to the stable Client,
-// not its IO. An unpublished attempt still owns admission on its source IO.
+// FLIP session-readiness and closing-client cleanup predicates. Included by multi.inc in
+// cmd/xshard.cc immediately after MultiSession, with BlockingState already defined.
+// The session, queued argv/error and watched aliases belong to the stable Client. An
+// unpublished
+// attempt still owns admission on its source IO. The session-preserving migration exception is
+// used during ClientPrepare after IoDrain/ExDrain; safe_to_release still requires zero pins.
 bool Client::flip_session_pending() const { return multi_session_ && multi_session_->pending; }
 
-// Keep a distinct cold predicate for the PAD-A behaviour twin and for the
+// This cold predicate serves the offline behaviour twin and the
 // transfer finish recheck. No command-dispatch body calls this function.
 __attribute__((noinline, noipa)) bool Client::flip_migration_protocol_idle() const {
     if (multi_session_ && multi_session_->pending) return false;
@@ -14,9 +17,9 @@ __attribute__((noinline, noipa)) bool Client::flip_migration_protocol_idle() con
     return watched_refs_.load(std::memory_order_acquire) == aliases && flip_drain_idle();
 }
 
-// D18.2 conservative policy: S2 owns unpublished IO admission/apply credits.
-// Reject on ANY source before ExDrain; leave the state and original IO intact.
-// The global dispatch pause prevents it publishing until rollback reaches Idle.
+// Unpublished MULTI/EXEC attempts own IO admission/apply credits. Reject them on any source
+// before ExDrain, preserving the session and source IO. Global dispatch pause prevents an
+// attempt from publishing until rollback reaches Idle.
 bool IoLoop::flip_session_drain_refused() const {
     for (const Client* client : self_->clients())
         if (client->flip_session_pending()) {
@@ -32,9 +35,8 @@ bool IoLoop::flip_session_close_held() {
     return true;
 }
 
-// The active close retry must revisit deferred WATCH cleanup before its unchanged
-// zero-pin lifetime check. It runs only in the already-closing branch (both IO
-// engines); live GET/SET/etc never call it. The original cleanup is idempotent.
+// The active close retry revisits idempotent WATCH cleanup before the zero-pin lifetime check.
+// Both IO engines call it in their already-closing branch; ordinary GET/SET dispatch does not.
 bool IoLoop::closing_client_ready(Client* client) {
     multi_close_entry(*this, *client);
     return client->safe_to_release();

@@ -34,7 +34,7 @@ inline constexpr uint64_t kIdleMultiplier = 2;
 
 // Learn completion intervals only within a busy split-IO tenure. A completion
 // after a park must not teach the duration of the long operation we waited for.
-// Stack-local, with the existing pass clock cut: no allocation or extra clock read.
+// Stack-local, using the pass clock cut: no allocation or extra clock read.
 // Contract: The split IO loop owns this stack state. Its pass clock supplies now, with
 // monotonic
 // timestamps required by unsigned subtraction. park breaks completion-interval learning; a

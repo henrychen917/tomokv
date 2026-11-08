@@ -592,9 +592,9 @@ void FlipController::start_maneuver(Server& server, FlipctlTriggerReason reason,
         forced_triggers_++;
 
     phase_ = Phase::Measuring;
-    // Where this maneuver started. If the search comes back here, the trigger that started it
-    // demanded a move and the measurements refused one: that excursion carries no placement
-    // information and anchor() turns it into a band floor.
+    // Remember the maneuver's starting split. If a workload-triggered maneuver returns here,
+    // anchor() increases that detector's confirmation count because the evidence produced no
+    // lasting placement change.
     maneuver_origin_io_ = server.role_count(Role::Ifid);
     shift_streak_ = 0;
     readings_.clear();
@@ -737,9 +737,10 @@ uint32_t FlipController::io_clients(const Server& server) const {
     return clients;
 }
 
-// Books the flip that just returned to Idle into the cost model. Called at the first look that
-// sees Idle, which wait_ms() makes a fraction of a tick after completion, so the served count is
-// contaminated by at most that fraction of post-flip traffic at the new rate.
+// Book a measured flip when tick observes Idle. wait_ms requests checks every fraction of a
+// tick while the flip is in flight, reducing post-completion traffic included in its cost
+// estimate.
+// Scheduling delay can extend the interval; the polling cadence is not a wall-time bound.
 void FlipController::measure_flip(Server& server, uint64_t now_ms) {
     if (!flip_measure_armed_) return;
     flip_measure_armed_ = false;
@@ -1392,11 +1393,11 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
     }
     // Phase 4: confirm anchored changes before learning quiet drift.
     if (phase_ == Phase::Anchored) {
-        // A fingerprint shift asks for the same evidence a rate trigger already asks for: TWO
-        // consecutive out-of-band observations. One window can sit outside the band on ordinary
-        // sampling luck; a workload that actually changed keeps presenting the new mix. Only
-        // windows that closed real work vote -- a tick where no owner published is not evidence
-        // either way, so it neither adds to the streak nor clears it.
+        // Fingerprint shifts need consecutive out-of-band observations, starting at two and
+        // subject
+        // to null-maneuver backoff. One sampled window can exceed the band by chance. Ticks
+        // where no
+        // owner closes a work window provide no vote and neither advance nor clear the streak.
         if (fingerprint_sampled_this_tick_) shift_streak_ = shifted ? shift_streak_ + 1 : 0;
         const bool sustained_shift = shift_streak_ >= shift_confirmations_;
         if (!sample_anchored_rate(server, now_ms, rate)) {

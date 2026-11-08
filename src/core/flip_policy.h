@@ -455,16 +455,13 @@ struct FlipCostVerdict {
     bool pays = false;
 };
 
-// THE COST GATE, and it is ASYMMETRIC BY CONSTRUCTION -- a move off a split that delivers a
-// fraction of the achievable rate must not wait for the long stability window a marginal move
-// needs. The benefit is the kappa-scaled gain credited over the horizon the workload has held
-// still, less the blind time; it scales with the GAIN. The cost is the flip, the revert with
-// probability P_miss, and the blackout: with probability P_miss the move is wrong and the T_black
-// seconds blind risk the whole ORIGIN throughput (a wrong target could deliver nothing before the
-// revert) -- NOT gain_mean x rate, which would scale the cost with the gain too and cancel the
-// asymmetry. So benefit/cost ~ gain, and the stationarity a move needs to clear the gate falls as
-// the gain rises: a +2400% move off a wrong-split boot pays at ~1.0 T_black, a +5% move needs the
-// workload to hold for tens of blackouts. The wait derives from the distance, no constant added.
+// The cost gate credits kappa-scaled gain over the demonstrated stationary horizon minus blind
+// time. Cost includes a flip, a possible revert and the entire origin rate at risk during a
+// wrong
+// split's blackout: a bad target can serve nothing. Pricing blackout as gain_mean*rate would
+// scale
+// cost and benefit together, erasing the intended dependence on gain. Larger projected gains
+// therefore require less stationary time to pay for the move; no fixed wait is added.
 inline FlipCostVerdict flip_cost_gate(double gain_low, double gain_mean, double rate,
                                       double stationary_s, double blackout_s, double transfer_cost,
                                       double p_miss, uint32_t margin) {

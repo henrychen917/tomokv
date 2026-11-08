@@ -228,9 +228,9 @@ double flip_signature_distance(const FlipSignature& left, const FlipSignature& r
 // Whole-signature distance including pass_depth. Diagnostics only -- never a trigger input.
 double flip_signature_pass_distance(const FlipSignature& left, const FlipSignature& right);
 
-// The shipped controller uses the learned band: twice pre-anchor jitter, floored by both
-// continuously learned in-band noise and 2/sqrt(N) for N sampled commands. The fixed/disabled
-// forms remain for byte stability; no production constructor selects either form.
+// Controller initialization selects a learned band: twice pre-anchor jitter, floored by
+// continuous in-band noise and 2/sqrt(N) for N sampled commands. Explicit and disabled forms
+// support detector fixtures; the production controller constructs the learned form.
 // Contract: Accumulate caller-owned fingerprint history and compare against an anchor.
 // Production calls
 // run under FlipController's mutex; standalone tests provide their own serialization. No atomic
@@ -256,8 +256,9 @@ public:
     double band() const { return band_; }
     double last_distance() const { return last_distance_; }
     double jitter() const { return jitter_; }
-    // The signal's own adjacent-window movement, learned continuously from IN-BAND windows: the
-    // floor under the learned band (the only production mode).
+    // The in-band anchor-distance noise bound, learned after anchoring; pre-anchor learning
+    // uses
+    // adjacent-window distances. It floors the learned production band.
     double noise_bound() const { return signature_noise_.bound(); }
     uint32_t noise_samples() const { return signature_noise_.samples; }
 
@@ -270,10 +271,12 @@ private:
     FlipSignature learning_origin_{};
     FlipSignature anchored_signature_{};
     double jitter_ = 0;
-    // Every in-band window's adjacent-window distance, exponentially weighted. jitter_ is the max
-    // over the pre-anchor learning windows and is then FROZEN (so an excursion cannot widen the
-    // threshold that judges it); this keeps learning the quiet-state noise for as long as the
-    // anchor holds, which is what a band cut from one quiet learning window misses.
+    // Noise learning uses adjacent-window distance before anchoring and in-band distance from
+    // anchored_signature_ afterward. jitter_ freezes the pre-anchor learning maximum so an
+    // excursion
+    // cannot widen the threshold that judges it. signature_noise_ keeps learning quiet-state
+    // noise
+    // while the anchor holds.
     FlipEwBound signature_noise_{};
     double band_ = 0;
     double last_distance_ = 0;
@@ -495,11 +498,12 @@ private:
     uint32_t model_target_io_ = 0;
     uint64_t model_holds_ = 0;
     const char* model_last_decision_ = "none";
-    // OUTCOME MARGIN: how many throughput bands of projected gain the model must clear. Doubles
-    // when a maneuver moved and came back (the projection did not deliver -- a biased estimator
-    // does not get less biased with more samples, so the BAR rises), halves when a move delivered,
-    // and never grows past the point where the required gain would exceed 100%, which would
-    // retire the model for good. Derived at both ends: the band is learned, the cap is arithmetic.
+    // Outcome margin scales the throughput band a projected gain must clear. A returned miss
+    // doubles it when band*margin is below 1; a delivered split change halves it toward 1.
+    // Candidate
+    // admission clamps the required gain to 1. More observations cannot remove an estimator's
+    // bias,
+    // so misses raise this bar rather than merely extending observation.
     uint32_t model_margin_ = 1;
     uint64_t round_trips_ = 0;
     uint32_t maneuver_flips_ = 0;

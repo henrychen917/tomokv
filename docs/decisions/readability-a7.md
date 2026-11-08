@@ -646,3 +646,174 @@ Source: `src/core/wb_rule.h`, `wb_rule::staged_bytes`. Preserved source rational
 Source: `src/core/wb_rule.h`, `wb_rule::defer`. Preserved source rationale:
 > Separate measured candidate: assembly stays in ordinary WB, in ROB order.
 
+## 2026-11-08 — 65. file overview
+Source: `src/cmd/flip_session.inc`, `file overview`. Preserved source rationale:
+> D18.1: only ClientPrepare (after IoDrain/ExDrain) uses this exception. The
+> session, queued argv/error and watched aliases belong to the stable Client,
+> not its IO. An unpublished attempt still owns admission on its source IO.
+
+## 2026-11-08 — 66. IoLoop::flip_session_drain_refused
+Source: `src/cmd/flip_session.inc`, `IoLoop::flip_session_drain_refused`. Preserved source rationale:
+> D18.2 conservative policy: S2 owns unpublished IO admission/apply credits.
+> Reject on ANY source before ExDrain; leave the state and original IO intact.
+> The global dispatch pause prevents it publishing until rollback reaches Idle.
+
+## 2026-11-08 — 67. IoLoop::closing_client_ready
+Source: `src/cmd/flip_session.inc`, `IoLoop::closing_client_ready`. Preserved source rationale:
+> The active close retry must revisit deferred WATCH cleanup before its unchanged
+> zero-pin lifetime check. It runs only in the already-closing branch (both IO
+> engines); live GET/SET/etc never call it. The original cleanup is idempotent.
+
+## 2026-11-08 — 68. file overview
+Source: `src/cmd/flip_liveness.inc`, `file overview`. Preserved source rationale:
+> FLIP-only connection liveness. Included after MultiSession and BlockingState.
+> Ordinary commands never call these helpers. Blocking continuations alone
+> consult the existing FLIP acknowledgement before publishing new owner work.
+
+## 2026-11-08 — 69. flip_liveness_enabled
+Source: `src/cmd/flip_liveness.inc`, `flip_liveness_enabled`. Preserved source rationale:
+> PAD-A patches only this immediate in each namespace. PRE behavior then runs
+> with exactly the candidate's text/layout; this is not a runtime option.
+
+## 2026-11-08 — 70. file overview
+Source: `src/core/fliplisten.cc`, `file overview`. Preserved source rationale:
+> Listener ownership is independent of an IO tenure. Everything in this file is
+> reached through an existing cold accept branch or a live FLIP control tail.
+
+## 2026-11-08 — 71. IoLoop::fliplisten_retry_accept
+Source: `src/core/fliplisten.cc`, `IoLoop::fliplisten_retry_accept`. Preserved source rationale:
+> The pre-existing per-pass accept_pending_ branch is the only caller.
+> Keep arm_accept itself unchanged: even a cold call in its quiescing branch
+> made GCC save another register on every ordinary native accept rearm.
+
+## 2026-11-08 — 72. IoLoop::fliplisten_retry_accept
+Source: `src/core/fliplisten.cc`, `IoLoop::fliplisten_retry_accept`. Preserved source rationale:
+> Publish only after the walk; setting quiescing before a later native
+> rearm used to suppress that rearm (or recurse through an arm hook).
+
+## 2026-11-08 — 73. file overview
+Source: `src/core/weighted_lb.h`, `file overview`. Preserved source rationale:
+> weighted_lb.h -- the one placement policy shared by FLIP and the continuous controller.
+>
+> Demand is primary. An optional second load vector (bytes for buckets) is compared
+> lexicographically, never blended into demand. Count remains a hard invariant: every target
+> finishes with floor/ceil item count, including the all-zero boot window. Items are considered
+> largest-first and placed on the least loaded eligible target; current ownership and target id
+> only break exact ties. This is deterministic, allocation-only code and never runs on a request
+> path.
+
+## 2026-11-08 — 74. weighted_lb_partition
+Source: `src/core/weighted_lb.h`, `weighted_lb_partition`. Preserved source rationale:
+> Ties keep the incumbent -- globally, not just per greedy step. The greedy fill above cannot
+> see that a zero-move assignment with the same spread exists (once an item's incumbent has
+> absorbed earlier items it looks "fuller" and the item is shipped elsewhere), so a balanced
+> no-op FLIP reshuffled a hundred buckets for nothing. If assigning every item to its current
+> owner is feasible under the same count bounds and no worse in weight or secondary spread
+> than the greedy plan, prefer it wholesale: locality is free when balance ties.
+
+## 2026-11-08 — 75. file overview
+Source: `src/core/placement.h`, `file overview`. Preserved source rationale:
+> placement.h — per-thread role/cpu placement and the shard migration contract.
+>
+> A LOGICAL THREAD IS THE DEFAULT LOCALITY UNIT. When the allowed CPU set contains sibling pairs,
+> Linux's reported pair is the scheduling unit: both dense thread ids have one role and FLIP moves them
+> together. There is deliberately no node layer between a thread and its cpu/L3 facts.
+
+## 2026-11-08 — 76. Placement::build_even
+Source: `src/core/placement.h`, `Placement::build_even`. Preserved source rationale:
+> EVEN GLOBAL PLACEMENT. Counts are whole-server, so shapes no per-node grammar can express
+> (15:2) are first-class. IO and EX roles spread across the L3 domains as evenly as
+> integer division allows, with the roles interleaved within each domain.
+>
+> This is also the flip-era invariant in batch form: a runtime controller changing one thread's
+> role keeps these same quotas incrementally -- pick the convert candidate from the domain
+> whose count for the shrinking role sits above quota and whose count for the growing role
+> sits below it. Placement stays a pure function of (counts, topology); no node layer.
+
+## 2026-11-08 — 77. file overview
+Source: `src/core/lbplanner.cc`, `file overview`. Preserved source rationale:
+> LB admission/gather/search has one writer: the main monitor thread.
+> The existing stage word publishes a finished immutable slot to its IO coordinator.
+
+## 2026-11-08 — 78. lbosc3_level
+Source: `src/core/lbplanner.cc`, `lbosc3_level`. Preserved source rationale:
+> One offline PAD-A patch point: returning zero restores PRE policy on this exact
+> layout. Production returns the configured level; no ordinary operation calls it.
+
+## 2026-11-08 — 79. LbAutotune::KeyDamping::update
+Source: `src/core/lbplanner.cc`, `LbAutotune::KeyDamping::update`. Preserved source rationale:
+> even at INT32_MAX. The 1.5 ceiling is the owner's allowed accuracy budget.
+
+## 2026-11-08 — 80. lbosc3_best_incremental_move
+Source: `src/core/lbplanner.cc`, `lbosc3_best_incremental_move`. Preserved source rationale:
+> The key objective lives in the cold planner TU. The shared PRE search remains
+> unchanged for clients, FLIP, and the behaviour twin.
+
+## 2026-11-08 — 81. Server::lb_controller_tick_pad
+Source: `src/core/lbplanner.cc`, `Server::lb_controller_tick_pad`. Preserved source rationale:
+> These PRE bodies are comparison material, not a runtime mode. PAD-A retargets
+> the existing tail/monitor calls and each private gate load in a COPY of POST.
+> Keep the admission body and actuator body mechanically equal to cd02ecbab;
+> the artifact verifier compares them before allowing a twin to be built.
+
+## 2026-11-08 — 82. IoLoop::lb_pass_begin_pad
+Source: `src/core/lbplanner.cc`, `IoLoop::lb_pass_begin_pad`. Preserved source rationale:
+> PRE had no per-pass pause snapshot; its live per-connection gate is restored in PAD.
+> In particular, do not overwrite the same eight bytes that PAD uses as its cron deadline.
+
+## 2026-11-08 — 83. IoLoop::lb_control_pass_pad
+Source: `src/core/lbplanner.cc`, `IoLoop::lb_control_pass_pad`. Preserved source rationale:
+> The same eight bytes were the PRE per-IO cron deadline. PAD never writes
+> a cached pause ID; its parser reads the live stage, as PRE did.
+
+## 2026-11-08 — 84. FlipShiftDetector
+Source: `src/core/flipctl.h`, `FlipShiftDetector`. Preserved source rationale:
+> The shipped controller uses the learned band: twice pre-anchor jitter, floored by both
+> continuously learned in-band noise and 2/sqrt(N) for N sampled commands. The fixed/disabled
+> forms remain for byte stability; no production constructor selects either form.
+
+## 2026-11-08 — 85. FlipController::model_margin_
+Source: `src/core/flipctl.h`, `FlipController::model_margin_`. Preserved source rationale:
+> OUTCOME MARGIN: how many throughput bands of projected gain the model must clear. Doubles
+> when a maneuver moved and came back (the projection did not deliver -- a biased estimator
+> does not get less biased with more samples, so the BAR rises), halves when a move delivered,
+> and never grows past the point where the required gain would exceed 100%, which would
+> retire the model for good. Derived at both ends: the band is learned, the cap is arithmetic.
+
+## 2026-11-08 — 86. FlipController::start_maneuver
+Source: `src/core/flipctl.cc`, `FlipController::start_maneuver`. Preserved source rationale:
+> Where this maneuver started. If the search comes back here, the trigger that started it
+> demanded a move and the measurements refused one: that excursion carries no placement
+> information and anchor() turns it into a band floor.
+
+## 2026-11-08 — 87. FlipController::measure_flip
+Source: `src/core/flipctl.cc`, `FlipController::measure_flip`. Preserved source rationale:
+> Books the flip that just returned to Idle into the cost model. Called at the first look that
+> sees Idle, which wait_ms() makes a fraction of a tick after completion, so the served count is
+> contaminated by at most that fraction of post-flip traffic at the new rate.
+
+## 2026-11-08 — 88. flip_cost_gate
+Source: `src/core/flip_policy.h`, `flip_cost_gate`. Preserved source rationale:
+> THE COST GATE, and it is ASYMMETRIC BY CONSTRUCTION -- a move off a split that delivers a
+> fraction of the achievable rate must not wait for the long stability window a marginal move
+> needs. The benefit is the kappa-scaled gain credited over the horizon the workload has held
+> still, less the blind time; it scales with the GAIN. The cost is the flip, the revert with
+> probability P_miss, and the blackout: with probability P_miss the move is wrong and the T_black
+> seconds blind risk the whole ORIGIN throughput (a wrong target could deliver nothing before the
+> revert) -- NOT gain_mean x rate, which would scale the cost with the gain too and cancel the
+> asymmetry. So benefit/cost ~ gain, and the stationarity a move needs to clear the gate falls as
+> the gain rises: a +2400% move off a wrong-split boot pays at ~1.0 T_black, a +5% move needs the
+> workload to hold for tens of blackouts. The wait derives from the distance, no constant added.
+
+## 2026-11-08 — 89. NotifyMask::set
+Source: `src/core/signal.h`, `NotifyMask::set`. Preserved source rationale:
+> Producer side. One relaxed load in the common case; the RMW is paid only on the empty->flagged
+> transition, which under load is rare.
+>
+> RETURNS TRUE only when THIS producer performed the transition, and that answer is what decides
+> who owns the wake — see the Dekker note on Channel::wake(). A producer that finds the bit
+> already set owes no wake: the bit is still set, so the consumer has not taken it yet, so the
+> consumer is still going to take it and drain this channel, and our item is already in the queue
+> by then. The seq_cst on the RMW is load-bearing, not decoration: it is the full fence that keeps
+> the store of the bit from being reordered after the load of blocked_ in wake().
+

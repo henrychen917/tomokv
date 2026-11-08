@@ -304,15 +304,13 @@ public:
     static constexpr uint32_t kBits = 128;
     static constexpr uint32_t kWords = kBits / 64;
 
-    // Producer side. One relaxed load in the common case; the RMW is paid only on the empty->flagged
-    // transition, which under load is rare.
-    //
-    // RETURNS TRUE only when THIS producer performed the transition, and that answer is what decides
-    // who owns the wake — see the Dekker note on Channel::wake(). A producer that finds the bit
-    // already set owes no wake: the bit is still set, so the consumer has not taken it yet, so the
-    // consumer is still going to take it and drain this channel, and our item is already in the queue
-    // by then. The seq_cst on the RMW is load-bearing, not decoration: it is the full fence that keeps
-    // the store of the bit from being reordered after the load of blocked_ in wake().
+    // Producer/repair side: read first, then seq_cst fetch_or if the bit is absent. Return true
+    // for the caller that sets the bit; that RMW orders its bit store before the blocked_ load
+    // in
+    // Channel::wake. If already set, this method performs no fence and owes no new edge wake.
+    // Queue publication must still establish StoreLoad ordering, as publish does
+    // unconditionally;
+    // a set bit by itself does not publish work added after an earlier notification.
     bool set(uint32_t producer) {
         const uint64_t bit = 1ull << (producer & 63);
         auto& w = words_[(producer >> 6) & (kWords - 1)];

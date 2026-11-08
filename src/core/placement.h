@@ -1,8 +1,9 @@
-// placement.h — per-thread role/cpu placement and the shard migration contract.
-//
-// A LOGICAL THREAD IS THE DEFAULT LOCALITY UNIT. When the allowed CPU set contains sibling pairs,
-// Linux's reported pair is the scheduling unit: both dense thread ids have one role and FLIP moves them
-// together. There is deliberately no node layer between a thread and its cpu/L3 facts.
+// CPU/role placement vectors and initial shard homes, shared by Server and boot support.
+// Threads use dense ids distinct from CPU numbers. With SMT pairing enabled, validated
+// reciprocal
+// sysfs siblings form a scheduling unit with one role; FLIP moves the pair together. Runtime
+// mutation of role vectors requires FLIP quiescence so readers need no per-access mutex.
+// Shard migration separately fences old-owner work and publishes one committed route change.
 
 #pragma once
 #include <algorithm>
@@ -28,10 +29,17 @@ struct ThreadPlacement {
     uint32_t domain = kNoDomain;
 };
 
+// Contract: Server owns the topology-derived thread, role, shard-home and SMT-peer vectors.
+// Boot builders require exclusive access; runtime set_runtime_role requires FLIP global
+// quiescence and reserved role-vector capacity. Methods add no atomic publication: the caller's
+// stage protocol publishes mutations. Index accessors require valid dense ids. Builders report
+// invalid inputs as false, may leave partial state on failure, and generally propagate
+// allocation
+// exceptions; reserve_runtime_roles catches allocation failure and returns false.
 class Placement {
 public:
     // FUSED PLACEMENT. Every selected CPU owns clients and may own shards. The two dense views
-    // intentionally contain the same tids: existing connection fanout consumes ifid_threads(),
+    // intentionally contain the same tids: connection fanout consumes ifid_threads(),
     // while shard/snapshot fanout consumes ex_threads(). Explicit role labels remain accepted as
     // CPU selectors, but have no runtime meaning in this mode.
     bool build_fused(const Topology& topo, const char* spec) {
@@ -62,14 +70,17 @@ public:
         return true;
     }
 
-    // EVEN GLOBAL PLACEMENT. Counts are whole-server, so shapes no per-node grammar can express
-    // (15:2) are first-class. IO and EX roles spread across the L3 domains as evenly as
-    // integer division allows, with the roles interleaved within each domain.
-    //
-    // This is also the flip-era invariant in batch form: a runtime controller changing one thread's
-    // role keeps these same quotas incrementally -- pick the convert candidate from the domain
-    // whose count for the shrinking role sits above quota and whose count for the growing role
-    // sits below it. Placement stays a pure function of (counts, topology); no node layer.
+    // Spread whole-server IO/EX counts across L3 domains using integer quotas, allowing shapes
+    // such as 15:2. Within each domain append IO threads then EX threads. Unequal domain
+    // capacities
+    // require quota redistribution. Runtime FLIP uses the same topology facts to choose role
+    // conversions; there is no intermediate node layer.
+    // Contract: Server boot (and standalone fixtures) supplies topology/counts with exclusive
+    // access. Clear prior placement, distribute quotas, then append dense threads; SMT mode
+    // delegates
+    // to build_even_smt. Capacity/shape failures print diagnostics and return false. Vector
+    // allocation
+    // can throw; no worker state is published by this builder.
     bool build_even(const Topology& topo, uint32_t n_ifid, uint32_t n_ex, bool smt_mode = false) {
         clear();
         if (smt_mode) return build_even_smt(topo, n_ifid, n_ex);
@@ -133,6 +144,12 @@ public:
 
     // --place is intentionally a small, strict language. Boot configuration should fail at the
     // first typo instead of accepting a partial placement and letting unpinned threads float.
+    // Contract: Boot parsing with exclusive Placement access. Clear prior state and parse the
+    // complete role@cpu list against the allowed topology. Syntax, CPU or channel-limit
+    // failures return
+    // false with diagnostics and can leave a parsed prefix; callers must reject the failed
+    // placement.
+    // Vector allocation can throw, and this method does not publish runtime roles.
     bool build_explicit(const Topology& topo, const char* spec) {
         clear();
         if (!spec || !*spec) {
@@ -185,6 +202,12 @@ public:
     // A manual topology map is complete: shard IDs name dense executor thread IDs, not CPUs.
     // Executors omitted from the map remain valid empty fillers. Runtime migration still uses
     // the ordinary ownership transaction; this map selects only initial ownership.
+    // Contract: Boot callers provide the completed executor view and exclusive access. Produce
+    // a full shard-id to dense-thread-id map, defaulting to round-robin. Reject
+    // missing/duplicate/out
+    // of-range entries or non-executor targets; failed explicit parsing can leave partial
+    // state.
+    // Allocation can throw; runtime shard ownership is installed separately.
     bool assign_shard_homes(uint32_t nshards, const char* spec = nullptr) {
         if (ex_.empty()) return false;
         shard_home_.assign(nshards, kNoThread);
@@ -250,6 +273,13 @@ public:
     // Resolve cpu siblings to dense thread ids after either placement frontend has run. Pair mode
     // is a boot contract, not a best effort: a selected cpu with an absent sibling, a non-pair
     // sysfs topology, or two sibling threads assigned different roles rejects the shape.
+    // Contract: Boot callers provide a completed placement and exclusive access. Fill dense
+    // peer
+    // ids after validating unique selected CPUs, reciprocal two-thread sysfs pairs and equal
+    // roles.
+    // Disabled mode fills no-peer sentinels. Invalid topology returns false with diagnostics
+    // where
+    // provided; allocation can throw. There is no concurrent publication in this method.
     bool configure_smt_units(const Topology& topo, bool enabled) {
         smt_peer_.assign(threads_.size(), kNoThread);
         if (!enabled) return true;
@@ -338,6 +368,12 @@ public:
     uint32_t shard_home(uint32_t sid) const { return shard_home_[sid]; }
 
 private:
+    // Contract: build_even delegates here after clearing state, with exclusive access. Collect
+    // complete same-domain reciprocal SMT pairs, distribute IO/EX pair quotas and append both
+    // siblings
+    // with the same role. Counts must be even and fit topology/channel limits. Invalid shapes
+    // return
+    // false with diagnostics; temporary/vector allocation exceptions propagate.
     bool build_even_smt(const Topology& topo, uint32_t n_ifid, uint32_t n_ex) {
         if ((n_ifid & 1u) || (n_ex & 1u)) {
             std::fprintf(stderr, "--ratio: SMT placement requires even logical io and ex counts\n");
