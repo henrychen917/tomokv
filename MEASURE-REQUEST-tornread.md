@@ -101,8 +101,8 @@ and EXEC writers at atomic 0, each with strict round-trip controls.
 
 Matrix: `2s/read-local 0`, `1s/read-local 0`, `1s/read-local 1`, crossed with both atomic
 settings and both epoll/uring engines. Twelve whole jobs, two counted rows each.
-**DQ=+24, DF=+24**, counted at the `collect_job "tornread-..."` loop BEFORE the quick
-exit, not at the job definition. At this base EXPECT_QUICK must become **1236**
+**DQ=+24, DF=+24**, counted at the `collect_job "tornread-..."` loop at `tests/gate.sh:7274`, BEFORE the quick
+exit at `tests/gate.sh:7516`, not at the job definition. At this base EXPECT_QUICK must become **1236**
 (1212+24), EXPECT_FULL **1253** (1229+24). The maintainer must add the 24 corresponding
 labels; neither EXPECT nor `tests/fixtures/nullrefresh-ledger-labels.json` was edited.
 
@@ -148,7 +148,8 @@ call/return; it is a layout control, not instruction-identical PRE.
 - Broad selected atomics/MVCC/read-local/MULTI gate jobs: running; exact job list in
   `build/tornread/proof-jobs.txt`, output `build/tornread/gate-proof.log`.
 - Endurance: all 11 arms complete, zero violations; table below.
-- Finite-work instruction accounting: running. No throughput benchmark or ABBA has been run.
+- Finite-work instruction accounting: **180/180 cells complete**; raw repeats and ranges below.
+  No throughput benchmark or ABBA has been run.
 
 All correctness servers use LC_ALL=C. Our builds/clients/servers are pinned within
 CPUs 0-27 and listeners within 26000-26099. The endurance runner uses server 0-7,
@@ -187,9 +188,44 @@ and hash seed, recorded by digest. No throughput verdict. GET p1/p32,
 SET p32, MGET-8 p8, MSET-8 p8, atomic 0 and 1, both 2s and 1s (read-local 0), PRE /
 PART1 / PART2. Each reported operation is one public command, not one MGET/MSET key.
 
-Pending measured table. The discarded smoke runs calibrated perf 7.0.12’s NUL-terminated
-acknowledgements and SIGINT exit status; only complete runs with acknowledged boundaries,
-100% counter scheduling, and exact public-command deltas enter the result table.
+Eight connections × 65,536 measured commands = **524,288 commands per repeat**, after
+4,096 warmup commands per connection. Three repeats per cell/arm, alternating arm order;
+180 completed cells. Every counter ran 100%; all cells restored the same seed snapshot
+(SHA-256 `a60fff7f8e2d845d2db76e1829e0c841b00e0c8a0573fcfe947f4e7b76e637af`).
+
+Each entry below is **median [minimum–maximum] instructions/public command**. These are
+whole-process counts, including idle polling and scheduling paths. Wide repeat ranges
+(on unchanged cells too) prevent attributing small differences to the fix. They are not
+box noise, confidence intervals, or proof of a speedup/regression. The fixed request
+count and key placement do not fix connection-to-IO assignment or interleaving. The
+maintainer’s matched-load ABBA remains necessary for an attributable cost/merit verdict.
+
+| Mode | Atomic | Command | Pipeline | PRE | PART1 | PART2 |
+|---|---:|---|---:|---:|---:|---:|
+| 2s | 0 | GET | 1 | 52,959 [43,712–67,211] | 43,375 [40,820–55,802] | 43,920 [43,373–44,097] |
+| 2s | 0 | GET | 32 | 2,375 [2,352–2,611] | 3,258 [2,586–3,266] | 2,813 [2,799–3,466] |
+| 2s | 0 | SET | 32 | 2,777 [2,714–3,288] | 2,789 [2,779–3,341] | 2,748 [2,578–2,815] |
+| 2s | 0 | MGET-8 | 8 | 21,686 [17,427–21,713] | 21,909 [21,870–26,320] | 17,670 [17,603–21,827] |
+| 2s | 0 | MSET-8 | 8 | 19,092 [18,960–21,553] | 21,089 [19,240–25,216] | 25,261 [19,135–25,306] |
+| 2s | 1 | GET | 1 | 39,665 [39,115–55,069] | 42,786 [40,807–44,793] | 43,241 [43,181–43,253] |
+| 2s | 1 | GET | 32 | 2,594 [2,406–3,289] | 2,816 [2,611–2,841] | 2,618 [2,603–2,866] |
+| 2s | 1 | SET | 32 | 2,603 [2,594–2,758] | 2,715 [2,511–2,789] | 2,723 [2,522–2,750] |
+| 2s | 1 | MGET-8 | 8 | 22,041 [17,809–26,299] | 22,010 [17,890–22,030] | 21,854 [17,690–25,799] |
+| 2s | 1 | MSET-8 | 8 | 71,710 [66,628–72,275] | 75,470 [69,870–82,819] | 74,898 [61,416–83,344] |
+| 1s | 0 | GET | 1 | 14,794 [13,938–16,023] | 15,077 [15,027–15,865] | 15,717 [13,161–16,290] |
+| 1s | 0 | GET | 32 | 2,383 [2,379–2,489] | 2,415 [2,407–2,509] | 2,591 [2,590–2,601] |
+| 1s | 0 | SET | 32 | 2,654 [2,574–2,669] | 2,570 [2,566–2,692] | 2,684 [2,580–2,712] |
+| 1s | 0 | MGET-8 | 8 | 19,105 [18,882–19,329] | 19,284 [18,907–19,546] | 19,563 [19,448–19,566] |
+| 1s | 0 | MSET-8 | 8 | 20,861 [20,648–20,898] | 20,949 [20,601–21,082] | 20,426 [20,351–20,520] |
+| 1s | 1 | GET | 1 | 14,999 [13,310–16,052] | 14,489 [14,250–16,713] | 15,548 [14,333–15,912] |
+| 1s | 1 | GET | 32 | 2,487 [2,404–2,518] | 2,699 [2,588–2,711] | 2,599 [2,595–2,687] |
+| 1s | 1 | SET | 32 | 2,675 [2,586–2,688] | 2,653 [2,579–2,689] | 2,678 [2,593–2,686] |
+| 1s | 1 | MGET-8 | 8 | 19,339 [19,039–19,361] | 19,221 [19,075–19,485] | 19,248 [19,066–19,610] |
+| 1s | 1 | MSET-8 | 8 | 75,140 [74,959–76,049] | 74,796 [74,762–75,326] | 86,552 [86,301–87,657] |
+
+Raw aggregate receipts: `docs/tornread-instructions.json`. Per-repeat argv, perf CSV,
+server log, checked worker logs and result JSON: `build/tornread/instructions-20261108-220246`. Discarded smoke runs
+calibrated perf 7.0.12’s NUL-terminated acknowledgement and SIGINT exit status.
 
 ### Binary identity and layout
 
