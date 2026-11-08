@@ -166,7 +166,9 @@ generated parser still old) with fused `--reorder 1`: both atomic settings tear 
 fused priority arm also tears, with its control clean (`build/gate-run.OdY527/ledger.partial`).
 An earlier split-mode attempt stayed clean because `reorder_for_mode()` normalizes
 2s to FIFO; its receipt is retained as an inactive control (`build/gate-run.QPaywi/ledger.partial`),
-not represented as a falsifier. The gate now checks effective settings explicitly.
+not represented as a falsifier. The gate now checks effective settings explicitly. A live negative control requiring
+reorder 1 on the split FIFO server exits 2 at setup, before starting workers
+(`build/tornread/effective-reorder-negative.log`).
 
 `tools/tornread_pad.py` copies PART1 and replaces only the two out-of-line registration
 entries (normal and DB0 namespace) with `return true`. It leaves the Op's original
@@ -185,11 +187,14 @@ call/return; it is a layout control, not instruction-identical PRE.
   mixed plain/scatter floors, early completion, same-pass scatter ordering,
   publish/confirm advancement, real normal/suppressed/closing WB drains (including an
   unfinished-read hold), final UINT64_MAX floor, and all locked sizes pass.
-- `python3 tests/gates_test.py`: **83 tests PASS**, 317.373 s.
+- `python3 tests/gates_test.py`: final **83 tests PASS**, 241.198 s
+  (`build/tornread/gates-test-final.log`); the earlier run also passed.
 - `python3 tests/gate_ledger_fixture.py --self-test`: **12 tests, 1 failure + 1 error**,
-  both due to the explicitly deferred fixture/EXPECT update. That first check had 24 new
-  labels; the expanded 32-row inventory will be checked again before completion.
-  The unchanged fixture/EXPECT_FULL is 1229; no extra obsolete fixture labels.
+  both due to the explicitly deferred fixture/EXPECT update. The final check reports
+  source declarations **1261**, unchanged fixture/EXPECT_FULL **1229**, exactly the 32
+  tornread labels missing and no extra labels. Its synthetic future-loop test adds
+  `writeback policy new-group`; its anchored message expectation is displaced by those
+  existing missing labels. Log: `build/tornread/label-fixture-unittest-final.log`.
 - Supplemental transaction/eviction/multidb/snapshot/executor/migration jobs:
   **104/104 PASS**, `build/gate-run.WfPjrS/ledger.partial`.
 - Existing storage/filter/read-local ring jobs: **17/17 PASS**;
@@ -212,7 +217,7 @@ clients 8-11, ports 26090/26091; concurrent gate correctness uses 12-19/20-27.
 
 ### Endurance
 
-The recorded run used `TORNREAD_BIN=$PWD/build/tornread/tomokv-part2 LC_ALL=C
+To repeat the recorded binary, use `TORNREAD_BIN=$PWD/build/tornread/tomokv-part2 LC_ALL=C
 taskset -c 0-11 tools/tornread_endurance.sh tomo1 tomo0`. The runner adapts the supplied
 full `run_phase_b.sh` matrix to the authorized resources and fixed binary. All 11
 original TomoKV arms run for 180 seconds each (unless a violation/error fails early).
