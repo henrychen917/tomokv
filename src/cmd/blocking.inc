@@ -33,6 +33,7 @@ enum class BlockingPhase : uint8_t {
     Completed,
     Cancelled,
     MovePending,
+    RemapPending,
 };
 
 enum class BlockingProbe : uint8_t { Empty, Ready, WrongType, MissingGroup, Oom };
@@ -61,6 +62,7 @@ struct BlockingGroup {
 struct BlockingState {
     ~BlockingState();
     std::atomic<uint32_t> refs{1};  // the Op/scatter owner plus one per registry alias
+    static constexpr uint32_t kReady = uint32_t{1} << 31;
     std::atomic<uint32_t> active_tasks{0};
     std::atomic<uint32_t> pending{0};
     std::atomic<uint32_t> candidate{UINT32_MAX};
@@ -486,16 +488,16 @@ void blocking_count_parked(BlockingState& state) {
     }
 }
 
-bool blocking_request_remap(BlockingState& state, ThreadCtx& self, Ring& ring) {
+bool blocking_request_remap(BlockingState& state, ThreadCtx&, Ring&) {
     if (!state.server->databases().remapped() || state.keys.empty()) return false;
     DatabaseMap::Read map(state.server->databases());
     if (map[state.logical_db] == state.keys.front().ns) return false;
     BlockingPhase expected = BlockingPhase::Parked;
-    if (!state.phase.compare_exchange_strong(expected, BlockingPhase::RemapRequested,
+    if (!state.phase.compare_exchange_strong(expected, BlockingPhase::RemapPending,
                                              std::memory_order_acq_rel))
         return false;
     for (const BlockingKey& key : state.keys) state.server->shard(key.shard).set_blocking_dirty();
-    blocking_notify_sender(*state.server, self, ring, state.client);
+    state.active_tasks.fetch_or(BlockingState::kReady, std::memory_order_acq_rel);
     return true;
 }
 
@@ -507,7 +509,9 @@ void blocking_reply_timeout(Op& op, BlockingKind) {
 }
 
 void blocking_finish_cancelled(BlockingState& state, ThreadCtx* self, Ring* ring) {
-    Op& op = state.client->rob().at(state.op_id);
+    Server& server = *state.server;
+    Client* client = state.client;
+    Op& op = client->rob().at(state.op_id);
     // A completed mutation already handed its slot to persistence. Cancellation
     // must not publish that slot again or let IO recycle a retained receipt.
     if (op.state.load(std::memory_order_acquire) == OpState::AofWait) return;
@@ -517,38 +521,69 @@ void blocking_finish_cancelled(BlockingState& state, ThreadCtx* self, Ring* ring
         return;
     if (op.state.exchange(OpState::Done, std::memory_order_acq_rel) != OpState::Done && self &&
         ring)
-        blocking_notify_sender(*state.server, *self, *ring, state.client);
+        blocking_notify_sender(server, *self, *ring, client);
 }
 
 void blocking_task_done(BlockingState& state, ThreadCtx& self, Ring& ring) {
     latency_tracking_pause(state.client->rob().at(state.op_id));
-    if (state.active_tasks.fetch_sub(1, std::memory_order_acq_rel) != 1) return;
-    BlockingPhase phase = state.phase.load(std::memory_order_acquire);
     if (state.cancel_requested.load(std::memory_order_acquire)) {
         state.phase.store(BlockingPhase::Cancelled, std::memory_order_release);
-        phase = BlockingPhase::Cancelled;
+        state.active_tasks.fetch_or(BlockingState::kReady, std::memory_order_acq_rel);
     }
+    const uint32_t previous = state.active_tasks.fetch_sub(1, std::memory_order_acq_rel);
+    if (previous != (BlockingState::kReady | 1)) return;
+    const BlockingPhase phase = state.phase.load(std::memory_order_acquire);
     if (phase == BlockingPhase::Cancelled) {
         blocking_finish_cancelled(state, &self, &ring);
     } else if (phase == BlockingPhase::Completed) {
-        Op& op = state.client->rob().at(state.op_id);
+        Server& server = *state.server;
+        Client* client = state.client;
+        Op& op = client->rob().at(state.op_id);
         slowlog_complete(op);
         if (state.server->aof().configured() &&
             state.server->aof().defer_completion(self.id(), op, state.client))
             return;
         if (op.state.exchange(OpState::Done, std::memory_order_acq_rel) != OpState::Done)
-            blocking_notify_sender(*state.server, self, ring, state.client);
-    } else if (phase == BlockingPhase::MovePending) {
+            blocking_notify_sender(server, self, ring, client);
+    } else if (phase == BlockingPhase::MovePending || phase == BlockingPhase::RemapPending) {
         // Registration reprobes close the XADD-before-waiter window. Publish
         // IO's resumable phase only when the last owner Task has departed.
         // Until this store IO cannot transfer/free the state; capture the
         // notification inputs before handing it over.
         Server& server = *state.server;
         Client* client = state.client;
-        state.phase.store(BlockingPhase::MoveRequested, std::memory_order_release);
+        state.phase.store(phase == BlockingPhase::MovePending ? BlockingPhase::MoveRequested
+                                                            : BlockingPhase::RemapRequested,
+                          std::memory_order_release);
         blocking_notify_sender(server, self, ring, client);
     }
 }
+
+// Registry visits participate before inspecting a live phase. The ready bit
+// closes admission permanently; its last participant alone may complete or
+// hand off the Op. An alias can outlive ROB retirement but cannot re-enter it.
+class BlockingRegistryActivity {
+    BlockingState& state_;
+    ThreadCtx& self_;
+    Ring& ring_;
+    bool entered_ = false;
+public:
+    BlockingRegistryActivity(BlockingState& state, ThreadCtx& self, Ring& ring)
+        : state_(state), self_(self), ring_(ring) {
+        uint32_t active = state.active_tasks.load(std::memory_order_acquire);
+        while (!(active & BlockingState::kReady)) {
+            if (state.active_tasks.compare_exchange_weak(active, active + 1,
+                                                         std::memory_order_acq_rel)) {
+                entered_ = true;
+                break;
+            }
+        }
+    }
+    explicit operator bool() const { return entered_; }
+    ~BlockingRegistryActivity() {
+        if (entered_) blocking_task_done(state_, self_, ring_);
+    }
+};
 
 BlockingProbe blocking_probe_key(Shard& shard, BlockingState& state, BlockingKey& key) {
     KvObj* object = shard.notify_carrier()
@@ -716,24 +751,27 @@ void blocking_request_move(BlockingState& state, ThreadCtx& self, Ring& ring) {
     // the MovePending -> MoveRequested notification, including active=0 wakes.
     state.active_tasks.fetch_add(1, std::memory_order_acq_rel);
     state.phase.store(BlockingPhase::MovePending, std::memory_order_release);
+    state.active_tasks.fetch_or(BlockingState::kReady, std::memory_order_acq_rel);
     blocking_task_done(state, self, ring);
 }
+
+#ifdef TOMO_BLOCKING_COMPLETION_UNIT
+void (*blocking_completion_unit_hook)(BlockingState&, ThreadCtx&, Ring&) = nullptr;
+#endif
 
 void blocking_publish_completion(BlockingState& state, ThreadCtx& self, Ring& ring) {
     latency_tracking_pause(state.client->rob().at(state.op_id));
     state.phase.store(BlockingPhase::Completed, std::memory_order_release);
-    // Probe/registration barriers count Tasks separately from their pending phase. The owner that
-    // drops pending to zero may run before another participant has executed task_done(), so reply
-    // retirement must wait for the final raw Client reference too. Registry wakeups have no active
-    // Tasks and can publish immediately.
-    if (state.active_tasks.load(std::memory_order_acquire) != 0) return;
-    Op& op = state.client->rob().at(state.op_id);
-    slowlog_complete(op);
-    if (state.server->aof().configured() &&
-        state.server->aof().defer_completion(self.id(), op, state.client))
-        return;
-    if (op.state.exchange(OpState::Done, std::memory_order_acq_rel) != OpState::Done)
-        blocking_notify_sender(*state.server, self, ring, state.client);
+    // Include the publisher in active_tasks until all reply and registry work
+    // has ended. Setting readiness and dropping the final participant are one
+    // atomic hand-off, so a late offerer cannot claim a recycled Free slot.
+    state.active_tasks.fetch_or(BlockingState::kReady, std::memory_order_acq_rel);
+#ifdef TOMO_BLOCKING_COMPLETION_UNIT
+    if (blocking_completion_unit_hook) blocking_completion_unit_hook(state, self, ring);
+#else
+    (void)self;
+    (void)ring;
+#endif
 }
 
 void blocking_finish_error(BlockingState& state, ThreadCtx& self, Ring& ring) {
@@ -969,9 +1007,15 @@ public:
             size_t i = 0;
             while (i < queue.waiters.size()) {
                 BlockingState& state = *queue.waiters[i].state;
+                BlockingRegistryActivity activity(state, self, ring);
+                if (!activity) {
+                    remove_at_from_shard(shard, queue, i);
+                    work++;
+                    continue;
+                }
                 BlockingPhase phase = state.phase.load(std::memory_order_acquire);
                 if (phase == BlockingPhase::Parked && blocking_request_remap(state, self, ring))
-                    phase = BlockingPhase::RemapRequested;
+                    phase = BlockingPhase::RemapPending;
                 phase = honour_cancel(state, phase, self, ring);
                 if (!blocking_phase_live(phase)) {
                     if (claimed_here(state, phase, queue.waiters[i].key_index)) {
@@ -1021,6 +1065,11 @@ public:
         auto& queue = position->second;
         for (size_t i = 0; i < queue.waiters.size();) {
             BlockingState& state = *queue.waiters[i].state;
+            BlockingRegistryActivity activity(state, self, ring);
+            if (!activity) {
+                remove_at_from_shard(shard, queue, i);
+                continue;
+            }
             auto phase = state.phase.load(std::memory_order_acquire);
             if (state.kind != BlockingKind::Xreadgroup || !blocking_phase_live(phase) ||
                 !state.phase.compare_exchange_strong(phase, BlockingPhase::Claimed,
@@ -1058,15 +1107,14 @@ private:
     // the sweep AND the push path (service) honour it before anything can claim the waiter, or a
     // push that the requester issued after its KILL/UNBLOCK reply hands the element to a closed
     // (or unblocked) client: Redis frees/unblocks the client before it replies.
-    static BlockingPhase honour_cancel(BlockingState& state, BlockingPhase phase, ThreadCtx& self,
-                                       Ring& ring) {
+    static BlockingPhase honour_cancel(BlockingState& state, BlockingPhase phase, ThreadCtx&,
+                                       Ring&) {
         if (!state.cancel_requested.load(std::memory_order_acquire) || !blocking_phase_live(phase))
             return phase;
         if (state.phase.compare_exchange_strong(phase, BlockingPhase::Cancelled,
                                                 std::memory_order_acq_rel,
-                                                std::memory_order_acquire) &&
-            state.active_tasks.load(std::memory_order_acquire) == 0)
-            blocking_finish_cancelled(state, &self, &ring);
+                                                std::memory_order_acquire))
+            state.active_tasks.fetch_or(BlockingState::kReady, std::memory_order_acq_rel);
         return state.phase.load(std::memory_order_acquire);
     }
 
@@ -1098,9 +1146,15 @@ private:
         while (i < queue.waiters.size()) {
             BlockingEntry entry = queue.waiters[i];
             BlockingState& state = *entry.state;
+            BlockingRegistryActivity activity(state, self, ring);
+            if (!activity) {
+                remove_at_from_shard(shard, queue, i);
+                work++;
+                continue;
+            }
             BlockingPhase phase = state.phase.load(std::memory_order_acquire);
             if (phase == BlockingPhase::Parked && blocking_request_remap(state, self, ring))
-                phase = BlockingPhase::RemapRequested;
+                phase = BlockingPhase::RemapPending;
             phase = honour_cancel(state, phase, self, ring);
             if (!blocking_phase_live(phase)) {
                 if (claimed_here(state, phase, entry.key_index)) {
@@ -1718,7 +1772,7 @@ bool blocking_resume_move_impl(Server& server, ThreadCtx& self, Ring& ring, Clie
         }
         if (block &&
             block->phase.load(std::memory_order_acquire) == BlockingPhase::RemapRequested &&
-            block->active_tasks.load(std::memory_order_acquire) == 0 &&
+            (block->active_tasks.load(std::memory_order_acquire) & ~BlockingState::kReady) == 0 &&
             block->refs.load(std::memory_order_acquire) == 1) {
             if (server.database_boundary_active()) return false;
             if (client.closing() || block->cancel_requested.load(std::memory_order_acquire)) {
@@ -1784,7 +1838,7 @@ bool blocking_resume_move_impl(Server& server, ThreadCtx& self, Ring& ring, Clie
         }
         if (!block ||
             block->phase.load(std::memory_order_acquire) != BlockingPhase::MoveRequested ||
-            block->active_tasks.load(std::memory_order_acquire) != 0)
+            (block->active_tasks.load(std::memory_order_acquire) & ~BlockingState::kReady) != 0)
             continue;
         // The live ACL check precedes the resumed move/read exactly as on the direct path: a
         // denial completes here, on the owning IO, before any owner moves or delivers anything.
@@ -1884,7 +1938,7 @@ bool blocking_cancel_client(Server& server, ThreadCtx& self, Ring& ring, Client&
         // MoveRequested is handed exclusively to this IO after the requesting owner dropped its
         // final Task reference. It may have no registry alias to trigger an owner cleanup pass.
         if ((phase == BlockingPhase::MoveRequested || phase == BlockingPhase::RemapRequested) &&
-            state->active_tasks.load(std::memory_order_acquire) == 0 &&
+            (state->active_tasks.load(std::memory_order_acquire) & ~BlockingState::kReady) == 0 &&
             state->phase.compare_exchange_strong(phase, BlockingPhase::Cancelled,
                                                  std::memory_order_acq_rel,
                                                  std::memory_order_acquire)) {
@@ -1998,7 +2052,8 @@ const std::vector<uint8_t>* blocking_stream_captured_payload(const BlockingState
 
 bool blocking_namespace_quiesced(const Op& op) {
     const auto* block = op.blocking_state();
-    if (!block || block->active_tasks.load(std::memory_order_acquire)) return false;
+    if (!block || (block->active_tasks.load(std::memory_order_acquire) & ~BlockingState::kReady))
+        return false;
     const auto phase = block->phase.load(std::memory_order_acquire);
     return phase == BlockingPhase::Parked || phase == BlockingPhase::RemapRequested ||
            phase == BlockingPhase::Completed || phase == BlockingPhase::Cancelled;
