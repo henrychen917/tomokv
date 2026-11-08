@@ -138,8 +138,8 @@ labels; neither EXPECT nor `tests/fixtures/nullrefresh-ledger-labels.json` was e
 `tools/tornread_pad.py` copies PART1 and replaces only the two out-of-line registration
 entries (normal and DB0 namespace) with `return true`. It leaves the Op's original
 stamp in place, takes no reference, and changes only 12 ELF bytes, preserving section
-sizes, addresses, all other text, data layout and file length. `build/tornread/pad1.json`
-records sites and digests. PAD retains dispatch/callback guard overhead and the helper
+sizes, addresses, all other text, data layout and file length. `build/tornread/pad1-r7.json`
+records the final sites and digests (`pad1.json` retains the initial image). PAD retains dispatch/callback guard overhead and the helper
 call/return; it is a layout control, not instruction-identical PRE.
 
 ### Validation status
@@ -260,15 +260,17 @@ calibrated perf 7.0.12’s NUL-terminated acknowledgement and SIGINT exit status
 
 ### Binary identity and layout
 
-`sha256sum` receipts are in `build/tornread/SHA256SUMS`; compact correctness receipts are
-committed in `docs/tornread-proof.json`.
+Final `sha256sum` receipts are in `build/tornread/SHA256SUMS-final`; original-image
+receipts remain in `build/tornread/SHA256SUMS`. Compact correctness receipts are
+committed in `docs/tornread-proof.json`. The table below names the final review arms;
+the original PART1/PART2 digests remain attached to their earlier proof artifacts.
 
 | Arm | ELF .text bytes | SHA-256 |
 |---|---:|---|
 | PRE | 9,251,911 | `83d1cda87db19a4c7b1ba281812ced448d589cd98aa4a661c5449658014d6a46` |
-| PART1 | 9,251,111 | `d2c600c7df6b07d0b66c6f1bfc7993eee970c974643015870ca082af5e27a719` |
-| PART2 | 9,253,287 | `60ba613ade3987fa7a50fb6ea6d6697328d1c9b59391c83520c9d256bd583ce0` |
-| PAD1(A) | 9,251,111 | `3d8a12d3bc57a01b26b7db18d9e529e39b4a7bbf7a51f7456ea0afa7bf0d2bd2` |
+| PART1-r7 | 9,251,831 | `2be78502f18cfc76cc0a84ab88d4d2145a0d364d692ecf2592ff8a979bb6759e` |
+| PART2-r7 | 9,253,751 | `b30bc3bba310e2854221e4da0a3fc13a1d601bf2f990ee2f514510f27387fb55` |
+| PAD1-r7(A) | 9,251,831 | `0e7834cfeafbd52aae2980676da1df37351ae989797358e8b63b3331d62a4b1a` |
 
 ### Maintainer ABBA request
 
