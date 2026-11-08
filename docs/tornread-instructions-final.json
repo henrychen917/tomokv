@@ -1,0 +1,1061 @@
+{
+  "instrument": "tools/tornread_instructions.py + tools/tornread_instr_client.cc",
+  "artifact_root": "build/tornread/instructions-20261109-002158",
+  "commands_per_repeat": 524288,
+  "clients": 8,
+  "repeats": 3,
+  "event": "instructions:u",
+  "binaries": {
+    "pre": "83d1cda87db19a4c7b1ba281812ced448d589cd98aa4a661c5449658014d6a46",
+    "part1-r7": "2be78502f18cfc76cc0a84ab88d4d2145a0d364d692ecf2592ff8a979bb6759e",
+    "part2-r7": "b30bc3bba310e2854221e4da0a3fc13a1d601bf2f990ee2f514510f27387fb55"
+  },
+  "seed_sha256": "78bb25654d20f7e1b017c4d5b363e41b1c4887a7b133dfaea0fff844981bf829",
+  "io_placement": {
+    "2s": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      0,
+      1
+    ],
+    "1s": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  "scope": "No other correctness jobs or builds from this lane were active; other lanes on the machine were not controlled. Whole-process counts include polling and scheduling; no throughput or ABBA verdict.",
+  "processes_before": "build/tornread/pricing-quiet-processes-before.txt",
+  "processes_after": "build/tornread/pricing-quiet-processes-after.txt",
+  "cells": [
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "GET",
+      "pipeline": 1,
+      "arm": "pre",
+      "instructions": [
+        20797926166,
+        20557485874,
+        20661701994
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "GET",
+      "pipeline": 1,
+      "arm": "part1-r7",
+      "instructions": [
+        20887510047,
+        20722380165,
+        20705762839
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "GET",
+      "pipeline": 1,
+      "arm": "part2-r7",
+      "instructions": [
+        20634799739,
+        20844052833,
+        20801615529
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "GET",
+      "pipeline": 32,
+      "arm": "pre",
+      "instructions": [
+        1238459243,
+        1243279735,
+        1241969696
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "GET",
+      "pipeline": 32,
+      "arm": "part1-r7",
+      "instructions": [
+        1260220736,
+        1255042963,
+        1252738955
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "GET",
+      "pipeline": 32,
+      "arm": "part2-r7",
+      "instructions": [
+        1379590022,
+        1366938155,
+        1373732230
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "SET",
+      "pipeline": 32,
+      "arm": "pre",
+      "instructions": [
+        1311406080,
+        1310766377,
+        1319009665
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "SET",
+      "pipeline": 32,
+      "arm": "part1-r7",
+      "instructions": [
+        1314039707,
+        1314151231,
+        1313761822
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "SET",
+      "pipeline": 32,
+      "arm": "part2-r7",
+      "instructions": [
+        1317808890,
+        1314724433,
+        1312003598
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "MGET",
+      "pipeline": 8,
+      "arm": "pre",
+      "instructions": [
+        9230334648,
+        9270115346,
+        9212391630
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "MGET",
+      "pipeline": 8,
+      "arm": "part1-r7",
+      "instructions": [
+        9276430567,
+        9276732452,
+        9236070597
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "MGET",
+      "pipeline": 8,
+      "arm": "part2-r7",
+      "instructions": [
+        9267386110,
+        9295236186,
+        9277745442
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "MSET",
+      "pipeline": 8,
+      "arm": "pre",
+      "instructions": [
+        10041818816,
+        10062697871,
+        9999533875
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "MSET",
+      "pipeline": 8,
+      "arm": "part1-r7",
+      "instructions": [
+        10018691444,
+        10045065287,
+        9992099456
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "MSET",
+      "pipeline": 8,
+      "arm": "part2-r7",
+      "instructions": [
+        10042515289,
+        9996307073,
+        10030737001
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "GET",
+      "pipeline": 1,
+      "arm": "pre",
+      "instructions": [
+        20727993057,
+        20874664958,
+        20607149299
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "GET",
+      "pipeline": 1,
+      "arm": "part1-r7",
+      "instructions": [
+        20955989012,
+        20990227964,
+        20920429677
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "GET",
+      "pipeline": 1,
+      "arm": "part2-r7",
+      "instructions": [
+        20596465534,
+        20695599985,
+        20604894498
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "GET",
+      "pipeline": 32,
+      "arm": "pre",
+      "instructions": [
+        1252888027,
+        1246271835,
+        1256076764
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "GET",
+      "pipeline": 32,
+      "arm": "part1-r7",
+      "instructions": [
+        1377508211,
+        1369641333,
+        1371060250
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "GET",
+      "pipeline": 32,
+      "arm": "part2-r7",
+      "instructions": [
+        1373940890,
+        1373000644,
+        1366502734
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "SET",
+      "pipeline": 32,
+      "arm": "pre",
+      "instructions": [
+        1313427517,
+        1302263475,
+        1308901219
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "SET",
+      "pipeline": 32,
+      "arm": "part1-r7",
+      "instructions": [
+        1311467380,
+        1319593828,
+        1325263508
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "SET",
+      "pipeline": 32,
+      "arm": "part2-r7",
+      "instructions": [
+        1311120312,
+        1310503354,
+        1309586525
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "MGET",
+      "pipeline": 8,
+      "arm": "pre",
+      "instructions": [
+        9309582493,
+        9239588708,
+        9318502153
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "MGET",
+      "pipeline": 8,
+      "arm": "part1-r7",
+      "instructions": [
+        9283699985,
+        9309479361,
+        9284051538
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "MGET",
+      "pipeline": 8,
+      "arm": "part2-r7",
+      "instructions": [
+        9300696278,
+        9282845206,
+        9328697240
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "MSET",
+      "pipeline": 8,
+      "arm": "pre",
+      "instructions": [
+        44510457089,
+        44431980997,
+        43914718685
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "MSET",
+      "pipeline": 8,
+      "arm": "part1-r7",
+      "instructions": [
+        43595320261,
+        43908620429,
+        43907541971
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "MSET",
+      "pipeline": 8,
+      "arm": "part2-r7",
+      "instructions": [
+        44007551191,
+        44298881456,
+        44323656165
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "GET",
+      "pipeline": 1,
+      "arm": "pre",
+      "instructions": [
+        9155959808,
+        9152295096,
+        9149556364
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "GET",
+      "pipeline": 1,
+      "arm": "part1-r7",
+      "instructions": [
+        9173941975,
+        9170989415,
+        9142582939
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "GET",
+      "pipeline": 1,
+      "arm": "part2-r7",
+      "instructions": [
+        9161643545,
+        9159311900,
+        9168575671
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "GET",
+      "pipeline": 32,
+      "arm": "pre",
+      "instructions": [
+        1221160430,
+        1225841758,
+        1221057629
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "GET",
+      "pipeline": 32,
+      "arm": "part1-r7",
+      "instructions": [
+        1239290028,
+        1242743350,
+        1239369656
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "GET",
+      "pipeline": 32,
+      "arm": "part2-r7",
+      "instructions": [
+        1340236100,
+        1337796463,
+        1339015918
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "SET",
+      "pipeline": 32,
+      "arm": "pre",
+      "instructions": [
+        1319586017,
+        1313820089,
+        1320440540
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "SET",
+      "pipeline": 32,
+      "arm": "part1-r7",
+      "instructions": [
+        1326151637,
+        1321035331,
+        1320349180
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "SET",
+      "pipeline": 32,
+      "arm": "part2-r7",
+      "instructions": [
+        1324921382,
+        1320064288,
+        1321131519
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "MGET",
+      "pipeline": 8,
+      "arm": "pre",
+      "instructions": [
+        9484809638,
+        9492990879,
+        9486066629
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "MGET",
+      "pipeline": 8,
+      "arm": "part1-r7",
+      "instructions": [
+        9617742768,
+        9620376089,
+        9620515587
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "MGET",
+      "pipeline": 8,
+      "arm": "part2-r7",
+      "instructions": [
+        9608395667,
+        9612184246,
+        9623136568
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "MSET",
+      "pipeline": 8,
+      "arm": "pre",
+      "instructions": [
+        10541500827,
+        10525087825,
+        10523707078
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "MSET",
+      "pipeline": 8,
+      "arm": "part1-r7",
+      "instructions": [
+        10515462394,
+        10508873634,
+        10498569660
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "MSET",
+      "pipeline": 8,
+      "arm": "part2-r7",
+      "instructions": [
+        10505898042,
+        10495246825,
+        10510148030
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "GET",
+      "pipeline": 1,
+      "arm": "pre",
+      "instructions": [
+        9169701992,
+        9171926536,
+        9206786349
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "GET",
+      "pipeline": 1,
+      "arm": "part1-r7",
+      "instructions": [
+        9168120541,
+        9173489475,
+        9193453627
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "GET",
+      "pipeline": 1,
+      "arm": "part2-r7",
+      "instructions": [
+        9170204598,
+        9151719887,
+        9173449242
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "GET",
+      "pipeline": 32,
+      "arm": "pre",
+      "instructions": [
+        1232192210,
+        1229272222,
+        1230295587
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "GET",
+      "pipeline": 32,
+      "arm": "part1-r7",
+      "instructions": [
+        1340680383,
+        1341325243,
+        1338711135
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "GET",
+      "pipeline": 32,
+      "arm": "part2-r7",
+      "instructions": [
+        1340955731,
+        1337478205,
+        1339488725
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "SET",
+      "pipeline": 32,
+      "arm": "pre",
+      "instructions": [
+        1322485927,
+        1323419653,
+        1322887923
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "SET",
+      "pipeline": 32,
+      "arm": "part1-r7",
+      "instructions": [
+        1326198920,
+        1323183281,
+        1323831355
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "SET",
+      "pipeline": 32,
+      "arm": "part2-r7",
+      "instructions": [
+        1321524548,
+        1326016922,
+        1319905626
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "MGET",
+      "pipeline": 8,
+      "arm": "pre",
+      "instructions": [
+        9546861237,
+        9525831399,
+        9559622432
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "MGET",
+      "pipeline": 8,
+      "arm": "part1-r7",
+      "instructions": [
+        9670956985,
+        9675341986,
+        9678472464
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "MGET",
+      "pipeline": 8,
+      "arm": "part2-r7",
+      "instructions": [
+        9684885588,
+        9658071527,
+        9672609424
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "MSET",
+      "pipeline": 8,
+      "arm": "pre",
+      "instructions": [
+        33847084174,
+        33633564223,
+        33568223198
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "MSET",
+      "pipeline": 8,
+      "arm": "part1-r7",
+      "instructions": [
+        33620988088,
+        33581646639,
+        33717948451
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "MSET",
+      "pipeline": 8,
+      "arm": "part2-r7",
+      "instructions": [
+        33859166676,
+        33972886390,
+        33744339180
+      ],
+      "counter_running_percent": [
+        100.0,
+        100.0,
+        100.0
+      ]
+    }
+  ]
+}

@@ -197,7 +197,8 @@ call/return; it is a layout control, not instruction-identical PRE.
   unfinished-read hold), final UINT64_MAX floor, and all locked sizes pass.
   The confirmation case uses a fresh pool so it cannot inherit the scatter's newer
   cut; it must exercise the post-publication advancement. The final directed unit
-  log is `build/tornread/unit-final.log`.
+  log is `build/tornread/unit-final.log`. Its explicit target is
+  `make build/tornread-unit`, followed by `build/tornread-unit` under the lane's affinity.
 - `python3 tests/gates_test.py`: final **83 tests PASS**, 241.198 s
   (`build/tornread/gates-test-final.log`); the earlier run also passed.
 - `python3 tests/gate_ledger_fixture.py --self-test`: **12 tests, 1 failure + 1 error**,
@@ -208,9 +209,18 @@ call/return; it is a layout control, not instruction-identical PRE.
   existing missing labels. Log: `build/tornread/label-fixture-unittest-final.log`.
 - Supplemental transaction/eviction/multidb/snapshot/executor/migration jobs:
   **104/104 PASS**, `build/gate-run.WfPjrS/ledger.partial`.
+- Final-image Redis differential matrix: all five selected parts PASS
+  (`build/gate-run.doy2KU/ledger.partial`, **6/6** including the build prerequisite).
+  Split atomic 0/1 completed **235/239** comparison legs; armed fused atomic 0/1
+  completed **230/234** legs plus both read-local activity checks (peak hits 1,257
+  in each). All five seeds and four extra MULTI/atomic-1 repeats per geometry ran.
+  The remaining part passed all **16 mode-equivalence cells**. Zero mismatches.
+  These are the complete children of the two existing full-tier differential rows;
+  no full-gate or ABBA receipt is claimed.
 - Existing storage/filter/read-local ring jobs: **17/17 PASS**;
   `build/gate-run.LvyVcg/ledger.partial`.
-- `make -q all`: 0 after `make all`.
+- Both `make -q all` and default `make -q`: **0** after `make all`;
+  `build/tornread/final-freshness.json`.
 - Broad selected atomics/MVCC/read-local/MULTI run: **373 PASS, 30 FAIL** across
   83 jobs (`build/gate-run.YYggSe/ledger.partial`). All 30 failures are retained:
   INFO selective collection (8) and rlfix5 (6) refuse native witnesses after the
@@ -231,7 +241,7 @@ call/return; it is a layout control, not instruction-identical PRE.
   MGET/MSET throughput floor is NOT RUN, and the RYOW rate assertion is disabled;
   their correctness witnesses retain their original assertions.
 - Endurance: all 11 arms complete, zero violations; table below.
-- Finite-work instruction accounting: **180/180 cells complete**; raw repeats and ranges below.
+- Finite-work instruction accounting: final **180/180 repeats complete**; raw totals and ranges below.
   No throughput benchmark or ABBA has been run.
 
 All correctness servers use LC_ALL=C. Our builds/clients/servers are pinned within
@@ -271,62 +281,83 @@ here are unchanged. Final-image normal and priority matrices are recorded separa
 
 ### Instructions per operation
 
-Instrument: `tools/tornread_instructions.py`, perf `instructions:u` on the server PID,
-acknowledged enable/disable boundaries after boot/population/warmup, fixed command count,
-a finite native client checking exact reply bytes, and exact commandstats deltas. All arms load the same saved keyspace
-and hash seed, recorded by digest. No throughput verdict. GET p1/p32,
-SET p32, MGET-8 p8, MSET-8 p8, atomic 0 and 1, both 2s and 1s (read-local 0), PRE /
-PART1 / PART2. Each reported operation is one public command, not one MGET/MSET key.
+Instrument: `tools/tornread_instructions.py --place-io --arms pre part1-r7 part2-r7`,
+perf `instructions:u` on the server PID, acknowledged enable/disable boundaries after
+boot/population/warmup, a finite native client checking exact reply bytes, and exact
+commandstats deltas. Each operation is one public command, not one MGET/MSET key.
+GET p1/p32, SET p32, MGET-8 p8 and MSET-8 p8 run at atomic 0 and 1 in both thread modes.
 
-Eight connections × 65,536 measured commands = **524,288 commands per repeat**, after
-4,096 warmup commands per connection. Three repeats per cell/arm, alternating arm order;
-180 completed cells. Every counter ran 100%; all cells restored the same seed snapshot
-(SHA-256 `a60fff7f8e2d845d2db76e1829e0c841b00e0c8a0573fcfe947f4e7b76e637af`).
+Geometry: server CPUs 0-7, clients 8-11, port 26095, 16 shards, split ratio 6:2,
+uring, databases 1, read-local 0, key/client LB 0 and automatic FLIP 0. Eight connections
+run 65,536 measured commands each: **524,288 commands per repeat**, after 4,096 warmup
+commands per connection. IO placement is fixed and DEBUG-verified before and after:
+`0,1,2,3,4,5,0,1` in 2s; `0,1,2,3,4,5,6,7` in 1s. All arms restore the same saved
+keyspace/hash seed, SHA-256 `78bb25654d20f7e1b017c4d5b363e41b1c4887a7b133dfaea0fff844981bf829`.
 
-Each entry below is **median [minimum–maximum] instructions/public command**. These are
-whole-process counts, including idle polling and scheduling paths. Wide repeat ranges
-(on unchanged cells too) prevent attributing small differences to the fix. They are not
-box noise, confidence intervals, or proof of a speedup/regression. The fixed request
-count and key placement do not fix connection-to-IO assignment or interleaving. In the
-three PRE 2s/atomic-0/GET-p1 repeats, the busiest IO held 5, 4 and 3 readers respectively;
-executor lifetime loop counts were 40.1M, 30.4M and 24.7M, accompanying 67,211, 52,959
-and 43,712 instructions/op. Those lifetime counters include warmup and are diagnostic,
-not the perf interval denominator. A second run with `--place-io` verifies each worker’s
-IO both before and after its finite workload; its results will be reported separately. The
-maintainer’s matched-load ABBA remains necessary for an attributable cost/merit verdict.
+**180/180 repeats completed**, three per cell/arm with alternating arm order. Every
+counter ran 100%, every command total matched, and every placement check passed.
+This final run began after all tests and builds from this lane stopped. Other lanes
+elsewhere on the machine were not controlled; the process snapshots are retained.
+These are whole-process counts including polling and scheduling, not a throughput
+or matched-offered-load result. The maintainer's ABBA remains the merit verdict.
+
+Each entry is **median [minimum–maximum] instructions/public command**, using the
+final parser-complete PART1/PART2 images listed below.
 
 | Mode | Atomic | Command | Pipeline | PRE | PART1 | PART2 |
 |---|---:|---|---:|---:|---:|---:|
-| 2s | 0 | GET | 1 | 52,959 [43,712–67,211] | 43,375 [40,820–55,802] | 43,920 [43,373–44,097] |
-| 2s | 0 | GET | 32 | 2,375 [2,352–2,611] | 3,258 [2,586–3,266] | 2,813 [2,799–3,466] |
-| 2s | 0 | SET | 32 | 2,777 [2,714–3,288] | 2,789 [2,779–3,341] | 2,748 [2,578–2,815] |
-| 2s | 0 | MGET-8 | 8 | 21,686 [17,427–21,713] | 21,909 [21,870–26,320] | 17,670 [17,603–21,827] |
-| 2s | 0 | MSET-8 | 8 | 19,092 [18,960–21,553] | 21,089 [19,240–25,216] | 25,261 [19,135–25,306] |
-| 2s | 1 | GET | 1 | 39,665 [39,115–55,069] | 42,786 [40,807–44,793] | 43,241 [43,181–43,253] |
-| 2s | 1 | GET | 32 | 2,594 [2,406–3,289] | 2,816 [2,611–2,841] | 2,618 [2,603–2,866] |
-| 2s | 1 | SET | 32 | 2,603 [2,594–2,758] | 2,715 [2,511–2,789] | 2,723 [2,522–2,750] |
-| 2s | 1 | MGET-8 | 8 | 22,041 [17,809–26,299] | 22,010 [17,890–22,030] | 21,854 [17,690–25,799] |
-| 2s | 1 | MSET-8 | 8 | 71,710 [66,628–72,275] | 75,470 [69,870–82,819] | 74,898 [61,416–83,344] |
-| 1s | 0 | GET | 1 | 14,794 [13,938–16,023] | 15,077 [15,027–15,865] | 15,717 [13,161–16,290] |
-| 1s | 0 | GET | 32 | 2,383 [2,379–2,489] | 2,415 [2,407–2,509] | 2,591 [2,590–2,601] |
-| 1s | 0 | SET | 32 | 2,654 [2,574–2,669] | 2,570 [2,566–2,692] | 2,684 [2,580–2,712] |
-| 1s | 0 | MGET-8 | 8 | 19,105 [18,882–19,329] | 19,284 [18,907–19,546] | 19,563 [19,448–19,566] |
-| 1s | 0 | MSET-8 | 8 | 20,861 [20,648–20,898] | 20,949 [20,601–21,082] | 20,426 [20,351–20,520] |
-| 1s | 1 | GET | 1 | 14,999 [13,310–16,052] | 14,489 [14,250–16,713] | 15,548 [14,333–15,912] |
-| 1s | 1 | GET | 32 | 2,487 [2,404–2,518] | 2,699 [2,588–2,711] | 2,599 [2,595–2,687] |
-| 1s | 1 | SET | 32 | 2,675 [2,586–2,688] | 2,653 [2,579–2,689] | 2,678 [2,593–2,686] |
-| 1s | 1 | MGET-8 | 8 | 19,339 [19,039–19,361] | 19,221 [19,075–19,485] | 19,248 [19,066–19,610] |
-| 1s | 1 | MSET-8 | 8 | 75,140 [74,959–76,049] | 74,796 [74,762–75,326] | 86,552 [86,301–87,657] |
+| 2s | 0 | GET | 1 | 39,409 [39,210–39,669] | 39,525 [39,493–39,840] | 39,676 [39,358–39,757] |
+| 2s | 0 | GET | 32 | 2,369 [2,362–2,371] | 2,394 [2,389–2,404] | 2,620 [2,607–2,631] |
+| 2s | 0 | SET | 32 | 2,501 [2,500–2,516] | 2,506 [2,506–2,507] | 2,508 [2,502–2,514] |
+| 2s | 0 | MGET-8 | 8 | 17,605 [17,571–17,681] | 17,693 [17,616–17,694] | 17,696 [17,676–17,729] |
+| 2s | 0 | MSET-8 | 8 | 19,153 [19,073–19,193] | 19,109 [19,058–19,159] | 19,132 [19,066–19,155] |
+| 2s | 1 | GET | 1 | 39,536 [39,305–39,815] | 39,970 [39,903–40,036] | 39,301 [39,285–39,474] |
+| 2s | 1 | GET | 32 | 2,390 [2,377–2,396] | 2,615 [2,612–2,627] | 2,619 [2,606–2,621] |
+| 2s | 1 | SET | 32 | 2,497 [2,484–2,505] | 2,517 [2,501–2,528] | 2,500 [2,498–2,501] |
+| 2s | 1 | MGET-8 | 8 | 17,757 [17,623–17,774] | 17,708 [17,707–17,756] | 17,740 [17,706–17,793] |
+| 2s | 1 | MSET-8 | 8 | 84,747 [83,761–84,897] | 83,747 [83,151–83,749] | 84,493 [83,938–84,541] |
+| 1s | 0 | GET | 1 | 17,457 [17,451–17,464] | 17,492 [17,438–17,498] | 17,474 [17,470–17,488] |
+| 1s | 0 | GET | 32 | 2,329 [2,329–2,338] | 2,364 [2,364–2,370] | 2,554 [2,552–2,556] |
+| 1s | 0 | SET | 32 | 2,517 [2,506–2,519] | 2,520 [2,518–2,529] | 2,520 [2,518–2,527] |
+| 1s | 0 | MGET-8 | 8 | 18,093 [18,091–18,106] | 18,349 [18,344–18,350] | 18,334 [18,327–18,355] |
+| 1s | 0 | MSET-8 | 8 | 20,075 [20,072–20,106] | 20,044 [20,024–20,057] | 20,038 [20,018–20,047] |
+| 1s | 1 | GET | 1 | 17,494 [17,490–17,561] | 17,497 [17,487–17,535] | 17,491 [17,456–17,497] |
+| 1s | 1 | GET | 32 | 2,347 [2,345–2,350] | 2,557 [2,553–2,558] | 2,555 [2,551–2,558] |
+| 1s | 1 | SET | 32 | 2,523 [2,522–2,524] | 2,525 [2,524–2,530] | 2,521 [2,518–2,529] |
+| 1s | 1 | MGET-8 | 8 | 18,209 [18,169–18,234] | 18,454 [18,446–18,460] | 18,449 [18,421–18,472] |
+| 1s | 1 | MSET-8 | 8 | 64,151 [64,026–64,558] | 64,127 [64,052–64,312] | 64,581 [64,362–64,798] |
 
-Raw aggregate receipts: `docs/tornread-instructions.json`. Per-repeat argv, perf CSV,
-server log, checked worker logs and result JSON: `build/tornread/instructions-20261108-220246`. Discarded smoke runs
-calibrated perf 7.0.12’s NUL-terminated acknowledgement and SIGINT exit status.
+For GET p32, the median increments are:
+
+| Mode | Atomic | PART1 vs PRE | PART2 vs PART1 | PART2 vs PRE |
+|---|---:|---:|---:|---:|
+| 2s | 0 | +1.05% | +9.46% (+226 instructions) | +10.61% |
+| 2s | 1 | +9.43% | +0.14% (+4 instructions) | +9.59% |
+| 1s | 0 | +1.49% | +8.04% (+190 instructions) | +9.65% |
+| 1s | 1 | +8.97% | -0.09% (-2 instructions) | +8.88% |
+
+The atomic-1 PART1 increment is consistent with paying registration on pipelined reads;
+PART2 introduces that bookkeeping at atomic 0 as well. P1 reads do not register. Do not
+interpret the small positive/negative differences in the other cells as rate changes.
+
+Committed raw instruction totals and metadata: `docs/tornread-instructions-final.json`.
+Per-repeat argv, perf CSV, server log, checked worker logs and full result JSON:
+`build/tornread/instructions-20261109-002158/`. The runner and receipt verify binary
+hashes, seed identity, command counts, counter availability and connection placement.
+
+Earlier exploratory receipts remain as diagnostics: `docs/tornread-instructions.json`
+used uncontrolled connection placement, and `docs/tornread-instructions-placed.json`
+fixed placement while this lane's other correctness jobs were still running. Neither
+feeds the table above. The first run's three PRE 2s/atomic-0/GET-p1 repeats put 5, 4 and
+3 readers on the busiest IO, accompanying 67,211, 52,959 and 43,712 instructions/op.
+That variation is scheduling/polling work, not box noise or a confidence interval.
 
 ### Binary identity and layout
 
 Final `sha256sum` receipts are in `build/tornread/SHA256SUMS-final`; original-image
 receipts remain in `build/tornread/SHA256SUMS`. Compact correctness receipts are
-committed in `docs/tornread-proof.json`. The table below names the final review arms;
+committed in `docs/tornread-proof.json` and `docs/tornread-proof-final.json`.
+The table below names the final review arms;
 the original PART1/PART2 digests remain attached to their earlier proof artifacts.
 
 | Arm | ELF .text bytes | SHA-256 |
