@@ -126,6 +126,8 @@ public:
             this,
             [](void* ctx, Client& client, Op& op) {
                 auto* loop = static_cast<IoLoop*>(ctx);
+                if (op.read_cut_registered_)
+                    loop->scatter_pool_.unregister_plain_read(*loop->srv_, op, loop->self_->id());
                 if (__builtin_expect(loop->climon_local_trackers_ != 0, false))
                     loop->tracking_retire_read(client, op);
                 const bool was_blocked = client.blocked();
@@ -3665,7 +3667,7 @@ private:
         // With --atomic 0 the tracking word is never written by anyone, so this is one L1 hit on a
         // shared-clean line, the sequence load never happens, and the per-op test is never taken.
         const bool atomic_tracking = srv_->atomic_tracking_active();
-        const uint64_t pass_read_cut = atomic_tracking ? srv_->atomic_snapshot() : 0;
+        uint64_t pass_read_cut = atomic_tracking ? srv_->atomic_snapshot() : 0;
         uint64_t batch_start_ops = 0;
         [[maybe_unused]] bool read_local_batch = false;
         // LANE ADMISSION: how many lane slots (pending local reads) this connection may
@@ -4482,6 +4484,13 @@ private:
             }
 
         ordinary_shard_ready:
+            if (op->has_read_cut() && rob.in_flight() != 0 &&
+                !scatter_pool_.register_plain_read(*srv_, *op, pass_read_cut, self_id)) {
+                conn.advance_parse(consumed);
+                reply_err(op->sink(), "ERR out of memory");
+                finish_prebuilt(c, *op);
+                continue;
+            }
             if constexpr (Fused) {
                 if (read_local_enabled && read_local_commit_at_ordinary) {
                     // prepare() reserved the selected reads and this operation before any stateful
@@ -4570,6 +4579,8 @@ private:
             }
             if (!posted && !post_task_quiet(worker, t)) {
                 rob.unpublish();  // a refused push must leave NO trace -- including in the ROB
+                if (op->read_cut_registered_)
+                    scatter_pool_.unregister_plain_read(*srv_, *op, self_id);
                 if constexpr (Fused && !SplitLocal) l4prebuild_discard_set(*op);
                 // A refused push leaves both the ROB publication frontier and parse cursor untouched.
                 // Consuming bytes without queuing an operation would lose its reply. Leave this frame

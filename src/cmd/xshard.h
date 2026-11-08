@@ -1,5 +1,6 @@
 // xshard.h -- arena-backed scatter/gather lowering for multi-key commands.
 #pragma once
+#include "../core/plain_read_cuts.h"
 
 #include <atomic>
 #include <cstddef>
@@ -122,8 +123,11 @@ public:
     // it back rather than reusing the value you asked for.
     bool register_snapshot(Server& server, SnapshotCut* cut, uint32_t owner_io);
     void unregister_snapshot(Server& server, SnapshotCut* cut, uint32_t owner_io);
+    bool register_plain_read(Server& server, Op& op, uint64_t& cut, uint32_t owner_io);
+    void unregister_plain_read(Server& server, Op& op, uint32_t owner_io);
 
 private:
+    void publish_snapshot_floor(Server& server, uint32_t owner_io);
     void* cached_[kCached] = {};
     uint32_t count_ = 0;
     // Only unresolved cuts participate in the floor. Atomic work bounds this set at eight; in a
@@ -135,6 +139,7 @@ private:
     uint64_t unresolved_snapshot_floor_ = UINT64_MAX;
     uint32_t unresolved_floor_refs_ = 0;
     uint64_t published_snapshot_floor_ = UINT64_MAX;
+    PlainReadCuts plain_read_cuts_;
 };
 
 struct ScatterDispatch {

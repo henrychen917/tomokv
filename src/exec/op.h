@@ -233,7 +233,8 @@ public:
     // stack-local Op whose bytes Lua parses back into a Lua value (scripting.cc). Those are
     // reset() but never acquired, so they default to unarmed and use byte replies. reset()
     // must not touch the arming: a ROB slot is armed once for its entire lifetime.
-    uint8_t reply_code_ok_ = 0;
+    uint8_t reply_code_ok_ : 1 = 0;
+    uint8_t read_cut_registered_ : 1 = 0;  // IO owns this reference through retirement/rollback.
     uint8_t db = 0;  // logical database captured at parse time
 
     SmallBuf<kInlineReply> reply;  // worker writes RESP here (the spill/general sink)

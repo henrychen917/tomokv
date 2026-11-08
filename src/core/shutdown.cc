@@ -70,6 +70,8 @@ void IoLoop::shutdown_clients_after_join() {
         &ring_, this, release_joined, this,
         [](void* context, Client& client, Op& op) {
             auto* loop = static_cast<IoLoop*>(context);
+            if (op.read_cut_registered_)
+                loop->scatter_pool_.unregister_plain_read(*loop->srv_, op, loop->self_->id());
             NotifyBatch* notifications = nullptr;
             if (op.has_scatter_state()) {
                 notifications = notify_take_batch(op);
@@ -187,6 +189,8 @@ void IoLoop::shutdown_clients_after_join() {
         if (!c->dead()) {
             for (uint64_t id = c->rob().flush_id(); id != c->rob().dispatch_id(); ++id) {
                 Op& op = c->rob().at(id);
+                if (op.read_cut_registered_)
+                    scatter_pool_.unregister_plain_read(*srv_, op, self_->id());
                 if (op.has_blocking_state())
                     blocking_retire(*srv_, *c, op, *self_);
                 else if (op.has_multi_state()) {

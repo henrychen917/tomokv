@@ -456,6 +456,45 @@ SnapshotFloor active_snapshot_floor(const std::vector<SnapshotCut*>& unresolved_
 
 }  // namespace
 
+void ScatterArenaPool::publish_snapshot_floor(Server& server, uint32_t owner_io) {
+    const uint64_t floor = std::min(unresolved_snapshot_floor_, plain_read_cuts_.floor());
+    if (floor != published_snapshot_floor_) {
+        published_snapshot_floor_ = floor;
+        server.publish_atomic_read_floor(owner_io, floor);
+    }
+}
+
+bool ScatterArenaPool::register_plain_read(Server& server, Op& op, uint64_t& cut,
+                                           uint32_t owner_io) {
+    if (!plain_read_cuts_.reuse(cut)) {
+        try {
+            plain_read_cuts_.reserve_one();
+        } catch (const std::bad_alloc&) {
+            return false;
+        }
+        plain_read_cuts_.add(cut);
+        publish_snapshot_floor(server, owner_io);
+        // A cleanup that missed publication sampled its cutoff before this confirmation.
+        // Keep all older references while advancing only this read and the rest of its pass.
+        const uint64_t confirmed = server.atomic_snapshot();
+        if (confirmed != cut) {
+            plain_read_cuts_.release(static_cast<uint32_t>(cut));
+            plain_read_cuts_.add(confirmed);
+            cut = confirmed;
+            publish_snapshot_floor(server, owner_io);
+        }
+    }
+    op.set_read_cut(cut);
+    op.read_cut_registered_ = 1;
+    return true;
+}
+
+void ScatterArenaPool::unregister_plain_read(Server& server, Op& op, uint32_t owner_io) {
+    plain_read_cuts_.release(op.read_cut_lo);
+    op.read_cut_registered_ = 0;
+    publish_snapshot_floor(server, owner_io);
+}
+
 bool ScatterArenaPool::register_snapshot(Server& server, SnapshotCut* state, uint32_t owner_io) {
     try {
         unresolved_snapshots_.push_back(state);
@@ -471,10 +510,7 @@ bool ScatterArenaPool::register_snapshot(Server& server, SnapshotCut* state, uin
     } else if (cut == unresolved_snapshot_floor_) {
         unresolved_floor_refs_++;
     }
-    if (unresolved_snapshot_floor_ != published_snapshot_floor_) {
-        published_snapshot_floor_ = unresolved_snapshot_floor_;
-        server.publish_atomic_read_floor(owner_io, unresolved_snapshot_floor_);
-    }
+    publish_snapshot_floor(server, owner_io);
 
     // Publish the successor of each inclusive read cut. A version visible at the oldest snapshot
     // is then strictly below the floor and may become the sole physical representation without
@@ -503,10 +539,7 @@ bool ScatterArenaPool::register_snapshot(Server& server, SnapshotCut* state, uin
             unresolved_snapshot_floor_ = exact.floor;
             unresolved_floor_refs_ = exact.refs;
         }
-        if (unresolved_snapshot_floor_ != published_snapshot_floor_) {
-            published_snapshot_floor_ = unresolved_snapshot_floor_;
-            server.publish_atomic_read_floor(owner_io, unresolved_snapshot_floor_);
-        }
+        publish_snapshot_floor(server, owner_io);
     }
     return true;
 }
@@ -534,10 +567,7 @@ void ScatterArenaPool::unregister_snapshot(Server& server, SnapshotCut* state, u
         unresolved_snapshot_floor_ = exact.floor;
         unresolved_floor_refs_ = exact.refs;
     }
-    if (unresolved_snapshot_floor_ != published_snapshot_floor_) {
-        published_snapshot_floor_ = unresolved_snapshot_floor_;
-        server.publish_atomic_read_floor(owner_io, unresolved_snapshot_floor_);
-    }
+    publish_snapshot_floor(server, owner_io);
 }
 
 uint32_t ScatterArenaPool::refresh_snapshot_floor(Server& server, uint32_t owner_io) {
@@ -566,10 +596,7 @@ uint32_t ScatterArenaPool::refresh_snapshot_floor(Server& server, uint32_t owner
         unresolved_snapshot_floor_ = exact.floor;
         unresolved_floor_refs_ = exact.refs;
     }
-    if (unresolved_snapshot_floor_ != published_snapshot_floor_) {
-        published_snapshot_floor_ = unresolved_snapshot_floor_;
-        server.publish_atomic_read_floor(owner_io, unresolved_snapshot_floor_);
-    }
+    publish_snapshot_floor(server, owner_io);
     return 1;
 }
 

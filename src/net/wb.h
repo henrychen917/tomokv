@@ -326,7 +326,8 @@ private:
             // A tracking connection retires every op through the hook, so even a small GET
             // enrolls its read at retirement, in connection order. Every other connection
             // keeps the special-only contract shared with the hot serve body.
-            if (op.zc_ptr || retire_plain) retire_fn_(retire_ctx_, conn, op);
+            if (op.zc_ptr || op.read_cut_registered_ || retire_plain)
+                retire_fn_(retire_ctx_, conn, op);
             if (op.reply_skip()) {
                 if (op.zc_ptr && op.zc_shard >= 0) release(op.zc_shard, op.zc_ptr);
                 // Everything past the frontier is this op's reply -- except the seal, which moved
@@ -828,7 +829,8 @@ private:
         conn.stop_obuf_tracking();                                                               \
     draining_ = &c;                                                                              \
     const uint32_t retired = c.rob().drain([&](Op& op) {                                         \
-        BeforeRetire if (op.zc_ptr) retire_fn_(retire_ctx_, conn, op);                           \
+        BeforeRetire if (op.zc_ptr || op.read_cut_registered_)                                 \
+            retire_fn_(retire_ctx_, conn, op);                                                 \
         if (op.zc_ptr) {                                                                         \
             conn.seal_fill_segment();                                                            \
             if constexpr (Coded)                                                                 \
