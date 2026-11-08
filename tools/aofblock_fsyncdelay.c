@@ -26,6 +26,7 @@
 #include <liburing.h>
 #include <pthread.h>
 #include <stdint.h>
+#include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,6 +37,8 @@
 static long g_delay_ms = -1;
 static const char* g_match = NULL;
 static int g_log_fd = -2;
+static const char* g_control;
+static _Atomic unsigned g_holds;
 static pthread_once_t g_once = PTHREAD_ONCE_INIT;
 
 static int (*real_fsync)(int);
@@ -51,6 +54,7 @@ static void init_once(void) {
     const char* m = getenv("AOFSHIM_MATCH");
     g_match = m && *m ? m : ".incr.";
     const char* l = getenv("AOFSHIM_LOG");
+    g_control = getenv("AOFSHIM_CONTROL");
     g_log_fd = l && *l ? open(l, O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC, 0644) : -1;
     real_fsync = (int (*)(int))dlsym(RTLD_NEXT, "fsync");
     real_fdatasync = (int (*)(int))dlsym(RTLD_NEXT, "fdatasync");
@@ -93,6 +97,32 @@ static void sleep_ms(long ms) {
     }
 }
 
+static int armed(void) {
+    if (!g_control) return g_delay_ms > 0;
+    char path[1024];
+    snprintf(path, sizeof path, "%s.armed", g_control);
+    return access(path, F_OK) == 0;
+}
+
+static void hold_sync(void) {
+    if (!g_control) {
+        sleep_ms(g_delay_ms);
+        return;
+    }
+    const unsigned n = atomic_fetch_add(&g_holds, 1) + 1;
+    char path[1024];
+    snprintf(path, sizeof path, "%s.%u.entered", g_control, n);
+    int fd = open(path, O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0600);
+    if (fd < 0) abort();
+    close(fd);
+    snprintf(path, sizeof path, "%s.%u.release", g_control, n);
+    const uint64_t deadline = mono_ns() + 30000000000ull;
+    while (armed() && access(path, F_OK) != 0) {
+        if (mono_ns() > deadline) abort();
+        sleep_ms(1);
+    }
+}
+
 static void log_sync(const char* kind, int fd, const char* path, uint64_t start, uint64_t end) {
     if (g_log_fd < 0) return;
     char line[768];
@@ -124,10 +154,10 @@ static int delayed_sync(const char* kind, int (*real)(int), int fd) {
         errno = ENOSYS;
         return -1;
     }
-    if (g_delay_ms <= 0 || !fd_matches(fd, path, sizeof path)) return real(fd);
+    if (!armed() || !fd_matches(fd, path, sizeof path)) return real(fd);
     const uint64_t start = mono_ns();
     log_start(kind, fd, start);
-    sleep_ms(g_delay_ms);
+    hold_sync();
     const int rc = real(fd);
     const int saved = errno;
     log_sync(kind, fd, path, start, mono_ns());
@@ -141,7 +171,7 @@ int fdatasync(int fd) { return delayed_sync("fdatasync", real_fdatasync, fd); }
 // Pending, not yet submitted SQEs live in [sq.sqe_head, sq.sqe_tail) (liburing 2.x layout).
 static void uring_maybe_delay(struct io_uring* ring) {
     pthread_once(&g_once, init_once);
-    if (!ring || g_delay_ms <= 0) return;
+    if (!ring || !armed()) return;
     const unsigned shift = (ring->flags & IORING_SETUP_SQE128) ? 1 : 0;
     const unsigned mask = ring->sq.ring_mask;
     char path[512];
@@ -158,7 +188,7 @@ static void uring_maybe_delay(struct io_uring* ring) {
     if (found_fd < 0) return;
     const uint64_t start = mono_ns();
     log_start("uring_fsync", found_fd, start);
-    sleep_ms(g_delay_ms);
+    hold_sync();
     log_sync("uring_fsync", found_fd, path, start, mono_ns());
 }
 

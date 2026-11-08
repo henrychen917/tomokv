@@ -333,6 +333,7 @@ void DatabaseMap::join_workers(Server& server, std::vector<std::thread>& workers
             auto& s = *state_;
             uint64_t stop_since = 0;
             uint64_t stop_bound = 3 * grace_bound_ms();
+            bool aof_wait_logged = false;
             // Last epoch seen per worker. An odd epoch is one pass in progress; the same odd
             // value on a later tick is one pass (one long command, as on Redis) still running.
             std::array<uint64_t, kMaxThreads> seen{};
@@ -351,6 +352,15 @@ void DatabaseMap::join_workers(Server& server, std::vector<std::thread>& workers
                         seen[tid] = epoch;
                     }
                     if (in_command) stop_since = now;
+                    if (server.aof().recording()) {
+                        stop_bound = std::max(stop_bound, Server::kShutdownSaveWaitNs / 1000000);
+                        if (!aof_wait_logged && now - stop_since >= 3 * grace_bound_ms()) {
+                            std::fprintf(stderr,
+                                         "shutdown: waiting for final AOF drain/sync bound_ms=%llu\n",
+                                         (unsigned long long)stop_bound);
+                            aof_wait_logged = true;
+                        }
+                    }
                     // Latch the extended grace: finalization becoming Idle must
                     // not instantly expire a worker still leaving its save stack.
                     // Only a command in flight moves stop_since, never a save/rewrite epoch.
