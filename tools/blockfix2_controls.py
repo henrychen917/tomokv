@@ -189,7 +189,7 @@ def check_directed(args):
     assert len(paths) == 24, ('missing declared negative legs', len(paths))
     rejected = 0
     for path in paths:
-        text = cpp.read(path)
+        text = path.read_text()
         assert 'GEOMETRY ' in text, ('oracle/target setup did not finish', str(path))
         if args.case in ('rename', 'wrongtype') and '-a1-' in path.name:
             # Atomic key-reservation release already supplies an independent
