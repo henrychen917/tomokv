@@ -3,7 +3,11 @@
 // CLI and file directives share parse_config_args; live CONFIG uses these value helpers
 // where applicable. Config borrows string storage and owns its vectors; parsers require
 // exclusive access and do not publish to workers. LiveConfigMailbox handles publication.
+// t_server.cc init_config builds the CONFIG GET/SET table from Config; its immutable
+// flag marks boot-only settings (individual protected/refused settings add further checks).
 //
+// TomoKV-native knobs: prefer numeric values; 0 means off and off allocates nothing;
+// -1 means auto; thresholds derive themselves; delete any Config field nothing reads.
 // Defaults, units and sentinel meanings below follow each parser. Redis-named settings
 // use their own grammar, so 0 does not always disable a feature and -1 is not always auto.
 // String/path/list knobs have no numeric 0 or -1 sentinel; enum knobs accept only the
@@ -315,7 +319,8 @@ inline constexpr uint64_t kProtoMaxBulkLenSupported = LONG_MAX;
 // String values and argv Slices are 32-bit. This is the largest bulk whose value and
 // RESP envelope both fit that representation. String-growing commands (APPEND,
 // SETRANGE, SETBIT, BITFIELD) stop here even if the configured limit is larger,
-// rather than narrowing a 64-bit length before allocation.
+// rather than narrowing a 64-bit length before allocation. Redis 7.4 would attempt the
+// allocation; this is a deliberate deviation.
 inline constexpr uint64_t kProtoMaxBulkLenRepresentable = UINT32_MAX - 64ull * 1024;
 
 inline bool cfg_parse_save_schedule(const char* input, size_t length,
@@ -419,6 +424,8 @@ enum class TlsAuthClients : uint8_t { Yes = 0, No = 1, Optional = 2 };
 // CONFIG writer updates values; apply translates them to owner-local TypeLimits without
 // publication. Public ranges saturate at the uint32 representation limit. parse returns
 // false for invalid input; it does not promise to preserve its output on failure.
+// Names, aliases and parsing live here so boot parsing, CONFIG SET/GET and CONFIG
+// REWRITE cannot drift.
 struct EncodingConfig {
     enum Key : uint32_t {
         HashEntries,
@@ -451,8 +458,9 @@ struct EncodingConfig {
     };
     // Defaults in Key order: hash 512 entries/64 bytes; list -2 (8 KiB payload budget);
     // set 128 entries/64 bytes; zset 128 entries/64 bytes; intset 512 entries.
-    // Zero disables the corresponding compact limit except ListSize, where 0 permits one
-    // element. ListSize -1 selects 4 KiB; other keys reject -1. Negative list values
+    // A zero *-entries bound excludes non-empty collections from that compact form;
+    // set-max-intset-entries 0 disables intsets. A zero *-value bound admits only empty
+    // elements. ListSize differs: 0 permits one element and -1 selects 4 KiB; other keys reject -1. Negative list values
     // select byte budgets (below -5 clamps to 64 KiB); positives count elements.
     int64_t values[Count] = {512, 64, -2, 128, 64, 128, 64, 512};
 
@@ -568,6 +576,7 @@ struct Config {
     const char* place = nullptr;
     // IO thread count from --ratio; default 0 means unset internally. Explicit ratios
     // require positive IO and EX counts; -1 has no auto meaning and cannot form a valid shape.
+    // Split mode only: validate_config rejects --ratio with 1s.
     uint32_t even_ifid = 0;
     // EX thread count from --ratio; default 0 means unset internally; same rules as even_ifid.
     uint32_t even_ex = 0;
@@ -676,8 +685,10 @@ struct Config {
     MaxmemoryPolicy maxmemory_policy = MaxmemoryPolicy::NoEviction;
     // Live eviction sample count; default 5, 0/-1 invalid; range 1..64.
     uint32_t maxmemory_samples = 5;
-    // Live cross-shard write-group switch; default 0, 1 enables, -1 invalid.
-    // Zero leaves EXEC/scripts/read cuts active. Credits derive as min(16 * shards, 1024).
+    // Cross-shard write-group switch, changeable at runtime; default 0, -1 invalid.
+    // 1 gives multi-key writes and snapshot reads one committed decision; collapse retains
+    // the winning committed value. 0 leaves EXEC, script and read cuts active.
+    // Credits derive as min(16 * shards, 1024).
     uint32_t atomic = 0;
     // Live owned collection limits; defaults/units/sentinels are in EncodingConfig.
     // The Lua instruction bound lives in scripting.cc; unused interpreters allocate nothing.
@@ -688,7 +699,8 @@ struct Config {
     // Boot fused shadow-priority switch; default 0 uses allocation-free FIFO, 1 enables,
     // -1 invalid. Split mode resolves either accepted value to 0.
     uint32_t reorder = 0;
-    // Live remembered-key count per IO owner; default 1000000, 0 unlimited, -1 invalid.
+    // Remembered-key bound per IO owner, fixed at boot: tracking.cc reads Config directly.
+    // Default 1000000, 0 unlimited, -1 invalid. Unlike Redis, CONFIG SET refuses it.
     // The table allocates only when a connection enables tracking.
     uint64_t tracking_table_max_keys = 1000000;
     // Boot TLS port number; default 0 disables TLS (no SSL_CTX or BIO registry), -1 invalid.
@@ -701,7 +713,9 @@ struct Config {
     const char* tls_ca_cert_file = nullptr;
     // Boot CA directory path; default null; alternative to tls_ca_cert_file.
     const char* tls_ca_cert_dir = nullptr;
-    // Boot client-auth enum; default yes; accepts yes, no or optional.
+    // Client-auth enum, changeable at runtime; default yes; accepts yes, no or optional.
+    // CONFIG SET stores through std::atomic_ref and each new TLS connection loads the same
+    // way; concurrent access must not use a plain read.
     TlsAuthClients tls_auth_clients = TlsAuthClients::Yes;
     // Boot TLS protocol list; default null leaves protocol selection to TLS setup.
     const char* tls_protocols = nullptr;
@@ -1877,7 +1891,8 @@ inline void config_file_error(int number, const char* line, const char* error) {
 
 // Read boot directives into caller-owned store, optionally appending source lines and
 // end offsets. Run before workers, with exclusive access to all outputs. A line
-// argument beginning with -- remains a value; pin yes/no maps to --no-pin.
+// argument beginning with -- remains a value; pin no emits --no-pin, while pin yes
+// emits nothing and leaves pinning on.
 // Complete storage before parsing, then keep it stable for Config's borrowed pointers.
 // Returns false with a diagnostic on open/read/grammar errors; earlier output remains.
 // Allocation exceptions propagate; the file handle is not guarded against exceptions.

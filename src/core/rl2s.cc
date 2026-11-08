@@ -1,7 +1,8 @@
 // Split read-local runtime: shard-less IO readers, owner loops and role-tenure
 // wiring. Each physical worker owns its rings and reader retirement sink until
 // join. Owners arm immutable replacement before any reader passes the boot gate;
-// IO never inspects a shard vector while FLIP can prepare its next ownership.
+// The IO read-local pass never inspects self_->shards() (see split_read_local_pass):
+// FLIP may install a future owner's vector while IO returns its final acknowledgements.
 #include "boot_support.h"
 #include "genthread.h"
 
@@ -40,8 +41,9 @@ void pin_read_local_thread(int cpu) {
 }  // namespace
 
 // Called by the active shard-less IO role with read-local enabled; borrows its
-// bound reader lane and performs no owner work. Retires ready copies, adapts
-// admission pressure and seq_cst-publishes the QSBR tick after foreign pointers
+// bound reader lane and performs no owner work. Drains the local-read lane, reclaims
+// deferred retirements whose QSBR grace has passed, adapts admission pressure and
+// seq_cst-publishes the QSBR tick after foreign pointers
 // die. Disabled read-local aborts; deferred work remains queued for later turns.
 // The copy/validate/demote lane is shared with fused mode. In particular, do not
 // inspect self_->shards(): FLIP may be installing a future owner's vector while
@@ -114,7 +116,10 @@ void IoLoop::run_split_read_local_baseline() {
 // and transfers the Unix fd after recovery. The boot mutex publishes every
 // ring and retirement sink before readers run; ready roles use release stores.
 // Reported boot failures stop and join all workers. Observed shutdown returns 0,
-// other boot failures 1; waits have no deadline here and allocations may throw.
+// other boot failures 1; waits have no deadline. Allocation failures are not recovered:
+// before launch or after join they propagate to main, which does not catch them. While
+// workers run, unwinding can destroy live worker state and joinable threads terminate;
+// exceptions escaping a worker also terminate.
 int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                                 const std::vector<std::unique_ptr<AofReplayPlan>>& aof_plans,
                                 const SnapshotLoadPlan* load_plan, TlsContext* tls_context,
@@ -133,8 +138,9 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
     // Reuse the 1s boot gate's stop-aware loading/listener barriers. Every physical thread binds
     // its permanent sink and every owner arms its stores before any reader can enter the lane.
     FusedBootGate boot(nthreads);
-    // Use the server's Unix owner so listener attachment and load balancing
-    // agree on the physical thread that owns the listening fd.
+    // The Unix owner is placement().ifid_threads().front() with a configured unixsocket,
+    // UINT32_MAX otherwise. Read Server's field so the listener attach point and the
+    // LB/FLIP exclusions on unix_owner_tid_ cannot drift.
     const uint32_t unix_owner = srv.unix_owner_tid();
     auto report_graceful_shutdown = [&] {
         srv.snapshot().cancel_after_join(srv);
@@ -162,7 +168,8 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
 
     // Phase 2: recover owned shards, bind reader sinks and enter the selected roles.
     for (uint32_t tid = 0; tid < nthreads; tid++)
-        // Physical worker tid owns both loop guards across role changes. It
+        // Physical worker tid owns its DatabaseMap, IoLoop-issuer, snapshot and AOF
+        // worker guards across role changes. It
         // borrows the arrays until join and publishes setup through boot's
         // mutex. Failed setup reports once and unwinds on the issuer. Exit from
         // the role loop parks the reader epoch before issuer-side cancellation.
@@ -339,7 +346,8 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
     return 0;
 }
 
-// INFO's caller must check read_local_enabled(). Borrow the published shard
+// Only INFO SERVER calls this, after checking read_local_enabled(); no boot or runtime
+// path installs a reporting callback or sidecar. Borrow the published shard
 // directory, role and lifetime counters; never read a migrating shard vector.
 // Appends to the caller-owned string and aborts on fixed-buffer truncation.
 // A mutually consistent cross-thread snapshot is not established here. Keep

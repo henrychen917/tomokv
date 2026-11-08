@@ -158,8 +158,11 @@ void cfgfix_delay_loaded_key() {
 // Configure supervision, optional daemonization and logging on the boot thread before
 // workers start. cfg must contain normalized process settings; LogState owns acquired
 // resources and restores stdio at destruction. No worker publication occurs here.
-// System-call/cookie failures return false with partial state retained for cleanup; the
-// daemon parent exits and upstart supervision may stop this process until resumed.
+// Log-file open, fork, setsid, /dev/null redirection or cookie-stream failures return
+// false, with partial state retained for cleanup. Pidfile creation failure is nonfatal
+// (Redis behaviour); later pidfile write/close results are unchecked. A failed systemd
+// notify only disables supervision. The daemon parent exits; active upstart supervision
+// stops this process until resumed.
 bool cfgfix_process_boot(const Config& cfg) {
     auto value = [&](const char* name) {
         return cfg_process_value(cfg, cfg_process_find(Slice(name, std::strlen(name))));

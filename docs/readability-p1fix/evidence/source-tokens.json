@@ -1,0 +1,226 @@
+{
+  "base": "7595a6705ac19c1a4eecf7798fde594332f0be0c",
+  "files": [
+    {
+      "file": "src/cmd/climon.inc",
+      "lane": "A3",
+      "tokens": 1503,
+      "literals": 0,
+      "tool_comments": 0
+    },
+    {
+      "file": "src/core/atomic_parked.h",
+      "lane": "A6",
+      "tokens": 1170,
+      "literals": 2,
+      "tool_comments": 0
+    },
+    {
+      "file": "src/core/atomic_tripwire.h",
+      "lane": "A6",
+      "tokens": 1808,
+      "literals": 4,
+      "tool_comments": 0
+    },
+    {
+      "file": "src/core/cfgfix.cc",
+      "lane": "A5",
+      "tokens": 1831,
+      "literals": 45,
+      "tool_comments": 0
+    },
+    {
+      "file": "src/core/config.h",
+      "lane": "A5",
+      "tokens": 14185,
+      "literals": 564,
+      "tool_comments": 4
+    },
+    {
+      "file": "src/core/ex_execute.inc",
+      "lane": "A6",
+      "tokens": 1904,
+      "literals": 0,
+      "tool_comments": 0
+    },
+    {
+      "file": "src/core/ex_loop.h",
+      "lane": "A6",
+      "tokens": 19499,
+      "literals": 32,
+      "tool_comments": 14
+    },
+    {
+      "file": "src/core/ex_txn_chain.inc",
+      "lane": "A6",
+      "tokens": 683,
+      "literals": 0,
+      "tool_comments": 0
+    },
+    {
+      "file": "src/core/fused_boot_gate.h",
+      "lane": "A4",
+      "tokens": 1301,
+      "literals": 2,
+      "tool_comments": 0
+    },
+    {
+      "file": "src/core/fused_owner_turn.inc",
+      "lane": "A4",
+      "tokens": 147,
+      "literals": 0,
+      "tool_comments": 0
+    },
+    {
+      "file": "src/core/genthread.cc",
+      "lane": "A4",
+      "tokens": 1967,
+      "literals": 20,
+      "tool_comments": 6
+    },
+    {
+      "file": "src/core/genthread.h",
+      "lane": "A4",
+      "tokens": 187,
+      "literals": 0,
+      "tool_comments": 0
+    },
+    {
+      "file": "src/core/genthread_pipeline.h",
+      "lane": "A4",
+      "tokens": 26,
+      "literals": 0,
+      "tool_comments": 2
+    },
+    {
+      "file": "src/core/io_loop.h",
+      "lane": "A3",
+      "tokens": 36280,
+      "literals": 121,
+      "tool_comments": 40
+    },
+    {
+      "file": "src/core/pubsub.inc",
+      "lane": "A3",
+      "tokens": 11559,
+      "literals": 72,
+      "tool_comments": 2
+    },
+    {
+      "file": "src/core/pubsub_event.h",
+      "lane": "A3",
+      "tokens": 535,
+      "literals": 1,
+      "tool_comments": 0
+    },
+    {
+      "file": "src/core/read_local.h",
+      "lane": "A3",
+      "tokens": 2405,
+      "literals": 12,
+      "tool_comments": 0
+    },
+    {
+      "file": "src/core/read_local_parse.inc",
+      "lane": "A3",
+      "tokens": 1711,
+      "literals": 0,
+      "tool_comments": 0
+    },
+    {
+      "file": "src/core/reorder.cc",
+      "lane": "A4",
+      "tokens": 22135,
+      "literals": 61,
+      "tool_comments": 24
+    },
+    {
+      "file": "src/core/reorder.h",
+      "lane": "A4",
+      "tokens": 4321,
+      "literals": 5,
+      "tool_comments": 0
+    },
+    {
+      "file": "src/core/rl2s.cc",
+      "lane": "A4",
+      "tokens": 2736,
+      "literals": 28,
+      "tool_comments": 0
+    },
+    {
+      "file": "src/core/server.h",
+      "lane": "A5",
+      "tokens": 28730,
+      "literals": 96,
+      "tool_comments": 5
+    },
+    {
+      "file": "src/core/shard.h",
+      "lane": "A5",
+      "tokens": 4384,
+      "literals": 6,
+      "tool_comments": 3
+    },
+    {
+      "file": "src/core/shutdown.cc",
+      "lane": "A4",
+      "tokens": 1835,
+      "literals": 2,
+      "tool_comments": 0
+    },
+    {
+      "file": "src/core/shutdown_report.h",
+      "lane": "A4",
+      "tokens": 4112,
+      "literals": 96,
+      "tool_comments": 0
+    },
+    {
+      "file": "src/core/thread.h",
+      "lane": "A5",
+      "tokens": 7627,
+      "literals": 12,
+      "tool_comments": 7
+    },
+    {
+      "file": "src/core/version.cc",
+      "lane": "A5",
+      "tokens": 156,
+      "literals": 6,
+      "tool_comments": 0
+    },
+    {
+      "file": "src/exec/exqueue.h",
+      "lane": "A6",
+      "tokens": 842,
+      "literals": 1,
+      "tool_comments": 0
+    },
+    {
+      "file": "src/exec/masked_queue.h",
+      "lane": "A6",
+      "tokens": 4386,
+      "literals": 2,
+      "tool_comments": 0
+    },
+    {
+      "file": "src/exec/op.h",
+      "lane": "A6",
+      "tokens": 2044,
+      "literals": 4,
+      "tool_comments": 0
+    },
+    {
+      "file": "src/main.cc",
+      "lane": "A4",
+      "tokens": 4803,
+      "literals": 46,
+      "tool_comments": 0
+    }
+  ],
+  "count": 31,
+  "preprocessing_tokens": "IDENTICAL (raw lex, no alias normalization)",
+  "literal_stream": "IDENTICAL",
+  "tool_comments": "IDENTICAL text and token boundaries"
+}

@@ -347,8 +347,11 @@ static_assert(sizeof(ReadLocalThreadState) == 376,
 // producer posts only through its own SPSC lane, and the physical owner drains it.
 // Role and ring changes publish with release/acquire at quiesced FLIP boundaries.
 // Shard membership and retire sinks move together under the Server transfer fence.
-// Post methods return false on a full lane; callers retain work and retry. Allocation
-// helpers may return false or throw as their signatures/bodies specify. Ordinary
+// Bounded posts return false on a full producer lane and leave the item with the caller.
+// Callers retain/retry, spin, or reserve capacity first: post_task_reserved_quiet returns
+// void, and a client-transfer push failure after preflight aborts. post_pubsub_event differs:
+// it always queues the event; true assigns the nullptr wake marker, false must not retry it.
+// Allocation helpers may return false or throw as their signatures/bodies specify. Ordinary
 // methods do not synchronize private vectors; remote access requires a drained owner.
 class /* TOMO_TOOL_BIND ThreadCtx */ ThreadCtx {
     friend struct FlipListenerState;

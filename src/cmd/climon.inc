@@ -1,11 +1,16 @@
 // Owns the CLIENT/MONITOR/TRACKING members of IoLoop. Included inside the class in
-// core/io_loop.h; definitions are in climon.cc and tracking.cc, compiled in both database
+// core/io_loop.h; definitions are in climon.cc, tracking.cc and clientcompat.cc, compiled in both database
 // namespaces. Connection pointers and catalogs belong to the connection's IO owner and
 // move together at the migration commit. Cross-IO messages carry connection IDs.
+// clientcompat.cc defines tracking_ack_enable, tracking_prepare_multi, tracking_finish_multi
+// and tracking_retire_exec_read. Bodies stay out of line in these cold translation units so
+// CLIENT/MONITOR/TRACKING work cannot perturb hot parse/dispatch code in the IO translation units.
 //
 // parse_and_dispatch shares the notification-armed branch with these features:
-// srv_->climon_armed() folds into notify_armed_ once per IO batch, and the parser
-// hooks run out of line only behind that branch. Pending MONITOR records keep the
+// srv_->climon_armed() folds into notify_armed_ once per IO batch. The per-operation hook,
+// climon_armed_gate, runs out of line only behind that branch. Command hooks run on their
+// own paths: climon_reset_client for RESET and CLIENT/MONITOR via pubsub_start_command.
+// Pending MONITOR records keep the
 // private refresh bit armed until their ROB entries retire.
 
 enum class ClimonStartResult : uint8_t { NotHandled, Sync, Async };
