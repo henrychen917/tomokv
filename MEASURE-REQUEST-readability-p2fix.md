@@ -41,11 +41,44 @@ invalidate them. The report is the only non-source deliverable.
 | readability-a8-comment-audit.md | 17 | **fixed**: conservative script restart is invisible to clients; no bounded-retry claim was restored (`src/store/flatstore_atomic.inc:341-362`). |
 | readability-a8-comment-audit.md | 18 | **fixed**: shard handoff moves no slots/objects and rebinds the armed retire sink only at a quiescent ownership edge (`src/store/flatstore.h:770-779`). |
 
+| readability-a9-comment-audit.md | 1 | **fixed**: handoff requires an empty source deferred queue before rebinding; reclaim consults the store's current sink (`src/core/ex_loop.h:1570-1578`, `src/core/server.h:2156-2166`, `src/store/flatstore_impl.h:reclaim helpers`). **outside source scope:** `docs/decisions/readability-a9.md:147` retains the wrong queued-retirement claim. |
+| readability-a9-comment-audit.md | 2 | **fixed**: documented coordinator retirement of a disabled idle clock after sink rebind, its quiescence premise and debug-owner rejection (`src/core/server.h:2325-2338`, `src/store/flatstore.h:1563-1569`, `src/core/read_local.h:432-447`). No behavioral fix attempted. |
+| readability-a9-comment-audit.md | 3 | **fixed**: commit_raw callers are IO retirement's direct/coded commits, directly or through commit_fill; Done publication orders worker bytes (`src/net/wb.h:45-47`, `:314`, `:808-810`, `src/net/conn.h:480-482`). **outside source scope:** corresponding decision-log and A9 report/evidence caller lists remain unchanged. |
+| readability-a9-comment-audit.md | 4 | **fixed**: all three measured memcmp exceptions are named with per-site rationale (`src/store/flatstore_impl.h:50-53`, `:549`, `:755-759`); namespace/length identity remains shared. |
+| readability-a9-comment-audit.md | 5 | **fixed**: distinguished SORT ALPHA locale collation without STORE from binary numeric ties/ALPHA STORE (`src/cmd/t_sort.cc:172-195`). |
+| readability-a9-comment-audit.md | 6 | **fixed**: scratch keys must borrow stable record/ScatterState storage, never values retired during ongoing index probes (`src/store/flush.cc:294-328`, `src/store/flatstore_atomic.inc:atomic_entry_key`). |
+| readability-a9-comment-audit.md | 7 | **fixed**: restored cleanup-masks-the-bug warning and multires detector at gate geometry; cites existing historical measurements without claiming a new run (`src/store/flush.cc:366-387`, `docs/decisions/readability-a9.md:183-191`). |
+| readability-a9-comment-audit.md | 8 | **fixed**: restored missed-wake safety-net purpose and warning that 50 ms can hide missed wakes, retaining the distinction between requested wait and scheduling delay (`src/base/park_net.h:1-13`, `:25-29`). |
+| readability-a9-comment-audit.md | 9 | **fixed**: factory now states non-throwing allocation failure/partial cleanup; qualified separate-block claim for empty forced-raw strings (`src/store/kvobj.h:880-922`). |
+| readability-a9-comment-audit.md | 10 | **fixed**: restored modulo-zero crash hazard and optional-index guards; splice recalculation is due to ensure_space moving begin_ (`src/store/typeval.h:211-228`, `:373-377`). |
+| readability-a9-comment-audit.md | 11 | **fixed**: embedded storage must retain Compact's exact ULEB128-length/payload codec (`src/store/kvobj.h:597-634`, `:701-711`, `:996-997`; `src/store/typeval.h:365-371`). |
+| readability-a9-comment-audit.md | 12 | **fixed**: named the five attach points, Compact/size condition, ownership outcomes and wrapper-only field-TTL loss (`src/store/kvobj.h:1030-1099`, `src/cmd/t_hash.cc:1694-1704`). |
+| readability-a9-comment-audit.md | 13 | **fixed**: restored exclusion from GET/SET dispatch; numeric users are specialized command parsers and RESP double replies (`src/base/numeric.h:20`, command includers). |
+| readability-a9-comment-audit.md | 14 | **fixed**: restored copy-or-move, never shared ownership between keys, and refcount cache-line cost; retained permitted reader/send borrows (`src/store/kvobj.h:1105-1107`). |
+| readability-a9-comment-audit.md | 15 | **fixed** in Compact and CompactView: logical() is the only sanctioned conversion from Entry.offset (`src/store/typeval.h:123-127`, `src/store/kvobj.h:358-361`, `:430-432`). |
+| readability-a9-comment-audit.md | 16 | **fixed with narrower wording**: restored no-extra-cache-line obligation for the no-record/no-intent check. Did not claim atomic_has_records is literally the only read: find also reads live and active MVCC uses more state (`src/store/flatstore_atomic.inc:60-63`, `src/store/flatstore.h:1253-1266`). |
+| readability-a9-comment-audit.md | 17 | **fixed**: UnitRef prefix preserves AtomicScriptIntent offsets for shared matching (`src/store/atomic_mvcc.h:93-120`, `src/store/flatstore_atomic.inc:200-247`). |
+| readability-a9-comment-audit.md | 18 | **fixed**: arena binding failure is ignored by production callers and loses isolation; retained no rollback of an already-created arena (`src/base/alloc.h:85-99`, worker-startup callers). |
+| readability-a9-comment-audit.md | 19 | **fixed**: restored LB thrash hazard when migration's cache refill is treated as free (`src/base/topology.h:18-22`, shard residency/foreign-work accounting). |
+| readability-a9-comment-audit.md | 20 | **fixed**: class has no demotion operation; list handler demotes by assigning CompactValue{} then replace_compact, requiring valid default counters (`src/cmd/t_list.cc:127-139`). |
+| readability-a9-comment-audit.md | 21 | **fixed**: steady-state fused SET prebuild can allocate for a foreign owner; included direct/deferred remote free and teardown paths (`src/cmd/l4prebuild.cc:142-153`, `src/core/io_loop.h:l4prebuild_prepare_set caller`). |
+| readability-a9-comment-audit.md | 22 | **fixed**: dtoa path includes integral doubles outside +/-2^62 (`src/base/numeric.h:315-336`). |
+| readability-a9-comment-audit.md | 23 | **fixed**: db0 header-source branch preserves code generation, with TTL-adjusted bytes equivalent to recomputation (`src/store/kvobj.h:782-800`, commit `71c7b998d5`). |
+| readability-a9-comment-audit.md | 24 | **fixed**: streams also use embedded storage (`src/store/kvobj.h:1090-1097`). |
+| readability-a9-comment-audit.md | 25 | **fixed**: group intent destruction finishes both owner-local claim sets before release-decrementing watch_refs (`src/cmd/txn_group.inc:573-587`). |
+| readability-a9-comment-audit.md | 26 | **fixed**: grouped count has fused install updates plus standalone range increments and unlink decrements (`src/store/atomic_mvcc.h:166-175`, `src/store/flush.cc:39-40`, `src/store/flatstore_atomic.inc:1285`). |
+| readability-a9-comment-audit.md | 27 | **fixed**: an invisible range-only match can return the physical value with physical=false; only value is consumed (`src/store/flush.cc:426-462`, `:523`, `src/store/flatstore_atomic.inc:808`). |
+| readability-a9-comment-audit.md | 28 | **fixed**: numeric API header names command handlers and RESP builders, not direct persistence users (source includer/caller search). |
+| readability-a9-comment-audit.md | 29 | **fixed**: alloc header names its actual users; SmallBuf calls malloc itself (`src/base/slice.h:grow`, source include search). |
+| readability-a9-comment-audit.md | 30 | **fixed**: distinguished shift=8/256-second buckets from five-bit masked clock (`src/store/eviction.h:11-12`, `src/core/ex_loop.h:kLruClockShift use`). |
+| readability-a9-comment-audit.md | 31 | **fixed**: discover falls back to per-CPU domains for unreadable L3 sysfs and fails for affinity/empty-mask cases; other discovery methods have different failures (`src/base/topology.h:104-137`). |
+| readability-a9-comment-audit.md | 32 | **fixed**: ThreadCtx latches sched_getcpu after optional pinning; this need not be an assigned CPU (`src/core/thread.h:476-482`). |
+
 FACT LEDGER: replacements retain ownership, ordering, lifetime, failure and caller
 obligations. Added qualifications follow this base's code rather than copying
 suggested replacements blindly. Removed wording is either the specific false
 claim named in its row or retained in the replacement with a precise scope.
 
-A7-A8 complete: 28/28 source findings fixed; A7 row 1 also has one out-of-scope
-glossary occurrence. Remaining A9-A10 findings and final verification are pending.
+A7-A9 complete: 60/60 source findings addressed; out-of-scope documentation
+occurrences are identified in their rows. A10 and final verification are pending.
 No gate rows added or retired: EXPECT_QUICK / EXPECT_FULL remain unchanged.

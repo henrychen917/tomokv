@@ -98,8 +98,10 @@ static_assert(offsetof(AtomicScriptIntent, refs) == 24);
 static_assert(offsetof(AtomicScriptIntent, key_len) == 28);
 
 // Prefix allocated before kind-1/2 intents by atomic_unit_pin; kind-0 PIN nodes have no prefix.
+// The prefix preserves AtomicScriptIntent's offsets and key-matching predicates for both kinds.
 // Borrows a transaction/group and its atomic decisions; the command layer must retain them.
-// atomic_free_unit_intent decrements watch_refs for group units. The shard owner accesses the prefix;
+// For group units atomic_free_unit_intent finishes watch claims and retire claims on the intent's
+// shard, then release-decrements watch_refs. The shard owner accesses the prefix;
 // atomic_intent_unit requires the prefixed allocation and does not validate that precondition.
 struct UnitRef {
     enum class Kind : uint8_t { Txn, Group };
@@ -140,8 +142,9 @@ struct AtomicPendingState {
     AtomicEntry* tail = nullptr;
     AtomicEntry* conn_heads[64] = {};
     uint32_t live = 0;
-    // Adjacent to live because atomic_has_records() tests both words on the ordinary owner path;
-    // a reservation query can read them from the same cache line.
+    // Keep the plain GET/SET no-record/no-intent check confined to live and this adjacent word:
+    // atomic_has_records must not gain a second cache-line touch for script intents. Other pending
+    // state belongs to active version/intent paths.
     uint32_t script_intent_count = 0;
     AtomicScriptIntent* script_intents = nullptr;
     AtomicEntry* free_entries[kPoolClasses] = {};
@@ -153,7 +156,8 @@ struct AtomicPendingState {
     // Owner-task-only: an install span has physical candidates but is not linked yet. Eviction
     // cannot resolve their ownership until publication. Stored in the gap before cleanup_fast.
     bool group_installing = false;
-    // Modulo-256 grouped-record count, updated together with group_installing.
+    // Modulo-256 grouped-record count. finish_group_install updates it with group_installing;
+    // range installs increment it alone, and atomic_unlink_conn decrements it alone.
     uint8_t group_records = 0;
     // FLUSH-only count, saturated at 255. A saturated release recounts before
     // publishing a smaller value, so arbitrarily many live ranges cannot wrap.
@@ -203,7 +207,9 @@ inline bool atomic_range_covers(const AtomicEntry& entry, Slice key) {
 }
 
 // Borrowed resolver result for the store owner: value is not retained or freed by this wrapper.
-// matched describes a pending-record match; physical describes the selected representation.
+// matched means some range or key record matched. physical is true when nothing matched or the
+// physical candidate won; an invisible range-only match returns the physical object with physical
+// false. Only value is read by current callers.
 struct AtomicResolved {
     KvObj* value = nullptr;
     bool matched = false;

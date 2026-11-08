@@ -1,9 +1,11 @@
 // kv_block_cache.h — the physical owner's post-grace KvObj block cache.
 // Included by atomic_mvcc.h and the core reclamation queue. A published read-local string must
 // be replaced rather than overwritten; its displaced storage becomes reusable after QSBR grace.
-// The accepting queue's physical owner keeps freed blocks across shards, and a shard handoff
-// rebinds future accesses to the destination owner's cache. Already queued retirements remain
-// with their accepting queue. Cached memory is unreachable by readers before any FreeBlock write.
+// Each physical owner's cache serves all its shards. take uses the executing owner's sink, and
+// reclaim offers blocks to the cache in the store's current sink (read_local_cache_put). A handoff
+// therefore rebinds the sink only after the source's deferred queue is empty: flip_quiesced gates
+// LB/FLIP ExDrain acknowledgement. No old-owner retirement may survive to splice the destination's
+// free list from the wrong thread. Cached memory is unreachable by readers before any FreeBlock write.
 //
 // A per-owner cache shares its head array and byte gauge across the owner's shards, matching
 // jemalloc's thread-local reuse scope. It owns no live KvObj and does not shorten reader lifetimes.

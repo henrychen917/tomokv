@@ -1,8 +1,9 @@
-// Numeric parsing and formatting shared by command, protocol and persistence code.
+// Numeric parsing and formatting for command handlers and the RESP reply builders.
 // Callers provide input lifetimes and output capacity; these helpers publish no shared state.
 //
-//   * FORMAT. std::to_chars gives the shortest round-trip digits. Redis renders non-integral doubles
-//     through fpconv_dtoa, which is Grisu2 (Loitsch, "Printing Floating-Point Numbers Quickly and
+//   * FORMAT. std::to_chars gives the shortest round-trip digits. Redis renders finite nonzero
+//     doubles that are non-integral or outside +/-2^62 through fpconv_dtoa, which is Grisu2
+//     (Loitsch, "Printing Floating-Point Numbers Quickly and
 //     Accurately with Integers", PLDI 2010). Grisu2 is round-trip correct but NOT always shortest,
 //     so its digit string can differ from to_chars' in the last place or in length: 1e126 is
 //     "9.999999999999999e+125" here and "1e+126" with to_chars. grisu2_digits() implements the
@@ -17,7 +18,8 @@
 //     and a subnormal is a fine score but not a sortable element. All of them accept the
 //     hexadecimal spellings strtod accepts, because strtod is what redis calls.
 //
-// Definitions are header-only, with no fixed translation-unit include point.
+// Definitions are header-only, with no fixed translation-unit include point. Nothing here is on
+// the GET/SET dispatch path.
 #pragma once
 
 #include <cctype>

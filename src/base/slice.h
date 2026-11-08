@@ -23,8 +23,9 @@ inline constexpr size_t kInlineLiteralMax = 16;
 // ---- key byte equality ------------------------------------------------------------------------
 // Key equality for FlatStore probes and other key-identity lookups. Inlining short comparisons
 // avoids a library call and caller-saved register spills while the probe keeps its state live.
-// This returns equality, not memcmp's ordering: lexicographic zset, SORT, ACL selector and
-// cross-shard ordering comparisons use memcmp separately.
+// This returns equality, not ordering. Zset lex ranges, ACL selector order, cross-shard merges
+// and SORT's binary paths (numeric ties, ALPHA STORE) use memcmp separately; SORT ALPHA without
+// STORE collates with strcoll_l.
 //
 // The inline paths read within [0,n), without requiring a terminator. They support connection
 // buffer slices and keys inspected by foreign readers. A probe has matched tag and length before
@@ -142,10 +143,11 @@ struct Slice {
     }
 
     // KEY equality. Length first (in a probe run a length mismatch is the common rejection, and it
-    // is one register compare), then the inline byte compare. Every key-identity LOOKUP in the
-    // store goes through this one member -- FlatStore's probes, the fused read-local probes, the
-    // atomic entry and script-intent scans -- so those paths cannot drift apart. The one deliberate
-    // exception is FlatStore::insert_into(), which uses memcmp for its insertion comparison; key_mem_eq includes the same namespace/length identity before comparing bytes.
+    // is one register compare), then the inline byte compare. Store probes and atomic entry /
+    // script-intent scans use key_eq except three measured memcmp sites: FlatStore::insert_into,
+    // insert_into_read_local and read_local_capture_in. Each site states its spill/inlining
+    // rationale. key_mem_eq applies the same namespace/length identity before comparing bytes,
+    // so both spellings answer identically.
     void set_namespace(uint32_t value) {
 #if TOMO_SINGLE_DATABASE
         (void)value;
@@ -209,9 +211,11 @@ public:
     void clear() { len_ = 0; }  // keeps the allocation for reuse
     size_t cap() const { return cap_; }
 
-    // Advance length over n bytes already written past len_. Direct replies reach this through
-    // sender retirement; Conn's append and WbEngine copy paths also use it. Capacity must already
-    // cover the bytes. This plain length update supplies no cross-thread publication barrier.
+    // Advance len_ over n bytes already written past it; capacity must cover them, with no grow.
+    // Only the connection's IO thread calls this, at in-order retire: direct-reply commits after
+    // an executor filled the empty buffer, and coded-reply commits after reserve_fill, directly
+    // or through Conn::commit_fill. Op Done release / IO acquire orders the executor's bytes;
+    // this plain length store supplies no cross-thread publication barrier.
     void commit_raw(size_t n) { len_ += n; }
 
     // Drops any heap growth and returns to the inline buffer. Called when a slot is recycled after

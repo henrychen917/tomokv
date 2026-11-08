@@ -9,7 +9,7 @@
 // path. Its CPU/domain lookup supports placement and the flip/LB controller's interpretation of:
 //
 //   - which L3 domain each CPU belongs to
-//   - a worker's assigned CPU (stored by ThreadCtx)
+//   - a worker's latched CPU/domain (ThreadCtx::latch_placement)
 //   - a shard's residency and foreign-domain work (tracked outside Topology)
 //
 // Domains describe shared L3 caches, independently of NUMA node boundaries. This also represents
@@ -20,6 +20,7 @@
 // domain B does not move its memory — it invalidates its residency. The new worker must re-pull the
 // working set through the fabric. The store's resident_estimate() supplies a footprint for pricing
 // that cost; Topology does not measure memory residency or bandwidth.
+// An LB that treats migration as free can thrash between placements.
 #pragma once
 #include <sched.h>
 #include <algorithm>
@@ -35,8 +36,10 @@ inline constexpr uint32_t kNoDomain = UINT32_MAX;
 
 // Owns vectors describing the selected CPUs. Server::prepare_boot populates them before workers start;
 // direct users must serialize mutation against queries. No atomic publication is provided here.
-// Discovery/declaration return false on rejected input or unavailable required topology; a failed
-// call can leave partial vectors. cpus_in requires a valid domain; vector allocation can throw.
+// discover falls back to one domain per CPU when L3 sysfs is unreadable, returning false only for
+// affinity-query failure or an empty mask. declare and discover_thread_siblings return false on
+// rejected input or missing required sysfs. Failed calls can leave partial vectors. cpus_in
+// requires a valid domain; vector allocation can throw.
 class Topology {
 public:
     // Discovers L3 domains for the CPUs this process is ALLOWED to run on. Respecting the affinity
