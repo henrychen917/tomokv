@@ -5,7 +5,7 @@
 set -u
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 HERE=$ROOT/tests
-BIN=${TORNREAD_BIN:-$ROOT/build/tornread/tomokv-part2}
+BIN=${TORNREAD_BIN:-$ROOT/build/tornread/tomokv-part2-r7}
 REDIS74_ROOT=${REDIS74_ROOT:-/tmp/claude-1000/redis74}
 REDIS_BIN=$REDIS74_ROOT/src/redis-server
 SERVER_CPUS=0-7

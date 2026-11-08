@@ -212,7 +212,8 @@ clients 8-11, ports 26090/26091; concurrent gate correctness uses 12-19/20-27.
 
 ### Endurance
 
-`LC_ALL=C taskset -c 0-11 tools/tornread_endurance.sh tomo1 tomo0` adapts the supplied
+The recorded run used `TORNREAD_BIN=$PWD/build/tornread/tomokv-part2 LC_ALL=C
+taskset -c 0-11 tools/tornread_endurance.sh tomo1 tomo0`. The runner adapts the supplied
 full `run_phase_b.sh` matrix to the authorized resources and fixed binary. All 11
 original TomoKV arms run for 180 seconds each (unless a violation/error fails early).
 Artifacts: `build/tornread/endurance-20261108-212512/`.

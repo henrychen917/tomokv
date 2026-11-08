@@ -15,8 +15,8 @@ import subprocess
 
 root = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument("--part1", type=Path, default=root / "build/tornread/tomokv-part1")
-parser.add_argument("--output", type=Path, default=root / "build/tornread/tomokv-pad1")
+parser.add_argument("--part1", type=Path, default=root / "build/tornread/tomokv-part1-r7")
+parser.add_argument("--output", type=Path, default=root / "build/tornread/tomokv-pad1-r7")
 args = parser.parse_args()
 source, target = args.part1, args.output
 data = source.read_bytes()

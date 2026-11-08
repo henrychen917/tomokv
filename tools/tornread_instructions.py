@@ -186,7 +186,7 @@ def main():
     parser.add_argument("--count", type=int, default=65536, help="commands per connection")
     parser.add_argument("--clients", type=int, default=8)
     parser.add_argument("--modes", nargs="+", default=["2s", "1s"])
-    parser.add_argument("--arms", nargs="+", default=["pre", "part1", "part2"])
+    parser.add_argument("--arms", nargs="+", default=["pre", "part1-r7", "part2-r7"])
     parser.add_argument("--smoke", action="store_true")
     parser.add_argument("--place-io", action="store_true",
                         help="hold each worker on a DEBUG-witnessed IO thread across all arms")
