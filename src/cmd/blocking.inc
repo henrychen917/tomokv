@@ -520,20 +520,24 @@ void blocking_reply_timeout(Op& op, BlockingKind) {
 }
 
 void blocking_finish_cancelled(BlockingState& state, ThreadCtx* self, Ring* ring) {
-    Op& op = state.client->rob().at(state.op_id);
+    // Capture server and client before publishing Done: once Done is visible the connection's IO
+    // thread can retire the op and free this BlockingState, so reading state.* after the exchange
+    // is a use-after-free.
+    Server& server = *state.server;
+    Client* client = state.client;
+    Op& op = client->rob().at(state.op_id);
     // A completed mutation already handed its slot to persistence. Cancellation
     // must not publish that slot again or let IO recycle a retained receipt.
     if (op.state.load(std::memory_order_acquire) == OpState::AofWait) return;
     slowlog_complete(op);
-    if (self && state.server->aof().configured() &&
-        state.server->aof().defer_completion(self->id(), op, state.client))
+    if (self && server.aof().configured() && server.aof().defer_completion(self->id(), op, client))
         return;
     if (op.state.exchange(OpState::Done, std::memory_order_acq_rel) != OpState::Done && self &&
         ring) {
 #ifdef TOMO_BLOCKING_UAF_UNIT
         if (blocking_uaf_after_done_hook) blocking_uaf_after_done_hook(state);
 #endif
-        blocking_notify_sender(*state.server, *self, *ring, state.client);
+        blocking_notify_sender(server, *self, *ring, client);
     }
 }
 
@@ -548,16 +552,20 @@ void blocking_task_done(BlockingState& state, ThreadCtx& self, Ring& ring) {
     if (phase == BlockingPhase::Cancelled) {
         blocking_finish_cancelled(state, &self, &ring);
     } else if (phase == BlockingPhase::Completed) {
-        Op& op = state.client->rob().at(state.op_id);
+        // Capture server and client before publishing Done: once Done is visible the connection's
+        // IO thread can retire the op and free this BlockingState, so reading state.* after the
+        // exchange is a use-after-free. The MovePending branch below already captures for this.
+        Server& server = *state.server;
+        Client* client = state.client;
+        Op& op = client->rob().at(state.op_id);
         slowlog_complete(op);
-        if (state.server->aof().configured() &&
-            state.server->aof().defer_completion(self.id(), op, state.client))
+        if (server.aof().configured() && server.aof().defer_completion(self.id(), op, client))
             return;
         if (op.state.exchange(OpState::Done, std::memory_order_acq_rel) != OpState::Done) {
 #ifdef TOMO_BLOCKING_UAF_UNIT
             if (blocking_uaf_after_done_hook) blocking_uaf_after_done_hook(state);
 #endif
-            blocking_notify_sender(*state.server, self, ring, state.client);
+            blocking_notify_sender(server, self, ring, client);
         }
     } else if (phase == BlockingPhase::MovePending) {
         // Registration reprobes close the XADD-before-waiter window. Publish
@@ -741,27 +749,19 @@ void blocking_request_move(BlockingState& state, ThreadCtx& self, Ring& ring) {
 }
 
 void blocking_publish_completion(BlockingState& state, ThreadCtx& self, Ring& ring) {
-    latency_tracking_pause(state.client->rob().at(state.op_id));
+    // Count this publisher as a participant before storing Completed, exactly as
+    // blocking_request_move does for MovePending, so the single final fetch_sub in
+    // blocking_task_done selects exactly one offerer. The store->load pair this replaces (store
+    // Completed, then load active_tasks) races blocking_task_done's fetch_sub/phase-load pair: two
+    // offers force-complete a recycled ROB slot with the pop's reply, and no offer leaves the pop
+    // unpublished and the client hung. A plain count keeps active_tasks returning to zero, so
+    // flip_liveness.inc:189 and blocking_namespace_quiesced stay correct unchanged.
+    state.active_tasks.fetch_add(1, std::memory_order_acq_rel);
     state.phase.store(BlockingPhase::Completed, std::memory_order_release);
 #ifdef TOMO_BLOCKING_COMPLETION_UNIT
     if (blocking_completion_unit_hook) blocking_completion_unit_hook(state, self, ring);
 #endif
-    // Probe/registration barriers count Tasks separately from their pending phase. The owner that
-    // drops pending to zero may run before another participant has executed task_done(), so reply
-    // retirement must wait for the final raw Client reference too. Registry wakeups have no active
-    // Tasks and can publish immediately.
-    if (state.active_tasks.load(std::memory_order_acquire) != 0) return;
-    Op& op = state.client->rob().at(state.op_id);
-    slowlog_complete(op);
-    if (state.server->aof().configured() &&
-        state.server->aof().defer_completion(self.id(), op, state.client))
-        return;
-    if (op.state.exchange(OpState::Done, std::memory_order_acq_rel) != OpState::Done) {
-#ifdef TOMO_BLOCKING_UAF_UNIT
-        if (blocking_uaf_after_done_hook) blocking_uaf_after_done_hook(state);
-#endif
-        blocking_notify_sender(*state.server, self, ring, state.client);
-    }
+    blocking_task_done(state, self, ring);
 }
 
 void blocking_finish_error(BlockingState& state, ThreadCtx& self, Ring& ring) {
@@ -1092,9 +1092,14 @@ private:
             return phase;
         if (state.phase.compare_exchange_strong(phase, BlockingPhase::Cancelled,
                                                 std::memory_order_acq_rel,
-                                                std::memory_order_acquire) &&
-            state.active_tasks.load(std::memory_order_acquire) == 0)
-            blocking_finish_cancelled(state, &self, &ring);
+                                                std::memory_order_acquire)) {
+            // Count this canceller as a participant before finishing, exactly as
+            // blocking_request_move does, so the single final fetch_sub picks one finisher even
+            // against a racing task_done. The old CAS-then-load-active_tasks pair was the same
+            // unprotected store->load shape as the completion race.
+            state.active_tasks.fetch_add(1, std::memory_order_acq_rel);
+            blocking_task_done(state, self, ring);
+        }
         return state.phase.load(std::memory_order_acquire);
     }
 
