@@ -102,8 +102,11 @@ def check(binary, output):
             text = cpp.read(ROOT / relative)
             if relative.endswith(('io_loop.h', 'reorder.cc')):
                 count = 6 if name == 'old-forwarding' else 1
-                assert text.count(old) == count, (name, relative, text.count(old))
-                text = text.replace(old, new, count)
+                anchor, replacement = old, new
+                if name == 'old-park' and relative.endswith('reorder.cc'):
+                    anchor, replacement = 'r7_' + old, 'r7_' + new
+                assert text.count(anchor) == count, (name, relative, text.count(anchor))
+                text = text.replace(anchor, replacement, count)
             target = dest / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(text)

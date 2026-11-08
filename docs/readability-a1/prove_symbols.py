@@ -37,7 +37,7 @@ cases=[
  ('r7_shadow','from r7shadow_pad import twin;print(twin(binary,output/"shadow","shadow"))',r'16shadow_available'),
  ('lbplanner','from lbplanner_pad import plan;print(plan(binary))',r'13lb_pass_begin'),
  ('lbosc3','from lbosc3_pad import plan;print(plan(binary))',r'12lbosc3_level'),
- ('storesize','from storesize_artifacts import pad;print(pad(binary,output/"storesize"))',r'24storesize_published_route'),
+ ('storesize','from storesize_artifacts import pad;print(pad(binary,output/"storesize"))',r'25storesize_published_route'),
 ]
 rows=[]
 for name,command,pattern in cases:
