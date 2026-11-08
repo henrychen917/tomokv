@@ -81,10 +81,12 @@ def cell(binary, folder, seed, mode, atomic, verb, depth, count, clients):
     guard.close()
     env = dict(os.environ, LC_ALL="C")
     argv = ["taskset", "-c", "0-7", str(binary), "--port", str(port), "--bind", "127.0.0.1",
-            "--thread-mode", mode, "--shards", "16", "--ratio", "6:2", "--atomic", str(atomic),
+            "--thread-mode", mode, "--shards", "16", "--atomic", str(atomic),
             "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0",
             "--save", "", "--databases", "1", "--dir", str(folder),
             "--dbfilename", "workload.tomo"]
+    if mode == "2s":
+        argv += ["--ratio", "6:2"]
     workers, pipes = [], []
     perf = None
     server = None
