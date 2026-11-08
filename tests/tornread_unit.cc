@@ -73,11 +73,13 @@ int main() {
     assert(server.atomic_read_floor()==newer+1);
     pool.unregister_plain_read(server,c,0);
     assert(server.atomic_read_floor()==UINT64_MAX);
+    // A fresh pool cannot inherit the scatter's cut: this must advance after publication.
+    ScatterArenaPool confirmation;
     uint64_t stale=cut;
-    assert(pool.register_plain_read(server,a,stale,0));
+    assert(confirmation.register_plain_read(server,a,stale,0));
     assert(stale==newer && a.read_cut(newer)==newer);
     assert(server.atomic_read_floor()==newer+1);
-    pool.unregister_plain_read(server,a,0);
+    confirmation.unregister_plain_read(server,a,0);
     assert(server.atomic_read_floor()==UINT64_MAX && !a.read_cut_registered_);
     // Real WB drains must release plain references even without zc_ptr or tracking.
     for (bool suppress : {false, true}) for (bool closing : {false, true}) {
