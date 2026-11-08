@@ -29,18 +29,6 @@
           "line": 2520,
           "nloc": 65,
           "physical": 68
-        },
-        {
-          "name": "snapshot_progress_record_read_local",
-          "line": 3030,
-          "nloc": 56,
-          "physical": 58
-        },
-        {
-          "name": "choose_victim_read_local",
-          "line": 3246,
-          "nloc": 63,
-          "physical": 64
         }
       ]
     },
@@ -118,12 +106,32 @@
       "long_functions": []
     }
   ],
+  "split": {
+    "file": "src/store/flatstore_impl.h",
+    "definitions": 60,
+    "body_tokens": 6809,
+    "header": true,
+    "long_functions": [
+      {
+        "name": "snapshot_progress_record_read_local",
+        "line": 230,
+        "nloc": 56,
+        "physical": 58
+      },
+      {
+        "name": "choose_victim_read_local",
+        "line": 446,
+        "nloc": 62,
+        "physical": 63
+      }
+    ]
+  },
   "totals": {
     "tokens": 42442,
     "literal_tokens": 25,
     "rewritten_comment_groups": 94,
     "landmarks": 11,
-    "file_headers": 4,
+    "file_headers": 5,
     "renamed_bindings": 7
   }
 }

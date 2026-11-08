@@ -234,3 +234,11 @@ Check the whole suffix before promotion. Filter closure precedes the last Scatte
 pin decrement because grouped hashes still come from it. ReadLocal template selection
 retains the same QSBR path and inlining attributes; no work bound is inferred from the
 small `atomic_sweep` budget argument.
+
+## 2026-11-08 — Keep the eligible private interface split
+
+`FlatStore`'s 60-definition suffix from `expire_found` through `rehash_step` moves into
+`flatstore_impl.h`, immediately after the class. Anchored and lottery-read functions stay
+at their paths, and preceding definitions stay before them. All moved body tokens retain
+their order. The candidate compares IDENTICAL to frozen release `5c36312818`, so this
+partial split is kept; no runtime redesign or translation-unit change is needed.
