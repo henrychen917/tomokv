@@ -2,7 +2,8 @@
 """Build disposable tornhold negative controls from production objects.
 
 always-a extends the original bucket forever. old-priority omits hold acquisition
-only in the generated priority parser. Source mutations live under build/; the
+only in the generated priority parser. no-carry removes the scatter cut carry
+from the directed parser unit. Source mutations live under build/; the
 production parser, generated source, objects, and executable are never modified.
 """
 import argparse
@@ -34,7 +35,7 @@ def run(command, folder, name):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('arm', choices=('always-a', 'old-priority'))
+    p.add_argument('arm', choices=('always-a', 'old-priority', 'no-carry'))
     args = p.parse_args()
     folder = ROOT / 'build/tornhold/controls' / args.arm
     source = folder / 'source'
@@ -52,17 +53,33 @@ def main():
         before = 'if (hold.b_slot != PlainReadHold::kNone) {\n        bucket = 2;'
         after = 'if (hold.live()) {\n        bucket = 1;'
         unit = 'src/cmd/xshard.cc'
-    else:
+    elif args.arm == 'old-priority':
         relative = Path('src/core/reorder.cc')
         text = (ROOT / relative).read_text()
         begin = text.index('                if (__builtin_expect(!pass_hold, false) && rob.in_flight() != 0) {')
         end = text.index('                op->set_read_cut(pass_read_cut);', begin)
         before, after = text[begin:end], ''
         unit = 'src/core/reorder.cc'
+    else:
+        relative = Path('src/core/io_loop.h')
+        text = (ROOT / relative).read_text()
+        before = '                pass_read_cut = std::max(pass_read_cut, scatter_pool_.confirmed_snapshot_cut());\n'
+        after = ''
     assert text.count(before) == 1
     mutated = source / relative
     mutated.unlink()
     mutated.write_text(text.replace(before, after))
+    if args.arm == 'no-carry':
+        command = planned('build/tornread-unit')
+        command.insert(1, '-I' + str(source))
+        binary = folder / 'unit'
+        command[command.index('-o') + 1] = str(binary)
+        run(command, folder, 'unit')
+        (folder / 'receipt.json').write_text(json.dumps(dict(
+            arm=args.arm, binary=str(binary), sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
+            changed_source=str(relative), commands=[command]), indent=2) + '\n')
+        print(binary)
+        return
     replacements = {}
     commands = []
     for variant in ('', 'db0/'):

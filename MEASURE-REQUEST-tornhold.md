@@ -199,3 +199,19 @@ both 15-second sequential controls pass. These failures have no worker errors
 or vacuity flags. Ledger: `build/gate-run.VOzAxs/ledger.partial`.
 The complete release/PAD/priority falsifier runs and final instruction tables
 will be recorded after the queued correctness work finishes.
+
+### Parser carry and first complete matrix
+
+The reordered-off selection passes **77/77** in
+`build/gate-run.kiGt6g/ledger.partial`: all 32 inherited tornread rows, all 32 new
+GET/MGET rows, ten cleanup/coordinator rows, the directed unit, release and R7.
+
+The directed unit now also drives the actual normal parser through
+`GET; MGET; GET` with an older ROB entry and an existing B bucket. Its unit-only
+allocation observer advances the commit watermark after the first GET publishes
+and before MGET publishes; an assertion requires that exact window to open.
+MGET's snapshot confirmation must then reach the younger GET's stamp in the same
+parse pass. Both namespaces pass. An isolated `no-carry` header overlay fails
+exactly `rob.at(3).read_cut(confirmed) == confirmed` (SIGABRT). No production
+observation hook was added. The updated unit row passes through the gate in
+`build/gate-run.iSToxF/ledger.partial` (**2/2**, including release).

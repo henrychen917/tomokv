@@ -8,7 +8,13 @@
 #include <unistd.h>
 
 static bool fail_next_allocation = false;
+static void (*allocation_hook)(void*) = nullptr;
+static void* allocation_context = nullptr;
 void* operator new(std::size_t size) {
+    if (auto hook = allocation_hook) {
+        allocation_hook = nullptr;
+        hook(allocation_context);
+    }
     if (fail_next_allocation) {
         fail_next_allocation = false;
         throw std::bad_alloc();
@@ -132,7 +138,7 @@ static void bucket_cases(Server& server) {
     assert(server.atomic_read_floor() == held_floor);  // completion cannot release the hold
     pool.unregister_snapshot(server, &scatter, 0);
     assert(server.atomic_read_floor() == held_floor);
-    pool.plain_hold_begin(server, h, server.atomic_snapshot(), 2, bucket, 0);
+    assert(pool.plain_hold_begin(server, h, cut, 2, bucket, 0) == scatter.snapshot);
     pool.plain_hold_discard(server, h, 0);  // joined shutdown, including both buckets
     assert(!h.live() && server.atomic_read_floor() == UINT64_MAX);
 
@@ -226,6 +232,73 @@ static void drain_cases(Server& server) {
 
 namespace tomo {
 struct CoreConcurrencyTest {
+    static void scatter_carry(Server& server) {
+        IoLoop io;
+        io.srv_ = &server; io.self_ = &server.thread(0);
+        for (uint32_t tid : server.placement().ex_threads())
+            assert(server.thread(tid).init_task_inbox_local(server.placement().ifid_threads(),
+                                                           server.placement().ex_threads()));
+        std::string keys[2];
+        for (int shard = 0; shard < 2; ++shard) {
+            for (unsigned i = 0; i < 10000; ++i) {
+                std::string key = "carry:" + std::to_string(i);
+                if (server.router().shard_of(FlatStore::hash_key(Slice(key.data(), key.size()))) == shard) {
+                    keys[shard] = key; break;
+                }
+            }
+            assert(!keys[shard].empty());
+        }
+        Client client(-1); client.set_id(1); client.set_ifid_thread(0);
+        client.set_wb_slot(server.thread(0).assign_wb_slot(&client));
+        auto& rob = client.rob();
+        Op* older = rob.acquire<true>(); assert(older); reply_ok(older->sink()); rob.publish();
+        const uint64_t cut = server.atomic_snapshot();
+        uint8_t bucket = 0;
+        io.scatter_pool_.plain_hold_begin(server, rob.plain_hold(), cut, 1, bucket, 0);
+        io.scatter_pool_.plain_hold_begin(server, rob.plain_hold(), cut, 1, bucket, 0);
+        auto bulk = [](const std::string& value) {
+            return "$" + std::to_string(value.size()) + "\r\n" + value + "\r\n";
+        };
+        const std::string request = "*2\r\n$3\r\nGET\r\n" + bulk(keys[0]) +
+            "*3\r\n$4\r\nMGET\r\n" + bulk(keys[0]) + bulk(keys[1]) +
+            "*2\r\n$3\r\nGET\r\n" + bulk(keys[1]);
+        std::memcpy(client.rbuf(), request.data(), request.size());
+        client.commit_read(request.size());
+        struct Window { Server& server; Rob<64>& rob; uint64_t at = UINT64_MAX; } window{server, rob};
+        allocation_context = &window;
+        allocation_hook = [](void* opaque) {
+            auto& w = *static_cast<Window*>(opaque);
+            w.at = w.rob.dispatch_id();
+            advance(w.server);
+        };
+        io.parse_and_dispatch<false>(&client);
+        assert(!allocation_hook && window.at == 2); // after first GET, before MGET publishes
+        allocation_context = nullptr;
+        const uint64_t confirmed = server.atomic_snapshot();
+        assert(confirmed > cut && rob.dispatch_id() == 4);
+        assert(rob.at(1).read_cut(confirmed) == cut);
+        assert(rob.at(2).has_scatter_state());
+        assert(io.scatter_pool_.confirmed_snapshot_cut() == confirmed);
+        assert(rob.at(3).read_cut(confirmed) == confirmed); // requires the scatter-path carry
+        unsigned posted = 0;
+        for (uint32_t tid : server.placement().ex_threads())
+            server.thread(tid).drain_tasks([&](const Task&) { ++posted; });
+        assert(posted == 4);
+        auto* state = rob.at(2).scatter_state();
+        rob.at(2).detach_scatter_state();
+        xshard_destroy(state, io.scatter_pool_, 0);
+        for (uint64_t id = 0; id < 4; ++id) rob.at(id).state.store(OpState::Done);
+        Ring ring; WbEngine wb; uint32_t now = 0; LoopSignals signals;
+        std::atomic<bool> limits{false}; DrainContext context{server, io.scatter_pool_};
+        bind_drain(wb, ring, context, now, signals, limits);
+        bool submit = false; wb.prepare<true, true>(client, submit);
+        assert(rob.quiesced() && !rob.plain_hold().live());
+        assert(server.atomic_read_floor() == UINT64_MAX);
+        io.active_.erase(&client); client.set_in_active(false);
+        server.thread(0).release_wb_slot(client.wb_slot());
+        puts("PASS production parser: confirmed scatter cut reaches the same pass's younger GET");
+    }
+
     static void parser_wrap(Server& server) {
         static_assert(offsetof(Rob<64>, plain_hold_) == 120);
         IoLoop io;
@@ -288,5 +361,6 @@ int main(int argc, char** argv) {
     }
     bucket_cases(server); continuous_progress(server);
     drain_cases(server); CoreConcurrencyTest::parser_wrap(server);
+    CoreConcurrencyTest::scatter_carry(server);
     puts("PASS tornhold layouts and hold lifetime");
 }
