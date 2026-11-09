@@ -1,0 +1,9 @@
+{"case": "T6", "leg": "redis-redis-0-EVAL", "value": {}, "pass": true}
+{"case": "T6", "leg": "2s-uring-0-EVAL", "unarmed_attempts": ["2s-uring-0-EVAL", "2s-uring-0-EVAL-reroll1", "2s-uring-0-EVAL-reroll2"], "pass_": false, "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-t6wound/tests/at412.py\", line 1092, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<stdin>\", line 20, in run_case\nat412.WoundNotObserved: injected failure\n"}
+WoundNotObserved: FAIL after 3 fresh boots as required
+{"case": "T6", "leg": "redis-redis-0-EVAL", "value": {}, "pass": true}
+{"case": "T6", "leg": "2s-uring-0-EVAL", "pass_": false, "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-t6wound/tests/at412.py\", line 1092, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<stdin>\", line 20, in run_case\nAssertionError: injected failure\n"}
+AssertionError: FAIL after 1 fresh boots as required
+{"case": "T6", "leg": "redis-redis-0-EVAL", "value": {}, "pass": true}
+{"case": "T6", "leg": "2s-uring-0-EVAL", "pass_": false, "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-t6wound/tests/at412.py\", line 1092, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<stdin>\", line 20, in run_case\nTimeoutError: injected failure\n"}
+TimeoutError: FAIL after 1 fresh boots as required

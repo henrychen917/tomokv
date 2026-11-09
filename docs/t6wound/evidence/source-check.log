@@ -1,0 +1,3 @@
+Only storm() changes; boot(), run_case(), main(), all other functions/classes unchanged.
+All 16 original storm assert statements preserved; 3 scheduling assertions added.
+src/ and tests/gate.sh unchanged; row inventory, 2400 s budget, and three-attempt policy unchanged.
