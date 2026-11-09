@@ -1,5 +1,9 @@
-// LB admission/gather/search has one writer: the main monitor thread.
-// The existing stage word publishes a finished immutable slot to its IO coordinator.
+// Cold LB admission, evidence gathering and search for the main monitor. The monitor prepares a
+// plan under epoch checks and seq_cst-publishes PlanReady. The selected IO coordinator uses
+// shape_transition_mu_ to consume it and release-publishes a drain stage. Cancelled
+// client-drain readers must finish before record reuse. Offline comparison bodies model IO-side
+// planning on the same executable layout; production does not select those bodies at runtime.
+
 #include "server.h"
 #include "signal_doorbell.h"
 #include "io_loop.h"
@@ -7,8 +11,9 @@
 #include <tuple>
 
 namespace tomo {
-// One offline PAD-A patch point: returning zero restores PRE policy on this exact
-// layout. Production returns the configured level; no ordinary operation calls it.
+// Offline behaviour-twin patch point. Production returns the configured damping level; a copied
+// ELF can return zero to use undamped policy on the same layout. Calls are in cold control
+// paths, not command execution.
 __attribute__((noipa)) int32_t /* TOMO_TOOL_BIND lbosc3_level */ lbosc3_level(int32_t configured) {
     return configured;
 }
@@ -35,7 +40,7 @@ bool LbAutotune::KeyDamping::update(double ratio, QuietJitter& noise, uint32_t& 
     const bool learned = noise.observe(ratio);
     const double band = noise.band(owners);
     // A full owner's load contains ceil(100/band) independently resolvable steps.
-    // Retain move pressure for that many decision windows, using the existing tick.
+    // Retain move pressure for that many decision windows at the controller tick cadence.
     const double horizon = kDecisionTicks * std::ceil(100.0 / band);
     if (topology != epoch || completed < moves || now_ms < last_ms) {
         recent = 0;
@@ -56,7 +61,7 @@ bool LbAutotune::KeyDamping::update(double ratio, QuietJitter& noise, uint32_t& 
     last_ms = now_ms;
     // Auto charges one decision window per recent move. Explicit N scales that
     // charge. Both K and widening saturate at a horizon; arithmetic stays bounded
-    // even at INT32_MAX. The 1.5 ceiling is the owner's allowed accuracy budget.
+    // even at INT32_MAX. The firing band is capped at 1.5 times the base band.
     const double extra_cap = std::max(1.0, horizon - kDecisionTicks);
     const double pressure = std::min(extra_cap, recent * (level < 0 ? kDecisionTicks : level));
     const uint32_t ticks = kDecisionTicks + static_cast<uint32_t>(std::ceil(pressure));
@@ -72,8 +77,15 @@ bool LbAutotune::KeyDamping::update(double ratio, QuietJitter& noise, uint32_t& 
     return streak >= ticks;
 }
 
-// The key objective lives in the cold planner TU. The shared PRE search remains
-// unchanged for clients, FLIP, and the behaviour twin.
+// The damped key objective lives in this cold planner translation unit. Client search,
+// undamped key search (key-lb-damping 0) and the behaviour twin use
+// weighted_lb_best_incremental_move; FLIP uses weighted_lb_partition from the same policy header.
+// Contract: The monitor's key planner supplies stable items/targets and owns choice. Temporary
+// load arrays score moves by out-of-band residual, transferred load and deterministic
+// tie-breakers. Pins prohibit selection; absent owners or no improving move return false.
+// Targets must describe distinct owners. Allocation can throw; this function neither changes
+// input items nor publishes ownership, and the caller installs any selected plan through LB
+// stages.
 bool lbosc3_best_incremental_move(const std::vector<WeightedLbItem>& items,
                                   const std::vector<uint32_t>& targets, bool demand_hot,
                                   bool secondary_hot, WeightedLbMoveChoice& choice, double band) {
@@ -159,8 +171,15 @@ bool lbosc3_best_incremental_move(const std::vector<WeightedLbItem>& items,
     return choice.item_index != UINT32_MAX;
 }
 
+// Contract: The main monitor supplies a candidate IO coordinator and monotonic milliseconds.
+// Build a cold plan while shape_transition_mu_ protects topology/epoch checks and lb_signal_mu_
+// protects signal folds. Recheck epochs before writing the plan slot, then seq_cst-store
+// PlanReady. False covers disabled/busy state, insufficient evidence, no move and caught
+// bad_alloc; no drain starts until the IO coordinator consumes the plan. Tests serialize their
+// own monitor calls.
 bool Server::/* TOMO_TOOL_BIND lb_controller_tick */ lb_controller_tick(uint32_t coordinator,
                                                                         uint64_t now_ms) {
+    // Phase 1: validate admission and capture the topology.
     if (!lb_controller_enabled() || coordinator >= nthreads()) return false;
     const int32_t damping = lbosc3_level(cfg_.key_lb_damping);
     const bool key_enabled = key_lb_signals_enabled();
@@ -233,6 +252,7 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick */ lb_controller_tick(uint32_t
             return true;
         };
 
+        // Phase 2: admit and search shard moves.
         std::vector<LbShardMove> shard_plan;
         double shard_before = 0, shard_after = 0;
         double bytes_before = 0, bytes_after = 0;
@@ -262,7 +282,7 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick */ lb_controller_tick(uint32_t
             lb_bucket_bytes_spread_current_.store(static_cast<uint64_t>(bytes_before + 0.5),
                                                   std::memory_order_relaxed);
             /* TOMO_TOOL_ANCHOR lbosc3-admission */
-            // LBOSC3 BEGIN admission: only the key planner sees damping.
+            // Key admission applies damping independently of client admission.
             bool key_admitted;
             if (damping && lb_policy_->key_damping) {
                 key_admitted = lb_policy_->key_damping->update(
@@ -275,7 +295,6 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick */ lb_controller_tick(uint32_t
                     update_streak(std::max(weight_ratio, byte_ratio), lb_policy_->key_jitter,
                                   lb_bucket_hot_streak_, executors.size());
             }
-            // LBOSC3 END admission
             if (key_admitted) {
                 // Consume admission even when cooldown, indivisibility, or a sampled
                 // no-improvement plan produces no move. Such a plan needs fresh sustain.
@@ -355,6 +374,7 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick */ lb_controller_tick(uint32_t
             lb_bucket_hot_streak_ = 0;
         }
 
+        // Phase 3: admit and search a client move.
         LbClientMove client_plan;
         double client_before = 0, client_after = 0;
         if (client_enabled && ios.size() >= 2) {
@@ -404,6 +424,7 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick */ lb_controller_tick(uint32_t
             lb_client_hot_streak_ = 0;
         }
 
+        // Phase 4: choose a plan and publish it under transition exclusion.
         const bool have_bucket = !shard_plan.empty();
         const bool have_client = client_plan.id != 0;
         if (!have_bucket && !have_client) {
@@ -448,6 +469,12 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick */ lb_controller_tick(uint32_t
 // policy's sampled load or the destination's three-source-pass ACK budget. The
 // DEBUG caller runs ON the destination: reserve its capacity before publishing
 // the ordinary ClientDrain. The source still owns all readiness/transfer work.
+// Contract: DEBUG CLIENT-LB executes on the destination IO. Under shape_transition_mu_, check
+// split mode, observed source and destination capacity, then seq_cst-gate record reuse against
+// client_readers. Initialize ACKs/epoch/deadline before release-publishing ClientDrain with the
+// destination already acknowledged. Rejections return false with an error; the source performs
+// readiness checks and transfer. A failed wake relies on subsequent source progress/park
+// timeout.
 __attribute__((cold, noinline)) bool Server::lb_debug_move_client(uint64_t id, uint32_t destination,
                                                                   std::string& error) {
     if (cfg_.thread_mode != ThreadMode::Split || !client_lb_signals_enabled()) {
@@ -506,6 +533,12 @@ __attribute__((cold, noinline)) bool Server::lb_debug_move_client(uint64_t id, u
     return true;
 }
 
+// Contract: The selected IO calls after observing PlanReady. Try-lock shape_transition_mu_,
+// validate epochs and exclusions, and wait by returning false if cancelled-drain readers still
+// hold the move record. Reuse starts after the seq_cst reader-count check; release-publish the
+// chosen drain stage after initializing it. Shard vectors swap without IO
+// allocation/reclamation. Invalid plans release-store Idle; lock contention leaves the plan
+// available for a later pass.
 bool Server::/* TOMO_TOOL_BIND lb_consume_plan */ lb_consume_plan(uint32_t coordinator) {
     // Only an observed PlanReady reaches this cold path. Never wait behind a monitor gather.
     std::unique_lock lock(shape_transition_mu_, std::try_to_lock);
@@ -549,13 +582,19 @@ bool Server::/* TOMO_TOOL_BIND lb_consume_plan */ lb_consume_plan(uint32_t coord
     return true;
 }
 
+// Contract: Boot hosts call on the main thread while workers run. Drive database supervision,
+// INFO sampling, LB planning and FLIP ticks at their own deadlines; wake a coordinator after
+// plan or automatic-FLIP publication. A lazily created wake ring belongs to this thread. Failed
+// ring initialization leaves worker park timeouts as the wake fallback. Exit on shutdown or any
+// worker stop flag; signal_doorbell_wait observes readiness without consuming the shutdown
+// event.
 void Server::/* TOMO_TOOL_BIND monitor_controllers */ monitor_controllers() {
-    // INFO sampling also needs this existing cold thread when both controllers are off.
+    // INFO sampling uses this cold thread even when both controllers are off.
     uint64_t next_lb_ms = 0, next_flip_ms = 0, next_info_ms = 0;
     // This thread publishes automatic FLIPs and LB plans to a coordinator IO that may be parked,
     // and owns no ring to wake it with. A wake-only ring (msg_ring under io_uring; the target's
     // mailbox under epoll) is created at the first such publication; a failed init leaves the
-    // coordinator's park timeout as before.
+    // coordinator's park timeout as the fallback.
     Ring wake_ring;
     int wake_ring_state = 0;  // 0 untried, 1 ready, -1 unavailable
     auto wake = [&](uint32_t tid) {
@@ -605,18 +644,24 @@ void Server::/* TOMO_TOOL_BIND monitor_controllers */ monitor_controllers() {
                                          next_lb_ms > finished_ms ? next_lb_ms - finished_ms : 0);
         wait_ms = std::min<uint64_t>(wait_ms,
                                      next_info_ms > finished_ms ? next_info_ms - finished_ms : 0);
-        // Preserve multi-DB reclamation supervision at the existing worker-wait cadence.
+        // Bound multi-DB reclamation supervision by the worker-wait cadence.
         if constexpr (!kSingleDatabase) wait_ms = std::min(wait_ms, Ring::kWaitTimeoutMs);
         (void)signal_doorbell_wait(wait_ms);
     }
 }
 
-// These PRE bodies are comparison material, not a runtime mode. PAD-A retargets
-// the existing tail/monitor calls and each private gate load in a COPY of POST.
-// Keep the admission body and actuator body mechanically equal to cd02ecbab;
-// the artifact verifier compares them before allowing a twin to be built.
+// Offline behaviour-twin bodies for IO-side planning. The artifact patcher retargets copied-ELF
+// tail/monitor calls and private gate loads; production has no runtime selector. The source
+// verifier checks admission/actuation against its recorded baseline before building that twin.
+// Contract: The offline twin's elected IO cron writer supplies coordinator/time; this body
+// performs admission and planning in that IO tail. shape_transition_mu_ serializes admission
+// and drain publication; lb_signal_mu_ protects folds/gathers. Publish ClientDrain by release
+// store or start shard drain after populating records. There is no PlanReady handoff or epoch
+// revalidation equivalent to the monitor planner here. Busy/no-candidate/bad_alloc paths return
+// false.
 bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */ lb_controller_tick_pad(
     uint32_t coordinator, uint64_t now_ms) {
+    // Phase 1: validate admission and capture the topology.
     if (!lb_controller_enabled() || coordinator >= nthreads()) return false;
     const bool key_enabled = key_lb_signals_enabled();
     const bool client_enabled = client_lb_signals_enabled();
@@ -683,6 +728,7 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */ lb_controller_tick_pad(
             return true;
         };
 
+        // Phase 2: admit and search shard moves.
         std::vector<LbShardMove> shard_plan;
         double shard_before = 0, shard_after = 0;
         double bytes_before = 0, bytes_after = 0;
@@ -775,6 +821,7 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */ lb_controller_tick_pad(
             lb_bucket_hot_streak_ = 0;
         }
 
+        // Phase 3: admit and search a client move.
         LbClientMove client_plan;
         double client_before = 0, client_after = 0;
         if (client_enabled && ios.size() >= 2) {
@@ -824,6 +871,7 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */ lb_controller_tick_pad(
             lb_client_hot_streak_ = 0;
         }
 
+        // Phase 4: choose a plan and publish it under transition exclusion.
         const bool have_bucket = !shard_plan.empty();
         const bool have_client = client_plan.id != 0;
         if (!have_bucket && !have_client) {
@@ -872,6 +920,10 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */ lb_controller_tick_pad(
     }
 }
 
+// Contract: The offline twin calls on the connection-owning IO's control tail. Advance IO/EX
+// drain ACKs or client readiness/transfer using Server's stage protocol and cached time. Refuse
+// expired or busy client moves without weakening readiness/lifetime predicates. Failed wake
+// SQEs leave a retry obligation. Return a work count to keep required drain progress active.
 __attribute__((always_inline)) inline uint32_t
     IoLoop::/* TOMO_TOOL_BIND lb_control_actuate_pad */ lb_control_actuate_pad() {
     if (!lb_controller_armed_) return 0;
@@ -981,14 +1033,15 @@ __attribute__((always_inline)) inline uint32_t
     return work + 1;
 }
 
-// PRE had no per-pass pause snapshot; its live per-connection gate is restored in PAD.
-// In particular, do not overwrite the same eight bytes that PAD uses as its cron deadline.
+// The offline twin reads the per-connection stage directly instead of caching a pass pause id.
+// This empty hook must not overwrite lb_pause_id_: the twin uses those bytes as its cron
+// deadline.
 void IoLoop::/* TOMO_TOOL_BIND lb_pass_begin_pad */ lb_pass_begin_pad() {}
 
 uint32_t IoLoop::/* TOMO_TOOL_BIND lb_control_pass_pad */ lb_control_pass_pad() {
     uint32_t did = lb_control_actuate_pad();
-    // The same eight bytes were the PRE per-IO cron deadline. PAD never writes
-    // a cached pause ID; its parser reads the live stage, as PRE did.
+    // The twin uses lb_pause_id_ storage as its per-IO cron deadline. Its parser reads the
+    // stage directly, so this value does not carry a cached pause id.
     if (__builtin_expect(lb_controller_armed_ && cached_now_ms_ >= lb_pause_id_, false)) {
         lb_pause_id_ = cached_now_ms_ + srv_->lb_tick_ms();
         if (srv_->lb_cron_writer_pad(self_->id()) &&
@@ -1000,7 +1053,7 @@ uint32_t IoLoop::/* TOMO_TOOL_BIND lb_control_pass_pad */ lb_control_pass_pad() 
 }
 
 void Server::/* TOMO_TOOL_BIND monitor_controllers_pad */ monitor_controllers_pad() {
-    if (cfg_.thread_mode == ThreadMode::Fused) return;  // PRE fused boots joined workers directly.
+    if (cfg_.thread_mode == ThreadMode::Fused) return;  // The fused twin has no monitor work.
     if (flipctl_enabled()) {
         while (!shutting_down().load(std::memory_order_relaxed)) {
             databases().monitor(*this);

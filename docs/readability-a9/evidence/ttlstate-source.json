@@ -1,0 +1,8 @@
+{
+  "okay": true,
+  "expected": "absent",
+  "scanned_files": 1486,
+  "hits": [],
+  "scope": "all text files under src, tests, tools (excluding Python bytecode)",
+  "claim": "source inventory only; no runtime coverage of the unused accessor"
+}

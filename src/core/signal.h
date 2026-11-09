@@ -1,23 +1,15 @@
-// signal.h — cross-thread handoffs and LoopSignals in common units for the IO and EX roles.
+// Cross-thread handoffs, ready/notify masks and loop measurements used by ThreadCtx and both
+// roles. IO -> EX dispatch uses MaskedChannelArray; EX -> IO completion uses ready bits or
+// Channel<Client*>. Queue publication and the wake protocol are separate: publish work, publish
+// its mask, then decide whether to wake. Consumers take masks before draining and fence their
+// blocked-state publication before rechecking work. A popped item still needs retirement before
+// quiescence.
 //
-// Channels pair queue publication with notification, so load measurements use the same units
-// across directions. Ready-mask completion notifications share those wake and work counters.
-//
-//   IO -> EX    MaskedChannelArray dispatch a parsed Task to the shard's owner
-//   EX -> IO    ready mask / Channel<Client*> notify the connection owner to retire and send
-//
-// UNITS, fixed here so nothing has to be converted at the point of comparison:
-//   work      operations (uint64 monotonic count)
-//   time      NANOSECONDS, and busy is TIME-WEIGHTED, not an event count. A balancer that counts
-//             events treats one expensive op the same as one cheap one; the fork's working pressure
-//             balancer is time-weighted for exactly this reason.
-//   pressure  queue depth in ENTRIES, accumulated with a sample count so a consumer can take a
-//             time-average rather than a spot reading. Spot depth is noisy enough to make a
-//             controller chase its own tail.
-//
-// THE 3% RULE. This machinery is always on, so it must cost under 3% or it does not ship. Hence:
-// scheduling counters are owner-written. Socket totals also have cross-thread INFO readers;
-// their single-writer atomic updates use relaxed load/store, never a shared atomic RMW.
+// LoopSignals records operations, nanoseconds and queue entries. Time-weighted busy accounting
+// distinguishes cheap from expensive work; depth_sum/depth_samples describe sampled pressure
+// rather than a single noisy spot depth. Owner-written scheduling counters are plain fields,
+// while socket totals have relaxed atomic load/store updates for concurrent INFO/cron readers.
+
 #pragma once
 #include <algorithm>
 #include <atomic>
@@ -55,17 +47,20 @@ inline uint64_t now_ns() {
     return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
 }
 
-// Thread CPU time. Needed because DEFER_TASKRUN defers completion work to the point where the thread
-// waits on the ring, so wall-clock "time spent in the work section" understates how busy the thread
-// really is. A controller that reads only wall time under DEFER_TASKRUN is measuring the wrong thing
-// — that already produced one wrong reading in the fork.
+// Thread CPU time includes completion work that DEFER_TASKRUN performs while waiting on the
+// ring. Timing just the surrounding work section would omit that CPU demand.
 inline uint64_t thread_cpu_ns() {
     timespec ts;
     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
     return static_cast<uint64_t>(ts.tv_sec) * 1000000000ull + static_cast<uint64_t>(ts.tv_nsec);
 }
 
-// What every loop reports, regardless of role. A controller reads this and nothing else.
+// Contract: a physical loop updates its own scheduling/TLS counters; roles interpret ops
+// according to their work units. Socket totals use relaxed atomic load/store updates by that IO
+// owner. Plain counters have concurrent diagnostic/controller readers but no race-free C++
+// publication is established for them. Age stamping requires a nonzero configured rate; callers
+// bypass it at zero. Methods allocate nothing and do not provide queue back-pressure
+// themselves.
 struct LoopSignals {
     // ---- work -------------------------------------------------------------------------------
     uint64_t ops = 0;  // units this loop completed: parsed+dispatched / executed / sent
@@ -101,9 +96,8 @@ struct LoopSignals {
     uint64_t accepts = 0;       // connections taken
     uint64_t accept_err = 0;    // accept completions with a negative result
     uint64_t accept_rearm = 0;  // multishot dropped and had to be re-armed
-    uint64_t sqe_starved = 0;
-    uint64_t notify_drop =
-        0;  // post to the sender was refused; the claim is kept and reposted   // get_sqe returned null even after a submit — the ring is saturated
+    uint64_t sqe_starved = 0;   // get_sqe returned null even after submit: ring saturation
+    uint64_t notify_drop = 0;   // sender post refused; keep the claim and repost
     uint64_t acl_access_denied_cmd = 0;
     uint64_t acl_access_denied_key = 0;
     uint64_t acl_access_denied_channel = 0;
@@ -138,7 +132,7 @@ struct LoopSignals {
     uint64_t epoll_events = 0;  // readiness events returned by epoll_wait
     uint64_t epoll_recvs = 0;   // recv syscalls that returned bytes
 
-    // Boot-latched producer sampling state. A zero rate takes the direct Channel push path: no
+    // Owner-cached producer sampling state. A zero rate takes the direct Channel push path: no
     // stamp writes, countdown work, arrays, or EWMA updates. cached_now_us is refreshed from
     // the pass cut, not by another clock read.
     uint64_t cached_now_us = 0;
@@ -203,6 +197,10 @@ private:
 
 // Scoped timer for independent spans, including IO idle. Disjoint spans alone do not
 // conserve a loop wall interval; IO busy accounting uses consecutive cuts in signalacct.h.
+// Contract: The caller supplies a sink that outlives this scope and serializes updates to it.
+// Construction/destruction sample CLOCK_MONOTONIC and add elapsed nanoseconds without
+// publication, allocation or retries. This measures one span; IoTenure separately conserves
+// whole-loop time.
 class Span {
 public:
     explicit Span(uint64_t& sink) : sink_(sink), t0_(now_ns()) {}
@@ -243,18 +241,17 @@ private:
 // ---------------------------------------------------------------------------------------------
 // ReadyMask — per-SENDER "which of my clients has completed work" bits, one bit per wb slot.
 //
-// THE #19/#20 DESIGN, ported: workers signal reply-readiness by setting an IDEMPOTENT bit in the
-// sender's mask instead of posting the Client* through a channel. Three properties fall out, and
-// each one retires a bug class this tree has already paid for:
-//   - no claim protocol: a bit set twice is one bit, so the CAS-claim dance (and its StoreLoad
-//     fence discipline) is not needed on this path;
-//   - no pointers in flight: a channel entry can outlive the client (the teardown UAF); a bit
-//     cannot -- the sender maps slot -> client through a table IT owns and IT clears;
-//   - no stranding: the bit stays set until the sender takes it, and any completion after a take
-//     re-sets it, so "both sides walk away" is unrepresentable.
-// Same take-then-serve ordering as NotifyMask; same read-first guard so a busy producer pays a
-// shared-line read, not an RMW. set() returns true on the empty->flagged transition (that RMW is a
-// full fence) -- the caller who gets true owes the park-wake, exactly like the channel protocol.
+// Contract: executors set completion bits for IO-owned writeback slots. The IO takes bits
+// before serving and maps slots through its own client table. Clear a slot after ROB quiescence
+// and before reuse so an old completion cannot name a new client. There are no pointer payloads
+// or queue-full failures in the mask. Duplicate sets coalesce and a completion after take sets
+// the bit again; clearing after serving would lose a concurrent completion. set uses a
+// read-first guard and seq_cst fetch_or for a new bit; a true result assigns the caller the
+// park wake. take uses acquire exchange. The mask does not replace the ROB's completion
+// publication or the caller's lifetime fences.
+// Callers order Done publication before set with a seq_cst fence (see ex_loop.h's notify path).
+// The read-first path performs no fence: without the caller's fence, a stale set bit can hide
+// a completion that the IO has already missed while consuming the earlier notification.
 class ReadyMask {
 public:
     static constexpr uint32_t kSlots = 1024;
@@ -269,7 +266,7 @@ public:
     // Load-first: an exchange is a locked RMW that takes the line exclusive even when the word is
     // zero -- and these words are fetch_or'd by workers on OTHER CCDs, so an unconditional 16-word
     // exchange sweep per loop pass bounces contended lines for nothing. The relaxed load costs a
-    // shared-line read; a zero word is the common case and now stays shared. A bit set between the
+    // shared-line read; a zero word stays shared. A bit set between the
     // load and a skipped exchange is not lost: it is still set, and the next pass takes it.
     uint64_t take(uint32_t word) {
         if (!words_[word].load(std::memory_order_relaxed)) return 0;
@@ -292,20 +289,23 @@ private:
     alignas(64) std::atomic<uint64_t> words_[kWords] = {};
 };
 
+// Contract: Producers flag their channel; the consumer takes each word before draining it and
+// restores bits for unfinished drains. Producer ids must be below kBits and word indices below
+// kWords. publish uses seq_cst fetch_or even for an already-set bit; take uses acquire
+// exchange. set's read-first path does not itself publish a new queue item when the bit is
+// already set. ThreadCtx's blocked-state seq_cst fence and work recheck complete the park
+// protocol. Bits coalesce without allocation or capacity refusal.
 class NotifyMask {
 public:
     static constexpr uint32_t kBits = 128;
     static constexpr uint32_t kWords = kBits / 64;
 
-    // Producer side. One relaxed load in the common case; the RMW is paid only on the empty->flagged
-    // transition, which under load is rare.
-    //
-    // RETURNS TRUE only when THIS producer performed the transition, and that answer is what decides
-    // who owns the wake — see the Dekker note on Channel::wake(). A producer that finds the bit
-    // already set owes no wake: the bit is still set, so the consumer has not taken it yet, so the
-    // consumer is still going to take it and drain this channel, and our item is already in the queue
-    // by then. The seq_cst on the RMW is load-bearing, not decoration: it is the full fence that keeps
-    // the store of the bit from being reordered after the load of blocked_ in wake().
+    // Producer/repair side: read first, then seq_cst fetch_or if the bit is absent. Return true
+    // for the caller that sets the bit; that RMW orders its bit store before the blocked_ load
+    // in Channel::wake. If already set, this method performs no fence and owes no new edge
+    // wake. Queue publication must still establish StoreLoad ordering, as publish does
+    // unconditionally; a set bit by itself does not publish work added after an earlier
+    // notification.
     bool set(uint32_t producer) {
         const uint64_t bit = 1ull << (producer & 63);
         auto& w = words_[(producer >> 6) & (kWords - 1)];
@@ -325,13 +325,11 @@ public:
     // Consumer side. Takes and clears one word's worth of flags. Acquire pairs with the producer's
     // release so the queue contents behind the bit are visible.
     //
-    // Load-first, for the same reason ReadyMask::take is: an exchange is a locked RMW that takes
-    // the line exclusive even when the word is zero, and every consumer pass takes every word of
-    // every mask it drains -- four locked RMWs per io pass and four per ex pass, ~100 cycles that
-    // at p1 are paid per OP because a pass is one op. A zero word is the common case and the
-    // relaxed read costs a shared-line load. A bit set between the load and the skipped exchange
-    // is not lost: it is still set, the next pass takes it, and the park path re-checks masks AND
-    // queue depths behind a seq_cst fence (ThreadCtx::arm_blocked) so no wake can be missed.
+    // As in ReadyMask::take, load first to avoid taking a zero mask word exclusive. Every
+    // consumer pass visits the mask words, so unconditional exchanges would acquire shared
+    // producer-written lines even without work. A set between the load and skipped exchange
+    // remains for the next pass. ThreadCtx::arm_blocked supplies a seq_cst fence before the
+    // park path rechecks masks and queue depths, closing the missed-wake window.
     uint64_t take(uint32_t word) {
         if (!words_[word].load(std::memory_order_relaxed)) return 0;
         return words_[word].exchange(0, std::memory_order_acquire);
@@ -358,24 +356,23 @@ private:
     std::atomic<uint64_t> words_[kWords] = {};
 };
 
-// One directed cross-thread handoff. SPSC queue + a wake that is only paid when the peer is asleep.
+// Contract: one producer pushes and one consumer pops/retires this directed channel. ExQueue
+// owns inline slots and release/acquire frontiers; payload lifetimes remain the caller's duty.
+// Publish the notify mask between enqueue and wake, with the required StoreLoad ordering. Full
+// pushes return false and increment full_events; retain the item for retry/back-pressure.
+// Retire after processing, and stop producers before relying on quiesced. Normal wake checks
+// blocked_; wake_edge instead retries notification for persistence writers outside ThreadCtx's
+// park.
 template <typename T, uint32_t Cap>
 class Channel {
 public:
     // ---- producer side --------------------------------------------------------------------------
-    // Returns false when full. A false MUST be handled — never dropped. Losing a queued item here
-    // loses a reply and wedges the connection waiting for it, which is precisely the bug that
-    // shipped in the fork.
-    // `peer_ring` is the CONSUMER's ring, passed in rather than bound at construction: a bound
-    // pointer would need every thread's ring to exist before any channel is wired, and getting that
-    // startup order wrong leaves the pointer null and NO WAKE IS EVER SENT — a consumer that blocks
-    // then sleeps forever on a non-empty queue. Passing it makes the dependency impossible to forget.
-    // SPLIT IN TWO ON PURPOSE. The consumer's decision to sleep is made by reading the notify mask,
-    // so the mask bit must be published BETWEEN the push and the wake decision. When this was one
-    // call that set the bit afterwards, the producer read blocked_ before the bit existed and the
-    // consumer read the bit before the producer wrote it -- both sides saw "nothing to do" and an
-    // isolated request hung forever. Pipelined traffic hid it, because the next request re-poked the
-    // consumer; only a lone command exposed it.
+    // A refused push must not be dropped: losing an item can lose a reply and strand its
+    // client. The consumer ring is supplied to wake rather than bound during channel
+    // construction, when the peer ring might not exist. A null peer cannot receive a wake. Push
+    // and wake are separate so the caller publishes the notify mask between them. If wake reads
+    // blocked_ before that publication, a consumer can read an empty mask and park while the
+    // producer reads unblocked; a lone request then has no later notification to rescue it.
     bool push(T v, LoopSignals& sig) {
         if (!q_.push(v)) {
             sig.full_events++;
@@ -457,9 +454,12 @@ private:
     std::atomic<bool> blocked_{false};
 };
 
-// One wake endpoint around one consumer-owned masked slot array.  Queue frontiers remain per
-// producer; only the blocked flag is shared, which is equivalent to the old code arming every task
-// channel together and removes nproducer stores from the sleep-only path.
+// Contract: one consumer owns the masked slot array; each producer owns its indexed frontier.
+// MaskedSpscArray supplies slot publication and retirement. The caller serializes each
+// endpoint, uses valid producer ids and changes capacity/masks while quiesced. A shared
+// release-stored blocked flag covers all producer lanes; wake acquire-loads it after mask
+// publication. Full pushes return false and increment full_events; reserved pushes require
+// matching credits. This wrapper owns queue storage, not the pointed-to tasks' lifetimes.
 template <typename T, uint32_t MaxProducers>
 class MaskedChannelArray {
 public:

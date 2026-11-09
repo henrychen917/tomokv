@@ -1,0 +1,3 @@
+build/clang-format-18.1.8/bin/python tools/format.py
+R7 shadow production envelopes: current
+clang-format 18.1.8: 418 files formatted

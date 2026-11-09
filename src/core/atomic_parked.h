@@ -1,6 +1,9 @@
 // Owner-local parked-task indexes, included by ex_loop.h in executor translation units.
-// FIFO order supports forwarding; per-connection order supports dependency polling. Entries
-// borrow Client/ROB lifetimes and must be removed before execution can retire those objects.
+// FIFO order serves in-order xshard_retries_ retry, boundary-note scans and writer promotion;
+// per-connection order serves dependency polling (oldest/rotate) and predecessor checks (older).
+// Entries borrow Client/ROB lifetimes and name a shard. Remove them from every index before
+// executing or forwarding: Done lets IO retire the slot. The container must be empty before
+// an ExDrain acknowledgement hands a shard to another owner; flip_quiesced checks FLIP and LB.
 #pragma once
 #include "thread.h"
 #include "../net/conn.h"
@@ -15,7 +18,9 @@ namespace tomo {
 // another owner. Task copies borrow their Client and ROB slots until removed. The first park
 // allocates state; empty() allocates nothing. erase/pop require a live entry, and oldest/front/
 // rotation require a nonempty container. Allocation failures propagate; an exception rollback
-// guarantee is not established here. The deque-sized footprint keeps following executor offsets.
+// guarantee is not established here. removed_/added_ occupy std::deque's start/finish cursor
+// offsets (16/48), so empty() compares the same words as deque::empty(); the deque-sized footprint
+// keeps following ExLoopT offsets.
 class AtomicParkedTasks {
     using Fifo = std::list<Task>;
     using ByOp = std::multimap<uint64_t, Fifo::iterator>;

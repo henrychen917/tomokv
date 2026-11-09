@@ -1,9 +1,12 @@
 // Physical store ownership, bucket routing and migration contracts. Included by
 // server.h, thread.h and command/store consumers; there is no fixed inclusion point.
-// A shard owns a contiguous range of 16384 routing buckets and one FlatStore. One
-// executor writes it at a time. Armed read-local consumers may probe immutable
-// records under table-generation checks and rotation QSBR; they never retry or
-// permit in-place overwrite. With the lane off, deletion frees immediately unless
+// A shard owns a contiguous sub-range of the 16384 routing buckets, every key hashing
+// into it, and one FlatStore. Only its current executor may read or mutate store data
+// and indexes outside the read-local protocol. Armed foreign readers probe immutable
+// records under table-generation checks and rotation QSBR, with only approximate atomic
+// access accounting (see ExLoopT::note_local_read_access); they never retry or permit
+// in-place overwrite. Dedicated wake/gauge atomics below have their own cross-thread
+// interfaces. With the lane off, deletion frees immediately unless
 // the send path holds an explicit borrow.
 //
 // The keyspace is a flat set of shards, independent of worker count and L3 topology.
@@ -11,8 +14,7 @@
 // memory or preserve cache residency: the destination refills its working set.
 // home_domain() and migration_cost_bytes() expose that placement cost. Every
 // per-owner store binding must move inside the same quiesced ownership transition.
-// can already pull 50 — so a migration is a real cost, and an LB that prices it at zero will thrash.
-// home_domain() and store().resident_estimate() exist so it can be priced instead of guessed.
+// Migration is a real cost: an LB that prices it at zero will thrash.
 #pragma once
 #include <atomic>
 #include "../base/tomo_assert.h"
@@ -48,9 +50,12 @@ inline uint32_t bucket_of(uint64_t hash) { return static_cast<uint32_t>(hash) & 
 
 // Owns the store, WATCH registries, optional notification/LB state and owner-local
 // statistics. Server owns the Shard allocation; server/Client/Op/sink pointers are
-// borrowed. Initialization precedes workers; mutation is restricted to the current
-// executor, with transfer coordinators acting only while owners are quiesced.
-// Read-local consumers use FlatStore's immutable/QSBR interface. Published gauges
+// borrowed. Initialization precedes workers; store data/index, registry and statistics
+// mutation belongs to the current executor, with transfers only while owners are quiesced.
+// Cross-owner producers may call set_blocking_dirty(); data publishers use
+// blocking_publish_fence before checking the seq_cst waiter count to avoid a lost wake.
+// Read-local consumers use FlatStore's immutable/QSBR interface and approximate access
+// accounting. Published gauges
 // are relaxed snapshots; plain private fields require owner access or a quiescence
 // fence. Allocation failures follow the delegated store/registry APIs; no generic
 // rollback or back-pressure policy is supplied by this wrapper.
@@ -434,6 +439,7 @@ public:
     }
 
     // Per-shard counters have one executor writer; no allocation or back-pressure.
+    // A per-command counter in shared state would write a shared cache line on the hot path.
     // INFO sums them using the exceptional telemetry read path. Plain members do not
     // establish a race-free general concurrent snapshot; use the published atomic
     // gauges for their documented cross-thread observations.
@@ -584,7 +590,7 @@ struct ShardLayoutLock {
     static constexpr size_t stats_offset = offsetof(Shard, stats_);
 };
 
-// The 1440-byte Shard stride and hot-statistics offset are part of the gate geometry.
+// The atomic_torn gate geometry depends on the 1440-byte Shard stride and hot-statistics offset.
 static_assert(sizeof(Shard) == 1440);
 static_assert(kNumBuckets <= UINT16_MAX);
 static_assert(ShardLayoutLock::watch_offset == 8);

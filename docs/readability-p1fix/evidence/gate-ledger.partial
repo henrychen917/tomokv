@@ -1,0 +1,6 @@
+PARTIAL	0	GATE_ONLY_JOBS=source_identity reorder_sync reorder_identity abba_selftest; NOT A RECEIPT
+ok	0.040000	release build (+footprint locks)
+ok	145.700000	production source identity + stable assertion ids
+ok	459.660000	ABBA comparison + saturation negative controls
+ok	24.500000	R7 generated envelope parity
+ok	194.420000	R7 FIFO twin off-path identity + negative controls

@@ -1,5 +1,6 @@
-// Owner-local priority queues and IO-owned long-predecessor hints. Included by
-// the IO/executor headers and reorder.cc; no queue survives an inbox drain or
+// Owner-local priority queues and IO-owned long-predecessor hints. Only reorder.cc
+// includes this header in production, after ex_loop.h and io_loop.h; FIFO translation
+// units never see it. R7 test fixtures include it directly. No queue survives an inbox drain or
 // ownership change. Tasks borrow Clients/ROB slots until execution publishes
 // completion. Hints inspect predecessor state with acquire loads, never retry
 // readers or retain mutable predecessor metadata across completion.
@@ -49,8 +50,9 @@ inline bool candidate(const Task& task, uint8_t& length) {
     return true;
 }
 
-// Four priority picks between forced-oldest turns bound starvation. The
-// two-queue scheduler uses the same quota for short service; it is not tunable.
+// Four priority picks between forced-oldest turns bound starvation; the two-queue
+// scheduler uses the same quota for short service. This inherited fairness policy
+// matches an 8:2 short/long mix, not a measured optimum; no knob exposes it.
 inline constexpr uint32_t kExReorderShortQuota = 4;
 
 // The kind-A control changes only this out-of-line predicate. It leaves R7 enabled.
@@ -138,10 +140,11 @@ public:
     }
 };
 
-// IO-owned index stored in two words of Client's IO padding; this helper owns
-// no allocation. Initialize on admission, record before publishing the ROB
-// slot, and unpublish on dispatch rollback. Only that Client's IO thread may
-// update it. Queries acquire-load completion and return UINT64_MAX if no live
+// IO-owned index stored in two plain words of Client's IO padding; this helper owns
+// no allocation. Only the armed R7 parser on that Client's IO thread reads or writes
+// them. Every reorder=0 path leaves them uninitialized; the armed parser initializes
+// on first entry (dispatch_id == 0), before publication. Record before publishing the
+// ROB slot, and unpublish on dispatch rollback. Queries acquire-load completion and return UINT64_MAX if no live
 // long precedes the limit. Bits are distances behind newest, so retirement and
 // reuse need no per-short publication. Client migration carries both index and
 // ROB; there is no executor-owned side table or reader retry.
@@ -201,8 +204,10 @@ static_assert(ShadowLongIndex::newest_offset() == 88);
 // One IO parse pass owns this optional in-place dispatcher for one Client.
 // before is the pass's older-prefix limit; stamp tasks before inbox publication.
 // Completion checks use acquire loads and borrow only live ROB state. No
-// ShadowDispatch exists until an ordinary dispatch has a pending older long:
-// empty/full/incomplete/backpressured and pure-short passes construct none.
+// ShadowDispatch exists until an ordinary dispatch has a pending older long. Passes
+// that publish no ordinary tasks (empty/full/incomplete/backpressured) construct none.
+// Pipelines containing only shorts construct none and never walk the ROB. A pass of
+// shorts can still construct one when a long from an earlier pass remains pending.
 // No allocation or wait is added; subsequent longs update the per-pass hint.
 class LazyShadowDispatch {
     std::optional<ShadowDispatch> dispatch_;
@@ -244,8 +249,9 @@ public:
 // window. Selected ids must be in ROB order; index only the prefix older than
 // the last selected read. task() returns a borrowed Task for later publication,
 // without waiting or allocating. Mask each query so younger longs cannot
-// shadow an older demotion. Acquire-load completion, prune Done longs once,
-// and recheck the newest surviving predecessor at each query.
+// shadow an older demotion. Completion is monotone within this commit: IO owns ROB
+// recycling and does not recycle the window while it runs. Prune Done longs once,
+// but acquire-load and recheck the newest surviving predecessor at each query.
 // At most window-1 index visits + count successful probes + window failed probes.
 class ShadowDemotionDispatch {
     uint64_t first_;
@@ -307,6 +313,8 @@ inline bool priority_enabled(uint32_t requested) {
 //
 // Queue cursors, the service quota and this dependency frontier are the mechanism's bookkeeping;
 // there are no per-op clocks, atomic updates, allocations, telemetry counters or Client/Op fields.
+// The cost of this bookkeeping and of the conservative non-head classification remains
+// unmeasured (see docs/decisions/readability-a4.md).
 template <size_t BatchOps>
 class ExReorderQueues {
     // Queue geometry is generic; production uses the executor quantum.
@@ -315,8 +323,9 @@ class ExReorderQueues {
     static_assert((Capacity & (Capacity - 1)) == 0);
     static_assert(std::is_trivially_destructible_v<Task>);
 
-    // Executor-owned storage: append placement-constructs only occupied Task
-    // members, and reuse needs no destructor work (Task is trivially destructible).
+    // Executor-owned storage. Queues are stack-local per drain, so a plain Task array
+    // would default-construct every unused slot at each drain. append placement-constructs
+    // only occupied members; reuse needs no destructor work (Task is trivially destructible).
     // No Client lifetime is owned here; capacity is checked before construction.
     union Slot {
         Task task;
@@ -568,7 +577,7 @@ class ShadowReorderQueues {
         if (previous == None) ready_append(i, rank(n));
         // Preserve the admitted owner order. A read-local demotion may legally
         // lower an older read after a later independent op; the read-local
-        // hazard protocol decides that order, not a ROB-id sort here.
+        // hazard protocol decides that order. Do not sort by ROB id or assert ROB order here.
         else
             node(previous).next_conn = i;
         *link = i;

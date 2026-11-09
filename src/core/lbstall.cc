@@ -1,9 +1,13 @@
-// LB may decline a move; it may never turn a readiness fence into a traffic timeout.
+// Cold LB refusal and parked-input accounting for Server. shape_transition_mu_ serializes
+// refusal with commit/stage changes; lb_signal_mu_ protects cooldown records. A release store
+// of Idle resumes dispatch after refusal. Readiness and lifetime fences remain mandatory even
+// when the controller gives up on a move.
+
 #include "server.h"
 
 namespace tomo {
 LbStallReason lb_stall_reason(const std::string& error) {
-    // Classify the existing readiness diagnostics without changing that lifetime-fence body.
+    // Map client-transfer readiness diagnostics to refusal counters.
     if (error == "connection is held by a generalized-thread pipeline batch")
         return LbStallReason::Pipeline;
     if (error == "connection ROB, reply, borrow, or owner-local protocol state is busy")
@@ -42,8 +46,14 @@ bool Server::lb_drain_pass_expired(uint32_t tid, LbStage stage) {
     return lb_refuse_stalled(epoch, reason);
 }
 
-// A separate body also supplies an exact-size negative control: the measurement helper can
-// replace this function by `return false` in a COPY of the binary, retaining every text address.
+// This out-of-line body is also an offline negative-control patch point: a copied ELF can
+// return false here while retaining every text address. Production refusal follows the protocol
+// below.
+// Contract: IO LB tails may request refusal for an observed epoch. Recheck epoch/stage under
+// shape_transition_mu_, then update cooldowns under lb_signal_mu_ and release-store Idle after
+// clearing the deadline. A stale or ineligible request returns false. No readiness fence is
+// waived; the observe-only test build records evidence and returns false without cancelling the
+// move.
 __attribute__((noinline)) bool Server::lb_refuse_stalled(uint64_t epoch, LbStallReason reason) {
     std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
     const LbStage stage = lb_stage();
@@ -52,8 +62,8 @@ __attribute__((noinline)) bool Server::lb_refuse_stalled(uint64_t epoch, LbStall
         return false;
     const uint64_t now = now_ns();
 #ifdef TOMO_LB_STALL_OBSERVE_ONLY
-    // Diagnostic negative control, never a runtime knob: keep the old timeout policy while
-    // reporting the predicate and its pending duration. Used only in the maintainer's debug PRE.
+    // Diagnostic compile-time control: report the refusal predicate and pending duration while
+    // leaving timeout-based refusal in charge. There is no runtime selector.
     if (lb_policy_) {
         auto& state = lb_policy_->stall;
         state.refused[static_cast<size_t>(reason)].fetch_add(1, std::memory_order_relaxed);

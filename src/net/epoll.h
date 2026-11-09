@@ -1,30 +1,28 @@
 // epoll.h — the second network event engine, selected at boot by --net-io epoll.
 //
-// WHY A SECOND ENGINE AT ALL. io_uring is the native path and stays the default: ring per thread +
-// DEFER_TASKRUN is where the measured wins live. But io_uring is not always available (older or
-// hardened kernels, containers with io_uring_setup seccomp-blocked, some hypervisors) and it is not
-// always wanted. This engine exists so the same server binary still runs there, correctly, at
-// whatever speed epoll gives.
+// IoLoop uses this readiness engine when --net-io selects epoll. io_uring remains the default
+// with a ring per thread and DEFER_TASKRUN; epoll also supports environments where older or
+// hardened kernels, seccomp-blocked containers, or hypervisors prevent io_uring_setup.
 //
-// WHAT AN ENGINE IS ALLOWED TO CHANGE. Only how an io thread WAITS FOR and COMPLETES network
-// readiness. Routing, shard ownership, the ROB, retirement order and the reply STRUCTURE are engine
-// independent; both engines feed exactly the same parse -> route -> retire -> stage -> write
-// pipeline. The choice is resolved ONCE, at boot, into a template parameter (see IoLoop::run), so no
-// per-event branch on "which engine" exists in either instantiation.
+// The engine controls how an IO thread waits for and consumes network readiness. Routing,
+// shard ownership, ROB retirement order and reply structure share the parse -> route -> retire ->
+// stage -> write pipeline. IoLoop::run selects a template instantiation at boot; helpers also
+// retain engine state for transport-specific operations.
 //
 // THE THREE SHAPE DIFFERENCES, stated once here because every subtlety below follows from them:
 //   1. io_uring COMPLETES operations; epoll only REPORTS READINESS. So under epoll the io thread
 //      issues recv/send/accept itself, synchronously, and the "completion" is the syscall's return
 //      value fed to the same accounting the CQE result feeds.
 //   2. io_uring holds a pointer into our buffers while a recv/send is in flight. epoll never does.
-//      That makes the read buffer resettable at every quiescence point rather than only when no
-//      recv is armed, and it makes a closing connection releasable immediately.
+//      Read-buffer relocation still requires ROB quiescence. Output relocation also respects
+//      OpenSSL retry reservations. Closing clients still wait for safe_to_release's operation,
+//      retire-post and WATCH lifetime fences.
 //   3. epoll has no cross-thread doorbell of its own. io_uring has msg_ring. See uring.h for the
-//      eventfd mailbox that stands in for it, so the ex side and every channel wake stay unchanged.
+//      eventfd mailbox that implements the same executor/channel wake interface.
 //
 // EDGE TRIGGERED, ARMED ONCE PER OWNERSHIP TENURE, NEVER HOT-PATH RE-ARMED. A connection is added
 // when an IO thread acquires ownership and normally remains registered until ::close(). Runtime
-// migration deliberately extends the old lifetime arm-once contract: at an event-loop boundary the
+// migration uses a reversible registration hand-off: at an event-loop boundary the
 // destination pre-registers the fd while the old owner registers a duplicated descriptor for the
 // same socket, then removes its original entry before the connection-owner edge. Destination and
 // backup events are ignored during preparation. Commit closes the backup; rollback makes that
@@ -45,9 +43,11 @@
 
 namespace tomo {
 
-// Per-thread epoll set. One per io thread, never shared: sharing it would reintroduce exactly the
-// thundering-herd/one-thread-takes-everything distribution failure that SO_REUSEPORT exists to
-// avoid on the accept side.
+// Owns an epoll descriptor and its last event batch for one IoLoop. The loop owns batch access;
+// migration preparation can add/delete destination registrations from the source IO through
+// ThreadCtx hooks. These call kernel epoll_ctl; this wrapper supplies no lock. Separate sets
+// preserve SO_REUSEPORT accept distribution. init/add/del return failure; wait maps nonpositive
+// syscall results, including EINTR, to an empty batch. shutdown closes the descriptor after use.
 class EpollSet {
 public:
     static constexpr int kMaxEvents = 256;
@@ -78,7 +78,7 @@ public:
         ev.data.u64 = tag;
         return ::epoll_ctl(fd_, EPOLL_CTL_ADD, target, &ev) == 0;
     }
-    // Migration only. Normal teardown continues to rely on close(fd), which removes the
+    // Migration uses explicit removal. Normal teardown relies on close(fd), which removes the
     // registration atomically with the resource it names.
     bool del(int target) { return ::epoll_ctl(fd_, EPOLL_CTL_DEL, target, nullptr) == 0; }
     // Blocking (or, with timeout_ms == 0, polling) wait. EINTR is reported as zero events rather
@@ -96,9 +96,8 @@ private:
     epoll_event events_[kMaxEvents];
 };
 
-// O_NONBLOCK is mandatory under this engine and only under it: every recv/send/accept is issued by
-// the io thread itself, and a blocking one would park the whole thread (and every other connection
-// it owns) inside one socket.
+// Epoll requires O_NONBLOCK because the IO thread issues recv/send/accept itself; blocking would
+// park every connection it owns. TLS socket BIO handshakes also require nonblocking descriptors.
 inline bool set_nonblocking(int fd) {
     const int flags = ::fcntl(fd, F_GETFL, 0);
     if (flags < 0) return false;

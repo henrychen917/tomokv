@@ -1,0 +1,8 @@
+test_reload_crashes_show_status_and_tail_even_when_exit_is_delayed (persistfix.self_test.<locals>.IdentityTests.test_reload_crashes_show_status_and_tail_even_when_exit_is_delayed) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.150s
+
+OK
+.................Terminated
+  ABBA comparison + saturation negative controls       TIMEOUT 660s; median=-s; abba-selftest-wave7-landing-442.80s-plus-40pct-rounded
