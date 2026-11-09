@@ -1185,6 +1185,7 @@ plan_jobs(){
   # Compilers use that slot's server+load cores. The release build alone unlocks release jobs;
   # ASAN and standalone units do not delay boots, and full-only builds start immediately too.
   JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build pubtrackfix maxmemrace storefix5)
+  JOB_NAMES+=(s1pair)
   JOB_NAMES+=(txnfix4-oom txnfix4-watch txnfix4-crash txnfix4-hash txnfix4-placement)
   JOB_NAMES+=(clientcompat-pause clientcompat-disconnect clientcompat-multi-tracking clientcompat-multi-controls clientcompat-enable-race)
   JOB_NAMES+=(cmdfix2-geo cmdfix2-scores cmdfix2-hll cmdfix2-lcs cmdfix2-channels cmdfix2-xsetid)
@@ -4076,6 +4077,18 @@ job_lualibs(){
   row_begin "lualibs CC4.7 vs Redis 7.4"
   compat3_case lualibs all && ok "lualibs CC4.7 vs Redis 7.4" \
       || bad "lualibs CC4.7 vs Redis 7.4" "see $TMPDIR/all-*.log"
+}
+
+job_s1pair(){
+  local case label
+  for case in EVAL-ROTATE EVAL-GROW EVAL-ADMISSION CONFIG-OWNER; do
+    label="s1pair $case (Redis 7.4, all modes)"
+    row_begin "$label"
+    py tests/s1pair.py --case "$case" --binary "$CANDIDATE_BINARY" \
+        --oracle "$REDIS74_ROOT/src/redis-server" --cores "$CORES" --ratio "$GATE_RATIO" \
+        --port "$PORT" --output "$TMPDIR/$case" >"$TMPDIR/$case.log" 2>&1 \
+        && ok "$label" || bad "$label" "see $TMPDIR/$case.log"
+  done
 }
 
 job_scriptfix(){
@@ -7343,6 +7356,8 @@ for TM in fused split; do for AT in 0 1; do collect_job "txnorder-$TM-$AT"; done
 collect_job script_bounds
 collect_job scriptfix
 collect_job scriptfix2
+# Four S1 rows before the quick-tier exit; EXPECT and fixture are maintainer-owned.
+collect_job s1pair
 collect_job lualibs
 for AT412_CASE in T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11a T11b T12 T13 T14 T15 T16 owner; do collect_job "at412-$AT412_CASE"; done
 
