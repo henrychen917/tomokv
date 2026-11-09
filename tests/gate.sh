@@ -1254,7 +1254,7 @@ plan_jobs(){
   JOB_NAMES+=(wave15_stream wave15_flip_eof wave15_rebind wave15_idle wave15_errorstats wave15_aof_participants wave15_aof_large blockfix4 blockfix2 blockrace blockfix_structure blockfix_registry blockfix_mkstream persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables debug-0 debug-1
               iofix-deferred iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              atomfix5_watch atomfix5_accounting core_units flipfix_units flipfix5_units flipfix6_units flipfix7_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat crlffix boot_grammar dbdefault wait_units readonly
+              stallfix_cuts stallfix_units atomfix5_watch atomfix5_accounting core_units flipfix_units flipfix5_units flipfix6_units flipfix7_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat crlffix boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries moverfix hexpread compat2 compat3 streamfix datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_watch datafix2_idle dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus rlfix3_zc rlfix3_info acl_recheck aclfix sort script_bounds scriptfix scriptfix2 lualibs
               efficiency dump_restore persistfmt persistfmt_aof_error auth authfix latencyfix_grammar latencyfix_shape latencyfix_off wave8b_off serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect trackorder notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated flipfix5 flipfix6 flipfix7_output flipfix7_blocked flipfix7_tls atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
@@ -2350,6 +2350,44 @@ job_hexpread(){
       bad "$label" "see $TMPDIR/hexpread-object-$mode.log"
     fi
   done
+}
+
+# stallfix: two live rows and one native/TSAN row, collected before the quick exit.
+# EXPECT_QUICK/FULL remain maintainer-owned (DQ=DF=+3).
+job_stallfix_cuts(){
+  local mode label
+  for mode in 1s 2s; do
+    label="read-cut FIFO bounded wait ($mode)"
+    row_begin "$label"
+    if py tests/stallfix.py --binary "$CANDIDATE_BINARY" --cores "$CORES" \
+        --load-cores "$LOAD_CORES" --port "$PORT" --mode "$mode" \
+        --output "$TMPDIR/cut-$mode" >"$TMPDIR/cut-$mode.log" 2>&1; then
+      ok "$label"
+    else
+      bad "$label" "see $TMPDIR/cut-$mode.log"
+    fi
+  done
+}
+
+job_stallfix_units(){
+  local label="LB observed-stage ack with in-flight EVALSHA (ASAN+TSAN)"
+  row_begin "$label"
+  if unit_ready core-concurrency-unit && \
+      ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1 \
+      taskset -c "$CORES" ./build/core-concurrency-unit stallfix \
+          >"$TMPDIR/stallfix.log" 2>&1 && \
+      ( ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 \
+        taskset -c "$CORES" ./build/core-concurrency-unit stallfix-planted \
+            >"$TMPDIR/stallfix-planted.log" 2>&1
+        [ "$?" = 1 ] && grep -Fxq \
+            'FAIL core concurrency: IO must not acknowledge ExDrain before executor quiescence' \
+            "$TMPDIR/stallfix-planted.log" ) && \
+      tsan_unit "$CORE_TSAN" core-concurrency-tsan \
+          'PASS core concurrency stallfix (state assertions fired)' stallfix; then
+    ok "$label"
+  else
+    bad "$label" "see $TMPDIR/stallfix*.log and $TMPDIR/tsan-core-concurrency-tsan-stallfix.log"
+  fi
 }
 
 job_core_units(){
@@ -7160,7 +7198,7 @@ job_dependencies(){
       done;;
     release|asan|rldbg|core_tsan_build|waits_tsan_build|racefix_tsan_build|tailgen_build|config_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest|reorder_sync|witness_contracts) ;;
     flip_unit) echo production_units;; # ctlfix-unit links the shared release objects
-    core_units|flipfix_units|flipfix5_units|flipfix6_units|flipfix7_units|atomfix6_units) echo 'production_units core_tsan_build';;
+    stallfix_units|core_units|flipfix_units|flipfix5_units|flipfix6_units|flipfix7_units|atomfix6_units) echo 'production_units core_tsan_build';;
     racefix_counters) echo racefix_tsan_build;;
     racefix_climon) echo production_units;;
     compat2) echo 'release production_units redis_tcl';;
@@ -7306,6 +7344,8 @@ done
 collect_job atomfix5_watch
 # AT4.19: one row before the quick exit, DQ=+1 / DF=+1.
 collect_job atomfix5_accounting
+collect_job stallfix_cuts
+collect_job stallfix_units
 collect_job core_units
 # flipfix: two serverless sanitizer rows before the quick exit (+2 quick / +2 full).
 collect_job flipfix_units
