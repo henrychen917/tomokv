@@ -2730,9 +2730,15 @@ bool multi_dispatch_attempt(Server& server, ThreadCtx& self, ScatterArenaPool& p
             dispatch->exec_read_fanout || (dispatch->kind == MultiStateKind::Execute &&
                                            dispatch->read_only && dispatch->shards.size() > 1),
             false)) {
-        if (!pool.can_register_snapshot()) {
-            // The unresolved-cut window is full on this IO thread. Falling through without a cut
-            // would silently restore the defect, so this is backpressure: the state stays in
+        // Newly dispatched EXEC readers share the plain-cut FIFO. A retry of an already
+        // published transaction keeps its existing progress rule: it is completing the
+        // admitted unit, and must not queue behind a younger frame of its own connection.
+        if ((server.multi_retry_lane(self.id()).cut_waiting || !pool.can_register_snapshot()) &&
+            !(op_id == client.rob().dispatch_id()
+                  ? cut_window_wait(server, pool, self.id(), &client)
+                  : pool.can_register_snapshot())) {
+            // The window is full or an older FIFO member owns the next slot. Falling through
+            // without a cut would restore the defect, so this is backpressure: the state stays in
             // session->pending and the same EXEC is re-dispatched on a later pass.
             client.set_atomic_backpressure(true);
             return false;

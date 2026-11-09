@@ -1,0 +1,105 @@
+{
+  "mode": "1s",
+  "attempt": 0,
+  "clients": [
+    {
+      "client": 0,
+      "completed": 10347,
+      "max_ms": 16.50854479521513,
+      "over_500ms": 0
+    },
+    {
+      "client": 1,
+      "completed": 10475,
+      "max_ms": 15.806302428245544,
+      "over_500ms": 0
+    },
+    {
+      "client": 2,
+      "completed": 10371,
+      "max_ms": 16.644836403429508,
+      "over_500ms": 0
+    },
+    {
+      "client": 3,
+      "completed": 10368,
+      "max_ms": 18.99760402739048,
+      "over_500ms": 0
+    },
+    {
+      "client": 4,
+      "completed": 10188,
+      "max_ms": 19.159894436597824,
+      "over_500ms": 0
+    },
+    {
+      "client": 5,
+      "completed": 10170,
+      "max_ms": 19.28702462464571,
+      "over_500ms": 0
+    },
+    {
+      "client": 6,
+      "completed": 10418,
+      "max_ms": 18.252091482281685,
+      "over_500ms": 0
+    },
+    {
+      "client": 7,
+      "completed": 10414,
+      "max_ms": 14.178098179399967,
+      "over_500ms": 0
+    },
+    {
+      "client": 8,
+      "completed": 10260,
+      "max_ms": 17.49950833618641,
+      "over_500ms": 0
+    },
+    {
+      "client": 9,
+      "completed": 10396,
+      "max_ms": 18.415561877191067,
+      "over_500ms": 0
+    },
+    {
+      "client": 10,
+      "completed": 10527,
+      "max_ms": 16.81129727512598,
+      "over_500ms": 0
+    },
+    {
+      "client": 11,
+      "completed": 10454,
+      "max_ms": 17.05171726644039,
+      "over_500ms": 0
+    },
+    {
+      "client": 12,
+      "completed": 10454,
+      "max_ms": 15.617962926626205,
+      "over_500ms": 0
+    },
+    {
+      "client": 13,
+      "completed": 10453,
+      "max_ms": 18.209642730653286,
+      "over_500ms": 0
+    },
+    {
+      "client": 14,
+      "completed": 10446,
+      "max_ms": 15.459032729268074,
+      "over_500ms": 0
+    },
+    {
+      "client": 15,
+      "completed": 10214,
+      "max_ms": 15.356850810348988,
+      "over_500ms": 0
+    }
+  ],
+  "max_ms": 19.28702462464571,
+  "refusals": 51228,
+  "counter_present": true
+}

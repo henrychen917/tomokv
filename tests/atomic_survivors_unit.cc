@@ -690,6 +690,8 @@ void script_apply(Server& server) {
     run.phase(ScriptPhase::Read);
     run.phase(ScriptPhase::Run);
     uint8_t expected_access = 3;  // Exact read + staged-write bits in both builds.
+    // Since s1pair, legacy EVAL decides OOM once at start; writes carry the admitted bit to APPLY.
+    expected_access |= kScriptFunctionAdmitted;
 #if __has_include("src/cmd/watch_modified.h")
     expected_access |= kScriptModified;  // The APPEND also changed the key.
 #endif

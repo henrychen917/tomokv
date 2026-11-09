@@ -1,0 +1,107 @@
+{
+  "mode": "2s",
+  "attempt": 0,
+  "clients": [
+    {
+      "client": 0,
+      "completed": 36261,
+      "max_ms": 3.461129032075405,
+      "over_500ms": 0
+    },
+    {
+      "client": 1,
+      "completed": 36699,
+      "max_ms": 4.508841782808304,
+      "over_500ms": 0
+    },
+    {
+      "client": 2,
+      "completed": 36213,
+      "max_ms": 3.408818505704403,
+      "over_500ms": 0
+    },
+    {
+      "client": 3,
+      "completed": 36484,
+      "max_ms": 3.425048664212227,
+      "over_500ms": 0
+    },
+    {
+      "client": 4,
+      "completed": 36501,
+      "max_ms": 3.6509400233626366,
+      "over_500ms": 0
+    },
+    {
+      "client": 5,
+      "completed": 36476,
+      "max_ms": 3.5309186205267906,
+      "over_500ms": 0
+    },
+    {
+      "client": 6,
+      "completed": 36321,
+      "max_ms": 3.4325793385505676,
+      "over_500ms": 0
+    },
+    {
+      "client": 7,
+      "completed": 36392,
+      "max_ms": 3.628079779446125,
+      "over_500ms": 0
+    },
+    {
+      "client": 8,
+      "completed": 35981,
+      "max_ms": 3.654620610177517,
+      "over_500ms": 0
+    },
+    {
+      "client": 9,
+      "completed": 36440,
+      "max_ms": 3.4677889198064804,
+      "over_500ms": 0
+    },
+    {
+      "client": 10,
+      "completed": 36340,
+      "max_ms": 3.6444393917918205,
+      "over_500ms": 0
+    },
+    {
+      "client": 11,
+      "completed": 36490,
+      "max_ms": 4.031190648674965,
+      "over_500ms": 0
+    },
+    {
+      "client": 12,
+      "completed": 36727,
+      "max_ms": 3.5061798989772797,
+      "over_500ms": 0
+    },
+    {
+      "client": 13,
+      "completed": 36229,
+      "max_ms": 3.5217395052313805,
+      "over_500ms": 0
+    },
+    {
+      "client": 14,
+      "completed": 36234,
+      "max_ms": 3.524819388985634,
+      "over_500ms": 0
+    },
+    {
+      "client": 15,
+      "completed": 36418,
+      "max_ms": 3.330799750983715,
+      "over_500ms": 0
+    }
+  ],
+  "max_ms": 4.508841782808304,
+  "refusals": 11,
+  "counter_present": true,
+  "binary": "/home/user/Projects/cx-stallfix/build/tomokv",
+  "binary_sha256": "4d98ae01f0bcea58109751ae92ae09732f4ab823acc26686969bcba76861b9bf"
+}

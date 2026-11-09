@@ -1,0 +1,255 @@
+Function: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]
+Occurrence: 1
+--- PRE
++++ POST
+@@ -1,125 +1,125 @@
+-0000 [ 7] lea -0x6a0(%rbp),%rdi | 48 8d bd 60 f9 ff ff
+-0007 [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900> | 48 8d 35 ?? ?? ?? ??
+-000e [ 7] mov %rbx,-0x6a0(%rbp) | 48 89 9d 60 f9 ff ff
+-0015 [ 7] movb $0x0,-0x698(%rbp) | c6 85 68 f9 ff ff 00
+-001c [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)> | e8 ?? ?? ?? ??
+-0021 [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]+0x13a4> | e9 ?? ?? ?? ??
+-0026 [ 3] mov %rbx,%rdx | 48 89 da
+-0029 [ 3] mov %r14,%rdi | 4c 89 f7
+-002c [ 7] lea <rip>(%rip),%rcx # <literal-string-45525220636f6d6d616e642065786365656473207265636569766520627566666572206c696d697400> | 48 8d 0d ?? ?? ?? ??
+-0033 [ 3] mov %r12,%rsi | 4c 89 e6
+-0036 [ 5] call <tomo_db0::IoLoop::finish_locally(tomo_db0::Client*, tomo_db0::Op&, char const*)> | e8 ?? ?? ?? ??
+-003b [ 2] xor %ebx,%ebx | 31 db
+-003d [ 5] lea 0x60(%r12),%rdi | 49 8d 7c 24 60
+-0042 [ 9] movl $0xffffffff,0x8(%r12) | 41 c7 44 24 08 ff ff ff ff
+-004b [ 5] mov %ebx,0x4c(%r12) | 41 89 5c 24 4c
+-0050 [ 6] movb $0x1,0x32(%r12) | 41 c6 44 24 32 01
+-0056 [ 5] call <tomo_db0::RespFrontier::finish()> | e8 ?? ?? ?? ??
+-005b [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]+0x5c0> | e9 ?? ?? ?? ??
+-0060 [ 7] mov -0x6f8(%rbp),%rcx | 48 8b 8d 08 f9 ff ff
+-0067 [ 3] mov %rbx,%rdx | 48 89 da
+-006a [ 3] mov %r12,%rsi | 4c 89 e6
+-006d [ 3] mov %r14,%rdi | 4c 89 f7
+-0070 [ 5] call <tomo_db0::IoLoop::finish_locally(tomo_db0::Client*, tomo_db0::Op&, char const*)> | e8 ?? ?? ?? ??
+-0075 [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]+0x1b1> | e9 ?? ?? ?? ??
+-007a [ 7] cmpb $0x0,-0x710(%rbp) | 80 bd f0 f8 ff ff 00
+-0081 [ 7] mov -0x6e8(%rbp),%r8 | 4c 8b 85 18 f9 ff ff
+-0088 [ 2] je <+0xbd> | 74 33
+-008a [ 9] cmpb $0x0,0x7b5(%r12) | 41 80 bc 24 b5 07 00 00 00
+-0093 [ 2] jne <+0xbd> | 75 28
+-0095 [ 5] mov 0x8(%r12),%edx | 41 8b 54 24 08
+-009a [ 7] mov -0x720(%rbp),%rcx | 48 8b 8d e0 f8 ff ff
+-00a1 [ 6] mov -0x708(%rbp),%esi | 8b b5 f8 f8 ff ff
+-00a7 [ 7] mov -0x718(%rbp),%rdi | 48 8b bd e8 f8 ff ff
+-00ae [ 5] call <tomo_db0::resp_preauth_error(char const*, unsigned int, unsigned int, unsigned long, char const*)> | e8 ?? ?? ?? ??
+-00b3 [ 3] mov %rax,%r8 | 49 89 c0
+-00b6 [ 7] mov %rax,-0x6e8(%rbp) | 48 89 85 18 f9 ff ff
+-00bd [ 3] mov %r8,%rcx | 4c 89 c1
+-00c0 [ 3] test %r8,%r8 | 4d 85 c0
+-00c3 [ 2] je <+0x106> | 74 41
+-00c5 [ 3] mov %rbx,%rdx | 48 89 da
+-00c8 [ 3] mov %r12,%rsi | 4c 89 e6
+-00cb [ 3] mov %r14,%rdi | 4c 89 f7
+-00ce [ 5] call <tomo_db0::IoLoop::finish_locally(tomo_db0::Client*, tomo_db0::Op&, char const*)> | e8 ?? ?? ?? ??
+-00d3 [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]+0x192b> | e9 ?? ?? ?? ??
+-00d8 [ 3] xor %r15d,%r15d | 45 31 ff
+-00db [ 7] lea -0x6a0(%rbp),%rdi | 48 8d bd 60 f9 ff ff
+-00e2 [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900> | 48 8d 35 ?? ?? ?? ??
+-00e9 [ 7] mov %rbx,-0x6a0(%rbp) | 48 89 9d 60 f9 ff ff
+-00f0 [ 7] movb $0x0,-0x698(%rbp) | c6 85 68 f9 ff ff 00
+-00f7 [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)> | e8 ?? ?? ?? ??
+-00fc [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]+0x1f76> | e9 ?? ?? ?? ??
+-0101 [ 5] call <abort@plt> | e8 ?? ?? ?? ??
+-0106 [ 7] lea <rip>(%rip),%rcx # <literal-string-4552522070726f746f636f6c206572726f7200> | 48 8d 0d ?? ?? ?? ??
+-010d [ 2] jmp <+0xc5> | eb b6
+-010f [ 7] mov -0x480(%rbp),%rsi | 48 8b b5 80 fb ff ff
+-0116 [ 7] lea -0x6a0(%rbp),%rdi | 48 8d bd 60 f9 ff ff
+-011d [ 7] mov %rbx,-0x6a0(%rbp) | 48 89 9d 60 f9 ff ff
+-0124 [ 7] movb $0x0,-0x698(%rbp) | c6 85 68 f9 ff ff 00
+-012b [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)> | e8 ?? ?? ?? ??
+-0130 [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]+0x1290> | e9 ?? ?? ?? ??
+-0135 [ 4] endbr64 | f3 0f 1e fa
+-0139 [ 3] mov %r15,%rdi | 4c 89 ff
+-013c [ 3] mov %rax,%rbx | 48 89 c3
+-013f [ 3] vzeroupper | c5 f8 77
+-0142 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()> | e8 ?? ?? ?? ??
+-0147 [ 4] mov -0x38(%rbp),%rax | 48 8b 45 c8
+-014b [ 9] sub %fs:0x28,%rax | 64 48 2b 04 25 28 00 00 00
+-0154 [ 2] jne <+0x19c> | 75 46
+-0156 [ 3] mov %rbx,%rdi | 48 89 df
+-0159 [ 5] call <_Unwind_Resume@plt> | e8 ?? ?? ?? ??
+-015e [ 6] mov $0x1,%r13d | 41 bd 01 00 00 00
+-0164 [ 6] mov $0x4000,%r9d | 41 b9 00 40 00 00
+-016a [ 6] mov $0xa,%r8d | 41 b8 0a 00 00 00
+-0170 [ 7] lea -0x6e8(%rbp),%rcx | 48 8d 8d 18 f9 ff ff
+-0177 [ 7] lea -0x6ec(%rbp),%rsi | 48 8d b5 14 f9 ff ff
+-017e [ 3] mov %rbx,%rdx | 48 89 da
+-0181 [ 3] mov %r12,%rdi | 4c 89 e7
+-0184 [ 5] call <tomo_db0::Client::resume_multibulk(unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long)> | e8 ?? ?? ?? ??
+-0189 [ 7] or -0x724(%rbp),%r13d | 44 0b ad dc f8 ff ff
+-0190 [ 7] mov %r13b,-0x700(%rbp) | 44 88 ad 00 f9 ff ff
+-0197 [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]+0x315> | e9 ?? ?? ?? ??
+-019c [ 5] call <__stack_chk_fail@plt> | e8 ?? ?? ?? ??
+-01a1 [ 7] mov -0x720(%rbp),%r9 | 4c 8b 8d e0 f8 ff ff
+-01a8 [ 3] xor %r13d,%r13d | 45 31 ed
+-01ab [ 6] mov $0x100000,%r8d | 41 b8 00 00 10 00
+-01b1 [ 2] jmp <+0x170> | eb bd
+-01b3 [ 3] mov %r12,%rsi | 4c 89 e6
+-01b6 [ 3] mov %r14,%rdi | 4c 89 f7
+-01b9 [ 5] call <tomo_db0::IoLoop::note_query_limit_disconnect_once(tomo_db0::Client const&) const> | e8 ?? ?? ?? ??
+-01be [ 2] test %al,%al | 84 c0
+-01c0 [ 2] jne <+0x21e> | 75 5c
+-01c2 [ 5] mov 0x4(%r12),%eax | 41 8b 44 24 04
+-01c7 [ 6] mov %eax,-0x708(%rbp) | 89 85 f8 f8 ff ff
+-01cd [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]+0x7e> | e9 ?? ?? ?? ??
+-01d2 [ 7] lea -0x280(%rbp),%r9 | 4c 8d 8d 80 fd ff ff
+-01d9 [ 7] lea -0x240(%rbp),%r13 | 4c 8d ad c0 fd ff ff
+-01e0 [ 8] movb $0x0,-0x280(%rbp,%rdi,1) | c6 84 3d 80 fd ff ff 00
+-01e8 [ 7] lea <rip>(%rip),%r8 # <literal-string-4552522077726f6e67206e756d626572206f6620617267756d656e747320666f72202725732720636f6d6d616e6400> | 4c 8d 05 ?? ?? ?? ??
+-01ef [ 5] mov $0x80,%ecx | b9 80 00 00 00
+-01f4 [ 3] mov %r13,%rdi | 4c 89 ef
+-01f7 [ 5] mov $0x2,%edx | ba 02 00 00 00
+-01fc [ 5] mov $0x80,%esi | be 80 00 00 00
+-0201 [ 2] xor %eax,%eax | 31 c0
+-0203 [ 5] call <__snprintf_chk@plt> | e8 ?? ?? ?? ??
+-0208 [ 3] mov %r13,%rcx | 4c 89 e9
+-020b [ 3] mov %rbx,%rdx | 48 89 da
+-020e [ 3] mov %r12,%rsi | 4c 89 e6
+-0211 [ 3] mov %r14,%rdi | 4c 89 f7
+-0214 [ 5] call <tomo_db0::IoLoop::finish_locally(tomo_db0::Client*, tomo_db0::Op&, char const*)> | e8 ?? ?? ?? ??
+-0219 [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]+0x1b1> | e9 ?? ?? ?? ??
+-021e [ 4] mov -0x38(%rbp),%rax | 48 8b 45 c8
+-0222 [ 9] sub %fs:0x28,%rax | 64 48 2b 04 25 28 00 00 00
+-022b [ 2] jne <+0x248> | 75 1b
+-022d [ 4] lea -0x28(%rbp),%rsp | 48 8d 65 d8
+-0231 [ 3] mov %r12,%rsi | 4c 89 e6
+-0234 [ 3] mov %r14,%rdi | 4c 89 f7
+-0237 [ 2] xor %edx,%edx | 31 d2
+-0239 [ 1] pop %rbx | 5b
+-023a [ 2] pop %r12 | 41 5c
+-023c [ 2] pop %r13 | 41 5d
+-023e [ 2] pop %r14 | 41 5e
+-0240 [ 2] pop %r15 | 41 5f
+-0242 [ 1] pop %rbp | 5d
+-0243 [ 5] jmp <tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)> | e9 ?? ?? ?? ??
+-0248 [ 5] call <__stack_chk_fail@plt> | e8 ?? ?? ?? ??
++0000 [ 3] xor %r15d,%r15d | 45 31 ff
++0003 [ 7] lea -0x6a0(%rbp),%rdi | 48 8d bd 60 f9 ff ff
++000a [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900> | 48 8d 35 ?? ?? ?? ??
++0011 [ 7] mov %rbx,-0x6a0(%rbp) | 48 89 9d 60 f9 ff ff
++0018 [ 7] movb $0x0,-0x698(%rbp) | c6 85 68 f9 ff ff 00
++001f [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)> | e8 ?? ?? ?? ??
++0024 [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]+0x21b5> | e9 ?? ?? ?? ??
++0029 [ 7] lea -0x6a0(%rbp),%rdi | 48 8d bd 60 f9 ff ff
++0030 [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900> | 48 8d 35 ?? ?? ?? ??
++0037 [ 7] mov %rbx,-0x6a0(%rbp) | 48 89 9d 60 f9 ff ff
++003e [ 7] movb $0x0,-0x698(%rbp) | c6 85 68 f9 ff ff 00
++0045 [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)> | e8 ?? ?? ?? ??
++004a [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]+0x13a4> | e9 ?? ?? ?? ??
++004f [ 7] mov -0x6f8(%rbp),%rcx | 48 8b 8d 08 f9 ff ff
++0056 [ 3] mov %rbx,%rdx | 48 89 da
++0059 [ 3] mov %r12,%rsi | 4c 89 e6
++005c [ 3] mov %r14,%rdi | 4c 89 f7
++005f [ 5] call <tomo_db0::IoLoop::finish_locally(tomo_db0::Client*, tomo_db0::Op&, char const*)> | e8 ?? ?? ?? ??
++0064 [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]+0x1b1> | e9 ?? ?? ?? ??
++0069 [ 7] mov -0x480(%rbp),%rsi | 48 8b b5 80 fb ff ff
++0070 [ 7] lea -0x6a0(%rbp),%rdi | 48 8d bd 60 f9 ff ff
++0077 [ 7] mov %rbx,-0x6a0(%rbp) | 48 89 9d 60 f9 ff ff
++007e [ 7] movb $0x0,-0x698(%rbp) | c6 85 68 f9 ff ff 00
++0085 [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)> | e8 ?? ?? ?? ??
++008a [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]+0x1290> | e9 ?? ?? ?? ??
++008f [ 4] endbr64 | f3 0f 1e fa
++0093 [ 3] mov %r15,%rdi | 4c 89 ff
++0096 [ 3] mov %rax,%rbx | 48 89 c3
++0099 [ 3] vzeroupper | c5 f8 77
++009c [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()> | e8 ?? ?? ?? ??
++00a1 [ 4] mov -0x38(%rbp),%rax | 48 8b 45 c8
++00a5 [ 9] sub %fs:0x28,%rax | 64 48 2b 04 25 28 00 00 00
++00ae [ 6] jne <+0x141> | 0f 85 8d 00 00 00
++00b4 [ 3] mov %rbx,%rdi | 48 89 df
++00b7 [ 5] call <_Unwind_Resume@plt> | e8 ?? ?? ?? ??
++00bc [ 7] mov -0x720(%rbp),%r9 | 4c 8b 8d e0 f8 ff ff
++00c3 [ 3] xor %r13d,%r13d | 45 31 ed
++00c6 [ 6] mov $0x100000,%r8d | 41 b8 00 00 10 00
++00cc [ 7] lea -0x6e8(%rbp),%rcx | 48 8d 8d 18 f9 ff ff
++00d3 [ 7] lea -0x6ec(%rbp),%rsi | 48 8d b5 14 f9 ff ff
++00da [ 3] mov %rbx,%rdx | 48 89 da
++00dd [ 3] mov %r12,%rdi | 4c 89 e7
++00e0 [ 5] call <tomo_db0::Client::resume_multibulk(unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long)> | e8 ?? ?? ?? ??
++00e5 [ 7] or -0x724(%rbp),%r13d | 44 0b ad dc f8 ff ff
++00ec [ 7] mov %r13b,-0x700(%rbp) | 44 88 ad 00 f9 ff ff
++00f3 [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]+0x315> | e9 ?? ?? ?? ??
++00f8 [ 3] mov %r12,%rsi | 4c 89 e6
++00fb [ 3] mov %r14,%rdi | 4c 89 f7
++00fe [ 5] call <tomo_db0::IoLoop::note_query_limit_disconnect_once(tomo_db0::Client const&) const> | e8 ?? ?? ?? ??
++0103 [ 2] test %al,%al | 84 c0
++0105 [ 2] jne <+0x117> | 75 10
++0107 [ 5] mov 0x4(%r12),%eax | 41 8b 44 24 04
++010c [ 6] mov %eax,-0x708(%rbp) | 89 85 f8 f8 ff ff
++0112 [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]+0x7e> | e9 ?? ?? ?? ??
++0117 [ 4] mov -0x38(%rbp),%rax | 48 8b 45 c8
++011b [ 9] sub %fs:0x28,%rax | 64 48 2b 04 25 28 00 00 00
++0124 [ 2] jne <+0x146> | 75 20
++0126 [ 4] lea -0x28(%rbp),%rsp | 48 8d 65 d8
++012a [ 3] mov %r12,%rsi | 4c 89 e6
++012d [ 3] mov %r14,%rdi | 4c 89 f7
++0130 [ 2] xor %edx,%edx | 31 d2
++0132 [ 1] pop %rbx | 5b
++0133 [ 2] pop %r12 | 41 5c
++0135 [ 2] pop %r13 | 41 5d
++0137 [ 2] pop %r14 | 41 5e
++0139 [ 2] pop %r15 | 41 5f
++013b [ 1] pop %rbp | 5d
++013c [ 5] jmp <tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)> | e9 ?? ?? ?? ??
++0141 [ 5] call <__stack_chk_fail@plt> | e8 ?? ?? ?? ??
++0146 [ 5] call <__stack_chk_fail@plt> | e8 ?? ?? ?? ??
++014b [ 3] mov %rbx,%rdx | 48 89 da
++014e [ 3] mov %r14,%rdi | 4c 89 f7
++0151 [ 7] lea <rip>(%rip),%rcx # <literal-string-45525220636f6d6d616e642065786365656473207265636569766520627566666572206c696d697400> | 48 8d 0d ?? ?? ?? ??
++0158 [ 3] mov %r12,%rsi | 4c 89 e6
++015b [ 5] call <tomo_db0::IoLoop::finish_locally(tomo_db0::Client*, tomo_db0::Op&, char const*)> | e8 ?? ?? ?? ??
++0160 [ 2] xor %ebx,%ebx | 31 db
++0162 [ 5] lea 0x60(%r12),%rdi | 49 8d 7c 24 60
++0167 [ 9] movl $0xffffffff,0x8(%r12) | 41 c7 44 24 08 ff ff ff ff
++0170 [ 5] mov %ebx,0x4c(%r12) | 41 89 5c 24 4c
++0175 [ 6] movb $0x1,0x32(%r12) | 41 c6 44 24 32 01
++017b [ 5] call <tomo_db0::RespFrontier::finish()> | e8 ?? ?? ?? ??
++0180 [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]+0x5c0> | e9 ?? ?? ?? ??
++0185 [ 6] mov $0x1,%r13d | 41 bd 01 00 00 00
++018b [ 6] mov $0x4000,%r9d | 41 b9 00 40 00 00
++0191 [ 6] mov $0xa,%r8d | 41 b8 0a 00 00 00
++0197 [ 5] jmp <+0xcc> | e9 30 ff ff ff
++019c [ 7] lea -0x280(%rbp),%r9 | 4c 8d 8d 80 fd ff ff
++01a3 [ 7] lea -0x240(%rbp),%r13 | 4c 8d ad c0 fd ff ff
++01aa [ 8] movb $0x0,-0x280(%rbp,%rdi,1) | c6 84 3d 80 fd ff ff 00
++01b2 [ 7] lea <rip>(%rip),%r8 # <literal-string-4552522077726f6e67206e756d626572206f6620617267756d656e747320666f72202725732720636f6d6d616e6400> | 4c 8d 05 ?? ?? ?? ??
++01b9 [ 5] mov $0x80,%ecx | b9 80 00 00 00
++01be [ 3] mov %r13,%rdi | 4c 89 ef
++01c1 [ 5] mov $0x2,%edx | ba 02 00 00 00
++01c6 [ 5] mov $0x80,%esi | be 80 00 00 00
++01cb [ 2] xor %eax,%eax | 31 c0
++01cd [ 5] call <__snprintf_chk@plt> | e8 ?? ?? ?? ??
++01d2 [ 3] mov %r13,%rcx | 4c 89 e9
++01d5 [ 3] mov %rbx,%rdx | 48 89 da
++01d8 [ 3] mov %r12,%rsi | 4c 89 e6
++01db [ 3] mov %r14,%rdi | 4c 89 f7
++01de [ 5] call <tomo_db0::IoLoop::finish_locally(tomo_db0::Client*, tomo_db0::Op&, char const*)> | e8 ?? ?? ?? ??
++01e3 [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]+0x1b1> | e9 ?? ?? ?? ??
++01e8 [ 5] call <abort@plt> | e8 ?? ?? ?? ??
++01ed [ 7] cmpb $0x0,-0x710(%rbp) | 80 bd f0 f8 ff ff 00
++01f4 [ 7] mov -0x6e8(%rbp),%r8 | 4c 8b 85 18 f9 ff ff
++01fb [ 2] je <+0x230> | 74 33
++01fd [ 9] cmpb $0x0,0x7b5(%r12) | 41 80 bc 24 b5 07 00 00 00
++0206 [ 2] jne <+0x230> | 75 28
++0208 [ 5] mov 0x8(%r12),%edx | 41 8b 54 24 08
++020d [ 7] mov -0x720(%rbp),%rcx | 48 8b 8d e0 f8 ff ff
++0214 [ 6] mov -0x708(%rbp),%esi | 8b b5 f8 f8 ff ff
++021a [ 7] mov -0x718(%rbp),%rdi | 48 8b bd e8 f8 ff ff
++0221 [ 5] call <tomo_db0::resp_preauth_error(char const*, unsigned int, unsigned int, unsigned long, char const*)> | e8 ?? ?? ?? ??
++0226 [ 3] mov %rax,%r8 | 49 89 c0
++0229 [ 7] mov %rax,-0x6e8(%rbp) | 48 89 85 18 f9 ff ff
++0230 [ 3] mov %r8,%rcx | 4c 89 c1
++0233 [ 3] test %r8,%r8 | 4d 85 c0
++0236 [ 2] je <+0x24b> | 74 13
++0238 [ 3] mov %rbx,%rdx | 48 89 da
++023b [ 3] mov %r12,%rsi | 4c 89 e6
++023e [ 3] mov %r14,%rdi | 4c 89 f7
++0241 [ 5] call <tomo_db0::IoLoop::finish_locally(tomo_db0::Client*, tomo_db0::Op&, char const*)> | e8 ?? ?? ?? ??
++0246 [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]+0x1984> | e9 ?? ?? ?? ??
++024b [ 7] lea <rip>(%rip),%rcx # <literal-string-4552522070726f746f636f6c206572726f7200> | 48 8d 0d ?? ?? ?? ??
++0252 [ 2] jmp <+0x238> | eb e4

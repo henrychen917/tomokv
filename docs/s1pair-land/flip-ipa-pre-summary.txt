@@ -1,0 +1,227 @@
+IPA function summary for std::string tomo_db0::Server::flipctl_debug_dump() const/7638 inlinable
+  global time:     328.798557
+  self size:       100
+  global size:     251
+  min size:       0
+  self stack:      256
+  global stack:    384
+  estimated growth:13
+    size:0.000000, time:0.000000
+    size:3.000000, time:2.000000,  executed if:(not inlined)
+    size:0.500000, time:0.500000,  executed if:(not inlined),  nonconst if:(op0[ref offset: 2128] changed) && (not inlined)
+    size:2.500000, time:2.500000,  nonconst if:(op0[ref offset: 2128] changed)
+    size:1.000000, time:0.500000,  executed if:(op0[ref offset: 2128] != 0) && (not inlined)
+    size:137.000000, time:136.491247,  executed if:(op0[ref offset: 2128] != 0)
+  calls:
+    constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_dispose() [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/10895 call is unlikely and code size would grow
+      freq:0.00 loop depth: 0 size: 2 time: 11 callee size: 7 stack: 0 predicate: (op0[ref offset: 2128] != 0)
+       op0 is compile time invariant
+       op0 points to local or readonly memory
+    constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_dispose() [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/10895 call is unlikely and code size would grow
+      freq:0.00 loop depth: 0 size: 2 time: 11 callee size: 7 stack: 0 predicate: (op0[ref offset: 2128] != 0)
+       op0 is compile time invariant
+       op0 points to local or readonly memory
+    constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_dispose() [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/10895 call is unlikely and code size would grow
+      freq:0.00 loop depth: 0 size: 2 time: 11 callee size: 7 stack: 0 predicate: (op0[ref offset: 2128] != 0)
+       op0 is compile time invariant
+       op0 points to local or readonly memory
+    constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_dispose() [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/10895 call is unlikely and code size would grow
+      freq:0.00 loop depth: 0 size: 2 time: 11 callee size: 7 stack: 0 predicate: (op0[ref offset: 2128] != 0)
+       op0 is compile time invariant
+       op0 points to local or readonly memory
+    constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_dispose() [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/10895 call is unlikely and code size would grow
+      freq:0.00 loop depth: 0 size: 2 time: 11 callee size: 7 stack: 0 predicate: (op0[ref offset: 2128] != 0)
+       op0 is compile time invariant
+       op0 points to local or readonly memory
+    constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_dispose() [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/10895 call is unlikely and code size would grow
+      freq:0.00 loop depth: 0 size: 2 time: 11 callee size: 7 stack: 0 predicate: (op0[ref offset: 2128] != 0)
+       op0 is compile time invariant
+       op0 points to local or readonly memory
+    constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_dispose() [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/10895 call is unlikely and code size would grow
+      freq:0.00 loop depth: 0 size: 2 time: 11 callee size: 7 stack: 0 predicate: (op0[ref offset: 2128] != 0)
+       op0 is compile time invariant
+       op0 points to local or readonly memory
+    constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_dispose() [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/10895 call is unlikely and code size would grow
+      freq:0.00 loop depth: 0 size: 2 time: 11 callee size: 7 stack: 0 predicate: (op0[ref offset: 2128] != 0)
+       op0 is compile time invariant
+       op0 points to local or readonly memory
+    constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_dispose() [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/10895 --param inline-unit-growth limit reached
+      freq:0.50 loop depth: 0 size: 2 time: 11 callee size: 7 stack: 0 predicate: (op0[ref offset: 2128] != 0)
+       op0 is compile time invariant
+       op0 points to local or readonly memory
+    constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_dispose() [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/10895 --param inline-unit-growth limit reached
+      freq:0.50 loop depth: 0 size: 2 time: 11 callee size: 7 stack: 0 predicate: (op0[ref offset: 2128] != 0)
+       op0 is compile time invariant
+       op0 points to local or readonly memory
+    constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_dispose() [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/10895 --param inline-unit-growth limit reached
+      freq:0.50 loop depth: 0 size: 2 time: 11 callee size: 7 stack: 0 predicate: (op0[ref offset: 2128] != 0)
+       op0 is compile time invariant
+       op0 points to local or readonly memory
+    constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_dispose() [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/25606 inlined
+      freq:0.50
+      Stack frame offset 256, callee self size 0
+      void __builtin_unreachable()/19864 function body not available
+        freq:0.00 loop depth: 0 size: 0 time:  0 predicate: (op0[ref offset: 2128] != 0)
+      deallocate.isra/25607 inlined
+        freq:0.41
+        Stack frame offset 256, callee self size 0
+        void operator delete(void*, std::size_t)/19867 function body not available
+          freq:0.41 loop depth: 0 size: 3 time: 12 predicate: (op0[ref offset: 2128] != 0)
+    constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_dispose() [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/25597 inlined
+      freq:0.50
+      Stack frame offset 256, callee self size 0
+      void __builtin_unreachable()/19864 function body not available
+        freq:0.00 loop depth: 0 size: 0 time:  0 predicate: (op0[ref offset: 2128] != 0)
+      deallocate.isra/25598 inlined
+        freq:0.41
+        Stack frame offset 256, callee self size 0
+        void operator delete(void*, std::size_t)/19867 function body not available
+          freq:0.41 loop depth: 0 size: 3 time: 12 predicate: (op0[ref offset: 2128] != 0)
+    constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_dispose() [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/10895 --param inline-unit-growth limit reached
+      freq:0.50 loop depth: 0 size: 2 time: 11 callee size: 7 stack: 0 predicate: (op0[ref offset: 2128] != 0)
+       op0 is compile time invariant
+       op0 points to local or readonly memory
+    constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_dispose() [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/25631 inlined
+      freq:0.50
+      Stack frame offset 256, callee self size 0
+      void __builtin_unreachable()/19864 function body not available
+        freq:0.00 loop depth: 0 size: 0 time:  0 predicate: (op0[ref offset: 2128] != 0)
+      deallocate.isra/25632 inlined
+        freq:0.41
+        Stack frame offset 256, callee self size 0
+        void operator delete(void*, std::size_t)/19867 function body not available
+          freq:0.41 loop depth: 0 size: 3 time: 12 predicate: (op0[ref offset: 2128] != 0)
+    constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_dispose() [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/25584 inlined
+      freq:0.50
+      Stack frame offset 256, callee self size 0
+      void __builtin_unreachable()/19864 function body not available
+        freq:0.00 loop depth: 0 size: 0 time:  0 predicate: (op0[ref offset: 2128] != 0)
+      deallocate.isra/25585 inlined
+        freq:0.41
+        Stack frame offset 256, callee self size 0
+        void operator delete(void*, std::size_t)/19867 function body not available
+          freq:0.41 loop depth: 0 size: 3 time: 12 predicate: (op0[ref offset: 2128] != 0)
+    constexpr std::__cxx11::basic_string<_CharT, _Traits, _Allocator> std::operator+(__cxx11::basic_string<_CharT, _Traits, _Allocator>&&, const _CharT*) [with _CharT = char; _Traits = char_traits<char>; _Alloc = allocator<char>]/24730 inlined
+      freq:0.50
+      Stack frame offset 256, callee self size 0
+      constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>& std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::append(const _CharT*) [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/5983 --param inline-unit-growth limit reached
+        freq:0.50 loop depth: 0 size: 4 time: 13 callee size:21 stack: 0 predicate: (op0[ref offset: 2128] != 0)
+         op0 is compile time invariant
+         op0 points to local or readonly memory
+         op1 is compile time invariant
+      constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::basic_string(std::__cxx11::basic_string<_CharT, _Traits, _Alloc>&&) [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/25316 inlined
+        freq:0.50
+        Stack frame offset 256, callee self size 0
+        void __builtin_unreachable()/19864 function body not available
+          freq:0.00 loop depth: 0 size: 0 time:  0 predicate: (op0[ref offset: 2128] != 0)
+        void* __builtin_memcpy(void*, const void*, long unsigned int)/19866 function body not available
+          freq:0.09 loop depth: 0 size: 4 time: 13 predicate: (op0[ref offset: 2128] != 0)
+           op0 points to local or readonly memory
+           op2 points to local or readonly memory
+    constexpr std::__cxx11::basic_string<_CharT, _Traits, _Allocator> std::operator+(__cxx11::basic_string<_CharT, _Traits, _Allocator>&&, __cxx11::basic_string<_CharT, _Traits, _Allocator>&&) [with _CharT = char; _Traits = char_traits<char>; _Alloc = allocator<char>]/10053 --param max-inline-insns-single limit reached
+      freq:0.50 loop depth: 0 size: 4 time: 13 callee size:52 stack: 0 predicate: (op0[ref offset: 2128] != 0)
+       op0 is compile time invariant
+       op0 points to local or readonly memory
+       op1 is compile time invariant
+       op1 points to local or readonly memory
+    constexpr std::__cxx11::basic_string<_CharT, _Traits, _Allocator> std::operator+(__cxx11::basic_string<_CharT, _Traits, _Allocator>&&, const _CharT*) [with _CharT = char; _Traits = char_traits<char>; _Alloc = allocator<char>]/24738 inlined
+      freq:0.50
+      Stack frame offset 256, callee self size 0
+      constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>& std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::append(const _CharT*) [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/5983 --param inline-unit-growth limit reached
+        freq:0.50 loop depth: 0 size: 4 time: 13 callee size:21 stack: 0 predicate: (op0[ref offset: 2128] != 0)
+         op0 is compile time invariant
+         op0 points to local or readonly memory
+         op1 is compile time invariant
+      constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::basic_string(std::__cxx11::basic_string<_CharT, _Traits, _Alloc>&&) [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/25278 inlined
+        freq:0.50
+        Stack frame offset 256, callee self size 0
+        void __builtin_unreachable()/19864 function body not available
+          freq:0.00 loop depth: 0 size: 0 time:  0 predicate: (op0[ref offset: 2128] != 0)
+        void* __builtin_memcpy(void*, const void*, long unsigned int)/19866 function body not available
+          freq:0.09 loop depth: 0 size: 4 time: 13 predicate: (op0[ref offset: 2128] != 0)
+           op0 points to local or readonly memory
+           op2 points to local or readonly memory
+    constexpr std::__cxx11::basic_string<_CharT, _Traits, _Allocator> std::operator+(__cxx11::basic_string<_CharT, _Traits, _Allocator>&&, __cxx11::basic_string<_CharT, _Traits, _Allocator>&&) [with _CharT = char; _Traits = char_traits<char>; _Alloc = allocator<char>]/10053 --param max-inline-insns-single limit reached
+      freq:0.50 loop depth: 0 size: 4 time: 13 callee size:52 stack: 0 predicate: (op0[ref offset: 2128] != 0)
+       op0 is compile time invariant
+       op0 points to local or readonly memory
+       op1 is compile time invariant
+       op1 points to local or readonly memory
+    constexpr std::__cxx11::basic_string<_CharT, _Traits, _Allocator> std::operator+(__cxx11::basic_string<_CharT, _Traits, _Allocator>&&, const _CharT*) [with _CharT = char; _Traits = char_traits<char>; _Alloc = allocator<char>]/24741 inlined
+      freq:0.50
+      Stack frame offset 256, callee self size 0
+      constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>& std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::append(const _CharT*) [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/5983 --param inline-unit-growth limit reached
+        freq:0.50 loop depth: 0 size: 4 time: 13 callee size:21 stack: 0 predicate: (op0[ref offset: 2128] != 0)
+         op0 is compile time invariant
+         op0 points to local or readonly memory
+         op1 is compile time invariant
+      constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::basic_string(std::__cxx11::basic_string<_CharT, _Traits, _Alloc>&&) [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/25295 inlined
+        freq:0.50
+        Stack frame offset 256, callee self size 0
+        void __builtin_unreachable()/19864 function body not available
+          freq:0.00 loop depth: 0 size: 0 time:  0 predicate: (op0[ref offset: 2128] != 0)
+        void* __builtin_memcpy(void*, const void*, long unsigned int)/19866 function body not available
+          freq:0.09 loop depth: 0 size: 4 time: 13 predicate: (op0[ref offset: 2128] != 0)
+           op0 points to local or readonly memory
+           op2 points to local or readonly memory
+    constexpr std::__cxx11::basic_string<_CharT, _Traits, _Allocator> std::operator+(const _CharT*, __cxx11::basic_string<_CharT, _Traits, _Allocator>&&) [with _CharT = char; _Traits = char_traits<char>; _Alloc = allocator<char>]/24951 inlined
+      freq:0.50
+      Stack frame offset 256, callee self size 0
+      constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>& std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::insert(size_type, const _CharT*) [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/24952 inlined
+        freq:0.50
+        Stack frame offset 256, callee self size 0
+        long unsigned int __builtin_strlen(const char*)/19861 function body not available
+          freq:0.50 loop depth: 0 size: 3 time: 12 predicate: (op0[ref offset: 2128] != 0)
+           op0 is compile time invariant
+        constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>& std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::replace(size_type, size_type, const _CharT*, size_type) [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/24953 inlined
+          freq:0.50
+          Stack frame offset 256, callee self size 0
+          constexpr std::__cxx11::basic_string<_CharT, _Traits, _Allocator>& std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_replace(size_type, size_type, const _CharT*, size_type) [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/11104 --param inline-unit-growth limit reached
+            freq:0.50 loop depth: 0 size: 7 time: 16 callee size:38 stack: 0 predicate: (op0[ref offset: 2128] != 0)
+             op0 is compile time invariant
+             op0 points to local or readonly memory
+             op1 is compile time invariant
+             op1 points to local or readonly memory
+             op3 is compile time invariant
+             op4 points to local or readonly memory
+          void std::__throw_out_of_range_fmt(const char*, ...)/19862 function body not available
+            freq:0.00 loop depth: 0 size: 5 time: 14 predicate: (op0[ref offset: 2128] != 0)
+             op0 is compile time invariant
+             op1 is compile time invariant
+      constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::basic_string(std::__cxx11::basic_string<_CharT, _Traits, _Alloc>&&) [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]/24954 inlined
+        freq:0.50
+        Stack frame offset 256, callee self size 0
+        void* __builtin_memcpy(void*, const void*, long unsigned int)/19866 function body not available
+          freq:0.09 loop depth: 0 size: 4 time: 13 predicate: (op0[ref offset: 2128] != 0)
+           op0 points to local or readonly memory
+           op2 points to local or readonly memory
+        void __builtin_unreachable()/19864 function body not available
+          freq:0.00 loop depth: 0 size: 0 time:  0 predicate: (op0[ref offset: 2128] != 0)
+    std::string std::__cxx11::to_string(unsigned int)/563 --param inline-unit-growth limit reached
+      freq:0.50 loop depth: 0 size: 3 time: 12 callee size:29 stack: 0 predicate: (op0[ref offset: 2128] != 0)
+    std::string std::__cxx11::to_string(unsigned int)/563 --param inline-unit-growth limit reached
+      freq:0.50 loop depth: 0 size: 3 time: 12 callee size:29 stack: 0 predicate: (op0[ref offset: 2128] != 0)
+    uint32_t tomo_db0::Server::client_serving_thread_count() const/24552 inlined
+      freq:0.50
+      Stack frame offset 256, callee self size 0
+      bool tomo_db0::Server::serves_clients(uint32_t) const/24553 inlined
+        freq:4.05
+        Stack frame offset 256, callee self size 0
+        unsigned char __atomic_load_1(const volatile void*, int)/19855 function body not available
+          freq:1.34 loop depth: 1 size: 4 time: 13 predicate: (op0[ref offset: 2128] != 0)
+           op1 is compile time invariant
+        bool tomo_db0::Server::_ZNK8tomo_db06Server14serves_clientsENS_4RoleE.part.0(tomo_db0::Role) const/24554 inlined
+          freq:0.67
+          Stack frame offset 256, callee self size 0
+    std::string std::__cxx11::to_string(unsigned int)/563 --param inline-unit-growth limit reached
+      freq:0.50 loop depth: 0 size: 3 time: 12 callee size:29 stack: 0 predicate: (op0[ref offset: 2128] != 0)
+    uint32_t tomo_db0::Server::shard_owner_count() const/24805 inlined
+      freq:0.50
+      Stack frame offset 256, callee self size 128
+      unsigned int __atomic_load_4(const volatile void*, int)/19853 function body not available
+        freq:4.05 loop depth: 1 size: 4 time: 13 predicate: (op0[ref offset: 2128] != 0)
+         op1 is compile time invariant
+    std::string tomo_db0::FlipController::debug_dump() const/19854 function body not available
+      freq:0.50 loop depth: 0 size: 3 time: 12 predicate: (op0[ref offset: 2128] == 0)
+
+IPA summary for constexpr tomo_db0::FlipctlReport::~FlipctlReport()/7636 is missing.

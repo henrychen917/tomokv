@@ -1119,6 +1119,7 @@ struct CoreConcurrencyTest {
 #include "flipfix7_checks.inc"
 #include "wave13_checks.inc"
 #include "wave14_checks.inc"
+#include "stallfix_checks.inc"
 
     static void snapshot_forward() {
         Fixture f;
@@ -1343,6 +1344,13 @@ int main(int argc, char** argv) {
         T::flipfix5_ex(tomo::FlipStage::ExInstall, false, false, true, true);
     else if (row == "close-cycle")
         T::close_cycles();
+    else if (row == "stallfix") {
+        T::stallfix_lb();
+        T::stallfix_ack_and_timeout();
+        T::stallfix_client_ack();
+        T::stallfix_cut_fifo();
+    } else if (row == "stallfix-planted")
+        T::stallfix_lb(true);
     else if (row == "drain")
         T::drain_ack();
     else if (row == "route") {

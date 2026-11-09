@@ -369,8 +369,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # flipfix5: job_flipfix5_units (two serverless rows) and job_flipfix5 (one live row), all three
 # collected before the quick exit: DQ=+3, DF=+3. Maintainer updates 946/963 -> 949/966 and adds
 # the three labels to the label fixture.
-EXPECT_QUICK=1325
-EXPECT_FULL=1342                 # ABBA reports only; self-test remains counted.
+EXPECT_QUICK=1332
+EXPECT_FULL=1349                 # ABBA reports only; self-test remains counted.
 # txnfix/txnfix2: four txniso, four txn_nx, two txngroup rows before the quick exit:
 # DQ=10, DF=10; maintainer update required: 625+10=635 quick, 642+10=652 full.
 # txnorder: four rows before the quick exit, DQ=4, DF=4; cumulative +14/+14.
@@ -1191,6 +1191,7 @@ plan_jobs(){
   # Compilers use that slot's server+load cores. The release build alone unlocks release jobs;
   # ASAN and standalone units do not delay boots, and full-only builds start immediately too.
   JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build pubtrackfix maxmemrace storefix5)
+  JOB_NAMES+=(s1pair)
   JOB_NAMES+=(txnfix4-oom txnfix4-watch txnfix4-crash txnfix4-hash txnfix4-placement)
   for TR_SHAPE in 2s-0 2s-1 1s-0 1s-1; do for TR_ENGINE in uring epoll; do
     for TR_ATOMIC in 0 1; do
@@ -1254,7 +1255,7 @@ plan_jobs(){
   JOB_NAMES+=(wave15_stream wave15_flip_eof wave15_rebind wave15_idle wave15_errorstats wave15_aof_participants wave15_aof_large blockfix4 blockfix2 blockrace blockfix_structure blockfix_registry blockfix_mkstream persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables debug-0 debug-1
               iofix-deferred iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              atomfix5_watch atomfix5_accounting core_units flipfix_units flipfix5_units flipfix6_units flipfix7_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat crlffix boot_grammar dbdefault wait_units readonly
+              stallfix_cuts stallfix_units atomfix5_watch atomfix5_accounting core_units flipfix_units flipfix5_units flipfix6_units flipfix7_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat crlffix boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries moverfix hexpread compat2 compat3 streamfix datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_watch datafix2_idle dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus rlfix3_zc rlfix3_info acl_recheck aclfix sort script_bounds scriptfix scriptfix2 lualibs
               efficiency dump_restore persistfmt persistfmt_aof_error auth authfix latencyfix_grammar latencyfix_shape latencyfix_off wave8b_off serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect trackorder notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated flipfix5 flipfix6 flipfix7_output flipfix7_blocked flipfix7_tls atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
@@ -2350,6 +2351,44 @@ job_hexpread(){
       bad "$label" "see $TMPDIR/hexpread-object-$mode.log"
     fi
   done
+}
+
+# stallfix: two live rows and one native/TSAN row, collected before the quick exit.
+# EXPECT_QUICK/FULL remain maintainer-owned (DQ=DF=+3).
+job_stallfix_cuts(){
+  local mode label
+  for mode in 1s 2s; do
+    label="read-cut FIFO bounded wait ($mode)"
+    row_begin "$label"
+    if py tests/stallfix.py --binary "$CANDIDATE_BINARY" --cores "$CORES" \
+        --load-cores "$LOAD_CORES" --port "$PORT" --mode "$mode" \
+        --output "$TMPDIR/cut-$mode" >"$TMPDIR/cut-$mode.log" 2>&1; then
+      ok "$label"
+    else
+      bad "$label" "see $TMPDIR/cut-$mode.log"
+    fi
+  done
+}
+
+job_stallfix_units(){
+  local label="LB observed-stage ack with in-flight EVALSHA (ASAN+TSAN)"
+  row_begin "$label"
+  if unit_ready core-concurrency-unit && \
+      ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1 \
+      taskset -c "$CORES" ./build/core-concurrency-unit stallfix \
+          >"$TMPDIR/stallfix.log" 2>&1 && \
+      ( ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 \
+        taskset -c "$CORES" ./build/core-concurrency-unit stallfix-planted \
+            >"$TMPDIR/stallfix-planted.log" 2>&1
+        [ "$?" = 1 ] && grep -Fxq \
+            'FAIL core concurrency: IO must not acknowledge ExDrain before executor quiescence' \
+            "$TMPDIR/stallfix-planted.log" ) && \
+      tsan_unit "$CORE_TSAN" core-concurrency-tsan \
+          'PASS core concurrency stallfix (state assertions fired)' stallfix; then
+    ok "$label"
+  else
+    bad "$label" "see $TMPDIR/stallfix*.log and $TMPDIR/tsan-core-concurrency-tsan-stallfix.log"
+  fi
 }
 
 job_core_units(){
@@ -4191,6 +4230,18 @@ job_lualibs(){
   row_begin "lualibs CC4.7 vs Redis 7.4"
   compat3_case lualibs all && ok "lualibs CC4.7 vs Redis 7.4" \
       || bad "lualibs CC4.7 vs Redis 7.4" "see $TMPDIR/all-*.log"
+}
+
+job_s1pair(){
+  local case label
+  for case in EVAL-ROTATE EVAL-GROW EVAL-ADMISSION CONFIG-OWNER; do
+    label="s1pair $case (all modes)"
+    row_begin "$label"
+    py tests/s1pair.py --case "$case" --binary "$CANDIDATE_BINARY" \
+        --oracle "$REDIS74_ROOT/src/redis-server" --cores "$CORES" --ratio "$GATE_RATIO" \
+        --port "$PORT" --output "$TMPDIR/$case" >"$TMPDIR/$case.log" 2>&1 \
+        && ok "$label" || bad "$label" "see $TMPDIR/$case.log"
+  done
 }
 
 job_scriptfix(){
@@ -7160,7 +7211,7 @@ job_dependencies(){
       done;;
     release|asan|rldbg|core_tsan_build|waits_tsan_build|racefix_tsan_build|tailgen_build|config_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest|reorder_sync|witness_contracts) ;;
     flip_unit) echo production_units;; # ctlfix-unit links the shared release objects
-    core_units|flipfix_units|flipfix5_units|flipfix6_units|flipfix7_units|atomfix6_units) echo 'production_units core_tsan_build';;
+    stallfix_units|core_units|flipfix_units|flipfix5_units|flipfix6_units|flipfix7_units|atomfix6_units) echo 'production_units core_tsan_build';;
     racefix_counters) echo racefix_tsan_build;;
     racefix_climon) echo production_units;;
     compat2) echo 'release production_units redis_tcl';;
@@ -7306,6 +7357,8 @@ done
 collect_job atomfix5_watch
 # AT4.19: one row before the quick exit, DQ=+1 / DF=+1.
 collect_job atomfix5_accounting
+collect_job stallfix_cuts
+collect_job stallfix_units
 collect_job core_units
 # flipfix: two serverless sanitizer rows before the quick exit (+2 quick / +2 full).
 collect_job flipfix_units
@@ -7521,6 +7574,8 @@ for TM in fused split; do for AT in 0 1; do collect_job "txnorder-$TM-$AT"; done
 collect_job script_bounds
 collect_job scriptfix
 collect_job scriptfix2
+# Four S1 rows before the quick-tier exit; EXPECT and fixture are maintainer-owned.
+collect_job s1pair
 collect_job lualibs
 for AT412_CASE in T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11a T11b T12 T13 T14 T15 T16 owner; do collect_job "at412-$AT412_CASE"; done
 

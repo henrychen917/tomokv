@@ -1,0 +1,12 @@
+  row budget: 900s; median=11.09s; correctness-plan-fallback; multifix RESET-IN-MULTI (1s uring)
+  multifix RESET-IN-MULTI (1s uring)                   ok
+  row budget: 900s; median=11.09s; correctness-plan-fallback; multifix WATCH-SPURIOUS-INVALIDATION (1s uring)
+  multifix WATCH-SPURIOUS-INVALIDATION (1s uring)      ok
+  row budget: 900s; median=11.495s; correctness-plan-fallback; multifix EXEC-REPEATED-KEY-LINEAR (1s uring)
+  multifix EXEC-REPEATED-KEY-LINEAR (1s uring)         ok
+  row budget: 900s; median=15.275s; correctness-plan-fallback; multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)
+  multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)     ok
+  row budget: 900s; median=28.32s; correctness-plan-fallback; multifix PAUSE-IN-MULTI (1s uring)
+  multifix PAUSE-IN-MULTI (1s uring)                   ok
+  row budget: 900s; median=11.09s; correctness-plan-fallback; multifix PAUSE-EXEC-NOT-HELD (1s uring)
+  multifix PAUSE-EXEC-NOT-HELD (1s uring)              ok

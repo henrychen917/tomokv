@@ -456,7 +456,8 @@ struct ScriptContext {
     // EVAL_RO / EVALSHA_RO / FCALL_RO, and any function carrying the no-writes flag. Checked at
     // the redis.call dispatch site against the command row's Write bit.
     bool readonly = false;
-    bool function_admitted = false;
+    bool oom_at_start = false;
+    bool write_dirty = false;
     // A writable activation already admitted to execution survives a later disk
     // error. Read-only metadata (including PFCOUNT) must not arm that admission.
     bool persistence_write_started = false;
@@ -865,8 +866,7 @@ __attribute__((noinline)) void script_monitor_context(ScriptContext& context) {
 // Return whether the command reached its handler; admission errors must not
 // produce a MONITOR line. The clean caller discards the result at compile time.
 __attribute__((always_inline)) inline bool script_nested_execute(ScriptContext& context, Op& nested,
-                                                                 const CommandSpec& spec,
-                                                                 Slice key) {
+                                                                 const CommandSpec& spec) {
     const bool logical_write = (spec.flags & CmdFlags::Write) && command_metadata_write(nested);
     Server* server = context.shard->server();
     if (logical_write && !context.persistence_write_started && server &&
@@ -874,10 +874,11 @@ __attribute__((always_inline)) inline bool script_nested_execute(ScriptContext& 
         server->aof().reply_write_error(nested);
         return false;
     }
-    if ((spec.flags & CmdFlags::DenyOom) && !context.shard->store().budget_admit(key)) {
+    if ((spec.flags & CmdFlags::DenyOom) && context.oom_at_start && !context.write_dirty) {
         reply_maxmemory_oom(nested);
         return false;
     }
+    if (spec.flags & CmdFlags::Write) context.write_dirty = true;
     if (logical_write) context.persistence_write_started = true;
     if (__builtin_expect(server && server->latency_tracking(), false)) {
         const uint32_t executor = server->worker_of_shard(context.shard->id());
@@ -891,7 +892,7 @@ __attribute__((always_inline)) inline bool script_nested_execute(ScriptContext& 
 __attribute__((noinline)) void script_nested_notified(ScriptContext& context, Op& nested,
                                                       const CommandSpec& spec, Slice key) {
     notify_execute_source(*context.shard, nested, context.call_index++ * 0x10000u);
-    if (script_nested_execute(context, nested, spec, key)) {
+    if (script_nested_execute(context, nested, spec)) {
         notify_monitor_script(*context.shard, *context.parent, nested, context.monitor_multi_order);
         // CLIENT TRACKING enrolls the key of each read-only command the script runs. A tracked
         // activation always takes this armed path (the IO selected the notify variant).
@@ -1006,7 +1007,7 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                 if (context->notify)
                     script_nested_notified(*context, nested, *spec, key);
                 else
-                    script_nested_execute(*context, nested, *spec, key);
+                    script_nested_execute(*context, nested, *spec);
                 // A Write row that answered without an error has already changed the keyspace.
                 // Nothing later in this activation may reverse it, so record it here: this is the
                 // quantity a regression asserts on, not "no exception was thrown".
@@ -1020,7 +1021,7 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                         mark_declared(
                             *context, key,
                             2 | (modified ? kScriptModified : 0) |
-                                (context->function_admitted ? kScriptFunctionAdmitted : 0));
+                                kScriptFunctionAdmitted);
                         context->effect_writes++;
                         g_effect_writes.fetch_add(1, std::memory_order_relaxed);
                     }
@@ -1857,11 +1858,11 @@ void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
     context.notify = call.notify;
     if (context.notify) script_monitor_context(context);
     context.readonly = call.readonly;
-    context.function_admitted = call.style == ScriptArgStyle::Params || call.memory_admitted;
+    context.oom_at_start = call.style == ScriptArgStyle::Globals && !call.memory_admitted;
     engine.current = &context;
 
     ScriptEvictionGuard eviction_guard(shard);
-    FunctionMemoryScope memory_scope(shard.store(), context.function_admitted);
+    FunctionMemoryScope memory_scope(shard.store(), true);
 
     // The message handler must sit BELOW the callable for lua_pcall; the callable arrived on top.
     lua_pushcfunction(state, script_error_handler);
@@ -1984,8 +1985,10 @@ bool run_eval(Shard& shard, Op& op, const ScriptSourceRef& owner, bool notify, b
         reply_text_error(op, "ERR", "Can not execute a script with write flag using *_ro command.");
         return true;
     }
-    if (!(flags & (EvalLegacy | EvalNoWrites | EvalAllowOom)) &&
-        !FunctionMemoryScope::admit(shard, key_count ? op.arg(key_first) : Slice{})) {
+    const bool memory_admitted =
+        (flags & (EvalNoWrites | EvalAllowOom)) ||
+        FunctionMemoryScope::admit(shard, key_count ? op.arg(key_first) : Slice{});
+    if (!(flags & EvalLegacy) && !memory_admitted) {
         reply_text_error(op, "OOM",
                          "allow-oom flag is not set on the script, "
                          "can not run it when used memory > 'maxmemory'");
@@ -2015,14 +2018,14 @@ bool run_eval(Shard& shard, Op& op, const ScriptSourceRef& owner, bool notify, b
     call.key_count = key_count;
     call.style = ScriptArgStyle::Globals;
     call.readonly = readonly;
-    call.memory_admitted = !(flags & EvalLegacy);
+    call.memory_admitted = memory_admitted;
     call.notify = notify;
     call.chunk = "user_script";
     call.tag = sha;
     if constexpr (!std::is_same_v<Prepare, std::nullptr_t>) {
         // Keep the selected source alive across admission, EXEC preparation and
         // execution. A concurrent SCRIPT FLUSH cannot change this decision.
-        FunctionMemoryScope memory_scope(shard.store(), call.memory_admitted);
+        FunctionMemoryScope memory_scope(shard.store(), true);
         if (!prepare()) {
             lua_settop(state, 0);
             return false;

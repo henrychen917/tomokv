@@ -98,6 +98,37 @@ __attribute__((noinline)) bool Server::lb_refuse_stalled(uint64_t epoch, LbStall
     return true;
 }
 
+void Server::lb_stage_timed_out() {
+    std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
+    const LbStage stage = lb_stage();
+    if (stage == LbStage::Idle || stage == LbStage::ClientMoving) return;
+    const uint64_t now = now_ns();
+    const uint64_t deadline = lb_deadline_ns();
+    // A peer may have cancelled/replaced the observed plan before we took the lock.
+    if (!deadline || now < deadline) return;
+    std::lock_guard<std::mutex> signal_lock(lb_signal_mu_);
+    if (stage == LbStage::ClientDrain) {
+        lb_client_refused_.fetch_add(1, std::memory_order_relaxed);
+        const auto found = lb_clients_.find(lb_client_move_.id);
+        if (found != lb_clients_.end()) found->second.last_move_ms = now / 1000000;
+    } else {
+        lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
+        if (stage == LbStage::IoDrain || stage == LbStage::ExDrain) {
+            for (const LbShardMove& move : lb_shard_moves_)
+                lb_shard_last_move_ms_[move.sid] = now / 1000000;
+            if (lb_policy_) {
+                auto& state = lb_policy_->stall;
+                const uint64_t duration = now - (deadline - LbAutotune::kMoveTimeoutNs);
+                state.shard_timeouts.fetch_add(1, std::memory_order_relaxed);
+                note_max(state.shard_timeout_ns_max, duration);
+                note_max(state.pending_ns_max, duration);
+            }
+        }
+    }
+    lb_deadline_ns_.store(0, std::memory_order_release);
+    lb_stage_.store(LbStage::Idle, std::memory_order_release);
+}
+
 void Server::lb_debug_park(uint32_t tid, uint64_t bytes) {
     if (!lb_policy_) return;
     auto& state = lb_policy_->stall;
@@ -125,6 +156,8 @@ void Server::lb_stall_info(std::string& out) const {
     };
     for (size_t i = 0; i < std::size(reasons); i++)
         append(reasons[i], state ? state->refused[i].load(std::memory_order_relaxed) : 0);
+    append("shard_timeouts", state ? state->shard_timeouts.load(std::memory_order_relaxed) : 0);
+    append("shard_timeout_ns_max", state ? state->shard_timeout_ns_max.load(std::memory_order_relaxed) : 0);
     append("pending_ns_max", state ? state->pending_ns_max.load(std::memory_order_relaxed) : 0);
     append("parked_passes", state ? state->parked_passes.load(std::memory_order_relaxed) : 0);
     append("parked_bytes_max", state ? state->parked_bytes_max.load(std::memory_order_relaxed) : 0);

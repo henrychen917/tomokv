@@ -1,0 +1,87 @@
+{
+  "atomic_batteries": {
+    "exit": 0,
+    "pass": 4,
+    "fail": 0
+  },
+  "atomic_units": {
+    "exit": 0,
+    "pass": 27,
+    "fail": 0
+  },
+  "core_tsan_build": {
+    "exit": 0,
+    "pass": 0,
+    "fail": 0
+  },
+  "core_units": {
+    "exit": 0,
+    "pass": 9,
+    "fail": 0
+  },
+  "lb-stationary-1s": {
+    "exit": 0,
+    "pass": 1,
+    "fail": 0
+  },
+  "lb-stationary-2s": {
+    "exit": 0,
+    "pass": 1,
+    "fail": 0
+  },
+  "lbplanner_units": {
+    "exit": 0,
+    "pass": 2,
+    "fail": 0
+  },
+  "multifix-1s-uring": {
+    "exit": 0,
+    "pass": 6,
+    "fail": 0
+  },
+  "multifix-2s-uring": {
+    "exit": 0,
+    "pass": 6,
+    "fail": 0
+  },
+  "production_units": {
+    "exit": 0,
+    "pass": 0,
+    "fail": 0
+  },
+  "release": {
+    "exit": 0,
+    "pass": 1,
+    "fail": 0
+  },
+  "script_bounds": {
+    "exit": 0,
+    "pass": 2,
+    "fail": 0
+  },
+  "scriptfix": {
+    "exit": 0,
+    "pass": 8,
+    "fail": 0
+  },
+  "stallfix_cuts": {
+    "exit": 0,
+    "pass": 2,
+    "fail": 0
+  },
+  "stallfix_units": {
+    "exit": 0,
+    "pass": 1,
+    "fail": 0
+  },
+  "txn_group_fused": {
+    "exit": 0,
+    "pass": 1,
+    "fail": 0
+  },
+  "txn_group_split": {
+    "exit": 0,
+    "pass": 1,
+    "fail": 0
+  }
+}

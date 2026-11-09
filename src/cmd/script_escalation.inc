@@ -59,6 +59,77 @@ Client* script_window_head(Server& server, MultiRetryLane& lane, ScriptWindow& w
     return nullptr;
 }
 
+// Plain read cuts reuse the script FIFO's (connection, ROB dispatch id) membership.
+// Admission leaves the member in place until publish advances its dispatch id. Thus a credit
+// or allocation refusal after the grant cannot lose its place; the next head lookup removes
+// the completed frame. No additional successful-admission branch enters scatter preparation.
+void cut_window_erase(MultiRetryLane& lane, ScriptWindow& window,
+                      std::list<ScriptWindow::Member>::iterator member) {
+    window.members.erase(member->client);
+    window.fifo.erase(member);
+    lane.cut_waiting = !window.fifo.empty();
+}
+
+Client* cut_window_head(Server& server, MultiRetryLane& lane, ScriptWindow& window) {
+    uint64_t paused = 0;
+    if (server.lb_stage() == LbStage::ClientDrain) {
+        auto record = server.lb_client_read();
+        if (record) paused = server.lb_client_move().id;
+    }
+    for (auto member = window.fifo.begin(); member != window.fifo.end();) {
+        Client* client = member->client;
+        if (client->closing() || client->dead() || script_window_stale(*member)) {
+            auto next = std::next(member);
+            cut_window_erase(lane, window, member);
+            member = next;
+            continue;
+        }
+        if (client->id() != paused) return client;
+        ++member;
+    }
+    return nullptr;
+}
+
+bool cut_window_wait(Server& server, ScatterArenaPool& pool, uint32_t io, Client* client) {
+    auto& lane = server.multi_retry_lane(io);
+    // Internal/forced children never join a connection FIFO.
+    if (!client) return pool.can_register_snapshot() && !lane.cut_waiting;
+    try {
+        if (!lane.cut_window) lane.cut_window = std::make_shared<ScriptWindow>();
+        auto& window = *lane.cut_window;
+        cut_window_head(server, lane, window);
+        if (!lane.cut_waiting && pool.can_register_snapshot()) return true;
+        const auto found = window.members.find(client);
+        if (found != window.members.end() && script_window_stale(*found->second))
+            cut_window_erase(lane, window, found->second);
+        if (!window.members.contains(client)) {
+            window.fifo.push_back({client, client->rob().dispatch_id()});
+            try {
+                window.members.emplace(client, std::prev(window.fifo.end()));
+            } catch (...) {
+                window.fifo.pop_back();
+                throw;
+            }
+            lane.cut_waiting = true;
+        }
+        if (!pool.can_register_snapshot()) {
+            server.note_atomic_cut_window_refusal();
+            return false;
+        }
+        return cut_window_head(server, lane, window) == client;
+    } catch (const std::bad_alloc&) {
+        // Frame remains unconsumed; no cut, ROB entry or atomic credit has been taken.
+        return false;
+    }
+}
+
+void cut_window_forget(MultiRetryLane& lane, Client& client) {
+    if (!lane.cut_window) return;
+    auto& window = *lane.cut_window;
+    const auto found = window.members.find(&client);
+    if (found != window.members.end()) cut_window_erase(lane, window, found->second);
+}
+
 bool script_window_wait(Server& server, uint32_t io, Client& client) {
     auto& lane = server.multi_retry_lane(io);
     script_window_refresh(server, io);
@@ -340,6 +411,7 @@ void script_escalate_redispatch(Server& server, ThreadCtx& self, Ring& ring, Sca
 
 void script_window_forget(Server& server, uint32_t io, Client& client) {
     auto& lane = server.multi_retry_lane(io);
+    cut_window_forget(lane, client);
     if (!lane.script_window) return;
     auto& window = *lane.script_window;
     const auto found = window.members.find(&client);
@@ -369,6 +441,13 @@ void script_window_resume(Server& server, ScatterArenaPool& pool, uint32_t io, C
             // Flagged again for another frame: the old membership is void.
             script_window_erase(lane, window, found->second);
         }
+    }
+    if (lane.cut_waiting) {
+        auto& window = *lane.cut_window;
+        Client* head = cut_window_head(server, lane, window);
+        // Only cut waiters owe FIFO admission. Credit-blocked writes keep their
+        // existing retry rule; a new read joins the FIFO when prepare sees it.
+        if (head && head != &client && window.members.contains(&client)) return;
     }
     if (pool.can_register_snapshot()) client.set_atomic_backpressure(false);
 }

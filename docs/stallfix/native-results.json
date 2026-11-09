@@ -1,0 +1,209 @@
+[
+  {
+    "sanitizer": "asan",
+    "selection": "stallfix",
+    "exit": 0,
+    "expected": 0,
+    "argv": [
+      "build/core-concurrency-unit",
+      "stallfix"
+    ]
+  },
+  {
+    "sanitizer": "asan",
+    "selection": "watch",
+    "exit": 0,
+    "expected": 0,
+    "argv": [
+      "build/core-concurrency-unit",
+      "watch"
+    ]
+  },
+  {
+    "sanitizer": "asan",
+    "selection": "lifetime",
+    "exit": 0,
+    "expected": 0,
+    "argv": [
+      "build/core-concurrency-unit",
+      "lifetime"
+    ]
+  },
+  {
+    "sanitizer": "asan",
+    "selection": "drain",
+    "exit": 0,
+    "expected": 0,
+    "argv": [
+      "build/core-concurrency-unit",
+      "drain"
+    ]
+  },
+  {
+    "sanitizer": "asan",
+    "selection": "route",
+    "exit": 0,
+    "expected": 0,
+    "argv": [
+      "build/core-concurrency-unit",
+      "route"
+    ]
+  },
+  {
+    "sanitizer": "asan",
+    "selection": "snapshot",
+    "exit": 0,
+    "expected": 0,
+    "argv": [
+      "build/core-concurrency-unit",
+      "snapshot"
+    ]
+  },
+  {
+    "sanitizer": "asan",
+    "selection": "config",
+    "exit": 0,
+    "expected": 0,
+    "argv": [
+      "build/core-concurrency-unit",
+      "config"
+    ]
+  },
+  {
+    "sanitizer": "asan",
+    "selection": "notify",
+    "exit": 0,
+    "expected": 0,
+    "argv": [
+      "build/core-concurrency-unit",
+      "notify"
+    ]
+  },
+  {
+    "sanitizer": "asan",
+    "selection": "stallfix-planted",
+    "exit": 1,
+    "expected": 1,
+    "argv": [
+      "build/core-concurrency-unit",
+      "stallfix-planted"
+    ]
+  },
+  {
+    "sanitizer": "tsan",
+    "selection": "stallfix",
+    "exit": 0,
+    "expected": 0,
+    "argv": [
+      "setarch",
+      "x86_64",
+      "-R",
+      "build/core-concurrency-mdbqsbr-tsan",
+      "stallfix"
+    ]
+  },
+  {
+    "sanitizer": "tsan",
+    "selection": "watch",
+    "exit": 0,
+    "expected": 0,
+    "argv": [
+      "setarch",
+      "x86_64",
+      "-R",
+      "build/core-concurrency-mdbqsbr-tsan",
+      "watch"
+    ]
+  },
+  {
+    "sanitizer": "tsan",
+    "selection": "lifetime",
+    "exit": 0,
+    "expected": 0,
+    "argv": [
+      "setarch",
+      "x86_64",
+      "-R",
+      "build/core-concurrency-mdbqsbr-tsan",
+      "lifetime"
+    ]
+  },
+  {
+    "sanitizer": "tsan",
+    "selection": "drain",
+    "exit": 0,
+    "expected": 0,
+    "argv": [
+      "setarch",
+      "x86_64",
+      "-R",
+      "build/core-concurrency-mdbqsbr-tsan",
+      "drain"
+    ]
+  },
+  {
+    "sanitizer": "tsan",
+    "selection": "route",
+    "exit": 0,
+    "expected": 0,
+    "argv": [
+      "setarch",
+      "x86_64",
+      "-R",
+      "build/core-concurrency-mdbqsbr-tsan",
+      "route"
+    ]
+  },
+  {
+    "sanitizer": "tsan",
+    "selection": "snapshot",
+    "exit": 0,
+    "expected": 0,
+    "argv": [
+      "setarch",
+      "x86_64",
+      "-R",
+      "build/core-concurrency-mdbqsbr-tsan",
+      "snapshot"
+    ]
+  },
+  {
+    "sanitizer": "tsan",
+    "selection": "config",
+    "exit": 0,
+    "expected": 0,
+    "argv": [
+      "setarch",
+      "x86_64",
+      "-R",
+      "build/core-concurrency-mdbqsbr-tsan",
+      "config"
+    ]
+  },
+  {
+    "sanitizer": "tsan",
+    "selection": "notify",
+    "exit": 0,
+    "expected": 0,
+    "argv": [
+      "setarch",
+      "x86_64",
+      "-R",
+      "build/core-concurrency-mdbqsbr-tsan",
+      "notify"
+    ]
+  },
+  {
+    "sanitizer": "tsan",
+    "selection": "stallfix-planted",
+    "exit": 1,
+    "expected": 1,
+    "argv": [
+      "setarch",
+      "x86_64",
+      "-R",
+      "build/core-concurrency-mdbqsbr-tsan",
+      "stallfix-planted"
+    ]
+  }
+]

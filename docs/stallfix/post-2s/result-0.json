@@ -1,0 +1,105 @@
+{
+  "mode": "2s",
+  "attempt": 0,
+  "clients": [
+    {
+      "client": 0,
+      "completed": 33602,
+      "max_ms": 8.332627825438976,
+      "over_500ms": 0
+    },
+    {
+      "client": 1,
+      "completed": 34003,
+      "max_ms": 8.530658669769764,
+      "over_500ms": 0
+    },
+    {
+      "client": 2,
+      "completed": 33494,
+      "max_ms": 6.368151865899563,
+      "over_500ms": 0
+    },
+    {
+      "client": 3,
+      "completed": 33799,
+      "max_ms": 8.018736727535725,
+      "over_500ms": 0
+    },
+    {
+      "client": 4,
+      "completed": 33776,
+      "max_ms": 7.320733740925789,
+      "over_500ms": 0
+    },
+    {
+      "client": 5,
+      "completed": 33743,
+      "max_ms": 7.117304019629955,
+      "over_500ms": 0
+    },
+    {
+      "client": 6,
+      "completed": 33682,
+      "max_ms": 6.995944306254387,
+      "over_500ms": 0
+    },
+    {
+      "client": 7,
+      "completed": 33794,
+      "max_ms": 7.343175821006298,
+      "over_500ms": 0
+    },
+    {
+      "client": 8,
+      "completed": 33424,
+      "max_ms": 8.065787144005299,
+      "over_500ms": 0
+    },
+    {
+      "client": 9,
+      "completed": 33788,
+      "max_ms": 7.667446509003639,
+      "over_500ms": 0
+    },
+    {
+      "client": 10,
+      "completed": 33741,
+      "max_ms": 7.520904764533043,
+      "over_500ms": 0
+    },
+    {
+      "client": 11,
+      "completed": 33951,
+      "max_ms": 8.163847029209137,
+      "over_500ms": 0
+    },
+    {
+      "client": 12,
+      "completed": 33989,
+      "max_ms": 7.235153578221798,
+      "over_500ms": 0
+    },
+    {
+      "client": 13,
+      "completed": 33455,
+      "max_ms": 7.590305060148239,
+      "over_500ms": 0
+    },
+    {
+      "client": 14,
+      "completed": 33394,
+      "max_ms": 7.417445071041584,
+      "over_500ms": 0
+    },
+    {
+      "client": 15,
+      "completed": 33664,
+      "max_ms": 6.753822788596153,
+      "over_500ms": 0
+    }
+  ],
+  "max_ms": 8.530658669769764,
+  "refusals": 11498,
+  "counter_present": true
+}

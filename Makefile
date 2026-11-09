@@ -4,6 +4,8 @@
 # See docs/wave14/budgets/selected.json; unedited hot bodies prefer headline identity.
 # Wave13: compile-only IPA/linked-body trials plus finite fanout instruction scopes.
 # Selected values and exceptions: docs/wave13/budgets/final-selected.json.
+# s1pair-land: all 59 pinned units checked against the paper build; unchanged inputs keep
+# its budgets. Fresh IPA/body trials retain the four scripting/CONFIG pins (docs/s1pair-land).
 CXX      ?= g++
 JEDIR    ?= /home/user/Projects/refs/jemalloc/_install
 # jemalloc is optional: without it the tree still builds and runs, using the deterministic portable
@@ -248,14 +250,19 @@ $(BUILD_ROOT)/src/cmd/t_list.o: override CXXFLAGS += --param inline-unit-growth=
 # wave3: see the re-derivation note above $(BUILD_ROOT)/src/main.o (31388 / db0 31787).
 # at412: the new INFO fields / DEBUG hooks grow this unit; 32853 keeps cmd_reset and every other
 # handler outside cmd_info/cmd_debug_impl PRE-identical (tools/archive/tools/at412_budget.py, docs/at412/budgets2).
-$(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34174
+# s1pair: the CONFIG owner verdict grows this unit (+206 initial); scans 34250-34600 keep every
+# linked body outside CONFIG/scripting PRE-identical at 34330-34332, 34337-34339, ...
+# (tools/s1pair_budgets.py); 34338 is the middle of one such run.
+$(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34338
 # SV7/SV9 keep new INFO formatting cold; tools/archive/tools/infofields_artifacts.py checks every ordinary body.
 # CC18/PS5/PS7/SV9 composition: preserve every unrelated server-command body.
 # txnorder2: compile-only trials retained in docs/txnorder2/budgets; remaining spillover is explicit.
 # perfex2: the two cold inline sample resets need 31737 to retain every ordinary
 # body from the merged perfex POST. Complete-body trials: docs/perfex2/budgets.py.
 # rlresize: see the budget note above $(BUILD_ROOT)/src/main.o.
-$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34348 --param max-inline-insns-auto=16
+# s1pair: +203 initial; scans 34400-34750 leave only the Server::flipctl_debug_dump inline
+# (same inlining, different tie order at every budget); 34515 is the middle of 34513-34517.
+$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34515 --param max-inline-insns-auto=16
 # PS4 AOF recovery adds cold code. Preserve 5146b78ee storage helper bodies
 # in both namespaces; the aoffix2 hot-body audit checks these compiler budgets.
 # rlresize: see the budget note above $(BUILD_ROOT)/src/main.o.
@@ -780,7 +787,7 @@ build/mdbqsbr-unit-tsan: build/mdbqsbr-tsan/tests/mdbqsbr_unit.o $(MDBQSBR_TSAN_
 	@mkdir -p $(dir $@)
 	$(CXX) $(MDBQSBR_FLAGS) -fsanitize=thread $^ -o $@ $(LDLIBS) -lm $(MDBQSBR_WRAP)
 # flipfix5: the stale-stage rows are included by the core fixture; rebuild it when they change.
-build/mdbqsbr-asan/tests/core_concurrency_unit.o build/mdbqsbr-tsan/tests/core_concurrency_unit.o: tests/flipfix5_checks.inc tests/flipfix6_checks.inc tests/flipfix7_checks.inc tests/wave13_checks.inc tests/wave14_checks.inc
+build/mdbqsbr-asan/tests/core_concurrency_unit.o build/mdbqsbr-tsan/tests/core_concurrency_unit.o: tests/flipfix5_checks.inc tests/flipfix6_checks.inc tests/flipfix7_checks.inc tests/wave13_checks.inc tests/wave14_checks.inc tests/stallfix_checks.inc
 build/core-concurrency-mdbqsbr-asan: build/mdbqsbr-asan/tests/core_concurrency_unit.o $(MDBQSBR_ASAN_OBJ)
 	@mkdir -p $(dir $@)
 	$(CXX) $(MDBQSBR_FLAGS) -fsanitize=address,undefined $^ -o $@ $(LDLIBS) -lm
@@ -1121,7 +1128,7 @@ build/r7shadow-instr: tests/r7shadow_instr.cc $(wildcard src/*/*.h) $(wildcard s
 # Existing route row owns IO accounting/model/physical-placement proofs.
 build/mdbqsbr-asan/tests/core_concurrency_unit.o build/mdbqsbr-tsan/tests/core_concurrency_unit.o: tests/signalacct_core_checks.inc tests/flip_close_checks.inc tests/flipsettle_checks.inc tests/flipreport_checks.inc tests/flipfix_checks.inc tests/slowlog_completion_checks.inc tests/wave5_dispatch_checks.inc
 # Fast serverless lane entry; the gate uses its existing fully instrumented route row.
-build/signalacct-core-unit: tests/core_concurrency_unit.cc tests/signalacct_core_checks.inc tests/flip_close_checks.inc tests/flipsettle_checks.inc tests/flipreport_checks.inc tests/flipfix_checks.inc tests/flipfix5_checks.inc tests/flipfix6_checks.inc tests/flipfix7_checks.inc tests/wave13_checks.inc tests/wave14_checks.inc tests/slowlog_completion_checks.inc tests/wave5_dispatch_checks.inc $(CORE_TEST_OBJ)
+build/signalacct-core-unit: tests/core_concurrency_unit.cc tests/signalacct_core_checks.inc tests/flip_close_checks.inc tests/flipsettle_checks.inc tests/flipreport_checks.inc tests/flipfix_checks.inc tests/flipfix5_checks.inc tests/flipfix6_checks.inc tests/flipfix7_checks.inc tests/wave13_checks.inc tests/wave14_checks.inc tests/stallfix_checks.inc tests/slowlog_completion_checks.inc tests/wave5_dispatch_checks.inc $(CORE_TEST_OBJ)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 

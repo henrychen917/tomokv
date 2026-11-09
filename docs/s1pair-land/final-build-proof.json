@@ -1,0 +1,11 @@
+{
+  "make_all": 0,
+  "make_q_all": 0,
+  "build_sha256": "723d560b21b72313c6f2cdcfb5b7c3431ae1d2bea74965e4d843793b075ec259",
+  "equals_frozen_post": true,
+  "production_source_and_tests_unchanged_since": "d477166394",
+  "commands": [
+    "taskset -c 96-111 env LC_ALL=C make -j16 all",
+    "taskset -c 96-111 env LC_ALL=C make -q all"
+  ]
+}

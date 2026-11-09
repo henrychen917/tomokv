@@ -1,0 +1,105 @@
+{
+  "mode": "2s",
+  "attempt": 0,
+  "clients": [
+    {
+      "client": 0,
+      "completed": 39636,
+      "max_ms": 254.73953783512115,
+      "over_500ms": 0
+    },
+    {
+      "client": 1,
+      "completed": 26733,
+      "max_ms": 404.05756141990423,
+      "over_500ms": 0
+    },
+    {
+      "client": 2,
+      "completed": 36297,
+      "max_ms": 609.8268842324615,
+      "over_500ms": 16
+    },
+    {
+      "client": 3,
+      "completed": 41317,
+      "max_ms": 323.6180394887924,
+      "over_500ms": 0
+    },
+    {
+      "client": 4,
+      "completed": 31532,
+      "max_ms": 811.8250845000148,
+      "over_500ms": 16
+    },
+    {
+      "client": 5,
+      "completed": 46537,
+      "max_ms": 140.90183470398188,
+      "over_500ms": 0
+    },
+    {
+      "client": 6,
+      "completed": 18779,
+      "max_ms": 2269.9400866404176,
+      "over_500ms": 16
+    },
+    {
+      "client": 7,
+      "completed": 44464,
+      "max_ms": 202.60065142065287,
+      "over_500ms": 0
+    },
+    {
+      "client": 8,
+      "completed": 39050,
+      "max_ms": 470.6289852038026,
+      "over_500ms": 0
+    },
+    {
+      "client": 9,
+      "completed": 32569,
+      "max_ms": 330.33056277781725,
+      "over_500ms": 0
+    },
+    {
+      "client": 10,
+      "completed": 32638,
+      "max_ms": 1257.7460268512368,
+      "over_500ms": 16
+    },
+    {
+      "client": 11,
+      "completed": 34516,
+      "max_ms": 384.5482664182782,
+      "over_500ms": 0
+    },
+    {
+      "client": 12,
+      "completed": 53491,
+      "max_ms": 363.9537962153554,
+      "over_500ms": 0
+    },
+    {
+      "client": 13,
+      "completed": 20,
+      "max_ms": 4000.6371662020683,
+      "over_500ms": 19
+    },
+    {
+      "client": 14,
+      "completed": 22467,
+      "max_ms": 1003.6150217056274,
+      "over_500ms": 23
+    },
+    {
+      "client": 15,
+      "completed": 47706,
+      "max_ms": 243.06526873260736,
+      "over_500ms": 0
+    }
+  ],
+  "max_ms": 4000.6371662020683,
+  "refusals": 0,
+  "counter_present": false
+}

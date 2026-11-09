@@ -844,7 +844,8 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out, c
     return false;
 }
 
-bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::string>>& updates) {
+bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::string>>& updates,
+                            bool environment = true) {
     if (op.argc() < 4) {
         command_reply_subcommand_wrong_args(op, "CONFIG", "set");
         return false;
@@ -882,7 +883,8 @@ bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::str
             error = "can't set immutable config";
         else if (!std::strcmp(item->name, "dir") || !std::strcmp(item->name, "dbfilename"))
             error = "can't set protected config";
-        if (!error && !std::strcmp(item->name, "appendonly") && g_server && g_server->loading()) {
+        if (!error && environment && !std::strcmp(item->name, "appendonly") && g_server &&
+            g_server->loading()) {
             reply_err(op.sink(), "LOADING Redis is loading the dataset in memory");
             return false;
         }
@@ -966,7 +968,7 @@ bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::str
             reply_err(op.sink(), msg.c_str());
             return false;
         }
-        if (g_server && !std::strcmp(item->name, "maxclients")) {
+        if (environment && g_server && !std::strcmp(item->name, "maxclients")) {
             uint64_t requested = 0;
             parse_u64(Slice(value.data(), value.size()), requested);
             std::string error;
@@ -1961,6 +1963,39 @@ struct ConfigApplyResult {
 };
 std::vector<ConfigApplyResult> g_config_apply_results;  // g_config_mu; retired at reply assembly
 
+// The one reservation site for both owner-side verdicts of a scattered SET.
+[[gnu::noinline]] ConfigApplyResult& config_reserve_result(const Op& op) {
+    g_config_apply_results.push_back({&op, {}});
+    return g_config_apply_results.back();
+}
+
+[[gnu::noinline]] bool config_collect_owner(Op& op, ConfigUpdates& updates) {
+    ConfigApplyResult* verdict = nullptr;
+    for (auto& result : g_config_apply_results)
+        if (result.op == &op) {
+            if (!result.error.empty()) return false;
+            verdict = &result;
+            break;
+        }
+    // A reserved verdict means an earlier fragment already applied this SET.
+    if (!op.has_scatter_state()) return collect_config_updates(op, updates, !verdict);
+    // A scatter fragment must not write the shared reply. Collect into a private Op;
+    // reply assembly emits its error once.
+    Op scratch;
+    bool copied = true;
+    for (uint32_t i = 0; copied && i < op.argc(); i++) copied = scratch.push_arg(op.arg(i));
+    {
+        ErrorStatsProbe disposable;
+        if (copied && collect_config_updates(scratch, updates, !verdict)) return true;
+    }
+    ConfigApplyResult& result = verdict ? *verdict : config_reserve_result(op);
+    if (copied && scratch.reply.size() > 3 && scratch.reply.data()[0] == '-')
+        result.error.assign(scratch.reply.data() + 1, scratch.reply.size() - 3);
+    else
+        result.error.assign("ERR out of memory");
+    return false;
+}
+
 bool config_apply_listeners(Shard& sh, Op& op, const ConfigUpdates& updates) {
     bool listeners = false, locale = false, aof = false;
     for (const auto& update : updates) {
@@ -1975,8 +2010,7 @@ bool config_apply_listeners(Shard& sh, Op& op, const ConfigUpdates& updates) {
     // Reserve the shared verdict before any apply action. All fragments see
     // this verdict before publishing scalar settings from the same SET.
     ConfigApplyResult standalone{&op, {}};
-    if (op.has_scatter_state()) g_config_apply_results.push_back({&op, {}});
-    auto& result = op.has_scatter_state() ? g_config_apply_results.back() : standalone;
+    auto& result = op.has_scatter_state() ? config_reserve_result(op) : standalone;
     uint16_t port = g_server ? g_server->cfg().port : 0;
     std::string bind = g_server ? g_server->cfg().bind_addr : "";
     const char* parameter = "port";
@@ -2154,8 +2188,8 @@ void cmd_config(Shard& sh, Op& op) {
         bool memory_update = false;
         {
             ConfigLock lock;
-            // IO validated before fan-out, so failure here can only mean internal table corruption.
-            if (!collect_config_updates(op, updates)) return;
+            // Loading and OS limits may change after IO validation; assembly owns the reply.
+            if (!config_collect_owner(op, updates)) return;
             if (!config_apply_listeners(sh, op, updates)) return;
             for (const auto& update : updates)
                 memory_update |= config_memory_parameter(*update.first);
@@ -3151,6 +3185,7 @@ void cmd_info(Shard&, Op& op) {
             "atomic_predecessor_reads:%llu\r\natomic_chain_max:%llu\r\n"
             "atomic_cleanup_fast:%llu\r\natomic_cleanup_slow:%llu\r\n"
             "atomic_promotions:%llu\r\natomic_window_stalls:%llu\r\n"
+            "atomic_cut_window_refusals:%llu\r\n"
             "atomic_records_freed:%llu\r\natomic_entries:%llu\r\n"
             "atomic_gauge_underflows:%llu\r\n"
             "atomic_pending_entries:%llu\r\natomic_localfast:%llu\r\n"
@@ -3257,6 +3292,7 @@ void cmd_info(Shard&, Op& op) {
             static_cast<unsigned long long>(atomic_cleanup_slow),
             static_cast<unsigned long long>(atomic_promotions),
             static_cast<unsigned long long>(g_server ? g_server->atomic_window_stalls() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->atomic_cut_window_refusals() : 0),
             static_cast<unsigned long long>(atomic_records_freed),
             static_cast<unsigned long long>(atomic_entries),
             static_cast<unsigned long long>(atomic_gauge_underflows),
