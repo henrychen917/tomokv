@@ -4082,7 +4082,7 @@ job_lualibs(){
 job_s1pair(){
   local case label
   for case in EVAL-ROTATE EVAL-GROW EVAL-ADMISSION CONFIG-OWNER; do
-    label="s1pair $case (Redis 7.4, all modes)"
+    label="s1pair $case (all modes)"
     row_begin "$label"
     py tests/s1pair.py --case "$case" --binary "$CANDIDATE_BINARY" \
         --oracle "$REDIS74_ROOT/src/redis-server" --cores "$CORES" --ratio "$GATE_RATIO" \

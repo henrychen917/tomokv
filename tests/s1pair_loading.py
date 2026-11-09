@@ -36,6 +36,8 @@ class Validate(gdb.Breakpoint):
             loading(1)
         else:
             state['io_checks'] += 1
+            server = gdb.parse_and_eval("'%s::(anonymous namespace)::g_server'" % namespace)
+            assert int(server.dereference()['loading_']['_M_i']) == 0
         return False
 
 

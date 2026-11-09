@@ -55,6 +55,7 @@ def script_case(c, case, oracle):
     results = []
 
     def run(source, initial, limit, wanted, args=(), function=None):
+        replies = []
         for command in (('FCALL',) if function else ('EVAL', 'EVALSHA')):
             expect(c.cmd('CONFIG', 'SET', 'maxmemory', 0), b'+OK')
             expect(c.cmd('FLUSHALL'), b'+OK')
@@ -77,9 +78,12 @@ def script_case(c, case, oracle):
             results.append((command, reply, image))
             # Log the actual reply AND image before asserting, including failures.
             print(repr(results[-1]), flush=True)
+            replies.append(reply)
+            if wanted == b'-OOM':
+                results[-1] = (command, b'-OOM', image)
+        for reply in replies:
             if wanted == b'-OOM':
                 assert isinstance(reply, bytes) and reply.startswith(b'-OOM '), reply
-                results[-1] = (command, b'-OOM', image)
             else:
                 expect(reply, wanted)
         return results[-1][2]
