@@ -77,6 +77,7 @@ class /* TOMO_TOOL_BIND IoLoop */ IoLoop {
     friend struct CoreConcurrencyTest;
     friend struct LbPlannerTest;
 #ifdef TOMO_CORE_CONCURRENCY_TEST
+    inline static void (*test_after_lb_observe_)(IoLoop&) = nullptr;
     // Fixture observes successful ordinary-owner dispatch, after publication and before retirement.
     // No observer storage, branch or call exists in release builds.
     inline static void (*test_owner_publication_)(const Task&) = nullptr;
@@ -2218,7 +2219,11 @@ private:
         if (!lb_controller_armed_) return 0;
         // Observe drains published during this pass as well as those seen at its start.
         // This separate control-tail acquire never enters the per-connection parse gate.
-        const LbStage stage = srv_->lb_stage();
+        const auto observed = srv_->lb_observe(self_->id());
+        const LbStage stage = observed.stage;
+#ifdef TOMO_CORE_CONCURRENCY_TEST
+        if (test_after_lb_observe_) test_after_lb_observe_(*this);
+#endif
         if (stage == LbStage::PlanReady) {
             if (srv_->lb_consume_plan(self_->id())) {
                 lb_schedule_wake_all();
@@ -2234,8 +2239,7 @@ private:
         if (stage == LbStage::IoDrain) {
             // This control tail is outside dispatch: all owner samples taken by this IO
             // have either been posted (including quiet batches) or abandoned for reparse.
-            if (!srv_->lb_acked(self_->id())) {
-                srv_->lb_ack(self_->id());
+            if (srv_->lb_ack_observed(self_->id(), observed)) {
                 lb_schedule_wake_all();
             }
             if (self_->id() == srv_->lb_coordinator()) {
@@ -2281,14 +2285,14 @@ private:
         };
         if (lb_client_wake_pending_) return wake_source();
         uint32_t work = 0;
-        if (move.destination == self_->id() && !srv_->lb_acked(self_->id())) {
+        if (move.destination == self_->id() && observed.ack != observed.tag()) {
             if (!prepare_client_transfer_capacity(1)) {
                 srv_->lb_refuse_client_request();
                 lb_pause_id_ = 0;
                 lb_schedule_wake_all();
                 return 1;
             }
-            srv_->lb_ack(self_->id());
+            if (!srv_->lb_ack_observed(self_->id(), observed)) return 1;
             lb_client_wake_pending_ = true;
             work += wake_source();
         }

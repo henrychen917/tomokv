@@ -927,7 +927,8 @@ bool Server::/* TOMO_TOOL_BIND lb_controller_tick_pad */ lb_controller_tick_pad(
 __attribute__((always_inline)) inline uint32_t
     IoLoop::/* TOMO_TOOL_BIND lb_control_actuate_pad */ lb_control_actuate_pad() {
     if (!lb_controller_armed_) return 0;
-    const LbStage stage = srv_->lb_stage();
+    const auto observed = srv_->lb_observe(self_->id());
+    const LbStage stage = observed.stage;
     if (stage != LbStage::ClientDrain) lb_client_wake_pending_ = false;
     if (stage == LbStage::Idle || stage == LbStage::ClientMoving) return 0;
     if (srv_->lb_drain_pass_expired(self_->id(), stage)) {
@@ -937,8 +938,7 @@ __attribute__((always_inline)) inline uint32_t
     if (stage == LbStage::IoDrain) {
         // This control tail is outside dispatch: all owner samples taken by this IO
         // have either been posted (including quiet batches) or abandoned for reparse.
-        if (!srv_->lb_acked(self_->id())) {
-            srv_->lb_ack(self_->id());
+        if (srv_->lb_ack_observed(self_->id(), observed)) {
             lb_schedule_wake_all();
         }
         if (self_->id() == srv_->lb_coordinator()) {
@@ -982,13 +982,13 @@ __attribute__((always_inline)) inline uint32_t
     };
     if (lb_client_wake_pending_) return wake_source();
     uint32_t work = 0;
-    if (move.destination == self_->id() && !srv_->lb_acked(self_->id())) {
+    if (move.destination == self_->id() && observed.ack != observed.tag()) {
         if (!prepare_client_transfer_capacity(1)) {
             srv_->lb_refuse_client_request();
             lb_schedule_wake_all();
             return 1;
         }
-        srv_->lb_ack(self_->id());
+        if (!srv_->lb_ack_observed(self_->id(), observed)) return 1;
         lb_client_wake_pending_ = true;
         work += wake_source();
     }
