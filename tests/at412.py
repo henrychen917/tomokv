@@ -772,8 +772,9 @@ def errors(c, port, keys, command, oracle):
     WRONGTYPE: E INCRs k1, then INCRs a list: Redis keeps the first write. OOM: E (escalated by a
     DEL of k1 during its READ park; DEL is allowed under maxmemory) reaches APPLY under maxmemory 1.
     Redis appends ". script: <sha>, on @user_script:1." to an EVAL/EVALSHA OOM raised inside the
-    script. TomoKV's cross-owner scripts check maxmemory at APPLY admission and omit that suffix on
-    PRE as on POST (XS-OOM-1, pre-existing, review section 4.4); the message itself is compared."""
+    script. Since s1pair, EVAL/EVALSHA decide OOM at script start like FCALL, so the refusal is
+    raised inside the script with that suffix; before s1pair it came from APPLY admission without
+    it (XS-OOM-1). The message itself is compared, and a suffix mismatch is still recorded."""
     c.must('SET', keys[0], 0)
     c.must('RPUSH', keys[1], 'list')
     call = invocation(c, command, keys, "redis.call('INCR',KEYS[1]); return redis.call('INCR',KEYS[2])")
@@ -815,12 +816,11 @@ def errors(c, port, keys, command, oracle):
                 c.must('CONFIG', 'SET', 'maxmemory', 1)
                 oom = script.read()
                 after = stats(c)
-                # A function checks maxmemory itself when its SET runs (FunctionMemoryScope::admit
-                # on the real owner), i.e. in the optimistic RUN, before any conflict is detected:
-                # its OOM is final without escalation. EVAL/EVALSHA write on the workbench and meet
-                # maxmemory only at APPLY admission, so they escalate first and the ESCALATED
-                # attempt answers OOM.
-                expected = 0 if command == 'FCALL' else 1
+                # Every script form decides OOM once, at its start (FunctionMemoryScope::admit on
+                # the real owner), i.e. in the optimistic RUN, before any conflict is detected:
+                # the refused first write is final without escalation (s1pair; EVAL/EVALSHA
+                # escalated and met maxmemory at APPLY admission before).
+                expected = 0
                 assert after['script_escalations'] == before['script_escalations']+expected, (
                     'OOM case escalations', expected, after['script_escalations']-before['script_escalations'])
                 assert after['script_escalated_commits'] == before['script_escalated_commits'], 'OOM escalated script committed'

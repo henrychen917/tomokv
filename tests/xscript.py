@@ -748,27 +748,41 @@ def maxmemory_pressure():
                 oom = reply
                 break
             filled += 1
-        before = stats(client)
-        refused = client.cmd(
-            "EVAL", "redis.call('SET',KEYS[1],ARGV[1]); "
-                    "redis.call('SET',KEYS[2],ARGV[1]); return 1",
-            "2", *keys, b"Y" * 8192)
-        values = client.cmd("MGET", *keys)
-        after = stats(client)
         note("noeviction pressure detector reaches exact OOM",
              isinstance(oom, RespError) and
              oom.message == "OOM command not allowed when used memory > 'maxmemory'." and
              filled > 0, "owner=%r filled=%d reply=%r" % (target_owner, filled, oom))
-        note("cross-script APPLY OOM aborts atomically and preserves predecessors",
-             isinstance(refused, RespError) and
-             refused.message == "OOM command not allowed when used memory > 'maxmemory'." and
-             values == [b"old-a", b"old-b"] and
-             after.get("script_group_aborts_oom", 0) ==
-             before.get("script_group_aborts_oom", 0) + 1,
-             "reply=%r value_lengths=%r aborts=+%d" % (
-                 refused, [len(value) if isinstance(value, bytes) else None for value in values],
-                 after.get("script_group_aborts_oom", 0) -
-                 before.get("script_group_aborts_oom", 0)))
+
+        # Redis 7.4 decides OOM once, at script start (script.c scriptVerifyOOM), and never
+        # stops a script after its first write. The filler's inserts cannot cross the slice,
+        # so KEYS[1]'s owner is full but not over it: the script starts, and its APPLY may
+        # overshoot the limit like Redis's script does.
+        def attempt(source, value):
+            before = stats(client)
+            reply = client.cmd("EVAL", source, "2", *keys, value)
+            values = client.cmd("MGET", *keys)
+            after = stats(client)
+            aborts = after.get("script_group_aborts_oom", 0) - before.get("script_group_aborts_oom", 0)
+            return reply, values, aborts, "reply=%r value_lengths=%r aborts=+%d" % (
+                reply, [len(v) if isinstance(v, bytes) else None for v in values], aborts)
+
+        both = "redis.call('SET',KEYS[1],ARGV[1]); redis.call('SET',KEYS[2],ARGV[1]); return 1"
+        reply, values, aborts, detail = attempt(both, b"Y" * 8192)
+        note("cross script admitted at start completes past maxmemory (no APPLY OOM abort)",
+             reply == 1 and values == [b"Y" * 8192] * 2 and aborts == 0, detail)
+        # Now KEYS[1]'s owner is over its slice at start: the first DENYOOM write is refused
+        # inside the script, before any effect, with Redis's script error frame.
+        client.cmd("CONFIG", "SET", "maxmemory", "1")
+        reply, values, aborts, detail = attempt(both, b"W" * 8192)
+        note("cross script over maxmemory at start refuses its first DENYOOM write",
+             isinstance(reply, RespError) and reply.message.startswith(
+                 "OOM command not allowed when used memory > 'maxmemory'. script: ") and
+             values == [b"Y" * 8192] * 2 and aborts == 0, detail)
+        # A non-DENYOOM first write marks the script dirty; every later write proceeds.
+        reply, values, aborts, detail = attempt(
+            "redis.call('DEL',KEYS[2]); " + both, b"Z" * 8192)
+        note("cross script over maxmemory keeps writing after a non-DENYOOM first write",
+             reply == 1 and values == [b"Z" * 8192] * 2 and aborts == 0, detail)
     finally:
         client.cmd("CONFIG", "SET", "maxmemory", "0")
         client.cmd("FLUSHALL")
