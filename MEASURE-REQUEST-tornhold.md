@@ -77,7 +77,8 @@ PART2 sampling and stamping stay enabled throughout. `PlainReadHolds` replaces
 Rob offset 120. Op's reply eligibility byte returns to its PRE representation.
 The parser acquires before the scatter/local/owner split, carries confirmed
 scatter cuts only on the scatter path, and commits the covered end in Phase 8.
-Both WB paths invoke one post-drain hook, with no ordinary per-op callback.
+Both WB paths invoke one post-drain hook, with no per-op plain-read registration
+or retirement hook.
 Release and both transfer edges abort on a live hold. Joined shutdown discards
 residual buckets. R7 is regenerated exclusively with the sync script.
 
@@ -308,3 +309,15 @@ ledger is excluded from pass totals; the full selection then ran in two disjoint
 8-core, 6:2 slots. `build/tornhold/reschedule.json` records that scheduling change.
 The remaining selected regression jobs, including all 35 feature-interaction
 cells, are now running separately.
+
+### FIFO proof geometry correction
+
+The remaining selection's `txnorder_fifo_live` row refused before any server boot:
+its validated fairness geometry requires eight load CPUs, while each shared slot
+had two. The refusal took 0.35 seconds and is retained at
+`build/gate-run.ZAYpOE/jobs/txnorder_fifo_live/output.log`. It is not counted as a
+passing row. An isolated rerun is queued after the other correctness/control work
+with server CPUs 0–7 and load CPUs 8–15, through the same gate job. All sixteen
+declared mode/atomic/engine/database legs retain their 60-second duration and
+original assertions. No production or gate source change is needed for this
+allocation correction.
