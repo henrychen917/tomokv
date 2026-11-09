@@ -105,6 +105,8 @@ def main():
         run(command, folder, 'unit'); commands.append(command)
     (folder / 'receipt.json').write_text(json.dumps(dict(
         arm=args.arm, binary=str(binary), sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
+        unit_sha256=(hashlib.sha256((folder / 'unit').read_bytes()).hexdigest()
+                     if args.arm == 'always-a' else None),
         changed_source=str(relative), commands=commands), indent=2) + '\n')
     print(binary)
 

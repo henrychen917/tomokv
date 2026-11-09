@@ -3242,22 +3242,30 @@ job_tornhold_units(){
 }
 
 job_tornhold_progress(){
-  local prefix kind mode engine boot_fn=boot label hold_binary="$CANDIDATE_BINARY" ptrace_binary=''
+  local prefix kind mode engine boot_fn=boot label hold_binary="$CANDIDATE_BINARY" ptrace_binary='' window_ok=1
   IFS=- read -r prefix kind mode engine <<< "$1"
   [ "$mode" != 1s ] || boot_fn=boot_fused
   label="tornhold $kind cleanup progress ($mode $engine atomic 0)"
   row_begin "$label"
+  if [ "$kind" = progress ]; then
+    # TCP backlog alone cannot prove a continuously nonempty ROB. Pair the live
+    # cleanup counters with the exact sliding-window schedule; the override is
+    # the matching unit linked from an isolated negative-control image's objects.
+    taskset -c "$CORES" "${GATE_TORNHOLD_PROGRESS_UNIT:-build/tornread-unit}" --progress \
+        >"$TMPDIR/window.log" 2>&1 || window_ok=0
+  fi
   if [ "$kind" = flip ]; then
     hold_binary="$PWD/tests/tornhold_progress.py"
     ptrace_binary="$CANDIDATE_BINARY"
   fi
-  if TORNHOLD_PTRACE_BINARY="$ptrace_binary" "$boot_fn" "$hold_binary" --net-io "$engine" --atomic 0 --read-local 0 \
+  if [ "$window_ok" = 1 ] &&
+      TORNHOLD_PTRACE_BINARY="$ptrace_binary" "$boot_fn" "$hold_binary" --net-io "$engine" --atomic 0 --read-local 0 \
       --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes &&
       py tests/tornhold_progress.py --port "$PORT" --case "$kind" --seconds 30 \
       --json "$TMPDIR/progress.json" >"$TMPDIR/progress.log" 2>&1; then
     ok "$label"
   else
-    bad "$label" "see $TMPDIR/progress.log and $SRVLOG"
+    bad "$label" "see $TMPDIR/{window,progress}.log and $SRVLOG"
   fi
   stop
 }

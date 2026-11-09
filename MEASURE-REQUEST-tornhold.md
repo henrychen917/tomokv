@@ -215,3 +215,26 @@ parse pass. Both namespaces pass. An isolated `no-carry` header overlay fails
 exactly `rob.at(3).read_cut(confirmed) == confirmed` (SIGABRT). No production
 observation hook was added. The updated unit row passes through the gate in
 `build/gate-run.iSToxF/ledger.partial` (**2/2**, including release).
+
+### Endurance and continuous-window falsifier
+
+All **13 arms × at least 180 seconds PASS** on the frozen final production image:
+the original eleven Phase B arms plus GET/MGET at atomic 1 and EXEC-backed
+GET/MGET at atomic 0. They checked 327,459,498 read pairs/triples, observed
+15,808,642 value changes (at least 655,074 in every arm), and reported **zero
+violations, zero worker errors and no vacuity flags**. The inherited runner's
+arm definitions are preserved, with the lane's authorized CPUs/ports and
+180-second durations. Server CPUs were 0–7, clients 16–17, ports 26590/26591.
+Full logs: `build/tornread/endurance-20261109-075419/`; compact evidence:
+`docs/tornhold-endurance.json`.
+
+Each continuous-progress row now runs the exact nonempty-ROB schedule before its
+30-second live cleanup probe. This is necessary because client-side outstanding
+commands alone cannot exclude brief server ROB quiescence. The isolated always-A
+image and its unit are linked from the same mutated owner objects; the control
+receipt records both hashes. With that matching unit selected through
+`GATE_TORNHOLD_PROGRESS_UNIT`, **all four continuous-progress rows FAIL** exactly
+at `advances > 100`, before the live leg. The release and normal/db0 unit
+prerequisites pass. Ledger: `build/gate-run.Sw0DbV/ledger.partial` (2 PASS,
+4 intended FAIL). This is a deterministic falsifier of the nonempty-window
+component; the standalone TCP probe is not claimed to falsify always-A by itself.
