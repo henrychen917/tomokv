@@ -321,3 +321,14 @@ with server CPUs 0–7 and load CPUs 8–15, through the same gate job. All sixt
 declared mode/atomic/engine/database legs retain their 60-second duration and
 original assertions. No production or gate source change is needed for this
 allocation correction.
+
+### Remaining regression selection complete, one setup refusal pending
+
+`build/gate-run.ZAYpOE/ledger.partial`: **549 PASS, 1 setup FAIL**. The sole
+nonpassing row is the pre-boot FIFO load-CPU refusal above; its isolated rerun is
+still pending. Exact label-set checks confirm every row in tornread's original
+403-row selection except that one has now passed on this image, and all **104/104**
+supplemental rows are covered. The **17/17** storage/filter/ring rows, **7/7**
+shutdown rows plus their release prerequisite, and all **35/35** feature-interaction
+cells passed. Added live FLIP/LB selections, both aofblock engines and the final
+four continuous-cleanup rows also passed. The differential/control queue follows.

@@ -1744,6 +1744,2950 @@
         "GATE_PROOF_NO_RATES": "1",
         "GATE_TORNREAD_REORDER": "0"
       }
+    },
+    "regression_remainder": {
+      "name": "proof-regression-remainder",
+      "jobs": [
+        "aofblock-epoll",
+        "aofblock-uring",
+        "at412-T1",
+        "at412-T10",
+        "at412-T11a",
+        "at412-T11b",
+        "at412-T12",
+        "at412-T13",
+        "at412-T14",
+        "at412-T15",
+        "at412-T16",
+        "at412-T2",
+        "at412-T3",
+        "at412-T4",
+        "at412-T5",
+        "at412-T6",
+        "at412-T7",
+        "at412-T8",
+        "at412-T9",
+        "at412-owner",
+        "atomfix5_accounting",
+        "atomfix5_watch",
+        "atomfix6-live-1s-0-1",
+        "atomfix6-live-1s-0-16",
+        "atomfix6-live-1s-1-1",
+        "atomfix6-live-1s-1-16",
+        "atomfix6-live-2s-0-1",
+        "atomfix6-live-2s-0-16",
+        "atomfix6-live-2s-1-1",
+        "atomfix6-live-2s-1-16",
+        "atomfix6_units",
+        "atomic_units",
+        "atomwake-live-1s-epoll",
+        "atomwake-live-1s-uring",
+        "atomwake-live-2s-epoll",
+        "atomwake-live-2s-uring",
+        "atomwake_unit",
+        "bplus",
+        "bugs5",
+        "clientcompat-disconnect",
+        "clientcompat-multi-controls",
+        "clientcompat-multi-tracking",
+        "climonfix",
+        "core_units",
+        "evict-lfu-armed-0",
+        "evict-lfu-armed-1",
+        "evict-lfu-split-0",
+        "evict-lfu-split-1",
+        "evict-lruclock-armed-0",
+        "evict-lruclock-armed-1",
+        "evict-lruclock-split-0",
+        "evict-lruclock-split-1",
+        "exbatch_live",
+        "exbatch_units",
+        "exec1s",
+        "execfair",
+        "feature-armed-0",
+        "feature-armed-1",
+        "feature-cell-1s-0-0-0-0",
+        "feature-cell-1s-0-0-0-1",
+        "feature-cell-1s-0-0-1-0",
+        "feature-cell-1s-0-0-1-1",
+        "feature-cell-1s-0-1-0-0",
+        "feature-cell-1s-0-1-0-1",
+        "feature-cell-1s-0-1-1-0",
+        "feature-cell-1s-0-1-1-1",
+        "feature-cell-1s-1-0-0-0",
+        "feature-cell-1s-1-0-0-1",
+        "feature-cell-1s-1-0-1-0",
+        "feature-cell-1s-1-0-1-1",
+        "feature-cell-1s-1-1-0-0",
+        "feature-cell-1s-1-1-0-1",
+        "feature-cell-1s-1-1-1-0",
+        "feature-cell-1s-1-1-1-1",
+        "feature-cell-2s-0-0-0-0",
+        "feature-cell-2s-0-0-0-1",
+        "feature-cell-2s-0-0-1-0",
+        "feature-cell-2s-0-0-1-1",
+        "feature-cell-2s-0-1-0-0",
+        "feature-cell-2s-0-1-0-1",
+        "feature-cell-2s-0-1-1-0",
+        "feature-cell-2s-0-1-1-1",
+        "feature-cell-2s-1-0-0-0",
+        "feature-cell-2s-1-0-0-1",
+        "feature-cell-2s-1-0-1-0",
+        "feature-cell-2s-1-0-1-1",
+        "feature-cell-2s-1-1-0-0",
+        "feature-cell-2s-1-1-0-1",
+        "feature-cell-2s-1-1-1-0",
+        "feature-cell-2s-1-1-1-1",
+        "feature-cell-fused-home-max-nopin",
+        "feature-cell-split-home-min",
+        "feature-cell-split-shards-auto",
+        "feature-split-0",
+        "feature-split-1",
+        "filter_unit",
+        "flip",
+        "flip_saturated",
+        "flip_unit",
+        "flipctl",
+        "flipfix5",
+        "flipfix5_units",
+        "flipfix7_blocked",
+        "flipfix7_output",
+        "flipfix7_tls",
+        "flipfix7_units",
+        "flipfix_units",
+        "fliplisten",
+        "fused-0",
+        "fused-1",
+        "lb-stationary-1s",
+        "lb-stationary-2s",
+        "lbplanner_units",
+        "moverfix",
+        "multidb-1s-0-0",
+        "multidb-1s-0-1",
+        "multidb-1s-1-0",
+        "multidb-1s-1-1",
+        "multidb-2s-0-0",
+        "multidb-2s-0-1",
+        "multidb-2s-1-0",
+        "multidb-2s-1-1",
+        "multifix-1s-epoll",
+        "multifix-1s-uring",
+        "multifix-2s-epoll",
+        "multifix-2s-uring",
+        "readonly",
+        "reorder_bounds",
+        "replyoff",
+        "ring_unit",
+        "rlcache",
+        "rldbg",
+        "rlfix3_zc",
+        "rob_portable",
+        "slotless",
+        "snapfix_bgsave_script",
+        "snapfix_shutdown",
+        "snapshot-epoll",
+        "snapshot-uring",
+        "storage_units",
+        "tornhold-progress-1s-epoll",
+        "tornhold-progress-1s-uring",
+        "tornhold-progress-2s-epoll",
+        "tornhold-progress-2s-uring",
+        "txn_group_fused",
+        "txn_group_split",
+        "txnfix4-crash",
+        "txnfix4-hash",
+        "txnfix4-oom",
+        "txnfix4-placement",
+        "txnfix4-watch",
+        "txnorder-fused-0",
+        "txnorder-fused-1",
+        "txnorder-split-0",
+        "txnorder-split-1",
+        "txnorder_chain",
+        "txnorder_fifo",
+        "txnorder_fifo_live",
+        "txnorder_index",
+        "txnorder_wound",
+        "wave15_flip_eof",
+        "wb_mixed"
+      ],
+      "command": [
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "0-15",
+        "--load-cores",
+        "16-19",
+        "--load-smt",
+        "",
+        "--ports",
+        "26500-26589"
+      ],
+      "returncode": 1,
+      "negative": false,
+      "reorder": 0,
+      "log": "build/tornhold/proof-regression-remainder.log",
+      "artifact": "build/gate-run.ZAYpOE",
+      "rows": [
+        {
+          "verdict": "ok",
+          "seconds": 0.04,
+          "label": "release build (+footprint locks)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 461.51,
+          "label": "txnfix4 CD5.4 movers under maxmemory change nothing or run (all legs)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.13,
+          "label": "txnfix4 CD5.5 multi-key pops abort a WATCH (all legs)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 18.5,
+          "label": "txnfix4 CD5.6 WATCH, multi-key pop, CLIENT TRACKING (all legs)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.14,
+          "label": "txnfix4 CD5.3 lapsed hash fields during a capture (all legs)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.93,
+          "label": "txnfix4 TM5.1 execfix proves two owners (all legs)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.25,
+          "label": "tornhold generation/bucket/parser/WB lifetimes (normal and db0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 32.36,
+          "label": "tornhold progress cleanup progress (1s uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 32.35,
+          "label": "tornhold progress cleanup progress (1s epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 32.35,
+          "label": "tornhold progress cleanup progress (2s uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 32.36,
+          "label": "tornhold progress cleanup progress (2s epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.25,
+          "label": "clientcompat disconnect"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 162.77,
+          "label": "clientcompat multi-tracking"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 157.13,
+          "label": "clientcompat multi-controls"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.08,
+          "label": "multifix RESET-IN-MULTI (1s uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.08,
+          "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.5,
+          "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.25,
+          "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 28.3,
+          "label": "multifix PAUSE-IN-MULTI (1s uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.08,
+          "label": "multifix PAUSE-EXEC-NOT-HELD (1s uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.07,
+          "label": "multifix RESET-IN-MULTI (1s epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.09,
+          "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.5,
+          "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.25,
+          "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 28.3,
+          "label": "multifix PAUSE-IN-MULTI (1s epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.07,
+          "label": "multifix PAUSE-EXEC-NOT-HELD (1s epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.07,
+          "label": "multifix RESET-IN-MULTI (2s uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.09,
+          "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.5,
+          "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.25,
+          "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 28.3,
+          "label": "multifix PAUSE-IN-MULTI (2s uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.08,
+          "label": "multifix PAUSE-EXEC-NOT-HELD (2s uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.08,
+          "label": "multifix RESET-IN-MULTI (2s epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.08,
+          "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.5,
+          "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.26,
+          "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 28.34,
+          "label": "multifix PAUSE-IN-MULTI (2s epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.09,
+          "label": "multifix PAUSE-EXEC-NOT-HELD (2s epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 79.44,
+          "label": "read-local ownership-invariant build"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 17.84,
+          "label": "flip controller model unit"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.3,
+          "label": "B+ counting-fingerprint filter unit"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.12,
+          "label": "read-local write ring + arming transient unit"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.69,
+          "label": "climon 128-owner delivery mask"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.09,
+          "label": "read-local MGET fence symmetry unit"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.0,
+          "label": "storage unlinked regression"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "storage randomkey regression"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.0,
+          "label": "storage rehash regression"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "storage rollback regression"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "storage snapshot-eviction regression"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "storage flags regression"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.0,
+          "label": "storage aof-eviction regression"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.0,
+          "label": "storage intents regression"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.0,
+          "label": "storage imported-hash regression"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "storage field-index-failure regression"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "storage hash-bytes regression"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.0,
+          "label": "storage deadline-allocation-failure regression"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.0,
+          "label": "storage flush-prepared-capacity regression"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 44.27,
+          "label": "bugs5 scancompact (both modes, both engines, atomic 0/1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 33.72,
+          "label": "bugs5 slowlog_identity (both modes, both engines, atomic 0/1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 27.14,
+          "label": "bugs5 read_local_lfu (both modes, both engines, atomic 0/1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.87,
+          "label": "aofblock blpop_now (1s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 8.57,
+          "label": "aofblock blpop_wake (1s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.44,
+          "label": "aofblock brpop (1s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 6.02,
+          "label": "aofblock blmpop (1s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.38,
+          "label": "aofblock bzpopmin (1s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.36,
+          "label": "aofblock bzpopmax (1s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 6.16,
+          "label": "aofblock bzmpop (1s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.48,
+          "label": "aofblock xreadgroup_now (1s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 6.45,
+          "label": "aofblock xreadgroup_wake (1s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.13,
+          "label": "aofblock blpop_now (2s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.7,
+          "label": "aofblock blpop_wake (2s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.83,
+          "label": "aofblock brpop (2s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 6.26,
+          "label": "aofblock blmpop (2s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.52,
+          "label": "aofblock bzpopmin (2s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.15,
+          "label": "aofblock bzpopmax (2s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.08,
+          "label": "aofblock bzmpop (2s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.71,
+          "label": "aofblock xreadgroup_now (2s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.02,
+          "label": "aofblock xreadgroup_wake (2s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.31,
+          "label": "aofblock blpop_now (1s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 6.8,
+          "label": "aofblock blpop_wake (1s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.87,
+          "label": "aofblock brpop (1s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.33,
+          "label": "aofblock blmpop (1s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 7.47,
+          "label": "aofblock bzpopmin (1s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 6.16,
+          "label": "aofblock bzpopmax (1s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.62,
+          "label": "aofblock bzmpop (1s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 6.22,
+          "label": "aofblock xreadgroup_now (1s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.8,
+          "label": "aofblock xreadgroup_wake (1s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.97,
+          "label": "aofblock blpop_now (2s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.95,
+          "label": "aofblock blpop_wake (2s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.64,
+          "label": "aofblock brpop (2s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.97,
+          "label": "aofblock blmpop (2s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.68,
+          "label": "aofblock bzpopmin (2s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.9,
+          "label": "aofblock bzpopmax (2s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.87,
+          "label": "aofblock bzmpop (2s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.25,
+          "label": "aofblock xreadgroup_now (2s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.62,
+          "label": "aofblock xreadgroup_wake (2s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 255.99,
+          "label": "eviction lruclock battery (split, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 255.26,
+          "label": "eviction lruclock battery (fused+armed, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 255.31,
+          "label": "eviction lruclock battery (split, atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 255.2,
+          "label": "eviction lruclock battery (fused+armed, atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.68,
+          "label": "eviction lfu battery (split, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.69,
+          "label": "eviction lfu battery (fused+armed, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.69,
+          "label": "eviction lfu battery (split, atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.69,
+          "label": "eviction lfu battery (fused+armed, atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 129.89,
+          "label": "flip controller: ramp gate, hold, surge + mix re-maneuvers"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.07,
+          "label": "R7 linear scan and lazy construction bounds (both databases)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.3,
+          "label": "ROB portable completion without BMI"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.1,
+          "label": "slotless remote completions (1s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.12,
+          "label": "slotless remote completions (1s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.98,
+          "label": "slotless remote completions (2s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.98,
+          "label": "slotless remote completions (2s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 12.19,
+          "label": "writeback mixed replies and live knob bounds (1s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 12.2,
+          "label": "writeback mixed replies and live knob bounds (1s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 12.47,
+          "label": "writeback mixed replies and live knob bounds (2s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 12.48,
+          "label": "writeback mixed replies and live knob bounds (2s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.03,
+          "label": "atomfix6 collapse (normal, unit)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.04,
+          "label": "atomfix6 collapse (normal, asan)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.03,
+          "label": "atomfix6 collapse (normal, tsan)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.21,
+          "label": "atomfix6 parked MSET8 heads (1s, normal)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.21,
+          "label": "atomfix6 parked MSET8 heads (2s, normal)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.03,
+          "label": "atomfix6 collapse (db0, unit)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.04,
+          "label": "atomfix6 collapse (db0, asan)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.04,
+          "label": "atomfix6 collapse (db0, tsan)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.28,
+          "label": "atomfix6 parked MSET8 heads (1s, db0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.28,
+          "label": "atomfix6 parked MSET8 heads (2s, db0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.8,
+          "label": "atomfix6 park index lifetime (asan)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.11,
+          "label": "atomfix6 park index lifetime (tsan)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 25.36,
+          "label": "atomfix6 MSET pairs/capture/restart (1s, read-local 0, databases 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 25.36,
+          "label": "atomfix6 MSET pairs/capture/restart (1s, read-local 0, databases 16)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 25.41,
+          "label": "atomfix6 MSET pairs/capture/restart (1s, read-local 1, databases 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 25.44,
+          "label": "atomfix6 MSET pairs/capture/restart (1s, read-local 1, databases 16)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 25.48,
+          "label": "atomfix6 MSET pairs/capture/restart (2s, read-local 0, databases 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 25.44,
+          "label": "atomfix6 MSET pairs/capture/restart (2s, read-local 0, databases 16)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 25.47,
+          "label": "atomfix6 MSET pairs/capture/restart (2s, read-local 1, databases 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 25.48,
+          "label": "atomfix6 MSET pairs/capture/restart (2s, read-local 1, databases 16)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 66.92,
+          "label": "atomwake lone-IO credit wake (2s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 66.92,
+          "label": "atomwake lone-IO credit wake (2s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 66.98,
+          "label": "atomwake lone-IO credit wake (1s, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 66.98,
+          "label": "atomwake lone-IO credit wake (1s, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "atomwake credit doorbell unit (uring, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 14.79,
+          "label": "at412 T1"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 26.44,
+          "label": "at412 T2"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 6.77,
+          "label": "at412 T3"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 13.1,
+          "label": "at412 T4"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 107.7,
+          "label": "at412 T5"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 812.9,
+          "label": "at412 T6"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 37.11,
+          "label": "at412 T7"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.05,
+          "label": "at412 T8"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.06,
+          "label": "at412 T9"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 451.46,
+          "label": "at412 T10"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 7.05,
+          "label": "at412 T11a"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 43.27,
+          "label": "at412 T11b"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 14.79,
+          "label": "at412 T12"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 122.04,
+          "label": "at412 T13"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.93,
+          "label": "at412 T14"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 116.7,
+          "label": "at412 T15"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 17.47,
+          "label": "at412 T16"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.07,
+          "label": "at412 owner"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.56,
+          "label": "s6 battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.11,
+          "label": "multi_exec battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.54,
+          "label": "blocking battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.48,
+          "label": "blockmulti battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.79,
+          "label": "stream battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.08,
+          "label": "streamgroups battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.93,
+          "label": "pubsub battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "lua_scripting battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.07,
+          "label": "scriptsurf battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.53,
+          "label": "limits battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "resp3 battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "bitfield battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.09,
+          "label": "dumprestore battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.08,
+          "label": "zsetops battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "geo battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.16,
+          "label": "climon battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.88,
+          "label": "climon2 battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 13.26,
+          "label": "tracking battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.32,
+          "label": "hexpire battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.59,
+          "label": "servertail battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.18,
+          "label": "lcs battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.81,
+          "label": "concur battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.65,
+          "label": "edgeproto battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.37,
+          "label": "edgeenc battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.82,
+          "label": "edgetime battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "arity battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "contarity battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "cmdgap battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "aclsel battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 50.85,
+          "label": "expwide battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.23,
+          "label": "infofix battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.47,
+          "label": "pushtear battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "netcmd battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.02,
+          "label": "feature shutdown invariants (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.26,
+          "label": "fused+armed boot line (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.64,
+          "label": "fused+armed s6 battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.1,
+          "label": "fused+armed multi_exec battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.64,
+          "label": "fused+armed blocking battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.49,
+          "label": "fused+armed blockmulti battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.83,
+          "label": "fused+armed stream battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.08,
+          "label": "fused+armed streamgroups battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.94,
+          "label": "fused+armed pubsub battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "fused+armed lua_scripting battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.08,
+          "label": "fused+armed scriptsurf battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.56,
+          "label": "fused+armed limits battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "fused+armed resp3 battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "fused+armed bitfield battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.1,
+          "label": "fused+armed dumprestore battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.08,
+          "label": "fused+armed zsetops battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "fused+armed geo battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.15,
+          "label": "fused+armed climon battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.82,
+          "label": "fused+armed climon2 battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 13.3,
+          "label": "fused+armed tracking battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.07,
+          "label": "fused+armed hexpire battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.59,
+          "label": "fused+armed servertail battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.19,
+          "label": "fused+armed lcs battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.84,
+          "label": "fused+armed concur battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.76,
+          "label": "fused+armed edgeproto battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.4,
+          "label": "fused+armed edgeenc battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.82,
+          "label": "fused+armed edgetime battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "fused+armed arity battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "fused+armed contarity battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "fused+armed cmdgap battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "fused+armed aclsel battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 41.85,
+          "label": "fused+armed expwide battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.2,
+          "label": "fused+armed infofix battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.99,
+          "label": "fused+armed pushtear battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "fused+armed netcmd battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.16,
+          "label": "fused+armed shutdown report + lane fired (hits=N, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.55,
+          "label": "s6 battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.11,
+          "label": "multi_exec battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.54,
+          "label": "blocking battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.48,
+          "label": "blockmulti battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.8,
+          "label": "stream battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.08,
+          "label": "streamgroups battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.91,
+          "label": "pubsub battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "lua_scripting battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.07,
+          "label": "scriptsurf battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.15,
+          "label": "limits battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "resp3 battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "bitfield battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.1,
+          "label": "dumprestore battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.07,
+          "label": "zsetops battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "geo battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.18,
+          "label": "climon battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.87,
+          "label": "climon2 battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 13.26,
+          "label": "tracking battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.08,
+          "label": "hexpire battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.59,
+          "label": "servertail battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.18,
+          "label": "lcs battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.83,
+          "label": "concur battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.61,
+          "label": "edgeproto battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.39,
+          "label": "edgeenc battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.82,
+          "label": "edgetime battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "arity battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "contarity battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "cmdgap battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "aclsel battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 42.73,
+          "label": "expwide battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.23,
+          "label": "infofix battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.47,
+          "label": "pushtear battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "netcmd battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.02,
+          "label": "feature shutdown invariants (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.26,
+          "label": "fused+armed boot line (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.65,
+          "label": "fused+armed s6 battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.1,
+          "label": "fused+armed multi_exec battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.67,
+          "label": "fused+armed blocking battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.49,
+          "label": "fused+armed blockmulti battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.85,
+          "label": "fused+armed stream battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.07,
+          "label": "fused+armed streamgroups battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.94,
+          "label": "fused+armed pubsub battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "fused+armed lua_scripting battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.08,
+          "label": "fused+armed scriptsurf battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.2,
+          "label": "fused+armed limits battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "fused+armed resp3 battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "fused+armed bitfield battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.1,
+          "label": "fused+armed dumprestore battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.08,
+          "label": "fused+armed zsetops battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "fused+armed geo battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.18,
+          "label": "fused+armed climon battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.87,
+          "label": "fused+armed climon2 battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 13.3,
+          "label": "fused+armed tracking battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.07,
+          "label": "fused+armed hexpire battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.6,
+          "label": "fused+armed servertail battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.19,
+          "label": "fused+armed lcs battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.85,
+          "label": "fused+armed concur battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.73,
+          "label": "fused+armed edgeproto battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.39,
+          "label": "fused+armed edgeenc battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.82,
+          "label": "fused+armed edgetime battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "fused+armed arity battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "fused+armed contarity battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "fused+armed cmdgap battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "fused+armed aclsel battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 52.22,
+          "label": "fused+armed expwide battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.23,
+          "label": "fused+armed infofix battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.48,
+          "label": "fused+armed pushtear battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.07,
+          "label": "fused+armed netcmd battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.17,
+          "label": "fused+armed shutdown report + lane fired (hits=N, atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.97,
+          "label": "multidb (1s, read-local 0, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.12,
+          "label": "multidb (1s, read-local 0, atomic 0) SWAPDB serial order"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.28,
+          "label": "multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.99,
+          "label": "multidb (1s, read-local 0, atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.1,
+          "label": "multidb (1s, read-local 0, atomic 1) SWAPDB serial order"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.28,
+          "label": "multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.06,
+          "label": "multidb (1s, read-local 1, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.12,
+          "label": "multidb (1s, read-local 1, atomic 0) SWAPDB serial order"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.29,
+          "label": "multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.05,
+          "label": "multidb (1s, read-local 1, atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.13,
+          "label": "multidb (1s, read-local 1, atomic 1) SWAPDB serial order"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.29,
+          "label": "multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.99,
+          "label": "multidb (2s, read-local 0, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.12,
+          "label": "multidb (2s, read-local 0, atomic 0) SWAPDB serial order"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.29,
+          "label": "multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.93,
+          "label": "multidb (2s, read-local 0, atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.13,
+          "label": "multidb (2s, read-local 0, atomic 1) SWAPDB serial order"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.28,
+          "label": "multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.99,
+          "label": "multidb (2s, read-local 1, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.13,
+          "label": "multidb (2s, read-local 1, atomic 0) SWAPDB serial order"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.29,
+          "label": "multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.91,
+          "label": "multidb (2s, read-local 1, atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.11,
+          "label": "multidb (2s, read-local 1, atomic 1) SWAPDB serial order"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.28,
+          "label": "multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 6.53,
+          "label": "wave15 half-close input across FLIP (both engines, atomic and namespaces)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.64,
+          "label": "snapshot concurrent cut (epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.2,
+          "label": "snapshot cut reload (epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.68,
+          "label": "snapshot never tears a cross-shard MSET group (epoll, atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.26,
+          "label": "snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "typed snapshot save (epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "typed snapshot reload (epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.17,
+          "label": "typed snapshot preimage race (epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "typed snapshot race reload (epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.84,
+          "label": "shutdown keeps acknowledged writes (1s, sigterm, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.84,
+          "label": "shutdown keeps acknowledged writes (1s, command, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.01,
+          "label": "shutdown cancels BGSAVE capture (1s, atomic 0, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.99,
+          "label": "shutdown cancels BGSAVE capture (1s, atomic 1, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.86,
+          "label": "shutdown keeps acknowledged writes (2s, sigterm, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.86,
+          "label": "shutdown keeps acknowledged writes (2s, command, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.08,
+          "label": "shutdown cancels BGSAVE capture (2s, atomic 0, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.06,
+          "label": "shutdown cancels BGSAVE capture (2s, atomic 1, epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.62,
+          "label": "snapshot concurrent cut (uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.17,
+          "label": "snapshot cut reload (uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.69,
+          "label": "snapshot never tears a cross-shard MSET group (uring, atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 5.17,
+          "label": "snapshot never tears a MULTI/EXEC group (uring, default atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "typed snapshot save (uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.04,
+          "label": "typed snapshot reload (uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.16,
+          "label": "typed snapshot preimage race (uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "typed snapshot race reload (uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.86,
+          "label": "shutdown keeps acknowledged writes (1s, sigterm, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.85,
+          "label": "shutdown keeps acknowledged writes (1s, command, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.0,
+          "label": "shutdown cancels BGSAVE capture (1s, atomic 0, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.0,
+          "label": "shutdown cancels BGSAVE capture (1s, atomic 1, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.85,
+          "label": "shutdown keeps acknowledged writes (2s, sigterm, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.85,
+          "label": "shutdown keeps acknowledged writes (2s, command, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.06,
+          "label": "shutdown cancels BGSAVE capture (2s, atomic 0, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.05,
+          "label": "shutdown cancels BGSAVE capture (2s, atomic 1, uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.64,
+          "label": "snapfix XS-SHUT-1 SHUTDOWN NOSAVE in script storm (both modes, both engines, atomic 0/1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 58.95,
+          "label": "snapfix SNAP-STORM-1 BGSAVE under script storm (both modes, both engines, atomic 0/1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 42.38,
+          "label": "stationary balanced LB holds still (1s)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 42.38,
+          "label": "stationary balanced LB holds still (2s)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.92,
+          "label": "atomfix5 WATCH key count (both modes, both engines, atomic 0/1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 13.5,
+          "label": "atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.13,
+          "label": "core concurrency watch"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.34,
+          "label": "core concurrency lifetime"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.13,
+          "label": "core concurrency drain"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 7.23,
+          "label": "core concurrency route"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.13,
+          "label": "core concurrency snapshot"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.18,
+          "label": "core concurrency config"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.19,
+          "label": "core concurrency notify"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.84,
+          "label": "read-local topology demotion (1s)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.59,
+          "label": "read-local topology demotion (2s)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.14,
+          "label": "FLIP planned-connection close lifetime (ASAN+TSAN)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.14,
+          "label": "FLIP fingerprint publication (ASAN+TSAN)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.21,
+          "label": "FLIP stale stage sample refused (ASAN+TSAN)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.2,
+          "label": "FLIP stale stage planted pre-fix controls fail"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.33,
+          "label": "FLIP socket drain and stationary-client fences (ASAN+UBSAN+TSAN)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.03,
+          "label": "shutdown policy + signal handoff serverless"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.34,
+          "label": "shutdown persistence (1s, command)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.13,
+          "label": "shutdown persistence (1s, sigterm)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.14,
+          "label": "shutdown persistence (1s, sigint)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.34,
+          "label": "shutdown persistence (2s, command)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.13,
+          "label": "shutdown persistence (2s, sigterm)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.14,
+          "label": "shutdown persistence (2s, sigint)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.21,
+          "label": "LB sampler exceptional cleanup + negative control"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.31,
+          "label": "LB monitor plan handoff + negative controls"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 20.18,
+          "label": "exbatch publication unit + negative controls"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 59.33,
+          "label": "exbatch watch unit + negative controls"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 23.65,
+          "label": "exbatch metadata unit + negative controls"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.28,
+          "label": "exbatch publication and WATCH lifecycle (1s)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.28,
+          "label": "exbatch publication and WATCH lifecycle (2s)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "atomic commit publication catches up at quiescence"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.46,
+          "label": "flushfix flush witnesses"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "flushfix headers witnesses"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.9,
+          "label": "multidb serverless owners"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.06,
+          "label": "multidb global namespace boundary"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.36,
+          "label": "storesize published monitoring"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.22,
+          "label": "MULTI admin command replies"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.08,
+          "label": "EXECABORT releases WATCH reservation"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivors unit build"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.02,
+          "label": "atomic survivor: admission"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.0,
+          "label": "atomic survivor: closure"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: script_keys"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: rename_overlay"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: write_latest"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.0,
+          "label": "atomic survivor: script_apply"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: post_apply_probe"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: lua_conversion"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: watch_parent"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: watch_cycle"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: mset_arity"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: watch_oom"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: lua_lines"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: library_limit"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.02,
+          "label": "atomic survivor: stage_flag"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.0,
+          "label": "atomic survivor: instruction_limit"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "armed resize retirement: atomic-growth"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "armed resize retirement: flush-prepared"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.06,
+          "label": "read-only resize split read-local=0"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.06,
+          "label": "read-only resize split read-local=1"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.56,
+          "label": "read-only resize fused read-local=0"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.56,
+          "label": "read-only resize fused read-local=1"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.74,
+          "label": "moverfix conservation (1s, uring, databases 1, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.67,
+          "label": "moverfix conservation (1s, uring, databases 16, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.71,
+          "label": "moverfix conservation (1s, epoll, databases 1, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.7,
+          "label": "moverfix conservation (1s, epoll, databases 16, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.6,
+          "label": "moverfix conservation (2s, uring, databases 1, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.58,
+          "label": "moverfix conservation (2s, uring, databases 16, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.61,
+          "label": "moverfix conservation (2s, epoll, databases 1, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.61,
+          "label": "moverfix conservation (2s, epoll, databases 16, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.13,
+          "label": "B+ held-group GET/MGET filter battery"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.15,
+          "label": "read-local lane admission battery"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.08,
+          "label": "read-local MGET fence battery (1s)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.89,
+          "label": "read-local GET miss battery (1s)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.07,
+          "label": "read-local one-key delete battery (1s)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.34,
+          "label": "read-local MGET fence battery (2s)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.89,
+          "label": "read-local GET miss battery (2s)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.07,
+          "label": "read-local one-key delete battery (2s)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.29,
+          "label": "read-local borrow capability (1s, epoll, read-local 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.29,
+          "label": "read-local borrow capability (1s, epoll, read-local 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.29,
+          "label": "read-local borrow capability (1s, uring, read-local 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.29,
+          "label": "read-local borrow capability (1s, uring, read-local 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.3,
+          "label": "read-local borrow capability (2s, epoll, read-local 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.29,
+          "label": "read-local borrow capability (2s, epoll, read-local 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.29,
+          "label": "read-local borrow capability (2s, uring, read-local 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.3,
+          "label": "read-local borrow capability (2s, uring, read-local 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.16,
+          "label": "FLIP state battery"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.06,
+          "label": "FLIP under verified load"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.44,
+          "label": "FLIP TTL + expiry events"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.23,
+          "label": "partial-frame conn parks (no io spin)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.2,
+          "label": "FLIP close during FLIP (uring)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.24,
+          "label": "FLIP close during FLIP (epoll)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 4.78,
+          "label": "FLIP signal stop during FLIP + second SIGINT"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.55,
+          "label": "perfio stale epoll registration (epoll-flip)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.12,
+          "label": "perfio stale epoll registration (epoll-lb)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 33.99,
+          "label": "FLIP listener conservation (io-ex, complete)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 34.37,
+          "label": "FLIP listener conservation (io-ex, rollback)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 34.4,
+          "label": "FLIP listener conservation (ex-io, complete)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 34.17,
+          "label": "FLIP listener conservation (ex-io, rollback)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 6.23,
+          "label": "FLIP applies under saturated load"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.02,
+          "label": "flip battery shutdown invariants"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 81.11,
+          "label": "FLIP stale stage storm (all legs)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 126.42,
+          "label": "FLIP late and non-draining output (all 2s legs)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.38,
+          "label": "FLIP blocked connection liveness (all 2s legs)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.14,
+          "label": "FLIP TLS connection liveness (all 2s legs)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.27,
+          "label": "fused boot line (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.63,
+          "label": "fused s6 battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.11,
+          "label": "fused multi_exec battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.77,
+          "label": "fused edgeproto battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.07,
+          "label": "fused atomfix battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.23,
+          "label": "fused spinprobe battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.17,
+          "label": "fused shutdown report (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.67,
+          "label": "fused txn_nx battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 8.53,
+          "label": "fused txniso battery (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.26,
+          "label": "fused boot line (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.65,
+          "label": "fused s6 battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.11,
+          "label": "fused multi_exec battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.76,
+          "label": "fused edgeproto battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.08,
+          "label": "fused atomfix battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.23,
+          "label": "fused spinprobe battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.16,
+          "label": "fused shutdown report (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.97,
+          "label": "fused txn_nx battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 8.54,
+          "label": "fused txniso battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 11.96,
+          "label": "fused txngroup battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 12.42,
+          "label": "txngroup battery (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 83.53,
+          "label": "EXEC fast-lane polls and wave6-wave10 interactions"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.14,
+          "label": "exec1s refinements (1s, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 17.76,
+          "label": "exec1s refinements (1s, atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.01,
+          "label": "exec1s refinements (2s, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 3.0,
+          "label": "exec1s refinements (2s, atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.09,
+          "label": "txnorder FIFO F1"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.07,
+          "label": "txnorder FIFO F2"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.08,
+          "label": "txnorder FIFO F3"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.07,
+          "label": "txnorder FIFO F4"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.07,
+          "label": "txnorder FIFO F5"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.16,
+          "label": "txnorder FIFO F6"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.1,
+          "label": "txnorder FIFO F7"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.07,
+          "label": "txnorder FIFO F8"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.08,
+          "label": "txnorder FIFO F9"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.07,
+          "label": "txnorder FIFO F10"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.0,
+          "label": "txnorder FIFO live fairness"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.04,
+          "label": "txnorder chain local"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.02,
+          "label": "txnorder chain boundary"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.02,
+          "label": "txnorder chain serve"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.03,
+          "label": "txnorder chain hot"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 96.91,
+          "label": "txnorder index oracle"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.61,
+          "label": "txnorder index complexity"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.04,
+          "label": "txnorder wound group"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.03,
+          "label": "txnorder wound exec"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.03,
+          "label": "txnorder wound oom"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.09,
+          "label": "txnorder wound d2"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 49.89,
+          "label": "txnorder battery (fused, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 49.65,
+          "label": "txnorder battery (fused, atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 49.53,
+          "label": "txnorder battery (split, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 49.49,
+          "label": "txnorder battery (split, atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.23,
+          "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.24,
+          "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 25.19,
+          "label": "armed block-cache churn battery"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.02,
+          "label": "read-local ownership invariants"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.23,
+          "label": "feature 1s-0-0-0-0"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.1,
+          "label": "feature 1s-0-0-0-1"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.23,
+          "label": "feature 1s-0-0-1-0"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.1,
+          "label": "feature 1s-0-0-1-1"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.23,
+          "label": "feature 1s-0-1-0-0"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.11,
+          "label": "feature 1s-0-1-0-1"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.24,
+          "label": "feature 1s-0-1-1-0"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.1,
+          "label": "feature 1s-0-1-1-1"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.24,
+          "label": "feature 1s-1-0-0-0"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.1,
+          "label": "feature 1s-1-0-0-1"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.23,
+          "label": "feature 1s-1-0-1-0"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.11,
+          "label": "feature 1s-1-0-1-1"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.25,
+          "label": "feature 1s-1-1-0-0"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.1,
+          "label": "feature 1s-1-1-0-1"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.35,
+          "label": "feature 1s-1-1-1-0"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 0.1,
+          "label": "feature 1s-1-1-1-1"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.23,
+          "label": "feature 2s-0-0-0-0"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.25,
+          "label": "feature 2s-0-0-0-1"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.25,
+          "label": "feature 2s-0-0-1-0"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.24,
+          "label": "feature 2s-0-0-1-1"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.24,
+          "label": "feature 2s-0-1-0-0"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.35,
+          "label": "feature 2s-0-1-0-1"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.34,
+          "label": "feature 2s-0-1-1-0"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.23,
+          "label": "feature 2s-0-1-1-1"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.23,
+          "label": "feature 2s-1-0-0-0"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.24,
+          "label": "feature 2s-1-0-0-1"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.23,
+          "label": "feature 2s-1-0-1-0"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.24,
+          "label": "feature 2s-1-0-1-1"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.24,
+          "label": "feature 2s-1-1-0-0"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.23,
+          "label": "feature 2s-1-1-0-1"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.35,
+          "label": "feature 2s-1-1-1-0"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.24,
+          "label": "feature 2s-1-1-1-1"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.24,
+          "label": "feature split-home-min"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.23,
+          "label": "feature fused-home-max-nopin"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 1.23,
+          "label": "feature split-shards-auto"
+        }
+      ],
+      "ok": 549,
+      "fail": 1,
+      "setup_refusal_pending_wide_rerun": true,
+      "environment": {
+        "LC_ALL": "C",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_TORNREAD_REORDER": "0"
+      }
     }
   },
   "harness": {
@@ -1774,5 +4718,153 @@
       "old_parent": 4128473,
       "old_gate": 532674
     }
-  ]
+  ],
+  "completed_feature_cells": {
+    "feature-cell-2s-0-0-0-0": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-2s-1-0-1-1": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-2s-0-1-1-0": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-1s-1-0-0-0": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-1s-0-0-1-0": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-1s-0-0-0-0": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-split-home-min": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-1s-1-1-0-1": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-2s-0-1-1-1": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-2s-1-1-1-0": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-2s-1-0-0-0": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-2s-0-1-0-0": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-2s-0-0-1-0": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-2s-1-1-0-0": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-1s-0-1-1-1": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-2s-1-0-0-1": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-1s-1-0-1-0": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-1s-1-0-1-1": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-1s-1-1-1-1": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-2s-1-1-1-1": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-1s-0-1-0-1": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-2s-0-1-0-1": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-1s-0-0-1-1": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-2s-0-0-0-1": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-1s-0-1-0-0": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-1s-0-1-1-0": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-2s-1-0-1-0": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-2s-0-0-1-1": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-1s-1-1-1-0": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-1s-0-0-0-1": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-2s-1-1-0-1": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-1s-1-1-0-0": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-fused-home-max-nopin": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-split-shards-auto": {
+      "ok": 1,
+      "fail": 0
+    },
+    "feature-cell-1s-1-0-0-1": {
+      "ok": 1,
+      "fail": 0
+    }
+  },
+  "historical_coverage_checkpoint": {
+    "broad_403_missing": [
+      "txnorder FIFO live fairness"
+    ],
+    "supplemental_104_all_pass": true
+  }
 }
