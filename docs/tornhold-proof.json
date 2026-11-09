@@ -4688,6 +4688,64 @@
         "GATE_PROOF_NO_RATES": "1",
         "GATE_TORNREAD_REORDER": "0"
       }
+    },
+    "differential": {
+      "name": "proof-differential",
+      "jobs": [
+        "differ-split",
+        "differ-armed"
+      ],
+      "command": [
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "0-15",
+        "--load-cores",
+        "16-19",
+        "--load-smt",
+        "",
+        "--ports",
+        "26500-26589"
+      ],
+      "returncode": 0,
+      "negative": false,
+      "reorder": 0,
+      "log": "build/tornhold/proof-differential.log",
+      "artifact": "build/gate-run.OzIKMA",
+      "rows": [
+        {
+          "verdict": "ok",
+          "seconds": 0.05,
+          "label": "release build (+footprint locks)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 533.15,
+          "label": "Redis 7.4 differential part (split, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 535.39,
+          "label": "Redis 7.4 differential part (split, atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 534.91,
+          "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 536.97,
+          "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 21.36,
+          "label": "mode equivalence part (all execution modes and knobs)"
+        }
+      ],
+      "ok": 6,
+      "fail": 0
     }
   },
   "harness": {

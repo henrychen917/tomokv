@@ -332,3 +332,12 @@ supplemental rows are covered. The **17/17** storage/filter/ring rows, **7/7**
 shutdown rows plus their release prerequisite, and all **35/35** feature-interaction
 cells passed. Added live FLIP/LB selections, both aofblock engines and the final
 four continuous-cleanup rows also passed. The differential/control queue follows.
+
+### Differential matrix complete
+
+`build/gate-run.OzIKMA/ledger.partial`: **6/6 PASS**, comprising all five
+differential parts plus release. Both split atomic settings, both armed read-local
+atomic settings and the mode-equivalence part completed with zero mismatches.
+The selected canonical jobs expanded to all five required children; each child
+finished successfully through the gate interface. The release/PAD/generated-parser
+falsifiers are now running on their deliberately broken images.
