@@ -418,4 +418,15 @@ The LRU-clock rows retained their real 256-second aging waits. CONFIG shutdown a
 shutdown retained their oracle and declared mode/engine matrices. No correctness failure
 was found in the existing jobs, so no additional production fix was needed.
 
+After the proof-only commits, `make -j16 all` again reports nothing to build and
+`make -q all` returns 0. `build/tomokv` still has the exact frozen POST SHA-256;
+`src/`, `tests/` and the Makefile are unchanged from merge `d477166394`.
+See `docs/s1pair-land/final-build-proof.json` and `final-build.log`.
+The clean PRE helper worktree was removed with ordinary `git worktree remove` after
+preserving its production arm; no forced removal was needed (`helper-cleanup.json`).
+
+The old report's item 5 remains an explicit coverage limit: there is no dedicated triage5
+case-C allkeys-lru EVAL row. This lane ran the requested existing jobs and the four existing
+s1pair rows; it does not claim a new dedicated case-C proof or add another gate row.
+
 Differential results follow.
