@@ -395,7 +395,7 @@ job interface, with the original job list and order retained. Including `release
 `production_units`, this is **77 completed jobs, 455 ok / 0 FAIL**, exit 0, run
 `build/gate-run.4QgEmY`. The build-only production prerequisite created 67 freshness
 markers and contributes no scored row. No job was omitted or retried to obtain this result.
-The complete console log, public ledger and timings are retained as
+The complete console log, partial ledger and timings are retained as
 `docs/s1pair-land/post-existing.*`.
 
 | Existing-job family | Passing rows |
@@ -429,4 +429,52 @@ The old report's item 5 remains an explicit coverage limit: there is no dedicate
 case-C allkeys-lru EVAL row. This lane ran the requested existing jobs and the four existing
 s1pair rows; it does not claim a new dedicated case-C proof or add another gate row.
 
-Differential results follow.
+The Redis differential proof is complete, run `build/gate-run.kLDKhm`, exit 0. Selecting
+`differ-split differ-armed` through the partial job interface runs all five private children
+plus `release`: **6 ok / 0 FAIL** in that partial ledger. The partial interface does not
+score the two public full-tier folds. `docs/s1pair-land/collect.py` additionally invokes
+the gate's existing read-only fold validator to check both complete ordered leg inventories,
+coverage witnesses, child completions and mode-equivalence results; this passes without
+creating a full-gate receipt or applying a full-gate aggregate deadline.
+
+The oracle identifies itself as **vanilla Redis 7.4.10** in every comparison arm. All five
+frozen seeds **7, 19, 20, 23, 21** ran, with all 47 discovered suites in split mode.
+The armed mode retains the declared SORT exclusion because that suite requires split 6:2;
+SORT passed for every seed in both split atomic settings. Each atomic-1 lifetime also
+retains all four extra seed-19 MULTI repetitions after its accumulated-state seed chain.
+These differential jobs use their declared **uring** engine.
+
+| Differential arm | Passing comparison legs | Recorded comparison witnesses |
+|---|---:|---:|
+| Split, atomic 0 | 235 | 1,065,523 |
+| Split, atomic 1, including four MULTI repeats | 239 | 1,082,731 |
+| Armed fused, atomic 0 | 230 | 1,042,125 |
+| Armed fused, atomic 1, including four MULTI repeats | 234 | 1,059,570 |
+| **Total** | **938, zero failed** | **4,249,949** |
+
+Both armed lifetimes pass the read-local non-vacuity assertion: observed peak hits are
+**1257** in each. These are retained observations, not lifetime sums: RESETSTAT can rebase
+the counter. Final hit counts are 1 (atomic 0) and 21 (atomic 1). The unchanged coverage
+reporter records compared-reply/property witnesses for **232 of 245 registered commands**;
+the 13 not observed by that reporter are listed in the retained differential log. This is
+not a claim of a comparison witness for every registered command.
+
+Mode equivalence passes all **16 reached cells**: 1s/2s x read-local 0/1 x reorder 0/1 x
+atomic 0/1. Each cell compares **6137 replies** from seed 21's unchanged deterministic
+stream; all reply hashes agree and every enabled mechanism has its required witness.
+The frozen plan, every executed leg, coverage counts, read-local samples, all 16 cell
+results and read-only fold validation are committed in
+`docs/s1pair-land/differ-results.json`. The complete selected-job census, including the
+expected PRE failures, is in `job-results.json`; full logs and ledgers are retained as
+`post-differ.*`. Reproduce collection with
+`taskset -c 96-111 env LC_ALL=C python3 docs/s1pair-land/collect.py`.
+
+The socket-reuse unit also passes explicitly on reserved port 26390 and CPU 110; its
+command and result are in `docs/s1pair-land/socket-port-proof.log`. All selected-job
+runners have exited, and a final `ss` check finds no listeners on 26300-26499. No process
+outside the lane's owned children was terminated.
+
+There are **no unexpected POST correctness failures**. The only intentional red evidence
+is the four PRE negative-control rows and the unchanged label fixture's four-label delta
+(PRE fixture passes). The maintainer still owns the **+4/+4** EXPECT and fixture update,
+full gate, throughput measurement and landing. No push was made.

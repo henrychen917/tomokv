@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import re
 import shutil
+import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 BUILD = ROOT / 'build/s1pair-land'
@@ -19,10 +20,13 @@ def sha256(path):
 
 
 def differential_receipts(run):
-    plan = json.loads((run / 'differ-plan.json').read_text())
-    receipt = dict(plan=plan, folds={}, parts={})
+    sys.path.insert(0, str(ROOT / 'tests'))
+    from differ_fanout import fold, load_plan
+    plan = load_plan(run / 'differ-plan.json')
+    receipt = dict(plan=plan, fold_validation={}, parts={},
+                   validation_scope='Read-only coverage/completion validation; partial jobs do not score public folds')
     for group in ('split', 'armed'):
-        receipt['folds'][group] = json.loads((run / ('differ-' + group + '-fold.json')).read_text())
+        receipt['fold_validation'][group] = fold(plan, group, run)
     for part in ('split-0', 'split-1', 'armed-0', 'armed-1', 'equivalence'):
         directory = run / 'jobs' / ('differ-' + part) / 'differ'
         record = dict(completion=json.loads((directory / 'complete.json').read_text()))
@@ -87,14 +91,14 @@ def main():
         result['batches'][tag] = dict(returncode=rc, run=str(run.relative_to(ROOT)), jobs=jobs,
                                      passed=sum(j['passed'] for j in jobs),
                                      failed=sum(j['failed'] for j in jobs))
-        public_rows = []
+        ledger_rows = []
         for line in (BUILD / (tag + '.ledger.partial')).read_text().splitlines():
             verdict, seconds, label = line.split('\t', 2)
             if verdict == 'PARTIAL':
                 continue
             assert verdict in ('ok', 'FAIL'), (tag, line)
-            public_rows.append(dict(verdict=verdict, seconds=float(seconds), label=label))
-        result['batches'][tag]['public_rows'] = public_rows
+            ledger_rows.append(dict(verdict=verdict, seconds=float(seconds), label=label))
+        result['batches'][tag]['ledger_rows'] = ledger_rows
         for suffix in ('.log', '.ledger.partial', '.ledger.partial.timings'):
             source = BUILD / (tag + suffix)
             assert source.stat().st_size <= 1_000_000, source
@@ -131,9 +135,9 @@ def main():
     differential_receipts(ROOT / result['batches']['post-differ']['run'])
     for tag, batch in result['batches'].items():
         print(tag, len(batch['jobs']), 'jobs;', batch['passed'], 'ok;', batch['failed'], 'FAIL;',
-              'rc', batch['returncode'], '; public rows',
-              sum(r['verdict'] == 'ok' for r in batch['public_rows']), 'ok /',
-              sum(r['verdict'] == 'FAIL' for r in batch['public_rows']), 'FAIL')
+              'rc', batch['returncode'], '; partial ledger',
+              sum(r['verdict'] == 'ok' for r in batch['ledger_rows']), 'ok /',
+              sum(r['verdict'] == 'FAIL' for r in batch['ledger_rows']), 'FAIL')
 
 
 if __name__ == '__main__':

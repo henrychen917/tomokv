@@ -1,0 +1,5 @@
+ok	0.000000	release build (+footprint locks)
+FAIL	2.510000	s1pair EVAL-ROTATE (all modes)
+FAIL	7.300000	s1pair EVAL-GROW (all modes)
+FAIL	3.870000	s1pair EVAL-ADMISSION (all modes)
+FAIL	188.510000	s1pair CONFIG-OWNER (all modes)
