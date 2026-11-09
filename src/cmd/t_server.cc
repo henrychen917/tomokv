@@ -844,14 +844,20 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out, c
     return false;
 }
 
-bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::string>>& updates) {
-    if (op.argc() < 4) {
-        command_reply_subcommand_wrong_args(op, "CONFIG", "set");
+bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::string>>& updates,
+                            std::string* deferred_error = nullptr) {
+    const auto reject = [&](const char* message) {
+        if (deferred_error)
+            *deferred_error = message;
+        else
+            reply_err(op.sink(), message);
         return false;
+    };
+    if (op.argc() < 4) {
+        return reject("ERR wrong number of arguments for 'config|set' command");
     }
     if ((op.argc() & 1u) != 0) {
-        reply_syntax(op.sink());
-        return false;
+        return reject("ERR syntax error");
     }
     // Redis checks the whole parameter list before parsing values: a later
     // immutable/unknown/duplicate argument wins over an earlier invalid value.
@@ -862,8 +868,7 @@ bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::str
             std::string message = "ERR Unknown option or number of arguments for CONFIG SET - '";
             message.append(op.arg(i).p, op.arg(i).n);
             message += "'";
-            reply_err(op.sink(), message.c_str());
-            return false;
+            return reject(message.c_str());
         }
         // Tomo-only boot controls have no Redis counterpart. Preserve their
         // established rejection; the standard config surface uses Redis text.
@@ -874,8 +879,7 @@ bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::str
                 "key-lb-damping", "client-lb",     "flip-auto"};
             for (const char* name : native)
                 if (!std::strcmp(item->name, name)) {
-                    reply_err(op.sink(), "ERR parameter is immutable at runtime");
-                    return false;
+                    return reject("ERR parameter is immutable at runtime");
                 }
         }
         if (item->immutable || !std::strcmp(item->name, "tcp-backlog"))
@@ -883,8 +887,7 @@ bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::str
         else if (!std::strcmp(item->name, "dir") || !std::strcmp(item->name, "dbfilename"))
             error = "can't set protected config";
         if (!error && !std::strcmp(item->name, "appendonly") && g_server && g_server->loading()) {
-            reply_err(op.sink(), "LOADING Redis is loading the dataset in memory");
-            return false;
+            return reject("LOADING Redis is loading the dataset in memory");
         }
         if (!error) {
             const std::string requested(op.arg(i).p, op.arg(i).n);
@@ -899,8 +902,7 @@ bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::str
             message.append(op.arg(i).p, op.arg(i).n);
             message += "') - ";
             message += error;
-            reply_err(op.sink(), message.c_str());
-            return false;
+            return reject(message.c_str());
         }
     }
     ClientOutputBufferLimits obuf_scratch = g_client_obuf_limits;
@@ -910,17 +912,14 @@ bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::str
             std::string msg = "ERR Unknown option or number of arguments for CONFIG SET - '";
             msg.append(op.arg(i).p, op.arg(i).n);
             msg.push_back('\'');
-            reply_err(op.sink(), msg.c_str());
-            return false;
+            return reject(msg.c_str());
         }
         const int encoding = EncodingConfig::find(op.arg(i));
         const bool legacy_compact = encoding >= 0 && EncodingConfig::legacy(encoding, op.arg(i));
         if (!std::strcmp(item->name, "aof-use-rdb-preamble")) {
             if (!eq_icase(op.arg(i + 1), "yes")) {
-                reply_err(
-                    op.sink(),
+                return reject(
                     "ERR aof-use-rdb-preamble no is unsupported: the AOF base file is a TomoKV snapshot");
-                return false;
             }
         }
         std::string value;
@@ -955,16 +954,14 @@ bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::str
                     msg.push_back(ch >= 'A' && ch <= 'Z' ? ch + ('a' - 'A') : ch);
                 msg += "') - ";
                 msg += config_error;
-                reply_err(op.sink(), msg.c_str());
-                return false;
+                return reject(msg.c_str());
             }
             std::string msg = "ERR Invalid argument '";
             msg.append(op.arg(i + 1).p, op.arg(i + 1).n);
             msg += "' for CONFIG SET '";
             msg += item->name;
             msg.push_back('\'');
-            reply_err(op.sink(), msg.c_str());
-            return false;
+            return reject(msg.c_str());
         }
         if (g_server && !std::strcmp(item->name, "maxclients")) {
             uint64_t requested = 0;
@@ -973,8 +970,7 @@ bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::str
             if (!g_server->validate_maxclients(static_cast<uint32_t>(requested), error)) {
                 const std::string message =
                     "ERR CONFIG SET failed (possibly related to argument 'maxclients') - " + error;
-                reply_err(op.sink(), message.c_str());
-                return false;
+                return reject(message.c_str());
             }
         }
         updates.emplace_back(item, std::move(value));
@@ -1961,6 +1957,25 @@ struct ConfigApplyResult {
 };
 std::vector<ConfigApplyResult> g_config_apply_results;  // g_config_mu; retired at reply assembly
 
+bool config_collect_owner(Op& op, ConfigUpdates& updates) {
+    ConfigApplyResult* verdict = nullptr;
+    for (auto& result : g_config_apply_results)
+        if (result.op == &op) {
+            if (!result.error.empty()) return false;
+            verdict = &result;
+            break;
+        }
+    std::string error;
+    if (collect_config_updates(op, updates, &error)) return true;
+    if (!op.has_scatter_state())
+        reply_err(op.sink(), error.c_str());
+    else if (verdict)
+        verdict->error = std::move(error);
+    else
+        g_config_apply_results.push_back({&op, std::move(error)});
+    return false;
+}
+
 bool config_apply_listeners(Shard& sh, Op& op, const ConfigUpdates& updates) {
     bool listeners = false, locale = false, aof = false;
     for (const auto& update : updates) {
@@ -2154,8 +2169,8 @@ void cmd_config(Shard& sh, Op& op) {
         bool memory_update = false;
         {
             ConfigLock lock;
-            // IO validated before fan-out, so failure here can only mean internal table corruption.
-            if (!collect_config_updates(op, updates)) return;
+            // Loading and OS limits may change after IO validation; assembly owns the reply.
+            if (!config_collect_owner(op, updates)) return;
             if (!config_apply_listeners(sh, op, updates)) return;
             for (const auto& update : updates)
                 memory_update |= config_memory_parameter(*update.first);
