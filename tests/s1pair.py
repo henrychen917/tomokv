@@ -24,6 +24,7 @@ from maxmemrace import Conn, port_open, server
 
 
 ROOT = Path(__file__).resolve().parents[1]
+SHARDS = 16
 MIB = 1 << 20
 OOM = b"-OOM command not allowed when used memory > 'maxmemory'."
 ROTATE = "local v=redis.call('RPOP',KEYS[1]); redis.call('LPUSH',KEYS[1],v); return v"
@@ -169,15 +170,34 @@ def scheduled_server(argv, cores, port, directory, databases):
 
 
 def config_case(c, marker):
-    reply = c.cmd('CONFIG', 'SET', 'appendonly', 'no')
+    _, before = c.cmd('CONFIG', 'GET', 'slowlog-max-len')
+    wanted = str(int(before) + 1).encode()
+    command = ('CONFIG', 'SET', 'appendonly', 'no', 'slowlog-max-len', wanted)
+    # Phase 1: every owner re-check sees the reload. One reply (the error),
+    # nothing applied, and the next command's reply is still its own.
+    reply = c.cmd(*command)
     ping = c.cmd('PING')
-    print('CONFIG reply=%r following PING=%r' % (reply, ping), flush=True)
+    print('phase 1: CONFIG reply=%r following PING=%r' % (reply, ping), flush=True)
     witness = json.loads(marker.read_text())
     print('schedule=' + json.dumps(witness), flush=True)
-    assert witness['io_checks'] == 1 and witness['owner_checks'] > 0 and witness['assemblies'] == 1, witness
+    assert len(witness) == 1 and witness[0]['io_checks'] == 1 and \
+        witness[0]['owner_checks'] > 0 and witness[0]['assemblies'] == 1, witness
     expect(reply, b'-LOADING Redis is loading the dataset in memory')
     expect(ping, b'+PONG')
     expect(c.cmd('PING', 's1pair-aligned'), b's1pair-aligned')
+    expect(c.cmd('CONFIG', 'GET', 'slowlog-max-len'), [b'slowlog-max-len', before])
+    # Phase 2: the first owner fragment decided and applied the SET before the
+    # reload began; the remaining SHARDS-1 re-checks see it. Applied means +OK.
+    reply = c.cmd(*command)
+    ping = c.cmd('PING')
+    print('phase 2: CONFIG reply=%r following PING=%r' % (reply, ping), flush=True)
+    witness = json.loads(marker.read_text())
+    print('schedule=' + json.dumps(witness), flush=True)
+    assert len(witness) == 2 and witness[1]['io_checks'] == 1 and \
+        witness[1]['owner_checks'] == SHARDS and witness[1]['assemblies'] == 1, witness
+    expect(reply, b'+OK')
+    expect(ping, b'+PONG')
+    expect(c.cmd('CONFIG', 'GET', 'slowlog-max-len'), [b'slowlog-max-len', wanted])
     expect(c.cmd('CONFIG', 'GET', 'appendonly'), [b'appendonly', b'no'])
 
 
@@ -207,7 +227,7 @@ def main():
         print(label, flush=True)
         folder = args.output / label
         argv = [str(Path(args.binary).resolve()), '--bind', '127.0.0.1', '--port', str(args.port),
-                '--shards', '16', '--thread-mode', mode,
+                '--shards', str(SHARDS), '--thread-mode', mode,
                 '--net-io', engine, '--atomic', str(atomic), '--read-local', str(read_local),
                 '--databases', str(databases), '--save', '', '--appendonly', 'no',
                 '--enable-debug-command', 'yes', '--key-lb', '0', '--client-lb', '0',
