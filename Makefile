@@ -248,14 +248,19 @@ $(BUILD_ROOT)/src/cmd/t_list.o: override CXXFLAGS += --param inline-unit-growth=
 # wave3: see the re-derivation note above $(BUILD_ROOT)/src/main.o (31388 / db0 31787).
 # at412: the new INFO fields / DEBUG hooks grow this unit; 32853 keeps cmd_reset and every other
 # handler outside cmd_info/cmd_debug_impl PRE-identical (tools/archive/tools/at412_budget.py, docs/at412/budgets2).
-$(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34174
+# s1pair: the CONFIG owner verdict grows this unit (+206 initial); scans 34250-34600 keep every
+# linked body outside CONFIG/scripting PRE-identical at 34330-34332, 34337-34339, ...
+# (tools/s1pair_budgets.py); 34338 is the middle of one such run.
+$(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34338
 # SV7/SV9 keep new INFO formatting cold; tools/archive/tools/infofields_artifacts.py checks every ordinary body.
 # CC18/PS5/PS7/SV9 composition: preserve every unrelated server-command body.
 # txnorder2: compile-only trials retained in docs/txnorder2/budgets; remaining spillover is explicit.
 # perfex2: the two cold inline sample resets need 31737 to retain every ordinary
 # body from the merged perfex POST. Complete-body trials: docs/perfex2/budgets.py.
 # rlresize: see the budget note above $(BUILD_ROOT)/src/main.o.
-$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34348 --param max-inline-insns-auto=16
+# s1pair: +203 initial; scans 34400-34750 leave only the Server::flipctl_debug_dump inline
+# (same inlining, different tie order at every budget); 34515 is the middle of 34513-34517.
+$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34515 --param max-inline-insns-auto=16
 # PS4 AOF recovery adds cold code. Preserve 5146b78ee storage helper bodies
 # in both namespaces; the aoffix2 hot-body audit checks these compiler budgets.
 # rlresize: see the budget note above $(BUILD_ROOT)/src/main.o.
