@@ -18,3 +18,7 @@ Readability phase 2, merged onto origin/cpp 7595a6705a by calib/readability-inte
 ```
 IDENTICAL (11167504 bytes after stripping)
 ```
+
+### readability-p2fix merged (2026-11-09)
+
+The phase-2 audit corrections were merged into this branch: lane readability-p2fix, tip 47901cca60, 77 findings fixed across 34 files of lanes A7-A10, with the resp.h licence note restored. Its production binary is IDENTICAL to the frozen release (binary-neutral, INFO pinned). After the merge the tree equals the p2fix tip.
