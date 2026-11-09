@@ -2220,6 +2220,7 @@ private:
         // Observe drains published during this pass as well as those seen at its start.
         // This separate control-tail acquire never enters the per-connection parse gate.
         const auto observed = srv_->lb_observe(self_->id());
+        if (!observed.ready) return 1;
         const LbStage stage = observed.stage;
 #ifdef TOMO_CORE_CONCURRENCY_TEST
         if (test_after_lb_observe_) test_after_lb_observe_(*this);

@@ -1347,6 +1347,7 @@ int main(int argc, char** argv) {
     else if (row == "stallfix") {
         T::stallfix_lb();
         T::stallfix_ack_and_timeout();
+        T::stallfix_client_ack();
         T::stallfix_cut_fifo();
     } else if (row == "stallfix-planted")
         T::stallfix_lb(true);

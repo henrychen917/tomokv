@@ -928,6 +928,7 @@ __attribute__((always_inline)) inline uint32_t
     IoLoop::/* TOMO_TOOL_BIND lb_control_actuate_pad */ lb_control_actuate_pad() {
     if (!lb_controller_armed_) return 0;
     const auto observed = srv_->lb_observe(self_->id());
+    if (!observed.ready) return 1;
     const LbStage stage = observed.stage;
     if (stage != LbStage::ClientDrain) lb_client_wake_pending_ = false;
     if (stage == LbStage::Idle || stage == LbStage::ClientMoving) return 0;

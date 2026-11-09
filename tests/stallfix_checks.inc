@@ -3,6 +3,38 @@
 inline static Fixture<true>* stallfix_fixture = nullptr;
 inline static bool stallfix_planted = false;
 inline static unsigned stallfix_hook_calls = 0;
+inline static Fixture<false>* stallfix_client_fixture = nullptr;
+
+static void stallfix_client_after_observe(IoLoop&) {
+    auto& f = *stallfix_client_fixture;
+    std::thread coordinator([&] {
+        std::lock_guard guard(f.server.shape_transition_mu_);
+        // Withdraw/re-admit before the destination borrows the client record.
+        f.server.lb_stage_ = LbStage::Idle;
+        f.server.lb_epoch_ = 2;
+        f.server.lb_stage_ = LbStage::ClientDrain;
+    });
+    coordinator.join();
+    ++stallfix_hook_calls;
+}
+
+static void stallfix_client_ack() {
+    Fixture f;
+    f.server.lb_coordinator_ = 1;
+    f.server.lb_client_move_ = {42, 1, f.io_id, 1};
+    f.server.lb_epoch_ = 1;
+    f.server.lb_stage_ = LbStage::ClientDrain;
+    stallfix_client_fixture = &f;
+    stallfix_hook_calls = 0;
+    IoLoop::test_after_lb_observe_ = stallfix_client_after_observe;
+    require(f.io.lb_control_pass() != 0, "destination tail retries its source wake");
+    IoLoop::test_after_lb_observe_ = nullptr;
+    stallfix_client_fixture = nullptr;
+    require(stallfix_hook_calls == 1 && !f.server.lb_acked(f.io_id) &&
+                f.server.lb_ack_[f.io_id] == ((1ull << 8) | static_cast<uint8_t>(LbStage::ClientDrain)),
+            "ClientDrain destination cannot acknowledge a replacement epoch from its old sample");
+    f.server.lb_stage_ = LbStage::Idle;
+}
 
 static void stallfix_after_observe(IoLoop& io) {
     auto& f = *stallfix_fixture;
@@ -119,6 +151,24 @@ static void stallfix_ack_and_timeout() {
     const auto sid = static_cast<uint32_t>(f.sid());
     f.server.lb_epoch_ = 1;
     f.server.lb_start_shard_drain();
+    // A busy planner must defer this cold tail, never turn the coherent sample into
+    // a new IO stall. The lock holder releases only after the IO has returned.
+    std::atomic<bool> locked{false}, release{false};
+    std::thread planner([&] {
+        std::lock_guard guard(f.server.shape_transition_mu_);
+        locked.store(true, std::memory_order_release);
+        const auto end = std::chrono::steady_clock::now() + std::chrono::seconds(2);
+        while (!release.load(std::memory_order_acquire) && std::chrono::steady_clock::now() < end)
+            std::this_thread::yield();
+    });
+    while (!locked.load(std::memory_order_acquire)) std::this_thread::yield();
+    const auto started = std::chrono::steady_clock::now();
+    require(f.io.lb_control_pass() == 1 && !f.server.lb_acked(f.io_id),
+            "busy transition lock defers acknowledgement and keeps the IO runnable");
+    const auto elapsed = std::chrono::steady_clock::now() - started;
+    release.store(true, std::memory_order_release);
+    planner.join();
+    require(elapsed < std::chrono::milliseconds(100), "coherent stage observation must not block IO");
     const auto observed = f.server.lb_observe(f.io_id);
     f.server.lb_ack_[f.io_id] = (2ull << 8) | static_cast<uint8_t>(LbStage::ExDrain);
     require(!f.server.lb_ack_observed(f.io_id, observed) &&
@@ -147,6 +197,12 @@ static void stallfix_ack_and_timeout() {
     require(info.find("tomokv_lbstall_shard_timeouts:2\r\n") != std::string::npos &&
                 info.find("tomokv_lbstall_shard_timeout_ns_max:") != std::string::npos,
             "timeout diagnostics appear in INFO");
+    f.server.lb_stage_ = LbStage::IoDrain;
+    f.server.lb_deadline_ns_ = now_ns() + LbAutotune::kMoveTimeoutNs;
+    f.server.lb_stage_timed_out();
+    require(f.server.lb_stage() == LbStage::IoDrain && f.server.lb_policy_->stall.shard_timeouts == 2,
+            "a delayed timeout cannot cancel a replacement plan with a fresh deadline");
+    f.server.lb_stage_ = LbStage::Idle;
 }
 
 static void stallfix_cut_fifo() {

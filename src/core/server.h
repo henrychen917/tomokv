@@ -926,14 +926,17 @@ public:
         uint64_t epoch;
         LbStage stage;
         uint64_t ack;
+        bool ready = true;
         uint64_t tag() const { return (epoch << 8) | static_cast<uint8_t>(stage); }
     };
     LbObservation lb_observe(uint32_t tid) {
-        // Idle is the common control-tail path and has nothing to acknowledge. Pending
-        // stages are sampled together with their epoch under the existing transition lock;
-        // it is released before any drain work or test hook. No per-operation lock/retry.
-        if (lb_stage() == LbStage::Idle) return {0, LbStage::Idle, 0};
-        std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
+        // Only IO-acknowledged stages need an epoch. Sample their pair under the existing
+        // transition lock, without waiting on a planner/commit: a busy lock owes another
+        // control pass. The lock is released before any drain work or test hook.
+        const LbStage stage = lb_stage();
+        if (stage != LbStage::IoDrain && stage != LbStage::ClientDrain) return {0, stage, 0};
+        std::unique_lock<std::mutex> transition_lock(shape_transition_mu_, std::try_to_lock);
+        if (!transition_lock.owns_lock()) return {0, stage, 0, false};
         return {lb_epoch(), lb_stage(), lb_ack_[tid].load(std::memory_order_acquire)};
     }
     bool lb_ack_observed(uint32_t tid, LbObservation observed) {
