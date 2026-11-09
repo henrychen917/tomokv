@@ -313,7 +313,8 @@ R7 envelopes were regenerated with `python3 tests/r7shadow_sync.py --write`; the
 check passes and regeneration introduces no difference from the merged paper envelopes.
 
 Maintainer-owned tally/fixture: **+4 quick / +4 full**. The four s1pair rows are collected
-at `collect_job s1pair` before the quick-tier exit. Keep the paper values 1325 / 1342 in
+at `tests/gate.sh:7538` (`collect_job s1pair`), before the quick-tier exit at lines
+7674-7678. Keep the paper values 1325 / 1342 in
 this branch; landing values should be **1329 / 1346**. The label-fixture unittest fails
 with exactly these four missing labels (12 tests, one failure and one error); paper PRE's
 unmodified fixture unittest passes. No fixture or EXPECT edit was made.
@@ -355,7 +356,7 @@ in `docs/s1pair-land/identity-summary.json` and `identity-diffs.json.gz`.
 | Changed group outside scripting/CONFIG | Reason / fresh evidence |
 |---|---|
 | `tomo::info_stats_build_fields`, `tomo_db0::info_stats_build_fields` | Only literal INFO git-sha bytes change, `79ce7ee1` -> `d4771663`; instruction encodings are otherwise equal. Dirty remains 0. |
-| `tomo_db0::Server::flipctl_debug_dump[abi:cxx11]() const` | The already disclosed cold t_server.o compiler spillover: the CONFIG growth changes inlining/register allocation (the earlier lane diagnosed equal-score inline ordering). The helper source is unchanged. Its 1890 -> 1851 byte difference persists in all freshly checked caps, including the old cap and the additive headroom cap. |
+| `tomo_db0::Server::flipctl_debug_dump[abi:cxx11]() const` | Cold t_server.o compiler spillover; helper source unchanged. Fresh paper PRE/POST IPA dumps show one fewer `std::string::_M_dispose` call inlined in POST (and its nested deallocate helper): GCC reports the inline-unit-growth cap reached. Inlined-node counts are 22 -> 20, global IPA size 251 -> 244, while self size 100 and stack 256/384 stay fixed. This is more precise than the old report's equal-inlining/tie-order explanation. The emitted 1890 -> 1851 byte difference persists in all freshly checked caps, including the old and additive headroom caps. See `flip-ipa-{pre,post}-summary.txt` and `flip-ipa-comparison.json`. |
 | `tomo::kvobj_external_bytes<false> [clone .isra.0]`, the scripting.o-local copy | The scripting inline ripple changes this copy from 1111 -> 1095 bytes. Fresh linked disassembly finds **zero incoming transfers** in both arms (`pre-dead-clone.json`, `post-dead-clone.json`); discarded COMDAT callers do not make it reachable. The other 21 copies in this group remain identical. |
 
 CONFIG groups are `cmd_config`, `collect_config_updates` (old/new signature),
