@@ -376,9 +376,18 @@ in `docs/s1pair-land/post-s1pair-results.json`.
 Reproduction scripts: `docs/s1pair-land/run_rows.sh` runs `s1pair` or the differential jobs
 against either frozen arm; `docs/s1pair-land/run_existing.sh` adapts the supplied original
 script without dropping any of its **75 jobs**. Each uses the partial job interface,
-`GATE_PROOF_NO_RATES=1`, an eight-core 6:2 server (96-103) and load CPUs 104-111.
-The initial PRE negative used load CPUs 104-105. The `iteration` argument on `run_rows.sh`
+`GATE_PROOF_NO_RATES=1`, default eight-core 6:2 geometry (96-103) and load CPUs 104-111.
+Declared special geometries remain intact: AT4.12 T3/T11a use split 1:7 on the same eight
+CPUs, and T10 is split-only. The initial PRE negative used load CPUs 104-105. The `iteration` argument on `run_rows.sh`
 selects the full-tier job inventory only: `GATE_ONLY_JOBS` prevents a complete iteration,
 ABBA, NIC, EXPECT tally or source receipt.
 
-Existing-job and differential results follow.
+The complete AT4.12 family passes: **18 jobs**, including all **423 live legs** of the
+17 scripted cases and all eight owner-turn fixture invocations. `T3`, `T10` and `T11a`
+retain their explicitly restricted split-mode matrix; every other scripted case covers
+both modes, engines, atomic settings and EVAL/EVALSHA/FCALL, plus the three oracle legs.
+T6 and T9 required **zero re-rolls**, so every first boot opened its required window.
+T14 has **zero XS-OOM-1 deviations**: the script suffix also agrees with Redis.
+The exact leg census and owner output are committed in `docs/s1pair-land/at412-results.json`.
+
+Remaining existing-job and differential results follow.

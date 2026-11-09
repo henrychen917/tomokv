@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Collect completed selected-job evidence; never starts a server or a gate."""
 import hashlib
+import itertools
 import json
 from pathlib import Path
 import re
@@ -61,6 +62,26 @@ def main():
         result['arms'][arm] = record
     production = Path(result['batches']['post-existing']['run']) / 'unit-ready'
     result['fresh_unit_markers'] = sorted(p.name for p in (ROOT / production).iterdir())
+    live_cases = [f'T{i}' for i in range(1, 17) if i != 11] + ['T11a', 'T11b']
+    result['at412'] = []
+    for case in live_cases:
+        run = ROOT / result['batches']['post-existing']['run'] / 'jobs' / ('at412-' + case)
+        source = run / ('at412-' + case) / 'results.json'
+        records = json.loads(source.read_text())
+        modes = ['2s'] if case in ('T3', 'T10', 'T11a') else ['1s', '2s']
+        expected_legs = {f'redis-redis-0-{cmd}' for cmd in ('EVAL', 'EVALSHA', 'FCALL')}
+        expected_legs.update('-'.join(map(str, leg)) for leg in itertools.product(
+            modes, ['uring', 'epoll'], [0, 1], ['EVAL', 'EVALSHA', 'FCALL']))
+        observed = [r['leg'] for r in records]
+        assert len(observed) == len(set(observed)), (case, observed)
+        result['at412'].append(dict(
+            case=case, expected_legs=len(expected_legs), observed_legs=len(observed),
+            missing=sorted(expected_legs - set(observed)), extra=sorted(set(observed) - expected_legs),
+            passed=sum(bool(r.get('pass')) for r in records),
+            failed=[r for r in records if not r.get('pass')],
+            unarmed_attempts=[leg for r in records for leg in r.get('unarmed_attempts', [])],
+            deviations=[dict(leg=r['leg'], deviation=r['deviation']) for r in records if 'deviation' in r],
+            artifacts=str(source.relative_to(ROOT))))
     payload = json.dumps(result, indent=2) + '\n'
     assert len(payload.encode()) <= 1_000_000
     (OUT / 'job-results.json').write_text(payload)
