@@ -1235,7 +1235,7 @@ plan_jobs(){
   for mode in 1s 2s; do
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
-  JOB_NAMES+=(wave15_stream wave15_flip_eof wave15_rebind wave15_idle wave15_errorstats wave15_aof_participants wave15_aof_large blockfix4 blockfix2 blockfix_structure blockfix_registry blockfix_mkstream persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables debug-0 debug-1
+  JOB_NAMES+=(wave15_stream wave15_flip_eof wave15_rebind wave15_idle wave15_errorstats wave15_aof_participants wave15_aof_large blockfix4 blockfix2 blockrace blockfix_structure blockfix_registry blockfix_mkstream persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables debug-0 debug-1
               iofix-deferred iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               atomfix5_watch atomfix5_accounting core_units flipfix_units flipfix5_units flipfix6_units flipfix7_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat crlffix boot_grammar dbdefault wait_units readonly
@@ -4935,6 +4935,29 @@ job_blockfix2(){
   else bad "blockfix2 BLOCK-SERVE-REFUSED-DROP"; fi
 }
 
+# blockrace finding (a): deterministic two-offer and no-offer completion schedules via the
+# TOMO_BLOCKING_COMPLETION_UNIT hook (compiled out of production). Two counted rows, each run across
+# 1s/2s and both namespaces; each FAILs on PRE and PASSes on the fix. The (b) read-after-Done
+# use-after-free is an ASAN witness run outside counted rows. Landing delta DQ=DF=+2; EXPECT and the
+# label fixture remain maintainer-owned.
+job_blockrace(){
+  local failed target mode unitdir case
+  unitdir=$(dirname "$CANDIDATE_BINARY")
+  for case in two-offer no-offer; do
+    row_begin "blockrace BLOCK-COMPLETION-${case}"
+    failed=0
+    for target in blockrace-unit blockrace-db0-unit; do
+      if [ "$CANDIDATE_BINARY" = "$PWD/build/tomokv" ]; then unit_ready "$target" || failed=1; fi
+      for mode in 1s 2s; do
+        taskset -c "$CORES" "$unitdir/$target" "$mode" "$case" \
+            >"$TMPDIR/$target-$mode-$case.log" 2>&1 || failed=1
+      done
+    done
+    if [ "$failed" = 0 ]; then ok "blockrace BLOCK-COMPLETION-${case}"
+    else bad "blockrace BLOCK-COMPLETION-${case}" "see $TMPDIR/blockrace-*-${case}.log"; fi
+  done
+}
+
 job_blockfix_structure(){
   row_begin "blockfix CC4.19 XINFO structural counts vs Redis 7.4"
   compat3_case blockfix structure && ok "blockfix CC4.19 XINFO structural counts vs Redis 7.4" \
@@ -6945,6 +6968,11 @@ job_production_units(){
   for target in blockfix2-unit blockfix2-db0-unit; do
     make -f Makefile -f tools/blockfix2.mk -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
+  pausable taskset -c "$BUILD_CORES" make -f Makefile -f tools/blockrace.mk \
+      -j"$BUILD_JOBS" build/blockrace-unit build/blockrace-db0-unit >"$TMPDIR/blockrace-build.log" 2>&1
+  for target in blockrace-unit blockrace-db0-unit; do
+    make -f Makefile -f tools/blockrace.mk -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
+  done
   return 0
 }
 job_multidb(){
@@ -7024,7 +7052,7 @@ job_dependencies(){
     racefix_counters) echo racefix_tsan_build;;
     racefix_climon) echo production_units;;
     compat2) echo 'release production_units redis_tcl';;
-    wave15_stream|wave15_flip_eof|wave15_idle|tls|blockfix_registry|slotless|blockfix2) echo 'release production_units';;
+    wave15_stream|wave15_flip_eof|wave15_idle|tls|blockfix_registry|slotless|blockfix2|blockrace) echo 'release production_units';;
     respresume-*) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
     debug-*|fused-*|txn_group_*|exec1s|txnorder_fifo|txnorder_chain|txnorder_index|txnorder_wound|txnorder2|txnorder_wake|txnorder-*|at412-owner|aof_frame|aoforder|moverfix) echo 'release production_units';;
@@ -7280,6 +7308,8 @@ collect_job blockfix_structure
 # EXPECT_QUICK / EXPECT_FULL remain maintainer-owned.
 collect_job blockfix4
 collect_job blockfix2
+# blockrace: two completion-race rows before the quick exit; DQ=DF=+2, EXPECT maintainer-owned.
+collect_job blockrace
 collect_job dispatch_arity
 collect_job dispatch_errors
 collect_job dispatch_children

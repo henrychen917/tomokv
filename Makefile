@@ -343,7 +343,10 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # docs/clientcompat/budgets and the instruction census (including outlined STL).
 # aofblock: cancellation's cold receipt claim adds 16 IPA insns in each namespace.
 # Preserve the PRE inline headroom; see MEASURE-REQUEST-aofblock.md.
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=168554 --param max-inline-insns-auto=14 --param early-inlining-insns=5
+# blockrace: folding the completion offerers into blocking_task_done net-shrinks the xshard IPA
+# unit by 56 insns (137236 -> 137180). Keep the PRE headroom so only blocking bodies move:
+# 168554 - 56 = 168498. See MEASURE-REQUEST-blockrace.md.
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=168498 --param max-inline-insns-auto=14 --param early-inlining-insns=5
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
 # perfex2: compensate the inline cold clear reset; every other emitted body is PRE-identical.
 # clientcompat notification capture adds cold code; the 161773 neighbour keeps
@@ -354,7 +357,9 @@ $(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=
 # (171751 + 181); the normal namespace was unaffected. No runtime option or request-path branch.
 # wave16: merged blockwake + parkwake growth is 245 insns (136675 -> 136920); 172012 is the
 # re-derived pin for the merged tree (see the wave16 note above $(BUILD_ROOT)/src/main.o).
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=172028 --param max-inline-insns-auto=18 --param early-inlining-insns=10
+# blockrace: the same fold shrinks the db0 xshard IPA unit by 63 insns (136936 -> 136873);
+# 172028 - 63 = 171965 keeps the PRE headroom. See MEASURE-REQUEST-blockrace.md.
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=171965 --param max-inline-insns-auto=18 --param early-inlining-insns=10
 # ACL key extraction is isolated from the IO templates. Keep the merged baseline's
 # ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
 # aclfix grows the unit by 749/765 insns (+739/+750 here): the shared reply helpers this
