@@ -333,4 +333,51 @@ Build proof before the merge commit: paper PRE and merged POST `make all` both p
 The two production files have no new warning. Commands and logs are retained under
 `docs/s1pair-land/` (POST rebuild on CPUs 106-111 with `make -j6`).
 
-POST runtime and symbol proof follows.
+Merge commit: `d47716639498b01121940c64d7b289e7995c75ad` (parents: the old s1pair tip and
+paper PRE). Production POST was relinked after rebuilding the two INFO objects from this
+clean commit (`make -j16 -W src/cmd/info_stats.cc all`); `make -q all` again returned 0.
+
+**Merit arms** (production ELF, copied before any correctness run; no throughput claim):
+
+| Arm | Path | SHA-256 | Source / INFO |
+|---|---|---|---|
+| PRE | `/home/user/Projects/bins/s1pair-land-PRE-1bf0e0f5` | `1bf0e0f53eb84f05995a434fcb3f60008d690dae0be04334959c80706d1b8e20` | paper `79ce7ee132`, clean; INFO `79ce7ee1/0` |
+| POST | `/home/user/Projects/bins/s1pair-land-POST-723d560b` | `723d560b21b72313c6f2cdcfb5b7c3431ae1d2bea74965e4d843793b075ec259` | merge `d477166394`, clean; INFO `d4771663/0` |
+
+**Symbol proof:** `tools/s1pair_identity.py PRE POST build/s1pair-land/identity` passes.
+It compares **11312 function groups**, resolving literal pools and retaining instruction
+encodings, registers, offsets, branches and padding. **All 142 GET/SET/MGET/MSET/INCR
+function groups are instruction-identical**, including both namespaces and the scatter
+entry points. There are **54 changed groups**: 50 scripting/CONFIG groups plus the four
+explicit exceptions below. The complete names, sizes and instruction diffs are committed
+in `docs/s1pair-land/identity-summary.json` and `identity-diffs.json.gz`.
+
+| Changed group outside scripting/CONFIG | Reason / fresh evidence |
+|---|---|
+| `tomo::info_stats_build_fields`, `tomo_db0::info_stats_build_fields` | Only literal INFO git-sha bytes change, `79ce7ee1` -> `d4771663`; instruction encodings are otherwise equal. Dirty remains 0. |
+| `tomo_db0::Server::flipctl_debug_dump[abi:cxx11]() const` | The already disclosed cold t_server.o compiler spillover: the CONFIG growth changes inlining/register allocation (the earlier lane diagnosed equal-score inline ordering). The helper source is unchanged. Its 1890 -> 1851 byte difference persists in all freshly checked caps, including the old cap and the additive headroom cap. |
+| `tomo::kvobj_external_bytes<false> [clone .isra.0]`, the scripting.o-local copy | The scripting inline ripple changes this copy from 1111 -> 1095 bytes. Fresh linked disassembly finds **zero incoming transfers** in both arms (`pre-dead-clone.json`, `post-dead-clone.json`); discarded COMDAT callers do not make it reachable. The other 21 copies in this group remain identical. |
+
+CONFIG groups are `cmd_config`, `collect_config_updates` (old/new signature),
+`config_collect_owner`, `config_reserve_result`, `command_validate_config_set` and
+`cfg_client_output_buffer_limit_string`, including their cold clones. Scripting groups are
+both `run_eval` instantiations, `redis_dispatch`, `script_execute`, `script_nested_notified`,
+`script_pcall_library`, normal `open_helper_libraries`/`redis_sha1hex`, and db0
+`validate_source`, including their cold clones. No further function group changes.
+
+POST `s1pair` through the job interface: **4/4 rows pass, 32/32 legs each**; the release
+prerequisite also passes (ledger 5 ok / 0 FAIL). This run includes 95d60b5101's
+`errorstat_LOADING:count=1` assertion before and after CONFIG phase 2. Every CONFIG leg
+observes the refusal before apply, then successful apply before the later reload, exactly
+one assembly and one errorstat. Run `build/gate-run.8ICvej`; per-leg receipts are committed
+in `docs/s1pair-land/post-s1pair-results.json`.
+
+Reproduction scripts: `docs/s1pair-land/run_rows.sh` runs `s1pair` or the differential jobs
+against either frozen arm; `docs/s1pair-land/run_existing.sh` adapts the supplied original
+script without dropping any of its **75 jobs**. Each uses the partial job interface,
+`GATE_PROOF_NO_RATES=1`, an eight-core 6:2 server (96-103) and load CPUs 104-111.
+The initial PRE negative used load CPUs 104-105. The `iteration` argument on `run_rows.sh`
+selects the full-tier job inventory only: `GATE_ONLY_JOBS` prevents a complete iteration,
+ABBA, NIC, EXPECT tally or source receipt.
+
+Existing-job and differential results follow.
