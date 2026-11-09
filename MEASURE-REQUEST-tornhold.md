@@ -341,3 +341,18 @@ atomic settings and the mode-equivalence part completed with zero mismatches.
 The selected canonical jobs expanded to all five required children; each child
 finished successfully through the gate interface. The release/PAD/generated-parser
 falsifiers are now running on their deliberately broken images.
+
+### Release, PAD and generated-parser controls complete
+
+All **88 pipelined falsifier hunts** detected tears; all **88 sequential controls**
+passed. Every result observed value changes, with zero worker errors and no
+vacuity flags. Release and PAD(A) each cover the original 32 rows in both reorder
+settings, plus four GET/MGET hunts and their controls. The supplied PART2 image
+fails all four split-mode GET/MGET hunts (both engines, atomic 0/1). The generated
+priority-parser control fails all twelve relevant fused-mode hunts, including
+GET/MGET; its ordinary-parser control passes **5/5**, including release.
+
+Artifacts: release `build/gate-run.TVIeXE`, `R9qH8k`; PAD(A)
+`build/gate-run.Rkrf7Z`, `gate-run.d6Z1a0`; PART2 and priority artifact paths and binary
+hashes are recorded individually in `docs/tornhold-proof.json`. The FIFO wide-slot
+rerun is now the only outstanding correctness job; instruction accounting follows.

@@ -4746,6 +4746,3364 @@
       ],
       "ok": 6,
       "fail": 0
+    },
+    "negative-release-r0": {
+      "name": "negative-release-r0",
+      "jobs": [
+        "tornread-2s-0-uring-0",
+        "tornread-2s-0-uring-1",
+        "tornread-2s-0-epoll-0",
+        "tornread-2s-0-epoll-1",
+        "tornread-2s-1-uring-0",
+        "tornread-2s-1-uring-1",
+        "tornread-2s-1-epoll-0",
+        "tornread-2s-1-epoll-1",
+        "tornread-1s-0-uring-0",
+        "tornread-1s-0-uring-1",
+        "tornread-1s-0-epoll-0",
+        "tornread-1s-0-epoll-1",
+        "tornread-1s-1-uring-0",
+        "tornread-1s-1-uring-1",
+        "tornread-1s-1-epoll-0",
+        "tornread-1s-1-epoll-1",
+        "tornhold-2s-0-uring-0",
+        "tornhold-2s-0-uring-1",
+        "tornhold-2s-0-epoll-0",
+        "tornhold-2s-0-epoll-1"
+      ],
+      "command": [
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "0-15",
+        "--load-cores",
+        "16-19",
+        "--load-smt",
+        "",
+        "--ports",
+        "26500-26589",
+        "--candidate-binary",
+        "/home/user/Projects/bins/readability-pre-5c363128/tomokv"
+      ],
+      "returncode": 1,
+      "negative": true,
+      "reorder": 0,
+      "log": "build/tornhold/negative-release-r0.log",
+      "artifact": "build/gate-run.TVIeXE",
+      "rows": [
+        {
+          "verdict": "ok",
+          "seconds": 0.0,
+          "label": "release build (+footprint locks)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.6,
+          "label": "tornread pipe (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornread seq (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornhold getmget (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget-seq (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.58,
+          "label": "tornhold getmget (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornhold getmget-seq (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.6,
+          "label": "tornread pipe (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornread seq (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.6,
+          "label": "tornhold getmget (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.36,
+          "label": "tornhold getmget-seq (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornhold getmget (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornhold getmget-seq (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornread seq (2s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornread seq (2s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (2s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornread seq (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.6,
+          "label": "tornread pipe (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.58,
+          "label": "tornread pipe (1s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (1s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.6,
+          "label": "tornread pipe (1s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 1 epoll atomic 1)"
+        }
+      ],
+      "hunts": [
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornhold-2s-0-epoll-0/getmget-seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.0,
+          "read_pairs": 208948,
+          "writes": 330992,
+          "value_changes_seen": 154784,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornhold-2s-0-epoll-0/getmget.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 5899,
+          "writes": 6112,
+          "value_changes_seen": 2848,
+          "violations": 662,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornhold-2s-0-epoll-1/getmget-seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 255422,
+          "writes": 1046272,
+          "value_changes_seen": 150643,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornhold-2s-0-epoll-1/getmget.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 5147,
+          "writes": 15568,
+          "value_changes_seen": 3478,
+          "violations": 1261,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornhold-2s-0-uring-0/getmget-seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 252597,
+          "writes": 346240,
+          "value_changes_seen": 169597,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornhold-2s-0-uring-0/getmget.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 5784,
+          "writes": 6704,
+          "value_changes_seen": 2266,
+          "violations": 490,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornhold-2s-0-uring-1/getmget-seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 264540,
+          "writes": 921728,
+          "value_changes_seen": 162126,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornhold-2s-0-uring-1/getmget.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 5637,
+          "writes": 16496,
+          "value_changes_seen": 3827,
+          "violations": 1259,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-1s-0-epoll-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 58336,
+          "writes": 6512,
+          "value_changes_seen": 2581,
+          "violations": 585,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-1s-0-epoll-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 380480,
+          "writes": 332000,
+          "value_changes_seen": 92181,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-1s-0-epoll-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 57312,
+          "writes": 24720,
+          "value_changes_seen": 1967,
+          "violations": 234,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-1s-0-epoll-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 378736,
+          "writes": 1159456,
+          "value_changes_seen": 69101,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-1s-0-uring-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 57544,
+          "writes": 7824,
+          "value_changes_seen": 1624,
+          "violations": 206,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-1s-0-uring-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 412488,
+          "writes": 348752,
+          "value_changes_seen": 102896,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-1s-0-uring-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 55584,
+          "writes": 24032,
+          "value_changes_seen": 2004,
+          "violations": 352,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-1s-0-uring-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 408912,
+          "writes": 1086624,
+          "value_changes_seen": 73402,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-1s-1-epoll-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 71520,
+          "writes": 6208,
+          "value_changes_seen": 1718,
+          "violations": 4,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-1s-1-epoll-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 526776,
+          "writes": 336528,
+          "value_changes_seen": 120954,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-1s-1-epoll-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 69920,
+          "writes": 20576,
+          "value_changes_seen": 2655,
+          "violations": 746,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-1s-1-epoll-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 490584,
+          "writes": 1041232,
+          "value_changes_seen": 77285,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-1s-1-uring-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 64608,
+          "writes": 7936,
+          "value_changes_seen": 1402,
+          "violations": 30,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-1s-1-uring-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 531952,
+          "writes": 365760,
+          "value_changes_seen": 148931,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-1s-1-uring-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 62352,
+          "writes": 26992,
+          "value_changes_seen": 4731,
+          "violations": 1487,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-1s-1-uring-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 528080,
+          "writes": 1188128,
+          "value_changes_seen": 86695,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-2s-0-epoll-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 64168,
+          "writes": 8352,
+          "value_changes_seen": 1281,
+          "violations": 7,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-2s-0-epoll-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 458960,
+          "writes": 404832,
+          "value_changes_seen": 108261,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-2s-0-epoll-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 63824,
+          "writes": 25216,
+          "value_changes_seen": 1585,
+          "violations": 70,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-2s-0-epoll-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 462864,
+          "writes": 1268624,
+          "value_changes_seen": 72659,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-2s-0-uring-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 66072,
+          "writes": 8656,
+          "value_changes_seen": 1350,
+          "violations": 13,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-2s-0-uring-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 490240,
+          "writes": 408240,
+          "value_changes_seen": 131703,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-2s-0-uring-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 67712,
+          "writes": 24704,
+          "value_changes_seen": 1258,
+          "violations": 75,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-2s-0-uring-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 486720,
+          "writes": 1240016,
+          "value_changes_seen": 73374,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-2s-1-epoll-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 64960,
+          "writes": 7696,
+          "value_changes_seen": 1214,
+          "violations": 13,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-2s-1-epoll-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 485416,
+          "writes": 391760,
+          "value_changes_seen": 101166,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-2s-1-epoll-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 63504,
+          "writes": 24416,
+          "value_changes_seen": 2214,
+          "violations": 340,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-2s-1-epoll-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 488992,
+          "writes": 1188608,
+          "value_changes_seen": 78308,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-2s-1-uring-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 63632,
+          "writes": 9376,
+          "value_changes_seen": 1523,
+          "violations": 21,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-2s-1-uring-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 520808,
+          "writes": 407616,
+          "value_changes_seen": 124336,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-2s-1-uring-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 67840,
+          "writes": 22672,
+          "value_changes_seen": 1504,
+          "violations": 213,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.TVIeXE/jobs/tornread-2s-1-uring-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 496312,
+          "writes": 1175408,
+          "value_changes_seen": 70047,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        }
+      ],
+      "control_verified": true,
+      "image_sha256": "0de6bbdea50caf4f90f797c4e52a4e86be30e2c554fb544f257f5148bf4016cd",
+      "ok": 21,
+      "fail": 20
+    },
+    "negative-release-r1": {
+      "name": "negative-release-r1",
+      "jobs": [
+        "tornread-2s-0-uring-0",
+        "tornread-2s-0-uring-1",
+        "tornread-2s-0-epoll-0",
+        "tornread-2s-0-epoll-1",
+        "tornread-2s-1-uring-0",
+        "tornread-2s-1-uring-1",
+        "tornread-2s-1-epoll-0",
+        "tornread-2s-1-epoll-1",
+        "tornread-1s-0-uring-0",
+        "tornread-1s-0-uring-1",
+        "tornread-1s-0-epoll-0",
+        "tornread-1s-0-epoll-1",
+        "tornread-1s-1-uring-0",
+        "tornread-1s-1-uring-1",
+        "tornread-1s-1-epoll-0",
+        "tornread-1s-1-epoll-1"
+      ],
+      "command": [
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "0-15",
+        "--load-cores",
+        "16-19",
+        "--load-smt",
+        "",
+        "--ports",
+        "26500-26589",
+        "--candidate-binary",
+        "/home/user/Projects/bins/readability-pre-5c363128/tomokv"
+      ],
+      "returncode": 1,
+      "negative": true,
+      "reorder": 1,
+      "log": "build/tornhold/negative-release-r1.log",
+      "artifact": "build/gate-run.R9qH8k",
+      "rows": [
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "release build (+footprint locks)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.58,
+          "label": "tornread pipe (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornread seq (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornread seq (2s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.6,
+          "label": "tornread pipe (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.6,
+          "label": "tornread pipe (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornread seq (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.42,
+          "label": "tornread seq (1s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (1s read-local 1 epoll atomic 1)"
+        }
+      ],
+      "hunts": [
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-1s-0-epoll-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 55912,
+          "writes": 7056,
+          "value_changes_seen": 2777,
+          "violations": 738,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-1s-0-epoll-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 398256,
+          "writes": 340016,
+          "value_changes_seen": 122712,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-1s-0-epoll-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 59072,
+          "writes": 21936,
+          "value_changes_seen": 2150,
+          "violations": 524,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-1s-0-epoll-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 412536,
+          "writes": 1054512,
+          "value_changes_seen": 89504,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-1s-0-uring-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 61912,
+          "writes": 5840,
+          "value_changes_seen": 1770,
+          "violations": 316,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-1s-0-uring-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 407120,
+          "writes": 350880,
+          "value_changes_seen": 97035,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-1s-0-uring-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 59072,
+          "writes": 23104,
+          "value_changes_seen": 3233,
+          "violations": 1005,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-1s-0-uring-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 439616,
+          "writes": 1101984,
+          "value_changes_seen": 95923,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-1s-1-epoll-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 68008,
+          "writes": 6512,
+          "value_changes_seen": 1043,
+          "violations": 10,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-1s-1-epoll-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 527920,
+          "writes": 360848,
+          "value_changes_seen": 125281,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-1s-1-epoll-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 70224,
+          "writes": 19904,
+          "value_changes_seen": 2881,
+          "violations": 598,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-1s-1-epoll-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 488696,
+          "writes": 1055344,
+          "value_changes_seen": 81715,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-1s-1-uring-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 62392,
+          "writes": 7712,
+          "value_changes_seen": 1740,
+          "violations": 20,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-1s-1-uring-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 487984,
+          "writes": 324256,
+          "value_changes_seen": 136897,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-1s-1-uring-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 67648,
+          "writes": 19840,
+          "value_changes_seen": 2717,
+          "violations": 500,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-1s-1-uring-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 485688,
+          "writes": 1026576,
+          "value_changes_seen": 76333,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-2s-0-epoll-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 55336,
+          "writes": 10224,
+          "value_changes_seen": 1982,
+          "violations": 24,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-2s-0-epoll-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 458456,
+          "writes": 405904,
+          "value_changes_seen": 121229,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-2s-0-epoll-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 63392,
+          "writes": 24240,
+          "value_changes_seen": 1537,
+          "violations": 89,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-2s-0-epoll-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 432456,
+          "writes": 1243824,
+          "value_changes_seen": 78771,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-2s-0-uring-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 71568,
+          "writes": 6288,
+          "value_changes_seen": 1258,
+          "violations": 18,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-2s-0-uring-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 480392,
+          "writes": 401472,
+          "value_changes_seen": 125469,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-2s-0-uring-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 69040,
+          "writes": 24432,
+          "value_changes_seen": 1983,
+          "violations": 244,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-2s-0-uring-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 520960,
+          "writes": 1271424,
+          "value_changes_seen": 73187,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-2s-1-epoll-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 70848,
+          "writes": 7616,
+          "value_changes_seen": 1184,
+          "violations": 11,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-2s-1-epoll-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 484600,
+          "writes": 390672,
+          "value_changes_seen": 102595,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-2s-1-epoll-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 66280,
+          "writes": 26032,
+          "value_changes_seen": 1845,
+          "violations": 210,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-2s-1-epoll-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 489424,
+          "writes": 1147024,
+          "value_changes_seen": 77993,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-2s-1-uring-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 64504,
+          "writes": 8016,
+          "value_changes_seen": 1470,
+          "violations": 14,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-2s-1-uring-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 523960,
+          "writes": 389888,
+          "value_changes_seen": 108829,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-2s-1-uring-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 65952,
+          "writes": 22352,
+          "value_changes_seen": 2630,
+          "violations": 442,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.R9qH8k/jobs/tornread-2s-1-uring-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 485952,
+          "writes": 1164832,
+          "value_changes_seen": 85289,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        }
+      ],
+      "control_verified": true,
+      "image_sha256": "0de6bbdea50caf4f90f797c4e52a4e86be30e2c554fb544f257f5148bf4016cd",
+      "ok": 17,
+      "fail": 16
+    },
+    "negative-pad-a-r0": {
+      "name": "negative-pad-a-r0",
+      "jobs": [
+        "tornread-2s-0-uring-0",
+        "tornread-2s-0-uring-1",
+        "tornread-2s-0-epoll-0",
+        "tornread-2s-0-epoll-1",
+        "tornread-2s-1-uring-0",
+        "tornread-2s-1-uring-1",
+        "tornread-2s-1-epoll-0",
+        "tornread-2s-1-epoll-1",
+        "tornread-1s-0-uring-0",
+        "tornread-1s-0-uring-1",
+        "tornread-1s-0-epoll-0",
+        "tornread-1s-0-epoll-1",
+        "tornread-1s-1-uring-0",
+        "tornread-1s-1-uring-1",
+        "tornread-1s-1-epoll-0",
+        "tornread-1s-1-epoll-1",
+        "tornhold-2s-0-uring-0",
+        "tornhold-2s-0-uring-1",
+        "tornhold-2s-0-epoll-0",
+        "tornhold-2s-0-epoll-1"
+      ],
+      "command": [
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "0-15",
+        "--load-cores",
+        "16-19",
+        "--load-smt",
+        "",
+        "--ports",
+        "26500-26589",
+        "--candidate-binary",
+        "/home/user/Projects/cx-tornhold/build/tornhold/tomokv-pad-hold"
+      ],
+      "returncode": 1,
+      "negative": true,
+      "reorder": 0,
+      "log": "build/tornhold/negative-pad-a-r0.log",
+      "artifact": "build/gate-run.Rkrf7Z",
+      "rows": [
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "release build (+footprint locks)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.6,
+          "label": "tornread pipe (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornhold getmget (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornhold getmget-seq (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornhold getmget (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornhold getmget-seq (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornhold getmget (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget-seq (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.6,
+          "label": "tornread pipe (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.61,
+          "label": "tornhold getmget (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornhold getmget-seq (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (2s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (2s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.6,
+          "label": "tornread pipe (2s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.6,
+          "label": "tornread pipe (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.61,
+          "label": "tornread pipe (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.6,
+          "label": "tornread pipe (1s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (1s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.41,
+          "label": "tornread seq (1s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.6,
+          "label": "tornread pipe (1s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornread seq (1s read-local 1 epoll atomic 1)"
+        }
+      ],
+      "hunts": [
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornhold-2s-0-epoll-0/getmget-seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 239510,
+          "writes": 391712,
+          "value_changes_seen": 142148,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornhold-2s-0-epoll-0/getmget.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 6047,
+          "writes": 7680,
+          "value_changes_seen": 2628,
+          "violations": 501,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornhold-2s-0-epoll-1/getmget-seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 246196,
+          "writes": 1034912,
+          "value_changes_seen": 156180,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornhold-2s-0-epoll-1/getmget.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 6290,
+          "writes": 17520,
+          "value_changes_seen": 3124,
+          "violations": 916,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornhold-2s-0-uring-0/getmget-seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 258844,
+          "writes": 342368,
+          "value_changes_seen": 167044,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornhold-2s-0-uring-0/getmget.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 6444,
+          "writes": 6624,
+          "value_changes_seen": 2508,
+          "violations": 427,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornhold-2s-0-uring-1/getmget-seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.0,
+          "read_pairs": 254517,
+          "writes": 939792,
+          "value_changes_seen": 165831,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornhold-2s-0-uring-1/getmget.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 5401,
+          "writes": 17296,
+          "value_changes_seen": 3489,
+          "violations": 1088,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-1s-0-epoll-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 60008,
+          "writes": 6832,
+          "value_changes_seen": 2308,
+          "violations": 334,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-1s-0-epoll-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 417896,
+          "writes": 354832,
+          "value_changes_seen": 129552,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-1s-0-epoll-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 58960,
+          "writes": 23616,
+          "value_changes_seen": 1435,
+          "violations": 110,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-1s-0-epoll-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 429776,
+          "writes": 1065072,
+          "value_changes_seen": 87984,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-1s-0-uring-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 59344,
+          "writes": 6736,
+          "value_changes_seen": 3622,
+          "violations": 1052,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-1s-0-uring-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 406440,
+          "writes": 344432,
+          "value_changes_seen": 129542,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-1s-0-uring-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 60728,
+          "writes": 20736,
+          "value_changes_seen": 1384,
+          "violations": 158,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-1s-0-uring-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 448120,
+          "writes": 1131712,
+          "value_changes_seen": 79306,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-1s-1-epoll-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 57408,
+          "writes": 8256,
+          "value_changes_seen": 2003,
+          "violations": 4,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-1s-1-epoll-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 492928,
+          "writes": 331568,
+          "value_changes_seen": 113220,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-1s-1-epoll-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 66216,
+          "writes": 20016,
+          "value_changes_seen": 1959,
+          "violations": 402,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-1s-1-epoll-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 483224,
+          "writes": 1057392,
+          "value_changes_seen": 74997,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-1s-1-uring-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 69800,
+          "writes": 6800,
+          "value_changes_seen": 1536,
+          "violations": 6,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-1s-1-uring-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 521448,
+          "writes": 346768,
+          "value_changes_seen": 116745,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-1s-1-uring-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 65072,
+          "writes": 20592,
+          "value_changes_seen": 3526,
+          "violations": 1008,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-1s-1-uring-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 521672,
+          "writes": 1116784,
+          "value_changes_seen": 88006,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-2s-0-epoll-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 63088,
+          "writes": 7856,
+          "value_changes_seen": 1348,
+          "violations": 30,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-2s-0-epoll-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 453640,
+          "writes": 400352,
+          "value_changes_seen": 108202,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-2s-0-epoll-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 57824,
+          "writes": 24640,
+          "value_changes_seen": 1256,
+          "violations": 97,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-2s-0-epoll-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 458656,
+          "writes": 1265280,
+          "value_changes_seen": 64364,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-2s-0-uring-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 63696,
+          "writes": 9360,
+          "value_changes_seen": 1645,
+          "violations": 26,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-2s-0-uring-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 492160,
+          "writes": 404256,
+          "value_changes_seen": 106505,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-2s-0-uring-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 63712,
+          "writes": 26416,
+          "value_changes_seen": 1825,
+          "violations": 237,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-2s-0-uring-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 486512,
+          "writes": 1227328,
+          "value_changes_seen": 73074,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-2s-1-epoll-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 64184,
+          "writes": 7968,
+          "value_changes_seen": 1454,
+          "violations": 25,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-2s-1-epoll-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 482328,
+          "writes": 375216,
+          "value_changes_seen": 99310,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-2s-1-epoll-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 65168,
+          "writes": 24608,
+          "value_changes_seen": 1894,
+          "violations": 262,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-2s-1-epoll-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 508600,
+          "writes": 1200000,
+          "value_changes_seen": 72734,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-2s-1-uring-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 64384,
+          "writes": 7760,
+          "value_changes_seen": 1252,
+          "violations": 15,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-2s-1-uring-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 520176,
+          "writes": 393776,
+          "value_changes_seen": 125336,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-2s-1-uring-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 64008,
+          "writes": 23920,
+          "value_changes_seen": 2180,
+          "violations": 286,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Rkrf7Z/jobs/tornread-2s-1-uring-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 515896,
+          "writes": 1216560,
+          "value_changes_seen": 86634,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        }
+      ],
+      "control_verified": true,
+      "image_sha256": "fd2555b316217d7142bdc89cf423bc5fa7c126382733fdb5951b8dfde87b84ce",
+      "ok": 21,
+      "fail": 20
+    },
+    "negative-pad-a-r1": {
+      "name": "negative-pad-a-r1",
+      "jobs": [
+        "tornread-2s-0-uring-0",
+        "tornread-2s-0-uring-1",
+        "tornread-2s-0-epoll-0",
+        "tornread-2s-0-epoll-1",
+        "tornread-2s-1-uring-0",
+        "tornread-2s-1-uring-1",
+        "tornread-2s-1-epoll-0",
+        "tornread-2s-1-epoll-1",
+        "tornread-1s-0-uring-0",
+        "tornread-1s-0-uring-1",
+        "tornread-1s-0-epoll-0",
+        "tornread-1s-0-epoll-1",
+        "tornread-1s-1-uring-0",
+        "tornread-1s-1-uring-1",
+        "tornread-1s-1-epoll-0",
+        "tornread-1s-1-epoll-1"
+      ],
+      "command": [
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "0-15",
+        "--load-cores",
+        "16-19",
+        "--load-smt",
+        "",
+        "--ports",
+        "26500-26589",
+        "--candidate-binary",
+        "/home/user/Projects/cx-tornhold/build/tornhold/tomokv-pad-hold"
+      ],
+      "returncode": 1,
+      "negative": true,
+      "reorder": 1,
+      "log": "build/tornhold/negative-pad-a-r1.log",
+      "artifact": "build/gate-run.d6Z1a0",
+      "rows": [
+        {
+          "verdict": "ok",
+          "seconds": 0.0,
+          "label": "release build (+footprint locks)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.6,
+          "label": "tornread pipe (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.6,
+          "label": "tornread pipe (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.41,
+          "label": "tornread seq (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (2s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (2s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.6,
+          "label": "tornread pipe (2s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (2s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (2s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornread seq (2s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.58,
+          "label": "tornread pipe (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornread seq (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.58,
+          "label": "tornread pipe (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.41,
+          "label": "tornread seq (1s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (1s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.6,
+          "label": "tornread pipe (1s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornread seq (1s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 1 epoll atomic 1)"
+        }
+      ],
+      "hunts": [
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-1s-0-epoll-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 59304,
+          "writes": 6864,
+          "value_changes_seen": 1588,
+          "violations": 147,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-1s-0-epoll-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 384024,
+          "writes": 348064,
+          "value_changes_seen": 117002,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-1s-0-epoll-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 56488,
+          "writes": 21872,
+          "value_changes_seen": 2036,
+          "violations": 339,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-1s-0-epoll-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 385368,
+          "writes": 1142448,
+          "value_changes_seen": 77631,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-1s-0-uring-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 59320,
+          "writes": 7056,
+          "value_changes_seen": 1574,
+          "violations": 191,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-1s-0-uring-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 415320,
+          "writes": 356320,
+          "value_changes_seen": 122993,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-1s-0-uring-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 58976,
+          "writes": 23712,
+          "value_changes_seen": 3307,
+          "violations": 956,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-1s-0-uring-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 399208,
+          "writes": 1072336,
+          "value_changes_seen": 86740,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-1s-1-epoll-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 71664,
+          "writes": 6640,
+          "value_changes_seen": 1186,
+          "violations": 13,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-1s-1-epoll-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 481568,
+          "writes": 318032,
+          "value_changes_seen": 131942,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-1s-1-epoll-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 66496,
+          "writes": 20064,
+          "value_changes_seen": 2858,
+          "violations": 732,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-1s-1-epoll-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 482832,
+          "writes": 1035376,
+          "value_changes_seen": 88318,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-1s-1-uring-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 65272,
+          "writes": 6848,
+          "value_changes_seen": 1746,
+          "violations": 31,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-1s-1-uring-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 529528,
+          "writes": 329856,
+          "value_changes_seen": 148864,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-1s-1-uring-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 65744,
+          "writes": 21712,
+          "value_changes_seen": 3476,
+          "violations": 1058,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-1s-1-uring-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 527712,
+          "writes": 1142784,
+          "value_changes_seen": 93588,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-2s-0-epoll-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 59584,
+          "writes": 7648,
+          "value_changes_seen": 1139,
+          "violations": 9,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-2s-0-epoll-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 456864,
+          "writes": 412224,
+          "value_changes_seen": 104770,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-2s-0-epoll-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 61664,
+          "writes": 22848,
+          "value_changes_seen": 2056,
+          "violations": 253,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-2s-0-epoll-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 457408,
+          "writes": 1256304,
+          "value_changes_seen": 69421,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-2s-0-uring-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 62880,
+          "writes": 8032,
+          "value_changes_seen": 1351,
+          "violations": 29,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-2s-0-uring-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 489160,
+          "writes": 400368,
+          "value_changes_seen": 103621,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-2s-0-uring-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 65848,
+          "writes": 23056,
+          "value_changes_seen": 1902,
+          "violations": 212,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-2s-0-uring-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 487568,
+          "writes": 1231488,
+          "value_changes_seen": 85645,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-2s-1-epoll-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 70960,
+          "writes": 7760,
+          "value_changes_seen": 1244,
+          "violations": 22,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-2s-1-epoll-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 495168,
+          "writes": 400896,
+          "value_changes_seen": 99431,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-2s-1-epoll-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 62984,
+          "writes": 30112,
+          "value_changes_seen": 3242,
+          "violations": 517,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-2s-1-epoll-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 521040,
+          "writes": 1229744,
+          "value_changes_seen": 75759,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-2s-1-uring-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 65528,
+          "writes": 7584,
+          "value_changes_seen": 1386,
+          "violations": 3,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-2s-1-uring-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 490880,
+          "writes": 381616,
+          "value_changes_seen": 122656,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-2s-1-uring-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 65728,
+          "writes": 21216,
+          "value_changes_seen": 1832,
+          "violations": 276,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.d6Z1a0/jobs/tornread-2s-1-uring-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 491488,
+          "writes": 1181616,
+          "value_changes_seen": 75510,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        }
+      ],
+      "control_verified": true,
+      "image_sha256": "fd2555b316217d7142bdc89cf423bc5fa7c126382733fdb5951b8dfde87b84ce",
+      "ok": 17,
+      "fail": 16
+    },
+    "negative-part2-getmget": {
+      "name": "negative-part2-getmget",
+      "jobs": [
+        "tornhold-2s-0-uring-0",
+        "tornhold-2s-0-uring-1",
+        "tornhold-2s-0-epoll-0",
+        "tornhold-2s-0-epoll-1"
+      ],
+      "command": [
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "0-15",
+        "--load-cores",
+        "16-19",
+        "--load-smt",
+        "",
+        "--ports",
+        "26500-26589",
+        "--candidate-binary",
+        "/home/user/Projects/bins/tornread-PART2-b30bc3bb"
+      ],
+      "returncode": 1,
+      "negative": true,
+      "reorder": 0,
+      "log": "build/tornhold/negative-part2-getmget.log",
+      "artifact": "build/gate-run.Uq9Us5",
+      "rows": [
+        {
+          "verdict": "ok",
+          "seconds": 0.0,
+          "label": "release build (+footprint locks)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornhold getmget (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.35,
+          "label": "tornhold getmget-seq (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornhold getmget (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget-seq (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornhold getmget (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget-seq (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.58,
+          "label": "tornhold getmget (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornhold getmget-seq (2s read-local 0 epoll atomic 1)"
+        }
+      ],
+      "hunts": [
+        {
+          "path": "build/gate-run.Uq9Us5/jobs/tornhold-2s-0-epoll-0/getmget-seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 225373,
+          "writes": 320096,
+          "value_changes_seen": 177735,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Uq9Us5/jobs/tornhold-2s-0-epoll-0/getmget.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 4574,
+          "writes": 4784,
+          "value_changes_seen": 2492,
+          "violations": 22,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Uq9Us5/jobs/tornhold-2s-0-epoll-1/getmget-seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.0,
+          "read_pairs": 233331,
+          "writes": 964496,
+          "value_changes_seen": 159556,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Uq9Us5/jobs/tornhold-2s-0-epoll-1/getmget.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 6536,
+          "writes": 15520,
+          "value_changes_seen": 1981,
+          "violations": 29,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Uq9Us5/jobs/tornhold-2s-0-uring-0/getmget-seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.0,
+          "read_pairs": 231146,
+          "writes": 278704,
+          "value_changes_seen": 193070,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Uq9Us5/jobs/tornhold-2s-0-uring-0/getmget.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 5952,
+          "writes": 7840,
+          "value_changes_seen": 1921,
+          "violations": 37,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Uq9Us5/jobs/tornhold-2s-0-uring-1/getmget-seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 259612,
+          "writes": 949136,
+          "value_changes_seen": 168881,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.Uq9Us5/jobs/tornhold-2s-0-uring-1/getmget.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 6689,
+          "writes": 17520,
+          "value_changes_seen": 2212,
+          "violations": 77,
+          "errors": 0,
+          "vacuous": []
+        }
+      ],
+      "control_verified": true,
+      "image_sha256": "b30bc3bba310e2854221e4da0a3fc13a1d601bf2f990ee2f514510f27387fb55",
+      "ok": 5,
+      "fail": 4
+    },
+    "negative-old-priority-r1": {
+      "name": "negative-old-priority-r1",
+      "jobs": [
+        "tornread-1s-0-uring-0",
+        "tornread-1s-0-uring-1",
+        "tornread-1s-0-epoll-0",
+        "tornread-1s-0-epoll-1",
+        "tornread-1s-1-uring-0",
+        "tornread-1s-1-uring-1",
+        "tornread-1s-1-epoll-0",
+        "tornread-1s-1-epoll-1",
+        "tornhold-1s-0-uring-0",
+        "tornhold-1s-0-uring-1",
+        "tornhold-1s-0-epoll-0",
+        "tornhold-1s-0-epoll-1"
+      ],
+      "command": [
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "0-15",
+        "--load-cores",
+        "16-19",
+        "--load-smt",
+        "",
+        "--ports",
+        "26500-26589",
+        "--candidate-binary",
+        "/home/user/Projects/cx-tornhold/build/tornhold/controls/old-priority/tomokv"
+      ],
+      "returncode": 1,
+      "negative": true,
+      "reorder": 1,
+      "log": "build/tornhold/negative-old-priority-r1.log",
+      "artifact": "build/gate-run.4n7Kkv",
+      "rows": [
+        {
+          "verdict": "ok",
+          "seconds": 0.0,
+          "label": "release build (+footprint locks)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornhold getmget (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornhold getmget-seq (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornhold getmget (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget-seq (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornhold getmget (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornhold getmget-seq (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornread seq (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornhold getmget (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget-seq (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornread seq (1s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornread seq (1s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.59,
+          "label": "tornread pipe (1s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 1 epoll atomic 1)"
+        }
+      ],
+      "hunts": [
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornhold-1s-0-epoll-0/getmget-seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 255850,
+          "writes": 301472,
+          "value_changes_seen": 142245,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornhold-1s-0-epoll-0/getmget.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 6575,
+          "writes": 7232,
+          "value_changes_seen": 2244,
+          "violations": 239,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornhold-1s-0-epoll-1/getmget-seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 238245,
+          "writes": 906848,
+          "value_changes_seen": 162614,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornhold-1s-0-epoll-1/getmget.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 4983,
+          "writes": 15280,
+          "value_changes_seen": 3450,
+          "violations": 1131,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornhold-1s-0-uring-0/getmget-seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 242566,
+          "writes": 297488,
+          "value_changes_seen": 163775,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornhold-1s-0-uring-0/getmget.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 6945,
+          "writes": 6416,
+          "value_changes_seen": 2585,
+          "violations": 279,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornhold-1s-0-uring-1/getmget-seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 260407,
+          "writes": 758032,
+          "value_changes_seen": 169186,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornhold-1s-0-uring-1/getmget.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 5708,
+          "writes": 14240,
+          "value_changes_seen": 3489,
+          "violations": 1197,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornread-1s-0-epoll-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 58128,
+          "writes": 7056,
+          "value_changes_seen": 2327,
+          "violations": 463,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornread-1s-0-epoll-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 407608,
+          "writes": 360736,
+          "value_changes_seen": 129339,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornread-1s-0-epoll-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 53448,
+          "writes": 26800,
+          "value_changes_seen": 3627,
+          "violations": 1109,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornread-1s-0-epoll-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 408184,
+          "writes": 1112800,
+          "value_changes_seen": 100050,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornread-1s-0-uring-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 59800,
+          "writes": 7328,
+          "value_changes_seen": 1492,
+          "violations": 118,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornread-1s-0-uring-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 425248,
+          "writes": 357120,
+          "value_changes_seen": 108728,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornread-1s-0-uring-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 57888,
+          "writes": 21584,
+          "value_changes_seen": 1906,
+          "violations": 337,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornread-1s-0-uring-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 430504,
+          "writes": 1137040,
+          "value_changes_seen": 90872,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornread-1s-1-epoll-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 70496,
+          "writes": 6848,
+          "value_changes_seen": 1879,
+          "violations": 47,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornread-1s-1-epoll-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 496312,
+          "writes": 326336,
+          "value_changes_seen": 146416,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornread-1s-1-epoll-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 68512,
+          "writes": 18864,
+          "value_changes_seen": 2933,
+          "violations": 734,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornread-1s-1-epoll-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 493040,
+          "writes": 1107984,
+          "value_changes_seen": 81824,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornread-1s-1-uring-0/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 55272,
+          "writes": 9792,
+          "value_changes_seen": 1842,
+          "violations": 17,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornread-1s-1-uring-0/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 533384,
+          "writes": 349424,
+          "value_changes_seen": 141738,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornread-1s-1-uring-1/pipe.json",
+          "valid": true,
+          "sequential": false,
+          "elapsed_s": 0.3,
+          "read_pairs": 69760,
+          "writes": 20448,
+          "value_changes_seen": 3282,
+          "violations": 934,
+          "errors": 0,
+          "vacuous": []
+        },
+        {
+          "path": "build/gate-run.4n7Kkv/jobs/tornread-1s-1-uring-1/seq.json",
+          "valid": true,
+          "sequential": true,
+          "elapsed_s": 15.1,
+          "read_pairs": 489448,
+          "writes": 1025600,
+          "value_changes_seen": 80536,
+          "violations": 0,
+          "errors": 0,
+          "vacuous": []
+        }
+      ],
+      "control_verified": true,
+      "image_sha256": "fdbb21ecd8464ca42b5346abc610119a098802ba36d0bd1a27a0c08bad9f261b",
+      "ok": 13,
+      "fail": 12
+    },
+    "control-old-priority-r0": {
+      "name": "control-old-priority-r0",
+      "jobs": [
+        "tornread-1s-0-uring-0",
+        "tornread-1s-1-uring-1"
+      ],
+      "command": [
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "0-15",
+        "--load-cores",
+        "16-19",
+        "--load-smt",
+        "",
+        "--ports",
+        "26500-26589",
+        "--candidate-binary",
+        "/home/user/Projects/cx-tornhold/build/tornhold/controls/old-priority/tomokv"
+      ],
+      "returncode": 0,
+      "negative": false,
+      "reorder": 0,
+      "log": "build/tornhold/control-old-priority-r0.log",
+      "artifact": "build/gate-run.PP2LD1",
+      "rows": [
+        {
+          "verdict": "ok",
+          "seconds": 0.0,
+          "label": "release build (+footprint locks)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread pipe (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread pipe (1s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 1 uring atomic 1)"
+        }
+      ],
+      "image_sha256": "fdbb21ecd8464ca42b5346abc610119a098802ba36d0bd1a27a0c08bad9f261b",
+      "ok": 5,
+      "fail": 0
     }
   },
   "harness": {
