@@ -139,3 +139,63 @@ All collection lines occur before the quick-tier exit. Source inventory is
 **1,340** full rows; landing counts should be **EXPECT_QUICK=1323** and
 **EXPECT_FULL=1340**. The maintainer owns those constants and the label fixture;
 this lane does not edit either.
+
+### Safety argument
+
+Every stamped read published with an older operation in flight has protection
+established before publication, at a floor no greater than its read cut plus one,
+until in-order retirement passes the bucket end. Creating a generation publishes
+the floor before confirming the commit watermark. Joining an older generation
+uses protection that already predates the pass. The combined publisher takes
+the minimum of unresolved scatter snapshots and hold generations.
+
+A stays fixed while B accepts newer passes. Once A's end retires, B becomes A;
+the next pass can acquire a newer B. Thus a continuously nonempty ROB cannot
+extend the original A indefinitely. The 64-slot ROB also keeps low-16-bit end
+comparisons within their unambiguous half-range. A completed MGET may release its
+own scatter snapshot early, but its connection hold remains until retirement,
+which requires the older GET on the other owner to finish first. PART2's
+unconditional pass sampling and read stamping preserve the same argument with
+atomic MSET disabled and atomic EXEC still enabled.
+
+### Build and harness checkpoint
+
+- `LC_ALL=C taskset -c 8-15,18-19 make -j10 all unit`: PASS.
+  `build/tornhold/all-unit-final.log` records the standard unit target.
+- Normal and db0 tornhold units, including all eight layout locks and Rob offset
+  120: PASS through `tornhold_units`; see the FLIP witness ledger above.
+- R7 sync check and stale-envelope falsifier: PASS. No generated parser was
+  hand-edited; the deliberately broken priority parser exists only under build/.
+- `GATE_TEST_PORT=26598 python3 tests/gates_test.py`, pinned inside CPUs 0–19:
+  **83/83 PASS** in 485.215 seconds; `build/tornhold/gates-test-final.log`.
+- Real label-fixture unittest: **10 passed, one failure, one error**, all caused
+  by the intentionally unchanged count/fixture missing 75 declared rows.
+  A temporary projection with exactly those source-declared labels and proposed
+  counts passes **12/12**. This projection is an inventory check, not execution
+  evidence; tracked EXPECT and fixture files remain untouched.
+- `make -q` and `make -q all` both return zero after `make all unit`.
+  `build/tornhold/make-q.json` records their exit codes.
+- Native and frozen candidate binaries are byte-identical:
+  SHA-256 `18eb7a988891a41cae24a20ae2b33378d987a07a80d031b9038ef709985ec92b`.
+
+### Negative controls prepared
+
+`tools/tornhold_controls.py` builds isolated overlays without changing production
+sources or objects. `always-a` extends A forever and fails the nonempty-window
+unit at its required floor-advancement assertion. `old-priority` removes only the
+generated parser's hold acquisition; ordinary parsing keeps its protection.
+
+The PAD is **(A), behaviour twin**: PRE cleanup behaviour with the candidate's
+text/data layout. It replaces each namespace's `plain_hold_begin` entry with
+`mov %rcx,%rax; ret`, returning the supplied cut without acquiring a bucket.
+PART2 stamping and the candidate parser remain. Exactly eight ELF bytes change;
+file size, section sizes, addresses and data layout are preserved. Its SHA-256 is
+`fd2555b316217d7142bdc89cf423bc5fa7c126382733fdb5951b8dfde87b84ce`.
+This PAD is deliberately incorrect and is only a falsifier/measurement control.
+
+The new GET/MGET hunt already rejects the specified PART2 binary at atomic 0
+(29 violations / 6,792 triples) and atomic 1 (89 / 6,032), both within 0.3 s;
+both 15-second sequential controls pass. These failures have no worker errors
+or vacuity flags. Ledger: `build/gate-run.VOzAxs/ledger.partial`.
+The complete release/PAD/priority falsifier runs and final instruction tables
+will be recorded after the queued correctness work finishes.
