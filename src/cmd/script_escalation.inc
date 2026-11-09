@@ -443,8 +443,11 @@ void script_window_resume(Server& server, ScatterArenaPool& pool, uint32_t io, C
         }
     }
     if (lane.cut_waiting) {
-        Client* head = cut_window_head(server, lane, *lane.cut_window);
-        if (head && head != &client) return;
+        auto& window = *lane.cut_window;
+        Client* head = cut_window_head(server, lane, window);
+        // Only cut waiters owe FIFO admission. Credit-blocked writes keep their
+        // existing retry rule; a new read joins the FIFO when prepare sees it.
+        if (head && head != &client && window.members.contains(&client)) return;
     }
     if (pool.can_register_snapshot()) client.set_atomic_backpressure(false);
 }

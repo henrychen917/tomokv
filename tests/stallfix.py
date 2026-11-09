@@ -9,6 +9,7 @@ A missing/zero refusal counter is a failure, not an unarmed pass.
 import argparse
 import asyncio
 from collections import deque
+import hashlib
 import json
 import multiprocessing as mp
 import os
@@ -147,6 +148,9 @@ def main():
     parser.add_argument("--allow-missing-counter", action="store_true",
                         help="PRE diagnosis only; latency and reply assertions still apply")
     args = parser.parse_args()
+    binary = Path(args.binary).resolve()
+    with binary.open("rb") as image:
+        binary_sha256 = hashlib.file_digest(image, "sha256").hexdigest()
     os.environ["LC_ALL"] = "C"
     os.sched_setaffinity(0, cpus(args.load_cores))
     selected = cpus(args.cores)[:1 if args.mode == "1s" else 2]
@@ -169,7 +173,8 @@ def main():
             refusals = int(after.get(COUNTER, 0)) - int(before.get(COUNTER, 0))
             result = dict(mode=args.mode, attempt=attempt, clients=clients,
                           max_ms=max(c["max_ms"] for c in clients), refusals=refusals,
-                          counter_present=COUNTER in after)
+                          counter_present=COUNTER in after,
+                          binary=str(binary), binary_sha256=binary_sha256)
             (args.output / f"result-{attempt}.json").write_text(json.dumps(result, indent=2) + "\n")
             print(json.dumps(result), flush=True)
             assert result["max_ms"] <= 500, f"request waited {result['max_ms']:.3f} ms > 500 ms"

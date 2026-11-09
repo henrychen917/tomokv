@@ -207,6 +207,8 @@ static void stallfix_ack_and_timeout() {
 
 static void stallfix_cut_fifo() {
     Fixture f;
+    std::string acl_error;
+    require(acl_initialize(f.server, f.server.cfg(), acl_error), "default ACL for queued EXEC reader");
     auto& pool = f.io.scatter_pool_;
     uint64_t generation = 0;
     require(f.server.atomic_try_admit(f.io_id, generation), "arm active atomic work for cut admission");
@@ -215,10 +217,12 @@ static void stallfix_cut_fifo() {
         cut.snapshot = f.server.atomic_snapshot();
         require(pool.register_snapshot(f.server, &cut, f.io_id), "fill the eight-cut window");
     }
-    Client a(-1), b(-1), c(-1);
+    Client a(-1), b(-1), c(-1), exec(-1);
     f.client(a);
     f.client(b);
     f.client(c);
+    f.client(exec);
+    exec.set_id(4);
     b.set_id(2);
     c.set_id(3);
     const auto key1 = f.key(f.sid());
@@ -237,7 +241,32 @@ static void stallfix_cut_fifo() {
                 admit(b, ob) == ScatterPrepare::Backpressure &&
                 f.server.atomic_cut_window_refusals() == 2,
             "full cut window queues two distinct ROB frames and records refusals");
+    auto txn_op = [&](std::initializer_list<Slice> args) -> Op& {
+        auto* op = exec.rob().acquire<false>();
+        require(op != nullptr, "EXEC FIFO fixture ROB slot");
+        for (auto arg : args) require(op->push_arg(arg), "EXEC FIFO fixture argument");
+        op->spec = command_lookup(op->arg(0));
+        return *op;
+    };
+    for (auto args : {std::initializer_list<Slice>{Slice("MULTI")},
+                      {Slice("MGET"), slice(key1), slice(key2)}}) {
+        auto& op = txn_op(args);
+        require(multi_dispatch_entry(f.io, exec, op, 0) && op.state == OpState::Done,
+                "queue a real multi-owner read inside EXEC");
+    }
+    auto& execute = txn_op({Slice("EXEC")});
+    const auto exec_id = exec.rob().dispatch_id();
+    require(multi_dispatch_entry(f.io, exec, execute, 0) && exec.rob().dispatch_id() == exec_id,
+            "full cut window holds the EXEC frame unpublished");
     pool.unregister_snapshot(f.server, &cuts[0], f.io_id);
+    Client writer(-1);
+    f.client(writer);
+    writer.set_id(5);
+    writer.set_atomic_backpressure(true);
+    script_window_resume(f.server, pool, f.io_id, writer);
+    require(!writer.atomic_backpressure(), "cut FIFO does not defer an unrelated credit-blocked write");
+    require(multi_dispatch_entry(f.io, exec, execute, 0) && exec.rob().dispatch_id() == exec_id,
+            "new EXEC cannot take a free cut ahead of queued plain reads");
     require(admit(c, oc) == ScatterPrepare::Backpressure &&
                 admit(b, ob) == ScatterPrepare::Backpressure && admit(a, oa) == ScatterPrepare::Ready,
             "only the FIFO head gets a freed slot, ahead of walk-order newcomers");
@@ -251,11 +280,31 @@ static void stallfix_cut_fifo() {
             "a stale ROB dispatch id is removed without blocking the next waiter");
     xshard_abandon_unpublished(dispatch.state, pool, f.io_id);
     b.mark_closing();
+    require(admit(c, oc) == ScatterPrepare::Backpressure,
+            "a newcomer remains behind the queued EXEC after stale/closing heads leave");
+    require(multi_dispatch_entry(f.io, exec, execute, 0) && exec.rob().dispatch_id() == exec_id + 1,
+            "EXEC obtains the next free slot only at the FIFO head");
+    for (unsigned pass = 0; pass < 1000 && execute.state != OpState::Done; ++pass) {
+        for (auto tid : f.server.placement().ex_threads()) {
+            f.loops[tid].service_multi_retries();
+            f.loops[tid].service_atomic_deferred();
+            f.loops[tid].service_xshard_retries();
+            f.loops[tid].drain_tasks(true);
+            f.loops[tid].flush_xshard_commits();
+        }
+        multi_owner_pass_entry(f.io);
+    }
+    require(execute.state == OpState::Done, "queued EXEC reader completes after admission");
+    require(exec.rob().drain([&](Op& done) {
+                if (done.has_multi_state()) multi_retire_entry(f.io, exec, done);
+            }) == 3, "EXEC and its two setup replies retire");
+    multi_owner_reap_entry(f.io);
     require(admit(c, oc) == ScatterPrepare::Ready, "closing head does not block later waiters");
     xshard_abandon_unpublished(dispatch.state, pool, f.io_id);
     script_window_forget(f.server, f.io_id, a);
     script_window_forget(f.server, f.io_id, b);
     script_window_forget(f.server, f.io_id, c);
+    script_window_forget(f.server, f.io_id, exec);
     require(!f.server.multi_retry_lane(f.io_id).cut_waiting, "close/migration cleanup empties FIFO");
     for (auto& cut : cuts) pool.unregister_snapshot(f.server, &cut, f.io_id);
     f.server.atomic_retire_group(f.io_id, generation);
