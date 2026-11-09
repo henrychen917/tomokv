@@ -409,3 +409,10 @@ iteration, merit and landing count/fixture updates.
   included. EXEC with PUBLISH/SPUBLISH/SUBSCRIBE and FUNCTION
   LOAD/DELETE/FLUSH/RESTORE remain early (confirmed again on the final POST) and
   await the owner's design decision.
+
+### Combined landing (2026-11-09)
+
+This branch lands together with two other branches, merged on top of the aofblock tip fdbb19ba8e so that one gate covers all three:
+- t6wound (70560daf72), a test-only change: tests/at412.py opens T6's wound deterministically with existing DEBUG scheduling hooks (0/240 missed openings in 5 complete runs per binary; the missing-window controls still fail). The two previous landing gates, for this branch and for readability-p2, each failed only at412 T6, whose probabilistic wound guard missed about 30% of attempts, so the row failed about half the time by chance.
+- readability-p2 (eb55eb3dff): readability phase 2 (lanes A7-A10) plus readability-p2fix. Comment-only; its production binary is IDENTICAL to the frozen release.
+Rows: +36 quick / +36 full, from aofblock only (EXPECT 1248/1265); the other two add none.
