@@ -3185,6 +3185,7 @@ void cmd_info(Shard&, Op& op) {
             "atomic_predecessor_reads:%llu\r\natomic_chain_max:%llu\r\n"
             "atomic_cleanup_fast:%llu\r\natomic_cleanup_slow:%llu\r\n"
             "atomic_promotions:%llu\r\natomic_window_stalls:%llu\r\n"
+            "atomic_cut_window_refusals:%llu\r\n"
             "atomic_records_freed:%llu\r\natomic_entries:%llu\r\n"
             "atomic_gauge_underflows:%llu\r\n"
             "atomic_pending_entries:%llu\r\natomic_localfast:%llu\r\n"
@@ -3291,6 +3292,7 @@ void cmd_info(Shard&, Op& op) {
             static_cast<unsigned long long>(atomic_cleanup_slow),
             static_cast<unsigned long long>(atomic_promotions),
             static_cast<unsigned long long>(g_server ? g_server->atomic_window_stalls() : 0),
+            static_cast<unsigned long long>(g_server ? g_server->atomic_cut_window_refusals() : 0),
             static_cast<unsigned long long>(atomic_records_freed),
             static_cast<unsigned long long>(atomic_entries),
             static_cast<unsigned long long>(atomic_gauge_underflows),

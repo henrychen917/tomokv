@@ -1,0 +1,2 @@
+  row budget: 900s; median=0.24s; correctness-plan-fallback; LB observed-stage ack with in-flight EVALSHA (ASAN+TSAN)
+  LB observed-stage ack with in-flight EVALSHA (ASAN+TSAN) ok

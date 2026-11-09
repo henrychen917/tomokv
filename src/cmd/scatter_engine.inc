@@ -813,6 +813,7 @@ template <bool IofusedPrivateQueue>
 template <bool IofusedPrivateQueue>
 void txn_group_redispatch(Server&, ThreadCtx&, Ring&, ScatterArenaPool&, ScatterState&);
 void txn_group_shutdown(ScatterState&, ScatterArenaPool&);
+[[gnu::noinline]] bool cut_window_wait(Server&, ScatterArenaPool&, uint32_t, Client*);
 [[gnu::noinline]] bool script_window_wait(Server&, uint32_t, Client&);
 [[gnu::noinline]] bool script_window_admissible(Server&, uint32_t, Client*, bool);
 [[gnu::noinline]] bool script_window_admit(ScatterState&);
@@ -2199,8 +2200,10 @@ template <bool ScriptOnly>
             if (routes != route_stack) delete[] routes;
             return ScatterPrepare::Backpressure;
         }
-    } else if (needs_snapshot && (atomic_mode & ~Server::kAtomicEnabledBit) &&
-               !pool.can_register_snapshot()) {
+    } else if (needs_snapshot &&
+               (server.multi_retry_lane(owner_io).cut_waiting ||
+                ((atomic_mode & ~Server::kAtomicEnabledBit) && !pool.can_register_snapshot())) &&
+               !cut_window_wait(server, pool, owner_io, origin_client)) {
         if (routes != route_stack) delete[] routes;
         return ScatterPrepare::Backpressure;
     }

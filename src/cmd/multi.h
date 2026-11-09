@@ -143,7 +143,9 @@ struct alignas(64) MultiRetryLane {
     std::atomic<std::atomic<bool>*> signal{nullptr};  // worker TLS; bound before serving
     uint8_t script_admission = 0;                     // IO only: count | FIFO-present bit
     std::atomic<uint8_t> script_releases{0};          // last owners publish; IO folds
+    bool cut_waiting = false;                        // IO only: plain-cut FIFO is nonempty
     std::shared_ptr<ScriptWindow> script_window;      // allocated only for waiters
+    std::shared_ptr<ScriptWindow> cut_window;         // same FIFO pattern, separate admission slots
 };
 static_assert(sizeof(MultiRetryLane) == 64);
 

@@ -922,6 +922,37 @@ public:
     // immutable until the read scope ends, even if FLIP/timeout withdraws the drain.
     LbClientMove lb_client_move() const { return lb_client_move_; }
     uint64_t lb_deadline_ns() const { return lb_deadline_ns_.load(std::memory_order_acquire); }
+    struct LbObservation {
+        uint64_t epoch;
+        LbStage stage;
+        uint64_t ack;
+        bool ready = true;
+        uint64_t tag() const { return (epoch << 8) | static_cast<uint8_t>(stage); }
+    };
+    LbObservation lb_observe(uint32_t tid) {
+        // Only IO-acknowledged stages need an epoch. ClientDrain already has a nonblocking
+        // record guard: admission of the next epoch waits for its readers to leave. Reuse
+        // that guard so a contended shape lock cannot delay the client readiness decision.
+        const LbStage stage = lb_stage();
+        if (stage == LbStage::ClientDrain) {
+            auto record = lb_client_read();
+            if (!record) return {0, stage, 0, false};
+            return {lb_epoch(), stage, lb_ack_[tid].load(std::memory_order_acquire)};
+        }
+        if (stage != LbStage::IoDrain && stage != LbStage::ClientDrain) return {0, stage, 0};
+        // Shard drain has no record guard. Try the transition lock, never wait on a
+        // planner/commit; a busy lock owes another control pass. Release before the hook.
+        std::unique_lock<std::mutex> transition_lock(shape_transition_mu_, std::try_to_lock);
+        if (!transition_lock.owns_lock()) return {0, stage, 0, false};
+        return {lb_epoch(), lb_stage(), lb_ack_[tid].load(std::memory_order_acquire)};
+    }
+    bool lb_ack_observed(uint32_t tid, LbObservation observed) {
+        // A delayed IO may only publish its observed epoch and stage, never ExDrain.
+        // CAS also prevents it from replacing a newer tag in the fused IO/EX slot.
+        if (observed.ack == observed.tag()) return false;
+        return lb_ack_[tid].compare_exchange_strong(observed.ack, observed.tag(),
+                                                    std::memory_order_acq_rel);
+    }
     void lb_ack(uint32_t tid) {
         lb_ack_[tid].store((lb_epoch() << 8) | static_cast<uint8_t>(lb_stage()),
                            std::memory_order_release);
@@ -1552,20 +1583,7 @@ public:
     bool lb_refuse_stalled(uint64_t epoch, LbStallReason reason);
     void lb_debug_park(uint32_t tid, uint64_t bytes);
     void lb_stall_info(std::string& out) const;
-    void lb_stage_timed_out() {
-        std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
-        const LbStage stage = lb_stage();
-        if (stage == LbStage::Idle || stage == LbStage::ClientMoving) return;
-        if (stage == LbStage::ClientDrain) {
-            lb_client_refused_.fetch_add(1, std::memory_order_relaxed);
-            std::lock_guard<std::mutex> lock(lb_signal_mu_);
-            const auto found = lb_clients_.find(lb_client_move_.id);
-            if (found != lb_clients_.end()) found->second.last_move_ms = now_ns() / 1000000ull;
-        } else
-            lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
-        lb_stage_.store(LbStage::Idle, std::memory_order_release);
-        lb_deadline_ns_.store(0, std::memory_order_release);
-    }
+    void lb_stage_timed_out();
     bool flip_timed_out() const {
         return flip_deadline_ns_.load(std::memory_order_acquire) != 0 &&
                now_ns() >= flip_deadline_ns_.load(std::memory_order_acquire);
@@ -3161,6 +3179,12 @@ public:
         if (flag.exchange(false, std::memory_order_acq_rel))
             atomic_apply_slots_[tid].closed.fetch_add(1, std::memory_order_release);
     }
+    void note_atomic_cut_window_refusal() {
+        atomic_cut_window_refusals_.fetch_add(1, std::memory_order_relaxed);
+    }
+    uint64_t atomic_cut_window_refusals() const {
+        return atomic_cut_window_refusals_.load(std::memory_order_relaxed);
+    }
     uint64_t atomic_window_stalls() const {
         return atomic_window_stalls_.load(std::memory_order_relaxed);
     }
@@ -4066,6 +4090,7 @@ private:
     std::atomic<uint32_t> debug_blocking_register_defer_{0};
     // Completion-notice retry vectors stay in the cold tail with one physical owner each.
     std::vector<Client*> notify_retries_[kMaxThreads];
+    std::atomic<uint64_t> atomic_cut_window_refusals_{0};
 };
 
 }  // namespace tomo

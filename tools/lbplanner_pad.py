@@ -60,6 +60,27 @@ def source_proof():
             reference = reference.replace(needle, 'ratio < release')
             cleanup = 'CT19: zero ratio is already below the strictly positive release band'
         a = normalized(reference)
+        if name == 'lb_control_actuate_pad':
+            # stallfix: the LB hosting twin must also use observed-stage acknowledgements.
+            # Project only these four named edits onto the frozen PRE reference; keep
+            # the full-body comparison strict for every other token in either arm.
+            replacements = [
+                ('const LbStage stage = srv_->lb_stage();',
+                 'const auto observed = srv_->lb_observe(self_->id()); '
+                 'if (!observed.ready) return 1; const LbStage stage = observed.stage;'),
+                ('if (!srv_->lb_acked(self_->id())) { srv_->lb_ack(self_->id());',
+                 'if (srv_->lb_ack_observed(self_->id(), observed)) {'),
+                ('move.destination == self_->id() && !srv_->lb_acked(self_->id())',
+                 'move.destination == self_->id() && observed.ack != observed.tag()'),
+                ('srv_->lb_ack(self_->id());',
+                 'if (!srv_->lb_ack_observed(self_->id(), observed)) return 1;'),
+            ]
+            for before, after in replacements:
+                before, after = normalized(before), normalized(after)
+                assert a.count(before) == 1, ('stallfix frozen source delta drift', before)
+                a = a.replace(before, after)
+            cleanup = ('stallfix: lb_control_actuate_pad observes epoch/stage coherently without '
+                       'blocking and CAS-acks only that observation in IoDrain and ClientDrain')
         b = normalized(cpp.rename(cpp.normalized(body(new, name)),
                                   {'lb_client_move_pad':'lb_client_move'}))
         assert a == b, ('PAD PRE body changed', name)

@@ -47,6 +47,8 @@ struct LbStallState {
     std::atomic<uint64_t> parked_passes{0};
     std::atomic<uint64_t> parked_bytes_max{0};
     std::atomic<uint64_t> parked_ns_max{0};
+    std::atomic<uint64_t> shard_timeouts{0};
+    std::atomic<uint64_t> shard_timeout_ns_max{0};
 };
 
 }  // namespace tomo

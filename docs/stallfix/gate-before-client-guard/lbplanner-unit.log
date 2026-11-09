@@ -1,0 +1,94 @@
+PASS production PASS directed client-LB admission: observed owner, prepared destination, record lifetime, source fence, disabled storage
+PASS LB record lifetime: late reader acquires replacement; active reader defers one consumption
+PASS LB monitor handoff: both modes/branches; once; stale epochs; zero IO allocations
+PASS no-publish FAIL core concurrency: monitor must produce a finished plan; unarmed witness fails
+PASS stale-flip FAIL core concurrency: stale topology plan dropped without drain
+PASS stale-lb FAIL core concurrency: stale topology plan dropped without drain
+PASS duplicate FAIL core concurrency: finished plan consumed exactly once
+PASS copy-on-io FAIL core concurrency: IO handoff allocates and frees nothing
+PASS record-reuse FAIL core concurrency: record reuse waits for the cancelled drain reader, without blocking IO
+FAIL client-drain-first-tail: POST2/PAD-A2, both modes, three isolated negative controls
+[
+  {
+    "arm": "POST2",
+    "passed": false,
+    "returncode": 1,
+    "cases": [
+      {
+        "arm": "POST",
+        "mode": "2s",
+        "ready": false,
+        "held_tails": 1,
+        "source_try_failures": 1,
+        "destination_try_failures": 0,
+        "ack_wait_passes": 0,
+        "decision_pass": 2,
+        "charged_passes": 0,
+        "first_parse_bytes": 0,
+        "executor": 1,
+        "protocol": 0,
+        "pass_limit": 0,
+        "destination": 0,
+        "moves": 0
+      }
+    ],
+    "output": "TIMING={\"arm\":\"POST\",\"mode\":\"2s\",\"ready\":false,\"held_tails\":1,\"source_try_failures\":1,\"destination_try_failures\":0,\"ack_wait_passes\":0,\"decision_pass\":2,\"charged_passes\":0,\"first_parse_bytes\":0,\"executor\":1,\"protocol\":0,\"pass_limit\":0,\"destination\":0,\"moves\":0}\nFAIL core concurrency: contended shape lock never delays source or destination record reads\n"
+  },
+  {
+    "arm": "PAD-A2",
+    "passed": false,
+    "returncode": 1,
+    "cases": [
+      {
+        "arm": "PAD-A",
+        "mode": "2s",
+        "ready": false,
+        "held_tails": 1,
+        "source_try_failures": 1,
+        "destination_try_failures": 0,
+        "ack_wait_passes": 0,
+        "decision_pass": 2,
+        "charged_passes": 1,
+        "first_parse_bytes": 0,
+        "executor": 1,
+        "protocol": 0,
+        "pass_limit": 0,
+        "destination": 0,
+        "moves": 0
+      }
+    ],
+    "output": "TIMING={\"arm\":\"PAD-A\",\"mode\":\"2s\",\"ready\":false,\"held_tails\":1,\"source_try_failures\":1,\"destination_try_failures\":0,\"ack_wait_passes\":0,\"decision_pass\":2,\"charged_passes\":1,\"first_parse_bytes\":0,\"executor\":1,\"protocol\":0,\"pass_limit\":0,\"destination\":0,\"moves\":0}\nFAIL core concurrency: contended shape lock never delays source or destination record reads\n"
+  },
+  {
+    "arm": "timing-lock",
+    "passed": true,
+    "returncode": 1,
+    "output": "TIMING={\"arm\":\"POST\",\"mode\":\"2s\",\"ready\":false,\"held_tails\":1,\"source_try_failures\":1,\"destination_try_failures\":0,\"ack_wait_passes\":0,\"decision_pass\":2,\"charged_passes\":0,\"first_parse_bytes\":0,\"executor\":1,\"protocol\":0,\"pass_limit\":0,\"destination\":0,\"moves\":0}\nFAIL core concurrency: contended shape lock never delays source or destination record reads\n"
+  },
+  {
+    "arm": "timing-late-pause",
+    "passed": false,
+    "returncode": 1,
+    "output": "TIMING={\"arm\":\"POST\",\"mode\":\"2s\",\"ready\":false,\"held_tails\":1,\"source_try_failures\":1,\"destination_try_failures\":0,\"ack_wait_passes\":0,\"decision_pass\":2,\"charged_passes\":0,\"first_parse_bytes\":896,\"executor\":0,\"protocol\":1,\"pass_limit\":0,\"destination\":0,\"moves\":0}\nFAIL core concurrency: contended shape lock never delays source or destination record reads\n"
+  },
+  {
+    "arm": "timing-budget",
+    "passed": false,
+    "returncode": 1,
+    "output": "TIMING={\"arm\":\"POST\",\"mode\":\"2s\",\"ready\":false,\"held_tails\":1,\"source_try_failures\":1,\"destination_try_failures\":0,\"ack_wait_passes\":0,\"decision_pass\":2,\"charged_passes\":1,\"first_parse_bytes\":0,\"executor\":1,\"protocol\":0,\"pass_limit\":0,\"destination\":0,\"moves\":0}\nFAIL core concurrency: contended shape lock never delays source or destination record reads\n"
+  }
+]
+PASS PAD-A PASS PAD-A PRE behavior: IO-hosted key/client search, direct drain, cron, fresh parse gates
+PASS POST-rejects-PRE FAIL core concurrency: PAD monitor never runs LB search
+PASS LBOSC3 PASS LBOSC3 residual objective
+PASS LBOSC3 consecutive streak, bounded widening, expiry, topology reset
+PASS LBOSC3 both modes: real moves and stationary hold
+PASS LBOSC3-PAD-A PASS LBOSC3 residual objective
+PASS LBOSC3 both modes: real moves and stationary hold
+PASS LBOSC3-rejects-PRE FAIL core concurrency: key objective chooses the least transfer inside the residual band
+PASS LBOSC3-PRE-rejects-POST FAIL core concurrency: key objective chooses the least transfer inside the residual band
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-stallfix/tests/lbplanner_checks.py", line 74, in <module>
+    assert all(row['passed'] for row in rows), 'hand-off witness or a named negative control failed'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: hand-off witness or a named negative control failed
