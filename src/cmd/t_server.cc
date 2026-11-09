@@ -845,19 +845,14 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out, c
 }
 
 bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::string>>& updates,
-                            std::string* deferred_error = nullptr, bool environment = true) {
-    const auto reject = [&](const char* message) {
-        if (deferred_error)
-            *deferred_error = message;
-        else
-            reply_err(op.sink(), message);
-        return false;
-    };
+                            bool environment = true) {
     if (op.argc() < 4) {
-        return reject("ERR wrong number of arguments for 'config|set' command");
+        command_reply_subcommand_wrong_args(op, "CONFIG", "set");
+        return false;
     }
     if ((op.argc() & 1u) != 0) {
-        return reject("ERR syntax error");
+        reply_syntax(op.sink());
+        return false;
     }
     // Redis checks the whole parameter list before parsing values: a later
     // immutable/unknown/duplicate argument wins over an earlier invalid value.
@@ -868,7 +863,8 @@ bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::str
             std::string message = "ERR Unknown option or number of arguments for CONFIG SET - '";
             message.append(op.arg(i).p, op.arg(i).n);
             message += "'";
-            return reject(message.c_str());
+            reply_err(op.sink(), message.c_str());
+            return false;
         }
         // Tomo-only boot controls have no Redis counterpart. Preserve their
         // established rejection; the standard config surface uses Redis text.
@@ -879,7 +875,8 @@ bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::str
                 "key-lb-damping", "client-lb",     "flip-auto"};
             for (const char* name : native)
                 if (!std::strcmp(item->name, name)) {
-                    return reject("ERR parameter is immutable at runtime");
+                    reply_err(op.sink(), "ERR parameter is immutable at runtime");
+                    return false;
                 }
         }
         if (item->immutable || !std::strcmp(item->name, "tcp-backlog"))
@@ -888,7 +885,8 @@ bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::str
             error = "can't set protected config";
         if (!error && environment && !std::strcmp(item->name, "appendonly") && g_server &&
             g_server->loading()) {
-            return reject("LOADING Redis is loading the dataset in memory");
+            reply_err(op.sink(), "LOADING Redis is loading the dataset in memory");
+            return false;
         }
         if (!error) {
             const std::string requested(op.arg(i).p, op.arg(i).n);
@@ -903,7 +901,8 @@ bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::str
             message.append(op.arg(i).p, op.arg(i).n);
             message += "') - ";
             message += error;
-            return reject(message.c_str());
+            reply_err(op.sink(), message.c_str());
+            return false;
         }
     }
     ClientOutputBufferLimits obuf_scratch = g_client_obuf_limits;
@@ -913,14 +912,17 @@ bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::str
             std::string msg = "ERR Unknown option or number of arguments for CONFIG SET - '";
             msg.append(op.arg(i).p, op.arg(i).n);
             msg.push_back('\'');
-            return reject(msg.c_str());
+            reply_err(op.sink(), msg.c_str());
+            return false;
         }
         const int encoding = EncodingConfig::find(op.arg(i));
         const bool legacy_compact = encoding >= 0 && EncodingConfig::legacy(encoding, op.arg(i));
         if (!std::strcmp(item->name, "aof-use-rdb-preamble")) {
             if (!eq_icase(op.arg(i + 1), "yes")) {
-                return reject(
+                reply_err(
+                    op.sink(),
                     "ERR aof-use-rdb-preamble no is unsupported: the AOF base file is a TomoKV snapshot");
+                return false;
             }
         }
         std::string value;
@@ -955,14 +957,16 @@ bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::str
                     msg.push_back(ch >= 'A' && ch <= 'Z' ? ch + ('a' - 'A') : ch);
                 msg += "') - ";
                 msg += config_error;
-                return reject(msg.c_str());
+                reply_err(op.sink(), msg.c_str());
+                return false;
             }
             std::string msg = "ERR Invalid argument '";
             msg.append(op.arg(i + 1).p, op.arg(i + 1).n);
             msg += "' for CONFIG SET '";
             msg += item->name;
             msg.push_back('\'');
-            return reject(msg.c_str());
+            reply_err(op.sink(), msg.c_str());
+            return false;
         }
         if (environment && g_server && !std::strcmp(item->name, "maxclients")) {
             uint64_t requested = 0;
@@ -971,7 +975,8 @@ bool collect_config_updates(Op& op, std::vector<std::pair<ConfigValue*, std::str
             if (!g_server->validate_maxclients(static_cast<uint32_t>(requested), error)) {
                 const std::string message =
                     "ERR CONFIG SET failed (possibly related to argument 'maxclients') - " + error;
-                return reject(message.c_str());
+                reply_err(op.sink(), message.c_str());
+                return false;
             }
         }
         updates.emplace_back(item, std::move(value));
@@ -1958,7 +1963,13 @@ struct ConfigApplyResult {
 };
 std::vector<ConfigApplyResult> g_config_apply_results;  // g_config_mu; retired at reply assembly
 
-bool config_collect_owner(Op& op, ConfigUpdates& updates) {
+// The one reservation site for both owner-side verdicts of a scattered SET.
+[[gnu::noinline]] ConfigApplyResult& config_reserve_result(const Op& op) {
+    g_config_apply_results.push_back({&op, {}});
+    return g_config_apply_results.back();
+}
+
+[[gnu::noinline]] bool config_collect_owner(Op& op, ConfigUpdates& updates) {
     ConfigApplyResult* verdict = nullptr;
     for (auto& result : g_config_apply_results)
         if (result.op == &op) {
@@ -1966,15 +1977,22 @@ bool config_collect_owner(Op& op, ConfigUpdates& updates) {
             verdict = &result;
             break;
         }
-    std::string error;
     // A reserved verdict means an earlier fragment already applied this SET.
-    if (collect_config_updates(op, updates, &error, !verdict)) return true;
-    if (!op.has_scatter_state())
-        reply_err(op.sink(), error.c_str());
-    else if (verdict)
-        verdict->error = std::move(error);
+    if (!op.has_scatter_state()) return collect_config_updates(op, updates, !verdict);
+    // A scatter fragment must not write the shared reply. Collect into a private Op;
+    // reply assembly emits its error once.
+    Op scratch;
+    bool copied = true;
+    for (uint32_t i = 0; copied && i < op.argc(); i++) copied = scratch.push_arg(op.arg(i));
+    {
+        ErrorStatsProbe disposable;
+        if (copied && collect_config_updates(scratch, updates, !verdict)) return true;
+    }
+    ConfigApplyResult& result = verdict ? *verdict : config_reserve_result(op);
+    if (copied && scratch.reply.size() > 3 && scratch.reply.data()[0] == '-')
+        result.error.assign(scratch.reply.data() + 1, scratch.reply.size() - 3);
     else
-        g_config_apply_results.push_back({&op, std::move(error)});
+        result.error.assign("ERR out of memory");
     return false;
 }
 
@@ -1992,8 +2010,7 @@ bool config_apply_listeners(Shard& sh, Op& op, const ConfigUpdates& updates) {
     // Reserve the shared verdict before any apply action. All fragments see
     // this verdict before publishing scalar settings from the same SET.
     ConfigApplyResult standalone{&op, {}};
-    if (op.has_scatter_state()) g_config_apply_results.push_back({&op, {}});
-    auto& result = op.has_scatter_state() ? g_config_apply_results.back() : standalone;
+    auto& result = op.has_scatter_state() ? config_reserve_result(op) : standalone;
     uint16_t port = g_server ? g_server->cfg().port : 0;
     std::string bind = g_server ? g_server->cfg().bind_addr : "";
     const char* parameter = "port";
