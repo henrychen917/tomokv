@@ -254,3 +254,40 @@ Final logs are `build/tornhold/gates-test-after-progress.log`,
 receipts are being collected in `docs/tornhold-proof.json`; its pending status
 will be replaced only after the broader regression and negative-control queue
 finishes.
+
+### Instruction-accounting plan and maintainer ABBA request
+
+The four requested historical images are preserved under `build/tornread/` as
+`tomokv-{pre,part1,part2,hold}` symlinks. An additional `tomokv-merged-part2`
+control points to the verified integration image saved before hold changes;
+comparing it with HOLD isolates this change from readability/aofblock integration.
+Exact paths and digests are in `build/tornhold/pricing-arms.json`.
+
+After correctness work and companion builds finish, run the unchanged finite
+workload through `tools/tornread_instructions.py --place-io --arms pre part1 part2
+merged-part2 hold --get-depths 1 8 32 128 --repeats 3 --port 26595`, with its parent
+pinned to CPUs 0–11 and LC_ALL=C. Each repeat completes exactly 524,288 public
+commands (eight connections × 65,536), checks every reply and the commandstats
+count, and records perf's acknowledged boundaries and counter coverage. The
+geometry remains eight server cores, 16 shards, 6:2 in split mode, uring, one DB,
+read-local/key-LB/client-LB/automatic-FLIP off. Client connections are witnessed
+on the same numbered IO threads in every arm. The additional GET depths expose
+amortization; pipeline 128 spans at least two 64-slot ROB windows, so it cannot
+be reported as one parser pass. No parser-pass counter is added to production.
+
+The prior seed digest was
+`78bb25654d20f7e1b017c4d5b363e41b1c4887a7b133dfaea0fff844981bf829`.
+That snapshot is absent from the available worktrees and scratchpad. All arms
+will therefore use a single newly saved seed, with its digest recorded; no claim
+of identity with the historical key placement is made.
+
+Maintainer ABBA request: use the gate's own instrument on a quiet box for the
+20 required cells: GET p1/p32, SET p32, MGET-8 p8 and MSET-8 p8, each with atomic
+0/1 and modes 1s/2s. Compare the supplied PRE/PART1/PART2 images, merged PART2,
+HOLD, and the **PAD (A) behaviour twin** described above. Preserve the same
+geometry and connection placement, and report per-cell rate at matched offered
+load, cycles/public command, instructions/public command and IPC. The deciding
+number is the matched-load rate; instruction savings alone do not establish the
+expected approximately 1% default-config overhead. Check p1 and writes for
+regressions, and use HOLD versus the same-layout PAD to distinguish mechanism
+cost from text/data layout effects. No throughput result is claimed by this lane.
