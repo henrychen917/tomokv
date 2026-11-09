@@ -20,6 +20,7 @@ namespace {
 bool g_b_published = false;  // did the second offerer publish the pop (op became Done) in the hook?
 bool g_recycled = false;     // did we model the IO retiring the pop and a later command reusing it?
 
+// `args` must outlive the returned state: push_arg borrows each Slice.
 BlockingState* make_waiter(Server& server, Client& waiter, const std::string& key,
                            const std::vector<std::string>& args) {
     Op* op = waiter.rob().acquire<false>();
@@ -53,7 +54,8 @@ void compose_blpop_reply(Op& op, const std::string& key, const std::string& valu
 void schedule_two_offer(Server& server, ThreadCtx& self, Ring& ring, const std::string& key) {
     Client waiter(-1);
     waiter.set_id(7001);
-    BlockingState* state = make_waiter(server, waiter, key, {"BLPOP", key, "0"});
+    const std::vector<std::string> args{"BLPOP", key, "0"};
+    BlockingState* state = make_waiter(server, waiter, key, args);
     Op& op0 = waiter.rob().at(0);
     compose_blpop_reply(op0, key, "value");
     // One outstanding owner task B; the registry publisher A is about to complete the pop.
@@ -71,8 +73,9 @@ void schedule_two_offer(Server& server, ThreadCtx& self, Ring& ring, const std::
             // Pre-fix: B published the pop. Model the IO retiring op0 and the client pipelining a
             // LATER command (GET) into the same id&63 slot. rob().at(op_id) now names that op.
             slot.reset();
-            require(slot.push_arg(slice("GET")), "recycled arg");
-            require(slot.push_arg(slice("later-key")), "recycled arg");
+            static const std::string gcmd = "GET", gkey = "later-key";  // outlive the borrowed args
+            require(slot.push_arg(slice(gcmd)), "recycled arg");
+            require(slot.push_arg(slice(gkey)), "recycled arg");
             slot.spec = command_lookup(slot.arg(0));
             slot.state.store(OpState::Issued);  // a fresh, unexecuted later command
             g_recycled = true;
@@ -106,7 +109,8 @@ void schedule_two_offer(Server& server, ThreadCtx& self, Ring& ring, const std::
 void schedule_no_offer(Server& server, ThreadCtx& self, Ring& ring, const std::string& key) {
     Client waiter(-1);
     waiter.set_id(7002);
-    BlockingState* state = make_waiter(server, waiter, key, {"BLPOP", key, "0"});
+    const std::vector<std::string> args{"BLPOP", key, "0"};
+    BlockingState* state = make_waiter(server, waiter, key, args);
     Op& op0 = waiter.rob().at(0);
     compose_blpop_reply(op0, key, "value");  // element popped, reply composed
     state->active_tasks.store(1);             // outstanding owner task B

@@ -52,8 +52,9 @@ int main(int argc, char** argv) {
     waiter.set_id(7101);
     Op* op = waiter.rob().acquire<false>();
     require(op, "waiter ROB slot");
-    for (const auto& a : {std::string("BLPOP"), key, std::string("0")})
-        require(op->push_arg(slice(a)), "argument");
+    // push_arg borrows the Slice, so the argument bytes must outlive the Op.
+    const std::vector<std::string> args{"BLPOP", key, "0"};
+    for (const auto& a : args) require(op->push_arg(slice(a)), "argument");
     op->spec = command_lookup(op->arg(0));
     // A pop served on arrival has a composed reply and is Issued, with no registry alias (refs==1),
     // so the first retire frees the state immediately -- the widest (b) window.
