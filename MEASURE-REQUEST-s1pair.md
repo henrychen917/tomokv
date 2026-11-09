@@ -319,7 +319,7 @@ this branch; landing values should be **1329 / 1346**. The label-fixture unittes
 with exactly these four missing labels (12 tests, one failure and one error); paper PRE's
 unmodified fixture unittest passes. No fixture or EXPECT edit was made.
 
-Correctness proof so far:
+Correctness proof:
 
 - `python3 tests/gates_test.py`: **14/14 + 83/83 pass**, 312 seconds for the outer suite.
 - PRE `s1pair` through the current merged `tests/gate.sh` job interface, including commit
@@ -390,4 +390,32 @@ T6 and T9 required **zero re-rolls**, so every first boot opened its required wi
 T14 has **zero XS-OOM-1 deviations**: the script suffix also agrees with Redis.
 The exact leg census and owner output are committed in `docs/s1pair-land/at412-results.json`.
 
-Remaining existing-job and differential results follow.
+All **75 requested existing jobs** from the supplied `run_existing.sh` finished through the
+job interface, with the original job list and order retained. Including `release` and
+`production_units`, this is **77 completed jobs, 455 ok / 0 FAIL**, exit 0, run
+`build/gate-run.4QgEmY`. The build-only production prerequisite created 67 freshness
+markers and contributes no scored row. No job was omitted or retried to obtain this result.
+The complete console log, public ledger and timings are retained as
+`docs/s1pair-land/post-existing.*`.
+
+| Existing-job family | Passing rows |
+|---|---:|
+| scriptfix / scriptfix2 / all five scriptfix4 sections, script_bounds, lualibs, rootcore EVAL/functions, wave14 functions, both parkwake-script jobs | 84 |
+| All four climonfix4 mode/engine jobs | 28 |
+| compat3 | 6 |
+| debug-0 and debug-1 | 32 |
+| Every AT4.12 job, with the live-leg census above | 18 |
+| feature-split-0/1 and feature-armed-0/1 | 138 |
+| Both persistfix2 jobs, both AOF engines, snapfix BGSAVE script storm | 111 |
+| All LRU-clock / LFU, split / armed, atomic 0/1 jobs | 8 |
+| cfgfix, every cfgfix2 section, config_unit, netfix_config, serverfix_config, wave15_rebind, datafix1_locale, latencyfix_grammar | 14 |
+| maxmemrace, txnfix4-oom, storefix5 | 4 |
+| notify, crlffix, fliplisten (both directions, completion and rollback) | 11 |
+| Release prerequisite | 1 |
+| **Total** | **455** |
+
+The LRU-clock rows retained their real 256-second aging waits. CONFIG shutdown and script
+shutdown retained their oracle and declared mode/engine matrices. No correctness failure
+was found in the existing jobs, so no additional production fix was needed.
+
+Differential results follow.

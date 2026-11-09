@@ -18,6 +18,41 @@ def sha256(path):
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
+def differential_receipts(run):
+    plan = json.loads((run / 'differ-plan.json').read_text())
+    receipt = dict(plan=plan, folds={}, parts={})
+    for group in ('split', 'armed'):
+        receipt['folds'][group] = json.loads((run / ('differ-' + group + '-fold.json')).read_text())
+    for part in ('split-0', 'split-1', 'armed-0', 'armed-1', 'equivalence'):
+        directory = run / 'jobs' / ('differ-' + part) / 'differ'
+        record = dict(completion=json.loads((directory / 'complete.json').read_text()))
+        if part == 'equivalence':
+            record['streams'] = []
+            for seed in plan['equivalence_seeds']:
+                folder = directory / ('mode-equivalence-' + str(seed))
+                record['streams'].append(dict(
+                    manifest=json.loads((folder / 'stream.json').read_text()),
+                    results=json.loads((folder / 'results.json').read_text())))
+        else:
+            record['legs'] = []
+            record['commands'] = {}
+            for line in (directory / 'legs.tsv').read_text().splitlines():
+                suite, atomic, seed, repeat, code, filename = line.split('\t')
+                coverage = json.loads((directory / (filename + '.coverage.json')).read_text())
+                counts = coverage['commands']
+                record['legs'].append(dict(suite=suite, atomic=int(atomic), seed=int(seed),
+                                           repeat=int(repeat), returncode=int(code),
+                                           comparisons=sum(counts.values())))
+                for command, count in counts.items():
+                    record['commands'][command] = record['commands'].get(command, 0) + count
+            if part.startswith('armed-'):
+                record['read_local_samples'] = (directory / ('read-local-a' + part[-1] + '.tsv')).read_text()
+        receipt['parts'][part] = record
+    payload = json.dumps(receipt, indent=2) + '\n'
+    assert len(payload.encode()) <= 1_000_000
+    (OUT / 'differ-results.json').write_text(payload)
+
+
 def main():
     result = {'scope': 'selected correctness jobs only; no full gate or rate measurements',
               'batches': {}, 'arms': {}}
@@ -52,6 +87,14 @@ def main():
         result['batches'][tag] = dict(returncode=rc, run=str(run.relative_to(ROOT)), jobs=jobs,
                                      passed=sum(j['passed'] for j in jobs),
                                      failed=sum(j['failed'] for j in jobs))
+        public_rows = []
+        for line in (BUILD / (tag + '.ledger.partial')).read_text().splitlines():
+            verdict, seconds, label = line.split('\t', 2)
+            if verdict == 'PARTIAL':
+                continue
+            assert verdict in ('ok', 'FAIL'), (tag, line)
+            public_rows.append(dict(verdict=verdict, seconds=float(seconds), label=label))
+        result['batches'][tag]['public_rows'] = public_rows
         for suffix in ('.log', '.ledger.partial', '.ledger.partial.timings'):
             source = BUILD / (tag + suffix)
             assert source.stat().st_size <= 1_000_000, source
@@ -85,9 +128,12 @@ def main():
     payload = json.dumps(result, indent=2) + '\n'
     assert len(payload.encode()) <= 1_000_000
     (OUT / 'job-results.json').write_text(payload)
+    differential_receipts(ROOT / result['batches']['post-differ']['run'])
     for tag, batch in result['batches'].items():
         print(tag, len(batch['jobs']), 'jobs;', batch['passed'], 'ok;', batch['failed'], 'FAIL;',
-              'rc', batch['returncode'])
+              'rc', batch['returncode'], '; public rows',
+              sum(r['verdict'] == 'ok' for r in batch['public_rows']), 'ok /',
+              sum(r['verdict'] == 'FAIL' for r in batch['public_rows']), 'FAIL')
 
 
 if __name__ == '__main__':
