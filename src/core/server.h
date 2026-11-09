@@ -930,11 +930,18 @@ public:
         uint64_t tag() const { return (epoch << 8) | static_cast<uint8_t>(stage); }
     };
     LbObservation lb_observe(uint32_t tid) {
-        // Only IO-acknowledged stages need an epoch. Sample their pair under the existing
-        // transition lock, without waiting on a planner/commit: a busy lock owes another
-        // control pass. The lock is released before any drain work or test hook.
+        // Only IO-acknowledged stages need an epoch. ClientDrain already has a nonblocking
+        // record guard: admission of the next epoch waits for its readers to leave. Reuse
+        // that guard so a contended shape lock cannot delay the client readiness decision.
         const LbStage stage = lb_stage();
+        if (stage == LbStage::ClientDrain) {
+            auto record = lb_client_read();
+            if (!record) return {0, stage, 0, false};
+            return {lb_epoch(), stage, lb_ack_[tid].load(std::memory_order_acquire)};
+        }
         if (stage != LbStage::IoDrain && stage != LbStage::ClientDrain) return {0, stage, 0};
+        // Shard drain has no record guard. Try the transition lock, never wait on a
+        // planner/commit; a busy lock owes another control pass. Release before the hook.
         std::unique_lock<std::mutex> transition_lock(shape_transition_mu_, std::try_to_lock);
         if (!transition_lock.owns_lock()) return {0, stage, 0, false};
         return {lb_epoch(), lb_stage(), lb_ack_[tid].load(std::memory_order_acquire)};
