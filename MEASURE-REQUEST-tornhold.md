@@ -36,7 +36,7 @@ Integration validation is recorded below before hold implementation begins.
   the release build/layout row and R7 parity. Ledger:
   `build/gate-run.fUiNsk/ledger.partial`. No hold implementation was present.
 - Final hold implementation, negative controls, endurance and instruction
-  accounting: pending.
+  accounting: in progress; completed receipts follow below.
 
 ### Review boundaries
 
@@ -238,3 +238,19 @@ at `advances > 100`, before the live leg. The release and normal/db0 unit
 prerequisites pass. Ledger: `build/gate-run.Sw0DbV/ledger.partial` (2 PASS,
 4 intended FAIL). This is a deterministic falsifier of the nonempty-window
 component; the standalone TCP probe is not claimed to falsify always-A by itself.
+
+### Final read matrices and harness rerun
+
+Reorder-on now also passes **65/65** in `build/gate-run.tS5hE0/ledger.partial`: all
+32 inherited rows, all 32 GET/MGET rows and release. Together with the reordered-off
+77/77 selection, both parser settings cover the full read matrix.
+
+After composing the deterministic continuous-window check into the progress rows,
+`tests/gates_test.py` passes **83/83** again (431.826 seconds). The unchanged real
+label-fixture self-test still reports exactly one failure and one error caused
+by the 75 deferred labels; the temporary projected inventory passes **12/12**.
+Final logs are `build/tornhold/gates-test-after-progress.log`,
+`label-fixture-final.log` and `label-fixture-projected-final.log`. Compact gate
+receipts are being collected in `docs/tornhold-proof.json`; its pending status
+will be replaced only after the broader regression and negative-control queue
+finishes.

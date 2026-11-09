@@ -1,0 +1,1048 @@
+{
+  "status": "Regression and performance accounting pending",
+  "production_source_commit": "da3fcab014",
+  "candidate_sha256": "18eb7a988891a41cae24a20ae2b33378d987a07a80d031b9038ef709985ec92b",
+  "row_delta": {
+    "beyond_tornread": 43,
+    "beyond_inherited_fixture": 75,
+    "quick": 1323,
+    "full": 1340
+  },
+  "gates": {
+    "integration": {
+      "artifact": "build/gate-run.fUiNsk",
+      "ok": 34,
+      "fail": 0,
+      "rows": [
+        {
+          "verdict": "ok",
+          "seconds": 0.04,
+          "label": "release build (+footprint locks)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornread pipe (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread pipe (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornread pipe (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornread pipe (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread pipe (2s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread pipe (2s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (2s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread pipe (2s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (2s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread pipe (2s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread pipe (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornread seq (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread pipe (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread pipe (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornread seq (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread pipe (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornread pipe (1s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornread seq (1s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread pipe (1s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornread pipe (1s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornread seq (1s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread pipe (1s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 24.82,
+          "label": "R7 generated envelope parity"
+        }
+      ]
+    },
+    "matrix_reorder0": {
+      "artifact": "build/gate-run.kiGt6g",
+      "ok": 77,
+      "fail": 0,
+      "rows": [
+        {
+          "verdict": "ok",
+          "seconds": 0.0,
+          "label": "release build (+footprint locks)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread pipe (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornread seq (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornhold getmget-seq (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.42,
+          "label": "tornread pipe (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.41,
+          "label": "tornhold getmget-seq (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornread pipe (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornhold getmget (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.42,
+          "label": "tornhold getmget-seq (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.63,
+          "label": "tornread pipe (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.45,
+          "label": "tornread seq (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornhold getmget (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornhold getmget-seq (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.41,
+          "label": "tornread pipe (2s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.47,
+          "label": "tornread seq (2s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.41,
+          "label": "tornhold getmget (2s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornhold getmget-seq (2s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornread pipe (2s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.46,
+          "label": "tornread seq (2s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornhold getmget (2s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget-seq (2s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornread pipe (2s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget (2s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornhold getmget-seq (2s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.41,
+          "label": "tornread pipe (2s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.35,
+          "label": "tornhold getmget (2s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornhold getmget-seq (2s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread pipe (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornhold getmget (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornhold getmget-seq (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornread pipe (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornhold getmget (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.36,
+          "label": "tornhold getmget-seq (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornread pipe (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornread seq (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornhold getmget-seq (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread pipe (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornhold getmget (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget-seq (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread pipe (1s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (1s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornhold getmget (1s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget-seq (1s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornread pipe (1s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget (1s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget-seq (1s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread pipe (1s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (1s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornhold getmget (1s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornhold getmget-seq (1s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread pipe (1s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget (1s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornhold getmget-seq (1s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.26,
+          "label": "tornhold generation/bucket/parser/WB lifetimes (normal and db0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 32.39,
+          "label": "tornhold progress cleanup progress (1s uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 32.38,
+          "label": "tornhold wait cleanup progress (1s uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 32.35,
+          "label": "tornhold progress cleanup progress (1s epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 32.39,
+          "label": "tornhold wait cleanup progress (1s epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 32.35,
+          "label": "tornhold progress cleanup progress (2s uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 32.39,
+          "label": "tornhold wait cleanup progress (2s uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 32.35,
+          "label": "tornhold progress cleanup progress (2s epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 32.39,
+          "label": "tornhold wait cleanup progress (2s epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 32.91,
+          "label": "tornhold flip cleanup progress (2s uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 33.08,
+          "label": "tornhold flip cleanup progress (2s epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 24.73,
+          "label": "R7 generated envelope parity"
+        }
+      ]
+    },
+    "matrix_reorder1": {
+      "artifact": "build/gate-run.tS5hE0",
+      "ok": 65,
+      "fail": 0,
+      "rows": [
+        {
+          "verdict": "ok",
+          "seconds": 0.0,
+          "label": "release build (+footprint locks)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread pipe (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget-seq (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread pipe (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornhold getmget (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornhold getmget-seq (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.43,
+          "label": "tornread pipe (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.57,
+          "label": "tornhold getmget (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.6,
+          "label": "tornhold getmget-seq (2s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.62,
+          "label": "tornread pipe (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.57,
+          "label": "tornread seq (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.44,
+          "label": "tornhold getmget (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.44,
+          "label": "tornhold getmget-seq (2s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.41,
+          "label": "tornread pipe (2s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.43,
+          "label": "tornread seq (2s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornhold getmget (2s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornhold getmget-seq (2s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread pipe (2s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (2s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornhold getmget (2s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornhold getmget-seq (2s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread pipe (2s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornread seq (2s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.41,
+          "label": "tornhold getmget (2s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget-seq (2s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornread pipe (2s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.41,
+          "label": "tornread seq (2s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornhold getmget (2s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.41,
+          "label": "tornhold getmget-seq (2s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.45,
+          "label": "tornread pipe (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.46,
+          "label": "tornread seq (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.47,
+          "label": "tornhold getmget (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.47,
+          "label": "tornhold getmget-seq (1s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.45,
+          "label": "tornread pipe (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.46,
+          "label": "tornread seq (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.48,
+          "label": "tornhold getmget (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.48,
+          "label": "tornhold getmget-seq (1s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.45,
+          "label": "tornread pipe (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.46,
+          "label": "tornread seq (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.49,
+          "label": "tornhold getmget (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.5,
+          "label": "tornhold getmget-seq (1s read-local 0 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.47,
+          "label": "tornread pipe (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.48,
+          "label": "tornread seq (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.42,
+          "label": "tornhold getmget (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.35,
+          "label": "tornhold getmget-seq (1s read-local 0 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornread pipe (1s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (1s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget (1s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget-seq (1s read-local 1 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread pipe (1s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread seq (1s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget (1s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornhold getmget-seq (1s read-local 1 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornread pipe (1s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornread seq (1s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.38,
+          "label": "tornhold getmget (1s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornhold getmget-seq (1s read-local 1 epoll atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornread pipe (1s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.36,
+          "label": "tornread seq (1s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.37,
+          "label": "tornhold getmget (1s read-local 1 epoll atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornhold getmget-seq (1s read-local 1 epoll atomic 1)"
+        }
+      ]
+    },
+    "flip_witness": {
+      "artifact": "build/gate-run.qm0WEs",
+      "ok": 4,
+      "fail": 0,
+      "rows": [
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "release build (+footprint locks)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 21.67,
+          "label": "tornhold generation/bucket/parser/WB lifetimes (normal and db0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 33.27,
+          "label": "tornhold flip cleanup progress (2s uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 33.68,
+          "label": "tornhold flip cleanup progress (2s epoll atomic 0)"
+        }
+      ]
+    },
+    "carry_units": {
+      "artifact": "build/gate-run.iSToxF",
+      "ok": 2,
+      "fail": 0,
+      "rows": [
+        {
+          "verdict": "ok",
+          "seconds": 0.01,
+          "label": "release build (+footprint locks)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.29,
+          "label": "tornhold generation/bucket/parser/WB lifetimes (normal and db0)"
+        }
+      ]
+    },
+    "always_a_falsifier": {
+      "artifact": "build/gate-run.Sw0DbV",
+      "ok": 2,
+      "fail": 4,
+      "rows": [
+        {
+          "verdict": "ok",
+          "seconds": 0.0,
+          "label": "release build (+footprint locks)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 2.3,
+          "label": "tornhold generation/bucket/parser/WB lifetimes (normal and db0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 1.11,
+          "label": "tornhold progress cleanup progress (1s uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 1.11,
+          "label": "tornhold progress cleanup progress (1s epoll atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 1.12,
+          "label": "tornhold progress cleanup progress (2s uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 1.11,
+          "label": "tornhold progress cleanup progress (2s epoll atomic 0)"
+        }
+      ]
+    },
+    "part2_getmget_initial_falsifier": {
+      "artifact": "build/gate-run.VOzAxs",
+      "ok": 3,
+      "fail": 2,
+      "rows": [
+        {
+          "verdict": "ok",
+          "seconds": 0.0,
+          "label": "release build (+footprint locks)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.6,
+          "label": "tornhold getmget (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.39,
+          "label": "tornhold getmget-seq (2s read-local 0 uring atomic 0)"
+        },
+        {
+          "verdict": "FAIL",
+          "seconds": 0.61,
+          "label": "tornhold getmget (2s read-local 0 uring atomic 1)"
+        },
+        {
+          "verdict": "ok",
+          "seconds": 15.4,
+          "label": "tornhold getmget-seq (2s read-local 0 uring atomic 1)"
+        }
+      ]
+    }
+  },
+  "harness": {
+    "gates_test": {
+      "tests": 83,
+      "failures": 0,
+      "seconds": 431.826,
+      "log": "build/tornhold/gates-test-after-progress.log"
+    },
+    "label_fixture": {
+      "tests": 12,
+      "failures": 1,
+      "errors": 1,
+      "missing_labels": 75,
+      "log": "build/tornhold/label-fixture-final.log"
+    },
+    "projected_label_fixture": {
+      "tests": 12,
+      "failures": 0,
+      "log": "build/tornhold/label-fixture-projected-final.log",
+      "scope": "Temporary inventory projection only; real EXPECT and fixture untouched"
+    }
+  }
+}
