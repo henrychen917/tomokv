@@ -478,3 +478,30 @@ There are **no unexpected POST correctness failures**. The only intentional red 
 is the four PRE negative-control rows and the unchanged label fixture's four-label delta
 (PRE fixture passes). The maintainer still owns the **+4/+4** EXPECT and fixture update,
 full gate, throughput measurement and landing. No push was made.
+
+### v1 combined landing (maintainer, 2026-11-10)
+
+The owner's ruling of 2026-11-09 22:35 ("severe bugs need to be fixed") lands stallfix and
+s1pair as one update to the paper build, which becomes the frozen v1 server (tag `v1.0`).
+
+* `c464cce428` merges `cx-stallfix` (`9992bd91b7`, report `MEASURE-REQUEST-stallfix.md`)
+  into this branch with no conflicts. Both branches are based on the paper build
+  `79ce7ee132`.
+* Row delta for the combined landing: **+7 quick / +7 full** (stallfix +3/+3: two read-cut
+  FIFO rows and one forced LB acknowledgement row; s1pair +4/+4), so EXPECT 1325/1342 becomes
+  **1332/1349**.
+* Combined build `make -j31 all` passes. ELF sha256 `aa0d9761e272411050abf3d1139fea1af96b0447e08ff2e3628507b8744b3d96`,
+  copied to `bins/v1-candidate-aa0d9761`.
+* `tools/s1pair_identity.py` against the paper build (11331 function groups): **281** groups
+  changed, every one of them also changed in stallfix alone (238) or s1pair alone (54). The
+  combination adds no new change. Three groups that stallfix alone rippled
+  (`tomo::Server::flipctl_debug_dump` and both `tomo_db0::command_client_slowlog_identity`
+  bodies) are paper-identical again under s1pair's t_server.o budget.
+* Main commands: **127 of 142** GET/SET/MGET/MSET/INCR groups instruction-identical to the
+  paper build. The 15 changed are stallfix's scatter path (`xshard_prepare`,
+  `xshard_prepare_script`, `xshard_execute` and its lambdas, `cmd_xshard_only_impl`). GET and
+  SET are identical. Against stallfix alone, all 142 are identical.
+* Merit (paper build vs combined) and the landing gate run in one bench phase:
+  ABBA MGET/MSET m01-m06/m49-m54 plus GET/SET controls, `calib/exec-merit.py` (8 EXEC cells),
+  and `calib/respgen-merit.py` (the paper's RESP instrument: EVALSHA loop 0 and MULTI/EXEC 8
+  at P1/P4/P16, both modes).
