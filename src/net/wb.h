@@ -68,10 +68,16 @@ class WbEngine {
 public:
     using ReleaseFn = void (*)(void*, int32_t, const char*);
     using RetireFn = void (*)(void*, Client&, Op&);
+    using PlainHoldFn = void (*)(void*, Client&);
     using LimitFn = bool (*)(void*, Client&);
 
     // Cold tracking FLUSH delivery can use the boundary before reply assembly.
     bool retiring(const Client& c) const { return draining_ == &c; }
+
+    void bind_plain_hold(PlainHoldFn fn) {
+        if (!fn) std::abort();
+        plain_hold_fn_ = fn;
+    }
 
     void bind(Ring* ring, void* release_ctx, ReleaseFn release_fn, void* retire_ctx,
               RetireFn retire_fn, const std::atomic<bool>* limit_armed, void* limit_ctx,
@@ -273,7 +279,8 @@ private:
             // A tracking connection retires every op through the hook, so even a small GET
             // enrolls its read at retirement, in connection order. Every other connection
             // keeps the special-only contract shared with the hot serve body.
-            if (op.zc_ptr || retire_plain) retire_fn_(retire_ctx_, conn, op);
+            if (op.zc_ptr || retire_plain)
+                retire_fn_(retire_ctx_, conn, op);
             if (op.reply_skip()) {
                 if (op.zc_ptr && op.zc_shard >= 0) release(op.zc_shard, op.zc_ptr);
                 // Everything past the frontier is this op's reply -- except the seal, which moved
@@ -316,6 +323,7 @@ private:
             }
         });
         draining_ = nullptr;
+        if (retired && c.rob().plain_hold().live()) plain_hold_fn_(retire_ctx_, c);
         bool did = retired != 0;
         did |= flush_deferred_oob(conn);
         if (limit_fn_(limit_ctx_, c)) {
@@ -781,7 +789,8 @@ private:
         conn.stop_obuf_tracking();                                                               \
     draining_ = &c;                                                                              \
     const uint32_t retired = c.rob().drain([&](Op& op) {                                         \
-        BeforeRetire if (op.zc_ptr) retire_fn_(retire_ctx_, conn, op);                           \
+        BeforeRetire if (op.zc_ptr)                                                           \
+            retire_fn_(retire_ctx_, conn, op);                                                 \
         if (op.zc_ptr) {                                                                         \
             conn.seal_fill_segment();                                                            \
             if constexpr (Coded)                                                                 \
@@ -824,6 +833,7 @@ private:
         }                                                                                        \
     });                                                                                          \
     draining_ = nullptr;                                                                         \
+    if (retired && c.rob().plain_hold().live()) plain_hold_fn_(retire_ctx_, c);                    \
     bool did = retired != 0;                                                                     \
     did |= flush_deferred_oob(conn);                                                             \
     if constexpr (TrackOutput) {                                                                 \
@@ -1004,6 +1014,7 @@ private:
     ReleaseFn release_fn_ = nullptr;
     void* retire_ctx_ = nullptr;
     RetireFn retire_fn_ = nullptr;
+    PlainHoldFn plain_hold_fn_ = nullptr;
     const std::atomic<bool>* limit_armed_ = nullptr;
     void* limit_ctx_ = nullptr;
     LimitFn limit_fn_ = nullptr;

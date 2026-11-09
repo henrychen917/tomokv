@@ -2191,10 +2191,12 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
         // forward. The freshness floor survives the fold -- the pass starts after the bytes it
         // parses arrived, so no read is ever older than its own arrival, which is what keeps the
         // disjoint-window case (a writer's reply fully precedes the reader's send) correct.
-        // With --atomic 0 the tracking word is never written by anyone, so this is one L1 hit on a
-        // shared-clean line, the sequence load never happens, and the per-op test is never taken.
-        const bool atomic_tracking = srv_->atomic_tracking_active();
-        const uint64_t pass_read_cut = atomic_tracking ? srv_->atomic_snapshot() : 0;
+        // EXEC and scripts remain atomic at --atomic 0, including groups admitted after this
+        // pass begins. Their future versions must be excluded even if tracking is idle now.
+        uint64_t pass_read_cut = srv_->atomic_snapshot();
+        bool pass_hold = false;
+        uint8_t pass_hold_bucket = 0;
+        uint64_t pass_hold_end = 0;
         uint64_t batch_start_ops = 0;
         [[maybe_unused]] bool read_local_batch = false;
         // LANE ADMISSION: how many lane slots (pending local reads) this connection may
@@ -2778,17 +2780,24 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
             // order the client sent them, so a cut taken no later than here is monotone along the
             // connection for free -- which is exactly the property "a later reply may not be older
             // than an earlier one" needs and that sampling at EXECUTION cannot give. Writes are
-            // excluded on purpose (see Op::read_cut_lo). Off, this is one predicted-not-taken
-            // test; on, it is one store into a line reset() already dirtied.
+            // excluded on purpose (see Op::read_cut_lo). The stamp shares a line reset() dirtied.
             // Blocking commands are excluded as well, and not for cost: a parked one is
             // re-prepared by blocking_resume_move() long after its arrival, so a cut pinned at
             // first dispatch would make the resumed read answer from before the write that woke
             // it. They need no cut anyway -- a blocking command is a whole-connection barrier
             // (it waits to be ROB head and stops the parse pass), so nothing younger on this
             // connection is even prepared until it has finished.
-            if (__builtin_expect(atomic_tracking, false) &&
-                !(spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite | CmdFlags::Blocking)))
+            if (!(spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite | CmdFlags::Blocking))) {
+                if (__builtin_expect(!pass_hold, false) && rob.in_flight() != 0) {
+                    auto& hold = rob.plain_hold();
+                    pass_read_cut = scatter_pool_.plain_hold_begin(
+                        *srv_, hold, pass_read_cut, static_cast<uint16_t>(rob.dispatch_id()),
+                        pass_hold_bucket, self_id);
+                    pass_hold_end = pass_hold_bucket == 1 ? hold.a_end : hold.b_end;
+                    pass_hold = true;
+                }
                 op->set_read_cut(pass_read_cut);
+            }
 
             if (spec->flags & CmdFlags::Blocking) {
                 // XREAD is registered as blocking so the ordinary GET/SET branch remains
@@ -2878,6 +2887,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
                 ScatterDispatch scatter_dispatch;
                 const ScatterPrepare scatter_prepared = xshard_prepare(
                     *srv_, *op, scatter_pool_, self_id, c->id(), scatter_dispatch, false, c);
+                pass_read_cut = std::max(pass_read_cut, scatter_pool_.confirmed_snapshot_cut());
                 if (scatter_prepared == ScatterPrepare::Error) {
                     conn.advance_parse(consumed);
                     finish_prebuilt(c, *op);
@@ -2945,6 +2955,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
                         const uint64_t op_id = rob.dispatch_id();
                         op->attach_scatter_state(scatter_dispatch.state);
                         r7::ShadowLongIndex::record(*c, *op); rob.publish();
+                        pass_hold_end = rob.dispatch_id();
                         for (uint32_t i = 0; i < scatter_dispatch.nshards; i++) {
                             const int32_t sid = xshard_dispatch_shard(scatter_dispatch, i);
                             const uint32_t tid = srv_->worker_of_shard(sid);
@@ -3052,6 +3063,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
                             rob.mark_current_read_local_hash(op_id, op->hash);
                         if (read_local_mget_candidate) rob.arm_current_local_mget_fence();
                         r7::ShadowLongIndex::record(*c, *op); rob.publish();
+                        pass_hold_end = rob.dispatch_id();
                         // Room was proved by local_read_lane_has_room(read_local_lane_demand)
                         // above for this very op (run extension at the top of the frame, run head
                         // in the gate chain); nothing between there and here consumes lane room.
@@ -3113,6 +3125,7 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
                 // for a later parse pass after the owner inbox has room.
                 break;
             }
+            pass_hold_end = rob.dispatch_id();
 #ifdef TOMO_CORE_CONCURRENCY_TEST
             if (test_owner_publication_) test_owner_publication_(t);
 #endif
@@ -3133,6 +3146,9 @@ template <bool NoBorrow, uint32_t BatchOps, bool SplitLocal>
         }
         {
             // Phase 8: notify each touched owner once and finish the pass fingerprint.
+            if (pass_hold)
+                ScatterArenaPool::plain_hold_cover(rob.plain_hold(), pass_hold_bucket,
+                                                   static_cast<uint16_t>(pass_hold_end));
             // One notify per worker per parse pass, not per op. The pushes above are already
             // visible in the queues; this publishes the "look here" bit and pays the wake decision
             // once.

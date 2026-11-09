@@ -456,6 +456,71 @@ SnapshotFloor active_snapshot_floor(const std::vector<SnapshotCut*>& unresolved_
 
 }  // namespace
 
+void ScatterArenaPool::publish_snapshot_floor(Server& server, uint32_t owner_io) {
+    const uint64_t floor = std::min(unresolved_snapshot_floor_, holds_.floor());
+    if (floor != published_snapshot_floor_) {
+        published_snapshot_floor_ = floor;
+        server.publish_atomic_read_floor(owner_io, floor);
+    }
+}
+
+uint64_t ScatterArenaPool::plain_hold_begin(Server& server, PlainReadHold& hold, uint64_t cut,
+                                           uint16_t next_id, uint8_t& bucket, uint32_t owner_io) {
+    cut = std::max(cut, confirmed_snapshot_cut_);
+    if (hold.b_slot != PlainReadHold::kNone) {
+        bucket = 2;
+        return cut;
+    }
+    bool created = false;
+    const uint16_t slot = holds_.acquire(cut, created);
+    if (created) {
+        publish_snapshot_floor(server, owner_io);
+        // A cleanup that missed publication sampled its cutoff before this confirmation.
+        const uint64_t confirmed = server.atomic_snapshot();
+        if (confirmed != cut) {
+            holds_.raise_newest(confirmed);
+            cut = confirmed;
+            publish_snapshot_floor(server, owner_io);
+        }
+    }
+    if (!hold.live()) {
+        hold.a_slot = slot;
+        hold.a_end = next_id;
+        bucket = 1;
+    } else {
+        hold.b_slot = slot;
+        hold.b_end = next_id;
+        bucket = 2;
+    }
+    return cut;
+}
+
+void ScatterArenaPool::plain_hold_retire(Server& server, PlainReadHold& hold, uint64_t flush,
+                                        bool quiesced, uint32_t owner_io) {
+    const uint16_t frontier = static_cast<uint16_t>(flush);
+    const auto done = [&](uint16_t end) {
+        return quiesced || static_cast<int16_t>(end - frontier) <= 0;
+    };
+    if (!done(hold.a_end)) return;
+    holds_.release(hold.a_slot);
+    hold.a_slot = hold.b_slot;
+    hold.a_end = hold.b_end;
+    hold.b_slot = PlainReadHold::kNone;
+    if (hold.live() && done(hold.a_end)) {
+        holds_.release(hold.a_slot);
+        hold.a_slot = PlainReadHold::kNone;
+    }
+    publish_snapshot_floor(server, owner_io);
+}
+
+void ScatterArenaPool::plain_hold_discard(Server& server, PlainReadHold& hold, uint32_t owner_io) {
+    if (!hold.live()) return;
+    holds_.release(hold.a_slot);
+    if (hold.b_slot != PlainReadHold::kNone) holds_.release(hold.b_slot);
+    hold.a_slot = hold.b_slot = PlainReadHold::kNone;
+    publish_snapshot_floor(server, owner_io);
+}
+
 bool ScatterArenaPool::register_snapshot(Server& server, SnapshotCut* state, uint32_t owner_io) {
     try {
         unresolved_snapshots_.push_back(state);
@@ -471,10 +536,7 @@ bool ScatterArenaPool::register_snapshot(Server& server, SnapshotCut* state, uin
     } else if (cut == unresolved_snapshot_floor_) {
         unresolved_floor_refs_++;
     }
-    if (unresolved_snapshot_floor_ != published_snapshot_floor_) {
-        published_snapshot_floor_ = unresolved_snapshot_floor_;
-        server.publish_atomic_read_floor(owner_io, unresolved_snapshot_floor_);
-    }
+    publish_snapshot_floor(server, owner_io);
 
     // Publish the successor of each inclusive read cut. A version visible at the oldest snapshot
     // is then strictly below the floor and may become the sole physical representation without
@@ -484,6 +546,7 @@ bool ScatterArenaPool::register_snapshot(Server& server, SnapshotCut* state, uin
     // window, adopt the confirmed (newer) cut; cleanup can only have retained its winner. If the
     // sequence is unchanged, promotion of that winner is also a valid representation of our cut.
     const uint64_t confirmed = server.atomic_snapshot();
+    confirmed_snapshot_cut_ = confirmed;
     if (confirmed != state->snapshot) {
         const uint64_t old_cut = cut;
         state->snapshot = confirmed;
@@ -503,10 +566,7 @@ bool ScatterArenaPool::register_snapshot(Server& server, SnapshotCut* state, uin
             unresolved_snapshot_floor_ = exact.floor;
             unresolved_floor_refs_ = exact.refs;
         }
-        if (unresolved_snapshot_floor_ != published_snapshot_floor_) {
-            published_snapshot_floor_ = unresolved_snapshot_floor_;
-            server.publish_atomic_read_floor(owner_io, unresolved_snapshot_floor_);
-        }
+        publish_snapshot_floor(server, owner_io);
     }
     return true;
 }
@@ -534,10 +594,7 @@ void ScatterArenaPool::unregister_snapshot(Server& server, SnapshotCut* state, u
         unresolved_snapshot_floor_ = exact.floor;
         unresolved_floor_refs_ = exact.refs;
     }
-    if (unresolved_snapshot_floor_ != published_snapshot_floor_) {
-        published_snapshot_floor_ = unresolved_snapshot_floor_;
-        server.publish_atomic_read_floor(owner_io, unresolved_snapshot_floor_);
-    }
+    publish_snapshot_floor(server, owner_io);
 }
 
 uint32_t ScatterArenaPool::refresh_snapshot_floor(Server& server, uint32_t owner_io) {
@@ -566,10 +623,7 @@ uint32_t ScatterArenaPool::refresh_snapshot_floor(Server& server, uint32_t owner
         unresolved_snapshot_floor_ = exact.floor;
         unresolved_floor_refs_ = exact.refs;
     }
-    if (unresolved_snapshot_floor_ != published_snapshot_floor_) {
-        published_snapshot_floor_ = unresolved_snapshot_floor_;
-        server.publish_atomic_read_floor(owner_io, unresolved_snapshot_floor_);
-    }
+    publish_snapshot_floor(server, owner_io);
     return 1;
 }
 

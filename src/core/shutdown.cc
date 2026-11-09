@@ -96,6 +96,12 @@ void IoLoop::shutdown_clients_after_join() {
             notify_discard_batch(notifications);
         },
         &no_limits, nullptr, [](void*, Client&) { return false; }, &cached_now_s_, &self_->sig());
+    wb_.bind_plain_hold([](void* context, Client& client) {
+        auto* loop = static_cast<IoLoop*>(context);
+        auto& rob = client.rob();
+        loop->scatter_pool_.plain_hold_retire(*loop->srv_, rob.plain_hold(), rob.flush_id(),
+                                              rob.quiesced(), loop->self_->id());
+    });
 
     // Phase 2: consume cancellation/send completions and close unclaimed accepts.
     // The issuer has cancelled network requests after draining persistence. Its
@@ -214,6 +220,7 @@ void IoLoop::shutdown_clients_after_join() {
             ::close(c->fd());
             srv_->client_released();
         }
+        scatter_pool_.plain_hold_discard(*srv_, c->rob().plain_hold(), self_->id());
         release_tls(c);
         latency_tracking_forget_client(*c);
         delete c;
