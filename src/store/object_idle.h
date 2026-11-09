@@ -1,4 +1,5 @@
-// SO4.2: full Redis idle clocks, independent of the five-bit eviction score.
+// object_idle.h — address-indexed 24-bit idle timestamps, independent of the eviction score.
+// Included by flatstore.h; the store owns and retires the clock and its lazily allocated nodes.
 #pragma once
 #include <array>
 #include <atomic>
@@ -7,10 +8,13 @@
 #include <new>
 
 namespace tomo {
-// One owner creates nodes; readers only traverse published immutable links and
-// make one unretried timestamp CAS. Object addresses cannot be reused before
-// their existing QSBR grace period. Nodes live until this clock is retired.
+// The shard owner installs nodes; root/child release stores pair with cell()'s acquire loads.
+// Links remain fixed after installation. Readers load relaxed timestamps and touch with one
+// unretried relaxed CAS. The caller protects object addresses and clock retirement with QSBR.
+// install returns false on allocation failure, retaining/accounting any nodes already installed;
+// missing timestamps use a fallback. Destruction requires reader quiescence and frees all nodes.
 class /* TOMO_TOOL_BIND ObjectIdleClock */ ObjectIdleClock {
+    // Owns child nodes for the enclosing clock; destroy walks them after readers quiesce.
     struct Branch {
         std::array<std::atomic<void*>, 512> child{};
     };

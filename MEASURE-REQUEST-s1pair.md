@@ -274,3 +274,63 @@ new cross-owner checks); at412 T14 (24 legs + oracle, passes).
    (+4/+4) and the label fixture (+4 labels) are for the maintainer.
 5. No dedicated row for triage5 case C (allkeys-lru full cache: the script now evicts at start and
    then runs uncapped, like Redis); it shares the mechanism the three EVAL rows test.
+
+### s1pair-land
+
+Paper-build integration base: `origin/cpp` = `79ce7ee1320f48b26f0979a0ad3893cbc4e84843`.
+Fetched and merged (never rebased) into `cx-s1pair` from `829755960348`; the merge applied
+without conflicts. Both sides' gate rows and the paper build's comments are retained. The
+production diff against the paper build remains only the two existing S1 fixes in
+`src/cmd/scripting.cc` and `src/cmd/t_server.cc`. No new production behaviour.
+All builds and correctness processes use CPUs 96-111, reserved ports 26300-26499 and
+`LC_ALL=C`; no throughput benchmark, ABBA, NIC or complete gate iteration is run.
+
+Compiler budgets were re-derived against the actual paper-build source and its own Makefile
+commands with `tools/s1pair_land_budgets.py` (GCC 13, `-g0` for compile-only trials).
+`docs/s1pair-land/budget-inventory.json` inventories **all 59 pinned rows**: preprocessed code
+and flags (apart from the cap itself) are identical for 55, so their paper-build caps remain.
+All four changed units and both xshard units were freshly compiled with IPA inline dumps and
+compared using s1pair's full-body comparator (`ccfix4_budget`). Full trial evidence is in
+`docs/s1pair-land/budget-trials.json`.
+
+| Unit | Paper PRE initial IPA size -> merged | PRE budget -> merged | Decision |
+|---|---|---|---|
+| src t_server.o | 28799 -> 29005 (+206) | 34174 -> **34338** | Reconfirmed 34337/34338/34339: 14 changed bodies; only CONFIG plus discarded weak helpers. Old cap changes 21 bodies; additive 34380 changes 17 and disturbs INFO. |
+| db0 t_server.o | 28515 -> 28718 (+203) | 34348 -> **34515** | Reconfirmed 34514/34515/34516: 14 changed bodies, including the previously disclosed cold flipctl helper. Old cap changes 19; additive 34551 changes 15. |
+| src scripting.o | 37509 -> 37475 (-34) | **10013 unchanged** | Cap is below initial size and nonbinding; scripting changes plus weak/dead helper copies. |
+| db0 scripting.o | 16249 -> 16215 (-34) | **10020 unchanged** | Same nonbinding cap; only scripting bodies change. |
+| src xshard.o | 137420 -> 137420 | **168498 unchanged** | Every object function identical to paper PRE. |
+| db0 xshard.o | 137125 -> 137125 | **171965 unchanged** | Every object function identical to paper PRE. |
+
+Relative to the old s1pair branch, the only changed budget values are xshard's
+168538 -> 168498 and 172012 -> 171965: aofblock adds 16 IPA units and blockrace removes
+56 / 63, respectively. The merged paper build also contains tornhold; freshly measured
+sizes above, rather than the old blockrace sizes, are the reference. No other pin needs a
+new value. The two t_server pins remain s1pair's previously selected values after the new
+paper-build comparisons.
+
+R7 envelopes were regenerated with `python3 tests/r7shadow_sync.py --write`; the subsequent
+check passes and regeneration introduces no difference from the merged paper envelopes.
+
+Maintainer-owned tally/fixture: **+4 quick / +4 full**. The four s1pair rows are collected
+at `collect_job s1pair` before the quick-tier exit. Keep the paper values 1325 / 1342 in
+this branch; landing values should be **1329 / 1346**. The label-fixture unittest fails
+with exactly these four missing labels (12 tests, one failure and one error); paper PRE's
+unmodified fixture unittest passes. No fixture or EXPECT edit was made.
+
+Correctness proof so far:
+
+- `python3 tests/gates_test.py`: **14/14 + 83/83 pass**, 312 seconds for the outer suite.
+- PRE `s1pair` through the current merged `tests/gate.sh` job interface, including commit
+  95d60b5101's errorstats assertion: **four FAIL rows, 32/32 failing legs per row**, exactly
+  the expected lost-element / partial APPEND / refused-then-rotate / second LOADING failures.
+  The CONFIG negative stops at the wrong PING reply before its later errorstats assertion.
+  Run `build/gate-run.YGlbzS`; the separate release prerequisite passed. Per-leg receipts are
+  retained in `docs/s1pair-land/pre-s1pair-results.json`.
+
+Build proof before the merge commit: paper PRE and merged POST `make all` both pass;
+`make -q all` returns **0** on each. No new compiler warnings relative to paper PRE.
+The two production files have no new warning. Commands and logs are retained under
+`docs/s1pair-land/` (POST rebuild on CPUs 106-111 with `make -j6`).
+
+POST runtime and symbol proof follows.

@@ -1,8 +1,12 @@
 // Consumer-owned slot arena partitioned into private SPSC rings, used by ThreadCtx in thread.h.
 // Each physical producer writes one contiguous power-of-two block; blocks never share cache lines.
 // Release/acquire tail and head frontiers protect slot publication/reuse. The retired frontier
-// separately tracks callback completion. FLIP may remask only with producers parked and every
-// retired frontier caught up to tail; block addresses remain stable for the whole role tenure.
+// separately tracks callback completion. Repartition checks are deliberately absent from every
+// push/pop path: base/mask/capacity are read without synchronization or generation checks.
+// remask_quiesced runs at boot from init_local, or at FLIP's ExDrain -> ExInstall barrier:
+// the consumer's ExLoopT::flip_control_pass remasks in ExInstall after acknowledging ExDrain
+// with every retired frontier at tail. IO dispatch stays parked until all ExInstall ACKs;
+// a remask failure there aborts. Block addresses remain stable for the whole role tenure.
 #pragma once
 
 #include <atomic>
@@ -61,7 +65,9 @@ class MaskedSpscArray {
     static_assert(std::has_single_bit(kInternalProducerSlots));
 
     // Consumer-written frontiers/cache and diagnostics. base/mask/capacity are installed only
-    // while quiesced; producers acquire head before reusing slots and retired before teardown.
+    // while quiesced; producers acquire head before reusing slots. The consumer's own
+    // quiescence checks (flip_quiesced before its ExDrain ACK, remask_quiesced) acquire
+    // retired against each producer's tail.
     struct alignas(kMaskedQueueCacheLine) ConsumerLine {
         std::atomic<uint32_t> head{0};
         std::atomic<uint32_t> retired{0};

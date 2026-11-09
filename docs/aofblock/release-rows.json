@@ -1,0 +1,218 @@
+[
+  {
+    "job": "aofblock-epoll",
+    "case": "blmpop-1s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-epoll",
+    "case": "blmpop-2s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-epoll",
+    "case": "blpop_now-1s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-epoll",
+    "case": "blpop_now-2s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-epoll",
+    "case": "blpop_wake-1s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-epoll",
+    "case": "blpop_wake-2s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-epoll",
+    "case": "brpop-1s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-epoll",
+    "case": "brpop-2s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-epoll",
+    "case": "bzmpop-1s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-epoll",
+    "case": "bzmpop-2s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-epoll",
+    "case": "bzpopmax-1s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-epoll",
+    "case": "bzpopmax-2s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-epoll",
+    "case": "bzpopmin-1s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-epoll",
+    "case": "bzpopmin-2s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-epoll",
+    "case": "xreadgroup_now-1s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-epoll",
+    "case": "xreadgroup_now-2s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-epoll",
+    "case": "xreadgroup_wake-1s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-epoll",
+    "case": "xreadgroup_wake-2s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-uring",
+    "case": "blmpop-1s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-uring",
+    "case": "blmpop-2s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-uring",
+    "case": "blpop_now-1s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-uring",
+    "case": "blpop_now-2s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-uring",
+    "case": "blpop_wake-1s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-uring",
+    "case": "blpop_wake-2s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-uring",
+    "case": "brpop-1s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-uring",
+    "case": "brpop-2s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-uring",
+    "case": "bzmpop-1s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-uring",
+    "case": "bzmpop-2s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-uring",
+    "case": "bzpopmax-1s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-uring",
+    "case": "bzpopmax-2s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-uring",
+    "case": "bzpopmin-1s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-uring",
+    "case": "bzpopmin-2s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-uring",
+    "case": "xreadgroup_now-1s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-uring",
+    "case": "xreadgroup_now-2s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-uring",
+    "case": "xreadgroup_wake-1s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  },
+  {
+    "job": "aofblock-uring",
+    "case": "xreadgroup_wake-2s",
+    "verdict": "FAIL as required",
+    "reason": "AssertionError: acknowledged mutation was rolled back by in-window SIGKILL"
+  }
+]

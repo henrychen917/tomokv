@@ -1,0 +1,98 @@
+[
+  {
+    "case": "fifo-1-1s-0-epoll",
+    "failed": true,
+    "reason": "AssertionError: ('plain p100 exceeds 20 ms', 0.09901259560137987)",
+    "artifact": "build/gate-run.45LLwe/jobs/txnorder_fifo_live/fifo-1-1s-0-epoll.log"
+  },
+  {
+    "case": "fifo-1-1s-0-uring",
+    "failed": true,
+    "reason": "AssertionError: ('plain p100 exceeds 20 ms', 0.11002628225833178)",
+    "artifact": "build/gate-run.45LLwe/jobs/txnorder_fifo_live/fifo-1-1s-0-uring.log"
+  },
+  {
+    "case": "fifo-1-1s-1-epoll",
+    "failed": false,
+    "reason": "{\"shape\": \"hot\", \"seconds\": 60, \"completions\": [170840, 171868, 167340, 167868, 171512, 171612, 167960, 170876, 171864, 167412, 167840, 167948, 171548, 171508, 170936, 171800, 167388, 171404, 171456, 171620, 171448, 170836, 171776, 167436, 171340, 171500, 171604, 167924, 170864, 171764, 167440, 171368, 171500, 171128, 171476, 170824, 171748, 167380, 171356, 171456, 171552, 171576, 170860, 168304, 167412, 167844, 167940, 171084, 171424, 170872, 171748, 167428, 171452, 171588, 171568, 171476, 170780, 171760, 167420, 171364, 171452, 171512, 171520, 167420, 161920, 161790, 162012, 161805], \"deltas\": {\"atomic_txn_attempts\": 10902220, \"atomic_txn_retries\": 96, \"atomic_txn_dooms\": 0, \"atomic_txn_wounds\": 96, \"atomic_txn_waits\": 0, \"atomic_txn_intents\": 0, \"atomic_txn_intents_live\": 0, \"atomic_txn_executed\": 10902124, \"atomic_txn_place_waits\": 43898219, \"atomic_txn_writer_waits\": 73792565, \"atomic_txn_writer_marks\": 647438, \"atomic_txn_blind_restarts\": 0, \"atomic_txn_readonly\": 0, \"atomic_txn_order_violations\": 0, \"atomic_txn_fast_polls\": 141088332, \"atomic_txn_poll_skips\": 65421086, \"atomic_txn_fifo_waits\": 73202320, \"atomic_txn_fifo_passes\": 647438, \"atomic_txn_writer_promotions\": 0}, \"pass\": true}",
+    "artifact": "build/gate-run.45LLwe/jobs/txnorder_fifo_live/fifo-1-1s-1-epoll.log"
+  },
+  {
+    "case": "fifo-1-1s-1-uring",
+    "failed": true,
+    "reason": "AssertionError: ('plain p100 exceeds 20 ms', 0.09939492214471102)",
+    "artifact": "build/gate-run.45LLwe/jobs/txnorder_fifo_live/fifo-1-1s-1-uring.log"
+  },
+  {
+    "case": "fifo-1-2s-0-epoll",
+    "failed": false,
+    "reason": "{\"shape\": \"hot\", \"seconds\": 60, \"completions\": [274268, 272780, 287668, 287000, 289248, 276224, 286704, 273592, 273428, 286624, 283428, 289156, 276400, 286680, 274156, 273684, 286908, 286436, 288276, 275712, 286636, 273412, 272740, 287320, 286416, 289112, 276844, 283096, 272644, 272412, 286848, 283400, 288244, 276736, 286588, 273748, 272676, 283660, 286784, 289140, 276708, 286192, 273732, 273656, 287704, 286300, 289128, 273952, 286136, 273832, 273528, 287744, 286700, 289100, 276328, 286504, 273764, 272580, 286928, 283364, 289136, 275816, 283112, 273828, 300201, 300335, 296016, 299145], \"deltas\": {\"atomic_txn_attempts\": 18002678, \"atomic_txn_retries\": 78, \"atomic_txn_dooms\": 0, \"atomic_txn_wounds\": 78, \"atomic_txn_waits\": 0, \"atomic_txn_intents\": 0, \"atomic_txn_intents_live\": 0, \"atomic_txn_executed\": 18002600, \"atomic_txn_place_waits\": 72565877, \"atomic_txn_writer_waits\": 54132439, \"atomic_txn_writer_marks\": 1195692, \"atomic_txn_blind_restarts\": 0, \"atomic_txn_readonly\": 0, \"atomic_txn_order_violations\": 0, \"atomic_txn_fast_polls\": 138106108, \"atomic_txn_poll_skips\": 41003154, \"atomic_txn_fifo_waits\": 53619401, \"atomic_txn_fifo_passes\": 1195692, \"atomic_txn_writer_promotions\": 0}, \"pass\": true}",
+    "artifact": "build/gate-run.45LLwe/jobs/txnorder_fifo_live/fifo-1-2s-0-epoll.log"
+  },
+  {
+    "case": "fifo-1-2s-0-uring",
+    "failed": false,
+    "reason": "{\"shape\": \"hot\", \"seconds\": 60, \"completions\": [267924, 278920, 278440, 279020, 278328, 277252, 278288, 266936, 277780, 278396, 278212, 278336, 276316, 278392, 267712, 277652, 278304, 278868, 278740, 277156, 277636, 266984, 277684, 277772, 279412, 278696, 276128, 278860, 267164, 278464, 278248, 279268, 278704, 276948, 278220, 267812, 278260, 279120, 278016, 277388, 277092, 278596, 267212, 278512, 278972, 279284, 278204, 277516, 277436, 266904, 278844, 278972, 278948, 278276, 277196, 278340, 267852, 278260, 278488, 279168, 278440, 277328, 278776, 267792, 296528, 296525, 296507, 296491], \"deltas\": {\"atomic_txn_attempts\": 17698249, \"atomic_txn_retries\": 85, \"atomic_txn_dooms\": 0, \"atomic_txn_wounds\": 85, \"atomic_txn_waits\": 0, \"atomic_txn_intents\": 0, \"atomic_txn_intents_live\": 0, \"atomic_txn_executed\": 17698164, \"atomic_txn_place_waits\": 71347708, \"atomic_txn_writer_waits\": 55456252, \"atomic_txn_writer_marks\": 1185966, \"atomic_txn_blind_restarts\": 0, \"atomic_txn_readonly\": 0, \"atomic_txn_order_violations\": 0, \"atomic_txn_fast_polls\": 133149294, \"atomic_txn_poll_skips\": 38969803, \"atomic_txn_fifo_waits\": 54918852, \"atomic_txn_fifo_passes\": 1185966, \"atomic_txn_writer_promotions\": 0}, \"pass\": true}",
+    "artifact": "build/gate-run.45LLwe/jobs/txnorder_fifo_live/fifo-1-2s-0-uring.log"
+  },
+  {
+    "case": "fifo-1-2s-1-epoll",
+    "failed": true,
+    "reason": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.0031955623999238014, 0.0005890980142125904)",
+    "artifact": "build/gate-run.45LLwe/jobs/txnorder_fifo_live/fifo-1-2s-1-epoll.log"
+  },
+  {
+    "case": "fifo-1-2s-1-uring",
+    "failed": true,
+    "reason": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.003058263100683689, 0.0006049751944505678)",
+    "artifact": "build/gate-run.45LLwe/jobs/txnorder_fifo_live/fifo-1-2s-1-uring.log"
+  },
+  {
+    "case": "fifo-16-1s-0-epoll",
+    "failed": true,
+    "reason": "AssertionError: ('plain p100 exceeds 20 ms', 0.06734611000865698)",
+    "artifact": "build/gate-run.45LLwe/jobs/txnorder_fifo_live/fifo-16-1s-0-epoll.log"
+  },
+  {
+    "case": "fifo-16-1s-0-uring",
+    "failed": true,
+    "reason": "AssertionError: ('plain p100 exceeds 20 ms', 0.11576211359351873)",
+    "artifact": "build/gate-run.45LLwe/jobs/txnorder_fifo_live/fifo-16-1s-0-uring.log"
+  },
+  {
+    "case": "fifo-16-1s-1-epoll",
+    "failed": true,
+    "reason": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.0021040085703134537, 0.001272414245587146)",
+    "artifact": "build/gate-run.45LLwe/jobs/txnorder_fifo_live/fifo-16-1s-1-epoll.log"
+  },
+  {
+    "case": "fifo-16-1s-1-uring",
+    "failed": true,
+    "reason": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.0044707078486680984, 0.002338303175892005)",
+    "artifact": "build/gate-run.45LLwe/jobs/txnorder_fifo_live/fifo-16-1s-1-uring.log"
+  },
+  {
+    "case": "fifo-16-2s-0-epoll",
+    "failed": true,
+    "reason": "AssertionError: ('plain p100 exceeds 20 ms', 0.04308476950973272)",
+    "artifact": "build/gate-run.45LLwe/jobs/txnorder_fifo_live/fifo-16-2s-0-epoll.log"
+  },
+  {
+    "case": "fifo-16-2s-0-uring",
+    "failed": true,
+    "reason": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.0028464607894420624, 0.000655427873771001)",
+    "artifact": "build/gate-run.45LLwe/jobs/txnorder_fifo_live/fifo-16-2s-0-uring.log"
+  },
+  {
+    "case": "fifo-16-2s-1-epoll",
+    "failed": true,
+    "reason": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.0028456710278987885, 0.0006368058140095092)",
+    "artifact": "build/gate-run.45LLwe/jobs/txnorder_fifo_live/fifo-16-2s-1-epoll.log"
+  },
+  {
+    "case": "fifo-16-2s-1-uring",
+    "failed": true,
+    "reason": "AssertionError: ('plain p99 exceeds three FIFO cycles', 0.0029149306938052177, 0.00065793504436263)",
+    "artifact": "build/gate-run.45LLwe/jobs/txnorder_fifo_live/fifo-16-2s-1-uring.log"
+  }
+]

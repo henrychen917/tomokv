@@ -3029,7 +3029,7 @@ bool AofManager::/* TOMO_TOOL_BIND defer_completion */ defer_completion(uint32_t
     // Only that path needs a claim. Ordinary completions retain their single-owner
     // release store: no added RMW on SET. Both states pin the ROB slot and Client.
     if (op.has_blocking_state()) {
-        OpState expected = OpState::Issued;
+        OpState expected = OpState::Free;
         if (!op.state.compare_exchange_strong(expected, OpState::AofWait,
                                               std::memory_order_acq_rel))
             return expected == OpState::AofWait || expected == OpState::Done;

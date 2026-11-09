@@ -1,0 +1,14 @@
+src/cmd/climon.cc:217 tomo::command_client_pause: 51 non-comment lines; 55 physical lines
+src/cmd/climon.cc:1042 tomo::IoLoop::climon_start_client_unblock: 51 non-comment lines; 58 physical lines
+src/cmd/climon.cc:1139 tomo::IoLoop::climon_start_client_kill: 86 non-comment lines; 86 physical lines
+src/cmd/climon.cc:1271 tomo::IoLoop::climon_start_client_command: 87 non-comment lines; 110 physical lines
+src/cmd/tracking.cc:180 tomo::IoLoop::tracking_register_read: 56 non-comment lines; 74 physical lines
+src/cmd/tracking.cc:700 tomo::IoLoop::tracking_handle_event: 90 non-comment lines; 94 physical lines
+src/cmd/tracking.cc:868 tomo::IoLoop::tracking_client_subcommand: 198 non-comment lines; 232 physical lines
+src/net/idle_buffers.h:65 tomo::IdleBuffers::visit: 74 non-comment lines; 77 physical lines
+src/net/resp.h:100 tomo::RespInlineDecoder::split: 62 non-comment lines; 62 physical lines
+src/net/resp.h:598 tomo::resp_parse_t: 77 non-comment lines; 82 physical lines
+src/net/tls.cc:187 tomo::TlsContext::create: 54 non-comment lines; 57 physical lines
+src/net/unix_listener.h:43 tomo::LateUnixListener::open: 61 non-comment lines; 70 physical lines
+src/net/wb.h:259 tomo::WbEngine::serve_suppressing_impl: 63 non-comment lines; 78 physical lines
+src/net/wb.h:460 tomo::WbEngine::pump_tls: 79 non-comment lines; 93 physical lines

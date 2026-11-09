@@ -75,6 +75,7 @@ if constexpr (Fused) {
                 // Select older pending reads by key overlap; a full RYOW ring must not turn that
                 // selection into a demotion of unrelated reads. refine_current_write_hash separately
                 // records whether later reads can use a precise descriptor.
+                // Conservative write conflicts are observable as INFO read_local_fallback_inflight_write.
                 const bool point_write_exact = fused_executor_->read_local_point_writes_precise();
                 // Still gated: with an evicting policy the write may touch keys it
                 // never names, so it must stay a conservative ring generation and no
@@ -85,9 +86,10 @@ if constexpr (Fused) {
                 }
                 // A demotion plan is needed only to reserve the current owner append or to move a
                 // possibly overlapping pending local read. Otherwise prepare() returns with loop_ null
-                // and commit_reads() has no work. These predicates match prepare()'s early exits for
-                // this point-write call (no intersect command or fallback seeds), avoiding its cold
-                // allocation/reservation path when the pending-key filter proves absence.
+                // and commit_reads() has no work. These predicates must stay the exact negation of
+                // prepare()'s early exits for this call (no intersect command, fallback seeds or
+                // caller-supplied filter miss). Skipping it changes no behaviour; it only avoids
+                // the out-of-line call and its validation prologue.
                 const bool needs_demotion_plan =
                     (reserve_owner_fenced_current && op->shard >= 0) ||
                     (rob.has_pending_read_local() &&
@@ -155,6 +157,8 @@ if constexpr (Fused) {
                 // Sample the pending-key filter here: an open group can outlive the parse-to-execute
                 // gap. Leave the transient table-mutation check to the executor's probe/validation,
                 // which observes the store when the read is actually attempted.
+                // Parse-time mutation sampling inflated mget_fallback_seq_churn (INFO
+                // read_local_mget_fallback_seq_churn); it can be stale by execution time.
                 for (uint32_t arg = 1; arg < op->argc(); arg++) {
                     const uint64_t hash = arg == 1 ? op->hash : FlatStore::hash_key(op->arg(arg));
                     const int32_t shard = arg == 1 ? op->shard : srv_->router().shard_of(hash);

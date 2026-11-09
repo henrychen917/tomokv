@@ -1,0 +1,4 @@
+PASS: 20 files have identical raw preprocessing tokens, literal bytes and tool markers
+PASS: Placement has 24 unchanged member bodies/literal streams, in order, with equivalent inline definitions
+PASS: all 21 original files match frozen-source preprocessing tokens before the authorized extraction
+PASS: src/ change scope is the 21 owned files plus placement_impl.h; no renames

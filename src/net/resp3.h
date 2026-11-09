@@ -1,4 +1,5 @@
-// resp3.h -- reply-only RESP3 framing selected from Op::kResp3.
+// RESP3 reply framing, included by resp.h after the RESP2 builders it reuses.
+// Builders append to the caller's sink or record a reply code selected from Op::kResp3.
 //
 // Request parsing is deliberately absent: Redis accepts the same RESP2 request grammar after
 // HELLO 3. Core commands do not emit attributes; CLIENT TRACKING invalidations use push frames.
@@ -6,9 +7,8 @@
 
 namespace tomo {
 
-// The RESP3 forms are fixed too, so they take codes on the same terms as their RESP2 siblings.
-// The protocol choice stays exactly where it was -- at the call site, on op.resp3() -- so a coded
-// reply carries the version's own bytes and nothing has to re-decide at retire.
+// Fixed RESP3 replies use the same code mechanism as their RESP2 counterparts. The caller
+// selects the protocol from op.resp3(); the code identifies that version's bytes at retirement.
 template <typename Buf>
 __attribute__((always_inline)) inline void reply_null(Buf&& b, bool resp3) {
     if (!resp3) {

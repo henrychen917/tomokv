@@ -1,4 +1,6 @@
-// Cold Redis 7.4 CONFIG SET grammar and diagnostics for network parameters.
+// Network CONFIG SET name classification, normalization and diagnostics for t_server.cc.
+// Helpers borrow the input Slice and write caller-owned output/error references; they publish
+// no configuration. The CONFIG table and apply path decide mutability and installation.
 #pragma once
 #include "../core/config.h"
 #include "../base/slice.h"

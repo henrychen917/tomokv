@@ -1,5 +1,6 @@
-// Runtime entry points called by main.cc and read-local diagnostics called by
-// cmd/t_server.cc. Boot functions borrow the initialized Server and recovery
+// main.cc calls run_fused_server_selected and run_split_read_local_server; the
+// selector in reorder.cc calls run_fused_server when reorder=0. Read-local diagnostics
+// are called by cmd/t_server.cc. Boot functions borrow the initialized Server and recovery
 // plans through worker join; they transfer a bound Unix fd to its selected IO
 // owner. Fused instantiations live outside main.cc to isolate compiler budgets.
 #pragma once

@@ -1,33 +1,18 @@
-// tracking.cc -- CLIENT TRACKING (RESP3 server-assisted client-side caching).
-//
-// OWNERSHIP, which is the whole design.
-//
-//   * The key -> interested-connections table is PER IO OWNER and holds only that owner's own
-//     connections (IoLoop::climon_track_keys_). A connection is owned by exactly one io thread
-//     at a time; migration extracts and installs its entries at the ownership commit edge. Thus
-//     each table still has exactly one reader and one writer and NO LOCK EXISTS ON ANY ARMED PATH.
-//     A single global table would have put a lock on the tracking-armed write path, which is
-//     precisely where writes live.
-//
-//   * Read registration is io-side at in-order retirement. The armed dispatch gate records
-//     only pending invalidation obligations: a foreign write between execution and retirement
-//     must invalidate the pending result too. An earlier same-connection write cannot erase the
-//     later read's completed registration, because that registration does not exist yet.
-//     A read from a NON-tracking connection never reaches this file.
-//
-//   * The invalidation SOURCE is the executor-side keyspace-notification chassis: the armed write
-//     handler variants already observe every mutation with its key, including the expiry and
-//     eviction paths that no io thread can see. CLIENT TRACKING arms them through the synthetic
-//     NOTIFY_TRACKING class, so a write is observed exactly once for both features and, when only
-//     one of them is armed, the other produces nothing.
-//
-//   * Delivery is a broadcast of the changed KEY (never of client state) to the io owners that
-//     actually have tracking connections, taken from Server::climon_tracking_io_mask(). Each
-//     owner filters against its own table. A global monotonic key filter keeps writes to
-//     un-tracked keys from posting anything at all.
-//
-// REDIRECT sends the invalidation to another connection, which may be owned by a different io
-// thread; that is one extra hop through the same transport (TrackingDeliver).
+// CLIENT TRACKING receipts, key registrations and RESP2/RESP3 invalidation delivery.
+// Each connection IO owns its key-to-client table and ClimonConn receipt maps;
+// migration extracts/installs a connection's entries at the ownership commit edge.
+// Dispatch (including EXEC preparation) records pending obligations; in-order
+// retirement enrolls completed reads. A foreign write between execution and
+// retirement must invalidate the pending result, while an earlier same-connection
+// write cannot erase a later read's not-yet-enrolled completed registration.
+// Executor/read-local helpers record observations in selected receipts; completion
+// publication makes them available to IO retirement. Unselected ops return at the tag check.
+// The synthetic NOTIFY_TRACKING class shares mutation capture with keyspace
+// notifications, including expiry and eviction. Changed keys go to the IO mask
+// in Server::climon_tracking_io_mask(); each IO filters its own table. REDIRECT
+// uses TrackingDeliver and process-unique IDs across owners, not foreign Client
+// pointers. Remote transport has a queue mutex. The global monotonic key filter
+// avoids irrelevant broadcasts when no BCAST prefixes are registered.
 
 #include "t_stream.h"
 #include "../core/io_loop.h"
@@ -38,7 +23,7 @@ namespace {
 
 // Only a flush raised by this connection's own retirement has a certified
 // boundary before its reply. Remote/redirected deliveries use normal deferral.
-// No state or allocation is added, and non-flush invalidations never call here.
+// This check allocates nothing; tracking_emit_invalidation calls it for flushes.
 [[gnu::noinline, gnu::cold]]
 bool tracking_flush_before_reply(const WbEngine& wb, Client& client) {
     if (!wb.retiring(client)) return false;
@@ -55,9 +40,10 @@ bool tracking_flush_before_reply(const WbEngine& wb, Client& client) {
     std::abort();  // a live retirement must still name its current ROB slot
 }
 
-// Monotonic membership filter over every key any owner has registered. Set-only; cleared when a
-// tracking table is flushed. A false positive costs one broadcast that every owner then filters
-// out, so it can only ever cost work, never correctness.
+// Monotonic membership filter over keys registered by any owner. Bits are set
+// with relaxed fetch_or and remain set across table flushes: clearing could race
+// a remote registration. False positives cause extra broadcasts that each IO
+// filters against its table; the filter does not itself enroll or invalidate keys.
 constexpr uint32_t kTrackFilterWords = 1024;  // 64 Kbit
 std::atomic<uint64_t> g_track_filter[kTrackFilterWords];
 // Number of registered BCAST prefixes across the process. Non-zero forces every changed key to
@@ -183,9 +169,14 @@ void IoLoop::tracking_note_prefix_registered(const std::string& prefix, bool add
     }
 }
 
-// Called from climon_armed_gate for a connection whose tracking is ON. BCAST mode keeps no table
-// at all -- its prefix registry is the whole subscription -- so only default (per-key
-// remembering) mode registers here.
+// Record a pending read on the connection IO, from climon_armed_gate or
+// tracking_prepare_multi with tracking enabled. Borrow client/op/state; state owns
+// the receipt, key strings and per-shard observation arrays through retirement.
+// BCAST uses prefix subscriptions and returns without a receipt. PreserveCaching
+// commands leave CACHING intact; other commands consume it even when ineligible.
+// The caller's dispatch publishes the selected spec; this helper does not publish
+// completion. Invalid key grammar/probe failure skips registration; allocations
+// may throw. A queued MULTI op retains its registry spec until execution selection.
 void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
     // Redis preserves CACHING across every CLIENT command, including introspection and errors.
     // Consuming it before TRACKINGINFO both hides the flag and loses the following OPTIN read's
@@ -254,8 +245,9 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
     }
     if (script) read->script_reads.assign(keys.size(), 0);
     read->handler_notify = tracking_read_marker;
-    // A queued receipt is never selected for execution. POST bypasses this
-    // function while collecting MULTI; the PAD-A control retains PRE's receipt.
+    // A queued receipt is not selected for execution. clientcompat_post() routes
+    // registration through EXEC preparation; its compatibility control can also
+    // collect receipts while MULTI is queueing, without replacing the registry spec.
     if (!multi_session_active(*client)) op.spec = read.get();
     state.tracking_reads[&op] = std::move(read);
 }
@@ -265,8 +257,8 @@ void IoLoop::tracking_register_key(uint64_t id, const std::string& name, uint64_
     if (srv_->cfg().tracking_table_max_keys &&
         climon_track_keys_.size() >= srv_->cfg().tracking_table_max_keys &&
         climon_track_keys_.find(name) == climon_track_keys_.end()) {
-        // Keep the existing bounded-table policy: evicting a completed
-        // registration sends an invalidation, never a silent removal.
+        // Bounded-table eviction of a completed
+        // registration sends an invalidation rather than silently removing it.
         size_t bucket;
         do {
             bucket = next_random() % climon_track_keys_.bucket_count();
@@ -477,7 +469,7 @@ void IoLoop::tracking_emit_invalidation(Client* target, bool redirected, Slice k
         reply_bulk(frame, Slice("__redis__:invalidate", 20));
     }
     if (flush) {
-        // Oracle-confirmed: RESP3 null (`_`), RESP2 redirect path null BULK (`$-1`).
+        // Whole-cache invalidation uses RESP3 null (`_`) or RESP2 null BULK (`$-1`).
         if (resp3_push)
             frame.append("_\r\n", 3);
         else
@@ -526,8 +518,8 @@ void IoLoop::tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice 
     // REDIRECT: the target may be owned by another io thread.
     uint32_t owner_io = 0;
     if (!command_client_directory_find(state.redirect, owner_io)) {
-        // Oracle-confirmed: detection is LAZY (nothing happens at the target's disconnect) and
-        // tracking stays ON. A RESP3 tracking client is told with a `tracking-redir-broken` push
+        // Detect the missing target on delivery, without a disconnect callback;
+        // tracking stays ON. A RESP3 tracking client receives a `tracking-redir-broken` push
         // on EVERY subsequent invalidation attempt; a RESP2 one sees nothing on the wire and only
         // the TRACKINGINFO flag changes.
         tracking_redirect_broken(state);
@@ -608,9 +600,10 @@ void IoLoop::tracking_invalidate_local(Slice key, uint64_t writer_id, uint64_t s
     }
 }
 
-// The existing cold pub/sub pass boundary runs after command retirement. One
-// frame per prefix carries all keys observed in that pass. Remember suppressed
-// writes too: Redis's NOLOOP decision uses the last writer of each key.
+// pubsub_pass_flush calls after draining notification events and before clearing
+// its pending bit; flush_ready then enters bounded reply serving. One frame per
+// prefix carries the keys accumulated for that prefix. Remember suppressed
+// writes too: the NOLOOP decision uses the last writer of each key.
 uint32_t IoLoop::tracking_bcast_flush() {
     uint32_t work = 0;
     for (auto& [id, state] : climon_conn_) {
@@ -697,6 +690,13 @@ void IoLoop::tracking_broadcast_flush() {
     }
 }
 
+// Apply a borrowed local-stack or queued event on the receiving IO; its caller
+// retains/deletes the event. Update this IO's tracking tables or deliver a frame.
+// Re-resolve IDs after migration, forwarding to the current owner; rejected
+// redirects affect the source only when target ID and generation still match.
+// No foreign Client pointer crosses the transport. pubsub_post publishes remote
+// events under the queue mutex and can spin for wake-channel space. Missing
+// destinations are dropped or reported to the redirect source; allocations may throw.
 void IoLoop::tracking_handle_event(PubSubEvent& event) {
     switch (event.kind) {
         case PubSubEventKind::TrackingInvalidate:
@@ -849,7 +849,7 @@ void IoLoop::tracking_reply_trackinginfo(Client* client, Op& op) {
         reply_int(sink, static_cast<long long>(state->redirect));
 
     reply_bulk(sink, Slice("prefixes", 8));
-    // Oracle-confirmed: `flags` is a SET in RESP3 but `prefixes` stays a plain array.
+    // `flags` uses a SET in RESP3; `prefixes` uses an array in both protocols.
     const size_t nprefix = state ? state->prefixes.size() : 0;
     reply_array_header(sink, nprefix);
     if (state)
@@ -857,7 +857,16 @@ void IoLoop::tracking_reply_trackinginfo(Client* client, Op& op) {
             reply_bulk(sink, Slice(prefix.data(), static_cast<uint32_t>(prefix.size())));
 }
 
+// Handle validated CLIENT commands (argc >= 2) on the connection IO, including
+// IO-local EXEC children. Borrow client/op; this IO owns the tracking maps and
+// prefix strings. Unrecognized subcommands return NotHandled; argument/mode
+// errors return Sync with a reply. ON assigns a generation via the tracking
+// clock's acq_rel fetch_add and refreshes global arming. tracking_ack_enable may
+// release-publish the current ROB slot and defer OK behind a PubSub barrier until
+// owners apply its config version; EXEC children instead complete synchronously.
+// Allocations may throw except the deferred-timer allocation handled by that helper.
 IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op& op) {
+    // Phase 1: answer tracking introspection without changing subscriptions.
     const Slice sub = op.arg(1);
 
     if (sub.eq_icase("getredir")) {
@@ -880,13 +889,14 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
         return ClimonStartResult::Sync;
     }
 
+    // Phase 2: validate and arm the next-command CACHING choice.
     if (sub.eq_icase("caching")) {
         if (op.argc() != 3) {
             climon_wrong_args(op, "caching");
             return ClimonStartResult::Sync;
         }
         ClimonConn* state = climon_conn_find(client->id());
-        // Oracle order: the tracking-state check comes FIRST, so `CLIENT CACHING maybe` on a
+        // Check tracking state first, so `CLIENT CACHING maybe` on a
         // non-tracking connection reports the mode error, not a syntax error.
         if (!state || !state->tracking_on) {
             reply_err(
@@ -917,6 +927,7 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
         return ClimonStartResult::Sync;
     }
 
+    // Phase 3: parse TRACKING options into temporary values.
     if (!sub.eq_icase("tracking")) return ClimonStartResult::NotHandled;
     if (op.argc() < 3) {
         reply_err(op.sink(), "ERR wrong number of arguments for 'client|tracking' command");
@@ -975,12 +986,12 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
         }
     }
 
-    // Mode checks precede prefix validation; seed 20 pins prefix-collision precedence below.
+    // Phase 4: validate mode transitions, then ordered prefix collisions.
     //   1 OPTIN+OPTOUT together        4 OPTIN/OPTOUT switch on an already-on client
     //   2 PREFIX without BCAST         5 BCAST combined with OPTIN/OPTOUT
     //   3 BCAST switch on an           6 for each supplied prefix, overlap with held prefixes,
     //     already-on client              then with later prefixes supplied by this command
-    // `CLIENT TRACKING off <anything>` is accepted by redis, so every rule is enable-gated.
+    // OFF still parses options above, but skips these mode/prefix constraints.
     ClimonConn* existing = climon_conn_find(client->id());
     const bool live = existing != nullptr && existing->tracking_on && enable;
 
@@ -1025,7 +1036,7 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
                 }
         for (size_t b = a + 1; b < prefixes.size(); b++)
             if (track_prefix_overlaps(prefixes[a], prefixes[b])) {
-                // Oracle wording: the FIRST-listed prefix is named first.
+                // Name the first-listed prefix first in the collision error.
                 std::string error = "ERR Prefix '";
                 error += prefixes[a];
                 error += "' overlaps with another provided prefix '";
@@ -1036,6 +1047,7 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
             }
     }
 
+    // Phase 5: apply OFF or install ON state, then acknowledge configuration readiness.
     if (!enable) {
         if (existing) {
             tracking_forget_client(client->id(), *existing);
@@ -1059,10 +1071,10 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
         state.tracking_draining = false;
     }
     // Redis REPLACES the per-call modifiers rather than accumulating them: a plain
-    // `CLIENT TRACKING on` after `on OPTIN`/`on NOLOOP` clears optin/noloop (differ-pinned).
+    // `CLIENT TRACKING on` after `on OPTIN`/`on NOLOOP` clears optin/noloop.
     // Only an explicit contradiction (OPTIN while OPTOUT is held) is refused, above.
     state.bcast = bcast;
-    // Seed 23: omitting PREFIX adds the implicit empty prefix even to an existing explicit
+    // Omitting PREFIX adds the implicit empty prefix even to an existing explicit
     // prefix set. It bypasses the supplied-prefix collision checks above, is registered once,
     // and sorts first for TRACKINGINFO and later overlap errors. Repeated ON BCAST must not
     // duplicate either the subscription or its allocation/accounting.

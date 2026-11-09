@@ -1,3 +1,6 @@
+// Compile-time database identity shared by both server images. Makefile compiles the single-DB
+// image with TOMO_SINGLE_DATABASE=1 and the tomo_db0 namespace; main.cc selects it at startup.
+// KeyIdentity carries length alone there, and length plus namespace in the ordinary image.
 #pragma once
 #include <cstdint>
 #include <type_traits>

@@ -1,0 +1,556 @@
+[
+  {
+    "contracts": [
+      {
+        "name": "grisu2_digits",
+        "location": "src/base/numeric.h:177",
+        "kind": "contract"
+      },
+      {
+        "name": "redis_double_text",
+        "location": "src/base/numeric.h:294",
+        "kind": "contract"
+      }
+    ],
+    "evidence": [
+      "src/base/numeric.h:295",
+      "src/base/numeric.h:336",
+      "src/net/resp.h:939",
+      "src/net/resp3.h:86",
+      "src/cmd/scripting.cc:945"
+    ],
+    "claim": "Special-value handling precedes positive finite digit generation; local arithmetic and caller buffers perform the work. Formatting returns a length, does not terminate or check cap, and allocates no shared state. Callers provide the stated fixed buffers."
+  },
+  {
+    "contracts": [
+      {
+        "name": "Terminated",
+        "location": "src/base/numeric.h:390",
+        "kind": "contract"
+      }
+    ],
+    "evidence": [
+      "src/base/numeric.h:392",
+      "src/base/numeric.h:420",
+      "src/cmd/t_server.cc:3901"
+    ],
+    "claim": "The constructor copies into its 256-byte array or owned string, then stores a pointer into that storage. No copy rebasing, allocation catch or publication is implemented; parsers use stack instances and borrow get()."
+  },
+  {
+    "contracts": [
+      {
+        "name": "Slice",
+        "location": "src/base/slice.h:117",
+        "kind": "contract"
+      },
+      {
+        "name": "SmallBuf",
+        "location": "src/base/slice.h:194",
+        "kind": "contract"
+      }
+    ],
+    "evidence": [
+      "src/base/slice.h:165",
+      "src/base/slice.h:267",
+      "src/net/conn.h:477",
+      "src/net/wb.h:862",
+      "src/exec/op.h:152"
+    ],
+    "claim": "Slice stores a borrowed pointer/length/namespace. Key equality adds identity; value equality ignores namespace. SmallBuf owns inline/malloc storage and frees growth, but plain size changes provide no publication. Growth has no malloc-failure/overflow handling; direct commits and input lifetimes require caller discipline. Conn and WbEngine both commit bytes."
+  },
+  {
+    "contracts": [
+      {
+        "name": "Topology",
+        "location": "src/base/topology.h:40",
+        "kind": "contract"
+      },
+      {
+        "name": "Topology::declare",
+        "location": "src/base/topology.h:50",
+        "kind": "contract"
+      }
+    ],
+    "evidence": [
+      "src/core/server.h:287",
+      "src/base/topology.h:54",
+      "src/base/topology.h:131",
+      "tests/config_parser_test.cc:130"
+    ],
+    "claim": "Boot preparation and fixtures populate plain vectors. Declaration checks affinity, duplicates and syntax but can leave partial state; discovery has per-CPU fallback and sibling discovery requires sysfs. Queries require serialized mutation and valid cpus_in indices; vector exceptions are uncaught."
+  },
+  {
+    "contracts": [
+      {
+        "name": "AtomicEntry",
+        "location": "src/store/atomic_mvcc.h:24",
+        "kind": "contract"
+      }
+    ],
+    "evidence": [
+      "src/store/flatstore_atomic.inc:491",
+      "src/store/flatstore_atomic.inc:539",
+      "src/store/flatstore_atomic.inc:1263",
+      "src/store/flatstore_atomic.inc:2217",
+      "src/store/atomic_mvcc.h:253"
+    ],
+    "claim": "Preparation allocates the trailing slots/key tail; installation bounds count by capacity. FlatStore links and retires records and balances retained group state, including shutdown. Group decisions use acquire loads; plain lists do not publish across threads."
+  },
+  {
+    "contracts": [
+      {
+        "name": "AtomicScriptIntent",
+        "location": "src/store/atomic_mvcc.h:83",
+        "kind": "contract"
+      },
+      {
+        "name": "UnitRef",
+        "location": "src/store/atomic_mvcc.h:104",
+        "kind": "contract"
+      }
+    ],
+    "evidence": [
+      "src/store/flatstore_atomic.inc:143",
+      "src/store/flatstore_atomic.inc:175",
+      "src/store/flatstore_atomic.inc:217",
+      "src/store/flatstore_atomic.inc:250",
+      "src/cmd/txn_group.inc:573"
+    ],
+    "claim": "PINs own copied keys; unit-intent allocations prefix UnitRef while kind-0 pins do not. Plain refs/links require owner serialization; activity transitions use release RMWs. Allocation failure is reported by pin helpers. Command code retains decision targets, and group-unit destruction releases watch_refs."
+  },
+  {
+    "contracts": [
+      {
+        "name": "AtomicPendingState",
+        "location": "src/store/atomic_mvcc.h:132",
+        "kind": "contract"
+      },
+      {
+        "name": "AtomicPendingState::FreeValue",
+        "location": "src/store/atomic_mvcc.h:134",
+        "kind": "ownership note"
+      }
+    ],
+    "evidence": [
+      "src/store/flatstore_atomic.inc:1096",
+      "src/store/flatstore_atomic.inc:1135",
+      "src/store/flatstore_atomic.inc:1149",
+      "src/store/flatstore_atomic.inc:1172",
+      "src/store/atomic_mvcc.h:166"
+    ],
+    "claim": "The store owns lazy state, intrusive pools and plain counters. Extension initializes the discriminator before arming; combined finish-install touches only the installing/group-count bytes. FreeValue overlays dead value storage. Allocator failures belong to the prepare helpers; shutdown releases state."
+  },
+  {
+    "contracts": [
+      {
+        "name": "AtomicFlushCounters",
+        "location": "src/store/atomic_mvcc.h:191",
+        "kind": "contract"
+      }
+    ],
+    "evidence": [
+      "src/cmd/flush.inc:154",
+      "src/store/flush.cc:430",
+      "src/cmd/t_server.cc:3391"
+    ],
+    "claim": "Both decision and owner paths update relaxed atomic counters and INFO samples them. The inline global is separately compiled per namespace and cannot provide a coherent multi-field publication snapshot."
+  },
+  {
+    "contracts": [
+      {
+        "name": "AtomicResolved",
+        "location": "src/store/atomic_mvcc.h:207",
+        "kind": "ownership note"
+      },
+      {
+        "name": "AtomicCollapseKey",
+        "location": "src/store/atomic_mvcc.h:216",
+        "kind": "contract"
+      },
+      {
+        "name": "AtomicCollapseSlot",
+        "location": "src/store/atomic_mvcc.h:238",
+        "kind": "ownership note"
+      },
+      {
+        "name": "AtomicSeenKey",
+        "location": "src/store/atomic_mvcc.h:244",
+        "kind": "ownership note"
+      }
+    ],
+    "evidence": [
+      "src/store/flatstore_atomic.inc:1302",
+      "src/store/flatstore_atomic.inc:1822",
+      "src/store/flatstore_atomic.inc:838"
+    ],
+    "claim": "Resolver results and collapse/seen-key scratch borrow objects, records and key bytes; the owning traversal transfers/retires them. Scratch indices use index+1 with zero empty; these aggregates have no independent lifetime or publication operation."
+  },
+  {
+    "contracts": [
+      {
+        "name": "atomic_install_flush",
+        "location": "src/store/flush.cc:19",
+        "kind": "contract"
+      },
+      {
+        "name": "atomic_flush_release",
+        "location": "src/store/flush.cc:49",
+        "kind": "contract"
+      }
+    ],
+    "evidence": [
+      "src/cmd/flush.inc:87",
+      "src/store/flatstore_atomic.inc:1263",
+      "src/store/flatstore_atomic.inc:2217"
+    ],
+    "claim": "execute_flush installs on the owner and handles null as OOM before linking. Poison precedes range linkage; release unlinks, recounts saturated ranges, closes poison and release-decrements refs/activity. Invalid release input aborts; shutdown also releases ranges after joining."
+  },
+  {
+    "contracts": [
+      {
+        "name": "FlushPostIndex",
+        "location": "src/store/flush.cc:119",
+        "kind": "contract"
+      },
+      {
+        "name": "FlushPostIndex::Slot",
+        "location": "src/store/flush.cc:121",
+        "kind": "ownership note"
+      }
+    ],
+    "evidence": [
+      "src/store/flush.cc:139",
+      "src/store/flush.cc:173",
+      "src/store/flush.cc:217",
+      "src/store/flush.cc:276"
+    ],
+    "claim": "Local vectors own scratch; slots borrow stable key storage and parked-slot addresses. Sixteen hash probes fall back to increasing-bit Patricia descent, using 64 hash bits, eight namespace bits and nine per key byte. First insertion wins; allocation exceptions are caught before mutation by atomic_flush_erase."
+  },
+  {
+    "contracts": [
+      {
+        "name": "atomic_flush_erase",
+        "location": "src/store/flush.cc:261",
+        "kind": "contract"
+      }
+    ],
+    "evidence": [
+      "src/cmd/flush.inc:124",
+      "src/store/flush.cc:273",
+      "src/store/flush.cc:286",
+      "src/store/flatstore.h:3529",
+      "src/store/flatstore.h:3447",
+      "src/store/flatstore.h:3766"
+    ],
+    "claim": "The owner admits a ready range after snapshot preservation. Scratch capacity/allocation refusal returns false before changing residents; execute_flush defers it. Erasure releases tombstones before deferred retirement, clears first-post predecessor slots, and preserves unarmed send-borrow retirement. The deferred queue supplies writer back-pressure."
+  },
+  {
+    "contracts": [
+      {
+        "name": "atomic_resolve_range",
+        "location": "src/store/flush.cc:351",
+        "kind": "contract"
+      }
+    ],
+    "evidence": [
+      "src/store/flatstore_atomic.inc:1302",
+      "src/store/flatstore_atomic.inc:1297",
+      "src/store/atomic_mvcc.h:253",
+      "src/store/flush.cc:371",
+      "src/store/flush.cc:505"
+    ],
+    "claim": "Owner-local resolution returns borrowed physical/parked state with acquire group decisions. Same-connection floors precede visibility filtering and own epoch-zero values rank first. There is no allocation or ordinary wait; the armed diagnostic alone re-polls at most 4096 times and does not replace the selected answer."
+  },
+  {
+    "contracts": [
+      {
+        "name": "ForeignReadSafety",
+        "location": "src/store/foreign_read_safety.h:29",
+        "kind": "contract"
+      }
+    ],
+    "evidence": [
+      "src/store/flatstore.h:882",
+      "src/store/flatstore.h:3678",
+      "src/store/flatstore.h:3722",
+      "src/store/foreign_read_safety.h:195",
+      "src/store/foreign_read_safety.h:230",
+      "src/store/foreign_read_safety.h:270"
+    ],
+    "claim": "The shard owner publishes before mutation and closes after safety; readers acquire cell/epoch words. Cells are release-stored before release epochs. Saturation stays positive until exact drain; total/nesting overflow poisons permanently and detected underflows abort. uint32_t epoch increment can wrap; no suspension bound is established."
+  },
+  {
+    "contracts": [
+      {
+        "name": "KvBlockCache",
+        "location": "src/store/kv_block_cache.h:45",
+        "kind": "contract"
+      }
+    ],
+    "evidence": [
+      "src/store/flatstore_atomic.inc:1684",
+      "src/store/flatstore_atomic.inc:1705",
+      "src/core/read_local.h:351",
+      "src/core/server.h:2158",
+      "src/store/kv_block_cache.h:196",
+      "src/store/kv_block_cache.h:222"
+    ],
+    "claim": "Per-physical-owner plain lists reuse post-grace blocks; migration changes future sink/cache access. put rejection retains caller ownership; take transfers a block or misses. Capacity checks and detected corruption are explicit, with a relaxed INFO byte gauge. Shutdown after joins also drains; the aggregate itself has no destructor cleanup."
+  },
+  {
+    "contracts": [
+      {
+        "name": "KvObjFlagByte",
+        "location": "src/store/kvobj.h:69",
+        "kind": "contract"
+      },
+      {
+        "name": "KvObj",
+        "location": "src/store/kvobj.h:99",
+        "kind": "contract"
+      }
+    ],
+    "evidence": [
+      "src/store/kvobj.h:77",
+      "src/store/kvobj.h:136",
+      "src/store/kvobj.h:1209",
+      "src/store/flatstore.h:2942",
+      "src/store/flatstore.h:3395"
+    ],
+    "claim": "Flag accesses are atomic but compound operators are load/store pairs, not RMWs. Foreign eviction CAS is unretried and approximate; immutable published string layout/content depends on caller replacement/QSBR. Header/tail accessors borrow storage and assume correct encoding/capacity; OwnsExtern selects destruction."
+  },
+  {
+    "contracts": [
+      {
+        "name": "EmbeddedCompact",
+        "location": "src/store/kvobj.h:304",
+        "kind": "contract"
+      }
+    ],
+    "evidence": [
+      "src/store/kvobj.h:327",
+      "src/store/kvobj.h:333",
+      "src/store/kvobj.h:963",
+      "src/store/kvobj.h:1090"
+    ],
+    "claim": "The object tail owns metadata and subsequent packed bytes; memcpy handles unaligned fields. No destructor/allocation/publication/bounds checks exist in the overlay. Constructor/adopt helpers populate aux fields for hash, set or stream and leave list/zset aux values zero."
+  },
+  {
+    "contracts": [
+      {
+        "name": "CompactView",
+        "location": "src/store/kvobj.h:367",
+        "kind": "contract"
+      },
+      {
+        "name": "CompactView::Iterator",
+        "location": "src/store/kvobj.h:373",
+        "kind": "ownership note"
+      },
+      {
+        "name": "CollectionRef",
+        "location": "src/store/kvobj.h:646",
+        "kind": "contract"
+      }
+    ],
+    "evidence": [
+      "src/store/kvobj.h:612",
+      "src/store/kvobj.h:475",
+      "src/store/kvobj.h:648",
+      "src/cmd/t_list.cc:231",
+      "src/cmd/t_set.cc:285"
+    ],
+    "claim": "Views/iterators borrow embedded or external storage, without publication/lifetime retention. Default views require binding and current positions. Embedded mutations validate boundaries/capacity and do not allocate; external ones delegate. CollectionRef guards compact mutation by encoding, but compact/aux access has representation preconditions. Inputs must survive mutation."
+  },
+  {
+    "contracts": [
+      {
+        "name": "KvObjRawReadBuffer",
+        "location": "src/store/kvobj.h:819",
+        "kind": "ownership note"
+      },
+      {
+        "name": "kvobj_init_raw_string",
+        "location": "src/store/kvobj.h:832",
+        "kind": "contract"
+      }
+    ],
+    "evidence": [
+      "src/store/kvobj.h:823",
+      "src/store/kvobj.h:880",
+      "src/store/flatstore.h:1367"
+    ],
+    "claim": "The scratch parameter is unused by string_value, which borrows object bytes. Raw initialization fills caller memory, rejects null/over-threshold inputs and allocates nothing. Factory and cached-block callers establish storage size and later publication; key/value sources must not overlap writes."
+  },
+  {
+    "contracts": [
+      {
+        "name": "ObjectIdleClock",
+        "location": "src/store/object_idle.h:16",
+        "kind": "contract"
+      },
+      {
+        "name": "ObjectIdleClock::Branch",
+        "location": "src/store/object_idle.h:18",
+        "kind": "ownership note"
+      }
+    ],
+    "evidence": [
+      "src/store/object_idle.h:48",
+      "src/store/object_idle.h:75",
+      "src/store/object_idle.h:107",
+      "src/store/flatstore.h:1549",
+      "src/store/flatstore.h:1539"
+    ],
+    "claim": "Install release-publishes fixed links and accounts nodes incrementally; false retains partial nodes. cell acquires links; timestamps use relaxed operations and one strong CAS attempt. Store configuration publishes/retires clocks; reclamation or quiescent teardown permits recursive node destruction. Missing cells/timestamps fall back."
+  },
+  {
+    "contracts": [
+      {
+        "name": "ReadLocalRetireSink",
+        "location": "src/store/read_local_reclaim.h:29",
+        "kind": "contract"
+      },
+      {
+        "name": "ResizeRetirement",
+        "location": "src/store/resize_retirement.h:14",
+        "kind": "contract"
+      },
+      {
+        "name": "ResizeRetireQueue",
+        "location": "src/store/resize_retirement.h:25",
+        "kind": "contract"
+      }
+    ],
+    "evidence": [
+      "src/core/read_local.h:267",
+      "src/core/read_local.h:301",
+      "src/core/read_local.h:351",
+      "src/core/server.h:801",
+      "src/store/flatstore.h:3514",
+      "src/store/resize_retirement.h:44"
+    ],
+    "claim": "The sink borrows queue/cache/context until callbacks finish, forwards without validation, and the real queue can wait for ring space. seq_cst epoch RMW plus grace floor is outside these helpers. Resize records are preallocated, transfer table ownership to a FIFO and free it on pop; stamps must be ordered, and unconditional drains/destruction need quiescence."
+  },
+  {
+    "contracts": [
+      {
+        "name": "Compact",
+        "location": "src/store/typeval.h:79",
+        "kind": "contract"
+      },
+      {
+        "name": "Compact::Entry",
+        "location": "src/store/typeval.h:83",
+        "kind": "ownership note"
+      },
+      {
+        "name": "Compact::Iterator",
+        "location": "src/store/typeval.h:92",
+        "kind": "ownership note"
+      }
+    ],
+    "evidence": [
+      "src/store/typeval.h:424",
+      "src/store/typeval.h:380",
+      "src/store/typeval.h:202",
+      "src/store/typeval.h:495",
+      "src/store/typeval.h:344"
+    ],
+    "claim": "Vectors own encoded storage and the optional circular index; entry/iterator views borrow it. Index allocation starts above 16 entries. Growth may relocate before a later failure; spans and source lifetimes are caller preconditions. Guarded allocation/bounds failures return false, while generated vector copying can throw. No synchronization is implemented."
+  },
+  {
+    "contracts": [
+      {
+        "name": "CompactValue",
+        "location": "src/store/typeval.h:564",
+        "kind": "contract"
+      }
+    ],
+    "evidence": [
+      "src/store/typeval.h:624",
+      "src/store/typeval.h:646",
+      "src/store/typeval.h:607",
+      "src/cmd/t_stream.cc:774"
+    ],
+    "claim": "The base owns Compact and counters; derived structures own expanded data. Promotion records totals before clearing Compact, requiring prior copies in the destination. Guarded methods refuse expanded values; no demotion method, publication or wait exists here."
+  },
+  {
+    "contracts": [
+      {
+        "name": "HashVal",
+        "location": "src/store/typeval.h:700",
+        "kind": "contract"
+      },
+      {
+        "name": "ListNode",
+        "location": "src/store/typeval.h:725",
+        "kind": "ownership note"
+      },
+      {
+        "name": "ListVal",
+        "location": "src/store/typeval.h:734",
+        "kind": "contract"
+      }
+    ],
+    "evidence": [
+      "src/cmd/t_hash.cc:460",
+      "src/store/typeval.h:738",
+      "src/cmd/t_list.cc:161",
+      "src/cmd/t_hash.cc:1686"
+    ],
+    "claim": "Hash destruction deletes field map and TTL side state; hash helpers maintain separate logical/TTL totals. Each ListNode owns Compact and borrows chain links; ListVal deletes its chain. Handlers build/attach nodes and serialize resident mutations; wrappers supply no publication."
+  },
+  {
+    "contracts": [
+      {
+        "name": "StreamNode",
+        "location": "src/store/typeval.h:754",
+        "kind": "ownership note"
+      },
+      {
+        "name": "StreamVal",
+        "location": "src/store/typeval.h:774",
+        "kind": "contract"
+      }
+    ],
+    "evidence": [
+      "src/cmd/t_stream_groups.cc:1586",
+      "src/store/typeval.h:782",
+      "src/cmd/t_stream.cc:774"
+    ],
+    "claim": "Deque nodes own their packed logs, whose first entry carries the header. StreamVal owns nodes, indices/dictionaries and opaque groups; its destructor releases groups. Stream handlers construct/mutate and maintain totals; borrowed node storage requires caller lifetime protection."
+  },
+  {
+    "contracts": [
+      {
+        "name": "SetMemberTable",
+        "location": "src/store/typeval.h:805",
+        "kind": "contract"
+      },
+      {
+        "name": "SetMemberTable::Slot",
+        "location": "src/store/typeval.h:835",
+        "kind": "ownership note"
+      },
+      {
+        "name": "SetVal",
+        "location": "src/store/typeval.h:866",
+        "kind": "contract"
+      },
+      {
+        "name": "ZsetVal",
+        "location": "src/store/typeval.h:881",
+        "kind": "contract"
+      }
+    ],
+    "evidence": [
+      "src/cmd/t_set.cc:44",
+      "src/cmd/t_set.cc:132",
+      "src/cmd/t_set.cc:164",
+      "src/store/typeval.h:867",
+      "src/cmd/t_zset.cc:849"
+    ],
+    "claim": "Set slots own strings; the table owns slots and dense indices. Rebuild changes generation, erase leaves tombs, and borrowed values can expire. Insert/reserve distinguish checked refusal/OOM. Set promotion uses logical integer payload totals; ZsetVal deletes its expanded pointer. Resident mutation is caller-serialized with no wrapper publication."
+  }
+]

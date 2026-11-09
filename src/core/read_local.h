@@ -1,7 +1,10 @@
 // Owns read-local key-overlap predicates and owner-side deferred reclamation. Included
 // by ex_loop.h into executor/IO translation units, not as a standalone TU.
-// Readers hold foreign pointers only within a coarse read-local rotation; they do not
-// enter/leave an epoch for each operation. Owners unlink before retirement. Sealing uses
+// Readers hold foreign pointers only within one coarse rotation. With read-local armed,
+// every FusedExLoop pass republishes the reader's ThreadCtx reclamation tick, including
+// snapshot-driven passes: fused_pass_impl/fused_sweep_impl use RotationBoundary, and
+// split_read_local_pass publishes at its end. A parked reader publishes infinity.
+// Readers never enter/leave an epoch per operation. Owners unlink before retirement. Sealing uses
 // a post-unlink epoch stamp, and reclamation waits for every active reader to cross it.
 // The full retire ring can delay its writer; it never asks readers to retry.
 #pragma once

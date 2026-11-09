@@ -37,7 +37,7 @@ struct PersistFixTest {
     }
     void complete(Op& op) {
         op.spec = &spec;
-        op.state.store(OpState::Issued);
+        op.state.store(OpState::Free);
         if (!aof.defer_completion(0, op, nullptr)) {
             op.state.store(OpState::Done, std::memory_order_release);
             ++notifications;
@@ -87,6 +87,44 @@ struct PersistFixTest {
                 "remote posted generation releases completion");
         op.detach_scatter_state();
         std::puts("PASS persistfix remote-window: final owner waits for buffered remote fragment");
+    }
+    void blocking_window() {
+        Op op;
+        op.spec = &spec;
+        op.attach_blocking_state(reinterpret_cast<BlockingState*>(uintptr_t{1}));
+        require(op.state.load() == OpState::Free, "blocking dispatch keeps reset Free state");
+        // Two owners offer the same completion, including cancellation after execution.
+        std::thread other([&] { require(aof.defer_completion(1, op, nullptr), "second offer"); });
+        require(aof.defer_completion(0, op, nullptr), "first offer");
+        other.join();
+        require(op.state.load() == OpState::AofWait, "blocking completion claimed from Free");
+        require(aof.chunk_in_[0].pending.size() + aof.chunk_in_[1].pending.size() == 1,
+                "exactly one receipt across competing owners");
+        aof.chunk_in_[1].buffered.store(1);
+        aof.posted_sequence_.store(1);
+        auto both = [&] {
+            for (uint32_t tid : {0u, 1u})
+                aof.finish_completions(tid, false, this, [](void* p, Client*) {
+                    ++static_cast<PersistFixTest*>(p)->notifications;
+                });
+        };
+        for (uint32_t tid : {0u, 1u})
+            aof.finish_completions(tid, true, this, [](void* p, Client*) {
+                ++static_cast<PersistFixTest*>(p)->notifications;
+            });
+        require(op.state.load() == OpState::AofWait && notifications == 0,
+                "posted blocking receipt cannot retire before fsync");
+        require(aof.defer_completion(0, op, nullptr), "AofWait duplicate is absorbed");
+        aof.durable_sequence_.store(1);
+        both();
+        require(op.state.load() == OpState::Done && notifications == 1,
+                "durability releases one blocking completion");
+        require(aof.defer_completion(1, op, nullptr), "Done duplicate is absorbed");
+        both();
+        require(notifications == 1 && !aof.completions_pending(0) && !aof.completions_pending(1),
+                "no duplicate or stranded receipt");
+        op.detach_blocking_state();
+        std::puts("PASS aofblock: Free claim, competing owners, delayed fsync, duplicate completion");
     }
     void shutdown_window() {
         char path[] = "build/persistfix/shutdown-XXXXXX";
@@ -276,6 +314,8 @@ int main(int argc, char** argv) {
         test.ack_window();
     else if (mode == "remote")
         test.remote_window();
+    else if (mode == "blocking")
+        test.blocking_window();
     else if (mode == "shutdown")
         test.shutdown_window();
     else if (mode == "refusal")

@@ -1,9 +1,15 @@
-// FLIP-only connection liveness. Included after MultiSession and BlockingState.
-// Ordinary commands never call these helpers. Blocking continuations alone
-// consult the existing FLIP acknowledgement before publishing new owner work.
+// FLIP connection liveness, output holds and deferred borrow releases. Included by multi.inc in
+// cmd/xshard.cc after MultiSession and flip_session.inc, with BlockingState already defined. IO
+// owners maintain client holds; blocking continuations consult the FLIP acknowledgement before
+// publishing owner work. A surviving IO may retain blocked/TLS/non-draining clients, but a
+// converting IO must refuse them. Borrow releases resume after final executor masks are
+// installed.
+// Ordinary command dispatch never calls these helpers; among command paths only blocking
+// continuations consult flip_blocked_dispatch_allowed.
 
-// PAD-A patches only this immediate in each namespace. PRE behavior then runs
-// with exactly the candidate's text/layout; this is not a runtime option.
+// Offline behaviour-twin patch point in both namespaces. A copied ELF can select the comparison
+// behavior by changing this immediate while retaining the candidate text layout; no runtime
+// configuration selects it.
 __attribute__((noinline, noipa)) int flip_liveness_enabled() {
     int enabled;
     asm volatile("mov $1, %0" : "=a"(enabled));
@@ -31,6 +37,11 @@ bool IoLoop::flip_output_held(const Client* client) const {
                               std::less<const Client*>{});
 }
 
+// Contract: The source IO calls after IoDrain readiness and before acknowledging that drain.
+// Reserve local vectors before setting serve_pending pins. Movable clients must have no send or
+// serve outstanding; stationary clients retain their source, and borrowed output arms deferred
+// releases. Allocation refusal reports FLIP failure without partially pinning clients. The
+// caller's stage ACK publishes completion of this preparation.
 bool IoLoop::flip_output_hold() {
     if (!flip_liveness_enabled()) return true;
     // IoDrain proved each possible mover has no socket send or serve outstanding.
@@ -109,7 +120,7 @@ void IoLoop::flip_output_release() {
 }
 
 void IoLoop::flip_output_adopt(Client* client) {
-    if (!client->serve_pending()) return;  // LB has no held serve; unchanged behavior.
+    if (!client->serve_pending()) return;  // LB does not supply a held serve.
     if (!flip_liveness_enabled() || srv_->flip_stage() < FlipStage::ClientCommit) std::abort();
     // A newly activated IO has not run its FLIP-gated cron yet. Its zero clock
     // would underflow the inherited output soft-limit timestamp on first serve.
@@ -142,7 +153,7 @@ void IoLoop::flip_output_observe() {
 
 void IoLoop::flip_output_prepare() {
     // The parser can still retire local syntax errors and FLIP observations
-    // behind the unchanged dispatch pause. Stage their replies without pumping.
+    // behind the dispatch pause. Stage their replies without pumping.
     for (Client* client : flip_held_output_) {
         bool submit_allowed = true;
         if (climon_reply_suppressed(client))
@@ -238,6 +249,12 @@ bool IoLoop::flip_immovable_refused() {
     return false;
 }
 
+// Contract: The IO FLIP drain supplies its client and whether it is the coordinator client.
+// Check WB migration state for possible movers; deliberately omit that check for stationary,
+// post-install and coordinator paths because their deferred frames keep the installed IO. The
+// coordinator keeps one FLIP op; other paths use stationary, execution or full drain
+// predicates. False postpones acknowledgement without relaxing ROB, borrow or send lifetime
+// requirements.
 bool IoLoop::flip_client_drained(const Client* client, bool coordinator) const {
     const bool enabled = flip_liveness_enabled();
     const bool post = enabled && srv_->flip_stage() == FlipStage::ClientInstall;
@@ -335,7 +352,7 @@ void IoLoop::flip_borrow_resume() {
         !srv_->flip_all_role_acked(Role::Ex, FlipStage::ExInstall))
         return;
     // All consumers have installed their final masks. This runs before the
-    // existing listener-admission acknowledgement on EVERY surviving IO, so
+    // listener-admission acknowledgement on every surviving IO, so
     // Idle (and the next FLIP) cannot overtake a deferred release callback.
     // Shard storage and its borrow metadata moved together; route by the new map.
     flip_borrow_release();

@@ -1,0 +1,2 @@
+build/clang-format-18.1.8/bin/python tools/format.py --check
+clang-format 18.1.8: 419 files checked

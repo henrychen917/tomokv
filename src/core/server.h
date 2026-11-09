@@ -2,7 +2,8 @@
 // Included by main.cc, IO/executor loops and command implementations; no fixed inclusion
 // point. Server owns worker/shard allocations and their shared coordination objects.
 //
-// Per-command statistics belong to single-writer Shard::Stats/LoopSignals. Shared
+// Per-command statistics belong to single-writer Shard::Stats/LoopSignals: a per-command
+// counter in shared state would write a shared cache line on the hot path. Shared
 // atomic state also exists for admission, commit publication and client lifetime; its
 // ordering is documented at the methods below. Router owns bucket routes; shard_owner_
 // is its derived shard-level dispatch map.
@@ -143,8 +144,9 @@ struct ReadLocalServerState {
     std::atomic<uint64_t> epoch{1};
 };
 
-// One physical thread writes each slot's opened/closed counters; a group can open and
-// close on different workers. Snapshot/placement drains scan all closes before opens.
+// Slots are indexed by the thread id the caller passes, normally its own. Updates use
+// fetch_add RMWs, so correctness does not require a single writer per slot. A group can
+// open and close on different workers. Snapshot/placement drains scan all closes before opens.
 // Release counter updates plus the group's published open flag and acquire scan prevent
 // a false zero from observing a close without its matching open. Cache-line spacing
 // is fixed; the slots own no allocation or blocking operation.
@@ -166,7 +168,9 @@ bool fliplisten_reserve(/* TOMO_TOOL_BIND Server */ Server&, std::string&);
 // Acquire routes identify a current or preceding owner; executors forward stale work.
 // Workers/managers must stop before owned storage is destroyed. Initializers/planners
 // return false for checked failures, some allocations throw, and broken ownership
-// invariants abort. Full channels/credits retain work at callers for later progress.
+// invariants abort. Channel callers retry, spin or reserve capacity first; an impossible
+// client-transfer push failure aborts. post_pubsub_event always queues its event and its
+// bool only assigns the wake marker, so false must not cause a duplicate post (see ThreadCtx).
 class Server {
     friend class IoLoop;
     friend struct FlipListenerState;
@@ -177,7 +181,9 @@ class Server {
     friend struct LbPlannerTest;
 
 public:
-    // Physical-worker RAII scope borrowing its Server epoch. An odd release-published
+    // Done releases the ROB slot while executor code may still be notifying the Client's
+    // IO, so ROB quiescence alone does not end Client use. This physical-worker RAII scope
+    // borrows its Server epoch. An odd release-published
     // epoch permits Client pointer use; the matching even epoch ends that scope. Nested
     // scopes preserve the outer scope, and acquire readers fence close/client migration.
     // Server must outlive the guard; one physical worker writes each cache-line slot.
@@ -802,9 +808,11 @@ public:
         if (!read_local_state_) std::abort();
         return read_local_state_->epoch.fetch_add(1, std::memory_order_seq_cst);
     }
-    // Bounded QSBR grace scan: release an entry only when the floor is strictly above
-    // its retirement stamp. Return the exact minimum active tick when it exceeds stamp,
-    // or stop at the first tick <= stamp, which proves that reclamation cannot proceed.
+    // Bounded QSBR grace scan. stamp must be the oldest sealed retirement stamp across
+    // every queue the caller drains with this result. If the minimum active tick exceeds
+    // stamp, return it exactly. Otherwise return the first active tick <= stamp: an upper
+    // bound on the true floor, safe only because no older retirement exists, so nothing
+    // is releasable. Release an entry only when the result is strictly above its stamp.
     // The caller-owned hint tests the previous blocker first and has no other meaning.
     // Parked participants contribute infinity because they hold no foreign pointer.
     // This scan performs no reader retry and does not wait for a participant to advance.
@@ -1562,8 +1570,10 @@ public:
         return flip_deadline_ns_.load(std::memory_order_acquire) != 0 &&
                now_ns() >= flip_deadline_ns_.load(std::memory_order_acquire);
     }
-    // Admit a split-mode role change on its designated IO coordinator. Serializes with
-    // other shape transitions; coordinator must remain IO and target counts must conserve
+    // Admit a split-mode role change. The FLIP command calls on its IO coordinator;
+    // the automatic controller calls on the monitor thread and names an IO coordinator.
+    // The coordinator's request-side reservation hook therefore runs on the caller's thread.
+    // Serializes with other shape transitions; coordinator must remain IO and target counts must conserve
     // threads/SMT pairs. Publishes Planning, then an epoch-tagged IoDrain plan with release
     // ordering; it does not move clients or shards. Supersedes uncommitted LB plans.
     // Returns false with error on refusal, retaining the requested target for reporting

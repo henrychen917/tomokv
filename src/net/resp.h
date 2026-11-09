@@ -1,11 +1,12 @@
-// resp.h — RESP2 request parsing and reply formatting.
+// RESP2 request parsing and reply formatting shared by transport, command and persistence code.
+// Parsing requires caller-owned Op/frontier state and stable input bytes; ordinary arguments
+// borrow the input buffer, while quoted inline arguments own decoded bytes in Op's argv block.
+// Reply helpers write a caller-owned sink or record a code for later formatting. resp3.h is
+// included after these builders to supply protocol-selecting overloads.
 //
 // Patterned on the protocol as documented and as implemented in redis-7.2 / valkey (BSD-3). Nothing
 // here is copied from our own Redis 8.6.2 fork, which carries RSALv2/SSPLv1 and would contaminate
 // the licence of this tree.
-//
-// Ordinary requests produce Slices into the pinned read buffer. Quoted inline
-// requests alone own decoded bytes in the Op's argv allocation — see conn.h.
 #pragma once
 #include <cstdint>
 #include <cstdio>
@@ -76,14 +77,16 @@ enum class ParseResult { Ok, Incomplete, Error, Empty };
 // Redis 7.4's PROTO_INLINE_MAX_SIZE is a fixed protocol bound, not a CONFIG knob.
 inline constexpr uint32_t kProtoInlineMaxSize = 64 * 1024;
 
-// This replaces the existing validation scan. Backslashes outside quotes are
-// literal bytes, so only a quote needs the allocating decoder.
+// Detect quotes that require the allocating decoder. Backslashes outside quotes are literal bytes.
 __attribute__((noinline, cold)) inline bool resp_inline_plain(const char* p, const char* end) {
     for (; p != end && *p; ++p)
         if (*p == '"' || *p == '\'') return false;
     return true;
 }
 
+// Stateless quoted-inline decoder used by resp_parse_inline. The caller exclusively owns Op
+// and output storage; split borrows input, and decode transfers one malloc block to Op on success.
+// No state is published to other threads here; syntax/allocation failures become ParseResult::Error.
 struct RespInlineDecoder {
     static bool space(unsigned char c) { return c == ' ' || (c >= '\t' && c <= '\r'); }
     static int hex(unsigned char c) {
@@ -93,9 +96,13 @@ struct RespInlineDecoder {
         return -1;
     }
 
-    // First pass validates and counts; second pass fills a single owned block.
-    // No receive byte or reply storage is ever changed. Args are immutable after
-    // parsing: commands that build another argv use a separate Op (e.g. EXEC).
+    // Validate/count with null outputs, then decode into the caller's args/bytes block on a
+    // second pass. decode supplies argc Slice slots and at least end-p payload bytes. Input and
+    // reply storage are untouched. Args are immutable after parsing: executors and the read-local
+    // conflict predicate can read a live op's argv concurrently, so commands that build another
+    // argv use a separate Op (e.g. EXEC).
+    // The parsing caller serializes these local writes; malformed quotes return false, possibly
+    // after partial output. There is no allocation, publication or waiting in this routine.
     [[gnu::cold, gnu::noinline]] static bool split(const char* p, const char* end, Slice* args,
                                                    char* bytes, uint32_t& argc) {
         argc = 0;
@@ -277,7 +284,7 @@ __attribute__((noinline, cold)) inline ParseResult resp_length_slow(const char* 
         *err = invalid;
         return ParseResult::Error;
     }
-    // Keep the ordinary parser's original immediate bound. Counts above 1 Mi
+    // The ordinary parser uses an immediate bound of 1 Mi. Larger counts
     // take this cold continuation, up to Redis's INT_MAX; no eager argv reserve.
     if (multibulk && maxv == 1024 * 1024) maxv = INT32_MAX;
     if (value > 0 && static_cast<uint64_t>(value) > maxv) {
@@ -300,11 +307,11 @@ __attribute__((noinline, cold)) inline ParseResult resp_bulk_prefix_error(const 
     return ParseResult::Error;
 }
 
-// N3: the pre-AUTH fast bound deliberately uses 10 / 16384. On its error exit,
+// The pre-AUTH fast bound uses 10 / 16384. On its error exit,
 // distinguish a valid-but-unauthenticated length from invalid syntax/overflow
 // or the configured bulk ceiling, which Redis checks first. Reuse the strict
 // decoder on at most ten headers; completed payloads are only stepped over.
-// Ordinary parsing and the resumable frontier keep their calling conventions.
+// This error-only helper leaves the ordinary parser and resumable frontier interfaces separate.
 [[gnu::cold, gnu::noinline]] inline const char* resp_preauth_error(const char* buf, uint32_t len,
                                                                    uint32_t start,
                                                                    uint64_t max_bulk,
@@ -376,22 +383,16 @@ __attribute__((noinline, cold)) inline ParseResult resp_bulk_prefix_error(const 
     return resp_parse_slow(buf, len, pos, op, err, 1024 * 1024, 512ull * 1024 * 1024);
 }
 
-// Read decimal digits terminated by CRLF, advancing `pos` past the CRLF.
-//
-// strtol was doing this, and strtol is a general-purpose parser: it skips leading whitespace,
-// accepts signs, honours a base argument and consults the locale — none of which a RESP length
-// field may contain. It also cannot tell "no digits yet" from "not a number", so it silently
-// returned 0 for a truncated header instead of asking for more bytes. This reads exactly what the
-// protocol allows and distinguishes Incomplete from Error, which the old code could not.
-//
-// Returns Ok / Incomplete / Error. Bounded by `maxv` so a hostile length cannot overflow:
-// that holds only while maxv <= (UINT64_MAX - 9) / 10, so every bulk-length caller passes
-// at most 512 MiB and lets resp_length_slow apply a larger configured limit.
+// Read positive decimal digits followed by CRLF and advance pos on Ok. The fast grammar excludes
+// signs, leading zeroes, whitespace, base selection and locale rules. Empty/truncated input is
+// Incomplete; zero, negatives and exceptional syntax go through resp_length_slow at the call site.
+// The maxv check prevents overflow provided maxv <= (UINT64_MAX - 9) / 10. Bulk-length callers
+// cap this fast bound at 512 MiB and let resp_length_slow apply a larger configured limit.
 inline ParseResult parse_len_crlf(const char* buf, uint32_t len, uint32_t& pos, uint64_t maxv,
                                   uint64_t& out) {
     uint32_t i = pos;
     if (i >= len) return ParseResult::Incomplete;
-    // Peel the first digit so its existing range check rejects zero as well as
+    // Peel the first digit so its range check rejects zero as well as
     // nondigits. Later digits keep the '0'..'9' check. The cold parser handles
     // lone zero, negatives, incomplete malformed headers and exact error text.
     const char first = buf[i];
@@ -416,12 +417,16 @@ inline ParseResult parse_len_crlf(const char* buf, uint32_t len, uint32_t& pos, 
     return ParseResult::Incomplete;
 }
 
-// NT4.2: only incomplete multibulks own an argv frontier. All positions are
+// Incomplete multibulks retain an argv frontier. All positions are
 // relative to the unconsumed frame, including saved arguments: neither realloc
 // nor quiescent compaction nor an IO-owner transfer can invalidate them. The
-// active bit shares Client's inline cursor; its existing consume store resets
+// active bit shares Client's inline cursor; its consume store resets
 // both protocols, without adding stores to complete-frame dispatch.
 inline constexpr uint32_t kRespMultibulkPending = uint32_t{1} << 31;
+// Owns a realloc-grown array of frame-relative argument offsets, not receive bytes. The parsing
+// caller serializes access and must not shallow-copy this owning object. push returns false on
+// allocation failure with prior storage intact; finish resets progress and frees capacity over 512.
+// There is no cross-thread publication inside this type; Client migration transfers its state.
 struct RespFrontier {
     struct Arg {
         uint32_t offset, length;
@@ -533,6 +538,10 @@ static_assert(sizeof(RespFrontier) == 32);
                            p);
 }
 
+// Resume a frame on the caller that owns Op, saved and the receive buffer. saved offsets refer
+// to buf+pos; Op must be reset before materializing argv. Completion borrows buffer slices and
+// advances pos; Incomplete retains progress without advancing pos, Error reports syntax/OOM.
+// The caller pins input through consumer use and performs any later cross-thread publication.
 [[gnu::cold, gnu::noinline]] inline ParseResult resp_resume(const char* buf, uint32_t len,
                                                             uint32_t& pos, Op& op, const char** err,
                                                             uint64_t max_multibulk,
@@ -584,15 +593,13 @@ static_assert(sizeof(RespFrontier) == 32);
     return ParseResult::Ok;
 }
 
-// Scans one command from buf[pos, len). On Ok, fills `op` and advances `pos` past the command.
-// On Incomplete, leaves pos untouched — more bytes are needed.
-//
-// The limits are a TEMPLATE variant, not runtime parameters: carrying them as arguments through
-// the hottest loop in the server (they were briefly defaulted parameters for the unauthenticated
-// pre-AUTH limits) cost +83 instructions/op on loopback and −5.1% on the wire p128 GET cell —
-// register-carried limits defeat the immediate-folding the comparisons had always compiled to.
-// The unlimited instantiation folds the constants exactly as the original code did; only the
-// pre-AUTH path (predicted-false at the call site) pays for real arguments.
+// Parse one request for a caller with exclusive Op/frontier access and stable buf[pos,len).
+// Op starts with an empty argv; kResume requires a nonnull saved frontier and a multibulk frame.
+// Ok/Empty advance pos; Incomplete preserves pos for more input (and saves progress in kResume).
+// Error reports malformed input or allocation failure. Borrowed argument bytes must remain pinned
+// until consumers finish; this routine performs no cross-thread publication or waiting.
+// kLimited selects caller-supplied limits; the other instantiation folds the 1 Mi / 512 MiB fast
+// bounds as constants. Exceptional counts use the cold decoder's compatibility limits.
 template <bool kLimited, bool kResume = false>
 inline ParseResult resp_parse_t(const char* buf, uint32_t len, uint32_t& pos, Op& op,
                                 const char** err, uint64_t max_multibulk, uint64_t max_bulk,
@@ -643,7 +650,7 @@ inline ParseResult resp_parse_t(const char* buf, uint32_t len, uint32_t& pos, Op
         }
         p++;
         uint64_t blen = 0;
-        // The common constant is unchanged. Larger configured limits use the
+        // The fast bound is 512 MiB. Larger configured limits use the
         // signed, overflow-checked cold decoder once this small bound is crossed.
         r = parse_len_crlf(buf, len, p,
                            max_bulk < 512ull * 1024 * 1024 ? max_bulk : 512ull * 1024 * 1024, blen);
@@ -712,16 +719,16 @@ inline uint32_t i64_to_dec(char* dst, int64_t v) {
 
 // ---- reply formatting. Handlers call these; they append RESP into the op's own buffer. ----------
 // The one-argument append() below is the LITERAL overload (src/exec/op.h, src/base/slice.h): the
-// length stays a compile-time constant all the way to the store, so a fixed reply costs a store
-// instead of a call to the out-of-line append plus a call to memcpy. Same bytes as before, NUL
-// excluded. Only replies that fit in a machine word or two are written this way; the longer error
+// length remains a compile-time constant, excluding the terminating NUL, so the builder can emit
+// stores without an out-of-line append/memcpy pair. Replies that fit in a machine word or two
+// use this overload; the longer error
 // texts below keep the explicit length and the out-of-line path.
 //
 // CODED REPLIES. Where the sink is an Op::Sink (the executor's), a fixed reply records a ReplyCode
 // and writes NO bytes; the connection's owner formats it at retire. Where it is a plain SmallBuf
-// (pub/sub frames, MONITOR lines, script sub-buffers -- all already owner-side) there is no code
-// to set and the literal append below is used unchanged. The `requires` test is what makes one
-// helper serve both, so no call site changes and no reply text is written twice.
+// (pub/sub frames, MONITOR lines, script sub-buffers), it appends bytes to the caller's buffer.
+// The requires test selects between these sink interfaces; a successful code store returns before
+// the literal append, so the helper does not emit the reply twice.
 //
 // b.code() returns false on a non-empty sink, which is how a fixed reply nested inside a larger
 // one (an EXEC element after its array header) falls back to bytes and stays in order.
@@ -730,13 +737,9 @@ inline uint32_t i64_to_dec(char* dst, int64_t v) {
         if (sink.code(codeexpr)) return;               \
     }
 
-// always_inline ON THE FIXED-REPLY HELPERS. Adding the coded attempt grew these bodies just
-// enough to cross GCC's inlining threshold, and the loss was not the four instructions of the
-// attempt -- it was that cmd_get stopped inlining reply_null and started CALLING it, which
-// measured +22 instructions per 2s GET-miss on a deterministic replay. These are all one store
-// plus a capacity test; they were inlined before this branch and must stay inlined. reply_int is
-// deliberately NOT in this list: it carries the digit loop and was already out of line in base,
-// so forcing it would change base's own decision.
+// Force inlining of the small fixed-reply helpers so a coded attempt does not turn a compact
+// reply store/capacity check into a call (including reply_null from cmd_get). reply_int retains
+// the compiler's separate inlining decision because it also carries a digit loop.
 template <typename Buf>
 __attribute__((always_inline)) inline void reply_ok(Buf&& b) {
     TOMO_CODED_REPLY(b, ReplyCode::Ok)
@@ -783,10 +786,9 @@ inline void reply_outofrange(Buf&& b) {
     b.append(kMsg, sizeof(kMsg) - 1);
 }
 
-// AN INTEGER IS A VALUE, NOT A FORMAT. DEL's count, EXISTS's count, SETNX's 0/1, INCR's new
-// value, LPUSH/SADD/HSET's length -- the executor computes the number, the owner renders the
-// digits. Outside int32 the code path is declined (the hole in Op holds four bytes, not eight) and
-// the digits are formatted here exactly as before; the wire bytes are identical either way.
+// DEL/EXISTS counts, SETNX's 0/1, INCR's value and LPUSH/SADD/HSET lengths can travel as values
+// for the connection owner to render. Op's coded-integer payload is four bytes; values outside
+// int32 and sinks that reject the code render decimal bytes here with the same wire grammar.
 template <typename Buf>
 inline void reply_int(Buf&& b, long long v) {
     if constexpr (requires { b.code(ReplyCode::Int, int32_t{0}); }) {
@@ -825,9 +827,8 @@ inline void reply_bulk_header(Buf&& b, uint32_t len) {
     b.advance(static_cast<size_t>(q - p));
 }
 
-// ONE reserve, ONE memcpy, no snprintf and no re-entry into the buffer. The previous version did a
-// reserve plus three appends, and each append re-checked capacity — for a reply whose total size is
-// known exactly before a byte is written.
+// Reserve header/payload/trailer space together, copy the payload once and commit the full reply.
+// Its size is known before writing, so separate appends and repeated capacity checks are unnecessary.
 template <typename Buf>
 inline void reply_bulk(Buf&& b, Slice s) {
     char* p = b.reserve(24 + static_cast<size_t>(s.n) + 2);
@@ -847,16 +848,12 @@ inline void reply_bulk(Buf&& b, Slice s) {
 // the RESP3 "," from one d2string, and the parsers that must accept exactly what it can produce
 // belong beside it. This header keeps only the RESP framing.
 
-// THE OWNER'S SIDE. Renders a coded reply into dst, which must have kReplyCodeMax writable bytes.
-// Runs on the connection's own thread at retire, writing into that thread's own fill buffer -- so
-// these bytes are produced and consumed by one core, which is the point of the code.
-//
-// SHAPE MATTERS HERE, and the obvious shape was wrong. Written as a switch over ReplyCode this
-// became an out-of-line call with a jump table (`notrack jmp *%rax`) and a stack canary -- an
-// indirect branch and a frame, to replace a five-byte memcpy. That is not a saving. A fixed reply
-// is a CONSTANT, so it is a table: one 16-byte load-store at a computed index, no branch, no call,
-// and the length comes from the same cache line as the bytes. Writing all 16 bytes is safe and
-// deliberate -- every caller reserves kReplyCodeMax -- and it keeps the store width constant.
+// Fixed replies pair 16 bytes with their wire length. format_reply_code copies all 16 bytes
+// at a computed index, so callers reserve kReplyCodeMax even for shorter replies. This keeps the
+// copy width constant and the length beside the bytes, without a switch/jump-table dispatch.
+// Retirement formats into the connection owner's fill storage; op_materialise_code uses the
+// same table during retirement when a coded reply must first become bytes in op.reply (WbEngine
+// segment staging and assemble_mget's borrowed flush).
 struct FixedReply {
     char bytes[16];
     uint32_t len;
@@ -870,8 +867,8 @@ inline constexpr FixedReply kFixedReplies[] = {
     {"_\r\n", 3},   {"#t\r\n", 4},  {"#f\r\n", 4},    {{0}, 0},  // Int -- handled below, never read from this table
 };
 
-// Digits straight into the destination, no scratch array -- an array here is what pulled a stack
-// protector into the hot path. Two passes over at most ten digits, both branch-predictable.
+// Write digits directly into the destination to avoid scratch storage and its stack-protector
+// cost. The two passes count then fill at most ten decimal digits.
 inline uint32_t u32_to_dec_direct(char* dst, uint32_t v) {
     uint32_t n = 1;
     for (uint32_t t = v; t >= 10; t /= 10) n++;
@@ -882,10 +879,8 @@ inline uint32_t u32_to_dec_direct(char* dst, uint32_t v) {
     return n;
 }
 
-// The digits, deliberately OUT OF LINE. Inlined, this loop put 30-odd instructions into the per-op
-// retire lambda at every one of its twenty-odd instantiations; the lambda is the io thread's
-// hottest code and every op walks past those bytes whether or not it formats an integer.
-// ":-2147483648\r\n" is 14 bytes, inside kReplyCodeMax.
+// Keep the digit loop out of each instantiated per-op retire lambda, which handles fixed and
+// integer replies alike. ":-2147483648\r\n" is 14 bytes, inside kReplyCodeMax.
 __attribute__((noinline)) inline uint32_t format_reply_code_int(char* dst, int32_t ival) {
     char* q = dst;
     *q++ = ':';
@@ -902,12 +897,10 @@ __attribute__((noinline)) inline uint32_t format_reply_code_int(char* dst, int32
     return static_cast<uint32_t>(q - dst);
 }
 
-// always_inline, and measured both ways. Left to its own judgement GCC emitted a CALL at all
-// twenty-odd retire sites, so a five-byte reply paid a call to avoid a five-byte memcpy. Inlined
-// WITH the digits it bloated the retire lambda instead. This shape is the one that is small: the
-// fixed reply -- which is every SET, the reply this change exists for -- becomes a table index, a
-// 16-byte load-store and a length load, and an integer reply pays one call, exactly as it paid one
-// memcpy call before.
+// Inline the fixed-reply table copy and call the out-of-line integer formatter when needed.
+// dst must provide kReplyCodeMax writable bytes and code must identify a valid ReplyCode.
+// This keeps fixed replies such as SET's OK compact without duplicating the digit loop at each
+// retire site. The caller owns dst; no publication or bounds check occurs here.
 __attribute__((always_inline)) inline uint32_t format_reply_code(char* dst, uint8_t code,
                                                                  int32_t ival) {
     if (code != static_cast<uint8_t>(ReplyCode::Int)) {
@@ -921,10 +914,9 @@ __attribute__((always_inline)) inline uint32_t format_reply_code(char* dst, uint
 // For the few paths that SPLICE an op's reply bytes mid-flight instead of retiring them (the
 // borrowed-value flush inside assemble_mget). Turns a code back into the bytes it stands for, in
 // order, so the splice sees a normal byte buffer. A no-op for the ordinary reply.
-// NOINLINE, and callers guard it with op.reply_code_ themselves. Inlined it dragged
-// SmallBuf::reserve's grow path -- malloc, memcpy, free -- into WbEngine's per-op retire lambda,
-// which is the io thread's hottest code; the lambda went 186 -> 263 instructions and the split GET
-// cell paid for all of it while using none of it.
+// Keep this out of line so SmallBuf::reserve's malloc/memcpy/free growth path does not expand
+// WbEngine's per-op retire lambda. The function checks reply_code_ before reserving storage;
+// callers may also guard it when their surrounding work is conditional on a coded reply.
 __attribute__((noinline)) inline void op_materialise_code(Op& op) {
     if (op.reply_code_ == 0) return;
     char* p = op.reply.reserve(kReplyCodeMax);
@@ -942,6 +934,5 @@ inline void reply_double(Buf&& b, double value) {
 
 }  // namespace tomo
 
-// RESP3 is reply-only. Keeping its protocol-selecting builders in a feature header leaves the
-// request parser and the established RESP2 reply_bulk/reply_int implementations untouched.
+// RESP3 supplies reply-only protocol-selecting overloads after the RESP2 builders they call.
 #include "resp3.h"

@@ -4,6 +4,8 @@
 # See docs/wave14/budgets/selected.json; unedited hot bodies prefer headline identity.
 # Wave13: compile-only IPA/linked-body trials plus finite fanout instruction scopes.
 # Selected values and exceptions: docs/wave13/budgets/final-selected.json.
+# s1pair-land: all 59 pinned units checked against the paper build; unchanged inputs keep
+# its budgets. Fresh IPA/body trials retain the four scripting/CONFIG pins (docs/s1pair-land).
 CXX      ?= g++
 JEDIR    ?= /home/user/Projects/refs/jemalloc/_install
 # jemalloc is optional: without it the tree still builds and runs, using the deterministic portable
@@ -346,7 +348,12 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # clientcompat: cold EXEC growth is isolated in clientcompat.cc. Bounded compile
 # and executed-count trials retain ordinary scopes at/below PRE; see
 # docs/clientcompat/budgets and the instruction census (including outlined STL).
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=168538 --param max-inline-insns-auto=14 --param early-inlining-insns=5
+# aofblock: cancellation's cold receipt claim adds 16 IPA insns in each namespace.
+# Preserve the PRE inline headroom; see MEASURE-REQUEST-aofblock.md.
+# blockrace: folding the completion offerers into blocking_task_done net-shrinks the xshard IPA
+# unit by 56 insns (137236 -> 137180). Keep the PRE headroom so only blocking bodies move:
+# 168554 - 56 = 168498. See MEASURE-REQUEST-blockrace.md.
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=168498 --param max-inline-insns-auto=14 --param early-inlining-insns=5
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
 # perfex2: compensate the inline cold clear reset; every other emitted body is PRE-identical.
 # clientcompat notification capture adds cold code; the 161773 neighbour keeps
@@ -357,7 +364,9 @@ $(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=
 # (171751 + 181); the normal namespace was unaffected. No runtime option or request-path branch.
 # wave16: merged blockwake + parkwake growth is 245 insns (136675 -> 136920); 172012 is the
 # re-derived pin for the merged tree (see the wave16 note above $(BUILD_ROOT)/src/main.o).
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=172012 --param max-inline-insns-auto=18 --param early-inlining-insns=10
+# blockrace: the same fold shrinks the db0 xshard IPA unit by 63 insns (136936 -> 136873);
+# 172028 - 63 = 171965 keeps the PRE headroom. See MEASURE-REQUEST-blockrace.md.
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=171965 --param max-inline-insns-auto=18 --param early-inlining-insns=10
 # ACL key extraction is isolated from the IO templates. Keep the merged baseline's
 # ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
 # aclfix grows the unit by 749/765 insns (+739/+750 here): the shared reply helpers this
@@ -857,6 +866,11 @@ $(BUILD_ROOT)/publishfix-unit-objects/%.o: %.cc $(wildcard src/*/*.h) $(wildcard
 $(BUILD_ROOT)/publishfix-unit: tests/publishfix_unit.cc $(PUBLISHFIX_OBJ) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_PUBLISHFIX_TEST -I. $< $(PUBLISHFIX_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+
+build/tornread-unit: tests/tornread_unit.cc $(filter-out build/src/main.o,$(OBJ)) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(filter-out build/src/main.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/tornhold-db0-unit: tests/tornread_unit.cc $(DB0_TEST_OBJ) $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< $(DB0_TEST_OBJ) $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
 build/atomic-survivors-unit: tests/atomiccollapse_checks.inc tests/atomic_plain_checks.inc tests/txnorder_checks.inc
 build/atomic-survivors-unit: tests/atomic_survivors_unit.cc src/cmd/xshard.cc $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile

@@ -2,6 +2,8 @@
 // Included in IoLoop's private section by core/io_loop.h, hence compiled in its including
 // server/command translation units in both database namespaces. Channel indexes belong
 // to their home IO; client catalogs belong to the connection IO and migrate with it.
+// This state is IoLoop-private: executors and shards only post heap events (pubsub_event.h),
+// never reaching connection state or subscriber indexes.
 // Publish ROB slots before remote requests and queue deliveries before publish replies.
 // Mailbox handoff transfers events; blob references survive until delivery or shutdown.
 // Throwing container allocations have no general local recovery contract in these helpers.
@@ -349,9 +351,10 @@ void pubsub_emit(Client* client, const char* p, size_t n, bool resp3) {
     }
     // Append a complete frame at a frame boundary. A borrowed Op reply has a separate
     // header and body, so appending to its reply buffer could split that frame.
-    // Client::append_oob chooses a channel that preserves framing and live direct-reply
-    // regions. The send engine defers behind the observed dispatch frontier so a delivery
-    // cannot overtake an earlier reply, including its own SSUBSCRIBE acknowledgement.
+    // Client::append_oob seals the fill buffer into the segment queue when needed, so a
+    // frame cannot jump ahead of already-staged bytes or overwrite a live direct-reply region.
+    // WbEngine::defer_oob holds it behind earlier replies not yet staged, including its own
+    // SSUBSCRIBE acknowledgement.
     // A parked blocking head is the latency-bounded exception.
     const bool deferred =
         resp3 ? wb_.defer_oob(*client, &kPush, 1, p + 1, n - 1) : wb_.defer_oob(*client, p, n);
@@ -560,8 +563,9 @@ void pubsub_notification_continue(PubSubEvent& event) {
 // Handle a borrowed mailbox request on its channel/pattern home IO. Only that home
 // mutates its indexes; connection identities cross threads without Client pointers.
 // Transfer newly built result events through pubsub_post; notification continuations
-// follow flushed deliveries so the coordinator cannot reorder links. Unknown kinds do
-// nothing. Container/event allocation exceptions propagate; pubsub_post may spin for
+// follow flushed deliveries so the coordinator cannot reorder links. pubsub_handle_event
+// routes only the eight request kinds here; any other kind aborts.
+// Container/event allocation exceptions propagate; pubsub_post may spin for
 // the burst wake marker when its client channel is full.
 void pubsub_handle_home_request(PubSubEvent& event) {
     const PubSubRef ref{event.origin_io, event.conn_id};
@@ -1135,8 +1139,9 @@ pubsub_begin_pending(Client* client, PubSubPending&& pending, std::vector<PubSub
 }
 
 // Begin a validated subscription change on the connection IO worker. Copy arguments
-// before handing requests to channel homes (all homes for patterns). Empty unsubscribe
-// returns a synchronous acknowledgement; otherwise pubsub_begin_pending owns the
+// before handing requests to channel homes (all homes for patterns). A no-argument unsubscribe
+// expands to the connection's subscriptions of that kind; only an empty resulting set gets
+// a synchronous acknowledgement. Otherwise pubsub_begin_pending owns the
 // continuation/events and publishes the ROB slot before requests can answer. An EXEC
 // caller supplies a live child and coordinator state instead. Throwing allocations have
 // no local recovery path; async completion waits for every home result.
@@ -1243,8 +1248,9 @@ PubSubStartResult pubsub_start_publish(Client* client, Op& op, bool shard = fals
     return PubSubStartResult::Async;
 }
 
-// PUBSUB syntax errors echo the subcommand token as the client spelled it;
-// command_reply_subcommand_error supplies that protocol grammar.
+// As in Redis 7.4, CHANNELS/SHARDCHANNELS arity failures and unknown subcommands use
+// the subcommand-syntax reply, echoing the token as spelled. HELP and NUMPAT arity
+// failures use pubsub_reply_bad_arity. command_reply_subcommand_error supplies the grammar.
 void pubsub_reply_bad_subcommand(Op& op, bool unknown) {
     command_reply_subcommand_error(op, "PUBSUB", unknown);
 }

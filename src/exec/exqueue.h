@@ -1,6 +1,8 @@
-// Bounded single-producer/single-consumer queue used by the Channel transport in thread.h.
+// Bounded SPSC queue behind Channel (signal.h): ThreadCtx client completions, borrow releases
+// and connection transfers, plus AOF and snapshot chunk channels. Task dispatch uses
+// MaskedSpscArray (masked_queue.h). One producer lets push publish with one release store, no RMW.
 // Release/acquire tail publication protects slot writes; release/acquire head publication permits
-// reuse after pop. The separate retired frontier tracks completed callbacks for quiescence.
+// reuse after pop. Users of quiesced() retire only after processing (see retire below).
 // Producer and consumer frontiers occupy separate cache lines; each caches the remote frontier
 // until its local view reports full/empty, avoiding remote loads on ordinary pushes and pops.
 #pragma once
@@ -16,9 +18,11 @@ inline constexpr size_t kCacheLine = 64;
 // The queue owns inline slot storage; pointer payloads retain their caller-managed lifetimes.
 // Capacity is a nonzero power of two, and callers bound batch counts to that capacity. push
 // refuses without publication when full; pop refuses when empty. Refused items remain with their
-// caller; accepted items require one retire after their callback. Quiescence needs stopped producers
-// and retired==tail,
-// not head==tail. Prepared callbacks must not throw after changing external state.
+// caller; every popped item must be retired exactly once. Where quiesced() gates teardown or
+// role change (ThreadCtx's client/release/transfer channels), retire only after processing.
+// Snapshot chunk writers retire early and must not rely on quiesced(). Completion-aware
+// quiescence needs stopped producers and retired==tail, not head==tail.
+// Prepared callbacks must not throw after changing external state.
 template <typename T, uint32_t Capacity>
 class ExQueue {
     static_assert((Capacity & (Capacity - 1)) == 0, "capacity must be a power of two");
@@ -111,9 +115,10 @@ public:
         return true;
     }
 
-    // Consumer-only, after the popped operation's callback finishes. head advances at pop,
-    // while that callback may still be executing. Teardown, resharding and role conversion must
-    // wait for retired==tail; head==tail alone permits a race with in-flight execution.
+    // Consumer-only, once per popped item. ThreadCtx channels retire after processing so
+    // quiesced() can gate teardown/role changes: head advances at pop while processing may
+    // still be in flight. Snapshot chunk writers retire before writing and use depth(),
+    // so their retired frontier does not prove processing has finished.
     void retire() {
         retired_.store(retired_.load(std::memory_order_relaxed) + 1, std::memory_order_release);
     }

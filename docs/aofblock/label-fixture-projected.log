@@ -1,0 +1,18 @@
+test_count_only_drift_is_actionable (gate_ledger_fixture.FixtureControls.test_count_only_drift_is_actionable) ... ok
+test_current_inventory_and_duplicate_occurrences (gate_ledger_fixture.FixtureControls.test_current_inventory_and_duplicate_occurrences) ... ok
+test_flush_declared_product_preserves_every_actual_leg (gate_ledger_fixture.FixtureControls.test_flush_declared_product_preserves_every_actual_leg) ... ok
+test_future_literal_row_names_missing_label (gate_ledger_fixture.FixtureControls.test_future_literal_row_names_missing_label) ... ok
+test_future_loop_row_names_missing_label (gate_ledger_fixture.FixtureControls.test_future_loop_row_names_missing_label) ... ok
+test_partial_fixture_cannot_redefine_inventory_via_count (gate_ledger_fixture.FixtureControls.test_partial_fixture_cannot_redefine_inventory_via_count) ... ok
+test_receipt_refuses_once_before_control_setup (gate_ledger_fixture.FixtureControls.test_receipt_refuses_once_before_control_setup) ... ok
+test_retired_row_names_extra_label (gate_ledger_fixture.FixtureControls.test_retired_row_names_extra_label) ... ok
+test_same_count_substitution_and_duplicate_loss_are_rejected (gate_ledger_fixture.FixtureControls.test_same_count_substitution_and_duplicate_loss_are_rejected) ... ok
+test_stale_wbland_fixture_names_both_missing_labels (gate_ledger_fixture.FixtureControls.test_stale_wbland_fixture_names_both_missing_labels) ... ok
+test_unsupported_label_expression_refuses_without_evaluation (gate_ledger_fixture.FixtureControls.test_unsupported_label_expression_refuses_without_evaluation) ... ok
+test_wake_lane_case_maps_stay_finite_and_literal (gate_ledger_fixture.FixtureControls.test_wake_lane_case_maps_stay_finite_and_literal) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 1.240s
+
+OK
+IN-MEMORY LANDING PROJECTION ONLY: source/fixture files unchanged; +36 explicit labels.

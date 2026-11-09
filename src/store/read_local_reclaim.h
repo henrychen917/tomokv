@@ -1,9 +1,9 @@
-// read_local_reclaim.h — type-erased handoff from a shard store to its fused owner QSBR list.
+// read_local_reclaim.h — type-erased handoff from a shard store to its physical owner's QSBR list.
 //
 // FlatStore cannot depend on ExLoop without reversing the core/store include graph. The store
-// therefore publishes only this tiny boot-bound sink. Reclamation always runs later on the same
-// physical owner thread; `owner` and `payload` are opaque until the callback is invoked after a
-// grace period.
+// therefore includes this callback interface, also used by core/read_local.h. Runtime reclamation
+// runs through the accepting physical owner's queue after grace; shutdown drains after workers
+// join. Shard migration rebinds the sink through Server::adopt_read_local_retire_sink.
 #pragma once
 #include <cstddef>
 #include <cstdint>
@@ -20,6 +20,16 @@ struct KvBlockCache;
 // cache of blocks that ring produces (see KvBlockCache::kMaxBytes).
 inline constexpr uint32_t kReadLocalRetireRingCapacity = 4096;
 
+// Borrows the deferred queue context and its block cache. The shard owner calls retire after
+// unlinking payload; the queue invokes reclaim with the borrowed owner context after grace (or
+// post-join shutdown). All borrowed contexts must outlive pending callbacks. No ordering primitive
+// is supplied here: the queue seals with Server::advance_read_local_epoch's seq_cst RMW and waits
+// for reader grace. Its full object ring can wait on the writer; available enables preflight.
+// defer must be bound; this wrapper neither validates arguments nor reports failure.
+// Exception to the retiring caller's role: at a quiesced LB/FLIP ownership edge the coordinator
+// can retire a disabled idle clock into the destination queue (adopt_shard_owner_state rebinds
+// the sink before configure_maxmemory -> configure_object_idle(false)). This push relies on
+// executor quiescence; TOMO_RL_CACHE_DEBUG's owner check rejects that cross-thread push.
 struct ReadLocalRetireSink {
     using ReclaimFn = void (*)(void* owner, void* payload, size_t auxiliary);
     using DeferFn = void (*)(void* context, void* owner, void* payload, size_t auxiliary,
@@ -27,10 +37,9 @@ struct ReadLocalRetireSink {
 
     void* context = nullptr;
     DeferFn defer = nullptr;
-    // The owner's post-grace block cache (src/store/kv_block_cache.h). A DIRECT pointer, not a
-    // third function pointer: the armed write path calls into it on every SET, and an indirect
-    // call there would hand back part of the allocator call it exists to remove. Every armed
-    // owner supplies its cache; null is only the unconfigured/off state.
+    // The owner's post-grace block cache (src/store/kv_block_cache.h). The armed write path uses
+    // a direct pointer to avoid an indirect call on SET. ReadLocalDeferredQueue binds its cache;
+    // an unconfigured sink has a null pointer.
     KvBlockCache* block_cache = nullptr;
     // Cold maintenance/lazy-expiry preflight and preallocated resize handoff. A null pair is
     // reserved for synchronous, serverless test sinks; real owners always bind both.

@@ -414,13 +414,35 @@ def storm(c, port, keys, call, oracle, seconds=30, bgsave=False, flip=False, ref
     # storm therefore runs the scripts and plain writers only.
     mix = set(os.environ.get('AT412_STORM_MIX',
                              'scripts,writers' if flip else 'scripts,execs,writers').split(','))
+    # Open T6 with three of the real storm workers. The older EXEC holds keys[0]
+    # while its keys[1] placement is deferred. A write after the script's read
+    # cut forces the younger script to escalate: it holds keys[1], waits for the
+    # EXEC on keys[0], and must be wounded when the older EXEC resumes. These
+    # first operations use the normal counts/attempts and exact-value oracle.
+    # PRE refusal controls, BGSAVE, and FLIP/diagnostic mixes retain their schedule.
+    arm_wound = (not oracle and refusals is None and not flip and not bgsave and
+                 mix == {'scripts', 'execs', 'writers'})
+    first_start = {i: threading.Event() for i in (0, 8, 17)} if arm_wound else {}
+    first_done = {i: threading.Event() for i in first_start}
+    storm_ready = threading.Event() if arm_wound else None
+    script_id = [None]
+    opening_wounds = 0
+    if arm_wound:
+        c.must('DEBUG', 'TXN-PLACE-DEFER', 2000000)
+        c.must('DEBUG', 'SCRIPT-STAGE-DEFER', 500000)
+        c.must('DEBUG', 'SCRIPT-ESCALATE-FORCE', 1)
+        first_start[8].set()
     def enabled(i):
         return ('scripts' if i < 8 else 'execs' if i < 16 else 'writers') in mix
     def worker(i):
         try:
             # V16: an observed five-second freeze must exceed the client deadline.
             with contextlib.closing(Conn('127.0.0.1', port, timeout=4 if flip else 5)) as client:
+                if arm_wound and i == 0:
+                    script_id[0] = client.must('CLIENT', 'ID')
                 start.wait(timeout=10)
+                if arm_wound:
+                    assert first_start.get(i, storm_ready).wait(5), 'wound opening did not start'
                 while not stop.is_set() and enabled(i):
                     # Keep issuing verified work while the controller transfers clients.
                     attempts[i] += 1
@@ -445,6 +467,9 @@ def storm(c, port, keys, call, oracle, seconds=30, bgsave=False, flip=False, ref
                     else:
                         client.must('INCR', keys[(i-16)%2])
                     counts[i] += 1
+                    if i in first_done and attempts[i] == 1:
+                        first_done[i].set()
+                        assert storm_ready.wait(5), 'wound opening did not finish'
         except Exception as e:
             errors.append(repr(e))
             stop.set()
@@ -459,6 +484,9 @@ def storm(c, port, keys, call, oracle, seconds=30, bgsave=False, flip=False, ref
     flip_seconds = []
     flipper = Conn('127.0.0.1', port, timeout=4) if flip and not oracle else None
     try:
+        if arm_wound:
+            c.must('DEBUG', 'SCRIPT-STAGE-WATCH', script_id[0])
+            opening_deadline = time.monotonic() + 4
         while time.monotonic() < deadline and not stop.is_set():
             now = time.monotonic()
             try:
@@ -467,6 +495,23 @@ def storm(c, port, keys, call, oracle, seconds=30, bgsave=False, flip=False, ref
                 stall_info(port)
                 raise
             assert time.monotonic()-now < 1, 'PING stalled'
+            if arm_wound and not storm_ready.is_set():
+                # PING must also cover the wound and its deliberately parked
+                # owners, so advance the opening without blocking this loop.
+                if not first_start[0].is_set():
+                    if stats(c)['atomic_txn_attempts'] > before['atomic_txn_attempts']:
+                        first_start[0].set()
+                elif not first_start[17].is_set():
+                    if stats(c)['script_stage_watch_tasks'] == 1:
+                        first_start[17].set()
+                elif all(event.is_set() for event in first_done.values()):
+                    opening_wounds = stats(c)['atomic_group_wounds'] - before['atomic_group_wounds']
+                    for hook in ('TXN-PLACE-DEFER', 'SCRIPT-STAGE-DEFER',
+                                 'SCRIPT-ESCALATE-FORCE', 'SCRIPT-STAGE-WATCH'):
+                        c.must('DEBUG', hook, 0)
+                    storm_ready.set()
+                assert storm_ready.is_set() or time.monotonic() < opening_deadline, \
+                    'wound opening workers did not finish'
             if bgsave:
                 try:
                     reply = c.cmd('BGSAVE')
@@ -499,6 +544,10 @@ def storm(c, port, keys, call, oracle, seconds=30, bgsave=False, flip=False, ref
             time.sleep(.1)
     finally:
         stop.set()
+        if arm_wound:
+            storm_ready.set()
+            for event in first_start.values():
+                event.set()
         for t in threads:
             t.join(timeout=16 if flip else 6)
     if errors or any(t.is_alive() for t in threads):
@@ -522,6 +571,8 @@ def storm(c, port, keys, call, oracle, seconds=30, bgsave=False, flip=False, ref
         if refusals is None and not flip:  # PRE controls have no escalated units to wound
             if after['atomic_group_wounds'] <= before['atomic_group_wounds']:
                 raise WoundNotObserved('no group wound observed')
+            if arm_wound and opening_wounds == 0:
+                raise WoundNotObserved('no group wound during the directed opening')
         if refusals is None and flip:
             assert after['script_escalations'] > before['script_escalations'], 'no escalation during the FLIPs'
         if flip:
@@ -533,6 +584,9 @@ def storm(c, port, keys, call, oracle, seconds=30, bgsave=False, flip=False, ref
         flipper.close()
     return dict(counts=counts, attempts=attempts, flips=flips, saves=saves,
                 flip_max_seconds=max(flip_seconds, default=0),
+                **(dict(opening_wounds=opening_wounds,
+                        wounds=after['atomic_group_wounds']-before['atomic_group_wounds'])
+                   if arm_wound else {}),
                 **({} if refusals is None else dict(pre_control_refusals=refusals[0])))
 
 
