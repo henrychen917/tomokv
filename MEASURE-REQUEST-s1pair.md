@@ -505,3 +505,91 @@ s1pair as one update to the paper build, which becomes the frozen v1 server (tag
   ABBA MGET/MSET m01-m06/m49-m54 plus GET/SET controls, `calib/exec-merit.py` (8 EXEC cells),
   and `calib/respgen-merit.py` (the paper's RESP instrument: EVALSHA loop 0 and MULTI/EXEC 8
   at P1/P4/P16, both modes).
+
+### s1pair-fix2
+
+2026-11-10; branch `cx-s1pair`, base `9792e39966`. Test-only correction in
+`tests/atomic_survivors_unit.cc::script_apply`: include `kScriptFunctionAdmitted`
+in the exact access-byte expectation. The one-line comment explains that since
+s1pair, legacy EVAL decides OOM once at start and carries admission to APPLY.
+The `watch_modified.h` conditional is unchanged; with that header the expected
+byte is `3 | kScriptModified | kScriptFunctionAdmitted` (15). The assertions that
+APPLY rejects the stale BS image and preserves the foreign APPEND both pass.
+
+Other expectations touched: **none found**. Audited `tests/` with
+`rg -n 'status\[|kScriptFunctionAdmitted|function_admitted|expected_access' tests/`
+and broader searches for spaced status indexing, status aliases and script access
+assertions. The only other exact per-key status comparison,
+`tests/atomic_plain_checks.inc:107`, counts DEL/UNLINK results and is unrelated.
+No assertion that a legacy EVAL write lacks admission was found.
+
+Used the gate's Makefile targets and checked freshness with `make -q` before
+running the units. PRE `make` found the existing survivor binary up to date;
+POST rebuilt both targets successfully. Build commands (exit 0):
+
+```sh
+taskset -c 96-111 make -j16 build/atomic-survivors-unit
+taskset -c 96-111 make -j16 build/atomic-survivors-unit build/at412-owner
+make -q build/atomic-survivors-unit build/at412-owner
+```
+
+Unit invocations used CPUs `96-103`, preserving the gate's eight-core affinity
+and the fixtures' 16-shard, 6:2 configuration. The reproduced before/after result
+for `taskset -c 96-103 ./build/atomic-survivors-unit script_apply` is:
+
+| Expectation | Output | Exit |
+|---|---|---:|
+| Before | `FAIL: script produced the saved BS image from a read-modify-write` | 1 |
+| After | `PASS script_apply` | 0 |
+
+All sixteen defects from the loop at `tests/gate.sh:2733`, each invoked as
+`taskset -c 96-103 ./build/atomic-survivors-unit "$defect"`:
+
+| Defect | Output | Exit |
+|---|---|---:|
+| admission | `PASS admission` | 0 |
+| closure | `PASS closure` | 0 |
+| script_keys | `PASS script_keys` | 0 |
+| rename_overlay | `PASS rename_overlay` | 0 |
+| write_latest | `PASS write_latest` | 0 |
+| script_apply | `PASS script_apply` | 0 |
+| post_apply_probe | `PASS post_apply_probe` | 0 |
+| lua_conversion | `PASS lua_conversion` | 0 |
+| watch_parent | `PASS watch_parent` | 0 |
+| watch_cycle | `PASS watch_cycle` | 0 |
+| mset_arity | `PASS mset_arity` | 0 |
+| watch_oom | `PASS watch_oom` | 0 |
+| lua_lines | `PASS lua_lines` | 0 |
+| library_limit | `PASS library_limit` | 0 |
+| stage_flag | `PASS stage_flag` | 0 |
+| instruction_limit | `PASS instruction_limit` | 0 |
+
+`admission` also prints `PASS atomic collapse: all (both arms; mode/database variants exercised)`.
+
+`tests/at412_owner.cc::aborted_candidate` exercises script APPLY, so its unit
+was also rebuilt and run across the gate's full eight-leg owner matrix:
+`taskset -c 96-103 ./build/at412-owner "$mode" "$atomic" "$engine"`.
+Every invocation prints both
+`aborted optimistic candidate: cancellation published PASS` and
+`AT4.12 owner turns PASS`.
+
+| Mode | Atomic | Engine | Exit |
+|---|---:|---|---:|
+| 1s | 0 | uring | 0 |
+| 1s | 0 | epoll | 0 |
+| 1s | 1 | uring | 0 |
+| 1s | 1 | epoll | 0 |
+| 2s | 0 | uring | 0 |
+| 2s | 0 | epoll | 0 |
+| 2s | 1 | uring | 0 |
+| 2s | 1 | epoll | 0 |
+
+Local build logs, before/after output, per-invocation exit codes and complete
+unit output are retained under `build/s1pair-fix2/` (`results.json` records all
+24 POST invocations). No behavioral failure was observed in these units.
+
+Restored `docs/rlfix5/counts/post/db0-build.json` and `normal-build.json` with
+`git checkout` after the builds. `git diff 9792e39966 -- src` is empty.
+No gate rows were added or retired (quick/full delta 0/0); `tests/gate.sh` and
+its EXPECT constants are untouched. No server, benchmark or gate was run.
+The unrelated TRACK-BCAST-BATCH and maxmemrace boot failures were not changed.
